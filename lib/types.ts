@@ -4,13 +4,19 @@ import { z } from 'zod';
 export const HumorStyle = z.enum(['dad-joke', 'office-safe', 'edgy', 'pg']);
 export type HumorStyle = z.infer<typeof HumorStyle>;
 
-// Gift request schema
+// Gift request schema with relaxed validation
 export const GiftRequestSchema = z.object({
-  recipientDescription: z.string().min(10, 'Please provide more details about the recipient').max(500),
-  occasion: z.string().optional(),
+  recipientDescription: z.string()
+    .min(5, 'Please provide at least a few words about the recipient')
+    .max(2000, 'Description is too long (max 2000 characters)')
+    .trim(),
+  occasion: z.string()
+    .max(500, 'Occasion description is too long (max 500 characters)')
+    .trim()
+    .optional(),
   humorStyle: HumorStyle.default('dad-joke'),
-  minPrice: z.number().min(5).max(1000).default(10),
-  maxPrice: z.number().min(10).max(1000).default(50),
+  minPrice: z.number().min(0).max(10000).default(10),
+  maxPrice: z.number().min(0).max(10000).default(50),
 });
 
 export type GiftRequest = z.infer<typeof GiftRequestSchema>;

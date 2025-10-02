@@ -18,8 +18,13 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (recipientDescription.trim().length < 10) {
-      alert('Please provide more details about the recipient (at least 10 characters)');
+    if (recipientDescription.trim().length < 5) {
+      alert('Please provide at least a few words about the recipient');
+      return;
+    }
+
+    if (recipientDescription.trim().length > 2000) {
+      alert('Description is too long (max 2000 characters)');
       return;
     }
 
@@ -116,8 +121,8 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
               <input
                 id="minPrice"
                 type="number"
-                min="5"
-                max="1000"
+                min="0"
+                max="10000"
                 value={minPrice}
                 onChange={(e) => setMinPrice(Number(e.target.value))}
                 className="w-full pl-8 pr-3 py-2.5 border border-zinc-200 rounded-lg focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900 text-sm"
@@ -132,8 +137,8 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
               <input
                 id="maxPrice"
                 type="number"
-                min="10"
-                max="1000"
+                min="0"
+                max="10000"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
                 className="w-full pl-8 pr-3 py-2.5 border border-zinc-200 rounded-lg focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900 text-sm"
@@ -150,7 +155,7 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={loading || recipientDescription.trim().length < 10}
+        disabled={loading || recipientDescription.trim().length < 5}
         className="w-full accent-gradient text-white font-medium py-3.5 px-8 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
       >
         {loading ? 'Generating...' : 'Find gifts →'}

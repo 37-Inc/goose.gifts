@@ -63,7 +63,7 @@ export default function HomePage() {
             <span className="text-zinc-900">goose.gifts</span>
           </h1>
           <p className="text-lg sm:text-xl text-zinc-600 mb-3 font-medium">
-            AI-Powered Gift Finder
+            Gift like a silly goose!
           </p>
           <p className="text-zinc-500 max-w-2xl mx-auto text-sm sm:text-base">
             Smart, funny gift ideas in seconds. Tell us about them, we'll find the perfect&nbsp;match.

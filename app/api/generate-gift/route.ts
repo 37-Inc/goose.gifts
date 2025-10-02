@@ -42,43 +42,64 @@ export async function POST(request: NextRequest) {
 
     // Step 2: Search for products for each concept
     console.log(`Searching products for ${concepts.length} concepts...`);
-    const giftIdeas: GiftIdea[] = await Promise.all(
-      concepts.map(async (concept, index) => {
-        // Search both Amazon and Etsy for each query
-        const productPromises = concept.productSearchQueries.map(async (query) => {
-          const [amazonProducts, etsyProducts] = await Promise.all([
-            searchMultipleCategoriesAmazon(
-              query,
-              validatedRequest.minPrice / concept.productSearchQueries.length,
-              validatedRequest.maxPrice / concept.productSearchQueries.length
-            ),
-            searchMultipleStrategiesEtsy(
-              query,
-              validatedRequest.minPrice / concept.productSearchQueries.length,
-              validatedRequest.maxPrice / concept.productSearchQueries.length
-            ),
-          ]);
 
-          return [...amazonProducts, ...etsyProducts];
-        });
+    // Feature flag: enable full search once rate limits increase
+    const enableFullSearch = process.env.ENABLE_FULL_SEARCH === 'true';
 
-        const allProductResults = await Promise.all(productPromises);
-        const allProducts = allProductResults.flat();
+    const giftIdeas: GiftIdea[] = [];
 
-        // Take best 2-4 products for this concept
-        const selectedProducts = allProducts
-          .slice(0, Math.min(4, allProducts.length));
+    // Process concepts sequentially to respect rate limits
+    for (const [index, concept] of concepts.entries()) {
+      const allProducts: any[] = [];
 
-        return {
-          id: `gift-${Date.now()}-${index}`,
-          title: concept.title,
-          tagline: concept.tagline,
-          description: concept.description,
-          products: selectedProducts,
-          humorStyle: validatedRequest.humorStyle,
-        };
-      })
-    );
+      // LITE MODE: Search only first query (respects 1 req/sec limit)
+      // FULL MODE: Search all queries for better product variety
+      const queriesToSearch = enableFullSearch
+        ? concept.productSearchQueries
+        : [concept.productSearchQueries[0]];
+
+      console.log(`📦 Searching ${queriesToSearch.length}/${concept.productSearchQueries.length} queries for "${concept.title}"`);
+
+      // Search each query
+      for (const query of queriesToSearch) {
+        const [amazonProducts, etsyProducts] = await Promise.all([
+          searchMultipleCategoriesAmazon(
+            query,
+            validatedRequest.minPrice / queriesToSearch.length,
+            validatedRequest.maxPrice / queriesToSearch.length
+          ),
+          searchMultipleStrategiesEtsy(
+            query,
+            validatedRequest.minPrice / queriesToSearch.length,
+            validatedRequest.maxPrice / queriesToSearch.length
+          ),
+        ]);
+
+        allProducts.push(...amazonProducts, ...etsyProducts);
+
+        // Add delay between queries if in full search mode
+        if (enableFullSearch && queriesToSearch.indexOf(query) < queriesToSearch.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+      }
+
+      // Take best 2-4 products for this concept
+      const selectedProducts = allProducts.slice(0, Math.min(4, allProducts.length));
+
+      giftIdeas.push({
+        id: `gift-${Date.now()}-${index}`,
+        title: concept.title,
+        tagline: concept.tagline,
+        description: concept.description,
+        products: selectedProducts,
+        humorStyle: validatedRequest.humorStyle,
+      });
+
+      // Add delay between concepts to respect rate limits (1.5s)
+      if (index < concepts.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+    }
 
     // Filter out gift ideas with no products
     const validGiftIdeas = giftIdeas.filter(idea => idea.products.length > 0);
