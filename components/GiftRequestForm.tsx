@@ -44,7 +44,7 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
           value={recipientDescription}
           onChange={(e) => setRecipientDescription(e.target.value)}
           placeholder="e.g., My coworker is leaving for a new job. He loves cats and craft beer. He's always making dad jokes in meetings."
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none placeholder:text-gray-500"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none placeholder:text-gray-500 text-gray-900"
           rows={4}
           required
           disabled={loading}
@@ -65,7 +65,7 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
           value={occasion}
           onChange={(e) => setOccasion(e.target.value)}
           placeholder="e.g., Farewell party, Birthday, Secret Santa"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-500"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-500 text-gray-900"
           disabled={loading}
         />
       </div>
@@ -119,7 +119,7 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
                 max="1000"
                 value={minPrice}
                 onChange={(e) => setMinPrice(Number(e.target.value))}
-                className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
                 disabled={loading}
               />
             </div>
@@ -138,7 +138,7 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
                 max="1000"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
                 disabled={loading}
               />
             </div>
