@@ -33,47 +33,47 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-8">
+    <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-zinc-200 p-8 card-hover">
       {/* Recipient Description */}
       <div className="mb-6">
-        <label htmlFor="recipient" className="block text-sm font-semibold text-gray-700 mb-2">
-          Tell us about the recipient *
+        <label htmlFor="recipient" className="block text-sm font-medium text-zinc-900 mb-2">
+          About the recipient
         </label>
         <textarea
           id="recipient"
           value={recipientDescription}
           onChange={(e) => setRecipientDescription(e.target.value)}
-          placeholder="e.g., My coworker is leaving for a new job. He loves cats and craft beer. He's always making dad jokes in meetings."
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none placeholder:text-gray-500 text-gray-900"
+          placeholder="Loves cats, craft beer, makes dad jokes all day..."
+          className="w-full px-3 py-2.5 border border-zinc-200 rounded-lg focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 resize-none placeholder:text-zinc-400 text-zinc-900 text-sm"
           rows={4}
           required
           disabled={loading}
         />
-        <p className="text-xs text-gray-500 mt-1">
-          The more details, the better! Mention hobbies, interests, personality traits, etc.
+        <p className="text-xs text-zinc-500 mt-1.5">
+          More details = better results
         </p>
       </div>
 
       {/* Occasion (Optional) */}
       <div className="mb-6">
-        <label htmlFor="occasion" className="block text-sm font-semibold text-gray-700 mb-2">
-          Occasion (optional)
+        <label htmlFor="occasion" className="block text-sm font-medium text-zinc-900 mb-2">
+          Occasion <span className="text-zinc-400 font-normal">(optional)</span>
         </label>
         <input
           id="occasion"
           type="text"
           value={occasion}
           onChange={(e) => setOccasion(e.target.value)}
-          placeholder="e.g., Farewell party, Birthday, Secret Santa"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-500 text-gray-900"
+          placeholder="Birthday, Anniversary, Just because..."
+          className="w-full px-3 py-2.5 border border-zinc-200 rounded-lg focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 placeholder:text-zinc-400 text-zinc-900 text-sm"
           disabled={loading}
         />
       </div>
 
       {/* Humor Style */}
       <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-3">
-          Humor Style
+        <label className="block text-sm font-medium text-zinc-900 mb-3">
+          Humor style
         </label>
         <div className="grid grid-cols-2 gap-3">
           {[
@@ -86,15 +86,19 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
               key={style.value}
               type="button"
               onClick={() => setHumorStyle(style.value as HumorStyle)}
-              className={`p-4 rounded-lg border-2 text-left transition-all ${
+              className={`p-3 rounded-lg border text-left transition-all ${
                 humorStyle === style.value
-                  ? 'border-purple-500 bg-purple-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-zinc-900 bg-zinc-900 text-white'
+                  : 'border-zinc-200 hover:border-zinc-300'
               }`}
               disabled={loading}
             >
-              <div className="font-semibold text-sm text-gray-900">{style.label}</div>
-              <div className="text-xs text-gray-700 mt-1">{style.desc}</div>
+              <div className={`font-medium text-sm ${humorStyle === style.value ? 'text-white' : 'text-zinc-900'}`}>
+                {style.label}
+              </div>
+              <div className={`text-xs mt-0.5 ${humorStyle === style.value ? 'text-zinc-300' : 'text-zinc-500'}`}>
+                {style.desc}
+              </div>
             </button>
           ))}
         </div>
@@ -102,16 +106,13 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
 
       {/* Budget Range */}
       <div className="mb-8">
-        <label className="block text-sm font-semibold text-gray-700 mb-3">
-          Budget Range
+        <label className="block text-sm font-medium text-zinc-900 mb-3">
+          Budget per bundle
         </label>
         <div className="flex items-center gap-4">
           <div className="flex-1">
-            <label htmlFor="minPrice" className="block text-xs text-gray-600 mb-1">
-              Min Price
-            </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">$</span>
               <input
                 id="minPrice"
                 type="number"
@@ -119,18 +120,15 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
                 max="1000"
                 value={minPrice}
                 onChange={(e) => setMinPrice(Number(e.target.value))}
-                className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                className="w-full pl-8 pr-3 py-2.5 border border-zinc-200 rounded-lg focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900 text-sm"
                 disabled={loading}
               />
             </div>
           </div>
-          <div className="pt-6 text-gray-400">—</div>
+          <div className="text-zinc-300">→</div>
           <div className="flex-1">
-            <label htmlFor="maxPrice" className="block text-xs text-gray-600 mb-1">
-              Max Price
-            </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">$</span>
               <input
                 id="maxPrice"
                 type="number"
@@ -138,14 +136,14 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
                 max="1000"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                className="w-full pl-8 pr-3 py-2.5 border border-zinc-200 rounded-lg focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900 text-sm"
                 disabled={loading}
               />
             </div>
           </div>
         </div>
-        <p className="text-xs text-gray-500 mt-2">
-          Budget per gift bundle (includes 2-4 products)
+        <p className="text-xs text-zinc-500 mt-2">
+          Total for 2-4 products
         </p>
       </div>
 
@@ -153,9 +151,9 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
       <button
         type="submit"
         disabled={loading || recipientDescription.trim().length < 10}
-        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 px-8 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+        className="w-full accent-gradient text-white font-medium py-3.5 px-8 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
       >
-        {loading ? 'Generating Gifts...' : '🎁 Find Funny Gifts'}
+        {loading ? 'Generating...' : 'Find gifts →'}
       </button>
     </form>
   );

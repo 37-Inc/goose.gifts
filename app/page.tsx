@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { GiftRequestForm } from '@/components/GiftRequestForm';
 import { GiftResults } from '@/components/GiftResults';
+import { LoadingSteps } from '@/components/LoadingSteps';
 import type { GiftIdea, GiftRequest } from '@/lib/types';
 
 export default function HomePage() {
@@ -54,19 +55,18 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+    <div className="min-h-screen bg-zinc-50">
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-12 sm:py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl sm:text-7xl font-extrabold mb-4">
-            <span className="gradient-text">goose.gifts</span>
+      <div className="container mx-auto px-4 py-16 sm:py-24">
+        <div className="text-center mb-16">
+          <h1 className="text-6xl sm:text-8xl font-bold mb-6 tracking-tight">
+            <span className="text-zinc-900">goose.gifts</span>
           </h1>
-          <p className="text-xl sm:text-2xl text-gray-700 mb-2">
-            AI-Powered Funny Gift Finder
+          <p className="text-lg sm:text-xl text-zinc-600 mb-3 font-medium">
+            AI-Powered Gift Finder
           </p>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Discover hilarious, pun-driven gift ideas powered by AI.
-            Tell us about your recipient and we'll create funny, themed gift bundles just for them!
+          <p className="text-zinc-500 max-w-xl mx-auto text-sm sm:text-base">
+            Smart, funny gift ideas in seconds. Tell us about them, we'll find the perfect match.
           </p>
         </div>
 
@@ -82,14 +82,8 @@ export default function HomePage() {
             )}
 
             {loading && (
-              <div className="mt-12 text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
-                <p className="text-lg text-gray-700 font-medium">
-                  Creating hilarious gift ideas...
-                </p>
-                <p className="text-sm text-gray-500 mt-2">
-                  This may take 20-30 seconds while we search for the perfect products
-                </p>
+              <div className="mt-16">
+                <LoadingSteps />
               </div>
             )}
           </div>
@@ -108,36 +102,27 @@ export default function HomePage() {
 
       {/* How It Works Section */}
       {!giftIdeas && !loading && (
-        <div className="container mx-auto px-4 py-16 max-w-5xl">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-            How It Works
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">✍️</span>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">1. Describe</h3>
-              <p className="text-gray-700">
-                Tell us about the recipient, the occasion, and your budget
+        <div className="container mx-auto px-4 py-24 max-w-4xl">
+          <div className="grid md:grid-cols-3 gap-12">
+            <div>
+              <div className="text-zinc-900 text-sm font-semibold mb-2">01</div>
+              <h3 className="text-lg font-semibold mb-2 text-zinc-900">Describe</h3>
+              <p className="text-sm text-zinc-500 leading-relaxed">
+                Tell us about them - interests, personality, the occasion
               </p>
             </div>
-            <div className="text-center">
-              <div className="bg-pink-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">🤖</span>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">2. AI Magic</h3>
-              <p className="text-gray-700">
-                Our AI creates funny, punny gift concepts and finds real products
+            <div>
+              <div className="text-zinc-900 text-sm font-semibold mb-2">02</div>
+              <h3 className="text-lg font-semibold mb-2 text-zinc-900">Generate</h3>
+              <p className="text-sm text-zinc-500 leading-relaxed">
+                AI creates clever gift concepts with real products
               </p>
             </div>
-            <div className="text-center">
-              <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">🎁</span>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">3. Share & Buy</h3>
-              <p className="text-gray-700">
-                Get themed gift bundles with links to buy, plus a shareable link
+            <div>
+              <div className="text-zinc-900 text-sm font-semibold mb-2">03</div>
+              <h3 className="text-lg font-semibold mb-2 text-zinc-900">Share</h3>
+              <p className="text-sm text-zinc-500 leading-relaxed">
+                Get curated bundles with links, ready to buy or share
               </p>
             </div>
           </div>
