@@ -117,8 +117,8 @@ export default function HomePage() {
               <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">✍️</span>
               </div>
-              <h3 className="text-xl font-bold mb-2">1. Describe</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-2 text-gray-900">1. Describe</h3>
+              <p className="text-gray-700">
                 Tell us about the recipient, the occasion, and your budget
               </p>
             </div>
@@ -126,8 +126,8 @@ export default function HomePage() {
               <div className="bg-pink-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">🤖</span>
               </div>
-              <h3 className="text-xl font-bold mb-2">2. AI Magic</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-2 text-gray-900">2. AI Magic</h3>
+              <p className="text-gray-700">
                 Our AI creates funny, punny gift concepts and finds real products
               </p>
             </div>
@@ -135,8 +135,8 @@ export default function HomePage() {
               <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">🎁</span>
               </div>
-              <h3 className="text-xl font-bold mb-2">3. Share & Buy</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-2 text-gray-900">3. Share & Buy</h3>
+              <p className="text-gray-700">
                 Get themed gift bundles with links to buy, plus a shareable link
               </p>
             </div>
