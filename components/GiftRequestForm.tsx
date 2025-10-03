@@ -12,8 +12,6 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
   const [recipientDescription, setRecipientDescription] = useState('');
   const [occasion, setOccasion] = useState('');
   const [humorStyle, setHumorStyle] = useState<HumorStyle>('dad-joke');
-  const [minPrice, setMinPrice] = useState(10);
-  const [maxPrice, setMaxPrice] = useState(50);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +30,8 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
       recipientDescription: recipientDescription.trim(),
       occasion: occasion.trim() || undefined,
       humorStyle,
-      minPrice,
-      maxPrice,
+      minPrice: 0,
+      maxPrice: 10000,
     });
   };
 
@@ -107,49 +105,6 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Budget Range */}
-      <div className="mb-8">
-        <label className="block text-sm font-medium text-zinc-900 mb-3">
-          Budget per bundle
-        </label>
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">$</span>
-              <input
-                id="minPrice"
-                type="number"
-                min="0"
-                max="10000"
-                value={minPrice}
-                onChange={(e) => setMinPrice(Number(e.target.value))}
-                className="w-full pl-8 pr-3 py-2.5 border border-zinc-200 rounded-lg focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900 text-sm"
-                disabled={loading}
-              />
-            </div>
-          </div>
-          <div className="text-zinc-300">→</div>
-          <div className="flex-1">
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">$</span>
-              <input
-                id="maxPrice"
-                type="number"
-                min="0"
-                max="10000"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full pl-8 pr-3 py-2.5 border border-zinc-200 rounded-lg focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900 text-sm"
-                disabled={loading}
-              />
-            </div>
-          </div>
-        </div>
-        <p className="text-xs text-zinc-500 mt-2">
-          Total for 2-4 products
-        </p>
       </div>
 
       {/* Submit Button */}

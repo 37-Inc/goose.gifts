@@ -99,7 +99,6 @@ function buildUserPrompt(request: GiftConceptRequest): string {
 
 RECIPIENT: ${request.recipientDescription}
 ${request.occasion ? `OCCASION: ${request.occasion}` : ''}
-BUDGET: $${request.minPrice} - $${request.maxPrice} per bundle
 HUMOR STYLE: ${request.humorStyle}
 
 Generate 3-4 creative gift bundles. Make them genuinely funny and shareable!`;

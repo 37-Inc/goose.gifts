@@ -147,7 +147,7 @@ async function searchAmazonProductsInternal(
       source: 'amazon' as const,
       rating: item.CustomerReviews?.StarRating?.Value,
       reviewCount: item.CustomerReviews?.Count,
-    })).filter((product: Product) => product.price > 0 && product.imageUrl);
+    })).filter((product: Product) => product.imageUrl);
   } catch (error) {
     console.error('Amazon API error:', error);
     return [];

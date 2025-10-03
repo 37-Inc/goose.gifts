@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GiftRequestSchema, type GiftIdea } from '@/lib/types';
 import { generateGiftConcepts } from '@/lib/openai';
 import { searchMultipleCategoriesAmazon } from '@/lib/amazon';
+import { searchAmazonViaGoogleMulti } from '@/lib/google-amazon-search';
 import { searchMultipleStrategiesEtsy } from '@/lib/etsy';
 import { saveGiftIdeas } from '@/lib/db';
 
@@ -43,61 +44,114 @@ export async function POST(request: NextRequest) {
     // Step 2: Search for products for each concept
     console.log(`Searching products for ${concepts.length} concepts...`);
 
-    // Feature flag: enable full search once rate limits increase
+    // Feature flags
     const enableFullSearch = process.env.ENABLE_FULL_SEARCH === 'true';
+    const useGoogleSearch = process.env.USE_GOOGLE_AMAZON_SEARCH === 'true';
+
+    // Choose Amazon search method
+    const amazonSearchFn = useGoogleSearch
+      ? searchAmazonViaGoogleMulti
+      : searchMultipleCategoriesAmazon;
+
+    console.log(`🔧 Search mode: ${useGoogleSearch ? 'GOOGLE' : 'PA-API'} | ${enableFullSearch ? 'FULL' : 'LITE'}`);
 
     const giftIdeas: GiftIdea[] = [];
 
-    // Process concepts sequentially to respect rate limits
-    for (const [index, concept] of concepts.entries()) {
-      const allProducts: any[] = [];
+    // Google Search can run in parallel (no strict rate limits)
+    // PA-API needs sequential processing (1 req/sec limit)
+    if (useGoogleSearch) {
+      // PARALLEL MODE for Google Search - much faster!
+      const conceptPromises = concepts.map(async (concept, index) => {
+        const queriesToSearch = enableFullSearch
+          ? concept.productSearchQueries
+          : [concept.productSearchQueries[0]];
 
-      // LITE MODE: Search only first query (respects 1 req/sec limit)
-      // FULL MODE: Search all queries for better product variety
-      const queriesToSearch = enableFullSearch
-        ? concept.productSearchQueries
-        : [concept.productSearchQueries[0]];
+        console.log(`📦 Searching ${queriesToSearch.length}/${concept.productSearchQueries.length} queries for "${concept.title}"`);
 
-      console.log(`📦 Searching ${queriesToSearch.length}/${concept.productSearchQueries.length} queries for "${concept.title}"`);
+        // Search all queries in parallel
+        const productPromises = queriesToSearch.map(async (query) => {
+          const [amazonProducts, etsyProducts] = await Promise.all([
+            amazonSearchFn(
+              query,
+              validatedRequest.minPrice / queriesToSearch.length,
+              validatedRequest.maxPrice / queriesToSearch.length
+            ),
+            searchMultipleStrategiesEtsy(
+              query,
+              validatedRequest.minPrice / queriesToSearch.length,
+              validatedRequest.maxPrice / queriesToSearch.length
+            ),
+          ]);
+          return [...amazonProducts, ...etsyProducts];
+        });
 
-      // Search each query
-      for (const query of queriesToSearch) {
-        const [amazonProducts, etsyProducts] = await Promise.all([
-          searchMultipleCategoriesAmazon(
-            query,
-            validatedRequest.minPrice / queriesToSearch.length,
-            validatedRequest.maxPrice / queriesToSearch.length
-          ),
-          searchMultipleStrategiesEtsy(
-            query,
-            validatedRequest.minPrice / queriesToSearch.length,
-            validatedRequest.maxPrice / queriesToSearch.length
-          ),
-        ]);
+        const allProductResults = await Promise.all(productPromises);
+        const allProducts = allProductResults.flat();
+        const selectedProducts = allProducts.slice(0, Math.min(4, allProducts.length));
 
-        allProducts.push(...amazonProducts, ...etsyProducts);
-
-        // Add delay between queries if in full search mode
-        if (enableFullSearch && queriesToSearch.indexOf(query) < queriesToSearch.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1500));
-        }
-      }
-
-      // Take best 2-4 products for this concept
-      const selectedProducts = allProducts.slice(0, Math.min(4, allProducts.length));
-
-      giftIdeas.push({
-        id: `gift-${Date.now()}-${index}`,
-        title: concept.title,
-        tagline: concept.tagline,
-        description: concept.description,
-        products: selectedProducts,
-        humorStyle: validatedRequest.humorStyle,
+        return {
+          id: `gift-${Date.now()}-${index}`,
+          title: concept.title,
+          tagline: concept.tagline,
+          description: concept.description,
+          products: selectedProducts,
+          humorStyle: validatedRequest.humorStyle,
+        };
       });
 
-      // Add delay between concepts to respect rate limits (1.5s)
-      if (index < concepts.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1500));
+      giftIdeas.push(...await Promise.all(conceptPromises));
+    } else {
+      // SEQUENTIAL MODE for PA-API - respect rate limits
+      for (const [index, concept] of concepts.entries()) {
+        const allProducts: any[] = [];
+
+        // LITE MODE: Search only first query (respects 1 req/sec limit)
+        // FULL MODE: Search all queries for better product variety
+        const queriesToSearch = enableFullSearch
+          ? concept.productSearchQueries
+          : [concept.productSearchQueries[0]];
+
+        console.log(`📦 Searching ${queriesToSearch.length}/${concept.productSearchQueries.length} queries for "${concept.title}"`);
+
+        // Search each query sequentially
+        for (const query of queriesToSearch) {
+          const [amazonProducts, etsyProducts] = await Promise.all([
+            amazonSearchFn(
+              query,
+              validatedRequest.minPrice / queriesToSearch.length,
+              validatedRequest.maxPrice / queriesToSearch.length
+            ),
+            searchMultipleStrategiesEtsy(
+              query,
+              validatedRequest.minPrice / queriesToSearch.length,
+              validatedRequest.maxPrice / queriesToSearch.length
+            ),
+          ]);
+
+          allProducts.push(...amazonProducts, ...etsyProducts);
+
+          // Add delay between queries if in full search mode
+          if (enableFullSearch && queriesToSearch.indexOf(query) < queriesToSearch.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+          }
+        }
+
+        // Take best 2-4 products for this concept
+        const selectedProducts = allProducts.slice(0, Math.min(4, allProducts.length));
+
+        giftIdeas.push({
+          id: `gift-${Date.now()}-${index}`,
+          title: concept.title,
+          tagline: concept.tagline,
+          description: concept.description,
+          products: selectedProducts,
+          humorStyle: validatedRequest.humorStyle,
+        });
+
+        // Add delay between concepts to respect rate limits (1.5s)
+        if (index < concepts.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
       }
     }
 
@@ -116,16 +170,27 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Step 3: Save to database and generate permalink
-    console.log('Saving gift ideas...');
-    const slug = await saveGiftIdeas(validatedRequest, validGiftIdeas);
+    // Step 3: Save to database and generate permalink (optional)
+    let slug = null;
+    let permalinkUrl = null;
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    if (process.env.POSTGRES_URL) {
+      try {
+        console.log('Saving gift ideas...');
+        slug = await saveGiftIdeas(validatedRequest, validGiftIdeas);
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        permalinkUrl = `${baseUrl}/${slug}`;
+      } catch (error) {
+        console.warn('⚠️  Failed to save to database, continuing without permalink:', error);
+      }
+    } else {
+      console.log('⚠️  Database not configured, skipping permalink generation');
+    }
 
     return NextResponse.json({
       success: true,
       slug,
-      permalinkUrl: `${baseUrl}/${slug}`,
+      permalinkUrl,
       giftIdeas: validGiftIdeas,
     });
   } catch (error) {

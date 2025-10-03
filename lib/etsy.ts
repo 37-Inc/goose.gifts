@@ -27,8 +27,6 @@ export async function searchEtsyProducts(
 ): Promise<Product[]> {
   const searchParams = new URLSearchParams({
     keywords: params.keywords,
-    min_price: params.minPrice.toString(),
-    max_price: params.maxPrice.toString(),
     sort_on: 'score',
     sort_order: 'down',
     limit: '50',
