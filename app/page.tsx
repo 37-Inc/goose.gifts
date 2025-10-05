@@ -10,6 +10,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [giftIdeas, setGiftIdeas] = useState<GiftIdea[] | null>(null);
   const [permalinkUrl, setPermalinkUrl] = useState<string | null>(null);
+  const [searchRequest, setSearchRequest] = useState<GiftRequest | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (request: GiftRequest) => {
@@ -17,6 +18,7 @@ export default function HomePage() {
     setError(null);
     setGiftIdeas(null);
     setPermalinkUrl(null);
+    setSearchRequest(request);
 
     try {
       const response = await fetch('/api/generate-gift', {
@@ -59,9 +61,17 @@ export default function HomePage() {
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16 sm:py-24">
         <div className="text-center mb-16">
-          <h1 className="text-6xl sm:text-8xl font-bold mb-6 tracking-tight">
-            <span className="text-zinc-900">goose.gifts</span>
-          </h1>
+          {/* Logo + Title - stacked on mobile, inline on desktop */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-6">
+            <img
+              src="/sillygoose.png"
+              alt="Silly Goose"
+              className="w-24 h-24 sm:w-32 sm:h-32 sm:translate-y-3"
+            />
+            <h1 className="text-6xl sm:text-8xl font-bold tracking-tight text-zinc-900">
+              goose.gifts
+            </h1>
+          </div>
           <p className="text-lg sm:text-xl text-zinc-600 mb-3 font-medium">
             Gift like a silly goose!
           </p>
@@ -91,9 +101,11 @@ export default function HomePage() {
           <GiftResults
             giftIdeas={giftIdeas}
             permalinkUrl={permalinkUrl}
+            searchRequest={searchRequest}
             onStartOver={() => {
               setGiftIdeas(null);
               setPermalinkUrl(null);
+              setSearchRequest(null);
               setError(null);
             }}
           />

@@ -62,13 +62,13 @@ function buildSystemPrompt(humorStyle: HumorStyle): string {
 
 HUMOR STYLE: ${styleGuides[humorStyle]}
 
-Your task is to generate 5 creative gift "concepts" - each concept is a themed bundle of 3 products with a punny title.
+Your task is to generate 5 creative gift "concepts" - each concept is a themed bundle of 4 products with a punny title.
 
 Requirements:
 1. Each concept must have a punny, memorable title that makes people laugh
 2. Write a witty one-liner tagline (max 20 words)
 3. Explain why this bundle is perfect for the recipient (2-3 sentences)
-4. Provide 3-4 specific product search queries for finding items on Amazon/Etsy (we'll use these to find the best 3 products)
+4. Provide 4 specific product search queries for finding items on Amazon/Etsy (we'll use these to find the best 4 products)
 
 IMPORTANT:
 - Product queries should be specific enough to find real products (e.g., "funny cat coffee mug ceramic" not just "cat thing")
@@ -146,7 +146,7 @@ export async function selectBestProducts(
   conceptTitle: string,
   conceptDescription: string,
   products: any[],
-  targetCount: number = 3
+  targetCount: number = 4
 ): Promise<any[]> {
   // If we have fewer products than target, return all
   if (products.length <= targetCount) {

@@ -95,14 +95,14 @@ export async function POST(request: NextRequest) {
           return true;
         });
 
-        console.log(`🔍 Found ${allProducts.length} unique products, selecting best 3 with LLM...`);
+        console.log(`🔍 Found ${allProducts.length} unique products, selecting best 4 with LLM...`);
 
-        // Use LLM to select the best 3 unique products
+        // Use LLM to select the best 4 unique products
         const selectedProducts = await selectBestProducts(
           concept.title,
           concept.description,
           allProducts,
-          3
+          4
         );
 
         console.log(`✅ Selected ${selectedProducts.length} products for "${concept.title}"`);
@@ -162,14 +162,14 @@ export async function POST(request: NextRequest) {
           return true;
         });
 
-        console.log(`🔍 Found ${allProducts.length} unique products, selecting best 3 with LLM...`);
+        console.log(`🔍 Found ${allProducts.length} unique products, selecting best 4 with LLM...`);
 
-        // Use LLM to select the best 3 unique products
+        // Use LLM to select the best 4 unique products
         const selectedProducts = await selectBestProducts(
           concept.title,
           concept.description,
           allProducts,
-          3
+          4
         );
 
         console.log(`✅ Selected ${selectedProducts.length} products for "${concept.title}"`);

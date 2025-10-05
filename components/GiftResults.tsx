@@ -2,15 +2,16 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import type { GiftIdea } from '@/lib/types';
+import type { GiftIdea, GiftRequest } from '@/lib/types';
 
 interface GiftResultsProps {
   giftIdeas: GiftIdea[];
   permalinkUrl: string | null;
+  searchRequest: GiftRequest | null;
   onStartOver: () => void;
 }
 
-export function GiftResults({ giftIdeas, permalinkUrl, onStartOver }: GiftResultsProps) {
+export function GiftResults({ giftIdeas, permalinkUrl, searchRequest, onStartOver }: GiftResultsProps) {
   const [copiedLink, setCopiedLink] = useState(false);
 
   const handleCopyLink = async () => {
@@ -24,13 +25,25 @@ export function GiftResults({ giftIdeas, permalinkUrl, onStartOver }: GiftResult
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Header */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-8">
         <h2 className="text-3xl font-semibold text-zinc-900 mb-3">
           Your Gift Ideas
         </h2>
-        <p className="text-zinc-500 text-sm">
-          Curated bundles, ready to share
-        </p>
+        {searchRequest && (
+          <div className="max-w-2xl mx-auto">
+            <p className="text-sm text-zinc-500 mb-1">
+              Gift ideas for
+            </p>
+            <p className="text-base text-zinc-700 font-medium">
+              {searchRequest.recipientDescription}
+            </p>
+            {searchRequest.occasion && (
+              <p className="text-sm text-zinc-500 mt-1">
+                {searchRequest.occasion}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Share Link */}
@@ -58,19 +71,19 @@ export function GiftResults({ giftIdeas, permalinkUrl, onStartOver }: GiftResult
         {giftIdeas.map((giftIdea, index) => (
           <div key={giftIdea.id} className="group">
             {/* Gift Header */}
-            <div className="mb-8 max-w-3xl">
-              <div className="flex items-baseline gap-3 mb-3">
-                <span className="text-sm font-medium text-zinc-400">
+            <div className="mb-10 max-w-3xl">
+              <div className="flex items-baseline gap-4 mb-4">
+                <span className="text-xs font-semibold text-zinc-400 tracking-widest">
                   {String(index + 1).padStart(2, '0')}
                 </span>
-                <h3 className="text-2xl font-semibold text-zinc-900">
+                <h3 className="text-3xl font-bold text-zinc-900 tracking-tight">
                   {giftIdea.title}
                 </h3>
               </div>
-              <p className="text-lg text-zinc-600 italic ml-11">
+              <p className="text-lg text-zinc-500 italic ml-11 mb-4 font-light">
                 "{giftIdea.tagline}"
               </p>
-              <p className="text-sm text-zinc-500 mt-3 ml-11 leading-relaxed">
+              <p className="text-sm text-zinc-600 ml-11 leading-relaxed max-w-2xl">
                 {giftIdea.description}
               </p>
             </div>
@@ -83,7 +96,7 @@ export function GiftResults({ giftIdeas, permalinkUrl, onStartOver }: GiftResult
                   href={product.affiliateUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group/product block"
+                  className="group/product block bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
                 >
                   {/* Product Image */}
                   <div className="relative mb-4 bg-zinc-50 rounded-lg overflow-hidden" style={{ aspectRatio: '1.91/1' }}>
@@ -105,11 +118,11 @@ export function GiftResults({ giftIdeas, permalinkUrl, onStartOver }: GiftResult
                   </div>
 
                   {/* Product Info */}
-                  <h4 className="text-sm font-medium text-zinc-900 mb-2 line-clamp-2 group-hover/product:text-zinc-600 transition-colors">
+                  <h4 className="text-sm font-medium text-zinc-900 mb-3 line-clamp-2 min-h-[2.5rem]">
                     {product.title}
                   </h4>
 
-                  <div className="flex items-baseline justify-between">
+                  <div className="flex items-baseline justify-between mb-1">
                     {product.price > 0 ? (
                       <span className="text-lg font-semibold text-zinc-900">
                         ${product.price.toFixed(2)}
