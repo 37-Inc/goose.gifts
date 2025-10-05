@@ -133,7 +133,7 @@ export default async function PermalinkPage({ params }: PageProps) {
               Want Your Own Funny Gift Ideas?
             </h3>
             <p className="mb-6 opacity-90">
-              Tell us about your recipient and we'll create hilarious, personalized gift bundles powered by AI
+              Tell us about your recipient and we&apos;ll create hilarious, personalized gift bundles powered by AI
             </p>
             <Link
               href="/"

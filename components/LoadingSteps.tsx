@@ -24,19 +24,20 @@ const gooseMessages = [
 ];
 
 // Generate concept title templates based on theme
-const generateMockConceptTitles = (description: string) => {
-  const themes = [
-    'The Perfect [X] Kit',
-    '[X]-tastic Bundle',
-    'Ultimate [X] Package',
-    '[X] Lover\'s Dream',
-    'The [X] Collection',
-  ];
-
-  return themes.map((template, i) =>
-    template.replace('[X]', `Concept ${i + 1}`)
-  );
-};
+// Currently unused but kept for potential future use
+// const generateMockConceptTitles = (_description: string) => {
+//   const themes = [
+//     'The Perfect [X] Kit',
+//     '[X]-tastic Bundle',
+//     'Ultimate [X] Package',
+//     '[X] Lover\'s Dream',
+//     'The [X] Collection',
+//   ];
+//
+//   return themes.map((template, i) =>
+//     template.replace('[X]', `Concept ${i + 1}`)
+//   );
+// };
 
 interface LoadingStepsProps {
   recipientDescription?: string;

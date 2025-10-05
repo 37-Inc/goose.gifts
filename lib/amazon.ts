@@ -20,11 +20,12 @@ async function retryWithBackoff<T>(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (error: any) {
-      lastError = error;
+    } catch (error: unknown) {
+      lastError = error as Error;
+      const errorMessage = error instanceof Error ? error.message : String(error);
 
       // Don't retry if not a 429 rate limit error
-      if (!error.message?.includes('429') && !error.message?.includes('TooManyRequests')) {
+      if (!errorMessage.includes('429') && !errorMessage.includes('TooManyRequests')) {
         throw error;
       }
 
@@ -137,6 +138,7 @@ async function searchAmazonProductsInternal(
 
     console.log(`✅ Found ${data.SearchResult.Items.length} products for:`, params.keywords);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return data.SearchResult.Items.map((item: any) => ({
       id: item.ASIN,
       title: item.ItemInfo?.Title?.DisplayValue || 'Untitled Product',
@@ -155,7 +157,7 @@ async function searchAmazonProductsInternal(
 }
 
 // Helper functions for AWS4 signing
-function createCanonicalRequest(params: any, timestamp: string): string {
+function createCanonicalRequest(params: Record<string, unknown>, timestamp: string): string {
   const payload = JSON.stringify(params);
   const hashedPayload = crypto.createHash('sha256').update(payload).digest('hex');
 
@@ -271,6 +273,7 @@ function scoreAndSortProducts(products: Product[]): Product[] {
 
       return { ...product, score };
     })
-    .sort((a, b) => (b as any).score - (a as any).score)
-    .map(({ score, ...product }) => product);
+    .sort((a, b) => (b as Product & { score: number }).score - (a as Product & { score: number }).score)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .map(({ score: _score, ...product }) => product);
 }

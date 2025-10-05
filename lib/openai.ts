@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import type { HumorStyle } from './types';
+import type { HumorStyle, Product } from './types';
 import { GIFT_CONCEPTS_COUNT, PRODUCTS_PER_BUNDLE } from './config';
 
 const openai = new OpenAI({
@@ -146,9 +146,9 @@ export async function streamGiftConcepts(
 export async function selectBestProducts(
   conceptTitle: string,
   conceptDescription: string,
-  products: any[],
+  products: Product[],
   targetCount: number = PRODUCTS_PER_BUNDLE
-): Promise<any[]> {
+): Promise<Product[]> {
   console.log(`🤖 selectBestProducts called: ${products.length} products, target ${targetCount}`);
 
   // If we have fewer products than target, return all

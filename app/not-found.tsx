@@ -9,7 +9,7 @@ export default function NotFound() {
           Gift Ideas Not Found
         </h2>
         <p className="text-gray-600 mb-8 max-w-md mx-auto">
-          Looks like this gift idea page doesn't exist or has been removed.
+          Looks like this gift idea page doesn&apos;t exist or has been removed.
           Why not create your own hilarious gift ideas?
         </p>
         <Link

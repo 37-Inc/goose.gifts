@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Script from 'next/script';
 import type { GiftIdea, GiftRequest } from '@/lib/types';
@@ -117,7 +117,7 @@ export function GiftResults({ giftIdeas, permalinkUrl, searchRequest, onStartOve
                 </h3>
               </div>
               <p className="text-lg text-zinc-500 italic ml-11 mb-4 font-light">
-                "{giftIdea.tagline}"
+                &quot;{giftIdea.tagline}&quot;
               </p>
               <p className="text-sm text-zinc-600 ml-11 leading-relaxed max-w-2xl">
                 {giftIdea.description}

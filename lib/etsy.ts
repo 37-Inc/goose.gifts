@@ -174,6 +174,7 @@ function scoreAndSortEtsyProducts(products: Product[]): Product[] {
 
       return { ...product, score };
     })
-    .sort((a, b) => (b as any).score - (a as any).score)
-    .map(({ score, ...product }) => product);
+    .sort((a, b) => (b as Product & { score: number }).score - (a as Product & { score: number }).score)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .map(({ score: _score, ...product }) => product);
 }

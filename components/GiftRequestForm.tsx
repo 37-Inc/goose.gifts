@@ -53,7 +53,7 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
           disabled={loading}
         />
         <p className="text-xs text-zinc-500 mt-1.5">
-          Example: "Loves cats, dad jokes, and craft beer. Works from home."
+          Example: &quot;Loves cats, dad jokes, and craft beer. Works from home.&quot;
         </p>
       </div>
 

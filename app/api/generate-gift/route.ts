@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     } else {
       // SEQUENTIAL MODE for PA-API - respect rate limits
       for (const [index, concept] of concepts.entries()) {
-        let allProducts: any[] = [];
+        let allProducts: Product[] = [];
 
         // LITE MODE: Search only first 2 queries (respects 1 req/sec limit)
         // FULL MODE: Search all queries for better product variety

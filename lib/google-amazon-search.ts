@@ -37,8 +37,10 @@ interface GoogleSearchResponse {
 
 export async function searchAmazonViaGoogle(
   query: string,
-  minPrice?: number,
-  maxPrice?: number
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _minPrice?: number,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _maxPrice?: number
 ): Promise<Product[]> {
   const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
   const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;

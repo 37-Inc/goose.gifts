@@ -5,6 +5,7 @@ import { GiftRequestForm } from '@/components/GiftRequestForm';
 import { GiftResults } from '@/components/GiftResults';
 import { LoadingSteps } from '@/components/LoadingSteps';
 import type { GiftIdea, GiftRequest } from '@/lib/types';
+import type { GiftConcept } from '@/lib/openai';
 
 export default function HomePage() {
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,7 @@ export default function HomePage() {
       if (data.needsApiKeys && data.concepts) {
         setError(
           `🎉 AI Generated ${data.concepts.length} Concepts!\n\n` +
-          data.concepts.map((c: any, i: number) =>
+          data.concepts.map((c: GiftConcept, i: number) =>
             `${i + 1}. ${c.title}\n   "${c.tagline}"\n   ${c.description}\n   📦 Will search for: ${c.productSearchQueries.join(', ')}`
           ).join('\n\n') +
           '\n\n⚠️ Add Amazon/Etsy API keys to see actual products!'
@@ -87,7 +88,7 @@ export default function HomePage() {
             Gift like a silly goose!
           </p>
           <p className="text-zinc-500 max-w-2xl mx-auto text-sm sm:text-base">
-            Smart, funny gift ideas in seconds. Tell us about them, we'll find the perfect&nbsp;match.
+            Smart, funny gift ideas in seconds. Tell us about them, we&apos;ll find the perfect&nbsp;match.
           </p>
         </div>
 
@@ -125,8 +126,8 @@ export default function HomePage() {
 
       {/* How It Works Section */}
       {!giftIdeas && !loading && (
-        <div className="container mx-auto px-4 py-24 max-w-4xl">
-          <div className="grid md:grid-cols-3 gap-12">
+        <div className="container mx-auto px-4 py-24 max-w-2xl">
+          <div className="grid md:grid-cols-3 gap-8">
             <div>
               <div className="text-zinc-900 text-sm font-semibold mb-2">01</div>
               <h3 className="text-lg font-semibold mb-2 text-zinc-900">Describe</h3>
