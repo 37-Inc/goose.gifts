@@ -12,7 +12,20 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "goose.gifts - AI-Powered Funny Gift Finder",
   description: "Discover hilarious, pun-driven gift ideas powered by AI. Perfect for any occasion!",
-  keywords: ["funny gifts", "gag gifts", "AI gift finder", "humorous presents", "quirky gifts"],
+  keywords: [
+    "AI gift finder",
+    "funny gift ideas",
+    "gag gifts",
+    "humorous presents",
+    "quirky gifts",
+    "gift generator",
+    "white elephant gifts",
+    "secret santa ideas",
+    "funny gift bundles",
+    "personalized gifts",
+    "joke gifts",
+    "AI gift recommendations"
+  ],
   openGraph: {
     title: "goose.gifts - AI-Powered Funny Gift Finder",
     description: "Discover hilarious, pun-driven gift ideas powered by AI",
@@ -25,9 +38,47 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://goose.gifts';
+
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'goose.gifts',
+    url: baseUrl,
+    description: 'AI-powered funny gift finder - discover hilarious, pun-driven gift ideas',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${baseUrl}/?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'goose.gifts',
+    url: baseUrl,
+    logo: `${baseUrl}/sillygoose.png`,
+    description: 'AI-powered gift finder for funny, creative gift ideas',
+  };
+
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased min-h-screen`}>
+        {/* JSON-LD Structured Data */}
+        <Script
+          id="website-schema"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <Script
+          id="organization-schema"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-6RR3HPR747"

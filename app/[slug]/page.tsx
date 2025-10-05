@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Script from 'next/script';
 import { getGiftIdeasBySlug } from '@/lib/db';
 import { GiftResults } from '@/components/GiftResults';
 
@@ -42,8 +43,41 @@ export default async function PermalinkPage({ params }: PageProps) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
   const permalinkUrl = `${baseUrl}/${slug}`;
 
+  // Generate JSON-LD structured data for gift bundles
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Gift Ideas for ${record.recipient_description.slice(0, 100)}`,
+    description: `AI-generated gift bundles: ${record.gift_ideas.map(g => g.title).join(', ')}`,
+    numberOfItems: record.gift_ideas.length,
+    itemListElement: record.gift_ideas.map((gift, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'Product',
+        name: gift.title,
+        description: gift.tagline,
+        offers: {
+          '@type': 'AggregateOffer',
+          priceCurrency: 'USD',
+          lowPrice: Math.min(...gift.products.filter(p => p.price > 0).map(p => p.price)),
+          highPrice: Math.max(...gift.products.filter(p => p.price > 0).map(p => p.price)),
+          offerCount: gift.products.length,
+        },
+      },
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+      {/* JSON-LD Structured Data */}
+      <Script
+        id="gift-bundle-schema"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+      />
+
       <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-8">

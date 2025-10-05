@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Script from 'next/script';
 import type { GiftIdea, GiftRequest } from '@/lib/types';
 
 interface GiftResultsProps {
@@ -14,6 +15,31 @@ interface GiftResultsProps {
 export function GiftResults({ giftIdeas, permalinkUrl, searchRequest, onStartOver }: GiftResultsProps) {
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Generate JSON-LD structured data for gift bundles
+  const itemListSchema = searchRequest ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Gift Ideas for ${searchRequest.recipientDescription.slice(0, 100)}`,
+    description: `AI-generated gift bundles: ${giftIdeas.map(g => g.title).join(', ')}`,
+    numberOfItems: giftIdeas.length,
+    itemListElement: giftIdeas.map((gift, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'Product',
+        name: gift.title,
+        description: gift.tagline,
+        offers: {
+          '@type': 'AggregateOffer',
+          priceCurrency: 'USD',
+          lowPrice: Math.min(...gift.products.filter(p => p.price > 0).map(p => p.price)),
+          highPrice: Math.max(...gift.products.filter(p => p.price > 0).map(p => p.price)),
+          offerCount: gift.products.length,
+        },
+      },
+    })),
+  } : null;
+
   const handleCopyLink = async () => {
     if (permalinkUrl) {
       await navigator.clipboard.writeText(permalinkUrl);
@@ -24,6 +50,16 @@ export function GiftResults({ giftIdeas, permalinkUrl, searchRequest, onStartOve
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* JSON-LD Structured Data */}
+      {itemListSchema && (
+        <Script
+          id="gift-results-schema"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+        />
+      )}
+
       {/* Header */}
       <div className="text-center mb-8">
         <h2 className="text-3xl font-semibold text-zinc-900 mb-3">
