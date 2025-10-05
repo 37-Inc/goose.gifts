@@ -62,13 +62,13 @@ function buildSystemPrompt(humorStyle: HumorStyle): string {
 
 HUMOR STYLE: ${styleGuides[humorStyle]}
 
-Your task is to generate 3-4 creative gift "concepts" - each concept is a themed bundle of 2-4 products with a punny title.
+Your task is to generate 5 creative gift "concepts" - each concept is a themed bundle of 3 products with a punny title.
 
 Requirements:
 1. Each concept must have a punny, memorable title that makes people laugh
 2. Write a witty one-liner tagline (max 20 words)
 3. Explain why this bundle is perfect for the recipient (2-3 sentences)
-4. Provide 2-4 specific product search queries for finding items on Amazon/Etsy
+4. Provide 3-4 specific product search queries for finding items on Amazon/Etsy (we'll use these to find the best 3 products)
 
 IMPORTANT:
 - Product queries should be specific enough to find real products (e.g., "funny cat coffee mug ceramic" not just "cat thing")
@@ -101,7 +101,7 @@ RECIPIENT: ${request.recipientDescription}
 ${request.occasion ? `OCCASION: ${request.occasion}` : ''}
 HUMOR STYLE: ${request.humorStyle}
 
-Generate 3-4 creative gift bundles. Make them genuinely funny and shareable!`;
+Generate 5 creative gift bundles. Make them genuinely funny and shareable!`;
 }
 
 // Streaming version for real-time UI updates
@@ -139,4 +139,93 @@ export async function streamGiftConcepts(
       }
     },
   });
+}
+
+// Select unique, high-quality products for a gift concept using LLM
+export async function selectBestProducts(
+  conceptTitle: string,
+  conceptDescription: string,
+  products: any[],
+  targetCount: number = 3
+): Promise<any[]> {
+  // If we have fewer products than target, return all
+  if (products.length <= targetCount) {
+    return products;
+  }
+
+  try {
+    const productSummaries = products.map((p, idx) => ({
+      index: idx,
+      title: p.title,
+      price: p.price,
+      source: p.source,
+    }));
+
+    const prompt = `You are selecting products for a gift bundle called "${conceptTitle}".
+
+Description: ${conceptDescription}
+
+Available products (${products.length} total):
+${JSON.stringify(productSummaries, null, 2)}
+
+Task: Select exactly ${targetCount} products that are:
+1. UNIQUE (no duplicates or very similar items)
+2. RELEVANT to the gift concept
+3. DIVERSE (different types of items, not all the same thing)
+4. WELL-PRICED (prefer items with valid prices > $0)
+
+Return ONLY a JSON array of the product indices you selected, like: [0, 3, 7]`;
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini', // Using mini for speed
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a product curation expert. Always respond with valid JSON only.'
+        },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.3, // Lower temperature for consistent selection
+      response_format: { type: 'json_object' },
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      // Fallback: return first N products
+      return products.slice(0, targetCount);
+    }
+
+    const parsed = JSON.parse(content);
+    const selectedIndices = parsed.indices || parsed.selected || [];
+
+    // Validate indices and return selected products
+    const selectedProducts = selectedIndices
+      .filter((idx: number) => idx >= 0 && idx < products.length)
+      .slice(0, targetCount)
+      .map((idx: number) => products[idx]);
+
+    // If we got fewer than target, fill with remaining products
+    if (selectedProducts.length < targetCount) {
+      const usedIndices = new Set(selectedIndices);
+      const remaining = products
+        .map((p, idx) => ({ product: p, index: idx }))
+        .filter(({ index }) => !usedIndices.has(index))
+        .slice(0, targetCount - selectedProducts.length)
+        .map(({ product }) => product);
+      selectedProducts.push(...remaining);
+    }
+
+    return selectedProducts.slice(0, targetCount);
+  } catch (error) {
+    console.error('Error selecting products with LLM:', error);
+    // Fallback: basic deduplication by title similarity
+    const seen = new Set<string>();
+    const unique = products.filter(p => {
+      const normalized = p.title.toLowerCase().slice(0, 30);
+      if (seen.has(normalized)) return false;
+      seen.add(normalized);
+      return true;
+    });
+    return unique.slice(0, targetCount);
+  }
 }

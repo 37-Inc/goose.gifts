@@ -86,7 +86,7 @@ export function GiftResults({ giftIdeas, permalinkUrl, onStartOver }: GiftResult
                   className="group/product block"
                 >
                   {/* Product Image */}
-                  <div className="relative aspect-square mb-4 bg-zinc-50 rounded-lg overflow-hidden">
+                  <div className="relative mb-4 bg-zinc-50 rounded-lg overflow-hidden" style={{ aspectRatio: '1.91/1' }}>
                     {product.imageUrl ? (
                       <Image
                         src={product.imageUrl}

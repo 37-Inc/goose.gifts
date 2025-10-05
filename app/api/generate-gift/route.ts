@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GiftRequestSchema, type GiftIdea } from '@/lib/types';
-import { generateGiftConcepts } from '@/lib/openai';
+import { generateGiftConcepts, selectBestProducts } from '@/lib/openai';
 import { searchMultipleCategoriesAmazon } from '@/lib/amazon';
 import { searchAmazonViaGoogleMulti } from '@/lib/google-amazon-search';
 import { searchMultipleStrategiesEtsy } from '@/lib/etsy';
@@ -62,11 +62,10 @@ export async function POST(request: NextRequest) {
     if (useGoogleSearch) {
       // PARALLEL MODE for Google Search - much faster!
       const conceptPromises = concepts.map(async (concept, index) => {
-        const queriesToSearch = enableFullSearch
-          ? concept.productSearchQueries
-          : [concept.productSearchQueries[0]];
+        // Use all queries to get maximum product variety
+        const queriesToSearch = concept.productSearchQueries;
 
-        console.log(`📦 Searching ${queriesToSearch.length}/${concept.productSearchQueries.length} queries for "${concept.title}"`);
+        console.log(`📦 Searching ${queriesToSearch.length} queries for "${concept.title}"`);
 
         // Search all queries in parallel
         const productPromises = queriesToSearch.map(async (query) => {
@@ -86,8 +85,27 @@ export async function POST(request: NextRequest) {
         });
 
         const allProductResults = await Promise.all(productPromises);
-        const allProducts = allProductResults.flat();
-        const selectedProducts = allProducts.slice(0, Math.min(4, allProducts.length));
+        let allProducts = allProductResults.flat();
+
+        // Basic deduplication by product ID
+        const seenIds = new Set<string>();
+        allProducts = allProducts.filter(product => {
+          if (seenIds.has(product.id)) return false;
+          seenIds.add(product.id);
+          return true;
+        });
+
+        console.log(`🔍 Found ${allProducts.length} unique products, selecting best 3 with LLM...`);
+
+        // Use LLM to select the best 3 unique products
+        const selectedProducts = await selectBestProducts(
+          concept.title,
+          concept.description,
+          allProducts,
+          3
+        );
+
+        console.log(`✅ Selected ${selectedProducts.length} products for "${concept.title}"`);
 
         return {
           id: `gift-${Date.now()}-${index}`,
@@ -103,13 +121,13 @@ export async function POST(request: NextRequest) {
     } else {
       // SEQUENTIAL MODE for PA-API - respect rate limits
       for (const [index, concept] of concepts.entries()) {
-        const allProducts: any[] = [];
+        let allProducts: any[] = [];
 
-        // LITE MODE: Search only first query (respects 1 req/sec limit)
+        // LITE MODE: Search only first 2 queries (respects 1 req/sec limit)
         // FULL MODE: Search all queries for better product variety
         const queriesToSearch = enableFullSearch
           ? concept.productSearchQueries
-          : [concept.productSearchQueries[0]];
+          : concept.productSearchQueries.slice(0, 2);
 
         console.log(`📦 Searching ${queriesToSearch.length}/${concept.productSearchQueries.length} queries for "${concept.title}"`);
 
@@ -130,14 +148,31 @@ export async function POST(request: NextRequest) {
 
           allProducts.push(...amazonProducts, ...etsyProducts);
 
-          // Add delay between queries if in full search mode
-          if (enableFullSearch && queriesToSearch.indexOf(query) < queriesToSearch.length - 1) {
+          // Add delay between queries
+          if (queriesToSearch.indexOf(query) < queriesToSearch.length - 1) {
             await new Promise(resolve => setTimeout(resolve, 1500));
           }
         }
 
-        // Take best 2-4 products for this concept
-        const selectedProducts = allProducts.slice(0, Math.min(4, allProducts.length));
+        // Basic deduplication by product ID
+        const seenIds = new Set<string>();
+        allProducts = allProducts.filter(product => {
+          if (seenIds.has(product.id)) return false;
+          seenIds.add(product.id);
+          return true;
+        });
+
+        console.log(`🔍 Found ${allProducts.length} unique products, selecting best 3 with LLM...`);
+
+        // Use LLM to select the best 3 unique products
+        const selectedProducts = await selectBestProducts(
+          concept.title,
+          concept.description,
+          allProducts,
+          3
+        );
+
+        console.log(`✅ Selected ${selectedProducts.length} products for "${concept.title}"`);
 
         giftIdeas.push({
           id: `gift-${Date.now()}-${index}`,
