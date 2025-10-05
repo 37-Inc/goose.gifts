@@ -6,6 +6,7 @@
   --background: #fafafa;
   --foreground: #0a0a0a;
   --accent: #18181b;
+  --accent-orange: #f59e42;
   --muted: #71717a;
   --border: #e4e4e7;
 }
@@ -24,9 +25,15 @@ body {
   }
 }
 
-/* Subtle accent */
+/* Orange accent gradient */
 .accent-gradient {
-  background: linear-gradient(to right, #18181b, #3f3f46);
+  background: linear-gradient(135deg, #f59e42, #f7a854);
+}
+
+.accent-gradient:hover {
+  background: linear-gradient(135deg, #f7a854, #f9b366);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 66, 0.3);
 }
 
 /* Smooth transitions */
@@ -57,4 +64,52 @@ body {
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
+}
+
+/* Subtle warmth background */
+.warm-background {
+  background: linear-gradient(180deg, #fefaf5 0%, #fafafa 100%);
+}
+
+/* Selection pop animation */
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pop-animation {
+  animation: pop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Orange emoji background */
+.emoji-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+}
+
+/* Selected state with checkmark */
+.selected-check {
+  position: relative;
+}
+
+.selected-check::after {
+  content: '✓';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 16px;
+  height: 16px;
+  background: var(--accent-orange);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: white;
+  font-weight: 600;
 }

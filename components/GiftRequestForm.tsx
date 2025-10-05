@@ -36,7 +36,7 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-zinc-200 p-8 card-hover">
+    <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-zinc-100 shadow-sm p-8 card-hover">
       {/* Recipient Description */}
       <div className="mb-6">
         <label htmlFor="recipient" className="block text-sm font-medium text-zinc-900 mb-2">
@@ -53,7 +53,7 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
           disabled={loading}
         />
         <p className="text-xs text-zinc-500 mt-1.5">
-          More details = better results
+          Example: "Loves cats, dad jokes, and craft beer. Works from home."
         </p>
       </div>
 
@@ -78,28 +78,31 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
         <label className="block text-sm font-medium text-zinc-900 mb-3">
           Humor style
         </label>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
-            { value: 'dad-joke', label: '😄 Dad Joke', desc: 'Wholesome & punny' },
-            { value: 'office-safe', label: '💼 Office-Safe', desc: 'Professional wit' },
-            { value: 'edgy', label: '🔥 Edgy', desc: 'Bold & sarcastic' },
-            { value: 'pg', label: '👶 PG', desc: 'All-ages fun' },
+            { value: 'dad-joke', emoji: '😄', label: 'Dad Joke', desc: 'Wholesome & punny' },
+            { value: 'office-safe', emoji: '💼', label: 'Office-Safe', desc: 'Professional wit' },
+            { value: 'edgy', emoji: '🔥', label: 'Edgy', desc: 'Bold & sarcastic' },
+            { value: 'pg', emoji: '👶', label: 'PG', desc: 'All-ages fun' },
           ].map((style) => (
             <button
               key={style.value}
               type="button"
               onClick={() => setHumorStyle(style.value as HumorStyle)}
-              className={`p-3 rounded-lg border text-left transition-all ${
+              className={`p-4 rounded-lg border text-left transition-all ${
                 humorStyle === style.value
-                  ? 'border-zinc-900 bg-zinc-900 text-white'
-                  : 'border-zinc-200 hover:border-zinc-300'
+                  ? 'border-[#f59e42] bg-[#f59e42] text-white selected-check pop-animation'
+                  : 'border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50'
               }`}
               disabled={loading}
             >
-              <div className={`font-medium text-sm ${humorStyle === style.value ? 'text-white' : 'text-zinc-900'}`}>
-                {style.label}
+              <div className={`flex items-center gap-2.5 mb-1.5`}>
+                <span className="emoji-accent">{style.emoji}</span>
+                <span className={`font-medium text-sm ${humorStyle === style.value ? 'text-white' : 'text-zinc-900'}`}>
+                  {style.label}
+                </span>
               </div>
-              <div className={`text-xs mt-0.5 ${humorStyle === style.value ? 'text-zinc-300' : 'text-zinc-500'}`}>
+              <div className={`text-xs ${humorStyle === style.value ? 'text-orange-100' : 'text-zinc-500'} pl-7`}>
                 {style.desc}
               </div>
             </button>
@@ -111,7 +114,7 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
       <button
         type="submit"
         disabled={loading || recipientDescription.trim().length < 5}
-        className="w-full accent-gradient text-white font-medium py-3.5 px-8 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+        className="w-full accent-gradient text-white font-semibold py-4 px-8 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm shadow-md disabled:shadow-none"
       >
         {loading ? 'Generating...' : 'Find gifts →'}
       </button>

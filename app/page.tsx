@@ -57,7 +57,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen warm-background">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16 sm:py-24">
         <div className="text-center mb-16">
@@ -82,7 +82,7 @@ export default function HomePage() {
 
         {/* Main Content */}
         {!giftIdeas ? (
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto mt-12">
             <GiftRequestForm onSubmit={handleSubmit} loading={loading} />
 
             {error && (
@@ -138,6 +138,15 @@ export default function HomePage() {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      {!giftIdeas && !loading && (
+        <div className="text-center py-12">
+          <p className="text-xs text-zinc-400">
+            Made with 🪿 by silly humans
+          </p>
         </div>
       )}
     </div>
