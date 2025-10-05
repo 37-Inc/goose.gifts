@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GiftRequestSchema, type GiftIdea } from '@/lib/types';
+import { GiftRequestSchema, type GiftIdea, type Product } from '@/lib/types';
 import { generateGiftConcepts, selectBestProducts } from '@/lib/openai';
 import { searchMultipleCategoriesAmazon } from '@/lib/amazon';
 import { searchAmazonViaGoogleMulti } from '@/lib/google-amazon-search';
