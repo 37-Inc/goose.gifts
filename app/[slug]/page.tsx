@@ -85,6 +85,7 @@ export default async function PermalinkPage({ params }: PageProps) {
         <GiftResults
           giftIdeas={record.gift_ideas}
           permalinkUrl={permalinkUrl}
+          searchRequest={null}
           onStartOver={() => {
             // Client-side navigation handled by Link component
             window.location.href = '/';
