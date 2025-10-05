@@ -63,11 +63,22 @@ export default function HomePage() {
         <div className="text-center mb-16">
           {/* Logo + Title - stacked on mobile, inline on desktop */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-6">
-            <img
-              src="/sillygoose.png"
-              alt="Silly Goose"
-              className="w-24 h-24 sm:w-32 sm:h-32 sm:translate-y-3"
-            />
+            <button
+              onClick={() => {
+                setGiftIdeas(null);
+                setPermalinkUrl(null);
+                setSearchRequest(null);
+                setError(null);
+              }}
+              className="transition-transform hover:scale-105 active:scale-95"
+              aria-label="Go to homepage"
+            >
+              <img
+                src="/sillygoose.png"
+                alt="Silly Goose"
+                className="w-24 h-24 sm:w-32 sm:h-32 sm:translate-y-3"
+              />
+            </button>
             <h1 className="text-6xl sm:text-8xl font-bold tracking-tight text-zinc-900">
               goose.gifts
             </h1>
@@ -93,7 +104,7 @@ export default function HomePage() {
 
             {loading && (
               <div className="mt-16">
-                <LoadingSteps />
+                <LoadingSteps recipientDescription={searchRequest?.recipientDescription} />
               </div>
             )}
           </div>

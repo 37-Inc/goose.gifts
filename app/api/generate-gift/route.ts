@@ -3,8 +3,8 @@ import { GiftRequestSchema, type GiftIdea } from '@/lib/types';
 import { generateGiftConcepts, selectBestProducts } from '@/lib/openai';
 import { searchMultipleCategoriesAmazon } from '@/lib/amazon';
 import { searchAmazonViaGoogleMulti } from '@/lib/google-amazon-search';
-import { searchMultipleStrategiesEtsy } from '@/lib/etsy';
 import { saveGiftIdeas } from '@/lib/db';
+import { PRODUCTS_PER_BUNDLE } from '@/lib/config';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Allow up to 60 seconds for API calls
@@ -69,19 +69,12 @@ export async function POST(request: NextRequest) {
 
         // Search all queries in parallel
         const productPromises = queriesToSearch.map(async (query) => {
-          const [amazonProducts, etsyProducts] = await Promise.all([
-            amazonSearchFn(
-              query,
-              validatedRequest.minPrice / queriesToSearch.length,
-              validatedRequest.maxPrice / queriesToSearch.length
-            ),
-            searchMultipleStrategiesEtsy(
-              query,
-              validatedRequest.minPrice / queriesToSearch.length,
-              validatedRequest.maxPrice / queriesToSearch.length
-            ),
-          ]);
-          return [...amazonProducts, ...etsyProducts];
+          const amazonProducts = await amazonSearchFn(
+            query,
+            validatedRequest.minPrice / queriesToSearch.length,
+            validatedRequest.maxPrice / queriesToSearch.length
+          );
+          return amazonProducts;
         });
 
         const allProductResults = await Promise.all(productPromises);
@@ -95,14 +88,14 @@ export async function POST(request: NextRequest) {
           return true;
         });
 
-        console.log(`🔍 Found ${allProducts.length} unique products, selecting best 4 with LLM...`);
+        console.log(`🔍 Found ${allProducts.length} unique products, selecting best ${PRODUCTS_PER_BUNDLE} with LLM...`);
 
-        // Use LLM to select the best 4 unique products
+        // Use LLM to select the best products
         const selectedProducts = await selectBestProducts(
           concept.title,
           concept.description,
           allProducts,
-          4
+          PRODUCTS_PER_BUNDLE
         );
 
         console.log(`✅ Selected ${selectedProducts.length} products for "${concept.title}"`);
@@ -133,20 +126,13 @@ export async function POST(request: NextRequest) {
 
         // Search each query sequentially
         for (const query of queriesToSearch) {
-          const [amazonProducts, etsyProducts] = await Promise.all([
-            amazonSearchFn(
-              query,
-              validatedRequest.minPrice / queriesToSearch.length,
-              validatedRequest.maxPrice / queriesToSearch.length
-            ),
-            searchMultipleStrategiesEtsy(
-              query,
-              validatedRequest.minPrice / queriesToSearch.length,
-              validatedRequest.maxPrice / queriesToSearch.length
-            ),
-          ]);
+          const amazonProducts = await amazonSearchFn(
+            query,
+            validatedRequest.minPrice / queriesToSearch.length,
+            validatedRequest.maxPrice / queriesToSearch.length
+          );
 
-          allProducts.push(...amazonProducts, ...etsyProducts);
+          allProducts.push(...amazonProducts);
 
           // Add delay between queries
           if (queriesToSearch.indexOf(query) < queriesToSearch.length - 1) {
@@ -162,14 +148,14 @@ export async function POST(request: NextRequest) {
           return true;
         });
 
-        console.log(`🔍 Found ${allProducts.length} unique products, selecting best 4 with LLM...`);
+        console.log(`🔍 Found ${allProducts.length} unique products, selecting best ${PRODUCTS_PER_BUNDLE} with LLM...`);
 
-        // Use LLM to select the best 4 unique products
+        // Use LLM to select the best products
         const selectedProducts = await selectBestProducts(
           concept.title,
           concept.description,
           allProducts,
-          4
+          PRODUCTS_PER_BUNDLE
         );
 
         console.log(`✅ Selected ${selectedProducts.length} products for "${concept.title}"`);

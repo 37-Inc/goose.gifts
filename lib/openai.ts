@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import type { HumorStyle } from './types';
+import { GIFT_CONCEPTS_COUNT, PRODUCTS_PER_BUNDLE } from './config';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -62,13 +63,13 @@ function buildSystemPrompt(humorStyle: HumorStyle): string {
 
 HUMOR STYLE: ${styleGuides[humorStyle]}
 
-Your task is to generate 5 creative gift "concepts" - each concept is a themed bundle of 4 products with a punny title.
+Your task is to generate ${GIFT_CONCEPTS_COUNT} creative gift "concepts" - each concept is a themed bundle of ${PRODUCTS_PER_BUNDLE} products with a punny title.
 
 Requirements:
 1. Each concept must have a punny, memorable title that makes people laugh
 2. Write a witty one-liner tagline (max 20 words)
 3. Explain why this bundle is perfect for the recipient (2-3 sentences)
-4. Provide 4 specific product search queries for finding items on Amazon/Etsy (we'll use these to find the best 4 products)
+4. Provide ${PRODUCTS_PER_BUNDLE} specific product search queries for finding items on Amazon/Etsy (we'll use these to find the best ${PRODUCTS_PER_BUNDLE} products)
 
 IMPORTANT:
 - Product queries should be specific enough to find real products (e.g., "funny cat coffee mug ceramic" not just "cat thing")
@@ -101,7 +102,7 @@ RECIPIENT: ${request.recipientDescription}
 ${request.occasion ? `OCCASION: ${request.occasion}` : ''}
 HUMOR STYLE: ${request.humorStyle}
 
-Generate 5 creative gift bundles. Make them genuinely funny and shareable!`;
+Generate ${GIFT_CONCEPTS_COUNT} creative gift bundles. Make them genuinely funny and shareable!`;
 }
 
 // Streaming version for real-time UI updates
@@ -146,10 +147,13 @@ export async function selectBestProducts(
   conceptTitle: string,
   conceptDescription: string,
   products: any[],
-  targetCount: number = 4
+  targetCount: number = PRODUCTS_PER_BUNDLE
 ): Promise<any[]> {
+  console.log(`🤖 selectBestProducts called: ${products.length} products, target ${targetCount}`);
+
   // If we have fewer products than target, return all
   if (products.length <= targetCount) {
+    console.log(`📌 Returning all ${products.length} products (less than target)`);
     return products;
   }
 
@@ -170,14 +174,21 @@ ${JSON.stringify(productSummaries, null, 2)}
 
 Task: Select exactly ${targetCount} products that are:
 1. UNIQUE (no duplicates or very similar items)
+   - AVOID product variants (e.g., don't select both "iPhone 11 case" AND "iPhone 12 case" with same design)
+   - AVOID size/format variants (e.g., don't select both "pint glass" AND "beer can" with same design/text)
+   - If products share the same core design/joke/theme, pick only ONE
 2. RELEVANT to the gift concept
 3. DIVERSE (different types of items, not all the same thing)
+   - Mix product categories (e.g., book + drinkware + accessory + clothing)
+   - Avoid selecting multiple items from the same category
 4. WELL-PRICED (prefer items with valid prices > $0)
 
-Return ONLY a JSON array of the product indices you selected, like: [0, 3, 7]`;
+CRITICAL: Look at product titles carefully. Products like "Funny Cat Pun iPhone 11" and "Funny Cat Pun iPhone 12" are VARIANTS - only pick one!
+
+Return ONLY a JSON object with an "indices" array, like: {"indices": [0, 3, 7, 12]}`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // Using mini for speed
+      model: 'gpt-5-mini', // Using mini for speed
       messages: [
         {
           role: 'system',
@@ -185,7 +196,6 @@ Return ONLY a JSON array of the product indices you selected, like: [0, 3, 7]`;
         },
         { role: 'user', content: prompt },
       ],
-      temperature: 0.3, // Lower temperature for consistent selection
       response_format: { type: 'json_object' },
     });
 
@@ -215,9 +225,11 @@ Return ONLY a JSON array of the product indices you selected, like: [0, 3, 7]`;
       selectedProducts.push(...remaining);
     }
 
-    return selectedProducts.slice(0, targetCount);
+    const finalProducts = selectedProducts.slice(0, targetCount);
+    console.log(`✅ LLM selected ${finalProducts.length} products`);
+    return finalProducts;
   } catch (error) {
-    console.error('Error selecting products with LLM:', error);
+    console.error('❌ Error selecting products with LLM:', error);
     // Fallback: basic deduplication by title similarity
     const seen = new Set<string>();
     const unique = products.filter(p => {
@@ -226,6 +238,8 @@ Return ONLY a JSON array of the product indices you selected, like: [0, 3, 7]`;
       seen.add(normalized);
       return true;
     });
-    return unique.slice(0, targetCount);
+    const fallbackProducts = unique.slice(0, targetCount);
+    console.log(`🔄 Fallback: returning ${fallbackProducts.length} products`);
+    return fallbackProducts;
   }
 }
