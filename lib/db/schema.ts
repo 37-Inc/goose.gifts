@@ -6,7 +6,8 @@ export const giftBundles = pgTable('gift_bundles', {
   id: uuid('id').primaryKey().defaultRandom(),
 
   // URL slug (unique, indexed for fast lookups)
-  slug: varchar('slug', { length: 8 }).notNull().unique(),
+  // Human-readable SEO-friendly format: "surf-themed-gift-bundles-for-moms-a3k9"
+  slug: varchar('slug', { length: 100 }).notNull().unique(),
 
   // Search context (for SEO and display)
   recipientDescription: text('recipient_description').notNull(),

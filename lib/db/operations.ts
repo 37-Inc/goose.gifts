@@ -2,29 +2,24 @@ import { db } from './index';
 import { giftBundles, type GiftBundle, type NewGiftBundle } from './schema';
 import { eq, sql } from 'drizzle-orm';
 import { generateSlug, calculatePriceRange, extractKeywords } from './helpers';
-import { generateSEOContent } from '../seo';
 import type { GiftIdea, GiftRequest } from '../types';
+import type { SEOContent } from '../seo';
 
 /**
- * Save gift ideas to database with SEO content
+ * Save gift ideas to database with pre-generated SEO content
  * Returns the slug for the permalink
  */
 export async function saveGiftIdeas(
   request: GiftRequest,
-  giftIdeas: GiftIdea[]
+  giftIdeas: GiftIdea[],
+  seoContent: SEOContent
 ): Promise<string> {
-  const slug = generateSlug();
   const priceRange = calculatePriceRange(request.minPrice, request.maxPrice);
   const recipientKeywords = extractKeywords(request.recipientDescription);
 
   try {
-    // Generate SEO content
-    console.log('Generating SEO content...');
-    const seoContent = await generateSEOContent(
-      request.recipientDescription,
-      request.occasion,
-      giftIdeas
-    );
+    // Generate human-readable slug from SEO title
+    const slug = generateSlug(seoContent.title);
 
     // Prepare bundle data
     const newBundle: NewGiftBundle = {

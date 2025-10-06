@@ -3,17 +3,28 @@
  */
 
 /**
- * Generate a random 8-character alphanumeric slug
- * Character set excludes ambiguous characters (0, O, I, l)
- * 2.8 trillion possible combinations
+ * Generate a human-readable SEO-friendly slug from title
+ * Format: "surf-themed-gift-bundles-for-moms-a3k9"
+ * Includes 4-char random suffix for uniqueness
  */
-export function generateSlug(): string {
-  const chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let slug = '';
-  for (let i = 0; i < 8; i++) {
-    slug += chars.charAt(Math.floor(Math.random() * chars.length));
+export function generateSlug(title: string): string {
+  // Convert title to URL-friendly format
+  const baseSlug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .trim()
+    .replace(/\s+/g, '-')         // Replace spaces with hyphens
+    .replace(/-+/g, '-')          // Remove duplicate hyphens
+    .slice(0, 60);                // Limit length for readability
+
+  // Add short random suffix for uniqueness
+  const chars = 'abcdefghijkmnpqrstuvwxyz23456789';
+  let suffix = '';
+  for (let i = 0; i < 4; i++) {
+    suffix += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return slug;
+
+  return `${baseSlug}-${suffix}`;
 }
 
 /**

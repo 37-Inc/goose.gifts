@@ -20,3 +20,11 @@ export const QUERIES_PER_CONCEPT = parseInt(
   process.env.NEXT_PUBLIC_QUERIES_PER_CONCEPT || '4',
   10
 );
+
+// Maximum number of products to send to LLM for selection (after dedup, before AI curation)
+// Lower = faster LLM processing, but may miss good products
+// Higher = more thorough, but slower
+export const MAX_PRODUCTS_BEFORE_LLM = parseInt(
+  process.env.NEXT_PUBLIC_MAX_PRODUCTS_BEFORE_LLM || '12',
+  10
+);

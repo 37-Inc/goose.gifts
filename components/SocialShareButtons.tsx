@@ -10,7 +10,7 @@ interface SocialShareButtonsProps {
 export function SocialShareButtons({ url, title, description, slug }: SocialShareButtonsProps) {
   const shareText = `${title} - ${description}`;
 
-  const handleShare = async (platform: 'twitter' | 'facebook' | 'pinterest') => {
+  const handleShare = async (platform: 'x' | 'facebook' | 'pinterest') => {
     // Track share event
     try {
       await fetch('/api/track-share', {
@@ -25,7 +25,7 @@ export function SocialShareButtons({ url, title, description, slug }: SocialShar
     // Open share dialog
     let shareUrl = '';
     switch (platform) {
-      case 'twitter':
+      case 'x':
         shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareText)}`;
         break;
       case 'facebook':
@@ -41,18 +41,16 @@ export function SocialShareButtons({ url, title, description, slug }: SocialShar
 
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm text-zinc-600 font-medium">Share:</span>
-
-      {/* Twitter */}
+      {/* X (formerly Twitter) */}
       <button
-        onClick={() => handleShare('twitter')}
-        className="flex items-center gap-2 px-3 py-2 bg-[#1DA1F2] text-white rounded-lg hover:bg-[#1a8cd8] transition-colors text-sm font-medium"
-        aria-label="Share on Twitter"
+        onClick={() => handleShare('x')}
+        className="flex items-center gap-2 px-3 py-2 bg-black text-white rounded-lg hover:bg-zinc-800 transition-colors text-sm font-medium"
+        aria-label="Share on X"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
         </svg>
-        Tweet
+        Post
       </button>
 
       {/* Facebook */}

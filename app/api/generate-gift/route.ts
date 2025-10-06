@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GiftRequestSchema, type GiftIdea, type Product } from '@/lib/types';
-import { generateGiftConcepts, selectBestProducts } from '@/lib/openai';
+import { generateGiftConcepts, selectBestProductsBatch } from '@/lib/openai';
 import { searchMultipleCategoriesAmazon, enrichProductsWithAmazonData } from '@/lib/amazon';
 import { searchAmazonViaGoogleMulti } from '@/lib/google-amazon-search';
 import { saveGiftIdeas } from '@/lib/db/operations';
+import { generateSEOContent } from '@/lib/seo';
 import { PRODUCTS_PER_BUNDLE } from '@/lib/config';
 
 export const runtime = 'nodejs';
@@ -41,6 +42,24 @@ export async function POST(request: NextRequest) {
       console.log(`   Products to search: ${concept.productSearchQueries.join(', ')}`);
     });
 
+    // Step 1.5: Kick off SEO generation in parallel (doesn't need final products)
+    const seoPromise = process.env.POSTGRES_URL ? (async () => {
+      console.log('⚡ Starting SEO generation in parallel...');
+      const tempGiftIdeas = concepts.map((concept, i) => ({
+        id: `temp-${i}`,
+        title: concept.title,
+        tagline: concept.tagline,
+        description: concept.description,
+        products: [],
+        humorStyle: validatedRequest.humorStyle,
+      }));
+      return await generateSEOContent(
+        validatedRequest.recipientDescription,
+        validatedRequest.occasion,
+        tempGiftIdeas
+      );
+    })() : null;
+
     // Step 2: Search for products for each concept
     console.log(`Searching products for ${concepts.length} concepts...`);
 
@@ -61,8 +80,8 @@ export async function POST(request: NextRequest) {
     // PA-API needs sequential processing (1 req/sec limit)
     if (useGoogleSearch) {
       // PARALLEL MODE for Google Search - much faster!
-      const conceptPromises = concepts.map(async (concept, index) => {
-        // Use all queries to get maximum product variety
+      // Step 2a: Search products for all concepts in parallel
+      const conceptProductPromises = concepts.map(async (concept) => {
         const queriesToSearch = concept.productSearchQueries;
 
         console.log(`📦 Searching ${queriesToSearch.length} queries for "${concept.title}"`);
@@ -88,21 +107,32 @@ export async function POST(request: NextRequest) {
           return true;
         });
 
-        console.log(`🔍 Found ${allProducts.length} unique products, selecting best ${PRODUCTS_PER_BUNDLE} with LLM...`);
+        console.log(`🔍 Found ${allProducts.length} unique products for "${concept.title}"`);
 
-        // Use LLM to select the best products
-        const selectedProducts = await selectBestProducts(
-          concept.title,
-          concept.description,
-          allProducts,
-          PRODUCTS_PER_BUNDLE
-        );
+        return {
+          title: concept.title,
+          tagline: concept.tagline,
+          description: concept.description,
+          products: allProducts,
+        };
+      });
 
+      const conceptsWithProducts = await Promise.all(conceptProductPromises);
+
+      // Step 2b: Use BATCHED LLM to select products for ALL concepts at once (1 API call instead of 3)
+      console.log(`🤖 Batching LLM product selection for ${conceptsWithProducts.length} concepts...`);
+      const selectedProductsForAllConcepts = await selectBestProductsBatch(
+        conceptsWithProducts,
+        PRODUCTS_PER_BUNDLE
+      );
+
+      // Step 2c: Build gift ideas with selected products and optionally enrich
+      const enableEnrichment = process.env.ENABLE_AMAZON_ENRICHMENT === 'true';
+      const giftIdeaPromises = conceptsWithProducts.map(async (concept, index) => {
+        const selectedProducts = selectedProductsForAllConcepts[index];
         console.log(`✅ Selected ${selectedProducts.length} products for "${concept.title}"`);
 
         // Enrich selected products with accurate Amazon data (price, ratings, images)
-        // This fails silently if rate limited - uses Google Search data as fallback
-        const enableEnrichment = process.env.ENABLE_AMAZON_ENRICHMENT === 'true';
         const enrichedProducts = enableEnrichment
           ? await enrichProductsWithAmazonData(selectedProducts)
           : selectedProducts;
@@ -117,9 +147,17 @@ export async function POST(request: NextRequest) {
         };
       });
 
-      giftIdeas.push(...await Promise.all(conceptPromises));
+      giftIdeas.push(...await Promise.all(giftIdeaPromises));
     } else {
       // SEQUENTIAL MODE for PA-API - respect rate limits
+      // Step 2a: Search products for all concepts sequentially
+      const conceptsWithProducts: Array<{
+        title: string;
+        tagline: string;
+        description: string;
+        products: Product[];
+      }> = [];
+
       for (const [index, concept] of concepts.entries()) {
         let allProducts: Product[] = [];
 
@@ -155,16 +193,31 @@ export async function POST(request: NextRequest) {
           return true;
         });
 
-        console.log(`🔍 Found ${allProducts.length} unique products, selecting best ${PRODUCTS_PER_BUNDLE} with LLM...`);
+        console.log(`🔍 Found ${allProducts.length} unique products for "${concept.title}"`);
 
-        // Use LLM to select the best products
-        const selectedProducts = await selectBestProducts(
-          concept.title,
-          concept.description,
-          allProducts,
-          PRODUCTS_PER_BUNDLE
-        );
+        conceptsWithProducts.push({
+          title: concept.title,
+          tagline: concept.tagline,
+          description: concept.description,
+          products: allProducts,
+        });
 
+        // Add delay between concepts to respect rate limits (1.5s)
+        if (index < concepts.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+      }
+
+      // Step 2b: Use BATCHED LLM to select products for ALL concepts at once (1 API call instead of 3)
+      console.log(`🤖 Batching LLM product selection for ${conceptsWithProducts.length} concepts...`);
+      const selectedProductsForAllConcepts = await selectBestProductsBatch(
+        conceptsWithProducts,
+        PRODUCTS_PER_BUNDLE
+      );
+
+      // Step 2c: Build gift ideas with selected products
+      conceptsWithProducts.forEach((concept, index) => {
+        const selectedProducts = selectedProductsForAllConcepts[index];
         console.log(`✅ Selected ${selectedProducts.length} products for "${concept.title}"`);
 
         giftIdeas.push({
@@ -175,12 +228,7 @@ export async function POST(request: NextRequest) {
           products: selectedProducts,
           humorStyle: validatedRequest.humorStyle,
         });
-
-        // Add delay between concepts to respect rate limits (1.5s)
-        if (index < concepts.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1500));
-        }
-      }
+      });
     }
 
     // Filter out gift ideas with no products
@@ -205,7 +253,10 @@ export async function POST(request: NextRequest) {
     if (process.env.POSTGRES_URL) {
       try {
         console.log('Saving gift ideas...');
-        slug = await saveGiftIdeas(validatedRequest, validGiftIdeas);
+        // Await SEO content (should be ready by now, or will wait briefly)
+        const seoContent = await seoPromise!;
+        console.log('✅ SEO content ready');
+        slug = await saveGiftIdeas(validatedRequest, validGiftIdeas, seoContent);
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
         permalinkUrl = `${baseUrl}/${slug}`;
       } catch (error) {

@@ -12,7 +12,7 @@ const steps: LoadingStep[] = [
   { label: 'Analyzing recipient', duration: 3000 },
   { label: 'Generating gift concepts', duration: 8000 },
   { label: 'Searching products', duration: 12000 },
-  { label: 'Curating bundles', duration: 10000 }, // Increased to match actual LLM processing time
+  { label: 'Curating bundles', duration: 15000 }, // Increased to match actual LLM processing time
 ];
 
 const gooseMessages = [
@@ -51,6 +51,10 @@ export function LoadingSteps({ recipientDescription = '' }: LoadingStepsProps) {
   const [searchCount, setSearchCount] = useState(0);
   const [gooseMessage, setGooseMessage] = useState(gooseMessages[0]);
 
+  // Generate random max values for realistic variation
+  const [maxSearchCount] = useState(() => Math.floor(Math.random() * 5) + 10); // 10-14 queries
+  const [maxProductCount] = useState(() => Math.floor(Math.random() * 50) + 90); // 90-139 products
+
   useEffect(() => {
     const totalDuration = steps.reduce((sum, step) => sum + step.duration, 0);
     let elapsed = 0;
@@ -81,15 +85,22 @@ export function LoadingSteps({ recipientDescription = '' }: LoadingStepsProps) {
   // Generate concept titles during step 1 (Generating gift concepts)
   useEffect(() => {
     if (currentStep === 1) {
+      const allTemplates = [
+        'Crafting punny bundle',
+        'Creating clever combo',
+        'Dreaming up bundle',
+        'Concocting gift set',
+        'Finalizing bundle',
+        'Assembling surprise package',
+        'Curating perfect picks',
+      ];
+
+      // Randomly select GIFT_CONCEPTS_COUNT templates
+      const shuffled = [...allTemplates].sort(() => Math.random() - 0.5);
+      const selectedTemplates = shuffled.slice(0, GIFT_CONCEPTS_COUNT);
+
       const placeholderTitles = Array.from({ length: GIFT_CONCEPTS_COUNT }, (_, i) => {
-        const templates = [
-          'Crafting punny bundle',
-          'Creating clever combo',
-          'Dreaming up bundle',
-          'Concocting gift set',
-          'Finalizing bundle',
-        ];
-        return `${templates[i % templates.length]} #${i + 1}...`;
+        return `${selectedTemplates[i]} #${i + 1}...`;
       });
 
       const titles: string[] = [];
@@ -110,13 +121,13 @@ export function LoadingSteps({ recipientDescription = '' }: LoadingStepsProps) {
   useEffect(() => {
     if (currentStep === 2) {
       const countInterval = setInterval(() => {
-        setProductCount(prev => Math.min(prev + Math.floor(Math.random() * 15) + 5, 147));
-        setSearchCount(prev => Math.min(prev + 1, 20));
+        setProductCount(prev => Math.min(prev + Math.floor(Math.random() * 15) + 5, maxProductCount));
+        setSearchCount(prev => Math.min(prev + 1, maxSearchCount));
       }, 800);
 
       return () => clearInterval(countInterval);
     }
-  }, [currentStep]);
+  }, [currentStep, maxProductCount, maxSearchCount]);
 
   // Rotate goose messages
   useEffect(() => {

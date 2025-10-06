@@ -22,6 +22,9 @@ export async function generateSEOContent(
   occasion: string | undefined,
   giftIdeas: GiftIdea[]
 ): Promise<SEOContent> {
+  const startTime = Date.now();
+  console.log('📝 Generating SEO content...');
+
   // Combine all bundle titles and descriptions for context
   const bundleContext = giftIdeas
     .map(idea => `- ${idea.title}: ${idea.description}`)
@@ -40,7 +43,7 @@ Generate SEO-optimized content with the following structure:
 1. **Meta Title** (60 chars max): Catchy, includes main keywords
 2. **Meta Description** (155 chars max): Compelling, includes call-to-action
 3. **Keywords** (comma-separated): 5-8 relevant SEO keywords
-4. **Long-form Content** (400-500 words):
+4. **Long-form Content** (250-300 words):
    - Why these bundles are perfect for this person
    - Target long-tail keywords naturally (e.g., "funny gifts for bald dad who loves muffins")
    - Include product benefits and humor style
@@ -78,12 +81,13 @@ Return JSON in this EXACT format:
       messages: [
         {
           role: 'system',
-          content: 'You are an expert SEO copywriter. Always respond with valid JSON only.',
+          content: 'You are an expert SEO copywriter. Always respond with valid JSON only. Be concise.',
         },
         { role: 'user', content: prompt },
       ],
       response_format: { type: 'json_object' },
-      temperature: 0.7,
+      temperature: 0.5, // Lower temp = faster, more focused
+      max_completion_tokens: 1000, // Limit output length
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -92,6 +96,9 @@ Return JSON in this EXACT format:
     }
 
     const parsed = JSON.parse(content);
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+    console.log(`✅ SEO content generated in ${duration}s`);
 
     // Validate and return
     return {

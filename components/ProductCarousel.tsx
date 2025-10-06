@@ -6,13 +6,31 @@ import type { Product } from '@/lib/types';
 
 interface ProductCarouselProps {
   products: Product[];
-  onProductClick: (url: string, e: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
-export function ProductCarousel({ products, onProductClick }: ProductCarouselProps) {
+export function ProductCarousel({ products }: ProductCarouselProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+
+  // Track outbound link clicks with Google Analytics
+  const handleProductClick = (url: string, e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const gtag = (window as any).gtag;
+      const callback = function () {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      };
+      gtag('event', 'conversion_event_outbound_click', {
+        'event_callback': callback,
+        'event_timeout': 2000,
+      });
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   const checkScrollButtons = () => {
     const container = scrollContainerRef.current;
@@ -102,7 +120,7 @@ export function ProductCarousel({ products, onProductClick }: ProductCarouselPro
           <a
             key={product.id}
             href={product.affiliateUrl}
-            onClick={(e) => onProductClick(product.affiliateUrl, e)}
+            onClick={(e) => handleProductClick(product.affiliateUrl, e)}
             target="_blank"
             rel="noopener noreferrer"
             className="product-card flex-shrink-0 snap-start w-[calc(50%-12px)] sm:w-[calc(40%-12px)] lg:w-[calc(33.333%-16px)] bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"

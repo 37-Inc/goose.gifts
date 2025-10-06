@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import type { HumorStyle, Product } from './types';
-import { GIFT_CONCEPTS_COUNT, PRODUCTS_PER_BUNDLE } from './config';
+import { GIFT_CONCEPTS_COUNT, PRODUCTS_PER_BUNDLE, MAX_PRODUCTS_BEFORE_LLM } from './config';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -29,12 +29,12 @@ export async function generateGiftConcepts(
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 0.9, // Higher temperature for creative humor
+      temperature: 1, // GPT-5 models only support temperature=1
       response_format: { type: 'json_object' },
     });
 
@@ -160,11 +160,7 @@ export async function selectBestProducts(
   // PRE-FILTER: Reduce product set before LLM processing for speed
   let filteredProducts = products;
 
-  // 1. Remove products with invalid prices ($0 or negative)
-  filteredProducts = filteredProducts.filter(p => p.price > 0);
-  console.log(`🔍 After price filter: ${filteredProducts.length} products`);
-
-  // 2. Basic title deduplication - remove very similar titles
+  // 1. Basic title deduplication - remove very similar titles
   const seen = new Map<string, Product>();
   filteredProducts = filteredProducts.filter(p => {
     // Use first 40 chars of normalized title as dedup key
@@ -177,14 +173,13 @@ export async function selectBestProducts(
   });
   console.log(`🔍 After title dedup: ${filteredProducts.length} products`);
 
-  // 3. Limit to top 20 products to reduce LLM processing time
-  // Prioritize products with valid prices
-  const maxBeforeLLM = 20;
-  if (filteredProducts.length > maxBeforeLLM) {
-    // Sort by: valid price first, then by price (higher = likely better quality)
-    filteredProducts.sort((a, b) => b.price - a.price);
-    filteredProducts = filteredProducts.slice(0, maxBeforeLLM);
-    console.log(`🔍 Limited to top ${maxBeforeLLM} products for LLM`);
+  // 2. Limit to MAX_PRODUCTS_BEFORE_LLM to reduce LLM processing time
+  if (filteredProducts.length > MAX_PRODUCTS_BEFORE_LLM) {
+    // Prioritize products with valid prices, then shuffle the rest
+    const withPrice = filteredProducts.filter(p => p.price > 0).sort((a, b) => b.price - a.price);
+    const withoutPrice = filteredProducts.filter(p => p.price <= 0);
+    filteredProducts = [...withPrice, ...withoutPrice].slice(0, MAX_PRODUCTS_BEFORE_LLM);
+    console.log(`🔍 Limited to top ${MAX_PRODUCTS_BEFORE_LLM} products for LLM (${withPrice.length} with prices)`);
   }
 
   // If we're now under target, just return what we have
@@ -224,7 +219,7 @@ CRITICAL: Look at product titles carefully. Products like "Funny Cat Pun iPhone 
 Return ONLY a JSON object with an "indices" array, like: {"indices": [0, 3, 7, 12]}`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-5-mini', // Using mini for speed
+      model: 'gpt-4o-mini', // Using mini for speed
       messages: [
         {
           role: 'system',
@@ -270,5 +265,141 @@ Return ONLY a JSON object with an "indices" array, like: {"indices": [0, 3, 7, 1
     const fallbackProducts = filteredProducts.slice(0, targetCount);
     console.log(`🔄 Fallback: returning ${fallbackProducts.length} pre-filtered products`);
     return fallbackProducts;
+  }
+}
+
+// Helper to pre-filter products (extracted for reuse)
+function preFilterProducts(products: Product[], maxCount: number = MAX_PRODUCTS_BEFORE_LLM): Product[] {
+  let filtered = products;
+
+  // 1. Basic title deduplication
+  const seen = new Map<string, Product>();
+  filtered = filtered.filter(p => {
+    const key = p.title.toLowerCase().replace(/[^a-z0-9\s]/g, '').slice(0, 40);
+    if (seen.has(key)) return false;
+    seen.set(key, p);
+    return true;
+  });
+
+  // 2. Limit to max count, prioritizing products with prices
+  if (filtered.length > maxCount) {
+    const withPrice = filtered.filter(p => p.price > 0).sort((a, b) => b.price - a.price);
+    const withoutPrice = filtered.filter(p => p.price <= 0);
+    filtered = [...withPrice, ...withoutPrice].slice(0, maxCount);
+  }
+
+  return filtered;
+}
+
+// Batched version - select products for multiple concepts in one LLM call
+export async function selectBestProductsBatch(
+  conceptsWithProducts: Array<{
+    title: string;
+    description: string;
+    products: Product[];
+  }>,
+  targetCount: number = PRODUCTS_PER_BUNDLE
+): Promise<Product[][]> {
+  console.log(`🤖 selectBestProductsBatch called: ${conceptsWithProducts.length} concepts`);
+
+  // Pre-filter products for each concept
+  const preFiltered = conceptsWithProducts.map((concept, idx) => {
+    const filtered = preFilterProducts(concept.products);
+    console.log(`🔍 Concept ${idx + 1} "${concept.title}": ${concept.products.length} → ${filtered.length} products after pre-filter`);
+    return {
+      ...concept,
+      products: filtered
+    };
+  });
+
+  try {
+    // Build prompt with all concepts and their products
+    const conceptPrompts = preFiltered.map((concept, idx) => {
+      const productSummaries = concept.products.map((p, pIdx) => ({
+        index: pIdx,
+        title: p.title,
+        price: p.price,
+        source: p.source,
+      }));
+
+      return `CONCEPT ${idx + 1}: "${concept.title}"
+Description: ${concept.description}
+Available products (${concept.products.length} total):
+${JSON.stringify(productSummaries, null, 2)}`;
+    }).join('\n\n---\n\n');
+
+    const prompt = `You are selecting products for ${conceptsWithProducts.length} different gift bundles.
+
+${conceptPrompts}
+
+Task: For EACH concept, select exactly ${targetCount} products that are:
+1. UNIQUE (no duplicates or very similar items within that concept)
+2. RELEVANT to that specific gift concept
+3. DIVERSE (different types of items, not all the same thing)
+4. WELL-PRICED (prefer items with valid prices > $0 when available)
+
+Return a JSON object with selections for each concept:
+{
+  "selections": [
+    {"conceptIndex": 0, "indices": [2, 5, 8, 11]},
+    {"conceptIndex": 1, "indices": [0, 3, 7, 9]},
+    {"conceptIndex": 2, "indices": [1, 4, 6, 10]}
+  ]
+}`;
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a product curation expert. Always respond with valid JSON only.'
+        },
+        { role: 'user', content: prompt },
+      ],
+      response_format: { type: 'json_object' },
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      console.log('⚠️ No LLM response, using fallback');
+      return preFiltered.map(c => c.products.slice(0, targetCount));
+    }
+
+    const parsed = JSON.parse(content);
+    const selections = parsed.selections || [];
+
+    // Map selections back to products
+    const results: Product[][] = preFiltered.map((concept, conceptIdx) => {
+      const selection = selections.find((s: { conceptIndex: number }) => s.conceptIndex === conceptIdx);
+
+      if (!selection || !selection.indices) {
+        // Fallback to first N products
+        return concept.products.slice(0, targetCount);
+      }
+
+      const selectedProducts = selection.indices
+        .filter((idx: number) => idx >= 0 && idx < concept.products.length)
+        .slice(0, targetCount)
+        .map((idx: number) => concept.products[idx]);
+
+      // Fill if we got fewer than target
+      if (selectedProducts.length < targetCount) {
+        const usedIndices = new Set(selection.indices);
+        const remaining = concept.products
+          .filter((_, idx) => !usedIndices.has(idx))
+          .slice(0, targetCount - selectedProducts.length);
+        selectedProducts.push(...remaining);
+      }
+
+      return selectedProducts.slice(0, targetCount);
+    });
+
+    console.log(`✅ Batched LLM selected products for ${results.length} concepts`);
+    return results;
+
+  } catch (error) {
+    console.error('❌ Error in batched product selection:', error);
+    // Fallback: return pre-filtered products for each concept
+    return preFiltered.map(c => c.products.slice(0, targetCount));
   }
 }

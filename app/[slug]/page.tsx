@@ -70,7 +70,10 @@ export default async function BundlePage({ params }: BundlePageProps) {
   let relatedBundles = await findRelatedBundles(bundle.id, 4);
   if (relatedBundles.length < 4) {
     const newest = await getNewestBundles(4 - relatedBundles.length);
-    relatedBundles = [...relatedBundles, ...newest];
+    // Filter out duplicates by ID
+    const existingIds = new Set(relatedBundles.map(b => b.id));
+    const uniqueNewest = newest.filter(b => !existingIds.has(b.id));
+    relatedBundles = [...relatedBundles, ...uniqueNewest];
   }
 
   const url = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://goose.gifts'}/${slug}`;
@@ -127,10 +130,12 @@ export default async function BundlePage({ params }: BundlePageProps) {
         {/* Header */}
         <header className="border-b border-zinc-200 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <Link href="/" className="inline-flex items-center gap-2 text-zinc-900 hover:text-[#f59e42] transition-colors">
-              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
+            <Link href="/" className="inline-flex items-center gap-2 text-zinc-900 hover:text-[#f59e42] transition-colors group">
+              <img
+                src="/sillygoose.png"
+                alt="Silly Goose"
+                className="w-10 h-10 transition-transform group-hover:scale-105"
+              />
               <span className="text-xl font-bold">goose.gifts</span>
             </Link>
           </div>
@@ -159,10 +164,15 @@ export default async function BundlePage({ params }: BundlePageProps) {
 
           {/* SEO Content */}
           {bundle.seoContent && (
-            <div className="mb-16 prose prose-zinc max-w-none">
-              <div className="bg-white rounded-xl p-8 shadow-sm">
-                <div className="text-zinc-700 leading-relaxed whitespace-pre-line">
-                  {bundle.seoContent}
+            <div className="mb-20">
+              <div className="bg-gradient-to-br from-white to-zinc-50 rounded-2xl p-10 shadow-sm border border-zinc-100">
+                <div className="prose prose-lg prose-zinc max-w-none">
+                  <div
+                    className="text-zinc-700 leading-relaxed [&>p]:mb-5 [&>p:first-child]:text-xl [&>p:first-child]:text-zinc-800 [&>p:first-child]:font-medium"
+                    style={{ whiteSpace: 'pre-line' }}
+                  >
+                    {bundle.seoContent}
+                  </div>
                 </div>
               </div>
             </div>
@@ -191,26 +201,7 @@ export default async function BundlePage({ params }: BundlePageProps) {
                 </div>
 
                 {/* Products Carousel */}
-                <ProductCarousel
-                  products={giftIdea.products}
-                  onProductClick={(url, e) => {
-                    e.preventDefault();
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      const gtag = (window as any).gtag;
-                      const callback = function () {
-                        window.open(url, '_blank', 'noopener,noreferrer');
-                      };
-                      gtag('event', 'conversion_event_outbound_click', {
-                        'event_callback': callback,
-                        'event_timeout': 2000,
-                      });
-                    } else {
-                      window.open(url, '_blank', 'noopener,noreferrer');
-                    }
-                  }}
-                />
+                <ProductCarousel products={giftIdea.products} />
 
                 {/* Bundle Total */}
                 {giftIdea.products.some(p => p.price > 0) && (
