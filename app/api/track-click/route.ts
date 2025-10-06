@@ -6,7 +6,7 @@ import { eq, sql } from 'drizzle-orm';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { slug, productId } = body;
+    const { slug } = body;
 
     if (!slug || typeof slug !== 'string') {
       return NextResponse.json(

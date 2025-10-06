@@ -20,10 +20,14 @@ export default function AdminBundleDetailPage({
 
   const [bundle, setBundle] = useState<GiftBundle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingSEO, setIsEditingSEO] = useState(false);
+  const [isEditingProducts, setIsEditingProducts] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
+  const [editedSeoContent, setEditedSeoContent] = useState('');
+  const [editedSeoKeywords, setEditedSeoKeywords] = useState('');
+  const [editedGiftIdeas, setEditedGiftIdeas] = useState<GiftIdea[]>([]);
 
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
@@ -40,6 +44,9 @@ export default function AdminBundleDetailPage({
         setBundle(data.data);
         setEditedTitle(data.data.seoTitle || '');
         setEditedDescription(data.data.seoDescription || '');
+        setEditedSeoContent(data.data.seoContent || '');
+        setEditedSeoKeywords(data.data.seoKeywords || '');
+        setEditedGiftIdeas(data.data.giftIdeas as GiftIdea[]);
       } else {
         showToast('error', data.error || 'Failed to fetch bundle');
       }
@@ -55,7 +62,7 @@ export default function AdminBundleDetailPage({
     fetchBundle();
   }, [fetchBundle]);
 
-  const handleSave = async () => {
+  const handleSaveSEO = async () => {
     if (!bundle) return;
 
     setIsSaving(true);
@@ -66,20 +73,53 @@ export default function AdminBundleDetailPage({
         body: JSON.stringify({
           seoTitle: editedTitle,
           seoDescription: editedDescription,
+          seoContent: editedSeoContent,
+          seoKeywords: editedSeoKeywords,
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        showToast('success', 'Bundle updated successfully');
+        showToast('success', 'SEO metadata updated successfully');
         setBundle(data.data);
-        setIsEditing(false);
+        setIsEditingSEO(false);
       } else {
         showToast('error', data.error || 'Failed to update bundle');
       }
     } catch (error) {
       showToast('error', 'An error occurred while updating the bundle');
+      console.error('Update error:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveProducts = async () => {
+    if (!bundle) return;
+
+    setIsSaving(true);
+    try {
+      const response = await fetch(`/api/admin/bundles/${bundle.slug}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          giftIdeas: editedGiftIdeas,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showToast('success', 'Products updated successfully');
+        setBundle(data.data);
+        setEditedGiftIdeas(data.data.giftIdeas as GiftIdea[]);
+        setIsEditingProducts(false);
+      } else {
+        showToast('error', data.error || 'Failed to update products');
+      }
+    } catch (error) {
+      showToast('error', 'An error occurred while updating products');
       console.error('Update error:', error);
     } finally {
       setIsSaving(false);
@@ -112,6 +152,36 @@ export default function AdminBundleDetailPage({
       console.error('Delete error:', error);
       setDeleteModal((prev) => ({ ...prev, isDeleting: false }));
     }
+  };
+
+  const handleDeleteProduct = (ideaIndex: number, productIndex: number) => {
+    const newGiftIdeas = [...editedGiftIdeas];
+    const idea = newGiftIdeas[ideaIndex];
+
+    // Don't allow deleting the last product
+    if (idea.products.length === 1) {
+      showToast('error', 'Cannot delete the last product in a gift idea');
+      return;
+    }
+
+    idea.products.splice(productIndex, 1);
+    setEditedGiftIdeas(newGiftIdeas);
+  };
+
+  const handleMoveProduct = (ideaIndex: number, productIndex: number, direction: 'up' | 'down') => {
+    const newGiftIdeas = [...editedGiftIdeas];
+    const idea = newGiftIdeas[ideaIndex];
+    const products = [...idea.products];
+
+    const newIndex = direction === 'up' ? productIndex - 1 : productIndex + 1;
+
+    if (newIndex < 0 || newIndex >= products.length) return;
+
+    // Swap products
+    [products[productIndex], products[newIndex]] = [products[newIndex], products[productIndex]];
+
+    idea.products = products;
+    setEditedGiftIdeas(newGiftIdeas);
   };
 
   const copyToClipboard = (text: string) => {
@@ -174,28 +244,13 @@ export default function AdminBundleDetailPage({
           >
             Preview
           </Button>
-          {isEditing ? (
-            <>
-              <Button variant="secondary" onClick={() => setIsEditing(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave} isLoading={isSaving}>
-                Save Changes
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button variant="secondary" onClick={() => setIsEditing(true)}>
-                Edit
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => setDeleteModal({ isOpen: true, isDeleting: false })}
-              >
-                Delete
-              </Button>
-            </>
-          )}
+          <Button
+            variant="danger"
+            onClick={() => setDeleteModal({ isOpen: true, isDeleting: false })}
+            disabled={isEditingSEO || isEditingProducts}
+          >
+            Delete
+          </Button>
         </div>
       </div>
 
@@ -288,14 +343,17 @@ export default function AdminBundleDetailPage({
 
       {/* SEO */}
       <Card>
-        <CardHeader title="SEO Metadata" subtitle={isEditing ? 'Edit SEO information' : ''} />
+        <CardHeader
+          title="SEO Metadata"
+          subtitle={isEditingSEO ? 'Edit SEO information' : ''}
+        />
         <CardBody>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                SEO Title
+                SEO Title {isEditingSEO && <span className="text-xs text-gray-500">({editedTitle.length}/60)</span>}
               </label>
-              {isEditing ? (
+              {isEditingSEO ? (
                 <input
                   type="text"
                   value={editedTitle}
@@ -312,9 +370,9 @@ export default function AdminBundleDetailPage({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                SEO Description
+                SEO Description {isEditingSEO && <span className="text-xs text-gray-500">({editedDescription.length}/160)</span>}
               </label>
-              {isEditing ? (
+              {isEditingSEO ? (
                 <textarea
                   value={editedDescription}
                   onChange={(e) => setEditedDescription(e.target.value)}
@@ -328,6 +386,92 @@ export default function AdminBundleDetailPage({
                 </div>
               )}
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                SEO Keywords
+              </label>
+              {isEditingSEO ? (
+                <input
+                  type="text"
+                  value={editedSeoKeywords}
+                  onChange={(e) => setEditedSeoKeywords(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="comma, separated, keywords"
+                  maxLength={500}
+                />
+              ) : (
+                <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">
+                  {bundle.seoKeywords ? (
+                    <div className="flex flex-wrap gap-2">
+                      {bundle.seoKeywords.split(',').map((keyword, i) => (
+                        <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                          {keyword.trim()}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    'Not set'
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                SEO Content (Blog Post) {isEditingSEO && <span className="text-xs text-gray-500">({editedSeoContent.split(/\s+/).filter(Boolean).length} words)</span>}
+              </label>
+              <p className="text-xs text-gray-500 mb-2">400-500 words recommended for SEO</p>
+              {isEditingSEO ? (
+                <textarea
+                  value={editedSeoContent}
+                  onChange={(e) => setEditedSeoContent(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  rows={15}
+                  placeholder="Write engaging SEO content here..."
+                />
+              ) : (
+                <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg max-h-96 overflow-y-auto">
+                  {bundle.seoContent ? (
+                    <div className="whitespace-pre-line text-sm text-gray-700">
+                      {bundle.seoContent}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">Not set</span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              {isEditingSEO ? (
+                <>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setIsEditingSEO(false);
+                      setEditedTitle(bundle.seoTitle || '');
+                      setEditedDescription(bundle.seoDescription || '');
+                      setEditedSeoContent(bundle.seoContent || '');
+                      setEditedSeoKeywords(bundle.seoKeywords || '');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveSEO} isLoading={isSaving}>
+                    Save SEO Changes
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() => setIsEditingSEO(true)}
+                  disabled={isEditingProducts}
+                >
+                  Edit SEO
+                </Button>
+              )}
+            </div>
           </div>
         </CardBody>
       </Card>
@@ -336,23 +480,30 @@ export default function AdminBundleDetailPage({
       <Card>
         <CardHeader
           title="Gift Ideas"
-          subtitle={`${giftIdeas.length} gift ${giftIdeas.length === 1 ? 'idea' : 'ideas'}`}
+          subtitle={isEditingProducts
+            ? `Editing products - ${editedGiftIdeas.reduce((sum, idea) => sum + idea.products.length, 0)} total products`
+            : `${giftIdeas.length} gift ${giftIdeas.length === 1 ? 'idea' : 'ideas'}`
+          }
         />
         <CardBody className="space-y-6">
-          {giftIdeas.map((idea, index) => (
+          {(isEditingProducts ? editedGiftIdeas : giftIdeas).map((idea, ideaIndex) => (
             <div key={idea.id} className="border-l-4 border-blue-500 pl-4">
               <div className="flex items-start justify-between mb-2">
                 <h3 className="text-lg font-bold text-gray-900">{idea.title}</h3>
-                <span className="text-sm text-gray-500">Idea {index + 1}</span>
+                <span className="text-sm text-gray-500">
+                  Idea {ideaIndex + 1} ({idea.products.length} product{idea.products.length !== 1 ? 's' : ''})
+                </span>
               </div>
               <p className="text-gray-700 italic mb-3">{idea.tagline}</p>
               <p className="text-gray-600 mb-4">{idea.description}</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(idea.products as Product[]).map((product) => (
+                {(idea.products as Product[]).map((product, productIndex) => (
                   <div
                     key={product.id}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-4"
+                    className={`bg-gray-50 border rounded-lg p-4 ${
+                      isEditingProducts ? 'border-blue-300' : 'border-gray-200'
+                    }`}
                   >
                     <div className="flex gap-4">
                       {product.imageUrl && (
@@ -380,12 +531,72 @@ export default function AdminBundleDetailPage({
                           )}
                         </div>
                       </div>
+                      {isEditingProducts && (
+                        <div className="flex flex-col gap-1">
+                          <button
+                            onClick={() => handleMoveProduct(ideaIndex, productIndex, 'up')}
+                            disabled={productIndex === 0}
+                            className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Move up"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleMoveProduct(ideaIndex, productIndex, 'down')}
+                            disabled={productIndex === idea.products.length - 1}
+                            className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Move down"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(ideaIndex, productIndex)}
+                            className="p-1 text-gray-400 hover:text-red-600 mt-1"
+                            title="Delete product"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           ))}
+
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            {isEditingProducts ? (
+              <>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setIsEditingProducts(false);
+                    setEditedGiftIdeas(bundle.giftIdeas as GiftIdea[]);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveProducts} isLoading={isSaving}>
+                  Save Products
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="secondary"
+                onClick={() => setIsEditingProducts(true)}
+                disabled={isEditingSEO}
+              >
+                Edit Products
+              </Button>
+            )}
+          </div>
         </CardBody>
       </Card>
 

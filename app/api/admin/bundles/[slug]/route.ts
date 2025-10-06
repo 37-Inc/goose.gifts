@@ -74,7 +74,31 @@ export async function PATCH(
     if (body.seoDescription !== undefined) {
       allowedUpdates.seoDescription = body.seoDescription;
     }
+    if (body.seoContent !== undefined) {
+      allowedUpdates.seoContent = body.seoContent;
+    }
+    if (body.seoKeywords !== undefined) {
+      allowedUpdates.seoKeywords = body.seoKeywords;
+    }
     if (body.giftIdeas !== undefined) {
+      // Validate giftIdeas structure
+      if (!Array.isArray(body.giftIdeas)) {
+        return NextResponse.json(
+          { success: false, error: 'giftIdeas must be an array' } as AdminApiResponse,
+          { status: 400 }
+        );
+      }
+
+      // Validate each gift idea has at least one product
+      for (const idea of body.giftIdeas) {
+        if (!idea.products || !Array.isArray(idea.products) || idea.products.length === 0) {
+          return NextResponse.json(
+            { success: false, error: 'Each gift idea must have at least one product' } as AdminApiResponse,
+            { status: 400 }
+          );
+        }
+      }
+
       allowedUpdates.giftIdeas = body.giftIdeas;
     }
 
