@@ -29,12 +29,12 @@ export async function generateGiftConcepts(
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-5-mini',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 1, // GPT-5 models only support temperature=1
+      temperature: 0.9, // High creativity for gift concepts
       response_format: { type: 'json_object' },
     });
 
