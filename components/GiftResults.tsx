@@ -15,6 +15,30 @@ interface GiftResultsProps {
 export function GiftResults({ giftIdeas, permalinkUrl, searchRequest, onStartOver }: GiftResultsProps) {
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Track outbound link clicks with Google Analytics
+  const handleOutboundClick = (url: string, e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+
+    // Check if gtag is available
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const gtag = (window as any).gtag;
+
+      const callback = function () {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      };
+
+      gtag('event', 'conversion_event_outbound_click', {
+        'event_callback': callback,
+        'event_timeout': 2000,
+      });
+    } else {
+      // Fallback if gtag not available
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   // Generate JSON-LD structured data for gift bundles
   const itemListSchema = searchRequest ? {
     '@context': 'https://schema.org',
@@ -130,6 +154,7 @@ export function GiftResults({ giftIdeas, permalinkUrl, searchRequest, onStartOve
                 <a
                   key={product.id}
                   href={product.affiliateUrl}
+                  onClick={(e) => handleOutboundClick(product.affiliateUrl, e)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group/product block bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
