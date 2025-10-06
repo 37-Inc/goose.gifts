@@ -102,7 +102,10 @@ export async function POST(request: NextRequest) {
 
         // Enrich selected products with accurate Amazon data (price, ratings, images)
         // This fails silently if rate limited - uses Google Search data as fallback
-        const enrichedProducts = await enrichProductsWithAmazonData(selectedProducts);
+        const enableEnrichment = process.env.ENABLE_AMAZON_ENRICHMENT === 'true';
+        const enrichedProducts = enableEnrichment
+          ? await enrichProductsWithAmazonData(selectedProducts)
+          : selectedProducts;
 
         return {
           id: `gift-${Date.now()}-${index}`,

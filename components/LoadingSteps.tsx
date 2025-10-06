@@ -141,7 +141,7 @@ export function LoadingSteps({ recipientDescription = '' }: LoadingStepsProps) {
           ? `🔍 Searching ${searchCount} queries... ${productCount} products found`
           : 'Scouring Amazon & Etsy for perfect items...';
       case 3:
-        return '🎯 AI selecting the best 4 items per bundle...';
+        return `🎯 AI curating the best items for each bundle...`;
       default:
         return '';
     }

@@ -9,9 +9,9 @@ export const GIFT_CONCEPTS_COUNT = parseInt(
   10
 );
 
-// Number of products to show per gift bundle
+// Number of products to show per gift bundle (in carousel)
 export const PRODUCTS_PER_BUNDLE = parseInt(
-  process.env.NEXT_PUBLIC_PRODUCTS_PER_BUNDLE || '4',
+  process.env.NEXT_PUBLIC_PRODUCTS_PER_BUNDLE || '10',
   10
 );
 

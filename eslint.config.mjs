@@ -20,6 +20,7 @@ const eslintConfig = [
       "*.config.js",
       "*.config.mjs",
       "test-amazon-api.js",
+      "test-amazon-getitems.js",
       "next-env.d.ts",
     ],
   },

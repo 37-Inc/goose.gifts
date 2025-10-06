@@ -343,11 +343,10 @@ export async function enrichProductsWithAmazonData(products: Product[]): Promise
     const response = await fetch('https://webservices.amazon.com/paapi5/getitems', {
       method: 'POST',
       headers: {
-        'Authorization': `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${getCredentialScope(timestamp, region)}, SignedHeaders=content-type;host;x-amz-date, Signature=${signature}`,
         'Content-Type': 'application/json; charset=utf-8',
-        'Host': 'webservices.amazon.com',
         'X-Amz-Date': timestamp,
-        'X-Amz-Target': 'com.amazon.paapi5.v1.ProductAdvertisingAPIv1.GetItems',
+        'Authorization': `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${getCredentialScope(timestamp, region)}, SignedHeaders=content-type;host;x-amz-date, Signature=${signature}`,
+        'Host': 'webservices.amazon.com',
       },
       body: JSON.stringify(params),
     });
@@ -375,13 +374,13 @@ export async function enrichProductsWithAmazonData(products: Product[]): Promise
     console.log(`✅ Enriched ${data.ItemsResult.Items.length} products with Amazon data`);
 
     // Create a map of ASIN to enriched data
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const enrichedMap = new Map<string, {
       title?: string;
       price?: number;
       imageUrl?: string;
       rating?: number;
       reviewCount?: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }>(data.ItemsResult.Items.map((item: any) => [
       item.ASIN,
       {
