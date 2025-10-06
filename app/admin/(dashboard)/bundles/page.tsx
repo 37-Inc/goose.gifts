@@ -182,6 +182,14 @@ export default function AdminBundlesPage() {
       ),
     },
     {
+      key: 'clickCount',
+      header: 'Clicks',
+      width: '80px',
+      render: (bundle: GiftBundle) => (
+        <div className="text-sm font-medium text-orange-600">{bundle.clickCount || 0}</div>
+      ),
+    },
+    {
       key: 'actions',
       header: 'Actions',
       width: '180px',

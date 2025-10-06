@@ -44,6 +44,19 @@ export async function GET() {
 
     const todayViews = Number(todayViewsResult[0]?.total || 0);
 
+    // Get today's clicks (sum of click_count for bundles created today)
+    const todayClicksResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(${giftBundles.clickCount}), 0)` })
+      .from(giftBundles)
+      .where(
+        and(
+          gte(giftBundles.createdAt, todayStart),
+          isNull(giftBundles.deletedAt)
+        )
+      );
+
+    const todayClicks = Number(todayClicksResult[0]?.total || 0);
+
     // Get today's deleted bundles
     const todayDeletedResult = await db
       .select({ count: sql<number>`count(*)` })
@@ -68,8 +81,17 @@ export async function GET() {
 
     const totalViews = Number(totalViewsResult[0]?.total || 0);
 
-    // Calculate average views per bundle
+    // Get all-time total clicks
+    const totalClicksResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(${giftBundles.clickCount}), 0)` })
+      .from(giftBundles)
+      .where(isNull(giftBundles.deletedAt));
+
+    const totalClicks = Number(totalClicksResult[0]?.total || 0);
+
+    // Calculate average views and clicks per bundle
     const averageViews = totalBundles > 0 ? Math.round(totalViews / totalBundles) : 0;
+    const averageClicks = totalBundles > 0 ? Math.round(totalClicks / totalBundles) : 0;
 
     // Get recent bundles (last 10)
     const recentBundles = await db
@@ -91,12 +113,15 @@ export async function GET() {
       today: {
         bundlesGenerated: todayBundles,
         totalViews: todayViews,
+        totalClicks: todayClicks,
         bundlesDeleted: todayDeleted,
       },
       allTime: {
         totalBundles,
         totalViews,
+        totalClicks,
         averageViewsPerBundle: averageViews,
+        averageClicksPerBundle: averageClicks,
       },
       recentBundles: recentBundles.map((bundle) => ({
         slug: bundle.slug,

@@ -83,7 +83,7 @@ export default function AdminDashboardPage() {
       {/* Today Stats */}
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Today&apos;s Activity</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardBody>
               <div className="text-sm font-medium text-gray-600 mb-1">Bundles Generated</div>
@@ -102,6 +102,13 @@ export default function AdminDashboardPage() {
 
           <Card>
             <CardBody>
+              <div className="text-sm font-medium text-gray-600 mb-1">Total Clicks</div>
+              <div className="text-3xl font-bold text-orange-600">{stats.today.totalClicks}</div>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardBody>
               <div className="text-sm font-medium text-gray-600 mb-1">Bundles Deleted</div>
               <div className="text-3xl font-bold text-red-600">
                 {stats.today.bundlesDeleted}
@@ -114,7 +121,7 @@ export default function AdminDashboardPage() {
       {/* All-Time Stats */}
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">All-Time Stats</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <Card>
             <CardBody>
               <div className="text-sm font-medium text-gray-600 mb-1">Total Bundles</div>
@@ -135,9 +142,27 @@ export default function AdminDashboardPage() {
 
           <Card>
             <CardBody>
+              <div className="text-sm font-medium text-gray-600 mb-1">Total Clicks</div>
+              <div className="text-3xl font-bold text-gray-900">
+                {stats.allTime.totalClicks.toLocaleString()}
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardBody>
               <div className="text-sm font-medium text-gray-600 mb-1">Avg Views per Bundle</div>
               <div className="text-3xl font-bold text-gray-900">
                 {stats.allTime.averageViewsPerBundle}
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardBody>
+              <div className="text-sm font-medium text-gray-600 mb-1">Avg Clicks per Bundle</div>
+              <div className="text-3xl font-bold text-gray-900">
+                {stats.allTime.averageClicksPerBundle}
               </div>
             </CardBody>
           </Card>

@@ -38,6 +38,7 @@ export const giftBundles = pgTable('gift_bundles', {
 
   // Analytics
   viewCount: integer('view_count').notNull().default(0),
+  clickCount: integer('click_count').notNull().default(0),
   shareCount: integer('share_count').notNull().default(0),
 
   // Timestamps

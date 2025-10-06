@@ -36,12 +36,15 @@ export interface DashboardStats {
   today: {
     bundlesGenerated: number;
     totalViews: number;
+    totalClicks: number;
     bundlesDeleted: number;
   };
   allTime: {
     totalBundles: number;
     totalViews: number;
+    totalClicks: number;
     averageViewsPerBundle: number;
+    averageClicksPerBundle: number;
   };
   recentBundles: Array<{
     slug: string;
@@ -59,11 +62,14 @@ export interface DashboardStats {
 export interface AnalyticsData {
   totalBundles: number;
   totalViews: number;
+  totalClicks: number;
   averageViewsPerBundle: number;
+  averageClicksPerBundle: number;
   topBundles: Array<{
     slug: string;
     title: string;
     viewCount: number;
+    clickCount: number;
     createdAt: Date;
   }>;
   humorStyleBreakdown: Array<{
@@ -75,6 +81,7 @@ export interface AnalyticsData {
     date: string;
     bundles: number;
     views: number;
+    clicks: number;
   }>;
 }
 

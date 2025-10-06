@@ -31,8 +31,17 @@ export async function GET() {
 
     const totalViews = Number(totalViewsResult[0]?.total || 0);
 
-    // Calculate average views per bundle
+    // Get total clicks
+    const totalClicksResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(${giftBundles.clickCount}), 0)` })
+      .from(giftBundles)
+      .where(isNull(giftBundles.deletedAt));
+
+    const totalClicks = Number(totalClicksResult[0]?.total || 0);
+
+    // Calculate average views and clicks per bundle
     const averageViews = totalBundles > 0 ? Math.round(totalViews / totalBundles) : 0;
+    const averageClicks = totalBundles > 0 ? Math.round(totalClicks / totalBundles) : 0;
 
     // Get top 10 most viewed bundles
     const topBundles = await db
@@ -40,6 +49,7 @@ export async function GET() {
         slug: giftBundles.slug,
         title: giftBundles.seoTitle,
         viewCount: giftBundles.viewCount,
+        clickCount: giftBundles.clickCount,
         createdAt: giftBundles.createdAt,
       })
       .from(giftBundles)
@@ -72,6 +82,7 @@ export async function GET() {
         date: sql<string>`DATE(${giftBundles.createdAt})`,
         bundles: sql<number>`count(*)`,
         views: sql<number>`COALESCE(SUM(${giftBundles.viewCount}), 0)`,
+        clicks: sql<number>`COALESCE(SUM(${giftBundles.clickCount}), 0)`,
       })
       .from(giftBundles)
       .where(
@@ -84,16 +95,20 @@ export async function GET() {
       date: item.date,
       bundles: Number(item.bundles),
       views: Number(item.views),
+      clicks: Number(item.clicks),
     }));
 
     const analytics: AnalyticsData = {
       totalBundles,
       totalViews,
+      totalClicks,
       averageViewsPerBundle: averageViews,
+      averageClicksPerBundle: averageClicks,
       topBundles: topBundles.map((bundle) => ({
         slug: bundle.slug,
         title: bundle.title || 'Untitled Bundle',
         viewCount: bundle.viewCount,
+        clickCount: bundle.clickCount || 0,
         createdAt: bundle.createdAt,
       })),
       humorStyleBreakdown,

@@ -268,6 +268,11 @@ export default function AdminBundleDetailPage({
               <label className="block text-sm font-medium text-gray-700 mb-2">Views</label>
               <div className="text-2xl font-bold text-blue-600">{bundle.viewCount}</div>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Clicks</label>
+              <div className="text-2xl font-bold text-orange-600">{bundle.clickCount || 0}</div>
+            </div>
           </div>
 
           <div className="mt-6">

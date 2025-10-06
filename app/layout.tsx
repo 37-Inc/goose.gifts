@@ -26,10 +26,27 @@ export const metadata: Metadata = {
     "joke gifts",
     "AI gift recommendations"
   ],
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://goose.gifts'),
   openGraph: {
     title: "goose.gifts - AI-Powered Funny Gift Finder",
     description: "Discover hilarious, pun-driven gift ideas powered by AI",
+    url: '/',
+    siteName: 'goose.gifts',
     type: "website",
+    images: [
+      {
+        url: '/sillygoose-og.png',
+        width: 1200,
+        height: 630,
+        alt: 'goose.gifts - AI-Powered Funny Gift Finder',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "goose.gifts - AI-Powered Funny Gift Finder",
+    description: "Discover hilarious, pun-driven gift ideas powered by AI",
+    images: ['/sillygoose-og.png'],
   },
 };
 

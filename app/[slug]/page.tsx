@@ -201,7 +201,7 @@ export default async function BundlePage({ params }: BundlePageProps) {
                 </div>
 
                 {/* Products Carousel */}
-                <ProductCarousel products={giftIdea.products} />
+                <ProductCarousel products={giftIdea.products} bundleSlug={slug} />
 
                 {/* Bundle Total */}
                 {giftIdea.products.some(p => p.price > 0) && (

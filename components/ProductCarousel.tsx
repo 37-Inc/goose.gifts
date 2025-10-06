@@ -6,16 +6,30 @@ import type { Product } from '@/lib/types';
 
 interface ProductCarouselProps {
   products: Product[];
+  bundleSlug?: string;
 }
 
-export function ProductCarousel({ products }: ProductCarouselProps) {
+export function ProductCarousel({ products, bundleSlug }: ProductCarouselProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  // Track outbound link clicks with Google Analytics
-  const handleProductClick = (url: string, e: React.MouseEvent<HTMLAnchorElement>) => {
+  // Track outbound link clicks with Google Analytics and database
+  const handleProductClick = (url: string, productId: string, e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
+
+    // Track click in database (fire-and-forget)
+    if (bundleSlug) {
+      fetch('/api/track-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: bundleSlug, productId }),
+      }).catch(() => {
+        // Silently fail - don't block the user
+      });
+    }
+
+    // Track with Google Analytics
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -120,7 +134,7 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
           <a
             key={product.id}
             href={product.affiliateUrl}
-            onClick={(e) => handleProductClick(product.affiliateUrl, e)}
+            onClick={(e) => handleProductClick(product.affiliateUrl, product.id, e)}
             target="_blank"
             rel="noopener noreferrer"
             className="product-card flex-shrink-0 snap-start w-[calc(50%-12px)] sm:w-[calc(40%-12px)] lg:w-[calc(33.333%-16px)] bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"

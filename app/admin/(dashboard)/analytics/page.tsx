@@ -71,7 +71,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card>
           <CardBody>
             <div className="text-sm font-medium text-gray-600 mb-1">Total Bundles</div>
@@ -92,9 +92,27 @@ export default function AdminAnalyticsPage() {
 
         <Card>
           <CardBody>
+            <div className="text-sm font-medium text-gray-600 mb-1">Total Clicks</div>
+            <div className="text-3xl font-bold text-gray-900">
+              {analytics.totalClicks.toLocaleString()}
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardBody>
             <div className="text-sm font-medium text-gray-600 mb-1">Avg Views per Bundle</div>
             <div className="text-3xl font-bold text-gray-900">
               {analytics.averageViewsPerBundle}
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardBody>
+            <div className="text-sm font-medium text-gray-600 mb-1">Avg Clicks per Bundle</div>
+            <div className="text-3xl font-bold text-gray-900">
+              {analytics.averageClicksPerBundle}
             </div>
           </CardBody>
         </Card>
@@ -127,11 +145,19 @@ export default function AdminAnalyticsPage() {
                         </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {bundle.viewCount.toLocaleString()}
+                    <div className="text-right flex gap-4">
+                      <div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {bundle.viewCount.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-gray-500">views</div>
                       </div>
-                      <div className="text-xs text-gray-500">views</div>
+                      <div>
+                        <div className="text-2xl font-bold text-orange-600">
+                          {bundle.clickCount.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-gray-500">clicks</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -202,6 +228,9 @@ export default function AdminAnalyticsPage() {
                       Total Views
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      Total Clicks
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                       Avg Views
                     </th>
                   </tr>
@@ -225,6 +254,9 @@ export default function AdminAnalyticsPage() {
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900 text-right">
                           {stat.views}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900 text-right">
+                          {stat.clicks}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900 text-right">
                           {avgViews}
