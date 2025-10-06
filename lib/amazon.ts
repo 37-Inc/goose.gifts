@@ -277,3 +277,139 @@ function scoreAndSortProducts(products: Product[]): Product[] {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .map(({ score: _score, ...product }) => product);
 }
+
+// Helper function to create canonical request for GetItems operation
+function createGetItemsCanonicalRequest(params: Record<string, unknown>, timestamp: string): string {
+  const payload = JSON.stringify(params);
+  const hashedPayload = crypto.createHash('sha256').update(payload).digest('hex');
+
+  return [
+    'POST',
+    '/paapi5/getitems',
+    '',
+    'content-type:application/json; charset=utf-8',
+    'host:webservices.amazon.com',
+    `x-amz-date:${timestamp}`,
+    '',
+    'content-type;host;x-amz-date',
+    hashedPayload,
+  ].join('\n');
+}
+
+/**
+ * Enrich products with accurate Amazon data using GetItems API
+ * Fails silently if rate limited - returns original products
+ *
+ * @param products Products with ASINs to enrich
+ * @returns Enriched products with current prices, ratings, and images
+ */
+export async function enrichProductsWithAmazonData(products: Product[]): Promise<Product[]> {
+  if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_KEY || !process.env.AMAZON_ASSOCIATE_TAG) {
+    console.log('⚠️ Amazon PA-API not configured, skipping enrichment');
+    return products;
+  }
+
+  // Extract ASINs from product IDs
+  const asins = products.map(p => p.id).filter(id => id.length === 10); // Valid ASINs are 10 chars
+
+  if (asins.length === 0) {
+    console.log('⚠️ No valid ASINs to enrich');
+    return products;
+  }
+
+  const region = 'us-east-1';
+  const timestamp = new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
+
+  const params = {
+    PartnerTag: process.env.AMAZON_ASSOCIATE_TAG,
+    PartnerType: 'Associates',
+    ItemIds: asins,
+    Resources: [
+      'Images.Primary.Large',
+      'Images.Primary.Medium',
+      'ItemInfo.Title',
+      'Offers.Listings.Price',
+      'CustomerReviews.StarRating',
+      'CustomerReviews.Count',
+    ],
+  };
+
+  try {
+    const canonicalRequest = createGetItemsCanonicalRequest(params, timestamp);
+    const signature = createSignature(canonicalRequest, timestamp, region);
+
+    console.log(`📦 Enriching ${asins.length} products with Amazon PA-API...`);
+
+    const response = await fetch('https://webservices.amazon.com/paapi5/getitems', {
+      method: 'POST',
+      headers: {
+        'Authorization': `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${getCredentialScope(timestamp, region)}, SignedHeaders=content-type;host;x-amz-date, Signature=${signature}`,
+        'Content-Type': 'application/json; charset=utf-8',
+        'Host': 'webservices.amazon.com',
+        'X-Amz-Date': timestamp,
+        'X-Amz-Target': 'com.amazon.paapi5.v1.ProductAdvertisingAPIv1.GetItems',
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      // Check for rate limit
+      if (response.status === 429 || errorText.includes('TooManyRequests')) {
+        console.log('⚠️ Amazon PA-API rate limited, using original product data');
+        return products; // Silent failure - return original products
+      }
+
+      console.error('❌ Amazon GetItems error:', response.status, errorText);
+      return products; // Silent failure
+    }
+
+    const data = await response.json();
+
+    if (!data.ItemsResult?.Items || data.ItemsResult.Items.length === 0) {
+      console.log('⚠️ No items returned from Amazon PA-API');
+      return products;
+    }
+
+    console.log(`✅ Enriched ${data.ItemsResult.Items.length} products with Amazon data`);
+
+    // Create a map of ASIN to enriched data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const enrichedMap = new Map<string, {
+      title?: string;
+      price?: number;
+      imageUrl?: string;
+      rating?: number;
+      reviewCount?: number;
+    }>(data.ItemsResult.Items.map((item: any) => [
+      item.ASIN,
+      {
+        title: item.ItemInfo?.Title?.DisplayValue,
+        price: parseFloat(item.Offers?.Listings?.[0]?.Price?.Amount || '0'),
+        imageUrl: item.Images?.Primary?.Large?.URL || item.Images?.Primary?.Medium?.URL,
+        rating: item.CustomerReviews?.StarRating?.Value,
+        reviewCount: item.CustomerReviews?.Count,
+      }
+    ]));
+
+    // Merge enriched data with original products
+    return products.map(product => {
+      const enriched = enrichedMap.get(product.id);
+      if (!enriched) return product;
+
+      return {
+        ...product,
+        ...(enriched.title && { title: enriched.title }),
+        ...(enriched.price && enriched.price > 0 && { price: enriched.price }),
+        ...(enriched.imageUrl && { imageUrl: enriched.imageUrl }),
+        ...(enriched.rating && { rating: enriched.rating }),
+        ...(enriched.reviewCount && { reviewCount: enriched.reviewCount }),
+      };
+    });
+  } catch (error) {
+    // Silent failure - log but return original products
+    console.error('❌ Amazon enrichment failed:', error);
+    return products;
+  }
+}

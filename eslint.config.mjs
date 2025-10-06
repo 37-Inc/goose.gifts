@@ -19,6 +19,8 @@ const eslintConfig = [
       "dist/**",
       "*.config.js",
       "*.config.mjs",
+      "test-amazon-api.js",
+      "next-env.d.ts",
     ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),

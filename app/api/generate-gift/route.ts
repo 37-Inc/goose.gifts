@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GiftRequestSchema, type GiftIdea, type Product } from '@/lib/types';
 import { generateGiftConcepts, selectBestProducts } from '@/lib/openai';
-import { searchMultipleCategoriesAmazon } from '@/lib/amazon';
+import { searchMultipleCategoriesAmazon, enrichProductsWithAmazonData } from '@/lib/amazon';
 import { searchAmazonViaGoogleMulti } from '@/lib/google-amazon-search';
 import { saveGiftIdeas } from '@/lib/db';
 import { PRODUCTS_PER_BUNDLE } from '@/lib/config';
@@ -100,12 +100,16 @@ export async function POST(request: NextRequest) {
 
         console.log(`✅ Selected ${selectedProducts.length} products for "${concept.title}"`);
 
+        // Enrich selected products with accurate Amazon data (price, ratings, images)
+        // This fails silently if rate limited - uses Google Search data as fallback
+        const enrichedProducts = await enrichProductsWithAmazonData(selectedProducts);
+
         return {
           id: `gift-${Date.now()}-${index}`,
           title: concept.title,
           tagline: concept.tagline,
           description: concept.description,
-          products: selectedProducts,
+          products: enrichedProducts,
           humorStyle: validatedRequest.humorStyle,
         };
       });
