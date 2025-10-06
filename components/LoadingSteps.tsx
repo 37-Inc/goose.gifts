@@ -12,7 +12,7 @@ const steps: LoadingStep[] = [
   { label: 'Analyzing recipient', duration: 3000 },
   { label: 'Generating gift concepts', duration: 8000 },
   { label: 'Searching products', duration: 12000 },
-  { label: 'Curating bundles', duration: 5000 },
+  { label: 'Curating bundles', duration: 10000 }, // Increased to match actual LLM processing time
 ];
 
 const gooseMessages = [

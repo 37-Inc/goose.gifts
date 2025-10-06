@@ -157,8 +157,44 @@ export async function selectBestProducts(
     return products;
   }
 
+  // PRE-FILTER: Reduce product set before LLM processing for speed
+  let filteredProducts = products;
+
+  // 1. Remove products with invalid prices ($0 or negative)
+  filteredProducts = filteredProducts.filter(p => p.price > 0);
+  console.log(`🔍 After price filter: ${filteredProducts.length} products`);
+
+  // 2. Basic title deduplication - remove very similar titles
+  const seen = new Map<string, Product>();
+  filteredProducts = filteredProducts.filter(p => {
+    // Use first 40 chars of normalized title as dedup key
+    const key = p.title.toLowerCase().replace(/[^a-z0-9\s]/g, '').slice(0, 40);
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.set(key, p);
+    return true;
+  });
+  console.log(`🔍 After title dedup: ${filteredProducts.length} products`);
+
+  // 3. Limit to top 20 products to reduce LLM processing time
+  // Prioritize products with valid prices
+  const maxBeforeLLM = 20;
+  if (filteredProducts.length > maxBeforeLLM) {
+    // Sort by: valid price first, then by price (higher = likely better quality)
+    filteredProducts.sort((a, b) => b.price - a.price);
+    filteredProducts = filteredProducts.slice(0, maxBeforeLLM);
+    console.log(`🔍 Limited to top ${maxBeforeLLM} products for LLM`);
+  }
+
+  // If we're now under target, just return what we have
+  if (filteredProducts.length <= targetCount) {
+    console.log(`📌 After pre-filtering: ${filteredProducts.length} products (returning all)`);
+    return filteredProducts;
+  }
+
   try {
-    const productSummaries = products.map((p, idx) => ({
+    const productSummaries = filteredProducts.map((p, idx) => ({
       index: idx,
       title: p.title,
       price: p.price,
@@ -169,7 +205,7 @@ export async function selectBestProducts(
 
 Description: ${conceptDescription}
 
-Available products (${products.length} total):
+Available products (${filteredProducts.length} total):
 ${JSON.stringify(productSummaries, null, 2)}
 
 Task: Select exactly ${targetCount} products that are:
@@ -201,8 +237,8 @@ Return ONLY a JSON object with an "indices" array, like: {"indices": [0, 3, 7, 1
 
     const content = completion.choices[0]?.message?.content;
     if (!content) {
-      // Fallback: return first N products
-      return products.slice(0, targetCount);
+      // Fallback: return first N filtered products
+      return filteredProducts.slice(0, targetCount);
     }
 
     const parsed = JSON.parse(content);
@@ -210,14 +246,14 @@ Return ONLY a JSON object with an "indices" array, like: {"indices": [0, 3, 7, 1
 
     // Validate indices and return selected products
     const selectedProducts = selectedIndices
-      .filter((idx: number) => idx >= 0 && idx < products.length)
+      .filter((idx: number) => idx >= 0 && idx < filteredProducts.length)
       .slice(0, targetCount)
-      .map((idx: number) => products[idx]);
+      .map((idx: number) => filteredProducts[idx]);
 
     // If we got fewer than target, fill with remaining products
     if (selectedProducts.length < targetCount) {
       const usedIndices = new Set(selectedIndices);
-      const remaining = products
+      const remaining = filteredProducts
         .map((p, idx) => ({ product: p, index: idx }))
         .filter(({ index }) => !usedIndices.has(index))
         .slice(0, targetCount - selectedProducts.length)
@@ -230,16 +266,9 @@ Return ONLY a JSON object with an "indices" array, like: {"indices": [0, 3, 7, 1
     return finalProducts;
   } catch (error) {
     console.error('❌ Error selecting products with LLM:', error);
-    // Fallback: basic deduplication by title similarity
-    const seen = new Set<string>();
-    const unique = products.filter(p => {
-      const normalized = p.title.toLowerCase().slice(0, 30);
-      if (seen.has(normalized)) return false;
-      seen.add(normalized);
-      return true;
-    });
-    const fallbackProducts = unique.slice(0, targetCount);
-    console.log(`🔄 Fallback: returning ${fallbackProducts.length} products`);
+    // Fallback: return pre-filtered products (already deduplicated)
+    const fallbackProducts = filteredProducts.slice(0, targetCount);
+    console.log(`🔄 Fallback: returning ${fallbackProducts.length} pre-filtered products`);
     return fallbackProducts;
   }
 }

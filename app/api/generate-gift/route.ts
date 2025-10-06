@@ -3,7 +3,7 @@ import { GiftRequestSchema, type GiftIdea, type Product } from '@/lib/types';
 import { generateGiftConcepts, selectBestProducts } from '@/lib/openai';
 import { searchMultipleCategoriesAmazon, enrichProductsWithAmazonData } from '@/lib/amazon';
 import { searchAmazonViaGoogleMulti } from '@/lib/google-amazon-search';
-import { saveGiftIdeas } from '@/lib/db';
+import { saveGiftIdeas } from '@/lib/db/operations';
 import { PRODUCTS_PER_BUNDLE } from '@/lib/config';
 
 export const runtime = 'nodejs';
