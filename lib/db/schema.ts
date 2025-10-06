@@ -43,6 +43,7 @@ export const giftBundles = pgTable('gift_bundles', {
   // Timestamps
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at'),
 }, (table) => ({
   // Index on slug for fast permalink lookups
   slugIdx: index('slug_idx').on(table.slug),
@@ -65,3 +66,38 @@ export const giftBundles = pgTable('gift_bundles', {
 // Type inference helpers
 export type GiftBundle = typeof giftBundles.$inferSelect;
 export type NewGiftBundle = typeof giftBundles.$inferInsert;
+
+// Admin Actions - Audit log for admin actions
+export const adminActions = pgTable('admin_actions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  adminId: varchar('admin_id', { length: 255 }).notNull(), // For future multi-admin support
+  actionType: varchar('action_type', { length: 50 }).notNull(), // 'delete', 'edit', 'export'
+  targetSlug: varchar('target_slug', { length: 100 }),
+  reason: text('reason'),
+  metadata: jsonb('metadata'), // Additional action details
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  createdAtIdx: index('admin_actions_created_at_idx').on(table.createdAt),
+  adminIdIdx: index('admin_actions_admin_id_idx').on(table.adminId),
+}));
+
+export type AdminAction = typeof adminActions.$inferSelect;
+export type NewAdminAction = typeof adminActions.$inferInsert;
+
+// Error Logs - System error tracking
+export const errorLogs = pgTable('error_logs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  errorType: varchar('error_type', { length: 50 }).notNull(), // 'openai', 'amazon', 'etsy', 'database', 'other'
+  errorMessage: text('error_message').notNull(),
+  stackTrace: text('stack_trace'),
+  metadata: jsonb('metadata'), // Additional error context
+  resolved: integer('resolved').notNull().default(0), // 0 = unresolved, 1 = resolved
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  createdAtIdx: index('error_logs_created_at_idx').on(table.createdAt),
+  errorTypeIdx: index('error_logs_error_type_idx').on(table.errorType),
+  resolvedIdx: index('error_logs_resolved_idx').on(table.resolved),
+}));
+
+export type ErrorLog = typeof errorLogs.$inferSelect;
+export type NewErrorLog = typeof errorLogs.$inferInsert;

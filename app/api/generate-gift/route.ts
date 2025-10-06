@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GiftRequestSchema, type GiftIdea, type Product, type GiftRequest } from '@/lib/types';
+import { GiftRequestSchema, type GiftIdea, type Product, type GiftRequest, type HumorStyle } from '@/lib/types';
 import { generateGiftConcepts, selectBestProductsBatch, type GiftConcept } from '@/lib/openai';
 import { searchMultipleCategoriesAmazon, enrichProductsWithAmazonData } from '@/lib/amazon';
 import { searchAmazonViaGoogleMulti } from '@/lib/google-amazon-search';
@@ -59,7 +59,7 @@ function startParallelSEO(
   concepts: GiftConcept[],
   recipientDescription: string,
   occasion: string | undefined,
-  humorStyle: string
+  humorStyle: HumorStyle
 ): Promise<SEOContent> | null {
   if (!process.env.POSTGRES_URL) return null;
 
@@ -197,7 +197,7 @@ async function curateProductsWithLLM(
 async function buildGiftIdeas(
   conceptsWithProducts: ConceptWithProducts[],
   selectedProducts: Product[][],
-  humorStyle: string,
+  humorStyle: HumorStyle,
   enableEnrichment: boolean
 ): Promise<GiftIdea[]> {
   const giftIdeaPromises = conceptsWithProducts.map(async (concept, index) => {
