@@ -26,6 +26,29 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
       return;
     }
 
+    // Track search with Google Analytics (standard GA4 search event)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const gtag = (window as any).gtag;
+
+      console.log('[GA4] Sending search event', {
+        term: recipientDescription.trim(),
+        occasion: occasion.trim() || undefined,
+        humorStyle,
+      });
+
+      gtag('event', 'search', {
+        search_term: recipientDescription.trim(),
+        search_occasion: occasion.trim() || undefined,
+        search_humor_style: humorStyle,
+      });
+
+      console.log('[GA4] Search event tracked successfully');
+    } else {
+      console.log('[GA4] gtag not available, skipping search tracking');
+    }
+
     onSubmit({
       recipientDescription: recipientDescription.trim(),
       occasion: occasion.trim() || undefined,

@@ -20,13 +20,19 @@ export function ProductCarousel({ products, bundleSlug }: ProductCarouselProps) 
 
     // Track click in database (fire-and-forget)
     if (bundleSlug) {
+      console.log('[DB] Tracking click', { bundleSlug, productId });
       fetch('/api/track-click', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug: bundleSlug, productId }),
-      }).catch(() => {
+      }).then(() => {
+        console.log('[DB] Click tracked successfully');
+      }).catch((error) => {
+        console.log('[DB] Click tracking failed:', error);
         // Silently fail - don't block the user
       });
+    } else {
+      console.log('[DB] No bundleSlug, skipping database tracking');
     }
 
     // Track with Google Analytics
@@ -45,7 +51,10 @@ export function ProductCarousel({ products, bundleSlug }: ProductCarouselProps) 
         event_category: 'engagement',
         event_label: url,
         link_domain: new URL(url).hostname,
-        event_callback: callback,
+        event_callback: () => {
+          console.log('[GA4] Event tracked successfully');
+          callback();
+        },
         event_timeout: 2000,
       });
     } else {

@@ -15,6 +15,9 @@ interface GiftResultsProps {
 export function GiftResults({ giftIdeas, permalinkUrl, searchRequest, onStartOver }: GiftResultsProps) {
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Extract slug from permalink URL for tracking
+  const bundleSlug = permalinkUrl ? permalinkUrl.split('/').pop() || undefined : undefined;
+
   // Generate JSON-LD structured data for gift bundles
   const itemListSchema = searchRequest ? {
     '@context': 'https://schema.org',
@@ -125,7 +128,7 @@ export function GiftResults({ giftIdeas, permalinkUrl, searchRequest, onStartOve
             </div>
 
             {/* Products Carousel */}
-            <ProductCarousel products={giftIdea.products} />
+            <ProductCarousel products={giftIdea.products} bundleSlug={bundleSlug} />
 
             {/* Bundle Total */}
             {giftIdea.products.some(p => p.price > 0) && (
