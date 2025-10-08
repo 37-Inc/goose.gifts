@@ -37,11 +37,19 @@ export function ProductCarousel({ products, bundleSlug }: ProductCarouselProps) 
       const callback = function () {
         window.open(url, '_blank', 'noopener,noreferrer');
       };
+
+      console.log('[GA4] Sending conversion_event_outbound_click', { url, domain: new URL(url).hostname });
+
+      // Send GA4 event that's imported into Google Ads as conversion
       gtag('event', 'conversion_event_outbound_click', {
-        'event_callback': callback,
-        'event_timeout': 2000,
+        event_category: 'engagement',
+        event_label: url,
+        link_domain: new URL(url).hostname,
+        event_callback: callback,
+        event_timeout: 2000,
       });
     } else {
+      console.log('[GA4] gtag not available, skipping tracking');
       window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
