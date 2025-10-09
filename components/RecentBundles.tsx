@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import type { GiftBundle } from '@/lib/db/schema';
 import type { GiftIdea } from '@/lib/types';
+import { BundleImage } from './BundleImage';
 
 interface RecentBundlesProps {
   bundles: Array<GiftBundle & { giftIdeas: GiftIdea[] }>;
@@ -30,9 +30,14 @@ export function RecentBundles({ bundles }: RecentBundlesProps) {
         {/* Bundles Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {bundles.map((bundle) => {
-            const firstProduct = bundle.giftIdeas[0]?.products[0];
             const createdDate = new Date(bundle.createdAt);
             const timeAgo = getTimeAgo(createdDate);
+
+            // Collect first product image from each gift idea (up to 4)
+            const productImages = bundle.giftIdeas
+              .slice(0, 4)
+              .map(idea => idea.products?.[0]?.imageUrl)
+              .filter(Boolean) as string[];
 
             return (
               <Link
@@ -40,17 +45,12 @@ export function RecentBundles({ bundles }: RecentBundlesProps) {
                 href={`/${bundle.slug}`}
                 className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-zinc-100"
               >
-                {/* Image */}
-                {firstProduct?.imageUrl && (
-                  <div className="relative bg-zinc-50 overflow-hidden" style={{ aspectRatio: '1.91/1' }}>
-                    <Image
-                      src={firstProduct.imageUrl}
-                      alt={bundle.seoTitle || bundle.giftIdeas[0]?.title || 'Gift bundle'}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    />
-                  </div>
+                {/* Bundle Image Grid */}
+                {productImages.length > 0 && (
+                  <BundleImage
+                    images={productImages}
+                    alt={bundle.seoTitle || bundle.giftIdeas[0]?.title || 'Gift bundle'}
+                  />
                 )}
 
                 {/* Content */}

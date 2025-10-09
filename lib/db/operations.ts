@@ -14,6 +14,7 @@ import { eq, sql } from 'drizzle-orm';
 import { generateSlug, calculatePriceRange, extractKeywords } from './helpers';
 import type { GiftIdea, GiftRequest, Product } from '../types';
 import type { SEOContent } from '../seo';
+import { selectTrendingProducts } from './product-scoring';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
@@ -521,5 +522,48 @@ export async function updateBundleGiftIdeas(
   } catch (error) {
     console.error('Error updating bundle gift ideas:', error);
     throw new Error('Failed to update bundle gift ideas');
+  }
+}
+
+/**
+ * Get trending products for homepage
+ * Uses scoring algorithm optimized for high Amazon commissions + clickbait appeal
+ */
+export async function getTrendingProducts(limit: number = 12): Promise<Product[]> {
+  try {
+    // Fetch all products from database
+    const allProducts = await db
+      .select({
+        id: products.id,
+        title: products.title,
+        price: products.price,
+        currency: products.currency,
+        imageUrl: products.imageUrl,
+        affiliateUrl: products.affiliateUrl,
+        source: products.source,
+        rating: products.rating,
+        reviewCount: products.reviewCount,
+      })
+      .from(products)
+      .where(sql`${products.imageUrl} IS NOT NULL`); // Only products with images
+
+    // Convert to Product type
+    const productList: Product[] = allProducts.map(p => ({
+      id: p.id,
+      title: p.title,
+      price: parseFloat(p.price),
+      currency: p.currency,
+      imageUrl: p.imageUrl || '',
+      affiliateUrl: p.affiliateUrl,
+      source: p.source as 'amazon' | 'etsy',
+      rating: p.rating ? parseFloat(p.rating) : undefined,
+      reviewCount: p.reviewCount || undefined,
+    }));
+
+    // Score and select top products
+    return selectTrendingProducts(productList, limit);
+  } catch (error) {
+    console.error('Error getting trending products:', error);
+    return [];
   }
 }

@@ -195,12 +195,14 @@ export async function getNewestBundles(limit: number = 4): Promise<BundleWithGif
 async function attachFirstGiftIdea(bundles: GiftBundle[]): Promise<BundleWithGiftIdeas[]> {
   return await Promise.all(
     bundles.map(async (bundle) => {
-      const firstGiftIdea = await db
+      // Fetch all gift ideas (up to 4) for bundle image grid
+      const allGiftIdeas = await db
         .select({
           id: giftIdeas.id,
           title: giftIdeas.title,
           tagline: giftIdeas.tagline,
           description: giftIdeas.description,
+          position: giftIdeas.position,
           productId: products.id,
           productTitle: products.title,
           productPrice: products.price,
@@ -215,27 +217,38 @@ async function attachFirstGiftIdea(bundles: GiftBundle[]): Promise<BundleWithGif
         .where(
           and(
             eq(giftIdeas.bundleId, bundle.id),
-            eq(giftIdeas.position, 0),
-            eq(giftIdeaProducts.position, 0)
+            eq(giftIdeaProducts.position, 0) // First product of each gift idea
           )
         )
-        .limit(1);
+        .orderBy(giftIdeas.position)
+        .limit(4);
 
-      const giftIdeasData: GiftIdea[] = firstGiftIdea.length > 0 ? [{
-        id: firstGiftIdea[0].id,
-        title: firstGiftIdea[0].title,
-        tagline: firstGiftIdea[0].tagline || '',
-        description: firstGiftIdea[0].description || '',
-        products: [{
-          id: firstGiftIdea[0].productId,
-          title: firstGiftIdea[0].productTitle,
-          price: parseFloat(firstGiftIdea[0].productPrice),
-          currency: firstGiftIdea[0].productCurrency,
-          imageUrl: firstGiftIdea[0].productImageUrl || '',
-          affiliateUrl: firstGiftIdea[0].productAffiliateUrl,
-          source: firstGiftIdea[0].productSource as 'amazon' | 'etsy',
-        }],
-      }] : [];
+      // Group products by gift idea
+      const giftIdeasMap = new Map<string, GiftIdea>();
+
+      allGiftIdeas.forEach(row => {
+        if (!giftIdeasMap.has(row.id)) {
+          giftIdeasMap.set(row.id, {
+            id: row.id,
+            title: row.title,
+            tagline: row.tagline || '',
+            description: row.description || '',
+            products: [],
+          });
+        }
+
+        giftIdeasMap.get(row.id)!.products.push({
+          id: row.productId,
+          title: row.productTitle,
+          price: parseFloat(row.productPrice),
+          currency: row.productCurrency,
+          imageUrl: row.productImageUrl || '',
+          affiliateUrl: row.productAffiliateUrl,
+          source: row.productSource as 'amazon' | 'etsy',
+        });
+      });
+
+      const giftIdeasData: GiftIdea[] = Array.from(giftIdeasMap.values());
 
       return {
         ...bundle,

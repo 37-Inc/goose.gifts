@@ -1,12 +1,15 @@
 import { getNewestBundles } from '@/lib/db/related-bundles';
+import { getTrendingProducts } from '@/lib/db/operations';
 import { HomeClient } from '@/components/HomeClient';
 import { RecentBundles } from '@/components/RecentBundles';
+import { TrendingProducts } from '@/components/TrendingProducts';
 
 export const revalidate = 3600; // Revalidate every hour
 
 export default async function HomePage() {
-  // Fetch recent bundles for the homepage
+  // Fetch recent bundles and trending products for the homepage
   const recentBundles = await getNewestBundles(8);
+  const trendingProducts = await getTrendingProducts(12);
 
   return (
     <div className="min-h-screen warm-background">
@@ -35,6 +38,9 @@ export default async function HomePage() {
         {/* Main Interactive Content - Client Component */}
         <HomeClient />
       </div>
+
+      {/* Trending Products Section */}
+      <TrendingProducts products={trendingProducts} />
 
       {/* Recent Bundles Section */}
       <RecentBundles bundles={recentBundles} />
