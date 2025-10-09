@@ -40,6 +40,16 @@ export function SearchBar() {
         setResults(data.results || []);
         setIsOpen(true);
         setSelectedIndex(-1);
+
+        // Track search with Google Analytics
+        if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+          const gtag = (window as any).gtag;
+          gtag('event', 'search', {
+            search_term: query,
+            event_category: 'engagement',
+            event_label: `${data.results?.length || 0} results`,
+          });
+        }
       } catch (error) {
         console.error('Search error:', error);
         setResults([]);
@@ -79,9 +89,8 @@ export function SearchBar() {
       case 'Enter':
         e.preventDefault();
         if (selectedIndex >= 0 && results[selectedIndex]) {
-          window.open(results[selectedIndex].url, '_blank', 'noopener,noreferrer');
-          setIsOpen(false);
-          setQuery('');
+          const result = results[selectedIndex];
+          handleResultClick(result.url, result);
         }
         break;
       case 'Escape':
@@ -91,7 +100,18 @@ export function SearchBar() {
     }
   };
 
-  const handleResultClick = (url: string) => {
+  const handleResultClick = (url: string, result: SearchResult) => {
+    // Track click with Google Analytics
+    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      const gtag = (window as any).gtag;
+      gtag('event', 'select_content', {
+        content_type: 'search_result',
+        item_id: result.slug,
+        event_category: 'engagement',
+        event_label: query,
+      });
+    }
+
     // Open in new tab for instant response (no wait for tracking)
     window.open(url, '_blank', 'noopener,noreferrer');
     setIsOpen(false);
@@ -137,7 +157,7 @@ export function SearchBar() {
           {results.map((result, index) => (
             <button
               key={result.id}
-              onClick={() => handleResultClick(result.url)}
+              onClick={() => handleResultClick(result.url, result)}
               className={`w-full text-left px-4 py-3 border-b border-zinc-100 hover:bg-orange-50 transition-colors ${
                 index === selectedIndex ? 'bg-orange-50' : ''
               } ${index === results.length - 1 ? 'border-b-0 rounded-b-lg' : ''}`}

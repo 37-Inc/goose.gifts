@@ -320,6 +320,31 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             </button>
+
+            <button
+              onClick={() => router.push('/admin/search-analytics')}
+              className="px-6 py-4 bg-orange-50 border-2 border-orange-200 rounded-lg text-left hover:bg-orange-100 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <svg
+                  className="w-6 h-6 text-orange-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <div>
+                  <div className="font-semibold text-gray-900">Search Analytics</div>
+                  <div className="text-sm text-gray-600">Track search queries and content gaps</div>
+                </div>
+              </div>
+            </button>
           </div>
         </CardBody>
       </Card>

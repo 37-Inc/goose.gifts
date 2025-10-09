@@ -64,7 +64,7 @@ export function GiftRequestForm({ onSubmit, loading }: GiftRequestFormProps) {
       {/* Recipient Description */}
       <div className="mb-4">
         <label htmlFor="recipient" className="block text-sm font-light text-zinc-700 mb-2">
-          About the recipient
+          Generate a gift bundle
         </label>
         <textarea
           id="recipient"

@@ -215,3 +215,41 @@ export const errorLogs = pgTable('error_logs', {
 
 export type ErrorLog = typeof errorLogs.$inferSelect;
 export type NewErrorLog = typeof errorLogs.$inferInsert;
+
+// Search Queries - Track all search activity for analytics
+export const searchQueries = pgTable('search_queries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+
+  // Search query text
+  query: text('query').notNull(),
+
+  // Results metadata
+  resultCount: integer('result_count').notNull().default(0),
+  topSimilarity: numeric('top_similarity', { precision: 5, scale: 4 }), // Highest similarity score (0-1)
+
+  // User interaction
+  clicked: integer('clicked').notNull().default(0), // 0 = no click, 1 = clicked result
+  clickedBundleId: uuid('clicked_bundle_id').references(() => giftBundles.id, { onDelete: 'set null' }),
+  clickedBundleSlug: varchar('clicked_bundle_slug', { length: 100 }),
+
+  // Session tracking (optional - for grouping related searches)
+  sessionId: varchar('session_id', { length: 100 }),
+
+  // User agent for analytics
+  userAgent: text('user_agent'),
+
+  // Timestamps
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  // Index for time-based queries (top searches by day/week/month)
+  createdAtIdx: index('search_queries_created_at_idx').on(table.createdAt),
+  // Index for finding failed searches (0 results)
+  resultCountIdx: index('search_queries_result_count_idx').on(table.resultCount),
+  // Index for conversion analysis (clicked vs not clicked)
+  clickedIdx: index('search_queries_clicked_idx').on(table.clicked),
+  // Composite index for popular queries over time
+  queryCreatedAtIdx: index('search_queries_query_created_at_idx').on(table.query, table.createdAt),
+}));
+
+export type SearchQuery = typeof searchQueries.$inferSelect;
+export type NewSearchQuery = typeof searchQueries.$inferInsert;
