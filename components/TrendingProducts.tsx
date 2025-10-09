@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import type { Product } from '@/lib/types';
 
@@ -10,6 +10,20 @@ interface TrendingProductsProps {
 
 export function TrendingProducts({ products }: TrendingProductsProps) {
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 300; // Scroll by ~1 product width
+      const newScrollLeft = scrollContainerRef.current.scrollLeft +
+        (direction === 'right' ? scrollAmount : -scrollAmount);
+
+      scrollContainerRef.current.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   if (products.length === 0) {
     return null;
@@ -60,8 +74,32 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
 
           {/* Products Carousel/Grid */}
           <div className="relative">
+            {/* Scroll Arrows - Desktop Only */}
+            <button
+              onClick={() => scroll('left')}
+              className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 items-center justify-center bg-white rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-200 border-2 border-orange-200 hover:border-orange-400 group"
+              aria-label="Scroll left"
+            >
+              <svg className="w-6 h-6 text-orange-600 group-hover:text-orange-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => scroll('right')}
+              className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 items-center justify-center bg-white rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-200 border-2 border-orange-200 hover:border-orange-400 group"
+              aria-label="Scroll right"
+            >
+              <svg className="w-6 h-6 text-orange-600 group-hover:text-orange-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
             {/* Desktop: Scrollable Row */}
-            <div className="hidden lg:flex overflow-x-auto gap-6 pb-4 snap-x snap-mandatory scrollbar-hide">
+            <div
+              ref={scrollContainerRef}
+              className="hidden lg:flex overflow-x-auto gap-6 pb-4 snap-x snap-mandatory scrollbar-hide"
+            >
               {products.map((product) => (
                 <a
                   key={product.id}
@@ -102,23 +140,14 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
 
                     {/* Product Info */}
                     <div className="p-5 flex-1 flex flex-col">
-                      <h3 className="text-base font-semibold text-zinc-900 mb-2 line-clamp-2 min-h-[3rem] group-hover:text-orange-600 transition-colors">
+                      <h3 className="text-base font-semibold text-zinc-900 mb-3 line-clamp-2 min-h-[3rem] group-hover:text-orange-600 transition-colors">
                         {product.title}
                       </h3>
 
-                      {/* Price & Reviews */}
+                      {/* Reviews */}
                       <div className="mt-auto">
-                        <div className="flex items-baseline gap-2 mb-3">
-                          <span className="text-2xl font-bold text-orange-600">
-                            ${product.price.toFixed(2)}
-                          </span>
-                          {product.currency !== 'USD' && (
-                            <span className="text-sm text-zinc-500">{product.currency}</span>
-                          )}
-                        </div>
-
                         {product.reviewCount && product.reviewCount > 0 && (
-                          <p className="text-xs text-zinc-500 mb-3">
+                          <p className="text-sm text-zinc-600 mb-4">
                             {product.reviewCount.toLocaleString()} reviews
                           </p>
                         )}
@@ -171,19 +200,13 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
 
                     {/* Product Info */}
                     <div className="p-5 flex-1 flex flex-col">
-                      <h3 className="text-base font-semibold text-zinc-900 mb-2 line-clamp-2 min-h-[3rem] group-hover:text-orange-600 transition-colors">
+                      <h3 className="text-base font-semibold text-zinc-900 mb-3 line-clamp-2 min-h-[3rem] group-hover:text-orange-600 transition-colors">
                         {product.title}
                       </h3>
 
                       <div className="mt-auto">
-                        <div className="flex items-baseline gap-2 mb-3">
-                          <span className="text-2xl font-bold text-orange-600">
-                            ${product.price.toFixed(2)}
-                          </span>
-                        </div>
-
                         {product.reviewCount && product.reviewCount > 0 && (
-                          <p className="text-xs text-zinc-500 mb-3">
+                          <p className="text-sm text-zinc-600 mb-4">
                             {product.reviewCount.toLocaleString()} reviews
                           </p>
                         )}
@@ -197,19 +220,6 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                 </a>
               ))}
             </div>
-          </div>
-
-          {/* Scroll Hint (Desktop Only) */}
-          <div className="hidden lg:flex justify-center mt-6">
-            <p className="text-sm text-zinc-500 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Scroll for more
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </p>
           </div>
         </div>
       </div>
