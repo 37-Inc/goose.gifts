@@ -110,9 +110,15 @@ async function getSmartCropPosition(imageUrl: string): Promise<CropPosition> {
           return brightness < 240 || variance > 15;
         };
 
-        // Find bounding box of content
-        for (let y = 0; y < canvas.height; y++) {
-          for (let x = 0; x < canvas.width; x++) {
+        // Find bounding box of content, ignoring edge regions (top/bottom 15%, left/right 10%)
+        // This helps ignore promotional banners and badges
+        const edgeMarginTop = Math.floor(canvas.height * 0.15);
+        const edgeMarginBottom = Math.floor(canvas.height * 0.15);
+        const edgeMarginLeft = Math.floor(canvas.width * 0.1);
+        const edgeMarginRight = Math.floor(canvas.width * 0.1);
+
+        for (let y = edgeMarginTop; y < canvas.height - edgeMarginBottom; y++) {
+          for (let x = edgeMarginLeft; x < canvas.width - edgeMarginRight; x++) {
             const i = (y * canvas.width + x) * 4;
             const r = data[i];
             const g = data[i + 1];
