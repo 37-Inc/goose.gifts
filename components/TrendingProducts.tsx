@@ -171,18 +171,11 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                       </h3>
 
                       {/* Reviews */}
-                      <div className="mt-auto">
-                        {product.reviewCount && product.reviewCount > 0 && (
-                          <p className="text-sm text-zinc-600 mb-4">
-                            {product.reviewCount.toLocaleString()} reviews
-                          </p>
-                        )}
-
-                        {/* CTA Button */}
-                        <button className="w-full bg-gradient-to-r from-orange-600 to-amber-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-orange-700 hover:to-amber-700 transition-all duration-200 shadow-lg hover:shadow-xl group-hover:scale-105">
-                          Shop Now →
-                        </button>
-                      </div>
+                      {product.reviewCount && product.reviewCount > 0 && (
+                        <p className="text-sm text-zinc-600 mt-auto">
+                          {product.reviewCount.toLocaleString()} reviews
+                        </p>
+                      )}
                     </div>
                   </div>
                 </a>
@@ -232,17 +225,11 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                         {product.title}
                       </h3>
 
-                      <div className="mt-auto">
-                        {product.reviewCount && product.reviewCount > 0 && (
-                          <p className="text-sm text-zinc-600 mb-4">
-                            {product.reviewCount.toLocaleString()} reviews
-                          </p>
-                        )}
-
-                        <button className="w-full bg-gradient-to-r from-orange-600 to-amber-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-orange-700 hover:to-amber-700 transition-all duration-200">
-                          Shop Now →
-                        </button>
-                      </div>
+                      {product.reviewCount && product.reviewCount > 0 && (
+                        <p className="text-sm text-zinc-600 mt-auto">
+                          {product.reviewCount.toLocaleString()} reviews
+                        </p>
+                      )}
                     </div>
                   </div>
                 </a>
