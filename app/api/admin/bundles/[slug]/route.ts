@@ -4,6 +4,7 @@ import { giftBundles } from '@/lib/db/schema';
 import { isAuthenticated } from '@/lib/admin/auth';
 import { logAdminAction } from '@/lib/admin/audit';
 import { eq } from 'drizzle-orm';
+import { getGiftBundleBySlug, updateBundleGiftIdeas } from '@/lib/db/operations';
 import type { AdminApiResponse } from '@/lib/admin/types';
 
 // GET single bundle
@@ -22,13 +23,10 @@ export async function GET(
 
     const { slug } = await params;
 
-    const bundle = await db
-      .select()
-      .from(giftBundles)
-      .where(eq(giftBundles.slug, slug))
-      .limit(1);
+    // Use the new operation that returns bundle with nested gift ideas
+    const bundle = await getGiftBundleBySlug(slug);
 
-    if (!bundle || bundle.length === 0) {
+    if (!bundle) {
       return NextResponse.json(
         { success: false, error: 'Bundle not found' } as AdminApiResponse,
         { status: 404 }
@@ -37,7 +35,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: bundle[0],
+      data: bundle,
     } as AdminApiResponse);
   } catch (error) {
     console.error('Bundle fetch error:', error);
@@ -65,8 +63,23 @@ export async function PATCH(
     const { slug } = await params;
     const body = await request.json();
 
+    // Get the bundle to obtain its ID
+    const [bundle] = await db
+      .select()
+      .from(giftBundles)
+      .where(eq(giftBundles.slug, slug))
+      .limit(1);
+
+    if (!bundle) {
+      return NextResponse.json(
+        { success: false, error: 'Bundle not found' } as AdminApiResponse,
+        { status: 404 }
+      );
+    }
+
     // Validate what can be updated
     const allowedUpdates: Record<string, unknown> = {};
+    let updateGiftIdeas = false;
 
     if (body.seoTitle !== undefined) {
       allowedUpdates.seoTitle = body.seoTitle;
@@ -99,39 +112,47 @@ export async function PATCH(
         }
       }
 
-      allowedUpdates.giftIdeas = body.giftIdeas;
+      updateGiftIdeas = true;
     }
 
-    if (Object.keys(allowedUpdates).length === 0) {
+    if (Object.keys(allowedUpdates).length === 0 && !updateGiftIdeas) {
       return NextResponse.json(
         { success: false, error: 'No valid updates provided' } as AdminApiResponse,
         { status: 400 }
       );
     }
 
-    // Add updatedAt timestamp
-    allowedUpdates.updatedAt = new Date();
+    // Update SEO metadata if provided
+    if (Object.keys(allowedUpdates).length > 0) {
+      allowedUpdates.updatedAt = new Date();
 
-    // Update the bundle
-    const result = await db
-      .update(giftBundles)
-      .set(allowedUpdates)
-      .where(eq(giftBundles.slug, slug))
-      .returning();
+      await db
+        .update(giftBundles)
+        .set(allowedUpdates)
+        .where(eq(giftBundles.slug, slug));
+    }
 
-    if (!result || result.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Bundle not found' } as AdminApiResponse,
-        { status: 404 }
-      );
+    // Update gift ideas if provided (uses relational tables)
+    if (updateGiftIdeas) {
+      await updateBundleGiftIdeas(bundle.id, body.giftIdeas);
+
+      await db
+        .update(giftBundles)
+        .set({ updatedAt: new Date() })
+        .where(eq(giftBundles.slug, slug));
     }
 
     // Log the action
-    await logAdminAction('edit', slug, undefined, { updates: Object.keys(allowedUpdates) });
+    const updates = [...Object.keys(allowedUpdates)];
+    if (updateGiftIdeas) updates.push('giftIdeas');
+    await logAdminAction('edit', slug, undefined, { updates });
+
+    // Fetch the updated bundle with nested data
+    const updatedBundle = await getGiftBundleBySlug(slug);
 
     return NextResponse.json({
       success: true,
-      data: result[0],
+      data: updatedBundle,
     } as AdminApiResponse);
   } catch (error) {
     console.error('Bundle update error:', error);

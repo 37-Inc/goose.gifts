@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { GiftBundle } from '@/lib/db/schema';
+import type { GiftIdea } from '@/lib/types';
 
 interface RecentBundlesProps {
-  bundles: GiftBundle[];
+  bundles: Array<GiftBundle & { giftIdeas: GiftIdea[] }>;
 }
 
 export function RecentBundles({ bundles }: RecentBundlesProps) {

@@ -1,8 +1,11 @@
 import { db } from './index';
-import { giftBundles } from './schema';
+import { giftBundles, giftIdeas, giftIdeaProducts, products } from './schema';
 import { eq, ne, and, or, sql } from 'drizzle-orm';
 import { jaccardSimilarity } from './helpers';
 import type { GiftBundle } from './schema';
+import type { GiftIdea } from '@/lib/types';
+
+type BundleWithGiftIdeas = GiftBundle & { giftIdeas: GiftIdea[] };
 
 /**
  * Find related gift bundles using weighted similarity scoring
@@ -18,7 +21,7 @@ import type { GiftBundle } from './schema';
 export async function findRelatedBundles(
   bundleId: string,
   limit: number = 4
-): Promise<GiftBundle[]> {
+): Promise<BundleWithGiftIdeas[]> {
   try {
     // Get the source bundle
     const [sourceBundle] = await db
@@ -79,10 +82,64 @@ export async function findRelatedBundles(
       return { ...candidate, similarityScore: score };
     });
 
-    // Sort by score and return top N
-    return scored
+    // Sort by score and get top N
+    const topBundles = scored
       .sort((a, b) => b.similarityScore - a.similarityScore)
       .slice(0, limit);
+
+    // Fetch minimal gift ideas data for each bundle (only first product for preview)
+    const bundlesWithGiftIdeas = await Promise.all(
+      topBundles.map(async (bundle) => {
+        const firstGiftIdea = await db
+          .select({
+            id: giftIdeas.id,
+            title: giftIdeas.title,
+            tagline: giftIdeas.tagline,
+            description: giftIdeas.description,
+            productId: products.id,
+            productTitle: products.title,
+            productPrice: products.price,
+            productCurrency: products.currency,
+            productImageUrl: products.imageUrl,
+            productAffiliateUrl: products.affiliateUrl,
+            productSource: products.source,
+          })
+          .from(giftIdeas)
+          .innerJoin(giftIdeaProducts, eq(giftIdeas.id, giftIdeaProducts.giftIdeaId))
+          .innerJoin(products, eq(giftIdeaProducts.productId, products.id))
+          .where(
+            and(
+              eq(giftIdeas.bundleId, bundle.id),
+              eq(giftIdeas.position, 0),
+              eq(giftIdeaProducts.position, 0)
+            )
+          )
+          .limit(1);
+
+        const giftIdeasData: GiftIdea[] = firstGiftIdea.length > 0 ? [{
+          id: firstGiftIdea[0].id,
+          title: firstGiftIdea[0].title,
+          tagline: firstGiftIdea[0].tagline || '',
+          description: firstGiftIdea[0].description || '',
+          products: [{
+            id: firstGiftIdea[0].productId,
+            title: firstGiftIdea[0].productTitle,
+            price: parseFloat(firstGiftIdea[0].productPrice),
+            currency: firstGiftIdea[0].productCurrency,
+            imageUrl: firstGiftIdea[0].productImageUrl || '',
+            affiliateUrl: firstGiftIdea[0].productAffiliateUrl,
+            source: firstGiftIdea[0].productSource as 'amazon' | 'etsy',
+          }],
+        }] : [];
+
+        return {
+          ...bundle,
+          giftIdeas: giftIdeasData,
+        };
+      })
+    );
+
+    return bundlesWithGiftIdeas;
   } catch (error) {
     console.error('Error finding related bundles:', error);
     return [];
@@ -93,15 +150,18 @@ export async function findRelatedBundles(
  * Get trending bundles (most viewed in last 7 days)
  * Useful for fallback when not enough related bundles exist
  */
-export async function getTrendingBundles(limit: number = 4): Promise<GiftBundle[]> {
+export async function getTrendingBundles(limit: number = 4): Promise<BundleWithGiftIdeas[]> {
   try {
     // Simple version: just get most viewed overall
-    // In the future, can add time-based filtering
-    return await db
+    const bundles = await db
       .select()
       .from(giftBundles)
+      .where(sql`${giftBundles.deletedAt} IS NULL`)
       .orderBy(sql`${giftBundles.viewCount} DESC`)
       .limit(limit);
+
+    // Fetch first gift idea and product for each
+    return await attachFirstGiftIdea(bundles);
   } catch (error) {
     console.error('Error getting trending bundles:', error);
     return [];
@@ -112,15 +172,75 @@ export async function getTrendingBundles(limit: number = 4): Promise<GiftBundle[
  * Get newest bundles
  * Another fallback option
  */
-export async function getNewestBundles(limit: number = 4): Promise<GiftBundle[]> {
+export async function getNewestBundles(limit: number = 4): Promise<BundleWithGiftIdeas[]> {
   try {
-    return await db
+    const bundles = await db
       .select()
       .from(giftBundles)
+      .where(sql`${giftBundles.deletedAt} IS NULL`)
       .orderBy(sql`${giftBundles.createdAt} DESC`)
       .limit(limit);
+
+    // Fetch first gift idea and product for each
+    return await attachFirstGiftIdea(bundles);
   } catch (error) {
     console.error('Error getting newest bundles:', error);
     return [];
   }
+}
+
+/**
+ * Helper function to attach first gift idea to bundles
+ */
+async function attachFirstGiftIdea(bundles: GiftBundle[]): Promise<BundleWithGiftIdeas[]> {
+  return await Promise.all(
+    bundles.map(async (bundle) => {
+      const firstGiftIdea = await db
+        .select({
+          id: giftIdeas.id,
+          title: giftIdeas.title,
+          tagline: giftIdeas.tagline,
+          description: giftIdeas.description,
+          productId: products.id,
+          productTitle: products.title,
+          productPrice: products.price,
+          productCurrency: products.currency,
+          productImageUrl: products.imageUrl,
+          productAffiliateUrl: products.affiliateUrl,
+          productSource: products.source,
+        })
+        .from(giftIdeas)
+        .innerJoin(giftIdeaProducts, eq(giftIdeas.id, giftIdeaProducts.giftIdeaId))
+        .innerJoin(products, eq(giftIdeaProducts.productId, products.id))
+        .where(
+          and(
+            eq(giftIdeas.bundleId, bundle.id),
+            eq(giftIdeas.position, 0),
+            eq(giftIdeaProducts.position, 0)
+          )
+        )
+        .limit(1);
+
+      const giftIdeasData: GiftIdea[] = firstGiftIdea.length > 0 ? [{
+        id: firstGiftIdea[0].id,
+        title: firstGiftIdea[0].title,
+        tagline: firstGiftIdea[0].tagline || '',
+        description: firstGiftIdea[0].description || '',
+        products: [{
+          id: firstGiftIdea[0].productId,
+          title: firstGiftIdea[0].productTitle,
+          price: parseFloat(firstGiftIdea[0].productPrice),
+          currency: firstGiftIdea[0].productCurrency,
+          imageUrl: firstGiftIdea[0].productImageUrl || '',
+          affiliateUrl: firstGiftIdea[0].productAffiliateUrl,
+          source: firstGiftIdea[0].productSource as 'amazon' | 'etsy',
+        }],
+      }] : [];
+
+      return {
+        ...bundle,
+        giftIdeas: giftIdeasData,
+      };
+    })
+  );
 }

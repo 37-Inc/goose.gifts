@@ -18,7 +18,7 @@ export default function AdminBundleDetailPage({
   const router = useRouter();
   const { showToast } = useToast();
 
-  const [bundle, setBundle] = useState<GiftBundle | null>(null);
+  const [bundle, setBundle] = useState<(GiftBundle & { giftIdeas: GiftIdea[] }) | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingSEO, setIsEditingSEO] = useState(false);
   const [isEditingProducts, setIsEditingProducts] = useState(false);
@@ -46,7 +46,7 @@ export default function AdminBundleDetailPage({
         setEditedDescription(data.data.seoDescription || '');
         setEditedSeoContent(data.data.seoContent || '');
         setEditedSeoKeywords(data.data.seoKeywords || '');
-        setEditedGiftIdeas(data.data.giftIdeas as GiftIdea[]);
+        setEditedGiftIdeas(data.data.giftIdeas);
       } else {
         showToast('error', data.error || 'Failed to fetch bundle');
       }
@@ -83,6 +83,7 @@ export default function AdminBundleDetailPage({
       if (data.success) {
         showToast('success', 'SEO metadata updated successfully');
         setBundle(data.data);
+        setEditedGiftIdeas(data.data.giftIdeas);
         setIsEditingSEO(false);
       } else {
         showToast('error', data.error || 'Failed to update bundle');
@@ -113,7 +114,7 @@ export default function AdminBundleDetailPage({
       if (data.success) {
         showToast('success', 'Products updated successfully');
         setBundle(data.data);
-        setEditedGiftIdeas(data.data.giftIdeas as GiftIdea[]);
+        setEditedGiftIdeas(data.data.giftIdeas);
         setIsEditingProducts(false);
       } else {
         showToast('error', data.error || 'Failed to update products');
@@ -221,7 +222,7 @@ export default function AdminBundleDetailPage({
     );
   }
 
-  const giftIdeas = bundle.giftIdeas as GiftIdea[];
+  const giftIdeas = bundle.giftIdeas;
   const permalinkUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/${bundle.slug}`;
 
   return (
@@ -578,7 +579,7 @@ export default function AdminBundleDetailPage({
                   variant="secondary"
                   onClick={() => {
                     setIsEditingProducts(false);
-                    setEditedGiftIdeas(bundle.giftIdeas as GiftIdea[]);
+                    setEditedGiftIdeas(bundle.giftIdeas);
                   }}
                 >
                   Cancel

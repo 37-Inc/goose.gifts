@@ -122,12 +122,7 @@ export default function AdminBundlesPage() {
   };
 
   const getFirstGiftTitle = (bundle: GiftBundle) => {
-    try {
-      const giftIdeas = bundle.giftIdeas as Array<{ title: string }>;
-      return giftIdeas && giftIdeas.length > 0 ? giftIdeas[0].title : 'Untitled';
-    } catch {
-      return 'Untitled';
-    }
+    return bundle.seoTitle || 'Untitled';
   };
 
   const columns = [
