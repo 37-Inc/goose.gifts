@@ -1,81 +1,43 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
-interface BundleImageProps {
-  images: string[];
+interface ProductImageProps {
+  imageUrl: string;
   alt: string;
+  className?: string;
+  sizes?: string;
 }
 
 interface CropPosition {
-  x: number; // -50 to 50 (percentage offset from center)
-  y: number; // -50 to 50 (percentage offset from center)
+  x: number;
+  y: number;
 }
 
-export function BundleImage({ images, alt }: BundleImageProps) {
-  // Take up to 4 images for the 2x2 grid
-  const displayImages = images.slice(0, 4);
-
-  // If we don't have enough images, duplicate the first one to fill the grid
-  while (displayImages.length < 4) {
-    displayImages.push(displayImages[0] || '');
-  }
-
-  const [cropPositions, setCropPositions] = useState<CropPosition[]>(
-    displayImages.map(() => ({ x: 0, y: 0 }))
-  );
+export function ProductImage({ imageUrl, alt, className = '', sizes }: ProductImageProps) {
+  const [cropPosition, setCropPosition] = useState<CropPosition>({ x: 0, y: 0 });
 
   useEffect(() => {
-    // Calculate crop positions for each image
-    const calculatePositions = async () => {
-      const positions = await Promise.all(
-        displayImages.map(async (imageUrl) => {
-          if (!imageUrl) return { x: 0, y: 0 };
-          return await getSmartCropPosition(imageUrl);
-        })
-      );
-      setCropPositions(positions);
+    const calculatePosition = async () => {
+      const position = await getSmartCropPosition(imageUrl);
+      setCropPosition(position);
     };
 
-    calculatePositions();
-  }, [displayImages]);
+    calculatePosition();
+  }, [imageUrl]);
 
   return (
-    <div className="relative bg-zinc-50 overflow-hidden" style={{ aspectRatio: '1.91/1' }}>
-      {/* Image Grid */}
-      <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-1 bg-zinc-100 p-0.5">
-        {displayImages.map((imageUrl, index) => (
-          <div
-            key={index}
-            className="relative bg-white overflow-hidden rounded-sm"
-            style={{
-              transitionDelay: `${index * 30}ms`,
-            }}
-          >
-            {imageUrl && (
-              <>
-                <Image
-                  src={imageUrl}
-                  alt={`${alt} - Product ${index + 1}`}
-                  fill
-                  className="object-cover scale-110 group-hover:scale-[1.15] transition-transform duration-500 ease-out"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 12.5vw"
-                  style={{
-                    objectPosition: `${50 + cropPositions[index].x}% ${35 + cropPositions[index].y}%`,
-                  }}
-                />
-                {/* Subtle inner shadow for depth */}
-                <div className="absolute inset-0 shadow-inner pointer-events-none opacity-20"></div>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Gradient overlay for extra polish */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/5 pointer-events-none"></div>
-    </div>
+    <Image
+      src={imageUrl}
+      alt={alt}
+      fill
+      className={className}
+      sizes={sizes}
+      style={{
+        objectPosition: `${50 + cropPosition.x}% ${35 + cropPosition.y}%`,
+      }}
+    />
   );
 }
 
@@ -113,7 +75,6 @@ async function getSmartCropPosition(imageUrl: string): Promise<CropPosition> {
         let maxY = 0;
 
         // Threshold for detecting non-background pixels
-        // We'll consider a pixel as "content" if it's not too close to white/light gray
         const isContentPixel = (r: number, g: number, b: number, a: number) => {
           if (a < 128) return false; // Transparent
 
@@ -205,7 +166,6 @@ async function getSmartCropPosition(imageUrl: string): Promise<CropPosition> {
       resolve({ x: 0, y: 0 });
     };
 
-    // Add cache busting and handle CORS
     img.src = imageUrl;
   });
 }

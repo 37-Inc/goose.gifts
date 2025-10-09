@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import Image from 'next/image';
+import { useState, useRef, useEffect } from 'react';
 import type { Product } from '@/lib/types';
+import { ProductImage } from './ProductImage';
 
 interface TrendingProductsProps {
   products: Product[];
@@ -11,6 +11,32 @@ interface TrendingProductsProps {
 export function TrendingProducts({ products }: TrendingProductsProps) {
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  // Check scroll position and update arrow visibility
+  const updateScrollButtons = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10); // 10px threshold
+    }
+  };
+
+  useEffect(() => {
+    updateScrollButtons();
+    const scrollContainer = scrollContainerRef.current;
+
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', updateScrollButtons);
+      window.addEventListener('resize', updateScrollButtons);
+
+      return () => {
+        scrollContainer.removeEventListener('scroll', updateScrollButtons);
+        window.removeEventListener('resize', updateScrollButtons);
+      };
+    }
+  }, [products]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -74,32 +100,33 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
 
           {/* Products Carousel/Grid */}
           <div className="relative">
-            {/* Scroll Arrows - Desktop Only */}
-            <button
-              onClick={() => scroll('left')}
-              className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 items-center justify-center bg-white rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-200 border-2 border-orange-200 hover:border-orange-400 group"
-              aria-label="Scroll left"
-            >
-              <svg className="w-6 h-6 text-orange-600 group-hover:text-orange-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
+            {/* Mobile: Scroll Arrows */}
+            {canScrollLeft && (
+              <button
+                onClick={() => scroll('left')}
+                className="lg:hidden absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-200 border-2 border-orange-200 hover:border-orange-400 group"
+                aria-label="Scroll left"
+              >
+                <svg className="w-5 h-5 text-orange-600 group-hover:text-orange-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            )}
 
-            <button
-              onClick={() => scroll('right')}
-              className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 items-center justify-center bg-white rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-200 border-2 border-orange-200 hover:border-orange-400 group"
-              aria-label="Scroll right"
-            >
-              <svg className="w-6 h-6 text-orange-600 group-hover:text-orange-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            {canScrollRight && (
+              <button
+                onClick={() => scroll('right')}
+                className="lg:hidden absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-200 border-2 border-orange-200 hover:border-orange-400 group"
+                aria-label="Scroll right"
+              >
+                <svg className="w-5 h-5 text-orange-600 group-hover:text-orange-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
 
-            {/* Desktop: Scrollable Row */}
-            <div
-              ref={scrollContainerRef}
-              className="hidden lg:flex overflow-x-auto gap-6 pb-4 snap-x snap-mandatory scrollbar-hide"
-            >
+            {/* Desktop: 2-Row Grid (All 12 Products Visible) */}
+            <div className="hidden lg:grid grid-cols-6 gap-6">
               {products.map((product) => (
                 <a
                   key={product.id}
@@ -107,18 +134,17 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                   onClick={(e) => handleProductClick(product.affiliateUrl, product.id, e)}
                   onMouseEnter={() => setHoveredProduct(product.id)}
                   onMouseLeave={() => setHoveredProduct(null)}
-                  className="flex-none w-[280px] snap-start group"
+                  className="group"
                 >
                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-zinc-100 h-full flex flex-col">
                     {/* Product Image */}
                     <div className="relative bg-zinc-50 overflow-hidden" style={{ aspectRatio: '1.91/1' }}>
                       {product.imageUrl && (
-                        <Image
-                          src={product.imageUrl}
+                        <ProductImage
+                          imageUrl={product.imageUrl}
                           alt={product.title}
-                          fill
-                          className={`object-contain p-4 transition-transform duration-300 ${
-                            hoveredProduct === product.id ? 'scale-110' : 'scale-100'
+                          className={`object-cover scale-110 transition-transform duration-300 ${
+                            hoveredProduct === product.id ? 'scale-125' : 'scale-110'
                           }`}
                           sizes="280px"
                         />
@@ -163,24 +189,26 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
               ))}
             </div>
 
-            {/* Mobile/Tablet: Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-6">
-              {products.slice(0, 6).map((product) => (
+            {/* Mobile/Tablet: Horizontal Scroll */}
+            <div
+              ref={scrollContainerRef}
+              className="lg:hidden flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-hide px-1"
+            >
+              {products.map((product) => (
                 <a
                   key={product.id}
                   href={product.affiliateUrl}
                   onClick={(e) => handleProductClick(product.affiliateUrl, product.id, e)}
-                  className="group"
+                  className="flex-none w-[75vw] sm:w-[45vw] snap-start group"
                 >
                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-zinc-100 h-full flex flex-col">
                     {/* Product Image */}
                     <div className="relative bg-zinc-50 overflow-hidden" style={{ aspectRatio: '1.91/1' }}>
                       {product.imageUrl && (
-                        <Image
-                          src={product.imageUrl}
+                        <ProductImage
+                          imageUrl={product.imageUrl}
                           alt={product.title}
-                          fill
-                          className="object-contain p-4 group-hover:scale-110 transition-transform duration-300"
+                          className="object-cover scale-110 group-hover:scale-125 transition-transform duration-300"
                           sizes="(max-width: 640px) 100vw, 50vw"
                         />
                       )}
