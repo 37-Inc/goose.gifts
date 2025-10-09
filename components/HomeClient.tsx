@@ -60,7 +60,7 @@ export function HomeClient() {
   return (
     <>
       {!giftIdeas ? (
-        <div className="max-w-2xl mx-auto mt-12">
+        <div className="max-w-2xl mx-auto mt-6">
           <GiftRequestForm onSubmit={handleSubmit} loading={loading} />
 
           {error && (

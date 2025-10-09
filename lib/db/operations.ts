@@ -49,6 +49,24 @@ async function generateBundleEmbedding(
 }
 
 /**
+ * Generate embedding for a search query
+ */
+async function generateQueryEmbedding(query: string): Promise<number[]> {
+  try {
+    const response = await openai.embeddings.create({
+      model: 'text-embedding-3-small',
+      input: query,
+      encoding_format: 'float',
+    });
+
+    return response.data[0].embedding;
+  } catch (error) {
+    console.error('Failed to generate query embedding:', error);
+    return [];
+  }
+}
+
+/**
  * Save gift ideas to database with pre-generated SEO content
  * Returns the slug for the permalink
  *
@@ -564,6 +582,121 @@ export async function getTrendingProducts(limit: number = 12): Promise<Product[]
     return selectTrendingProducts(productList, limit);
   } catch (error) {
     console.error('Error getting trending products:', error);
+    return [];
+  }
+}
+
+/**
+ * Search for gift bundles using semantic similarity (vector search) + keyword matching
+ * Returns bundles ranked by relevance
+ */
+export async function searchBundles(query: string, limit: number = 10): Promise<Array<{
+  id: string;
+  slug: string;
+  recipientDescription: string;
+  occasion: string | null;
+  seoTitle: string | null;
+  similarity: number;
+  productImages: string[];
+}>> {
+  if (!query.trim()) {
+    return [];
+  }
+
+  try {
+    // Generate embedding for the search query
+    const queryEmbedding = await generateQueryEmbedding(query);
+
+    if (queryEmbedding.length === 0) {
+      // Fallback to keyword search if embedding fails
+      const keywordResults = await db
+        .select({
+          id: giftBundles.id,
+          slug: giftBundles.slug,
+          recipientDescription: giftBundles.recipientDescription,
+          occasion: giftBundles.occasion,
+          seoTitle: giftBundles.seoTitle,
+        })
+        .from(giftBundles)
+        .where(sql`${giftBundles.deletedAt} IS NULL AND (
+          ${giftBundles.recipientDescription} ILIKE ${`%${query}%`} OR
+          ${giftBundles.occasion} ILIKE ${`%${query}%`} OR
+          ${giftBundles.seoTitle} ILIKE ${`%${query}%`}
+        )`)
+        .limit(limit);
+
+      // Fetch product images for each bundle
+      const bundlesWithImages = await Promise.all(
+        keywordResults.map(async (bundle) => {
+          const images = await db
+            .select({ imageUrl: products.imageUrl })
+            .from(giftIdeas)
+            .innerJoin(giftIdeaProducts, eq(giftIdeas.id, giftIdeaProducts.giftIdeaId))
+            .innerJoin(products, eq(giftIdeaProducts.productId, products.id))
+            .where(eq(giftIdeas.bundleId, bundle.id))
+            .limit(4);
+
+          return {
+            ...bundle,
+            similarity: 0,
+            productImages: images.map(img => img.imageUrl).filter((url): url is string => !!url),
+          };
+        })
+      );
+
+      return bundlesWithImages;
+    }
+
+    // Vector similarity search using cosine distance
+    // pgvector's <=> operator computes cosine distance (lower is more similar)
+    const results = await db.execute<{
+      id: string;
+      slug: string;
+      recipient_description: string;
+      occasion: string | null;
+      seo_title: string | null;
+      similarity: string;
+    }>(sql`
+      SELECT
+        id,
+        slug,
+        recipient_description,
+        occasion,
+        seo_title,
+        1 - (embedding <=> ${`[${queryEmbedding.join(',')}]`}::vector) as similarity
+      FROM gift_bundles
+      WHERE deleted_at IS NULL
+        AND embedding IS NOT NULL
+      ORDER BY embedding <=> ${`[${queryEmbedding.join(',')}]`}::vector
+      LIMIT ${limit}
+    `);
+
+    // Fetch product images for each bundle
+    const bundlesWithImages = await Promise.all(
+      results.map(async (row) => {
+        const images = await db
+          .select({ imageUrl: products.imageUrl })
+          .from(giftIdeas)
+          .innerJoin(giftIdeaProducts, eq(giftIdeas.id, giftIdeaProducts.giftIdeaId))
+          .innerJoin(products, eq(giftIdeaProducts.productId, products.id))
+          .where(eq(giftIdeas.bundleId, row.id))
+          .limit(4);
+
+        return {
+          id: row.id,
+          slug: row.slug,
+          recipientDescription: row.recipient_description,
+          occasion: row.occasion,
+          seoTitle: row.seo_title,
+          similarity: parseFloat(row.similarity),
+          productImages: images.map(img => img.imageUrl).filter((url): url is string => !!url),
+        };
+      })
+    );
+
+    return bundlesWithImages;
+  } catch (error) {
+    console.error('Error searching bundles:', error);
     return [];
   }
 }

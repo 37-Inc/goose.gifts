@@ -35,7 +35,7 @@ export function ProductImage({ imageUrl, alt, className = '', sizes }: ProductIm
       className={className}
       sizes={sizes}
       style={{
-        objectPosition: `${50 + cropPosition.x}% ${35 + cropPosition.y}%`,
+        objectPosition: `${50 + cropPosition.x}% ${30 + cropPosition.y}%`,
       }}
     />
   );
