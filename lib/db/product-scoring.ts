@@ -159,15 +159,130 @@ export function scoreProductForTrending(product: Product): number {
 }
 
 /**
- * Score and sort products for trending display
+ * Extract category from product title for diversity
+ */
+function extractProductCategory(title: string): string {
+  const lower = title.toLowerCase();
+
+  // Beauty & Personal Care
+  if (lower.match(/\b(lipstick|mascara|serum|skincare|makeup|cosmetic|perfume|fragrance|lotion|cream)\b/)) return 'beauty';
+
+  // Kitchen & Dining
+  if (lower.match(/\b(knife|pan|pot|blender|mixer|cookware|utensil|cup|mug|plate)\b/)) return 'kitchen';
+
+  // Toys & Games
+  if (lower.match(/\b(toy|doll|lego|puzzle|game|playmat|action figure|plush)\b/)) return 'toys';
+
+  // Fashion & Accessories
+  if (lower.match(/\b(jewelry|necklace|bracelet|earring|ring|watch|handbag|wallet|sunglasses|scarf|hat)\b/)) return 'fashion';
+
+  // Home & Decor
+  if (lower.match(/\b(candle|decor|pillow|blanket|rug|lamp|vase|frame|plant|art)\b/)) return 'home';
+
+  // Sports & Outdoors
+  if (lower.match(/\b(yoga|fitness|workout|exercise|sports|camping|hiking|bike|water bottle)\b/)) return 'sports';
+
+  // Electronics & Tech
+  if (lower.match(/\b(headphones|speaker|camera|phone|electronic|charger|bluetooth|wireless)\b/)) return 'electronics';
+
+  // Books & Media
+  if (lower.match(/\b(book|novel|cookbook|guide|manual|magazine)\b/)) return 'books';
+
+  // Food & Beverage
+  if (lower.match(/\b(coffee|tea|chocolate|wine|gourmet|snack|candy)\b/)) return 'food';
+
+  // Baby & Kids
+  if (lower.match(/\b(baby|infant|toddler|diaper|stroller|pacifier)\b/)) return 'baby';
+
+  // Pet Supplies
+  if (lower.match(/\b(dog|cat|pet|leash|collar|toy)\b/)) return 'pets';
+
+  // Default
+  return 'other';
+}
+
+/**
+ * Extract brand/key identifier from title for duplicate detection
+ */
+function extractProductIdentifier(title: string): string {
+  // Get first 3-4 significant words (skip common words)
+  const skipWords = new Set(['the', 'a', 'an', 'for', 'with', 'and', 'or', 'set', 'pack']);
+  const words = title.toLowerCase()
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !skipWords.has(w))
+    .slice(0, 4)
+    .join(' ');
+
+  return words;
+}
+
+/**
+ * Score and sort products with diversity optimization
+ * Ensures mix of categories and avoids similar products
  */
 export function selectTrendingProducts(products: Product[], limit: number = 12): Product[] {
+  // Score all products
   const scored = products.map(product => ({
     ...product,
     trendingScore: scoreProductForTrending(product),
+    category: extractProductCategory(product.title),
+    identifier: extractProductIdentifier(product.title),
   }));
 
-  return scored
-    .sort((a, b) => b.trendingScore - a.trendingScore)
-    .slice(0, limit);
+  // Sort by score (highest first)
+  scored.sort((a, b) => b.trendingScore - a.trendingScore);
+
+  // Diversified selection algorithm
+  const selected: typeof scored = [];
+  const categoryCount = new Map<string, number>();
+  const seenIdentifiers = new Set<string>();
+
+  // Pass 1: Select diverse high-scorers (max 2 per category)
+  for (const product of scored) {
+    if (selected.length >= limit) break;
+
+    const catCount = categoryCount.get(product.category) || 0;
+    const isDuplicate = seenIdentifiers.has(product.identifier);
+
+    // Skip if too many from this category or duplicate product
+    if (catCount >= 2 || isDuplicate) continue;
+
+    selected.push(product);
+    categoryCount.set(product.category, catCount + 1);
+    seenIdentifiers.add(product.identifier);
+  }
+
+  // Pass 2: Fill remaining slots with best remaining products (max 3 per category now)
+  if (selected.length < limit) {
+    for (const product of scored) {
+      if (selected.length >= limit) break;
+
+      // Skip if already selected
+      if (selected.includes(product)) continue;
+
+      const catCount = categoryCount.get(product.category) || 0;
+      const isDuplicate = seenIdentifiers.has(product.identifier);
+
+      // More lenient: allow up to 3 per category, still no duplicates
+      if (catCount >= 3 || isDuplicate) continue;
+
+      selected.push(product);
+      categoryCount.set(product.category, catCount + 1);
+      seenIdentifiers.add(product.identifier);
+    }
+  }
+
+  // Pass 3: If still not enough, just fill with highest scoring remaining (avoid duplicates only)
+  if (selected.length < limit) {
+    for (const product of scored) {
+      if (selected.length >= limit) break;
+      if (selected.includes(product)) continue;
+      if (seenIdentifiers.has(product.identifier)) continue;
+
+      selected.push(product);
+      seenIdentifiers.add(product.identifier);
+    }
+  }
+
+  return selected;
 }
