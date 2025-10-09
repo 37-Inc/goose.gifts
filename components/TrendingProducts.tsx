@@ -111,7 +111,7 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                 >
                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-zinc-100 h-full flex flex-col">
                     {/* Product Image */}
-                    <div className="relative bg-zinc-50 overflow-hidden" style={{ aspectRatio: '4/3' }}>
+                    <div className="relative bg-zinc-50 overflow-hidden" style={{ aspectRatio: '1.91/1' }}>
                       {product.imageUrl && (
                         <Image
                           src={product.imageUrl}
@@ -174,7 +174,7 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                 >
                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-zinc-100 h-full flex flex-col">
                     {/* Product Image */}
-                    <div className="relative bg-zinc-50 overflow-hidden" style={{ aspectRatio: '4/3' }}>
+                    <div className="relative bg-zinc-50 overflow-hidden" style={{ aspectRatio: '1.91/1' }}>
                       {product.imageUrl && (
                         <Image
                           src={product.imageUrl}
