@@ -96,7 +96,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
 
-        {/* Google Analytics */}
+        {/* Google Analytics & Google Ads */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-6RR3HPR747"
           strategy="afterInteractive"
@@ -107,6 +107,7 @@ export default function RootLayout({
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-6RR3HPR747');
+            gtag('config', 'AW-17626116539');
           `}
         </Script>
 
