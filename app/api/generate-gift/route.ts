@@ -225,7 +225,8 @@ async function buildGiftIdeas(
 async function saveWithPermalink(
   request: GiftRequest,
   giftIdeas: GiftIdea[],
-  seoPromise: Promise<SEOContent> | null
+  seoPromise: Promise<SEOContent> | null,
+  requestHeaders: Headers
 ): Promise<{ slug: string | null; permalinkUrl: string | null }> {
   if (!process.env.POSTGRES_URL || !seoPromise) {
     console.log('⚠️  Database not configured, skipping permalink generation');
@@ -243,7 +244,15 @@ async function saveWithPermalink(
     // Save to database
     const dbSaveStart = Date.now();
     const slug = await saveGiftIdeas(request, giftIdeas, seoContent);
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+    // Determine base URL - use env var if set, otherwise infer from request
+    let baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (!baseUrl) {
+      const host = requestHeaders.get('host');
+      const protocol = requestHeaders.get('x-forwarded-proto') || 'https';
+      baseUrl = host ? `${protocol}://${host}` : 'http://localhost:3000';
+    }
+
     const permalinkUrl = `${baseUrl}/${slug}`;
     logTiming('Database insert', dbSaveStart);
 
@@ -374,7 +383,8 @@ export async function POST(request: NextRequest) {
     const { slug, permalinkUrl } = await saveWithPermalink(
       validatedRequest,
       validGiftIdeas,
-      seoPromise
+      seoPromise,
+      request.headers
     );
 
     logTiming('TOTAL REQUEST', requestStartTime);
