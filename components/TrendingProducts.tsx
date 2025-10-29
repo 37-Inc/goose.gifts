@@ -233,7 +233,7 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                           imageUrl={product.imageUrl}
                           alt={product.title}
                           className="object-cover scale-110 group-hover:scale-125 transition-transform duration-300"
-                          sizes="(max-width: 640px) 60vw, 40vw"
+                          sizes="(max-width: 640px) 50vw, 33vw"
                         />
                       )}
                       {product.rating && product.rating >= 4.0 && (

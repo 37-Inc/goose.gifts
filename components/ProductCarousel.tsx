@@ -164,7 +164,7 @@ export function ProductCarousel({ products, bundleSlug }: ProductCarouselProps) 
                   alt={product.title}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 40vw, 33vw"
+                  sizes="(max-width: 640px) 50vw, 33vw"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-zinc-300">

@@ -44,8 +44,22 @@ export function ProductImage({ imageUrl, alt, className = '', sizes }: ProductIm
 /**
  * Analyzes an image to find the center of the main product
  * Returns offset from center as percentage (-50 to 50)
+ * Results are cached in localStorage to reduce Vercel image transformations
  */
 async function getSmartCropPosition(imageUrl: string): Promise<CropPosition> {
+  // Check cache first
+  const cacheKey = `crop-${imageUrl}`;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      return { x: parsed.x, y: parsed.y };
+    }
+  } catch (error) {
+    // localStorage might be disabled or full, continue without cache
+    console.debug('Cache read failed:', error);
+  }
+
   return new Promise((resolve) => {
     const img = new window.Image();
     img.crossOrigin = 'anonymous';
@@ -155,7 +169,17 @@ async function getSmartCropPosition(imageUrl: string): Promise<CropPosition> {
         const clampedX = Math.max(-30, Math.min(30, offsetX));
         const clampedY = Math.max(-30, Math.min(30, offsetY));
 
-        resolve({ x: clampedX, y: clampedY });
+        const position = { x: clampedX, y: clampedY };
+
+        // Cache the result
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(position));
+        } catch (error) {
+          // localStorage might be full or disabled, continue without caching
+          console.debug('Cache write failed:', error);
+        }
+
+        resolve(position);
       } catch (error) {
         console.warn('Smart crop failed for image:', imageUrl, error);
         resolve({ x: 0, y: 0 });
