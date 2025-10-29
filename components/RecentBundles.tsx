@@ -43,7 +43,7 @@ export function RecentBundles({ bundles }: RecentBundlesProps) {
               <Link
                 key={bundle.id}
                 href={`/${bundle.slug}`}
-                className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-zinc-100"
+                className="group block bg-white rounded-2xl overflow-hidden shadow-sm border border-zinc-100 transition-all duration-300 active:scale-[0.98] [@media(hover:hover)]:hover:shadow-xl [@media(hover:hover)]:hover:-translate-y-1"
               >
                 {/* Bundle Image Grid */}
                 {productImages.length > 0 && (
@@ -55,7 +55,7 @@ export function RecentBundles({ bundles }: RecentBundlesProps) {
 
                 {/* Content */}
                 <div className="p-5">
-                  <h3 className="text-lg font-semibold text-zinc-900 mb-2 line-clamp-2 group-hover:text-[#f59e42] transition-colors">
+                  <h3 className="text-lg font-semibold text-zinc-900 mb-2 line-clamp-2 [@media(hover:hover)]:group-hover:text-[#f59e42] transition-colors">
                     {bundle.seoTitle || bundle.giftIdeas[0]?.title}
                   </h3>
                   <p className="text-sm text-zinc-600 line-clamp-2 mb-3">
