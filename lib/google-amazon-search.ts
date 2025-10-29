@@ -1,4 +1,5 @@
 import type { Product } from './types';
+import { cleanAmazonImageUrl } from './image-utils';
 
 /**
  * Google Custom Search API implementation for Amazon product search
@@ -107,7 +108,21 @@ export async function searchAmazonViaGoogle(
         }
 
         // Extract image URL (no fallback - we'll filter out products without images)
-        const imageUrl = metatag?.['og:image'] || '';
+        const rawImageUrl = metatag?.['og:image'] || '';
+        const imageUrl = rawImageUrl ? cleanAmazonImageUrl(rawImageUrl) : '';
+
+        // Log image URL details for debugging
+        if (imageUrl) {
+          if (rawImageUrl !== imageUrl) {
+            console.log(`🧹 Cleaned Google image URL for ${asin}:`);
+            console.log(`   Raw: ${rawImageUrl.substring(0, 100)}...`);
+            console.log(`   Clean: ${imageUrl.substring(0, 100)}...`);
+          } else {
+            console.log(`📸 Google found image for ${asin}: ${imageUrl.substring(0, 100)}...`);
+          }
+        } else {
+          console.warn(`⚠️  No og:image for ${asin} via Google Search`);
+        }
 
         // Create Amazon affiliate link
         const affiliateTag = process.env.AMAZON_ASSOCIATE_TAG || '';
@@ -122,10 +137,12 @@ export async function searchAmazonViaGoogle(
           affiliateUrl,
           source: 'amazon' as const,
         };
-      })
-      .filter(product => product.imageUrl && product.imageUrl !== ''); // Filter out products without images
+      });
 
-    return products;
+    const withImages = products.filter(product => product.imageUrl && product.imageUrl !== '');
+    console.log(`🖼️  ${withImages.length}/${products.length} products have images from Google Search`);
+
+    return withImages;
   } catch (error) {
     console.error('❌ Google Amazon search failed:', error);
     return [];

@@ -1,5 +1,6 @@
 import type { Product } from './types';
 import crypto from 'crypto';
+import { cleanAmazonImageUrl } from './image-utils';
 
 interface AmazonSearchParams {
   keywords: string;
@@ -139,17 +140,40 @@ async function searchAmazonProductsInternal(
     console.log(`✅ Found ${data.SearchResult.Items.length} products for:`, params.keywords);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return data.SearchResult.Items.map((item: any) => ({
-      id: item.ASIN,
-      title: item.ItemInfo?.Title?.DisplayValue || 'Untitled Product',
-      price: parseFloat(item.Offers?.Listings?.[0]?.Price?.Amount || '0'),
-      currency: item.Offers?.Listings?.[0]?.Price?.Currency || 'USD',
-      imageUrl: item.Images?.Primary?.Large?.URL || item.Images?.Primary?.Medium?.URL || '',
-      affiliateUrl: item.DetailPageURL,
-      source: 'amazon' as const,
-      rating: item.CustomerReviews?.StarRating?.Value,
-      reviewCount: item.CustomerReviews?.Count,
-    })).filter((product: Product) => product.imageUrl);
+    const products = data.SearchResult.Items.map((item: any) => {
+      const rawImageUrl = item.Images?.Primary?.Large?.URL || item.Images?.Primary?.Medium?.URL || '';
+      const imageUrl = rawImageUrl ? cleanAmazonImageUrl(rawImageUrl) : '';
+
+      // Log image URL details for debugging
+      if (imageUrl) {
+        if (rawImageUrl !== imageUrl) {
+          console.log(`🧹 Cleaned image URL for ${item.ASIN}:`);
+          console.log(`   Raw: ${rawImageUrl.substring(0, 100)}...`);
+          console.log(`   Clean: ${imageUrl.substring(0, 100)}...`);
+        } else {
+          console.log(`📸 Image URL for ${item.ASIN}: ${imageUrl.substring(0, 100)}...`);
+        }
+      } else {
+        console.warn(`⚠️  No image URL for ${item.ASIN} (${item.ItemInfo?.Title?.DisplayValue})`);
+      }
+
+      return {
+        id: item.ASIN,
+        title: item.ItemInfo?.Title?.DisplayValue || 'Untitled Product',
+        price: parseFloat(item.Offers?.Listings?.[0]?.Price?.Amount || '0'),
+        currency: item.Offers?.Listings?.[0]?.Price?.Currency || 'USD',
+        imageUrl,
+        affiliateUrl: item.DetailPageURL,
+        source: 'amazon' as const,
+        rating: item.CustomerReviews?.StarRating?.Value,
+        reviewCount: item.CustomerReviews?.Count,
+      };
+    });
+
+    const withImages = products.filter((product: Product) => product.imageUrl);
+    console.log(`🖼️  ${withImages.length}/${products.length} products have images`);
+
+    return withImages;
   } catch (error) {
     console.error('Amazon API error:', error);
     return [];
@@ -381,21 +405,36 @@ export async function enrichProductsWithAmazonData(products: Product[]): Promise
       rating?: number;
       reviewCount?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }>(data.ItemsResult.Items.map((item: any) => [
-      item.ASIN,
-      {
-        title: item.ItemInfo?.Title?.DisplayValue,
-        price: parseFloat(item.Offers?.Listings?.[0]?.Price?.Amount || '0'),
-        imageUrl: item.Images?.Primary?.Large?.URL || item.Images?.Primary?.Medium?.URL,
-        rating: item.CustomerReviews?.StarRating?.Value,
-        reviewCount: item.CustomerReviews?.Count,
-      }
-    ]));
+    }>(data.ItemsResult.Items.map((item: any) => {
+      const rawImageUrl = item.Images?.Primary?.Large?.URL || item.Images?.Primary?.Medium?.URL;
+      const cleanedImageUrl = rawImageUrl ? cleanAmazonImageUrl(rawImageUrl) : undefined;
+
+      return [
+        item.ASIN,
+        {
+          title: item.ItemInfo?.Title?.DisplayValue,
+          price: parseFloat(item.Offers?.Listings?.[0]?.Price?.Amount || '0'),
+          imageUrl: cleanedImageUrl,
+          rating: item.CustomerReviews?.StarRating?.Value,
+          reviewCount: item.CustomerReviews?.Count,
+        }
+      ];
+    }));
 
     // Merge enriched data with original products
     return products.map(product => {
       const enriched = enrichedMap.get(product.id);
-      if (!enriched) return product;
+      if (!enriched) {
+        console.log(`ℹ️  No enrichment data for ${product.id}, keeping original`);
+        return product;
+      }
+
+      // Log image URL changes
+      if (enriched.imageUrl && enriched.imageUrl !== product.imageUrl) {
+        console.log(`🔄 Updated image for ${product.id}:`);
+        console.log(`   Old: ${product.imageUrl?.substring(0, 80)}...`);
+        console.log(`   New: ${enriched.imageUrl.substring(0, 80)}...`);
+      }
 
       return {
         ...product,
