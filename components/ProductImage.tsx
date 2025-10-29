@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { cleanAmazonImageUrl } from '@/lib/image-utils';
 
 interface ProductImageProps {
   imageUrl: string;
@@ -13,7 +14,10 @@ interface ProductImageProps {
 export function ProductImage({ imageUrl, alt, className = '', sizes }: ProductImageProps) {
   const [error, setError] = useState(false);
 
-  if (!imageUrl || imageUrl === '' || error) {
+  // Clean Amazon image URLs at display time to fix old stored URLs with transformation suffixes
+  const cleanedImageUrl = imageUrl ? cleanAmazonImageUrl(imageUrl) : imageUrl;
+
+  if (!cleanedImageUrl || cleanedImageUrl === '' || error) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-zinc-100 text-zinc-400">
         <div className="text-center p-4">
@@ -28,13 +32,13 @@ export function ProductImage({ imageUrl, alt, className = '', sizes }: ProductIm
 
   return (
     <Image
-      src={imageUrl}
+      src={cleanedImageUrl}
       alt={alt}
       fill
       className={className}
       sizes={sizes}
       onError={() => {
-        console.error(`Failed to load image: ${imageUrl}`);
+        console.error(`Failed to load image: ${cleanedImageUrl}`);
         setError(true);
       }}
     />

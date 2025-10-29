@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { cleanAmazonImageUrl } from '@/lib/image-utils';
 
 interface BundleImageProps {
   images: string[];
@@ -9,8 +10,10 @@ interface BundleImageProps {
 }
 
 export function BundleImage({ images, alt }: BundleImageProps) {
-  // Take up to 4 images for the 2x2 grid, filter out empty URLs
-  const validImages = images.filter(img => img && img !== '');
+  // Take up to 4 images for the 2x2 grid, filter out empty URLs, and clean Amazon URLs
+  const validImages = images
+    .filter(img => img && img !== '')
+    .map(img => cleanAmazonImageUrl(img));
   const displayImages = validImages.slice(0, 4);
 
   // If we don't have enough images, duplicate the first one to fill the grid
