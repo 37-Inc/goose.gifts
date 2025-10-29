@@ -136,6 +136,10 @@ export async function saveGiftIdeas(
         for (let productPosition = 0; productPosition < ideaData.products.length; productPosition++) {
           const productData = ideaData.products[productPosition];
 
+          // Log what we're saving to database
+          console.log(`💾 Saving product ${productData.id}: ${productData.title.substring(0, 50)}...`);
+          console.log(`   Image URL: ${productData.imageUrl || '(empty)'}`);
+
           // Insert or update product (deduplicate by ID)
           const newProduct: NewProduct = {
             id: productData.id,
