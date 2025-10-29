@@ -74,7 +74,7 @@ export function BundleImage({ images, alt }: BundleImageProps) {
                   src={imageUrl}
                   alt={`${alt} - Product ${index + 1}`}
                   fill
-                  className="object-cover scale-110 group-hover:scale-[1.15] transition-transform duration-500 ease-out"
+                  className="object-cover scale-110 [@media(hover:hover)]:group-hover:scale-[1.15] transition-transform duration-500 ease-out"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 12.5vw"
                   style={{
                     objectPosition: `${50 + cropPositions[index].x}% ${35 + cropPositions[index].y}%`,
