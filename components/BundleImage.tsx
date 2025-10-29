@@ -27,15 +27,30 @@ export function BundleImage({ images, alt }: BundleImageProps) {
   );
 
   useEffect(() => {
+    // Skip if not in browser environment
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     // Calculate crop positions for each image
     const calculatePositions = async () => {
-      const positions = await Promise.all(
-        displayImages.map(async (imageUrl) => {
-          if (!imageUrl) return { x: 0, y: 0 };
-          return await getSmartCropPosition(imageUrl);
-        })
-      );
-      setCropPositions(positions);
+      try {
+        const positions = await Promise.all(
+          displayImages.map(async (imageUrl) => {
+            if (!imageUrl) return { x: 0, y: 0 };
+            try {
+              return await getSmartCropPosition(imageUrl);
+            } catch (error) {
+              console.warn('Failed to get crop position for image:', imageUrl, error);
+              return { x: 0, y: 0 };
+            }
+          })
+        );
+        setCropPositions(positions);
+      } catch (error) {
+        console.warn('Failed to calculate crop positions:', error);
+        // Keep default positions if calculation fails
+      }
     };
 
     calculatePositions();
@@ -85,17 +100,38 @@ export function BundleImage({ images, alt }: BundleImageProps) {
  */
 async function getSmartCropPosition(imageUrl: string): Promise<CropPosition> {
   return new Promise((resolve) => {
-    const img = new window.Image();
-    img.crossOrigin = 'anonymous';
+    // Safety check: ensure we're in a browser environment with required APIs
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      resolve({ x: 0, y: 0 });
+      return;
+    }
 
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve({ x: 0, y: 0 });
-          return;
-        }
+    // Set a timeout to prevent hanging if image loading is blocked
+    const timeout = setTimeout(() => {
+      resolve({ x: 0, y: 0 });
+    }, 3000);
+
+    try {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        clearTimeout(timeout);
+        try {
+          // Check if canvas API is available (may be blocked by content blockers)
+          if (typeof document.createElement !== 'function') {
+            resolve({ x: 0, y: 0 });
+            return;
+          }
+
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+          // Canvas may be blocked by Safari content blockers
+          if (!ctx) {
+            resolve({ x: 0, y: 0 });
+            return;
+          }
 
         // Use a smaller canvas for faster processing
         const scale = 0.1;
@@ -202,10 +238,17 @@ async function getSmartCropPosition(imageUrl: string): Promise<CropPosition> {
     };
 
     img.onerror = () => {
+      clearTimeout(timeout);
       resolve({ x: 0, y: 0 });
     };
 
     // Add cache busting and handle CORS
     img.src = imageUrl;
+  } catch (error) {
+      // Catch any errors from Image constructor or property access
+      clearTimeout(timeout);
+      console.warn('Failed to initialize smart crop for image:', imageUrl, error);
+      resolve({ x: 0, y: 0 });
+    }
   });
 }
