@@ -106,9 +106,8 @@ export async function searchAmazonViaGoogle(
           }
         }
 
-        // Extract image URL
-        const imageUrl = metatag?.['og:image'] ||
-          'https://via.placeholder.com/300x300?text=Amazon+Product';
+        // Extract image URL (no fallback - we'll filter out products without images)
+        const imageUrl = metatag?.['og:image'] || '';
 
         // Create Amazon affiliate link
         const affiliateTag = process.env.AMAZON_ASSOCIATE_TAG || '';
@@ -123,7 +122,8 @@ export async function searchAmazonViaGoogle(
           affiliateUrl,
           source: 'amazon' as const,
         };
-      });
+      })
+      .filter(product => product.imageUrl && product.imageUrl !== ''); // Filter out products without images
 
     return products;
   } catch (error) {
