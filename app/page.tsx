@@ -3,7 +3,6 @@ import { getTrendingProducts } from '@/lib/db/operations';
 import { HomeClient } from '@/components/HomeClient';
 import { RecentBundles } from '@/components/RecentBundles';
 import { TrendingProducts } from '@/components/TrendingProducts';
-import { SearchBar } from '@/components/SearchBar';
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -35,18 +34,6 @@ export default async function HomePage() {
           <p className="text-sm text-zinc-500 max-w-xl mx-auto">
             AI-powered gift discovery
           </p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="max-w-2xl mx-auto mb-6">
-          <SearchBar />
-        </div>
-
-        {/* Divider with "or" */}
-        <div className="max-w-2xl mx-auto mb-6 flex items-center gap-4">
-          <div className="flex-1 h-px bg-zinc-200"></div>
-          <span className="text-xs text-zinc-400 font-light">or</span>
-          <div className="flex-1 h-px bg-zinc-200"></div>
         </div>
 
         {/* Main Interactive Content - Client Component */}

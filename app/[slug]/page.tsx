@@ -8,6 +8,7 @@ import { findRelatedBundles, getNewestBundles } from '@/lib/db/related-bundles';
 import { ProductCarousel } from '@/components/ProductCarousel';
 import { FAQAccordion } from '@/components/FAQAccordion';
 import { SocialShareButtons } from '@/components/SocialShareButtons';
+import { Header } from '@/components/Header';
 
 interface BundlePageProps {
   params: Promise<{ slug: string }>;
@@ -128,18 +129,7 @@ export default async function BundlePage({ params }: BundlePageProps) {
 
       <div className="min-h-screen bg-zinc-50">
         {/* Header */}
-        <header className="border-b border-zinc-200 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <Link href="/" className="inline-flex items-center gap-2 text-zinc-900 hover:text-[#f59e42] transition-colors group">
-              <img
-                src="/sillygoose.png"
-                alt="Silly Goose"
-                className="w-10 h-10 transition-transform group-hover:scale-105"
-              />
-              <span className="text-xl font-bold">goose.gifts</span>
-            </Link>
-          </div>
-        </header>
+        <Header />
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Page Title */}
