@@ -45,6 +45,7 @@ export function BundleImage({ images, alt }: BundleImageProps) {
                   fill
                   className="object-cover scale-110 [@media(hover:hover)]:group-hover:scale-[1.15] transition-transform duration-500 ease-out"
                   sizes="(max-width: 640px) 50vw, 33vw"
+                  unoptimized
                   onError={() => handleImageError(index, imageUrl)}
                 />
                 {/* Subtle inner shadow for depth */}

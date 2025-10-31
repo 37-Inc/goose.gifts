@@ -175,6 +175,7 @@ export function SearchBar() {
                             fill
                             className="object-cover scale-110"
                             sizes="32px"
+                            unoptimized
                           />
                         </div>
                       ))}

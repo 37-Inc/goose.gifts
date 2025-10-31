@@ -33,6 +33,7 @@ export function ProductImage({ imageUrl, alt, className = '', sizes }: ProductIm
       fill
       className={className}
       sizes={sizes}
+      unoptimized
       onError={() => {
         console.error(`Failed to load image: ${imageUrl}`);
         setError(true);
