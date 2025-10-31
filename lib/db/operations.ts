@@ -553,7 +553,10 @@ export async function updateBundleGiftIdeas(
  */
 export async function getTrendingProducts(limit: number = 12): Promise<Product[]> {
   try {
-    // Fetch all products from database
+    // Import rotation algorithm
+    const { getTrendingProductsWithRotation } = await import('./trending-rotation');
+
+    // Fetch all products from database with click/impression stats
     const allProducts = await db
       .select({
         id: products.id,
@@ -565,12 +568,15 @@ export async function getTrendingProducts(limit: number = 12): Promise<Product[]
         source: products.source,
         rating: products.rating,
         reviewCount: products.reviewCount,
+        clickCount: products.clickCount,
+        impressionCount: products.impressionCount,
+        lastClickedAt: products.lastClickedAt,
       })
       .from(products)
       .where(sql`${products.imageUrl} IS NOT NULL`); // Only products with images
 
-    // Convert to Product type
-    const productList: Product[] = allProducts.map(p => ({
+    // Convert to Product type with stats
+    const productList = allProducts.map(p => ({
       id: p.id,
       title: p.title,
       price: parseFloat(p.price),
@@ -580,10 +586,13 @@ export async function getTrendingProducts(limit: number = 12): Promise<Product[]
       source: p.source as 'amazon' | 'etsy',
       rating: p.rating ? parseFloat(p.rating) : undefined,
       reviewCount: p.reviewCount || undefined,
+      clickCount: p.clickCount || 0,
+      impressionCount: p.impressionCount || 0,
+      lastClickedAt: p.lastClickedAt,
     }));
 
-    // Score and select top products
-    return selectTrendingProducts(productList, limit);
+    // Use multi-armed bandit rotation algorithm
+    return getTrendingProductsWithRotation(productList, limit);
   } catch (error) {
     console.error('Error getting trending products:', error);
     return [];

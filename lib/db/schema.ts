@@ -85,9 +85,14 @@ export const products = pgTable('products', {
   reviewCount: integer('review_count'),
   category: varchar('category', { length: 100 }), // For future commission tracking
 
+  // Analytics - track product clicks
+  clickCount: integer('click_count').notNull().default(0),
+  impressionCount: integer('impression_count').notNull().default(0), // For CTR calculation
+
   // Timestamps
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  lastClickedAt: timestamp('last_clicked_at'), // Track recency for rotation
 }, (table) => ({
   // Index for filtering by source
   sourceIdx: index('products_source_idx').on(table.source),
@@ -140,6 +145,32 @@ export const giftIdeaProducts = pgTable('gift_idea_products', {
   giftIdeaPositionIdx: index('gift_idea_products_position_idx').on(table.giftIdeaId, table.position),
 }));
 
+// Product clicks table - detailed click tracking for analytics
+export const productClicks = pgTable('product_clicks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+
+  // Product that was clicked
+  productId: varchar('product_id', { length: 255 }).notNull().references(() => products.id, { onDelete: 'cascade' }),
+
+  // Context of the click
+  source: varchar('source', { length: 50 }).notNull(), // 'trending', 'bundle', 'search'
+  bundleSlug: varchar('bundle_slug', { length: 100 }), // If clicked from a bundle page
+
+  // User context (for future personalization)
+  userAgent: text('user_agent'),
+  referer: text('referer'),
+
+  // Timestamp
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  // Index for analytics queries
+  productIdIdx: index('product_clicks_product_id_idx').on(table.productId),
+  sourceIdx: index('product_clicks_source_idx').on(table.source),
+  createdAtIdx: index('product_clicks_created_at_idx').on(table.createdAt),
+  // Composite for trending analysis
+  productSourceIdx: index('product_clicks_product_source_idx').on(table.productId, table.source),
+}));
+
 // Define relations for Drizzle ORM
 export const giftBundlesRelations = relations(giftBundles, ({ many }) => ({
   giftIdeas: many(giftIdeas),
@@ -180,6 +211,9 @@ export type NewGiftIdea = typeof giftIdeas.$inferInsert;
 
 export type GiftIdeaProduct = typeof giftIdeaProducts.$inferSelect;
 export type NewGiftIdeaProduct = typeof giftIdeaProducts.$inferInsert;
+
+export type ProductClick = typeof productClicks.$inferSelect;
+export type NewProductClick = typeof productClicks.$inferInsert;
 
 // Admin Actions - Audit log for admin actions
 export const adminActions = pgTable('admin_actions', {

@@ -15,6 +15,13 @@
       "when": 1759999316975,
       "tag": "0001_friendly_vindicator",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1761898551264,
+      "tag": "0002_equal_korath",
+      "breakpoints": true
     }
   ]
 }

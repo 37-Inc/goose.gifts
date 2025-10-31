@@ -24,7 +24,7 @@ export function ProductCarousel({ products, bundleSlug }: ProductCarouselProps) 
       fetch('/api/track-click', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: bundleSlug, productId }),
+        body: JSON.stringify({ slug: bundleSlug, productId, source: 'bundle' }),
       }).then(() => {
         console.log('[DB] Click tracked successfully');
       }).catch((error) => {

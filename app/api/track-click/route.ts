@@ -1,28 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { giftBundles } from '@/lib/db/schema';
+import { giftBundles, products, productClicks } from '@/lib/db/schema';
 import { eq, sql } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { slug } = body;
+    const { slug, productId, source = 'bundle' } = body;
 
-    if (!slug || typeof slug !== 'string') {
+    // Must have either slug or productId
+    if ((!slug || typeof slug !== 'string') && (!productId || typeof productId !== 'string')) {
       return NextResponse.json(
-        { success: false, error: 'Slug is required' },
+        { success: false, error: 'Slug or productId is required' },
         { status: 400 }
       );
     }
 
-    // Increment click count for the bundle (fire-and-forget style)
-    await db
-      .update(giftBundles)
-      .set({
-        clickCount: sql`${giftBundles.clickCount} + 1`,
-        updatedAt: new Date(),
-      })
-      .where(eq(giftBundles.slug, slug));
+    // Track product click (primary metric)
+    if (productId) {
+      // Increment product click count
+      await db
+        .update(products)
+        .set({
+          clickCount: sql`${products.clickCount} + 1`,
+          lastClickedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, productId));
+
+      // Record detailed click event for analytics
+      await db.insert(productClicks).values({
+        productId,
+        source,
+        bundleSlug: slug || null,
+        userAgent: request.headers.get('user-agent') || null,
+        referer: request.headers.get('referer') || null,
+      });
+    }
+
+    // Also track bundle click if slug provided (for backward compatibility)
+    if (slug && slug !== 'trending') {
+      await db
+        .update(giftBundles)
+        .set({
+          clickCount: sql`${giftBundles.clickCount} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(eq(giftBundles.slug, slug));
+    }
 
     // Return success quickly
     return NextResponse.json({ success: true });

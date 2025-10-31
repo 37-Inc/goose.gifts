@@ -13,6 +13,7 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [impressionsTracked, setImpressionsTracked] = useState(false);
 
   // Check scroll position and update arrow visibility
   const updateScrollButtons = () => {
@@ -38,6 +39,22 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
     }
   }, [products]);
 
+  // Track impressions when products are shown
+  useEffect(() => {
+    if (!impressionsTracked && products.length > 0) {
+      setImpressionsTracked(true);
+
+      // Track impressions for all products shown (fire-and-forget)
+      fetch('/api/track-impression', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productIds: products.map(p => p.id)
+        }),
+      }).catch(() => {}); // Silently fail
+    }
+  }, [products, impressionsTracked]);
+
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
       const scrollAmount = 300; // Scroll by ~1 product width
@@ -62,7 +79,7 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
     fetch('/api/track-click', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId, slug: 'trending' }),
+      body: JSON.stringify({ productId, source: 'trending' }),
     }).catch(() => {}); // Silently fail
 
     // Track with Google Analytics
