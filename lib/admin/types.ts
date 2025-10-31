@@ -38,6 +38,7 @@ export interface DashboardStats {
     totalViews: number;
     totalClicks: number;
     bundlesDeleted: number;
+    productClicks: number;
   };
   allTime: {
     totalBundles: number;
@@ -45,7 +46,17 @@ export interface DashboardStats {
     totalClicks: number;
     averageViewsPerBundle: number;
     averageClicksPerBundle: number;
+    productClicks: number;
+    productImpressions: number;
+    averageProductCTR: number;
   };
+  topProducts: Array<{
+    id: string;
+    title: string;
+    clickCount: number;
+    impressionCount: number;
+    ctr: number;
+  }>;
   recentBundles: Array<{
     slug: string;
     title: string;

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { giftBundles } from '@/lib/db/schema';
+import { giftBundles, products, productClicks } from '@/lib/db/schema';
 import { isAuthenticated } from '@/lib/admin/auth';
 import { and, desc, gte, isNull, sql } from 'drizzle-orm';
 import type { AdminApiResponse, DashboardStats } from '@/lib/admin/types';
@@ -65,6 +65,14 @@ export async function GET() {
 
     const todayDeleted = Number(todayDeletedResult[0]?.count || 0);
 
+    // Get today's product clicks
+    const todayProductClicksResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(productClicks)
+      .where(gte(productClicks.createdAt, todayStart));
+
+    const todayProductClicks = Number(todayProductClicksResult[0]?.count || 0);
+
     // Get all-time total bundles (not deleted)
     const totalBundlesResult = await db
       .select({ count: sql<number>`count(*)` })
@@ -88,6 +96,37 @@ export async function GET() {
       .where(isNull(giftBundles.deletedAt));
 
     const totalClicks = Number(totalClicksResult[0]?.total || 0);
+
+    // Get all-time total product clicks
+    const totalProductClicksResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(productClicks);
+
+    const totalProductClicks = Number(totalProductClicksResult[0]?.count || 0);
+
+    // Get total product impressions
+    const totalProductImpressionsResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(${products.impressionCount}), 0)` })
+      .from(products);
+
+    const totalProductImpressions = Number(totalProductImpressionsResult[0]?.total || 0);
+
+    // Calculate average product CTR
+    const averageProductCTR = totalProductImpressions > 0
+      ? (totalProductClicks / totalProductImpressions) * 100
+      : 0;
+
+    // Get top 5 products by clicks
+    const topProducts = await db
+      .select({
+        id: products.id,
+        title: products.title,
+        clickCount: products.clickCount,
+        impressionCount: products.impressionCount,
+      })
+      .from(products)
+      .orderBy(desc(products.clickCount))
+      .limit(5);
 
     // Calculate average views and clicks per bundle
     const averageViews = totalBundles > 0 ? Math.round(totalViews / totalBundles) : 0;
@@ -115,6 +154,7 @@ export async function GET() {
         totalViews: todayViews,
         totalClicks: todayClicks,
         bundlesDeleted: todayDeleted,
+        productClicks: todayProductClicks,
       },
       allTime: {
         totalBundles,
@@ -122,7 +162,19 @@ export async function GET() {
         totalClicks,
         averageViewsPerBundle: averageViews,
         averageClicksPerBundle: averageClicks,
+        productClicks: totalProductClicks,
+        productImpressions: totalProductImpressions,
+        averageProductCTR: Math.round(averageProductCTR * 100) / 100,
       },
+      topProducts: topProducts.map(product => ({
+        id: product.id,
+        title: product.title,
+        clickCount: product.clickCount || 0,
+        impressionCount: product.impressionCount || 0,
+        ctr: product.impressionCount && product.impressionCount > 0
+          ? Math.round(((product.clickCount || 0) / product.impressionCount) * 10000) / 100
+          : 0,
+      })),
       recentBundles: recentBundles.map((bundle) => ({
         slug: bundle.slug,
         title: bundle.title || 'Untitled Bundle',

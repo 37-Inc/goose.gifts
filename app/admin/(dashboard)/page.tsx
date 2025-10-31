@@ -83,7 +83,7 @@ export default function AdminDashboardPage() {
       {/* Today Stats */}
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Today&apos;s Activity</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <Card>
             <CardBody>
               <div className="text-sm font-medium text-gray-600 mb-1">Bundles Generated</div>
@@ -102,8 +102,17 @@ export default function AdminDashboardPage() {
 
           <Card>
             <CardBody>
-              <div className="text-sm font-medium text-gray-600 mb-1">Total Clicks</div>
+              <div className="text-sm font-medium text-gray-600 mb-1">Bundle Clicks</div>
               <div className="text-3xl font-bold text-orange-600">{stats.today.totalClicks}</div>
+              <div className="text-xs text-gray-500 mt-1">Clicks on bundles</div>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardBody>
+              <div className="text-sm font-medium text-gray-600 mb-1">Product Clicks</div>
+              <div className="text-3xl font-bold text-purple-600">{stats.today.productClicks}</div>
+              <div className="text-xs text-gray-500 mt-1">Outbound product clicks</div>
             </CardBody>
           </Card>
 
@@ -121,7 +130,7 @@ export default function AdminDashboardPage() {
       {/* All-Time Stats */}
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">All-Time Stats</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardBody>
               <div className="text-sm font-medium text-gray-600 mb-1">Total Bundles</div>
@@ -142,9 +151,12 @@ export default function AdminDashboardPage() {
 
           <Card>
             <CardBody>
-              <div className="text-sm font-medium text-gray-600 mb-1">Total Clicks</div>
+              <div className="text-sm font-medium text-gray-600 mb-1">Bundle Clicks</div>
               <div className="text-3xl font-bold text-gray-900">
                 {stats.allTime.totalClicks.toLocaleString()}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Avg: {stats.allTime.averageClicksPerBundle} per bundle
               </div>
             </CardBody>
           </Card>
@@ -157,17 +169,102 @@ export default function AdminDashboardPage() {
               </div>
             </CardBody>
           </Card>
+        </div>
+      </div>
+
+      {/* Product Performance Stats */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Product Performance</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardBody>
+              <div className="text-sm font-medium text-gray-600 mb-1">Total Product Clicks</div>
+              <div className="text-3xl font-bold text-purple-600">
+                {stats.allTime.productClicks.toLocaleString()}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Outbound to Amazon/Etsy</div>
+            </CardBody>
+          </Card>
 
           <Card>
             <CardBody>
-              <div className="text-sm font-medium text-gray-600 mb-1">Avg Clicks per Bundle</div>
-              <div className="text-3xl font-bold text-gray-900">
-                {stats.allTime.averageClicksPerBundle}
+              <div className="text-sm font-medium text-gray-600 mb-1">Product Impressions</div>
+              <div className="text-3xl font-bold text-blue-600">
+                {stats.allTime.productImpressions.toLocaleString()}
               </div>
+              <div className="text-xs text-gray-500 mt-1">Times products shown</div>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardBody>
+              <div className="text-sm font-medium text-gray-600 mb-1">Average Product CTR</div>
+              <div className="text-3xl font-bold text-green-600">
+                {stats.allTime.averageProductCTR.toFixed(2)}%
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Click-through rate</div>
             </CardBody>
           </Card>
         </div>
       </div>
+
+      {/* Top Products */}
+      <Card>
+        <CardHeader
+          title="Top Performing Products"
+          subtitle="Products with highest clicks (see /admin/products for full list)"
+        />
+        <CardBody className="p-0">
+          <div className="divide-y divide-gray-200">
+            {stats.topProducts.length === 0 ? (
+              <div className="px-6 py-8 text-center text-gray-500">
+                No product click data yet. Products will appear here once users start clicking!
+              </div>
+            ) : (
+              stats.topProducts.map((product, index) => (
+                <div
+                  key={product.id}
+                  className="px-6 py-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0 flex items-center gap-4">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                        <span className="text-sm font-semibold text-purple-600">#{index + 1}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-gray-900 truncate">{product.title}</h3>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs text-gray-500">
+                            {product.impressionCount} impressions
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-6 ml-4">
+                      <div className="text-right">
+                        <div className="text-sm text-gray-600">Clicks</div>
+                        <div className="text-lg font-semibold text-purple-600">
+                          {product.clickCount}
+                        </div>
+                      </div>
+                      <div className="text-right min-w-[60px]">
+                        <div className="text-sm text-gray-600">CTR</div>
+                        <div className={`text-lg font-semibold ${
+                          product.ctr > 5 ? 'text-green-600' :
+                          product.ctr > 2 ? 'text-yellow-600' :
+                          'text-gray-600'
+                        }`}>
+                          {product.ctr.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </CardBody>
+      </Card>
 
       {/* Recent Activity */}
       <Card>
