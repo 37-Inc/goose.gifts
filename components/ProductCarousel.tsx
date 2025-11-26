@@ -154,7 +154,7 @@ export function ProductCarousel({ products, bundleSlug }: ProductCarouselProps) 
             onClick={(e) => handleProductClick(product.affiliateUrl, product.id, e)}
             target="_blank"
             rel="noopener noreferrer"
-            className="product-card flex-shrink-0 snap-start w-[calc(50%-12px)] sm:w-[calc(40%-12px)] lg:w-[calc(33.333%-16px)] bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+            className="product-card flex-shrink-0 snap-start w-[calc(50%-12px)] sm:w-[calc(40%-12px)] lg:w-[calc(33.333%-16px)] bg-white rounded-xl p-4 shadow-sm transition-all duration-300 active:scale-[0.98] [@media(hover:hover)]:hover:shadow-md [@media(hover:hover)]:hover:-translate-y-1"
           >
             {/* Product Image */}
             <div className="relative mb-4 bg-zinc-50 rounded-lg overflow-hidden" style={{ aspectRatio: '1.91/1' }}>
@@ -163,7 +163,7 @@ export function ProductCarousel({ products, bundleSlug }: ProductCarouselProps) 
                   src={product.imageUrl}
                   alt={product.title}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="object-cover [@media(hover:hover)]:group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 640px) 50vw, 33vw"
                   unoptimized
                 />

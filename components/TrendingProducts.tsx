@@ -239,9 +239,9 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                   onClick={(e) => handleProductClick(product.affiliateUrl, product.id, e)}
                   className="flex-none w-[60vw] sm:w-[40vw] snap-start group"
                 >
-                  <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-orange-100/50 h-full flex flex-col relative">
+                  <div className="bg-white rounded-xl overflow-hidden shadow-md transition-all duration-300 active:scale-[0.98] [@media(hover:hover)]:hover:shadow-xl [@media(hover:hover)]:hover:-translate-y-1 border border-orange-100/50 h-full flex flex-col relative">
                     {/* Shine effect on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/0 group-hover:via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/0 [@media(hover:hover)]:group-hover:via-white/20 to-transparent opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
                     {/* Product Image */}
                     <div className="relative bg-zinc-50 overflow-hidden" style={{ aspectRatio: '1/1' }}>
@@ -249,7 +249,7 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                         <ProductImage
                           imageUrl={product.imageUrl}
                           alt={product.title}
-                          className="object-cover scale-110 group-hover:scale-125 transition-transform duration-300"
+                          className="object-cover scale-110 [@media(hover:hover)]:group-hover:scale-125 transition-transform duration-300"
                           sizes="(max-width: 640px) 50vw, 33vw"
                         />
                       )}
@@ -270,7 +270,7 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                     {/* Product Info */}
                     <div className="p-3 pb-4 flex-1 flex flex-col min-h-[120px]">
                       <div className="h-[3.75rem] overflow-hidden mb-2">
-                        <h3 className="text-sm font-semibold text-zinc-900 line-clamp-2 group-hover:text-orange-600 transition-colors leading-relaxed">
+                        <h3 className="text-sm font-semibold text-zinc-900 line-clamp-2 [@media(hover:hover)]:group-hover:text-orange-600 transition-colors leading-relaxed">
                           {product.title}
                         </h3>
                       </div>
@@ -295,7 +295,7 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                         </div>
 
                         {/* View on Source */}
-                        <div className="text-[11px] font-medium text-orange-600 group-hover:text-orange-700">
+                        <div className="text-[11px] font-medium text-orange-600 [@media(hover:hover)]:group-hover:text-orange-700">
                           View on {product.source === 'amazon' ? 'Amazon' : 'Etsy'} →
                         </div>
                       </div>
