@@ -30,51 +30,31 @@ your claude.ai account. This is the mechanism that runs me daily.
 Note: routine runs count against your claude.ai plan's usage/daily routine
 caps — visible at https://claude.ai/settings/usage.
 
-### 2. Add production credentials to the cloud environment
+### 2. One Vercel token (unlocks all production credentials)
 
-The session environment currently has **zero** credentials — I can't read
-analytics, run the ingestion pipeline, or test against real data without
-them. They already exist in Vercel, so this is copy-paste:
+Verified 2026-07-01: the Vercel API is reachable from the cloud environment,
+and `scripts/ops/pull-env.sh` pulls every production env var automatically
+given a single token. So instead of copying ~14 values, provide one:
 
-1. Open **https://vercel.com** → the goose.gifts project → **Settings →
-   Environment Variables** (reveal + copy values).
+1. Create a token at **https://vercel.com/account/tokens** (full account
+   scope so it can read the project's env vars; any sensible expiry — I'll
+   flag renewal in a check-in when it nears).
 2. Go to **https://claude.ai/code**, open the environment selector (the
    environment name near the repo picker), hover the environment → settings
-   icon → **Environment variables**. Paste in `.env` format (`KEY=value`,
-   one per line, no quotes):
+   icon → **Environment variables**, and add one line (no quotes):
 
-```
-POSTGRES_URL=
-OPENAI_API_KEY=
-GOOGLE_SEARCH_API_KEY=
-GOOGLE_SEARCH_ENGINE_ID=
-ETSY_API_KEY=
-AWIN_PUBLISHER_ID=
-AWIN_API_TOKEN=
-AWIN_ADVERTISER_ID=
-AMAZON_ASSOCIATE_TAG=
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_KEY=
-ADMIN_PASSWORD=
-ADMIN_SESSION_SECRET=
-NEXT_PUBLIC_BASE_URL=https://www.goose.gifts
-```
+   `VERCEL_TOKEN=<the token>`
 
-Skip any that don't exist in Vercel; I'll work with what's there and flag
-gaps. Heads-up from Anthropic's docs: there is no dedicated secrets store
-yet — environment variables are visible to anyone who can edit the
-environment (that's just you here).
+Every run then bootstraps the rest itself (runbook step 0). The same token
+also covers deploy monitoring/rollback. If any vars are marked "sensitive"
+in Vercel they can't be read via API — the script flags them and I'll ask
+for just those. Heads-up from Anthropic's docs: there is no dedicated
+secrets store yet — environment variables are visible to anyone who can
+edit the environment (that's just you here).
 
 ## P1 — needed within the first weeks
 
-### 3. Vercel API token (deploy monitoring)
-
-Lets me check deploy status/logs and roll back bad deploys instead of
-inferring from the live site. Create at **https://vercel.com/account/tokens**
-(scope: the goose.gifts project) and add as `VERCEL_TOKEN=` to the same
-environment variables.
-
-### 4. Revenue reporting access
+### 3. Revenue reporting access
 
 I can optimize clicks blind, but revenue-weighting the site needs earnings
 data:
@@ -87,14 +67,14 @@ data:
 
 ## P2 — high value, not urgent
 
-### 5. Google Search Console access
+### 4. Google Search Console access
 
 The SEO feedback loop (Phase 2) is guesswork without it. Easiest path:
 https://search.google.com/search-console → goose.gifts property →
 Settings → Users and permissions — then we set up a service-account JSON
 key (I'll write exact steps when we get here) added as an env var.
 
-### 6. Direct email/Slack channel (optional)
+### 5. Direct email/Slack channel (optional)
 
 Weekly check-ins arrive as GitHub issues, which email you automatically. If
 you'd rather get real email/Slack from me, connect a connector at
