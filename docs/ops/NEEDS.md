@@ -5,18 +5,23 @@ Items move to "Received" when done.
 
 ## P0 — blocking autonomous operation
 
-### 1. Daily scheduler — being set up by another agent (per Cameron)
+### 1. Daily scheduler — created, awaiting first-run credential proof
 
-Cameron declined the GitHub Actions approach (workflow removed) and is
-having another agent create the daily routine. The full handoff prompt
-lives in `docs/ops/HANDOFF.md`. What that setup needs:
+Native Codex automation `goose-gifts-daily-ops` now exists and is active:
+daily 8:30 AM local/Pacific, worktree execution, cwd
+`/Users/cameronehrlich/goose.gifts`, running the handoff prompt from
+`docs/ops/HANDOFF.md`.
 
-- Daily schedule running the prompt in HANDOFF.md against
-  `37-Inc/goose.gifts`, full network access, branch-push/merge permission.
-- `VERCEL_TOKEN` set in the execution environment (Cameron has the token);
-  all other credentials self-bootstrap via `scripts/ops/pull-env.sh`.
+Still verify on the first scheduled run:
 
-Once the first scheduled run appends a journal entry, mark this Received.
+- `VERCEL_TOKEN` is present in the routine execution environment. The creation
+  API did not expose a secret/env-var field, so this may still need Codex
+  routine/environment UI setup.
+- Branch push/merge permission works against `37-Inc/goose.gifts`.
+- `scripts/ops/pull-env.sh` can pull production env vars and the run appends a
+  journal entry.
+
+Once that first scheduled run succeeds, mark this Received.
 
 ## P1 — needed within the first weeks
 

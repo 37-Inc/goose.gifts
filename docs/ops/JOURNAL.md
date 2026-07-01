@@ -5,6 +5,34 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-01 (night) — Codex daily routine created
+
+Read the current handoff/runbook/roadmap/needs/journal after fast-forwarding
+local `main` to `origin/main` (`9ce5e12`) so the checkout includes the latest
+ops docs and the removed GitHub Actions scheduler.
+
+**Scheduler**: created native Codex automation `goose-gifts-daily-ops`.
+Saved state verified in `$CODEX_HOME/automations/goose-gifts-daily-ops/automation.toml`:
+active cron, daily 8:30 AM local/Pacific, model `gpt-5-codex`, reasoning
+`high`, `execution_environment = "worktree"`, `cwds =
+["/Users/cameronehrlich/goose.gifts"]`, and the exact handoff prompt:
+"You are the autonomous operator of goose.gifts with standing authorization
+from the owner to merge and deploy. Read docs/ops/RUNBOOK.md in the repository
+and execute today's run exactly as it describes."
+
+**Credential note**: Cameron provided a Vercel token in the setup chat, but
+the Codex `automation_update` surface exposes no environment-variable field
+and the token was not written to the repo or automation TOML. First scheduled
+run must verify that `VERCEL_TOKEN` is present in its execution environment,
+then run `./scripts/ops/pull-env.sh` per runbook step 0. If absent, add the
+token through the Codex routine/environment UI or escalate.
+
+**Next**: let the first scheduled run execute the runbook, append its own
+journal entry, and then mark NEEDS #1 Received once the routine has proven it
+can pull Vercel env and operate with branch push/merge access.
+
+---
+
 ## 2026-07-01 (night) — Scheduler decision reversed by owner; handoff written
 
 Cameron rejected the GitHub Actions scheduler (workflow deleted, never

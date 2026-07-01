@@ -8,6 +8,16 @@ interface TrendingProductsProps {
   products: Product[];
 }
 
+type Gtag = (command: 'event', eventName: string, params: Record<string, unknown>) => void;
+
+function getGtag(): Gtag | undefined {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+
+  return (window as Window & { gtag?: Gtag }).gtag;
+}
+
 export function TrendingProducts({ products }: TrendingProductsProps) {
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -83,8 +93,8 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
     }).catch(() => {}); // Silently fail
 
     // Track with Google Analytics
-    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
-      const gtag = (window as any).gtag;
+    const gtag = getGtag();
+    if (gtag) {
       gtag('event', 'conversion_event_outbound_click', {
         event_category: 'trending_product',
         event_label: url,
@@ -116,7 +126,7 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
               Trending Products
             </h2>
             <p className="text-zinc-600 max-w-2xl mx-auto text-sm sm:text-base">
-              See what everyone's clicking on. Top-rated gifts with amazing reviews.
+              See what everyone&apos;s clicking on. Top-rated gifts with amazing reviews.
             </p>
           </div>
 

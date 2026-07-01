@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 interface SearchResult {
@@ -14,6 +13,20 @@ interface SearchResult {
   productImages: string[];
 }
 
+interface SearchResponse {
+  results?: SearchResult[];
+}
+
+type Gtag = (command: 'event', eventName: string, params: Record<string, unknown>) => void;
+
+function getGtag(): Gtag | undefined {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+
+  return (window as Window & { gtag?: Gtag }).gtag;
+}
+
 export function SearchBar() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -22,7 +35,6 @@ export function SearchBar() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
 
   // Debounced search
   useEffect(() => {
@@ -36,18 +48,19 @@ export function SearchBar() {
     const timer = setTimeout(async () => {
       try {
         const response = await fetch(`/api/search-bundles?q=${encodeURIComponent(query)}&limit=5`);
-        const data = await response.json();
-        setResults(data.results || []);
+        const data = (await response.json()) as SearchResponse;
+        const searchResults = data.results ?? [];
+        setResults(searchResults);
         setIsOpen(true);
         setSelectedIndex(-1);
 
         // Track search with Google Analytics
-        if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
-          const gtag = (window as any).gtag;
+        const gtag = getGtag();
+        if (gtag) {
           gtag('event', 'search', {
             search_term: query,
             event_category: 'engagement',
-            event_label: `${data.results?.length || 0} results`,
+            event_label: `${searchResults.length} results`,
           });
         }
       } catch (error) {
@@ -102,8 +115,8 @@ export function SearchBar() {
 
   const handleResultClick = (url: string, result: SearchResult) => {
     // Track click with Google Analytics
-    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
-      const gtag = (window as any).gtag;
+    const gtag = getGtag();
+    if (gtag) {
       gtag('event', 'select_content', {
         content_type: 'search_result',
         item_id: result.slug,
