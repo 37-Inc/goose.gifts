@@ -5,6 +5,25 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-01 (evening) — Routine creation confirmed broken; scheduler moved to GitHub Actions
+
+Cameron retried routine creation with the correct repo — still "Failed to
+create routine". Treating claude.ai routines as unavailable (research-preview
+bug; retry in a week or two, or via Desktop app / local CLI `/schedule`).
+
+**New durable scheduler**: `.github/workflows/daily-ops.yml` — daily at
+10:23 UTC via anthropics/claude-code-action. No-ops harmlessly until two
+repo secrets exist (`ANTHROPIC_API_KEY`, `VERCEL_TOKEN`); that two-secret
+step is now the ONLY manual action remaining (NEEDS #1).
+
+**Bridge**: the original in-session cron silently disappeared (session crons
+are even more fragile than documented — they don't survive whatever recycled
+it). Re-armed as a self-re-arming job (re-creates itself on each fire,
+resetting the 7-day expiry) that also auto-retires once a real Daily Ops
+workflow run succeeds.
+
+---
+
 ## 2026-07-01 (later) — Credentials live; first real baseline
 
 **Credentials**: Cameron provided a Vercel token in chat. `pull-env.sh` needed
