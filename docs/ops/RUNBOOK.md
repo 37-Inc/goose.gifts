@@ -25,10 +25,12 @@ Boundaries (always in force):
 
 ## Daily run
 
-0. **Bootstrap credentials.** If `VERCEL_TOKEN` is set and `.env.local` is
-   absent, run `./scripts/ops/pull-env.sh` to pull production env vars from
-   Vercel, then `set -a; source .env.local; set +a` before data work. Never
-   commit `.env.local` (already gitignored).
+0. **Bootstrap credentials.** If `.env.local` is absent, run
+   `./scripts/ops/pull-env.sh` to pull production env vars from Vercel. The
+   script reads `VERCEL_TOKEN` from the environment, macOS Keychain service
+   `goose.gifts.VERCEL_TOKEN`, or `$HOME/.codex/secrets/goose.gifts/vercel-token`
+   / `VERCEL_TOKEN_FILE`. Then run `set -a; source .env.local; set +a` before
+   data work. Never commit `.env.local` (already gitignored).
 1. **Orient.** Read `docs/ops/JOURNAL.md` (last few entries), `docs/ops/NEEDS.md`,
    and `docs/ops/ROADMAP.md`. Check for open PRs/issues and any comments from
    Cameron (treat his comments as direction).
