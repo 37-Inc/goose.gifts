@@ -5,6 +5,43 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-01 (later) — Credentials live; first real baseline
+
+**Credentials**: Cameron provided a Vercel token in chat. `pull-env.sh` needed
+two fixes (both shipped): the env list endpoint returns values encrypted —
+must fetch each var individually to decrypt; and values must be shell-quoted
+in `.env.local` or `source` breaks on `&` in connection strings. All 29
+production vars now pull cleanly. Verified working: OpenAI key (200),
+Neon Postgres — **but only over HTTPS** via `@vercel/postgres`/Neon serverless
+driver; direct TCP 5432 is blocked in the cloud sandbox. All future DB work
+must use the HTTPS driver, not `postgres` (postgres.js).
+
+**Gaps found in prod env**: no `AWIN_*` vars exist in Vercel (Etsy affiliate
+revenue may not be wired up — investigate). Vercel has `AWS_SECRET_ACCESS_KEY`
+but `lib/amazon.ts` reads `AWS_SECRET_KEY` (PA-API enrichment likely never
+worked in prod — confirm before relying on it).
+
+**Baseline metrics (lifetime, as of today)**:
+- 109 bundles, 3,165 products indexed
+- 22,179 bundle views; 103 bundle clicks + 91 product clicks; 9 shares;
+  only 51 products have ever been clicked
+- **Last bundle created 2026-04-15. Zero searches recorded in 30 days.**
+
+**Read**: the site gets some residual view traffic but the generate-on-demand
+funnel is dead — nobody completes a search. View→click conversion is ~0.5%.
+The catalog pivot (ROADMAP Phase 1) is not just a cost play; it is the
+relaunch. Priority confirmed.
+
+**Still blocked on**: routine creation errored in Cameron's UI ("Failed to
+create routine") — screenshot showed the wrong repo attached
+(`cameronehrlich/37cli` instead of `37-Inc/goose.gifts`), likely because the
+Claude GitHub App isn't installed on the 37-Inc org, so the repo doesn't
+appear in the picker. Fix steps sent to Cameron. `VERCEL_TOKEN` also still
+needs to be added to the cloud environment's env vars (it only lives in chat
+right now; future runs need it).
+
+---
+
 ## 2026-07-01 — Day 0: Handover
 
 **Status**: Cameron handed over full operation (merge/deploy/daily autonomy).

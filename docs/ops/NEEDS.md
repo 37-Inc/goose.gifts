@@ -17,7 +17,13 @@ your claude.ai account. This is the mechanism that runs me daily.
    > authorization from the owner to merge and deploy. Read
    > docs/ops/RUNBOOK.md in the repository and execute today's run exactly
    > as it describes.
-4. Repository: `37-Inc/goose.gifts`.
+4. Repository: `37-Inc/goose.gifts`. **Troubleshooting (2026-07-01)**: the
+   first attempt failed with "Failed to create routine" — the form had
+   `cameronehrlich/37cli` attached instead. Remove that repo (×), click +,
+   and pick `37-Inc/goose.gifts`. If it doesn't appear in the picker, the
+   Claude GitHub App isn't installed on the 37-Inc org: go to
+   **https://github.com/apps/claude** → Configure → select **37-Inc** →
+   grant access to `goose.gifts`, then retry.
 5. Environment: pick the same environment this session uses (or Default),
    after doing item 2 below so it has the credentials. Set **Network
    access** to **Full** (the ingestion pipeline needs to reach the
@@ -30,27 +36,23 @@ your claude.ai account. This is the mechanism that runs me daily.
 Note: routine runs count against your claude.ai plan's usage/daily routine
 caps — visible at https://claude.ai/settings/usage.
 
-### 2. One Vercel token (unlocks all production credentials)
+### 2. Persist the Vercel token in the cloud environment
 
-Verified 2026-07-01: the Vercel API is reachable from the cloud environment,
-and `scripts/ops/pull-env.sh` pulls every production env var automatically
-given a single token. So instead of copying ~14 values, provide one:
+Token received in chat 2026-07-01 and verified working (all 29 prod vars
+pull; OpenAI + database confirmed live). One step remains so **future runs**
+can bootstrap themselves — the token currently exists only in this chat
+session:
 
-1. Create a token at **https://vercel.com/account/tokens** (full account
-   scope so it can read the project's env vars; any sensible expiry — I'll
-   flag renewal in a check-in when it nears).
-2. Go to **https://claude.ai/code**, open the environment selector (the
-   environment name near the repo picker), hover the environment → settings
-   icon → **Environment variables**, and add one line (no quotes):
+Go to **https://claude.ai/code**, open the environment selector (the
+environment name near the repo picker), hover the environment → settings
+icon → **Environment variables**, and add one line (no quotes):
 
-   `VERCEL_TOKEN=<the token>`
+`VERCEL_TOKEN=<the same token you pasted in chat>`
 
-Every run then bootstraps the rest itself (runbook step 0). The same token
-also covers deploy monitoring/rollback. If any vars are marked "sensitive"
-in Vercel they can't be read via API — the script flags them and I'll ask
-for just those. Heads-up from Anthropic's docs: there is no dedicated
-secrets store yet — environment variables are visible to anyone who can
-edit the environment (that's just you here).
+Use that same environment for the routine in item 1. Heads-up from
+Anthropic's docs: there is no dedicated secrets store yet — environment
+variables are visible to anyone who can edit the environment (that's just
+you here).
 
 ## P1 — needed within the first weeks
 

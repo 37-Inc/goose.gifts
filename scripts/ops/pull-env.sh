@@ -2,54 +2,71 @@
 # Bootstrap production env vars from Vercel into .env.local.
 # Requires: VERCEL_TOKEN (create at https://vercel.com/account/tokens).
 # Usage: ./scripts/ops/pull-env.sh [output-file]
+#
+# Values are written single-quoted (shell-safe), so the file works both with
+# dotenv loaders and `set -a; source .env.local; set +a`.
 set -euo pipefail
 
 : "${VERCEL_TOKEN:?VERCEL_TOKEN is required (https://vercel.com/account/tokens)}"
-OUT="${1:-.env.local}"
+export ENV_OUT="${1:-.env.local}"
 
-api() {
-  curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com$1"
+node --input-type=module -e "$(cat <<'EOF'
+const token = process.env.VERCEL_TOKEN;
+const out = process.env.ENV_OUT;
+
+async function api(path) {
+  const res = await fetch('https://api.vercel.com' + path, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`${path} -> HTTP ${res.status}: ${await res.text()}`);
+  return res.json();
 }
 
-json() { # json <expr> — evaluate a JS expression against stdin JSON
-  node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);console.log($1)})"
+// Scopes: personal (no teamId) plus every team on the account.
+const scopes = [''];
+try {
+  const { teams = [] } = await api('/v2/teams');
+  scopes.push(...teams.map((t) => t.id));
+} catch { /* token may be project-scoped; personal scope still works */ }
+
+// Find the goose.gifts project across scopes.
+let projectId = null, teamQs = '';
+for (const scope of scopes) {
+  const qs = scope ? `?teamId=${scope}` : '';
+  const { projects = [] } = await api(`/v9/projects${qs ? qs + '&' : '?'}search=goose`);
+  if (projects.length) {
+    projectId = projects[0].id;
+    teamQs = scope ? `?teamId=${scope}` : '';
+    console.error(`Found project: ${projects[0].name} (${projectId})`);
+    break;
+  }
+}
+if (!projectId) { console.error("ERROR: no project matching 'goose' found"); process.exit(1); }
+
+// The list endpoint returns values encrypted; fetch each var individually
+// to get the decrypted value (type=sensitive is unreadable by design).
+const { envs = [] } = await api(`/v9/projects/${projectId}/env${teamQs}`);
+const prod = envs.filter((e) => (e.target || []).includes('production'));
+
+const shq = (v) => `'${String(v).replace(/'/g, `'\\''`)}'`; // shell-safe single-quoting
+const lines = [];
+let unreadable = 0;
+for (const e of prod) {
+  const full = await api(`/v9/projects/${projectId}/env/${e.id}${teamQs}`);
+  if (full.type === 'sensitive' || full.value === undefined || full.value === null) {
+    lines.push(`# UNREADABLE (sensitive): ${full.key}`);
+    unreadable++;
+  } else {
+    lines.push(`${full.key}=${shq(full.value)}`);
+  }
 }
 
-# Collect scopes: personal (no teamId) plus every team on the account.
-SCOPES=("")
-TEAM_IDS=$(api "/v2/teams" | json "(j.teams||[]).map(t=>t.id).join(' ')" || true)
-for t in $TEAM_IDS; do SCOPES+=("$t"); done
-
-# Find the goose.gifts project across scopes.
-PROJECT_ID="" TEAM_QS=""
-for scope in "${SCOPES[@]}"; do
-  qs=""; [ -n "$scope" ] && qs="&teamId=$scope"
-  match=$(api "/v9/projects?search=goose$qs" \
-    | json "((j.projects||[])[0]||{}).id||''" || true)
-  if [ -n "$match" ]; then
-    PROJECT_ID="$match"; TEAM_QS="$qs"
-    name=$(api "/v9/projects/$PROJECT_ID?${qs#&}" | json "j.name" || echo "?")
-    echo "Found project: $name ($PROJECT_ID)" >&2
-    break
-  fi
-done
-[ -n "$PROJECT_ID" ] || { echo "ERROR: no project matching 'goose' found in any scope" >&2; exit 1; }
-
-# Pull decrypted production env vars.
-RESP=$(api "/v9/projects/$PROJECT_ID/env?decrypt=true${TEAM_QS}")
-echo "$RESP" | json "
-  (j.envs||[])
-    .filter(e => (e.target||[]).includes('production'))
-    .map(e => e.value === undefined || e.value === null
-      ? '# UNREADABLE (sensitive): ' + e.key
-      : e.key + '=' + e.value)
-    .join('\n')
-" > "$OUT"
-
-TOTAL=$(grep -c '=' "$OUT" || true)
-MISSING=$(grep -c '^# UNREADABLE' "$OUT" || true)
-echo "Wrote $TOTAL vars to $OUT ($MISSING unreadable/sensitive — listed as comments)" >&2
-if [ "$MISSING" -gt 0 ]; then
-  echo "Sensitive vars cannot be read via API; ask the owner for those values:" >&2
-  grep '^# UNREADABLE' "$OUT" >&2
-fi
+const { writeFileSync } = await import('node:fs');
+writeFileSync(out, lines.join('\n') + '\n', { mode: 0o600 });
+console.error(`Wrote ${lines.length - unreadable} vars to ${out} (${unreadable} unreadable/sensitive)`);
+if (unreadable) {
+  console.error('Sensitive vars cannot be read via API; ask the owner for those values:');
+  for (const l of lines) if (l.startsWith('# UNREADABLE')) console.error(l);
+}
+EOF
+)"
