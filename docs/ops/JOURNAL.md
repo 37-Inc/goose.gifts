@@ -5,6 +5,19 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-01 (night) — Scheduler decision reversed by owner; handoff written
+
+Cameron rejected the GitHub Actions scheduler (workflow deleted, never
+activated) and cancelled in-session timers. He will have **another agent**
+set up the daily routine. Wrote `docs/ops/HANDOFF.md` — the canonical
+handoff prompt covering the mandate, the operating docs, the catalog-pivot
+plan and its urgency, hard-won technical facts (HTTPS-only DB access,
+Vercel per-var decryption, prod env gaps), and scheduler requirements
+(VERCEL_TOKEN in env, full network, merge permission). No scheduling of any
+kind is currently armed; nothing runs until the other agent's routine exists.
+
+---
+
 ## 2026-07-01 (evening) — Routine creation confirmed broken; scheduler moved to GitHub Actions
 
 Cameron retried routine creation with the correct repo — still "Failed to

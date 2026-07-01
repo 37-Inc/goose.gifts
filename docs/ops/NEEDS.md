@@ -5,53 +5,18 @@ Items move to "Received" when done.
 
 ## P0 — blocking autonomous operation
 
-### 1. Activate the daily scheduler: add two GitHub secrets (one URL, ~2 min)
+### 1. Daily scheduler — being set up by another agent (per Cameron)
 
-claude.ai routine creation is broken (research-preview bug, confirmed
-2026-07-01 even with the correct repo selected), so the durable scheduler is
-now a GitHub Actions workflow — `.github/workflows/daily-ops.yml`, already
-merged. It runs daily at ~6:23am ET and no-ops until two repository secrets
-exist. This is the only manual step left anywhere:
+Cameron declined the GitHub Actions approach (workflow removed) and is
+having another agent create the daily routine. The full handoff prompt
+lives in `docs/ops/HANDOFF.md`. What that setup needs:
 
-Go to **https://github.com/37-Inc/goose.gifts/settings/secrets/actions** →
-**New repository secret** (twice):
+- Daily schedule running the prompt in HANDOFF.md against
+  `37-Inc/goose.gifts`, full network access, branch-push/merge permission.
+- `VERCEL_TOKEN` set in the execution environment (Cameron has the token);
+  all other credentials self-bootstrap via `scripts/ops/pull-env.sh`.
 
-1. Name `ANTHROPIC_API_KEY` — create the key at
-   **https://console.anthropic.com/settings/keys**. Note: this bills
-   API-metered usage (separate from the claude.ai subscription); expect
-   very roughly $1–5 per daily run depending on how much ships.
-2. Name `VERCEL_TOKEN` — the same token already shared in chat.
-
-Verify: Actions tab → "Daily Ops" → **Run workflow**, and watch it go.
-
-**Subscription-billed alternative** (use instead of, or in addition):
-when Anthropic fixes routine creation, create the routine per the archived
-steps below — routine runs draw on the claude.ai plan rather than API
-billing. Worth retrying in a week or two, and also worth trying from the
-Claude **Desktop app** (Routines in the sidebar → New routine → Remote) or
-`/schedule` in a local `claude` CLI, which sometimes succeed where the web
-form fails.
-
-**Until either exists**: the current session bridges with a self-re-arming
-in-session daily timer. Best-effort only — it dies if the session is
-deleted or its container is reclaimed.
-
-<details>
-<summary>Archived: routine creation steps (for when the bug is fixed)</summary>
-
-1. https://claude.ai/code/routines → New routine; name `goose.gifts daily ops`.
-2. Prompt: "You are the autonomous operator of goose.gifts with standing
-   authorization from the owner to merge and deploy. Read
-   docs/ops/RUNBOOK.md in the repository and execute today's run exactly as
-   it describes."
-3. Repository `37-Inc/goose.gifts` (if absent from the picker, install
-   https://github.com/apps/claude on the 37-Inc org first).
-4. Environment: one that has `VERCEL_TOKEN` set (claude.ai/code →
-   environment settings → Environment variables), Network access **Full**.
-5. Trigger: Schedule → Daily, morning. Permissions: allow unrestricted
-   branch pushes. Create, then Run now to verify.
-
-</details>
+Once the first scheduled run appends a journal entry, mark this Received.
 
 ## P1 — needed within the first weeks
 
