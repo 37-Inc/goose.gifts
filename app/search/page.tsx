@@ -39,19 +39,19 @@ export default function SearchPage() {
                 <svg className="w-5 h-5 text-zinc-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-                <span>Try searching by recipient (e.g., "mom", "teacher", "best friend")</span>
+                <span>Try searching by recipient (e.g., &quot;mom&quot;, &quot;teacher&quot;, &quot;best friend&quot;)</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-zinc-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-                <span>Search by occasion (e.g., "birthday", "christmas", "graduation")</span>
+                <span>Search by occasion (e.g., &quot;birthday&quot;, &quot;christmas&quot;, &quot;graduation&quot;)</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-zinc-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-                <span>Look for interests or hobbies (e.g., "gardening", "cooking", "gaming")</span>
+                <span>Look for interests or hobbies (e.g., &quot;gardening&quot;, &quot;cooking&quot;, &quot;gaming&quot;)</span>
               </li>
             </ul>
           </div>
@@ -59,7 +59,7 @@ export default function SearchPage() {
           {/* CTA */}
           <div className="mt-12 text-center">
             <p className="text-sm text-zinc-500 mb-4">
-              Can't find what you're looking for?
+              Can&apos;t find what you&apos;re looking for?
             </p>
             <Link
               href="/"

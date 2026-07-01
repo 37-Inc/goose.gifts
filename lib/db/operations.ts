@@ -12,7 +12,7 @@ import {
 } from './schema';
 import { eq, sql } from 'drizzle-orm';
 import { generateSlug, calculatePriceRange, extractKeywords } from './helpers';
-import type { GiftIdea, GiftRequest, Product } from '../types';
+import type { GiftIdea, GiftRequest, HumorStyle, Product } from '../types';
 import type { SEOContent } from '../seo';
 import { selectTrendingProducts } from './product-scoring';
 import OpenAI from 'openai';
@@ -253,7 +253,7 @@ export async function getGiftBundleBySlug(slug: string): Promise<(GiftBundle & {
           tagline: row.tagline || '',
           description: row.description || '',
           products: [],
-          humorStyle: bundle.humorStyle as any,
+          humorStyle: bundle.humorStyle as HumorStyle,
         });
       }
 
@@ -395,7 +395,7 @@ export async function getAllBundles(): Promise<Array<GiftBundle & { giftIdeas: G
               tagline: row.tagline || '',
               description: row.description || '',
               products: [],
-              humorStyle: bundle.humorStyle as any,
+              humorStyle: bundle.humorStyle as HumorStyle,
             });
           }
 
