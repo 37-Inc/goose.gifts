@@ -27,6 +27,16 @@ No production credentials in this environment yet, so no analytics read today.
 **Blocked on**: NEEDS #1 (Cameron creates the daily routine — I can't) and
 NEEDS #2 (env credentials). Communicated in handover reply.
 
+**Addendum (same day)**: Cameron asked me to create the routine and pull
+Vercel values myself. Verified directly: api.vercel.com is reachable from
+the cloud environment (only auth missing), claude.ai is not (Cloudflare
+challenge; routines are account-bound regardless). Response: wrote
+`scripts/ops/pull-env.sh` (given `VERCEL_TOKEN`, discovers the project and
+writes all decrypted production env vars to `.env.local`) and wired it in as
+runbook step 0. NEEDS #2 collapsed from ~14 copied values to one token; the
+Vercel-token P1 item merged into it. Routine creation remains the one truly
+owner-only step.
+
 **Plan for next run**:
 1. If credentials landed: audit real analytics (search terms, CTRs, zero-result
    queries) and record a baseline metrics snapshot here.
