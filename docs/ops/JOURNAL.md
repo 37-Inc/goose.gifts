@@ -5,6 +5,31 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-01 (night) — Vercel token installed for autonomous runs
+
+Stored the Vercel token in the appropriate non-repo secret stores:
+
+- Remote fallback: GitHub repo secret `VERCEL_TOKEN` on `37-Inc/goose.gifts`
+  (no GitHub Actions scheduler exists; this is only an encrypted repo-level
+  fallback for future remote automation).
+- Local primary: macOS Keychain item, service `goose.gifts.VERCEL_TOKEN`,
+  account `goose.gifts`.
+- Local headless fallback: `$HOME/.codex/secrets/goose.gifts/vercel-token`
+  with mode 600.
+
+Updated `scripts/ops/pull-env.sh` so scheduled/local runs can bootstrap even
+when `VERCEL_TOKEN` is not already exported. It now checks the env var first,
+then Keychain, then the Codex secret file (or `VERCEL_TOKEN_FILE`), and writes
+`VERCEL_TOKEN` into `.env.local` along with decrypted Vercel production env
+vars. This keeps the token out of git and out of the automation prompt while
+making `set -a; source .env.local; set +a` enough for later Vercel API work.
+
+**Next scheduled run**: verify it starts normally at 8:30 AM Pacific, reads
+the journal/runbook, sources `.env.local`, and appends its own entry. No known
+owner action remains for credentials.
+
+---
+
 ## 2026-07-01 (night) — Codex daily routine created
 
 Read the current handoff/runbook/roadmap/needs/journal after fast-forwarding

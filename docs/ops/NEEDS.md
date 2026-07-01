@@ -5,23 +5,11 @@ Items move to "Received" when done.
 
 ## P0 — blocking autonomous operation
 
-### 1. Daily scheduler — created, awaiting first-run credential proof
+None currently.
 
-Native Codex automation `goose-gifts-daily-ops` now exists and is active:
-daily 8:30 AM local/Pacific, worktree execution, cwd
-`/Users/cameronehrlich/goose.gifts`, running the handoff prompt from
-`docs/ops/HANDOFF.md`.
-
-Still verify on the first scheduled run:
-
-- `VERCEL_TOKEN` is present in the routine execution environment. The creation
-  API did not expose a secret/env-var field, so this may still need Codex
-  routine/environment UI setup.
-- Branch push/merge permission works against `37-Inc/goose.gifts`.
-- `scripts/ops/pull-env.sh` can pull production env vars and the run appends a
-  journal entry.
-
-Once that first scheduled run succeeds, mark this Received.
+The first scheduled run should still prove the loop end-to-end by appending a
+journal entry, but there is no known owner action needed for the scheduler or
+credentials.
 
 ## P1 — needed within the first weeks
 
@@ -55,3 +43,8 @@ you'd rather get real email/Slack from me, connect a connector at
 
 - 2026-07-01: Full operating authorization (merge, deploy, daily autonomy,
   weekly check-ins, escalate when urgent/blocked).
+- 2026-07-01: Daily Codex automation `goose-gifts-daily-ops` created and
+  active. GitHub branch push/PR/merge path verified via PR #14. `VERCEL_TOKEN`
+  stored as a GitHub repo secret and in local operator stores (macOS Keychain
+  plus `$HOME/.codex/secrets/goose.gifts/vercel-token`); `pull-env.sh` can
+  bootstrap from those stores without the token being in the repo.
