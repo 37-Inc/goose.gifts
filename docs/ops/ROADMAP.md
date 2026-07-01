@@ -1,0 +1,85 @@
+# goose.gifts — Strategy & Roadmap
+
+Owner-approved direction (Cameron, 2026-07-01): pivot from generate-on-demand
+to a **pre-indexed catalog** model, in the style of thisiswhyimbroke.com.
+
+## Why the pivot
+
+Today's flow — user submits a form, then waits while we run LLM generation +
+live Amazon/Etsy searches — has three problems:
+
+1. **Latency**: tens of seconds before the user sees anything. Most bounce.
+2. **Cost**: every search pays for LLM calls + product API calls, even for
+   duplicate/similar queries.
+3. **SEO**: the best content is trapped behind a form; crawlers see little.
+
+The catalog model inverts it: discovery, curation, scoring, and embedding
+happen **once per product, in a nightly batch**. The user-facing site becomes
+fast, cheap, and crawlable.
+
+## Phase 1 — Catalog-first architecture (current phase)
+
+### 1a. Catalog schema & ingestion pipeline
+
+- Extend `products` with: `embedding vector(1536)`, `humorTags text[]`,
+  `punnyTitle`/`wittyDescription` (LLM-written copy), `qualityScore`,
+  `sourceQuery`, `isActive`, `lastVerifiedAt`. (pgvector is already enabled;
+  `gift_bundles.embedding` already exists as prior art.)
+- Nightly ingestion job (script run during the daily ops session, later a
+  Vercel cron): pick N discovery themes (seasonal occasions, trending topics,
+  gaps from search analytics) → search Google CSE/Amazon + Etsy → dedupe
+  against existing catalog → LLM pass to filter for genuine gag-gift quality,
+  tag, and write punny copy → embed (`text-embedding-3-small`) → upsert.
+- Target: 50–150 net-new products/day; catalog of thousands within a month.
+- Re-verify stale products periodically (dead links, price drift) and
+  deactivate the broken ones.
+
+### 1b. New landing page (thisiswhyimbroke style)
+
+- Home page = dense, scrollable grid of the best catalog items: punny title,
+  image, price, one-liner; affiliate link on click. Ranked by the existing
+  multi-armed bandit (CTR × recency × novelty), so the page self-optimizes.
+- Statically rendered/ISR for speed and SEO; structured data (ItemList/Product).
+- Keep bundle permalinks — they're the SEO long-tail — but generate them from
+  the catalog rather than live API calls.
+
+### 1c. Realtime semantic search
+
+- Single search bar. Query → one embedding call → pgvector cosine similarity
+  over the catalog → instant results (sub-second, ~$0.00002/query).
+- The old generation flow survives only as (a) the batch bundle-builder and
+  (b) an optional "curate me a bundle" upsell when catalog results are thin.
+  Thin-result queries are logged as tomorrow's ingestion themes — the search
+  bar becomes a demand-discovery instrument.
+
+### Cost effect
+
+LLM + product-API spend becomes a fixed nightly batch (bounded, tunable);
+marginal cost per visitor drops to ~zero. This is the main margin lever.
+
+## Phase 2 — SEO page network
+
+- Programmatic landing pages generated from the catalog: occasion pages
+  ("funny white elephant gifts"), persona pages ("gifts for coworkers who
+  love cats"), price pages ("gag gifts under $20"). Interlinked, in the
+  sitemap, each with real products and LLM-written editorial copy.
+- Seasonal calendar: build pages 6–8 weeks ahead of gifting peaks
+  (Christmas/white elephant season is the big one — prep starts October;
+  also Father's/Mother's Day, Valentine's, graduation, Halloween).
+- Search Console feedback loop once access is granted (see NEEDS).
+
+## Phase 3 — Growth loops & revenue depth
+
+- Shareability: OG images per product/bundle, Pinterest-optimized pages
+  (gag gifts are a strong Pinterest category).
+- Email capture + weekly "dumbest gifts this week" newsletter
+  (spec already exists in `docs/newsletter-feature-spec.md`).
+- Revenue optimization: compare Amazon vs. Etsy/Awin EPC per category once
+  reporting access exists; weight the bandit by commission, not just CTR.
+
+## Success metrics
+
+- Catalog size & freshness; % searches with strong semantic hits.
+- Organic sessions (Search Console), indexed pages.
+- Outbound affiliate CTR; clicks → revenue once reporting access exists.
+- Marginal cost per visitor (should trend to ~zero after Phase 1).
