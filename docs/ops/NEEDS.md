@@ -5,58 +5,57 @@ Items move to "Received" when done.
 
 ## P0 — blocking autonomous operation
 
-### 1. Create the daily Routine (the thing that wakes me up)
+### 1. Activate the daily scheduler: add two GitHub secrets (one URL, ~2 min)
 
-I cannot create scheduled routines from inside a session — only you can, from
-your claude.ai account. This is the mechanism that runs me daily.
+claude.ai routine creation is broken (research-preview bug, confirmed
+2026-07-01 even with the correct repo selected), so the durable scheduler is
+now a GitHub Actions workflow — `.github/workflows/daily-ops.yml`, already
+merged. It runs daily at ~6:23am ET and no-ops until two repository secrets
+exist. This is the only manual step left anywhere:
 
-1. Go to **https://claude.ai/code/routines** → **New routine**.
-2. Name: `goose.gifts daily ops`.
-3. Prompt (paste exactly):
-   > You are the autonomous operator of goose.gifts with standing
-   > authorization from the owner to merge and deploy. Read
-   > docs/ops/RUNBOOK.md in the repository and execute today's run exactly
-   > as it describes.
-4. Repository: `37-Inc/goose.gifts`. **Troubleshooting (2026-07-01)**: the
-   first attempt failed with "Failed to create routine" — the form had
-   `cameronehrlich/37cli` attached instead. Remove that repo (×), click +,
-   and pick `37-Inc/goose.gifts`. If it doesn't appear in the picker, the
-   Claude GitHub App isn't installed on the 37-Inc org: go to
-   **https://github.com/apps/claude** → Configure → select **37-Inc** →
-   grant access to `goose.gifts`, then retry.
-5. Environment: pick the same environment this session uses (or Default),
-   after doing item 2 below so it has the credentials. Set **Network
-   access** to **Full** (the ingestion pipeline needs to reach the
-   database, OpenAI, Amazon/Etsy/Awin, and the live site).
-6. Trigger: **Schedule → Daily**, pick a morning time.
-7. Under **Permissions**, enable **Allow unrestricted branch pushes** for
-   `37-Inc/goose.gifts` (lets me manage branches and merge cleanly).
-8. Create, then hit **Run now** once to verify it works end-to-end.
+Go to **https://github.com/37-Inc/goose.gifts/settings/secrets/actions** →
+**New repository secret** (twice):
 
-Note: routine runs count against your claude.ai plan's usage/daily routine
-caps — visible at https://claude.ai/settings/usage.
+1. Name `ANTHROPIC_API_KEY` — create the key at
+   **https://console.anthropic.com/settings/keys**. Note: this bills
+   API-metered usage (separate from the claude.ai subscription); expect
+   very roughly $1–5 per daily run depending on how much ships.
+2. Name `VERCEL_TOKEN` — the same token already shared in chat.
 
-### 2. Persist the Vercel token in the cloud environment
+Verify: Actions tab → "Daily Ops" → **Run workflow**, and watch it go.
 
-Token received in chat 2026-07-01 and verified working (all 29 prod vars
-pull; OpenAI + database confirmed live). One step remains so **future runs**
-can bootstrap themselves — the token currently exists only in this chat
-session:
+**Subscription-billed alternative** (use instead of, or in addition):
+when Anthropic fixes routine creation, create the routine per the archived
+steps below — routine runs draw on the claude.ai plan rather than API
+billing. Worth retrying in a week or two, and also worth trying from the
+Claude **Desktop app** (Routines in the sidebar → New routine → Remote) or
+`/schedule` in a local `claude` CLI, which sometimes succeed where the web
+form fails.
 
-Go to **https://claude.ai/code**, open the environment selector (the
-environment name near the repo picker), hover the environment → settings
-icon → **Environment variables**, and add one line (no quotes):
+**Until either exists**: the current session bridges with a self-re-arming
+in-session daily timer. Best-effort only — it dies if the session is
+deleted or its container is reclaimed.
 
-`VERCEL_TOKEN=<the same token you pasted in chat>`
+<details>
+<summary>Archived: routine creation steps (for when the bug is fixed)</summary>
 
-Use that same environment for the routine in item 1. Heads-up from
-Anthropic's docs: there is no dedicated secrets store yet — environment
-variables are visible to anyone who can edit the environment (that's just
-you here).
+1. https://claude.ai/code/routines → New routine; name `goose.gifts daily ops`.
+2. Prompt: "You are the autonomous operator of goose.gifts with standing
+   authorization from the owner to merge and deploy. Read
+   docs/ops/RUNBOOK.md in the repository and execute today's run exactly as
+   it describes."
+3. Repository `37-Inc/goose.gifts` (if absent from the picker, install
+   https://github.com/apps/claude on the 37-Inc org first).
+4. Environment: one that has `VERCEL_TOKEN` set (claude.ai/code →
+   environment settings → Environment variables), Network access **Full**.
+5. Trigger: Schedule → Daily, morning. Permissions: allow unrestricted
+   branch pushes. Create, then Run now to verify.
+
+</details>
 
 ## P1 — needed within the first weeks
 
-### 3. Revenue reporting access
+### 2. Revenue reporting access
 
 I can optimize clicks blind, but revenue-weighting the site needs earnings
 data:
@@ -69,14 +68,14 @@ data:
 
 ## P2 — high value, not urgent
 
-### 4. Google Search Console access
+### 3. Google Search Console access
 
 The SEO feedback loop (Phase 2) is guesswork without it. Easiest path:
 https://search.google.com/search-console → goose.gifts property →
 Settings → Users and permissions — then we set up a service-account JSON
 key (I'll write exact steps when we get here) added as an env var.
 
-### 5. Direct email/Slack channel (optional)
+### 4. Direct email/Slack channel (optional)
 
 Weekly check-ins arrive as GitHub issues, which email you automatically. If
 you'd rather get real email/Slack from me, connect a connector at
