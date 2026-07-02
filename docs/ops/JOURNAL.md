@@ -5,6 +5,55 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-01 (night) - Manual daily routine run: catalog schema foundation
+
+Ran the daily prompt manually because no native "run now" automation control
+was exposed in the available Codex tools. The saved automation itself remains
+active for daily 8:30 AM Pacific.
+
+**Runbook checks**:
+- GitHub: clean `main` at `b5bc71b`; no open PRs/issues needing action.
+- Live health: homepage 200, sitemap 200, search page 200, sample bundle 200
+  after `goose.gifts` -> `www.goose.gifts` redirect.
+- Env bootstrap: `.env.local` present from `pull-env.sh`; OpenAI, Google
+  search, Postgres, and Amazon access key vars present.
+- Known env gaps still true: no `AWIN_*` vars; Vercel defines
+  `AWS_SECRET_ACCESS_KEY` while code reads `AWS_SECRET_KEY`.
+
+**Production data snapshot**:
+- 109 bundles, 3,165 products, 327 gift ideas, 3,259 gift idea products.
+- 22,193 lifetime bundle views; 103 bundle clicks; 91 product clicks; 9 shares.
+- Last bundle created `2026-04-16T02:16:26.425Z`.
+- Last search `2025-10-30T18:27:51.066Z`; zero searches, zero product clicks,
+  and zero new bundles in the last 30 days.
+- Product catalog before this run had none of the ROADMAP Phase 1a fields.
+
+**Decision**: start ROADMAP Phase 1a with the additive product catalog schema
+foundation. This is the smallest production-safe step toward the pre-indexed
+catalog/search relaunch and removes no existing behavior.
+
+**Shipped in this run**:
+- Added `products.embedding vector(1536)`, `humor_tags text[]`, `punny_title`,
+  `witty_description`, `quality_score numeric(5,4)`, `source_query`,
+  `is_active boolean default true not null`, and `last_verified_at`.
+- Added indexes for active filtering, quality score ordering, humor-tag GIN
+  filtering, and partial HNSW cosine vector search over non-null embeddings.
+- Applied the migration to production through `@vercel/postgres` HTTPS driver.
+  Verified all eight columns and four indexes exist. Existing 3,165 products
+  are active; embedded product count is 0 until the ingestion/backfill job runs.
+
+**Verification**: `npm run build` passed. `npm run lint` passed with 11
+pre-existing warnings only (`<img>` usage, missing hook dependency, unused
+symbols in older files).
+
+**Next**: implement the ingestion/backfill skeleton: discover candidates,
+normalize/upsert products, LLM score/tag/copy, embed with
+`text-embedding-3-small`, and store into the new catalog fields. Keep Amazon
+PA-API env-name mismatch and missing Awin credentials on the near-term audit
+list before relying on non-Amazon revenue/source data.
+
+---
+
 ## 2026-07-01 (night) — Vercel token installed for autonomous runs
 
 Stored the Vercel token in the appropriate non-repo secret stores:

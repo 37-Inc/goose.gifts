@@ -1,5 +1,5 @@
-import { pgTable, uuid, varchar, text, integer, jsonb, timestamp, index, numeric, foreignKey, vector } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { pgTable, uuid, varchar, text, integer, jsonb, timestamp, index, numeric, boolean, vector } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
 
 export const giftBundles = pgTable('gift_bundles', {
   // Primary identifier
@@ -84,6 +84,16 @@ export const products = pgTable('products', {
   rating: numeric('rating', { precision: 3, scale: 2 }),
   reviewCount: integer('review_count'),
   category: varchar('category', { length: 100 }), // For future commission tracking
+  sourceQuery: text('source_query'),
+
+  // Catalog search metadata for pre-indexed gift discovery
+  embedding: vector('embedding', { dimensions: 1536 }),
+  humorTags: text('humor_tags').array(),
+  punnyTitle: text('punny_title'),
+  wittyDescription: text('witty_description'),
+  qualityScore: numeric('quality_score', { precision: 5, scale: 4 }),
+  isActive: boolean('is_active').notNull().default(true),
+  lastVerifiedAt: timestamp('last_verified_at'),
 
   // Analytics - track product clicks
   clickCount: integer('click_count').notNull().default(0),
@@ -96,6 +106,12 @@ export const products = pgTable('products', {
 }, (table) => ({
   // Index for filtering by source
   sourceIdx: index('products_source_idx').on(table.source),
+  isActiveIdx: index('products_is_active_idx').on(table.isActive),
+  qualityScoreIdx: index('products_quality_score_idx').on(table.qualityScore),
+  humorTagsIdx: index('products_humor_tags_idx').using('gin', table.humorTags),
+  embeddingIdx: index('products_embedding_hnsw_idx')
+    .using('hnsw', table.embedding.op('vector_cosine_ops'))
+    .where(sql`${table.embedding} IS NOT NULL`),
 }));
 
 // Gift ideas table - each bundle has multiple gift ideas
