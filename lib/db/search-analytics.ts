@@ -47,7 +47,7 @@ export async function getTopSearchTerms(
       LIMIT ${limit}
     `);
 
-    return results.map(row => ({
+    return results.rows.map(row => ({
       query: row.query,
       count: parseInt(row.count, 10),
       avgResults: parseFloat(row.avg_results),
@@ -99,7 +99,7 @@ export async function getFailedSearches(
       LIMIT ${limit}
     `);
 
-    return results.map(row => ({
+    return results.rows.map(row => ({
       query: row.query,
       count: parseInt(row.count, 10),
       lastSearched: new Date(row.last_searched),
@@ -151,7 +151,7 @@ export async function getPoorResultSearches(
       LIMIT ${limit}
     `);
 
-    return results.map(row => ({
+    return results.rows.map(row => ({
       query: row.query,
       count: parseInt(row.count, 10),
       avgSimilarity: parseFloat(row.avg_similarity),
@@ -207,7 +207,7 @@ export async function getSearchAnalyticsSummary(
       WHERE created_at >= ${startDate.toISOString()}
     `);
 
-    const row = results[0];
+    const row = results.rows[0];
     if (!row) {
       return {
         totalSearches: 0,

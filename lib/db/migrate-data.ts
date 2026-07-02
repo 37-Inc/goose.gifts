@@ -58,7 +58,7 @@ async function migrateData() {
       sql`SELECT id, recipient_description, occasion, humor_style, gift_ideas FROM gift_bundles WHERE deleted_at IS NULL ORDER BY created_at ASC`
     );
 
-    const bundleRows = Array.from(bundles);
+    const bundleRows = bundles.rows;
     console.log(`Found ${bundleRows.length} bundles to migrate\n`);
 
     if (bundleRows.length === 0) {
@@ -99,7 +99,7 @@ async function migrateData() {
             `
           );
 
-          const giftIdeaRows = Array.from(giftIdeaResult);
+          const giftIdeaRows = giftIdeaResult.rows;
           const giftIdeaId = giftIdeaRows[0]?.id;
 
           if (!giftIdeaId) {

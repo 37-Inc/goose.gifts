@@ -5,6 +5,51 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-01 (late night) - Analytics snapshot and HTTPS DB driver cleanup
+
+**Analytics setup found**:
+- Vercel Web Analytics is installed (`@vercel/analytics`) and readable through
+  the Web Analytics API.
+- Google Analytics / Google Ads tags are present in `app/layout.tsx`
+  (`G-6RR3HPR747`, `AW-17626116539`), but no GA Data API read credentials are
+  present in env.
+- PostHog is not installed.
+
+**Traffic snapshot**:
+- Vercel Web Analytics, 2026-06-02 through 2026-07-02 UTC: 17 visitors and
+  22 pageviews. Top path is `/` with 16 visitors / 17 pageviews. Referrers are
+  mostly direct/unknown; visible referrers include findicons.com,
+  greenmaven.com, search.spacetime.com, and search.yam.com.
+- Vercel Hobby plan limits Web Analytics history to the latest 31 days.
+  Custom events return 402 unless the project is on Pro/Enterprise.
+- Database interaction history remains dormant: 0 searches and 0 product click
+  events in the last 30 days; latest product click was 2026-04-16; latest
+  recorded search was 2025-10-30. Lifetime DB totals: 109 bundles, 3,165
+  products, 22,201 bundle views, 103 bundle clicks, 91 product-click events,
+  263 searches.
+
+**Shipped in this pass**:
+- Added `npm run analytics:snapshot`, a read-only ops command that combines
+  Vercel visitor/pageview data with Neon search/click/catalog-quality data.
+- Updated the runbook to make that command the standard daily data read.
+- Switched `lib/db/index.ts` from `postgres.js` to Drizzle's Vercel Postgres
+  adapter so app DB access uses the HTTPS-friendly driver. Removed the direct
+  `postgres` dependency.
+- Added a NEEDS note for deeper analytics reporting: GA Data API credentials or
+  a PostHog project key/host if we want funnel analytics beyond Vercel's free
+  31-day pageview history and the app's own DB events.
+
+**Catalog gap observed**: 3,148 active products still have `price = 0` from the
+old catalog. The homepage query filters them out, but the ingestion/backfill
+work should deactivate or reprice these before relying on catalog-wide search.
+
+**Next**: build the price/enrichment backfill path, then LLM copy/tagging and
+embeddings. Analytics says the idle site still gets a trickle of visitors, but
+no one is searching or clicking; the relaunch needs homepage/catalog depth more
+than dashboard polish.
+
+---
+
 ## 2026-07-01 (late night) - Lint cleanup and catalog-first homepage
 
 Cameron asked to fix all lint issues, clean up unneeded code, and get the site
