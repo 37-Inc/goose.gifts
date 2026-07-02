@@ -14,7 +14,6 @@ import { eq, sql } from 'drizzle-orm';
 import { generateSlug, calculatePriceRange, extractKeywords } from './helpers';
 import type { GiftIdea, GiftRequest, HumorStyle, Product } from '../types';
 import type { SEOContent } from '../seo';
-import { selectTrendingProducts } from './product-scoring';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
@@ -561,6 +560,12 @@ export async function getTrendingProducts(limit: number = 12): Promise<Product[]
       .select({
         id: products.id,
         title: products.title,
+        punnyTitle: products.punnyTitle,
+        wittyDescription: products.wittyDescription,
+        humorTags: products.humorTags,
+        qualityScore: products.qualityScore,
+        sourceQuery: products.sourceQuery,
+        isActive: products.isActive,
         price: products.price,
         currency: products.currency,
         imageUrl: products.imageUrl,
@@ -573,12 +578,24 @@ export async function getTrendingProducts(limit: number = 12): Promise<Product[]
         lastClickedAt: products.lastClickedAt,
       })
       .from(products)
-      .where(sql`${products.imageUrl} IS NOT NULL`); // Only products with images
+      .where(sql`
+        ${products.imageUrl} IS NOT NULL
+        AND ${products.affiliateUrl} IS NOT NULL
+        AND ${products.isActive} = true
+        AND ${products.price} > 0
+        AND ${products.price} <= 250
+      `);
 
     // Convert to Product type with stats
     const productList = allProducts.map(p => ({
       id: p.id,
       title: p.title,
+      punnyTitle: p.punnyTitle || undefined,
+      wittyDescription: p.wittyDescription || undefined,
+      humorTags: p.humorTags || undefined,
+      qualityScore: p.qualityScore ? parseFloat(p.qualityScore) : undefined,
+      sourceQuery: p.sourceQuery || undefined,
+      isActive: p.isActive,
       price: parseFloat(p.price),
       currency: p.currency,
       imageUrl: p.imageUrl || '',

@@ -4,7 +4,7 @@
 
 import { db } from './index';
 import { searchQueries } from './schema';
-import { sql, desc, and, gte, eq } from 'drizzle-orm';
+import { sql, desc } from 'drizzle-orm';
 
 /**
  * Get top search terms for a given time period

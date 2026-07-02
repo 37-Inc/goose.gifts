@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "catalog:prefetch": "node scripts/ops/prefetch-catalog.mjs",
     "test:amazon": "node test-amazon-api.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

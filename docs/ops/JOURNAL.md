@@ -5,6 +5,59 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-01 (late night) - Lint cleanup and catalog-first homepage
+
+Cameron asked to fix all lint issues, clean up unneeded code, and get the site
+on track for the ROADMAP Phase 1 version: daily prefetched products plus a
+thisiswhyimbroke-style catalog homepage.
+
+**Shipped in this run**:
+- `npm run lint` now passes with zero warnings. Fixed raw `<img>` usage,
+  hook dependencies, unused imports/functions, and stale one-off migration
+  typing.
+- Removed production-exposed debug surfaces: `/debug-images` and
+  `/api/test-images`.
+- Reworked the homepage from old generate-on-demand-first flow to a dense
+  catalog-first product grid. The old custom bundle builder remains lower on
+  the page as a secondary path.
+- Removed fabricated review/social-proof UI from product cards. Cards now show
+  real rating/review data only when present.
+- Wired the new catalog fields into product reads (`punny_title`,
+  `witty_description`, `humor_tags`, `quality_score`, `source_query`,
+  `is_active`) and filtered homepage products to active, priced, image-backed
+  affiliate rows.
+- Added `npm run catalog:prefetch`, a bounded daily discovery command that
+  uses Google CSE + Amazon PA-API, upserts through `@vercel/postgres`, tags and
+  scores discoveries, and keeps no-price products inactive.
+- Fixed Amazon PA-API env handling to accept both `AWS_SECRET_KEY` and
+  `AWS_SECRET_ACCESS_KEY`, and aligned PA-API signing headers with the existing
+  credential test harness.
+
+**Learned**: PA-API credentials now sign successfully and return item/title/image
+data, but current SearchItems/GetItems responses omit `Offers.Listings.Price`.
+The prefetch command therefore stages new Amazon discoveries inactive
+(`price=0`, `is_active=false`) until pricing/enrichment is solved. The live
+homepage excludes those rows.
+
+**Verification**:
+- `npm run lint` passes with zero warnings.
+- `npm run build` passes with no browser-data warnings after refreshing
+  `caniuse-lite`/`baseline-browser-mapping` lockfile data.
+- `npm run catalog:prefetch -- --dry-run --themes "funny white elephant gifts"
+  --theme-limit 1 --per-theme 5 --max-new 5` discovered 6 candidate products,
+  all inactive because PA-API omitted prices.
+- Local browser check at desktop and 390px mobile: homepage rendered 16 active
+  product cards, no horizontal overflow, no broken images reported, and no
+  console errors.
+
+**Next**: solve active-product enrichment. Options: find why PA-API is omitting
+offers, add a compliant alternate price source, or allow Etsy/Awin ingestion
+once Awin credentials are available. Then add LLM copy/embedding to
+`catalog:prefetch` so daily discoveries become active search-ready catalog
+items instead of only staged candidates.
+
+---
+
 ## 2026-07-01 (night) - Manual daily routine run: catalog schema foundation
 
 Ran the daily prompt manually because no native "run now" automation control

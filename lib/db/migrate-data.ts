@@ -11,7 +11,7 @@
 import { db } from './index';
 import { sql } from 'drizzle-orm';
 import OpenAI from 'openai';
-import type { GiftIdea as LegacyGiftIdea, Product as LegacyProduct } from '../types';
+import type { GiftIdea as LegacyGiftIdea } from '../types';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

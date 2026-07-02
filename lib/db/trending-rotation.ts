@@ -17,14 +17,6 @@ interface ProductWithStats extends Product {
 }
 
 /**
- * Calculate CTR (Click-Through Rate)
- */
-function calculateCTR(clicks: number, impressions: number): number {
-  if (impressions === 0) return 0;
-  return clicks / impressions;
-}
-
-/**
  * Calculate recency score (products clicked recently rank higher)
  * Decay over 7 days
  */

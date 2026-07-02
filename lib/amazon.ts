@@ -2,11 +2,18 @@ import type { Product } from './types';
 import crypto from 'crypto';
 import { cleanAmazonImageUrl } from './image-utils';
 
+const PAAPI_SEARCH_TARGET = 'com.amazon.paapi5.v1.ProductAdvertisingAPIv1.SearchItems';
+const PAAPI_GET_ITEMS_TARGET = 'com.amazon.paapi5.v1.ProductAdvertisingAPIv1.GetItems';
+
 interface AmazonSearchParams {
   keywords: string;
   minPrice: number;
   maxPrice: number;
   category?: string;
+}
+
+function getAmazonSecretKey(): string | undefined {
+  return process.env.AWS_SECRET_KEY || process.env.AWS_SECRET_ACCESS_KEY;
 }
 
 // Amazon PA-API direct implementation (works with Next.js)
@@ -51,12 +58,15 @@ async function retryWithBackoff<T>(
 export async function searchAmazonProducts(
   params: AmazonSearchParams
 ): Promise<Product[]> {
+  const secretKey = getAmazonSecretKey();
+
   // Return empty array if API not configured
-  if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_KEY || !process.env.AMAZON_ASSOCIATE_TAG) {
+  if (!process.env.AWS_ACCESS_KEY_ID || !secretKey || !process.env.AMAZON_ASSOCIATE_TAG) {
     console.error('❌ Amazon API not configured!');
     console.error('Missing:', {
       AWS_ACCESS_KEY_ID: !!process.env.AWS_ACCESS_KEY_ID,
       AWS_SECRET_KEY: !!process.env.AWS_SECRET_KEY,
+      AWS_SECRET_ACCESS_KEY: !!process.env.AWS_SECRET_ACCESS_KEY,
       AMAZON_ASSOCIATE_TAG: !!process.env.AMAZON_ASSOCIATE_TAG,
     });
     return [];
@@ -109,9 +119,11 @@ async function searchAmazonProductsInternal(
     const response = await fetch(`https://${host}/paapi5/searchitems`, {
       method: 'POST',
       headers: {
+        'Content-Encoding': 'amz-1.0',
         'Content-Type': 'application/json; charset=utf-8',
         'X-Amz-Date': timestamp,
-        'Authorization': `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${getCredentialScope(timestamp, region)}, SignedHeaders=content-type;host;x-amz-date, Signature=${signature}`,
+        'X-Amz-Target': PAAPI_SEARCH_TARGET,
+        'Authorization': `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${getCredentialScope(timestamp, region)}, SignedHeaders=content-encoding;content-type;host;x-amz-date;x-amz-target, Signature=${signature}`,
         'Host': host,
       },
       body: JSON.stringify(requestParams),
@@ -189,11 +201,13 @@ function createCanonicalRequest(params: Record<string, unknown>, timestamp: stri
     'POST',
     '/paapi5/searchitems',
     '',
+    'content-encoding:amz-1.0',
     'content-type:application/json; charset=utf-8',
     'host:webservices.amazon.com',
     `x-amz-date:${timestamp}`,
+    `x-amz-target:${PAAPI_SEARCH_TARGET}`,
     '',
-    'content-type;host;x-amz-date',
+    'content-encoding;content-type;host;x-amz-date;x-amz-target',
     hashedPayload,
   ].join('\n');
 }
@@ -207,7 +221,13 @@ function createSignature(canonicalRequest: string, timestamp: string, region: st
     crypto.createHash('sha256').update(canonicalRequest).digest('hex'),
   ].join('\n');
 
-  const kDate = crypto.createHmac('sha256', `AWS4${process.env.AWS_SECRET_KEY}`).update(date).digest();
+  const secretKey = getAmazonSecretKey();
+
+  if (!secretKey) {
+    throw new Error('Amazon PA-API secret key is not configured');
+  }
+
+  const kDate = crypto.createHmac('sha256', `AWS4${secretKey}`).update(date).digest();
   const kRegion = crypto.createHmac('sha256', kDate).update(region).digest();
   const kService = crypto.createHmac('sha256', kRegion).update('ProductAdvertisingAPI').digest();
   const kSigning = crypto.createHmac('sha256', kService).update('aws4_request').digest();
@@ -311,11 +331,13 @@ function createGetItemsCanonicalRequest(params: Record<string, unknown>, timesta
     'POST',
     '/paapi5/getitems',
     '',
+    'content-encoding:amz-1.0',
     'content-type:application/json; charset=utf-8',
     'host:webservices.amazon.com',
     `x-amz-date:${timestamp}`,
+    `x-amz-target:${PAAPI_GET_ITEMS_TARGET}`,
     '',
-    'content-type;host;x-amz-date',
+    'content-encoding;content-type;host;x-amz-date;x-amz-target',
     hashedPayload,
   ].join('\n');
 }
@@ -328,7 +350,7 @@ function createGetItemsCanonicalRequest(params: Record<string, unknown>, timesta
  * @returns Enriched products with current prices, ratings, and images
  */
 export async function enrichProductsWithAmazonData(products: Product[]): Promise<Product[]> {
-  if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_KEY || !process.env.AMAZON_ASSOCIATE_TAG) {
+  if (!process.env.AWS_ACCESS_KEY_ID || !getAmazonSecretKey() || !process.env.AMAZON_ASSOCIATE_TAG) {
     console.log('⚠️ Amazon PA-API not configured, skipping enrichment');
     return products;
   }
@@ -367,9 +389,11 @@ export async function enrichProductsWithAmazonData(products: Product[]): Promise
     const response = await fetch('https://webservices.amazon.com/paapi5/getitems', {
       method: 'POST',
       headers: {
+        'Content-Encoding': 'amz-1.0',
         'Content-Type': 'application/json; charset=utf-8',
         'X-Amz-Date': timestamp,
-        'Authorization': `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${getCredentialScope(timestamp, region)}, SignedHeaders=content-type;host;x-amz-date, Signature=${signature}`,
+        'X-Amz-Target': PAAPI_GET_ITEMS_TARGET,
+        'Authorization': `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${getCredentialScope(timestamp, region)}, SignedHeaders=content-encoding;content-type;host;x-amz-date;x-amz-target, Signature=${signature}`,
         'Host': 'webservices.amazon.com',
       },
       body: JSON.stringify(params),

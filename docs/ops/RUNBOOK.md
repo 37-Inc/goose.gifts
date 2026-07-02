@@ -45,6 +45,12 @@ Boundaries (always in force):
    1. Anything broken or degrading (errors, broken images, dead affiliate links).
    2. Current phase of `docs/ops/ROADMAP.md` (catalog-first pivot until done).
    3. SEO/growth work informed by step 3.
+   While Phase 1a is active, run the bounded daily catalog discovery command
+   unless a higher-priority incident displaces it:
+   `npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+   The command uses `@vercel/postgres` over HTTPS, upserts discovered products,
+   and keeps no-price discoveries inactive so they do not pollute the live
+   catalog grid.
 5. **Verify.** `npm install && npm run build && npm run lint` must pass. Test
    the change as a user would where feasible.
 6. **Ship.** Commit on a `claude/`-prefixed branch, push, open a PR with a
