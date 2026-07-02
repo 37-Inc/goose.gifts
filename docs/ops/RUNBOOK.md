@@ -38,9 +38,12 @@ Boundaries (always in force):
    `/sitemap.xml`, a sample bundle permalink, and `/search`. If the site is
    down or broken: fixing it is the entire day's work; escalate (see below) if
    not fixable within the run.
-3. **Read the data.** If `POSTGRES_URL` is available, pull: searches and
-   zero/poor-result queries, bundle/product impressions + clicks (CTR),
-   top-performing bundles, trends vs. prior week. Let the data pick the work.
+3. **Read the data.** If `VERCEL_TOKEN` and `POSTGRES_URL` are available, run
+   `npm run analytics:snapshot` to pull Vercel visitor/pageview data plus
+   database searches, clicks, bundle/product counts, and catalog-quality gaps.
+   Let the data pick the work. Vercel Hobby Web Analytics only exposes the
+   latest 31 days, so use the database counters for longer-running product and
+   search interaction history.
 4. **Do the highest-leverage task.** Default priority order:
    1. Anything broken or degrading (errors, broken images, dead affiliate links).
    2. Current phase of `docs/ops/ROADMAP.md` (catalog-first pivot until done).

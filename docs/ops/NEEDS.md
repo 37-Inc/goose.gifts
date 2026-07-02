@@ -36,7 +36,16 @@ https://search.google.com/search-console → goose.gifts property →
 Settings → Users and permissions — then we set up a service-account JSON
 key (I'll write exact steps when we get here) added as an env var.
 
-### 4. Direct email/Slack channel (optional)
+### 4. Analytics reporting depth
+
+Vercel Web Analytics is active and programmatically readable, but the current
+Hobby plan only exposes the latest 31 days and custom events require Pro or
+Enterprise. Google Analytics is installed on the site, but no GA Data API read
+credentials are available in env. If deeper analytics become important,
+provide GA property/Data API access or a PostHog project key/host so daily ops
+can report funnels beyond the app's own database search/click tables.
+
+### 5. Direct email/Slack channel (optional)
 
 Weekly check-ins arrive as GitHub issues, which email you automatically. If
 you'd rather get real email/Slack from me, connect a connector at

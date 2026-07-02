@@ -703,7 +703,7 @@ export async function searchBundles(query: string, limit: number = 10): Promise<
 
     // Fetch product images for each bundle
     const bundlesWithImages = await Promise.all(
-      results.map(async (row) => {
+      results.rows.map(async (row) => {
         const images = await db
           .select({ imageUrl: products.imageUrl })
           .from(giftIdeas)
