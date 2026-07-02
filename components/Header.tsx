@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function Header() {
   return (
@@ -6,10 +7,13 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-2 text-zinc-900 hover:text-[#f59e42] transition-colors group">
-            <img
+            <Image
               src="/sillygoose.png"
               alt="Silly Goose"
+              width={40}
+              height={40}
               className="w-10 h-10 transition-transform group-hover:scale-105"
+              priority
             />
             <span className="text-xl font-bold">goose.gifts</span>
           </Link>

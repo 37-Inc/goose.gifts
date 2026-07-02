@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Button } from '@/components/admin/Button';
 import { Card, CardHeader, CardBody } from '@/components/admin/Card';
 import { ConfirmModal } from '@/components/admin/Modal';
@@ -508,11 +509,16 @@ export default function AdminBundleDetailPage({
                   >
                     <div className="flex gap-4">
                       {product.imageUrl && (
-                        <img
-                          src={product.imageUrl}
-                          alt={product.title}
-                          className="w-20 h-20 object-cover rounded"
-                        />
+                        <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded bg-gray-100">
+                          <Image
+                            src={product.imageUrl}
+                            alt={product.title}
+                            fill
+                            className="object-cover"
+                            sizes="80px"
+                            unoptimized
+                          />
+                        </div>
                       )}
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-gray-900 text-sm truncate">

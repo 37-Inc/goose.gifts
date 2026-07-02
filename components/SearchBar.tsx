@@ -17,6 +17,11 @@ interface SearchResponse {
   results?: SearchResult[];
 }
 
+interface SearchBarProps {
+  placeholder?: string;
+  className?: string;
+}
+
 type Gtag = (command: 'event', eventName: string, params: Record<string, unknown>) => void;
 
 function getGtag(): Gtag | undefined {
@@ -27,7 +32,10 @@ function getGtag(): Gtag | undefined {
   return (window as Window & { gtag?: Gtag }).gtag;
 }
 
-export function SearchBar() {
+export function SearchBar({
+  placeholder = 'Search gift bundles...',
+  className = '',
+}: SearchBarProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -132,7 +140,7 @@ export function SearchBar() {
   };
 
   return (
-    <div ref={searchRef} className="relative w-full">
+    <div ref={searchRef} className={`relative w-full ${className}`}>
       {/* Search Input */}
       <div className="relative">
         <input
@@ -141,7 +149,7 @@ export function SearchBar() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Search gift bundles..."
+          placeholder={placeholder}
           className="w-full px-4 py-2.5 pl-11 pr-4 text-sm bg-white border-2 border-zinc-200 rounded-lg focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
         />
         <svg

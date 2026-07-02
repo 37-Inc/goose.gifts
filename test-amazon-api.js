@@ -5,17 +5,18 @@
  * Run with: node test-amazon-api.js
  */
 
-require('dotenv').config({ path: '.env' });
+require('dotenv').config({ path: '.env.local', quiet: true });
+require('dotenv').config({ path: '.env', quiet: true });
 const crypto = require('crypto');
 
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
-const AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
+const AWS_SECRET_KEY = process.env.AWS_SECRET_KEY || process.env.AWS_SECRET_ACCESS_KEY;
 const AMAZON_ASSOCIATE_TAG = process.env.AMAZON_ASSOCIATE_TAG;
 
 // Check if credentials are configured
 if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_KEY || !AMAZON_ASSOCIATE_TAG) {
   console.error('❌ Missing Amazon credentials in .env file');
-  console.error('Required: AWS_ACCESS_KEY_ID, AWS_SECRET_KEY, AMAZON_ASSOCIATE_TAG');
+  console.error('Required: AWS_ACCESS_KEY_ID, AWS_SECRET_KEY or AWS_SECRET_ACCESS_KEY, AMAZON_ASSOCIATE_TAG');
   process.exit(1);
 }
 

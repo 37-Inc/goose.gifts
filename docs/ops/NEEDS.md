@@ -20,6 +20,9 @@ data:
 - **Amazon Associates**: https://affiliate-program.amazon.com → Tools →
   Product Advertising API is already keyed; for earnings, either periodically
   export a report and drop it in the repo/an issue, or share report access.
+  Current PA-API test calls return item/title/image data but no
+  `Offers.Listings.Price`, so new Amazon discoveries are staged inactive until
+  pricing works or we add another compliant price source.
 - **Awin**: https://ui.awin.com → the existing `AWIN_API_TOKEN` may already
   cover transaction reports; I'll verify once credentials land and update
   this item.
