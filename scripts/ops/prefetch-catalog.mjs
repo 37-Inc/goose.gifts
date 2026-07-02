@@ -533,6 +533,21 @@ async function upsertProduct(product) {
   return Boolean(result.rows[0]?.inserted);
 }
 
+async function deactivateZeroPriceProducts() {
+  const result = await sql.query(
+    `
+      UPDATE products
+      SET is_active = false,
+          updated_at = NOW(),
+          last_verified_at = COALESCE(last_verified_at, NOW())
+      WHERE is_active = true
+        AND price <= 0
+    `
+  );
+
+  return result.rowCount || 0;
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
 
@@ -550,8 +565,14 @@ async function main() {
   const themes = (options.themes || envThemes || DEFAULT_THEMES).slice(0, options.themeLimit);
   const seen = new Set();
   const candidates = [];
+  let deactivatedZeroPrice = 0;
 
   console.log(`Catalog prefetch: ${themes.length} themes, max ${options.maxNew} net-new products`);
+
+  if (!options.dryRun) {
+    deactivatedZeroPrice = await deactivateZeroPriceProducts();
+    console.log(`Deactivated ${deactivatedZeroPrice} legacy zero-price products before discovery`);
+  }
 
   for (const theme of themes) {
     const found = await searchAmazonCandidates(theme, options);
@@ -592,6 +613,7 @@ async function main() {
   console.log(JSON.stringify({
     dryRun: false,
     themes,
+    deactivatedZeroPrice,
     candidates: candidates.length,
     activeCandidates: candidates.filter((product) => product.isActive).length,
     inserted,

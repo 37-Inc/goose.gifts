@@ -5,6 +5,51 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-02 - Catalog cleanup before daily discovery
+
+**Health + GitHub checks**:
+- Live site checks passed: homepage 200 with correct title, `/sitemap.xml` 200,
+  `/search` 200, and sample bundle permalink
+  `/fun-gift-bundles-for-gamers-who-love-style-96vd` 200.
+- No open PRs or issues were waiting in `37-Inc/goose.gifts`.
+
+**Traffic snapshot**:
+- Vercel Web Analytics, 2026-06-02 through 2026-07-02 UTC: 17 visitors and
+  22 pageviews. Traffic is still almost entirely homepage/direct.
+- Database activity remains dormant: 0 searches and 0 product-click events in
+  the last 30 days.
+
+**Shipped in this run**:
+- Updated `catalog:prefetch` so each non-dry run first deactivates any active
+  product rows with `price <= 0`, matching the existing rule that new no-price
+  discoveries should stay out of the live catalog.
+- Ran the bounded daily discovery command:
+  `npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+  It deactivated 3,148 legacy zero-price rows, inserted 50 newly discovered
+  products, and updated 2 existing products.
+
+**Catalog snapshot after ship**:
+- Products: 3,215 total.
+- Active/inactive: 17 / 3,198.
+- Active zero-price products: 0.
+- Embedded products: 0. Products with punny copy: 0.
+- Amazon PA-API is still returning title/image/review data without usable
+  `Offers.Listings.Price`, so all 50 new discoveries were staged inactive.
+
+**Verification**:
+- `npm run analytics:snapshot`
+- `npm run build`
+- `npm run lint`
+
+**Learned**: yesterday's biggest catalog-quality problem was not homepage
+rendering but inventory truthfulness. Marking zero-price legacy rows inactive
+immediately makes homepage/search metrics more honest and prevents bad rows
+from contaminating future catalog work.
+
+**Next**: solve pricing/enrichment so daily discoveries can become active
+inventory, then add the planned punny-copy/tagging/embedding pass for search
+and SEO pages.
+
 ## 2026-07-01 (late night) - Analytics snapshot and HTTPS DB driver cleanup
 
 **Analytics setup found**:
