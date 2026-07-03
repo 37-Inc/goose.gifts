@@ -181,6 +181,19 @@ function scoreCandidate(product) {
   return Math.max(0.05, Math.min(0.95, Number(score.toFixed(4))));
 }
 
+function isAmazonThrottleError(error) {
+  return (
+    error instanceof Error &&
+    /Amazon (SearchItems|GetItems) failed \(429\)|TooManyRequests/i.test(error.message)
+  );
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 function toPostgresTextArray(values) {
   return `{${values
     .map((value) => `"${String(value).replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"`)
@@ -244,7 +257,18 @@ async function searchAmazonCandidates(theme, options) {
     return candidates;
   }
 
-  const fallbackCandidates = await searchAmazonSearchItems(theme, options);
+  let fallbackCandidates = [];
+
+  try {
+    fallbackCandidates = await searchAmazonSearchItems(theme, options);
+  } catch (error) {
+    if (isAmazonThrottleError(error)) {
+      console.warn(`Amazon SearchItems throttled for "${theme}"; using partial candidate set`);
+    } else {
+      throw error;
+    }
+  }
+
   const merged = new Map();
 
   [...candidates, ...fallbackCandidates].forEach((product) => {
@@ -370,25 +394,36 @@ async function getAmazonItems(asins) {
   const canonicalRequest = createGetItemsCanonicalRequest(params, timestamp);
   const signature = createAmazonSignature(canonicalRequest, timestamp, region);
 
-  const response = await fetch('https://webservices.amazon.com/paapi5/getitems', {
-    method: 'POST',
-    headers: {
-      'Content-Encoding': 'amz-1.0',
-      'Content-Type': 'application/json; charset=utf-8',
-      'X-Amz-Date': timestamp,
-      'X-Amz-Target': PAAPI_GET_ITEMS_TARGET,
-      Authorization: `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${credentialScope(timestamp, region)}, SignedHeaders=content-encoding;content-type;host;x-amz-date;x-amz-target, Signature=${signature}`,
-      Host: 'webservices.amazon.com',
-    },
-    body: JSON.stringify(params),
-  });
+  let data;
 
-  if (!response.ok) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const response = await fetch('https://webservices.amazon.com/paapi5/getitems', {
+      method: 'POST',
+      headers: {
+        'Content-Encoding': 'amz-1.0',
+        'Content-Type': 'application/json; charset=utf-8',
+        'X-Amz-Date': timestamp,
+        'X-Amz-Target': PAAPI_GET_ITEMS_TARGET,
+        Authorization: `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${credentialScope(timestamp, region)}, SignedHeaders=content-encoding;content-type;host;x-amz-date;x-amz-target, Signature=${signature}`,
+        Host: 'webservices.amazon.com',
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (response.ok) {
+      data = await response.json();
+      break;
+    }
+
     const body = await response.text();
+    if (response.status === 429 && attempt < 2) {
+      await sleep(1500 * (attempt + 1));
+      continue;
+    }
+
     throw new Error(`Amazon GetItems failed (${response.status}): ${body.slice(0, 300)}`);
   }
 
-  const data = await response.json();
   const affiliateTag = process.env.AMAZON_ASSOCIATE_TAG || '';
 
   return (data.ItemsResult?.Items ?? []).map((item) => {
@@ -434,25 +469,36 @@ async function searchAmazonSearchItems(theme, options) {
   const canonicalRequest = createSearchItemsCanonicalRequest(params, timestamp);
   const signature = createAmazonSignature(canonicalRequest, timestamp, region);
 
-  const response = await fetch('https://webservices.amazon.com/paapi5/searchitems', {
-    method: 'POST',
-    headers: {
-      'Content-Encoding': 'amz-1.0',
-      'Content-Type': 'application/json; charset=utf-8',
-      'X-Amz-Date': timestamp,
-      'X-Amz-Target': PAAPI_SEARCH_TARGET,
-      Authorization: `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${credentialScope(timestamp, region)}, SignedHeaders=content-encoding;content-type;host;x-amz-date;x-amz-target, Signature=${signature}`,
-      Host: 'webservices.amazon.com',
-    },
-    body: JSON.stringify(params),
-  });
+  let data;
 
-  if (!response.ok) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const response = await fetch('https://webservices.amazon.com/paapi5/searchitems', {
+      method: 'POST',
+      headers: {
+        'Content-Encoding': 'amz-1.0',
+        'Content-Type': 'application/json; charset=utf-8',
+        'X-Amz-Date': timestamp,
+        'X-Amz-Target': PAAPI_SEARCH_TARGET,
+        Authorization: `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${credentialScope(timestamp, region)}, SignedHeaders=content-encoding;content-type;host;x-amz-date;x-amz-target, Signature=${signature}`,
+        Host: 'webservices.amazon.com',
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (response.ok) {
+      data = await response.json();
+      break;
+    }
+
     const body = await response.text();
+    if (response.status === 429 && attempt < 2) {
+      await sleep(1500 * (attempt + 1));
+      continue;
+    }
+
     throw new Error(`Amazon SearchItems failed (${response.status}): ${body.slice(0, 300)}`);
   }
 
-  const data = await response.json();
   const products = (data.SearchResult?.Items ?? []).map((item) => {
     const listing = item.Offers?.Listings?.[0];
     const rawImageUrl = item.Images?.Primary?.Large?.URL || item.Images?.Primary?.Medium?.URL || '';
@@ -575,8 +621,17 @@ async function main() {
   }
 
   for (const theme of themes) {
-    const found = await searchAmazonCandidates(theme, options);
-    console.log(`${theme}: ${found.length} candidate discoveries`);
+    let found = [];
+    try {
+      found = await searchAmazonCandidates(theme, options);
+      console.log(`${theme}: ${found.length} candidate discoveries`);
+    } catch (error) {
+      if (isAmazonThrottleError(error)) {
+        console.warn(`Skipping "${theme}" after repeated Amazon throttling`);
+        continue;
+      }
+      throw error;
+    }
 
     for (const product of found) {
       if (seen.has(product.id)) continue;

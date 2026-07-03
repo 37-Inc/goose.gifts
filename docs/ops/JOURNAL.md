@@ -5,6 +5,54 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-03 - Catalog prefetch survives Amazon throttling
+
+**Health + GitHub checks**:
+- Live site checks passed: homepage 200 with correct title, `/sitemap.xml` 200,
+  `/search` 200, and sample bundle permalink
+  `/unique-gift-bundles-for-dads-48th-anniversary-t55h` redirected to `www`
+  and returned 200.
+- No open PRs were waiting. The only open issue is weekly check-in #20, with
+  no comments or new direction from Cameron.
+
+**Traffic snapshot**:
+- Vercel Web Analytics, 2026-06-03 through 2026-07-03 UTC: 19 visitors and
+  24 pageviews. Traffic is still overwhelmingly homepage/direct.
+- Database activity remains dormant: 0 searches and 0 product-click events in
+  the last 30 days.
+
+**Shipped in this run**:
+- Hardened `catalog:prefetch` so Amazon PA-API throttling no longer aborts the
+  daily run. `SearchItems` fallback now degrades gracefully, both Amazon calls
+  retry with backoff on 429s, and a repeatedly throttled theme is skipped
+  instead of crashing the entire batch.
+- Ran the bounded daily discovery command:
+  `npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+  It inserted 32 products and updated 44 existing rows across six themes.
+
+**Catalog snapshot after ship**:
+- Products: 3,247 total.
+- Active/inactive: 17 / 3,230.
+- Active zero-price products: 0.
+- Embedded products: 0. Products with punny copy: 0.
+- Recent windows now show 32 products created in the last 24 hours and 82 in
+  the last 7/30 days.
+
+**Verification**:
+- `npm run analytics:snapshot`
+- `npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`
+- `npm run build`
+- `npm run lint`
+
+**Learned**: the current ingestion bottleneck is reliability, not discovery
+volume. Google CSE is surfacing enough candidates, but Amazon rate limits can
+interrupt enrichment unless the batch is defensive. Pricing is still the main
+catalog-depth blocker because new discoveries continue landing inactive.
+
+**Next**: solve price/enrichment so discovered rows can become active inventory,
+then add the planned punny-copy/tagging/embedding pass once the active catalog
+can grow again.
+
 ## 2026-07-02 - Catalog cleanup before daily discovery
 
 **Health + GitHub checks**:
