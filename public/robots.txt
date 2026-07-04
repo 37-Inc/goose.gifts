@@ -1,6 +1,8 @@
 # Allow all crawlers
 User-agent: *
+Disallow: /admin/
+Disallow: /api/
 Allow: /
 
 # Sitemap location
-Sitemap: https://goose.gifts/sitemap.xml
+Sitemap: https://www.goose.gifts/sitemap.xml

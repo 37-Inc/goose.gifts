@@ -28,7 +28,19 @@ posting from outward-facing accounts. Best first channels:
 Needed from Cameron: choose which channels to authorize, provide/create account
 access, and approve any paid/video-generation tooling before spend.
 
-### 2. Revenue reporting access
+### 2. Google Search Console access
+
+The SEO feedback loop (Phase 2) is guesswork without it. The current site has
+started building catalog-backed guide pages, but query clusters, stale indexed
+URLs, and click-through problems should come from Search Console as soon as
+possible.
+
+Easiest path:
+https://search.google.com/search-console → goose.gifts property →
+Settings → Users and permissions — then we set up a service-account JSON
+key added as an env var.
+
+### 3. Revenue reporting access
 
 I can optimize clicks blind, but revenue-weighting the site needs earnings
 data:
@@ -42,16 +54,18 @@ data:
   cover transaction reports; I'll verify once credentials land and update
   this item.
 
+### 4. Product price coverage
+
+Most active catalog products currently have unknown prices. That is acceptable
+for the user-facing `Check price` flow, but it weakens Product rich-result
+eligibility and makes gift guides less persuasive than competitor pages with
+visible prices. Needed from Cameron only if the current API/account limits
+cannot provide prices: any available Amazon/Awin/export path that lets daily
+ops refresh price coverage for products shown on SEO pages.
+
 ## P2 — high value, not urgent
 
-### 3. Google Search Console access
-
-The SEO feedback loop (Phase 2) is guesswork without it. Easiest path:
-https://search.google.com/search-console → goose.gifts property →
-Settings → Users and permissions — then we set up a service-account JSON
-key (I'll write exact steps when we get here) added as an env var.
-
-### 4. Analytics reporting depth
+### 5. Analytics reporting depth
 
 Vercel Web Analytics is active and programmatically readable, but the current
 Hobby plan only exposes the latest 31 days and custom events require Pro or
@@ -60,7 +74,7 @@ credentials are available in env. If deeper analytics become important,
 provide GA property/Data API access or a PostHog project key/host so daily ops
 can report funnels beyond the app's own database search/click tables.
 
-### 5. Direct email/Slack channel (optional)
+### 6. Direct email/Slack channel (optional)
 
 Weekly check-ins arrive as GitHub issues, which email you automatically. If
 you'd rather get real email/Slack from me, connect a connector at

@@ -72,6 +72,10 @@ Boundaries (always in force):
       (programmatic page, metadata/schema/internal-link improvement, keyword
       gap, share asset, or approved distribution experiment) and log why that
       asset should move organic sessions, indexed pages, or outbound CTR.
+      Use `docs/ops/SEO_GROWTH_TODO.md` as the standing checklist for current
+      crawl-growth work. Keep it updated when a task ships, when analytics
+      exposes a new stale URL/query cluster, or when an owner-dependent blocker
+      changes.
    3. Current phase of `docs/ops/ROADMAP.md` (catalog-first pivot until done),
       chosen through the SEO/growth lens above.
    While Phase 1a is active, run the bounded daily catalog discovery command
@@ -161,6 +165,10 @@ tried, and exactly what is needed.
 - **SEO is the game**: favor crawlable, internally linked, query-targeted pages
   with real products, clean images, descriptive metadata, and structured data
   over clever UI that only helps already-arrived users.
+- **Recycle demand**: old indexed bundle URLs should permanently redirect to
+  relevant catalog guides or searches when there is a sensible target. Do not
+  recreate the old bundle flow, but do not leave recoverable long-tail demand
+  as avoidable 404s.
 - **Earned distribution beats spam**: prepare useful social/newsletter assets
   and repeatable acquisition channels, but do not create accounts, post, DM, or
   run paid campaigns without Cameron's explicit approval.

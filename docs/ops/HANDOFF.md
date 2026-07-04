@@ -61,6 +61,11 @@ want a GitHub Actions-based scheduler.
   now uses product-catalog search as the primary flow. The old public bundle
   generator, bundle search, bundle permalink pages, and admin bundle surfaces
   have been removed from the maintained runtime path.
+- **Current growth checklist**: `docs/ops/SEO_GROWTH_TODO.md` tracks the
+  standing SEO/GEO work. Current priorities are canonical `www` consistency,
+  stale bundle-slug recovery through redirects, a larger catalog-backed guide
+  network, server-rendered schema/FAQ content, compressed share assets, Search
+  Console access, and product price/revenue coverage.
 - **Why it's urgent**: baseline from production shows the site is dormant —
   109 bundles, 3,165 products, 22k lifetime views, but **zero searches and
   zero new bundles in the last 30 days** (last: 2026-04-15). The pivot is

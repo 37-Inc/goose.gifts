@@ -5,6 +5,54 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-04 - SEO growth hardening and long-tail guide expansion
+
+**Owner direction**: Cameron asked for the SEO/GEO audit ideas to be captured
+in the docs, added to the todo list, worked through, reviewed, and shipped.
+
+**Shipped in this run**:
+- Added `docs/ops/SEO_GROWTH_TODO.md` and wired it into the roadmap, runbook,
+  handoff, and needs list.
+- Canonicalized crawl signals around `https://www.goose.gifts`; the shared
+  site URL helper now normalizes a bare `goose.gifts` env value to `www`.
+- Expanded the guide network from 5 to 36 catalog-backed pages, focused on
+  long-tail persona, occasion, and weird-recipient intent clusters.
+- Improved guide pages with visible FAQ/editorial content, related guide links,
+  cleaner header navigation, and raw WebPage/BreadcrumbList/ItemList/FAQPage
+  JSON-LD that matches visible content.
+- Added permanent redirects for known old indexed bundle URLs, plus a guarded
+  fallback for gift/bundle-style legacy slugs, without reviving the old bundle
+  product surface.
+- Updated `robots.txt` to use the canonical sitemap and keep `/admin/` and
+  `/api/` out of crawl scope.
+- Rebuilt public share assets: `sillygoose-og.png` is now a real 1200x630 card
+  at about 98 KB, and `sillygoose.png` is down to a 512x512 icon asset.
+
+**Review / QA**:
+- `npm run lint` and `npm run build` passed after the final changes.
+- Local built-server checks verified homepage canonical/OG/schema, sitemap
+  count 37 with zero non-`www` URLs, 36 product links on the sampled guide,
+  visible FAQ/related sections, guide schema graph, legacy 308 redirects, and
+  a random unknown slug staying 404.
+- A broader guide sweep verified all 36 guide pages have 36 product links plus
+  visible FAQ and related-link sections.
+- Playwright desktop/mobile checks on `/gift-guides/cat-lover-gag-gifts`
+  showed no horizontal overflow, 10 guide-header links after the nav trim, and
+  36 product cards. The only console error was the expected local
+  `/_vercel/insights/script.js` 404 from Vercel Analytics outside production.
+
+**Still open**:
+- Price-specific guide pages should wait until price coverage improves.
+- Search Console access and affiliate revenue reporting remain the highest
+  leverage owner-dependent inputs for measuring and prioritizing the next SEO
+  work.
+
+**Next**: after deploy, verify production homepage, sitemap, one new guide
+page, and the old bundle redirects. Then watch Search Console once available
+and on-site search logs meanwhile for the next guide cluster.
+
+---
+
 ## 2026-07-04 - Replaced bundle search with catalog search
 
 **Owner direction**: Cameron asked to ditch the bundle-first search flow and
