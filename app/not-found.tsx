@@ -2,21 +2,21 @@ import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
       <div className="text-center">
-        <h1 className="text-6xl font-bold text-gray-800 mb-4">404</h1>
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">
-          Gift Ideas Not Found
+        <h1 className="mb-4 text-6xl font-bold text-zinc-900">404</h1>
+        <h2 className="mb-4 text-2xl font-semibold text-zinc-800">
+          Gift Page Not Found
         </h2>
-        <p className="text-gray-600 mb-8 max-w-md mx-auto">
-          Looks like this gift idea page doesn&apos;t exist or has been removed.
-          Why not create your own hilarious gift ideas?
+        <p className="mx-auto mb-8 max-w-md text-zinc-600">
+          Looks like this page does not exist anymore. Search the live catalog
+          for funny, weird, and actually purchasable gifts.
         </p>
         <Link
-          href="/"
-          className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold px-8 py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
+          href="/#catalog-search"
+          className="inline-block rounded-lg bg-zinc-950 px-8 py-3 font-bold text-white shadow-lg transition hover:bg-red-700"
         >
-          Go to Homepage
+          Search Gifts
         </Link>
       </div>
     </div>

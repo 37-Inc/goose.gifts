@@ -1,17 +1,11 @@
 import { MetadataRoute } from 'next';
-import { getAllBundleSlugs } from '@/lib/db/operations';
 import { giftGuides } from '@/lib/gift-guides';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 3600;
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://goose.gifts';
 
-  // Get all bundle slugs from database
-  const slugs = await getAllBundleSlugs();
-
-  // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -21,14 +15,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Dynamic permalink pages
-  const dynamicPages: MetadataRoute.Sitemap = slugs.map((slug) => ({
-    url: `${baseUrl}/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }));
-
   const guidePages: MetadataRoute.Sitemap = giftGuides.map((guide) => ({
     url: `${baseUrl}/gift-guides/${guide.slug}`,
     lastModified: new Date(),
@@ -36,5 +22,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  return [...staticPages, ...guidePages, ...dynamicPages];
+  return [...staticPages, ...guidePages];
 }

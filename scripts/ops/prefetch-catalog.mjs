@@ -3,6 +3,7 @@
 import dotenv from 'dotenv';
 import crypto from 'node:crypto';
 import { sql } from '@vercel/postgres';
+import OpenAI from 'openai';
 
 dotenv.config({ path: '.env.local', quiet: true });
 dotenv.config({ quiet: true });
@@ -47,6 +48,10 @@ function parseArgs(argv) {
     themeLimit: Number(process.env.CATALOG_PREFETCH_THEMES || 6),
     minPrice: Number(process.env.CATALOG_MIN_PRICE || 5),
     maxPrice: Number(process.env.CATALOG_MAX_PRICE || 150),
+    skipEnrichment: false,
+    enrichOnly: false,
+    enrichmentBatchSize: Number(process.env.CATALOG_ENRICH_BATCH_SIZE || 12),
+    backfillLimit: Number(process.env.CATALOG_ENRICH_EXISTING_LIMIT || 25),
     themes: undefined,
   };
 
@@ -60,6 +65,10 @@ function parseArgs(argv) {
     else if (arg === '--theme-limit') options.themeLimit = Number(argv[++index]);
     else if (arg === '--min-price') options.minPrice = Number(argv[++index]);
     else if (arg === '--max-price') options.maxPrice = Number(argv[++index]);
+    else if (arg === '--skip-enrichment') options.skipEnrichment = true;
+    else if (arg === '--enrich-only') options.enrichOnly = true;
+    else if (arg === '--enrichment-batch-size') options.enrichmentBatchSize = Number(argv[++index]);
+    else if (arg === '--backfill-limit') options.backfillLimit = Number(argv[++index]);
     else if (arg === '--themes') {
       options.themes = argv[++index]
         .split('|')
@@ -82,22 +91,36 @@ Options:
   --max-new 50              Stop after this many net-new products.
   --min-price 5             Minimum known price for active homepage eligibility.
   --max-price 150           Maximum known price for active homepage eligibility.
+  --skip-enrichment         Write heuristic catalog fields without OpenAI copy/embeddings.
+  --enrich-only             Backfill existing active products, without discovery.
+  --enrichment-batch-size 12
+                            Products per OpenAI copy/tag batch.
+  --backfill-limit 25       Existing active products to enrich before discovery. Set 0 to skip.
 `);
 }
 
-function requiredEnv() {
-  return {
-    GOOGLE_SEARCH_API_KEY: process.env.GOOGLE_SEARCH_API_KEY,
-    GOOGLE_SEARCH_ENGINE_ID: process.env.GOOGLE_SEARCH_ENGINE_ID,
-    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
-    AWS_SECRET_KEY_OR_AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_KEY || process.env.AWS_SECRET_ACCESS_KEY,
-    AMAZON_ASSOCIATE_TAG: process.env.AMAZON_ASSOCIATE_TAG,
+function requiredEnv(options) {
+  const env = {
     POSTGRES_URL: process.env.POSTGRES_URL,
   };
+
+  if (!options.enrichOnly) {
+    env.GOOGLE_SEARCH_API_KEY = process.env.GOOGLE_SEARCH_API_KEY;
+    env.GOOGLE_SEARCH_ENGINE_ID = process.env.GOOGLE_SEARCH_ENGINE_ID;
+    env.AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
+    env.AWS_SECRET_KEY_OR_AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_KEY || process.env.AWS_SECRET_ACCESS_KEY;
+    env.AMAZON_ASSOCIATE_TAG = process.env.AMAZON_ASSOCIATE_TAG;
+  }
+
+  if (!options.skipEnrichment && !options.dryRun) {
+    env.OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  }
+
+  return env;
 }
 
 function assertConfigured(options) {
-  const env = requiredEnv();
+  const env = requiredEnv(options);
   const required = options.dryRun
     ? Object.entries(env).filter(([key]) => key !== 'POSTGRES_URL')
     : Object.entries(env);
@@ -201,6 +224,223 @@ function scoreCandidate(product) {
   return Math.max(0.05, Math.min(0.95, Number(score.toFixed(4))));
 }
 
+let openaiClient = null;
+
+function getOpenAIClient() {
+  if (!process.env.OPENAI_API_KEY) {
+    return null;
+  }
+
+  openaiClient ??= new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
+  return openaiClient;
+}
+
+function chunkArray(values, size) {
+  const chunks = [];
+
+  for (let index = 0; index < values.length; index += size) {
+    chunks.push(values.slice(index, index + size));
+  }
+
+  return chunks;
+}
+
+function truncateText(value, maxLength) {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength - 3).trim()}...`;
+}
+
+function fallbackPunnyTitle(product) {
+  return truncateText(product.title, 78);
+}
+
+function fallbackWittyDescription(product) {
+  const theme = product.sourceQuery ? `Found while hunting for ${product.sourceQuery}.` : 'A strange little catalog find.';
+  return truncateText(theme, 150);
+}
+
+function normalizeTags(tags, fallbackTags) {
+  const normalized = Array.isArray(tags)
+    ? tags
+      .map((tag) => String(tag).toLowerCase().replace(/[^a-z0-9- ]/g, '').trim().replace(/\s+/g, '-'))
+      .filter(Boolean)
+    : [];
+
+  return Array.from(new Set([...normalized, ...(fallbackTags || [])])).slice(0, 5);
+}
+
+function normalizeQualityScore(value, fallback) {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.max(0.05, Math.min(0.98, Number(parsed.toFixed(4))));
+}
+
+function buildProductEmbeddingText(product) {
+  return [
+    product.punnyTitle,
+    product.title,
+    product.wittyDescription,
+    product.sourceQuery,
+    product.humorTags?.join(' '),
+  ].filter(Boolean).join('. ');
+}
+
+async function enrichCopyBatch(products) {
+  const openai = getOpenAIClient();
+
+  if (!openai) {
+    throw new Error('OPENAI_API_KEY is required for catalog enrichment.');
+  }
+
+  const productSummaries = products.map((product) => ({
+    id: product.id,
+    title: product.title,
+    sourceQuery: product.sourceQuery,
+    price: product.price,
+    currentTags: product.humorTags || [],
+  }));
+
+  const completion = await openai.chat.completions.create({
+    model: process.env.CATALOG_ENRICH_MODEL || 'gpt-4o-mini',
+    messages: [
+      {
+        role: 'system',
+        content: 'You write concise, funny ecommerce catalog copy for gag gifts. Return valid JSON only.',
+      },
+      {
+        role: 'user',
+        content: `Enrich these products for a funny gift catalog.
+
+Rules:
+- Keep punnyTitle under 78 characters.
+- Keep wittyDescription under 150 characters.
+- humorTags should be 2-5 lowercase kebab-case tags.
+- qualityScore is 0.05 to 0.98 based on giftability, visual clarity, novelty, and broad appeal.
+- isActive should be false only for irrelevant, unsafe, broken-looking, or non-giftable products.
+
+Return exactly:
+{
+  "products": [
+    {
+      "id": "ASIN",
+      "punnyTitle": "...",
+      "wittyDescription": "...",
+      "humorTags": ["dad-joke"],
+      "qualityScore": 0.72,
+      "isActive": true
+    }
+  ]
+}
+
+Products:
+${JSON.stringify(productSummaries, null, 2)}`,
+      },
+    ],
+    response_format: { type: 'json_object' },
+  });
+
+  const content = completion.choices[0]?.message?.content;
+  if (!content) {
+    throw new Error('No enrichment response from OpenAI.');
+  }
+
+  const parsed = JSON.parse(content);
+  return new Map((parsed.products || []).map((item) => [item.id, item]));
+}
+
+async function generateProductEmbeddings(products) {
+  const openai = getOpenAIClient();
+
+  if (!openai || products.length === 0) {
+    return new Map();
+  }
+
+  const inputs = products.map(buildProductEmbeddingText);
+  const response = await openai.embeddings.create({
+    model: 'text-embedding-3-small',
+    input: inputs,
+    encoding_format: 'float',
+  });
+
+  return new Map(response.data.map((item, index) => [
+    products[index].id,
+    item.embedding,
+  ]));
+}
+
+async function enrichProducts(products, options) {
+  if (products.length === 0) {
+    return [];
+  }
+
+  if (options.skipEnrichment) {
+    return products.map((product) => ({
+      ...product,
+      punnyTitle: product.punnyTitle || fallbackPunnyTitle(product),
+      wittyDescription: product.wittyDescription || fallbackWittyDescription(product),
+      embedding: product.embedding || null,
+    }));
+  }
+
+  const enriched = [];
+  const batches = chunkArray(products, Math.max(1, options.enrichmentBatchSize));
+
+  for (const [batchIndex, batch] of batches.entries()) {
+    let copyById = new Map();
+
+    try {
+      copyById = await enrichCopyBatch(batch);
+    } catch (error) {
+      console.warn(`OpenAI copy enrichment failed for ${batch.length} products; using fallback copy: ${error.message}`);
+    }
+
+    const copyEnriched = batch.map((product) => {
+      const copy = copyById.get(product.id) || {};
+      const humorTags = normalizeTags(copy.humorTags, product.humorTags);
+
+      return {
+        ...product,
+        punnyTitle: truncateText(copy.punnyTitle || product.punnyTitle || fallbackPunnyTitle(product), 78),
+        wittyDescription: truncateText(copy.wittyDescription || product.wittyDescription || fallbackWittyDescription(product), 150),
+        humorTags,
+        qualityScore: normalizeQualityScore(copy.qualityScore, product.qualityScore || scoreCandidate(product)),
+        isActive: product.isActive && copy.isActive !== false,
+      };
+    });
+
+    let embeddingsById = new Map();
+
+    try {
+      embeddingsById = await generateProductEmbeddings(copyEnriched);
+    } catch (error) {
+      console.warn(`OpenAI embedding enrichment failed for ${batch.length} products: ${error.message}`);
+    }
+
+    copyEnriched.forEach((product) => {
+      enriched.push({
+        ...product,
+        embedding: embeddingsById.get(product.id) || product.embedding || null,
+      });
+    });
+
+    console.log(`Enriched catalog batch ${batchIndex + 1}/${batches.length} (${enriched.length}/${products.length} products)`);
+  }
+
+  return enriched;
+}
+
 function isActiveCatalogCandidate(product, options) {
   if (!product.imageUrl || !product.affiliateUrl) {
     return false;
@@ -226,6 +466,14 @@ function toPostgresTextArray(values) {
   return `{${values
     .map((value) => `"${String(value).replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"`)
     .join(',')}}`;
+}
+
+function toPostgresVector(value) {
+  if (!Array.isArray(value) || value.length === 0) {
+    return null;
+  }
+
+  return `[${value.join(',')}]`;
 }
 
 async function searchAmazonCandidates(theme, options) {
@@ -564,26 +812,33 @@ async function upsertProduct(product) {
         source,
         source_query,
         humor_tags,
+        punny_title,
+        witty_description,
         quality_score,
         rating,
         review_count,
         is_active,
+        embedding,
         last_verified_at,
         updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, 'amazon', $7, $8::text[], $9, $10, $11, $12, NOW(), NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::text[], $10, $11, $12, $13, $14, $15, $16::vector, NOW(), NOW())
       ON CONFLICT (id) DO UPDATE SET
         title = EXCLUDED.title,
         price = EXCLUDED.price,
         currency = EXCLUDED.currency,
         image_url = EXCLUDED.image_url,
         affiliate_url = EXCLUDED.affiliate_url,
+        source = EXCLUDED.source,
         source_query = EXCLUDED.source_query,
         humor_tags = EXCLUDED.humor_tags,
+        punny_title = COALESCE(EXCLUDED.punny_title, products.punny_title),
+        witty_description = COALESCE(EXCLUDED.witty_description, products.witty_description),
         quality_score = EXCLUDED.quality_score,
         rating = EXCLUDED.rating,
         review_count = EXCLUDED.review_count,
         is_active = EXCLUDED.is_active,
+        embedding = COALESCE(EXCLUDED.embedding, products.embedding),
         last_verified_at = NOW(),
         updated_at = NOW()
       RETURNING (xmax = 0) AS inserted
@@ -595,12 +850,16 @@ async function upsertProduct(product) {
       product.currency,
       product.imageUrl,
       product.affiliateUrl,
+      product.source || 'amazon',
       product.sourceQuery,
       toPostgresTextArray(product.humorTags),
+      product.punnyTitle || null,
+      product.wittyDescription || null,
       product.qualityScore,
       product.rating || null,
       product.reviewCount || null,
       product.isActive,
+      toPostgresVector(product.embedding),
     ]
   );
 
@@ -625,6 +884,71 @@ async function activateUnknownPriceProducts() {
   return result.rowCount || 0;
 }
 
+async function getProductsNeedingEnrichment(limit) {
+  if (limit <= 0) {
+    return [];
+  }
+
+  const result = await sql.query(
+    `
+      SELECT
+        id,
+        title,
+        price,
+        currency,
+        image_url,
+        affiliate_url,
+        source,
+        source_query,
+        humor_tags,
+        punny_title,
+        witty_description,
+        quality_score,
+        rating,
+        review_count,
+        is_active
+      FROM products
+      WHERE is_active = true
+        AND image_url IS NOT NULL
+        AND affiliate_url IS NOT NULL
+        AND title <> ''
+        AND (
+          embedding IS NULL
+          OR punny_title IS NULL
+          OR witty_description IS NULL
+          OR humor_tags IS NULL
+          OR quality_score IS NULL
+        )
+      ORDER BY quality_score DESC NULLS LAST, updated_at DESC
+      LIMIT $1
+    `,
+    [limit]
+  );
+
+  return result.rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    price: Number.parseFloat(String(row.price || '0')),
+    currency: row.currency || 'USD',
+    imageUrl: row.image_url,
+    affiliateUrl: row.affiliate_url,
+    source: row.source || 'amazon',
+    sourceQuery: row.source_query || '',
+    humorTags: row.humor_tags || inferHumorTags(row.title || '', row.source_query || ''),
+    punnyTitle: row.punny_title || null,
+    wittyDescription: row.witty_description || null,
+    qualityScore: row.quality_score ? Number.parseFloat(String(row.quality_score)) : scoreCandidate({
+      title: row.title || '',
+      price: Number.parseFloat(String(row.price || '0')),
+      imageUrl: row.image_url,
+      humorTags: row.humor_tags || [],
+    }),
+    rating: row.rating ? Number.parseFloat(String(row.rating)) : undefined,
+    reviewCount: row.review_count || undefined,
+    isActive: row.is_active,
+  }));
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
 
@@ -643,12 +967,40 @@ async function main() {
   const seen = new Set();
   const candidates = [];
   let activatedUnknownPrice = 0;
+  let backfilled = 0;
 
-  console.log(`Catalog prefetch: ${themes.length} themes, max ${options.maxNew} net-new products`);
+  if (options.enrichOnly) {
+    console.log(`Catalog enrichment: max ${options.backfillLimit} existing active products`);
+  } else {
+    console.log(`Catalog prefetch: ${themes.length} themes, max ${options.maxNew} net-new products`);
+  }
 
   if (!options.dryRun) {
     activatedUnknownPrice = await activateUnknownPriceProducts();
     console.log(`Activated ${activatedUnknownPrice} image-backed products with unknown prices before discovery`);
+
+    if (options.backfillLimit > 0) {
+      const backfillProducts = await getProductsNeedingEnrichment(options.backfillLimit);
+
+      if (backfillProducts.length > 0) {
+        console.log(`Enriching ${backfillProducts.length} existing active products missing catalog fields`);
+        const enrichedBackfill = await enrichProducts(backfillProducts, options);
+
+        for (const product of enrichedBackfill) {
+          await upsertProduct(product);
+          backfilled += 1;
+        }
+      }
+    }
+  }
+
+  if (options.enrichOnly) {
+    console.log(JSON.stringify({
+      dryRun: options.dryRun,
+      enrichOnly: true,
+      backfilled,
+    }, null, 2));
+    return;
   }
 
   for (const theme of themes) {
@@ -685,8 +1037,9 @@ async function main() {
 
   let inserted = 0;
   let updated = 0;
+  const enrichedCandidates = await enrichProducts(candidates, options);
 
-  for (const product of candidates) {
+  for (const product of enrichedCandidates) {
     const wasInserted = await upsertProduct(product);
     if (wasInserted) inserted += 1;
     else updated += 1;
@@ -700,8 +1053,11 @@ async function main() {
     dryRun: false,
     themes,
     activatedUnknownPrice,
+    backfilled,
     candidates: candidates.length,
-    activeCandidates: candidates.filter((product) => product.isActive).length,
+    activeCandidates: enrichedCandidates.filter((product) => product.isActive).length,
+    enrichedCandidates: enrichedCandidates.length,
+    embeddedCandidates: enrichedCandidates.filter((product) => Array.isArray(product.embedding) && product.embedding.length > 0).length,
     inserted,
     updated,
   }, null, 2));

@@ -1,5 +1,3 @@
-import type { GiftBundle } from '@/lib/db/schema';
-
 // Admin API response types
 export interface AdminApiResponse<T = unknown> {
   success: boolean;
@@ -7,45 +5,20 @@ export interface AdminApiResponse<T = unknown> {
   error?: string;
 }
 
-// Bundle list filters
-export interface BundleFilters {
-  humorStyle?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  minViews?: number;
-  search?: string;
-  page?: number;
-  limit?: number;
-  sortBy?: 'createdAt' | 'viewCount';
-  sortOrder?: 'asc' | 'desc';
-}
-
-// Paginated bundle list response
-export interface BundleListResponse {
-  bundles: GiftBundle[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-// Dashboard stats
 export interface DashboardStats {
   today: {
-    bundlesGenerated: number;
-    totalViews: number;
-    totalClicks: number;
-    bundlesDeleted: number;
     productClicks: number;
+    searches: number;
+    productsUpdated: number;
+  };
+  catalog: {
+    totalProducts: number;
+    activeProducts: number;
+    enrichedProducts: number;
+    embeddedProducts: number;
+    missingEnrichment: number;
   };
   allTime: {
-    totalBundles: number;
-    totalViews: number;
-    totalClicks: number;
-    averageViewsPerBundle: number;
-    averageClicksPerBundle: number;
     productClicks: number;
     productImpressions: number;
     averageProductCTR: number;
@@ -57,43 +30,17 @@ export interface DashboardStats {
     impressionCount: number;
     ctr: number;
   }>;
-  recentBundles: Array<{
-    slug: string;
+  recentProducts: Array<{
+    id: string;
     title: string;
-    createdAt: Date;
-    viewCount: number;
+    updatedAt: Date;
+    clickCount: number;
+    impressionCount: number;
   }>;
   systemHealth: {
     database: 'healthy' | 'error';
-    lastGeneration?: Date;
+    lastCatalogUpdate?: Date;
   };
-}
-
-// Analytics data
-export interface AnalyticsData {
-  totalBundles: number;
-  totalViews: number;
-  totalClicks: number;
-  averageViewsPerBundle: number;
-  averageClicksPerBundle: number;
-  topBundles: Array<{
-    slug: string;
-    title: string;
-    viewCount: number;
-    clickCount: number;
-    createdAt: Date;
-  }>;
-  humorStyleBreakdown: Array<{
-    style: string;
-    count: number;
-    percentage: number;
-  }>;
-  dailyStats: Array<{
-    date: string;
-    bundles: number;
-    views: number;
-    clicks: number;
-  }>;
 }
 
 // Action types for audit log

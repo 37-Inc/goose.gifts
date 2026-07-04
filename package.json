@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "analytics:snapshot": "node scripts/ops/analytics-snapshot.mjs",
     "catalog:prefetch": "node scripts/ops/prefetch-catalog.mjs",
+    "catalog:enrich": "node scripts/ops/prefetch-catalog.mjs --enrich-only",
     "test:amazon": "node test-amazon-api.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -22,8 +23,7 @@
     "next": "15.1.11",
     "openai": "^4.77.3",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "zod": "^3.25.76"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

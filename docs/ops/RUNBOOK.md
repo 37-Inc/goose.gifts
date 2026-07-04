@@ -55,12 +55,13 @@ Boundaries (always in force):
    and `docs/ops/ROADMAP.md`. Check for open PRs/issues and any comments from
    Cameron (treat his comments as direction).
 2. **Health check.** Verify https://www.goose.gifts/ (200, correct title),
-   `/sitemap.xml`, a sample bundle permalink, and `/search`. If the site is
+   `/sitemap.xml`, `/search` redirect behavior, and a semantic catalog search
+   such as `/?q=dad%20with%20no%20spare%20time`. If the site is
    down or broken: fixing it is the entire day's work; escalate (see below) if
    not fixable within the run.
 3. **Read the data.** If `VERCEL_TOKEN` and `POSTGRES_URL` are available, run
    `npm run analytics:snapshot` to pull Vercel visitor/pageview data plus
-   database searches, clicks, bundle/product counts, and catalog-quality gaps.
+   database searches, clicks, product counts, and catalog-quality gaps.
    Let the data pick the work. Vercel Hobby Web Analytics only exposes the
    latest 31 days, so use the database counters for longer-running product and
    search interaction history.
@@ -76,10 +77,12 @@ Boundaries (always in force):
    While Phase 1a is active, run the bounded daily catalog discovery command
    unless a higher-priority incident displaces it:
    `npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
-   The command uses `@vercel/postgres` over HTTPS, upserts discovered products,
-   and treats missing Amazon price data as unknown rather than inactive. Known
-   prices still gate the configured min/max range; unknown-price products should
-   link through to Amazon for the current price.
+   The command uses `@vercel/postgres` over HTTPS, enriches product copy/tags
+   and embeddings, upserts discovered products, and backfills a bounded set of
+   existing active products missing catalog fields. Known prices still gate the
+   configured min/max range; unknown-price products should link through to
+   Amazon for the current price. Use `npm run catalog:enrich` when you only
+   need to backfill existing active products.
 5. **Review your own work.** Before verification, do a deliberate review pass
    over the diff as if reviewing someone else's PR. Look for regressions,
    over-broad changes, bad assumptions, missing error handling, data-policy
@@ -109,8 +112,9 @@ Every shipped change gets the review pass in daily step 5 and the verification
 pass in step 6. In addition:
 
 - **Daily smoke QA**: after every deploy, verify production homepage, sitemap,
-  `/search`, and one bundle permalink. When the homepage/catalog/search changed,
-  also confirm at least one product click target is a real outbound affiliate
+  `/search` redirect behavior, and one semantic catalog query. When the
+  homepage/catalog/search changed, also confirm at least one product click
+  target is a real outbound affiliate
   URL and that unknown prices render as `Check price`, not `$0.00`.
 - **Visual QA for UI changes**: use browser screenshots or direct browser
   inspection for desktop and mobile. Check first viewport, scrolling grid/card

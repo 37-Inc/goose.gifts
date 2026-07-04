@@ -34,9 +34,13 @@ export const metadata: Metadata = {
     "gift ideas for hard to shop for people",
     "quirky gifts",
     "joke gifts",
-    "funny gift bundles",
-    "AI gift finder"
+    "funny gifts under 25",
+    "ridiculous gifts"
   ],
+  icons: {
+    icon: '/sillygoose.png',
+    apple: '/sillygoose.png',
+  },
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://goose.gifts'),
   openGraph: {
     title: "Funny Gag Gifts & White Elephant Ideas | goose.gifts",
@@ -76,7 +80,7 @@ export default function RootLayout({
     description: 'Funny gag gift catalog for white elephant ideas, novelty products, and weird presents',
     potentialAction: {
       '@type': 'SearchAction',
-      target: `${baseUrl}/search?q={search_term_string}`,
+      target: `${baseUrl}/?q={search_term_string}`,
       'query-input': 'required name=search_term_string',
     },
   };
@@ -152,8 +156,7 @@ export default function RootLayout({
                   <h2 className="font-semibold text-zinc-950">Explore</h2>
                   <div className="mt-3 flex flex-col gap-2 text-zinc-600">
                     <Link href="/" className="hover:text-red-700">Fresh finds</Link>
-                    <Link href="/search" className="hover:text-red-700">Search gifts</Link>
-                    <Link href="/#custom-bundle" className="hover:text-red-700">Custom bundle</Link>
+                    <Link href="/#catalog-search" className="hover:text-red-700">Search gifts</Link>
                   </div>
                 </div>
 

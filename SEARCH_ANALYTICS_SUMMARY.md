@@ -16,8 +16,8 @@ I've implemented a complete search analytics tracking and reporting system for g
 
 ### 2. Google Analytics Integration
 - ✅ **Search event**: Fires when user searches (using GA4 standard `'search'` event)
-- ✅ **Click event**: Fires when user clicks a result (using `'select_content'`)
-- ✅ Both events include proper metadata (query, result count, bundle slug)
+- ✅ **Click event**: Fires when user clicks a product (using `'conversion_event_outbound_click'`)
+- ✅ Events include proper metadata (query, product result count, destination domain)
 
 ### 3. Admin Dashboard
 - ✅ New page: `/admin/search-analytics`
@@ -51,7 +51,7 @@ Shows searches with **0 results**:
 - How many times searched
 - When last searched
 
-**Use this to**: Identify what bundles to create next
+**Use this to**: Identify what catalog themes/products to add next
 
 ### Poor Result Quality
 Shows searches with **low similarity scores (<0.6)**:
@@ -106,8 +106,9 @@ git push origin main
 
 ### Modified Files:
 - ✅ `lib/db/schema.ts` - Added `searchQueries` table definition
-- ✅ `app/api/search-bundles/route.ts` - Added database logging
-- ✅ `components/SearchBar.tsx` - Added Google Analytics events
+- ✅ `app/api/search-products/route.ts` - Product search and database logging
+- ✅ `components/CatalogSearchFeed.tsx` - Catalog search UI and Google Analytics search event
+- ✅ `components/ProductGrid.tsx` - Product click and impression tracking
 - ✅ `app/admin/(dashboard)/page.tsx` - Added "Search Analytics" quick link
 
 ---
@@ -122,7 +123,7 @@ git push origin main
 ### Google Analytics Standard Events
 - Uses GA4 recommended event names
 - `search` - Standard site search event
-- `select_content` - Standard click event
+- `conversion_event_outbound_click` - Outbound affiliate click event
 - Properly parameterized for GA4 reporting
 
 ### Smart Time Periods
@@ -143,14 +144,14 @@ git push origin main
 1. Visit `/admin/search-analytics?period=day`
 2. Check "Failed Searches" section
 3. Pick top 2-3 zero-result queries
-4. Create bundles for those topics
+4. Add those topics to catalog discovery themes or run targeted prefetch
 5. Done!
 
 ### Weekly (15 minutes)
 1. View last 7 days data
 2. Review top search terms
 3. Identify low-CTR high-volume queries
-4. Improve bundle titles/descriptions for better matches
+4. Improve product titles/descriptions and catalog coverage
 5. Track improvement week-over-week
 
 ### Monthly (30 minutes)
@@ -175,7 +176,7 @@ After deploying, you should see:
 **Month 1:**
 - ✅ Zero-result rate decreased by 50%+
 - ✅ CTR improved by 10+ percentage points
-- ✅ 20+ new bundles created from search demand
+- ✅ Products added or enriched from search demand
 - ✅ Search volume trending with traffic growth
 
 ---
@@ -258,7 +259,7 @@ Everything is tested, documented, and ready to go. Just need to:
 **Questions?** All the code is ready to review. Check:
 - Dashboard UI: `app/admin/(dashboard)/search-analytics/page.tsx`
 - Query functions: `lib/db/search-analytics.ts`
-- Tracking logic: `components/SearchBar.tsx` + `app/api/search-bundles/route.ts`
+- Tracking logic: `components/CatalogSearchFeed.tsx`, `components/ProductGrid.tsx`, and `app/api/search-products/route.ts`
 - Full docs: `docs/SEARCH_ANALYTICS.md`
 
 **See you in the morning! 🌅**

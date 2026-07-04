@@ -57,19 +57,23 @@ want a GitHub Actions-based scheduler.
   filter/tag/write punny copy → embed → store. User experience: a fast,
   SEO-optimized landing grid of best performers + a single search bar doing
   realtime semantic search (pgvector) over the catalog. This moves LLM cost
-  out of the request path entirely. Details in ROADMAP Phase 1.
+  out of the request path entirely. Details in ROADMAP Phase 1. The homepage
+  now uses product-catalog search as the primary flow. The old public bundle
+  generator, bundle search, bundle permalink pages, and admin bundle surfaces
+  have been removed from the maintained runtime path.
 - **Why it's urgent**: baseline from production shows the site is dormant —
   109 bundles, 3,165 products, 22k lifetime views, but **zero searches and
   zero new bundles in the last 30 days** (last: 2026-04-15). The pivot is
-  the relaunch, not an optimization. It is the top priority; nothing has
-  been built for it yet.
+  the relaunch, not an optimization. It is the top priority; current work
+  should keep improving catalog depth, enrichment quality, search relevance,
+  and outbound CTR.
 - **Technical facts learned the hard way**:
   - Cloud sandboxes block raw TCP 5432 — use the HTTPS driver
     (`@vercel/postgres`, already a dependency), never `postgres`/psql.
   - The Vercel env **list** API returns values encrypted; `pull-env.sh`
     already handles per-var decryption. Don't rewrite it, just run it.
-  - pgvector is enabled in Neon; `gift_bundles.embedding` (1536-dim) exists;
-    a multi-armed bandit for product rotation exists (`lib/db/trending-rotation.ts`).
+  - pgvector is enabled in Neon; product embeddings use 1536 dimensions and a
+    multi-armed bandit for product rotation exists (`lib/db/trending-rotation.ts`).
   - Prod env gaps: no `AWIN_*` vars exist (Etsy affiliate revenue likely
     never wired). Amazon code now accepts both `AWS_SECRET_KEY` and Vercel's
     `AWS_SECRET_ACCESS_KEY`, but PA-API responses currently omit offer prices

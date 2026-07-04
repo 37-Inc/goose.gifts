@@ -23,8 +23,7 @@ fast, cheap, and crawlable.
 
 - Extend `products` with: `embedding vector(1536)`, `humorTags text[]`,
   `punnyTitle`/`wittyDescription` (LLM-written copy), `qualityScore`,
-  `sourceQuery`, `isActive`, `lastVerifiedAt`. (pgvector is already enabled;
-  `gift_bundles.embedding` already exists as prior art.)
+  `sourceQuery`, `isActive`, `lastVerifiedAt`. pgvector is already enabled.
 - Nightly ingestion job (script run during the daily ops session, later a
   Vercel cron): pick N discovery themes (seasonal occasions, trending topics,
   gaps from search analytics) → search Google CSE/Amazon + Etsy → dedupe
@@ -45,17 +44,17 @@ fast, cheap, and crawlable.
   possible. Normalize Amazon image URLs to their underlying product shot,
   render images contained rather than cropped, and treat text-heavy/seasonal
   promo imagery as a catalog-quality issue in daily ops.
-- Keep bundle permalinks — they're the SEO long-tail — but generate them from
-  the catalog rather than live API calls.
+- Do not revive bundle permalinks for the main product. Long-tail SEO should
+  come from catalog-backed persona, occasion, and price pages with visible
+  product feeds.
 
 ### 1c. Realtime semantic search
 
 - Single search bar. Query → one embedding call → pgvector cosine similarity
   over the catalog → instant results (sub-second, ~$0.00002/query).
-- The old generation flow survives only as (a) the batch bundle-builder and
-  (b) an optional "curate me a bundle" upsell when catalog results are thin.
-  Thin-result queries are logged as tomorrow's ingestion themes — the search
-  bar becomes a demand-discovery instrument.
+- Thin-result queries are logged as tomorrow's ingestion themes, so the search
+  bar becomes a demand-discovery instrument without sending shoppers into a
+  separate bundle flow.
 
 ### Cost effect
 
@@ -80,10 +79,10 @@ marginal cost per visitor drops to ~zero. This is the main margin lever.
 
 ## Phase 3 — Growth loops & revenue depth
 
-- Shareability: OG images per product/bundle, Pinterest-optimized pages
+- Shareability: OG images per product, Pinterest-optimized pages
   (gag gifts are a strong Pinterest category).
 - Email capture + weekly "dumbest gifts this week" newsletter
-  (spec already exists in `docs/newsletter-feature-spec.md`).
+  once Cameron approves email collection and outbound content.
 - Owned social distribution once Cameron approves channels: X/Twitter for
   daily ridiculous finds, TikTok/Reels/Shorts for vertical product roundups,
   and Pinterest pins for evergreen gag-gift searches. Generate assets from the

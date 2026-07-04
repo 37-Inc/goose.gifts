@@ -57,8 +57,8 @@ Or click "Search Analytics" from the main admin dashboard
 1. Go to `/admin/search-analytics?period=day`
 2. Scroll to "Failed Searches"
 3. Pick top 2-3 queries with 0 results
-4. Create bundles for those
-5. Done! 🎉
+4. Add those themes to catalog discovery or run targeted prefetch
+5. Re-check product CTR and zero-result rate
 
 ---
 
@@ -69,6 +69,11 @@ Or click "Search Analytics" from the main admin dashboard
 
 **Analytics Queries**
 - `lib/db/search-analytics.ts`
+
+**Catalog Search**
+- `components/CatalogSearchFeed.tsx`
+- `components/ProductGrid.tsx`
+- `app/api/search-products/route.ts`
 
 **Database Schema**
 - `lib/db/schema.ts` (search searchQueries table)
@@ -95,7 +100,7 @@ Or click "Search Analytics" from the main admin dashboard
 **GA not tracking?**
 - Check browser console: `window.gtag` should exist
 - View GA real-time events
-- Event names: `search` and `select_content`
+- Event names: `search` and `conversion_event_outbound_click`
 
 ---
 

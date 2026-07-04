@@ -2,7 +2,7 @@
 
 ## Overview
 
-Complete search analytics system for tracking, analyzing, and improving search functionality on goose.gifts. This system helps identify content gaps, measure search effectiveness, and understand user behavior.
+Search analytics system for tracking, analyzing, and improving product-catalog search on goose.gifts. This system helps identify catalog gaps, measure search effectiveness, and understand user behavior.
 
 ## 🎯 Features Implemented
 
@@ -13,23 +13,21 @@ Complete search analytics system for tracking, analyzing, and improving search f
   - Result count
   - Top similarity score (best match quality)
   - Click-through (did user click a result?)
-  - Clicked bundle details
+  - Click-through flag
   - User agent
   - Timestamp
 
 ### 2. Google Analytics Integration
-- **Search Event**: Fires on every search with:
+- **Search Event**: Fires on every catalog search with:
   - `event`: `'search'`
   - `search_term`: The query
-  - `event_category`: `'engagement'`
-  - `event_label`: Result count
+  - `event_category`: `'catalog_search'`
+  - `event_label`: Product result count
 
-- **Click Event**: Fires when user clicks a search result:
-  - `event`: `'select_content'`
-  - `content_type`: `'search_result'`
-  - `item_id`: Bundle slug
-  - `event_category`: `'engagement'`
-  - `event_label`: Original search query
+- **Click Event**: Fires when user clicks a catalog product:
+  - `event`: `'conversion_event_outbound_click'`
+  - `event_category`: `'catalog_product'`
+  - `link_domain`: Affiliate destination domain
 
 ### 3. Admin Dashboard
 
@@ -40,7 +38,7 @@ Located at: `/admin/search-analytics`
 - **Unique Queries**: Distinct search terms
 - **Avg Results/Search**: How many results per search
 - **Click-Through Rate**: % of searches that lead to clicks
-- **Zero Result Rate**: % of searches with no results (content gaps)
+- **Zero Result Rate**: % of searches with no results (catalog gaps)
 
 #### Top Search Terms
 - Most popular queries
@@ -49,16 +47,16 @@ Located at: `/admin/search-analytics`
 - Click-through rate
 - Color-coded CTR (green >20%, yellow >10%, red <10%)
 
-#### Failed Searches (Content Gaps)
+#### Failed Searches (Catalog Gaps)
 - Queries returning 0 results
 - Frequency count
 - Last searched timestamp
-- **Action**: Create bundles for these queries!
+- **Action**: Add these queries to catalog discovery themes.
 
 #### Poor Result Quality
 - Queries with low similarity scores (<0.6)
 - May indicate semantic mismatch
-- **Action**: Review and improve bundle descriptions
+- **Action**: Enrich or discover better products for those intents.
 
 #### Recent Searches
 - Last 50 searches
@@ -68,18 +66,19 @@ Located at: `/admin/search-analytics`
 ## 📊 Data Flow
 
 ```
-User searches → SearchBar component
+User searches -> CatalogSearchFeed component
                 ↓
     Google Analytics event fired
                 ↓
-    API: /api/search-bundles
+    API: /api/search-products
                 ↓
     Database: Log to search_queries table
                 ↓
-    Return results to user
+    Return product results to user
                 ↓
-    User clicks result → GA event fired
-                         (opens in new tab)
+    User clicks product -> track-click updates product + search row
+                         -> GA conversion event fired
+                         -> affiliate link opens in new tab
 ```
 
 ## 🗄️ Database Schema
@@ -91,8 +90,6 @@ CREATE TABLE "search_queries" (
   "result_count" integer DEFAULT 0 NOT NULL,
   "top_similarity" numeric(5, 4),
   "clicked" integer DEFAULT 0 NOT NULL,
-  "clicked_bundle_id" uuid,
-  "clicked_bundle_slug" varchar(100),
   "session_id" varchar(100),
   "user_agent" text,
   "created_at" timestamp DEFAULT now() NOT NULL
@@ -153,14 +150,14 @@ git push origin main
 1. Visit `/admin/search-analytics?period=day`
 2. Check **Failed Searches** section
 3. Identify high-frequency zero-result queries
-4. Create bundles for those topics
-5. Re-deploy and watch CTR improve!
+4. Add those topics to catalog discovery themes or run targeted prefetch
+5. Re-check CTR and zero-result rate
 
 ### Weekly Review
 1. View `/admin/search-analytics?period=week`
 2. Analyze **Top Search Terms**
-3. Prioritize content creation for high-volume, low-CTR queries
-4. Review **Poor Result Quality** for semantic improvements
+3. Prioritize catalog discovery for high-volume, low-CTR queries
+4. Review **Poor Result Quality** for enrichment and embedding improvements
 
 ### Monthly Analysis
 1. View `/admin/search-analytics?period=month`
@@ -170,15 +167,15 @@ git push origin main
 
 ## 🎓 Key Insights to Track
 
-### Content Gaps (Priority #1)
+### Catalog Gaps (Priority #1)
 - **Metric**: Failed Searches with count > 5
-- **Action**: Create bundles for these queries immediately
+- **Action**: Add products for these queries immediately
 - **Impact**: Convert lost searches into engaged users
 
 ### Search Effectiveness
 - **Metric**: Overall Click-Through Rate
 - **Target**: >25% CTR
-- **If Low**: Improve bundle titles/descriptions for better matches
+- **If Low**: Improve product titles/descriptions and catalog coverage
 
 ### Search Volume
 - **Metric**: Total searches per day
@@ -188,7 +185,7 @@ git push origin main
 ### Result Quality
 - **Metric**: Average similarity score
 - **Target**: >0.7
-- **If Low**: Improve embedding quality or bundle descriptions
+- **If Low**: Improve embedding quality or product descriptions
 
 ## 🔧 Troubleshooting
 
@@ -203,9 +200,9 @@ git push origin main
 - Ensure NEXT_PUBLIC_GA_ID is set in environment
 
 ### Poor similarity scores
-- Review bundle descriptions - are they semantic and descriptive?
-- Check embedding generation in `lib/db/operations.ts`
-- May need to regenerate embeddings for existing bundles
+- Review product copy - is it semantic and descriptive?
+- Check product embedding generation in `scripts/ops/prefetch-catalog.mjs`
+- Run `npm run catalog:enrich` to backfill existing active products
 
 ## 📝 Files Modified
 
@@ -217,8 +214,9 @@ git push origin main
 
 ### Modified Files
 - `lib/db/schema.ts` - Added searchQueries table
-- `app/api/search-bundles/route.ts` - Added logging
-- `components/SearchBar.tsx` - Added GA tracking
+- `app/api/search-products/route.ts` - Product search logging
+- `components/CatalogSearchFeed.tsx` - Catalog search UI and GA search event
+- `components/ProductGrid.tsx` - Product click and impression tracking
 - `app/admin/(dashboard)/page.tsx` - Added quick link
 
 ## 🎉 Success Metrics
@@ -227,14 +225,14 @@ After 1 week, you should see:
 - ✅ 90%+ of searches logged to database
 - ✅ GA events showing in real-time view
 - ✅ Admin dashboard showing clear trends
-- ✅ Identified top 10 content gaps
+- ✅ Identified top 10 catalog gaps
 - ✅ Baseline CTR established
 
 After 1 month:
 - ✅ Zero-result rate decreased by >50%
 - ✅ CTR improved by >10 percentage points
 - ✅ Search volume increased with traffic growth
-- ✅ Created 20+ new bundles based on search demand
+- ✅ Added or enriched products based on search demand
 
 ## 🚨 Important Notes
 
@@ -248,4 +246,4 @@ After 1 month:
 
 **Questions?** Check the code comments or search for `searchQueries` in the codebase.
 
-**Ready to deploy?** Run the migration and push to main! 🚀
+**Ready to deploy?** Run the migration and push to main.

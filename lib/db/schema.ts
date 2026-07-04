@@ -1,50 +1,34 @@
 import { pgTable, uuid, varchar, text, integer, jsonb, timestamp, index, numeric, boolean, vector } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
+// Legacy bundle tables are kept mapped until a destructive database cleanup
+// migration is explicitly approved. The maintained runtime no longer reads or
+// writes bundle pages, bundle search, or bundle admin flows.
 export const giftBundles = pgTable('gift_bundles', {
-  // Primary identifier
   id: uuid('id').primaryKey().defaultRandom(),
 
-  // URL slug (unique, indexed for fast lookups)
-  // Human-readable SEO-friendly format: "surf-themed-gift-bundles-for-moms-a3k9"
   slug: varchar('slug', { length: 100 }).notNull().unique(),
 
-  // Search context (for SEO and display)
   recipientDescription: text('recipient_description').notNull(),
   occasion: varchar('occasion', { length: 500 }),
   humorStyle: varchar('humor_style', { length: 50 }).notNull(),
   minPrice: integer('min_price').notNull(),
   maxPrice: integer('max_price').notNull(),
+  priceRange: varchar('price_range', { length: 20 }).notNull(),
 
-  // Price range classification for related bundles
-  priceRange: varchar('price_range', { length: 20 }).notNull(), // 'budget', 'mid', 'premium'
-
-  // SEO metadata
   seoTitle: varchar('seo_title', { length: 60 }),
   seoDescription: varchar('seo_description', { length: 160 }),
   seoKeywords: varchar('seo_keywords', { length: 500 }),
-
-  // Enhanced SEO content (400-500 words)
   seoContent: text('seo_content'),
-
-  // FAQ structured data (JSONB array of {question, answer} objects)
   seoFaqJson: jsonb('seo_faq_json').$type<Array<{ question: string; answer: string }>>(),
-
-  // Recipient keywords for similarity matching
   recipientKeywords: text('recipient_keywords'),
-
-  // Vector embedding for semantic search (1536 dimensions for text-embedding-3-small)
   embedding: vector('embedding', { dimensions: 1536 }),
-
-  // DEPRECATED: Keep until cleanup migration after verification
   giftIdeas: jsonb('gift_ideas'),
 
-  // Analytics
   viewCount: integer('view_count').notNull().default(0),
   clickCount: integer('click_count').notNull().default(0),
   shareCount: integer('share_count').notNull().default(0),
 
-  // Timestamps
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   deletedAt: timestamp('deleted_at'),
@@ -67,7 +51,7 @@ export const giftBundles = pgTable('gift_bundles', {
   viewCountIdx: index('view_count_idx').on(table.viewCount),
 }));
 
-// Products table - deduplicated across all bundles
+// Products table - active catalog source of truth
 export const products = pgTable('products', {
   // Product ID (ASIN for Amazon, listing ID for Etsy)
   id: varchar('id', { length: 255 }).primaryKey(),
@@ -114,7 +98,7 @@ export const products = pgTable('products', {
     .where(sql`${table.embedding} IS NOT NULL`),
 }));
 
-// Gift ideas table - each bundle has multiple gift ideas
+// Legacy gift idea tables retained for historical data only.
 export const giftIdeas = pgTable('gift_ideas', {
   // Primary identifier
   id: uuid('id').primaryKey().defaultRandom(),
@@ -168,9 +152,9 @@ export const productClicks = pgTable('product_clicks', {
   // Product that was clicked
   productId: varchar('product_id', { length: 255 }).notNull().references(() => products.id, { onDelete: 'cascade' }),
 
-  // Context of the click
-  source: varchar('source', { length: 50 }).notNull(), // 'trending', 'bundle', 'search'
-  bundleSlug: varchar('bundle_slug', { length: 100 }), // If clicked from a bundle page
+  // Context of the click: 'catalog', 'search', or another product feed.
+  source: varchar('source', { length: 50 }).notNull(),
+  bundleSlug: varchar('bundle_slug', { length: 100 }),
 
   // User context (for future personalization)
   userAgent: text('user_agent'),
@@ -279,6 +263,7 @@ export const searchQueries = pgTable('search_queries', {
 
   // User interaction
   clicked: integer('clicked').notNull().default(0), // 0 = no click, 1 = clicked result
+  // Legacy nullable bundle fields retained until a DB cleanup migration removes them.
   clickedBundleId: uuid('clicked_bundle_id').references(() => giftBundles.id, { onDelete: 'set null' }),
   clickedBundleSlug: varchar('clicked_bundle_slug', { length: 100 }),
 

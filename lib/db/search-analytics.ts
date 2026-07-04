@@ -50,8 +50,8 @@ export async function getTopSearchTerms(
     return results.rows.map(row => ({
       query: row.query,
       count: parseInt(row.count, 10),
-      avgResults: parseFloat(row.avg_results),
-      clickRate: parseFloat(row.click_rate),
+      avgResults: parseFloat(row.avg_results || '0'),
+      clickRate: parseFloat(row.click_rate || '0'),
     }));
   } catch (error) {
     console.error('Error fetching top search terms:', error);
@@ -154,7 +154,7 @@ export async function getPoorResultSearches(
     return results.rows.map(row => ({
       query: row.query,
       count: parseInt(row.count, 10),
-      avgSimilarity: parseFloat(row.avg_similarity),
+      avgSimilarity: parseFloat(row.avg_similarity || '0'),
     }));
   } catch (error) {
     console.error('Error fetching poor result searches:', error);
@@ -221,9 +221,9 @@ export async function getSearchAnalyticsSummary(
     return {
       totalSearches: parseInt(row.total_searches, 10),
       uniqueQueries: parseInt(row.unique_queries, 10),
-      avgResultsPerSearch: parseFloat(row.avg_results),
-      overallClickRate: parseFloat(row.click_rate),
-      zeroResultRate: parseFloat(row.zero_result_rate),
+      avgResultsPerSearch: parseFloat(row.avg_results || '0'),
+      overallClickRate: parseFloat(row.click_rate || '0'),
+      zeroResultRate: parseFloat(row.zero_result_rate || '0'),
     };
   } catch (error) {
     console.error('Error fetching search analytics summary:', error);
@@ -249,7 +249,6 @@ export async function getRecentSearches(limit: number = 50) {
         resultCount: searchQueries.resultCount,
         topSimilarity: searchQueries.topSimilarity,
         clicked: searchQueries.clicked,
-        clickedBundleSlug: searchQueries.clickedBundleSlug,
         createdAt: searchQueries.createdAt,
       })
       .from(searchQueries)

@@ -90,8 +90,8 @@ async function SearchAnalyticsContent({ period }: { period: 'day' | 'week' | 'mo
       {/* Failed Searches (0 Results) */}
       <div className="bg-white rounded-lg border border-zinc-200">
         <div className="px-6 py-4 border-b border-zinc-200">
-          <h2 className="text-lg font-semibold text-zinc-900">Failed Searches (Content Gaps)</h2>
-          <p className="text-sm text-zinc-500 mt-1">Searches that returned 0 results - consider creating bundles for these</p>
+          <h2 className="text-lg font-semibold text-zinc-900">Failed Searches (Catalog Gaps)</h2>
+          <p className="text-sm text-zinc-500 mt-1">Searches that returned 0 products - use these as discovery themes</p>
         </div>
         <div className="overflow-x-auto">
           {failedSearches.length > 0 ? (
@@ -125,7 +125,7 @@ async function SearchAnalyticsContent({ period }: { period: 'day' | 'week' | 'mo
       <div className="bg-white rounded-lg border border-zinc-200">
         <div className="px-6 py-4 border-b border-zinc-200">
           <h2 className="text-lg font-semibold text-zinc-900">Poor Result Quality</h2>
-          <p className="text-sm text-zinc-500 mt-1">Searches with low similarity scores (&lt;0.6) - results may not match intent</p>
+          <p className="text-sm text-zinc-500 mt-1">Searches with low similarity scores (&lt;0.6) - catalog results may not match intent</p>
         </div>
         <div className="overflow-x-auto">
           {poorResults.length > 0 ? (
@@ -215,7 +215,7 @@ export default async function SearchAnalyticsPage({
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 mb-2">Search Analytics</h1>
-          <p className="text-zinc-600">Track search queries, identify content gaps, and measure engagement</p>
+          <p className="text-zinc-600">Track catalog searches, identify product gaps, and measure engagement</p>
         </div>
         <Link
           href="/admin"

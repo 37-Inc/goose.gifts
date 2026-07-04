@@ -5,6 +5,59 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-04 - Replaced bundle search with catalog search
+
+**Owner direction**: Cameron asked to ditch the bundle-first search flow and
+move to a simple semantic product search box on the main page, backed by
+prefetched catalog data.
+
+**Shipped in this run**:
+- Replaced the homepage bundle/search flow with `CatalogSearchFeed`, which
+  searches `/api/search-products` and renders product results in the main feed.
+- Made the header search form submit to the homepage catalog feed, so the
+  visible search box is the primary search interface rather than a separate
+  bundle search page.
+- Redirected `/search` to the homepage catalog feed and removed the old
+  `/api/search-bundles` route and `SearchBar` component.
+- Removed the public bundle generator/permalink flow and admin bundle surfaces
+  from the maintained runtime path so shoppers stay in catalog search/results.
+- Added product-level semantic search in `lib/db/product-search.ts`, with
+  pgvector ranking when embeddings exist and keyword fallback while backfill
+  catches up.
+- Updated product click tracking so catalog-search clicks mark the logged
+  `search_queries` row as clicked.
+- Finished the catalog enrichment path in `catalog:prefetch`: discovered
+  products now get LLM copy, tags, quality scores, and embeddings before
+  upsert; the job also backfills a bounded set of existing active products.
+- Added `npm run catalog:enrich` for enrichment-only backfills.
+- Reframed the ops analytics snapshot around product search, product clicks,
+  and catalog quality instead of active bundle creation.
+
+**Catalog enrichment**: production had 3,251 active products; 3,247 were fully
+enriched and 4 were missing copy/tags/embeddings. Ran
+`npm run catalog:enrich -- --backfill-limit 20 --enrichment-batch-size 12`;
+it backfilled the 4 missing products. Follow-up query confirmed 3,251 active,
+3,251 enriched, 0 missing enrichment.
+
+**Review / QA**:
+- `npm run lint`, `npm run build`, `git diff --check`, `node --check
+  scripts/ops/prefetch-catalog.mjs`, and `node --check
+  scripts/ops/analytics-snapshot.mjs` passed.
+- Local built-server smoke verified no stale bundle-search copy, no duplicate
+  DOM ids, `/search?q=dad%20with%20no%20spare%20time` redirects to `/?q=...`,
+  `/api/search-products` returns semantic product results, and `sitemap.xml`
+  contains gift-guide URLs without bundle permalinks.
+- Visual QA captured desktop and mobile screenshots for
+  `/?q=dad%20with%20no%20spare%20time`. The first pass caught that the query
+  heading could server-render before query-specific products arrived; fixed by
+  server-rendering semantic search results when `q` is present.
+
+**Next**: after deploy, verify live homepage/search/sitemap behavior and then
+watch `/admin/search-analytics` for zero-result and low-similarity queries to
+feed back into catalog discovery themes.
+
+---
+
 ## 2026-07-04 - Daily ops: gift-guide SEO pages shipped
 
 **Health**: production homepage, `/sitemap.xml`, `/search`, and sample bundle

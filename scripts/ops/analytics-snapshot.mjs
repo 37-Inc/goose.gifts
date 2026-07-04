@@ -46,7 +46,7 @@ function printHelp() {
 
 Pulls a read-only traffic and interaction snapshot from:
 - Vercel Web Analytics API for visitor/pageview data.
-- Neon/Vercel Postgres for search, click, bundle, and catalog-quality data.
+- Neon/Vercel Postgres for search, click, and catalog-quality data.
 
 The Vercel Hobby plan exposes the latest 31 days of Web Analytics data, so
 larger --days values are clamped to 31.`);
@@ -205,16 +205,12 @@ async function fetchDatabaseAnalytics() {
     const entries = await Promise.all([
       queryDb('summary', db, `
         SELECT
-          (SELECT count(*)::int FROM gift_bundles WHERE deleted_at IS NULL) AS bundles,
-          (SELECT coalesce(sum(view_count),0)::int FROM gift_bundles WHERE deleted_at IS NULL) AS bundle_views_lifetime,
-          (SELECT coalesce(sum(click_count),0)::int FROM gift_bundles WHERE deleted_at IS NULL) AS bundle_clicks_lifetime,
           (SELECT count(*)::int FROM products) AS products,
           (SELECT count(*)::int FROM products WHERE is_active) AS active_products,
           (SELECT coalesce(sum(impression_count),0)::int FROM products) AS product_impressions_lifetime,
           (SELECT coalesce(sum(click_count),0)::int FROM products) AS product_clicks_lifetime,
           (SELECT count(*)::int FROM product_clicks) AS product_click_events_lifetime,
           (SELECT count(*)::int FROM search_queries) AS searches_lifetime,
-          (SELECT max(created_at) FROM gift_bundles WHERE deleted_at IS NULL) AS latest_bundle_created_at,
           (SELECT max(created_at) FROM product_clicks) AS latest_product_click_at,
           (SELECT max(created_at) FROM search_queries) AS latest_search_at
       `),
@@ -222,7 +218,6 @@ async function fetchDatabaseAnalytics() {
         SELECT window_label,
           (SELECT count(*)::int FROM product_clicks WHERE created_at >= now() - window_label::interval) AS product_click_events,
           (SELECT count(*)::int FROM search_queries WHERE created_at >= now() - window_label::interval) AS searches,
-          (SELECT count(*)::int FROM gift_bundles WHERE created_at >= now() - window_label::interval AND deleted_at IS NULL) AS bundles_created,
           (SELECT count(*)::int FROM products WHERE created_at >= now() - window_label::interval) AS products_created
         FROM (VALUES ('24 hours'), ('7 days'), ('30 days'), ('90 days')) AS w(window_label)
       `),
@@ -326,14 +321,14 @@ function printText(snapshot) {
   ));
   console.log('');
   console.log('Database interaction analytics');
-  console.log(`- Bundles: ${summary.bundles.toLocaleString()} (${summary.bundle_views_lifetime.toLocaleString()} lifetime bundle views, ${summary.bundle_clicks_lifetime.toLocaleString()} bundle clicks)`);
   console.log(`- Products: ${summary.products.toLocaleString()} (${summary.active_products.toLocaleString()} active)`);
   console.log(`- Product impressions/click events: ${summary.product_impressions_lifetime.toLocaleString()} impressions, ${summary.product_click_events_lifetime.toLocaleString()} click events`);
+  console.log(`- Product click counter: ${summary.product_clicks_lifetime.toLocaleString()} lifetime product clicks`);
   console.log(`- Searches: ${summary.searches_lifetime.toLocaleString()} lifetime; latest search ${formatTimestamp(summary.latest_search_at)}`);
   console.log('- Recent windows:');
   console.log(formatRows(
     database.windows,
-    (row) => `  ${row.window_label}: ${row.searches} searches, ${row.product_click_events} product clicks, ${row.bundles_created} bundles created, ${row.products_created} products created`,
+    (row) => `  ${row.window_label}: ${row.searches} searches, ${row.product_click_events} product clicks, ${row.products_created} products created`,
   ));
   console.log('- Top clicked products in 90d:');
   console.log(formatRows(
