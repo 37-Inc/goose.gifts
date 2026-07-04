@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getAllBundleSlugs } from '@/lib/db/operations';
+import { giftGuides } from '@/lib/gift-guides';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -28,5 +29,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...dynamicPages];
+  const guidePages: MetadataRoute.Sitemap = giftGuides.map((guide) => ({
+    url: `${baseUrl}/gift-guides/${guide.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily',
+    priority: 0.9,
+  }));
+
+  return [...staticPages, ...guidePages, ...dynamicPages];
 }

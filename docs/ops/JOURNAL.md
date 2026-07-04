@@ -5,6 +5,46 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-04 - Daily ops: gift-guide SEO pages shipped
+
+**Health**: production homepage, `/sitemap.xml`, `/search`, and sample bundle
+`/trendy-gifts-for-82-year-old-men-who-love-gadgets-qzug` all returned 200.
+The bundle page had the expected title, canonical, and JSON-LD.
+
+**Metrics snapshot**: Vercel Web Analytics reported 20 visitors and 30
+pageviews for 2026-06-04 through 2026-07-04 UTC. Top path remains `/` with 17
+visitors / 18 pageviews. Database totals after today's catalog run: 109
+bundles, 22,461 lifetime bundle views, 103 bundle clicks, 3,251 active
+products, 17,330 product impressions, 92 product click events, and 267 lifetime
+searches. Recent demand is thin but alive: 4 searches in the last 24h / 7d /
+30d, with top recent searches including `dad with no spare time` and
+`white elephant`.
+
+**Shipped growth work**: added crawlable gift-guide pages at
+`/gift-guides/white-elephant-gifts`,
+`/gift-guides/funny-gifts-for-coworkers`,
+`/gift-guides/funny-gifts-for-dads`, `/gift-guides/weird-kitchen-gadgets`, and
+`/gift-guides/novelty-desk-toys`. The homepage now links to these guide pages,
+and the sitemap includes them at daily priority. Each guide has query-targeted
+metadata, canonical URL, visible editorial copy, visible product grids, and
+matching ItemList/Product JSON-LD. This should move indexed pages and organic
+long-tail coverage for the same themes the catalog discovery already targets.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 76 candidates, 4 inserted, 72 updated. Newly added products are active
+and image/affiliate-backed, but they do not yet have product embeddings or
+punny/witty copy; no separate enrichment command exists today.
+
+**Review / QA**: self-reviewed the diff for SEO claims, visible content,
+schema/content match, sitemap visibility, and layout risk. `npm run lint`,
+`npm run build`, and `git diff --check` passed.
+
+**Tomorrow**: either add product enrichment for newly discovered catalog items
+or expand guide coverage from observed search demand once more searches accrue.
+
+---
+
 ## 2026-07-03 - Clarified owner-level business mission
 
 **Owner direction**: Cameron clarified that autonomous operation should behave

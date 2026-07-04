@@ -7,6 +7,7 @@ import { HomeClient } from '@/components/HomeClient';
 import { RecentBundles } from '@/components/RecentBundles';
 import { TrendingProducts } from '@/components/TrendingProducts';
 import { SearchBar } from '@/components/SearchBar';
+import { giftGuides } from '@/lib/gift-guides';
 import type { Product } from '@/lib/types';
 
 export const revalidate = 3600; // Revalidate every hour
@@ -134,6 +135,18 @@ export default async function HomePage() {
             Absurd, useful, and deeply unnecessary finds for people who are hard to shop for.
           </p>
         </div>
+
+        <nav className="mt-6 flex flex-wrap gap-2" aria-label="Gift guides">
+          {giftGuides.map((guide) => (
+            <Link
+              key={guide.slug}
+              href={`/gift-guides/${guide.slug}`}
+              className="rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-sm font-semibold text-zinc-700 transition hover:border-zinc-500 hover:text-zinc-950"
+            >
+              {guide.title}
+            </Link>
+          ))}
+        </nav>
       </section>
 
       <TrendingProducts products={trendingProducts} />
