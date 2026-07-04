@@ -2,16 +2,21 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { cleanAmazonImageUrl } from '@/lib/image-utils';
 
 interface ProductImageProps {
   imageUrl: string;
   alt: string;
   className?: string;
   sizes?: string;
+  priority?: boolean;
 }
 
-export function ProductImage({ imageUrl, alt, className = '', sizes }: ProductImageProps) {
+export function ProductImage({ imageUrl, alt, className = '', sizes, priority = false }: ProductImageProps) {
   const [error, setError] = useState(false);
+  const normalizedImageUrl = imageUrl.includes('media-amazon.com')
+    ? cleanAmazonImageUrl(imageUrl)
+    : imageUrl;
 
   if (!imageUrl || imageUrl === '' || error) {
     return (
@@ -28,14 +33,15 @@ export function ProductImage({ imageUrl, alt, className = '', sizes }: ProductIm
 
   return (
     <Image
-      src={imageUrl}
+      src={normalizedImageUrl}
       alt={alt}
       fill
       className={className}
       sizes={sizes}
+      priority={priority}
       unoptimized
       onError={() => {
-        console.error(`Failed to load image: ${imageUrl}`);
+        console.error(`Failed to load image: ${normalizedImageUrl}`);
         setError(true);
       }}
     />

@@ -4,6 +4,7 @@ import { eq, ne, and, or, sql } from 'drizzle-orm';
 import { jaccardSimilarity } from './helpers';
 import type { GiftBundle } from './schema';
 import type { GiftIdea } from '@/lib/types';
+import { cleanImageUrl } from '@/lib/image-utils';
 
 type BundleWithGiftIdeas = GiftBundle & { giftIdeas: GiftIdea[] };
 
@@ -126,7 +127,7 @@ export async function findRelatedBundles(
             title: firstGiftIdea[0].productTitle,
             price: parseFloat(firstGiftIdea[0].productPrice),
             currency: firstGiftIdea[0].productCurrency,
-            imageUrl: firstGiftIdea[0].productImageUrl || '',
+            imageUrl: cleanImageUrl(firstGiftIdea[0].productImageUrl || '', firstGiftIdea[0].productSource),
             affiliateUrl: firstGiftIdea[0].productAffiliateUrl,
             source: firstGiftIdea[0].productSource as 'amazon' | 'etsy',
           }],
@@ -242,7 +243,7 @@ async function attachFirstGiftIdea(bundles: GiftBundle[]): Promise<BundleWithGif
           title: row.productTitle,
           price: parseFloat(row.productPrice),
           currency: row.productCurrency,
-          imageUrl: row.productImageUrl || '',
+          imageUrl: cleanImageUrl(row.productImageUrl || '', row.productSource),
           affiliateUrl: row.productAffiliateUrl,
           source: row.productSource as 'amazon' | 'etsy',
         });

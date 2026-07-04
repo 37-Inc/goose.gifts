@@ -13,6 +13,21 @@ credentials.
 
 ## P1 — needed within the first weeks
 
+### 1. Owned growth channel approval
+
+To generate leads outside search, I need explicit approval before creating or
+posting from outward-facing accounts. Best first channels:
+- **X/Twitter**: a goose.gifts account for one daily ridiculous find, threaded
+  seasonal lists, and tagged links back to catalog pages.
+- **TikTok/Reels/Shorts**: short vertical product roundups generated from the
+  catalog; I can prepare scripts/assets, but posting needs account access or
+  approval of the publishing tool.
+- **Pinterest**: evergreen pins for "white elephant gifts", "funny gifts for
+  coworkers", and price/persona pages once those pages exist.
+
+Needed from Cameron: choose which channels to authorize, provide/create account
+access, and approve any paid/video-generation tooling before spend.
+
 ### 2. Revenue reporting access
 
 I can optimize clicks blind, but revenue-weighting the site needs earnings

@@ -119,15 +119,34 @@ function cleanAmazonImageUrl(url) {
   if (!url) return '';
 
   try {
-    const cleaned = url.replace(/\.(jpg|jpeg|png)_[A-Z]+[0-9,_]+\.(jpg|jpeg|png)$/i, '.$1');
+    const decoded = decodeURIComponent(url);
+    const origin = new URL(url).origin;
 
-    if (cleaned.includes('.jpg_') || cleaned.includes('.png_')) {
-      const match = url.match(/\/images\/I\/([^._]+)\./);
+    const compositeSource = decoded.match(/(?:^|[|])pi-src:([^|]+?\.(?:jpg|jpeg|png|webp))/i)?.[1];
+    if (compositeSource) {
+      return compositeSource.startsWith('http')
+        ? compositeSource
+        : `${origin}/images/I/${compositeSource}`;
+    }
+
+    const transformedImage = decoded.match(
+      /^(https?:\/\/[^/]+\/images\/I\/[^?#]+?\.(?:jpg|jpeg|png|webp))(?:[._][^?#]*)?$/i
+    );
+    if (transformedImage) {
+      return transformedImage[1];
+    }
+
+    const cleaned = decoded.replace(
+      /\.(jpg|jpeg|png|webp)_[^?#]+\.(jpg|jpeg|png|webp)$/i,
+      '.$1'
+    );
+
+    if (cleaned.includes('.jpg_') || cleaned.includes('.png_') || cleaned.includes('.webp_')) {
+      const match = decoded.match(/\/images\/I\/([^._]+)\./);
       if (match) {
         const imageId = match[1];
-        const domain = new URL(url).hostname;
-        const ext = url.match(/\.(jpg|jpeg|png)/i)?.[1] || 'jpg';
-        return `https://${domain}/images/I/${imageId}.${ext}`;
+        const ext = decoded.match(/\.(jpg|jpeg|png|webp)/i)?.[1] || 'jpg';
+        return `${origin}/images/I/${imageId}.${ext}`;
       }
     }
 

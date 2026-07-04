@@ -39,7 +39,12 @@ fast, cheap, and crawlable.
 - Home page = dense, scrollable grid of the best catalog items: punny title,
   image, price, one-liner; affiliate link on click. Ranked by the existing
   multi-armed bandit (CTR × recency × novelty), so the page self-optimizes.
-- Statically rendered/ISR for speed and SEO; structured data (ItemList/Product).
+- Statically rendered/ISR for speed and SEO; structured data (ItemList/Product)
+  that matches visible products and uses clean, crawlable product images.
+- Catalog cards must avoid promotional/composite marketplace images where
+  possible. Normalize Amazon image URLs to their underlying product shot,
+  render images contained rather than cropped, and treat text-heavy/seasonal
+  promo imagery as a catalog-quality issue in daily ops.
 - Keep bundle permalinks — they're the SEO long-tail — but generate them from
   the catalog rather than live API calls.
 
@@ -63,6 +68,11 @@ marginal cost per visitor drops to ~zero. This is the main margin lever.
   ("funny white elephant gifts"), persona pages ("gifts for coworkers who
   love cats"), price pages ("gag gifts under $20"). Interlinked, in the
   sitemap, each with real products and LLM-written editorial copy.
+- Query clusters should be built from Search Console when access exists, then
+  from on-site searches and catalog themes until then. Each page should have a
+  clear target query, H1, meta title/description, canonical, ItemList/Product
+  schema where eligible, internal links to sibling clusters, and at least one
+  product grid that is useful without JavaScript.
 - Seasonal calendar: build pages 6–8 weeks ahead of gifting peaks
   (Christmas/white elephant season is the big one — prep starts October;
   also Father's/Mother's Day, Valentine's, graduation, Halloween).
@@ -74,6 +84,10 @@ marginal cost per visitor drops to ~zero. This is the main margin lever.
   (gag gifts are a strong Pinterest category).
 - Email capture + weekly "dumbest gifts this week" newsletter
   (spec already exists in `docs/newsletter-feature-spec.md`).
+- Owned social distribution once Cameron approves channels: X/Twitter for
+  daily ridiculous finds, TikTok/Reels/Shorts for vertical product roundups,
+  and Pinterest pins for evergreen gag-gift searches. Generate assets from the
+  catalog, track tagged links, and avoid spammy posting or fake engagement.
 - Revenue optimization: compare Amazon vs. Etsy/Awin EPC per category once
   reporting access exists; weight the bandit by commission, not just CTR.
 

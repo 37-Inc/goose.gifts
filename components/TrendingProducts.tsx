@@ -41,6 +41,67 @@ function getSourceLabel(source: Product['source']): string {
   return source === 'amazon' ? 'Amazon' : 'Etsy';
 }
 
+const LABEL_RULES = [
+  { label: 'dad joke', terms: ['dad', 'father', 'grandpa', 'pun', 'joke'] },
+  { label: 'office safe', terms: ['coworker', 'office', 'desk', 'boss', 'meeting', 'work'] },
+  { label: 'white elephant', terms: ['white elephant', 'party', 'exchange'] },
+  { label: 'pet chaos', terms: ['pet', 'dog', 'cat', 'pug'] },
+  { label: 'kitchen oddity', terms: ['kitchen', 'mug', 'coffee', 'ramen', 'cook', 'cookbook'] },
+  { label: 'prank', terms: ['prank', 'fake', 'gag'] },
+  { label: 'weird find', terms: ['weird', 'bizarre', 'oddball', 'ridiculous', 'strange'] },
+  { label: 'snarky', terms: ['sarcastic', 'snark', 'retirement'] },
+  { label: 'birthday', terms: ['birthday'] },
+  { label: 'holiday', terms: ['stocking', 'christmas', 'holiday', 'secret santa'] },
+  { label: 'self care', terms: ['spa', 'bath', 'candle', 'skincare', 'massage'] },
+  { label: 'bookish', terms: ['book', 'coloring', 'journal'] },
+];
+
+function formatTag(tag: string): string {
+  return tag.replace(/-/g, ' ').trim().toLowerCase();
+}
+
+function isDisplayableTag(tag: string): boolean {
+  return tag.length > 0
+    && tag.length <= 18
+    && !tag.includes(' gift')
+    && !tag.includes(' for ');
+}
+
+function addLabel(labels: string[], label: string) {
+  if (!labels.includes(label)) {
+    labels.push(label);
+  }
+}
+
+function getHumorLabels(product: Product): string[] {
+  const labels: string[] = [];
+
+  product.humorTags?.forEach((tag) => {
+    const formatted = formatTag(tag);
+    if (isDisplayableTag(formatted)) addLabel(labels, formatted);
+  });
+
+  const haystack = [
+    product.title,
+    product.punnyTitle,
+    product.wittyDescription,
+    product.sourceQuery,
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  for (const rule of LABEL_RULES) {
+    if (labels.length >= 2) break;
+    if (rule.terms.some((term) => haystack.includes(term))) {
+      addLabel(labels, rule.label);
+    }
+  }
+
+  if (labels.length === 0) {
+    labels.push('novelty');
+  }
+
+  return labels.slice(0, 2);
+}
+
 export function TrendingProducts({ products }: TrendingProductsProps) {
   const [impressionsTracked, setImpressionsTracked] = useState(false);
 
@@ -101,15 +162,15 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
             </h2>
           </div>
           <p className="max-w-xl text-sm leading-6 text-zinc-600">
-            Ranked by click data, freshness, and gag-gift appeal.
+            Ranked for freshness, visual quality, and gag-gift appeal.
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {products.map((product) => {
+          {products.map((product, index) => {
             const title = getDisplayTitle(product);
             const description = getDisplayDescription(product);
-            const tags = product.humorTags?.slice(0, 2) ?? [];
+            const tags = getHumorLabels(product);
 
             return (
               <a
@@ -118,16 +179,19 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => handleProductClick(product.affiliateUrl, product.id, e)}
-                className="group flex min-h-[21rem] flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400 hover:shadow-lg"
+                className="group flex min-h-[19rem] flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400 hover:shadow-lg"
               >
-                <div className="relative aspect-square overflow-hidden bg-zinc-100">
+                <div className="relative aspect-square overflow-hidden bg-white">
                   {product.imageUrl ? (
-                    <ProductImage
-                      imageUrl={product.imageUrl}
-                      alt={product.title}
-                      className="object-cover transition duration-300 group-hover:scale-105"
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
-                    />
+                    <div className="absolute inset-2">
+                      <ProductImage
+                        imageUrl={product.imageUrl}
+                        alt={product.title}
+                        className="object-contain transition duration-300 group-hover:scale-[1.03]"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
+                        priority={index === 0}
+                      />
+                    </div>
                   ) : (
                     <div className="flex h-full items-center justify-center px-4 text-center text-xs text-zinc-500">
                       Image unavailable
@@ -151,29 +215,15 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
                     </p>
                   )}
 
-                  {tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded bg-zinc-100 px-1.5 py-0.5 text-[11px] font-medium text-zinc-700"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="mt-auto flex items-center justify-between gap-2 pt-2 text-xs">
-                    {product.rating ? (
-                      <span className="font-medium text-zinc-700">
-                        {product.rating.toFixed(1)} stars
-                        {product.reviewCount ? ` (${product.reviewCount.toLocaleString()})` : ''}
+                  <div className="mt-auto flex flex-wrap gap-1 pt-1">
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded bg-zinc-100 px-1.5 py-0.5 text-[11px] font-medium text-zinc-700"
+                      >
+                        {tag}
                       </span>
-                    ) : (
-                      <span className="text-zinc-400">New find</span>
-                    )}
-                    <span className="font-semibold text-red-700">View</span>
+                    ))}
                   </div>
                 </div>
               </a>

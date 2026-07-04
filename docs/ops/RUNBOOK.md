@@ -46,8 +46,13 @@ Boundaries (always in force):
    search interaction history.
 4. **Do the highest-leverage task.** Default priority order:
    1. Anything broken or degrading (errors, broken images, dead affiliate links).
-   2. Current phase of `docs/ops/ROADMAP.md` (catalog-first pivot until done).
-   3. SEO/growth work informed by step 3.
+   2. SEO/GEO and lead-generation work informed by step 3. This is not optional:
+      every non-incident run should ship or prepare a crawlable growth asset
+      (programmatic page, metadata/schema/internal-link improvement, keyword
+      gap, share asset, or approved distribution experiment) and log why that
+      asset should move organic sessions, indexed pages, or outbound CTR.
+   3. Current phase of `docs/ops/ROADMAP.md` (catalog-first pivot until done),
+      chosen through the SEO/growth lens above.
    While Phase 1a is active, run the bounded daily catalog discovery command
    unless a higher-priority incident displaces it:
    `npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
@@ -56,7 +61,10 @@ Boundaries (always in force):
    prices still gate the configured min/max range; unknown-price products should
    link through to Amazon for the current price.
 5. **Verify.** `npm install && npm run build && npm run lint` must pass. Test
-   the change as a user would where feasible.
+   the change as a user would where feasible. For SEO/GEO changes, also check
+   the touched page's title, meta description, canonical URL, structured data,
+   robots/sitemap visibility, and whether the marked-up data is visible on the
+   page rather than hidden-only.
 6. **Ship.** Commit on a `claude/`-prefixed branch, push, open a PR with a
    clear description, and merge it. Confirm the production site still works
    after deploy (~2 min for Vercel).
@@ -91,6 +99,12 @@ tried, and exactly what is needed.
 
 - **Compounding over novelty**: prefer work that builds on yesterday's
   (catalog depth, SEO page network, data quality) over one-off tweaks.
+- **SEO is the game**: favor crawlable, internally linked, query-targeted pages
+  with real products, clean images, descriptive metadata, and structured data
+  over clever UI that only helps already-arrived users.
+- **Earned distribution beats spam**: prepare useful social/newsletter assets
+  and repeatable acquisition channels, but do not create accounts, post, DM, or
+  run paid campaigns without Cameron's explicit approval.
 - **Measure or it didn't happen**: when shipping a growth/conversion change,
   note in the journal which metric should move and check it in later runs.
 - **Costs matter**: LLM spend should concentrate in the daily batch ingestion,

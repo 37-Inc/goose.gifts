@@ -10,26 +10,27 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "goose.gifts - AI-Powered Funny Gift Finder",
-  description: "Discover hilarious, pun-driven gift ideas powered by AI. Perfect for any occasion!",
+  title: "Funny Gag Gifts & White Elephant Ideas | goose.gifts",
+  description: "Find funny gag gifts, white elephant ideas, novelty products, and weird presents from a fast catalog built for people who are hard to shop for.",
   keywords: [
-    "AI gift finder",
-    "funny gift ideas",
     "gag gifts",
-    "humorous presents",
-    "quirky gifts",
-    "gift generator",
+    "funny gag gifts",
     "white elephant gifts",
+    "weird gifts",
+    "novelty gifts",
+    "funny gifts for coworkers",
+    "funny gifts for dads",
     "secret santa ideas",
-    "funny gift bundles",
-    "personalized gifts",
+    "gift ideas for hard to shop for people",
+    "quirky gifts",
     "joke gifts",
-    "AI gift recommendations"
+    "funny gift bundles",
+    "AI gift finder"
   ],
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://goose.gifts'),
   openGraph: {
-    title: "goose.gifts - AI-Powered Funny Gift Finder",
-    description: "Discover hilarious, pun-driven gift ideas powered by AI",
+    title: "Funny Gag Gifts & White Elephant Ideas | goose.gifts",
+    description: "Find funny gag gifts, white elephant ideas, novelty products, and weird presents.",
     url: '/',
     siteName: 'goose.gifts',
     type: "website",
@@ -38,14 +39,14 @@ export const metadata: Metadata = {
         url: '/sillygoose-og.png',
         width: 1200,
         height: 630,
-        alt: 'goose.gifts - AI-Powered Funny Gift Finder',
+        alt: 'goose.gifts funny gag gift catalog',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "goose.gifts - AI-Powered Funny Gift Finder",
-    description: "Discover hilarious, pun-driven gift ideas powered by AI",
+    title: "Funny Gag Gifts & White Elephant Ideas | goose.gifts",
+    description: "Find funny gag gifts, white elephant ideas, novelty products, and weird presents.",
     images: ['/sillygoose-og.png'],
   },
 };
@@ -62,10 +63,10 @@ export default function RootLayout({
     '@type': 'WebSite',
     name: 'goose.gifts',
     url: baseUrl,
-    description: 'AI-powered funny gift finder - discover hilarious, pun-driven gift ideas',
+    description: 'Funny gag gift catalog for white elephant ideas, novelty products, and weird presents',
     potentialAction: {
       '@type': 'SearchAction',
-      target: `${baseUrl}/?q={search_term_string}`,
+      target: `${baseUrl}/search?q={search_term_string}`,
       'query-input': 'required name=search_term_string',
     },
   };
@@ -76,7 +77,7 @@ export default function RootLayout({
     name: 'goose.gifts',
     url: baseUrl,
     logo: `${baseUrl}/sillygoose.png`,
-    description: 'AI-powered gift finder for funny, creative gift ideas',
+    description: 'Funny gag gift catalog and gift finder for weird, useful, and ridiculous presents',
   };
 
   return (

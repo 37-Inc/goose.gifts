@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getNewestBundles } from '@/lib/db/related-bundles';
@@ -6,15 +7,101 @@ import { HomeClient } from '@/components/HomeClient';
 import { RecentBundles } from '@/components/RecentBundles';
 import { TrendingProducts } from '@/components/TrendingProducts';
 import { SearchBar } from '@/components/SearchBar';
+import type { Product } from '@/lib/types';
 
 export const revalidate = 3600; // Revalidate every hour
+
+const HOME_TITLE = 'Funny Gag Gifts, White Elephant Ideas, and Weird Presents';
+const HOME_DESCRIPTION = 'Find funny gag gifts, white elephant ideas, novelty products, and weird presents from a fast catalog built for people who are hard to shop for.';
+
+export const metadata: Metadata = {
+  title: `${HOME_TITLE} | goose.gifts`,
+  description: HOME_DESCRIPTION,
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: `${HOME_TITLE} | goose.gifts`,
+    description: HOME_DESCRIPTION,
+    url: '/',
+    siteName: 'goose.gifts',
+    type: 'website',
+    images: [
+      {
+        url: '/sillygoose-og.png',
+        width: 1200,
+        height: 630,
+        alt: 'goose.gifts funny gag gift catalog',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${HOME_TITLE} | goose.gifts`,
+    description: HOME_DESCRIPTION,
+    images: ['/sillygoose-og.png'],
+  },
+};
+
+function buildHomeItemListSchema(products: Product[]) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://goose.gifts';
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    url: baseUrl,
+    numberOfItems: products.length,
+    itemListElement: products.slice(0, 24).map((product, index) => {
+      const item: Record<string, unknown> = {
+        '@type': 'Product',
+        name: product.punnyTitle || product.title,
+        image: product.imageUrl,
+        description: product.wittyDescription || product.sourceQuery || product.title,
+        category: 'Gag gifts',
+        url: product.affiliateUrl,
+      };
+
+      if (product.price > 0) {
+        item.offers = {
+          '@type': 'Offer',
+          price: product.price.toFixed(2),
+          priceCurrency: product.currency || 'USD',
+          availability: 'https://schema.org/InStock',
+          url: product.affiliateUrl,
+        };
+      }
+
+      if (product.rating && product.reviewCount) {
+        item.aggregateRating = {
+          '@type': 'AggregateRating',
+          ratingValue: product.rating.toFixed(1),
+          reviewCount: product.reviewCount,
+        };
+      }
+
+      return {
+        '@type': 'ListItem',
+        position: index + 1,
+        item,
+      };
+    }),
+  };
+}
 
 export default async function HomePage() {
   const recentBundles = await getNewestBundles(4);
   const trendingProducts = await getTrendingProducts(36);
+  const itemListSchema = JSON.stringify(buildHomeItemListSchema(trendingProducts)).replace(/</g, '\\u003c');
 
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-950">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: itemListSchema }}
+      />
+
       <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <Link href="/" className="flex items-center gap-3">

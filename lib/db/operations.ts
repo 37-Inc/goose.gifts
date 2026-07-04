@@ -14,6 +14,7 @@ import { eq, sql } from 'drizzle-orm';
 import { generateSlug, calculatePriceRange, extractKeywords } from './helpers';
 import type { GiftIdea, GiftRequest, HumorStyle, Product } from '../types';
 import type { SEOContent } from '../seo';
+import { cleanImageUrl } from '../image-utils';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
@@ -264,7 +265,7 @@ export async function getGiftBundleBySlug(slug: string): Promise<(GiftBundle & {
         title: row.productTitle,
         price: parseFloat(row.productPrice),
         currency: row.productCurrency,
-        imageUrl: row.productImageUrl || '',
+        imageUrl: cleanImageUrl(row.productImageUrl || '', row.productSource),
         affiliateUrl: row.productAffiliateUrl,
         source: row.productSource as 'amazon' | 'etsy',
         rating: row.productRating ? parseFloat(row.productRating) : undefined,
@@ -405,7 +406,7 @@ export async function getAllBundles(): Promise<Array<GiftBundle & { giftIdeas: G
             title: row.productTitle,
             price: parseFloat(row.productPrice),
             currency: row.productCurrency,
-            imageUrl: row.productImageUrl || '',
+            imageUrl: cleanImageUrl(row.productImageUrl || '', row.productSource),
             affiliateUrl: row.productAffiliateUrl,
             source: row.productSource as 'amazon' | 'etsy',
             rating: row.productRating ? parseFloat(row.productRating) : undefined,
@@ -597,7 +598,7 @@ export async function getTrendingProducts(limit: number = 12): Promise<Product[]
       isActive: p.isActive,
       price: parseFloat(p.price),
       currency: p.currency,
-      imageUrl: p.imageUrl || '',
+      imageUrl: cleanImageUrl(p.imageUrl || '', p.source),
       affiliateUrl: p.affiliateUrl,
       source: p.source as 'amazon' | 'etsy',
       rating: p.rating ? parseFloat(p.rating) : undefined,
