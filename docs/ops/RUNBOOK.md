@@ -52,8 +52,9 @@ Boundaries (always in force):
    unless a higher-priority incident displaces it:
    `npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
    The command uses `@vercel/postgres` over HTTPS, upserts discovered products,
-   and keeps no-price discoveries inactive so they do not pollute the live
-   catalog grid.
+   and treats missing Amazon price data as unknown rather than inactive. Known
+   prices still gate the configured min/max range; unknown-price products should
+   link through to Amazon for the current price.
 5. **Verify.** `npm install && npm run build && npm run lint` must pass. Test
    the change as a user would where feasible.
 6. **Ship.** Commit on a `claude/`-prefixed branch, push, open a PR with a

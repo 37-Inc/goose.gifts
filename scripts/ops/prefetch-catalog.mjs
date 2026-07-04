@@ -80,8 +80,8 @@ Options:
   --theme-limit 6           Number of themes to search.
   --per-theme 10            Google CSE results per theme, max 10.
   --max-new 50              Stop after this many net-new products.
-  --min-price 5             Minimum price for active homepage eligibility.
-  --max-price 150           Maximum price for active homepage eligibility.
+  --min-price 5             Minimum known price for active homepage eligibility.
+  --max-price 150           Maximum known price for active homepage eligibility.
 `);
 }
 
@@ -170,15 +170,24 @@ function inferHumorTags(title, theme) {
 function scoreCandidate(product) {
   const title = product.title.toLowerCase();
   let score = 0.35;
+  const hasKnownPrice = product.price > 0;
 
   if (product.imageUrl) score += 0.15;
   if (product.price >= 8 && product.price <= 60) score += 0.15;
   else if (product.price > 60 && product.price <= 150) score += 0.05;
-  else if (product.price <= 0) score -= 0.1;
+  else if (hasKnownPrice) score -= 0.05;
   if (/\b(funny|gag|prank|weird|novelty|ridiculous|sarcastic|silly)\b/.test(title)) score += 0.2;
   if (product.humorTags.length >= 2) score += 0.1;
 
   return Math.max(0.05, Math.min(0.95, Number(score.toFixed(4))));
+}
+
+function isActiveCatalogCandidate(product, options) {
+  if (!product.imageUrl || !product.affiliateUrl) {
+    return false;
+  }
+
+  return product.price <= 0 || (product.price >= options.minPrice && product.price <= options.maxPrice);
 }
 
 function isAmazonThrottleError(error) {
@@ -286,7 +295,7 @@ function finalizeProducts(products, theme, options) {
       const title = product.title || '';
       const price = Number.isFinite(product.price) ? product.price : 0;
       const humorTags = inferHumorTags(title, theme);
-      const isActive = price >= options.minPrice && price <= options.maxPrice;
+      const isActive = isActiveCatalogCandidate({ ...product, price }, options);
 
       if (!product.id || !title || !product.imageUrl) {
         return null;
@@ -579,15 +588,18 @@ async function upsertProduct(product) {
   return Boolean(result.rows[0]?.inserted);
 }
 
-async function deactivateZeroPriceProducts() {
+async function activateUnknownPriceProducts() {
   const result = await sql.query(
     `
       UPDATE products
-      SET is_active = false,
+      SET is_active = true,
           updated_at = NOW(),
           last_verified_at = COALESCE(last_verified_at, NOW())
-      WHERE is_active = true
+      WHERE is_active = false
         AND price <= 0
+        AND image_url IS NOT NULL
+        AND affiliate_url IS NOT NULL
+        AND title <> ''
     `
   );
 
@@ -611,13 +623,13 @@ async function main() {
   const themes = (options.themes || envThemes || DEFAULT_THEMES).slice(0, options.themeLimit);
   const seen = new Set();
   const candidates = [];
-  let deactivatedZeroPrice = 0;
+  let activatedUnknownPrice = 0;
 
   console.log(`Catalog prefetch: ${themes.length} themes, max ${options.maxNew} net-new products`);
 
   if (!options.dryRun) {
-    deactivatedZeroPrice = await deactivateZeroPriceProducts();
-    console.log(`Deactivated ${deactivatedZeroPrice} legacy zero-price products before discovery`);
+    activatedUnknownPrice = await activateUnknownPriceProducts();
+    console.log(`Activated ${activatedUnknownPrice} image-backed products with unknown prices before discovery`);
   }
 
   for (const theme of themes) {
@@ -668,7 +680,7 @@ async function main() {
   console.log(JSON.stringify({
     dryRun: false,
     themes,
-    deactivatedZeroPrice,
+    activatedUnknownPrice,
     candidates: candidates.length,
     activeCandidates: candidates.filter((product) => product.isActive).length,
     inserted,

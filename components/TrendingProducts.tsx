@@ -19,6 +19,10 @@ function getGtag(): Gtag | undefined {
 }
 
 function formatPrice(product: Product): string {
+  if (product.price <= 0) {
+    return 'Check price';
+  }
+
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: product.currency || 'USD',

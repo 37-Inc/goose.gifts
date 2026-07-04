@@ -256,7 +256,7 @@ async function fetchDatabaseAnalytics() {
         SELECT
           count(*) FILTER (WHERE is_active)::int AS active,
           count(*) FILTER (WHERE NOT is_active)::int AS inactive,
-          count(*) FILTER (WHERE is_active AND price::numeric = 0)::int AS active_zero_price,
+          count(*) FILTER (WHERE is_active AND price::numeric = 0)::int AS active_unknown_price,
           count(*) FILTER (WHERE is_active AND image_url IS NULL)::int AS active_without_image,
           count(*) FILTER (WHERE is_active AND affiliate_url IS NULL)::int AS active_without_affiliate,
           count(*) FILTER (WHERE embedding IS NOT NULL)::int AS embedded_products,
@@ -343,7 +343,7 @@ function printText(snapshot) {
   console.log('');
   console.log('Catalog readiness');
   console.log(`- Active/inactive: ${catalog.active.toLocaleString()} / ${catalog.inactive.toLocaleString()}`);
-  console.log(`- Active zero-price products: ${catalog.active_zero_price.toLocaleString()}`);
+  console.log(`- Active unknown-price products: ${catalog.active_unknown_price.toLocaleString()}`);
   console.log(`- Active missing image/affiliate: ${catalog.active_without_image.toLocaleString()} / ${catalog.active_without_affiliate.toLocaleString()}`);
   console.log(`- Embedded products: ${catalog.embedded_products.toLocaleString()}`);
   console.log(`- Products with punny copy: ${catalog.products_with_punny_copy.toLocaleString()}`);
