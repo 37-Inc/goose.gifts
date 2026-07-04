@@ -5,6 +5,33 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-03 - Corrected unknown-price catalog policy
+
+**Decision**: Missing Amazon PA-API price data is expected enough that it
+should be treated as "unknown price," not as proof the product is unsuitable
+for the live catalog. Amazon's current PA-API docs still list price resources,
+but they also mark PA-API/Offers as deprecated and direct migration toward
+Creators API / OffersV2. Until that migration is done, title/image/affiliate
+link are the stronger activation signals.
+
+**Shipped in this run**:
+- Changed `catalog:prefetch` so image-backed products with affiliate links stay
+  active when `price = 0`; known prices still need to fit the configured
+  min/max range.
+- Reversed the prior zero-price cleanup policy by reactivating inactive
+  image-backed products whose price is unknown.
+- Updated the homepage catalog query to include active unknown-price products
+  and display them as `Check price` instead of `$0.00`.
+- Renamed the ops analytics metric from active zero-price products to active
+  unknown-price products so the snapshot no longer reports expected missing
+  offer prices as a catalog-readiness defect.
+- Updated the runbook and needs list so future runs do not treat missing PA-API
+  offer price as a catalog blocker.
+
+**Next**: keep pricing/enrichment on the roadmap for better ranking and display,
+but do not block catalog growth on it. The higher leverage path is now copy,
+tagging, embeddings, and SEO pages over a larger active product base.
+
 ## 2026-07-03 - Catalog prefetch survives Amazon throttling
 
 **Health + GitHub checks**:

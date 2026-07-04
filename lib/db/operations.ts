@@ -582,8 +582,7 @@ export async function getTrendingProducts(limit: number = 12): Promise<Product[]
         ${products.imageUrl} IS NOT NULL
         AND ${products.affiliateUrl} IS NOT NULL
         AND ${products.isActive} = true
-        AND ${products.price} > 0
-        AND ${products.price} <= 250
+        AND (${products.price} <= 0 OR ${products.price} <= 250)
       `);
 
     // Convert to Product type with stats
