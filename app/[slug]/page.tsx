@@ -272,15 +272,6 @@ export default async function BundlePage({ params }: BundlePageProps) {
           </div>
         </main>
 
-        {/* Footer */}
-        <footer className="border-t border-zinc-200 bg-white mt-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <p className="text-xs text-zinc-400 text-center">
-              Prices shown are estimates and may vary. Click through to verify current pricing and availability.
-              As affiliates, we may earn from qualifying purchases.
-            </p>
-          </div>
-        </footer>
       </div>
     </>
   );

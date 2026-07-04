@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Image from "next/image";
+import Link from "next/link";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
@@ -8,6 +10,14 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
 });
+
+const socialLinks = [
+  { label: 'X', href: process.env.NEXT_PUBLIC_X_URL || process.env.NEXT_PUBLIC_TWITTER_URL },
+  { label: 'TikTok', href: process.env.NEXT_PUBLIC_TIKTOK_URL },
+  { label: 'Pinterest', href: process.env.NEXT_PUBLIC_PINTEREST_URL },
+  { label: 'Instagram', href: process.env.NEXT_PUBLIC_INSTAGRAM_URL },
+  { label: 'Facebook', href: process.env.NEXT_PUBLIC_FACEBOOK_URL },
+].filter((link): link is { label: string; href: string } => Boolean(link.href));
 
 export const metadata: Metadata = {
   title: "Funny Gag Gifts & White Elephant Ideas | goose.gifts",
@@ -116,15 +126,66 @@ export default function RootLayout({
           {children}
         </main>
 
-        {/* Affiliate Disclosure Footer */}
-        <footer className="border-t border-zinc-200 bg-white py-12">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <p className="text-xs text-zinc-500 text-center leading-relaxed">
-              We participate in affiliate programs. Purchases through our links support this project at no cost to you.
-            </p>
-            <p className="text-xs text-zinc-400 text-center mt-6">
-              © {new Date().getFullYear()} goose.gifts
-            </p>
+        <footer className="border-t border-zinc-200 bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+              <div className="max-w-sm">
+                <Link href="/" className="inline-flex items-center gap-3">
+                  <Image
+                    src="/sillygoose.png"
+                    alt=""
+                    width={36}
+                    height={36}
+                    className="h-9 w-9"
+                  />
+                  <span className="text-lg font-black tracking-tight text-zinc-950">
+                    goose.gifts
+                  </span>
+                </Link>
+                <p className="mt-3 text-sm leading-6 text-zinc-600">
+                  Funny, weird, and actually purchasable gift ideas for people who are hard to shop for.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-8 text-sm sm:flex sm:gap-12">
+                <div>
+                  <h2 className="font-semibold text-zinc-950">Explore</h2>
+                  <div className="mt-3 flex flex-col gap-2 text-zinc-600">
+                    <Link href="/" className="hover:text-red-700">Fresh finds</Link>
+                    <Link href="/search" className="hover:text-red-700">Search gifts</Link>
+                    <Link href="/#custom-bundle" className="hover:text-red-700">Custom bundle</Link>
+                  </div>
+                </div>
+
+                {socialLinks.length > 0 && (
+                  <div>
+                    <h2 className="font-semibold text-zinc-950">Social</h2>
+                    <div className="mt-3 flex flex-col gap-2 text-zinc-600">
+                      {socialLinks.map((link) => (
+                        <a
+                          key={link.label}
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-red-700"
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-10 flex flex-col gap-3 border-t border-zinc-200 pt-6 text-xs leading-5 text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+              <p>
+                As affiliates, we may earn from qualifying purchases at no extra cost to you.
+              </p>
+              <p className="text-zinc-400">
+                © {new Date().getFullYear()} goose.gifts
+              </p>
+            </div>
           </div>
         </footer>
 

@@ -162,7 +162,6 @@ export function GiftResults({ giftIdeas, permalinkUrl, searchRequest, onStartOve
       <div className="mt-8 max-w-2xl mx-auto">
         <p className="text-xs text-zinc-400 text-center leading-relaxed">
           Prices shown are estimates and may vary. Click through to verify current pricing and availability.
-          As affiliates, we may earn from qualifying purchases.
         </p>
       </div>
     </div>

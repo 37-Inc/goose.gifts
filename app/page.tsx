@@ -151,12 +151,6 @@ export default async function HomePage() {
       </section>
 
       <RecentBundles bundles={recentBundles} />
-
-      <footer className="border-t border-zinc-200 bg-white px-4 py-10 text-center">
-        <p className="text-xs leading-6 text-zinc-500">
-          goose.gifts may earn a commission from qualifying affiliate purchases.
-        </p>
-      </footer>
     </main>
   );
 }
