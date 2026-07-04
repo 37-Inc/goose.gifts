@@ -1,10 +1,11 @@
 import { MetadataRoute } from 'next';
 import { giftGuides } from '@/lib/gift-guides';
+import { getSiteUrl } from '@/lib/site';
 
 export const revalidate = 3600;
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://goose.gifts';
+  const baseUrl = getSiteUrl();
 
   const staticPages: MetadataRoute.Sitemap = [
     {

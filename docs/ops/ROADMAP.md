@@ -77,6 +77,26 @@ marginal cost per visitor drops to ~zero. This is the main margin lever.
   also Father's/Mother's Day, Valentine's, graduation, Halloween).
 - Search Console feedback loop once access is granted (see NEEDS).
 
+### Immediate SEO/GEO todo list
+
+The actionable checklist lives in `docs/ops/SEO_GROWTH_TODO.md`. Treat it as
+part of Phase 2 until the site has a meaningful crawl footprint.
+
+Priority order:
+
+1. Fix crawl-signal hygiene: canonical `www`, sitemap/robots consistency, raw
+   server-rendered schema, and compressed share assets.
+2. Recover stale indexed bundle URLs with permanent redirects into catalog
+   searches or guide pages. Do not rebuild the old bundle product, but do not
+   waste indexed long-tail demand on hard 404s.
+3. Build a larger guide network from catalog reality: start with query/tag
+   clusters that already have enough products, then expand toward weird
+   combinatorial pages that publishers and retailers under-serve.
+4. Add FAQ/editorial content to guide pages so AI search engines can cite the
+   page as an answer source, not just a list of outbound products.
+5. Improve price/revenue coverage as data becomes available so ranking can
+   optimize for affiliate value, not just click volume.
+
 ## Phase 3 — Growth loops & revenue depth
 
 - Shareability: OG images per product, Pinterest-optimized pages

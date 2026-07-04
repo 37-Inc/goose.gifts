@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
+import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
     icon: '/sillygoose.png',
     apple: '/sillygoose.png',
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://goose.gifts'),
+  metadataBase: new URL(getSiteUrl()),
   openGraph: {
     title: "Funny Gag Gifts & White Elephant Ideas | goose.gifts",
     description: "Find funny gag gifts, white elephant ideas, novelty products, and weird presents.",
@@ -70,45 +71,40 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://goose.gifts';
+  const baseUrl = getSiteUrl();
 
-  const websiteSchema = {
+  const siteSchema = JSON.stringify({
     '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'goose.gifts',
-    url: baseUrl,
-    description: 'Funny gag gift catalog for white elephant ideas, novelty products, and weird presents',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `${baseUrl}/?q={search_term_string}`,
-      'query-input': 'required name=search_term_string',
-    },
-  };
-
-  const organizationSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'goose.gifts',
-    url: baseUrl,
-    logo: `${baseUrl}/sillygoose.png`,
-    description: 'Funny gag gift catalog and gift finder for weird, useful, and ridiculous presents',
-  };
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': `${baseUrl}/#website`,
+        name: 'goose.gifts',
+        url: baseUrl,
+        description: 'Funny gag gift catalog for white elephant ideas, novelty products, and weird presents',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: `${baseUrl}/?q={search_term_string}`,
+          'query-input': 'required name=search_term_string',
+        },
+      },
+      {
+        '@type': 'Organization',
+        '@id': `${baseUrl}/#organization`,
+        name: 'goose.gifts',
+        url: baseUrl,
+        logo: `${baseUrl}/sillygoose.png`,
+        description: 'Funny gag gift catalog and gift finder for weird, useful, and ridiculous presents',
+      },
+    ],
+  }).replace(/</g, '\\u003c');
 
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased min-h-screen`}>
-        {/* JSON-LD Structured Data */}
-        <Script
-          id="website-schema"
+        <script
           type="application/ld+json"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-        />
-        <Script
-          id="organization-schema"
-          type="application/ld+json"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          dangerouslySetInnerHTML={{ __html: siteSchema }}
         />
 
         {/* Google Analytics & Google Ads */}

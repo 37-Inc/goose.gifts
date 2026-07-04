@@ -4,7 +4,8 @@ import { getTrendingProducts } from '@/lib/db/operations';
 import { searchCatalogProducts } from '@/lib/db/product-search';
 import { CatalogSearchFeed } from '@/components/CatalogSearchFeed';
 import { Header } from '@/components/Header';
-import { giftGuides } from '@/lib/gift-guides';
+import { getFeaturedGiftGuides } from '@/lib/gift-guides';
+import { getSiteUrl } from '@/lib/site';
 import type { Product } from '@/lib/types';
 
 export const revalidate = 3600; // Revalidate every hour
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
 };
 
 function buildHomeItemListSchema(products: Product[]) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://goose.gifts';
+  const baseUrl = getSiteUrl();
 
   return {
     '@context': 'https://schema.org',
@@ -98,6 +99,7 @@ export default async function HomePage({
   const initialProducts = initialQuery.length >= 2
     ? await searchCatalogProducts(initialQuery, 36)
     : await getTrendingProducts(36);
+  const featuredGuides = getFeaturedGiftGuides(undefined, 12);
   const itemListSchema = JSON.stringify(buildHomeItemListSchema(initialProducts)).replace(/</g, '\\u003c');
 
   return (
@@ -123,7 +125,7 @@ export default async function HomePage({
         </div>
 
         <nav className="mt-6 flex flex-wrap gap-2" aria-label="Gift guides">
-          {giftGuides.map((guide) => (
+          {featuredGuides.map((guide) => (
             <Link
               key={guide.slug}
               href={`/gift-guides/${guide.slug}`}
