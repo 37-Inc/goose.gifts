@@ -60,18 +60,50 @@ Boundaries (always in force):
    and treats missing Amazon price data as unknown rather than inactive. Known
    prices still gate the configured min/max range; unknown-price products should
    link through to Amazon for the current price.
-5. **Verify.** `npm install && npm run build && npm run lint` must pass. Test
-   the change as a user would where feasible. For SEO/GEO changes, also check
-   the touched page's title, meta description, canonical URL, structured data,
-   robots/sitemap visibility, and whether the marked-up data is visible on the
-   page rather than hidden-only.
-6. **Ship.** Commit on a `claude/`-prefixed branch, push, open a PR with a
+5. **Review your own work.** Before verification, do a deliberate review pass
+   over the diff as if reviewing someone else's PR. Look for regressions,
+   over-broad changes, bad assumptions, missing error handling, data-policy
+   mistakes, accessibility issues, stale docs, and SEO/GEO claims that are not
+   backed by visible page content. Fix what you find before shipping. If the
+   change is risky, add a targeted test or a narrower runtime check.
+6. **QA.** `npm install && npm run build && npm run lint` must pass. Test the
+   change as a user would where feasible. For UI or user-flow changes, run the
+   site locally or inspect production after deploy in a browser at desktop and
+   mobile widths; verify the affected workflow still functions, text does not
+   overlap, images load, loading/empty/error states are acceptable, and the page
+   looks polished enough to represent the brand. For SEO/GEO changes, also
+   check the touched page's title, meta description, canonical URL, structured
+   data, robots/sitemap visibility, and whether the marked-up data is visible on
+   the page rather than hidden-only.
+7. **Ship.** Commit on a `claude/`-prefixed branch, push, open a PR with a
    clear description, and merge it. Confirm the production site still works
    after deploy (~2 min for Vercel).
-7. **Log.** Append a dated entry to `docs/ops/JOURNAL.md`: metrics snapshot,
-   what shipped, what was learned, plan for tomorrow. Update `docs/ops/NEEDS.md`
-   (add new asks, mark received ones). Commit these with the day's PR or a
-   follow-up commit.
+8. **Log.** Append a dated entry to `docs/ops/JOURNAL.md`: metrics snapshot,
+   what shipped, what review/QA found, what was learned, plan for tomorrow.
+   Update `docs/ops/NEEDS.md` (add new asks, mark received ones). Commit these
+   with the day's PR or a follow-up commit.
+
+## Review and QA cadence
+
+Every shipped change gets the review pass in daily step 5 and the verification
+pass in step 6. In addition:
+
+- **Daily smoke QA**: after every deploy, verify production homepage, sitemap,
+  `/search`, and one bundle permalink. When the homepage/catalog/search changed,
+  also confirm at least one product click target is a real outbound affiliate
+  URL and that unknown prices render as `Check price`, not `$0.00`.
+- **Visual QA for UI changes**: use browser screenshots or direct browser
+  inspection for desktop and mobile. Check first viewport, scrolling grid/card
+  layout, search dropdown, forms, images, and footer disclosure. Fix visual
+  defects found in the same PR.
+- **Weekly product review**: during the weekly check-in run, spend one focused
+  pass on overall site quality: stale/broken links, broken images, awkward copy,
+  weak catalog ranking, mobile polish, and any user-visible dead ends. Capture
+  findings in the weekly issue and fix the highest-impact reversible items.
+- **Monthly deeper audit**: on the first run of each month, do a broader
+  review of performance, accessibility basics, SEO crawlability, affiliate
+  disclosure placement, analytics integrity, and docs drift. Turn larger
+  findings into roadmap tasks or GitHub issues.
 
 ## Weekly check-in (Mondays, or first run after)
 

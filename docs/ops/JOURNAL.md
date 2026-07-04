@@ -5,6 +5,25 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-03 - Added standing review and QA cadence
+
+**Owner direction**: Cameron asked that autonomous operation include an explicit
+review pass to catch and fix problems in my own changes, plus a QA process to
+ensure the site still functions correctly and looks good.
+
+**Shipped in this run**:
+- Updated `docs/ops/RUNBOOK.md` so every shipped change now requires a
+  self-review pass before verification.
+- Split verification into a broader QA step covering build/lint, user-flow
+  testing, visual checks for UI changes, SEO/GEO page checks, and production
+  smoke checks after deploy.
+- Added a cadence: daily smoke QA, visual QA for UI changes, weekly product
+  quality review, and a monthly deeper audit for performance, accessibility,
+  SEO crawlability, disclosures, analytics, and docs drift.
+
+**Next**: future daily runs should log what the review/QA pass found, including
+whether it fixed issues before shipping.
+
 ## 2026-07-03 - Corrected unknown-price catalog policy
 
 **Decision**: Missing Amazon PA-API price data is expected enough that it
