@@ -5,6 +5,25 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-03 - Clarified owner-level business mission
+
+**Owner direction**: Cameron clarified that autonomous operation should behave
+like a talented employee whose mission is to grow the business every day, not
+just keep the checklist green.
+
+**Shipped in this run**:
+- Added a `Mission` section to `docs/ops/RUNBOOK.md` that frames every run
+  around increasing business value through qualified traffic, catalog depth,
+  conversion paths, analytics clarity, SEO/GEO coverage, site quality, or
+  better learning.
+- Updated operating principles so every non-incident run should ship a growth
+  improvement, fix a quality/conversion issue, or produce concrete evidence
+  that changes the next day's priorities.
+
+**Next**: daily runs should use this mission as the tie-breaker when choosing
+between maintenance, polish, catalog work, SEO/GEO, analytics, and conversion
+improvements.
+
 ## 2026-07-03 - Added standing review and QA cadence
 
 **Owner direction**: Cameron asked that autonomous operation include an explicit
