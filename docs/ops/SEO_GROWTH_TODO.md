@@ -71,7 +71,7 @@ report.
 
 ## Data And Owner-Dependent Work
 
-- [ ] Get Google Search Console access so query clusters can come from real
+- [x] Get Google Search Console access so query clusters can come from real
   impressions and click-through data instead of only on-site searches.
 - [ ] Improve product price coverage. Unknown prices are acceptable for users
   as `Check price`, but missing prices weaken Product rich-result eligibility
