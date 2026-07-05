@@ -5,6 +5,38 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-05 - Dedicated Google Cloud project for Search Console
+
+**Owner direction**: Cameron asked to trigger whatever auth was needed to fully
+set up goose.gifts with isolated Google Cloud/Search Console access.
+
+**Shipped in this run**:
+- Reauthenticated `cam@37.technology` for `gcloud` and ADC.
+- Found the existing dedicated Google Cloud project
+  `goose-gifts-1759468598826` (`goose-gifts`) with billing enabled.
+- Enabled the required APIs in that project: IAM, Service Usage, Cloud Resource
+  Manager, Site Verification, and Search Console.
+- Created
+  `goose-gifts-search-console@goose-gifts-1759468598826.iam.gserviceaccount.com`.
+- Replaced the stable local key at
+  `~/.config/gcloud/goose-gifts-search-console-sa.json` with a key from the
+  dedicated goose project. The previous interim key was backed up locally with
+  an `ereps-seo-retired` suffix.
+- Replaced the interim Google verification file with the dedicated-project
+  verification file at `/googleee777952c9d7ed07.html`.
+
+**Verification**:
+- `gcloud` is active as `cam@37.technology`.
+- The dedicated project has billing enabled and `cam@37.technology` is owner.
+- The local key now identifies
+  `goose-gifts-search-console@goose-gifts-1759468598826.iam.gserviceaccount.com`.
+
+**Next**: after PR deployment, verify the new service account as Search
+Console owner, remove the interim `ereps-seo` goose service account from Site
+Verification/Search Console, and close Beads task `roadmap-93zq`.
+
+---
+
 ## 2026-07-05 - Search Console service account isolation
 
 **Owner direction**: Cameron noticed that the eReps Search Console service
