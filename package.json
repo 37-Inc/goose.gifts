@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "analytics:snapshot": "node scripts/ops/analytics-snapshot.mjs",
+    "analytics:ga4": "bash scripts/ops/ga4.sh",
     "catalog:prefetch": "node scripts/ops/prefetch-catalog.mjs",
     "catalog:enrich": "node scripts/ops/prefetch-catalog.mjs --enrich-only",
     "test:amazon": "node test-amazon-api.js",

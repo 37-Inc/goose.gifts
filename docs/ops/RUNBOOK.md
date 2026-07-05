@@ -69,6 +69,10 @@ Boundaries (always in force):
    Search Console data is needed. The verified property is
    `https://www.goose.gifts/`, owned by the local service account key at
    `~/.config/gcloud/goose-gifts-search-console-sa.json`.
+   For GA4 source/event/landing-page reports, run `npm run analytics:ga4 --`
+   followed by `events`, `traffic`, `landing-pages`, or
+   `event <event-name>`. The goose.gifts GA4 property is `507421709`, using the
+   same dedicated service account key unless `GOOSE_GA4_SA_KEY` overrides it.
 4. **Do the highest-leverage task.** Default priority order:
    1. Anything broken or degrading (errors, broken images, dead affiliate links).
    2. SEO/GEO and lead-generation work informed by step 3. This is not optional:

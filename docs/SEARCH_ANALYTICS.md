@@ -18,6 +18,13 @@ Search analytics system for tracking, analyzing, and improving product-catalog s
   - Timestamp
 
 ### 2. Google Analytics Integration
+
+GA4 browser tagging is installed in `app/layout.tsx` with measurement ID
+`G-6RR3HPR747`, and Google Ads tagging is installed with `AW-17626116539`.
+The matching GA4 property is `507421709`. The dedicated goose service account
+has Viewer access, so Codex can read GA4 through `npm run analytics:ga4 -- ...`
+without using the browser.
+
 - **Search Event**: Fires on every catalog search with:
   - `event`: `'search'`
   - `search_term`: The query
@@ -197,7 +204,11 @@ git push origin main
 ### Google Analytics not tracking
 - Verify gtag is loaded: Check browser console for `window.gtag`
 - Check GA dashboard real-time events
-- Ensure NEXT_PUBLIC_GA_ID is set in environment
+- Confirm the hardcoded GA4 measurement ID in `app/layout.tsx` is still the
+  intended goose.gifts property: `G-6RR3HPR747`.
+- For programmatic GA reports, run `npm run analytics:ga4 -- events`,
+  `npm run analytics:ga4 -- traffic`, `npm run analytics:ga4 -- landing-pages`,
+  or `npm run analytics:ga4 -- event conversion_event_outbound_click`.
 
 ### Poor similarity scores
 - Review product copy - is it semantic and descriptive?

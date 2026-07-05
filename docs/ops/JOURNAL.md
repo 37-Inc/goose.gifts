@@ -5,6 +5,41 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-05 - Google Analytics Data API access connected
+
+**Owner direction**: Cameron asked to trigger whatever auth was needed and to
+audit whether analytics was ready for user/funnel analysis.
+
+**Shipped in this run**:
+- Confirmed GA4 browser tagging is live in `app/layout.tsx` with measurement ID
+  `G-6RR3HPR747` and Google Ads tag `AW-17626116539`.
+- Found the matching GA4 property in Google Analytics:
+  `507421709` (`goose.gifts`).
+- Added the dedicated goose service account
+  `goose-gifts-search-console@goose-gifts-1759468598826.iam.gserviceaccount.com`
+  to the GA4 property as `Viewer`.
+- Enabled Analytics Data/Admin APIs in Google Cloud project
+  `goose-gifts-1759468598826`.
+- Added `scripts/ops/ga4.sh` and `npm run analytics:ga4 -- ...` for repeatable
+  read-only GA4 reports.
+- Updated `.env.example`, the runbook, needs list, and Search Analytics docs
+  with the property ID, key path, and supported report commands.
+
+**Verification**:
+- `npm run analytics:ga4 -- events` reads GA4 Data API rows from the dedicated
+  service-account key. The first verified 30-day report included `page_view`,
+  `session_start`, `first_visit`, `user_engagement`, `scroll`, `search`, and
+  `conversion_event_outbound_click`.
+- The GA4 property UI lists the dedicated goose service account with `Viewer`
+  access.
+
+**Next**: the remaining analytics work is instrumentation and reporting, not
+owner auth: track guide-page product impressions/clicks, add source/session
+stitching, and rebuild admin growth dashboards around catalog search and guide
+performance.
+
+---
+
 ## 2026-07-05 - Dedicated Google Cloud project for Search Console
 
 **Owner direction**: Cameron asked to trigger whatever auth was needed to fully
@@ -24,16 +59,30 @@ set up goose.gifts with isolated Google Cloud/Search Console access.
   an `ereps-seo-retired` suffix.
 - Replaced the interim Google verification file with the dedicated-project
   verification file at `/googleee777952c9d7ed07.html`.
+- Merged and deployed PR #35, then completed Search Console ownership through
+  the new service account after production served the new verification file.
+- Removed the interim `ereps-seo` goose service account from both Site
+  Verification ownership and its stale Search Console site entry.
+- Closed Beads task `roadmap-93zq`.
 
 **Verification**:
 - `gcloud` is active as `cam@37.technology`.
 - The dedicated project has billing enabled and `cam@37.technology` is owner.
 - The local key now identifies
   `goose-gifts-search-console@goose-gifts-1759468598826.iam.gserviceaccount.com`.
+- Production serves `/googleee777952c9d7ed07.html` and returns 404 for the
+  retired `/google9ee84afec0bdaec6.html` file.
+- Site Verification lists only the dedicated goose service account as owner for
+  `https://www.goose.gifts/`.
+- `scripts/ops/gsc.sh sites` lists `https://www.goose.gifts/` as `siteOwner`;
+  sitemap readback works with 38 submitted URLs, 0 errors, and 0 warnings; and
+  Search Analytics / URL Inspection API calls authenticate from the new key.
+- The old eReps and interim goose keys no longer list goose.gifts in Search
+  Console or Site Verification.
 
-**Next**: after PR deployment, verify the new service account as Search
-Console owner, remove the interim `ereps-seo` goose service account from Site
-Verification/Search Console, and close Beads task `roadmap-93zq`.
+**Next**: watch Google recrawl the homepage canonical; the last inspection still
+showed Google-selected canonical `https://goose.gifts/` from a pre-recrawl
+state.
 
 ---
 
