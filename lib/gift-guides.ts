@@ -223,6 +223,14 @@ export const giftGuides: GiftGuideDefinition[] = [
     keywords: ['home-decor', 'decor', 'home', 'housewarming', 'weird', 'candle', 'statue', 'novelty'],
   },
   {
+    slug: 'optical-illusion-decor-gifts',
+    title: 'Optical Illusion Decor Gifts',
+    h1: 'Optical illusion decor gifts for rooms that need a double take',
+    description: 'Browse optical illusion decor gifts, weird statues, odd shelf pieces, and conversation-starting home finds.',
+    intro: 'Optical illusion decor works when the joke is visual before anyone reads the box. These picks are built for shelves, desks, and rooms that need one strange focal point.',
+    keywords: ['optical', 'illusion', 'decor', 'statue', 'home', 'weird', 'shelf', 'novelty'],
+  },
+  {
     slug: 'funny-gifts-for-teachers',
     title: 'Funny Gifts for Teachers',
     h1: 'Funny gifts for teachers who have earned the joke',

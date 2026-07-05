@@ -5,6 +5,60 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-05 - Daily ops: optical illusion guide recovery shipped
+
+**Health**: production homepage returned 200 with the expected title,
+`/sitemap.xml` returned 200, `/search?q=dad%20with%20no%20spare%20time`
+redirected to `/?q=...`, and the semantic catalog query page returned 200 with
+`Check price` rendering and outbound product links.
+
+**Metrics snapshot**: Vercel Web Analytics reported 23 visitors and 48
+pageviews for 2026-06-05 through 2026-07-05 UTC, with 2 visitors / 4 pageviews
+on 2026-07-05. Top paths are still mostly `/`, but old bundle-style URLs and
+the new gift-guide pages are now appearing in the top path list. Database
+totals: 3,251 active products, 18,410 impressions, 92 product click events, 290
+lifetime searches, 23 searches in the last 24 hours, and 0 product clicks in
+the last 24 hours. Catalog readiness is strong for search/guide work: all
+3,251 active products have images, affiliate links, embeddings, and punny copy;
+3,234 active products still have unknown prices.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 76 candidates, 76 active/enriched/embedded candidates, 5 inserted, and
+71 updated.
+
+**Shipped growth work**: added
+`/gift-guides/optical-illusion-decor-gifts`, a crawlable catalog-backed guide
+for optical illusion decor gifts. This was chosen because the stale indexed
+bundle URL
+`/quirky-optical-illusion-statues-for-unique-decor-lovers-ey78` still received
+traffic and the catalog has hundreds of matching image-backed affiliate
+products. The old URL now 308 redirects to the canonical guide instead of a
+search URL, so recoverable long-tail demand lands on a page with title/meta,
+canonical, visible FAQ/editorial copy, related internal links, sitemap
+inclusion, and matching ItemList/FAQ schema. Expected metric movement: more
+indexed guide coverage and better organic retention for the optical illusion /
+weird decor cluster.
+
+**Review / QA**:
+- Self-reviewed the diff for thin-page risk, redirect specificity, sitemap
+  inclusion, schema/content match, and old bundle-flow regression risk.
+- `npm run lint`, `npm run build`, and `git diff --check` passed.
+- Local built-server checks verified the new guide title, canonical URL,
+  visible H1, FAQ/ItemList schema, sitemap URL, 308 legacy redirect, and
+  outbound product links.
+- Playwright desktop and mobile screenshots of the new guide showed no visible
+  layout breakage or text overlap.
+
+**Needs**: Search Console, revenue reporting, price coverage, and owned channel
+approval remain the highest-leverage owner-dependent inputs.
+
+**Next**: use the next live search/path data to recover another stale bundle
+cluster into a guide when the catalog can support it, or begin the Monday
+weekly SEO publishing sprint if that run is the first run after Monday.
+
+---
+
 ## 2026-07-04 - Added recurring SEO guide publishing cadence
 
 **Owner direction**: Cameron asked whether the SEO plan included a recurring

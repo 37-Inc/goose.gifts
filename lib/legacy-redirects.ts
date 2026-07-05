@@ -2,7 +2,7 @@ const exactLegacyTargets: Record<string, string> = {
   'purrfect-gifts-for-cat-loving-bookworms-n6y7': '/gift-guides/cat-lover-gag-gifts',
   'hilarious-gift-bundles-for-a-new-bathroom-remodel-522n': '/gift-guides/weird-bathroom-gifts',
   'hilarious-gift-bundles-for-property-managers-fy9y': '/gift-guides/funny-gifts-for-coworkers',
-  'quirky-optical-illusion-statues-for-unique-decor-lovers-ey78': '/?q=optical%20illusion%20decor',
+  'quirky-optical-illusion-statues-for-unique-decor-lovers-ey78': '/gift-guides/optical-illusion-decor-gifts',
   'hilarious-dirty-santa-gift-bundles-for-holiday-fun-kwsf': '/gift-guides/dirty-santa-gifts',
 };
 
@@ -18,6 +18,7 @@ const guideTargets = [
   { terms: ['cat'], target: '/gift-guides/cat-lover-gag-gifts' },
   { terms: ['dog'], target: '/gift-guides/dog-lover-gag-gifts' },
   { terms: ['bathroom'], target: '/gift-guides/weird-bathroom-gifts' },
+  { terms: ['optical-illusion'], target: '/gift-guides/optical-illusion-decor-gifts' },
   { terms: ['kitchen'], target: '/gift-guides/weird-kitchen-gadgets' },
   { terms: ['coffee'], target: '/gift-guides/funny-coffee-mugs' },
   { terms: ['bookworm'], target: '/gift-guides/funny-book-lover-gifts' },
