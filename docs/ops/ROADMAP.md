@@ -72,6 +72,13 @@ marginal cost per visitor drops to ~zero. This is the main margin lever.
   clear target query, H1, meta title/description, canonical, ItemList/Product
   schema where eligible, internal links to sibling clusters, and at least one
   product grid that is useful without JavaScript.
+- Recurring cadence: every weekly check-in run should publish 3-5 new
+  catalog-backed guide pages or materially improve existing ones, unless the
+  catalog cannot support that many useful pages yet. These are non-legacy guide
+  and roundup pages, not a return to bundle permalinks.
+- Presentation standard: guide pages should feel editorially finished, with
+  polished intro copy, scannable sections, useful product ordering, visible
+  FAQ answers, related guide links, and desktop/mobile visual QA before merge.
 - Seasonal calendar: build pages 6–8 weeks ahead of gifting peaks
   (Christmas/white elephant season is the big one — prep starts October;
   also Father's/Mother's Day, Valentine's, graduation, Halloween).

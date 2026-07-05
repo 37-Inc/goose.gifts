@@ -72,6 +72,9 @@ Boundaries (always in force):
       (programmatic page, metadata/schema/internal-link improvement, keyword
       gap, share asset, or approved distribution experiment) and log why that
       asset should move organic sessions, indexed pages, or outbound CTR.
+      Daily runs should also add new guide-page candidates from search logs,
+      stale indexed URLs, catalog themes, and seasonal demand to
+      `docs/ops/SEO_GROWTH_TODO.md`.
       Use `docs/ops/SEO_GROWTH_TODO.md` as the standing checklist for current
       crawl-growth work. Keep it updated when a task ships, when analytics
       exposes a new stale URL/query cluster, or when an owner-dependent blocker
@@ -134,6 +137,25 @@ pass in step 6. In addition:
   findings into roadmap tasks or GitHub issues.
 
 ## Weekly check-in (Mondays, or first run after)
+
+Before opening the weekly issue, run the weekly SEO publishing sprint:
+
+- Publish 3-5 new catalog-backed guide pages, or materially improve existing
+  guide pages, when each page has enough relevant products to be genuinely
+  useful.
+- Do not revive the old bundle product or legacy bundle permalink flow. New
+  pages should be maintained guide/page packages with crawlable product grids,
+  polished editorial layout, visible FAQs, related internal links, canonical
+  metadata, sitemap inclusion, and matching structured data.
+- Run desktop and mobile visual QA on at least one new or materially changed
+  guide page. Fix formatting, overlap, image, empty-state, and awkward-copy
+  issues before merging.
+- Prepare Pinterest/social/OG asset concepts for the newly published evergreen
+  pages, but do not post externally unless Cameron has approved that channel in
+  `docs/ops/NEEDS.md`.
+- If fewer than 3 publishable clusters exist, document the exact blocker in the
+  weekly issue and spend the sprint building candidates, enriching products, or
+  improving price/search data instead of publishing thin SEO pages.
 
 Open a GitHub issue in `37-Inc/goose.gifts` titled
 `Weekly check-in — YYYY-MM-DD` containing:
