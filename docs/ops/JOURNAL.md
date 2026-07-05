@@ -22,12 +22,34 @@ a dedicated service account instead of commingling product identities.
 - Switched `scripts/ops/gsc.sh` to the goose-specific key path.
 - Updated the runbook and needs list so future ops runs use the goose-specific
   credential.
+- Deployed the verification-file swap through PR #33.
+- The direct Site Verification `FILE` insert endpoint returned repeated Google
+  503 backend errors after deploy, so the existing verified owner delegated
+  ownership to the goose-specific service account, then the new account added
+  the Search Console URL-prefix property.
+- Removed
+  `ereps-service-account@ereps-seo.iam.gserviceaccount.com` from the Site
+  Verification owner list and removed its stale Search Console site entry.
+- Added Beads task `roadmap-93zq` for the larger cleanup of moving this service
+  account into a fully dedicated goose.gifts Google Cloud project once human
+  `gcloud` auth/billing access is refreshed.
 
-**Next**: after this change is deployed to production, verify the new service
-account as `siteOwner` through the Site Verification API, remove the old eReps
-owner from the Site Verification owner list, and keep a separate roadmap item
-for moving the service account into a fully dedicated Google Cloud project once
-human `gcloud` auth/billing access is refreshed.
+**Verification**:
+- Production serves `/google9ee84afec0bdaec6.html` with the expected Google
+  verification body.
+- Production returns 404 for the old `/googleb19b5c4cd59433a7.html` file.
+- Site Verification lists only
+  `goose-gifts-search-console@ereps-seo.iam.gserviceaccount.com` as owner for
+  `https://www.goose.gifts/`.
+- `scripts/ops/gsc.sh sites` with the new default key lists only
+  `https://www.goose.gifts/` as `siteOwner`.
+- The old eReps key still lists eReps and Stitch It, but no longer lists
+  goose.gifts.
+- `scripts/ops/gsc.sh sitemaps` and URL Inspection work from the new key.
+
+**Next**: no immediate owner action is needed for Search Console API reads. The
+remaining access-hygiene improvement is `roadmap-93zq`, which requires a
+dedicated Google Cloud project or refreshed human Cloud auth.
 
 ---
 
