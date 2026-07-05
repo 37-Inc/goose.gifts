@@ -15,7 +15,12 @@ operator's memory across runs — write for a cold start.
 - Set the profile name to `goose.gifts`, added the site URL, and added a short
   public bio.
 - Added the Pinterest domain-claim meta tag to the site metadata.
+- Completed Pinterest's website claim flow for `www.goose.gifts`.
 - Added the real Pinterest profile link to the site footer.
+- Prepared first no-post Pinterest concepts for the eventual launch: boards for
+  white elephant gifts, funny coworker gifts, and weird home decor; initial pin
+  candidates should come from the optical illusion guide and the next
+  catalog-backed evergreen gift guides.
 
 **Verification**:
 - Admin console shows `goosegifts@37.technology` alongside the existing product
@@ -24,9 +29,10 @@ operator's memory across runs — write for a cold start.
   archived after verification.
 - The public Pinterest profile renders with the expected name, username, bio,
   and website link.
+- Pinterest settings show `goose.gifts` as a connected claimed website with an
+  `Unclaim` action available.
 
-**Next**: deploy the domain-claim meta tag, complete Pinterest's website claim
-flow, then prepare pin concepts for evergreen guide pages. Do not post
+**Next**: prepare pin concepts for evergreen guide pages. Do not post
 externally until Cameron explicitly approves the first publishing workflow.
 
 ---
@@ -112,8 +118,8 @@ weird decor cluster.
 - Playwright desktop and mobile screenshots of the new guide showed no visible
   layout breakage or text overlap.
 
-**Needs**: Search Console, revenue reporting, price coverage, and owned channel
-approval remain the highest-leverage owner-dependent inputs.
+**Needs**: revenue reporting, price coverage, and owned channel posting approval
+remain the highest-leverage owner-dependent inputs.
 
 **Next**: use the next live search/path data to recover another stale bundle
 cluster into a guide when the catalog can support it, or begin the Monday

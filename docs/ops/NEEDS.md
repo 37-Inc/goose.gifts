@@ -86,5 +86,6 @@ you'd rather get real email/Slack from me, connect a connector at
 - 2026-07-05: Pinterest account and email alias. `goosegifts@37.technology`
   is a verified Google Workspace alternate email for `cam@37.technology`;
   `https://www.pinterest.com/goosegifts/` is live with profile name
-  `goose.gifts`, the site URL, and a short public bio. The website-claim meta
-  tag is in the app metadata; posting remains owner-approved only.
+  `goose.gifts`, the site URL, and a short public bio. Pinterest shows
+  `goose.gifts` as a connected claimed website. Posting remains
+  owner-approved only.
