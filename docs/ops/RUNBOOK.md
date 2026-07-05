@@ -65,6 +65,10 @@ Boundaries (always in force):
    Let the data pick the work. Vercel Hobby Web Analytics only exposes the
    latest 31 days, so use the database counters for longer-running product and
    search interaction history.
+   Also run `scripts/ops/gsc.sh analytics <start-date> <end-date>` when
+   Search Console data is needed. The verified property is
+   `https://www.goose.gifts/`, owned by the local service account key at
+   `~/.config/gcloud/ereps-seo-sa.json`.
 4. **Do the highest-leverage task.** Default priority order:
    1. Anything broken or degrading (errors, broken images, dead affiliate links).
    2. SEO/GEO and lead-generation work informed by step 3. This is not optional:

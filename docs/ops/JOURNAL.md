@@ -5,6 +5,42 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-05 - Google Search Console connected for goose.gifts
+
+**Owner direction**: Cameron clarified that the intended GSC setup target was
+goose.gifts, not eReps.
+
+**Shipped in this run**:
+- Enabled the Google Site Verification API on the existing `ereps-seo` Google
+  Cloud project using the available service-account token.
+- Added and deployed the Google verification file at
+  `/googleb19b5c4cd59433a7.html` through PR #29.
+- Verified `https://www.goose.gifts/` for
+  `ereps-service-account@ereps-seo.iam.gserviceaccount.com` via the Site
+  Verification API.
+- Added the verified URL-prefix property to Search Console and submitted
+  `https://www.goose.gifts/sitemap.xml`.
+- Added `scripts/ops/gsc.sh` for repeatable Search Console checks.
+- Moved Google Search Console access from owner-needed work to received work in
+  `NEEDS.md` and marked the SEO todo complete.
+
+**Verification**:
+- Production verification file returned 200 with the expected
+  `google-site-verification` body.
+- Search Console site list now includes `https://www.goose.gifts/` as
+  `siteOwner`.
+- Sitemap readback shows 38 submitted URLs, 0 errors, and 0 warnings.
+- URL Inspection for the homepage works. Google's last crawl was 2026-07-03,
+  before the recent canonical-to-`www` fix, so it still reports the old
+  `goose.gifts/` canonical until Google recrawls.
+- Live homepage now serves canonical and `og:url` as `https://www.goose.gifts`.
+
+**Next**: use Search Console data in the weekly guide-candidate workflow once
+query rows populate, and watch for Google to recrawl the homepage and settle on
+the `www` canonical.
+
+---
+
 ## 2026-07-05 - Daily ops: optical illusion guide recovery shipped
 
 **Health**: production homepage returned 200 with the expected title,
