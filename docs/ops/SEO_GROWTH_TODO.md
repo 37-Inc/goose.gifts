@@ -37,6 +37,32 @@ report.
 - [ ] Track whether SEO changes move indexed pages, organic sessions, on-site
   searches, product clicks, and affiliate revenue once reporting exists.
 
+## Recurring Publishing Cadence
+
+- [ ] **Daily input gathering**: every non-incident run should mine on-site
+  searches, product clicks, stale indexed URLs, catalog themes, seasonality, and
+  competitor-style long-tail patterns for new guide candidates.
+- [ ] **Weekly SEO publishing sprint**: every Monday, or the first scheduled
+  run after Monday, publish 3-5 new catalog-backed guide pages or substantially
+  improve existing ones. If there are not enough strong clusters, document the
+  blocker and build the candidate list instead of publishing thin pages.
+- [ ] Treat these as new guide/page packages, not revived legacy bundles. They
+  can be themed roundups with beautiful editorial presentation, but the URL,
+  metadata, sitemap entry, product feed, and schema should all live in the
+  maintained gift-guide/catalog system.
+- [ ] Each published page must have a target query, keyword-aware H1/title/meta
+  description, canonical URL, visible intro/editorial copy, FAQ answers,
+  related internal links, useful server-rendered product grid, and JSON-LD that
+  matches visible content.
+- [ ] Each weekly sprint should include desktop and mobile visual QA so the new
+  pages feel intentionally designed, not like templated scrape pages.
+- [ ] **Weekly distribution prep**: prepare Pinterest/social/OG asset ideas for
+  new evergreen guide pages, but do not post externally until Cameron approves
+  the channel and account access.
+- [ ] **Monthly refresh**: prune, merge, or rewrite thin pages; refresh titles,
+  intros, FAQs, internal links, and candidate priorities using Search Console
+  once available and on-site search/click data until then.
+
 ## Data And Owner-Dependent Work
 
 - [ ] Get Google Search Console access so query clusters can come from real

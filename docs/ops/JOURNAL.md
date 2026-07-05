@@ -5,6 +5,33 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-04 - Added recurring SEO guide publishing cadence
+
+**Owner direction**: Cameron asked whether the SEO plan included a recurring
+schedule to create and post new guide pages / non-legacy bundles that are
+highly optimized and well presented.
+
+**Shipped in this run**:
+- Clarified that the existing SEO work had daily candidate discovery, but not
+  an explicit weekly publishing quota.
+- Added a weekly SEO publishing sprint to `SEO_GROWTH_TODO.md`: publish 3-5
+  new or materially improved catalog-backed guide pages every Monday / first
+  run after Monday, only when the catalog supports useful pages.
+- Updated the runbook so weekly check-ins include the publishing sprint,
+  desktop/mobile visual QA, sitemap/schema/canonical expectations, and
+  owner-gated external posting.
+- Updated the roadmap and handoff to frame these as polished guide/page
+  packages, not a revival of legacy bundle permalinks.
+
+**Review / QA**:
+- Docs-only change; `git diff --check` passed.
+
+**Next**: the next weekly run should execute this sprint: use search logs,
+catalog themes, stale indexed URLs, and seasonal demand to ship 3-5 polished
+guide pages or document why product depth/data quality is not ready.
+
+---
+
 ## 2026-07-04 - SEO growth hardening and long-tail guide expansion
 
 **Owner direction**: Cameron asked for the SEO/GEO audit ideas to be captured
