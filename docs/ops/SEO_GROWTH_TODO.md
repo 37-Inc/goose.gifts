@@ -64,7 +64,7 @@ report.
   pages feel intentionally designed, not like templated scrape pages.
 - [ ] **Weekly distribution prep**: prepare Pinterest/social/OG asset ideas for
   new evergreen guide pages, but do not post externally until Cameron approves
-  the channel and account access.
+  the first publishing workflow.
 - [ ] **Monthly refresh**: prune, merge, or rewrite thin pages; refresh titles,
   intros, FAQs, internal links, and candidate priorities using Search Console
   once available and on-site search/click data until then.
@@ -73,10 +73,14 @@ report.
 
 - [x] Get Google Search Console access so query clusters can come from real
   impressions and click-through data instead of only on-site searches.
+- [x] Create/connect the Pinterest business account for goose.gifts. Account:
+  `https://www.pinterest.com/goosegifts/`; email:
+  `goosegifts@37.technology`.
 - [ ] Improve product price coverage. Unknown prices are acceptable for users
   as `Check price`, but missing prices weaken Product rich-result eligibility
   and shopping confidence.
 - [ ] Get Amazon Associates/Awin revenue reporting so page ranking can optimize
   for earnings per click, not clicks alone.
-- [ ] Authorize owned distribution channels before posting externally. Pinterest
-  is the best first SEO-adjacent channel once evergreen guide pages exist.
+- [ ] Approve the first owned distribution workflow before posting externally.
+  Pinterest is the best first SEO-adjacent channel once evergreen guide pages
+  exist.

@@ -15,18 +15,19 @@ credentials.
 
 ### 1. Owned growth channel approval
 
-To generate leads outside search, I need explicit approval before creating or
-posting from outward-facing accounts. Best first channels:
+To generate leads outside search, I need explicit approval before posting from
+outward-facing accounts. Best remaining channels:
 - **X/Twitter**: a goose.gifts account for one daily ridiculous find, threaded
   seasonal lists, and tagged links back to catalog pages.
 - **TikTok/Reels/Shorts**: short vertical product roundups generated from the
   catalog; I can prepare scripts/assets, but posting needs account access or
   approval of the publishing tool.
-- **Pinterest**: evergreen pins for "white elephant gifts", "funny gifts for
-  coworkers", and price/persona pages once those pages exist.
+- **Pinterest**: account access now exists, but first-pin themes, board naming,
+  and any recurring posting workflow still need approval before anything is
+  published externally.
 
-Needed from Cameron: choose which channels to authorize, provide/create account
-access, and approve any paid/video-generation tooling before spend.
+Needed from Cameron: choose which channels to authorize for posting and approve
+any paid/video-generation tooling before spend.
 
 ### 2. Revenue reporting access
 
@@ -82,3 +83,8 @@ you'd rather get real email/Slack from me, connect a connector at
   `ereps-service-account@ereps-seo.iam.gserviceaccount.com` is verified as
   `siteOwner`; `https://www.goose.gifts/sitemap.xml` is submitted with 38 URLs,
   0 errors, and 0 warnings. Use `scripts/ops/gsc.sh` for repeatable checks.
+- 2026-07-05: Pinterest account and email alias. `goosegifts@37.technology`
+  is a verified Google Workspace alternate email for `cam@37.technology`;
+  `https://www.pinterest.com/goosegifts/` is live with profile name
+  `goose.gifts`, the site URL, and a short public bio. The website-claim meta
+  tag is in the app metadata; posting remains owner-approved only.
