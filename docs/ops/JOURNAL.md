@@ -5,6 +5,32 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-05 - Search Console service account isolation
+
+**Owner direction**: Cameron noticed that the eReps Search Console service
+account had been added to goose.gifts and asked whether the project should use
+a dedicated service account instead of commingling product identities.
+
+**Shipped in this run**:
+- Created
+  `goose-gifts-search-console@ereps-seo.iam.gserviceaccount.com` for
+  goose.gifts Search Console access.
+- Created the local key at
+  `~/.config/gcloud/goose-gifts-search-console-sa.json`.
+- Replaced the old eReps Google verification file with the new goose-specific
+  verification file at `/google9ee84afec0bdaec6.html`.
+- Switched `scripts/ops/gsc.sh` to the goose-specific key path.
+- Updated the runbook and needs list so future ops runs use the goose-specific
+  credential.
+
+**Next**: after this change is deployed to production, verify the new service
+account as `siteOwner` through the Site Verification API, remove the old eReps
+owner from the Site Verification owner list, and keep a separate roadmap item
+for moving the service account into a fully dedicated Google Cloud project once
+human `gcloud` auth/billing access is refreshed.
+
+---
+
 ## 2026-07-05 - Pinterest account and domain claim setup
 
 **Shipped in this run**:

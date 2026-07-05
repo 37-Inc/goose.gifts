@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SITE="${GOOSE_GSC_SITE:-https://www.goose.gifts/}"
-SA_KEY="${GOOSE_GSC_SA_KEY:-$HOME/.config/gcloud/ereps-seo-sa.json}"
+SA_KEY="${GOOSE_GSC_SA_KEY:-$HOME/.config/gcloud/goose-gifts-search-console-sa.json}"
 
 readonly_scope="https://www.googleapis.com/auth/webmasters.readonly,https://www.googleapis.com/auth/cloud-platform"
 write_scope="https://www.googleapis.com/auth/webmasters,https://www.googleapis.com/auth/cloud-platform"
