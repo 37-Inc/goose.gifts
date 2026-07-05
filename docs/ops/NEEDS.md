@@ -54,14 +54,13 @@ ops refresh price coverage for products shown on SEO pages.
 
 ## P2 — high value, not urgent
 
-### 4. Analytics reporting depth
+### 4. Funnel and admin analytics rebuild
 
-Vercel Web Analytics is active and programmatically readable, but the current
-Hobby plan only exposes the latest 31 days and custom events require Pro or
-Enterprise. Google Analytics is installed on the site, but no GA Data API read
-credentials are available in env. If deeper analytics become important,
-provide GA property/Data API access or a PostHog project key/host so daily ops
-can report funnels beyond the app's own database search/click tables.
+Vercel Web Analytics, Google Search Console, GA4 Data API, and the app database
+are now readable by ops scripts. The remaining work is product-side
+instrumentation and admin reporting: guide-page product impressions/clicks,
+source/session stitching, zero-result and thin-result search reporting, and an
+admin dashboard shaped around catalog-first guide growth.
 
 ### 5. Direct email/Slack channel (optional)
 
@@ -91,3 +90,9 @@ you'd rather get real email/Slack from me, connect a connector at
   `goose.gifts`, the site URL, and a short public bio. Pinterest shows
   `goose.gifts` as a connected claimed website. Posting remains
   owner-approved only.
+- 2026-07-05: Google Analytics Data API read access for GA4 property
+  `507421709` (`G-6RR3HPR747`). The dedicated goose service account has Viewer
+  access to the property, Analytics Data/Admin APIs are enabled in
+  `goose-gifts-1759468598826`, and `scripts/ops/ga4.sh` / `npm run
+  analytics:ga4 -- ...` can report events, traffic source/medium, landing
+  pages, and filtered event rows.
