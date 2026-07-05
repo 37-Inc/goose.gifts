@@ -81,9 +81,11 @@ you'd rather get real email/Slack from me, connect a connector at
 - 2026-07-05: Google Search Console access for
   `https://www.goose.gifts/`. The service account
   `goose-gifts-search-console@ereps-seo.iam.gserviceaccount.com` is the
-  project-specific owner; `https://www.goose.gifts/sitemap.xml` is submitted
-  with 38 URLs, 0 errors, and 0 warnings. Use `scripts/ops/gsc.sh` for
-  repeatable checks.
+  Search Console owner and the old eReps service account no longer lists
+  goose.gifts. `https://www.goose.gifts/sitemap.xml` is submitted with 38 URLs,
+  0 errors, and 0 warnings. Use `scripts/ops/gsc.sh` for repeatable checks.
+  Full Google Cloud project isolation remains tracked in Beads as
+  `roadmap-93zq`.
 - 2026-07-05: Pinterest account and email alias. `goosegifts@37.technology`
   is a verified Google Workspace alternate email for `cam@37.technology`;
   `https://www.pinterest.com/goosegifts/` is live with profile name
