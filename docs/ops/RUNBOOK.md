@@ -155,8 +155,9 @@ Before opening the weekly issue, run the weekly SEO publishing sprint:
   guide page. Fix formatting, overlap, image, empty-state, and awkward-copy
   issues before merging.
 - Prepare Pinterest/social/OG asset concepts for the newly published evergreen
-  pages, but do not post externally unless Cameron has approved that channel in
-  `docs/ops/NEEDS.md`.
+  pages, but do not post externally unless Cameron has approved the first
+  publishing workflow in `docs/ops/NEEDS.md`. The Pinterest account is
+  `https://www.pinterest.com/goosegifts/`.
 - If fewer than 3 publishable clusters exist, document the exact blocker in the
   weekly issue and spend the sprint building candidates, enriching products, or
   improving price/search data instead of publishing thin SEO pages.

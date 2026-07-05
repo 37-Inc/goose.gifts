@@ -15,7 +15,7 @@ const inter = Inter({
 const socialLinks = [
   { label: 'X', href: process.env.NEXT_PUBLIC_X_URL || process.env.NEXT_PUBLIC_TWITTER_URL },
   { label: 'TikTok', href: process.env.NEXT_PUBLIC_TIKTOK_URL },
-  { label: 'Pinterest', href: process.env.NEXT_PUBLIC_PINTEREST_URL },
+  { label: 'Pinterest', href: process.env.NEXT_PUBLIC_PINTEREST_URL || 'https://www.pinterest.com/goosegifts/' },
   { label: 'Instagram', href: process.env.NEXT_PUBLIC_INSTAGRAM_URL },
   { label: 'Facebook', href: process.env.NEXT_PUBLIC_FACEBOOK_URL },
 ].filter((link): link is { label: string; href: string } => Boolean(link.href));
@@ -43,6 +43,9 @@ export const metadata: Metadata = {
     apple: '/sillygoose.png',
   },
   metadataBase: new URL(getSiteUrl()),
+  other: {
+    'p:domain_verify': 'd26f095726909fff0819fed34db1267f',
+  },
   openGraph: {
     title: "Funny Gag Gifts & White Elephant Ideas | goose.gifts",
     description: "Find funny gag gifts, white elephant ideas, novelty products, and weird presents.",

@@ -5,6 +5,32 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-05 - Pinterest account and domain claim setup
+
+**Shipped in this run**:
+- Added `goosegifts@37.technology` as a Google Workspace alternate email for
+  `cam@37.technology` and verified delivery with a test message.
+- Created the Pinterest business account at
+  `https://www.pinterest.com/goosegifts/` using `goosegifts@37.technology`.
+- Set the profile name to `goose.gifts`, added the site URL, and added a short
+  public bio.
+- Added the Pinterest domain-claim meta tag to the site metadata.
+- Added the real Pinterest profile link to the site footer.
+
+**Verification**:
+- Admin console shows `goosegifts@37.technology` alongside the existing product
+  aliases.
+- The alias delivery test arrived in `cam@37.technology`; the test message was
+  archived after verification.
+- The public Pinterest profile renders with the expected name, username, bio,
+  and website link.
+
+**Next**: deploy the domain-claim meta tag, complete Pinterest's website claim
+flow, then prepare pin concepts for evergreen guide pages. Do not post
+externally until Cameron explicitly approves the first publishing workflow.
+
+---
+
 ## 2026-07-05 - Google Search Console connected for goose.gifts
 
 **Owner direction**: Cameron clarified that the intended GSC setup target was
