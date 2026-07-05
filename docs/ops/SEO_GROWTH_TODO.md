@@ -20,6 +20,12 @@ report.
 - [x] Compress and resize public share assets so social preview images match
   declared metadata dimensions and do not waste crawl/share weight.
 
+## Shipped 2026-07-05
+
+- [x] Recovered the stale optical illusion decor bundle URL into the canonical
+  `/gift-guides/optical-illusion-decor-gifts` guide instead of sending that
+  long-tail traffic to a raw search page.
+
 ## Ongoing Daily Ops
 
 - [ ] Use on-site search logs to propose new guide pages, but only publish a
