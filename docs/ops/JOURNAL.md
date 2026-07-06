@@ -5,6 +5,68 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-06 - Daily ops: Monday guide sprint shipped
+
+**Health**: production homepage returned 200 with the expected title,
+`/sitemap.xml` returned 200, `/search?q=dad%20with%20no%20spare%20time`
+returned a 307 redirect to `/?q=...`, and the semantic catalog query page
+returned 200 with `Check price` rendering and outbound affiliate links.
+
+**Metrics snapshot**: Vercel Web Analytics reported 23 visitors and 83
+pageviews for 2026-06-06 through 2026-07-06 UTC, with 1 visitor / 14 pageviews
+on 2026-07-06. Guide pages now appear in top paths:
+`/gift-guides/funny-gifts-for-coworkers`,
+`/gift-guides/funny-gifts-for-dads`,
+`/gift-guides/novelty-desk-toys`, and
+`/gift-guides/white-elephant-gifts` each had 2 visitors. GA4 showed 22 direct
+sessions, 1 paid-search session, and 3 referral sessions in the same reporting
+window. Database totals: 3,256 active products before discovery, 18,446
+impressions, 92 product click events, 290 lifetime searches, 0 searches in the
+last 24 hours, and 1 product click in the last 7 days. Catalog readiness stayed
+strong: all active products had images, affiliate links, embeddings, and punny
+copy; 3,239 active products still had unknown prices.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 74 candidates, 74 active/enriched/embedded candidates, 7 inserted, and
+67 updated.
+
+**Shipped growth work**: completed the Monday SEO publishing sprint with five
+new crawlable catalog-backed guides:
+`/gift-guides/funny-gifts-for-moms`,
+`/gift-guides/funny-gifts-for-gamers`,
+`/gift-guides/funny-golf-gifts`,
+`/gift-guides/funny-gardening-gifts`, and
+`/gift-guides/funny-hostess-gifts`. Each guide returned a full 36-product
+server-rendered grid in QA, inherits the existing guide template's title/meta,
+canonical URL, visible FAQ/editorial copy, related internal links, sitemap
+entry, and matching ItemList/FAQ schema. Expanded homepage featured guide links
+from 12 to 18 so the new pages get immediate internal links. Expected metric
+movement: more indexed long-tail guide pages, more organic landing-page
+coverage beyond the homepage, and more outbound click opportunities from
+recipient/hobby-specific queries.
+
+**Review / QA**:
+- Self-reviewed the diff for thin-page risk, keyword overreach, homepage link
+  density, sitemap/schema coverage, and old bundle-flow regression risk.
+- Verified each new guide returns 36 products from the production catalog.
+- `git diff --check`, `npm run build`, and `npm run lint` passed.
+- Local built-server Playwright checks verified the gamer guide on desktop and
+  mobile plus the homepage guide-link block. The only console error was the
+  expected local `/_vercel/insights/script.js` 404 from Vercel Web Analytics
+  outside Vercel.
+
+**Needs**: no new P0 blocker. Revenue reporting, product price coverage, and
+owned channel posting approval remain the highest-leverage owner-dependent
+inputs.
+
+**Next**: verify the deployed guide pages and open the weekly check-in issue
+with the five-page sprint, traffic baseline, and top owner asks. Tomorrow,
+review Search Console/GA4 for whether the new guide URLs start appearing, then
+either improve price coverage or recover another stale bundle/query cluster.
+
+---
+
 ## 2026-07-05 - Google Analytics Data API access connected
 
 **Owner direction**: Cameron asked to trigger whatever auth was needed and to

@@ -26,6 +26,17 @@ report.
   `/gift-guides/optical-illusion-decor-gifts` guide instead of sending that
   long-tail traffic to a raw search page.
 
+## Shipped 2026-07-06
+
+- [x] Published the Monday SEO sprint with five new catalog-backed guide pages:
+  `/gift-guides/funny-gifts-for-moms`,
+  `/gift-guides/funny-gifts-for-gamers`,
+  `/gift-guides/funny-golf-gifts`,
+  `/gift-guides/funny-gardening-gifts`, and
+  `/gift-guides/funny-hostess-gifts`.
+- [x] Expanded homepage guide links from 12 to 18 so the new guide pages get
+  immediate internal links instead of relying only on sitemap discovery.
+
 ## Ongoing Daily Ops
 
 - [ ] Use on-site search logs to propose new guide pages, but only publish a

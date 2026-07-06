@@ -310,6 +310,46 @@ export const giftGuides: GiftGuideDefinition[] = [
     intro: 'A funny Valentines gift should feel affectionate first and unserious second.',
     keywords: ['valentine', 'valentines', 'couple', 'friendship', 'candle', 'spa', 'beauty', 'gag'],
   },
+  {
+    slug: 'funny-gifts-for-moms',
+    title: 'Funny Gifts for Moms',
+    h1: 'Funny gifts for moms who deserve better than another plain candle',
+    description: 'Browse funny gifts for moms, mom gag gifts, coffee finds, self-care jokes, and useful novelty products.',
+    intro: 'Mom gifts work best when they feel useful, personal, and just ridiculous enough to prove you did not panic-buy the first beige thing.',
+    keywords: ['mom', 'mother', 'mama', 'coffee', 'self care', 'spa', 'kitchen', 'women'],
+  },
+  {
+    slug: 'funny-gifts-for-gamers',
+    title: 'Funny Gifts for Gamers',
+    h1: 'Funny gifts for gamers who already have the serious gear',
+    description: 'Find funny gamer gifts, gaming desk finds, controller-adjacent jokes, and novelty products for people who live in side quests.',
+    intro: 'Gamer gifts should fit the setup, the desk, or the running joke. The best ones feel like a side quest with free shipping.',
+    keywords: ['gamer', 'gaming', 'game', 'controller', 'desk', 'keyboard', 'nerd', 'geek'],
+  },
+  {
+    slug: 'funny-golf-gifts',
+    title: 'Funny Golf Gifts',
+    h1: 'Funny golf gifts for people who narrate every bad shot',
+    description: 'Browse funny golf gifts, golfer gag gifts, dad golf finds, and novelty game-day products from the goose.gifts catalog.',
+    intro: 'Golf gifts have permission to be practical, smug, and a little too specific. That is the whole sport.',
+    keywords: ['golf', 'golfer', 'club', 'tee', 'sports', 'dad', 'outdoor', 'game'],
+  },
+  {
+    slug: 'funny-gardening-gifts',
+    title: 'Funny Gardening Gifts',
+    h1: 'Funny gardening gifts for plant people with dirt under control',
+    description: 'Shop funny gardening gifts, plant lover finds, yard jokes, and useful novelty products for people who treat seedlings like pets.',
+    intro: 'Gardening gifts are strongest when they belong outside, near a windowsill, or in the hands of someone who has opinions about soil.',
+    keywords: ['garden', 'gardening', 'plant', 'plants', 'yard', 'outdoor', 'mom', 'dad'],
+  },
+  {
+    slug: 'funny-hostess-gifts',
+    title: 'Funny Hostess Gifts',
+    h1: 'Funny hostess gifts that do more than replace the wine',
+    description: 'Find funny hostess gifts, party host finds, kitchen jokes, wine-adjacent gifts, and housewarming-ready novelty products.',
+    intro: 'A good host gift should be easy to hand over, useful after the party, and strange enough to remember who brought it.',
+    keywords: ['host', 'hostess', 'party', 'wine', 'kitchen', 'home', 'candle', 'housewarming'],
+  },
 ];
 
 export function getGiftGuide(slug: string): GiftGuideDefinition | undefined {
@@ -329,6 +369,11 @@ const featuredGiftGuideSlugs = [
   'funny-birthday-gag-gifts',
   'funny-coffee-mugs',
   'gifts-for-people-who-have-everything',
+  'funny-gifts-for-moms',
+  'funny-gifts-for-gamers',
+  'funny-golf-gifts',
+  'funny-gardening-gifts',
+  'funny-hostess-gifts',
 ];
 
 export function getFeaturedGiftGuides(
