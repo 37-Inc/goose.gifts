@@ -99,7 +99,7 @@ export default async function HomePage({
   const initialProducts = initialQuery.length >= 2
     ? await searchCatalogProducts(initialQuery, 36)
     : await getTrendingProducts(36);
-  const featuredGuides = getFeaturedGiftGuides(undefined, 12);
+  const featuredGuides = getFeaturedGiftGuides(undefined, 18);
   const itemListSchema = JSON.stringify(buildHomeItemListSchema(initialProducts)).replace(/</g, '\\u003c');
 
   return (
