@@ -23,6 +23,10 @@ export interface DashboardStats {
     productImpressions: number;
     averageProductCTR: number;
   };
+  clickSources: Array<{
+    source: string;
+    clicks: number;
+  }>;
   topProducts: Array<{
     id: string;
     title: string;

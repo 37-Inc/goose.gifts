@@ -6,7 +6,7 @@ import { eq, sql } from 'drizzle-orm';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { productId, source = 'catalog', searchQueryId } = body;
+    const { productId, source = 'catalog', contextSlug, bundleSlug, searchQueryId } = body;
 
     if (!productId || typeof productId !== 'string') {
       return NextResponse.json(
@@ -27,6 +27,11 @@ export async function POST(request: NextRequest) {
     await db.insert(productClicks).values({
       productId,
       source,
+      bundleSlug: typeof contextSlug === 'string'
+        ? contextSlug
+        : typeof bundleSlug === 'string'
+          ? bundleSlug
+          : null,
       userAgent: request.headers.get('user-agent') || null,
       referer: request.headers.get('referer') || null,
     });

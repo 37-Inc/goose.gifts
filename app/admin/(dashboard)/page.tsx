@@ -75,6 +75,12 @@ export default function AdminDashboardPage() {
   const enrichmentRate = stats.catalog.activeProducts > 0
     ? Math.round((stats.catalog.enrichedProducts / stats.catalog.activeProducts) * 1000) / 10
     : 0;
+  const sourceClickTotal = stats.clickSources.reduce((total, source) => total + source.clicks, 0);
+
+  const formatSource = (source: string) => source
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 
   return (
     <div className="space-y-6">
@@ -192,6 +198,48 @@ export default function AdminDashboardPage() {
           </Card>
         </div>
       </div>
+
+      <Card>
+        <CardHeader
+          title="Click Sources"
+          subtitle="Outbound product-click mix by surface"
+        />
+        <CardBody className="p-0">
+          <div className="divide-y divide-gray-200">
+            {stats.clickSources.length === 0 ? (
+              <div className="px-6 py-8 text-center text-gray-500">
+                Source mix will appear after product clicks are tracked.
+              </div>
+            ) : (
+              stats.clickSources.map((source) => {
+                const share = sourceClickTotal > 0
+                  ? Math.round((source.clicks / sourceClickTotal) * 1000) / 10
+                  : 0;
+
+                return (
+                  <div key={source.source} className="px-6 py-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-gray-900">{formatSource(source.source)}</div>
+                        <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
+                          <div
+                            className="h-full rounded-full bg-purple-500"
+                            style={{ width: `${Math.min(share, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-semibold text-purple-600">{source.clicks}</div>
+                        <div className="text-xs text-gray-500">{share.toFixed(1)}%</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </CardBody>
+      </Card>
 
       <Card>
         <CardHeader

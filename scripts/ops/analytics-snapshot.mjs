@@ -230,6 +230,24 @@ async function fetchDatabaseAnalytics() {
         ORDER BY clicks DESC, last_click_at DESC
         LIMIT 10
       `),
+      queryDb('clickSources90d', db, `
+        SELECT source, count(*)::int AS clicks, max(created_at) AS last_click_at
+        FROM product_clicks
+        WHERE created_at >= now() - interval '90 days'
+        GROUP BY source
+        ORDER BY clicks DESC, last_click_at DESC
+        LIMIT 10
+      `),
+      queryDb('guideClicks90d', db, `
+        SELECT bundle_slug AS guide_slug, count(*)::int AS clicks, max(created_at) AS last_click_at
+        FROM product_clicks
+        WHERE created_at >= now() - interval '90 days'
+          AND source = 'gift_guide'
+          AND bundle_slug IS NOT NULL
+        GROUP BY bundle_slug
+        ORDER BY clicks DESC, last_click_at DESC
+        LIMIT 10
+      `),
       queryDb('topReferrers90d', db, `
         SELECT nullif(regexp_replace(coalesce(referer, ''), '^https?://([^/]+).*$', '\\1'), '') AS referrer_host,
           count(*)::int AS clicks
@@ -243,6 +261,15 @@ async function fetchDatabaseAnalytics() {
         SELECT query, count(*)::int AS count, avg(result_count)::numeric(10,2) AS avg_results, max(created_at) AS last_search_at
         FROM search_queries
         WHERE created_at >= now() - interval '90 days'
+        GROUP BY query
+        ORDER BY count DESC, last_search_at DESC
+        LIMIT 20
+      `),
+      queryDb('zeroResultSearches30d', db, `
+        SELECT query, count(*)::int AS count, max(created_at) AS last_search_at
+        FROM search_queries
+        WHERE created_at >= now() - interval '30 days'
+          AND result_count = 0
         GROUP BY query
         ORDER BY count DESC, last_search_at DESC
         LIMIT 20
@@ -334,6 +361,21 @@ function printText(snapshot) {
   console.log(formatRows(
     database.topClickedProducts90d,
     (row) => `  ${row.product_id} - ${row.clicks} clicks - ${row.title}`,
+  ));
+  console.log('- Click sources in 90d:');
+  console.log(formatRows(
+    database.clickSources90d,
+    (row) => `  ${row.source} - ${row.clicks} clicks - latest ${formatTimestamp(row.last_click_at)}`,
+  ));
+  console.log('- Gift-guide clicks in 90d:');
+  console.log(formatRows(
+    database.guideClicks90d,
+    (row) => `  ${row.guide_slug} - ${row.clicks} clicks - latest ${formatTimestamp(row.last_click_at)}`,
+  ));
+  console.log('- Zero-result searches in 30d:');
+  console.log(formatRows(
+    database.zeroResultSearches30d,
+    (row) => `  ${row.query} - ${row.count} searches - latest ${formatTimestamp(row.last_search_at)}`,
   ));
   console.log('');
   console.log('Catalog readiness');

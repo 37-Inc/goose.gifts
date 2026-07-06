@@ -17,7 +17,22 @@ Search analytics system for tracking, analyzing, and improving product-catalog s
   - User agent
   - Timestamp
 
-### 2. Google Analytics Integration
+### 2. Product-Side Tracking
+- **Tables/counters**: `product_clicks`, `products.click_count`, and
+  `products.impression_count`
+- **Tracked surfaces**:
+  - Homepage fresh-find grid (`catalog_home`)
+  - Catalog search results (`catalog_search`)
+  - SEO gift-guide product grids (`gift_guide`, with the guide slug stored in
+    the legacy `bundle_slug` context column)
+- **Tracked events**:
+  - Product impressions via `/api/track-impression`
+  - Outbound affiliate clicks via `/api/track-click`
+  - Search-result clicks tied back to `search_queries.clicked`
+  - GA4 `view_item_list`, `select_item`, and
+    `conversion_event_outbound_click` events
+
+### 3. Google Analytics Integration
 
 GA4 browser tagging is installed in `app/layout.tsx` with measurement ID
 `G-6RR3HPR747`, and Google Ads tagging is installed with `AW-17626116539`.
@@ -34,9 +49,12 @@ without using the browser.
 - **Click Event**: Fires when user clicks a catalog product:
   - `event`: `'conversion_event_outbound_click'`
   - `event_category`: `'catalog_product'`
+  - `product_id`: Product identifier
+  - `click_source`: `catalog_home`, `catalog_search`, or `gift_guide`
+  - `context_slug`: Guide slug when the click came from a guide page
   - `link_domain`: Affiliate destination domain
 
-### 3. Admin Dashboard
+### 4. Admin Dashboard
 
 Located at: `/admin/search-analytics`
 
@@ -70,6 +88,10 @@ Located at: `/admin/search-analytics`
 - Real-time debugging view
 - Shows query, results, similarity, clicked status
 
+The main `/admin` dashboard also shows catalog health, product impressions,
+outbound product clicks, average product CTR, top products, and a click-source
+breakdown so guide-page clicks are visible separately from search clicks.
+
 ## 📊 Data Flow
 
 ```
@@ -86,6 +108,11 @@ User searches -> CatalogSearchFeed component
     User clicks product -> track-click updates product + search row
                          -> GA conversion event fired
                          -> affiliate link opens in new tab
+
+Guide page view -> GA4 page_view
+                -> ProductGrid view_item_list + DB impressions
+                -> Product click stores source=gift_guide + guide slug
+                -> GA4 select_item + outbound conversion event
 ```
 
 ## 🗄️ Database Schema
@@ -209,6 +236,10 @@ git push origin main
 - For programmatic GA reports, run `npm run analytics:ga4 -- events`,
   `npm run analytics:ga4 -- traffic`, `npm run analytics:ga4 -- landing-pages`,
   or `npm run analytics:ga4 -- event conversion_event_outbound_click`.
+- For weekly product/search reporting, run
+  `npm run analytics:snapshot -- --days 31`; the database section includes
+  click sources, guide-page product clicks, zero-result searches, top clicked
+  products, and catalog readiness.
 
 ### Poor similarity scores
 - Review product copy - is it semantic and descriptive?
@@ -226,9 +257,13 @@ git push origin main
 ### Modified Files
 - `lib/db/schema.ts` - Added searchQueries table
 - `app/api/search-products/route.ts` - Product search logging
+- `app/api/track-click/route.ts` - Product click logging and source context
+- `app/api/admin/stats/route.ts` - Dashboard catalog and click-source metrics
 - `components/CatalogSearchFeed.tsx` - Catalog search UI and GA search event
-- `components/ProductGrid.tsx` - Product click and impression tracking
-- `app/admin/(dashboard)/page.tsx` - Added quick link
+- `components/ProductGrid.tsx` - Product click, impression, and GA item-list tracking
+- `app/gift-guides/[slug]/page.tsx` - Guide products use tracked ProductGrid cards
+- `app/admin/(dashboard)/page.tsx` - Catalog dashboard and click-source breakdown
+- `scripts/ops/analytics-snapshot.mjs` - Weekly product/search/source snapshot
 
 ## 🎉 Success Metrics
 
@@ -252,6 +287,10 @@ After 1 month:
 - GA events use standard Google Analytics 4 event names
 - All times are stored in UTC in database
 - Click tracking works even though results open in new tab
+- Price and revenue reporting is not ready to automate from this data alone.
+  We can measure intent and outbound affiliate clicks now, but revenue analysis
+  still needs reliable affiliate-network reporting, commission mapping by
+  source/category, and a join strategy from outbound click to paid transaction.
 
 ---
 

@@ -196,6 +196,47 @@ dedicated Google Cloud project or refreshed human Cloud auth.
 
 ---
 
+## 2026-07-05 - Pinterest first draft batch
+
+**Prepared**:
+- Added `docs/ops/PINTEREST_DRAFTS.md` with five pending-review Pinterest Pin
+  drafts, one for each starter board.
+- Each draft includes the board, target guide page, UTM-tagged tracking URL,
+  title, description, alt text, and vertical image direction.
+- Generated five vertical PNG image assets and a contact sheet under
+  `docs/ops/pinterest-assets/batch-1/`.
+
+**Publishing status**: nothing posted. Cameron still needs to approve the draft
+batch before any external Pinterest publishing.
+
+**Next**: after approval, generate the final vertical image assets, post the
+Pins, and log live Pin URLs here.
+
+---
+
+## 2026-07-05 - Pinterest profile cleanup and starter boards
+
+**Shipped in this run**:
+- Verified the Pinterest profile fields: display name `goose.gifts`, username
+  `goosegifts`, website `www.goose.gifts`, and the short public bio.
+- Created the first public Pinterest boards:
+  - `Funny White Elephant Gifts`
+  - `Funny Gifts for Coworkers`
+  - `Weird Kitchen Gadgets`
+  - `Novelty Desk Toys`
+  - `Weird Home Decor`
+- Confirmed all five boards render on the profile's Saved tab with `0 Pins`.
+- Uploaded `public/sillygoose.png` as the Pinterest profile avatar.
+
+**Verification**:
+- The public profile now renders a Pinterest-hosted avatar image for
+  `goose.gifts` instead of Pinterest's default placeholder.
+
+**Next**: prepare first pin concepts. Do not post externally until Cameron
+explicitly approves the first publishing workflow.
+
+---
+
 ## 2026-07-05 - Pinterest account and domain claim setup
 
 **Shipped in this run**:

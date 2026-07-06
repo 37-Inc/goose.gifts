@@ -38,6 +38,7 @@ export async function GET() {
       catalogResult,
       totalProductClicksResult,
       totalProductImpressionsResult,
+      clickSources,
       topProducts,
       recentProducts,
     ] = await Promise.all([
@@ -95,6 +96,15 @@ export async function GET() {
         .from(products),
       db
         .select({
+          source: productClicks.source,
+          count: sql<number>`count(*)`,
+        })
+        .from(productClicks)
+        .groupBy(productClicks.source)
+        .orderBy(desc(sql<number>`count(*)`))
+        .limit(8),
+      db
+        .select({
           id: products.id,
           title: products.title,
           clickCount: products.clickCount,
@@ -139,6 +149,10 @@ export async function GET() {
         productImpressions: totalProductImpressions,
         averageProductCTR: productCtr(totalProductClicks, totalProductImpressions),
       },
+      clickSources: clickSources.map((source) => ({
+        source: source.source,
+        clicks: asNumber(source.count),
+      })),
       topProducts: topProducts.map((product) => {
         const clickCount = product.clickCount || 0;
         const impressionCount = product.impressionCount || 0;

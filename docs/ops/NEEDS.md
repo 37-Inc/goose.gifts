@@ -22,9 +22,9 @@ outward-facing accounts. Best remaining channels:
 - **TikTok/Reels/Shorts**: short vertical product roundups generated from the
   catalog; I can prepare scripts/assets, but posting needs account access or
   approval of the publishing tool.
-- **Pinterest**: account access now exists, but first-pin themes, board naming,
-  and any recurring posting workflow still need approval before anything is
-  published externally.
+- **Pinterest**: account access, profile polish, starter public boards, and a
+  first five-Pin draft batch now exist, but the batch and any recurring posting
+  workflow still need approval before anything is published externally.
 
 Needed from Cameron: choose which channels to authorize for posting and approve
 any paid/video-generation tooling before spend.
@@ -88,8 +88,10 @@ you'd rather get real email/Slack from me, connect a connector at
   is a verified Google Workspace alternate email for `cam@37.technology`;
   `https://www.pinterest.com/goosegifts/` is live with profile name
   `goose.gifts`, the site URL, and a short public bio. Pinterest shows
-  `goose.gifts` as a connected claimed website. Posting remains
-  owner-approved only.
+  `goose.gifts` as a connected claimed website. Starter public boards exist for
+  funny white elephant gifts, funny coworker gifts, weird kitchen gadgets,
+  novelty desk toys, and weird home decor, and the profile avatar uses the
+  goose.gifts logo. Posting remains owner-approved only.
 - 2026-07-05: Google Analytics Data API read access for GA4 property
   `507421709` (`G-6RR3HPR747`). The dedicated goose service account has Viewer
   access to the property, Analytics Data/Admin APIs are enabled in

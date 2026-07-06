@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { ProductGrid } from '@/components/ProductGrid';
 import { giftGuides, getFeaturedGiftGuides, getGiftGuide, getGiftGuideProducts } from '@/lib/gift-guides';
 import { getSiteUrl } from '@/lib/site';
 import type { Product } from '@/lib/types';
@@ -10,15 +11,6 @@ export const revalidate = 3600;
 
 interface GiftGuidePageProps {
   params: Promise<{ slug: string }>;
-}
-
-function formatPrice(product: Product): string {
-  if (product.price <= 0) return 'Check price';
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: product.currency || 'USD',
-  }).format(product.price);
 }
 
 function buildGuideFaqs(guide: NonNullable<ReturnType<typeof getGiftGuide>>) {
@@ -275,41 +267,11 @@ export default async function GiftGuidePage({ params }: GiftGuidePageProps) {
               Catalog matches are thin for this guide today. More products will appear as daily discovery expands the catalog.
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-              {products.map((product, index) => (
-                <a
-                  key={product.id}
-                  href={product.affiliateUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex min-h-[19rem] flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400 hover:shadow-lg"
-                >
-                  <div className="aspect-square bg-white p-2">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={product.imageUrl}
-                      alt={product.title}
-                      className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]"
-                      loading={index < 6 ? 'eager' : 'lazy'}
-                    />
-                  </div>
-                  <div className="flex flex-1 flex-col gap-2 p-3">
-                    <div className="flex items-center justify-between gap-2 text-xs">
-                      <span className="font-bold text-zinc-950">{formatPrice(product)}</span>
-                      <span className="shrink-0 text-zinc-500">{product.source === 'amazon' ? 'Amazon' : 'Etsy'}</span>
-                    </div>
-                    <h3 className="line-clamp-3 text-sm font-semibold leading-snug text-zinc-950 group-hover:text-red-700">
-                      {product.punnyTitle || product.title}
-                    </h3>
-                    {(product.wittyDescription || product.sourceQuery) && (
-                      <p className="line-clamp-2 text-xs leading-5 text-zinc-600">
-                        {product.wittyDescription || product.sourceQuery}
-                      </p>
-                    )}
-                  </div>
-                </a>
-              ))}
-            </div>
+            <ProductGrid
+              products={products}
+              clickSource="gift_guide"
+              contextSlug={guide.slug}
+            />
           )}
         </div>
       </section>

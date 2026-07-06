@@ -7,6 +7,7 @@ import { ProductImage } from './ProductImage';
 interface ProductGridProps {
   products: Product[];
   clickSource: string;
+  contextSlug?: string;
   searchQueryId?: string | null;
 }
 
@@ -116,11 +117,28 @@ function getLinkDomain(url: string): string {
   }
 }
 
-export function ProductGrid({ products, clickSource, searchQueryId }: ProductGridProps) {
+function getItemListId(clickSource: string, contextSlug?: string): string {
+  return contextSlug ? `${clickSource}:${contextSlug}` : clickSource;
+}
+
+function getGaItems(products: Product[]) {
+  return products.slice(0, 36).map((product, index) => ({
+    item_id: product.id,
+    item_name: getDisplayTitle(product),
+    item_brand: getSourceLabel(product.source),
+    item_category: product.sourceQuery || 'catalog',
+    price: product.price > 0 ? product.price : undefined,
+    currency: product.currency || 'USD',
+    index,
+  }));
+}
+
+export function ProductGrid({ products, clickSource, contextSlug, searchQueryId }: ProductGridProps) {
   const productIdsKey = useMemo(
     () => products.map((product) => product.id).join('|'),
     [products]
   );
+  const itemListId = getItemListId(clickSource, contextSlug);
 
   useEffect(() => {
     if (products.length === 0) {
@@ -132,28 +150,57 @@ export function ProductGrid({ products, clickSource, searchQueryId }: ProductGri
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         productIds: products.map((product) => product.id),
+        source: clickSource,
+        contextSlug,
       }),
     }).catch(() => {});
-  }, [products, productIdsKey]);
 
-  const handleProductClick = (url: string, productId: string, e: React.MouseEvent) => {
+    const gtag = getGtag();
+    if (gtag) {
+      gtag('event', 'view_item_list', {
+        item_list_id: itemListId,
+        item_list_name: contextSlug || clickSource,
+        items: getGaItems(products),
+      });
+    }
+  }, [clickSource, contextSlug, itemListId, products, productIdsKey]);
+
+  const handleProductClick = (url: string, product: Product, index: number, e: React.MouseEvent) => {
     e.preventDefault();
 
     fetch('/api/track-click', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        productId,
+        productId: product.id,
         source: clickSource,
+        contextSlug,
         searchQueryId: searchQueryId || undefined,
       }),
     }).catch(() => {});
 
     const gtag = getGtag();
     if (gtag) {
+      gtag('event', 'select_item', {
+        item_list_id: itemListId,
+        item_list_name: contextSlug || clickSource,
+        items: [{
+          item_id: product.id,
+          item_name: getDisplayTitle(product),
+          item_brand: getSourceLabel(product.source),
+          item_category: product.sourceQuery || 'catalog',
+          price: product.price > 0 ? product.price : undefined,
+          currency: product.currency || 'USD',
+          index,
+        }],
+      });
+
       gtag('event', 'conversion_event_outbound_click', {
         event_category: 'catalog_product',
         event_label: url,
+        product_id: product.id,
+        click_source: clickSource,
+        context_slug: contextSlug,
         link_domain: getLinkDomain(url),
         event_callback: () => openOutbound(url),
         event_timeout: 2000,
@@ -181,7 +228,7 @@ export function ProductGrid({ products, clickSource, searchQueryId }: ProductGri
             href={product.affiliateUrl}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={(e) => handleProductClick(product.affiliateUrl, product.id, e)}
+            onClick={(e) => handleProductClick(product.affiliateUrl, product, index, e)}
             className="group flex min-h-[19rem] flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400 hover:shadow-lg"
           >
             <div className="relative aspect-square overflow-hidden bg-white">
