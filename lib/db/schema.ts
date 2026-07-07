@@ -159,6 +159,14 @@ export const productClicks = pgTable('product_clicks', {
   // User context (for future personalization)
   userAgent: text('user_agent'),
   referer: text('referer'),
+  sessionId: varchar('session_id', { length: 100 }),
+  landingPage: text('landing_page'),
+  utmSource: varchar('utm_source', { length: 100 }),
+  utmMedium: varchar('utm_medium', { length: 100 }),
+  utmCampaign: varchar('utm_campaign', { length: 150 }),
+  utmContent: varchar('utm_content', { length: 150 }),
+  utmTerm: varchar('utm_term', { length: 150 }),
+  referrerHost: varchar('referrer_host', { length: 255 }),
 
   // Timestamp
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -167,6 +175,9 @@ export const productClicks = pgTable('product_clicks', {
   productIdIdx: index('product_clicks_product_id_idx').on(table.productId),
   sourceIdx: index('product_clicks_source_idx').on(table.source),
   createdAtIdx: index('product_clicks_created_at_idx').on(table.createdAt),
+  sessionIdIdx: index('product_clicks_session_id_idx').on(table.sessionId),
+  utmSourceIdx: index('product_clicks_utm_source_idx').on(table.utmSource),
+  utmCampaignIdx: index('product_clicks_utm_campaign_idx').on(table.utmCampaign),
   // Composite for trending analysis
   productSourceIdx: index('product_clicks_product_source_idx').on(table.productId, table.source),
 }));

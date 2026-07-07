@@ -5,6 +5,81 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-07 - Manual growth run: attribution loop shipped
+
+**Trigger**: Cameron asked to kick off a manual run immediately after correcting
+the daily mandate away from default curated pages.
+
+**Health**: production homepage returned 200 with title
+`Funny Gag Gifts, White Elephant Ideas, and Weird Presents | goose.gifts`,
+`/sitemap.xml` returned 200 and included `/gift-guides/funny-poop-gifts`,
+`/search` returned a 307 redirect to `/`, and
+`/?q=dad%20with%20no%20spare%20time` returned 200 with `Check price` and
+ItemList schema present.
+
+**Metrics snapshot**: Vercel Web Analytics still reported 27 visitors and 91
+pageviews for 2026-06-07 through 2026-07-07 UTC. Referrers remain mostly opaque:
+20 visitors / 80 pageviews are direct or unknown. GA4 showed 18 direct active
+users / 27 sessions, 1 paid-search session, and 3 one-session referrals. GA4
+events showed 2 users / 2 `conversion_event_outbound_click` events. Database
+totals before this code change: 3,264 active products, 18,770 product
+impressions, 93 product click events, 290 lifetime searches, 27 searches and 2
+product clicks in the last 7 days, and no campaign-attributed clicks yet.
+Search Console analytics for 2026-06-30 through 2026-07-06 returned no query
+rows.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 76 candidates, 76 active/enriched/embedded candidates, 0 inserted, and
+76 updated.
+
+**Growth lever chosen**: analytics and conversion learning loop. The immediate
+business problem is not just more pages; it is that future distribution tests
+would be hard to evaluate because product clicks did not preserve first-touch
+campaign/referrer/session context. Shipped additive click attribution so
+UTM-tagged Pinterest, creator, newsletter, social, or partner links can be traced
+through to outbound affiliate clicks.
+
+**Plausible alternatives skipped**:
+- More guide pages: skipped because the same-day correction explicitly asked for
+  broader growth, and search/organic data is still too thin to prove another page
+  is the best lever.
+- External posting/outreach: skipped because recurring outward-facing posting is
+  still owner-approved only; instrumentation should land first so approved tests
+  have measurable results.
+- Product-card copy/layout tests: skipped because the bigger near-term blocker
+  is attribution. Changing cards without source/campaign click attribution would
+  make a future traffic bump harder to understand.
+
+**Shipped**:
+- Added nullable `product_clicks` attribution fields for `session_id`,
+  `landing_page`, UTM parameters, and `referrer_host`; applied the additive
+  production migration before deploy.
+- Updated `ProductGrid` to preserve first-touch campaign/referrer context in the
+  browser and send it on outbound product clicks.
+- Updated `/api/track-click` to sanitize and store attribution without changing
+  the affiliate click path.
+- Added campaign-attributed clicks and product-click referrers to
+  `npm run analytics:snapshot`.
+- Updated `docs/SEARCH_ANALYTICS.md` with the new attribution flow.
+
+**Review / QA**:
+- Self-reviewed the diff for click-path safety, PII risk, storage failure
+  behavior, DB migration safety, and whether the experiment supports non-search
+  acquisition.
+- Verified the production migration columns exist in `product_clicks`.
+- `git diff --check`, `npm run build`, `npm run lint`, and
+  `npm run analytics:snapshot` passed. The refreshed snapshot shows the new
+  campaign/referrer sections with the expected baseline: no campaign-attributed
+  clicks yet and product-click referrers currently resolving to `www.goose.gifts`.
+
+**Next**: run a small approved distribution experiment with UTM-tagged links
+after deploy, starting with Pinterest or a creator/blogger target list, and use
+the new campaign-attributed click section to decide whether it is worth
+repeating.
+
+---
+
 ## 2026-07-07 - Owner correction: broaden daily growth mandate
 
 **Owner direction**: Cameron called out that daily ops had become too focused on

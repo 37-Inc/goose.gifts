@@ -29,6 +29,9 @@ Search analytics system for tracking, analyzing, and improving product-catalog s
   - Product impressions via `/api/track-impression`
   - Outbound affiliate clicks via `/api/track-click`
   - Search-result clicks tied back to `search_queries.clicked`
+  - First-touch UTM/referrer/session context on outbound product clicks, so
+    Pinterest, creator, newsletter, or other acquisition tests can be measured
+    through to affiliate exits
   - GA4 `view_item_list`, `select_item`, and
     `conversion_event_outbound_click` events
 
@@ -53,6 +56,9 @@ without using the browser.
   - `click_source`: `catalog_home`, `catalog_search`, or `gift_guide`
   - `context_slug`: Guide slug when the click came from a guide page
   - `link_domain`: Affiliate destination domain
+  - `landing_page`, `traffic_source`, `traffic_medium`, and
+    `traffic_campaign`: first-touch acquisition context when the visitor arrived
+    through UTM-tagged or referred traffic
 
 ### 4. Admin Dashboard
 
@@ -111,8 +117,10 @@ User searches -> CatalogSearchFeed component
 
 Guide page view -> GA4 page_view
                 -> ProductGrid view_item_list + DB impressions
+                -> ProductGrid stores first-touch UTM/referrer context
                 -> Product click stores source=gift_guide + guide slug
-                -> GA4 select_item + outbound conversion event
+                   + campaign/referrer/session attribution
+                -> GA4 select_item + outbound conversion event with attribution
 ```
 
 ## 🗄️ Database Schema
@@ -238,8 +246,9 @@ git push origin main
   or `npm run analytics:ga4 -- event conversion_event_outbound_click`.
 - For weekly product/search reporting, run
   `npm run analytics:snapshot -- --days 31`; the database section includes
-  click sources, guide-page product clicks, zero-result searches, top clicked
-  products, and catalog readiness.
+  click sources, guide-page product clicks, campaign-attributed product clicks,
+  product-click referrers, zero-result searches, top clicked products, and
+  catalog readiness.
 
 ### Poor similarity scores
 - Review product copy - is it semantic and descriptive?
@@ -258,6 +267,8 @@ git push origin main
 - `lib/db/schema.ts` - Added searchQueries table
 - `app/api/search-products/route.ts` - Product search logging
 - `app/api/track-click/route.ts` - Product click logging and source context
+- `components/ProductGrid.tsx` - First-touch campaign/referrer capture for
+  product click attribution
 - `app/api/admin/stats/route.ts` - Dashboard catalog and click-source metrics
 - `components/CatalogSearchFeed.tsx` - Catalog search UI and GA search event
 - `components/ProductGrid.tsx` - Product click, impression, and GA item-list tracking
