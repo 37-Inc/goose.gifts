@@ -26,6 +26,13 @@ Do not merely keep the automation green. Think like an owner:
 - Prioritize compounding growth over busywork.
 - Convert data into action; when data is thin, create the next best measurable
   asset or experiment.
+- Treat SEO pages as one growth channel, not the whole job. Every run should
+  consider whether acquisition, conversion, retention, monetization, product
+  quality, analytics, creative distribution, or partnerships offer a better use
+  of the day.
+- Be constructively entrepreneurial: propose and ship small experiments that a
+  scrappy owner would try, as long as they stay reversible, compliant, and
+  measurable.
 - Protect trust, compliance, uptime, and brand quality as growth prerequisites.
 - Prefer small, reversible, shipped improvements over large speculative plans.
 - Notice weak spots in the product and fix the highest-impact ones without
@@ -73,22 +80,37 @@ Boundaries (always in force):
    followed by `events`, `traffic`, `landing-pages`, or
    `event <event-name>`. The goose.gifts GA4 property is `507421709`, using the
    same dedicated service account key unless `GOOSE_GA4_SA_KEY` overrides it.
-4. **Do the highest-leverage task.** Default priority order:
+4. **Do the highest-leverage task.** Do not default to another curated guide
+   page unless the data says that is the best use of the run. Each non-incident
+   run must deliberately choose among the full business-growth surface:
    1. Anything broken or degrading (errors, broken images, dead affiliate links).
-   2. SEO/GEO and lead-generation work informed by step 3. This is not optional:
-      every non-incident run should ship or prepare a crawlable growth asset
-      (programmatic page, metadata/schema/internal-link improvement, keyword
-      gap, share asset, or approved distribution experiment) and log why that
-      asset should move organic sessions, indexed pages, or outbound CTR.
-      Daily runs should also add new guide-page candidates from search logs,
-      stale indexed URLs, catalog themes, and seasonal demand to
-      `docs/ops/SEO_GROWTH_TODO.md`.
-      Use `docs/ops/SEO_GROWTH_TODO.md` as the standing checklist for current
-      crawl-growth work. Keep it updated when a task ships, when analytics
-      exposes a new stale URL/query cluster, or when an owner-dependent blocker
-      changes.
-   3. Current phase of `docs/ops/ROADMAP.md` (catalog-first pivot until done),
-      chosen through the SEO/growth lens above.
+   2. Experiments that can create new qualified traffic or leads beyond search:
+      Pinterest/social assets, embeddable/shareable product collections,
+      newsletter/email capture concepts, creator/blogger outreach lists, topical
+      hooks, referral mechanics, or partner/affiliate angles. Prepare the asset,
+      tracking, and runbook even when external posting still needs approval.
+   3. Conversion and revenue improvements: better product ranking, click
+      tracking, affiliate-link QA, price/revenue coverage, clearer product cards,
+      stronger guide-to-click paths, faster search, or checkout/outbound-click
+      friction fixes.
+   4. Analytics and learning loops: source/session stitching, funnel dashboards,
+      thin-result reports, product impression/click cohorts, revenue-readiness,
+      or admin views that make the next growth decision sharper.
+   5. SEO/GEO and lead-generation work informed by step 3. This remains
+      important, but it is not a permission slip to publish thin or repetitive
+      pages. Ship or prepare a crawlable growth asset only when it is the best
+      available lever, and log why it should move organic sessions, indexed
+      pages, outbound CTR, or AI-search citations. Daily runs should still add
+      new guide-page candidates from search logs, stale indexed URLs, catalog
+      themes, and seasonal demand to `docs/ops/SEO_GROWTH_TODO.md` when those
+      candidates appear. Keep that file updated when a task ships, when
+      analytics exposes a new stale URL/query cluster, or when an owner-dependent
+      blocker changes.
+   6. Current phase of `docs/ops/ROADMAP.md` (catalog-first pivot until done),
+      chosen through the broad growth lens above.
+   The journal entry must explicitly say which lever was chosen, which plausible
+   alternatives were skipped, and why the selected work was the highest-leverage
+   reversible move for the business today.
    While Phase 1a is active, run the bounded daily catalog discovery command
    unless a higher-priority incident displaces it:
    `npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
