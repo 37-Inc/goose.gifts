@@ -5,6 +5,71 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-07 - Daily ops: poop-gifts guide shipped
+
+**Health**: production homepage returned 200 with title
+`Funny Gag Gifts, White Elephant Ideas, and Weird Presents | goose.gifts`,
+`/sitemap.xml` returned 200, `/search` returned a 307 redirect to `/`, and
+`/?q=dad%20with%20no%20spare%20time` returned 200 with the catalog ItemList
+schema present.
+
+**Metrics snapshot**: Vercel Web Analytics reported 27 visitors and 91
+pageviews for 2026-06-07 through 2026-07-07 UTC, with 4 visitors / 8 pageviews
+on 2026-07-07. Top paths still center on `/`, but guide and old long-tail URLs
+are visible: `/gift-guides/white-elephant-gifts` had 3 visitors,
+`/gift-guides/funny-gifts-for-coworkers`, `/gift-guides/funny-gifts-for-dads`,
+`/gift-guides/novelty-desk-toys`, and
+`/purrfect-gifts-for-cat-loving-bookworms-n6y7` had 2 visitors each. GA4 showed
+18 direct active users / 27 sessions, 1 paid-search session, and 3 one-session
+referrals. Database totals: 3,263 active products before discovery, 18,698
+product impressions, 93 product click events, 290 lifetime searches, 27 searches
+and 2 product clicks in the last 7 days, and 1 gift-guide click from
+`white-elephant-gifts` on 2026-07-07. Search Console analytics for 2026-06-30
+through 2026-07-06 returned no query rows.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 76 candidates, 76 active/enriched/embedded candidates, 1 inserted, and
+75 updated.
+
+**Shipped growth work**: published `/gift-guides/funny-poop-gifts`, a crawlable
+catalog-backed guide from live on-site demand around `poop` and adjacent
+bathroom-humor searches. The focused `poop`/`toilet`/`fart` candidate check had
+47 active products before publishing, enough for a useful 36-product
+server-rendered guide. The guide inherits the maintained title/meta/canonical,
+FAQ, ItemList schema, related links, and tracked product grid. Homepage guide
+links now include both `Funny Poop Gifts` and the existing
+`Funny Gifts for Dads Who Fish` candidate, and legacy bundle-style slugs
+containing `poop`, `toilet`, or `fart` now 308 to the canonical poop guide.
+Expected movement: more indexed long-tail guide coverage, better retention for
+bathroom-humor search demand, and more measurable guide-product clicks.
+
+**Review / QA**:
+- Self-reviewed the diff for thin-page risk, redirect specificity, sitemap
+  inclusion through the shared guide list, schema/content match, and homepage
+  link density.
+- `npm run build` and `npm run lint` passed.
+- Local built-server checks verified the new guide returns 200 with title
+  `Funny Poop Gifts | goose.gifts`, canonical
+  `https://www.goose.gifts/gift-guides/funny-poop-gifts`, FAQPage and ItemList
+  schema, and 40 outbound/product links in rendered HTML.
+- Verified homepage rendered links to `/gift-guides/funny-poop-gifts` and
+  `/gift-guides/funny-gifts-for-dads-who-fish`.
+- Verified sample legacy slug
+  `/hilarious-poop-gift-bundles-for-prank-friends-ab12` returns a 308 to
+  `/gift-guides/funny-poop-gifts`.
+- Playwright desktop/mobile screenshots showed the new guide and homepage guide
+  chips render without overlap. The only console error was the expected local
+  `/_vercel/insights/script.js` 404 from running Vercel Web Analytics under
+  `next start`.
+
+**Next**: watch Search Console/GA4 for whether newly published guide URLs begin
+to get impressions, keep recycling stale bundle URLs into canonical guides, and
+use the next search-log cluster to publish another non-thin guide only when the
+catalog can support it.
+
+---
+
 ## 2026-07-07 - Pinterest white elephant Pin replaced
 
 **Owner direction**: Cameron spotted a second duplicate-product issue on the

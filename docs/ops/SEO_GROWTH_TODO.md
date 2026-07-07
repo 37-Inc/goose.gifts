@@ -37,6 +37,16 @@ report.
 - [x] Expanded homepage guide links from 12 to 18 so the new guide pages get
   immediate internal links instead of relying only on sitemap discovery.
 
+## Shipped 2026-07-07
+
+- [x] Published `/gift-guides/funny-poop-gifts` from on-site searches for
+  `poop` and related bathroom-humor terms. The live catalog had enough matching
+  active products for a useful server-rendered guide, and the homepage now links
+  to it alongside the existing dad-fishing guide candidate.
+- [x] Added legacy slug routing for `poop`, `toilet`, and `fart` bundle-style
+  URLs so future stale long-tail hits land on the canonical guide instead of a
+  generic search page.
+
 ## Ongoing Daily Ops
 
 - [ ] Use on-site search logs to propose new guide pages, but only publish a

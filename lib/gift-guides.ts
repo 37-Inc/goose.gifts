@@ -151,6 +151,14 @@ export const giftGuides: GiftGuideDefinition[] = [
     keywords: ['bathroom', 'bath', 'toilet', 'spa', 'housewarming', 'home', 'decor', 'weird'],
   },
   {
+    slug: 'funny-poop-gifts',
+    title: 'Funny Poop Gifts',
+    h1: 'Funny poop gifts for people who think bathroom humor still works',
+    description: 'Browse funny poop gifts, toilet jokes, bathroom gag gifts, fart pranks, and ridiculous potty-humor products from the goose.gifts catalog.',
+    intro: 'Poop gifts are not subtle, which is exactly the point. These picks work for white elephant exchanges, prank-loving friends, and anyone whose sense of humor never fully grew up.',
+    keywords: ['poop', 'toilet', 'bathroom', 'fart', 'potty', 'shart', 'prank', 'gag'],
+  },
+  {
     slug: 'funny-housewarming-gifts',
     title: 'Funny Housewarming Gifts',
     h1: 'Funny housewarming gifts for people with enough normal candles',
@@ -368,6 +376,8 @@ const featuredGiftGuideSlugs = [
   'prank-gifts-for-friends',
   'funny-birthday-gag-gifts',
   'funny-coffee-mugs',
+  'funny-poop-gifts',
+  'funny-gifts-for-dads-who-fish',
   'gifts-for-people-who-have-everything',
   'funny-gifts-for-moms',
   'funny-gifts-for-gamers',
