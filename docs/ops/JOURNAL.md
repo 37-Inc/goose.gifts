@@ -5,6 +5,59 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-07 - Pinterest API OAuth connected under Trial access
+
+**Trigger**: Cameron reported that Pinterest Trial access had been approved and
+asked to continue the API setup so future Pinterest work can avoid browser-only
+posting.
+
+**Pinterest app state**:
+- App name: `Goose.gifts`
+- App ID: `1588384`
+- Access tier: Trial access active.
+- Registered redirect URI:
+  `http://localhost:3737/oauth/pinterest/callback`
+
+**Credentials**:
+- Stored app ID in macOS Keychain service
+  `goose.gifts.PINTEREST_APP_ID`.
+- Stored app secret in macOS Keychain service
+  `goose.gifts.PINTEREST_APP_SECRET`.
+- Completed OAuth authorization for scopes:
+  `boards:read boards:write pins:read pins:write user_accounts:read`.
+- Stored OAuth tokens in macOS Keychain services
+  `goose.gifts.PINTEREST_ACCESS_TOKEN` and
+  `goose.gifts.PINTEREST_REFRESH_TOKEN`.
+- Do not paste or log the secret/token values. Treat all `pina_` and `pinr_`
+  strings as passwords.
+
+**Shipped operator tooling**:
+- Added `npm run pinterest:oauth` to repeat the local OAuth code flow and store
+  tokens safely.
+- Added `npm run pinterest:whoami` and `npm run pinterest:boards` as read-only
+  smoke tests for the connected API account.
+
+**Verification**:
+- `npm run pinterest:whoami` returned the expected `goosegifts` business
+  account with 5 boards and 5 pins.
+- `npm run pinterest:boards` returned all five existing public starter boards.
+- `node --check scripts/ops/pinterest-oauth.mjs`,
+  `node --check scripts/ops/pinterest-api.mjs`, `npm run lint`, and
+  `npm run build` passed.
+
+**Important limitation**: Pinterest Trial access can create Pins and boards, but
+Trial-created Pins/boards are visible only to their creator as sandbox entities.
+Public automated posting still requires a Standard access upgrade. Pinterest
+requires a screen recording that demonstrates the OAuth flow and live Pinterest
+API integration, even if goose.gifts is the only intended user.
+
+**Next**: use the Trial OAuth connection to build and demo the API posting flow
+without relying on the browser. Then record the OAuth/API demo and submit the
+Standard access upgrade request before moving the daily job to public API
+posting.
+
+---
+
 ## 2026-07-07 - Manual growth run: attribution loop shipped
 
 **Trigger**: Cameron asked to kick off a manual run immediately after correcting
