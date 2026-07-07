@@ -5,6 +5,64 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-07 - Pinterest white elephant Pin replaced
+
+**Owner direction**: Cameron spotted a second duplicate-product issue on the
+first Pinterest Pin and asked to fix and reupload it.
+
+**Shipped in this run**:
+- Hardened `scripts/ops/generate-pinterest-assets.mjs` so v2 Pinterest cards
+  fetch the full guide product list, require five distinct product images, and
+  fail instead of repeating a product tile.
+- Regenerated the v2 white elephant asset. Verified the corrected image uses
+  five distinct products: socks, emergency humor box, coasters, mystic pickle,
+  and squirrel hot tub.
+- Posted the corrected white elephant Pin:
+  https://www.pinterest.com/pin/1107815208383151361/
+- Deleted the old duplicate-image Pin:
+  https://www.pinterest.com/pin/1107815208383131380/
+- Verified the `Funny White Elephant Gifts` board shows `1 Pin`, pointing to
+  the corrected live URL.
+
+**Next**: keep the v2 generator guardrail in place before any future Pinterest
+batch, then move toward API/OAuth posting so replacements are less browser
+fragile.
+
+---
+
+## 2026-07-06 - Pinterest v2 starter batch posted
+
+**Owner direction**: Cameron approved trying the stronger v2 Pinterest creative
+set, with one requested cleanup: remove duplicate belly/fanny-pack products from
+the white elephant image before posting.
+
+**Shipped in this run**:
+- Regenerated the white elephant v2 asset so the product collage uses distinct
+  products instead of duplicate belly/fanny-pack style items.
+- Posted the five approved v2 product-collage Pins from the `goose.gifts`
+  Pinterest account.
+- Verified the `Created` tab at `https://www.pinterest.com/goosegifts/` shows
+  all five live Pins.
+
+**Live Pins**:
+- Funny White Elephant Gifts People Will Actually Steal:
+  https://www.pinterest.com/pin/1107815208383151361/
+- Office-Safe Funny Gifts for Coworkers:
+  https://www.pinterest.com/pin/1107815208383131573/
+- Weird Kitchen Gadgets That Are Actually Giftable:
+  https://www.pinterest.com/pin/1107815208383131619/
+- Novelty Desk Toys for Bad Meetings:
+  https://www.pinterest.com/pin/1107815208383131622/
+- Weird Home Decor Gifts for Rooms That Need a Double Take:
+  https://www.pinterest.com/pin/1107815208383131674/
+
+**Next**: evaluate whether Pinterest API access is available for this account so
+daily ops can post through an authenticated script instead of browser automation.
+Until that is wired, future external Pinterest posting remains explicit-owner
+approved.
+
+---
+
 ## 2026-07-06 - Daily ops: Monday guide sprint shipped
 
 **Health**: production homepage returned 200 with the expected title,
@@ -205,12 +263,14 @@ dedicated Google Cloud project or refreshed human Cloud auth.
   title, description, alt text, and vertical image direction.
 - Generated five vertical PNG image assets and a contact sheet under
   `docs/ops/pinterest-assets/batch-1/`.
+- Reworked the creative direction into a more Pinterest-native v2 product
+  collage set under `docs/ops/pinterest-assets/batch-1-v2/`, using real product
+  images from the live guide pages and stronger scroll-stopping hooks.
 
 **Publishing status**: nothing posted. Cameron still needs to approve the draft
 batch before any external Pinterest publishing.
 
-**Next**: after approval, generate the final vertical image assets, post the
-Pins, and log live Pin URLs here.
+**Next**: after approval, post the v2 image assets and log live Pin URLs here.
 
 ---
 

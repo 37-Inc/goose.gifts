@@ -22,9 +22,10 @@ outward-facing accounts. Best remaining channels:
 - **TikTok/Reels/Shorts**: short vertical product roundups generated from the
   catalog; I can prepare scripts/assets, but posting needs account access or
   approval of the publishing tool.
-- **Pinterest**: account access, profile polish, starter public boards, and a
-  first five-Pin draft batch now exist, but the batch and any recurring posting
-  workflow still need approval before anything is published externally.
+- **Pinterest**: account access, profile polish, starter public boards, and the
+  first five-Pin v2 product-collage batch are live. Recurring posting still
+  needs an approved publishing path, ideally Pinterest API/OAuth access if the
+  account can get the required scopes.
 
 Needed from Cameron: choose which channels to authorize for posting and approve
 any paid/video-generation tooling before spend.

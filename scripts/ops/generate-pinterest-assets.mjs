@@ -4,6 +4,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const outputDir = path.join(root, 'docs/ops/pinterest-assets/batch-1');
+const v2OutputDir = path.join(root, 'docs/ops/pinterest-assets/batch-1-v2');
 const logoPath = path.join(root, 'public/sillygoose.png');
 const rsvg = '/opt/homebrew/bin/rsvg-convert';
 const magick = '/opt/homebrew/bin/magick';
@@ -21,9 +22,11 @@ if (!existsSync(magick)) {
 }
 
 mkdirSync(outputDir, { recursive: true });
+mkdirSync(v2OutputDir, { recursive: true });
 
 const logoData = readFileSync(logoPath).toString('base64');
 const logoHref = `data:image/png;base64,${logoData}`;
+const siteUrl = 'https://www.goose.gifts';
 
 const cards = [
   {
@@ -36,6 +39,22 @@ const cards = [
     accent2: '#f59e0b',
     soft: '#fff7ed',
     icon: 'gift',
+    guide: 'white-elephant-gifts',
+    v2Title: ['WHITE ELEPHANT', 'GIFTS PEOPLE', 'FIGHT OVER'],
+    v2Hook: 'weird, useful, steal-worthy',
+    preferredProductPatterns: [
+      /Socks With a Side/i,
+      /Emergency Humor Box/i,
+      /Coastin' Through Life/i,
+      /Mystic Pickle/i,
+      /Squirrel Hot Tub/i,
+    ],
+    skipFallbackProductPatterns: [
+      /Fanny/i,
+      /Belly/i,
+      /Dad Bag/i,
+      /Funny White Elephant Gifts for Men Women/i,
+    ],
   },
   {
     file: '02-funny-gifts-for-coworkers',
@@ -47,6 +66,9 @@ const cards = [
     accent2: '#f97316',
     soft: '#ecfeff',
     icon: 'desk',
+    guide: 'funny-gifts-for-coworkers',
+    v2Title: ['COWORKER GIFTS', 'THAT WON’T GET', 'YOU FIRED'],
+    v2Hook: 'office-safe, still funny',
   },
   {
     file: '03-weird-kitchen-gadgets',
@@ -58,6 +80,9 @@ const cards = [
     accent2: '#eab308',
     soft: '#fefce8',
     icon: 'mug',
+    guide: 'weird-kitchen-gadgets',
+    v2Title: ['KITCHEN GADGETS', 'THAT LOOK FAKE', 'BUT AREN’T'],
+    v2Hook: 'giftable weirdness for cooks',
   },
   {
     file: '04-novelty-desk-toys',
@@ -69,6 +94,9 @@ const cards = [
     accent2: '#f97316',
     soft: '#eff6ff',
     icon: 'spark',
+    guide: 'novelty-desk-toys',
+    v2Title: ['DESK TOYS FOR', 'MEETINGS THAT', 'SHOULD’VE ENDED'],
+    v2Hook: 'tiny distractions, big relief',
   },
   {
     file: '05-weird-home-decor',
@@ -80,6 +108,9 @@ const cards = [
     accent2: '#16a34a',
     soft: '#f5f3ff',
     icon: 'home',
+    guide: 'weird-home-decor-gifts',
+    v2Title: ['HOME DECOR', 'THAT MAKES', 'PEOPLE STARE'],
+    v2Hook: 'odd shelf pieces and room jokes',
   },
 ];
 
@@ -175,6 +206,224 @@ function cardSvg(card) {
 `;
 }
 
+function dataUri(bytes, contentType) {
+  return `data:${contentType || 'image/jpeg'};base64,${Buffer.from(bytes).toString('base64')}`;
+}
+
+function decodeHtml(value) {
+  return String(value)
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#34;', '"')
+    .replaceAll('&amp;', '&')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>');
+}
+
+async function fetchGuideProducts(slug) {
+  const response = await fetch(`${siteUrl}/gift-guides/${slug}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch guide ${slug}: ${response.status}`);
+  }
+
+  const html = await response.text();
+  const jsonMatches = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
+  const itemListScript = jsonMatches
+    .map((match) => decodeHtml(match[1]))
+    .find((text) => text.includes('"@type":"ItemList"'));
+
+  if (!itemListScript) {
+    throw new Error(`No ItemList JSON-LD found for ${slug}`);
+  }
+
+  const parsed = JSON.parse(itemListScript);
+  const graph = Array.isArray(parsed['@graph']) ? parsed['@graph'] : [parsed];
+  const itemList = graph.find((entry) => entry?.['@type'] === 'ItemList');
+
+  if (!itemList) {
+    throw new Error(`No ItemList object found for ${slug}`);
+  }
+
+  return (itemList.itemListElement || [])
+    .map((entry) => entry.item)
+    .filter((product) => product?.image && product?.name);
+}
+
+async function fetchImageDataUri(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image ${url}: ${response.status}`);
+  }
+
+  const contentType = response.headers.get('content-type') || 'image/jpeg';
+  const bytes = await response.arrayBuffer();
+  return dataUri(bytes, contentType);
+}
+
+function productTiles(products) {
+  const slots = [
+    { x: 72, y: 628, w: 268, h: 268, r: -6 },
+    { x: 366, y: 586, w: 268, h: 268, r: 5 },
+    { x: 660, y: 638, w: 268, h: 268, r: -4 },
+    { x: 166, y: 946, w: 268, h: 268, r: 4 },
+    { x: 516, y: 938, w: 268, h: 268, r: -6 },
+  ];
+
+  if (products.length < slots.length) {
+    throw new Error(`Expected ${slots.length} distinct product images, got ${products.length}`);
+  }
+
+  return slots
+    .map((slot, index) => {
+      const product = products[index];
+
+      return `
+        <g transform="rotate(${slot.r} ${slot.x + slot.w / 2} ${slot.y + slot.h / 2})">
+          <rect x="${slot.x - 18}" y="${slot.y - 18}" width="${slot.w + 36}" height="${slot.h + 36}" rx="32" fill="#ffffff" stroke="#18181b" stroke-width="8"/>
+          <clipPath id="clip-${index}">
+            <rect x="${slot.x}" y="${slot.y}" width="${slot.w}" height="${slot.h}" rx="22"/>
+          </clipPath>
+          <rect x="${slot.x}" y="${slot.y}" width="${slot.w}" height="${slot.h}" rx="22" fill="#ffffff"/>
+          <image href="${product.imageDataUri}" x="${slot.x}" y="${slot.y}" width="${slot.w}" height="${slot.h}" preserveAspectRatio="xMidYMid meet" clip-path="url(#clip-${index})"/>
+        </g>`;
+    })
+    .join('');
+}
+
+function shortProductName(name) {
+  return String(name)
+    .replace(/\s*\|.*$/, '')
+    .replace(/\s*[-–].*$/, '')
+    .replace(/\bAmazon\.com:?\s*/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 30);
+}
+
+function v2TitleSvg(lines) {
+  return lines
+    .map((line, index) => `<tspan x="70" dy="${index === 0 ? 0 : 74}">${xml(line)}</tspan>`)
+    .join('');
+}
+
+function v2CardSvg(card, products) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1500" viewBox="0 0 1000 1500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${card.accent}"/>
+      <stop offset="100%" stop-color="#18181b"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="14" flood-color="#000000" flood-opacity="0.30"/>
+    </filter>
+  </defs>
+
+  <rect width="1000" height="1500" fill="url(#bg)"/>
+  <path d="M-30 294 C188 132 418 426 632 224 C776 88 890 74 1030 136 L1030 0 L-30 0 Z" fill="${card.accent2}" opacity="0.28"/>
+  <path d="M-30 1314 C220 1168 392 1412 622 1240 C782 1120 906 1118 1030 1198 L1030 1500 L-30 1500 Z" fill="#ffffff" opacity="0.12"/>
+
+  <rect x="52" y="54" width="896" height="1368" rx="54" fill="#ffffff" opacity="0.96"/>
+  <rect x="52" y="54" width="896" height="1368" rx="54" fill="none" stroke="#18181b" stroke-width="10"/>
+
+  <image href="${logoHref}" x="72" y="86" width="104" height="104"/>
+  <text x="190" y="137" font-family="Helvetica, Arial, sans-serif" font-size="34" font-weight="900" fill="#18181b">goose.gifts</text>
+  <text x="190" y="178" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="900" fill="${card.accent}">${xml(card.kicker)}</text>
+
+  <text x="70" y="294" font-family="Helvetica, Arial, sans-serif" font-size="68" font-weight="900" fill="#18181b">${v2TitleSvg(card.v2Title)}</text>
+  <rect x="70" y="500" width="860" height="72" rx="36" fill="#18181b"/>
+  <text x="112" y="548" font-family="Helvetica, Arial, sans-serif" font-size="31" font-weight="900" fill="#ffffff">${xml(card.v2Hook)}</text>
+
+  <g filter="url(#shadow)">
+    ${productTiles(products)}
+  </g>
+
+  <rect x="70" y="1260" width="520" height="82" rx="41" fill="${card.accent}"/>
+  <text x="116" y="1314" font-family="Helvetica, Arial, sans-serif" font-size="32" font-weight="900" fill="#ffffff">See the full list</text>
+  <text x="70" y="1374" font-family="Helvetica, Arial, sans-serif" font-size="28" font-weight="900" fill="#18181b">${xml(card.board)}</text>
+</svg>
+`;
+}
+
+function selectProductsForCard(card, guideProducts) {
+  const selected = [];
+  const selectedNames = new Set();
+  const selectedImages = new Set();
+
+  const addProduct = (product) => {
+    if (!product?.name || selectedNames.has(product.name)) return;
+    if (!product?.image || selectedImages.has(product.image)) return;
+    selected.push(product);
+    selectedNames.add(product.name);
+    selectedImages.add(product.image);
+  };
+
+  if (card.preferredProductPatterns) {
+    for (const pattern of card.preferredProductPatterns) {
+      addProduct(guideProducts.find((product) => pattern.test(product.name)));
+    }
+  }
+
+  for (const product of guideProducts) {
+    if (selected.length >= 5) break;
+    if (card.skipFallbackProductPatterns?.some((pattern) => pattern.test(product.name))) continue;
+    addProduct(product);
+  }
+
+  return selected.slice(0, 5);
+}
+
+async function generateV2Assets() {
+  const pngFiles = [];
+
+  for (const card of cards) {
+    const guideProducts = await fetchGuideProducts(card.guide);
+    const selectedProducts = selectProductsForCard(card, guideProducts);
+    const productsWithImages = [];
+
+    for (const product of selectedProducts.slice(0, 5)) {
+      try {
+        productsWithImages.push({
+          name: product.name,
+          shortName: shortProductName(product.name),
+          imageDataUri: await fetchImageDataUri(product.image),
+        });
+      } catch (error) {
+        console.warn(`Skipping image for ${product.name}: ${error.message}`);
+      }
+    }
+
+    if (productsWithImages.length < 5) {
+      throw new Error(`Not enough distinct product images for ${card.guide}`);
+    }
+
+    const svgPath = path.join(v2OutputDir, `${card.file}.svg`);
+    const pngPath = path.join(v2OutputDir, `${card.file}.png`);
+    writeFileSync(svgPath, v2CardSvg(card, productsWithImages));
+    execFileSync(rsvg, ['-w', '1000', '-h', '1500', '-o', pngPath, svgPath], { stdio: 'inherit' });
+    pngFiles.push(pngPath);
+  }
+
+  execFileSync(
+    magick,
+    [
+      'montage',
+      ...pngFiles,
+      '-thumbnail',
+      '260x390',
+      '-geometry',
+      '+18+18',
+      '-background',
+      '#ffffff',
+      '-tile',
+      '5x1',
+      path.join(v2OutputDir, 'batch-1-v2-contact-sheet.png'),
+    ],
+    { stdio: 'inherit' },
+  );
+
+  console.log(`Generated ${cards.length} v2 Pinterest assets in ${v2OutputDir}`);
+}
+
 const pngFiles = [];
 
 for (const card of cards) {
@@ -204,3 +453,5 @@ execFileSync(
 );
 
 console.log(`Generated ${cards.length} Pinterest assets in ${outputDir}`);
+
+await generateV2Assets();
