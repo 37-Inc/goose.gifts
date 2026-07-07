@@ -108,12 +108,21 @@ Priority order:
 
 - Shareability: OG images per product, Pinterest-optimized pages
   (gag gifts are a strong Pinterest category).
+- Creative acquisition experiments: maintain a backlog of low-cost tests that
+  could bring qualified shoppers without waiting for Google, such as themed
+  Pinterest batches, linkable "ridiculous find of the day" pages, embeddable
+  mini-roundups, creator/blogger pitch lists, seasonal PR hooks, and catalog
+  data stories. Prepare assets and tracking first; get approval only for the
+  outward-facing post/send/spend.
 - Email capture + weekly "dumbest gifts this week" newsletter
   once Cameron approves email collection and outbound content.
 - Owned social distribution once Cameron approves channels: X/Twitter for
   daily ridiculous finds, TikTok/Reels/Shorts for vertical product roundups,
   and Pinterest pins for evergreen gag-gift searches. Generate assets from the
   catalog, track tagged links, and avoid spammy posting or fake engagement.
+- Conversion and retention loops: test homepage ranking, product-card copy,
+  guide CTA placement, outbound-click instrumentation, saved/favorite concepts,
+  and returning-visitor paths so traffic has more chances to become revenue.
 - Revenue optimization: compare Amazon vs. Etsy/Awin EPC per category once
   reporting access exists; weight the bandit by commission, not just CTR.
 
@@ -121,5 +130,9 @@ Priority order:
 
 - Catalog size & freshness; % searches with strong semantic hits.
 - Organic sessions (Search Console), indexed pages.
+- Non-search acquisition: qualified referral/social/Pinterest sessions,
+  repeatable content assets prepared, and approved distribution experiments run.
+- Conversion quality: guide/home/search outbound CTR, product click depth,
+  source-attributed clicks, and returning-user engagement.
 - Outbound affiliate CTR; clicks → revenue once reporting access exists.
 - Marginal cost per visitor (should trend to ~zero after Phase 1).

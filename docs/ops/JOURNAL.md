@@ -5,6 +5,34 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-07 - Owner correction: broaden daily growth mandate
+
+**Owner direction**: Cameron called out that daily ops had become too focused on
+adding curated SEO pages. He reiterated that goose.gifts has been fully handed
+over and the operator should grow the business creatively by any compliant,
+reversible, measurable means, not just by publishing guide pages.
+
+**Process change shipped**:
+- Updated `docs/ops/RUNBOOK.md` so daily step 4 must deliberately choose across
+  the full business-growth surface: acquisition beyond search, conversion,
+  retention, monetization, analytics/learning loops, product quality, creative
+  distribution prep, partnerships, and SEO/GEO.
+- Added a journal requirement to log which lever was chosen, which plausible
+  alternatives were skipped, and why the selected work was the highest-leverage
+  reversible move for the business that day.
+- Updated `docs/ops/ROADMAP.md` Phase 3 and success metrics to include creative
+  acquisition experiments, distribution assets, conversion loops, non-search
+  traffic, source-attributed clicks, and returning-user engagement.
+
+**Operating implication**: future daily runs should not treat "new crawlable
+guide page" as the default. A guide is valid only when data says it is the best
+lever. Otherwise, ship or prepare a different measurable growth experiment, such
+as better click instrumentation, Pinterest/creator assets, referral/social
+tracking, product-card conversion work, newsletter capture planning, revenue
+reporting, or partner/outreach prep.
+
+---
+
 ## 2026-07-07 - Daily ops: poop-gifts guide shipped
 
 **Health**: production homepage returned 200 with title
