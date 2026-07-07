@@ -249,12 +249,33 @@ async function fetchDatabaseAnalytics() {
         LIMIT 10
       `),
       queryDb('topReferrers90d', db, `
-        SELECT nullif(regexp_replace(coalesce(referer, ''), '^https?://([^/]+).*$', '\\1'), '') AS referrer_host,
+        SELECT coalesce(
+            nullif(referrer_host, ''),
+            nullif(regexp_replace(coalesce(referer, ''), '^https?://([^/]+).*$', '\\1'), '')
+          ) AS referrer_host,
           count(*)::int AS clicks
         FROM product_clicks
         WHERE created_at >= now() - interval '90 days'
         GROUP BY 1
         ORDER BY clicks DESC
+        LIMIT 10
+      `),
+      queryDb('campaignClicks90d', db, `
+        SELECT
+          coalesce(nullif(utm_source, ''), '(none)') AS utm_source,
+          coalesce(nullif(utm_medium, ''), '(none)') AS utm_medium,
+          coalesce(nullif(utm_campaign, ''), '(none)') AS utm_campaign,
+          count(*)::int AS clicks,
+          max(created_at) AS last_click_at
+        FROM product_clicks
+        WHERE created_at >= now() - interval '90 days'
+          AND (
+            nullif(utm_source, '') IS NOT NULL
+            OR nullif(utm_medium, '') IS NOT NULL
+            OR nullif(utm_campaign, '') IS NOT NULL
+          )
+        GROUP BY 1, 2, 3
+        ORDER BY clicks DESC, last_click_at DESC
         LIMIT 10
       `),
       queryDb('topSearches90d', db, `
@@ -371,6 +392,16 @@ function printText(snapshot) {
   console.log(formatRows(
     database.guideClicks90d,
     (row) => `  ${row.guide_slug} - ${row.clicks} clicks - latest ${formatTimestamp(row.last_click_at)}`,
+  ));
+  console.log('- Campaign-attributed clicks in 90d:');
+  console.log(formatRows(
+    database.campaignClicks90d,
+    (row) => `  ${row.utm_source} / ${row.utm_medium} / ${row.utm_campaign} - ${row.clicks} clicks - latest ${formatTimestamp(row.last_click_at)}`,
+  ));
+  console.log('- Product-click referrers in 90d:');
+  console.log(formatRows(
+    database.topReferrers90d,
+    (row) => `  ${row.referrer_host || '(direct/unknown)'} - ${row.clicks} clicks`,
   ));
   console.log('- Zero-result searches in 30d:');
   console.log(formatRows(
