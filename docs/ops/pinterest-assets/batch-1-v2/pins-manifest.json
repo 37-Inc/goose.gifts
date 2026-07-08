@@ -1,0 +1,73 @@
+{
+  "generatedAt": "2026-07-08T15:37:09.239Z",
+  "mode": "dry-run",
+  "campaign": "pinterest_api_trial_batch_1_v2",
+  "note": "Dry run only. No pins were created.",
+  "pins": [
+    {
+      "title": "Funny White Elephant Gifts People Fight Over",
+      "description": "A goose.gifts roundup of weird, useful, steal-worthy white elephant gift ideas with real products and quick picks.",
+      "link": "https://www.goose.gifts/gift-guides/white-elephant-gifts?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_batch_1_v2&utm_content=01-white-elephant-gifts",
+      "guideSlug": "white-elephant-gifts",
+      "asset": "01-white-elephant-gifts.png",
+      "assetPath": "/Users/cameronehrlich/.codex/worktrees/8896/goose.gifts/docs/ops/pinterest-assets/batch-1-v2/01-white-elephant-gifts.png",
+      "assetExists": true,
+      "trialBoard": "API Trial - Funny White Elephant Gifts",
+      "trialBoardId": "1107815277030430244",
+      "publicBoard": "Funny White Elephant Gifts",
+      "publicBoardId": "1107815277030422220"
+    },
+    {
+      "title": "Coworker Gifts That Will Not Get You Fired",
+      "description": "Office-safe funny coworker gift ideas for bad meetings, desk jokes, and low-risk Secret Santa chaos.",
+      "link": "https://www.goose.gifts/gift-guides/funny-gifts-for-coworkers?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_batch_1_v2&utm_content=02-funny-gifts-for-coworkers",
+      "guideSlug": "funny-gifts-for-coworkers",
+      "asset": "02-funny-gifts-for-coworkers.png",
+      "assetPath": "/Users/cameronehrlich/.codex/worktrees/8896/goose.gifts/docs/ops/pinterest-assets/batch-1-v2/02-funny-gifts-for-coworkers.png",
+      "assetExists": true,
+      "trialBoard": "API Trial - Funny Gifts for Coworkers",
+      "trialBoardId": "1107815277030430246",
+      "publicBoard": "Funny Gifts for Coworkers",
+      "publicBoardId": "1107815277030422223"
+    },
+    {
+      "title": "Weird Kitchen Gadgets That Look Fake But Are Real",
+      "description": "A catalog-backed goose.gifts guide to odd kitchen tools, food gifts, and funny gadgets for cooks.",
+      "link": "https://www.goose.gifts/gift-guides/weird-kitchen-gadgets?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_batch_1_v2&utm_content=03-weird-kitchen-gadgets",
+      "guideSlug": "weird-kitchen-gadgets",
+      "asset": "03-weird-kitchen-gadgets.png",
+      "assetPath": "/Users/cameronehrlich/.codex/worktrees/8896/goose.gifts/docs/ops/pinterest-assets/batch-1-v2/03-weird-kitchen-gadgets.png",
+      "assetExists": true,
+      "trialBoard": "API Trial - Weird Kitchen Gadgets",
+      "trialBoardId": "1107815277030430248",
+      "publicBoard": "Weird Kitchen Gadgets",
+      "publicBoardId": "1107815277030422224"
+    },
+    {
+      "title": "Novelty Desk Toys for Meetings That Should Have Ended",
+      "description": "Tiny desk distractions and funny office gift ideas picked from the goose.gifts catalog.",
+      "link": "https://www.goose.gifts/gift-guides/novelty-desk-toys?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_batch_1_v2&utm_content=04-novelty-desk-toys",
+      "guideSlug": "novelty-desk-toys",
+      "asset": "04-novelty-desk-toys.png",
+      "assetPath": "/Users/cameronehrlich/.codex/worktrees/8896/goose.gifts/docs/ops/pinterest-assets/batch-1-v2/04-novelty-desk-toys.png",
+      "assetExists": true,
+      "trialBoard": "API Trial - Novelty Desk Toys",
+      "trialBoardId": "1107815277030430249",
+      "publicBoard": "Novelty Desk Toys",
+      "publicBoardId": "1107815277030422225"
+    },
+    {
+      "title": "Weird Home Decor That Makes People Stare",
+      "description": "Odd shelf pieces, room jokes, and conversation-starting home decor gifts from goose.gifts.",
+      "link": "https://www.goose.gifts/gift-guides/weird-home-decor-gifts?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_batch_1_v2&utm_content=05-weird-home-decor",
+      "guideSlug": "weird-home-decor-gifts",
+      "asset": "05-weird-home-decor.png",
+      "assetPath": "/Users/cameronehrlich/.codex/worktrees/8896/goose.gifts/docs/ops/pinterest-assets/batch-1-v2/05-weird-home-decor.png",
+      "assetExists": true,
+      "trialBoard": "API Trial - Weird Home Decor",
+      "trialBoardId": "1107815277030430250",
+      "publicBoard": "Weird Home Decor",
+      "publicBoardId": "1107815277030422226"
+    }
+  ]
+}
