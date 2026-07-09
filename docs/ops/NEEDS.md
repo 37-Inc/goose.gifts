@@ -25,8 +25,9 @@ outward-facing accounts. Best remaining channels:
 - **Pinterest**: account access, profile polish, starter public boards,
   OAuth/API Trial access, API Trial boards, and the first five-Pin v2
   product-collage batch are live. A dry-run API pin manifest now maps those
-  assets to tracked guide URLs. Recurring public posting still needs Pinterest
-  Standard access plus owner approval of the publishing cadence.
+  assets to tracked guide URLs, and ops can build dry-run create-pin payloads
+  from approved copy/assets. Recurring public posting still needs Pinterest
+  Standard access plus owner approval of the publishing cadence or next batch.
 
 Needed from Cameron: choose which channels to authorize for posting and approve
 any paid/video-generation tooling before spend.
