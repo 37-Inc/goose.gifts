@@ -1,0 +1,65 @@
+{
+  "batch": "batch-1",
+  "status": "approved_and_posted_manually_2026-07-06",
+  "notes": [
+    "Use this file as the machine-readable source for repeatable Pinterest API posting tests.",
+    "Run create commands with --dry-run first. Do not create new public Pins without owner-approved campaign copy and assets."
+  ],
+  "pins": [
+    {
+      "id": "white-elephant-gifts",
+      "board": "Funny White Elephant Gifts",
+      "assetPath": "docs/ops/pinterest-assets/batch-1-v2/01-white-elephant-gifts.png",
+      "targetPage": "https://www.goose.gifts/gift-guides/white-elephant-gifts",
+      "trackingUrl": "https://www.goose.gifts/gift-guides/white-elephant-gifts?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_launch&utm_content=white_elephant_guide",
+      "title": "Funny White Elephant Gifts People Will Actually Steal",
+      "description": "Need a gift exchange idea that gets a reaction? Browse funny, weird, and useful white elephant picks from goose.gifts before the next party.",
+      "altText": "Funny white elephant gift guide from goose.gifts.",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208383151361/"
+    },
+    {
+      "id": "funny-gifts-for-coworkers",
+      "board": "Funny Gifts for Coworkers",
+      "assetPath": "docs/ops/pinterest-assets/batch-1-v2/02-funny-gifts-for-coworkers.png",
+      "targetPage": "https://www.goose.gifts/gift-guides/funny-gifts-for-coworkers",
+      "trackingUrl": "https://www.goose.gifts/gift-guides/funny-gifts-for-coworkers?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_launch&utm_content=coworker_gifts_guide",
+      "title": "Office-Safe Funny Gifts for Coworkers",
+      "description": "Funny coworker gifts that stay safe for the office: desk finds, meeting jokes, and small gag gifts that do not feel like junk.",
+      "altText": "Office-safe funny gifts for coworkers from goose.gifts.",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208383131573/"
+    },
+    {
+      "id": "weird-kitchen-gadgets",
+      "board": "Weird Kitchen Gadgets",
+      "assetPath": "docs/ops/pinterest-assets/batch-1-v2/03-weird-kitchen-gadgets.png",
+      "targetPage": "https://www.goose.gifts/gift-guides/weird-kitchen-gadgets",
+      "trackingUrl": "https://www.goose.gifts/gift-guides/weird-kitchen-gadgets?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_launch&utm_content=kitchen_gadgets_guide",
+      "title": "Weird Kitchen Gadgets That Are Actually Giftable",
+      "description": "Browse odd kitchen gadgets, funny mugs, and cooking gifts that are useful at least once and funny every time they come out of a drawer.",
+      "altText": "Weird kitchen gadget gift guide from goose.gifts.",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208383131619/"
+    },
+    {
+      "id": "novelty-desk-toys",
+      "board": "Novelty Desk Toys",
+      "assetPath": "docs/ops/pinterest-assets/batch-1-v2/04-novelty-desk-toys.png",
+      "targetPage": "https://www.goose.gifts/gift-guides/novelty-desk-toys",
+      "trackingUrl": "https://www.goose.gifts/gift-guides/novelty-desk-toys?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_launch&utm_content=desk_toys_guide",
+      "title": "Novelty Desk Toys for Bad Meetings",
+      "description": "Small desk toys, fidgets, and office gadgets for bored hands, home offices, and meetings that should have been shorter.",
+      "altText": "Novelty desk toy gift guide from goose.gifts.",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208383131622/"
+    },
+    {
+      "id": "weird-home-decor",
+      "board": "Weird Home Decor",
+      "assetPath": "docs/ops/pinterest-assets/batch-1-v2/05-weird-home-decor.png",
+      "targetPage": "https://www.goose.gifts/gift-guides/weird-home-decor-gifts",
+      "trackingUrl": "https://www.goose.gifts/gift-guides/weird-home-decor-gifts?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_launch&utm_content=home_decor_guide",
+      "title": "Weird Home Decor Gifts for Rooms That Need a Double Take",
+      "description": "Oddball shelf pieces, funny housewarming finds, and weird decor gifts for people who do not want another beige thing.",
+      "altText": "Weird home decor gift guide from goose.gifts.",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208383131674/"
+    }
+  ]
+}

@@ -5,6 +5,87 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-09 - Daily ops: Pinterest API dry-run posting path shipped
+
+**Health**: production homepage returned 200 with title
+`Funny Gag Gifts, White Elephant Ideas, and Weird Presents | goose.gifts`,
+`/sitemap.xml` returned 200, `/search` returned a 307 redirect to `/`, and
+`/?q=dad%20with%20no%20spare%20time` returned 200 with `Check price` and
+ItemList schema present.
+
+**Metrics snapshot**: Vercel Web Analytics reported 24 visitors and 84
+pageviews for 2026-06-09 through 2026-07-09 UTC. Last nonzero day was
+2026-07-08 with 2 visitors / 2 pageviews. Top paths remain `/`, guide pages,
+and `/search`; top referrers are mostly direct/unknown. Database totals before
+today's discovery finished: 3,265 active products, 18,950 product impressions,
+95 product click events, 290 lifetime searches, 27 searches and 4 product
+clicks in the last 7 days, and 2 campaign-attributed product clicks from
+`chatgpt.com`. GA4 showed 18 active users / 28 sessions, 65 page views, 25
+search events from 3 users, and 2 outbound-click conversion events. Search
+Console analytics for 2026-07-01 through 2026-07-08 returned no query rows.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 74 candidates, 74 active/enriched/embedded candidates, 3 inserted, and
+71 updated.
+
+**Growth lever chosen**: acquisition beyond search, specifically making
+Pinterest API publishing repeatable and measurable. Yesterday's attribution and
+pin-manifest work made Pinterest/social traffic measurable; today's
+highest-leverage reversible move was to add an approved-copy create-pin dry-run
+path that resolves live public boards, builds the exact Pinterest payload from
+approved copy/assets, and preserves UTM tracking before any public post.
+
+**Plausible alternatives skipped**:
+- More SEO guide pages: deferred because there was no new query cluster or
+  Search Console evidence today, and publishing another page would be lower
+  leverage than unblocking a repeatable distribution channel.
+- Public Pinterest posting: deferred because recurring outward-facing posting
+  still needs an approved publishing workflow; today's command can post only
+  when `--dry-run` is intentionally omitted.
+- Product-card conversion tweaks: skipped because product clicks are too sparse
+  for a credible UI conclusion, while distribution instrumentation and API
+  workflow are current blockers.
+
+**Shipped**:
+- Added `docs/ops/pinterest-approved-pins.json`, a machine-readable record of
+  the owner-approved first Pinterest batch: board names, assets, tracking URLs,
+  titles, descriptions, alt text, and live Pin URLs.
+- Added `npm run pinterest:approved-pins` and `npm run pinterest:create-pin`
+  alongside the existing `npm run pinterest:pin-drafts` manifest workflow.
+- Extended `scripts/ops/pinterest-api.mjs` with approved-draft listing,
+  live-board resolution, base64 image payload construction, dry-run redaction,
+  and an explicit create-pin POST path for a future approved run.
+- Updated `docs/ops/PINTEREST_DRAFTS.md` with the repeatable API commands.
+
+**Review / QA**:
+- Self-reviewed the diff for accidental posting risk, token disclosure, base64
+  logging, board mismatch risk, and whether the work advances non-search
+  growth.
+- Verified the official Pinterest create-pin shape supports `media_source`
+  `image_base64`; the dry-run payload uses `source_type: image_base64`,
+  `content_type: image/png`, title, description, alt text, link, and board id.
+- `node --check scripts/ops/pinterest-api.mjs`, `npm run
+  pinterest:approved-pins`, and `npm run pinterest:create-pin -- --draft
+  white-elephant-gifts --dry-run` passed. The dry run resolved live board
+  `Funny White Elephant Gifts` to board id `1107815277030422220` and redacted
+  the 676,428-character base64 payload.
+- `git diff --check`, `npm run build`, and `npm run lint` passed.
+
+**SEO/GEO and lead-generation log**: SEO page publishing was deliberately
+deferred today because the data did not expose a stronger crawlable page
+candidate than the existing backlog, while Pinterest distribution had a concrete
+workflow gap. Lead-generation/growth work shipped as API-ready Pinterest posting
+infrastructure with UTM-preserving links, which should make the next approved
+owned-distribution test faster and more measurable.
+
+**Next**: once Cameron approves the next outward-facing Pinterest batch or the
+Standard API upgrade path, run the create-pin command without `--dry-run` for a
+fresh, non-duplicate batch and monitor campaign-attributed clicks in
+`npm run analytics:snapshot`.
+
+---
+
 ## 2026-07-08 - Daily ops: Pinterest API pin-draft loop shipped
 
 **Health**: production homepage returned 200 with title

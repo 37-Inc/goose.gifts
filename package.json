@@ -13,6 +13,8 @@
     "pinterest:whoami": "node scripts/ops/pinterest-api.mjs whoami",
     "pinterest:boards": "node scripts/ops/pinterest-api.mjs boards",
     "pinterest:pin-drafts": "node scripts/ops/prepare-pinterest-pins.mjs",
+    "pinterest:approved-pins": "node scripts/ops/pinterest-api.mjs approved-pins",
+    "pinterest:create-pin": "node scripts/ops/pinterest-api.mjs create-pin",
     "catalog:prefetch": "node scripts/ops/prefetch-catalog.mjs",
     "catalog:enrich": "node scripts/ops/prefetch-catalog.mjs --enrich-only",
     "test:amazon": "node test-amazon-api.js",
