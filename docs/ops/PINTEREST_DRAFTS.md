@@ -1,5 +1,21 @@
 # Pinterest Drafts
 
+## Performance baseline — 2026-07-10
+
+- v2 public batch: 26 aggregate impressions across five Pins; 0 Pin clicks,
+  0 outbound clicks, and 0 saves.
+- v3 public batch: 0 impressions, clicks, outbound clicks, or saves across five
+  Pins.
+- Site-side database attribution: 0 Pinterest-attributed product clicks.
+- GA4 outbound conversions: 2 direct/none conversions; none from Pinterest.
+
+Run `npm run pinterest:metrics` for the current read-only Pinterest totals.
+Leave both cohorts live and do not create another batch until at least
+2026-07-21 (14 days after the first corrected v2 Pin) or 250 aggregate
+impressions, whichever comes first. If distribution is still below 100
+impressions at the time checkpoint, treat account/distribution maturity—not
+creative conversion—as the constraint.
+
 Review status: batch approved by Cameron and posted on 2026-07-06
 Prepared: 2026-07-05
 Original clean-card assets: `docs/ops/pinterest-assets/batch-1/`

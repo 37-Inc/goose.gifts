@@ -61,6 +61,11 @@ report.
 - [x] Added admin dashboard acquisition-source and UTM-campaign panels so
   Pinterest, AI-search, referral, and other lead-generation tests can be judged
   by attributed outbound product clicks.
+- [x] Changed the Vercel apex-domain redirect from temporary 307 to permanent
+  308 for `goose.gifts` → `www.goose.gifts`; Search Console had selected the
+  apex URL despite the declared `www` canonical.
+- [x] Added an indexation gate: pause bulk guide publishing while the sitemap
+  reports zero indexed pages or representative guides remain unindexed.
 
 ## Ongoing Daily Ops
 
@@ -77,17 +82,17 @@ report.
 - [ ] Keep each new guide page internally linked, in the sitemap, and backed by
   server-rendered products, metadata, canonical URL, and schema.
 - [ ] Track whether SEO changes move indexed pages, organic sessions, on-site
-  searches, product clicks, and affiliate revenue once reporting exists.
+  searches, and product clicks.
 
 ## Recurring Publishing Cadence
 
 - [ ] **Daily input gathering**: every non-incident run should mine on-site
   searches, product clicks, stale indexed URLs, catalog themes, seasonality, and
   competitor-style long-tail patterns for new guide candidates.
-- [ ] **Weekly SEO publishing sprint**: every Monday, or the first scheduled
-  run after Monday, publish 3-5 new catalog-backed guide pages or substantially
-  improve existing ones. If there are not enough strong clusters, document the
-  blocker and build the candidate list instead of publishing thin pages.
+- [ ] **Weekly SEO publishing sprint**: first verify sitemap/indexation and
+  representative URL inspections. Publish 3-5 new catalog-backed guide pages
+  only when canonical/indexation health is sound; otherwise use the sprint to
+  repair crawlability, internal links, or catalog quality.
 - [ ] Treat these as new guide/page packages, not revived legacy bundles. They
   can be themed roundups with beautiful editorial presentation, but the URL,
   metadata, sitemap entry, product feed, and schema should all live in the
@@ -112,11 +117,10 @@ report.
 - [x] Create/connect the Pinterest business account for goose.gifts. Account:
   `https://www.pinterest.com/goosegifts/`; email:
   `goosegifts@37.technology`.
-- [ ] Improve product price coverage. Unknown prices are acceptable for users
-  as `Check price`, but missing prices weaken Product rich-result eligibility
-  and shopping confidence.
-- [ ] Get Amazon Associates/Awin revenue reporting so page ranking can optimize
-  for earnings per click, not clicks alone.
+- [x] Audit product-price and affiliate-reporting access. Amazon PA-API often
+  omits prices and does not expose Associates earnings; Awin is not configured
+  and has no products in the catalog. These are documented limitations, not
+  standing owner blockers (`docs/ops/AFFILIATE_DATA.md`).
 - [ ] Approve the first owned distribution workflow before posting externally.
   Pinterest is the best first SEO-adjacent channel once evergreen guide pages
   exist.

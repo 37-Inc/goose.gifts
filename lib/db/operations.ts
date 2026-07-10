@@ -3,6 +3,7 @@ import { db } from './index';
 import { products } from './schema';
 import type { Product } from '../types';
 import { cleanImageUrl } from '../image-utils';
+import { isHomepageEligibleProduct } from './product-scoring';
 
 /**
  * Get trending products for homepage
@@ -62,7 +63,9 @@ export async function getTrendingProducts(limit: number = 12): Promise<Product[]
       lastClickedAt: product.lastClickedAt,
     }));
 
-    return getTrendingProductsWithRotation(productList, limit);
+    const homepageEligibleProducts = productList.filter(isHomepageEligibleProduct);
+
+    return getTrendingProductsWithRotation(homepageEligibleProducts, limit);
   } catch (error) {
     console.error('Error getting trending products:', error);
     return [];

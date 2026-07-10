@@ -5,6 +5,62 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-10 - Growth remediation: relevance, canonical, and channel evidence
+
+**Trigger**: Cameron approved the project-review roadmap and asked Codex to turn
+it into Beads work and execute it, while checking whether Pinterest and
+Amazon/Awin data were actually available.
+
+**Operator-state repair**:
+- Preserved the July 7 Pinterest v3 generator, Sandbox/public result records,
+  public Pin URLs, and approved journal context that had existed only in the
+  dirty local `main` checkout.
+- Reconciled that work with PRs #42-#44 on a clean remediation branch so future
+  worktree runs can see the full experiment instead of rebuilding it.
+
+**Catalog-quality repair**:
+- Replaced the legacy homepage score that explicitly boosted beauty, bath,
+  books, and generic clickbait with a brand-fit score based on original-title
+  gag signals, curated source query, quality, and measured engagement.
+- Added a hard homepage eligibility gate. The live catalog has 3,269 active
+  products, 3,162 without a discovery source, and 931 that pass the new
+  relevance gate.
+- Added ranking tests and exposed source-less/eligible counts in
+  `analytics:snapshot`.
+
+**Canonical/indexation**:
+- Search Console reported 44 submitted and 0 indexed URLs. The homepage was
+  crawled successfully but Google chose `https://goose.gifts/` over the declared
+  `https://www.goose.gifts/`; a representative guide was discovered but not
+  indexed.
+- Vercel's apex domain redirect had no explicit status and emitted 307. Updated
+  the project-domain redirect to 308 and verified the live response.
+- Added a runbook/roadmap gate that pauses bulk guide publishing while
+  indexation or canonical selection is unhealthy.
+
+**Pinterest evidence**:
+- Queried all ten existing public Pins with `pin_metrics=true`; no Pins were
+  created or changed.
+- v2 totals: 26 impressions, 0 Pin clicks, 0 outbound clicks, 0 saves.
+- v3 totals: 0 impressions/clicks/saves. Database and GA4 also show no Pinterest
+  product-click conversion.
+- Added `npm run pinterest:metrics` and set the next useful checkpoint at 14
+  days or 250 aggregate impressions.
+
+**Affiliate-data audit**:
+- Amazon discovery still works, but a fresh dry run returned no price and
+  PA-API does not expose Associates earnings reports. Associates Central was
+  not authenticated in either available browser session.
+- No Awin token/publisher ID exists and all 3,269 products are Amazon-sourced.
+- Removed vague price/revenue requests from `NEEDS.md`; the limitations and
+  reopening conditions now live in `docs/ops/AFFILIATE_DATA.md`.
+
+**Expected movement**: better homepage brand fit and outbound CTR; eventual
+`www` canonical consolidation/indexation after Google recrawls; a clean
+Pinterest baseline without premature creative churn.
+
+---
+
 > Recovered operator records from July 7 are retained first in this merged
 > journal because they previously existed only in the local checkout. The
 > normal reverse-chronological automation history resumes after this recovered

@@ -11,6 +11,7 @@ const sandbox = process.argv.includes('--sandbox');
 const apiBase = sandbox ? 'https://api-sandbox.pinterest.com/v5' : 'https://api.pinterest.com/v5';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const approvedPinDraftsPath = path.join(root, 'docs/ops/pinterest-approved-pins.json');
+const v3PublicResultsPath = path.join(root, 'docs/ops/pinterest-assets/batch-1-v3/manual-post-results.json');
 
 if (!APP_SECRET) {
   throw new Error('Missing Pinterest app secret in PINTEREST_APP_SECRET or Keychain service goose.gifts.PINTEREST_APP_SECRET');
@@ -28,11 +29,61 @@ if (command === 'refresh') {
 } else if (command === 'approved-pins') {
   const drafts = readApprovedPinDrafts();
   console.log(JSON.stringify(drafts, null, 2));
+} else if (command === 'public-pin-metrics') {
+  const metrics = await getPublicPinMetrics();
+  console.log(JSON.stringify(metrics, null, 2));
 } else if (command === 'create-pin') {
   const result = await createPinFromArgs({ sandbox });
   console.log(JSON.stringify(result, null, 2));
 } else {
-  throw new Error(`Unknown command: ${command}. Use one of: refresh, whoami, boards, approved-pins, create-pin`);
+  throw new Error(`Unknown command: ${command}. Use one of: refresh, whoami, boards, approved-pins, public-pin-metrics, create-pin`);
+}
+
+async function getPublicPinMetrics() {
+  const v2 = readApprovedPinDrafts().pins.map((pin) => ({
+    cohort: 'pinterest_launch_v2',
+    id: pin.livePinUrl.match(/\/pin\/(\d+)/)?.[1],
+    title: pin.title,
+  }));
+  const v3 = JSON.parse(fs.readFileSync(v3PublicResultsPath, 'utf8')).posted.map((pin) => ({
+    cohort: 'pinterest_manual_v3',
+    id: pin.id,
+    title: pin.title,
+  }));
+  const pins = await Promise.all([...v2, ...v3].map(async (pin) => {
+    if (!pin.id) throw new Error(`Could not resolve public Pinterest Pin id for ${pin.title}`);
+    const data = await apiGet(`/pins/${pin.id}?pin_metrics=true`, { sandbox: false });
+    const lifetime = data.pin_metrics?.lifetime_metrics || {};
+    return {
+      ...pin,
+      createdAt: data.created_at,
+      impressions: Number(lifetime.impression || 0),
+      pinClicks: Number(lifetime.pin_click || 0),
+      outboundClicks: Number(lifetime.outbound_click || 0),
+      saves: Number(lifetime.save || 0),
+      lastUpdated: lifetime.last_updated || null,
+    };
+  }));
+
+  const cohorts = Object.values(pins.reduce((byCohort, pin) => {
+    byCohort[pin.cohort] ||= {
+      cohort: pin.cohort,
+      pins: 0,
+      impressions: 0,
+      pinClicks: 0,
+      outboundClicks: 0,
+      saves: 0,
+    };
+    const summary = byCohort[pin.cohort];
+    summary.pins += 1;
+    summary.impressions += pin.impressions;
+    summary.pinClicks += pin.pinClicks;
+    summary.outboundClicks += pin.outboundClicks;
+    summary.saves += pin.saves;
+    return byCohort;
+  }, {}));
+
+  return { generatedAt: new Date().toISOString(), cohorts, pins };
 }
 
 async function apiGet(path, { sandbox }) {
