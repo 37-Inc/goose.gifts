@@ -4,8 +4,11 @@ Review status: batch approved by Cameron and posted on 2026-07-06
 Prepared: 2026-07-05
 Original clean-card assets: `docs/ops/pinterest-assets/batch-1/`
 Recommended v2 product-collage assets: `docs/ops/pinterest-assets/batch-1-v2/`
+API trial v3 editorial assets: `docs/ops/pinterest-assets/batch-1-v3/`
 Recommended v2 contact sheet:
 `docs/ops/pinterest-assets/batch-1-v2/batch-1-v2-contact-sheet.png`
+API trial v3 contact sheet:
+`docs/ops/pinterest-assets/batch-1-v3/batch-1-v3-contact-sheet.png`
 Original clean-card contact sheet:
 `docs/ops/pinterest-assets/batch-1/batch-1-contact-sheet.png`
 
@@ -101,3 +104,90 @@ Posting notes:
   Pin is `https://www.pinterest.com/pin/1107815208383151361/`.
 - Pinterest profile verification after publishing showed all five pins on the
   `Created` tab with the live URLs listed above.
+
+## Batch 1 v3 - API Trial creative test
+
+Status: generated and posted through the Pinterest API Sandbox on 2026-07-07.
+
+Important limitation: the goose.gifts Pinterest app is still on Trial access.
+These API-created Pins and boards are Sandbox entities visible only to the
+creator. Public automated posting still requires Standard access approval.
+
+Assets and records:
+- Asset directory: `docs/ops/pinterest-assets/batch-1-v3/`
+- Contact sheet: `docs/ops/pinterest-assets/batch-1-v3/batch-1-v3-contact-sheet.png`
+- Pin manifest: `docs/ops/pinterest-assets/batch-1-v3/manifest.json`
+- API result record: `docs/ops/pinterest-assets/batch-1-v3/post-results.json`
+- Public manual-post result record:
+  `docs/ops/pinterest-assets/batch-1-v3/manual-post-results.json`
+
+### 1. White Elephant Gifts That Make the Room Pay Attention
+
+- Sandbox board: API Trial - Funny White Elephant Gifts
+- Sandbox board ID: `1107815277030430244`
+- Sandbox Pin URL: https://www.pinterest.com/pin/1107815208383208933/
+- Public manual Pin URL: https://www.pinterest.com/pin/1107815208383209635/
+- Target page: https://www.goose.gifts/gift-guides/white-elephant-gifts
+- Public manual tracking URL: https://www.goose.gifts/gift-guides/white-elephant-gifts?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_manual_v3&utm_content=white_elephant_gifts
+- Tracking URL: https://www.goose.gifts/gift-guides/white-elephant-gifts?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=white_elephant_gifts
+- Image asset: `docs/ops/pinterest-assets/batch-1-v3/01-white-elephant-gifts.png`
+- Visual hook: "THIS IS HOW THE GIFT EXCHANGE GETS LOUD"
+
+### 2. Funny Coworker Gifts for Meetings That Should Have Been Emails
+
+- Sandbox board: API Trial - Funny Gifts for Coworkers
+- Sandbox board ID: `1107815277030430246`
+- Sandbox Pin URL: https://www.pinterest.com/pin/1107815208383208938/
+- Public manual Pin URL: https://www.pinterest.com/pin/1107815208383209702/
+- Target page: https://www.goose.gifts/gift-guides/funny-gifts-for-coworkers
+- Public manual tracking URL: https://www.goose.gifts/gift-guides/funny-gifts-for-coworkers?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_manual_v3&utm_content=funny_gifts_for_coworkers
+- Tracking URL: https://www.goose.gifts/gift-guides/funny-gifts-for-coworkers?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=funny_gifts_for_coworkers
+- Image asset: `docs/ops/pinterest-assets/batch-1-v3/02-funny-gifts-for-coworkers.png`
+- Visual hook: "FOR THE MEETING THAT SHOULD HAVE BEEN AN EMAIL"
+
+### 3. Weird Kitchen Gadgets That Look Fake but Are Real
+
+- Sandbox board: API Trial - Weird Kitchen Gadgets
+- Sandbox board ID: `1107815277030430248`
+- Sandbox Pin URL: https://www.pinterest.com/pin/1107815208383208941/
+- Public manual Pin URL: https://www.pinterest.com/pin/1107815208383209737/
+- Target page: https://www.goose.gifts/gift-guides/weird-kitchen-gadgets
+- Public manual tracking URL: https://www.goose.gifts/gift-guides/weird-kitchen-gadgets?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_manual_v3&utm_content=weird_kitchen_gadgets
+- Tracking URL: https://www.goose.gifts/gift-guides/weird-kitchen-gadgets?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=weird_kitchen_gadgets
+- Image asset: `docs/ops/pinterest-assets/batch-1-v3/03-weird-kitchen-gadgets.png`
+- Visual hook: "KITCHEN GIFTS THAT LOOK FAKE BUT AREN'T"
+
+### 4. Novelty Desk Toys for Busy-Looking Nothing
+
+- Sandbox board: API Trial - Novelty Desk Toys
+- Sandbox board ID: `1107815277030430249`
+- Sandbox Pin URL: https://www.pinterest.com/pin/1107815208383208942/
+- Public manual Pin URL: https://www.pinterest.com/pin/1107815208383209770/
+- Target page: https://www.goose.gifts/gift-guides/novelty-desk-toys
+- Public manual tracking URL: https://www.goose.gifts/gift-guides/novelty-desk-toys?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_manual_v3&utm_content=novelty_desk_toys
+- Tracking URL: https://www.goose.gifts/gift-guides/novelty-desk-toys?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=novelty_desk_toys
+- Image asset: `docs/ops/pinterest-assets/batch-1-v3/04-novelty-desk-toys.png`
+- Visual hook: "BUSY-LOOKING NOTHING FOR YOUR DESK"
+
+### 5. Weird Home Decor Gifts With a Plot Twist
+
+- Sandbox board: API Trial - Weird Home Decor
+- Sandbox board ID: `1107815277030430250`
+- Sandbox Pin URL: https://www.pinterest.com/pin/1107815208383208943/
+- Public manual Pin URL: https://www.pinterest.com/pin/1107815208383209802/
+- Target page: https://www.goose.gifts/gift-guides/weird-home-decor-gifts
+- Public manual tracking URL: https://www.goose.gifts/gift-guides/weird-home-decor-gifts?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_manual_v3&utm_content=weird_home_decor
+- Tracking URL: https://www.goose.gifts/gift-guides/weird-home-decor-gifts?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=weird_home_decor
+- Image asset: `docs/ops/pinterest-assets/batch-1-v3/05-weird-home-decor.png`
+- Visual hook: "YOUR LIVING ROOM JUST GOT A PLOT TWIST"
+
+Public v3 manual posting notes:
+- Posted through Pinterest's web Pin Builder on 2026-07-07 after Cameron
+  approved publishing the v3 creative set publicly while waiting on Standard API
+  access.
+- Used the five existing public boards, not the `API Trial - ...` Sandbox
+  boards.
+- Used `utm_campaign=pinterest_manual_v3` for public distribution so this can be
+  separated from the API Sandbox test and the original v2 launch.
+- Production API read-back verified all five public v3 Pins returned the
+  expected public board ID, title, tracking link, and `image` media type.

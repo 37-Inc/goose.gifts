@@ -1,0 +1,177 @@
+{
+  "batch": "batch-1-v3",
+  "generatedAt": "2026-07-07T23:49:29.774Z",
+  "note": "Editorial/product-joke Pinterest trial batch. Use Sandbox while the app is on Trial access.",
+  "assets": [
+    {
+      "file": "01-white-elephant-gifts",
+      "boardName": "Funny White Elephant Gifts",
+      "productionBoardId": "1107815277030422220",
+      "guide": "white-elephant-gifts",
+      "title": "White Elephant Gifts That Make the Room Pay Attention",
+      "description": "A sharper goose.gifts edit of funny white elephant gifts: oddball picks, party steals, and gift exchange ideas people actually remember.",
+      "altText": "Pinterest-style collage of funny white elephant gift ideas from goose.gifts with product photos and a bold editorial headline.",
+      "link": "https://www.goose.gifts/gift-guides/white-elephant-gifts?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=white_elephant_gifts",
+      "imagePath": "docs/ops/pinterest-assets/batch-1-v3/01-white-elephant-gifts.png",
+      "svgPath": "docs/ops/pinterest-assets/batch-1-v3/01-white-elephant-gifts.svg",
+      "products": [
+        {
+          "name": "Socks With a Side of Cocktails - Cheers to Your Feet!",
+          "shortName": "Socks With a Side of Cocktails",
+          "image": "https://m.media-amazon.com/images/I/31ONlFAo08L._SL500_.jpg"
+        },
+        {
+          "name": "Coaster Your Expectations: Hilariously Absorbent Drink Mats!",
+          "shortName": "Coaster Your Expectations: Hilariously Abs",
+          "image": "https://m.media-amazon.com/images/I/41nRlvB6lCL._SL500_.jpg"
+        },
+        {
+          "name": "Mystic Pickle: Your Briny Psychic Pal!",
+          "shortName": "Mystic Pickle: Your Briny Psychic Pal!",
+          "image": "https://m.media-amazon.com/images/I/413UeFe35jL._SL500_.jpg"
+        },
+        {
+          "name": "Squirrel Hot Tub? Yes, It's a Thing!",
+          "shortName": "Squirrel Hot Tub? Yes, It's a Thing!",
+          "image": "https://m.media-amazon.com/images/I/51QwUJVzqwL._SL500_.jpg"
+        }
+      ]
+    },
+    {
+      "file": "02-funny-gifts-for-coworkers",
+      "boardName": "Funny Gifts for Coworkers",
+      "productionBoardId": "1107815277030422223",
+      "guide": "funny-gifts-for-coworkers",
+      "title": "Funny Coworker Gifts for Meetings That Should Have Been Emails",
+      "description": "Office-safe funny gifts for coworkers, from tiny desk distractions to meeting jokes that feel more memorable than another mug.",
+      "altText": "Funny coworker gift collage from goose.gifts featuring playful office products and a bold meeting joke headline.",
+      "link": "https://www.goose.gifts/gift-guides/funny-gifts-for-coworkers?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=funny_gifts_for_coworkers",
+      "imagePath": "docs/ops/pinterest-assets/batch-1-v3/02-funny-gifts-for-coworkers.png",
+      "svgPath": "docs/ops/pinterest-assets/batch-1-v3/02-funny-gifts-for-coworkers.svg",
+      "products": [
+        {
+          "name": "Screaming Goat: Because Every Office Needs a Loudmouth!",
+          "shortName": "Screaming Goat: Because Every Office Needs",
+          "image": "https://m.media-amazon.com/images/I/41FeImt0luL._SL500_.jpg"
+        },
+        {
+          "name": "Putting Around: Mini Golf Pen & Green Set",
+          "shortName": "Putting Around: Mini Golf Pen & Green Set",
+          "image": "https://m.media-amazon.com/images/I/51oHQQdUN5L._SL500_.jpg"
+        },
+        {
+          "name": "The Stress Cube: Squeeze Away Your Work Woes!",
+          "shortName": "The Stress Cube: Squeeze Away Your Work Wo",
+          "image": "https://m.media-amazon.com/images/I/41c37XsFSOL._SL500_.jpg"
+        },
+        {
+          "name": "HR Approved: 52 Ways to Politely Call Coworkers Dumb!",
+          "shortName": "HR Approved: 52 Ways to Politely Call Cowo",
+          "image": "https://m.media-amazon.com/images/I/417A9h4SdnL._SL500_.jpg"
+        }
+      ]
+    },
+    {
+      "file": "03-weird-kitchen-gadgets",
+      "boardName": "Weird Kitchen Gadgets",
+      "productionBoardId": "1107815277030422224",
+      "guide": "weird-kitchen-gadgets",
+      "title": "Weird Kitchen Gadgets That Look Fake but Are Real",
+      "description": "Funny kitchen gadget gifts with real visual punch: odd utensils, chaotic counter helpers, and cooking gifts that start conversations.",
+      "altText": "Weird kitchen gadget gift collage from goose.gifts with bold text and product photos of unusual cooking tools.",
+      "link": "https://www.goose.gifts/gift-guides/weird-kitchen-gadgets?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=weird_kitchen_gadgets",
+      "imagePath": "docs/ops/pinterest-assets/batch-1-v3/03-weird-kitchen-gadgets.png",
+      "svgPath": "docs/ops/pinterest-assets/batch-1-v3/03-weird-kitchen-gadgets.svg",
+      "products": [
+        {
+          "name": "Alligator Oven Mitt: Take a Bite Out of Safety",
+          "shortName": "Alligator Oven Mitt: Take a Bite Out of Sa",
+          "image": "https://m.media-amazon.com/images/I/31pRVBO7qVL.jpg"
+        },
+        {
+          "name": "Shell Yeah! Cooking with Red the Crab Spoon Holder",
+          "shortName": "Shell Yeah! Cooking with Red the Crab Spoo",
+          "image": "https://m.media-amazon.com/images/I/41SFpTcCToL._SL500_.jpg"
+        },
+        {
+          "name": "Avo-Cat-O: The Avocado Cat Mug",
+          "shortName": "Avo",
+          "image": "https://m.media-amazon.com/images/I/517BEcZ2zeL.jpg"
+        },
+        {
+          "name": "Personalized Ramen Noodle Mug: Slurp It Up!",
+          "shortName": "Personalized Ramen Noodle Mug: Slurp It Up",
+          "image": "https://m.media-amazon.com/images/I/61BotBfLuIL.jpg"
+        }
+      ]
+    },
+    {
+      "file": "04-novelty-desk-toys",
+      "boardName": "Novelty Desk Toys",
+      "productionBoardId": "1107815277030422225",
+      "guide": "novelty-desk-toys",
+      "title": "Novelty Desk Toys for Busy-Looking Nothing",
+      "description": "Funny desk toys and office distractions for bored hands, bad calls, home offices, and people who need a better tiny object nearby.",
+      "altText": "Novelty desk toy collage from goose.gifts with funny office gift products and bold editorial typography.",
+      "link": "https://www.goose.gifts/gift-guides/novelty-desk-toys?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=novelty_desk_toys",
+      "imagePath": "docs/ops/pinterest-assets/batch-1-v3/04-novelty-desk-toys.png",
+      "svgPath": "docs/ops/pinterest-assets/batch-1-v3/04-novelty-desk-toys.svg",
+      "products": [
+        {
+          "name": "Hype Button: Make Your Desk the Life of the Party!",
+          "shortName": "Hype Button: Make Your Desk the Life of th",
+          "image": "https://m.media-amazon.com/images/I/41V2dfEzFmL._SL500_.jpg"
+        },
+        {
+          "name": "Putting Around: Mini Golf Pen & Green Set",
+          "shortName": "Putting Around: Mini Golf Pen & Green Set",
+          "image": "https://m.media-amazon.com/images/I/51oHQQdUN5L._SL500_.jpg"
+        },
+        {
+          "name": "The Stress Cube: Squeeze Away Your Work Woes!",
+          "shortName": "The Stress Cube: Squeeze Away Your Work Wo",
+          "image": "https://m.media-amazon.com/images/I/41c37XsFSOL._SL500_.jpg"
+        },
+        {
+          "name": "Gravity Bird: Fly High Without Leaving Your Desk!",
+          "shortName": "Gravity Bird: Fly High Without Leaving You",
+          "image": "https://m.media-amazon.com/images/I/41iVM6HfOFL._SL500_.jpg"
+        }
+      ]
+    },
+    {
+      "file": "05-weird-home-decor",
+      "boardName": "Weird Home Decor",
+      "productionBoardId": "1107815277030422226",
+      "guide": "weird-home-decor-gifts",
+      "title": "Weird Home Decor Gifts With a Plot Twist",
+      "description": "Odd home decor gifts for people who want shelves, walls, and rooms with more personality than another beige thing.",
+      "altText": "Weird home decor gift collage from goose.gifts with product photos and a bold living room plot twist headline.",
+      "link": "https://www.goose.gifts/gift-guides/weird-home-decor-gifts?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=weird_home_decor",
+      "imagePath": "docs/ops/pinterest-assets/batch-1-v3/05-weird-home-decor.png",
+      "svgPath": "docs/ops/pinterest-assets/batch-1-v3/05-weird-home-decor.svg",
+      "products": [
+        {
+          "name": "Big Eye, Bigger Laughs!",
+          "shortName": "Big Eye, Bigger Laughs!",
+          "image": "https://m.media-amazon.com/images/I/71V1wTyvhrL.jpg"
+        },
+        {
+          "name": "Optical Illusion Wall Decor: Mind-Bending Art",
+          "shortName": "Optical Illusion Wall Decor: Mind",
+          "image": "https://m.media-amazon.com/images/I/719EULDw9SL.jpg"
+        },
+        {
+          "name": "Skull It Like It's Hot: Spooky Decor for All Occasions!",
+          "shortName": "Skull It Like It's Hot: Spooky Decor for A",
+          "image": "https://m.media-amazon.com/images/I/71jY0wjjciL.jpg"
+        },
+        {
+          "name": "Funny Face Sun Decor: Shine Like You Mean It!",
+          "shortName": "Funny Face Sun Decor: Shine Like You Mean ",
+          "image": "https://m.media-amazon.com/images/I/71vmOjAZOCL.jpg"
+        }
+      ]
+    }
+  ]
+}

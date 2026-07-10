@@ -5,6 +5,132 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-07 - Pinterest v3 creative posted publicly through web flow
+
+**Trigger**: Cameron approved posting the v3 Pinterest creative set publicly
+through the normal Pinterest channel while Standard API access is still pending.
+
+**Action**:
+- Posted the five v3 editorial/product-joke assets through Pinterest's web Pin
+  Builder.
+- Used the existing public boards rather than the `API Trial - ...` Sandbox
+  boards.
+- Used fresh public tracking links with
+  `utm_campaign=pinterest_manual_v3`.
+
+**Live public Pins**:
+- White Elephant Gifts That Make the Room Pay Attention:
+  https://www.pinterest.com/pin/1107815208383209635/
+- Funny Coworker Gifts for Meetings That Should Have Been Emails:
+  https://www.pinterest.com/pin/1107815208383209702/
+- Weird Kitchen Gadgets That Look Fake but Are Real:
+  https://www.pinterest.com/pin/1107815208383209737/
+- Novelty Desk Toys for Busy-Looking Nothing:
+  https://www.pinterest.com/pin/1107815208383209770/
+- Weird Home Decor Gifts With a Plot Twist:
+  https://www.pinterest.com/pin/1107815208383209802/
+
+**Verification**:
+- `node scripts/ops/pinterest-api.mjs boards` showed all five public starter
+  boards now have `pin_count: 2`, while the `API Trial - ...` boards remain
+  separate.
+- Direct production API `GET /v5/pins/{id}` read-back for all five public Pin
+  IDs returned the expected title, public board ID, `pinterest_manual_v3`
+  tracking link, and `image` media type.
+- Wrote the machine-readable result record to
+  `docs/ops/pinterest-assets/batch-1-v3/manual-post-results.json`.
+
+**Next**: leave both v2 and v3 public Pins live long enough to compare early
+Pinterest distribution. Use `pinterest_manual_v3` attribution when checking
+campaign clicks.
+
+---
+
+## 2026-07-07 - Pinterest developer app icon uploaded
+
+**Trigger**: Cameron noticed the Pinterest developer app image was blank and
+asked whether the goose icon should be uploaded.
+
+**Action**:
+- Uploaded `public/sillygoose.png` as the app icon for Pinterest app
+  `Goose.gifts` / app ID `1588384`.
+
+**Verification**:
+- The Pinterest Developer app Details tab showed the goose icon after upload.
+- Reloaded `https://developers.pinterest.com/apps/1588384/details/`; the goose
+  icon persisted and the upload control changed from `Upload` to `Change`.
+
+**Publishing recommendation**:
+- The v3 API Sandbox Pins should be manually posted through the normal Pinterest
+  web flow if the goal is public distribution before Standard access. Trial
+  access is already active; the remaining wait is for Standard access so API
+  posts can become public instead of creator-only Sandbox entities.
+- Do not delete the existing v2 public Pins yet. Publish the v3 set as a second
+  creative test with fresh `pinterest_manual_v3` UTMs, then compare whether the
+  sharper visuals get impressions/clicks before pruning old creative.
+
+---
+
+## 2026-07-07 - Pinterest API trial v3 creative posted
+
+**Trigger**: Cameron asked to iterate on the latest Pinterest designs so they
+felt less ad-like, more visually appealing, and more focused on funny products
+or genuinely giftable hooks, then try posting them through the new API tooling.
+
+**Creative shipped**:
+- Added a v3 Pinterest generator:
+  `scripts/ops/generate-pinterest-v3-assets.mjs`.
+- Generated an editorial/product-joke batch under
+  `docs/ops/pinterest-assets/batch-1-v3/`, with a contact sheet, SVG/PNG
+  assets, and a JSON manifest.
+- The v3 direction uses larger product photography, tighter one-joke headlines,
+  fewer CTA elements, and no repeated product tiles.
+
+**API tooling shipped**:
+- Added `scripts/ops/post-pinterest-v3-trial.mjs`.
+- Added npm shortcuts:
+  `npm run pinterest:generate:v3` and `npm run pinterest:post:v3`.
+- The posting helper defaults to Pinterest Sandbox, creates missing Sandbox
+  boards with `API Trial - ...` names, posts image-base64 Pins, and writes
+  `docs/ops/pinterest-assets/batch-1-v3/post-results.json`.
+
+**Auth / access**:
+- Completed the Pinterest Sandbox OAuth flow and stored tokens in macOS Keychain
+  services `goose.gifts.PINTEREST_SANDBOX_ACCESS_TOKEN` and
+  `goose.gifts.PINTEREST_SANDBOX_REFRESH_TOKEN`.
+- Pinterest Trial access still means API-created Pins and boards are Sandbox
+  entities visible only to the creator. Public automated posting still requires
+  Standard access approval.
+
+**Posted through Sandbox API**:
+- White Elephant Gifts That Make the Room Pay Attention:
+  https://www.pinterest.com/pin/1107815208383208933/
+- Funny Coworker Gifts for Meetings That Should Have Been Emails:
+  https://www.pinterest.com/pin/1107815208383208938/
+- Weird Kitchen Gadgets That Look Fake but Are Real:
+  https://www.pinterest.com/pin/1107815208383208941/
+- Novelty Desk Toys for Busy-Looking Nothing:
+  https://www.pinterest.com/pin/1107815208383208942/
+- Weird Home Decor Gifts With a Plot Twist:
+  https://www.pinterest.com/pin/1107815208383208943/
+
+**Verification**:
+- `npm run pinterest:generate:v3` rendered all five v3 assets.
+- Visually checked the v3 contact sheet and full-size coworker/home-decor cards.
+- `npm run pinterest:post:v3 -- --dry-run` prepared five payloads.
+- `npm run pinterest:post:v3 -- --force` created five Sandbox boards and five
+  Sandbox Pins.
+- `node scripts/ops/pinterest-api.mjs boards --sandbox` read back all five
+  Sandbox boards with one Pin each.
+- Direct Sandbox `GET /v5/pins/{id}` read-back returned the expected title,
+  board ID, UTM link, and `image` media type for all five Pins.
+
+**Next**: review the v3 Sandbox Pins visually in the logged-in Pinterest account.
+If the API workflow and creative direction look good, use this flow as the demo
+artifact for the Pinterest Standard access upgrade.
+
+---
+
 ## 2026-07-07 - Pinterest API OAuth connected under Trial access
 
 **Trigger**: Cameron reported that Pinterest Trial access had been approved and
