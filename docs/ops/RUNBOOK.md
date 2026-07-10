@@ -80,6 +80,10 @@ Boundaries (always in force):
    followed by `events`, `traffic`, `landing-pages`, or
    `event <event-name>`. The goose.gifts GA4 property is `507421709`, using the
    same dedicated service account key unless `GOOSE_GA4_SA_KEY` overrides it.
+   During the weekly check-in, also run `scripts/ops/gsc.sh sitemaps` and inspect
+   the homepage plus one representative guide. If submitted URLs remain at zero
+   indexed, Google selects a different canonical, or the guide is only
+   discovered, prioritize crawl/indexation repair over publishing more pages.
 4. **Do the highest-leverage task.** Do not default to another curated guide
    page unless the data says that is the best use of the run. Each non-incident
    run must deliberately choose among the full business-growth surface:
@@ -93,6 +97,9 @@ Boundaries (always in force):
       tracking, affiliate-link QA, price/revenue coverage, clearer product cards,
       stronger guide-to-click paths, faster search, or checkout/outbound-click
       friction fixes.
+      Treat catalog relevance as a conversion prerequisite: the homepage should
+      show genuinely funny, weird, or curated products, not generic high-
+      commission beauty/books/bath inventory dressed up with generated copy.
    4. Analytics and learning loops: source/session stitching, funnel dashboards,
       thin-result reports, product impression/click cohorts, revenue-readiness,
       or admin views that make the next growth decision sharper.
@@ -170,6 +177,10 @@ pass in step 6. In addition:
 
 Before opening the weekly issue, run the weekly SEO publishing sprint:
 
+- First verify the Search Console sitemap and representative URL inspections.
+  If indexation is unhealthy, do not add 3-5 more pages; spend the sprint fixing
+  canonical/crawl/internal-link/catalog-quality problems and record the evidence.
+
 - Publish 3-5 new catalog-backed guide pages, or materially improve existing
   guide pages, when each page has enough relevant products to be genuinely
   useful.
@@ -184,6 +195,10 @@ Before opening the weekly issue, run the weekly SEO publishing sprint:
   pages, but do not post externally unless Cameron has approved the first
   publishing workflow in `docs/ops/NEEDS.md`. The Pinterest account is
   `https://www.pinterest.com/goosegifts/`.
+- For existing public Pinterest tests, run `npm run pinterest:metrics` read-only.
+  Do not create another creative batch before the current test reaches 14 days
+  old or 250 aggregate impressions. At the checkpoint, compare impressions,
+  saves, Pin clicks, outbound clicks, and site-side Pinterest attribution.
 - If fewer than 3 publishable clusters exist, document the exact blocker in the
   weekly issue and spend the sprint building candidates, enriching products, or
   improving price/search data instead of publishing thin SEO pages.

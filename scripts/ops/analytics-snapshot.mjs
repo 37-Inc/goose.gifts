@@ -302,6 +302,15 @@ async function fetchDatabaseAnalytics() {
           count(*) FILTER (WHERE is_active AND price::numeric = 0)::int AS active_unknown_price,
           count(*) FILTER (WHERE is_active AND image_url IS NULL)::int AS active_without_image,
           count(*) FILTER (WHERE is_active AND affiliate_url IS NULL)::int AS active_without_affiliate,
+          count(*) FILTER (WHERE is_active AND nullif(btrim(source_query), '') IS NULL)::int AS active_without_source_query,
+          count(*) FILTER (
+            WHERE is_active
+              AND quality_score::numeric >= 0.55
+              AND (
+                nullif(btrim(source_query), '') IS NOT NULL
+                OR lower(title) ~ '(funny|gag|prank|weird|novelty|ridiculous|sarcastic|silly|fart|poop|whoopee|bullshit|penis|testicle|middle finger|dad joke|white elephant|screaming goat)'
+              )
+          )::int AS homepage_eligible,
           count(*) FILTER (WHERE embedding IS NOT NULL)::int AS embedded_products,
           count(*) FILTER (WHERE punny_title IS NOT NULL)::int AS products_with_punny_copy
         FROM products
@@ -418,6 +427,8 @@ function printText(snapshot) {
   console.log(`- Active/inactive: ${catalog.active.toLocaleString()} / ${catalog.inactive.toLocaleString()}`);
   console.log(`- Active unknown-price products: ${catalog.active_unknown_price.toLocaleString()}`);
   console.log(`- Active missing image/affiliate: ${catalog.active_without_image.toLocaleString()} / ${catalog.active_without_affiliate.toLocaleString()}`);
+  console.log(`- Active missing discovery source: ${catalog.active_without_source_query.toLocaleString()}`);
+  console.log(`- Homepage relevance-gate eligible: ${catalog.homepage_eligible.toLocaleString()}`);
   console.log(`- Embedded products: ${catalog.embedded_products.toLocaleString()}`);
   console.log(`- Products with punny copy: ${catalog.products_with_punny_copy.toLocaleString()}`);
 

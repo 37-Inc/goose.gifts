@@ -1,0 +1,189 @@
+{
+  "batch": "batch-1-v3",
+  "environment": "sandbox",
+  "dryRun": false,
+  "postedAt": "2026-07-07T23:52:34.056Z",
+  "manifestPath": "docs/ops/pinterest-assets/batch-1-v3/manifest.json",
+  "posted": [
+    {
+      "status": "posted",
+      "environment": "sandbox",
+      "id": "1107815208383208933",
+      "boardName": "Funny White Elephant Gifts",
+      "boardId": "1107815277030430244",
+      "url": "https://www.pinterest.com/pin/1107815208383208933/",
+      "title": "White Elephant Gifts That Make the Room Pay Attention",
+      "link": "https://www.goose.gifts/gift-guides/white-elephant-gifts?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=white_elephant_gifts",
+      "media": {
+        "media_type": "image",
+        "images": {
+          "150x150": {
+            "width": 150,
+            "height": 150,
+            "url": "https://i.pinimg.com/150x150/8b/53/0d/8b530d673f78d0c29497eeb356ed4d53.jpg"
+          },
+          "400x300": {
+            "width": 400,
+            "height": 300,
+            "url": "https://i.pinimg.com/400x300/8b/53/0d/8b530d673f78d0c29497eeb356ed4d53.jpg"
+          },
+          "600x": {
+            "width": 564,
+            "height": 846,
+            "url": "https://i.pinimg.com/564x/8b/53/0d/8b530d673f78d0c29497eeb356ed4d53.jpg"
+          },
+          "1200x": {
+            "width": 1000,
+            "height": 1500,
+            "url": "https://i.pinimg.com/1200x/8b/53/0d/8b530d673f78d0c29497eeb356ed4d53.jpg"
+          }
+        }
+      },
+      "imagePath": "docs/ops/pinterest-assets/batch-1-v3/01-white-elephant-gifts.png"
+    },
+    {
+      "status": "posted",
+      "environment": "sandbox",
+      "id": "1107815208383208938",
+      "boardName": "Funny Gifts for Coworkers",
+      "boardId": "1107815277030430246",
+      "url": "https://www.pinterest.com/pin/1107815208383208938/",
+      "title": "Funny Coworker Gifts for Meetings That Should Have Been Emails",
+      "link": "https://www.goose.gifts/gift-guides/funny-gifts-for-coworkers?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=funny_gifts_for_coworkers",
+      "media": {
+        "media_type": "image",
+        "images": {
+          "150x150": {
+            "width": 150,
+            "height": 150,
+            "url": "https://i.pinimg.com/150x150/38/0d/ae/380dae9e7568b0da3c6bc2aca1aec0fd.jpg"
+          },
+          "400x300": {
+            "width": 400,
+            "height": 300,
+            "url": "https://i.pinimg.com/400x300/38/0d/ae/380dae9e7568b0da3c6bc2aca1aec0fd.jpg"
+          },
+          "600x": {
+            "width": 564,
+            "height": 846,
+            "url": "https://i.pinimg.com/564x/38/0d/ae/380dae9e7568b0da3c6bc2aca1aec0fd.jpg"
+          },
+          "1200x": {
+            "width": 1000,
+            "height": 1500,
+            "url": "https://i.pinimg.com/1200x/38/0d/ae/380dae9e7568b0da3c6bc2aca1aec0fd.jpg"
+          }
+        }
+      },
+      "imagePath": "docs/ops/pinterest-assets/batch-1-v3/02-funny-gifts-for-coworkers.png"
+    },
+    {
+      "status": "posted",
+      "environment": "sandbox",
+      "id": "1107815208383208941",
+      "boardName": "Weird Kitchen Gadgets",
+      "boardId": "1107815277030430248",
+      "url": "https://www.pinterest.com/pin/1107815208383208941/",
+      "title": "Weird Kitchen Gadgets That Look Fake but Are Real",
+      "link": "https://www.goose.gifts/gift-guides/weird-kitchen-gadgets?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=weird_kitchen_gadgets",
+      "media": {
+        "media_type": "image",
+        "images": {
+          "150x150": {
+            "width": 150,
+            "height": 150,
+            "url": "https://i.pinimg.com/150x150/7c/ba/3f/7cba3f7fb418d6bb7e6253833d75dc7a.jpg"
+          },
+          "400x300": {
+            "width": 400,
+            "height": 300,
+            "url": "https://i.pinimg.com/400x300/7c/ba/3f/7cba3f7fb418d6bb7e6253833d75dc7a.jpg"
+          },
+          "600x": {
+            "width": 564,
+            "height": 846,
+            "url": "https://i.pinimg.com/564x/7c/ba/3f/7cba3f7fb418d6bb7e6253833d75dc7a.jpg"
+          },
+          "1200x": {
+            "width": 1000,
+            "height": 1500,
+            "url": "https://i.pinimg.com/1200x/7c/ba/3f/7cba3f7fb418d6bb7e6253833d75dc7a.jpg"
+          }
+        }
+      },
+      "imagePath": "docs/ops/pinterest-assets/batch-1-v3/03-weird-kitchen-gadgets.png"
+    },
+    {
+      "status": "posted",
+      "environment": "sandbox",
+      "id": "1107815208383208942",
+      "boardName": "Novelty Desk Toys",
+      "boardId": "1107815277030430249",
+      "url": "https://www.pinterest.com/pin/1107815208383208942/",
+      "title": "Novelty Desk Toys for Busy-Looking Nothing",
+      "link": "https://www.goose.gifts/gift-guides/novelty-desk-toys?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=novelty_desk_toys",
+      "media": {
+        "media_type": "image",
+        "images": {
+          "150x150": {
+            "width": 150,
+            "height": 150,
+            "url": "https://i.pinimg.com/150x150/29/b7/d4/29b7d450db883eb2a5e91ae8d2480071.jpg"
+          },
+          "400x300": {
+            "width": 400,
+            "height": 300,
+            "url": "https://i.pinimg.com/400x300/29/b7/d4/29b7d450db883eb2a5e91ae8d2480071.jpg"
+          },
+          "600x": {
+            "width": 564,
+            "height": 846,
+            "url": "https://i.pinimg.com/564x/29/b7/d4/29b7d450db883eb2a5e91ae8d2480071.jpg"
+          },
+          "1200x": {
+            "width": 1000,
+            "height": 1500,
+            "url": "https://i.pinimg.com/1200x/29/b7/d4/29b7d450db883eb2a5e91ae8d2480071.jpg"
+          }
+        }
+      },
+      "imagePath": "docs/ops/pinterest-assets/batch-1-v3/04-novelty-desk-toys.png"
+    },
+    {
+      "status": "posted",
+      "environment": "sandbox",
+      "id": "1107815208383208943",
+      "boardName": "Weird Home Decor",
+      "boardId": "1107815277030430250",
+      "url": "https://www.pinterest.com/pin/1107815208383208943/",
+      "title": "Weird Home Decor Gifts With a Plot Twist",
+      "link": "https://www.goose.gifts/gift-guides/weird-home-decor-gifts?utm_source=pinterest&utm_medium=social&utm_campaign=pinterest_api_trial_v3&utm_content=weird_home_decor",
+      "media": {
+        "media_type": "image",
+        "images": {
+          "150x150": {
+            "width": 150,
+            "height": 150,
+            "url": "https://i.pinimg.com/150x150/d2/b8/08/d2b808d5adf7f6b0d3735999cb0d135f.jpg"
+          },
+          "400x300": {
+            "width": 400,
+            "height": 300,
+            "url": "https://i.pinimg.com/400x300/d2/b8/08/d2b808d5adf7f6b0d3735999cb0d135f.jpg"
+          },
+          "600x": {
+            "width": 564,
+            "height": 846,
+            "url": "https://i.pinimg.com/564x/d2/b8/08/d2b808d5adf7f6b0d3735999cb0d135f.jpg"
+          },
+          "1200x": {
+            "width": 1000,
+            "height": 1500,
+            "url": "https://i.pinimg.com/1200x/d2/b8/08/d2b808d5adf7f6b0d3735999cb0d135f.jpg"
+          }
+        }
+      },
+      "imagePath": "docs/ops/pinterest-assets/batch-1-v3/05-weird-home-decor.png"
+    }
+  ]
+}

@@ -32,32 +32,9 @@ outward-facing accounts. Best remaining channels:
 Needed from Cameron: choose which channels to authorize for posting and approve
 any paid/video-generation tooling before spend.
 
-### 2. Revenue reporting access
-
-I can optimize clicks blind, but revenue-weighting the site needs earnings
-data:
-- **Amazon Associates**: https://affiliate-program.amazon.com → Tools →
-  Product Advertising API is already keyed; for earnings, either periodically
-  export a report and drop it in the repo/an issue, or share report access.
-  Current PA-API test calls return item/title/image data but often no
-  `Offers.Listings.Price`; the catalog now treats that as unknown price data
-  rather than a reason to withhold the product.
-- **Awin**: https://ui.awin.com → the existing `AWIN_API_TOKEN` may already
-  cover transaction reports; I'll verify once credentials land and update
-  this item.
-
-### 3. Product price coverage
-
-Most active catalog products currently have unknown prices. That is acceptable
-for the user-facing `Check price` flow, but it weakens Product rich-result
-eligibility and makes gift guides less persuasive than competitor pages with
-visible prices. Needed from Cameron only if the current API/account limits
-cannot provide prices: any available Amazon/Awin/export path that lets daily
-ops refresh price coverage for products shown on SEO pages.
-
 ## P2 — high value, not urgent
 
-### 4. Funnel and admin analytics rebuild
+### 2. Funnel and admin analytics rebuild
 
 Vercel Web Analytics, Google Search Console, GA4 Data API, and the app database
 are now readable by ops scripts. The remaining work is product-side
@@ -65,13 +42,19 @@ instrumentation and admin reporting: guide-page product impressions/clicks,
 source/session stitching, zero-result and thin-result search reporting, and an
 admin dashboard shaped around catalog-first guide growth.
 
-### 5. Direct email/Slack channel (optional)
+### 3. Direct email/Slack channel (optional)
 
 Weekly check-ins arrive as GitHub issues, which email you automatically. If
 you'd rather get real email/Slack from me, connect a connector at
 **https://claude.ai/customize/connectors** and include it in the routine.
 
 ## Received
+
+- 2026-07-10: Affiliate data-path audit completed. Amazon PA-API remains usable
+  for product discovery but does not provide Associates earnings reporting and
+  frequently omits prices. Awin has no configured publisher account/token and
+  the catalog contains no Awin products. These are documented operational
+  limitations in `docs/ops/AFFILIATE_DATA.md`, not standing owner asks.
 
 - 2026-07-01: Full operating authorization (merge, deploy, daily autonomy,
   weekly check-ins, escalate when urgent/blocked).

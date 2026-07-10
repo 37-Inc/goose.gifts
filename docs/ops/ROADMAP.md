@@ -17,7 +17,12 @@ The catalog model inverts it: discovery, curation, scoring, and embedding
 happen **once per product, in a nightly batch**. The user-facing site becomes
 fast, cheap, and crawlable.
 
-## Phase 1 — Catalog-first architecture (current phase)
+## Phase 1 — Catalog-first architecture (architecture shipped; quality gate active)
+
+The schema, homepage feed, semantic search, and daily enrichment loop are live.
+The current work is not more catalog volume: it is enforcing gag-gift relevance,
+reducing exposure of source-less legacy inventory, and proving that crawlable
+pages are indexed before expanding the page network.
 
 ### 1a. Catalog schema & ingestion pipeline
 
@@ -32,6 +37,10 @@ fast, cheap, and crawlable.
 - Target: 50–150 net-new products/day; catalog of thousands within a month.
 - Re-verify stale products periodically (dead links, price drift) and
   deactivate the broken ones.
+- Homepage eligibility requires a usable image/link, quality score of at least
+  0.55, and either a curated discovery source or an explicit gag/funny signal
+  in the original marketplace title. LLM-written puns alone do not establish
+  relevance.
 
 ### 1b. New landing page (thisiswhyimbroke style)
 
@@ -83,6 +92,10 @@ marginal cost per visitor drops to ~zero. This is the main margin lever.
   (Christmas/white elephant season is the big one — prep starts October;
   also Father's/Mother's Day, Valentine's, graduation, Halloween).
 - Search Console feedback loop once access is granted (see NEEDS).
+- Indexation gate: do not publish the routine 3-5-page weekly batch while the
+  sitemap reports zero indexed URLs, Google chooses a conflicting canonical,
+  or representative guides remain discovered-but-not-indexed. Use that sprint
+  for canonical, crawl, internal-link, and catalog-quality repair instead.
 
 ### Immediate SEO/GEO todo list
 
@@ -123,8 +136,9 @@ Priority order:
 - Conversion and retention loops: test homepage ranking, product-card copy,
   guide CTA placement, outbound-click instrumentation, saved/favorite concepts,
   and returning-visitor paths so traffic has more chances to become revenue.
-- Revenue optimization: compare Amazon vs. Etsy/Awin EPC per category once
-  reporting access exists; weight the bandit by commission, not just CTR.
+- Revenue optimization: use attributable outbound clicks for now. Amazon
+  earnings are manual-report-only in the current setup and Awin is not
+  configured; see `docs/ops/AFFILIATE_DATA.md`.
 
 ## Success metrics
 
