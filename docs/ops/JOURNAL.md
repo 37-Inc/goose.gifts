@@ -5,6 +5,86 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-10 - Daily ops: acquisition analytics loop shipped
+
+**Health**: production homepage returned 200 with title
+`Funny Gag Gifts, White Elephant Ideas, and Weird Presents | goose.gifts`,
+`/sitemap.xml` returned 200, `/search` returned a 307 redirect to `/`, and
+`/?q=dad%20with%20no%20spare%20time` returned 200 with `Check price`,
+Product, and ItemList content present.
+
+**Metrics snapshot**: Vercel Web Analytics reported 25 visitors and 85
+pageviews for 2026-06-10 through 2026-07-10 UTC. Last nonzero day was
+2026-07-10 with 1 visitor / 1 pageview. Top paths remain `/`, guide pages, and
+`/search`; top referrers are mostly direct/unknown, with one visitor each from
+`finday.com`, `findicons.com`, `querycat.com`, `search.spacetime.com`, and
+`search.yam.com`. Database totals before today's code change: 3,268 active
+products, 18,986 product impressions, 95 product click events, 290 lifetime
+searches, 27 searches and 4 product clicks in the last 7 days, and 2
+campaign-attributed product clicks from `chatgpt.com`. GA4 showed 16 active
+users / 26 sessions, 63 page views, 25 search events from 3 users, and 2
+outbound-click conversion events. Search Console analytics for 2026-07-02
+through 2026-07-09 returned no query rows.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 73 candidates, 73 active/enriched/embedded candidates, 1 inserted, and
+72 updated. Post-run catalog count: 3,269 active products, all embedded and
+with punny copy; 3,252 active products still have unknown prices.
+
+**Growth lever chosen**: analytics and learning loops. The site has a few
+attributed product clicks and early non-search referrers, but the admin
+dashboard only exposed product-surface click sources. Today's highest-leverage
+reversible move was to make acquisition source and UTM campaign cohorts visible
+in the dashboard, and to print the already-fetched top search terms in the ops
+snapshot so future runs can choose SEO, Pinterest, and conversion work from one
+clearer evidence surface.
+
+**Plausible alternatives skipped**:
+- More SEO guide pages: deferred because Search Console still has no query
+  rows, zero-result searches are empty, and the current on-site searches
+  already point mostly at shipped or known guide candidates.
+- Public Pinterest posting: deferred because outward-facing recurring posting
+  still needs owner approval/Standard access; no public posts were created.
+- Product-card conversion tweaks: skipped because there were only 4 product
+  clicks in the last 7 days, which is too little to justify UI conclusions
+  before improving attribution visibility.
+
+**Shipped**:
+- Added 90-day Acquisition Sources and Campaign Clicks panels to the admin
+  dashboard, backed by `/api/admin/stats`.
+- The new panels show source/referrer or UTM cohort, click count, share, and
+  latest click timing, making Pinterest/social/AI-search experiments easier to
+  evaluate without manually running SQL.
+- Updated `npm run analytics:snapshot` output to include top searches in 90d,
+  which were already queried but not printed.
+
+**Review / QA**:
+- Self-reviewed the diff for SQL grouping errors, admin-only data exposure,
+  responsive layout issues, and whether the work advances the broader growth
+  mandate.
+- `npm run analytics:snapshot -- --days 7` passed and now prints top searches
+  such as `dad`, `Fishing`, `poop`, and `dad with no spare time`.
+- `npm run lint` and `npm run build` passed.
+- Local admin QA on `http://localhost:3007/admin` rendered the new panels with
+  production data: acquisition sources `www.goose.gifts` and `chatgpt.com`,
+  plus the `chatgpt.com / (none) / (none)` campaign cohort. Desktop and mobile
+  Playwright snapshots showed the new cards stacking/truncating cleanly.
+
+**SEO/GEO and lead-generation log**: no new crawlable SEO page shipped today.
+That was deliberate: the stronger compounding growth move was improving the
+learning loop for acquisition and query demand. SEO/GEO input gathering did
+ship through the ops snapshot top-search output, and the dashboard now exposes
+the attribution cohorts that should move once Pinterest or other owned
+distribution is approved.
+
+**Next**: use the new dashboard panels in the next run to decide whether
+`chatgpt.com`, Pinterest campaign traffic, or an on-site search cluster has
+enough signal to justify the next guide, distribution batch, or conversion
+experiment.
+
+---
+
 ## 2026-07-09 - Daily ops: Pinterest API dry-run posting path shipped
 
 **Health**: production homepage returned 200 with title
