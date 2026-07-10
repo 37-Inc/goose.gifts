@@ -47,6 +47,21 @@ report.
   URLs so future stale long-tail hits land on the canonical guide instead of a
   generic search page.
 
+## Shipped 2026-07-08
+
+- [x] Prepared the first Pinterest API pin-draft manifest for five existing
+  evergreen guide pages with UTM-tagged URLs, board mapping, and Trial-create
+  support for the Standard-access demo. No public posting shipped.
+
+## Shipped 2026-07-10
+
+- [x] Added top-search output to the daily analytics snapshot so future
+  SEO/GEO candidates can come from visible query demand instead of hidden
+  database rows.
+- [x] Added admin dashboard acquisition-source and UTM-campaign panels so
+  Pinterest, AI-search, referral, and other lead-generation tests can be judged
+  by attributed outbound product clicks.
+
 ## Ongoing Daily Ops
 
 - [ ] Use on-site search logs to propose new guide pages, but only publish a

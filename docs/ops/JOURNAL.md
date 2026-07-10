@@ -5,6 +5,11 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+> Recovered operator records from July 7 are retained first in this merged
+> journal because they previously existed only in the local checkout. The
+> normal reverse-chronological automation history resumes after this recovered
+> block.
+
 ## 2026-07-07 - Pinterest v3 creative posted publicly through web flow
 
 **Trigger**: Cameron approved posting the v3 Pinterest creative set publicly
@@ -128,6 +133,248 @@ or genuinely giftable hooks, then try posting them through the new API tooling.
 **Next**: review the v3 Sandbox Pins visually in the logged-in Pinterest account.
 If the API workflow and creative direction look good, use this flow as the demo
 artifact for the Pinterest Standard access upgrade.
+## 2026-07-10 - Daily ops: acquisition analytics loop shipped
+
+**Health**: production homepage returned 200 with title
+`Funny Gag Gifts, White Elephant Ideas, and Weird Presents | goose.gifts`,
+`/sitemap.xml` returned 200, `/search` returned a 307 redirect to `/`, and
+`/?q=dad%20with%20no%20spare%20time` returned 200 with `Check price`,
+Product, and ItemList content present.
+
+**Metrics snapshot**: Vercel Web Analytics reported 25 visitors and 85
+pageviews for 2026-06-10 through 2026-07-10 UTC. Last nonzero day was
+2026-07-10 with 1 visitor / 1 pageview. Top paths remain `/`, guide pages, and
+`/search`; top referrers are mostly direct/unknown, with one visitor each from
+`finday.com`, `findicons.com`, `querycat.com`, `search.spacetime.com`, and
+`search.yam.com`. Database totals before today's code change: 3,268 active
+products, 18,986 product impressions, 95 product click events, 290 lifetime
+searches, 27 searches and 4 product clicks in the last 7 days, and 2
+campaign-attributed product clicks from `chatgpt.com`. GA4 showed 16 active
+users / 26 sessions, 63 page views, 25 search events from 3 users, and 2
+outbound-click conversion events. Search Console analytics for 2026-07-02
+through 2026-07-09 returned no query rows.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 73 candidates, 73 active/enriched/embedded candidates, 1 inserted, and
+72 updated. Post-run catalog count: 3,269 active products, all embedded and
+with punny copy; 3,252 active products still have unknown prices.
+
+**Growth lever chosen**: analytics and learning loops. The site has a few
+attributed product clicks and early non-search referrers, but the admin
+dashboard only exposed product-surface click sources. Today's highest-leverage
+reversible move was to make acquisition source and UTM campaign cohorts visible
+in the dashboard, and to print the already-fetched top search terms in the ops
+snapshot so future runs can choose SEO, Pinterest, and conversion work from one
+clearer evidence surface.
+
+**Plausible alternatives skipped**:
+- More SEO guide pages: deferred because Search Console still has no query
+  rows, zero-result searches are empty, and the current on-site searches
+  already point mostly at shipped or known guide candidates.
+- Public Pinterest posting: deferred because outward-facing recurring posting
+  still needs owner approval/Standard access; no public posts were created.
+- Product-card conversion tweaks: skipped because there were only 4 product
+  clicks in the last 7 days, which is too little to justify UI conclusions
+  before improving attribution visibility.
+
+**Shipped**:
+- Added 90-day Acquisition Sources and Campaign Clicks panels to the admin
+  dashboard, backed by `/api/admin/stats`.
+- The new panels show source/referrer or UTM cohort, click count, share, and
+  latest click timing, making Pinterest/social/AI-search experiments easier to
+  evaluate without manually running SQL.
+- Updated `npm run analytics:snapshot` output to include top searches in 90d,
+  which were already queried but not printed.
+
+**Review / QA**:
+- Self-reviewed the diff for SQL grouping errors, admin-only data exposure,
+  responsive layout issues, and whether the work advances the broader growth
+  mandate.
+- `npm run analytics:snapshot -- --days 7` passed and now prints top searches
+  such as `dad`, `Fishing`, `poop`, and `dad with no spare time`.
+- `npm run lint` and `npm run build` passed.
+- Local admin QA on `http://localhost:3007/admin` rendered the new panels with
+  production data: acquisition sources `www.goose.gifts` and `chatgpt.com`,
+  plus the `chatgpt.com / (none) / (none)` campaign cohort. Desktop and mobile
+  Playwright snapshots showed the new cards stacking/truncating cleanly.
+
+**SEO/GEO and lead-generation log**: no new crawlable SEO page shipped today.
+That was deliberate: the stronger compounding growth move was improving the
+learning loop for acquisition and query demand. SEO/GEO input gathering did
+ship through the ops snapshot top-search output, and the dashboard now exposes
+the attribution cohorts that should move once Pinterest or other owned
+distribution is approved.
+
+**Next**: use the new dashboard panels in the next run to decide whether
+`chatgpt.com`, Pinterest campaign traffic, or an on-site search cluster has
+enough signal to justify the next guide, distribution batch, or conversion
+experiment.
+
+---
+
+## 2026-07-09 - Daily ops: Pinterest API dry-run posting path shipped
+
+**Health**: production homepage returned 200 with title
+`Funny Gag Gifts, White Elephant Ideas, and Weird Presents | goose.gifts`,
+`/sitemap.xml` returned 200, `/search` returned a 307 redirect to `/`, and
+`/?q=dad%20with%20no%20spare%20time` returned 200 with `Check price` and
+ItemList schema present.
+
+**Metrics snapshot**: Vercel Web Analytics reported 24 visitors and 84
+pageviews for 2026-06-09 through 2026-07-09 UTC. Last nonzero day was
+2026-07-08 with 2 visitors / 2 pageviews. Top paths remain `/`, guide pages,
+and `/search`; top referrers are mostly direct/unknown. Database totals before
+today's discovery finished: 3,265 active products, 18,950 product impressions,
+95 product click events, 290 lifetime searches, 27 searches and 4 product
+clicks in the last 7 days, and 2 campaign-attributed product clicks from
+`chatgpt.com`. GA4 showed 18 active users / 28 sessions, 65 page views, 25
+search events from 3 users, and 2 outbound-click conversion events. Search
+Console analytics for 2026-07-01 through 2026-07-08 returned no query rows.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 74 candidates, 74 active/enriched/embedded candidates, 3 inserted, and
+71 updated.
+
+**Growth lever chosen**: acquisition beyond search, specifically making
+Pinterest API publishing repeatable and measurable. Yesterday's attribution and
+pin-manifest work made Pinterest/social traffic measurable; today's
+highest-leverage reversible move was to add an approved-copy create-pin dry-run
+path that resolves live public boards, builds the exact Pinterest payload from
+approved copy/assets, and preserves UTM tracking before any public post.
+
+**Plausible alternatives skipped**:
+- More SEO guide pages: deferred because there was no new query cluster or
+  Search Console evidence today, and publishing another page would be lower
+  leverage than unblocking a repeatable distribution channel.
+- Public Pinterest posting: deferred because recurring outward-facing posting
+  still needs an approved publishing workflow; today's command can post only
+  when `--dry-run` is intentionally omitted.
+- Product-card conversion tweaks: skipped because product clicks are too sparse
+  for a credible UI conclusion, while distribution instrumentation and API
+  workflow are current blockers.
+
+**Shipped**:
+- Added `docs/ops/pinterest-approved-pins.json`, a machine-readable record of
+  the owner-approved first Pinterest batch: board names, assets, tracking URLs,
+  titles, descriptions, alt text, and live Pin URLs.
+- Added `npm run pinterest:approved-pins` and `npm run pinterest:create-pin`
+  alongside the existing `npm run pinterest:pin-drafts` manifest workflow.
+- Extended `scripts/ops/pinterest-api.mjs` with approved-draft listing,
+  live-board resolution, base64 image payload construction, dry-run redaction,
+  and an explicit create-pin POST path for a future approved run.
+- Updated `docs/ops/PINTEREST_DRAFTS.md` with the repeatable API commands.
+
+**Review / QA**:
+- Self-reviewed the diff for accidental posting risk, token disclosure, base64
+  logging, board mismatch risk, and whether the work advances non-search
+  growth.
+- Verified the official Pinterest create-pin shape supports `media_source`
+  `image_base64`; the dry-run payload uses `source_type: image_base64`,
+  `content_type: image/png`, title, description, alt text, link, and board id.
+- `node --check scripts/ops/pinterest-api.mjs`, `npm run
+  pinterest:approved-pins`, and `npm run pinterest:create-pin -- --draft
+  white-elephant-gifts --dry-run` passed. The dry run resolved live board
+  `Funny White Elephant Gifts` to board id `1107815277030422220` and redacted
+  the 676,428-character base64 payload.
+- `git diff --check`, `npm run build`, and `npm run lint` passed.
+
+**SEO/GEO and lead-generation log**: SEO page publishing was deliberately
+deferred today because the data did not expose a stronger crawlable page
+candidate than the existing backlog, while Pinterest distribution had a concrete
+workflow gap. Lead-generation/growth work shipped as API-ready Pinterest posting
+infrastructure with UTM-preserving links, which should make the next approved
+owned-distribution test faster and more measurable.
+
+**Next**: once Cameron approves the next outward-facing Pinterest batch or the
+Standard API upgrade path, run the create-pin command without `--dry-run` for a
+fresh, non-duplicate batch and monitor campaign-attributed clicks in
+`npm run analytics:snapshot`.
+
+---
+
+## 2026-07-08 - Daily ops: Pinterest API pin-draft loop shipped
+
+**Health**: production homepage returned 200 with title
+`Funny Gag Gifts, White Elephant Ideas, and Weird Presents | goose.gifts`,
+`/sitemap.xml` returned 200, `/search` returned a 307 redirect to `/`, and
+`/?q=dad%20with%20no%20spare%20time` returned 200 with `Check price`,
+Product, and ItemList content present.
+
+**Metrics snapshot**: Vercel Web Analytics reported 24 visitors and 88
+pageviews for 2026-06-08 through 2026-07-08 UTC. Last nonzero day was
+2026-07-07 with 4 visitors and 9 pageviews. Top paths remain `/` plus guide
+traffic: `/gift-guides/white-elephant-gifts` had 4 visitors,
+`/gift-guides/funny-gifts-for-coworkers`, `/gift-guides/funny-gifts-for-dads`,
+`/gift-guides/novelty-desk-toys`, `/purrfect-gifts-for-cat-loving-bookworms-n6y7`,
+and `/search` each had 2 visitors. Referrers remain mostly direct/unknown:
+21 visitors and 85 pageviews. GA4 showed 12 direct active users / 21 sessions,
+1 paid-search session, 3 one-session referrals, 25 search events, and 2 users /
+2 `conversion_event_outbound_click` events. Search Console analytics for
+2026-07-01 through 2026-07-07 returned no query rows. Database totals before
+today's code change: 3,264 active products, 18,806 product impressions, 93
+product click events, 290 lifetime searches, 27 searches and 2 product clicks
+in the last 7 days, no zero-result searches in 30 days, no campaign-attributed
+clicks yet, and 3,247 active products still have unknown prices.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 74 candidates, 74 active/enriched/embedded candidates, 1 inserted, and
+73 updated.
+
+**Growth lever chosen**: acquisition and lead-generation infrastructure beyond
+search. Yesterday's attribution work made Pinterest/social traffic measurable;
+today's highest-leverage reversible move was to turn the connected Pinterest
+Trial API account and existing v2 creative assets into a repeatable pin-draft
+workflow with tracked guide links. This advances the Standard-access demo path
+without public posting or spend.
+
+**Plausible alternatives skipped**:
+- Another guide page: skipped because Search Console still has no query rows,
+  on-site searches had no new zero-result clusters, and another page would not
+  solve the current distribution bottleneck.
+- Product-card conversion changes: skipped because there were only 2 product
+  clicks in the last 7 days; getting qualified, attributable traffic is the
+  more urgent learning loop.
+- Public Pinterest posting: skipped because recurring outward-facing publishing
+  remains owner-approved only, and Pinterest Trial-created objects are for demo
+  evidence rather than a public acquisition campaign.
+
+**Shipped growth work**:
+- Added `npm run pinterest:pin-drafts`, which validates live Pinterest board
+  access, maps five prepared v2 guide assets to API Trial boards and public
+  boards, and writes a dry-run manifest without creating pins.
+- Added `docs/ops/pinterest-assets/batch-1-v2/pins-manifest.json` with five
+  UTM-tagged pin drafts for white elephant gifts, coworker gifts, weird kitchen
+  gadgets, novelty desk toys, and weird home decor. Campaign:
+  `pinterest_api_trial_batch_1_v2`.
+- The script supports an explicit `--create-trial-pins` flag for the Standard
+  access screen recording path; default daily use remains dry-run only.
+
+**Review / QA**:
+- Self-reviewed the diff for accidental public posting, duplicate-spend risk,
+  token leakage, missing board/asset validation, URL tracking, and whether the
+  work supports the broader growth mandate.
+- `npm run pinterest:whoami` returned the expected `goosegifts` business
+  account, and `npm run pinterest:boards` returned both API Trial boards and
+  starter public boards.
+- `npm run pinterest:pin-drafts` wrote a 5-pin dry-run manifest and created 0
+  pins.
+- Verified all five guide URLs in the manifest return 200.
+- `node --check scripts/ops/prepare-pinterest-pins.mjs`, `npm run build`, and
+  `npm run lint` passed.
+
+**SEO/GEO and lead-generation note**: no new crawlable SEO page shipped today.
+That was deliberate: the best growth move was preparing a measurable Pinterest
+lead-generation workflow that points at existing crawlable guide pages and can
+be used for the Standard-access upgrade/demo. Expected movement once posting is
+approved: campaign-attributed Pinterest sessions and product clicks for the
+five evergreen guide URLs.
+
+**Next**: record the OAuth/API posting demo using the explicit Trial create
+flag, submit Pinterest Standard access, then use approved public boards with the
+same UTM campaign structure once recurring posting is authorized.
 
 ---
 

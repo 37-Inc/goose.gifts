@@ -76,6 +76,7 @@ export default function AdminDashboardPage() {
     ? Math.round((stats.catalog.enrichedProducts / stats.catalog.activeProducts) * 1000) / 10
     : 0;
   const sourceClickTotal = stats.clickSources.reduce((total, source) => total + source.clicks, 0);
+  const acquisitionClickTotal = stats.acquisitionSources.reduce((total, source) => total + source.clicks, 0);
 
   const formatSource = (source: string) => source
     .split('_')
@@ -240,6 +241,94 @@ export default function AdminDashboardPage() {
           </div>
         </CardBody>
       </Card>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <Card>
+          <CardHeader
+            title="Acquisition Sources"
+            subtitle="90-day product clicks by referrer or UTM source"
+          />
+          <CardBody className="p-0">
+            <div className="divide-y divide-gray-200">
+              {stats.acquisitionSources.length === 0 ? (
+                <div className="px-6 py-8 text-center text-gray-500">
+                  Acquisition sources will appear after attributed product clicks.
+                </div>
+              ) : (
+                stats.acquisitionSources.map((source) => {
+                  const share = acquisitionClickTotal > 0
+                    ? Math.round((source.clicks / acquisitionClickTotal) * 1000) / 10
+                    : 0;
+
+                  return (
+                    <div key={source.source} className="px-6 py-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-medium text-gray-900">{source.source}</div>
+                          <div className="mt-1 text-xs text-gray-500">
+                            Latest {source.latestClickAt ? formatDate(source.latestClickAt) : 'unknown'}
+                          </div>
+                          <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
+                            <div
+                              className="h-full rounded-full bg-blue-500"
+                              style={{ width: `${Math.min(share, 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-semibold text-blue-600">{source.clicks}</div>
+                          <div className="text-xs text-gray-500">{share.toFixed(1)}%</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Campaign Clicks"
+            subtitle="90-day outbound clicks carrying UTM values"
+          />
+          <CardBody className="p-0">
+            <div className="divide-y divide-gray-200">
+              {stats.campaignClicks.length === 0 ? (
+                <div className="px-6 py-8 text-center text-gray-500">
+                  Campaign cohorts will appear after UTM-tagged traffic clicks products.
+                </div>
+              ) : (
+                stats.campaignClicks.map((campaign) => (
+                  <div
+                    key={`${campaign.source}:${campaign.medium}:${campaign.campaign}`}
+                    className="px-6 py-4"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium text-gray-900">
+                          {campaign.source} / {campaign.medium}
+                        </div>
+                        <div className="mt-1 truncate text-sm text-gray-600">
+                          {campaign.campaign}
+                        </div>
+                        <div className="mt-1 text-xs text-gray-500">
+                          Latest {campaign.latestClickAt ? formatDate(campaign.latestClickAt) : 'unknown'}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-semibold text-green-600">{campaign.clicks}</div>
+                        <div className="text-xs text-gray-500">clicks</div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardBody>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader

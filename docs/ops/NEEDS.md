@@ -22,10 +22,12 @@ outward-facing accounts. Best remaining channels:
 - **TikTok/Reels/Shorts**: short vertical product roundups generated from the
   catalog; I can prepare scripts/assets, but posting needs account access or
   approval of the publishing tool.
-- **Pinterest**: account access, profile polish, starter public boards, and the
-  first five-Pin v2 product-collage batch are live. Recurring posting still
-  needs an approved publishing path, ideally Pinterest API/OAuth access if the
-  account can get the required scopes.
+- **Pinterest**: account access, profile polish, starter public boards,
+  OAuth/API Trial access, API Trial boards, and the first five-Pin v2
+  product-collage batch are live. A dry-run API pin manifest now maps those
+  assets to tracked guide URLs, and ops can build dry-run create-pin payloads
+  from approved copy/assets. Recurring public posting still needs Pinterest
+  Standard access plus owner approval of the publishing cadence or next batch.
 
 Needed from Cameron: choose which channels to authorize for posting and approve
 any paid/video-generation tooling before spend.
@@ -92,7 +94,9 @@ you'd rather get real email/Slack from me, connect a connector at
   `goose.gifts` as a connected claimed website. Starter public boards exist for
   funny white elephant gifts, funny coworker gifts, weird kitchen gadgets,
   novelty desk toys, and weird home decor, and the profile avatar uses the
-  goose.gifts logo. Posting remains owner-approved only.
+  goose.gifts logo. OAuth/API Trial access is connected, API Trial boards exist,
+  and `npm run pinterest:pin-drafts` can validate a tracked five-pin dry-run
+  manifest. Posting remains owner-approved only.
 - 2026-07-05: Google Analytics Data API read access for GA4 property
   `507421709` (`G-6RR3HPR747`). The dedicated goose service account has Viewer
   access to the property, Analytics Data/Admin APIs are enabled in

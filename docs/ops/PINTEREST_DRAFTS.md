@@ -15,6 +15,14 @@ Original clean-card contact sheet:
 Posted externally after Cameron approved the v2 batch. Use this file as the
 source record for copy, assets, tracking URLs, and live Pin URLs.
 
+Machine-readable copy lives in `docs/ops/pinterest-approved-pins.json` for
+repeatable API smoke tests and future approved posting runs. Useful commands:
+
+- `npm run pinterest:approved-pins`
+- `npm run pinterest:create-pin -- --draft white-elephant-gifts --dry-run`
+
+Omit `--dry-run` only for an owner-approved posting run.
+
 ## Batch 1 - Starter board launch
 
 ### 1. Funny White Elephant Gifts
