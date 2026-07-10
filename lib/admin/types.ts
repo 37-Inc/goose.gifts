@@ -27,6 +27,18 @@ export interface DashboardStats {
     source: string;
     clicks: number;
   }>;
+  acquisitionSources: Array<{
+    source: string;
+    clicks: number;
+    latestClickAt?: Date;
+  }>;
+  campaignClicks: Array<{
+    source: string;
+    medium: string;
+    campaign: string;
+    clicks: number;
+    latestClickAt?: Date;
+  }>;
   topProducts: Array<{
     id: string;
     title: string;

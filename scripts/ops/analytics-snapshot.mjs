@@ -393,6 +393,11 @@ function printText(snapshot) {
     database.guideClicks90d,
     (row) => `  ${row.guide_slug} - ${row.clicks} clicks - latest ${formatTimestamp(row.last_click_at)}`,
   ));
+  console.log('- Top searches in 90d:');
+  console.log(formatRows(
+    database.topSearches90d,
+    (row) => `  ${row.query} - ${row.count} searches - avg ${row.avg_results} results - latest ${formatTimestamp(row.last_search_at)}`,
+  ));
   console.log('- Campaign-attributed clicks in 90d:');
   console.log(formatRows(
     database.campaignClicks90d,

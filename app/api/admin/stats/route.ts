@@ -39,6 +39,8 @@ export async function GET() {
       totalProductClicksResult,
       totalProductImpressionsResult,
       clickSources,
+      acquisitionSources,
+      campaignClicks,
       topProducts,
       recentProducts,
     ] = await Promise.all([
@@ -105,6 +107,42 @@ export async function GET() {
         .limit(8),
       db
         .select({
+          source: sql<string>`COALESCE(
+            NULLIF(${productClicks.utmSource}, ''),
+            NULLIF(${productClicks.referrerHost}, ''),
+            NULLIF(regexp_replace(COALESCE(${productClicks.referer}, ''), '^https?://([^/]+).*$', '\\1'), ''),
+            'direct'
+          )`,
+          count: sql<number>`count(*)`,
+          latestClickAt: sql<Date>`max(${productClicks.createdAt})`,
+        })
+        .from(productClicks)
+        .where(gte(productClicks.createdAt, sql<Date>`now() - interval '90 days'`))
+        .groupBy(sql`1`)
+        .orderBy(desc(sql<number>`count(*)`), desc(sql<Date>`max(${productClicks.createdAt})`))
+        .limit(8),
+      db
+        .select({
+          source: sql<string>`COALESCE(NULLIF(${productClicks.utmSource}, ''), '(none)')`,
+          medium: sql<string>`COALESCE(NULLIF(${productClicks.utmMedium}, ''), '(none)')`,
+          campaign: sql<string>`COALESCE(NULLIF(${productClicks.utmCampaign}, ''), '(none)')`,
+          count: sql<number>`count(*)`,
+          latestClickAt: sql<Date>`max(${productClicks.createdAt})`,
+        })
+        .from(productClicks)
+        .where(sql`
+          ${productClicks.createdAt} >= now() - interval '90 days'
+          AND (
+            NULLIF(${productClicks.utmSource}, '') IS NOT NULL
+            OR NULLIF(${productClicks.utmMedium}, '') IS NOT NULL
+            OR NULLIF(${productClicks.utmCampaign}, '') IS NOT NULL
+          )
+        `)
+        .groupBy(sql`1`, sql`2`, sql`3`)
+        .orderBy(desc(sql<number>`count(*)`), desc(sql<Date>`max(${productClicks.createdAt})`))
+        .limit(8),
+      db
+        .select({
           id: products.id,
           title: products.title,
           clickCount: products.clickCount,
@@ -152,6 +190,18 @@ export async function GET() {
       clickSources: clickSources.map((source) => ({
         source: source.source,
         clicks: asNumber(source.count),
+      })),
+      acquisitionSources: acquisitionSources.map((source) => ({
+        source: source.source,
+        clicks: asNumber(source.count),
+        latestClickAt: source.latestClickAt,
+      })),
+      campaignClicks: campaignClicks.map((campaign) => ({
+        source: campaign.source,
+        medium: campaign.medium,
+        campaign: campaign.campaign,
+        clicks: asNumber(campaign.count),
+        latestClickAt: campaign.latestClickAt,
       })),
       topProducts: topProducts.map((product) => {
         const clickCount = product.clickCount || 0;
