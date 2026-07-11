@@ -67,6 +67,18 @@ report.
 - [x] Added an indexation gate: pause bulk guide publishing while the sitemap
   reports zero indexed pages or representative guides remain unindexed.
 
+## Shipped 2026-07-11
+
+- [x] Changed the retired `/search` route from a temporary redirect to a
+  permanent redirect into the homepage catalog search (`/` or `/?q=...`). GA4
+  still showed `/search` and legacy bundle-era titles in recent landing-page
+  rows, so this consolidates crawl and analytics signals on the current
+  catalog-first surface.
+- [x] Rechecked the indexation gate before publishing more guide pages:
+  Search Console still reports 44 submitted sitemap URLs and 0 indexed, the
+  homepage still has Google choosing the apex canonical, and the representative
+  white-elephant guide is still unknown to Google.
+
 ## Ongoing Daily Ops
 
 - [ ] Use on-site search logs to propose new guide pages, but only publish a
