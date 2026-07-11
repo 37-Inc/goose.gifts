@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { permanentRedirect } from 'next/navigation';
 
 export default async function SearchPage({
   searchParams,
@@ -9,8 +9,8 @@ export default async function SearchPage({
   const query = Array.isArray(params.q) ? params.q[0] : params.q;
 
   if (query && query.trim()) {
-    redirect(`/?q=${encodeURIComponent(query.trim())}`);
+    permanentRedirect(`/?q=${encodeURIComponent(query.trim())}`);
   }
 
-  redirect('/');
+  permanentRedirect('/');
 }

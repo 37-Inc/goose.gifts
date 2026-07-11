@@ -5,6 +5,68 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-11 - Daily ops: legacy search signal consolidation
+
+**Health**: production homepage returned 200 with title
+`Funny Gag Gifts, White Elephant Ideas, and Weird Presents | goose.gifts`,
+`/sitemap.xml` returned 200, `/search` returned a redirect to `/`, and
+`/?q=dad%20with%20no%20spare%20time` returned 200 with `Check price`,
+Product, and ItemList content present.
+
+**Metrics snapshot**: Vercel Web Analytics reported 25 visitors and 85
+pageviews for 2026-06-11 through 2026-07-11 UTC. Last nonzero day was
+2026-07-11 with 1 visitor / 1 pageview. Top paths remain `/`, guide pages, and
+`/search`; top referrers are mostly direct/unknown, with one visitor each from
+`finday.com`, `findicons.com`, `querycat.com`, and `zhongsou.com`. Database
+totals before today's code change: 3,269 active products, 19,058 product
+impressions, 95 product click events, 290 lifetime searches, 23 searches and
+3 product clicks in the last 7 days, and 2 campaign-attributed product clicks
+from `chatgpt.com`. GA4 showed 17 active users / 28 sessions, 65 page views,
+25 search events from 3 users, and 2 outbound-click conversion events. Search
+Console analytics for 2026-07-03 through 2026-07-10 returned no query rows.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 73 candidates, 73 active/enriched/embedded candidates, 6 inserted, and
+67 updated.
+
+**Indexation and distribution checks**: Search Console still reports the
+submitted sitemap at 44 URLs / 0 indexed, with no sitemap errors or warnings.
+Homepage inspection still shows `Duplicate, Google chose different canonical
+than user`, with Google choosing `https://goose.gifts/` and the user canonical
+set to `https://www.goose.gifts/`. The representative
+`/gift-guides/white-elephant-gifts` URL is still unknown to Google. Pinterest
+metrics remain too early for another creative batch: v2 has 26 impressions and
+0 clicks/saves; v3 has 0 impressions/clicks/saves.
+
+**Growth lever chosen**: crawl/analytics hygiene for the catalog-first search
+surface. GA4 still showed recent landing-page rows for `/search` and legacy
+bundle-era page titles, while Vercel still counted `/search` as a top path.
+Changed the retired `/search` route from a temporary redirect to a permanent
+redirect into `/` or `/?q=...`, matching the current homepage catalog search
+surface and reducing stale URL/title noise as crawlers and analytics refresh.
+
+**Skipped alternatives**: did not publish another guide page because the
+indexation gate is still unhealthy; did not create new Pinterest assets because
+the public test has only 26 impressions and no clicks; did not start a new
+outward-facing channel because posting approval is still the owner-dependent
+blocker in `NEEDS.md`. The selected work was the highest-leverage reversible
+move because it consolidates legacy demand and measurement around the product
+surface that already drives the few recent clicks.
+
+**Review and QA**: self-reviewed the diff for redirect semantics, SEO/crawl
+side effects, and doc accuracy. Verification covered `npm run build`,
+`npm run lint`, local redirect checks, and production smoke after deploy.
+
+**SEO/growth work shipped**: permanent `/search` consolidation plus the daily
+catalog prefetch. Bulk SEO page publishing remains deferred until Search
+Console shows the sitemap/indexation/canonical issue improving.
+
+**Next**: keep watching GSC after the apex 308 and `/search` 308 have been
+recrawled. If the sitemap still reports zero indexed URLs on the next weekly
+run, prioritize deeper canonical/internal-link/crawl repair over new pages or
+more creative production.
+
 ## 2026-07-10 - Growth remediation: relevance, canonical, and channel evidence
 
 **Trigger**: Cameron approved the project-review roadmap and asked Codex to turn
