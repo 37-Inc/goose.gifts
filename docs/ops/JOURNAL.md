@@ -5,6 +5,74 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-12 - Daily ops: guide crawl hub
+
+**Health**: production homepage returned 200 with title
+`Funny Gag Gifts, White Elephant Ideas, and Weird Presents | goose.gifts`,
+`/sitemap.xml` returned 200, `/search` returned a 308 redirect to `/`, and
+`/search?q=dad%20with%20no%20spare%20time` returned a 308 redirect to the
+homepage catalog query. `/?q=dad%20with%20no%20spare%20time` returned 200 with
+`Check price`, Product, and ItemList content present.
+
+**Metrics snapshot**: Vercel Web Analytics reported 24 visitors and 84
+pageviews for 2026-06-12 through 2026-07-12 UTC. Last nonzero day was
+2026-07-11 with 1 visitor / 1 pageview. Top paths remain `/`, guide pages, and
+`/search`; top referrers are mostly direct/unknown, with one visitor each from
+`finday.com`, `findicons.com`, `querycat.com`, and `zhongsou.com`. Database
+totals before today's code change: 3,275 active products, 19,058 product
+impressions, 95 product click events, 290 lifetime searches, 0 searches and
+3 product clicks in the last 7 days, and 2 campaign-attributed product clicks
+from `chatgpt.com`. GA4 showed 17 active users / 28 sessions, 65 page views,
+25 search events from 3 users, and 2 outbound-click conversion events.
+Search Console analytics for 2026-07-04 through 2026-07-11 returned no query
+rows.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 72 candidates, 72 active/enriched/embedded candidates, 0 inserted, and
+72 updated.
+
+**Indexation and distribution checks**: Search Console still reports the
+submitted sitemap at 44 URLs / 0 indexed, with no sitemap errors or warnings.
+Homepage URL inspection still shows `Duplicate, Google chose different
+canonical than user`; Google's last crawl was 2026-07-08, before the 308 apex
+redirect repair, and Google still chose `https://goose.gifts/` over the user
+canonical `https://www.goose.gifts/`. The representative
+`/gift-guides/white-elephant-gifts` URL remains unknown to Google. Pinterest
+metrics remain too early for another creative batch: v2 has 26 impressions and
+0 clicks/saves; v3 has 0 impressions/clicks/saves.
+
+**Growth lever chosen**: crawl/internal-link repair for the guide network.
+The sitemap listed all guide pages, but the homepage exposed only a subset of
+featured guide chips and the footer had no guide-network entry point. Shipped a
+server-rendered `/gift-guides` hub with canonical metadata, CollectionPage and
+ItemList structured data, and visible links to all 43 guide pages grouped by
+recipient/theme. Linked the hub from the header, footer, and sitemap.
+
+**Skipped alternatives**: did not publish another guide page because the
+indexation gate remains unhealthy; did not create new Pinterest assets because
+the public test remains below the 14-day / 250-impression checkpoint; did not
+start an outward-facing channel because posting approval is still owner-gated
+in `NEEDS.md`. The selected work was the highest-leverage reversible move
+because it improves crawl discovery and user navigation for already-published
+catalog-backed pages without adding more unindexed URLs to the problem.
+
+**Review and QA**: self-reviewed the diff for over-broad content, broken guide
+slugs, sitemap/canonical coverage, structured-data visibility, and mobile text
+fit. Verified all 43 guide definitions are represented in the hub. QA covered
+`npm run lint`, `npm run build`, local `/gift-guides` HTTP/content checks,
+desktop and mobile Playwright screenshots, and production health smoke. The
+only local browser console error was the expected Vercel Analytics localhost
+404 for `/_vercel/insights/script.js`.
+
+**SEO/growth work shipped**: permanent crawlable `/gift-guides` directory plus
+the daily catalog refresh. Bulk SEO page publishing remains deferred until
+Search Console shows the sitemap/indexation/canonical issue improving.
+
+**Next**: after Google recrawls the apex 308, re-inspect homepage canonical and
+the `/gift-guides` hub. If sitemap indexed count remains zero, prioritize
+additional crawl diagnostics and internal-link quality over new guide pages.
+
 ## 2026-07-11 - Daily ops: legacy search signal consolidation
 
 **Health**: production homepage returned 200 with title

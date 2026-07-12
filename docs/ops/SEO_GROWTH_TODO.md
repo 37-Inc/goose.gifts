@@ -79,6 +79,17 @@ report.
   homepage still has Google choosing the apex canonical, and the representative
   white-elephant guide is still unknown to Google.
 
+## Shipped 2026-07-12
+
+- [x] Added a crawlable `/gift-guides` directory with visible links to all
+  43 maintained guide pages, canonical metadata, and CollectionPage/ItemList
+  structured data. Linked it from the header, footer, and sitemap so existing
+  catalog-backed guides are easier for users and crawlers to discover.
+- [x] Rechecked the indexation gate before publishing more pages: Search
+  Console still reports 44 submitted sitemap URLs and 0 indexed, the homepage
+  still has Google choosing the apex canonical from a 2026-07-08 crawl, and
+  the representative white-elephant guide is still unknown to Google.
+
 ## Ongoing Daily Ops
 
 - [ ] Use on-site search logs to propose new guide pages, but only publish a
