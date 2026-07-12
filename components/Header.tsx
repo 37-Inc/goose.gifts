@@ -16,6 +16,11 @@ export function Header() {
           />
           <span className="text-2xl font-black tracking-tight">goose.gifts</span>
         </Link>
+        <nav className="flex items-center gap-4 text-sm font-semibold text-zinc-600">
+          <Link href="/gift-guides" className="transition hover:text-red-700">
+            Gift guides
+          </Link>
+        </nav>
       </div>
     </header>
   );
