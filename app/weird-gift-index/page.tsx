@@ -8,7 +8,10 @@ import {
   MOTIF_DEFINITIONS,
 } from '@/lib/weird-gift-index-analysis';
 
-export const revalidate = 3600;
+// Preview deployments intentionally do not receive the production database
+// secret. Keep the report request-time rendered so builds never require live
+// catalog credentials; the underlying aggregate remains cached for one hour.
+export const dynamic = 'force-dynamic';
 
 const INDEX_TITLE = 'The Weird Gift Index: What 3,000+ Ridiculous Products Reveal';
 const INDEX_DESCRIPTION = 'Original analysis of 3,000+ active gift listings: the animals, pranks, food references, and strange language that define the weird-gift catalog.';
