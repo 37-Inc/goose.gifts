@@ -119,6 +119,13 @@ Priority order:
 
 ## Phase 3 — Growth loops & revenue depth
 
+- **Active experiment — Pinterest Creative Lab**: use the reference,
+  concepting, AI-scene generation, taste-review, and owner-approval pipeline in
+  `docs/ops/MARKETING.md` to develop the next creative version. The goal is
+  Pinterest-native, save-worthy editorial content that earns a double take—not
+  another branded product-grid template. Concept generation and the learning
+  loop are active; subscriptions, public-pilot preparation, public posting, and
+  spend remain unauthorized until the creative and product fidelity are ready.
 - Shareability: OG images per product, Pinterest-optimized pages
   (gag gifts are a strong Pinterest category).
 - Creative acquisition experiments: maintain a backlog of low-cost tests that
@@ -139,6 +146,11 @@ Priority order:
 - Revenue optimization: use attributable outbound clicks for now. Amazon
   earnings are manual-report-only in the current setup and Awin is not
   configured; see `docs/ops/AFFILIATE_DATA.md`.
+
+The durable channel strategy, creative standards, tool evaluation, and running
+experiment log live in `docs/ops/MARKETING.md`.
+The legitimate link-earning and referral-acquisition workflow lives in
+`docs/ops/ACQUISITION.md`.
 
 ## Success metrics
 

@@ -25,10 +25,39 @@ test('explicit gag gifts are eligible while generic legacy gifts are not', () =>
   assert.equal(isHomepageEligibleProduct(product({ title: 'Luxury Vanilla Bath Bomb Gift Set' })), false);
 });
 
-test('curated discovery products can qualify without spammy title keywords', () => {
+test('distinctive merchant-title evidence can qualify without spammy title keywords', () => {
   assert.equal(isHomepageEligibleProduct(product({
     title: 'Red Crab Silicone Spoon Rest',
     sourceQuery: 'weird kitchen gadgets',
+  })), true);
+});
+
+test('automated discovery fields cannot manufacture homepage relevance', () => {
+  assert.equal(isHomepageEligibleProduct(product({
+    title: 'The Book of Unusual Knowledge: Fascinating Facts for Trivia Buffs',
+    sourceQuery: 'funny gifts for dads',
+    humorTags: ['dad-joke', 'weird', 'novelty'],
+    punnyTitle: 'Fact Around and Find Out',
+    wittyDescription: 'A weirdly wonderful gift.',
+  })), false);
+});
+
+test('commodity formats stay off the homepage despite merchant SEO language', () => {
+  assert.equal(isHomepageEligibleProduct(product({
+    title: 'Funny Gift Pack for Women - Hilarious Gag Makeup Travel Bag',
+    sourceQuery: 'prank gifts for friends',
+  })), false);
+  assert.equal(isHomepageEligibleProduct(product({
+    title: 'Cat Butts Pole Dance Show: Funny Coloring Book',
+  })), false);
+  assert.equal(isHomepageEligibleProduct(product({
+    title: "Buggin' Out! A Hilarious Insect Coloring Adventure",
+  })), false);
+});
+
+test('physical novelty book sets remain eligible', () => {
+  assert.equal(isHomepageEligibleProduct(product({
+    title: 'The Screaming Goat (Book & Figure)',
   })), true);
 });
 
@@ -49,4 +78,17 @@ test('brand-fit scoring favors a genuine gag gift over a generic beauty item', (
   }));
 
   assert.ok(gagScore > genericScore, `${gagScore} should be greater than ${genericScore}`);
+});
+
+test('generated tags and discovery query do not inflate brand-fit scoring', () => {
+  const generatedScore = scoreProductForTrending(product({
+    title: 'Plain Ceramic Storage Jar',
+    sourceQuery: 'weird kitchen gadgets',
+    humorTags: ['weird', 'novelty', 'gag'],
+  }));
+  const originalTitleScore = scoreProductForTrending(product({
+    title: 'Funny Fart Button Gag Gift',
+  }));
+
+  assert.ok(originalTitleScore > generatedScore, `${originalTitleScore} should be greater than ${generatedScore}`);
 });

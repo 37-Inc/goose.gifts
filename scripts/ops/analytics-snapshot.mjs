@@ -306,9 +306,10 @@ async function fetchDatabaseAnalytics() {
           count(*) FILTER (
             WHERE is_active
               AND quality_score::numeric >= 0.55
+              AND lower(title) ~ '(funny|gag|prank|weird|novelty|ridiculous|sarcastic|silly|hilarious|joke|absurd|inappropriate|fart|poop|whoopee|bullshit|penis|testicle|middle finger|dad joke|white elephant|screaming goat|angry mama|animal butt|bacon candle|beer bong|cat butt|cereal killer|crab|duck decanter|emotional support|fake poop|fart machine|loch ness|nessie|pizza boss|rubber chicken|screaming chicken|squirrel hot tub|sword shaped|wacky waving|yodeling)'
               AND (
-                nullif(btrim(source_query), '') IS NOT NULL
-                OR lower(title) ~ '(funny|gag|prank|weird|novelty|ridiculous|sarcastic|silly|fart|poop|whoopee|bullshit|penis|testicle|middle finger|dad joke|white elephant|screaming goat)'
+                lower(title) !~ '(activity book|bath bomb|coloring|cookbook|cosmetic bag|eyeshadow|gift basket|journal|makeup|notebook|skincare|trivia book)'
+                OR lower(title) ~ '(book and figure|book with figure|book & figure)'
               )
           )::int AS homepage_eligible,
           count(*) FILTER (WHERE embedding IS NOT NULL)::int AS embedded_products,

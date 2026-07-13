@@ -196,8 +196,10 @@ Before opening the weekly issue, run the weekly SEO publishing sprint:
   publishing workflow in `docs/ops/NEEDS.md`. The Pinterest account is
   `https://www.pinterest.com/goosegifts/`.
 - For existing public Pinterest tests, run `npm run pinterest:metrics` read-only.
-  Do not create another creative batch before the current test reaches 14 days
-  old or 250 aggregate impressions. At the checkpoint, compare impressions,
+  V3 is Sandbox-only and must not be included as a public cohort. Do not start
+  the active Pinterest Creative Lab experiment in `docs/ops/MARKETING.md`
+  beyond concept generation and internal review without explicit authorization.
+  Do not prepare or publish a public pilot yet. At the v2 checkpoint, compare impressions,
   saves, Pin clicks, outbound clicks, and site-side Pinterest attribution.
 - If fewer than 3 publishable clusters exist, document the exact blocker in the
   weekly issue and spend the sprint building candidates, enriching products, or

@@ -1,0 +1,380 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.goose.gifts/schemas/creative-experiment-event-v1.json",
+  "title": "goose.gifts creative experiment event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "eventId", "type", "recordedAt", "actor", "data"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "eventId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+    "type": {
+      "enum": [
+        "experiment.created",
+        "experiment.authorization_changed",
+        "experiment.status_changed",
+        "candidate.created",
+        "candidate.status_changed",
+        "prompt.recorded",
+        "review.recorded",
+        "metrics.recorded",
+        "learning.recorded"
+      ]
+    },
+    "recordedAt": { "type": "string", "format": "date-time" },
+    "actor": { "type": "string", "minLength": 1 },
+    "data": { "type": "object" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "experiment.created" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/experimentCreated" } } }
+    },
+    {
+      "if": { "properties": { "type": { "const": "experiment.authorization_changed" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/experimentAuthorizationChanged" } } }
+    },
+    {
+      "if": { "properties": { "type": { "const": "experiment.status_changed" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/experimentStatusChanged" } } }
+    },
+    {
+      "if": { "properties": { "type": { "const": "candidate.created" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/candidateCreated" } } }
+    },
+    {
+      "if": { "properties": { "type": { "const": "candidate.status_changed" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/candidateStatusChanged" } } }
+    },
+    {
+      "if": { "properties": { "type": { "const": "prompt.recorded" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/promptRecorded" } } }
+    },
+    {
+      "if": { "properties": { "type": { "const": "review.recorded" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/reviewRecorded" } } }
+    },
+    {
+      "if": { "properties": { "type": { "const": "metrics.recorded" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/metricsRecorded" } } }
+    },
+    {
+      "if": { "properties": { "type": { "const": "learning.recorded" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/learningRecorded" } } }
+    }
+  ],
+  "$defs": {
+    "nonEmptyStrings": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "experimentStatus": {
+      "enum": ["prepared", "active", "paused", "completed", "abandoned"]
+    },
+    "candidateStatus": {
+      "enum": [
+        "idea",
+        "briefed",
+        "generating",
+        "review",
+        "shortlisted",
+        "approved",
+        "published",
+        "measuring",
+        "learned",
+        "rejected",
+        "archived"
+      ]
+    },
+    "experimentCreated": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "experimentId",
+        "name",
+        "channel",
+        "objective",
+        "hypothesis",
+        "initialStatus",
+        "authorization",
+        "successCriteria",
+        "constraints"
+      ],
+      "properties": {
+        "experimentId": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "channel": { "type": "string", "minLength": 1 },
+        "objective": { "type": "string", "minLength": 1 },
+        "hypothesis": { "type": "string", "minLength": 1 },
+        "initialStatus": { "$ref": "#/$defs/experimentStatus" },
+        "authorization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["generation", "publicPosting", "paidSpend"],
+          "properties": {
+            "generation": { "type": "boolean" },
+            "publicPosting": { "type": "boolean" },
+            "paidSpend": { "type": "boolean" }
+          }
+        },
+        "successCriteria": { "$ref": "#/$defs/nonEmptyStrings" },
+        "constraints": { "$ref": "#/$defs/nonEmptyStrings" },
+        "tags": { "$ref": "#/$defs/nonEmptyStrings" }
+      }
+    },
+    "experimentStatusChanged": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["experimentId", "from", "to", "rationale"],
+      "properties": {
+        "experimentId": { "type": "string", "minLength": 1 },
+        "from": { "$ref": "#/$defs/experimentStatus" },
+        "to": { "$ref": "#/$defs/experimentStatus" },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "experimentAuthorizationChanged": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["experimentId", "from", "to", "rationale"],
+      "properties": {
+        "experimentId": { "type": "string", "minLength": 1 },
+        "from": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["generation", "publicPosting", "paidSpend"],
+          "properties": {
+            "generation": { "type": "boolean" },
+            "publicPosting": { "type": "boolean" },
+            "paidSpend": { "type": "boolean" }
+          }
+        },
+        "to": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["generation", "publicPosting", "paidSpend"],
+          "properties": {
+            "generation": { "type": "boolean" },
+            "publicPosting": { "type": "boolean" },
+            "paidSpend": { "type": "boolean" }
+          }
+        },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "candidateCreated": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "experimentId",
+        "candidateId",
+        "title",
+        "creativeFamily",
+        "audience",
+        "hook",
+        "initialStatus",
+        "references"
+      ],
+      "properties": {
+        "experimentId": { "type": "string", "minLength": 1 },
+        "candidateId": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "creativeFamily": { "type": "string", "minLength": 1 },
+        "audience": { "type": "string", "minLength": 1 },
+        "hook": { "type": "string", "minLength": 1 },
+        "initialStatus": { "$ref": "#/$defs/candidateStatus" },
+        "product": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "sourceUrl": { "type": "string", "minLength": 1 },
+            "destinationUrl": { "type": "string", "minLength": 1 }
+          }
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source", "lesson"],
+            "properties": {
+              "source": { "type": "string", "minLength": 1 },
+              "lesson": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "notes": { "$ref": "#/$defs/nonEmptyStrings" }
+      }
+    },
+    "candidateStatusChanged": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["experimentId", "candidateId", "from", "to", "rationale"],
+      "properties": {
+        "experimentId": { "type": "string", "minLength": 1 },
+        "candidateId": { "type": "string", "minLength": 1 },
+        "from": { "$ref": "#/$defs/candidateStatus" },
+        "to": { "$ref": "#/$defs/candidateStatus" },
+        "rationale": { "type": "string", "minLength": 1 },
+        "evidenceUrl": { "type": "string", "minLength": 1 }
+      }
+    },
+    "promptRecorded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "experimentId",
+        "candidateId",
+        "attemptId",
+        "parentAttemptId",
+        "tool",
+        "prompt",
+        "changesFromParent",
+        "referencePaths",
+        "artifactPaths",
+        "result"
+      ],
+      "properties": {
+        "experimentId": { "type": "string", "minLength": 1 },
+        "candidateId": { "type": "string", "minLength": 1 },
+        "attemptId": { "type": "string", "minLength": 1 },
+        "parentAttemptId": { "type": ["string", "null"] },
+        "tool": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "prompt": { "type": "string", "minLength": 1 },
+        "negativePrompt": { "type": "string" },
+        "changesFromParent": { "type": "string" },
+        "referencePaths": { "$ref": "#/$defs/nonEmptyStrings" },
+        "artifactPaths": { "$ref": "#/$defs/nonEmptyStrings" },
+        "settings": { "type": "object" },
+        "result": { "enum": ["generated", "failed", "discarded"] },
+        "notes": { "$ref": "#/$defs/nonEmptyStrings" }
+      }
+    },
+    "reviewRecorded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "experimentId",
+        "candidateId",
+        "attemptId",
+        "rubricVersion",
+        "reviewer",
+        "scores",
+        "gates",
+        "verdict",
+        "notes"
+      ],
+      "properties": {
+        "experimentId": { "type": "string", "minLength": 1 },
+        "candidateId": { "type": "string", "minLength": 1 },
+        "attemptId": { "type": "string", "minLength": 1 },
+        "rubricVersion": { "const": 1 },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "scores": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scrollStop",
+            "pinterestNative",
+            "aestheticQuality",
+            "conceptClarity",
+            "saveworthiness",
+            "brandRestraint",
+            "productFidelity",
+            "aiArtifactControl"
+          ],
+          "properties": {
+            "scrollStop": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "pinterestNative": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "aestheticQuality": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "conceptClarity": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "saveworthiness": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "brandRestraint": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "productFidelity": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "aiArtifactControl": { "type": "integer", "minimum": 1, "maximum": 5 }
+          }
+        },
+        "gates": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["singleIdea", "truthfulProduct", "noEmbeddedCta", "noAdTemplate"],
+          "properties": {
+            "singleIdea": { "type": "boolean" },
+            "truthfulProduct": { "type": "boolean" },
+            "noEmbeddedCta": { "type": "boolean" },
+            "noAdTemplate": { "type": "boolean" }
+          }
+        },
+        "verdict": { "enum": ["advance", "revise", "reject"] },
+        "notes": { "$ref": "#/$defs/nonEmptyStrings" }
+      }
+    },
+    "metricsRecorded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "experimentId",
+        "candidateId",
+        "checkpointAt",
+        "cohort",
+        "source",
+        "metrics",
+        "caveats"
+      ],
+      "properties": {
+        "experimentId": { "type": "string", "minLength": 1 },
+        "candidateId": { "type": "string", "minLength": 1 },
+        "checkpointAt": { "type": "string", "format": "date-time" },
+        "cohort": { "enum": ["public", "sandbox", "internal"] },
+        "source": { "type": "string", "minLength": 1 },
+        "metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "impressions",
+            "saves",
+            "pinClicks",
+            "outboundClicks",
+            "siteSessions",
+            "affiliateClicks",
+            "revenueCents"
+          ],
+          "properties": {
+            "impressions": { "type": ["integer", "null"], "minimum": 0 },
+            "saves": { "type": ["integer", "null"], "minimum": 0 },
+            "pinClicks": { "type": ["integer", "null"], "minimum": 0 },
+            "outboundClicks": { "type": ["integer", "null"], "minimum": 0 },
+            "siteSessions": { "type": ["integer", "null"], "minimum": 0 },
+            "affiliateClicks": { "type": ["integer", "null"], "minimum": 0 },
+            "revenueCents": { "type": ["integer", "null"], "minimum": 0 }
+          }
+        },
+        "caveats": { "$ref": "#/$defs/nonEmptyStrings" }
+      }
+    },
+    "learningRecorded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "experimentId",
+        "scope",
+        "statement",
+        "evidenceEventIds",
+        "decision",
+        "nextAction"
+      ],
+      "properties": {
+        "experimentId": { "type": "string", "minLength": 1 },
+        "candidateId": { "type": "string", "minLength": 1 },
+        "scope": { "enum": ["experiment", "candidate"] },
+        "statement": { "type": "string", "minLength": 1 },
+        "evidenceEventIds": { "$ref": "#/$defs/nonEmptyStrings" },
+        "decision": { "type": "string", "minLength": 1 },
+        "nextAction": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

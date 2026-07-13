@@ -5,6 +5,101 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-12 - Traffic sprint: creative learning loop and search credibility
+
+**Trigger**: Cameron authorized an autonomous traffic sprint, including
+parallel agents and concept generation, while deferring public Pinterest-pilot
+preparation, external posting/outreach, paid tools, spend, and API applications.
+
+**Live evidence**:
+- Vercel reported 24 visitors and 84 pageviews in the latest month; the database
+  showed 0 searches and 3 product clicks in the last 7 days.
+- Search Console remained stale at 44 submitted / 0 indexed. The homepage was
+  last crawled on July 8, before the apex 308 fix, and still showed Google's old
+  apex canonical. Live search now surfaces the homepage, however, plus a stale
+  legacy bundle result.
+- The search-visible homepage snapshot exposed coloring books, makeup bags,
+  bath products, and other weak inventory, making catalog credibility a blocker
+  for outreach.
+
+**Pinterest creative learning loop**:
+- Added an append-only, schema-validated creative event log with CLI commands
+  for validation, summary, next actions, and safe event recording.
+- Recorded 32 events across four v4 concepts and five generation attempts,
+  including prompt lineage, authorization, review gates, scores, failures, and
+  next actions. Public posting and paid spend are validator-enforced as false.
+- Generated four Pinterest-native editorial directions and a corrective goat
+  revision under `docs/ops/pinterest-creative-lab/v4-concepts/`. The eye-rug
+  interior led aesthetically at 4.63/5, but no candidate passed the truthful-
+  product gate; all remain internal concept studies.
+- The first goat output incorrectly rendered a life-size animal. It was retained
+  as a rejected attempt, then revised into a tabletop figurine, proving that the
+  loop can convert a concrete failure into a targeted next attempt.
+
+**Search and catalog credibility**:
+- Removed fabricated per-request sitemap modification dates; built sitemap
+  output now contains no `<lastmod>` until durable page timestamps exist.
+- Tightened homepage eligibility to require original merchant-title evidence,
+  ignore generated tags/copy as brand-fit proof, exclude recurring commodity
+  formats, and reduce automated source-query ranking weight.
+- A live-catalog simulation leaves 899 of 3,275 products eligible and zero
+  eligible titles matching the reported coloring/makeup/bath-bomb/trivia/
+  notebook problem categories. Updated the analytics SQL gate to match.
+
+**Link-earning strategy**:
+- Added `docs/ops/ACQUISITION.md`. The first recommended link-worthy asset is a
+  recurring Weird Gift Index, paired with a random-ridiculous-gift utility.
+- Targeted editorial/newsletter outreach, native X content, publisher feeds,
+  reactive PR, and rule-compliant community participation follow only after an
+  asset and the search-visible site pass a credibility gate.
+- Encoded a reusable goal workflow that prepares assets, prospect research, and
+  tracked drafts autonomously, then stops before posting, sending, or spending.
+
+**Review and QA**:
+- `npm run test:ranking`: 8/8 passed.
+- `npm run test:creative`: 5/5 passed.
+- Creative log validation/summary/next-action commands passed with 32 events.
+- `npm run lint` and `npm run build` passed. Built sitemap inspection confirmed
+  zero emitted `<lastmod>` values.
+
+**Skipped**: no public pilot was prepared; no Pin, tweet, community post, email,
+or outreach message was sent; no account/API application was made; no paid tool
+or spend was authorized.
+
+**Next**: use actual product images and dimensions for reference-guided
+revisions of the eye-rug and alligator concepts. In parallel, make guide product
+sets more distinctive, then build the first Weird Gift Index or random-gift
+utility before beginning prospect outreach.
+
+---
+
+## 2026-07-12 - Pinterest Creative Lab plan prepared; experiment not started
+
+**Trigger**: Cameron asked Codex to preserve the creative research in a durable
+marketing document, add it to the marketing roadmap as the next experiment, and
+get the pipeline ready without proceeding.
+
+**Prepared**:
+- Added `docs/ops/MARKETING.md` as the running strategy, creative standard,
+  experiment backlog, candidate schema, and learning log.
+- Queued the Pinterest Creative Lab in `docs/ops/ROADMAP.md`: research native
+  references, brief distinct concepts, generate editorial scenes, apply a taste
+  and product-fidelity gate, prepare tracked candidates, then stop for approval.
+- Added explicit runbook boundaries: no concept generation, subscription,
+  publication, or spend is authorized by this preparation.
+
+**Record correction**:
+- Cameron confirmed v3 was posted only through the Pinterest Sandbox API. It is
+  a workflow/qualitative artifact, not a public traffic experiment.
+- Superseded the prior public-v3 attribution language in the active Pinterest
+  record. Historical recovered claims below are not authoritative for v3
+  distribution.
+
+**Status**: ready for a future explicitly authorized concept sprint; no creative
+was generated and nothing was posted or purchased in this run.
+
+---
+
 ## 2026-07-12 - Daily ops: guide crawl hub
 
 **Health**: production homepage returned 200 with title
@@ -134,7 +229,6 @@ Console shows the sitemap/indexation/canonical issue improving.
 recrawled. If the sitemap still reports zero indexed URLs on the next weekly
 run, prioritize deeper canonical/internal-link/crawl repair over new pages or
 more creative production.
-
 ## 2026-07-10 - Growth remediation: relevance, canonical, and channel evidence
 
 **Trigger**: Cameron approved the project-review roadmap and asked Codex to turn
@@ -142,8 +236,8 @@ it into Beads work and execute it, while checking whether Pinterest and
 Amazon/Awin data were actually available.
 
 **Operator-state repair**:
-- Preserved the July 7 Pinterest v3 generator, Sandbox/public result records,
-  public Pin URLs, and approved journal context that had existed only in the
+- Preserved the July 7 Pinterest v3 generator and Sandbox result records,
+  plus journal context that had existed only in the
   dirty local `main` checkout.
 - Reconciled that work with PRs #42-#44 on a clean remediation branch so future
   worktree runs can see the full experiment instead of rebuilding it.
@@ -169,11 +263,12 @@ Amazon/Awin data were actually available.
   indexation or canonical selection is unhealthy.
 
 **Pinterest evidence**:
-- Queried all ten existing public Pins with `pin_metrics=true`; no Pins were
-  created or changed.
+- Queried the recorded Pin IDs with `pin_metrics=true`; no Pins were created or
+  changed. Cameron later clarified that only v2 was a public cohort.
 - v2 totals: 26 impressions, 0 Pin clicks, 0 outbound clicks, 0 saves.
-- v3 totals: 0 impressions/clicks/saves. Database and GA4 also show no Pinterest
-  product-click conversion.
+- v3 was Sandbox-only, so zero metrics are expected and are not a creative or
+  distribution result. Database and GA4 showed no Pinterest product-click
+  conversion.
 - Added `npm run pinterest:metrics` and set the next useful checkpoint at 14
   days or 250 aggregate impressions.
 
@@ -196,44 +291,12 @@ Pinterest baseline without premature creative churn.
 > normal reverse-chronological automation history resumes after this recovered
 > block.
 
-## 2026-07-07 - Pinterest v3 creative posted publicly through web flow
+## 2026-07-07 - Superseded v3 public-post record
 
-**Trigger**: Cameron approved posting the v3 Pinterest creative set publicly
-through the normal Pinterest channel while Standard API access is still pending.
-
-**Action**:
-- Posted the five v3 editorial/product-joke assets through Pinterest's web Pin
-  Builder.
-- Used the existing public boards rather than the `API Trial - ...` Sandbox
-  boards.
-- Used fresh public tracking links with
-  `utm_campaign=pinterest_manual_v3`.
-
-**Live public Pins**:
-- White Elephant Gifts That Make the Room Pay Attention:
-  https://www.pinterest.com/pin/1107815208383209635/
-- Funny Coworker Gifts for Meetings That Should Have Been Emails:
-  https://www.pinterest.com/pin/1107815208383209702/
-- Weird Kitchen Gadgets That Look Fake but Are Real:
-  https://www.pinterest.com/pin/1107815208383209737/
-- Novelty Desk Toys for Busy-Looking Nothing:
-  https://www.pinterest.com/pin/1107815208383209770/
-- Weird Home Decor Gifts With a Plot Twist:
-  https://www.pinterest.com/pin/1107815208383209802/
-
-**Verification**:
-- `node scripts/ops/pinterest-api.mjs boards` showed all five public starter
-  boards now have `pin_count: 2`, while the `API Trial - ...` boards remain
-  separate.
-- Direct production API `GET /v5/pins/{id}` read-back for all five public Pin
-  IDs returned the expected title, public board ID, `pinterest_manual_v3`
-  tracking link, and `image` media type.
-- Wrote the machine-readable result record to
-  `docs/ops/pinterest-assets/batch-1-v3/manual-post-results.json`.
-
-**Next**: leave both v2 and v3 public Pins live long enough to compare early
-Pinterest distribution. Use `pinterest_manual_v3` attribution when checking
-campaign clicks.
+Cameron corrected this record on 2026-07-12: v3 was posted only through the
+Pinterest Sandbox API. A prior local record described a public web posting and
+manual tracking cohort, but it is not authoritative and must not be used as
+evidence of public distribution, traffic, or conversion.
 
 ---
 
@@ -251,14 +314,8 @@ asked whether the goose icon should be uploaded.
 - Reloaded `https://developers.pinterest.com/apps/1588384/details/`; the goose
   icon persisted and the upload control changed from `Upload` to `Change`.
 
-**Publishing recommendation**:
-- The v3 API Sandbox Pins should be manually posted through the normal Pinterest
-  web flow if the goal is public distribution before Standard access. Trial
-  access is already active; the remaining wait is for Standard access so API
-  posts can become public instead of creator-only Sandbox entities.
-- Do not delete the existing v2 public Pins yet. Publish the v3 set as a second
-  creative test with fresh `pinterest_manual_v3` UTMs, then compare whether the
-  sharper visuals get impressions/clicks before pruning old creative.
+**Correction**: v3 remained Sandbox-only. Any future public creative pilot must
+use a newly approved concept set and distinct tracking, not the old v3 records.
 
 ---
 

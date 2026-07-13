@@ -7,16 +7,17 @@ export const revalidate = 3600;
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = getSiteUrl();
 
+  // Omit lastModified until each page has a durable content-updated timestamp.
+  // Using new Date() here makes every sitemap request claim that every page changed.
+
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
-      lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
       url: `${baseUrl}/gift-guides`,
-      lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.95,
     },
@@ -24,7 +25,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const guidePages: MetadataRoute.Sitemap = giftGuides.map((guide) => ({
     url: `${baseUrl}/gift-guides/${guide.slug}`,
-    lastModified: new Date(),
     changeFrequency: 'daily',
     priority: 0.9,
   }));
