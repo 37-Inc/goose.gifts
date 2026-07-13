@@ -14,10 +14,13 @@ export function Header() {
             className="h-12 w-12 transition-transform group-hover:scale-105"
             priority
           />
-          <span className="text-2xl font-black tracking-tight">goose.gifts</span>
+          <span className="hidden text-2xl font-black tracking-tight sm:inline">goose.gifts</span>
         </Link>
         <nav className="flex items-center gap-4 text-sm font-semibold text-zinc-600">
-          <Link href="/gift-guides" className="transition hover:text-red-700">
+          <Link href="/weird-gift-index" className="whitespace-nowrap transition hover:text-red-700">
+            Weird Gift Index
+          </Link>
+          <Link href="/gift-guides" className="whitespace-nowrap transition hover:text-red-700">
             Gift guides
           </Link>
         </nav>

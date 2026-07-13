@@ -13,6 +13,60 @@ export interface GiftGuideDefinition {
   keywords: string[];
 }
 
+// A guide's broad keywords are useful for recall, but they are not all equally
+// distinctive. These focus groups define the concrete evidence that should be
+// present in the merchant title before a product leads a guide. Every group
+// must match; terms within a group are alternatives. Keeping this separate
+// from generated catalog copy prevents optimistic enrichment from making the
+// same generic products lead dozens of pages.
+const giftGuideFocusKeywordGroups: Record<string, string[][]> = {
+  'white-elephant-gifts': [['white elephant']],
+  'funny-gifts-for-coworkers': [['coworker', 'coworkers']],
+  'funny-gifts-for-dads': [['dad', 'father', 'grandpa']],
+  'weird-kitchen-gadgets': [['kitchen gadget', 'kitchen tool', 'kitchen utensil', 'ramen']],
+  'novelty-desk-toys': [['desk toy', 'desktop toy', 'fidget']],
+  'secret-santa-gag-gifts': [['secret santa']],
+  'dirty-santa-gifts': [['dirty santa']],
+  'funny-gifts-for-dads-who-fish': [['fish', 'fishing', 'tackle']],
+  'cat-lover-gag-gifts': [['cat', 'cats', 'kitten', 'kitty']],
+  'dog-lover-gag-gifts': [['dog', 'dogs', 'puppy', 'canine']],
+  'prank-gifts-for-friends': [['prank', 'fake']],
+  'funny-birthday-gag-gifts': [['birthday']],
+  'funny-retirement-gifts': [['retirement', 'retired', 'retiree']],
+  'funny-gifts-for-bosses': [['boss', 'manager']],
+  'office-prank-gifts': [['office', 'coworker', 'workplace'], ['prank']],
+  'funny-coffee-mugs': [['coffee'], ['mug', 'cup', 'tumbler']],
+  'weird-bathroom-gifts': [['bathroom', 'toilet', 'restroom']],
+  'funny-poop-gifts': [['poop', 'fart', 'potty', 'shart', 'turd']],
+  'funny-housewarming-gifts': [['housewarming', 'new home']],
+  'funny-stocking-stuffers': [['stocking stuffer', 'stocking stuffers']],
+  'white-elephant-gifts-for-adults': [['white elephant'], ['adult', 'adults', 'men', 'women']],
+  'gifts-for-people-who-have-everything': [['have everything', 'has everything', 'hard to shop']],
+  'funny-gifts-for-men': [['men', 'man', 'husband', 'boyfriend']],
+  'funny-gifts-for-women': [['women', 'woman', 'wife', 'girlfriend']],
+  'sarcastic-gifts': [['sarcastic', 'snark', 'snarky']],
+  'funny-cooking-gifts': [['cooking', 'cook', 'chef']],
+  'weird-home-decor-gifts': [['home decor', 'house decor', 'room decor', 'wall decor']],
+  'optical-illusion-decor-gifts': [['optical illusion', 'illusion']],
+  'funny-gifts-for-teachers': [['teacher', 'school', 'classroom']],
+  'funny-gifts-for-nurses': [['nurse', 'nurses', 'nursing']],
+  'funny-book-lover-gifts': [['book lover', 'bookish', 'reader', 'reading']],
+  'funny-sports-fan-gifts': [['sports fan', 'game day', 'football fan', 'soccer fan', 'baseball fan', 'basketball fan']],
+  'funny-wine-gifts': [['wine']],
+  'funny-bath-gifts': [['bath', 'spa'], ['bath bomb', 'soap', 'self care', 'relaxation', 'shower']],
+  'adult-coloring-book-gifts': [['coloring book', 'colouring book']],
+  'funny-halloween-gifts': [['halloween', 'spooky', 'horror']],
+  'funny-christmas-gifts': [['christmas']],
+  'funny-valentines-gifts': [['valentine', 'valentines']],
+  'funny-gifts-for-moms': [['mom', 'mother', 'mama']],
+  'funny-gifts-for-gamers': [['gamer', 'gaming', 'video game', 'controller']],
+  'funny-golf-gifts': [['golf', 'golfer']],
+  'funny-gardening-gifts': [['garden', 'gardening', 'gardener', 'plant lover']],
+  'funny-hostess-gifts': [['hostess', 'host gift', 'host gifts', 'party host']],
+};
+
+const MIN_FOCUSED_GUIDE_PRODUCTS = 6;
+
 export const giftGuides: GiftGuideDefinition[] = [
   {
     slug: 'white-elephant-gifts',
@@ -405,33 +459,81 @@ export function getFeaturedGiftGuides(
     : featuredGuides.slice(0, limit);
 }
 
-function keywordMatchClause(keyword: string) {
-  const likeQuery = `%${keyword}%`;
+function keywordRegex(keyword: string): string {
+  const words = keyword.toLowerCase().match(/[a-z0-9]+/g) || [];
+
+  return `(^|[^[:alnum:]])${words.join('[^[:alnum:]]+')}([^[:alnum:]]|$)`;
+}
+
+function titleKeywordMatchClause(keyword: string) {
+  return sql`${products.title} ~* ${keywordRegex(keyword)}`;
+}
+
+function sourceQueryKeywordMatchClause(keyword: string) {
+  return sql`COALESCE(${products.sourceQuery}, '') ~* ${keywordRegex(keyword)}`;
+}
+
+function generatedKeywordMatchClause(keyword: string) {
+  const pattern = keywordRegex(keyword);
 
   return sql`(
-    ${products.title} ILIKE ${likeQuery}
-    OR ${products.punnyTitle} ILIKE ${likeQuery}
-    OR ${products.wittyDescription} ILIKE ${likeQuery}
-    OR ${products.sourceQuery} ILIKE ${likeQuery}
-    OR array_to_string(COALESCE(${products.humorTags}, ARRAY[]::text[]), ' ') ILIKE ${likeQuery}
+    COALESCE(${products.punnyTitle}, '') ~* ${pattern}
+    OR COALESCE(${products.wittyDescription}, '') ~* ${pattern}
+    OR array_to_string(COALESCE(${products.humorTags}, ARRAY[]::text[]), ' ') ~* ${pattern}
   )`;
 }
 
-function keywordMatchScoreSql(keywords: string[]) {
-  return sql.join(
-    keywords.map((keyword) => sql`CASE WHEN ${keywordMatchClause(keyword)} THEN 1 ELSE 0 END`),
-    sql` + `
-  );
+function keywordMatchClause(keyword: string) {
+  return sql`(
+    ${titleKeywordMatchClause(keyword)}
+    OR ${sourceQueryKeywordMatchClause(keyword)}
+    OR ${generatedKeywordMatchClause(keyword)}
+  )`;
 }
 
-export async function getGiftGuideProducts(
-  guide: GiftGuideDefinition,
-  limit: number = 36
-): Promise<Product[]> {
-  const keywordClauses = guide.keywords.map(keywordMatchClause);
-  const matchScore = keywordMatchScoreSql(guide.keywords);
+function titleKeywordGroupMatchClause(keywords: string[]) {
+  return sql`(${sql.join(keywords.map(titleKeywordMatchClause), sql` OR `)})`;
+}
 
-  const rows = await db
+function focusMatchClause(groups: string[][]) {
+  return sql`(${sql.join(groups.map(titleKeywordGroupMatchClause), sql` AND `)})`;
+}
+
+function guideMatchScoreSql(guide: GiftGuideDefinition, groups: string[][]) {
+  const titleScore = sql.join(
+    guide.keywords.map((keyword) => sql`CASE WHEN ${titleKeywordMatchClause(keyword)} THEN 4 ELSE 0 END`),
+    sql` + `
+  );
+  const sourceQueryScore = sql.join(
+    guide.keywords.map((keyword) => sql`CASE WHEN ${sourceQueryKeywordMatchClause(keyword)} THEN 2 ELSE 0 END`),
+    sql` + `
+  );
+  const generatedScore = sql.join(
+    guide.keywords.map((keyword) => sql`CASE WHEN ${generatedKeywordMatchClause(keyword)} THEN 1 ELSE 0 END`),
+    sql` + `
+  );
+  const focusScore = sql.join(
+    groups.map((group) => sql`CASE WHEN ${titleKeywordGroupMatchClause(group)} THEN 10 ELSE 0 END`),
+    sql` + `
+  );
+
+  return sql`(${titleScore}) + (${sourceQueryScore}) + (${generatedScore}) + (${focusScore})`;
+}
+
+async function selectGiftGuideRows(
+  guide: GiftGuideDefinition,
+  groups: string[][],
+  limit: number,
+  focusedOnly: boolean
+) {
+  const keywordClauses = guide.keywords.map(keywordMatchClause);
+  const focusClause = focusMatchClause(groups);
+  const matchScore = guideMatchScoreSql(guide, groups);
+  const relevanceClause = focusedOnly
+    ? focusClause
+    : sql`(${focusClause} OR ${sql.join(keywordClauses, sql` OR `)})`;
+
+  return db
     .select({
       id: products.id,
       title: products.title,
@@ -457,10 +559,22 @@ export async function getGiftGuideProducts(
       AND ${products.imageUrl} IS NOT NULL
       AND ${products.affiliateUrl} IS NOT NULL
       AND (${products.price} <= 0 OR ${products.price} <= 250)
-      AND (${sql.join(keywordClauses, sql` OR `)})
+      AND ${relevanceClause}
     `)
     .orderBy(sql`${matchScore} DESC, ${products.qualityScore} DESC NULLS LAST, ${products.clickCount} DESC, ${products.impressionCount} DESC`)
     .limit(limit);
+}
+
+export async function getGiftGuideProducts(
+  guide: GiftGuideDefinition,
+  limit: number = 36
+): Promise<Product[]> {
+  const focusGroups = giftGuideFocusKeywordGroups[guide.slug] || [guide.keywords.slice(0, 1)];
+  const focusedRows = await selectGiftGuideRows(guide, focusGroups, limit, true);
+  const minimumFocusedResults = Math.min(MIN_FOCUSED_GUIDE_PRODUCTS, limit);
+  const rows = focusedRows.length >= minimumFocusedResults
+    ? focusedRows
+    : await selectGiftGuideRows(guide, focusGroups, limit, false);
 
   return rows
     .map((row) => ({

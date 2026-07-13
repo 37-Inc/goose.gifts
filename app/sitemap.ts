@@ -21,6 +21,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily',
       priority: 0.95,
     },
+    {
+      url: `${baseUrl}/weird-gift-index`,
+      changeFrequency: 'weekly',
+      priority: 0.95,
+    },
   ];
 
   const guidePages: MetadataRoute.Sitemap = giftGuides.map((guide) => ({
