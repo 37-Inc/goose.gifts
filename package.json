@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "test:ranking": "node --experimental-strip-types --test tests/product-scoring.test.mjs",
+    "test:index": "node --experimental-strip-types --test tests/weird-gift-index.test.mjs",
     "analytics:snapshot": "node scripts/ops/analytics-snapshot.mjs",
     "analytics:ga4": "bash scripts/ops/ga4.sh",
     "pinterest:oauth": "node scripts/ops/pinterest-oauth.mjs",

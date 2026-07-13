@@ -17,6 +17,9 @@ or intriguing first impression followed by a funny double take.
   ad template that needs products inserted into it.
 - Match the native behavior and aesthetic of each channel.
 - Prefer a strong concept and a single visual idea over dense product grids.
+- Verify the exact source listing before product-bound concepting. Aesthetic
+  quality never overrides a false object type, scale, material, or product
+  promise.
 - Separate preparation, approval, publication, and measurement. Preparing an
   experiment never authorizes public posting, outreach, or paid spend.
 - Give public tests enough distribution to learn before declaring a creative
@@ -30,7 +33,9 @@ or intriguing first impression followed by a funny double take.
    experiment. Improve the editorial direction and product fidelity before
    preparing any public pilot.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
-   catalog-supported pages.
+   catalog-supported pages. The Weird Gift Index is the first original-data
+   acquisition asset and should be improved as a cited, editioned report rather
+   than expanded into thin adjacent pages.
 3. **On-site conversion**: improve product relevance and measure attributable
    outbound affiliate clicks.
 4. **Other owned/distribution channels**: retain as backlog until there is a
@@ -84,7 +89,8 @@ or superficial color swaps.
 1. Research Pinterest-native references and collect a small, tagged swipe file.
 2. Extract the hook, composition, aesthetic, and reason each reference earns a
    pause; do not copy executions or brand assets.
-3. Write several distinct concept briefs before selecting products or models.
+3. Write several distinct concept briefs, then verify the exact source listing,
+   image, object type, and believable scale before product-bound generation.
 4. Produce roughs across at least three genuinely different art directions.
 5. Apply a visual taste review and product-fidelity check; discard aggressively.
 6. Refine only the strongest concepts into 1000x1500 production candidates.
@@ -127,6 +133,23 @@ For every concept promoted beyond rough exploration, record:
 - performance checkpoints and conclusion.
 
 ## Experiment log
+
+### 2026-07-12 — Reference-guided product-fidelity cycle
+
+- **Status**: two candidates shortlisted internally; public distribution still
+  paused.
+- **Correction**: the highest-scoring first-pass “eye rug” was based on a false
+  catalog assumption. ASIN B0D57DDDM1 is a small ceramic eye sculpture, not a
+  rug. The rug execution is explicitly rejected despite its aesthetic score.
+- **Generated**: a source-guided alligator oven-mitt kitchen still life and a
+  source-guided ceramic-eye interior. Both retain the clean, beautiful-first,
+  strange-second direction while matching the real product form and scale.
+- **Learning**: source-ASIN verification and a local product reference are now
+  hard prerequisites. The creative log contains the exact prompts, reference
+  paths, artifact paths, reviews, rejection, and causal learning events.
+- **Next action**: owner taste review of the two shortlisted artifacts. Do not
+  publish, prepare a Pinterest pilot, buy tools, or spend until separately
+  authorized.
 
 ### 2026-07-12 — Pinterest Creative Lab first concept cycle
 

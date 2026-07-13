@@ -118,10 +118,19 @@ function review(verdict = "advance", score = 4, gate = true) {
 test("repository event log is valid and exposes review-driven next actions", async () => {
   const state = validateAndFold(await loadEvents());
   const summary = serializeState(state);
+  const actions = nextActions(state);
   assert.equal(summary.experiments[0].experimentId, "exp-pinterest-native-v4");
   assert.equal(summary.experiments[0].authorization.publicPosting, false);
-  assert.equal(summary.experiments[0].candidates.length, 4);
-  assert.ok(nextActions(state).every((item) => item.action.includes("requires revision")));
+  assert.equal(summary.experiments[0].candidates.length, 5);
+  assert.deepEqual(
+    summary.experiments[0].candidates
+      .filter((candidate) => candidate.status === "shortlisted")
+      .map((candidate) => candidate.candidateId)
+      .sort(),
+    ["cand-alligator-editorial", "cand-ceramic-eye-interior"],
+  );
+  assert.equal(actions.filter((item) => item.action.includes("requires revision")).length, 2);
+  assert.equal(actions.filter((item) => item.action.includes("owner selection")).length, 2);
 });
 
 test("folds prompt lineage and passing review into candidate state", () => {

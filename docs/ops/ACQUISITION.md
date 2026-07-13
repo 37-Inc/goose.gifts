@@ -45,6 +45,13 @@ Do not bulk-republish retailer images, imply that stale prices are current, or
 present generated classifications as objective facts without explaining the
 method.
 
+**2026-07-12 implementation:** `/weird-gift-index` analyzes 3,275 active
+catalog listings using published merchant-title dictionaries. It includes a
+named byline, limitations, aggregate JSON, Article/Dataset/FAQ schema, a social
+image, correction contact, and explicit affiliate disclosure. This is the first
+asset to carry into the acquisition queue; new adjacent Index pages should wait
+for actual citation, referral, and reader evidence.
+
 ### 2. Build a random ridiculous gift utility
 
 Create a polished route that shows one excellent product at a time, supports a
@@ -136,6 +143,11 @@ Suggested durable ledgers:
 - outbound draft queue;
 - earned links and referral traffic;
 - experiment decisions in `docs/ops/MARKETING.md`.
+
+The operational queue, current prospect research, primary-source policy notes,
+and approval-gated draft examples live in `docs/ops/acquisition/README.md`.
+Every queue item is internal-only until the exact draft and route receive owner
+approval; research or drafting never authorizes an external action.
 
 Score prospects using topical fit, real audience, editorial quality, pitch
 specificity, likely referral value, and effort. Never score by domain authority
