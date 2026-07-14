@@ -90,6 +90,19 @@ report.
   still has Google choosing the apex canonical from a 2026-07-08 crawl, and
   the representative white-elephant guide is still unknown to Google.
 
+## Shipped 2026-07-14
+
+- [x] Added `/random-gift`, a crawlable lead-generation utility with a stable
+  canonical route, Product/WebPage schema, header/footer/sitemap links, and
+  product click tracking under the `random_gift` source. This gives future
+  social/newsletter/community drafts a specific utility to share without
+  posting externally today.
+- [x] Rechecked the indexation gate before publishing more guide pages:
+  Search Console still reports 44 submitted sitemap URLs and 0 indexed, the
+  homepage still has Google choosing the apex canonical from a 2026-07-08
+  crawl, and the representative white-elephant guide is still unknown to
+  Google.
+
 ## Ongoing Daily Ops
 
 - [ ] Use on-site search logs to propose new guide pages, but only publish a

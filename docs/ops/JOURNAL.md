@@ -5,6 +5,76 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-14 - Daily ops: random gift utility
+
+**Health**: production homepage returned 200 with title
+`Funny Gag Gifts, White Elephant Ideas, and Weird Presents | goose.gifts`,
+`/sitemap.xml` returned 200, `/search` returned a 308 redirect to `/`, and
+`/search?q=dad%20with%20no%20spare%20time` returned a 308 redirect to the
+homepage catalog query. `/?q=dad%20with%20no%20spare%20time` returned 200 with
+`Check price`, Product, and ItemList content present.
+
+**Metrics snapshot**: Vercel Web Analytics reported 30 visitors and 94
+pageviews for 2026-06-14 through 2026-07-14 UTC. Last nonzero day was
+2026-07-14 with 4 visitors / 8 pageviews. Top paths remain `/`, guide pages,
+and `/search`; top referrers are mostly direct/unknown, with one visitor each
+from `finday.com`, `findicons.com`, `querycat.com`, `search.infospace.com`,
+and `zhongsou.com`. Database totals before today's code change: 3,275 active
+products, 19,546 product impressions, 96 product click events, 296 lifetime
+searches, 6 searches and 3 product clicks in the last 7 days, and 2
+campaign-attributed product clicks from `chatgpt.com`. GA4 showed 22 active
+users / 33 sessions, 75 page views, 26 search events from 4 users, and 3
+outbound-click conversion events from 3 users. Search Console analytics for
+2026-07-06 through 2026-07-13 returned no query rows.
+
+**Catalog work**: ran
+`npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+Result: 76 candidates, 76 active/enriched/embedded candidates, 5 inserted, and
+71 updated.
+
+**Indexation and distribution checks**: Search Console still reports the
+submitted sitemap at 44 URLs / 0 indexed, with no sitemap errors or warnings.
+Homepage URL inspection still shows `Duplicate, Google chose different
+canonical than user`; Google's last crawl was 2026-07-08, before the apex 308
+redirect repair, and Google still chose `https://goose.gifts/` over the user
+canonical `https://www.goose.gifts/`. The representative
+`/gift-guides/white-elephant-gifts` URL remains unknown to Google. Pinterest
+metrics remain below the public-test checkpoint: v2 has 26 impressions and
+0 clicks/saves; v3 is still 0 and remains Sandbox-only/non-public evidence.
+
+**Growth lever chosen**: lead-generation and shareable acquisition utility.
+Shipped `/random-gift`, a crawlable random ridiculous gift generator that shows
+one homepage-eligible product at a time, supports a stable `?gift=` share URL,
+offers another-spin discovery, links to six alternates, adds Product/WebPage
+schema, and records featured and alternate product interactions with the
+`random_gift` click source. Linked it from the header, footer, and sitemap.
+
+**Skipped alternatives**: did not publish another guide batch because the
+indexation gate remains unhealthy; did not start public Pinterest/social
+posting because outbound posting remains owner-approval-gated; did not expand
+the Weird Gift Index into adjacent pages because it needs referral/citation
+evidence first. The selected work was the highest-leverage reversible move
+because it creates a specific destination for future social, newsletter,
+community, and outreach drafts without requiring external action today.
+
+**Review and QA**: self-reviewed the diff for catalog relevance, randomization
+stability, duplicate product exposure, outbound click attribution, schema
+truthfulness, internal links, and mobile text fit. Verified `npm run lint`,
+`npm run build`, `git diff --check`, local `/random-gift` 200 response,
+canonical, JSON-LD, sitemap entry, stable share link, and desktop/mobile
+Playwright screenshots. The only local browser console error was the expected
+Vercel Analytics localhost 404 for `/_vercel/insights/script.js`.
+
+**SEO/growth work shipped**: `/random-gift` gives goose.gifts a shareable,
+tracked, crawlable acquisition asset backed by the stricter homepage relevance
+gate. Bulk SEO page publishing remains deferred until Search Console shows
+the sitemap/indexation/canonical issue improving.
+
+**Next**: use `/random-gift` as the first owned-channel/community draft target
+once Cameron approves posting. On the next daily run, recheck whether Google
+has recrawled the apex redirect and whether the new utility receives direct,
+referral, or `random_gift` click activity.
+
 ## 2026-07-12 - Traffic sprint: creative learning loop and search credibility
 
 **Trigger**: Cameron authorized an autonomous traffic sprint, including
