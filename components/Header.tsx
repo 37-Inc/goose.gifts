@@ -17,6 +17,9 @@ export function Header() {
           <span className="hidden text-2xl font-black tracking-tight sm:inline">goose.gifts</span>
         </Link>
         <nav className="flex items-center gap-4 text-sm font-semibold text-zinc-600">
+          <Link href="/random-gift" className="whitespace-nowrap transition hover:text-red-700">
+            Random gift
+          </Link>
           <Link href="/weird-gift-index" className="whitespace-nowrap transition hover:text-red-700">
             Weird Gift Index
           </Link>

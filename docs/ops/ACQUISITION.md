@@ -63,6 +63,12 @@ This becomes a useful destination for social posts, newsletters, community
 answers, embeds, and the Weird Gift Index. Any embedded attribution link should
 be unobtrusive and `nofollow`, not keyword-rich distributed link spam.
 
+**2026-07-14 implementation:** `/random-gift` now shows one homepage-eligible
+catalog product at a time, gives each pick a stable `?gift=` share URL, exposes
+six alternate spins, uses the existing outbound click/impression tracker under
+the `random_gift` source, and is linked from the header, footer, and sitemap.
+Public promotion remains owner-approval-gated.
+
 ### 3. Targeted editorial and newsletter outreach
 
 After an asset passes the credibility gate, build a small prospect set across:
