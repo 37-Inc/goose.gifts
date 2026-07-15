@@ -1,15 +1,20 @@
 # Affiliate Data Availability
 
-Last audited: 2026-07-10
+Last audited: 2026-07-15
 
 ## Current production path
 
-- All 3,269 catalog products are Amazon products.
-- Amazon PA-API credentials and the Associate tag are configured and daily
-  discovery succeeds.
-- The live PA-API path returns titles, images, and tagged links, but offer price
-  is frequently absent. On the audit date, 3,252 active products had unknown
-  prices and a fresh dry-run candidate also returned no price.
+- All 3,280 pre-run catalog products were Amazon products.
+- Amazon deprecated the configured PA-API endpoint on 2026-07-15. Both
+  `GetItems` and `SearchItems` now return 403 with an instruction to migrate to
+  Creators API.
+- Daily discovery now degrades to Google CSE metadata, preserves canonical
+  Associate-tagged Amazon links, and skips candidates without usable images.
+  PA-API revalidation stops without deactivating products while migration is
+  pending. Price and remote-product freshness coverage will remain weaker.
+- Creators API requires an Associates Central application and new credentials.
+  Those account changes are owner-only; once supplied, code migration can be
+  completed and verified against the new API.
 - PA-API is a retail product-advertising API. It does not expose the Associates
   earnings, orders, shipped revenue, or commission reports needed for EPC
   optimization.
