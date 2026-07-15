@@ -26,6 +26,25 @@ interface CatalogFeedOptions {
   excludeIds?: string[];
 }
 
+export interface CatalogFeedTiming {
+  loadMs: number;
+  rankMs: number;
+  dedupeMs: number;
+  totalMs: number;
+  candidateCount: number;
+  suppressionLimit: number;
+}
+
+interface CatalogFeedResult {
+  products: Product[];
+  hasMore: boolean;
+  timing: CatalogFeedTiming;
+}
+
+function roundedMilliseconds(startedAt: number): number {
+  return Math.round((performance.now() - startedAt) * 10) / 10;
+}
+
 function seededFraction(value: string): number {
   let hash = 2166136261;
 
@@ -124,10 +143,22 @@ export async function getCatalogFeedProducts({
   seed,
   limit = 24,
   excludeIds = [],
-}: CatalogFeedOptions): Promise<{ products: Product[]; hasMore: boolean }> {
+}: CatalogFeedOptions): Promise<CatalogFeedResult> {
+  const totalStartedAt = performance.now();
+  let loadMs = 0;
+  let rankMs = 0;
+  let dedupeMs = 0;
+  let candidateCount = 0;
+  let suppressionLimit = 0;
+
   try {
     const excluded = new Set(excludeIds);
+    const loadStartedAt = performance.now();
     const eligibleProducts = await getHomepageEligibleProducts();
+    loadMs = roundedMilliseconds(loadStartedAt);
+    candidateCount = eligibleProducts.length;
+
+    const rankStartedAt = performance.now();
     const ranked = eligibleProducts
       .map((product) => {
         const impressions = Math.max(product.impressionCount, 1);
@@ -142,16 +173,56 @@ export async function getCatalogFeedProducts({
         };
       })
       .sort((left, right) => right.score - left.score || left.product.id.localeCompare(right.product.id));
-    const distinctRanked = suppressNearDuplicateProducts(ranked)
+    rankMs = roundedMilliseconds(rankStartedAt);
+
+    // The old implementation deduplicated the entire candidate pool even when
+    // a request only needed 24-36 products. Near-duplicate matching is
+    // intentionally conservative and pairwise, so that turned a small response
+    // into hundreds of thousands of title comparisons. We only need enough
+    // globally distinct results to cover prior pages, the requested page, and
+    // one look-ahead result for hasMore.
+    suppressionLimit = Math.min(ranked.length, excluded.size + limit + 1);
+    const dedupeStartedAt = performance.now();
+    const distinctRanked = suppressNearDuplicateProducts(ranked, suppressionLimit)
       .filter(({ product }) => !excluded.has(product.id));
+    dedupeMs = roundedMilliseconds(dedupeStartedAt);
+
+    const timing = {
+      loadMs,
+      rankMs,
+      dedupeMs,
+      totalMs: roundedMilliseconds(totalStartedAt),
+      candidateCount,
+      suppressionLimit,
+    };
+
+    if (timing.totalMs >= 750) {
+      console.warn('[catalog-feed-slow]', JSON.stringify({
+        ...timing,
+        requestedLimit: limit,
+        excludedCount: excluded.size,
+      }));
+    }
 
     return {
       products: distinctRanked.slice(0, limit).map(({ product }) => product),
       hasMore: distinctRanked.length > limit,
+      timing,
     };
   } catch (error) {
     console.error('Error getting catalog feed products:', error);
-    return { products: [], hasMore: false };
+    return {
+      products: [],
+      hasMore: false,
+      timing: {
+        loadMs,
+        rankMs,
+        dedupeMs,
+        totalMs: roundedMilliseconds(totalStartedAt),
+        candidateCount,
+        suppressionLimit,
+      },
+    };
   }
 }
 

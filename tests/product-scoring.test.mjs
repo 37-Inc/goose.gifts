@@ -161,4 +161,38 @@ test('duplicate suppression keeps the highest-ranked representative and fills th
     suppressNearDuplicateProducts(ranked, 3).map(({ id }) => id),
     ['belly-1', 'crab', 'goat']
   );
+
+  assert.deepEqual(
+    suppressNearDuplicateProducts(ranked, 2).map(({ id }) => id),
+    ['belly-1', 'crab']
+  );
+});
+
+test('indexed duplicate suppression matches the conservative pairwise reference', () => {
+  const ranked = [
+    product({ id: 'belly-1', title: 'Funny Belly Fanny Pack Hairy Dad Body' }),
+    product({ id: 'belly-2', title: 'Hairy Dad Body Belly Fanny Pack Novelty Gift - Black' }),
+    product({ id: 'crab-rest', title: 'Red Crab Silicone Spoon Rest for Kitchen Counter' }),
+    product({ id: 'crab-holder', title: 'Red Crab Pen Holder for Office Desk' }),
+    product({ id: 'alarm-1', title: 'Personal Alarm Keychain with LED Light and Safety Siren, Pink' }),
+    product({ id: 'alarm-2', title: 'Pink Safety Siren Personal Alarm Keychain with LED Flashing Light for Women' }),
+    product({ id: 'goat', title: 'The Screaming Goat Desk Toy' }),
+    product({ id: 'mug', title: 'Funny Cat Mug' }),
+  ];
+  const referenceSuppress = (limit) => {
+    const selected = [];
+    for (const candidate of ranked) {
+      if (selected.some((item) => areNearDuplicateTitles(item.title, candidate.title))) continue;
+      selected.push(candidate);
+      if (selected.length >= limit) break;
+    }
+    return selected.map(({ id }) => id);
+  };
+
+  for (const limit of [2, 4, ranked.length]) {
+    assert.deepEqual(
+      suppressNearDuplicateProducts(ranked, limit).map(({ id }) => id),
+      referenceSuppress(limit)
+    );
+  }
 });
