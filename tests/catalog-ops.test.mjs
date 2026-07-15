@@ -5,6 +5,7 @@ import {
   amazonAffiliateUrl,
   deduplicateAgainstCatalog,
   deduplicateCandidates,
+  isAmazonPaapiDeprecatedError,
   parseArgs,
   revalidatedProduct,
   selectRotatingThemes,
@@ -19,6 +20,14 @@ test('daily theme selection rotates deterministically across the full pool', () 
 
   assert.deepEqual(first, sameDay);
   assert.equal(new Set([...first, ...nextDay]).size, 12);
+});
+
+test('Amazon PA-API deprecation is distinguished from transient failures', () => {
+  assert.equal(isAmazonPaapiDeprecatedError(new Error(
+    'Amazon GetItems failed (403): Product Advertising API is deprecated. Please migrate to Creators API'
+  )), true);
+  assert.equal(isAmazonPaapiDeprecatedError(new Error('Amazon GetItems failed (403): Access denied')), false);
+  assert.equal(isAmazonPaapiDeprecatedError(new Error('Amazon GetItems failed (429): throttled')), false);
 });
 
 test('near-identical discovery titles are filtered while distinct products remain', () => {

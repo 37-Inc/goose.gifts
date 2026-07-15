@@ -123,7 +123,10 @@ Boundaries (always in force):
    `npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
    The command uses `@vercel/postgres` over HTTPS, enriches product copy/tags
    and embeddings, upserts discovered products, and backfills a bounded set of
-   existing active products missing catalog fields. Its default theme pool
+   existing active products missing catalog fields. If legacy Amazon PA-API
+   returns its deprecation error, discovery falls back to Google CSE metadata;
+   do not treat that fallback as remote price or availability verification.
+   Its default theme pool
    rotates deterministically by UTC date, and exact/near-identical discoveries
    are collapsed before enrichment. Known prices still gate the
    configured min/max range; unknown-price products should link through to

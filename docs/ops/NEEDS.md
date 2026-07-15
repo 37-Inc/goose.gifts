@@ -13,7 +13,17 @@ credentials.
 
 ## P1 — needed within the first weeks
 
-### 1. Owned growth channel approval
+### 1. Amazon Creators API application and credentials
+
+Amazon deprecated the PA-API endpoint on 2026-07-15. Daily catalog discovery
+continues through a bounded Google CSE fallback, but Amazon enrichment,
+price/freshness checks, and weekly revalidation require migration.
+
+Needed from Cameron: in Associates Central, create a Creators API application
+and credential, then add the resulting values to the goose.gifts Vercel
+production environment. Do not send credentials in GitHub issues.
+
+### 2. Owned growth channel approval
 
 To generate leads outside search, I need explicit approval before posting from
 outward-facing accounts. Best remaining channels:
@@ -34,7 +44,7 @@ any paid/video-generation tooling before spend.
 
 ## P2 — high value, not urgent
 
-### 2. Funnel and admin analytics rebuild
+### 3. Funnel and admin analytics rebuild
 
 Vercel Web Analytics, Google Search Console, GA4 Data API, and the app database
 are now readable by ops scripts. The remaining work is product-side
@@ -42,7 +52,7 @@ instrumentation and admin reporting: guide-page product impressions/clicks,
 source/session stitching, zero-result and thin-result search reporting, and an
 admin dashboard shaped around catalog-first guide growth.
 
-### 3. Direct email/Slack channel (optional)
+### 4. Direct email/Slack channel (optional)
 
 Weekly check-ins arrive as GitHub issues, which email you automatically. If
 you'd rather get real email/Slack from me, connect a connector at

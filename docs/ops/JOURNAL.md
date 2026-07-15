@@ -5,6 +5,60 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-15 - Daily ops: catalog discovery survives PA-API deprecation
+
+**Health**: production homepage and sitemap returned 200; the sitemap exposes
+47 URLs. `/search` and `/search?q=weird` returned permanent 308 redirects to
+the homepage catalog surface, and the semantic dad query returned 200 with
+ItemList/Product content.
+
+**Metrics snapshot**: Vercel reported 35 visitors and 108 pageviews for
+2026-06-15 through 2026-07-15, including 3 visitors / 11 pageviews today.
+Database totals before catalog work were 3,280 active products, 20,323 product
+impressions, 96 click events, and 303 lifetime searches. The last 7 days had
+13 searches and 3 product clicks; top fresh queries included `toilet`,
+`coworker who loves cats`, and `screaming goat`, with no zero-result searches.
+GA4 remained mostly direct and showed one Weird Gift Index landing session.
+Pinterest v2 remains at 26 impressions and zero clicks/saves; v3 remains
+Sandbox-only with zero public evidence.
+
+**Indexation**: Search Console reported 47 submitted sitemap URLs and 0
+indexed. The homepage inspection is still based on the 2026-07-08 crawl and
+still shows Google choosing the apex canonical. The white-elephant guide is
+discovered but not indexed. Bulk guide publishing remains gated.
+
+**Incident and shipped growth work**: the mandated catalog prefetch initially
+failed because Amazon now returns 403 for both PA-API operations with an
+explicit Creators API migration notice. Added a narrow Google CSE metadata
+fallback that keeps valid ASINs, images, observed prices when present, and
+canonical Associate-tagged links. SearchItems deprecation and empty Google
+results now degrade safely, and weekly revalidation stops without deactivating
+products when PA-API is deprecated. The completed bounded run processed 35
+active/enriched/embedded candidates, inserting 34 and updating 1.
+
+**Growth lever chosen**: catalog continuity and conversion-quality inputs.
+Skipped another SEO page because indexation remains unhealthy, skipped new
+creative because Pinterest v2 is still below its checkpoint, and skipped
+external distribution because posting remains approval-gated. Restoring the
+daily discovery loop was the highest-leverage reversible move because the
+catalog feeds every search, guide, share asset, and outbound click path.
+
+**Review and QA**: reviewed the fallback for malformed ASINs, missing images,
+price parsing, affiliate attribution, false classification of generic 403s,
+and unsafe revalidation. Added targeted deprecation classification coverage.
+`npm run test:catalog-ops`, lint, build, and production smoke are required
+before merge. Creators API application/credentials are now an explicit owner
+need; the fallback is continuity, not a substitute for remote verification.
+
+**SEO/growth work shipped**: catalog acquisition remains measurable and
+operational despite Amazon's API cutover; 34 net-new catalog products shipped.
+New guide publishing was deferred because Search Console still reports zero
+indexed sitemap URLs.
+
+**Next**: obtain owner-created Creators API credentials, implement the official
+API adapter, then restore price/freshness enrichment and revalidation. Continue
+watching the post-redirect homepage recrawl and indexation gate.
+
 ## 2026-07-14 - Daily ops: random gift utility
 
 **Health**: production homepage returned 200 with title

@@ -551,6 +551,13 @@ function isAmazonThrottleError(error) {
   );
 }
 
+function isAmazonPaapiDeprecatedError(error) {
+  return (
+    error instanceof Error &&
+    /Amazon (SearchItems|GetItems) failed \(403\).*Product Advertising API is deprecated/i.test(error.message)
+  );
+}
+
 function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -602,18 +609,49 @@ async function searchAmazonCandidates(theme, options) {
       const asin = extractAsin(item.link || '');
       if (!asin) return null;
 
+      const metatag = item.pagemap?.metatags?.[0] ?? {};
+      const rawImageUrl = metatag['og:image'] || item.pagemap?.cse_image?.[0]?.src || '';
+      const snippetPrice = String(item.snippet || '').match(/\$(\d+(?:\.\d{2})?)/);
+
       return {
         asin,
         fallbackTitle: cleanTitle(item.title || ''),
+        fallbackImageUrl: cleanAmazonImageUrl(rawImageUrl),
+        fallbackPrice: Number.parseFloat(metatag['og:price:amount'] || snippetPrice?.[1] || '0'),
       };
     })
     .filter(Boolean);
 
   if (discovered.length === 0) {
-    return searchAmazonSearchItems(theme, options);
+    try {
+      return await searchAmazonSearchItems(theme, options);
+    } catch (error) {
+      if (!isAmazonPaapiDeprecatedError(error)) throw error;
+      console.warn(`Amazon PA-API SearchItems is deprecated and Google CSE found no candidates for "${theme}"`);
+      return [];
+    }
   }
 
-  const enriched = await getAmazonItems(discovered.map((item) => item.asin));
+  let enriched;
+  try {
+    enriched = await getAmazonItems(discovered.map((item) => item.asin));
+  } catch (error) {
+    if (!isAmazonPaapiDeprecatedError(error)) throw error;
+
+    console.warn(
+      `Amazon PA-API is deprecated; using ${discovered.length} Google CSE discoveries without PA-API enrichment`
+    );
+    enriched = discovered.map((item) => ({
+      id: item.asin,
+      title: item.fallbackTitle,
+      price: item.fallbackPrice,
+      currency: 'USD',
+      imageUrl: item.fallbackImageUrl,
+      affiliateUrl: amazonAffiliateUrl(item.asin, process.env.AMAZON_ASSOCIATE_TAG || ''),
+      source: 'amazon',
+      remotelyVerified: false,
+    }));
+  }
   const fallbackTitles = new Map(discovered.map((item) => [item.asin, item.fallbackTitle]));
   const candidates = finalizeProducts(
     enriched.map((product) => ({
@@ -635,6 +673,8 @@ async function searchAmazonCandidates(theme, options) {
   } catch (error) {
     if (isAmazonThrottleError(error)) {
       console.warn(`Amazon SearchItems throttled for "${theme}"; using partial candidate set`);
+    } else if (isAmazonPaapiDeprecatedError(error)) {
+      console.warn(`Amazon PA-API SearchItems is deprecated; using partial Google CSE candidate set for "${theme}"`);
     } else {
       throw error;
     }
@@ -809,6 +849,7 @@ async function getAmazonItems(asins) {
       imageUrl: cleanAmazonImageUrl(rawImageUrl),
       affiliateUrl: amazonAffiliateUrl(item.ASIN, affiliateTag),
       source: 'amazon',
+      remotelyVerified: true,
       rating: item.CustomerReviews?.StarRating?.Value
         ? Number(item.CustomerReviews.StarRating.Value)
         : undefined,
@@ -917,7 +958,7 @@ async function upsertProduct(product) {
         last_verified_at,
         updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::text[], $10, $11, $12, $13, $14, $15, $16::vector, NOW(), NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::text[], $10, $11, $12, $13, $14, $15, $16::vector, CASE WHEN $17 THEN NOW() ELSE NULL END, NOW())
       ON CONFLICT (id) DO UPDATE SET
         title = EXCLUDED.title,
         price = EXCLUDED.price,
@@ -934,7 +975,7 @@ async function upsertProduct(product) {
         review_count = EXCLUDED.review_count,
         is_active = EXCLUDED.is_active,
         embedding = COALESCE(EXCLUDED.embedding, products.embedding),
-        last_verified_at = NOW(),
+        last_verified_at = CASE WHEN $17 THEN NOW() ELSE products.last_verified_at END,
         updated_at = NOW()
       RETURNING (xmax = 0) AS inserted
     `,
@@ -955,6 +996,7 @@ async function upsertProduct(product) {
       product.reviewCount || null,
       product.isActive,
       toPostgresVector(product.embedding),
+      product.remotelyVerified !== false,
     ]
   );
 
@@ -1079,6 +1121,7 @@ async function revalidateCatalog(options) {
   let confirmedMissing = 0;
   let deactivated = 0;
   let throttled = false;
+  let paapiDeprecated = false;
 
   for (const batch of chunkArray(existing, 10)) {
     let remoteProducts;
@@ -1088,6 +1131,11 @@ async function revalidateCatalog(options) {
       if (isAmazonThrottleError(error)) {
         throttled = true;
         console.warn('Stopping revalidation after Amazon throttling; remaining products were left unchanged.');
+        break;
+      }
+      if (isAmazonPaapiDeprecatedError(error)) {
+        paapiDeprecated = true;
+        console.warn('Stopping revalidation because PA-API is deprecated; all products were left unchanged.');
         break;
       }
       throw error;
@@ -1123,7 +1171,7 @@ async function revalidateCatalog(options) {
     await sleep(1200);
   }
 
-  return { selected: existing.length, refreshed, confirmedMissing, deactivated, throttled, affiliateAudit };
+  return { selected: existing.length, refreshed, confirmedMissing, deactivated, throttled, paapiDeprecated, affiliateAudit };
 }
 
 async function getProductsNeedingEnrichment(limit) {
@@ -1334,6 +1382,7 @@ export {
   amazonAffiliateUrl,
   deduplicateAgainstCatalog,
   deduplicateCandidates,
+  isAmazonPaapiDeprecatedError,
   normalizedTitleTokens,
   parseArgs,
   revalidatedProduct,

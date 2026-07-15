@@ -103,6 +103,17 @@ report.
   crawl, and the representative white-elephant guide is still unknown to
   Google.
 
+## Shipped 2026-07-15
+
+- [x] Preserved the daily catalog growth loop after Amazon deprecated PA-API:
+  Google CSE discoveries now retain usable product metadata and canonical
+  Associate-tagged links when `GetItems`/`SearchItems` return the migration
+  error. Remote revalidation fails safe without deactivating products.
+- [x] Rechecked the indexation gate: Search Console still reports 47 submitted
+  sitemap URLs and 0 indexed; the homepage inspection is unchanged from its
+  2026-07-08 crawl and the representative white-elephant guide remains
+  discovered but not indexed. Bulk guide publishing remains deferred.
+
 ## Ongoing Daily Ops
 
 - [ ] Use on-site search logs to propose new guide pages, but only publish a
