@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import { getTrendingProducts } from '@/lib/db/operations';
+import { getCatalogFeedProducts } from '@/lib/db/operations';
 import { searchCatalogProducts } from '@/lib/db/product-search';
 import { CatalogSearchFeed } from '@/components/CatalogSearchFeed';
 import { Header } from '@/components/Header';
@@ -96,10 +95,12 @@ export default async function HomePage({
 }) {
   const params = searchParams ? await searchParams : {};
   const initialQuery = (Array.isArray(params.q) ? params.q[0] || '' : params.q || '').trim();
+  const feedSeed = `home-${new Date().toISOString().slice(0, 10)}`;
   const initialProducts = initialQuery.length >= 2
     ? await searchCatalogProducts(initialQuery, 36)
-    : await getTrendingProducts(36);
-  const featuredGuides = getFeaturedGiftGuides(undefined, 20);
+    : (await getCatalogFeedProducts({ seed: feedSeed, limit: 36 })).products;
+  const featuredGuides = getFeaturedGiftGuides(undefined, 6)
+    .map(({ slug, title }) => ({ slug, title }));
   const itemListSchema = JSON.stringify(buildHomeItemListSchema(initialProducts)).replace(/</g, '\\u003c');
 
   return (
@@ -124,20 +125,14 @@ export default async function HomePage({
           </p>
         </div>
 
-        <nav className="mt-6 flex flex-wrap gap-2" aria-label="Gift guides">
-          {featuredGuides.map((guide) => (
-            <Link
-              key={guide.slug}
-              href={`/gift-guides/${guide.slug}`}
-              className="rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-sm font-semibold text-zinc-700 transition hover:border-zinc-500 hover:text-zinc-950"
-            >
-              {guide.title}
-            </Link>
-          ))}
-        </nav>
       </section>
 
-      <CatalogSearchFeed initialProducts={initialProducts} initialQuery={initialQuery} />
+      <CatalogSearchFeed
+        initialProducts={initialProducts}
+        initialQuery={initialQuery}
+        feedSeed={feedSeed}
+        featuredGuides={featuredGuides}
+      />
     </main>
   );
 }

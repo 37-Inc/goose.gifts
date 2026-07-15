@@ -39,8 +39,142 @@ const GENERIC_GIFT_TERMS = [
   'chocolate gift', 'costume',
 ];
 
+// Words that describe merchandising, audience, or a minor listing variant do
+// not distinguish one product family from another. Keeping them out of the
+// fingerprint collapses separately listed colors/sizes without conflating the
+// actual objects (for example, a crab spoon rest and a crab pencil holder).
+const FAMILY_NOISE_TERMS = new Set([
+  'a', 'an', 'and', 'as', 'at', 'by', 'for', 'from', 'in', 'of', 'on', 'or',
+  'the', 'to', 'with', 'your',
+  'adult', 'adults', 'boy', 'boys', 'christmas', 'coworker', 'coworkers',
+  'dad', 'dads', 'friend', 'friends', 'girl', 'girls', 'gift', 'gifts', 'her',
+  'him', 'holiday', 'kid', 'kids', 'men', 'mom', 'moms', 'present', 'stocking',
+  'stuffer', 'stuffers', 'teen', 'teens', 'women',
+  'best', 'cool', 'crazy', 'cute', 'fun', 'funny', 'gag', 'great', 'hilarious',
+  'joke', 'novelty', 'perfect', 'prank', 'ridiculous', 'silly', 'unique',
+  'black', 'blue', 'brown', 'gold', 'gray', 'green', 'grey', 'orange', 'pink',
+  'purple', 'red', 'silver', 'white', 'yellow', 'small', 'medium', 'large',
+  'xl', 'xxl', 'pack', 'piece', 'set',
+]);
+
+const FAMILY_TOKEN_ALIASES: Record<string, string> = {
+  bellies: 'belly',
+  chickens: 'chicken',
+  fannies: 'fanny',
+  hats: 'hat',
+  legs: 'leg',
+  keychains: 'keychain',
+  mugs: 'mug',
+  packs: 'pack',
+  pouches: 'pouch',
+  toys: 'toy',
+};
+
+const PRODUCT_ARCHETYPE_RULES: Array<{ key: string; matches: (title: string) => boolean }> = [
+  {
+    key: 'belly-fanny-pack',
+    matches: (title) => /\b(?:belly|dad body)\b/.test(title) && /\b(?:fanny|waist) pack\b/.test(title),
+  },
+  {
+    key: 'middle-finger-keychain',
+    matches: (title) => /\bmiddle finger\b/.test(title) && /\bkey ?chain\b/.test(title),
+  },
+  {
+    key: 'prank-pill-box',
+    matches: (title) => /\b(?:prank|joke) pill box\b/.test(title),
+  },
+  {
+    key: 'bodily-survival-kit',
+    matches: (title) => /\b(?:shart|fart|poop|potty|underwear)\b/.test(title)
+      && /\b(?:survival|emergency)\b/.test(title)
+      && /\b(?:kit|pack|set)\b/.test(title),
+  },
+  {
+    key: 'goat-desk-noise-toy',
+    matches: (title) => /\bgoat\b/.test(title)
+      && /\b(?:desk|scream|squeak|sound|button|toy)\b/.test(title),
+  },
+  {
+    key: 'prank-o-gift-box',
+    matches: (title) => /\bprank o\b/.test(title) && /\b(?:prank|gag|gift) box\b/.test(title),
+  },
+];
+
 function normalizeForMatching(text: string): string {
   return ` ${text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
+}
+
+function familyTokens(title: string): string[] {
+  return [...new Set(title
+    .toLowerCase()
+    .replace(/\b\d+(?:\.\d+)?\s*(?:inch(?:es)?|in|cm|mm|oz|ounce|lb|pound)s?\b/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token.length > 1 && !/^\d+$/.test(token))
+    .map((token) => FAMILY_TOKEN_ALIASES[token] || token)
+    .filter((token) => !FAMILY_NOISE_TERMS.has(token)))]
+    .sort();
+}
+
+/** Stable, order-independent identity for exact title variants. */
+export function productFamilyFingerprint(title: string): string {
+  return familyTokens(title).join('|');
+}
+
+/** Known marketplace variant families whose titles can otherwise look unrelated. */
+export function productArchetypeKey(title: string): string | undefined {
+  const normalizedTitle = normalizeForMatching(title);
+  return PRODUCT_ARCHETYPE_RULES.find((rule) => rule.matches(normalizedTitle))?.key;
+}
+
+/**
+ * Conservative product-family comparison. Containment catches SEO suffixes,
+ * while the Jaccard threshold catches small wording changes. Requiring at
+ * least three shared concrete tokens avoids grouping unrelated generic mugs,
+ * hats, or keychains.
+ */
+export function areNearDuplicateTitles(firstTitle: string, secondTitle: string): boolean {
+  const firstArchetype = productArchetypeKey(firstTitle);
+  const secondArchetype = productArchetypeKey(secondTitle);
+  if (firstArchetype && firstArchetype === secondArchetype) return true;
+
+  const first = familyTokens(firstTitle);
+  const second = familyTokens(secondTitle);
+
+  if (first.length === 0 || second.length === 0) return false;
+  const normalizedFirstTitle = normalizeForMatching(firstTitle);
+  const normalizedSecondTitle = normalizeForMatching(secondTitle);
+  if (normalizedFirstTitle === normalizedSecondTitle) return true;
+  if (first.length >= 2 && first.join('|') === second.join('|')) return true;
+
+  const secondSet = new Set(second);
+  const intersection = first.filter((token) => secondSet.has(token)).length;
+  if (intersection < 3) return false;
+
+  const containment = intersection / Math.min(first.length, second.length);
+  const union = new Set([...first, ...second]).size;
+  const jaccard = intersection / union;
+
+  return containment >= 0.8 || jaccard >= 0.67;
+}
+
+/** Preserve ranking while retaining only one representative of each family. */
+export function suppressNearDuplicateProducts<T extends Pick<Product, 'title'>>(
+  rankedProducts: T[],
+  limit: number = rankedProducts.length
+): T[] {
+  const selected: T[] = [];
+
+  for (const candidate of rankedProducts) {
+    if (selected.some((product) => areNearDuplicateTitles(product.title, candidate.title))) {
+      continue;
+    }
+    selected.push(candidate);
+    if (selected.length >= limit) break;
+  }
+
+  return selected;
 }
 
 function matchingTerms(text: string, terms: string[]): number {
@@ -52,6 +186,12 @@ function matchingTerms(text: string, terms: string[]): number {
 function hasExcludedHomepageFormat(title: string): boolean {
   const hasException = matchingTerms(title, HOMEPAGE_FORMAT_EXCEPTIONS) > 0;
   return !hasException && matchingTerms(title, HOMEPAGE_FORMAT_EXCLUSIONS) > 0;
+}
+
+function hasExpiredYearInTitle(title: string): boolean {
+  const currentYear = new Date().getUTCFullYear();
+  const years = title.match(/\b20\d{2}\b/g) || [];
+  return years.some((year) => Number(year) < currentYear);
 }
 
 function titleBrandFitMatches(title: string): number {
@@ -72,6 +212,10 @@ export function isHomepageEligibleProduct(product: Product): boolean {
   // or automated fields. They can help rank an already credible product, but
   // must not manufacture homepage eligibility for a generic merchant listing.
   if (hasExcludedHomepageFormat(product.title)) {
+    return false;
+  }
+
+  if (hasExpiredYearInTitle(product.title)) {
     return false;
   }
 

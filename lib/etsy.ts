@@ -58,19 +58,23 @@ export async function searchEtsyProducts(
       data.results.map(async (listing: EtsyListing) => {
         const affiliateUrl = await generateAwinAffiliateLink(listing.url);
 
+        if (!affiliateUrl) {
+          return null;
+        }
+
         return {
           id: `etsy-${listing.listing_id}`,
           title: listing.title,
           price: listing.price.amount / listing.price.divisor,
           currency: listing.price.currency_code,
           imageUrl: listing.images?.[0]?.url_570xN || listing.images?.[0]?.url_fullxfull || '',
-          affiliateUrl: affiliateUrl || listing.url, // Fallback to direct URL
+          affiliateUrl,
           source: 'etsy' as const,
         };
       })
     );
 
-    return products.filter(p => p.imageUrl);
+    return products.filter((product): product is Product => Boolean(product?.imageUrl && product.affiliateUrl));
   } catch (error) {
     console.error('Etsy search error:', error);
     return [];

@@ -8,7 +8,7 @@
  */
 
 import type { Product } from '@/lib/types';
-import { scoreProductForTrending } from './product-scoring';
+import { areNearDuplicateTitles, scoreProductForTrending } from './product-scoring';
 
 interface ProductWithStats extends Product {
   clickCount?: number;
@@ -107,15 +107,31 @@ export function selectRotatedProducts(
   const exploitCount = Math.floor(limit * 0.7); // 8 products
   const exploreCount = limit - exploitCount; // 4 products
 
-  // Take top performers
-  const topPerformers = sorted.slice(0, exploitCount);
+  const selected: Array<ProductWithStats & { rotationScore: number }> = [];
+  const selectedIds = new Set<string>();
+
+  const canSelect = (candidate: ProductWithStats & { rotationScore: number }) => (
+    !selectedIds.has(candidate.id)
+    && !selected.some((existing) => areNearDuplicateTitles(existing.title, candidate.title))
+  );
+
+  // Walk the full ranking rather than taking an unchanged top slice. This
+  // preserves exploitation order while allowing a distinct lower-ranked item
+  // to replace every duplicate variant.
+  for (const candidate of sorted) {
+    if (!canSelect(candidate)) continue;
+    selected.push(candidate);
+    selectedIds.add(candidate.id);
+    if (selected.length >= exploitCount) break;
+  }
 
   // Randomly sample from next 20 products for exploration
-  const explorationPool = sorted.slice(exploitCount, exploitCount + 20);
-  const explored: Array<ProductWithStats & { rotationScore: number }> = [];
+  const explorationPool = sorted
+    .filter((candidate) => !selectedIds.has(candidate.id))
+    .slice(0, 40);
 
   // Weighted random sampling (higher scores more likely)
-  for (let i = 0; i < exploreCount && explorationPool.length > 0; i++) {
+  for (let i = 0; i < exploreCount && explorationPool.length > 0;) {
     // Calculate weights (score^2 for exponential preference)
     const totalWeight = explorationPool.reduce((sum, p) => sum + (p.rotationScore ** 2), 0);
     let random = Math.random() * totalWeight;
@@ -129,12 +145,21 @@ export function selectRotatedProducts(
       }
     }
 
-    explored.push(explorationPool[selectedIndex]);
-    explorationPool.splice(selectedIndex, 1);
+    const [candidate] = explorationPool.splice(selectedIndex, 1);
+    if (!canSelect(candidate)) continue;
+    selected.push(candidate);
+    selectedIds.add(candidate.id);
+    i++;
   }
 
-  // Combine and shuffle to avoid obvious patterns
-  const selected = [...topPerformers, ...explored];
+  // If duplicate-heavy exploration could not fill the request, backfill with
+  // the highest-ranked distinct products from outside the exploration tier.
+  for (const candidate of sorted) {
+    if (selected.length >= limit) break;
+    if (!canSelect(candidate)) continue;
+    selected.push(candidate);
+    selectedIds.add(candidate.id);
+  }
 
   // Fisher-Yates shuffle
   for (let i = selected.length - 1; i > 0; i--) {

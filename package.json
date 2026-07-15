@@ -27,6 +27,8 @@
     "test:creative": "node --test tests/creative-experiments.test.mjs",
     "catalog:prefetch": "node scripts/ops/prefetch-catalog.mjs",
     "catalog:enrich": "node scripts/ops/prefetch-catalog.mjs --enrich-only",
+    "catalog:revalidate": "node scripts/ops/prefetch-catalog.mjs --revalidate",
+    "test:catalog-ops": "node --test tests/catalog-ops.test.mjs",
     "test:amazon": "node test-amazon-api.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
