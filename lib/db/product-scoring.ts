@@ -137,6 +137,44 @@ export function productArchetypeKey(title: string): string | undefined {
   return PRODUCT_ARCHETYPE_RULES.find((rule) => rule.matches(normalizedTitle))?.key;
 }
 
+interface TitleMatchProfile {
+  archetype?: string;
+  fingerprint: string;
+  normalizedTitle: string;
+  tokens: string[];
+  tokenSet: Set<string>;
+}
+
+function titleMatchProfile(title: string): TitleMatchProfile {
+  const tokens = familyTokens(title);
+  return {
+    archetype: productArchetypeKey(title),
+    fingerprint: tokens.join('|'),
+    normalizedTitle: normalizeForMatching(title),
+    tokens,
+    tokenSet: new Set(tokens),
+  };
+}
+
+function areNearDuplicateProfiles(
+  first: TitleMatchProfile,
+  second: TitleMatchProfile
+): boolean {
+  if (first.archetype && first.archetype === second.archetype) return true;
+  if (first.tokens.length === 0 || second.tokens.length === 0) return false;
+  if (first.normalizedTitle === second.normalizedTitle) return true;
+  if (first.tokens.length >= 2 && first.fingerprint === second.fingerprint) return true;
+
+  const intersection = first.tokens.filter((token) => second.tokenSet.has(token)).length;
+  if (intersection < 3) return false;
+
+  const containment = intersection / Math.min(first.tokens.length, second.tokens.length);
+  const union = new Set([...first.tokens, ...second.tokens]).size;
+  const jaccard = intersection / union;
+
+  return containment >= 0.8 || jaccard >= 0.67;
+}
+
 /**
  * Conservative product-family comparison. Containment catches SEO suffixes,
  * while the Jaccard threshold catches small wording changes. Requiring at
@@ -144,28 +182,10 @@ export function productArchetypeKey(title: string): string | undefined {
  * hats, or keychains.
  */
 export function areNearDuplicateTitles(firstTitle: string, secondTitle: string): boolean {
-  const firstArchetype = productArchetypeKey(firstTitle);
-  const secondArchetype = productArchetypeKey(secondTitle);
-  if (firstArchetype && firstArchetype === secondArchetype) return true;
-
-  const first = familyTokens(firstTitle);
-  const second = familyTokens(secondTitle);
-
-  if (first.length === 0 || second.length === 0) return false;
-  const normalizedFirstTitle = normalizeForMatching(firstTitle);
-  const normalizedSecondTitle = normalizeForMatching(secondTitle);
-  if (normalizedFirstTitle === normalizedSecondTitle) return true;
-  if (first.length >= 2 && first.join('|') === second.join('|')) return true;
-
-  const secondSet = new Set(second);
-  const intersection = first.filter((token) => secondSet.has(token)).length;
-  if (intersection < 3) return false;
-
-  const containment = intersection / Math.min(first.length, second.length);
-  const union = new Set([...first, ...second]).size;
-  const jaccard = intersection / union;
-
-  return containment >= 0.8 || jaccard >= 0.67;
+  return areNearDuplicateProfiles(
+    titleMatchProfile(firstTitle),
+    titleMatchProfile(secondTitle)
+  );
 }
 
 /** Preserve ranking while retaining only one representative of each family. */
@@ -174,12 +194,49 @@ export function suppressNearDuplicateProducts<T extends Pick<Product, 'title'>>(
   limit: number = rankedProducts.length
 ): T[] {
   const selected: T[] = [];
+  const selectedProfiles: TitleMatchProfile[] = [];
+  const archetypes = new Set<string>();
+  const fingerprints = new Set<string>();
+  const normalizedTitles = new Set<string>();
+  const tokenIndex = new Map<string, number[]>();
 
   for (const candidate of rankedProducts) {
-    if (selected.some((product) => areNearDuplicateTitles(product.title, candidate.title))) {
+    const profile = titleMatchProfile(candidate.title);
+    if (
+      (profile.archetype && archetypes.has(profile.archetype))
+      || normalizedTitles.has(profile.normalizedTitle)
+      || (profile.tokens.length >= 2 && fingerprints.has(profile.fingerprint))
+    ) {
       continue;
     }
+
+    // Only selected products sharing at least three concrete title tokens can
+    // pass the conservative containment/Jaccard rule. The inverted index avoids
+    // comparing every candidate with every previously selected product.
+    const sharedTokenCounts = new Map<number, number>();
+    for (const token of profile.tokens) {
+      for (const selectedIndex of tokenIndex.get(token) || []) {
+        sharedTokenCounts.set(selectedIndex, (sharedTokenCounts.get(selectedIndex) || 0) + 1);
+      }
+    }
+
+    const isNearDuplicate = [...sharedTokenCounts].some(([selectedIndex, sharedCount]) => (
+      sharedCount >= 3
+      && areNearDuplicateProfiles(selectedProfiles[selectedIndex], profile)
+    ));
+    if (isNearDuplicate) continue;
+
+    const selectedIndex = selected.length;
     selected.push(candidate);
+    selectedProfiles.push(profile);
+    if (profile.archetype) archetypes.add(profile.archetype);
+    if (profile.tokens.length >= 2) fingerprints.add(profile.fingerprint);
+    normalizedTitles.add(profile.normalizedTitle);
+    for (const token of profile.tokens) {
+      const indices = tokenIndex.get(token) || [];
+      indices.push(selectedIndex);
+      tokenIndex.set(token, indices);
+    }
     if (selected.length >= limit) break;
   }
 

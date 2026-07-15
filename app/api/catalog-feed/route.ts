@@ -21,8 +21,19 @@ export async function POST(request: NextRequest) {
     .filter((id): id is string => typeof id === 'string' && id.length > 0)
     .slice(0, 1200);
 
-  const result = await getCatalogFeedProducts({ seed, limit, excludeIds });
+  const { timing, ...result } = await getCatalogFeedProducts({ seed, limit, excludeIds });
+  const serverTiming = [
+    `catalog-load;dur=${timing.loadMs}`,
+    `catalog-rank;dur=${timing.rankMs}`,
+    `catalog-dedupe;dur=${timing.dedupeMs}`,
+    `catalog-total;dur=${timing.totalMs}`,
+  ].join(', ');
+
   return NextResponse.json(result, {
-    headers: { 'Cache-Control': 'private, no-store' },
+    headers: {
+      'Cache-Control': 'private, no-store',
+      'Server-Timing': serverTiming,
+      'X-Catalog-Candidate-Count': String(timing.candidateCount),
+    },
   });
 }
