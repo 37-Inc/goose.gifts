@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { Product } from '@/lib/types';
 import { ProductImage } from './ProductImage';
 
@@ -120,10 +120,6 @@ function getHumorLabels(product: Product): string[] {
   return labels.slice(0, 2);
 }
 
-function openOutbound(url: string) {
-  window.open(url, '_blank', 'noopener,noreferrer');
-}
-
 function getLinkDomain(url: string): string {
   try {
     return new URL(url).hostname;
@@ -219,6 +215,7 @@ function getGaItems(products: Product[]) {
 }
 
 export function ProductGrid({ products, clickSource, contextSlug, searchQueryId }: ProductGridProps) {
+  const impressedProductIdsRef = useRef(new Set<string>());
   const productIdsKey = useMemo(
     () => products.map((product) => product.id).join('|'),
     [products]
@@ -226,17 +223,27 @@ export function ProductGrid({ products, clickSource, contextSlug, searchQueryId 
   const itemListId = getItemListId(clickSource, contextSlug);
 
   useEffect(() => {
+    impressedProductIdsRef.current.clear();
+  }, [itemListId]);
+
+  useEffect(() => {
     if (products.length === 0) {
       return;
     }
 
+    const newProducts = products.filter((product) => !impressedProductIdsRef.current.has(product.id));
+    if (newProducts.length === 0) {
+      return;
+    }
+
+    newProducts.forEach((product) => impressedProductIdsRef.current.add(product.id));
     getClickAttribution();
 
     fetch('/api/track-impression', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        productIds: products.map((product) => product.id),
+        productIds: newProducts.map((product) => product.id),
         source: clickSource,
         contextSlug,
       }),
@@ -247,25 +254,28 @@ export function ProductGrid({ products, clickSource, contextSlug, searchQueryId 
       gtag('event', 'view_item_list', {
         item_list_id: itemListId,
         item_list_name: contextSlug || clickSource,
-        items: getGaItems(products),
+        items: getGaItems(newProducts),
       });
     }
   }, [clickSource, contextSlug, itemListId, products, productIdsKey]);
 
-  const handleProductClick = (url: string, product: Product, index: number, e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleProductClick = (url: string, product: Product, index: number) => {
     const attribution = getClickAttribution();
+    const clickPayload = JSON.stringify({
+      productId: product.id,
+      source: clickSource,
+      contextSlug,
+      searchQueryId: searchQueryId || undefined,
+      attribution,
+    });
+    const sentWithBeacon = typeof navigator.sendBeacon === 'function'
+      && navigator.sendBeacon('/api/track-click', new Blob([clickPayload], { type: 'application/json' }));
 
-    fetch('/api/track-click', {
+    if (!sentWithBeacon) fetch('/api/track-click', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        productId: product.id,
-        source: clickSource,
-        contextSlug,
-        searchQueryId: searchQueryId || undefined,
-        attribution,
-      }),
+      body: clickPayload,
+      keepalive: true,
     }).catch(() => {});
 
     const gtag = getGtag();
@@ -295,13 +305,8 @@ export function ProductGrid({ products, clickSource, contextSlug, searchQueryId 
         traffic_source: attribution.utmSource || attribution.referrerHost || 'direct',
         traffic_medium: attribution.utmMedium,
         traffic_campaign: attribution.utmCampaign,
-        event_callback: () => openOutbound(url),
-        event_timeout: 2000,
       });
-      return;
     }
-
-    openOutbound(url);
   };
 
   if (products.length === 0) {
@@ -321,7 +326,7 @@ export function ProductGrid({ products, clickSource, contextSlug, searchQueryId 
             href={product.affiliateUrl}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={(e) => handleProductClick(product.affiliateUrl, product, index, e)}
+            onClick={() => handleProductClick(product.affiliateUrl, product, index)}
             className="group flex min-h-[19rem] flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400 hover:shadow-lg"
           >
             <div className="relative aspect-square overflow-hidden bg-white">

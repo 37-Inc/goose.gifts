@@ -123,7 +123,9 @@ Boundaries (always in force):
    `npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
    The command uses `@vercel/postgres` over HTTPS, enriches product copy/tags
    and embeddings, upserts discovered products, and backfills a bounded set of
-   existing active products missing catalog fields. Known prices still gate the
+   existing active products missing catalog fields. Its default theme pool
+   rotates deterministically by UTC date, and exact/near-identical discoveries
+   are collapsed before enrichment. Known prices still gate the
    configured min/max range; unknown-price products should link through to
    Amazon for the current price. Use `npm run catalog:enrich` when you only
    need to backfill existing active products.
@@ -164,7 +166,14 @@ pass in step 6. In addition:
   inspection for desktop and mobile. Check first viewport, scrolling grid/card
   layout, search dropdown, forms, images, and footer disclosure. Fix visual
   defects found in the same PR.
-- **Weekly product review**: during the weekly check-in run, spend one focused
+- **Weekly product review**: first run
+  `npm run catalog:revalidate -- --revalidate-limit 50 --stale-days 30 --deactivate-after-days 90`.
+  This repairs mismatched Amazon associate URLs catalog-wide, then rechecks at
+  most 50 stale active Amazon items. A product is deactivated only when it was
+  last successfully verified at least 90 days ago and is absent from two
+  consecutive PA-API responses in the same run. Throttling or a failed
+  confirmation leaves the product unchanged. Use `--dry-run --no-deactivate`
+  for a read-only audit. Then spend one focused
   pass on overall site quality: stale/broken links, broken images, awkward copy,
   weak catalog ranking, mobile polish, and any user-visible dead ends. Capture
   findings in the weekly issue and fix the highest-impact reversible items.

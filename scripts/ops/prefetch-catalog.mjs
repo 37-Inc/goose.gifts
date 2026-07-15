@@ -2,6 +2,7 @@
 
 import dotenv from 'dotenv';
 import crypto from 'node:crypto';
+import { pathToFileURL } from 'node:url';
 import { sql } from '@vercel/postgres';
 import OpenAI from 'openai';
 
@@ -52,6 +53,11 @@ function parseArgs(argv) {
     enrichOnly: false,
     enrichmentBatchSize: Number(process.env.CATALOG_ENRICH_BATCH_SIZE || 12),
     backfillLimit: Number(process.env.CATALOG_ENRICH_EXISTING_LIMIT || 25),
+    revalidate: false,
+    revalidateLimit: Number(process.env.CATALOG_REVALIDATE_LIMIT || 50),
+    staleDays: Number(process.env.CATALOG_REVALIDATE_STALE_DAYS || 30),
+    deactivateAfterDays: Number(process.env.CATALOG_DEACTIVATE_AFTER_DAYS || 90),
+    deactivateMissing: true,
     themes: undefined,
   };
 
@@ -69,6 +75,11 @@ function parseArgs(argv) {
     else if (arg === '--enrich-only') options.enrichOnly = true;
     else if (arg === '--enrichment-batch-size') options.enrichmentBatchSize = Number(argv[++index]);
     else if (arg === '--backfill-limit') options.backfillLimit = Number(argv[++index]);
+    else if (arg === '--revalidate') options.revalidate = true;
+    else if (arg === '--revalidate-limit') options.revalidateLimit = Number(argv[++index]);
+    else if (arg === '--stale-days') options.staleDays = Number(argv[++index]);
+    else if (arg === '--deactivate-after-days') options.deactivateAfterDays = Number(argv[++index]);
+    else if (arg === '--no-deactivate') options.deactivateMissing = false;
     else if (arg === '--themes') {
       options.themes = argv[++index]
         .split('|')
@@ -76,6 +87,14 @@ function parseArgs(argv) {
         .filter(Boolean);
     }
   }
+
+  options.revalidateLimit = Math.max(1, Math.min(100, Math.floor(options.revalidateLimit || 50)));
+  options.staleDays = Math.max(1, Math.floor(options.staleDays || 30));
+  options.deactivateAfterDays = Math.max(
+    60,
+    options.staleDays,
+    Math.floor(options.deactivateAfterDays || 90)
+  );
 
   return options;
 }
@@ -96,6 +115,12 @@ Options:
   --enrichment-batch-size 12
                             Products per OpenAI copy/tag batch.
   --backfill-limit 25       Existing active products to enrich before discovery. Set 0 to skip.
+  --revalidate              Recheck a bounded batch of stale active Amazon products and repair affiliate URLs.
+  --revalidate-limit 50     Maximum stale products to check (hard cap 100; PA-API batches of 10).
+  --stale-days 30           Only check products not successfully verified within this many days.
+  --deactivate-after-days 90
+                            Deactivate only products this stale that are absent from two PA-API checks (minimum 60).
+  --no-deactivate           Audit and refresh only; never deactivate missing products.
 `);
 }
 
@@ -105,14 +130,17 @@ function requiredEnv(options) {
   };
 
   if (!options.enrichOnly) {
-    env.GOOGLE_SEARCH_API_KEY = process.env.GOOGLE_SEARCH_API_KEY;
-    env.GOOGLE_SEARCH_ENGINE_ID = process.env.GOOGLE_SEARCH_ENGINE_ID;
     env.AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
     env.AWS_SECRET_KEY_OR_AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_KEY || process.env.AWS_SECRET_ACCESS_KEY;
     env.AMAZON_ASSOCIATE_TAG = process.env.AMAZON_ASSOCIATE_TAG;
   }
 
-  if (!options.skipEnrichment && !options.dryRun) {
+  if (!options.enrichOnly && !options.revalidate) {
+    env.GOOGLE_SEARCH_API_KEY = process.env.GOOGLE_SEARCH_API_KEY;
+    env.GOOGLE_SEARCH_ENGINE_ID = process.env.GOOGLE_SEARCH_ENGINE_ID;
+  }
+
+  if (!options.skipEnrichment && !options.dryRun && !options.revalidate) {
     env.OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   }
 
@@ -121,7 +149,7 @@ function requiredEnv(options) {
 
 function assertConfigured(options) {
   const env = requiredEnv(options);
-  const required = options.dryRun
+  const required = options.dryRun && !options.revalidate
     ? Object.entries(env).filter(([key]) => key !== 'POSTGRES_URL')
     : Object.entries(env);
   const missing = Object.entries(env)
@@ -132,6 +160,18 @@ function assertConfigured(options) {
   if (missing.length > 0) {
     throw new Error(`Missing required env vars: ${missing.join(', ')}`);
   }
+}
+
+function utcDayNumber(date = new Date()) {
+  return Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / 86_400_000);
+}
+
+function selectRotatingThemes(themePool, limit, date = new Date()) {
+  if (themePool.length === 0 || limit <= 0) return [];
+
+  const count = Math.min(limit, themePool.length);
+  const start = (utcDayNumber(date) * count) % themePool.length;
+  return Array.from({ length: count }, (_, index) => themePool[(start + index) % themePool.length]);
 }
 
 function amazonSecretKey() {
@@ -190,6 +230,61 @@ function cleanTitle(title) {
     .replace(/\s*Amazon\.com\s*$/i, '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+const DUPLICATE_TITLE_STOP_WORDS = new Set([
+  'a', 'an', 'and', 'for', 'gift', 'gifts', 'in', 'of', 'on', 'the', 'to', 'with',
+  'funny', 'gag', 'novelty', 'unique', 'perfect', 'best', 'new',
+]);
+
+function normalizedTitleTokens(title) {
+  return String(title || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token.length > 1 && !DUPLICATE_TITLE_STOP_WORDS.has(token));
+}
+
+function titleSimilarity(leftTitle, rightTitle) {
+  const left = new Set(normalizedTitleTokens(leftTitle));
+  const right = new Set(normalizedTitleTokens(rightTitle));
+  if (left.size < 4 || right.size < 4) return 0;
+
+  const intersection = Array.from(left).filter((token) => right.has(token)).length;
+  const union = new Set([...left, ...right]).size;
+  return union === 0 ? 0 : intersection / union;
+}
+
+function deduplicateCandidates(products, threshold = 0.82) {
+  const kept = [];
+  let duplicates = 0;
+
+  for (const product of products) {
+    const duplicate = kept.some((existing) => (
+      existing.id === product.id || titleSimilarity(existing.title, product.title) >= threshold
+    ));
+    if (duplicate) duplicates += 1;
+    else kept.push(product);
+  }
+
+  return { products: kept, duplicates };
+}
+
+function deduplicateAgainstCatalog(products, catalogProducts, threshold = 0.82) {
+  let duplicates = 0;
+  const filtered = products.filter((product) => {
+    const duplicate = catalogProducts.some((existing) => (
+      existing.id !== product.id && titleSimilarity(existing.title, product.title) >= threshold
+    ));
+    if (duplicate) duplicates += 1;
+    return !duplicate;
+  });
+  return { products: filtered, duplicates };
+}
+
+function amazonAffiliateUrl(asin, affiliateTag = process.env.AMAZON_ASSOCIATE_TAG || '') {
+  return `https://www.amazon.com/dp/${asin}?tag=${encodeURIComponent(affiliateTag)}`;
 }
 
 function inferHumorTags(title, theme) {
@@ -712,7 +807,7 @@ async function getAmazonItems(asins) {
       price: Number.parseFloat(String(listing?.Price?.Amount || '0')),
       currency: listing?.Price?.Currency || 'USD',
       imageUrl: cleanAmazonImageUrl(rawImageUrl),
-      affiliateUrl: `https://www.amazon.com/dp/${item.ASIN}?tag=${affiliateTag}`,
+      affiliateUrl: amazonAffiliateUrl(item.ASIN, affiliateTag),
       source: 'amazon',
       rating: item.CustomerReviews?.StarRating?.Value
         ? Number(item.CustomerReviews.StarRating.Value)
@@ -785,7 +880,7 @@ async function searchAmazonSearchItems(theme, options) {
       price: Number.parseFloat(String(listing?.Price?.Amount || '0')),
       currency: listing?.Price?.Currency || 'USD',
       imageUrl: cleanAmazonImageUrl(rawImageUrl),
-      affiliateUrl: item.DetailPageURL || `https://www.amazon.com/dp/${item.ASIN}?tag=${process.env.AMAZON_ASSOCIATE_TAG || ''}`,
+      affiliateUrl: amazonAffiliateUrl(item.ASIN),
       source: 'amazon',
       rating: item.CustomerReviews?.StarRating?.Value
         ? Number(item.CustomerReviews.StarRating.Value)
@@ -866,22 +961,167 @@ async function upsertProduct(product) {
   return Boolean(result.rows[0]?.inserted);
 }
 
-async function activateUnknownPriceProducts() {
+async function updateEnrichedProduct(product) {
   const result = await sql.query(
     `
       UPDATE products
-      SET is_active = true,
-          updated_at = NOW(),
-          last_verified_at = COALESCE(last_verified_at, NOW())
-      WHERE is_active = false
-        AND price <= 0
-        AND image_url IS NOT NULL
-        AND affiliate_url IS NOT NULL
-        AND title <> ''
-    `
+      SET humor_tags = $2::text[],
+          punny_title = $3,
+          witty_description = $4,
+          quality_score = $5,
+          is_active = $6,
+          embedding = COALESCE($7::vector, embedding),
+          updated_at = NOW()
+      WHERE id = $1
+    `,
+    [
+      product.id,
+      toPostgresTextArray(product.humorTags),
+      product.punnyTitle || null,
+      product.wittyDescription || null,
+      product.qualityScore,
+      product.isActive,
+      toPostgresVector(product.embedding),
+    ]
   );
 
   return result.rowCount || 0;
+}
+
+async function getActiveCatalogIdentities() {
+  const result = await sql.query(
+    `SELECT id, title FROM products WHERE is_active = true AND title <> ''`
+  );
+  return result.rows;
+}
+
+async function auditAndRepairAmazonAffiliateUrls({ dryRun }) {
+  const tag = process.env.AMAZON_ASSOCIATE_TAG;
+  const expectedExpression = `'https://www.amazon.com/dp/' || id || '?tag=' || $1`;
+  const where = `source = 'amazon' AND id ~ '^[A-Z0-9]{10}$' AND affiliate_url IS DISTINCT FROM ${expectedExpression}`;
+  const audit = await sql.query(`SELECT COUNT(*)::int AS count FROM products WHERE ${where}`, [tag]);
+  const mismatched = Number(audit.rows[0]?.count || 0);
+
+  if (dryRun || mismatched === 0) return { mismatched, repaired: 0 };
+
+  const repaired = await sql.query(
+    `UPDATE products SET affiliate_url = ${expectedExpression}, updated_at = NOW() WHERE ${where}`,
+    [tag]
+  );
+  return { mismatched, repaired: repaired.rowCount || 0 };
+}
+
+async function getProductsForRevalidation(limit, staleDays) {
+  const result = await sql.query(
+    `
+      SELECT id, title, price, currency, image_url, affiliate_url, source, source_query,
+             humor_tags, punny_title, witty_description, quality_score, rating, review_count,
+             is_active, embedding, last_verified_at
+      FROM products
+      WHERE source = 'amazon'
+        AND is_active = true
+        AND id ~ '^[A-Z0-9]{10}$'
+        AND (last_verified_at IS NULL OR last_verified_at <= NOW() - ($2 * INTERVAL '1 day'))
+      ORDER BY last_verified_at ASC NULLS FIRST, updated_at ASC
+      LIMIT $1
+    `,
+    [limit, staleDays]
+  );
+  return result.rows;
+}
+
+function revalidatedProduct(existing, remote, options) {
+  const remotePrice = Number(remote.price || 0);
+  const existingPrice = Number(existing.price || 0);
+  const price = remotePrice > 0 ? remotePrice : existingPrice;
+  const product = {
+    id: existing.id,
+    title: remote.title || existing.title,
+    price,
+    currency: remotePrice > 0
+      ? (remote.currency || existing.currency || 'USD')
+      : (existing.currency || remote.currency || 'USD'),
+    imageUrl: remote.imageUrl || existing.image_url,
+    affiliateUrl: amazonAffiliateUrl(existing.id),
+    source: 'amazon',
+    sourceQuery: existing.source_query || '',
+    humorTags: existing.humor_tags || inferHumorTags(remote.title || existing.title, existing.source_query || ''),
+    punnyTitle: existing.punny_title,
+    wittyDescription: existing.witty_description,
+    qualityScore: Number(existing.quality_score || 0.35),
+    rating: remote.rating ?? existing.rating,
+    reviewCount: remote.reviewCount ?? existing.review_count,
+    embedding: existing.embedding,
+  };
+  return { ...product, isActive: isActiveCatalogCandidate(product, options) };
+}
+
+async function deactivateConfirmedMissing(ids, deactivateAfterDays, dryRun) {
+  if (ids.length === 0 || dryRun) return 0;
+  const result = await sql.query(
+    `
+      UPDATE products
+      SET is_active = false, updated_at = NOW()
+      WHERE id = ANY($1::text[])
+        AND COALESCE(last_verified_at, created_at) <= NOW() - ($2 * INTERVAL '1 day')
+    `,
+    [ids, deactivateAfterDays]
+  );
+  return result.rowCount || 0;
+}
+
+async function revalidateCatalog(options) {
+  const affiliateAudit = await auditAndRepairAmazonAffiliateUrls(options);
+  const existing = await getProductsForRevalidation(options.revalidateLimit, options.staleDays);
+  let refreshed = 0;
+  let confirmedMissing = 0;
+  let deactivated = 0;
+  let throttled = false;
+
+  for (const batch of chunkArray(existing, 10)) {
+    let remoteProducts;
+    try {
+      remoteProducts = await getAmazonItems(batch.map((product) => product.id));
+    } catch (error) {
+      if (isAmazonThrottleError(error)) {
+        throttled = true;
+        console.warn('Stopping revalidation after Amazon throttling; remaining products were left unchanged.');
+        break;
+      }
+      throw error;
+    }
+
+    const remoteById = new Map(remoteProducts.map((product) => [product.id, product]));
+    const missing = batch.filter((product) => !remoteById.has(product.id));
+    let confirmedIds = [];
+
+    if (missing.length > 0) {
+      await sleep(2000);
+      try {
+        const confirmation = await getAmazonItems(missing.map((product) => product.id));
+        const confirmedPresent = new Map(confirmation.map((product) => [product.id, product]));
+        confirmedPresent.forEach((product, id) => remoteById.set(id, product));
+        confirmedIds = missing.filter((product) => !confirmedPresent.has(product.id)).map((product) => product.id);
+      } catch (error) {
+        console.warn(`Could not confirm ${missing.length} missing Amazon items; leaving them active: ${error.message}`);
+      }
+    }
+
+    for (const product of batch) {
+      const remote = remoteById.get(product.id);
+      if (!remote) continue;
+      if (!options.dryRun) await upsertProduct(revalidatedProduct(product, remote, options));
+      refreshed += 1;
+    }
+
+    confirmedMissing += confirmedIds.length;
+    if (options.deactivateMissing) {
+      deactivated += await deactivateConfirmedMissing(confirmedIds, options.deactivateAfterDays, options.dryRun);
+    }
+    await sleep(1200);
+  }
+
+  return { selected: existing.length, refreshed, confirmedMissing, deactivated, throttled, affiliateAudit };
 }
 
 async function getProductsNeedingEnrichment(limit) {
@@ -959,14 +1199,22 @@ async function main() {
 
   assertConfigured(options);
 
+  if (options.revalidate) {
+    const result = await revalidateCatalog(options);
+    console.log(JSON.stringify({ dryRun: options.dryRun, revalidate: true, ...result }, null, 2));
+    return;
+  }
+
   const envThemes = process.env.CATALOG_DISCOVERY_THEMES
     ?.split('|')
     .map((theme) => theme.trim())
     .filter(Boolean);
-  const themes = (options.themes || envThemes || DEFAULT_THEMES).slice(0, options.themeLimit);
+  const themePool = options.themes || envThemes || DEFAULT_THEMES;
+  const themes = options.themes
+    ? themePool.slice(0, options.themeLimit)
+    : selectRotatingThemes(themePool, options.themeLimit);
   const seen = new Set();
   const candidates = [];
-  let activatedUnknownPrice = 0;
   let backfilled = 0;
 
   if (options.enrichOnly) {
@@ -976,9 +1224,6 @@ async function main() {
   }
 
   if (!options.dryRun) {
-    activatedUnknownPrice = await activateUnknownPriceProducts();
-    console.log(`Activated ${activatedUnknownPrice} image-backed products with unknown prices before discovery`);
-
     if (options.backfillLimit > 0) {
       const backfillProducts = await getProductsNeedingEnrichment(options.backfillLimit);
 
@@ -987,7 +1232,7 @@ async function main() {
         const enrichedBackfill = await enrichProducts(backfillProducts, options);
 
         for (const product of enrichedBackfill) {
-          await upsertProduct(product);
+          await updateEnrichedProduct(product);
           backfilled += 1;
         }
       }
@@ -1024,6 +1269,18 @@ async function main() {
   }
 
   candidates.sort((a, b) => b.qualityScore - a.qualityScore);
+  const deduplicated = deduplicateCandidates(candidates);
+  candidates.splice(0, candidates.length, ...deduplicated.products);
+  let catalogDuplicates = 0;
+  if (!options.dryRun && candidates.length > 0) {
+    const catalog = await getActiveCatalogIdentities();
+    const catalogDeduplicated = deduplicateAgainstCatalog(candidates, catalog);
+    candidates.splice(0, candidates.length, ...catalogDeduplicated.products);
+    catalogDuplicates = catalogDeduplicated.duplicates;
+  }
+  if (deduplicated.duplicates + catalogDuplicates > 0) {
+    console.log(`Filtered ${deduplicated.duplicates + catalogDuplicates} exact or near-duplicate discoveries`);
+  }
 
   if (options.dryRun) {
     console.log(JSON.stringify({
@@ -1052,8 +1309,8 @@ async function main() {
   console.log(JSON.stringify({
     dryRun: false,
     themes,
-    activatedUnknownPrice,
     backfilled,
+    duplicatesFiltered: deduplicated.duplicates + catalogDuplicates,
     candidates: candidates.length,
     activeCandidates: enrichedCandidates.filter((product) => product.isActive).length,
     enrichedCandidates: enrichedCandidates.length,
@@ -1063,7 +1320,21 @@ async function main() {
   }, null, 2));
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isDirectRun) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
+
+export {
+  amazonAffiliateUrl,
+  deduplicateAgainstCatalog,
+  deduplicateCandidates,
+  normalizedTitleTokens,
+  parseArgs,
+  revalidatedProduct,
+  selectRotatingThemes,
+  titleSimilarity,
+};

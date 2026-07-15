@@ -4,8 +4,13 @@ import { products } from './schema';
 import { cleanImageUrl } from '../image-utils';
 import { generateTextEmbedding } from '../openai-embeddings';
 import type { Product, ProductSearchResult } from '../types';
+import {
+  isHomepageEligibleProduct,
+  suppressNearDuplicateProducts,
+} from './product-scoring';
 
 const MAX_SEARCH_LIMIT = 60;
+const SEARCH_OVERFETCH_FACTOR = 4;
 
 type ProductSearchRow = {
   id: string;
@@ -60,6 +65,16 @@ function toProductSearchResult(row: ProductSearchRow): ProductSearchResult {
     rankScore: row.rank_score ? parseFloat(row.rank_score) : 0,
     matchType: row.match_type,
   };
+}
+
+function selectSearchResults(
+  rankedProducts: ProductSearchResult[],
+  limit: number
+): ProductSearchResult[] {
+  return suppressNearDuplicateProducts(
+    rankedProducts.filter(isHomepageEligibleProduct),
+    limit
+  );
 }
 
 async function keywordSearchProducts(
@@ -167,6 +182,7 @@ export async function searchCatalogProducts(
 ): Promise<ProductSearchResult[]> {
   const trimmed = query.trim();
   const normalizedLimit = normalizeLimit(limit);
+  const candidateLimit = normalizedLimit * SEARCH_OVERFETCH_FACTOR;
 
   if (trimmed.length < 2) {
     return [];
@@ -175,7 +191,8 @@ export async function searchCatalogProducts(
   const queryEmbedding = await generateTextEmbedding(trimmed);
 
   if (queryEmbedding.length === 0) {
-    return keywordSearchProducts(trimmed, normalizedLimit);
+    const keywordResults = await keywordSearchProducts(trimmed, candidateLimit);
+    return selectSearchResults(keywordResults, normalizedLimit);
   }
 
   try {
@@ -217,24 +234,29 @@ export async function searchCatalogProducts(
         AND embedding IS NOT NULL
         AND (${products.price} <= 0 OR ${products.price} <= 250)
       ORDER BY rank_score DESC, embedding <=> ${vector}::vector
-      LIMIT ${normalizedLimit}
+      LIMIT ${candidateLimit}
     `);
 
     const semanticResults = semanticRows.rows.map(toProductSearchResult);
+    const selectedSemanticResults = selectSearchResults(semanticResults, normalizedLimit);
 
-    if (semanticResults.length >= normalizedLimit) {
-      return semanticResults;
+    if (selectedSemanticResults.length >= normalizedLimit) {
+      return selectedSemanticResults;
     }
 
     const fallbackResults = await keywordSearchProducts(
       trimmed,
-      normalizedLimit - semanticResults.length,
+      candidateLimit,
       semanticResults.map((product) => product.id)
     );
 
-    return [...semanticResults, ...fallbackResults];
+    return selectSearchResults(
+      [...selectedSemanticResults, ...fallbackResults],
+      normalizedLimit
+    );
   } catch (error) {
     console.error('Error searching catalog products:', error);
-    return keywordSearchProducts(trimmed, normalizedLimit);
+    const keywordResults = await keywordSearchProducts(trimmed, candidateLimit);
+    return selectSearchResults(keywordResults, normalizedLimit);
   }
 }
