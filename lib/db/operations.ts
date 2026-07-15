@@ -1,13 +1,18 @@
-import { sql } from 'drizzle-orm';
+import { desc, sql } from 'drizzle-orm';
+import { unstable_cache } from 'next/cache';
 import { db } from './index';
 import { products } from './schema';
 import type { Product } from '../types';
 import { cleanImageUrl } from '../image-utils';
 import {
+  HOMEPAGE_BRAND_FIT_TERMS,
   isHomepageEligibleProduct,
   scoreProductForTrending,
   suppressNearDuplicateProducts,
 } from './product-scoring';
+
+const HOMEPAGE_CANDIDATE_LIMIT = 1200;
+const HOMEPAGE_CACHE_SECONDS = 3600;
 
 interface ProductWithStats extends Product {
   clickCount: number;
@@ -32,7 +37,11 @@ function seededFraction(value: string): number {
   return (hash >>> 0) / 4294967295;
 }
 
-async function getHomepageEligibleProducts(): Promise<ProductWithStats[]> {
+async function loadHomepageEligibleProducts(): Promise<ProductWithStats[]> {
+  const merchantTitleBrandFit = sql.join(
+    HOMEPAGE_BRAND_FIT_TERMS.map((term) => sql`${products.title} ILIKE ${`%${term}%`}`),
+    sql` OR `
+  );
   const allProducts = await db
     .select({
       id: products.id,
@@ -62,7 +71,14 @@ async function getHomepageEligibleProducts(): Promise<ProductWithStats[]> {
       AND ${products.qualityScore} IS NOT NULL
       AND ${products.qualityScore} >= 0.55
       AND (${products.price} <= 0 OR ${products.price} <= 250)
-    `);
+      AND (${merchantTitleBrandFit})
+    `)
+    .orderBy(
+      desc(products.qualityScore),
+      desc(products.clickCount),
+      desc(products.updatedAt)
+    )
+    .limit(HOMEPAGE_CANDIDATE_LIMIT);
 
   return allProducts.map((product) => ({
     id: product.id,
@@ -85,6 +101,19 @@ async function getHomepageEligibleProducts(): Promise<ProductWithStats[]> {
     lastClickedAt: product.lastClickedAt,
   })).filter(isHomepageEligibleProduct);
 }
+
+// `searchParams` makes the homepage route dynamic, so route-level revalidation
+// does not cache this database read. Cache the stable catalog candidate pool
+// explicitly so crawler traffic and progressive loading reuse one bounded
+// result instead of downloading the catalog from Neon for every request.
+const getHomepageEligibleProducts = unstable_cache(
+  loadHomepageEligibleProducts,
+  ['homepage-eligible-products-v1'],
+  {
+    revalidate: HOMEPAGE_CACHE_SECONDS,
+    tags: ['catalog-products'],
+  }
+);
 
 /**
  * Return a stable, quality-weighted homepage feed for progressive loading.

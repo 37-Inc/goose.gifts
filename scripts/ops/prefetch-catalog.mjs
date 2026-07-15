@@ -1016,7 +1016,7 @@ async function getProductsForRevalidation(limit, staleDays) {
     `
       SELECT id, title, price, currency, image_url, affiliate_url, source, source_query,
              humor_tags, punny_title, witty_description, quality_score, rating, review_count,
-             is_active, embedding, last_verified_at
+             is_active, last_verified_at
       FROM products
       WHERE source = 'amazon'
         AND is_active = true
@@ -1051,7 +1051,9 @@ function revalidatedProduct(existing, remote, options) {
     qualityScore: Number(existing.quality_score || 0.35),
     rating: remote.rating ?? existing.rating,
     reviewCount: remote.reviewCount ?? existing.review_count,
-    embedding: existing.embedding,
+    // The upsert preserves the stored embedding when this value is absent.
+    // Avoid sending a 1536-dimension vector out of Neon just to write it back.
+    embedding: undefined,
   };
   return { ...product, isActive: isActiveCatalogCandidate(product, options) };
 }

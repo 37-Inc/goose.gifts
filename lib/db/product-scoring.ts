@@ -1,6 +1,6 @@
 import type { Product } from '@/lib/types';
 
-const STRONG_GAG_TERMS = [
+export const STRONG_GAG_TERMS = [
   'funny', 'gag', 'prank', 'weird', 'novelty', 'ridiculous', 'sarcastic',
   'silly', 'hilarious', 'joke', 'absurd', 'inappropriate', 'fart', 'poop',
   'whoopee', 'bullshit', 'penis', 'testicle',
@@ -10,12 +10,21 @@ const STRONG_GAG_TERMS = [
 // Some of the best catalog products are visually strange without using Amazon's
 // usual "funny gift" SEO language. These are deliberately concrete product
 // details, not generated catalog copy or discovery-query terms.
-const DISTINCTIVE_ODDITY_TERMS = [
+export const DISTINCTIVE_ODDITY_TERMS = [
   'angry mama', 'animal butt', 'bacon candle', 'beer bong', 'cat butt',
   'cereal killer', 'crab', 'duck decanter', 'emotional support',
   'fake poop', 'fart machine', 'loch ness', 'nessie', 'pizza boss',
   'rubber chicken', 'screaming chicken', 'squirrel hot tub', 'sword shaped',
   'wacky waving', 'yodeling',
+];
+
+// Safe coarse filter for database candidate selection. The application-level
+// eligibility check remains authoritative, but every eligible homepage item
+// must contain at least one of these merchant-title terms. Applying this
+// predicate in Postgres avoids transferring the entire catalog on cache fills.
+export const HOMEPAGE_BRAND_FIT_TERMS = [
+  ...STRONG_GAG_TERMS,
+  ...DISTINCTIVE_ODDITY_TERMS,
 ];
 
 // These commodity formats repeatedly entered the homepage because the merchant
