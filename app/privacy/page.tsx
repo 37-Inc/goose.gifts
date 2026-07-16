@@ -52,20 +52,17 @@ const sections = [
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-950">
+    <main className="min-h-screen bg-white text-zinc-950">
       <Header />
 
       <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-red-600">
-          goose.gifts
-        </p>
-        <h1 className="mt-2 text-4xl font-black tracking-tight text-zinc-950">
+        <h1 className="text-4xl font-extrabold tracking-tight text-zinc-950">
           Privacy Policy
         </h1>
-        <p className="mt-4 text-sm leading-6 text-zinc-600">
+        <p className="mt-3 text-sm leading-6 text-zinc-400">
           Last updated July 7, 2026
         </p>
-        <p className="mt-6 text-base leading-7 text-zinc-700">
+        <p className="mt-6 text-base leading-7 text-zinc-600">
           This policy explains how goose.gifts handles information for visitors
           using the site.
         </p>

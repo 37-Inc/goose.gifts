@@ -24,9 +24,10 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **Design polish, round 2** (owner+claude track): tighten the mobile search
-  bar (placeholder truncation), revisit guide-page headers to match the new
-  cleaner homepage style, and consider per-product Open Graph share images.
+- **Design polish, round 3** (owner+claude track): tighten the mobile search
+  bar (placeholder truncation), consider per-product Open Graph share images,
+  and give the `/weird-gift-index` editorial page an intentional pass (kept
+  deliberately distinct for now).
 - **Catalog-first relaunch** (daily-ops track, top priority): keep improving
   catalog depth, enrichment/relevance quality, semantic-search results, and
   outbound CTR. Full plan in `ROADMAP.md` Phase 1.
@@ -40,6 +41,26 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-07-16 — Site-wide design unification `[owner+claude]`
+
+Brought the guides list, individual guide pages, and the random-gift generator
+into the same design language as the refreshed homepage (round 2 of the design
+polish). Extracted two shared components — `components/ui/PageHero.tsx`
+(centered hero + the hand-drawn red underline accent) and
+`components/ui/SectionHeading.tsx` (quiet divider heading + soft "browse"
+cards) — so the language stays consistent going forward.
+
+- Replaced loud uppercase-red kickers, `font-black` display type, `bg-zinc-50`
+  banded sections, and hard-bordered boxes with the calm white surface, centered
+  underlined heroes, rounded-full pill buttons, guide chip rows, and soft
+  ring cards used on the homepage.
+- The individual guide page dropped its one-off custom header for the shared
+  `<Header/>`; its guide nav is now a chip row matching the homepage.
+- Privacy page header aligned too. `/weird-gift-index` left as an intentional,
+  separate editorial piece.
+- `npm run build` + `lint` pass; desktop and mobile verified against production
+  data. (PR pending review.)
 
 ### 2026-07-16 — Amazon Creators API migration `[owner+claude]`
 
