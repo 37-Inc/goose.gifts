@@ -27,6 +27,10 @@ what's likely next.
 - **Design polish, round 2** (owner+claude track): tighten the mobile search
   bar (placeholder truncation), revisit guide-page headers to match the new
   cleaner homepage style, and consider per-product Open Graph share images.
+- **Hosting recovery**: restore Vercel write/deployment access, install the
+  Amazon Creators credentials, remove the retired AWS variables, and verify the
+  production catalog job. The site is currently disabled by Vercel fair-use
+  enforcement; see `NEEDS.md`.
 - **Catalog-first relaunch** (daily-ops track, top priority): keep improving
   catalog depth, enrichment/relevance quality, semantic-search results, and
   outbound CTR. Full plan in `ROADMAP.md` Phase 1.
@@ -40,6 +44,18 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-07-16 — Amazon Creators API migration `[owner+claude]`
+
+Replaced the retired PA-API/SigV4 catalog path with an OAuth Creators API
+client for discovery, enrichment, and stale-product refresh (PR #57,
+rebased onto the design refresh and merged to `main`). Removed the legacy AWS
+configuration and test/code cruft; Google CSE remains an optional verified-only
+discovery fallback. Live API and dry-run catalog/revalidation checks passed.
+
+Production configuration and deployment remain pending until Vercel restores
+write access; the current account block prevents installing the new credentials
+or deploying any commit.
 
 ### 2026-07-16 — Homepage & catalog design refresh `[owner+claude]`
 
