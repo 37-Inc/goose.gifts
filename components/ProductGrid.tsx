@@ -59,67 +59,6 @@ function getSourceLabel(source: Product['source']): string {
   return source === 'amazon' ? 'Amazon' : 'Etsy';
 }
 
-const LABEL_RULES = [
-  { label: 'dad joke', terms: ['dad', 'father', 'grandpa', 'pun', 'joke'] },
-  { label: 'office safe', terms: ['coworker', 'office', 'desk', 'boss', 'meeting', 'work'] },
-  { label: 'white elephant', terms: ['white elephant', 'party', 'exchange'] },
-  { label: 'pet chaos', terms: ['pet', 'dog', 'cat', 'pug'] },
-  { label: 'kitchen oddity', terms: ['kitchen', 'mug', 'coffee', 'ramen', 'cook', 'cookbook'] },
-  { label: 'prank', terms: ['prank', 'fake', 'gag'] },
-  { label: 'weird find', terms: ['weird', 'bizarre', 'oddball', 'ridiculous', 'strange'] },
-  { label: 'snarky', terms: ['sarcastic', 'snark', 'retirement'] },
-  { label: 'birthday', terms: ['birthday'] },
-  { label: 'holiday', terms: ['stocking', 'christmas', 'holiday', 'secret santa'] },
-  { label: 'self care', terms: ['spa', 'bath', 'candle', 'skincare', 'massage'] },
-  { label: 'bookish', terms: ['book', 'coloring', 'journal'] },
-];
-
-function formatTag(tag: string): string {
-  return tag.replace(/-/g, ' ').trim().toLowerCase();
-}
-
-function isDisplayableTag(tag: string): boolean {
-  return tag.length > 0
-    && tag.length <= 18
-    && !tag.includes(' gift')
-    && !tag.includes(' for ');
-}
-
-function addLabel(labels: string[], label: string) {
-  if (!labels.includes(label)) {
-    labels.push(label);
-  }
-}
-
-function getHumorLabels(product: Product): string[] {
-  const labels: string[] = [];
-
-  product.humorTags?.forEach((tag) => {
-    const formatted = formatTag(tag);
-    if (isDisplayableTag(formatted)) addLabel(labels, formatted);
-  });
-
-  const haystack = [
-    product.title,
-    product.punnyTitle,
-    product.wittyDescription,
-    product.sourceQuery,
-  ].filter(Boolean).join(' ').toLowerCase();
-
-  for (const rule of LABEL_RULES) {
-    if (labels.length >= 2) break;
-    if (rule.terms.some((term) => haystack.includes(term))) {
-      addLabel(labels, rule.label);
-    }
-  }
-
-  if (labels.length === 0) {
-    labels.push('novelty');
-  }
-
-  return labels.slice(0, 2);
-}
-
 function getLinkDomain(url: string): string {
   try {
     return new URL(url).hostname;
@@ -314,11 +253,11 @@ export function ProductGrid({ products, clickSource, contextSlug, searchQueryId 
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+    <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-7">
       {products.map((product, index) => {
         const title = getDisplayTitle(product);
         const description = getDisplayDescription(product);
-        const tags = getHumorLabels(product);
+        const hasPrice = product.price > 0;
 
         return (
           <a
@@ -327,52 +266,46 @@ export function ProductGrid({ products, clickSource, contextSlug, searchQueryId 
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => handleProductClick(product.affiliateUrl, product, index)}
-            className="group flex min-h-[19rem] flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white transition duration-200 hover:-translate-y-0.5 hover:border-zinc-400 hover:shadow-lg"
+            className="group flex flex-col"
           >
-            <div className="relative aspect-square overflow-hidden bg-white">
+            <div className="relative aspect-square overflow-hidden rounded-2xl bg-white ring-1 ring-zinc-950/[0.07] transition duration-300 group-hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.18)] group-hover:ring-zinc-950/10">
               {product.imageUrl ? (
-                <div className="absolute inset-2">
+                <div className="absolute inset-5 sm:inset-6">
                   <ProductImage
                     imageUrl={product.imageUrl}
                     alt={product.title}
-                    className="object-contain transition duration-300 group-hover:scale-[1.03]"
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
+                    className="object-contain transition duration-300 ease-out group-hover:scale-[1.05]"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     priority={index === 0}
                   />
                 </div>
               ) : (
-                <div className="flex h-full items-center justify-center px-4 text-center text-xs text-zinc-500">
+                <div className="flex h-full items-center justify-center px-4 text-center text-xs text-zinc-400">
                   Image unavailable
                 </div>
               )}
+              {hasPrice && (
+                <span className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-zinc-900 shadow-sm ring-1 ring-zinc-950/5 backdrop-blur">
+                  {formatPrice(product)}
+                </span>
+              )}
             </div>
 
-            <div className="flex flex-1 flex-col gap-2 p-3">
-              <div className="flex items-center justify-between gap-2 text-xs">
-                <span className="font-bold text-zinc-950">{formatPrice(product)}</span>
-                <span className="shrink-0 text-zinc-500">{getSourceLabel(product.source)}</span>
-              </div>
-
-              <h3 className="line-clamp-3 text-sm font-semibold leading-snug text-zinc-950 group-hover:text-red-700">
+            <div className="flex flex-col gap-1 px-0.5 pt-3">
+              <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug tracking-[-0.01em] text-zinc-900 underline-offset-4 group-hover:underline">
                 {title}
               </h3>
 
               {description && (
-                <p className="line-clamp-2 text-xs leading-5 text-zinc-600">
+                <p className="line-clamp-2 text-sm leading-snug text-zinc-500">
                   {description}
                 </p>
               )}
 
-              <div className="mt-auto flex flex-wrap gap-1 pt-1">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded bg-zinc-100 px-1.5 py-0.5 text-[11px] font-medium text-zinc-700"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              <p className="pt-0.5 text-[11px] font-medium uppercase tracking-[0.08em] text-zinc-400">
+                {getSourceLabel(product.source)}
+                <span aria-hidden="true" className="ml-1 inline-block transition-transform duration-200 group-hover:-translate-y-px group-hover:translate-x-px">↗</span>
+              </p>
             </div>
           </a>
         );

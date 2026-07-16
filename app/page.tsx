@@ -104,7 +104,7 @@ export default async function HomePage({
   const itemListSchema = JSON.stringify(buildHomeItemListSchema(initialProducts)).replace(/</g, '\\u003c');
 
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-950">
+    <main className="min-h-screen bg-white text-zinc-950">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: itemListSchema }}
@@ -112,19 +112,31 @@ export default async function HomePage({
 
       <Header />
 
-      <section className="mx-auto max-w-7xl px-4 py-6 sm:py-8">
-        <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-red-600">
-            Funny gifts, dumb ideas, real products
-          </p>
-          <h1 className="mt-2 text-4xl font-black tracking-tight text-zinc-950 sm:text-5xl">
-            The internet&apos;s least serious gift catalog.
-          </h1>
-          <p className="mt-3 text-base leading-7 text-zinc-600 sm:text-lg">
-            Absurd, useful, and deeply unnecessary finds for people who are hard to shop for.
-          </p>
-        </div>
-
+      <section className="mx-auto max-w-2xl px-4 pb-2 pt-10 text-center sm:pt-14">
+        <h1 className="text-balance text-4xl font-extrabold tracking-tight text-zinc-950 sm:text-[2.75rem] sm:leading-[1.15]">
+          The internet&apos;s{' '}
+          <span className="relative inline-block whitespace-nowrap">
+            least serious
+            <svg
+              className="absolute -bottom-1.5 left-0 w-full text-red-500 sm:-bottom-2"
+              viewBox="0 0 220 12"
+              fill="none"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M3 8.5C40 3.5 80 3 110 5.5C145 8.5 180 8 217 4"
+                stroke="currentColor"
+                strokeWidth="5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>{' '}
+          gift catalog
+        </h1>
+        <p className="mx-auto mt-4 max-w-xl text-pretty text-base leading-7 text-zinc-500 sm:text-lg">
+          Absurd, useful, and deeply unnecessary finds for people who are hard to shop for.
+        </p>
       </section>
 
       <CatalogSearchFeed
