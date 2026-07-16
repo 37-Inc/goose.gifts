@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ProductGrid } from '@/components/ProductGrid';
+import { Header } from '@/components/Header';
+import { PageHero } from '@/components/ui/PageHero';
+import { SectionHeading, BrowseCard } from '@/components/ui/SectionHeading';
 import { giftGuides, getFeaturedGiftGuides, getGiftGuide, getGiftGuideProducts } from '@/lib/gift-guides';
 import { getSiteUrl } from '@/lib/site';
 import type { Product } from '@/lib/types';
@@ -207,118 +210,81 @@ export default async function GiftGuidePage({ params }: GiftGuidePageProps) {
   const schema = JSON.stringify(buildGuideSchema(products, guide, canonicalUrl)).replace(/</g, '\\u003c');
 
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-950">
+    <main className="min-h-screen bg-white text-zinc-950">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: schema }}
       />
 
-      <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/" className="text-2xl font-black tracking-tight">
-            goose.gifts
+      <Header />
+
+      <PageHero title={guide.h1} subtitle={guide.intro} />
+
+      <nav
+        className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-2 px-4 pt-5"
+        aria-label="Related gift guides"
+      >
+        {navGuides.map((item) => (
+          <Link
+            key={item.slug}
+            href={`/gift-guides/${item.slug}`}
+            className={
+              item.slug === guide.slug
+                ? 'rounded-full bg-zinc-950 px-3.5 py-1.5 text-[13px] font-semibold text-white'
+                : 'rounded-full bg-zinc-100 px-3.5 py-1.5 text-[13px] font-medium text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-950'
+            }
+          >
+            {item.title}
           </Link>
-          <nav className="flex flex-wrap gap-x-4 gap-y-2 text-sm font-medium text-zinc-600">
-            {navGuides.map((item) => (
-              <Link
+        ))}
+      </nav>
+
+      <section className="mx-auto max-w-6xl px-4 pb-16 pt-12 sm:pt-14">
+        <SectionHeading title="Hand-picked from the catalog" aside="Real products, live prices" />
+
+        {products.length === 0 ? (
+          <div className="rounded-2xl bg-zinc-50 px-6 py-16 text-center text-sm leading-6 text-zinc-500">
+            Catalog matches are thin for this guide today. More products will appear as
+            daily discovery expands the catalog.
+          </div>
+        ) : (
+          <ProductGrid
+            products={products}
+            clickSource="gift_guide"
+            contextSlug={guide.slug}
+          />
+        )}
+      </section>
+
+      <section className="mx-auto grid max-w-6xl gap-x-10 gap-y-12 px-4 pb-20 lg:grid-cols-[minmax(0,2fr)_minmax(17rem,1fr)]">
+        <div>
+          <SectionHeading title="What to know before picking one" />
+          <div className="divide-y divide-zinc-100">
+            {faqs.map((faq) => (
+              <div key={faq.question} className="py-5 first:pt-0">
+                <h3 className="text-base font-semibold text-zinc-900">
+                  {faq.question}
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-zinc-500">
+                  {faq.answer}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <aside>
+          <SectionHeading title="Keep browsing" />
+          <div className="flex flex-col gap-2">
+            {relatedGuides.map((item) => (
+              <BrowseCard
                 key={item.slug}
                 href={`/gift-guides/${item.slug}`}
-                className={item.slug === guide.slug ? 'text-red-700' : 'hover:text-zinc-950'}
-              >
-                {item.title}
-              </Link>
+                title={item.title}
+              />
             ))}
-          </nav>
-        </div>
-      </header>
-
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:py-12">
-        <Link href="/" className="text-sm font-semibold text-red-700 hover:text-red-800">
-          Funny gift catalog
-        </Link>
-        <div className="mt-4 max-w-3xl">
-          <h1 className="text-4xl font-black tracking-tight text-zinc-950 sm:text-5xl">
-            {guide.h1}
-          </h1>
-          <p className="mt-4 text-base leading-7 text-zinc-600 sm:text-lg">
-            {guide.intro}
-          </p>
-        </div>
-      </section>
-
-      <section className="border-y border-zinc-200 bg-white py-8 sm:py-10">
-        <div className="mx-auto max-w-7xl px-3 sm:px-4">
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-red-600">
-                Catalog picks
-              </p>
-              <h2 className="mt-1 text-2xl font-bold text-zinc-950 sm:text-3xl">
-                Real products for this search
-              </h2>
-            </div>
-            <p className="max-w-xl text-sm leading-6 text-zinc-600">
-              Selected from active catalog items with images, affiliate URLs, and matching gift-guide signals.
-            </p>
           </div>
-
-          {products.length === 0 ? (
-            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-6 text-sm text-zinc-600">
-              Catalog matches are thin for this guide today. More products will appear as daily discovery expands the catalog.
-            </div>
-          ) : (
-            <ProductGrid
-              products={products}
-              clickSource="gift_guide"
-              contextSlug={guide.slug}
-            />
-          )}
-        </div>
-      </section>
-
-      <section className="bg-zinc-50 py-8 sm:py-10">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-red-600">
-              Quick answers
-            </p>
-            <h2 className="mt-1 text-2xl font-bold text-zinc-950 sm:text-3xl">
-              What to know before picking one
-            </h2>
-            <div className="mt-5 divide-y divide-zinc-200 border-y border-zinc-200">
-              {faqs.map((faq) => (
-                <div key={faq.question} className="py-5">
-                  <h3 className="text-base font-bold text-zinc-950">
-                    {faq.question}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-zinc-600">
-                    {faq.answer}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <aside>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-red-600">
-              Related searches
-            </p>
-            <h2 className="mt-1 text-xl font-bold text-zinc-950">
-              Keep browsing
-            </h2>
-            <div className="mt-4 flex flex-col gap-2">
-              {relatedGuides.map((item) => (
-                <Link
-                  key={item.slug}
-                  href={`/gift-guides/${item.slug}`}
-                  className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-800 transition hover:border-zinc-400 hover:text-red-700"
-                >
-                  {item.title}
-                </Link>
-              ))}
-            </div>
-          </aside>
-        </div>
+        </aside>
       </section>
     </main>
   );

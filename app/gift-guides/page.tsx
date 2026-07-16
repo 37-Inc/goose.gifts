@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { Header } from '@/components/Header';
-import { giftGuides } from '@/lib/gift-guides';
+import { PageHero, HeroUnderline } from '@/components/ui/PageHero';
+import { GuideTile } from '@/components/GuideTile';
+import { giftGuides, getGuidePreviewImages } from '@/lib/gift-guides';
 import { getSiteUrl } from '@/lib/site';
+
+export const revalidate = 3600;
 
 const GUIDE_INDEX_TITLE = 'Funny Gift Guides';
 const GUIDE_INDEX_DESCRIPTION = 'Browse every goose.gifts guide for funny gag gifts, white elephant ideas, coworker gifts, weird kitchen finds, novelty desk toys, and hard-to-shop-for people.';
@@ -110,9 +113,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GiftGuideIndexPage() {
+export default async function GiftGuideIndexPage() {
   const baseUrl = getSiteUrl();
   const url = `${baseUrl}/gift-guides`;
+  const previews = await getGuidePreviewImages(giftGuides);
+  let tileIndex = 0;
   const schema = JSON.stringify({
     '@context': 'https://schema.org',
     '@graph': [
@@ -147,7 +152,7 @@ export default function GiftGuideIndexPage() {
   }).replace(/</g, '\\u003c');
 
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-950">
+    <main className="min-h-screen bg-white text-zinc-950">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: schema }}
@@ -155,70 +160,55 @@ export default function GiftGuideIndexPage() {
 
       <Header />
 
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:py-12">
-        <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-red-600">
-            Catalog-backed gift ideas
-          </p>
-          <h1 className="mt-2 text-4xl font-black tracking-tight text-zinc-950 sm:text-5xl">
-            Funny gift guides for every kind of ridiculous present.
-          </h1>
-          <p className="mt-4 text-base leading-7 text-zinc-600 sm:text-lg">
-            Browse the maintained goose.gifts guide network: holiday exchanges, office-safe jokes, weird home finds, pet-person presents, and hard-to-shop-for recipient lists backed by the live catalog.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        title={<>Funny gift guides for every <HeroUnderline>ridiculous</HeroUnderline> present</>}
+        subtitle="Holiday exchanges, office-safe jokes, weird home finds, pet-person presents, and hard-to-shop-for recipient lists — every guide backed by the live catalog."
+      />
 
-      <section className="border-y border-zinc-200 bg-white py-8 sm:py-10">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="grid gap-8 lg:grid-cols-3">
-            {guideSections.map((section) => (
-              <section key={section.title} aria-labelledby={`${section.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-heading`}>
-                <h2
-                  id={`${section.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-heading`}
-                  className="text-2xl font-bold text-zinc-950"
-                >
-                  {section.title}
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-zinc-600">
-                  {section.description}
-                </p>
-                <div className="mt-5 flex flex-col gap-2">
+      <div className="mx-auto max-w-6xl px-4 pb-16 pt-12 sm:pt-14">
+        <div className="flex flex-col gap-14">
+          {guideSections.map((section) => {
+            const headingId = `${section.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-heading`;
+            return (
+              <section key={section.title} aria-labelledby={headingId}>
+                <div className="mb-6 border-b border-zinc-100 pb-4">
+                  <h2 id={headingId} className="text-lg font-bold tracking-tight text-zinc-950 sm:text-xl">
+                    {section.title}
+                  </h2>
+                  <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-500">
+                    {section.description}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-7">
                   {section.slugs.map((slug) => {
                     const guide = getGuide(slug);
-
+                    const isPriority = tileIndex < 4;
+                    tileIndex += 1;
                     return (
-                      <Link
+                      <GuideTile
                         key={guide.slug}
                         href={`/gift-guides/${guide.slug}`}
-                        className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 transition hover:border-zinc-400 hover:bg-white"
-                      >
-                        <span className="block text-sm font-bold text-zinc-950">
-                          {guide.title}
-                        </span>
-                        <span className="mt-1 block text-sm leading-6 text-zinc-600">
-                          {guide.intro}
-                        </span>
-                      </Link>
+                        title={guide.title}
+                        preview={previews[guide.slug]}
+                        priority={isPriority}
+                      />
                     );
                   })}
                 </div>
               </section>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:py-10">
-        <div className="max-w-3xl">
-          <h2 className="text-2xl font-bold text-zinc-950">
+        <div className="mx-auto mt-16 max-w-2xl border-t border-zinc-100 pt-8 text-center">
+          <h2 className="text-lg font-bold tracking-tight text-zinc-950">
             How these guides stay useful
           </h2>
-          <p className="mt-3 text-sm leading-6 text-zinc-600">
-            Each guide points at active catalog products with images and affiliate URLs. The daily catalog run refreshes discovery, product copy, and matching signals so these pages can improve as new funny, weird, and actually purchasable products appear.
+          <p className="mt-3 text-pretty text-sm leading-6 text-zinc-500">
+            Each guide points at active catalog products with real images and affiliate links. The daily catalog run refreshes discovery, product copy, and matching signals, so these pages keep getting better as new funny, weird, and actually purchasable products appear.
           </p>
         </div>
-      </section>
+      </div>
     </main>
   );
 }
