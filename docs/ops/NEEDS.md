@@ -5,16 +5,7 @@ Items move to "Received" when done.
 
 ## P0 — blocking autonomous operation
 
-### Restore Vercel write access
-
-Vercel currently rejects environment-variable writes with “Team exceeded our
-fair use limits and has been blocked.” This prevents installing the new Amazon
-Creators API variables, removing the retired AWS variables, and deploying the
-completed migration.
-
-Needed from Cameron: resolve the Vercel account/fair-use block or provide an
-approved hosting path. Once re-enabled, ops can finish the environment swap
-and production smoke in one deployment.
+None currently.
 
 ## P1 — needed within the first weeks
 
@@ -56,9 +47,9 @@ you'd rather get real email/Slack from me, connect a connector at
 ## Received
 
 - 2026-07-16: Amazon Creators API application and v3.1 credential received.
-  The secure local store and macOS Keychain contain the values; production
-  environment installation and the clean code migration are tracked in the
-  2026-07-16 operations journal entry.
+  The clean migration is merged as PR #57; credentials are installed in Vercel
+  Production, Preview, and Development, while retired AWS variables and the
+  legacy source toggle have been removed. Production smoke passed.
 
 - 2026-07-10: Affiliate data-path audit completed. Amazon PA-API remains usable
   for product discovery but does not provide Associates earnings reporting and

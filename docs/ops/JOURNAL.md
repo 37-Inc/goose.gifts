@@ -28,20 +28,19 @@ partial verified Creators results; fixed it before shipping. Passed
 `npm run test:amazon`, `npm run test:catalog-ops`, `npm run test:ranking`,
 `npm run test:index`, `npm run lint`, `npm run build`, and `git diff --check`.
 
-**Deployment blocker**: Vercel accepted project reads but rejected all writes
-to add the new sensitive variables with “Team exceeded our fair use limits and
-has been blocked.” The new variables are therefore not in Vercel yet, the
-old AWS variables have not been removed, and no production deployment was
-attempted. Do not merge until the Vercel account is re-enabled; then install
-`AMAZON_CREATORS_CREDENTIAL_ID`, `_SECRET`, and `_VERSION` in Production,
-Preview, and Development, remove the old AWS/legacy toggle variables, deploy,
-and run the live catalog smoke checks.
+**Production cutover**: PR #57 merged as `b926439`. Once Vercel write access
+returned, installed `AMAZON_CREATORS_CREDENTIAL_ID`, `_SECRET`, and `_VERSION`
+in Production, Preview, and Development; removed the retired AWS keys/region
+and legacy source toggle; and deployed
+`goose-gifts-e5cj376vm-37-inc.vercel.app`. The deployment is Ready with all
+public aliases. Homepage returned 200 with the expected title, sitemap 200,
+`/search` 308, and the semantic catalog query 200 with ItemList data.
 
 **Growth lever chosen**: catalog data quality and conversion continuity.
 Creators API restores verified current product metadata, price freshness, and
 affiliate-link repair—inputs used by every search, guide, and outbound click.
-New SEO/GEO publishing was deferred because Search Console still has zero
-indexed sitemap URLs and the required production deployment is blocked.
+New SEO/GEO publishing remains deferred because Search Console still has zero
+indexed sitemap URLs.
 
 ## 2026-07-15 - Daily ops: catalog discovery survives PA-API deprecation
 
