@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import amazonCreators from '../lib/amazon-creators.js';
 
 import {
   amazonAffiliateUrl,
   deduplicateAgainstCatalog,
   deduplicateCandidates,
-  isAmazonPaapiDeprecatedError,
   parseArgs,
   revalidatedProduct,
   selectRotatingThemes,
@@ -22,12 +22,28 @@ test('daily theme selection rotates deterministically across the full pool', () 
   assert.equal(new Set([...first, ...nextDay]).size, 12);
 });
 
-test('Amazon PA-API deprecation is distinguished from transient failures', () => {
-  assert.equal(isAmazonPaapiDeprecatedError(new Error(
-    'Amazon GetItems failed (403): Product Advertising API is deprecated. Please migrate to Creators API'
-  )), true);
-  assert.equal(isAmazonPaapiDeprecatedError(new Error('Amazon GetItems failed (403): Access denied')), false);
-  assert.equal(isAmazonPaapiDeprecatedError(new Error('Amazon GetItems failed (429): throttled')), false);
+test('Creators API item mapping reads lowerCamelCase offersV2 data', () => {
+  const product = amazonCreators.mapItem({
+    asin: 'B012345678',
+    detailPageURL: 'https://www.amazon.com/dp/B012345678?tag=example-20',
+    images: { primary: { large: { url: 'https://images.example/product.jpg' } } },
+    itemInfo: { title: { displayValue: 'Ridiculous Desk Chicken' } },
+    offersV2: { listings: [{ price: { money: { amount: 19.95, currency: 'USD' } } }] },
+    customerReviews: { starRating: { value: 4.6 }, count: 123 },
+  });
+
+  assert.deepEqual(product, {
+    id: 'B012345678',
+    title: 'Ridiculous Desk Chicken',
+    price: 19.95,
+    currency: 'USD',
+    imageUrl: 'https://images.example/product.jpg',
+    affiliateUrl: 'https://www.amazon.com/dp/B012345678?tag=example-20',
+    source: 'amazon',
+    remotelyVerified: true,
+    rating: 4.6,
+    reviewCount: 123,
+  });
 });
 
 test('near-identical discovery titles are filtered while distinct products remain', () => {

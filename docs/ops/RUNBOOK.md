@@ -123,9 +123,10 @@ Boundaries (always in force):
    `npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
    The command uses `@vercel/postgres` over HTTPS, enriches product copy/tags
    and embeddings, upserts discovered products, and backfills a bounded set of
-   existing active products missing catalog fields. If legacy Amazon PA-API
-   returns its deprecation error, discovery falls back to Google CSE metadata;
-   do not treat that fallback as remote price or availability verification.
+   existing active products missing catalog fields. Amazon Creators API is the
+   primary source for product discovery, enrichment, and revalidation. Google
+   CSE is an optional discovery fallback; do not treat its metadata as remote
+   price or availability verification.
    Its default theme pool
    rotates deterministically by UTC date, and exact/near-identical discoveries
    are collapsed before enrichment. Known prices still gate the
@@ -177,7 +178,7 @@ pass in step 6. In addition:
   This repairs mismatched Amazon associate URLs catalog-wide, then rechecks at
   most 50 stale active Amazon items. A product is deactivated only when it was
   last successfully verified at least 90 days ago and is absent from two
-  consecutive PA-API responses in the same run. Throttling or a failed
+  consecutive Creators API responses in the same run. Throttling or a failed
   confirmation leaves the product unchanged. Use `--dry-run --no-deactivate`
   for a read-only audit. Then spend one focused
   pass on overall site quality: stale/broken links, broken images, awkward copy,

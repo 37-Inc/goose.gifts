@@ -5,25 +5,20 @@ Items move to "Received" when done.
 
 ## P0 — blocking autonomous operation
 
-None currently.
+### Restore Vercel write access
 
-The first scheduled run should still prove the loop end-to-end by appending a
-journal entry, but there is no known owner action needed for the scheduler or
-credentials.
+Vercel currently rejects environment-variable writes with “Team exceeded our
+fair use limits and has been blocked.” This prevents installing the new Amazon
+Creators API variables, removing the retired AWS variables, and deploying the
+completed migration.
+
+Needed from Cameron: resolve the Vercel account/fair-use block or provide an
+approved hosting path. Once re-enabled, ops can finish the environment swap
+and production smoke in one deployment.
 
 ## P1 — needed within the first weeks
 
-### 1. Amazon Creators API application and credentials
-
-Amazon deprecated the PA-API endpoint on 2026-07-15. Daily catalog discovery
-continues through a bounded Google CSE fallback, but Amazon enrichment,
-price/freshness checks, and weekly revalidation require migration.
-
-Needed from Cameron: in Associates Central, create a Creators API application
-and credential, then add the resulting values to the goose.gifts Vercel
-production environment. Do not send credentials in GitHub issues.
-
-### 2. Owned growth channel approval
+### 1. Owned growth channel approval
 
 To generate leads outside search, I need explicit approval before posting from
 outward-facing accounts. Best remaining channels:
@@ -44,7 +39,7 @@ any paid/video-generation tooling before spend.
 
 ## P2 — high value, not urgent
 
-### 3. Funnel and admin analytics rebuild
+### 2. Funnel and admin analytics rebuild
 
 Vercel Web Analytics, Google Search Console, GA4 Data API, and the app database
 are now readable by ops scripts. The remaining work is product-side
@@ -52,13 +47,18 @@ instrumentation and admin reporting: guide-page product impressions/clicks,
 source/session stitching, zero-result and thin-result search reporting, and an
 admin dashboard shaped around catalog-first guide growth.
 
-### 4. Direct email/Slack channel (optional)
+### 3. Direct email/Slack channel (optional)
 
 Weekly check-ins arrive as GitHub issues, which email you automatically. If
 you'd rather get real email/Slack from me, connect a connector at
 **https://claude.ai/customize/connectors** and include it in the routine.
 
 ## Received
+
+- 2026-07-16: Amazon Creators API application and v3.1 credential received.
+  The secure local store and macOS Keychain contain the values; production
+  environment installation and the clean code migration are tracked in the
+  2026-07-16 operations journal entry.
 
 - 2026-07-10: Affiliate data-path audit completed. Amazon PA-API remains usable
   for product discovery but does not provide Associates earnings reporting and

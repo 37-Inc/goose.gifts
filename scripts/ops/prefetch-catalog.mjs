@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 import dotenv from 'dotenv';
-import crypto from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { sql } from '@vercel/postgres';
 import OpenAI from 'openai';
+import amazonCreators from '../../lib/amazon-creators.js';
 
 dotenv.config({ path: '.env.local', quiet: true });
 dotenv.config({ quiet: true });
@@ -23,9 +23,6 @@ const DEFAULT_THEMES = [
   'funny birthday gifts',
   'gag gifts under 25 dollars',
 ];
-
-const PAAPI_GET_ITEMS_TARGET = 'com.amazon.paapi5.v1.ProductAdvertisingAPIv1.GetItems';
-const PAAPI_SEARCH_TARGET = 'com.amazon.paapi5.v1.ProductAdvertisingAPIv1.SearchItems';
 
 const HUMOR_TAG_RULES = [
   ['white elephant', ['white-elephant', 'party']],
@@ -106,7 +103,7 @@ Options:
   --dry-run                 Search and score products without writing to Postgres.
   --themes "a|b|c"          Pipe-delimited discovery themes.
   --theme-limit 6           Number of themes to search.
-  --per-theme 10            Google CSE results per theme, max 10.
+  --per-theme 10            Amazon Creators API results per theme, max 10.
   --max-new 50              Stop after this many net-new products.
   --min-price 5             Minimum known price for active homepage eligibility.
   --max-price 150           Maximum known price for active homepage eligibility.
@@ -116,10 +113,10 @@ Options:
                             Products per OpenAI copy/tag batch.
   --backfill-limit 25       Existing active products to enrich before discovery. Set 0 to skip.
   --revalidate              Recheck a bounded batch of stale active Amazon products and repair affiliate URLs.
-  --revalidate-limit 50     Maximum stale products to check (hard cap 100; PA-API batches of 10).
+  --revalidate-limit 50     Maximum stale products to check (hard cap 100; Creators API batches of 10).
   --stale-days 30           Only check products not successfully verified within this many days.
   --deactivate-after-days 90
-                            Deactivate only products this stale that are absent from two PA-API checks (minimum 60).
+                            Deactivate only products this stale that are absent from two Creators API checks (minimum 60).
   --no-deactivate           Audit and refresh only; never deactivate missing products.
 `);
 }
@@ -130,14 +127,10 @@ function requiredEnv(options) {
   };
 
   if (!options.enrichOnly) {
-    env.AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
-    env.AWS_SECRET_KEY_OR_AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_KEY || process.env.AWS_SECRET_ACCESS_KEY;
+    env.AMAZON_CREATORS_CREDENTIAL_ID = process.env.AMAZON_CREATORS_CREDENTIAL_ID;
+    env.AMAZON_CREATORS_CREDENTIAL_SECRET = process.env.AMAZON_CREATORS_CREDENTIAL_SECRET;
+    env.AMAZON_CREATORS_CREDENTIAL_VERSION = process.env.AMAZON_CREATORS_CREDENTIAL_VERSION;
     env.AMAZON_ASSOCIATE_TAG = process.env.AMAZON_ASSOCIATE_TAG;
-  }
-
-  if (!options.enrichOnly && !options.revalidate) {
-    env.GOOGLE_SEARCH_API_KEY = process.env.GOOGLE_SEARCH_API_KEY;
-    env.GOOGLE_SEARCH_ENGINE_ID = process.env.GOOGLE_SEARCH_ENGINE_ID;
   }
 
   if (!options.skipEnrichment && !options.dryRun && !options.revalidate) {
@@ -172,10 +165,6 @@ function selectRotatingThemes(themePool, limit, date = new Date()) {
   const count = Math.min(limit, themePool.length);
   const start = (utcDayNumber(date) * count) % themePool.length;
   return Array.from({ length: count }, (_, index) => themePool[(start + index) % themePool.length]);
-}
-
-function amazonSecretKey() {
-  return process.env.AWS_SECRET_KEY || process.env.AWS_SECRET_ACCESS_KEY;
 }
 
 function cleanAmazonImageUrl(url) {
@@ -545,17 +534,7 @@ function isActiveCatalogCandidate(product, options) {
 }
 
 function isAmazonThrottleError(error) {
-  return (
-    error instanceof Error &&
-    /Amazon (SearchItems|GetItems) failed \(429\)|TooManyRequests/i.test(error.message)
-  );
-}
-
-function isAmazonPaapiDeprecatedError(error) {
-  return (
-    error instanceof Error &&
-    /Amazon (SearchItems|GetItems) failed \(403\).*Product Advertising API is deprecated/i.test(error.message)
-  );
+  return amazonCreators.isThrottleError(error);
 }
 
 function sleep(ms) {
@@ -579,30 +558,51 @@ function toPostgresVector(value) {
 }
 
 async function searchAmazonCandidates(theme, options) {
+  let creatorCandidates = [];
+  try {
+    creatorCandidates = finalizeProducts(
+      await amazonCreators.searchItems({ keywords: theme, itemCount: options.perTheme }),
+      theme,
+      options
+    );
+  } catch (error) {
+    if (!isAmazonThrottleError(error)) throw error;
+    console.warn(`Amazon Creators SearchItems throttled for "${theme}"; trying Google CSE fallback.`);
+  }
+
+  if (creatorCandidates.length >= Math.min(options.perTheme, 10)) {
+    return creatorCandidates;
+  }
+
   const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
   const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;
 
   if (!apiKey || !searchEngineId) {
-    throw new Error('Google Search env vars are required for catalog prefetch.');
+    return creatorCandidates;
   }
 
-  const params = new URLSearchParams({
-    key: apiKey,
-    cx: searchEngineId,
-    q: `${theme} amazon product`,
-    siteSearch: 'amazon.com',
-    siteSearchFilter: 'i',
-    num: String(Math.min(options.perTheme, 10)),
-  });
+  let data;
+  try {
+    const params = new URLSearchParams({
+      key: apiKey,
+      cx: searchEngineId,
+      q: `${theme} amazon product`,
+      siteSearch: 'amazon.com',
+      siteSearchFilter: 'i',
+      num: String(Math.min(options.perTheme, 10)),
+    });
+    const response = await fetch(`https://customsearch.googleapis.com/customsearch/v1?${params}`);
 
-  const response = await fetch(`https://customsearch.googleapis.com/customsearch/v1?${params}`);
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Google CSE failed for "${theme}" (${response.status}): ${body.slice(0, 300)}`);
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`Google CSE failed (${response.status}): ${body.slice(0, 300)}`);
+    }
+    data = await response.json();
+  } catch (error) {
+    console.warn(`Google CSE fallback failed for "${theme}"; retaining verified Creators results: ${error.message}`);
+    return creatorCandidates;
   }
 
-  const data = await response.json();
   const items = data.items ?? [];
   const discovered = items
     .map((item) => {
@@ -622,67 +622,28 @@ async function searchAmazonCandidates(theme, options) {
     })
     .filter(Boolean);
 
-  if (discovered.length === 0) {
-    try {
-      return await searchAmazonSearchItems(theme, options);
-    } catch (error) {
-      if (!isAmazonPaapiDeprecatedError(error)) throw error;
-      console.warn(`Amazon PA-API SearchItems is deprecated and Google CSE found no candidates for "${theme}"`);
-      return [];
-    }
-  }
-
-  let enriched;
+  let verifiedFallback = [];
   try {
-    enriched = await getAmazonItems(discovered.map((item) => item.asin));
+    verifiedFallback = await amazonCreators.getItems(discovered.map((item) => item.asin));
   } catch (error) {
-    if (!isAmazonPaapiDeprecatedError(error)) throw error;
-
-    console.warn(
-      `Amazon PA-API is deprecated; using ${discovered.length} Google CSE discoveries without PA-API enrichment`
-    );
-    enriched = discovered.map((item) => ({
-      id: item.asin,
-      title: item.fallbackTitle,
-      price: item.fallbackPrice,
-      currency: 'USD',
-      imageUrl: item.fallbackImageUrl,
-      affiliateUrl: amazonAffiliateUrl(item.asin, process.env.AMAZON_ASSOCIATE_TAG || ''),
-      source: 'amazon',
-      remotelyVerified: false,
-    }));
+    if (creatorCandidates.length === 0 && !isAmazonThrottleError(error)) throw error;
+    console.warn(`Amazon Creators GetItems fallback failed for "${theme}"; preserving only verified search results.`);
   }
+
   const fallbackTitles = new Map(discovered.map((item) => [item.asin, item.fallbackTitle]));
-  const candidates = finalizeProducts(
-    enriched.map((product) => ({
+  const fallbackCandidates = finalizeProducts(
+    verifiedFallback.map((product) => ({
       ...product,
+      imageUrl: cleanAmazonImageUrl(product.imageUrl),
       title: product.title || fallbackTitles.get(product.id) || '',
     })),
     theme,
     options
   );
 
-  if (candidates.length >= Math.min(options.perTheme, 10)) {
-    return candidates;
-  }
-
-  let fallbackCandidates = [];
-
-  try {
-    fallbackCandidates = await searchAmazonSearchItems(theme, options);
-  } catch (error) {
-    if (isAmazonThrottleError(error)) {
-      console.warn(`Amazon SearchItems throttled for "${theme}"; using partial candidate set`);
-    } else if (isAmazonPaapiDeprecatedError(error)) {
-      console.warn(`Amazon PA-API SearchItems is deprecated; using partial Google CSE candidate set for "${theme}"`);
-    } else {
-      throw error;
-    }
-  }
-
   const merged = new Map();
 
-  [...candidates, ...fallbackCandidates].forEach((product) => {
+  [...creatorCandidates, ...fallbackCandidates].forEach((product) => {
     if (!merged.has(product.id)) {
       merged.set(product.id, product);
     }
@@ -718,221 +679,6 @@ function finalizeProducts(products, theme, options) {
       ...product,
       qualityScore: scoreCandidate(product),
     }));
-}
-
-function credentialScope(timestamp, region) {
-  const date = timestamp.split('T')[0];
-  return `${date}/${region}/ProductAdvertisingAPI/aws4_request`;
-}
-
-function createGetItemsCanonicalRequest(params, timestamp) {
-  const payload = JSON.stringify(params);
-  const hashedPayload = crypto.createHash('sha256').update(payload).digest('hex');
-
-  return [
-    'POST',
-    '/paapi5/getitems',
-    '',
-    'content-encoding:amz-1.0',
-    'content-type:application/json; charset=utf-8',
-    'host:webservices.amazon.com',
-    `x-amz-date:${timestamp}`,
-    `x-amz-target:${PAAPI_GET_ITEMS_TARGET}`,
-    '',
-    'content-encoding;content-type;host;x-amz-date;x-amz-target',
-    hashedPayload,
-  ].join('\n');
-}
-
-function createSearchItemsCanonicalRequest(params, timestamp) {
-  const payload = JSON.stringify(params);
-  const hashedPayload = crypto.createHash('sha256').update(payload).digest('hex');
-
-  return [
-    'POST',
-    '/paapi5/searchitems',
-    '',
-    'content-encoding:amz-1.0',
-    'content-type:application/json; charset=utf-8',
-    'host:webservices.amazon.com',
-    `x-amz-date:${timestamp}`,
-    `x-amz-target:${PAAPI_SEARCH_TARGET}`,
-    '',
-    'content-encoding;content-type;host;x-amz-date;x-amz-target',
-    hashedPayload,
-  ].join('\n');
-}
-
-function createAmazonSignature(canonicalRequest, timestamp, region) {
-  const secretKey = amazonSecretKey();
-  if (!secretKey) {
-    throw new Error('Amazon PA-API secret key is not configured.');
-  }
-
-  const date = timestamp.split('T')[0];
-  const stringToSign = [
-    'AWS4-HMAC-SHA256',
-    timestamp,
-    credentialScope(timestamp, region),
-    crypto.createHash('sha256').update(canonicalRequest).digest('hex'),
-  ].join('\n');
-
-  const kDate = crypto.createHmac('sha256', `AWS4${secretKey}`).update(date).digest();
-  const kRegion = crypto.createHmac('sha256', kDate).update(region).digest();
-  const kService = crypto.createHmac('sha256', kRegion).update('ProductAdvertisingAPI').digest();
-  const kSigning = crypto.createHmac('sha256', kService).update('aws4_request').digest();
-
-  return crypto.createHmac('sha256', kSigning).update(stringToSign).digest('hex');
-}
-
-async function getAmazonItems(asins) {
-  const uniqueAsins = Array.from(new Set(asins)).slice(0, 10);
-  const region = process.env.AWS_REGION || 'us-east-1';
-  const timestamp = new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
-  const params = {
-    PartnerTag: process.env.AMAZON_ASSOCIATE_TAG,
-    PartnerType: 'Associates',
-    ItemIds: uniqueAsins,
-    Resources: [
-      'Images.Primary.Large',
-      'Images.Primary.Medium',
-      'ItemInfo.Title',
-      'Offers.Listings.Price',
-      'CustomerReviews.StarRating',
-      'CustomerReviews.Count',
-    ],
-  };
-  const canonicalRequest = createGetItemsCanonicalRequest(params, timestamp);
-  const signature = createAmazonSignature(canonicalRequest, timestamp, region);
-
-  let data;
-
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const response = await fetch('https://webservices.amazon.com/paapi5/getitems', {
-      method: 'POST',
-      headers: {
-        'Content-Encoding': 'amz-1.0',
-        'Content-Type': 'application/json; charset=utf-8',
-        'X-Amz-Date': timestamp,
-        'X-Amz-Target': PAAPI_GET_ITEMS_TARGET,
-        Authorization: `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${credentialScope(timestamp, region)}, SignedHeaders=content-encoding;content-type;host;x-amz-date;x-amz-target, Signature=${signature}`,
-        Host: 'webservices.amazon.com',
-      },
-      body: JSON.stringify(params),
-    });
-
-    if (response.ok) {
-      data = await response.json();
-      break;
-    }
-
-    const body = await response.text();
-    if (response.status === 429 && attempt < 2) {
-      await sleep(1500 * (attempt + 1));
-      continue;
-    }
-
-    throw new Error(`Amazon GetItems failed (${response.status}): ${body.slice(0, 300)}`);
-  }
-
-  const affiliateTag = process.env.AMAZON_ASSOCIATE_TAG || '';
-
-  return (data.ItemsResult?.Items ?? []).map((item) => {
-    const listing = item.Offers?.Listings?.[0];
-    const rawImageUrl = item.Images?.Primary?.Large?.URL || item.Images?.Primary?.Medium?.URL || '';
-
-    return {
-      id: item.ASIN,
-      title: item.ItemInfo?.Title?.DisplayValue || '',
-      price: Number.parseFloat(String(listing?.Price?.Amount || '0')),
-      currency: listing?.Price?.Currency || 'USD',
-      imageUrl: cleanAmazonImageUrl(rawImageUrl),
-      affiliateUrl: amazonAffiliateUrl(item.ASIN, affiliateTag),
-      source: 'amazon',
-      remotelyVerified: true,
-      rating: item.CustomerReviews?.StarRating?.Value
-        ? Number(item.CustomerReviews.StarRating.Value)
-        : undefined,
-      reviewCount: item.CustomerReviews?.Count
-        ? Number(item.CustomerReviews.Count)
-        : undefined,
-    };
-  });
-}
-
-async function searchAmazonSearchItems(theme, options) {
-  const region = process.env.AWS_REGION || 'us-east-1';
-  const timestamp = new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
-  const params = {
-    PartnerTag: process.env.AMAZON_ASSOCIATE_TAG,
-    PartnerType: 'Associates',
-    Keywords: theme,
-    SearchIndex: 'All',
-    ItemCount: Math.min(options.perTheme, 10),
-    Resources: [
-      'Images.Primary.Large',
-      'Images.Primary.Medium',
-      'ItemInfo.Title',
-      'Offers.Listings.Price',
-      'CustomerReviews.StarRating',
-      'CustomerReviews.Count',
-    ],
-  };
-  const canonicalRequest = createSearchItemsCanonicalRequest(params, timestamp);
-  const signature = createAmazonSignature(canonicalRequest, timestamp, region);
-
-  let data;
-
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const response = await fetch('https://webservices.amazon.com/paapi5/searchitems', {
-      method: 'POST',
-      headers: {
-        'Content-Encoding': 'amz-1.0',
-        'Content-Type': 'application/json; charset=utf-8',
-        'X-Amz-Date': timestamp,
-        'X-Amz-Target': PAAPI_SEARCH_TARGET,
-        Authorization: `AWS4-HMAC-SHA256 Credential=${process.env.AWS_ACCESS_KEY_ID}/${credentialScope(timestamp, region)}, SignedHeaders=content-encoding;content-type;host;x-amz-date;x-amz-target, Signature=${signature}`,
-        Host: 'webservices.amazon.com',
-      },
-      body: JSON.stringify(params),
-    });
-
-    if (response.ok) {
-      data = await response.json();
-      break;
-    }
-
-    const body = await response.text();
-    if (response.status === 429 && attempt < 2) {
-      await sleep(1500 * (attempt + 1));
-      continue;
-    }
-
-    throw new Error(`Amazon SearchItems failed (${response.status}): ${body.slice(0, 300)}`);
-  }
-
-  const products = (data.SearchResult?.Items ?? []).map((item) => {
-    const listing = item.Offers?.Listings?.[0];
-    const rawImageUrl = item.Images?.Primary?.Large?.URL || item.Images?.Primary?.Medium?.URL || '';
-
-    return {
-      id: item.ASIN,
-      title: item.ItemInfo?.Title?.DisplayValue || '',
-      price: Number.parseFloat(String(listing?.Price?.Amount || '0')),
-      currency: listing?.Price?.Currency || 'USD',
-      imageUrl: cleanAmazonImageUrl(rawImageUrl),
-      affiliateUrl: amazonAffiliateUrl(item.ASIN),
-      source: 'amazon',
-      rating: item.CustomerReviews?.StarRating?.Value
-        ? Number(item.CustomerReviews.StarRating.Value)
-        : undefined,
-      reviewCount: item.CustomerReviews?.Count
-        ? Number(item.CustomerReviews.Count)
-        : undefined,
-    };
-  });
-
-  return finalizeProducts(products, theme, options);
 }
 
 async function upsertProduct(product) {
@@ -1083,7 +829,7 @@ function revalidatedProduct(existing, remote, options) {
     currency: remotePrice > 0
       ? (remote.currency || existing.currency || 'USD')
       : (existing.currency || remote.currency || 'USD'),
-    imageUrl: remote.imageUrl || existing.image_url,
+    imageUrl: cleanAmazonImageUrl(remote.imageUrl || existing.image_url),
     affiliateUrl: amazonAffiliateUrl(existing.id),
     source: 'amazon',
     sourceQuery: existing.source_query || '',
@@ -1121,21 +867,15 @@ async function revalidateCatalog(options) {
   let confirmedMissing = 0;
   let deactivated = 0;
   let throttled = false;
-  let paapiDeprecated = false;
 
   for (const batch of chunkArray(existing, 10)) {
     let remoteProducts;
     try {
-      remoteProducts = await getAmazonItems(batch.map((product) => product.id));
+      remoteProducts = await amazonCreators.getItems(batch.map((product) => product.id));
     } catch (error) {
       if (isAmazonThrottleError(error)) {
         throttled = true;
         console.warn('Stopping revalidation after Amazon throttling; remaining products were left unchanged.');
-        break;
-      }
-      if (isAmazonPaapiDeprecatedError(error)) {
-        paapiDeprecated = true;
-        console.warn('Stopping revalidation because PA-API is deprecated; all products were left unchanged.');
         break;
       }
       throw error;
@@ -1148,7 +888,7 @@ async function revalidateCatalog(options) {
     if (missing.length > 0) {
       await sleep(2000);
       try {
-        const confirmation = await getAmazonItems(missing.map((product) => product.id));
+        const confirmation = await amazonCreators.getItems(missing.map((product) => product.id));
         const confirmedPresent = new Map(confirmation.map((product) => [product.id, product]));
         confirmedPresent.forEach((product, id) => remoteById.set(id, product));
         confirmedIds = missing.filter((product) => !confirmedPresent.has(product.id)).map((product) => product.id);
@@ -1171,7 +911,7 @@ async function revalidateCatalog(options) {
     await sleep(1200);
   }
 
-  return { selected: existing.length, refreshed, confirmedMissing, deactivated, throttled, paapiDeprecated, affiliateAudit };
+  return { selected: existing.length, refreshed, confirmedMissing, deactivated, throttled, affiliateAudit };
 }
 
 async function getProductsNeedingEnrichment(limit) {
@@ -1382,7 +1122,6 @@ export {
   amazonAffiliateUrl,
   deduplicateAgainstCatalog,
   deduplicateCandidates,
-  isAmazonPaapiDeprecatedError,
   normalizedTitleTokens,
   parseArgs,
   revalidatedProduct,
