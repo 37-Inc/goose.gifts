@@ -59,8 +59,16 @@ cards) — so the language stays consistent going forward.
   `<Header/>`; its guide nav is now a chip row matching the homepage.
 - Privacy page header aligned too. `/weird-gift-index` left as an intentional,
   separate editorial piece.
+- **Guides directory redesigned as visual tiles**: the 43-guide list was an
+  unparsable wall of text (three columns of intro sentences). It's now
+  image-tile grids grouped by section — each guide shows a representative
+  product image + title. New `getGuidePreviewImages` picks one image per guide
+  with a greedy scarcest-first assignment that guarantees no duplicate image
+  *and* avoids visual near-duplicates (e.g. two fake-belly fanny packs) via a
+  loose product-"family" check on the title. Runs at build/ISR
+  (`revalidate 3600`), not per request. New `components/GuideTile.tsx`.
 - `npm run build` + `lint` pass; desktop and mobile verified against production
-  data. (PR pending review.)
+  data. (PR #61 pending review.)
 
 ### 2026-07-16 — Amazon Creators API migration `[owner+claude]`
 

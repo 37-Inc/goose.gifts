@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import { Header } from '@/components/Header';
 import { PageHero, HeroUnderline } from '@/components/ui/PageHero';
-import { BrowseCard } from '@/components/ui/SectionHeading';
-import { giftGuides } from '@/lib/gift-guides';
+import { GuideTile } from '@/components/GuideTile';
+import { giftGuides, getGuidePreviewImages } from '@/lib/gift-guides';
 import { getSiteUrl } from '@/lib/site';
+
+export const revalidate = 3600;
 
 const GUIDE_INDEX_TITLE = 'Funny Gift Guides';
 const GUIDE_INDEX_DESCRIPTION = 'Browse every goose.gifts guide for funny gag gifts, white elephant ideas, coworker gifts, weird kitchen finds, novelty desk toys, and hard-to-shop-for people.';
@@ -111,9 +113,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GiftGuideIndexPage() {
+export default async function GiftGuideIndexPage() {
   const baseUrl = getSiteUrl();
   const url = `${baseUrl}/gift-guides`;
+  const previews = await getGuidePreviewImages(giftGuides);
+  let tileIndex = 0;
   const schema = JSON.stringify({
     '@context': 'https://schema.org',
     '@graph': [
@@ -162,26 +166,31 @@ export default function GiftGuideIndexPage() {
       />
 
       <div className="mx-auto max-w-6xl px-4 pb-16 pt-12 sm:pt-14">
-        <div className="grid gap-x-8 gap-y-10 lg:grid-cols-3">
+        <div className="flex flex-col gap-14">
           {guideSections.map((section) => {
             const headingId = `${section.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-heading`;
             return (
               <section key={section.title} aria-labelledby={headingId}>
-                <h2 id={headingId} className="text-lg font-bold tracking-tight text-zinc-950">
-                  {section.title}
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-zinc-500">
-                  {section.description}
-                </p>
-                <div className="mt-5 flex flex-col gap-2">
+                <div className="mb-6 border-b border-zinc-100 pb-4">
+                  <h2 id={headingId} className="text-lg font-bold tracking-tight text-zinc-950 sm:text-xl">
+                    {section.title}
+                  </h2>
+                  <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-500">
+                    {section.description}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-7">
                   {section.slugs.map((slug) => {
                     const guide = getGuide(slug);
+                    const isPriority = tileIndex < 4;
+                    tileIndex += 1;
                     return (
-                      <BrowseCard
+                      <GuideTile
                         key={guide.slug}
                         href={`/gift-guides/${guide.slug}`}
                         title={guide.title}
-                        description={guide.intro}
+                        preview={previews[guide.slug]}
+                        priority={isPriority}
                       />
                     );
                   })}

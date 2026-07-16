@@ -597,3 +597,118 @@ export async function getGiftGuideProducts(
       impressionCount: row.impressionCount || 0,
     }));
 }
+
+export interface GuidePreview {
+  imageUrl: string;
+  source: 'amazon' | 'etsy';
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+
+  async function worker() {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await fn(items[index]);
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, () => worker())
+  );
+
+  return results;
+}
+
+// Generic words that don't distinguish one gag gift from another; excluded
+// when deriving a product's "family" so near-identical items (e.g. two fake
+// belly fanny packs) are recognized as the same family and not shown together.
+const PREVIEW_FAMILY_STOPWORDS = new Set([
+  'the', 'a', 'an', 'and', 'or', 'for', 'of', 'with', 'to', 'in', 'on', 'your',
+  'gift', 'gifts', 'funny', 'gag', 'novelty', 'set', 'pack', 'kit', 'box',
+  'men', 'women', 'him', 'her', 'kids', 'adult', 'adults', 'christmas',
+  'birthday', 'holiday', 'secret', 'santa', 'white', 'elephant', 'stocking',
+  'best', 'perfect', 'cool', 'unique', 'great', 'idea', 'ideas', 'present',
+  'presents', 'him', 'dad', 'mom', 'new', 'pcs', 'piece', 'pieces', 'inch',
+]);
+
+function previewFamilyTokens(title: string): Set<string> {
+  const tokens = (title.toLowerCase().match(/[a-z]+/g) || []).filter(
+    (word) => word.length > 2 && !PREVIEW_FAMILY_STOPWORDS.has(word)
+  );
+  return new Set(tokens);
+}
+
+function sharesFamily(tokens: Set<string>, usedFamilies: Set<string>[]): boolean {
+  for (const used of usedFamilies) {
+    let overlap = 0;
+    for (const token of tokens) {
+      if (used.has(token)) {
+        overlap += 1;
+        if (overlap >= 2) return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Pick one representative product image per guide for the directory tiles.
+ *
+ * Guarantees no two guides show the same product image, and avoids visual
+ * near-duplicates (two different fake-belly fanny packs, say) by tracking a
+ * loose product "family" derived from the title. Guides are satisfied
+ * scarcest-first (fewest candidates); each takes its highest-quality image
+ * whose family hasn't already been used, falling back to any unused image if
+ * every remaining candidate collides. Returns a slug -> preview map; a guide
+ * is omitted only if it has no usable, still-unclaimed image.
+ */
+export async function getGuidePreviewImages(
+  guides: GiftGuideDefinition[]
+): Promise<Record<string, GuidePreview>> {
+  const pools = await mapWithConcurrency(guides, 8, async (guide) => {
+    const products = await getGiftGuideProducts(guide, 10);
+    return {
+      slug: guide.slug,
+      candidates: products
+        .filter((product) => product.imageUrl && product.imageUrl.length > 10)
+        .map((product) => ({
+          imageUrl: product.imageUrl as string,
+          source: product.source,
+          quality: product.qualityScore ?? 0,
+          family: previewFamilyTokens(product.title),
+        })),
+    };
+  });
+
+  const byScarcity = [...pools].sort(
+    (a, b) => a.candidates.length - b.candidates.length
+  );
+  const usedImages = new Set<string>();
+  const usedFamilies: Set<string>[] = [];
+  const previews: Record<string, GuidePreview> = {};
+
+  for (const pool of byScarcity) {
+    const ranked = [...pool.candidates].sort((a, b) => b.quality - a.quality);
+    const fresh = ranked.filter((candidate) => !usedImages.has(candidate.imageUrl));
+    // Prefer an image whose product family hasn't been shown yet; only reuse a
+    // family when this guide has nothing else left.
+    const pick =
+      fresh.find((candidate) => !sharesFamily(candidate.family, usedFamilies)) ||
+      fresh[0];
+
+    if (pick) {
+      usedImages.add(pick.imageUrl);
+      usedFamilies.push(pick.family);
+      previews[pool.slug] = { imageUrl: pick.imageUrl, source: pick.source };
+    }
+  }
+
+  return previews;
+}
