@@ -27,10 +27,6 @@ what's likely next.
 - **Design polish, round 2** (owner+claude track): tighten the mobile search
   bar (placeholder truncation), revisit guide-page headers to match the new
   cleaner homepage style, and consider per-product Open Graph share images.
-- **Hosting recovery**: restore Vercel write/deployment access, install the
-  Amazon Creators credentials, remove the retired AWS variables, and verify the
-  production catalog job. The site is currently disabled by Vercel fair-use
-  enforcement; see `NEEDS.md`.
 - **Catalog-first relaunch** (daily-ops track, top priority): keep improving
   catalog depth, enrichment/relevance quality, semantic-search results, and
   outbound CTR. Full plan in `ROADMAP.md` Phase 1.
@@ -53,9 +49,11 @@ rebased onto the design refresh and merged to `main`). Removed the legacy AWS
 configuration and test/code cruft; Google CSE remains an optional verified-only
 discovery fallback. Live API and dry-run catalog/revalidation checks passed.
 
-Production configuration and deployment remain pending until Vercel restores
-write access; the current account block prevents installing the new credentials
-or deploying any commit.
+The production cutover is complete: Creators credentials are installed in
+Production, Preview, and Development; retired AWS variables/toggle are gone;
+and Vercel deployment `goose-gifts-e5cj376vm-37-inc.vercel.app` is Ready with
+the public aliases. Homepage, sitemap, redirect, and semantic-search smoke
+checks passed.
 
 ### 2026-07-16 — Homepage & catalog design refresh `[owner+claude]`
 
