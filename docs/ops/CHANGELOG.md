@@ -68,7 +68,17 @@ cards) — so the language stays consistent going forward.
   loose product-"family" check on the title. Runs at build/ISR
   (`revalidate 3600`), not per request. New `components/GuideTile.tsx`.
 - `npm run build` + `lint` pass; desktop and mobile verified against production
-  data. (PR #61 pending review.)
+  data. **Shipped to production** (PR #61 merged, commit `d25a865`).
+
+> ⚠️ Deploy note (2026-07-16): merging PR #61 to `main` did **not**
+> auto-trigger a production deploy (waited ~20 min; earlier merges fired in
+> ~2). Triggered it manually via the Vercel API
+> (`POST /v13/deployments`, `target: production`, `gitSource ref: main`) →
+> `dpl_9sJKDC5Xav8Za15FgjNqxAjr9DMF`, READY + aliased, verified live. The
+> autonomous operator's recent production deploys also came from `claude/*`
+> refs (manual promotion), so main→prod auto-deploy may currently be
+> unreliable for this project. Watch on the next merge; if it recurs,
+> investigate the Vercel↔GitHub webhook / deploy settings.
 
 ### 2026-07-16 — Amazon Creators API migration `[owner+claude]`
 
