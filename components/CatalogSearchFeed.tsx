@@ -223,18 +223,14 @@ export function CatalogSearchFeed({
   }, [hasMore, hasSearch, loadMore]);
 
   return (
-    <section id="catalog-search" className="scroll-mt-4 bg-white">
-      <div className="mx-auto max-w-7xl px-4 pb-7">
+    <section id="catalog-search" className="scroll-mt-4">
+      <div className="mx-auto max-w-2xl px-4 pt-7 sm:pt-8">
         <form
-          className="max-w-3xl"
           onSubmit={(event) => {
             event.preventDefault();
             runSearch(query, { force: true });
           }}
         >
-          <label htmlFor="catalog-search-input" className="mb-2 block text-sm font-bold text-zinc-950">
-            Search thousands of weird gifts
-          </label>
           <div className="relative">
             <input
               id="catalog-search-input"
@@ -242,10 +238,11 @@ export function CatalogSearchFeed({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Try “coworker who loves cats”"
-              className="h-14 w-full rounded-xl border-2 border-zinc-300 bg-white pl-12 pr-28 text-base text-zinc-950 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-red-500 focus:ring-4 focus:ring-red-100 sm:text-lg"
+              aria-label="Search thousands of weird gifts"
+              className="h-14 w-full rounded-full border border-zinc-200 bg-white pl-12 pr-28 text-base text-zinc-950 shadow-[0_2px_16px_-4px_rgba(0,0,0,0.1)] outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)]"
             />
             <svg
-              className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400"
+              className="absolute left-[1.125rem] top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -256,44 +253,45 @@ export function CatalogSearchFeed({
             <button
               type="submit"
               disabled={isLoading}
-              className="absolute right-1.5 top-1/2 h-11 -translate-y-1/2 rounded-lg bg-zinc-950 px-5 text-sm font-bold text-white transition hover:bg-red-700 disabled:cursor-wait disabled:opacity-70"
+              className="absolute right-2 top-1/2 h-10 -translate-y-1/2 rounded-full bg-zinc-950 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-wait disabled:opacity-70"
             >
-              {isLoading ? 'Searching' : 'Search'}
+              {isLoading ? 'Searching…' : 'Search'}
             </button>
           </div>
         </form>
-
-        <nav className="mt-5 flex flex-wrap gap-2" aria-label="Popular gift guides">
-          {featuredGuides.map((guide) => (
-            <Link
-              key={guide.slug}
-              href={`/gift-guides/${guide.slug}`}
-              className="rounded-full border border-zinc-300 bg-zinc-50 px-3 py-1.5 text-sm font-semibold text-zinc-700 transition hover:border-zinc-500 hover:bg-white hover:text-zinc-950"
-            >
-              {guide.title}
-            </Link>
-          ))}
-          <Link
-            href="/gift-guides"
-            className="rounded-full border border-zinc-950 bg-zinc-950 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-red-700"
-          >
-            All guides
-          </Link>
-        </nav>
       </div>
 
-      <div className="border-y border-zinc-200 py-8 sm:py-10">
-        <div className="mx-auto max-w-7xl px-3 sm:px-4">
-        <div className="mb-5 flex items-end justify-between gap-4">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-red-600">
-              {hasSearch ? 'Best Matches' : 'Fresh Finds'}
-            </p>
-            <h2 className="mt-1 text-2xl font-bold text-zinc-950 sm:text-3xl">
-              {hasSearch ? `Gifts for "${activeQuery}"` : 'Ridiculous Gifts Worth Buying'}
-            </h2>
-          </div>
-          {hasSearch && (
+      <nav
+        className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-x-2 gap-y-2 px-4 pt-5"
+        aria-label="Popular gift guides"
+      >
+        {featuredGuides.map((guide) => (
+          <Link
+            key={guide.slug}
+            href={`/gift-guides/${guide.slug}`}
+            className="rounded-full bg-zinc-100 px-3.5 py-1.5 text-[13px] font-medium text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-950"
+          >
+            {guide.title}
+          </Link>
+        ))}
+        <Link
+          href="/gift-guides"
+          className="px-1.5 py-1.5 text-[13px] font-semibold text-zinc-500 underline-offset-4 transition hover:text-red-600 hover:underline"
+        >
+          All guides →
+        </Link>
+      </nav>
+
+      <div className="mx-auto max-w-6xl px-4 pb-16 pt-12 sm:pt-14">
+        <div className="mb-7 flex items-baseline justify-between gap-4 border-b border-zinc-100 pb-4">
+          <h2 className="text-lg font-bold tracking-tight text-zinc-950 sm:text-xl">
+            {hasSearch ? (
+              <>Gifts for <span className="text-red-600">&ldquo;{activeQuery}&rdquo;</span></>
+            ) : (
+              'Today’s ridiculous finds'
+            )}
+          </h2>
+          {hasSearch ? (
             <button
               type="button"
               onClick={() => {
@@ -304,55 +302,69 @@ export function CatalogSearchFeed({
                 setQuery('');
                 runSearch('');
               }}
-              className="shrink-0 text-sm font-semibold text-zinc-600 underline-offset-4 hover:text-red-700 hover:underline"
+              className="shrink-0 text-sm font-semibold text-zinc-500 underline-offset-4 hover:text-red-600 hover:underline"
             >
               Clear search
             </button>
+          ) : (
+            <p className="hidden shrink-0 text-sm text-zinc-400 sm:block">New weirdness daily</p>
           )}
         </div>
 
-        {isLoading && (
-          <div className="mb-4 text-sm font-medium text-zinc-500" role="status" aria-live="polite">
-            Searching catalog...
-          </div>
-        )}
-
         {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-6 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
 
-        {!isLoading && products.length === 0 && (
-          <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-10 text-center text-sm text-zinc-600">
-            No strong matches yet. This search is now logged as a catalog gap.
+        {isLoading ? (
+          <div
+            className="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-7"
+            role="status"
+            aria-live="polite"
+            aria-label="Searching catalog"
+          >
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div key={index} className="flex animate-pulse flex-col">
+                <div className="aspect-square rounded-2xl bg-zinc-100" />
+                <div className="mt-3 h-4 w-4/5 rounded bg-zinc-100" />
+                <div className="mt-2 h-3 w-3/5 rounded bg-zinc-100" />
+              </div>
+            ))}
           </div>
+        ) : products.length === 0 ? (
+          <div className="rounded-2xl bg-zinc-50 px-6 py-16 text-center">
+            <p className="text-base font-semibold text-zinc-900">Nothing great for that one — yet.</p>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-zinc-500">
+              We hunt down new weird gifts every day, and this search just told us what to look
+              for next. Try a different angle in the meantime.
+            </p>
+          </div>
+        ) : (
+          <ProductGrid
+            products={products}
+            clickSource={hasSearch ? 'catalog_search' : 'catalog_home'}
+            searchQueryId={searchId}
+          />
         )}
 
-        <ProductGrid
-          products={products}
-          clickSource={hasSearch ? 'catalog_search' : 'catalog_home'}
-          searchQueryId={searchId}
-        />
-
-        {!hasSearch && products.length > 0 && (
-          <div className="mt-8 flex flex-col items-center gap-3">
+        {!hasSearch && !isLoading && products.length > 0 && (
+          <div className="mt-12 flex flex-col items-center gap-3">
             {hasMore ? (
               <button
                 type="button"
                 onClick={loadMore}
                 disabled={isLoadingMore}
-                className="min-w-40 rounded-lg border-2 border-zinc-950 bg-white px-5 py-2.5 text-sm font-bold text-zinc-950 transition hover:bg-zinc-950 hover:text-white disabled:cursor-wait disabled:opacity-60"
+                className="min-w-44 rounded-full bg-zinc-950 px-7 py-3 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-wait disabled:opacity-60"
               >
-                {isLoadingMore ? 'Loading more…' : 'Load more gifts'}
+                {isLoadingMore ? 'Digging up more…' : 'Show me more'}
               </button>
             ) : (
-              <p className="text-sm font-medium text-zinc-500">You reached the end of the good stuff.</p>
+              <p className="text-sm font-medium text-zinc-400">You reached the end of the good stuff.</p>
             )}
             <div ref={loadMoreSentinelRef} className="h-px w-full" aria-hidden="true" />
           </div>
         )}
-        </div>
       </div>
     </section>
   );
