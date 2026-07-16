@@ -152,8 +152,11 @@ Boundaries (always in force):
    after deploy (~2 min for Vercel).
 8. **Log.** Append a dated entry to `docs/ops/JOURNAL.md`: metrics snapshot,
    what shipped, what review/QA found, what was learned, plan for tomorrow.
-   Update `docs/ops/NEEDS.md` (add new asks, mark received ones). Commit these
-   with the day's PR or a follow-up commit.
+   Also append a short entry (tagged `[daily-ops]`) to `docs/ops/CHANGELOG.md`
+   — the running shipped-work + plan log shared with the owner — and keep its
+   "Upcoming / planned" section honest. Update `docs/ops/NEEDS.md` (add new
+   asks, mark received ones). Commit these with the day's PR or a follow-up
+   commit.
 
 ## Review and QA cadence
 
