@@ -1,21 +1,16 @@
 # Affiliate Data Availability
 
-Last audited: 2026-07-15
+Last audited: 2026-07-16
 
 ## Current production path
 
 - All 3,280 pre-run catalog products were Amazon products.
-- Amazon deprecated the configured PA-API endpoint on 2026-07-15. Both
-  `GetItems` and `SearchItems` now return 403 with an instruction to migrate to
-  Creators API.
-- Daily discovery now degrades to Google CSE metadata, preserves canonical
-  Associate-tagged Amazon links, and skips candidates without usable images.
-  PA-API revalidation stops without deactivating products while migration is
-  pending. Price and remote-product freshness coverage will remain weaker.
-- Creators API requires an Associates Central application and new credentials.
-  Those account changes are owner-only; once supplied, code migration can be
-  completed and verified against the new API.
-- PA-API is a retail product-advertising API. It does not expose the Associates
+- Amazon Creators API is the sole Amazon product-data path. It uses OAuth 2.0
+  credentials and supports `SearchItems` discovery plus `GetItems` enrichment
+  and stale-product revalidation.
+- Google CSE is optional discovery-only resilience. CSE metadata is never
+  recorded as Amazon price, availability, or freshness verification.
+- Amazon product APIs do not expose the Associates
   earnings, orders, shipped revenue, or commission reports needed for EPC
   optimization.
 

@@ -5,6 +5,44 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-16 - Creators API clean migration
+
+**Incident resolution**: replaced every executable Amazon PA-API/SigV4 path
+with one OAuth 2.0 Creators API client. `SearchItems` is now the primary
+catalog-discovery source; `GetItems` performs enrichment and stale-product
+revalidation. The client caches access tokens with a renewal buffer, retries a
+single 401 after refresh, uses v3.1 Login with Amazon authentication, and maps
+the lowerCamelCase `offersV2` response safely. Deleted the retired signing
+code, AWS configuration, unused Google-search library, obsolete test scripts,
+and the stale PA-API rate-limit document. Google CSE remains optional,
+verified-only discovery fallback; its failure cannot discard Creators results.
+
+**Live verification**: Amazon accepted the supplied credentials, returned a
+v3.1 bearer token, and completed live `SearchItems` plus `GetItems` calls.
+`catalog:prefetch --dry-run` returned two active, remotely verified candidates.
+`catalog:revalidate --dry-run --revalidate-limit 1` selected and refreshed one
+stale product with zero confirmed misses or deactivations.
+
+**Review and QA**: a review found that a CSE outage could have suppressed
+partial verified Creators results; fixed it before shipping. Passed
+`npm run test:amazon`, `npm run test:catalog-ops`, `npm run test:ranking`,
+`npm run test:index`, `npm run lint`, `npm run build`, and `git diff --check`.
+
+**Deployment blocker**: Vercel accepted project reads but rejected all writes
+to add the new sensitive variables with “Team exceeded our fair use limits and
+has been blocked.” The new variables are therefore not in Vercel yet, the
+old AWS variables have not been removed, and no production deployment was
+attempted. Do not merge until the Vercel account is re-enabled; then install
+`AMAZON_CREATORS_CREDENTIAL_ID`, `_SECRET`, and `_VERSION` in Production,
+Preview, and Development, remove the old AWS/legacy toggle variables, deploy,
+and run the live catalog smoke checks.
+
+**Growth lever chosen**: catalog data quality and conversion continuity.
+Creators API restores verified current product metadata, price freshness, and
+affiliate-link repair—inputs used by every search, guide, and outbound click.
+New SEO/GEO publishing was deferred because Search Console still has zero
+indexed sitemap URLs and the required production deployment is blocked.
+
 ## 2026-07-15 - Daily ops: catalog discovery survives PA-API deprecation
 
 **Health**: production homepage and sitemap returned 200; the sitemap exposes

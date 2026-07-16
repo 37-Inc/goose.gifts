@@ -82,10 +82,9 @@ want a GitHub Actions-based scheduler.
   - pgvector is enabled in Neon; product embeddings use 1536 dimensions and a
     multi-armed bandit for product rotation exists (`lib/db/trending-rotation.ts`).
   - Prod env gaps: no `AWIN_*` vars exist (Etsy affiliate revenue likely
-    never wired). Amazon code now accepts both `AWS_SECRET_KEY` and Vercel's
-    `AWS_SECRET_ACCESS_KEY`, but PA-API responses currently omit offer prices
-    for discovered items, so prefetch keeps those discoveries inactive until
-    pricing/enrichment is solved.
+    never wired). Amazon product data uses the Creators API OAuth variables
+    (`AMAZON_CREATORS_CREDENTIAL_ID`, `_SECRET`, and `_VERSION`) plus
+    `AMAZON_ASSOCIATE_TAG`; Google CSE is discovery-only fallback data.
 - **Admin dashboard** exists at `/admin` (`ADMIN_PASSWORD` in env) with
   click/impression/search analytics.
 

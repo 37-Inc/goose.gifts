@@ -1,6 +1,7 @@
 # Google Custom Search API Setup
 
-This guide shows you how to set up Google Custom Search as an alternative to Amazon PA-API for product searching.
+This guide shows you how to configure Google Custom Search as an optional
+discovery fallback for the Amazon Creators API catalog pipeline.
 
 ## Why Use Google Search?
 
@@ -12,7 +13,7 @@ This guide shows you how to set up Google Custom Search as an alternative to Ama
 - ✅ Returns product links, titles, descriptions, and images
 
 **Cons:**
-- ⚠️ 100 free queries/day limit (vs 8,640 for Amazon PA-API)
+- ⚠️ 100 free queries/day limit; keep use bounded to fallback-only discovery
 - ⚠️ Price extraction less reliable (scraped from page metadata)
 - ⚠️ Not official Amazon API (could change)
 
@@ -54,7 +55,6 @@ This guide shows you how to set up Google Custom Search as an alternative to Ama
 ```bash
 GOOGLE_SEARCH_API_KEY=AIzaSyA...your_key_here
 GOOGLE_SEARCH_ENGINE_ID=a1b2c3d4e5f6g7h8i
-USE_GOOGLE_AMAZON_SEARCH=true
 ```
 
 **Production** (Vercel):
@@ -64,9 +64,6 @@ vercel env add GOOGLE_SEARCH_API_KEY
 
 vercel env add GOOGLE_SEARCH_ENGINE_ID
 # Paste your search engine ID
-
-vercel env add USE_GOOGLE_AMAZON_SEARCH
-# Enter: true
 ```
 
 ### Step 5: Optional - Enable "Best Seller" Mode
@@ -81,11 +78,12 @@ This searches for "best seller golf balls" instead of just "golf balls".
 
 ## Testing
 
-Once configured, try a search. You should see in logs:
+Creators API remains the primary discovery and verification source. When it is
+temporarily throttled, Google CSE can provide candidate Amazon URLs, which are
+only added after Creators API verifies them. Once configured, a fallback run
+will log:
 ```
-🔧 Search mode: GOOGLE | LITE
-🔍 Google searching Amazon for: "golf balls"
-✅ Found 10 Amazon products via Google
+Amazon Creators SearchItems throttled for "..."; trying Google CSE fallback.
 ```
 
 ## Rate Limits & Costs
@@ -126,29 +124,18 @@ Once configured, try a search. You should see in logs:
 - Falls back to scraping snippet text
 - Some products may show $0 (filtered out automatically)
 
-## Comparison: Google vs Amazon PA-API
+## Comparison: Google CSE vs Amazon Creators API
 
-| Feature | Google Custom Search | Amazon PA-API |
-|---------|---------------------|---------------|
-| Free tier | 100 queries/day | 8,640 queries/day |
-| Rate limit | None (just quota) | 1 request/second (new accounts) |
-| Setup time | 5 minutes | 24-48 hours |
-| Requirements | Google account | Amazon Associates account + sales |
-| Price accuracy | Moderate | High |
-| Product data | Basic | Comprehensive |
-| Affiliate links | Manual | Automatic |
-| Best for | MVP, Testing | Production, Scale |
+| Feature | Google Custom Search | Amazon Creators API |
+|---------|---------------------|---------------------|
+| Free tier | 100 queries/day | Subject to Associates allocation |
+| Product data | Search snippets and metadata | Verified product, price, image, and availability data |
+| Price accuracy | Low; not verification | Authoritative for the returned item |
+| Affiliate links | Candidate URL only | Associate-tagged product response |
+| Role | Fallback discovery | Primary discovery and refresh |
 
 ## Recommendation
 
-**Use Google Search if:**
-- You're getting PA-API rate limit errors
-- You want to test the app before Amazon approval
-- You need <100 searches per day
-
-**Use Amazon PA-API if:**
-- You have approved PA-API access
-- You need >100 searches per day
-- You want accurate pricing and product data
-
-You can toggle between them anytime with the `USE_GOOGLE_AMAZON_SEARCH` env variable!
+Keep Google CSE configured for continuity, but do not treat its titles, prices,
+images, or availability as Amazon verification. The catalog pipeline does not
+have a toggle between data sources: Creators API is always primary.
