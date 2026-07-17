@@ -6,42 +6,92 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { ProductClickButton } from '@/components/ProductClickButton';
 import { ProductGrid } from '@/components/ProductGrid';
 import { ProductImage } from '@/components/ProductImage';
-import { getRandomGiftSelection } from '@/lib/db/random-gift';
+import { getRandomGiftSelection, getProductById } from '@/lib/db/random-gift';
 import { getSiteUrl } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
 const PAGE_TITLE = 'Random Ridiculous Gift Generator';
 const PAGE_DESCRIPTION = 'Spin through funny, weird, and actually purchasable gag gifts from the goose.gifts catalog.';
-
-export const metadata: Metadata = {
-  title: `${PAGE_TITLE} | goose.gifts`,
-  description: PAGE_DESCRIPTION,
-  alternates: {
-    canonical: '/random-gift',
-  },
-  openGraph: {
-    title: `${PAGE_TITLE} | goose.gifts`,
-    description: PAGE_DESCRIPTION,
-    url: '/random-gift',
-    siteName: 'goose.gifts',
-    type: 'website',
-    images: [
-      {
-        url: '/sillygoose-og.png',
-        width: 1200,
-        height: 630,
-        alt: 'goose.gifts random ridiculous gift generator',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: `${PAGE_TITLE} | goose.gifts`,
-    description: PAGE_DESCRIPTION,
-    images: ['/sillygoose-og.png'],
-  },
+const DEFAULT_OG_IMAGE = {
+  url: '/sillygoose-og.png',
+  width: 1200,
+  height: 630,
+  alt: 'goose.gifts random ridiculous gift generator',
 };
+
+function firstParam(value?: string | string[]): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+// When a share link points at a specific gift (`?gift=<id>`), build a per-product
+// share card: punny title + product image in the metadata, and a dynamic OG image
+// rendered by /api/og/random-gift. `generateMetadata` (unlike `opengraph-image.tsx`)
+// receives searchParams, so the query-param share URL keeps working unchanged.
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams?: Promise<{ gift?: string | string[]; spin?: string | string[] }>;
+}): Promise<Metadata> {
+  const params = searchParams ? await searchParams : {};
+  const giftId = firstParam(params.gift);
+
+  const product = giftId ? await getProductById(giftId).catch(() => undefined) : undefined;
+
+  if (!product || !product.isActive) {
+    return {
+      title: `${PAGE_TITLE} | goose.gifts`,
+      description: PAGE_DESCRIPTION,
+      alternates: { canonical: '/random-gift' },
+      openGraph: {
+        title: `${PAGE_TITLE} | goose.gifts`,
+        description: PAGE_DESCRIPTION,
+        url: '/random-gift',
+        siteName: 'goose.gifts',
+        type: 'website',
+        images: [DEFAULT_OG_IMAGE],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${PAGE_TITLE} | goose.gifts`,
+        description: PAGE_DESCRIPTION,
+        images: [DEFAULT_OG_IMAGE.url],
+      },
+    };
+  }
+
+  const productTitle = product.punnyTitle || product.title;
+  const shareTitle = `${productTitle} · Random Ridiculous Gift | goose.gifts`;
+  const shareDescription = product.wittyDescription || PAGE_DESCRIPTION;
+  const ogImageUrl = `${getSiteUrl()}/api/og/random-gift?gift=${encodeURIComponent(product.id)}`;
+  const ogImage = {
+    url: ogImageUrl,
+    width: 1200,
+    height: 630,
+    alt: `${productTitle} — a ridiculous gift from goose.gifts`,
+  };
+
+  return {
+    title: shareTitle,
+    description: shareDescription,
+    // Keep every share variant canonicalizing to the base page (no duplicate content).
+    alternates: { canonical: '/random-gift' },
+    openGraph: {
+      title: shareTitle,
+      description: shareDescription,
+      url: `/random-gift?gift=${encodeURIComponent(product.id)}`,
+      siteName: 'goose.gifts',
+      type: 'website',
+      images: [ogImage],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: shareTitle,
+      description: shareDescription,
+      images: [ogImageUrl],
+    },
+  };
+}
 
 function formatPrice(price: number, currency: string): string {
   if (price <= 0) {
