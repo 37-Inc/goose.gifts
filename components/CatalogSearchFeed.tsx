@@ -239,10 +239,10 @@ export function CatalogSearchFeed({
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Try “coworker who loves cats”"
               aria-label="Search thousands of weird gifts"
-              className="h-14 w-full rounded-full border border-zinc-200 bg-white pl-12 pr-28 text-base text-zinc-950 shadow-[0_2px_16px_-4px_rgba(0,0,0,0.1)] outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)]"
+              className="h-14 w-full rounded-full border border-zinc-200 bg-white pl-5 pr-24 text-base text-zinc-950 shadow-[0_2px_16px_-4px_rgba(0,0,0,0.1)] outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)] sm:pl-12 sm:pr-28"
             />
             <svg
-              className="absolute left-[1.125rem] top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400"
+              className="pointer-events-none absolute left-[1.125rem] top-1/2 hidden h-5 w-5 -translate-y-1/2 text-zinc-400 sm:block"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -253,7 +253,7 @@ export function CatalogSearchFeed({
             <button
               type="submit"
               disabled={isLoading}
-              className="absolute right-2 top-1/2 h-10 -translate-y-1/2 rounded-full bg-zinc-950 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-wait disabled:opacity-70"
+              className="absolute right-2 top-1/2 h-10 -translate-y-1/2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-wait disabled:opacity-70 sm:px-5"
             >
               {isLoading ? 'Searching…' : 'Search'}
             </button>
