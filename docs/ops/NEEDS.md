@@ -24,6 +24,11 @@ outward-facing accounts. Best remaining channels:
   assets to tracked guide URLs, and ops can build dry-run create-pin payloads
   from approved copy/assets. Recurring public posting still needs Pinterest
   Standard access plus owner approval of the publishing cadence or next batch.
+  **Ready to submit (2026-07-17):** the full Standard-access application package
+  — use-case text, scope justifications, data-handling statement, terminal demo
+  shot-list, and exact dev-portal steps — is in
+  `docs/ops/pinterest-standard-access.md` (Beads `roadmap-fd1h`). Owner action:
+  record the ~2-min demo video and click **Upgrade** in the developer portal.
 
 Needed from Cameron: choose which channels to authorize for posting and approve
 any paid/video-generation tooling before spend.

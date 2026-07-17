@@ -24,40 +24,60 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-Session findings 2026-07-16 (from a scoped web session; several items need a
-local/terminal session — see the Beads note in `CLAUDE.md`). **→ file these in
-Beads from local.**
-
-- **Indexation (top blocker, reframed)**: technical indexability is now
-  *healthy* — robots allows crawling, canonicals are correct self-referencing
-  `www`, no `noindex`, sitemap 47 URLs, apex→www is 308. Yet GSC still shows
-  0 indexed. Conclusion: this is no longer an on-site/technical problem; it's
-  **off-site (young domain / low authority / Google needs to re-crawl &
-  re-evaluate)**. Fix path: (a) manually **Request Indexing** for the homepage
-  + top guides in the GSC UI (owner action), and (b) build external authority
-  via distribution. Confirm with `scripts/ops/gsc.sh` from local (needs the GSC
-  key). **File a Beads task.**
-- **Distribution / Pinterest**: infra fully built (OAuth, boards, generation,
-  create-pin), but stuck at Trial/Sandbox. Needs Pinterest **Standard access
-  app submission** (dev-portal, needs creds/dashboard) + Cameron's go-ahead to
-  post. Owner/local action. Directly helps indexation (external signals).
-- **Design polish**: mobile search-bar truncation **fixed** (branch
-  `claude/mobile-searchbar-polish`, unmerged). **Per-product OG share image
-  still TODO** (repo+DB only — do-able in any session; natural home is the
-  `/random-gift?gift=<id>` share links; existing pattern in
-  `app/weird-gift-index/opengraph-image.tsx`).
-- **Amazon prices — resolved/deferred**: checked empirically — only 0.5% of
-  active products have a price (17/3,314) and **0 of 122 enriched in the last
-  7 days** got one. The Creators API is not delivering prices in practice, so
-  commission/price-weighting is **deferred** (not worth chasing now).
+- **Indexation (top blocker) — awaiting owner GSC clicks + external authority.**
+  Diagnosis complete (2026-07-17, local): on-site is healthy; the guides are
+  "Discovered – currently not indexed" (never crawled → crawl-budget/authority)
+  and the homepage is crawled but canonical-consolidated to the apex (stale, self-
+  heals on recrawl). Owner action: **Request Indexing** for homepage + top guides
+  in the GSC UI (no public API for that button). Tracked as Beads `roadmap-fkvo`
+  (+ checkpoint on `roadmap-vpmm.1.1`). IndexNow (PR #63) is key-file-only and
+  Google doesn't consume it — a Bing win, not a Google lever (`roadmap-uz2t`).
+- **Distribution / Pinterest — ready to submit.** Standard-access application
+  package written (`docs/ops/pinterest-standard-access.md`): use-case text, scope
+  justifications, data-handling statement, terminal demo shot-list, and exact
+  portal steps. Prereqs verified (BUSINESS account, claimed site, live privacy
+  policy, working OAuth). Owner action: record the demo video + click "Upgrade" in
+  the dev portal. Tracked as Beads `roadmap-fd1h`. Helps indexation (external
+  signals).
+- **Amazon prices — deferred** (unchanged): the Creators API isn't delivering
+  prices in practice (0.5% coverage; 0/122 recent enrichments), so
+  commission/price-weighting stays parked.
 - **Catalog-first relaunch** (daily-ops track): keep improving catalog depth,
   enrichment/relevance, search results, outbound CTR. `ROADMAP.md` Phase 1.
+- **`/weird-gift-index` editorial pass** (owner+claude track): still deliberately
+  distinct; give it an intentional pass when the higher-leverage items above land.
 
 ---
 
 ## Changelog
 
 Newest first.
+
+### 2026-07-17 — Local session: branches merged, OG cards shipped, indexation diagnosed, Pinterest packaged `[owner+claude]`
+
+First local session (unlocks GSC key, Beads, Pinterest creds). Worked the owner's
+prioritized batch.
+
+- **Branches reconciled**: merged the mobile search-bar fix (PR #64) and the Beads
+  pointer + session findings (PR #65); deleted `claude/changelog-deploy-note` (its
+  content was already in main via PR #62). **Main→prod auto-deploy fired on its own
+  for all three merges this session** — the earlier reliability concern didn't
+  recur; no manual Vercel trigger needed.
+- **Per-product OG share images** (PR #66, `ef20e61`, **shipped + verified live**):
+  `/random-gift?gift=<id>` share links now render a per-product card (product image
+  + punny title + witty line + `goose.gifts` red-underline branding). Since Next's
+  `opengraph-image.tsx` doesn't get `searchParams`, it's a dynamic OG **API route**
+  (`app/api/og/random-gift`) + `generateMetadata` (which does). Pre-fetches the
+  retailer image → data URI so a slow image can't fail the card; branded fallback on
+  missing/invalid id; canonical stays `/random-gift`. New `getProductById`.
+- **Indexation diagnosed** (item #1): confirmed off-site/crawl-budget via
+  `scripts/ops/gsc.sh` — guides never crawled, homepage stale-consolidated to apex,
+  0 impressions/28d, on-site healthy. Recorded a checkpoint on Beads
+  `roadmap-vpmm.1.1` and filed the push task `roadmap-fkvo`. Gave the owner exact
+  GSC "Request Indexing" steps.
+- **Pinterest Standard access packaged** (item #2): wrote the full ready-to-submit
+  application (`docs/ops/pinterest-standard-access.md`) and filed Beads
+  `roadmap-fd1h`. Verified prereqs. Owner records the demo + clicks "Upgrade".
 
 ### 2026-07-16 — Site-wide design unification `[owner+claude]`
 
