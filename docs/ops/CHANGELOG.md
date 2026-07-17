@@ -24,17 +24,34 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **Design polish, round 3** (owner+claude track): tighten the mobile search
-  bar (placeholder truncation), consider per-product Open Graph share images,
-  and give the `/weird-gift-index` editorial page an intentional pass (kept
-  deliberately distinct for now).
-- **Catalog-first relaunch** (daily-ops track, top priority): keep improving
-  catalog depth, enrichment/relevance quality, semantic-search results, and
-  outbound CTR. Full plan in `ROADMAP.md` Phase 1.
-- **SEO/GEO network** (daily-ops track): guide-page network + indexation repair
-  per `SEO_GROWTH_TODO.md`, gated on Search Console access (`NEEDS.md`).
-- **Revenue signal**: wire up affiliate earnings data (Amazon Associates / Awin)
-  so ranking can weight by commission, not just clicks (`NEEDS.md`).
+Session findings 2026-07-16 (from a scoped web session; several items need a
+local/terminal session — see the Beads note in `CLAUDE.md`). **→ file these in
+Beads from local.**
+
+- **Indexation (top blocker, reframed)**: technical indexability is now
+  *healthy* — robots allows crawling, canonicals are correct self-referencing
+  `www`, no `noindex`, sitemap 47 URLs, apex→www is 308. Yet GSC still shows
+  0 indexed. Conclusion: this is no longer an on-site/technical problem; it's
+  **off-site (young domain / low authority / Google needs to re-crawl &
+  re-evaluate)**. Fix path: (a) manually **Request Indexing** for the homepage
+  + top guides in the GSC UI (owner action), and (b) build external authority
+  via distribution. Confirm with `scripts/ops/gsc.sh` from local (needs the GSC
+  key). **File a Beads task.**
+- **Distribution / Pinterest**: infra fully built (OAuth, boards, generation,
+  create-pin), but stuck at Trial/Sandbox. Needs Pinterest **Standard access
+  app submission** (dev-portal, needs creds/dashboard) + Cameron's go-ahead to
+  post. Owner/local action. Directly helps indexation (external signals).
+- **Design polish**: mobile search-bar truncation **fixed** (branch
+  `claude/mobile-searchbar-polish`, unmerged). **Per-product OG share image
+  still TODO** (repo+DB only — do-able in any session; natural home is the
+  `/random-gift?gift=<id>` share links; existing pattern in
+  `app/weird-gift-index/opengraph-image.tsx`).
+- **Amazon prices — resolved/deferred**: checked empirically — only 0.5% of
+  active products have a price (17/3,314) and **0 of 122 enriched in the last
+  7 days** got one. The Creators API is not delivering prices in practice, so
+  commission/price-weighting is **deferred** (not worth chasing now).
+- **Catalog-first relaunch** (daily-ops track): keep improving catalog depth,
+  enrichment/relevance, search results, outbound CTR. `ROADMAP.md` Phase 1.
 
 ---
 
