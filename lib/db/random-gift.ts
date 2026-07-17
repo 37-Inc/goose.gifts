@@ -41,6 +41,37 @@ function toProduct(row: {
   };
 }
 
+export async function getProductById(id: string): Promise<Product | undefined> {
+  if (!id) {
+    return undefined;
+  }
+
+  const rows = await db
+    .select({
+      id: products.id,
+      title: products.title,
+      punnyTitle: products.punnyTitle,
+      wittyDescription: products.wittyDescription,
+      humorTags: products.humorTags,
+      qualityScore: products.qualityScore,
+      sourceQuery: products.sourceQuery,
+      isActive: products.isActive,
+      price: products.price,
+      currency: products.currency,
+      imageUrl: products.imageUrl,
+      affiliateUrl: products.affiliateUrl,
+      source: products.source,
+      rating: products.rating,
+      reviewCount: products.reviewCount,
+    })
+    .from(products)
+    .where(sql`${products.id} = ${id}`)
+    .limit(1);
+
+  const row = rows[0];
+  return row ? toProduct(row) : undefined;
+}
+
 function hashSeed(value: string): number {
   let hash = 2166136261;
 
