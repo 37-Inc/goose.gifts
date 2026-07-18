@@ -125,9 +125,11 @@ export default function RootLayout({
           `}
         </Script>
 
-        <main className="min-h-screen">
+        {/* Pages render their own <main> landmark; this wrapper stays a div so
+            the document has exactly one <main> (nested mains are invalid HTML). */}
+        <div className="min-h-screen">
           {children}
-        </main>
+        </div>
 
         <footer className="border-t border-zinc-200 bg-white">
           <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">

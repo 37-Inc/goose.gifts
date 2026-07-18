@@ -85,6 +85,11 @@ export default async function WeirdGiftIndexPage() {
   const updatedDate = formatDate(index.catalogUpdatedAt);
   const priceCoverage = percent(index.knownPriceCount, index.totalProducts);
   const funnyToWeird = weird.count > 0 ? Math.round(funny.count / weird.count) : null;
+  const humorSignalPercent = percent(index.humorSignalCount, index.totalProducts);
+  const straightFacedCount = index.totalProducts - index.humorSignalCount;
+  const straightFacedPercent = percent(straightFacedCount, index.totalProducts);
+  const sourceCount = index.sourceCounts.length;
+  const topMotif = index.motifs[0];
   const faqs = [
     {
       question: 'What is the Weird Gift Index?',
@@ -92,7 +97,7 @@ export default async function WeirdGiftIndexPage() {
     },
     {
       question: 'What is the most common weird-gift motif in this catalog?',
-      answer: `Animals are the largest motif in this edition. ${number(animals.count)} listing titles (${animals.percentage.toFixed(1)}%) name at least one of the animals in the published classification dictionary.`,
+      answer: `The largest motif in this edition is ${topMotif.label}: ${number(topMotif.count)} listing titles (${topMotif.percentage.toFixed(1)}%) match at least one term in its published classification dictionary.`,
     },
     {
       question: 'How are products classified?',
@@ -215,7 +220,7 @@ export default async function WeirdGiftIndexPage() {
                 The Weird Gift Index
               </h1>
               <p className="mt-6 max-w-3xl text-xl leading-8 text-zinc-300 sm:text-2xl">
-                What {number(index.totalProducts)} ridiculous product listings reveal about animals, pranks, bathroom humor, and the strange language of “funny” gifts.
+                A first-party read on {number(index.totalProducts)} active gift listings: the animals, pranks, and bathroom jokes that fill the novelty aisle — and the oddly ordinary language merchants use to sell them.
               </p>
               <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-zinc-400">
                 <span>By Cameron Ehrlich</span>
@@ -232,7 +237,7 @@ export default async function WeirdGiftIndexPage() {
                 In this catalog, animal motifs are {multiple(animals.count, bathroom.count)} as common as bathroom-humor motifs.
               </p>
               <p className="mt-4 text-sm leading-6 text-zinc-300">
-                Animal words appear in {number(animals.count)} titles ({animals.percentage.toFixed(1)}%). Bathroom-humor words appear in {number(bathroom.count)} ({bathroom.percentage.toFixed(1)}%). These are inventory counts, not sales or demand.
+                Animal words appear in {number(animals.count)} titles ({animals.percentage.toFixed(1)}%); bathroom-humor words in just {number(bathroom.count)} ({bathroom.percentage.toFixed(1)}%). These are inventory counts — what sits on the shelf, not what sells.
               </p>
             </div>
           </div>
@@ -244,35 +249,38 @@ export default async function WeirdGiftIndexPage() {
             <h2 id="findings-heading" className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
               The catalog is stranger than the sales copy.
             </h2>
+            <p className="mt-4 text-base leading-7 text-zinc-700">
+              Every number below counts words in original merchant titles — nothing else. No sales, no search demand, and categories that freely overlap. Here is what the catalog keeps saying about itself.
+            </p>
           </div>
 
           <div className="mt-8 grid gap-px overflow-hidden rounded-2xl border border-zinc-300 bg-zinc-300 sm:grid-cols-2 lg:grid-cols-4">
             <section className="bg-white p-6">
               <p className="text-5xl font-black tracking-tighter">{animals.percentage.toFixed(1)}%</p>
-              <h3 className="mt-4 text-lg font-bold">Animal-powered absurdity</h3>
+              <h3 className="mt-4 text-lg font-bold">Animals run the catalog</h3>
               <p className="mt-2 text-sm leading-6 text-zinc-600">
-                {number(animals.count)} titles name an animal. {number(index.crossovers.animalsWithHumorSignal)} also use an explicit humor signal.
+                {number(animals.count)} titles name an animal{topMotif.id === 'animals' ? ' — the single largest motif' : ''}. {number(index.crossovers.animalsWithHumorSignal)} of them also flag an explicit humor word.
               </p>
             </section>
             <section className="bg-white p-6">
               <p className="text-5xl font-black tracking-tighter">{funnyToWeird ? `${number(funnyToWeird)}:1` : '—'}</p>
-              <h3 className="mt-4 text-lg font-bold">“Funny” beats “weird”</h3>
+              <h3 className="mt-4 text-lg font-bold">“Funny” buries “weird”</h3>
               <p className="mt-2 text-sm leading-6 text-zinc-600">
-                Merchants use “funny” {number(funny.count)} times and “weird” only {number(weird.count)} times in active titles.
+                Merchants reach for “funny” {number(funny.count)} times but “weird” only {number(weird.count)} — in a catalog built entirely on the weird.
               </p>
             </section>
             <section className="bg-white p-6">
               <p className="text-5xl font-black tracking-tighter">{multiple(food.count, bathroom.count)}</p>
-              <h3 className="mt-4 text-lg font-bold">Food beats toilet jokes</h3>
+              <h3 className="mt-4 text-lg font-bold">Snacks beat toilet jokes</h3>
               <p className="mt-2 text-sm leading-6 text-zinc-600">
-                Selected food and drink motifs appear in {number(food.count)} titles, versus {number(bathroom.count)} bathroom-humor titles.
+                Food and drink motifs show up in {number(food.count)} titles versus {number(bathroom.count)} for bathroom humor. On the shelf, cravings outrank gross-outs.
               </p>
             </section>
             <section className="bg-white p-6">
               <p className="text-5xl font-black tracking-tighter">{adultAnatomy.percentage.toFixed(1)}%</p>
-              <h3 className="mt-4 text-lg font-bold">Explicit is a small lane</h3>
+              <h3 className="mt-4 text-lg font-bold">Explicit is a tiny lane</h3>
               <p className="mt-2 text-sm leading-6 text-zinc-600">
-                Only {number(adultAnatomy.count)} titles match the selected adult-anatomy dictionary. Weird does not automatically mean NSFW.
+                Only {number(adultAnatomy.count)} titles match the adult-anatomy dictionary. Weird, it turns out, rarely means NSFW.
               </p>
             </section>
           </div>
@@ -299,14 +307,14 @@ export default async function WeirdGiftIndexPage() {
                   <div className="mb-2 flex items-baseline justify-between gap-4">
                     <div>
                       <span className="font-bold text-zinc-950">{motif.label}</span>
-                      <span className="ml-2 text-sm text-zinc-500">{motif.percentage.toFixed(1)}%</span>
+                      <span className="ml-2 text-sm text-zinc-600">{motif.percentage.toFixed(1)}%</span>
                     </div>
                     <span className="font-mono text-sm font-bold text-zinc-700">{number(motif.count)}</span>
                   </div>
                   <div
                     className="h-4 overflow-hidden rounded-full bg-zinc-100"
                     role="img"
-                    aria-label={`${motif.label}: ${number(motif.count)} listings, ${motif.percentage.toFixed(1)} percent`}
+                    aria-label={`${motif.label}: ${number(motif.count)} of ${number(index.totalProducts)} listings, ${motif.percentage.toFixed(1)} percent`}
                   >
                     <div
                       className="h-full rounded-full bg-red-700"
@@ -315,6 +323,9 @@ export default async function WeirdGiftIndexPage() {
                   </div>
                 </div>
               ))}
+              <p className="pt-1 text-xs leading-5 text-zinc-500">
+                Bars are scaled to the largest motif — {topMotif.label}, at {number(topMotif.count)} listings. Values are the share of all {number(index.totalProducts)} active listings.
+              </p>
             </div>
           </div>
         </section>
@@ -326,7 +337,7 @@ export default async function WeirdGiftIndexPage() {
               Sellers call it “funny.” Almost nobody calls it “weird.”
             </h2>
             <p className="mt-4 text-base leading-7 text-zinc-600">
-              {number(index.humorSignalCount)} titles ({percent(index.humorSignalCount, index.totalProducts)}) contain at least one explicit humor term. The wording is overwhelmingly conventional even when the products are not.
+              Only {number(index.humorSignalCount)} of {number(index.totalProducts)} active titles ({humorSignalPercent}) use any of the {HUMOR_SIGNAL_TERMS.length} explicit humor words we track. The other {number(straightFacedCount)} ({straightFacedPercent}) sell the gag with a straight face — no “funny,” no “gag,” no wink at all.
             </p>
             <div className="mt-6 rounded-2xl bg-zinc-950 p-6 text-white">
               <p className="font-mono text-sm text-orange-300">FUNNY / WEIRD</p>
@@ -343,13 +354,20 @@ export default async function WeirdGiftIndexPage() {
 
           <div className="rounded-2xl border border-zinc-300 bg-white p-6 sm:p-8">
             <h3 className="text-xl font-bold">Explicit humor words in titles</h3>
+            <p className="mt-2 text-sm leading-6 text-zinc-600">
+              Whole-word matches in active merchant titles, ranked by count.
+            </p>
             <div className="mt-6 space-y-4">
               {displayedSignals.map((signal) => (
                 <div key={signal.term} className="grid grid-cols-[5.5rem_minmax(0,1fr)_3rem] items-center gap-3">
                   <span className="font-mono text-sm">{signal.term}</span>
-                  <div className="h-3 overflow-hidden rounded-full bg-zinc-100">
+                  <div
+                    className="h-3 overflow-hidden rounded-full bg-zinc-100"
+                    role="img"
+                    aria-label={`${signal.term}: ${number(signal.count)} titles, ${signal.percentage.toFixed(1)} percent`}
+                  >
                     <div
-                      className="h-full rounded-full bg-orange-500"
+                      className="h-full rounded-full bg-orange-600"
                       style={{ width: `${Math.max((signal.count / maxSignalCount) * 100, 1)}%` }}
                     />
                   </div>
@@ -371,7 +389,7 @@ export default async function WeirdGiftIndexPage() {
                 <div>
                   <h3 className="font-bold text-zinc-950">Dataset</h3>
                   <p className="mt-1">
-                    This edition covers {number(index.totalProducts)} active goose.gifts catalog listings that have both an image and an outbound affiliate URL. The current catalog is not a census of every gift sold online.
+                    This edition covers {number(index.totalProducts)} active goose.gifts catalog listings — each with both an image and an outbound affiliate URL — drawn from {number(sourceCount)} retail {sourceCount === 1 ? 'source' : 'sources'}. It is a snapshot of one catalog, not a census of every gift sold online.
                   </p>
                 </div>
                 <div>
