@@ -105,6 +105,10 @@ posting, public-pilot preparation, and paid distribution are not authorized.
 
 ### Tool strategy and access
 
+- **`$create-pinterest-native-product-images` skill**: reusable workflow for
+  product verification, concept divergence, reference-guided generation, taste
+  review, revision lineage, and durable learning. Its versioned source lives in
+  `skills/create-pinterest-native-product-images/`.
 - **Codex image generation**: default static-image studio for concepting,
   reference-guided scenes, visual review, and iteration. No additional account
   is required for the built-in workflow.

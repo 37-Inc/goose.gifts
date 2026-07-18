@@ -124,6 +124,10 @@ and Amazon Associate disclosures close to the recommendation.
 
 ## Acquisition goal workflow
 
+The full ready-to-run autonomous goal prompt is stored in
+`docs/ops/goals/GOOSE-GROWTH-GOAL.md`. Keep that prompt aligned with this plan,
+the live Beads queue, and current authorization boundaries.
+
 ```text
 Goal: Earn qualified referral traffic and legitimate editorial links to
 goose.gifts without spam, paid-link schemes, or deceptive promotion.

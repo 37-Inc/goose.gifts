@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pinterest-Native Product Images"
+  short_description: "Create tasteful, product-faithful Pinterest images"
+  default_prompt: "Use $create-pinterest-native-product-images to develop and review a product-faithful Pinterest creative concept."
