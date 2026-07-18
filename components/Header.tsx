@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { RandomGiftLink } from './RandomGiftLink';
 
 export function Header() {
   return (
@@ -20,9 +21,9 @@ export function Header() {
           <Link href="/#catalog-search-input" className="whitespace-nowrap transition hover:text-red-700">
             Search
           </Link>
-          <Link href="/random-gift" className="whitespace-nowrap transition hover:text-red-700">
+          <RandomGiftLink className="whitespace-nowrap transition hover:text-red-700">
             Random
-          </Link>
+          </RandomGiftLink>
           <Link href="/gift-guides" className="whitespace-nowrap transition hover:text-red-700">
             Guides
           </Link>
