@@ -30,8 +30,9 @@ what's likely next.
   and the homepage is crawled but canonical-consolidated to the apex (stale, self-
   heals on recrawl). Owner action: **Request Indexing** for homepage + top guides
   in the GSC UI (no public API for that button). Tracked as Beads `roadmap-fkvo`
-  (+ checkpoint on `roadmap-vpmm.1.1`). IndexNow (PR #63) is key-file-only and
-  Google doesn't consume it — a Bing win, not a Google lever (`roadmap-uz2t`).
+  (+ checkpoint on `roadmap-vpmm.1.1`). **IndexNow submission now shipped** — the
+  47 sitemap URLs were seeded to Bing/Yandex/etc. (Google doesn't use IndexNow);
+  see the 2026-07-17 changelog entry and `docs/ops/indexnow.md` (`roadmap-uz2t`).
 - **Distribution / Pinterest — ready to submit.** Standard-access application
   package written (`docs/ops/pinterest-standard-access.md`): use-case text, scope
   justifications, data-handling statement, terminal demo shot-list, and exact
@@ -52,6 +53,19 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-07-17 — IndexNow submission tooling + initial seed `[owner+claude]`
+
+Turned PR #63's key-file-only IndexNow setup into a working submission path.
+New `scripts/ops/indexnow-submit.mjs` (`npm run indexnow:submit`): auto-discovers
+the public key file, sources canonical public URLs from the live sitemap (guards
+out `/api`, `/admin`, non-www, non-https, dupes), and POSTs to the single
+`api.indexnow.org` endpoint (fans out to Bing/Yandex/Naver/etc.). Supports
+`--dry-run` (rollback-friendly) and `--url` for changed-URL submissions.
+**Seeded all 47 sitemap URLs → HTTP 202 accepted** (first IndexNow notification
+for the domain). Docs in `docs/ops/indexnow.md`. Google does not consume
+IndexNow, so this is a Bing/Yandex win, not a Google-indexation lever. Beads
+`roadmap-uz2t` (Bing/Yandex Webmaster verification remains an owner portal task).
 
 ### 2026-07-17 — Local session: branches merged, OG cards shipped, indexation diagnosed, Pinterest packaged `[owner+claude]`
 
