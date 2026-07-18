@@ -11,6 +11,7 @@
     "test:index": "node --experimental-strip-types --test tests/weird-gift-index.test.mjs",
     "analytics:snapshot": "node scripts/ops/analytics-snapshot.mjs",
     "analytics:ga4": "bash scripts/ops/ga4.sh",
+    "indexnow:submit": "node scripts/ops/indexnow-submit.mjs",
     "pinterest:oauth": "node scripts/ops/pinterest-oauth.mjs",
     "pinterest:whoami": "node scripts/ops/pinterest-api.mjs whoami",
     "pinterest:boards": "node scripts/ops/pinterest-api.mjs boards",
