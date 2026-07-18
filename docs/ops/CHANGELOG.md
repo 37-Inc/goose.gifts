@@ -24,15 +24,17 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **Indexation (top blocker) — awaiting owner GSC clicks + external authority.**
-  Diagnosis complete (2026-07-17, local): on-site is healthy; the guides are
-  "Discovered – currently not indexed" (never crawled → crawl-budget/authority)
-  and the homepage is crawled but canonical-consolidated to the apex (stale, self-
-  heals on recrawl). Owner action: **Request Indexing** for homepage + top guides
-  in the GSC UI (no public API for that button). Tracked as Beads `roadmap-fkvo`
-  (+ checkpoint on `roadmap-vpmm.1.1`). **IndexNow submission now shipped** — the
-  47 sitemap URLs were seeded to Bing/Yandex/etc. (Google doesn't use IndexNow);
-  see the 2026-07-17 changelog entry and `docs/ops/indexnow.md` (`roadmap-uz2t`).
+- **Indexation (top blocker) — all near-term levers pulled; now monitoring.**
+  Diagnosis complete (2026-07-17): on-site healthy; guides never crawled
+  (crawl-budget/authority); homepage stale-consolidated to the apex.
+  **Request Indexing DONE 2026-07-17/18** for all 7 targets (homepage, guides hub,
+  white-elephant, coworkers, dads, secret-santa, weird-kitchen) via the GSC UI —
+  each confirmed queued. Cameron's account (`cam@37.technology`) is now a verified
+  **owner** of the GSC property (DNS auto-verify), so UI access is permanent.
+  **IndexNow seeded** (47 URLs, HTTP 202 — Bing/Yandex only; `docs/ops/indexnow.md`).
+  Next: re-inspect ~Jul 25 / Aug 1 / Aug 17 via `scripts/ops/gsc.sh` and track
+  Discovered→Crawled→Indexed (Beads `roadmap-fkvo`; dates recorded there). The
+  remaining lever is external authority — Pinterest (`roadmap-fd1h`).
 - **Distribution / Pinterest — ready to submit.** Standard-access application
   package written (`docs/ops/pinterest-standard-access.md`): use-case text, scope
   justifications, data-handling statement, terminal demo shot-list, and exact
