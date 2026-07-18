@@ -40,6 +40,12 @@ what's likely next.
   policy, working OAuth). Owner action: record the demo video + click "Upgrade" in
   the dev portal. Tracked as Beads `roadmap-fd1h`. Helps indexation (external
   signals).
+- **Pinterest creative workflow — forward-test the new skill.** The reusable
+  `$create-pinterest-native-product-images` skill and broader growth goal are
+  now preserved in the repo and installed for Codex. Test the skill on two new
+  verified products plus one planning-only request, then refine it from observed
+  failures. Tracked as Beads `roadmap-dfas`; no public posting is part of the
+  task.
 - **Amazon prices — deferred** (unchanged): the Creators API isn't delivering
   prices in practice (0.5% coverage; 0/122 recent enrichments), so
   commission/price-weighting stays parked.
@@ -53,6 +59,17 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-07-17 — Growth goal + Pinterest creative skill preserved `[owner+claude]`
+
+Saved the autonomous traffic/acquisition goal at
+`docs/ops/goals/GOOSE-GROWTH-GOAL.md` and distilled the successful v4 creative
+method into the versioned `$create-pinterest-native-product-images` skill. The
+skill makes source-product verification, concept divergence, reference roles,
+hard truth/taste gates, causal revisions, and append-only learning reusable
+instead of relying on session memory. It is installed in Cameron's personal
+Codex skills directory; Beads `roadmap-dfas` tracks independent forward-testing
+and iterative refinement. This work does not authorize public posting.
 
 ### 2026-07-17 — IndexNow submission tooling + initial seed `[owner+claude]`
 
