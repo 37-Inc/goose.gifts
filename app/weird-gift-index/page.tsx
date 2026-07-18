@@ -97,7 +97,7 @@ export default async function WeirdGiftIndexPage() {
     },
     {
       question: 'What is the most common weird-gift motif in this catalog?',
-      answer: `Animals are the largest motif in this edition. ${number(animals.count)} listing titles (${animals.percentage.toFixed(1)}%) name at least one of the animals in the published classification dictionary.`,
+      answer: `The largest motif in this edition is ${topMotif.label}: ${number(topMotif.count)} listing titles (${topMotif.percentage.toFixed(1)}%) match at least one term in its published classification dictionary.`,
     },
     {
       question: 'How are products classified?',
@@ -259,7 +259,7 @@ export default async function WeirdGiftIndexPage() {
               <p className="text-5xl font-black tracking-tighter">{animals.percentage.toFixed(1)}%</p>
               <h3 className="mt-4 text-lg font-bold">Animals run the catalog</h3>
               <p className="mt-2 text-sm leading-6 text-zinc-600">
-                {number(animals.count)} titles name an animal — the single largest motif. {number(index.crossovers.animalsWithHumorSignal)} of them also flag an explicit humor word.
+                {number(animals.count)} titles name an animal{topMotif.id === 'animals' ? ' — the single largest motif' : ''}. {number(index.crossovers.animalsWithHumorSignal)} of them also flag an explicit humor word.
               </p>
             </section>
             <section className="bg-white p-6">

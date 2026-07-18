@@ -60,6 +60,21 @@ what's likely next.
 
 Newest first.
 
+### 2026-07-18 — Weird Gift Index editorial pass + review fixes `[owner+claude]`
+
+Shipped the `/weird-gift-index` editorial pass (PR #69): tighter hero dek and
+stat-card copy, an orienting lede, two new data-derived insights (the
+"straight-faced" 71.7% inverse of humor-signal coverage; catalog source breadth
+in the methodology), a motif-chart scale caption, and a11y fixes (orange-500 →
+orange-600 bar fill for WCAG 1.4.11 contrast; denominators + `role`/`aria-label`
+on all chart bars). Review pass on top of the agent draft: made the
+"largest motif" claims self-guarding (FAQ + JSON-LD now derive from the sorted
+`motifs[0]` instead of hard-asserting Animals), and fixed a site-wide invalid-HTML
+bug — the root layout's `<main>` wrapper nested every page's own `<main>`; it's
+now a `div`, so each document has exactly one main landmark. Verified against
+live catalog data: full build + lint green, JSON-LD parses, desktop + mobile
+rendering checked.
+
 ### 2026-07-17 — Growth goal + Pinterest creative skill preserved `[owner+claude]`
 
 Saved the autonomous traffic/acquisition goal at
