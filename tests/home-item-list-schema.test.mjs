@@ -30,6 +30,15 @@ test('omits products that cannot produce valid Google product snippets', () => {
   assert.ok(schema.itemListElement[1].item.aggregateRating);
 });
 
+test('reports an empty list when no products have valid snippet signals', () => {
+  const schema = buildHomeItemListSchema([
+    product({ id: 'missing-signals' }),
+  ], 'https://www.goose.gifts');
+
+  assert.equal(schema.numberOfItems, 0);
+  assert.deepEqual(schema.itemListElement, []);
+});
+
 test('caps eligible product markup at 24 items', () => {
   const products = Array.from({ length: 30 }, (_, index) => (
     product({ id: `product-${index}`, price: index + 1 })
