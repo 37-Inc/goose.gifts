@@ -48,6 +48,10 @@ For every product-bound candidate:
 5. Save the inspected reference in the project when reproducibility requires
    it.
 
+Write a literal product noun phrase from the image before using catalog prose.
+If the title, punny copy, or category conflicts with the visible source, the
+source controls and the mismatch becomes a recorded preflight finding.
+
 Do not infer a different product from an ambiguous thumbnail. If identity or
 scale cannot be verified, either keep the work as an unbound mood concept or
 choose another product. Never call an image product-faithful without a source
@@ -73,7 +77,10 @@ State for each concept:
 - what makes it unlike a reusable ad template.
 
 Select concepts for a strong visual contradiction and a plausible native feed
-context. Do not select merely because the product is easy to isolate.
+context. Apply a product-derived-hook test: name the exact visual or functional
+feature that makes the scene possible, then ask whether the concept would work
+unchanged after swapping in an unrelated product. Prefer concepts that fail
+that swap test. Do not select merely because the product is easy to isolate.
 
 ## 5. Generate with separated references
 

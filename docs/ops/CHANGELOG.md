@@ -62,6 +62,30 @@ what's likely next.
 
 Newest first.
 
+### 2026-07-18 — Pinterest-native creative V5 forward test `[owner+codex]`
+
+Ran the reusable creative skill on a newly verified product, rejected two
+misleading or weak catalog candidates before generation, and produced three
+product-faithful 2:3 editorial scenes for the black personalized hippo mug
+`B0F9DZMQBL`. All passed the truth, single-idea, no-CTA, and no-ad-template
+gates; the Memphis breakfast direction scored highest internally. The complete
+source references, prompts, artifacts, contact sheet, reviews, and failures are
+preserved under `docs/ops/pinterest-creative-lab/v5-concepts/` and in the
+validated append-only experiment log. The skill now explicitly makes visible
+source evidence override catalog wordplay and tests whether a hook is genuinely
+derived from the product. Nothing was published.
+
+### 2026-07-18 — First Weird Gift Index distribution wave prepared `[owner+codex]`
+
+Moved the first two Index outreach actions to the exact owner-review boundary:
+The Awesomer's Suggest a Story form and one Boing Boing editorial-tip email.
+Both use the live edition's checkable straight-faced-novelty finding (2,377 of
+3,314 listings, or 71.7%, contain none of ten published humor signals), clean
+canonical links, explicit ownership/affiliate disclosure, and freshly verified
+routes. Exact copy and per-action authorization boundaries live in
+`docs/ops/acquisition/INDEX_WAVE_1_APPROVAL.md`. Nothing was submitted or sent.
+Beads `roadmap-6611` reminds Cameron to approve or reject each action separately.
+
 ### 2026-07-18 — Weird Gift Index editorial pass + review fixes `[owner+claude]`
 
 Shipped the `/weird-gift-index` editorial pass (PR #69): tighter hero dek and

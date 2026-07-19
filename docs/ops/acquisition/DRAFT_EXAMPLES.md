@@ -29,16 +29,18 @@ obvious interest in sharing it. No need to reply if it isn’t a fit.
 **Gate:** replace the generic description with one demonstrably good behavior or
 visual. Do not send if the page feels like a product grid with a random button.
 
-## 2. The Awesomer — Index suggestion form
+## 2. The Awesomer — Index suggestion form (ready for owner review)
 
-**Suggested title:** The Weird Gift Index: {{ONE_SHARP_FINDING}}
+**Suggested title:** 71.7% of Weird Gifts Never Call Themselves Funny
 
 **Description:**
 
-We analyzed {{VERIFIED_CATALOG_SIZE}} unusual products to see what makes a gift
-genuinely weird instead of merely generic. The strangest result: {{FINDING_WITH_NUMBER}}.
-The report includes the method, limitations, and downloadable charts:
-{{WEIRD_GIFT_INDEX_URL}}
+We analyzed 3,314 active unusual-product listings to see how merchants signal
+that a gift is supposed to be funny. The strangest result: 2,377 listings
+(71.7%) use none of the ten explicit humor words we tracked—including “funny,”
+“gag,” “prank,” and “weird.” They sell the joke with a straight face. The
+report includes the method, limitations, and downloadable aggregate data:
+https://www.goose.gifts/weird-gift-index
 
 Disclosure: I run goose.gifts, the affiliate-supported weird-gift discovery
 site that produced the report.
@@ -46,18 +48,23 @@ site that produced the report.
 **Gate:** the suggested title must state a finding, not announce that a report
 exists. Never claim a trend from generated tags without showing the method.
 
-## 3. Boing Boing — original data tip
+## 3. Boing Boing — original data tip (ready for owner review)
 
-**Subject:** Tip: {{COUNTERINTUITIVE_WEIRD_GIFT_FINDING}}
+**To:** help@boingboing.net
+
+**Subject:** Tip: most weird gifts sell the gag with a straight face
 
 Hi Boing Boing editors,
 
-While cleaning a catalog of {{VERIFIED_CATALOG_SIZE}} purportedly strange gifts,
-we found {{FINDING_WITH_NUMBER_AND_PLAIN_ENGLISH_CONTEXT}}.
+While cleaning a catalog of 3,314 purportedly strange gifts, we found that 2,377
+of them—71.7%—use none of the ten explicit humor words we tracked in their
+merchant titles. No “funny,” no “gag,” no “prank,” no “weird.”
 
-The fun part is {{WHY_THIS_IS_A_WEIRD_INTERNET_STORY}}, and the less-fun but
-important part is that we published the classification method and limitations
-so the number can be checked: {{WEIRD_GIFT_INDEX_URL}}
+The weird-internet part is how straight-faced the novelty aisle is: merchants
+describe ceramic eyes, animal objects, and bathroom jokes as though nothing
+unusual is happening. We published the word dictionaries, methodology,
+limitations, and aggregate data so the number can be checked:
+https://www.goose.gifts/weird-gift-index
 
 I run goose.gifts, the affiliate-supported site whose catalog produced the
 dataset. I’m sending this once as an editorial tip; no sponsorship or placement

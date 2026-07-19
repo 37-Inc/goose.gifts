@@ -46,10 +46,27 @@ Name the one strange thing. Generic phrases such as “make it eye-catching” o
 - **Specific identity:** the scene speaks to “the coworker whose desk is mildly
   unhinged,” not the generic category “office gifts.”
 
+## Product-derived hook test
+
+Before selecting a concept, complete both lines:
+
+```text
+The exact product feature driving this scene is: [specific shape, color,
+material, marking, function, or identity].
+If the product were swapped for an unrelated item, the concept would:
+[break / still work unchanged].
+```
+
+Prefer a concept that breaks. A palette echo tied to the product's exact
+markings or a category collision caused by its distinctive form is usually more
+authored than placing any novelty object in a tasteful desk, room, or kitchen.
+
 ## Common failure modes
 
 Reject or revise:
 
+- a premise taken from catalog wordplay that conflicts with the visible source
+  object;
 - a different product type inferred from an ambiguous listing image;
 - a tiny figurine rendered as a life-size animal;
 - a mitt rendered as a plush toy or full creature;

@@ -6,15 +6,18 @@ submission, email, post, reply, direct message, paid placement, or spend.
 
 ## Current readiness
 
-As of 2026-07-12, every external action is still blocked on at least one
+As of 2026-07-18, the first two Weird Gift Index actions are ready for exact
+owner review, while every other external action remains blocked on at least one
 prerequisite:
 
 - the Weird Gift Index implementation is complete at `/weird-gift-index`, with
-  a named byline, method, limitations, aggregate JSON, schema, and social image;
-  confirm its production deployment and fill outlet-specific drafts with the
-  exact published numbers before owner review;
-- the random ridiculous gift utility does not yet exist as a polished,
-  no-signup interactive destination;
+  a named byline, method, limitations, aggregate JSON, schema, social image, and
+  a completed editorial pass. Its live 2026.1 edition analyzes 3,314 listings.
+  The Awesomer and Boing Boing drafts are fully resolved in
+  `INDEX_WAVE_1_APPROVAL.md` and await owner approval one action at a time;
+- the random ridiculous gift utility is live as a polished, no-signup
+  destination with fast refreshes, stable product share URLs, and custom social
+  previews;
 - social and community accounts/API access have not been approved or confirmed;
 - no outlet- or community-specific external action has owner approval.
 
@@ -139,12 +142,11 @@ editor response, and qualitative feedback. Record rejection/no-response too.
 
 ## Recommended sequence
 
-1. Confirm the Weird Gift Index production deployment, populate only the top
-   Index drafts with its verified findings, and move those exact drafts to owner
-   review. The unfinished utility still needs a delightful no-signup interaction
-   and stable share results.
-2. Use that asset to unlock only its matching prospects; do not pretend the
-   unfinished sibling asset is ready too.
+1. Ask the owner to review the two exact Weird Gift Index actions in
+   `INDEX_WAVE_1_APPROVAL.md`, one at a time. Do not submit either action merely
+   because its draft is ready.
+2. Use each asset only for prospects whose editorial gate and audience it
+   genuinely matches; a finished destination is not automatically a good pitch.
 3. Re-score the queue with the actual asset in hand.
 4. Prepare only the top three outlet-specific versions.
 5. Ask for owner approval one action at a time.
