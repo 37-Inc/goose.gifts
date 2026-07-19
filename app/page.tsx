@@ -4,8 +4,8 @@ import { searchCatalogProducts } from '@/lib/db/product-search';
 import { CatalogSearchFeed } from '@/components/CatalogSearchFeed';
 import { Header } from '@/components/Header';
 import { getFeaturedGiftGuides } from '@/lib/gift-guides';
+import { buildHomeItemListSchema } from '@/lib/home-item-list-schema';
 import { getSiteUrl } from '@/lib/site';
-import type { Product } from '@/lib/types';
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -41,53 +41,6 @@ export const metadata: Metadata = {
   },
 };
 
-function buildHomeItemListSchema(products: Product[]) {
-  const baseUrl = getSiteUrl();
-
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    name: HOME_TITLE,
-    description: HOME_DESCRIPTION,
-    url: baseUrl,
-    numberOfItems: products.length,
-    itemListElement: products.slice(0, 24).map((product, index) => {
-      const item: Record<string, unknown> = {
-        '@type': 'Product',
-        name: product.punnyTitle || product.title,
-        image: product.imageUrl,
-        description: product.wittyDescription || product.sourceQuery || product.title,
-        category: 'Gag gifts',
-        url: product.affiliateUrl,
-      };
-
-      if (product.price > 0) {
-        item.offers = {
-          '@type': 'Offer',
-          price: product.price.toFixed(2),
-          priceCurrency: product.currency || 'USD',
-          availability: 'https://schema.org/InStock',
-          url: product.affiliateUrl,
-        };
-      }
-
-      if (product.rating && product.reviewCount) {
-        item.aggregateRating = {
-          '@type': 'AggregateRating',
-          ratingValue: product.rating.toFixed(1),
-          reviewCount: product.reviewCount,
-        };
-      }
-
-      return {
-        '@type': 'ListItem',
-        position: index + 1,
-        item,
-      };
-    }),
-  };
-}
-
 export default async function HomePage({
   searchParams,
 }: {
@@ -101,7 +54,9 @@ export default async function HomePage({
     : (await getCatalogFeedProducts({ seed: feedSeed, limit: 36 })).products;
   const featuredGuides = getFeaturedGiftGuides(undefined, 6)
     .map(({ slug, title }) => ({ slug, title }));
-  const itemListSchema = JSON.stringify(buildHomeItemListSchema(initialProducts)).replace(/</g, '\\u003c');
+  const itemListSchema = JSON.stringify(
+    buildHomeItemListSchema(initialProducts, getSiteUrl()),
+  ).replace(/</g, '\\u003c');
 
   return (
     <main className="min-h-screen bg-white text-zinc-950">
