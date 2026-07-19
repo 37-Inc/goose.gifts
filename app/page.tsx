@@ -54,16 +54,19 @@ export default async function HomePage({
     : (await getCatalogFeedProducts({ seed: feedSeed, limit: 36 })).products;
   const featuredGuides = getFeaturedGiftGuides(undefined, 6)
     .map(({ slug, title }) => ({ slug, title }));
-  const itemListSchema = JSON.stringify(
-    buildHomeItemListSchema(initialProducts, getSiteUrl()),
-  ).replace(/</g, '\\u003c');
+  const itemList = buildHomeItemListSchema(initialProducts, getSiteUrl());
+  const itemListSchema = itemList.numberOfItems > 0
+    ? JSON.stringify(itemList).replace(/</g, '\\u003c')
+    : null;
 
   return (
     <main className="min-h-screen bg-white text-zinc-950">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: itemListSchema }}
-      />
+      {itemListSchema ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: itemListSchema }}
+        />
+      ) : null}
 
       <Header />
 
