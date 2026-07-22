@@ -127,7 +127,7 @@ async function loadHomepageEligibleProducts(): Promise<ProductWithStats[]> {
 // result instead of downloading the catalog from Neon for every request.
 const getHomepageEligibleProducts = unstable_cache(
   loadHomepageEligibleProducts,
-  ['homepage-eligible-products-v1'],
+  ['homepage-eligible-products-v2'],
   {
     revalidate: HOMEPAGE_CACHE_SECONDS,
     tags: ['catalog-products'],
