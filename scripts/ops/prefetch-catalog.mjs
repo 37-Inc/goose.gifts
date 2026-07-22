@@ -51,6 +51,7 @@ function parseArgs(argv) {
     enrichmentBatchSize: Number(process.env.CATALOG_ENRICH_BATCH_SIZE || 12),
     backfillLimit: Number(process.env.CATALOG_ENRICH_EXISTING_LIMIT || 25),
     revalidate: false,
+    repairAffiliateUrlsOnly: false,
     revalidateLimit: Number(process.env.CATALOG_REVALIDATE_LIMIT || 50),
     staleDays: Number(process.env.CATALOG_REVALIDATE_STALE_DAYS || 30),
     deactivateAfterDays: Number(process.env.CATALOG_DEACTIVATE_AFTER_DAYS || 90),
@@ -73,6 +74,7 @@ function parseArgs(argv) {
     else if (arg === '--enrichment-batch-size') options.enrichmentBatchSize = Number(argv[++index]);
     else if (arg === '--backfill-limit') options.backfillLimit = Number(argv[++index]);
     else if (arg === '--revalidate') options.revalidate = true;
+    else if (arg === '--repair-affiliate-urls-only') options.repairAffiliateUrlsOnly = true;
     else if (arg === '--revalidate-limit') options.revalidateLimit = Number(argv[++index]);
     else if (arg === '--stale-days') options.staleDays = Number(argv[++index]);
     else if (arg === '--deactivate-after-days') options.deactivateAfterDays = Number(argv[++index]);
@@ -113,6 +115,8 @@ Options:
                             Products per OpenAI copy/tag batch.
   --backfill-limit 25       Existing active products to enrich before discovery. Set 0 to skip.
   --revalidate              Recheck a bounded batch of stale active Amazon products and repair affiliate URLs.
+  --repair-affiliate-urls-only
+                            Rewrite stored Amazon product URLs with AMAZON_ASSOCIATE_TAG without calling Creators API.
   --revalidate-limit 50     Maximum stale products to check (hard cap 100; Creators API batches of 10).
   --stale-days 30           Only check products not successfully verified within this many days.
   --deactivate-after-days 90
@@ -126,7 +130,9 @@ function requiredEnv(options) {
     POSTGRES_URL: process.env.POSTGRES_URL,
   };
 
-  if (!options.enrichOnly) {
+  if (options.repairAffiliateUrlsOnly) {
+    env.AMAZON_ASSOCIATE_TAG = process.env.AMAZON_ASSOCIATE_TAG;
+  } else if (!options.enrichOnly) {
     env.AMAZON_CREATORS_CREDENTIAL_ID = process.env.AMAZON_CREATORS_CREDENTIAL_ID;
     env.AMAZON_CREATORS_CREDENTIAL_SECRET = process.env.AMAZON_CREATORS_CREDENTIAL_SECRET;
     env.AMAZON_CREATORS_CREDENTIAL_VERSION = process.env.AMAZON_CREATORS_CREDENTIAL_VERSION;
@@ -988,6 +994,12 @@ async function main() {
   }
 
   assertConfigured(options);
+
+  if (options.repairAffiliateUrlsOnly) {
+    const affiliateAudit = await auditAndRepairAmazonAffiliateUrls(options);
+    console.log(JSON.stringify({ dryRun: options.dryRun, repairAffiliateUrlsOnly: true, affiliateAudit }, null, 2));
+    return;
+  }
 
   if (options.revalidate) {
     const result = await revalidateCatalog(options);

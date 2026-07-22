@@ -98,6 +98,14 @@ test('revalidation arguments stay bounded and support audit-only behavior', () =
   assert.equal(clamped.deactivateAfterDays, 60);
 });
 
+test('affiliate URL repair can run without product revalidation', () => {
+  const options = parseArgs(['--repair-affiliate-urls-only', '--dry-run']);
+
+  assert.equal(options.repairAffiliateUrlsOnly, true);
+  assert.equal(options.dryRun, true);
+  assert.equal(options.revalidate, false);
+});
+
 test('revalidation preserves a known price when Amazon omits offer data', () => {
   const result = revalidatedProduct({
     id: 'B012345678',

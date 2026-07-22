@@ -1,6 +1,6 @@
 # Affiliate Data Availability
 
-Last audited: 2026-07-16
+Last audited: 2026-07-22
 
 ## Current production path
 
@@ -8,6 +8,9 @@ Last audited: 2026-07-16
 - Amazon Creators API is the sole Amazon product-data path. It uses OAuth 2.0
   credentials and supports `SearchItems` discovery plus `GetItems` enrichment
   and stale-product revalidation.
+- Amazon requests and stored product links use the dedicated Associates tracking
+  ID `goose-gifts-37-20` through `AMAZON_ASSOCIATE_TAG`. The Creators API
+  application remains attached to the parent Store ID `rileyehrlic0b-20`.
 - Google CSE is optional discovery-only resilience. CSE metadata is never
   recorded as Amazon price, availability, or freshness verification.
 - Amazon product APIs do not expose the Associates

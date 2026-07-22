@@ -29,6 +29,7 @@
     "catalog:prefetch": "node scripts/ops/prefetch-catalog.mjs",
     "catalog:enrich": "node scripts/ops/prefetch-catalog.mjs --enrich-only",
     "catalog:revalidate": "node scripts/ops/prefetch-catalog.mjs --revalidate",
+    "catalog:repair-affiliate-urls": "node scripts/ops/prefetch-catalog.mjs --repair-affiliate-urls-only",
     "test:catalog-ops": "node --test tests/catalog-ops.test.mjs",
     "test:structured-data": "node --experimental-strip-types --test tests/home-item-list-schema.test.mjs",
     "test:amazon": "node scripts/ops/test-amazon-creators.mjs",
