@@ -5,9 +5,11 @@ import { pathToFileURL } from 'node:url';
 import { sql } from '@vercel/postgres';
 import OpenAI from 'openai';
 import amazonCreators from '../../lib/amazon-creators.js';
+import { hydrateLocalAmazonCreatorsEnv } from './amazon-creators-env.mjs';
 
 dotenv.config({ path: '.env.local', quiet: true });
 dotenv.config({ quiet: true });
+hydrateLocalAmazonCreatorsEnv();
 
 const DEFAULT_THEMES = [
   'funny white elephant gifts',
@@ -56,6 +58,7 @@ function parseArgs(argv) {
     staleDays: Number(process.env.CATALOG_REVALIDATE_STALE_DAYS || 30),
     deactivateAfterDays: Number(process.env.CATALOG_DEACTIVATE_AFTER_DAYS || 90),
     deactivateMissing: true,
+    minQualityScore: Number(process.env.CATALOG_MIN_QUALITY_SCORE || 0.65),
     themes: undefined,
   };
 
@@ -69,6 +72,7 @@ function parseArgs(argv) {
     else if (arg === '--theme-limit') options.themeLimit = Number(argv[++index]);
     else if (arg === '--min-price') options.minPrice = Number(argv[++index]);
     else if (arg === '--max-price') options.maxPrice = Number(argv[++index]);
+    else if (arg === '--min-quality-score') options.minQualityScore = Number(argv[++index]);
     else if (arg === '--skip-enrichment') options.skipEnrichment = true;
     else if (arg === '--enrich-only') options.enrichOnly = true;
     else if (arg === '--enrichment-batch-size') options.enrichmentBatchSize = Number(argv[++index]);
@@ -94,6 +98,7 @@ function parseArgs(argv) {
     options.staleDays,
     Math.floor(options.deactivateAfterDays || 90)
   );
+  options.minQualityScore = Math.max(0.05, Math.min(0.98, options.minQualityScore || 0.65));
 
   return options;
 }
@@ -109,6 +114,7 @@ Options:
   --max-new 50              Stop after this many net-new products.
   --min-price 5             Minimum known price for active homepage eligibility.
   --max-price 150           Maximum known price for active homepage eligibility.
+  --min-quality-score 0.65  Minimum heuristic quality before copy enrichment.
   --skip-enrichment         Write heuristic catalog fields without OpenAI copy/embeddings.
   --enrich-only             Backfill existing active products, without discovery.
   --enrichment-batch-size 12
@@ -229,35 +235,128 @@ function cleanTitle(title) {
 
 const DUPLICATE_TITLE_STOP_WORDS = new Set([
   'a', 'an', 'and', 'for', 'gift', 'gifts', 'in', 'of', 'on', 'the', 'to', 'with',
-  'funny', 'gag', 'novelty', 'unique', 'perfect', 'best', 'new',
+  'adult', 'adults', 'birthday', 'boy', 'boys', 'christmas', 'cool', 'coworker',
+  'coworkers', 'dad', 'dads', 'friend', 'friends', 'girl', 'girls', 'her', 'him',
+  'holiday', 'kid', 'kids', 'men', 'mom', 'moms', 'stocking', 'stuffer', 'stuffers',
+  'teen', 'teens', 'women', 'funny', 'gag', 'novelty', 'unique', 'perfect', 'best',
+  'new', 'prank', 'hilarious', 'joke', 'silly',
 ]);
+
+const DUPLICATE_TOKEN_ALIASES = {
+  bellies: 'belly',
+  chickens: 'chicken',
+  fannies: 'fanny',
+  hats: 'hat',
+  keychains: 'keychain',
+  mugs: 'mug',
+  packs: 'pack',
+  pouches: 'pouch',
+  toys: 'toy',
+};
+
+const DISCOVERY_BRAND_FIT_TERMS = [
+  'funny', 'gag', 'prank', 'weird', 'novelty', 'ridiculous', 'sarcastic',
+  'silly', 'hilarious', 'joke', 'absurd', 'inappropriate', 'fart', 'poop',
+  'whoopee', 'bullshit', 'penis', 'testicle', 'middle finger', 'dad joke',
+  'white elephant', 'screaming goat', 'angry mama', 'animal butt', 'bacon candle',
+  'beer bong', 'cat butt', 'cereal killer', 'crab', 'duck decanter',
+  'emotional support', 'fake poop', 'fart machine', 'loch ness', 'nessie',
+  'pizza boss', 'rubber chicken', 'screaming chicken', 'squirrel hot tub',
+  'sword shaped', 'wacky waving', 'yodeling', 'vomiting chicken', 'fortune teller',
+  'pickle', 'dragon', 'gracula', 'splatypus',
+];
+
+const DISCOVERY_FORMAT_EXCLUSIONS = [
+  'activity book', 'apron', 'ballpoint pen', 'bath bomb', 'beer glass', 'blanket',
+  'candle', 'candles', 'coloring', 'cookbook', 'cosmetic bag', 'eyeshadow',
+  'gift basket', 'gift box', 'journal', 'makeup', 'notebook', 'office decor',
+  'pen set', 'skincare', 'sock', 'socks', 'stocking', 'stockings', 'tee shirt',
+  't-shirt', 't shirt', 'trivia book',
+];
+
+const DISCOVERY_FORMAT_EXCEPTIONS = [
+  'book and figure', 'book with figure', 'prank o',
+];
+
+const DISCOVERY_TASTE_EXCLUSIONS = [
+  'anonymous mail', 'i m gay', 'you re gay', 'lgbt prank',
+];
 
 function normalizedTitleTokens(title) {
   return String(title || '')
     .toLowerCase()
+    .replace(/\b\d+(?:\.\d+)?\s*(?:inch(?:es)?|in|cm|mm|oz|ounce|lb|pound)s?\b/g, ' ')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim()
     .split(/\s+/)
-    .filter((token) => token.length > 1 && !DUPLICATE_TITLE_STOP_WORDS.has(token));
+    .filter((token) => token.length > 1 && !/^\d+$/.test(token))
+    .map((token) => DUPLICATE_TOKEN_ALIASES[token] || token)
+    .filter((token) => !DUPLICATE_TITLE_STOP_WORDS.has(token));
+}
+
+function productArchetypeKey(title) {
+  const normalized = ` ${String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
+  const rules = [
+    ['belly-fanny-pack', /\b(?:belly|dad body)\b.*\b(?:fanny|waist) pack\b|\b(?:fanny|waist) pack\b.*\b(?:belly|dad body)\b/],
+    ['middle-finger-keychain', /\bmiddle finger\b.*\bkey ?chain\b/],
+    ['prank-pill-box', /\b(?:prank|joke) pill box\b/],
+    ['bodily-survival-kit', /(?=.*\b(?:shart|fart|poop|potty|underwear)\b)(?=.*\b(?:survival|emergency)\b)(?=.*\b(?:kit|pack|set)\b)/],
+    ['goat-desk-noise-toy', /(?=.*\bgoat\b)(?=.*\b(?:desk|scream|squeak|sound|button|toy)\b)/],
+    ['prank-o-gift-box', /\bprank o\b.*\b(?:prank|gag|gift) box\b/],
+    ['desktop-mini-golf', /(?=.*\b(?:desktop|desk|tabletop|table top)\b)(?=.*\bgolf\b)(?=.*\b(?:game|putting|pen)\b)/],
+  ];
+  return rules.find(([, pattern]) => pattern.test(normalized))?.[0];
 }
 
 function titleSimilarity(leftTitle, rightTitle) {
   const left = new Set(normalizedTitleTokens(leftTitle));
   const right = new Set(normalizedTitleTokens(rightTitle));
-  if (left.size < 4 || right.size < 4) return 0;
+  if (left.size === 0 || right.size === 0) return 0;
 
   const intersection = Array.from(left).filter((token) => right.has(token)).length;
+  if (intersection < 3) return 0;
   const union = new Set([...left, ...right]).size;
-  return union === 0 ? 0 : intersection / union;
+  const jaccard = union === 0 ? 0 : intersection / union;
+  const containment = intersection / Math.min(left.size, right.size);
+  return Math.max(jaccard, containment);
 }
 
-function deduplicateCandidates(products, threshold = 0.82) {
+function areNearDuplicateTitles(leftTitle, rightTitle, threshold = 0.8) {
+  const leftArchetype = productArchetypeKey(leftTitle);
+  const rightArchetype = productArchetypeKey(rightTitle);
+  if (leftArchetype && leftArchetype === rightArchetype) return true;
+
+  const leftTokens = normalizedTitleTokens(leftTitle);
+  const rightTokens = normalizedTitleTokens(rightTitle);
+  if (leftTokens.length >= 2 && leftTokens.sort().join('|') === rightTokens.sort().join('|')) {
+    return true;
+  }
+
+  return titleSimilarity(leftTitle, rightTitle) >= threshold;
+}
+
+function includesTitleTerm(title, terms) {
+  const normalized = ` ${String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
+  return terms.some((term) => normalized.includes(` ${term} `));
+}
+
+function isHighQualityDiscoveryCandidate(product, minQualityScore = 0.65) {
+  if (!product.isActive || product.qualityScore < minQualityScore) return false;
+  if (includesTitleTerm(product.title, DISCOVERY_TASTE_EXCLUSIONS)) return false;
+  const hasFormatException = includesTitleTerm(product.title, DISCOVERY_FORMAT_EXCEPTIONS);
+  if (!hasFormatException && includesTitleTerm(product.title, DISCOVERY_FORMAT_EXCLUSIONS)) {
+    return false;
+  }
+  return includesTitleTerm(product.title, DISCOVERY_BRAND_FIT_TERMS);
+}
+
+function deduplicateCandidates(products, threshold = 0.8) {
   const kept = [];
   let duplicates = 0;
 
   for (const product of products) {
     const duplicate = kept.some((existing) => (
-      existing.id === product.id || titleSimilarity(existing.title, product.title) >= threshold
+      existing.id === product.id || areNearDuplicateTitles(existing.title, product.title, threshold)
     ));
     if (duplicate) duplicates += 1;
     else kept.push(product);
@@ -266,11 +365,11 @@ function deduplicateCandidates(products, threshold = 0.82) {
   return { products: kept, duplicates };
 }
 
-function deduplicateAgainstCatalog(products, catalogProducts, threshold = 0.82) {
+function deduplicateAgainstCatalog(products, catalogProducts, threshold = 0.8) {
   let duplicates = 0;
   const filtered = products.filter((product) => {
     const duplicate = catalogProducts.some((existing) => (
-      existing.id !== product.id && titleSimilarity(existing.title, product.title) >= threshold
+      existing.id !== product.id && areNearDuplicateTitles(existing.title, product.title, threshold)
     ));
     if (duplicate) duplicates += 1;
     return !duplicate;
@@ -301,15 +400,18 @@ function inferHumorTags(title, theme) {
 
 function scoreCandidate(product) {
   const title = product.title.toLowerCase();
-  let score = 0.35;
+  let score = 0.3;
   const hasKnownPrice = product.price > 0;
 
-  if (product.imageUrl) score += 0.15;
-  if (product.price >= 8 && product.price <= 60) score += 0.15;
+  if (product.imageUrl) score += 0.1;
+  if (product.price >= 8 && product.price <= 60) score += 0.1;
   else if (product.price > 60 && product.price <= 150) score += 0.05;
   else if (hasKnownPrice) score -= 0.05;
-  if (/\b(funny|gag|prank|weird|novelty|ridiculous|sarcastic|silly)\b/.test(title)) score += 0.2;
-  if (product.humorTags.length >= 2) score += 0.1;
+  if (includesTitleTerm(title, DISCOVERY_BRAND_FIT_TERMS.slice(0, 21))) score += 0.15;
+  if (includesTitleTerm(title, DISCOVERY_BRAND_FIT_TERMS.slice(21))) score += 0.15;
+  if (product.humorTags.length >= 2) score += 0.05;
+  if (Number(product.rating || 0) >= 4.2) score += 0.05;
+  if (Number(product.reviewCount || 0) >= 100) score += 0.05;
 
   return Math.max(0.05, Math.min(0.95, Number(score.toFixed(4))));
 }
@@ -1018,6 +1120,8 @@ async function main() {
   const seen = new Set();
   const candidates = [];
   let backfilled = 0;
+  let asinDuplicates = 0;
+  let discoveredCandidates = 0;
 
   if (options.enrichOnly) {
     console.log(`Catalog enrichment: max ${options.backfillLimit} existing active products`);
@@ -1055,6 +1159,7 @@ async function main() {
     try {
       found = await searchAmazonCandidates(theme, options);
       console.log(`${theme}: ${found.length} candidate discoveries`);
+      discoveredCandidates += found.length;
     } catch (error) {
       if (isAmazonThrottleError(error)) {
         console.warn(`Skipping "${theme}" after repeated Amazon throttling`);
@@ -1064,30 +1169,52 @@ async function main() {
     }
 
     for (const product of found) {
-      if (seen.has(product.id)) continue;
+      if (seen.has(product.id)) {
+        asinDuplicates += 1;
+        continue;
+      }
       seen.add(product.id);
       candidates.push(product);
     }
   }
 
   candidates.sort((a, b) => b.qualityScore - a.qualityScore);
+  const rawCandidates = candidates.length;
+  const qualityCandidates = candidates.filter((product) => (
+    isHighQualityDiscoveryCandidate(product, options.minQualityScore)
+  ));
+  const qualityRejected = candidates.length - qualityCandidates.length;
+  candidates.splice(0, candidates.length, ...qualityCandidates);
   const deduplicated = deduplicateCandidates(candidates);
   candidates.splice(0, candidates.length, ...deduplicated.products);
   let catalogDuplicates = 0;
-  if (!options.dryRun && candidates.length > 0) {
-    const catalog = await getActiveCatalogIdentities();
-    const catalogDeduplicated = deduplicateAgainstCatalog(candidates, catalog);
-    candidates.splice(0, candidates.length, ...catalogDeduplicated.products);
-    catalogDuplicates = catalogDeduplicated.duplicates;
+  if (candidates.length > 0 && (!options.dryRun || process.env.POSTGRES_URL)) {
+    try {
+      const catalog = await getActiveCatalogIdentities();
+      const catalogDeduplicated = deduplicateAgainstCatalog(candidates, catalog);
+      candidates.splice(0, candidates.length, ...catalogDeduplicated.products);
+      catalogDuplicates = catalogDeduplicated.duplicates;
+    } catch (error) {
+      if (!options.dryRun) throw error;
+      console.warn(`Dry-run catalog deduplication unavailable; continuing with discovery-only results: ${error.message}`);
+    }
   }
-  if (deduplicated.duplicates + catalogDuplicates > 0) {
-    console.log(`Filtered ${deduplicated.duplicates + catalogDuplicates} exact or near-duplicate discoveries`);
+  const duplicatesFiltered = asinDuplicates + deduplicated.duplicates + catalogDuplicates;
+  if (qualityRejected > 0 || duplicatesFiltered > 0) {
+    console.log(`Filtered ${qualityRejected} low-quality and ${duplicatesFiltered} duplicate discoveries`);
   }
 
   if (options.dryRun) {
     console.log(JSON.stringify({
       dryRun: true,
       themes,
+      discoveredCandidates,
+      rawCandidates,
+      qualityRejected,
+      asinDuplicates,
+      discoveryDuplicates: deduplicated.duplicates,
+      catalogDuplicates,
+      duplicatesFiltered,
       activeCandidates: candidates.filter((product) => product.isActive).length,
       candidates: candidates.slice(0, options.maxNew),
     }, null, 2));
@@ -1112,7 +1239,13 @@ async function main() {
     dryRun: false,
     themes,
     backfilled,
-    duplicatesFiltered: deduplicated.duplicates + catalogDuplicates,
+    discoveredCandidates,
+    rawCandidates,
+    qualityRejected,
+    asinDuplicates,
+    discoveryDuplicates: deduplicated.duplicates,
+    catalogDuplicates,
+    duplicatesFiltered,
     candidates: candidates.length,
     activeCandidates: enrichedCandidates.filter((product) => product.isActive).length,
     enrichedCandidates: enrichedCandidates.length,
@@ -1131,9 +1264,11 @@ if (isDirectRun) {
 }
 
 export {
+  areNearDuplicateTitles,
   amazonAffiliateUrl,
   deduplicateAgainstCatalog,
   deduplicateCandidates,
+  isHighQualityDiscoveryCandidate,
   normalizedTitleTokens,
   parseArgs,
   revalidatedProduct,

@@ -1,11 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import amazonCreators from '../lib/amazon-creators.js';
+import { parseCsvRows } from '../scripts/ops/amazon-creators-env.mjs';
+import { formatReport, parseFinalJson } from '../scripts/ops/catalog-weekly.mjs';
 
 import {
+  areNearDuplicateTitles,
   amazonAffiliateUrl,
   deduplicateAgainstCatalog,
   deduplicateCandidates,
+  isHighQualityDiscoveryCandidate,
   parseArgs,
   revalidatedProduct,
   selectRotatingThemes,
@@ -46,6 +50,59 @@ test('Creators API item mapping reads lowerCamelCase offersV2 data', () => {
   });
 });
 
+test('local Creators credential CSV parsing handles quoted commas without exposing values', () => {
+  const rows = parseCsvRows(
+    'Application,Application Id,Credential Id,Secret,Version\n'
+    + '"Goose, Gifts",app-id,credential-id,"secret,with,commas",3.1\n'
+  );
+
+  assert.deepEqual(rows, [
+    ['Application', 'Application Id', 'Credential Id', 'Secret', 'Version'],
+    ['Goose, Gifts', 'app-id', 'credential-id', 'secret,with,commas', '3.1'],
+  ]);
+});
+
+test('weekly catalog reporting parses command output and includes owner-facing stats', () => {
+  assert.deepEqual(parseFinalJson('progress\n{\n  "inserted": 2\n}\n'), { inserted: 2 });
+  const report = formatReport({
+    discoveredCandidates: 60,
+    qualityRejected: 24,
+    duplicatesFiltered: 14,
+    candidates: 22,
+    inserted: 2,
+    updated: 20,
+    backfilled: 3,
+    themes: ['weird kitchen gadgets'],
+  }, {
+    selected: 50,
+    refreshed: 49,
+    confirmedMissing: 1,
+    deactivated: 0,
+    throttled: false,
+  });
+
+  assert.match(report, /60 fetched, 24 quality-rejected, 14 duplicates filtered/);
+  assert.match(report, /2 inserted, 20 refreshed, 3 older products enriched/);
+  assert.match(report, /50 checked, 49 refreshed, 1 confirmed missing/);
+
+  const dryRunReport = formatReport({
+    dryRun: true,
+    discoveredCandidates: 10,
+    qualityRejected: 3,
+    duplicatesFiltered: 2,
+    candidates: [{ id: 'one' }, { id: 'two' }],
+    themes: ['novelty desk toys'],
+  }, {
+    selected: 0,
+    refreshed: 0,
+    confirmedMissing: 0,
+    deactivated: 0,
+    throttled: false,
+  });
+  assert.match(dryRunReport, /2 retained/);
+  assert.match(dryRunReport, /dry run; no products changed/);
+});
+
 test('near-identical discovery titles are filtered while distinct products remain', () => {
   const products = [
     { id: 'B000000001', title: 'Dad Bag Belly Fanny Pack Funny Beer Belly Waist Pack' },
@@ -57,6 +114,60 @@ test('near-identical discovery titles are filtered while distinct products remai
   const result = deduplicateCandidates(products);
   assert.deepEqual(result.products.map((product) => product.id), ['B000000001', 'B000000003']);
   assert.equal(result.duplicates, 1);
+});
+
+test('product-family deduplication catches marketplace variants with different SEO titles', () => {
+  assert.equal(areNearDuplicateTitles(
+    'Funny Shart Survival Kit with Wipes and Disposable Underwear',
+    'Funny Survival Set Includes Disposable Underwear, Potty Humor and Wet Wipe'
+  ), true);
+  assert.equal(areNearDuplicateTitles(
+    'Golf Pen Set with Mini Desktop Putting Green Game',
+    'Tabletop Wooden Mini Bowling Alley Desk Toy'
+  ), false);
+  assert.equal(areNearDuplicateTitles(
+    'Golf Pen Set with Mini Desktop Putting Green Game',
+    'Desktop Golf Pen Putting Game for Coworkers'
+  ), true);
+});
+
+test('discovery quality gate keeps distinctive gag objects and rejects generic merchandise', () => {
+  const base = {
+    price: 15,
+    imageUrl: 'https://example.com/image.jpg',
+    affiliateUrl: 'https://example.com/product',
+    isActive: true,
+    qualityScore: 0.75,
+  };
+
+  assert.equal(isHighQualityDiscoveryCandidate({
+    ...base,
+    title: 'The Original Nessie Loch Ness Monster Soup Ladle',
+  }), true);
+  assert.equal(isHighQualityDiscoveryCandidate({
+    ...base,
+    title: 'Funny Sandalwood Scented Candle for Dad',
+  }), false);
+  assert.equal(isHighQualityDiscoveryCandidate({
+    ...base,
+    title: 'Sarcastic Candles for Coworkers',
+  }), false);
+  assert.equal(isHighQualityDiscoveryCandidate({
+    ...base,
+    title: 'Funny Cocktail Socks and Party Stockings',
+  }), false);
+  assert.equal(isHighQualityDiscoveryCandidate({
+    ...base,
+    title: "I'm Gay Rainbow Heat Change Mug Prank Gift",
+  }), false);
+  assert.equal(isHighQualityDiscoveryCandidate({
+    ...base,
+    title: 'Fullstar Pro Original Vegetable Chopper and Spiralizer',
+  }), false);
+  assert.equal(isHighQualityDiscoveryCandidate({
+    ...base,
+    title: 'The Screaming Goat Book and Figure',
+  }), true);
 });
 
 test('a different ASIN duplicating the active catalog is filtered without blocking an update', () => {

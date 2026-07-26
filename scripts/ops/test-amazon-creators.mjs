@@ -2,9 +2,11 @@
 
 import dotenv from 'dotenv';
 import amazonCreators from '../../lib/amazon-creators.js';
+import { hydrateLocalAmazonCreatorsEnv } from './amazon-creators-env.mjs';
 
 dotenv.config({ path: '.env.local', quiet: true });
 dotenv.config({ quiet: true });
+hydrateLocalAmazonCreatorsEnv();
 
 async function main() {
   if (!amazonCreators.isConfigured()) {

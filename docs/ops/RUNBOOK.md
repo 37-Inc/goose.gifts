@@ -118,9 +118,13 @@ Boundaries (always in force):
    The journal entry must explicitly say which lever was chosen, which plausible
    alternatives were skipped, and why the selected work was the highest-leverage
    reversible move for the business today.
-   While Phase 1a is active, run the bounded daily catalog discovery command
-   unless a higher-priority incident displaces it:
-   `npm run catalog:prefetch -- --theme-limit 6 --per-theme 10 --max-new 50`.
+   Catalog discovery and stale-product revalidation run weekly rather than
+   daily; the catalog changes too slowly to justify daily API and enrichment
+   work. The scheduled command is `npm run catalog:weekly`. It revalidates at
+   most 50 stale products, searches six rotating themes (covering the full
+   12-theme pool every two weeks), admits at most 20 net-new products, and
+   reports basic run statistics to the OpenClaw Slack marketing channel.
+   For a read-only rehearsal use `npm run catalog:weekly -- --dry-run`.
    The command uses `@vercel/postgres` over HTTPS, enriches product copy/tags
    and embeddings, upserts discovered products, and backfills a bounded set of
    existing active products missing catalog fields. Amazon Creators API is the
@@ -128,8 +132,10 @@ Boundaries (always in force):
    CSE is an optional discovery fallback; do not treat its metadata as remote
    price or availability verification.
    Its default theme pool
-   rotates deterministically by UTC date, and exact/near-identical discoveries
-   are collapsed before enrichment. Known prices still gate the
+   rotates deterministically by UTC date. Low-quality commodity formats are
+   rejected, and ASIN, product-family, and existing-catalog duplicates are
+   collapsed before enrichment. Dry runs perform the same existing-catalog
+   deduplication whenever `POSTGRES_URL` is available. Known prices still gate the
    configured min/max range; unknown-price products should link through to
    Amazon for the current price. Use `npm run catalog:enrich` when you only
    need to backfill existing active products.
