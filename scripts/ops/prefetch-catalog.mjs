@@ -1205,6 +1205,14 @@ async function main() {
   }
 
   if (options.dryRun) {
+    const reviewCandidates = candidates.slice(0, Math.min(options.maxNew, 5)).map((product) => ({
+      id: product.id,
+      title: product.title,
+      imageUrl: product.imageUrl,
+      affiliateUrl: product.affiliateUrl,
+      qualityScore: product.qualityScore,
+      sourceQuery: product.sourceQuery,
+    }));
     console.log(JSON.stringify({
       dryRun: true,
       themes,
@@ -1217,6 +1225,7 @@ async function main() {
       duplicatesFiltered,
       activeCandidates: candidates.filter((product) => product.isActive).length,
       candidates: candidates.slice(0, options.maxNew),
+      reviewCandidates,
     }, null, 2));
     return;
   }
@@ -1250,6 +1259,14 @@ async function main() {
     activeCandidates: enrichedCandidates.filter((product) => product.isActive).length,
     enrichedCandidates: enrichedCandidates.length,
     embeddedCandidates: enrichedCandidates.filter((product) => Array.isArray(product.embedding) && product.embedding.length > 0).length,
+    reviewCandidates: enrichedCandidates.slice(0, 5).map((product) => ({
+      id: product.id,
+      title: product.title,
+      imageUrl: product.imageUrl,
+      affiliateUrl: product.affiliateUrl,
+      qualityScore: product.qualityScore,
+      sourceQuery: product.sourceQuery,
+    })),
     inserted,
     updated,
   }, null, 2));

@@ -3,6 +3,11 @@ import test from 'node:test';
 import amazonCreators from '../lib/amazon-creators.js';
 import { parseCsvRows } from '../scripts/ops/amazon-creators-env.mjs';
 import { formatReport, parseFinalJson } from '../scripts/ops/catalog-weekly.mjs';
+import {
+  auditGuideProducts,
+  extractGuideProducts,
+  extractGuideUrls,
+} from '../scripts/ops/audit-gift-guides.mjs';
 
 import {
   areNearDuplicateTitles,
@@ -73,6 +78,11 @@ test('weekly catalog reporting parses command output and includes owner-facing s
     updated: 20,
     backfilled: 3,
     themes: ['weird kitchen gadgets'],
+    reviewCandidates: Array.from({ length: 7 }, (_, index) => ({
+      title: `Candidate ${index + 1}`,
+      imageUrl: `https://images.example/${index + 1}.jpg`,
+      affiliateUrl: `https://shop.example/${index + 1}`,
+    })),
   }, {
     selected: 50,
     refreshed: 49,
@@ -84,6 +94,9 @@ test('weekly catalog reporting parses command output and includes owner-facing s
   assert.match(report, /60 fetched, 24 quality-rejected, 14 duplicates filtered/);
   assert.match(report, /2 inserted, 20 refreshed, 3 older products enriched/);
   assert.match(report, /50 checked, 49 refreshed, 1 confirmed missing/);
+  assert.match(report, /Visual spot-check \(5\):/);
+  assert.match(report, /Candidate 5/);
+  assert.doesNotMatch(report, /Candidate 6/);
 
   const dryRunReport = formatReport({
     dryRun: true,
@@ -101,6 +114,57 @@ test('weekly catalog reporting parses command output and includes owner-facing s
   });
   assert.match(dryRunReport, /2 retained/);
   assert.match(dryRunReport, /dry run; no products changed/);
+});
+
+test('gift guide audit reads rendered products and identifies thin distinct inventory', () => {
+  const rendered = [
+    {
+      id: 'good',
+      title: 'Red Crab Silicone Spoon Rest',
+      punnyTitle: 'Crab-tivating Counter Help',
+      qualityScore: 0.8,
+      isActive: true,
+      imageUrl: 'https://example.com/crab.jpg',
+      affiliateUrl: 'https://example.com/crab',
+    },
+    {
+      id: 'weak',
+      title: 'Luxury Ramen Bowl Set',
+      punnyTitle: 'Ramen Ready',
+      qualityScore: 0.5,
+      isActive: true,
+      imageUrl: 'https://example.com/bowl.jpg',
+      affiliateUrl: 'https://example.com/bowl',
+    },
+  ].map((product) => JSON.stringify(product).replaceAll('"', '\\"')).join(',');
+  const html = `<script>self.__next_f.push([1,"${rendered}"])</script>`;
+  const products = extractGuideProducts(html);
+
+  assert.equal(products.length, 2);
+  assert.deepEqual(auditGuideProducts(products, 2), {
+    raw: 2,
+    eligible: 1,
+    distinct: 1,
+    rejected: 1,
+    duplicates: 0,
+    underfilled: true,
+  });
+});
+
+test('gift guide audit discovers only canonical guide detail URLs from the sitemap', () => {
+  const sitemap = [
+    '<urlset>',
+    '<url><loc>https://www.goose.gifts/</loc></url>',
+    '<url><loc>https://www.goose.gifts/gift-guides/weird-kitchen-gadgets</loc></url>',
+    '<url><loc>https://www.goose.gifts/gift-guides/weird-kitchen-gadgets</loc></url>',
+    '<url><loc>https://www.goose.gifts/gift-guides</loc></url>',
+    '<url><loc>https://example.com/gift-guides/not-ours</loc></url>',
+    '</urlset>',
+  ].join('');
+
+  assert.deepEqual(extractGuideUrls(sitemap), [
+    'https://www.goose.gifts/gift-guides/weird-kitchen-gadgets',
+  ]);
 });
 
 test('near-identical discovery titles are filtered while distinct products remain', () => {

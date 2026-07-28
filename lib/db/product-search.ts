@@ -5,7 +5,7 @@ import { cleanImageUrl } from '../image-utils';
 import { generateTextEmbedding } from '../openai-embeddings';
 import type { Product, ProductSearchResult } from '../types';
 import {
-  isHomepageEligibleProduct,
+  isCatalogDisplayEligibleProduct,
   suppressNearDuplicateProducts,
 } from './product-scoring';
 
@@ -72,7 +72,7 @@ function selectSearchResults(
   limit: number
 ): ProductSearchResult[] {
   return suppressNearDuplicateProducts(
-    rankedProducts.filter(isHomepageEligibleProduct),
+    rankedProducts.filter((product) => isCatalogDisplayEligibleProduct(product)),
     limit
   );
 }

@@ -123,8 +123,11 @@ Boundaries (always in force):
    work. The scheduled command is `npm run catalog:weekly`. It revalidates at
    most 50 stale products, searches six rotating themes (covering the full
    12-theme pool every two weeks), admits at most 20 net-new products, and
-   reports basic run statistics to the OpenClaw Slack marketing channel.
+   reports basic run statistics plus at most five title/image/product-link
+   candidates for visual spot-checking to the OpenClaw Slack marketing channel.
    For a read-only rehearsal use `npm run catalog:weekly -- --dry-run`.
+   Use `npm run catalog:audit-guides` for a read-only audit of the product
+   counts currently rendered by every canonical gift guide.
    The command uses `@vercel/postgres` over HTTPS, enriches product copy/tags
    and embeddings, upserts discovered products, and backfills a bounded set of
    existing active products missing catalog fields. Amazon Creators API is the

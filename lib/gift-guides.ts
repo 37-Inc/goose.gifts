@@ -3,6 +3,7 @@ import { db } from './db/index';
 import { products } from './db/schema';
 import { cleanImageUrl } from './image-utils';
 import type { Product } from './types';
+import { selectGiftGuideDisplayProducts } from './db/product-scoring';
 
 export interface GiftGuideDefinition {
   slug: string;
@@ -12,6 +13,9 @@ export interface GiftGuideDefinition {
   intro: string;
   keywords: string[];
 }
+
+const MIN_FOCUSED_GUIDE_PRODUCTS = 6;
+const MAX_FALLBACK_GUIDE_PRODUCTS = 12;
 
 // A guide's broad keywords are useful for recall, but they are not all equally
 // distinctive. These focus groups define the concrete evidence that should be
@@ -23,7 +27,7 @@ const giftGuideFocusKeywordGroups: Record<string, string[][]> = {
   'white-elephant-gifts': [['white elephant']],
   'funny-gifts-for-coworkers': [['coworker', 'coworkers']],
   'funny-gifts-for-dads': [['dad', 'father', 'grandpa']],
-  'weird-kitchen-gadgets': [['kitchen gadget', 'kitchen tool', 'kitchen utensil', 'ramen']],
+  'weird-kitchen-gadgets': [['kitchen gadget', 'kitchen tool', 'kitchen utensil']],
   'novelty-desk-toys': [['desk toy', 'desktop toy', 'fidget']],
   'secret-santa-gag-gifts': [['secret santa']],
   'dirty-santa-gifts': [['dirty santa']],
@@ -50,7 +54,7 @@ const giftGuideFocusKeywordGroups: Record<string, string[][]> = {
   'optical-illusion-decor-gifts': [['optical illusion', 'illusion']],
   'funny-gifts-for-teachers': [['teacher', 'school', 'classroom']],
   'funny-gifts-for-nurses': [['nurse', 'nurses', 'nursing']],
-  'funny-book-lover-gifts': [['book lover', 'bookish', 'reader', 'reading']],
+  'funny-book-lover-gifts': [['book', 'books', 'bookmark', 'bookmarks', 'book lover', 'bookish', 'reader', 'reading']],
   'funny-sports-fan-gifts': [['sports fan', 'game day', 'football fan', 'soccer fan', 'baseball fan', 'basketball fan']],
   'funny-wine-gifts': [['wine']],
   'funny-bath-gifts': [['bath', 'spa'], ['bath bomb', 'soap', 'self care', 'relaxation', 'shower']],
@@ -64,8 +68,6 @@ const giftGuideFocusKeywordGroups: Record<string, string[][]> = {
   'funny-gardening-gifts': [['garden', 'gardening', 'gardener', 'plant lover']],
   'funny-hostess-gifts': [['hostess', 'host gift', 'host gifts', 'party host']],
 };
-
-const MIN_FOCUSED_GUIDE_PRODUCTS = 6;
 
 export const giftGuides: GiftGuideDefinition[] = [
   {
@@ -570,14 +572,8 @@ export async function getGiftGuideProducts(
   limit: number = 36
 ): Promise<Product[]> {
   const focusGroups = giftGuideFocusKeywordGroups[guide.slug] || [guide.keywords.slice(0, 1)];
-  const focusedRows = await selectGiftGuideRows(guide, focusGroups, limit, true);
-  const minimumFocusedResults = Math.min(MIN_FOCUSED_GUIDE_PRODUCTS, limit);
-  const rows = focusedRows.length >= minimumFocusedResults
-    ? focusedRows
-    : await selectGiftGuideRows(guide, focusGroups, limit, false);
-
-  return rows
-    .map((row) => ({
+  const candidateLimit = Math.max(limit, Math.min(limit * 2, 72));
+  const toProduct = (row: Awaited<ReturnType<typeof selectGiftGuideRows>>[number]): Product => ({
       id: row.id,
       title: row.title,
       punnyTitle: row.punnyTitle || undefined,
@@ -593,9 +589,21 @@ export async function getGiftGuideProducts(
       source: row.source as 'amazon' | 'etsy',
       rating: row.rating ? parseFloat(row.rating) : undefined,
       reviewCount: row.reviewCount || undefined,
-      clickCount: row.clickCount || 0,
-      impressionCount: row.impressionCount || 0,
-    }));
+    });
+  const focusedRows = await selectGiftGuideRows(guide, focusGroups, candidateLimit, true);
+  const focusedProducts = focusedRows.map(toProduct);
+  const focusedSelection = selectGiftGuideDisplayProducts(focusedProducts, limit);
+  const minimumFocusedProducts = Math.min(MIN_FOCUSED_GUIDE_PRODUCTS, limit);
+
+  if (focusedSelection.length >= minimumFocusedProducts) {
+    return focusedSelection;
+  }
+
+  const fallbackRows = await selectGiftGuideRows(guide, focusGroups, candidateLimit, false);
+  return selectGiftGuideDisplayProducts(
+    [...focusedProducts, ...fallbackRows.map(toProduct)],
+    Math.min(limit, MAX_FALLBACK_GUIDE_PRODUCTS)
+  );
 }
 
 export interface GuidePreview {

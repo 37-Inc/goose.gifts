@@ -6,13 +6,16 @@ import type { Product } from '../types';
 import { cleanImageUrl } from '../image-utils';
 import {
   HOMEPAGE_BRAND_FIT_TERMS,
-  isHomepageEligibleProduct,
+  isCatalogDisplayEligibleProduct,
+  limitProductTypeDiversity,
   scoreProductForTrending,
   suppressNearDuplicateProducts,
 } from './product-scoring';
 
 const HOMEPAGE_CANDIDATE_LIMIT = 1200;
 const HOMEPAGE_CACHE_SECONDS = 3600;
+const HOMEPAGE_DIVERSITY_LOOKAHEAD_FACTOR = 3;
+const HOMEPAGE_MAX_PRODUCTS_PER_TYPE = 4;
 
 interface ProductWithStats extends Product {
   clickCount: number;
@@ -118,7 +121,7 @@ async function loadHomepageEligibleProducts(): Promise<ProductWithStats[]> {
     clickCount: product.clickCount || 0,
     impressionCount: product.impressionCount || 0,
     lastClickedAt: product.lastClickedAt,
-  })).filter(isHomepageEligibleProduct);
+  })).filter((product) => isCatalogDisplayEligibleProduct(product));
 }
 
 // `searchParams` makes the homepage route dynamic, so route-level revalidation
@@ -181,10 +184,18 @@ export async function getCatalogFeedProducts({
     // into hundreds of thousands of title comparisons. We only need enough
     // globally distinct results to cover prior pages, the requested page, and
     // one look-ahead result for hasMore.
-    suppressionLimit = Math.min(ranked.length, excluded.size + limit + 1);
+    suppressionLimit = Math.min(
+      ranked.length,
+      excluded.size + limit * HOMEPAGE_DIVERSITY_LOOKAHEAD_FACTOR + 1
+    );
     const dedupeStartedAt = performance.now();
     const distinctRanked = suppressNearDuplicateProducts(ranked, suppressionLimit)
       .filter(({ product }) => !excluded.has(product.id));
+    const diverseRanked = limitProductTypeDiversity(
+      distinctRanked,
+      limit + 1,
+      HOMEPAGE_MAX_PRODUCTS_PER_TYPE
+    );
     dedupeMs = roundedMilliseconds(dedupeStartedAt);
 
     const timing = {
@@ -205,8 +216,8 @@ export async function getCatalogFeedProducts({
     }
 
     return {
-      products: distinctRanked.slice(0, limit).map(({ product }) => product),
-      hasMore: distinctRanked.length > limit,
+      products: diverseRanked.slice(0, limit).map(({ product }) => product),
+      hasMore: diverseRanked.length > limit || distinctRanked.length > diverseRanked.length,
       timing,
     };
   } catch (error) {

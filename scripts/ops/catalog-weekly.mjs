@@ -44,6 +44,17 @@ function formatReport(discovery, revalidation) {
     ? 'Catalog writes: dry run; no products changed'
     : `Catalog writes: ${discovery.inserted} inserted, ${discovery.updated} refreshed, `
       + `${discovery.backfilled} older products enriched`;
+  const reviewCandidates = (Array.isArray(discovery.reviewCandidates)
+    ? discovery.reviewCandidates
+    : [])
+    .filter((product) => product.title && product.imageUrl && product.affiliateUrl)
+    .slice(0, 5);
+  const reviewLines = reviewCandidates.flatMap((product) => [
+    `• ${product.title.replace(/\s+/g, ' ').trim().slice(0, 100)}`,
+    `  image: ${product.imageUrl}`,
+    `  product: ${product.affiliateUrl}`,
+  ]);
+
   return [
     `🪿 goose.gifts weekly catalog run ${status}`,
     '',
@@ -53,6 +64,9 @@ function formatReport(discovery, revalidation) {
     `Revalidation: ${revalidation.selected} checked, ${revalidation.refreshed} refreshed, `
       + `${revalidation.confirmedMissing} confirmed missing, ${revalidation.deactivated} deactivated`,
     `Themes: ${discovery.themes.join(', ')}`,
+    ...(reviewLines.length > 0
+      ? ['', `Visual spot-check (${reviewCandidates.length}):`, ...reviewLines]
+      : []),
   ].join('\n');
 }
 

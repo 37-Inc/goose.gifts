@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   areNearDuplicateTitles,
-  isHomepageEligibleProduct,
+  isCatalogDisplayEligibleProduct,
+  limitProductTypeDiversity,
   productArchetypeKey,
+  productDisplayTypeKey,
   productFamilyFingerprint,
   scoreProductForTrending,
+  selectGiftGuideDisplayProducts,
   suppressNearDuplicateProducts,
 } from '../lib/db/product-scoring.ts';
 
@@ -25,19 +28,19 @@ function product(overrides = {}) {
 }
 
 test('explicit gag gifts are eligible while generic legacy gifts are not', () => {
-  assert.equal(isHomepageEligibleProduct(product({ title: 'Funny Fart Button Gag Gift' })), true);
-  assert.equal(isHomepageEligibleProduct(product({ title: 'Luxury Vanilla Bath Bomb Gift Set' })), false);
+  assert.equal(isCatalogDisplayEligibleProduct(product({ title: 'Funny Fart Button Gag Gift' })), true);
+  assert.equal(isCatalogDisplayEligibleProduct(product({ title: 'Luxury Vanilla Bath Bomb Gift Set' })), false);
 });
 
 test('distinctive merchant-title evidence can qualify without spammy title keywords', () => {
-  assert.equal(isHomepageEligibleProduct(product({
+  assert.equal(isCatalogDisplayEligibleProduct(product({
     title: 'Red Crab Silicone Spoon Rest',
     sourceQuery: 'weird kitchen gadgets',
   })), true);
 });
 
 test('automated discovery fields cannot manufacture homepage relevance', () => {
-  assert.equal(isHomepageEligibleProduct(product({
+  assert.equal(isCatalogDisplayEligibleProduct(product({
     title: 'The Book of Unusual Knowledge: Fascinating Facts for Trivia Buffs',
     sourceQuery: 'funny gifts for dads',
     humorTags: ['dad-joke', 'weird', 'novelty'],
@@ -47,33 +50,53 @@ test('automated discovery fields cannot manufacture homepage relevance', () => {
 });
 
 test('commodity formats stay off the homepage despite merchant SEO language', () => {
-  assert.equal(isHomepageEligibleProduct(product({
+  assert.equal(isCatalogDisplayEligibleProduct(product({
     title: 'Funny Gift Pack for Women - Hilarious Gag Makeup Travel Bag',
     sourceQuery: 'prank gifts for friends',
   })), false);
-  assert.equal(isHomepageEligibleProduct(product({
+  assert.equal(isCatalogDisplayEligibleProduct(product({
     title: 'Cat Butts Pole Dance Show: Funny Coloring Book',
   })), false);
-  assert.equal(isHomepageEligibleProduct(product({
+  assert.equal(isCatalogDisplayEligibleProduct(product({
     title: "Buggin' Out! A Hilarious Insect Coloring Adventure",
   })), false);
 });
 
+test('focused guides may show otherwise excluded formats without bypassing baseline quality', () => {
+  const coloringBook = product({
+    title: 'Optical Illusion Adult Coloring Book',
+    qualityScore: 0.75,
+  });
+
+  assert.equal(isCatalogDisplayEligibleProduct(coloringBook), false);
+  assert.equal(isCatalogDisplayEligibleProduct(coloringBook, {
+    allowExcludedFormats: true,
+    requireTitleBrandFit: false,
+  }), true);
+  assert.equal(isCatalogDisplayEligibleProduct({
+    ...coloringBook,
+    qualityScore: 0.4,
+  }, {
+    allowExcludedFormats: true,
+    requireTitleBrandFit: false,
+  }), false);
+});
+
 test('physical novelty book sets remain eligible', () => {
-  assert.equal(isHomepageEligibleProduct(product({
+  assert.equal(isCatalogDisplayEligibleProduct(product({
     title: 'The Screaming Goat (Book & Figure)',
   })), true);
 });
 
 test('inactive and low-quality products never qualify', () => {
-  assert.equal(isHomepageEligibleProduct(product({ title: 'Funny Mug', isActive: false })), false);
-  assert.equal(isHomepageEligibleProduct(product({ title: 'Funny Mug', qualityScore: 0.4 })), false);
+  assert.equal(isCatalogDisplayEligibleProduct(product({ title: 'Funny Mug', isActive: false })), false);
+  assert.equal(isCatalogDisplayEligibleProduct(product({ title: 'Funny Mug', qualityScore: 0.4 })), false);
 });
 
 test('expired year-specific products do not re-enter the live catalog', () => {
   const currentYear = new Date().getUTCFullYear();
-  assert.equal(isHomepageEligibleProduct(product({ title: 'Funny Goat 2022 Calendar' })), false);
-  assert.equal(isHomepageEligibleProduct(product({ title: `Funny Goat ${currentYear} Calendar` })), true);
+  assert.equal(isCatalogDisplayEligibleProduct(product({ title: 'Funny Goat 2022 Calendar' })), false);
+  assert.equal(isCatalogDisplayEligibleProduct(product({ title: `Funny Goat ${currentYear} Calendar` })), true);
 });
 
 test('brand-fit scoring favors a genuine gag gift over a generic beauty item', () => {
@@ -149,6 +172,24 @@ test('known marketplace archetypes collapse visually repetitive product families
   ), true);
 });
 
+test('homepage type diversity caps common formats while preserving rank order', () => {
+  const ranked = [
+    ...Array.from({ length: 6 }, (_, index) => product({
+      id: `mug-${index}`,
+      title: `Funny Coffee Mug Design ${index}`,
+    })),
+    product({ id: 'goat', title: 'The Screaming Goat Desk Toy' }),
+    product({ id: 'crab', title: 'Red Crab Silicone Spoon Rest' }),
+  ];
+
+  assert.equal(productDisplayTypeKey('Sarcastic Coffee Mug'), 'mug');
+  assert.equal(productDisplayTypeKey('Funny Stocking Stuffer Button'), undefined);
+  assert.deepEqual(
+    limitProductTypeDiversity(ranked, 6, 4).map(({ id }) => id),
+    ['mug-0', 'mug-1', 'mug-2', 'mug-3', 'goat', 'crab']
+  );
+});
+
 test('duplicate suppression keeps the highest-ranked representative and fills the limit', () => {
   const ranked = [
     product({ id: 'belly-1', title: 'Funny Belly Fanny Pack Hairy Dad Body' }),
@@ -195,4 +236,19 @@ test('indexed duplicate suppression matches the conservative pairwise reference'
       referenceSuppress(limit)
     );
   }
+});
+
+test('gift guide selection preserves focused order while filtering safely', () => {
+  const candidates = [
+    product({ id: 'crab', title: 'Red Crab Silicone Spoon Rest' }),
+    product({ id: 'weak', title: 'Luxury Ramen Bowl Set', qualityScore: 0.4 }),
+    product({ id: 'crab', title: 'Red Crab Silicone Spoon Rest' }),
+    product({ id: 'coloring', title: 'Optical Illusion Adult Coloring Book' }),
+    product({ id: 'goat', title: 'The Screaming Goat (Book & Figure)' }),
+  ];
+
+  assert.deepEqual(
+    selectGiftGuideDisplayProducts(candidates, 3).map(({ id }) => id),
+    ['crab', 'coloring', 'goat']
+  );
 });

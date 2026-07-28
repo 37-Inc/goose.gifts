@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm';
 import { db } from './index';
 import { products } from './schema';
 import { cleanImageUrl } from '../image-utils';
-import { isHomepageEligibleProduct, scoreProductForTrending } from './product-scoring';
+import { isCatalogDisplayEligibleProduct, scoreProductForTrending } from './product-scoring';
 import type { Product } from '../types';
 
 function toProduct(row: {
@@ -112,7 +112,7 @@ async function getEligibleRandomGiftPool(): Promise<Product[]> {
 
   return rows
     .map(toProduct)
-    .filter(isHomepageEligibleProduct)
+    .filter((product) => isCatalogDisplayEligibleProduct(product))
     .sort((a, b) => scoreProductForTrending(b) - scoreProductForTrending(a));
 }
 

@@ -109,6 +109,16 @@ const PRODUCT_ARCHETYPE_RULES: Array<{ key: string; matches: (title: string) => 
   },
 ];
 
+const PRODUCT_DISPLAY_TYPE_RULES: Array<{ key: string; matches: (title: string) => boolean }> = [
+  { key: 'mug', matches: (title) => /\b(?:coffee|tea) cup\b|\bmug\b|\btumbler\b/.test(title) },
+  { key: 'socks', matches: (title) => /\bsocks?\b|\bstockings\b/.test(title) },
+  { key: 'sign', matches: (title) => /\b(?:desk|metal|tin|wall) sign\b|\bwall art\b|\bposter\b/.test(title) },
+  { key: 'candle', matches: (title) => /\bcandles?\b/.test(title) },
+  { key: 'shirt', matches: (title) => /\bt shirts?\b|\btees?\b|\bpullover\b|\bsweatshirt\b/.test(title) },
+  { key: 'hat', matches: (title) => /\b(?:baseball|bucket|trucker) (?:cap|hat)\b|\bhat\b/.test(title) },
+  { key: 'keychain', matches: (title) => /\bkey ?chains?\b/.test(title) },
+];
+
 function normalizeForMatching(text: string): string {
   return ` ${text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
 }
@@ -135,6 +145,11 @@ export function productFamilyFingerprint(title: string): string {
 export function productArchetypeKey(title: string): string | undefined {
   const normalizedTitle = normalizeForMatching(title);
   return PRODUCT_ARCHETYPE_RULES.find((rule) => rule.matches(normalizedTitle))?.key;
+}
+
+export function productDisplayTypeKey(title: string): string | undefined {
+  const normalizedTitle = normalizeForMatching(title);
+  return PRODUCT_DISPLAY_TYPE_RULES.find((rule) => rule.matches(normalizedTitle))?.key;
 }
 
 interface TitleMatchProfile {
@@ -243,6 +258,43 @@ export function suppressNearDuplicateProducts<T extends Pick<Product, 'title'>>(
   return selected;
 }
 
+export function limitProductTypeDiversity<T extends Pick<Product, 'title'>>(
+  rankedProducts: T[],
+  limit: number = rankedProducts.length,
+  maxPerType: number = 4
+): T[] {
+  const selected: T[] = [];
+  const typeCounts = new Map<string, number>();
+
+  for (const product of rankedProducts) {
+    const type = productDisplayTypeKey(product.title);
+    if (type && (typeCounts.get(type) || 0) >= maxPerType) continue;
+
+    selected.push(product);
+    if (type) typeCounts.set(type, (typeCounts.get(type) || 0) + 1);
+    if (selected.length >= limit) break;
+  }
+
+  return selected;
+}
+
+export function selectGiftGuideDisplayProducts<T extends Product>(
+  products: T[],
+  limit: number
+): T[] {
+  const seenIds = new Set<string>();
+  const candidates = products.filter((product) => {
+    if (seenIds.has(product.id)) return false;
+    seenIds.add(product.id);
+    return isCatalogDisplayEligibleProduct(product, {
+      allowExcludedFormats: true,
+      requireTitleBrandFit: false,
+    });
+  });
+
+  return suppressNearDuplicateProducts(candidates, limit);
+}
+
 function matchingTerms(text: string, terms: string[]): number {
   const normalizedText = normalizeForMatching(text);
 
@@ -265,7 +317,18 @@ function titleBrandFitMatches(title: string): number {
     + matchingTerms(title, DISTINCTIVE_ODDITY_TERMS);
 }
 
-export function isHomepageEligibleProduct(product: Product): boolean {
+interface CatalogDisplayEligibilityOptions {
+  allowExcludedFormats?: boolean;
+  requireTitleBrandFit?: boolean;
+}
+
+export function isCatalogDisplayEligibleProduct(
+  product: Product,
+  {
+    allowExcludedFormats = false,
+    requireTitleBrandFit = true,
+  }: CatalogDisplayEligibilityOptions = {}
+): boolean {
   if (product.isActive === false || !product.imageUrl || !product.affiliateUrl) {
     return false;
   }
@@ -277,7 +340,7 @@ export function isHomepageEligibleProduct(product: Product): boolean {
   // sourceQuery, humorTags, punnyTitle, and wittyDescription are all generated
   // or automated fields. They can help rank an already credible product, but
   // must not manufacture homepage eligibility for a generic merchant listing.
-  if (hasExcludedHomepageFormat(product.title)) {
+  if (!allowExcludedFormats && hasExcludedHomepageFormat(product.title)) {
     return false;
   }
 
@@ -285,7 +348,7 @@ export function isHomepageEligibleProduct(product: Product): boolean {
     return false;
   }
 
-  return titleBrandFitMatches(product.title) > 0;
+  return !requireTitleBrandFit || titleBrandFitMatches(product.title) > 0;
 }
 
 /**
