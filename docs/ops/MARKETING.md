@@ -29,9 +29,10 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-1. **Pinterest-native creative acquisition**: active concept-learning
-   experiment. Improve the editorial direction and product fidelity before
-   preparing any public pilot.
+1. **Pinterest-native creative acquisition**: active public learning loop.
+   Three product-faithful editorial Pins are live; exposure is still too small
+   for a creative verdict. A twice-weekly studio now advances at most one
+   excellent survivor per run and maintains an exact owner-review queue.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
    catalog-supported pages. The Weird Gift Index is the first original-data
    acquisition asset and should be improved as a cited, editioned report rather
@@ -100,8 +101,14 @@ or superficial color swaps.
 9. If a later pilot is approved and published, record impressions, saves, Pin clicks, outbound
    clicks, site-side attribution, observations, and the next decision.
 
-Concept generation is authorized. Tool purchases, subscriptions, external
-posting, public-pilot preparation, and paid distribution are not authorized.
+Concept generation and internal review are authorized. The v4 and v5
+experiments contain explicit public-posting authorization only for candidates
+that have their own owner approval event. A scheduled run may publish a
+candidate only when production API access is confirmed and the exact image,
+board, copy, disclosure, destination, and tracking package are approved.
+Otherwise it must stop at
+`docs/ops/pinterest-creative-lab/REVIEW_QUEUE.md`. Tool purchases,
+subscriptions, and paid distribution remain unauthorized.
 
 ### Tool strategy and access
 
@@ -137,6 +144,22 @@ For every concept promoted beyond rough exploration, record:
 - performance checkpoints and conclusion.
 
 ## Experiment log
+
+### 2026-07-28 — Twice-weekly Pinterest and organic-growth studio
+
+- **Cadence**: Tuesday and Friday at 9:30 a.m. local time in an isolated Codex
+  worktree.
+- **Creative scope**: one bounded creative cycle per run, using existing valid
+  survivors before generating replacements. The hippo vanity and desk scenes
+  are first in the owner-review queue; the goat requires a source-faithful
+  revision; the false eye-rug product premise remains permanently rejected.
+- **Publishing boundary**: exact candidate approval plus confirmed production
+  API access is required. Everything else is queued for owner review.
+- **Organic scope**: the first run each week may materially improve at most one
+  existing Search Console opportunity; it must not mass-publish guide pages.
+- **Product-feature scope**: once monthly, reassess whether evidence supports a
+  minimal no-account shareable gift shortlist. Do not build a full wishlist or
+  collect participant email/PII without a separate product decision.
 
 ### 2026-07-12 — Reference-guided product-fidelity cycle
 

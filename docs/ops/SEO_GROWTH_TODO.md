@@ -131,6 +131,40 @@ report.
 - [ ] Track whether SEO changes move indexed pages, organic sessions, on-site
   searches, and product clicks.
 
+## Scheduled Opportunity Pages — 2026-07-28
+
+The twice-weekly Pinterest and organic-growth studio may improve at most one of
+these existing pages on the first run each week. Current Search Console shows
+impressions but no clicks, so the goal is better relevance, usefulness, and
+authority—not more URLs.
+
+1. `/gift-guides/funny-gifts-for-coworkers` — highest current exposure. Add
+   page-specific selection guidance for office-safe jokes, desk gifts, bosses,
+   and work colleagues; replace generic FAQ answers with genuinely useful
+   workplace criteria; align title/description with the observed "funny
+   coworker gifts" and "funny boss gifts" language when the combined query/page
+   data supports it.
+2. `/gift-guides/white-elephant-gifts` — explain the actual selection rubric
+   (quick reaction, usefulness, stealability, and broad room fit), strengthen
+   contextual links to adult, office-safe, and Secret Santa variants, and make
+   the headline/title promise consistent with "people will actually steal."
+3. `/gift-guides/funny-gifts-for-dads` — add distinct paths for dad-joke,
+   birthday, fishing, grilling, and practical novelty intent without pretending
+   every catalog item fits every subtype; refine metadata around the observed
+   dad-gift query cluster.
+4. `/gift-guides/secret-santa-gag-gifts` — add useful recipient and workplace
+   constraints, exchange-specific picking advice, and contextual links to
+   coworker and white-elephant guides ahead of seasonal demand.
+5. `/gift-guides/weird-kitchen-gadgets` — distinguish actually usable tools
+   from decorative novelty, add kitchen-specific buying criteria, and use its
+   strong visual fit as the bridge between organic search and Pinterest.
+
+Implementation should extend the guide model with optional page-specific
+editorial sections and FAQ overrides rather than adding generic paragraphs to
+all 43 guides. Keep the existing product-quality gates, validate rendered
+inventory, and measure impressions, average position, organic sessions, and
+outbound clicks after each change.
+
 ## Recurring Publishing Cadence
 
 - [ ] **Daily input gathering**: every non-incident run should mine on-site

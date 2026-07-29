@@ -62,6 +62,19 @@ what's likely next.
 
 Newest first.
 
+### 2026-07-28 — Twice-weekly Pinterest and organic growth studio `[owner+codex]`
+
+Kept the deterministic Monday catalog-quality job separate and added a
+high-reasoning Tuesday/Friday creative-and-organic studio. It reuses the
+installed Pinterest-native skill, produces at most one excellent survivor per
+run, maintains an exact owner-review queue, and only publishes candidates with
+explicit package-level approval and confirmed production API access. The first
+queue contains the unpublished hippo vanity and desk survivors; the goat remains
+a source-fidelity revision, and the false eye-rug premise remains rejected. The
+first weekly run may also improve one of five Search Console opportunity pages
+with distinctive editorial content instead of creating more URLs. Wishlist and
+Secret Santa expansion is now a monthly evidence check, not a build commitment.
+
 ### 2026-07-18 — Pinterest-native creative V5 forward test `[owner+codex]`
 
 Ran the reusable creative skill on a newly verified product, rejected two
