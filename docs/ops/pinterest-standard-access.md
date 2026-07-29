@@ -37,9 +37,15 @@ gate is a one-time **video-demo review**, not money.
 - [x] **Data-handling compliance** — the integration stores *only* OAuth tokens
       (in Keychain), never Pinterest credentials or session data. This is exactly
       what the reviewer checks for.
-- [ ] **Complete, detailed app description / use case** in the portal — fill with
-      the "Use-case description" below if the current one is thin.
-- [ ] **Demo video** recorded and uploaded (see "Demo video" — the real work).
+- [x] **Complete, detailed app description / use case** in the portal — updated
+      2026-07-24 to identify the integration as first-party, describe its
+      publishing/reporting behavior, and document Keychain token storage.
+- [x] **App icon** — uploaded the existing square goose.gifts brand icon on
+      2026-07-24; Pinterest may continue to show "processing" briefly.
+- [x] **Demo video** recorded and uploaded 2026-07-24. Pinterest confirmed
+      "Upload successful!" in the Standard-access form. The 46-second silent
+      screen recording shows OAuth, account verification, a dry run, a real
+      Sandbox create response, and the resulting Pin in Pinterest.
 - [~] Redirect URI is `http://localhost` (fine for a first-party server-side
       integration; Pinterest explicitly accepts terminal/Postman demos, so a
       localhost OAuth flow is acceptable). No change required.
@@ -83,7 +89,22 @@ sensitive information**. **Terminal / Postman recordings are explicitly accepted
 which fits our CLI tooling. Keep it ~1–3 minutes.
 
 Everything below is already built (`scripts/ops/pinterest-*`, `package.json`).
-Record the terminal while running these; narrate each step.
+Record the terminal while running these; the guided runner explains each step
+on screen, so audio narration is optional.
+
+The easiest recording path is the guided one-command runner:
+
+```bash
+npm run pinterest:review-demo
+```
+
+It opens the Pinterest OAuth consent screen automatically, pauses at each
+reviewer-relevant transition, verifies the connected business account, previews
+the approved ceramic-eye Pin payload, creates one real Sandbox Pin, and opens
+the returned Pin directly on Pinterest so the reviewer can see the completed
+integration. Start macOS screen recording before running it and stop when the
+script says the demo is complete. The individual commands below remain
+documented as a fallback.
 
 **Shot list**
 
@@ -128,13 +149,36 @@ frame that shows a raw token.**
 6. Submit. Pinterest reviews on a rolling basis and **emails a decision** (no fixed
    SLA). Watch `goosegifts@37.technology`.
 
+## Current submission status (updated 2026-07-28)
+
+- The five legacy v3 Sandbox Pins were deleted. The three polished editorial
+  examples remain on the two useful Sandbox boards.
+- Pinterest's Sandbox API returned HTTP 500 when deleting confirmed-empty boards,
+  so three empty legacy board containers remain. They contain no Pins and are not
+  a review blocker.
+- The portal app purpose is saved with the stronger first-party description and
+  the app icon was uploaded.
+- The upgrade form is prepared with **Pin creation & scheduling** and
+  **Reporting** selected. **Ad campaign management** is unselected. The audience
+  is **Creators** and **Businesses**.
+- The uploaded demo created Sandbox Pin `1107815208384458180`. Keep it available
+  as review evidence until Pinterest decides the application, then delete the
+  duplicate during post-review cleanup.
+- Cameron submitted the Standard-access upgrade request on 2026-07-28. The
+  application is now waiting for Pinterest review; do not resubmit it.
+- While review is pending, production/public posting is browser-only in an
+  interactive, signed-in Pinterest session. API commands may be used for
+  Sandbox work and dry runs, but must not be treated as public distribution.
+
 ## After approval
 
-- Public automated posting still needs **owner approval of the cadence / next batch**
-  (per `MARKETING.md` and `NEEDS.md`) — approval of Standard access ≠ approval to
-  start posting. Approved public-pin drafts live in
-  `docs/ops/pinterest-approved-pins.json`; `npm run pinterest:create-pin` posts live
-  once we choose to.
+- Verify the production OAuth authorization and required scopes before using the
+  production API. Standard approval alone does not prove that the production
+  token path is ready.
+- Public posting still needs exact candidate/package approval (per
+  `MARKETING.md` and `NEEDS.md`). Approved public-pin drafts live in
+  `docs/ops/pinterest-approved-pins.json`; use the signed-in browser until the
+  production API path is explicitly verified.
 - Update `NEEDS.md` (move Pinterest Standard to "Received") and `JOURNAL.md`.
 
 ## References

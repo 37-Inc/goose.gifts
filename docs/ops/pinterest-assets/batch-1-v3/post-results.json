@@ -6,7 +6,8 @@
   "manifestPath": "docs/ops/pinterest-assets/batch-1-v3/manifest.json",
   "posted": [
     {
-      "status": "posted",
+      "status": "deleted",
+      "deletedAt": "2026-07-24T16:18:13Z",
       "environment": "sandbox",
       "id": "1107815208383208933",
       "boardName": "Funny White Elephant Gifts",
@@ -42,7 +43,8 @@
       "imagePath": "docs/ops/pinterest-assets/batch-1-v3/01-white-elephant-gifts.png"
     },
     {
-      "status": "posted",
+      "status": "deleted",
+      "deletedAt": "2026-07-24T16:18:13Z",
       "environment": "sandbox",
       "id": "1107815208383208938",
       "boardName": "Funny Gifts for Coworkers",
@@ -78,7 +80,8 @@
       "imagePath": "docs/ops/pinterest-assets/batch-1-v3/02-funny-gifts-for-coworkers.png"
     },
     {
-      "status": "posted",
+      "status": "deleted",
+      "deletedAt": "2026-07-24T16:18:13Z",
       "environment": "sandbox",
       "id": "1107815208383208941",
       "boardName": "Weird Kitchen Gadgets",
@@ -114,7 +117,8 @@
       "imagePath": "docs/ops/pinterest-assets/batch-1-v3/03-weird-kitchen-gadgets.png"
     },
     {
-      "status": "posted",
+      "status": "deleted",
+      "deletedAt": "2026-07-24T16:18:13Z",
       "environment": "sandbox",
       "id": "1107815208383208942",
       "boardName": "Novelty Desk Toys",
@@ -150,7 +154,8 @@
       "imagePath": "docs/ops/pinterest-assets/batch-1-v3/04-novelty-desk-toys.png"
     },
     {
-      "status": "posted",
+      "status": "deleted",
+      "deletedAt": "2026-07-24T16:18:13Z",
       "environment": "sandbox",
       "id": "1107815208383208943",
       "boardName": "Weird Home Decor",

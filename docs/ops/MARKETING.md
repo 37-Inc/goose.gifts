@@ -106,7 +106,10 @@ experiments contain explicit public-posting authorization only for candidates
 that have their own owner approval event. A scheduled run may publish a
 candidate only when production API access is confirmed and the exact image,
 board, copy, disclosure, destination, and tracking package are approved.
-Otherwise it must stop at
+The Standard-access application was submitted on 2026-07-28 and is awaiting
+review. Until approval and a verified production OAuth path, an explicitly
+approved candidate may be posted only through the signed-in Pinterest browser
+in an interactive owner-authorized session; unattended runs must stop at
 `docs/ops/pinterest-creative-lab/REVIEW_QUEUE.md`. Tool purchases,
 subscriptions, and paid distribution remain unauthorized.
 
@@ -153,8 +156,10 @@ For every concept promoted beyond rough exploration, record:
   survivors before generating replacements. The hippo vanity and desk scenes
   are first in the owner-review queue; the goat requires a source-faithful
   revision; the false eye-rug product premise remains permanently rejected.
-- **Publishing boundary**: exact candidate approval plus confirmed production
-  API access is required. Everything else is queued for owner review.
+- **Publishing boundary**: the Standard-access application is submitted and
+  awaiting review. Exact candidate approval is still required; while the
+  production API path is unavailable, public posting is browser-only in an
+  interactive authorized session. Scheduled runs queue everything for review.
 - **Organic scope**: the first run each week may materially improve at most one
   existing Search Console opportunity; it must not mass-publish guide pages.
 - **Product-feature scope**: once monthly, reassess whether evidence supports a

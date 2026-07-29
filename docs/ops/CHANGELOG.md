@@ -35,13 +35,13 @@ what's likely next.
   Next: re-inspect ~Jul 25 / Aug 1 / Aug 17 via `scripts/ops/gsc.sh` and track
   Discovered→Crawled→Indexed (Beads `roadmap-fkvo`; dates recorded there). The
   remaining lever is external authority — Pinterest (`roadmap-fd1h`).
-- **Distribution / Pinterest — ready to submit.** Standard-access application
+- **Distribution / Pinterest — submitted; awaiting review.** Standard-access application
   package written (`docs/ops/pinterest-standard-access.md`): use-case text, scope
   justifications, data-handling statement, terminal demo shot-list, and exact
-  portal steps. Prereqs verified (BUSINESS account, claimed site, live privacy
-  policy, working OAuth). Owner action: record the demo video + click "Upgrade" in
-  the dev portal. Tracked as Beads `roadmap-fd1h`. Helps indexation (external
-  signals).
+  portal steps. Prereqs were verified, the demo was recorded/uploaded, and
+  Cameron submitted the upgrade request on 2026-07-28. Until Pinterest approves
+  it and production OAuth is verified, public posting remains browser-only.
+  Tracked as Beads `roadmap-fd1h`. Helps indexation (external signals).
 - **Pinterest creative workflow — forward-test the new skill.** The reusable
   `$create-pinterest-native-product-images` skill and broader growth goal are
   now preserved in the repo and installed for Codex. Test the skill on two new
@@ -74,6 +74,11 @@ a source-fidelity revision, and the false eye-rug premise remains rejected. The
 first weekly run may also improve one of five Search Console opportunity pages
 with distinctive editorial content instead of creating more URLs. Wishlist and
 Secret Santa expansion is now a monthly evidence check, not a build commitment.
+The automation is verified visible and active in Codex Scheduled Tasks for
+Tuesday and Friday at 9:30 a.m. The Pinterest Standard-access application has
+now been submitted; unattended runs must queue candidates, while any approved
+public Pin is posted through the signed-in browser until production API access
+is approved and verified.
 
 ### 2026-07-18 — Pinterest-native creative V5 forward test `[owner+codex]`
 

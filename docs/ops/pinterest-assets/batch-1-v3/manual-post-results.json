@@ -6,7 +6,9 @@
   "trackingCampaign": "pinterest_manual_v3",
   "posted": [
     {
-      "status": "posted",
+      "status": "deleted",
+      "deletedAt": "2026-07-24",
+      "deletionMethod": "Pinterest web",
       "id": "1107815208383209635",
       "boardName": "Funny White Elephant Gifts",
       "boardId": "1107815277030422220",
@@ -16,7 +18,9 @@
       "imagePath": "docs/ops/pinterest-assets/batch-1-v3/01-white-elephant-gifts.png"
     },
     {
-      "status": "posted",
+      "status": "deleted",
+      "deletedAt": "2026-07-24",
+      "deletionMethod": "Pinterest API",
       "id": "1107815208383209702",
       "boardName": "Funny Gifts for Coworkers",
       "boardId": "1107815277030422223",
@@ -26,7 +30,9 @@
       "imagePath": "docs/ops/pinterest-assets/batch-1-v3/02-funny-gifts-for-coworkers.png"
     },
     {
-      "status": "posted",
+      "status": "deleted",
+      "deletedAt": "2026-07-24",
+      "deletionMethod": "Pinterest API",
       "id": "1107815208383209737",
       "boardName": "Weird Kitchen Gadgets",
       "boardId": "1107815277030422224",
@@ -36,7 +42,9 @@
       "imagePath": "docs/ops/pinterest-assets/batch-1-v3/03-weird-kitchen-gadgets.png"
     },
     {
-      "status": "posted",
+      "status": "deleted",
+      "deletedAt": "2026-07-24",
+      "deletionMethod": "Pinterest API",
       "id": "1107815208383209770",
       "boardName": "Novelty Desk Toys",
       "boardId": "1107815277030422225",
@@ -46,7 +54,9 @@
       "imagePath": "docs/ops/pinterest-assets/batch-1-v3/04-novelty-desk-toys.png"
     },
     {
-      "status": "posted",
+      "status": "deleted",
+      "deletedAt": "2026-07-24",
+      "deletionMethod": "Pinterest API",
       "id": "1107815208383209802",
       "boardName": "Weird Home Decor",
       "boardId": "1107815277030422226",

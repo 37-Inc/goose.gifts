@@ -1,9 +1,10 @@
 {
-  "batch": "batch-1",
-  "status": "approved_and_posted_manually_2026-07-06",
+  "batch": "batch-1-plus-editorial-pilot",
+  "status": "three_editorial_candidates_approved_for_public_and_sandbox_2026-07-23",
   "notes": [
     "Use this file as the machine-readable source for repeatable Pinterest API posting tests.",
-    "Run create commands with --dry-run first. Do not create new public Pins without owner-approved campaign copy and assets."
+    "Run create commands with --dry-run first. Do not create new public Pins without owner-approved campaign copy and assets.",
+    "Cameron approved the hippo mug, product-faithful alligator mitt, and ceramic eye for public Pinterest and Sandbox on 2026-07-23."
   ],
   "pins": [
     {
@@ -60,6 +61,45 @@
       "description": "Oddball shelf pieces, funny housewarming finds, and weird decor gifts for people who do not want another beige thing.",
       "altText": "Weird home decor gift guide from goose.gifts.",
       "livePinUrl": "https://www.pinterest.com/pin/1107815208383131674/"
+    },
+    {
+      "id": "editorial-hippo-mug-breakfast",
+      "board": "Weird Kitchen Gadgets",
+      "assetPath": "docs/ops/pinterest-creative-lab/v5-concepts/01-hippo-mug-memphis-breakfast.png",
+      "targetPage": "https://www.goose.gifts/random-gift?gift=B0F9DZMQBL",
+      "trackingUrl": "https://www.goose.gifts/random-gift?gift=B0F9DZMQBL&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v1&utm_content=hippo_mug_breakfast",
+      "title": "A Mug Named Patricia Has Entered the Breakfast",
+      "description": "A polished breakfast table, one aggressively lipsticked hippo, and a mug named Patricia. See the actual personalized mug and more weird kitchen finds on goose.gifts. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Black personalized Patricia mug with a red-lipped hippo styled on a colorful breakfast table.",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208384432735/",
+      "sandboxPinId": "1107815208384433630",
+      "sandboxBoard": "API Trial - Weird Kitchen Gadgets"
+    },
+    {
+      "id": "editorial-alligator-oven-mitt",
+      "board": "Weird Kitchen Gadgets",
+      "assetPath": "docs/ops/pinterest-creative-lab/v4-concepts/01b-alligator-editorial-product-faithful.png",
+      "targetPage": "https://www.goose.gifts/random-gift?gift=B005UGWDAE",
+      "trackingUrl": "https://www.goose.gifts/random-gift?gift=B005UGWDAE&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v1&utm_content=alligator_oven_mitt",
+      "title": "The Oven Mitt Is Biting Back",
+      "description": "A serene kitchen, interrupted by an alligator oven mitt clamped around the pan handle. See the actual mitt and more weird kitchen finds on goose.gifts. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Green alligator-shaped oven mitt gripping a hot pan handle in a calm editorial kitchen scene.",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208384432759/",
+      "sandboxPinId": "1107815208384433632",
+      "sandboxBoard": "API Trial - Weird Kitchen Gadgets"
+    },
+    {
+      "id": "editorial-ceramic-eye-interior",
+      "board": "Weird Home Decor",
+      "assetPath": "docs/ops/pinterest-creative-lab/v4-concepts/02b-ceramic-eye-interior-product-faithful.png",
+      "targetPage": "https://www.goose.gifts/random-gift?gift=B0D57DDDM1",
+      "trackingUrl": "https://www.goose.gifts/random-gift?gift=B0D57DDDM1&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v1&utm_content=ceramic_eye_interior",
+      "title": "The Side Table Is Looking Back",
+      "description": "A warm minimalist room with one glossy ceramic eye quietly watching from the side table. See the actual sculpture and more weird home decor on goose.gifts. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Glossy ceramic eye sculpture on a side table in a warm minimalist living room.",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208384432788/",
+      "sandboxPinId": "1107815208384433636",
+      "sandboxBoard": "API Trial - Weird Home Decor"
     }
   ]
 }

@@ -24,11 +24,18 @@ outward-facing accounts. Best remaining channels:
   assets to tracked guide URLs, and ops can build dry-run create-pin payloads
   from approved copy/assets. Recurring public posting still needs Pinterest
   Standard access plus owner approval of the publishing cadence or next batch.
-  **Ready to submit (2026-07-17):** the full Standard-access application package
+  **Submitted; awaiting Pinterest review (updated 2026-07-28):** the full
+  Standard-access application package
   — use-case text, scope justifications, data-handling statement, terminal demo
   shot-list, and exact dev-portal steps — is in
-  `docs/ops/pinterest-standard-access.md` (Beads `roadmap-fd1h`). Owner action:
-  record the ~2-min demo video and click **Upgrade** in the developer portal.
+  `docs/ops/pinterest-standard-access.md` (Beads `roadmap-fd1h`). The legacy
+  Sandbox Pins were removed, the app icon and stronger first-party purpose were
+  saved, the review categories were corrected, and the 46-second demo video was
+  recorded and successfully uploaded on 2026-07-24. Cameron submitted the
+  upgrade request on 2026-07-28. Owner action: watch
+  `goosegifts@37.technology` for Pinterest's decision. Until approval and a
+  verified production authorization flow, public Pins must be posted through
+  the signed-in Pinterest browser; API work remains Sandbox-only.
 
 Needed from Cameron: choose which channels to authorize for posting and approve
 any paid/video-generation tooling before spend.

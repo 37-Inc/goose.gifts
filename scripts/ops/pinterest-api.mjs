@@ -11,7 +11,7 @@ const sandbox = process.argv.includes('--sandbox');
 const apiBase = sandbox ? 'https://api-sandbox.pinterest.com/v5' : 'https://api.pinterest.com/v5';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const approvedPinDraftsPath = path.join(root, 'docs/ops/pinterest-approved-pins.json');
-const v3PublicResultsPath = path.join(root, 'docs/ops/pinterest-assets/batch-1-v3/manual-post-results.json');
+const legacyPublicWebResultsPath = path.join(root, 'docs/ops/pinterest-assets/batch-1-v3/manual-post-results.json');
 
 if (!APP_SECRET) {
   throw new Error('Missing Pinterest app secret in PINTEREST_APP_SECRET or Keychain service goose.gifts.PINTEREST_APP_SECRET');
@@ -35,22 +35,29 @@ if (command === 'refresh') {
 } else if (command === 'create-pin') {
   const result = await createPinFromArgs({ sandbox });
   console.log(JSON.stringify(result, null, 2));
+} else if (command === 'delete-pin') {
+  const result = await deletePinFromArgs({ sandbox });
+  console.log(JSON.stringify(result, null, 2));
 } else {
-  throw new Error(`Unknown command: ${command}. Use one of: refresh, whoami, boards, approved-pins, public-pin-metrics, create-pin`);
+  throw new Error(`Unknown command: ${command}. Use one of: refresh, whoami, boards, approved-pins, public-pin-metrics, create-pin, delete-pin`);
 }
 
 async function getPublicPinMetrics() {
-  const v2 = readApprovedPinDrafts().pins.map((pin) => ({
-    cohort: 'pinterest_launch_v2',
+  const publicPins = readApprovedPinDrafts().pins.filter((pin) => pin.livePinUrl).map((pin) => ({
+    cohort: pin.id.startsWith('editorial-') ? 'pinterest_editorial_v1' : 'pinterest_launch_v2',
     id: pin.livePinUrl.match(/\/pin\/(\d+)/)?.[1],
     title: pin.title,
   }));
-  const v3 = JSON.parse(fs.readFileSync(v3PublicResultsPath, 'utf8')).posted.map((pin) => ({
-    cohort: 'pinterest_manual_v3',
+  const legacyPublicWeb = JSON.parse(fs.readFileSync(legacyPublicWebResultsPath, 'utf8'));
+  if (legacyPublicWeb.environment !== 'production-web') {
+    throw new Error('Legacy field-note results are not marked as production-web; refusing to treat them as public.');
+  }
+  const legacyPins = legacyPublicWeb.posted.filter((pin) => pin.status === 'posted').map((pin) => ({
+    cohort: 'pinterest_legacy_field_notes_public_web',
     id: pin.id,
     title: pin.title,
   }));
-  const pins = await Promise.all([...v2, ...v3].map(async (pin) => {
+  const pins = await Promise.all([...publicPins, ...legacyPins].map(async (pin) => {
     if (!pin.id) throw new Error(`Could not resolve public Pinterest Pin id for ${pin.title}`);
     const data = await apiGet(`/pins/${pin.id}?pin_metrics=true`, { sandbox: false });
     const lifetime = data.pin_metrics?.lifetime_metrics || {};
@@ -132,6 +139,38 @@ async function apiPost(path, body, { sandbox }) {
   return parsed;
 }
 
+async function apiDelete(path, { sandbox }) {
+  const token = await getAccessToken({ sandbox });
+  const response = await fetch(`${apiBase}${path}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (response.status === 401) {
+    await refreshAccessToken({ sandbox });
+    return apiDelete(path, { sandbox });
+  }
+
+  if (!response.ok) {
+    throw new Error(`${path} failed: HTTP ${response.status}: ${await response.text()}`);
+  }
+}
+
+async function deletePinFromArgs({ sandbox }) {
+  const pinId = getArg('--pin-id');
+  if (!pinId || !/^\d+$/.test(pinId)) {
+    throw new Error('Missing or invalid --pin-id <numeric Pinterest Pin id>.');
+  }
+  await apiDelete(`/pins/${pinId}`, { sandbox });
+  return {
+    deleted: true,
+    environment: sandbox ? 'sandbox' : 'production-limited',
+    pinId,
+  };
+}
+
 async function createPinFromArgs({ sandbox }) {
   const draftId = getArg('--draft');
   const boardName = getArg('--board');
@@ -147,7 +186,12 @@ async function createPinFromArgs({ sandbox }) {
     throw new Error(`Unknown approved Pin draft: ${draftId}`);
   }
 
-  const board = await resolveBoard({ boardIdArg, boardName: boardName || draft.board });
+  const targetBoardName = boardName || (
+    sandbox
+      ? draft.sandboxBoard || `API Trial - ${draft.board}`
+      : draft.board
+  );
+  const board = await resolveBoard({ boardIdArg, boardName: targetBoardName });
   const payload = buildPinPayload(draft, board.id);
 
   if (dryRun) {

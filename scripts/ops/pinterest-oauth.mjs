@@ -16,6 +16,7 @@ const DEFAULT_SCOPES = [
 const args = new Set(process.argv.slice(2));
 const sandbox = args.has('--sandbox');
 const noStore = args.has('--no-store');
+const openBrowser = args.has('--open');
 const redirectUri = process.env.PINTEREST_REDIRECT_URI || DEFAULT_REDIRECT_URI;
 const scopes = (process.env.PINTEREST_SCOPES || DEFAULT_SCOPES.join(','))
   .split(/[,\s]+/)
@@ -44,6 +45,12 @@ authUrl.searchParams.set('state', state);
 const callback = waitForCallback(Number(redirectUrl.port || 80), redirectUrl.pathname);
 console.error('Open this URL in the logged-in Pinterest browser session:');
 console.error(authUrl.toString());
+if (openBrowser) {
+  const opened = spawnSync('open', [authUrl.toString()], { stdio: 'ignore' });
+  if (opened.status !== 0) {
+    console.error('Could not open the browser automatically. Open the URL above manually.');
+  }
+}
 
 const code = await callback;
 const token = await exchangeCode({ appId, appSecret, code, redirectUri, sandbox });
