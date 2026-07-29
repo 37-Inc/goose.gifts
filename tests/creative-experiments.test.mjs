@@ -115,16 +115,16 @@ function review(verdict = "advance", score = 4, gate = true) {
   );
 }
 
-test("repository event log is valid and exposes review-driven next actions", async () => {
+test("repository event log is valid and exposes publication-driven next actions", async () => {
   const state = validateAndFold(await loadEvents());
   const summary = serializeState(state);
   const actions = nextActions(state);
   assert.equal(summary.experiments[0].experimentId, "exp-pinterest-native-v4");
-  assert.equal(summary.experiments[0].authorization.publicPosting, false);
+  assert.equal(summary.experiments[0].authorization.publicPosting, true);
   assert.equal(summary.experiments[0].candidates.length, 5);
   assert.deepEqual(
     summary.experiments[0].candidates
-      .filter((candidate) => candidate.status === "shortlisted")
+      .filter((candidate) => candidate.status === "measuring")
       .map((candidate) => candidate.candidateId)
       .sort(),
     ["cand-alligator-editorial", "cand-ceramic-eye-interior"],
