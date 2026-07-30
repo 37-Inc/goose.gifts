@@ -245,7 +245,7 @@ export default async function WeirdGiftIndexPage() {
 
         <section aria-labelledby="findings-heading" className="mx-auto max-w-7xl px-4 py-12 sm:py-16">
           <div className="max-w-3xl">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-700">Four findings</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">Four findings</p>
             <h2 id="findings-heading" className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
               The catalog is stranger than the sales copy.
             </h2>
@@ -289,7 +289,7 @@ export default async function WeirdGiftIndexPage() {
         <section aria-labelledby="motifs-heading" className="border-y border-zinc-300 bg-white py-12 sm:py-16">
           <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-[minmax(16rem,0.7fr)_minmax(0,1.3fr)]">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-700">Motif map</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">Motif map</p>
               <h2 id="motifs-heading" className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
                 What weird gifts are made of
               </h2>
@@ -317,7 +317,7 @@ export default async function WeirdGiftIndexPage() {
                     aria-label={`${motif.label}: ${number(motif.count)} of ${number(index.totalProducts)} listings, ${motif.percentage.toFixed(1)} percent`}
                   >
                     <div
-                      className="h-full rounded-full bg-red-700"
+                      className="h-full rounded-full bg-brand"
                       style={{ width: `${Math.max((motif.count / maxMotifCount) * 100, 1)}%` }}
                     />
                   </div>
@@ -332,7 +332,7 @@ export default async function WeirdGiftIndexPage() {
 
         <section aria-labelledby="language-heading" className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:py-16 lg:grid-cols-2">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-700">Merchant language</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">Merchant language</p>
             <h2 id="language-heading" className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
               Sellers call it “funny.” Almost nobody calls it “weird.”
             </h2>
@@ -380,7 +380,7 @@ export default async function WeirdGiftIndexPage() {
 
         <section aria-labelledby="method-heading" className="border-y border-zinc-300 bg-[#e9e1d2] py-12 sm:py-16">
           <div className="mx-auto max-w-5xl px-4">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-700">Methodology</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">Methodology</p>
             <h2 id="method-heading" className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
               How the Weird Gift Index works
             </h2>
@@ -413,7 +413,7 @@ export default async function WeirdGiftIndexPage() {
                 <div>
                   <h3 className="font-bold text-zinc-950">Disclosure &amp; contact</h3>
                   <p className="mt-1">
-                    Cameron Ehrlich operates goose.gifts. The site is affiliate-supported and may earn commissions from qualifying purchases, but this report uses aggregate catalog inventory rather than sales or commission data. Questions and corrections: <a className="underline decoration-zinc-400 underline-offset-2 hover:text-red-800" href="mailto:cameron@37.technology">cameron@37.technology</a>.
+                    Cameron Ehrlich operates goose.gifts. The site is affiliate-supported and may earn commissions from qualifying purchases, but this report uses aggregate catalog inventory rather than sales or commission data. Questions and corrections: <a className="underline decoration-zinc-400 underline-offset-2 hover:text-brand-ink" href="mailto:cameron@37.technology">cameron@37.technology</a>.
                   </p>
                 </div>
               </div>
@@ -447,7 +447,7 @@ export default async function WeirdGiftIndexPage() {
               </div>
               <Link
                 href="/weird-gift-index/data"
-                className="shrink-0 rounded-full bg-zinc-950 px-5 py-2.5 text-center text-sm font-bold text-white hover:bg-red-800"
+                className="shrink-0 rounded-full bg-zinc-950 px-5 py-2.5 text-center text-sm font-bold text-white hover:bg-brand"
               >
                 View aggregate JSON
               </Link>
@@ -457,7 +457,7 @@ export default async function WeirdGiftIndexPage() {
 
         <section aria-labelledby="faq-heading" className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:py-16 lg:grid-cols-[minmax(16rem,0.65fr)_minmax(0,1.35fr)]">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-700">Quick answers</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">Quick answers</p>
             <h2 id="faq-heading" className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
               Questions about the index
             </h2>
@@ -472,15 +472,15 @@ export default async function WeirdGiftIndexPage() {
           </div>
         </section>
 
-        <section className="bg-red-800 py-10 text-white">
+        <section className="bg-brand-ink py-10 text-white">
           <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-200">Suggested citation</p>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-red-50">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-border">Suggested citation</p>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-brand-soft">
                 Ehrlich, Cameron. “The Weird Gift Index: What {number(index.totalProducts)} Ridiculous Products Reveal.” goose.gifts, edition {index.version}, updated {updatedDate}.
               </p>
             </div>
-            <Link href="/gift-guides" className="shrink-0 rounded-full border border-white/40 px-5 py-2.5 text-sm font-bold hover:bg-white hover:text-red-800">
+            <Link href="/gift-guides" className="shrink-0 rounded-full border border-white/40 px-5 py-2.5 text-sm font-bold hover:bg-white hover:text-brand-ink">
               Browse the gift guides
             </Link>
           </div>

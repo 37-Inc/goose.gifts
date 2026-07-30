@@ -130,7 +130,7 @@ export default async function RandomGiftPage({
         >
           <Link
             href="/"
-            className="rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-red-600"
+            className="rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand"
           >
             Search gifts
           </Link>
@@ -184,7 +184,7 @@ export default async function RandomGiftPage({
       >
         <Link
           href={`/random-gift?spin=${Date.now().toString(36)}`}
-          className="rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-red-600"
+          className="rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand"
         >
           Another ridiculous gift
         </Link>
@@ -229,7 +229,7 @@ export default async function RandomGiftPage({
               product={product}
               clickSource="random_gift"
               contextSlug="featured"
-              className="mt-6 inline-flex w-fit rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-red-600"
+              className="mt-6 inline-flex w-fit rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand"
             >
               {product.price > 0 ? 'Get this gift' : 'Check price'}
             </ProductClickButton>
@@ -241,7 +241,7 @@ export default async function RandomGiftPage({
         <SectionHeading
           title="Six more odd options"
           aside={
-            <Link href="/gift-guides" className="font-semibold text-zinc-500 underline-offset-4 hover:text-red-600 hover:underline">
+            <Link href="/gift-guides" className="font-semibold text-zinc-500 underline-offset-4 hover:text-brand hover:underline">
               Browse gift guides →
             </Link>
           }

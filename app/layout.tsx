@@ -156,11 +156,11 @@ export default function RootLayout({
                 <div>
                   <h2 className="font-semibold text-zinc-950">Explore</h2>
                   <div className="mt-3 flex flex-col gap-2 text-zinc-600">
-                    <Link href="/" className="hover:text-red-700">Fresh finds</Link>
-                    <Link href="/random-gift" className="hover:text-red-700">Random gift</Link>
-                    <Link href="/#catalog-search" className="hover:text-red-700">Search gifts</Link>
-                    <Link href="/gift-guides" className="hover:text-red-700">Gift guides</Link>
-                    <Link href="/privacy" className="hover:text-red-700">Privacy</Link>
+                    <Link href="/" className="hover:text-brand">Fresh finds</Link>
+                    <Link href="/random-gift" className="hover:text-brand">Random gift</Link>
+                    <Link href="/#catalog-search" className="hover:text-brand">Search gifts</Link>
+                    <Link href="/gift-guides" className="hover:text-brand">Gift guides</Link>
+                    <Link href="/privacy" className="hover:text-brand">Privacy</Link>
                   </div>
                 </div>
 
@@ -174,7 +174,7 @@ export default function RootLayout({
                           href={link.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="hover:text-red-700"
+                          className="hover:text-brand"
                         >
                           {link.label}
                         </a>

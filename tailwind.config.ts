@@ -11,6 +11,13 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        brand: {
+          DEFAULT: "var(--brand-orange)",
+          bright: "var(--brand-orange-bright)",
+          soft: "var(--brand-orange-soft)",
+          border: "var(--brand-orange-border)",
+          ink: "var(--brand-orange-ink)",
+        },
       },
       animation: {
         'bounce-slow': 'bounce 3s infinite',

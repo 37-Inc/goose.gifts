@@ -62,6 +62,16 @@ what's likely next.
 
 Newest first.
 
+### 2026-07-30 — Warm-orange brand system unified `[owner+codex]`
+
+Applied the approved useful-absurdity brand direction across the public site and
+share surfaces. `#c2410c` is now the accessible canonical orange, with the
+existing brighter orange retained only for decorative accents; branded red
+hovers, underlines, editorial sections, the default share card, and the dynamic
+random-gift card now use the orange system. Semantic error and destructive
+states remain red. The existing goose stays a restrained header, footer, and
+default-share signature rather than becoming a larger mascot treatment.
+
 ### 2026-07-28 — Twice-weekly Pinterest and organic growth studio `[owner+codex]`
 
 Kept the deterministic Monday catalog-quality job separate and added a

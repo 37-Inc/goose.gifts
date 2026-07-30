@@ -6,7 +6,11 @@
   --background: #fafafa;
   --foreground: #0a0a0a;
   --accent: #18181b;
-  --accent-orange: #f59e42;
+  --brand-orange: #c2410c;
+  --brand-orange-bright: #f59e42;
+  --brand-orange-soft: #fff7ed;
+  --brand-orange-border: #fed7aa;
+  --brand-orange-ink: #9a3412;
   --muted: #71717a;
   --border: #e4e4e7;
 }
@@ -27,13 +31,13 @@ body {
 
 /* Orange accent gradient */
 .accent-gradient {
-  background: linear-gradient(135deg, #f59e42, #f7a854);
+  background: linear-gradient(135deg, var(--brand-orange), var(--brand-orange-ink));
 }
 
 .accent-gradient:hover {
-  background: linear-gradient(135deg, #f7a854, #f9b366);
+  background: linear-gradient(135deg, var(--brand-orange-ink), var(--brand-orange));
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245, 158, 66, 0.3);
+  box-shadow: 0 4px 12px rgba(194, 65, 12, 0.28);
 }
 
 /* Smooth transitions */
@@ -104,7 +108,7 @@ html {
   right: 8px;
   width: 16px;
   height: 16px;
-  background: var(--accent-orange);
+  background: var(--brand-orange);
   border-radius: 50%;
   display: flex;
   align-items: center;

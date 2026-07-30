@@ -6,7 +6,7 @@ export function Header() {
   return (
     <header className="border-b border-zinc-200 bg-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:py-4">
-        <Link href="/" className="inline-flex items-center gap-2 text-zinc-900 transition-colors hover:text-red-700 group">
+        <Link href="/" className="group inline-flex items-center gap-2 text-zinc-900 transition-colors hover:text-brand">
           <Image
             src="/sillygoose.png"
             alt="goose.gifts"
@@ -18,13 +18,13 @@ export function Header() {
           <span className="hidden text-2xl font-black tracking-tight sm:inline">goose.gifts</span>
         </Link>
         <nav className="flex items-center gap-3 text-sm font-semibold text-zinc-600 sm:gap-5" aria-label="Primary navigation">
-          <Link href="/#catalog-search-input" className="whitespace-nowrap transition hover:text-red-700">
+          <Link href="/#catalog-search-input" className="whitespace-nowrap transition hover:text-brand">
             Search
           </Link>
-          <RandomGiftLink className="whitespace-nowrap transition hover:text-red-700">
+          <RandomGiftLink className="whitespace-nowrap transition hover:text-brand">
             Random
           </RandomGiftLink>
-          <Link href="/gift-guides" className="whitespace-nowrap transition hover:text-red-700">
+          <Link href="/gift-guides" className="whitespace-nowrap transition hover:text-brand">
             Guides
           </Link>
         </nav>

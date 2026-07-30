@@ -76,7 +76,7 @@ export default async function HomePage({
           <span className="relative inline-block whitespace-nowrap">
             least serious
             <svg
-              className="absolute -bottom-1.5 left-0 w-full text-red-500 sm:-bottom-2"
+              className="absolute -bottom-1.5 left-0 w-full text-brand-bright sm:-bottom-2"
               viewBox="0 0 220 12"
               fill="none"
               preserveAspectRatio="none"

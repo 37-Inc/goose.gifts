@@ -63,7 +63,7 @@ function BrandFooter() {
         <div style={{ display: 'flex', fontSize: 34, fontWeight: 800, color: '#09090b', letterSpacing: -1 }}>
           goose.gifts
         </div>
-        <div style={{ display: 'flex', height: 6, width: 132, background: '#dc2626', borderRadius: 9999, marginTop: 4 }} />
+        <div style={{ display: 'flex', height: 6, width: 132, background: '#c2410c', borderRadius: 9999, marginTop: 4 }} />
       </div>
     </div>
   );
@@ -85,7 +85,7 @@ function Fallback() {
           width: '100%',
         }}
       >
-        <div style={{ color: '#dc2626', display: 'flex', fontSize: 26, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>
+        <div style={{ color: '#c2410c', display: 'flex', fontSize: 26, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>
           Random Ridiculous Gift
         </div>
         <div style={{ display: 'flex', fontSize: 88, fontWeight: 900, letterSpacing: -4, lineHeight: 1, marginTop: 24, textAlign: 'center' }}>
@@ -93,7 +93,7 @@ function Fallback() {
         </div>
         <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', marginTop: 40 }}>
           <div style={{ display: 'flex', fontSize: 40, fontWeight: 800 }}>goose.gifts</div>
-          <div style={{ display: 'flex', height: 7, width: 150, background: '#dc2626', borderRadius: 9999, marginTop: 6 }} />
+          <div style={{ display: 'flex', height: 7, width: 150, background: '#c2410c', borderRadius: 9999, marginTop: 6 }} />
         </div>
       </div>
     ),
@@ -182,7 +182,7 @@ export async function GET(request: NextRequest) {
         >
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ alignItems: 'center', display: 'flex', gap: 12 }}>
-              <div style={{ color: '#dc2626', display: 'flex', fontSize: 22, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>
+              <div style={{ color: '#c2410c', display: 'flex', fontSize: 22, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>
                 Random Ridiculous Gift
               </div>
             </div>
