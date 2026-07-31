@@ -20,7 +20,7 @@ export default function Image() {
           width: '100%',
         }}
       >
-        <div style={{ color: '#fdba74', display: 'flex', fontSize: 24, fontWeight: 700, letterSpacing: 4 }}>
+        <div style={{ color: '#f59e42', display: 'flex', fontSize: 24, fontWeight: 700, letterSpacing: 4 }}>
           ORIGINAL CATALOG RESEARCH · 2026
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>

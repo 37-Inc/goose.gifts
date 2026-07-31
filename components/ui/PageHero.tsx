@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 /**
- * The hand-drawn red underline accent used across goose.gifts headings.
+ * The hand-drawn warm-orange accent used across goose.gifts headings.
  * Wrap a keyword: <HeroUnderline>least serious</HeroUnderline>.
  */
 export function HeroUnderline({ children }: { children: ReactNode }) {
@@ -9,7 +9,7 @@ export function HeroUnderline({ children }: { children: ReactNode }) {
     <span className="relative inline-block whitespace-nowrap">
       {children}
       <svg
-        className="absolute -bottom-1.5 left-0 w-full text-red-500 sm:-bottom-2"
+        className="absolute -bottom-1.5 left-0 w-full text-brand-bright sm:-bottom-2"
         viewBox="0 0 220 12"
         fill="none"
         preserveAspectRatio="none"

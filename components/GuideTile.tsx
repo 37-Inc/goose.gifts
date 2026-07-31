@@ -37,7 +37,7 @@ export function GuideTile({
           </div>
         )}
       </div>
-      <h3 className="mt-3 px-0.5 text-[15px] font-semibold leading-snug tracking-[-0.01em] text-zinc-900 underline-offset-4 group-hover:text-red-600 group-hover:underline">
+      <h3 className="mt-3 px-0.5 text-[15px] font-semibold leading-snug tracking-[-0.01em] text-zinc-900 underline-offset-4 group-hover:text-brand group-hover:underline">
         {title}
       </h3>
     </Link>

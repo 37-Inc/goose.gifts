@@ -253,7 +253,7 @@ export function CatalogSearchFeed({
             <button
               type="submit"
               disabled={isLoading}
-              className="absolute right-2 top-1/2 h-10 -translate-y-1/2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-wait disabled:opacity-70 sm:px-5"
+              className="absolute right-2 top-1/2 h-10 -translate-y-1/2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-brand disabled:cursor-wait disabled:opacity-70 sm:px-5"
             >
               {isLoading ? 'Searching…' : 'Search'}
             </button>
@@ -276,7 +276,7 @@ export function CatalogSearchFeed({
         ))}
         <Link
           href="/gift-guides"
-          className="px-1.5 py-1.5 text-[13px] font-semibold text-zinc-500 underline-offset-4 transition hover:text-red-600 hover:underline"
+          className="px-1.5 py-1.5 text-[13px] font-semibold text-zinc-500 underline-offset-4 transition hover:text-brand hover:underline"
         >
           All guides →
         </Link>
@@ -286,7 +286,7 @@ export function CatalogSearchFeed({
         <div className="mb-7 flex items-baseline justify-between gap-4 border-b border-zinc-100 pb-4">
           <h2 className="text-lg font-bold tracking-tight text-zinc-950 sm:text-xl">
             {hasSearch ? (
-              <>Gifts for <span className="text-red-600">&ldquo;{activeQuery}&rdquo;</span></>
+              <>Gifts for <span className="text-brand">&ldquo;{activeQuery}&rdquo;</span></>
             ) : (
               'Today’s ridiculous finds'
             )}
@@ -302,7 +302,7 @@ export function CatalogSearchFeed({
                 setQuery('');
                 runSearch('');
               }}
-              className="shrink-0 text-sm font-semibold text-zinc-500 underline-offset-4 hover:text-red-600 hover:underline"
+              className="shrink-0 text-sm font-semibold text-zinc-500 underline-offset-4 hover:text-brand hover:underline"
             >
               Clear search
             </button>
@@ -355,7 +355,7 @@ export function CatalogSearchFeed({
                 type="button"
                 onClick={loadMore}
                 disabled={isLoadingMore}
-                className="min-w-44 rounded-full bg-zinc-950 px-7 py-3 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-wait disabled:opacity-60"
+                className="min-w-44 rounded-full bg-zinc-950 px-7 py-3 text-sm font-semibold text-white transition hover:bg-brand disabled:cursor-wait disabled:opacity-60"
               >
                 {isLoadingMore ? 'Digging up more…' : 'Show me more'}
               </button>

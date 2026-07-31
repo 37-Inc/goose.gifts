@@ -14,7 +14,7 @@ export default function NotFound() {
         </p>
         <Link
           href="/#catalog-search"
-          className="inline-block rounded-lg bg-zinc-950 px-8 py-3 font-bold text-white shadow-lg transition hover:bg-red-700"
+          className="inline-block rounded-lg bg-zinc-950 px-8 py-3 font-bold text-white shadow-lg transition hover:bg-brand"
         >
           Search Gifts
         </Link>

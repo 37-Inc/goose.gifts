@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 /**
  * The quiet, divider-style section heading shared across goose.gifts pages
- * (matches the homepage feed). Replaces the old loud uppercase-red kickers.
+ * (matches the homepage feed). Replaces the old loud uppercase kickers.
  * Optional `aside` shows muted supporting text on the right (desktop only).
  */
 export function SectionHeading({
@@ -33,7 +33,7 @@ export function SectionHeading({
 
 /**
  * A soft "browse" link card used for guide directories and related-guide
- * lists — borderless, rounded, subtle ring, red hover, matching product cards.
+ * lists — borderless, rounded, subtle ring, warm-orange hover, matching product cards.
  */
 export function BrowseCard({
   href,
@@ -49,7 +49,7 @@ export function BrowseCard({
       href={href}
       className="group rounded-2xl bg-zinc-50 px-4 py-3.5 ring-1 ring-zinc-950/[0.04] transition hover:bg-white hover:ring-zinc-950/10"
     >
-      <span className="block text-sm font-semibold text-zinc-900 underline-offset-4 group-hover:text-red-600 group-hover:underline">
+      <span className="block text-sm font-semibold text-zinc-900 underline-offset-4 group-hover:text-brand group-hover:underline">
         {title}
       </span>
       {description && (
