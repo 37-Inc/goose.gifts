@@ -5,6 +5,47 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-07-31 - Pinterest and organic-growth studio
+
+**Evidence**: Pinterest public API metrics show 35 impressions across the five
+legacy v2 Pins and 6 across the three editorial Pins, with zero saves, Pin
+clicks, or outbound clicks in either cohort. GA4 shows 38 active users, 66
+sessions, 153 page views, and 5 outbound-click conversion events over 28 days,
+but no Pinterest traffic. Vercel/database data shows 61 visitors, 184 pageviews,
+61 searches, and 7 product clicks in 30 days. Search Console's scheduled guide
+set is led by coworkers (269 impressions, position 39.9), then white elephant
+(167), dads (133), Secret Santa (107), and kitchen (15), all at zero clicks.
+Sandbox and Pinterest v3 were excluded from traffic evidence.
+
+**Creative cycle**: rechecked the exact active hippo mug, live destination, and
+both unpublished 2:3 survivors at full resolution. Then verified Screaming Goat
+ASIN `0762459816`, saved its source, and causally revised the boardroom lead. An
+intermediate corrected the sculpt and stump base but remained about twice
+water-glass height; the final scale-only edit passed every hard gate at 4.63/5.
+The three owner-ready packages are hippo vanity, hippo desk, and goat boardroom.
+Nothing was posted; Standard access is still submitted and awaiting review.
+
+**Organic work**: extended the guide definition with optional editorial
+sections and FAQ overrides, then used it only on
+`/gift-guides/funny-gifts-for-coworkers`. The new copy gives a concrete
+office-safe room test, distinguishes close coworkers, colleagues, bosses, and
+direct reports, explains when desk gifts work, and links contextually to four
+maintained guides. The metric to recheck at 14/28 days is coworker impressions,
+CTR, average position, organic sessions, and `gift_guide` outbound clicks.
+
+**Monthly product decision**: do not build a wishlist or Secret Santa clone.
+The site has only 7 product clicks in 30 days, 3 `/random-gift` visitors, no
+tracked share event, and no public Pinterest outbound click. Secret Santa's 107
+impressions show future seasonal discovery demand, not current evidence for
+accounts, participant email/PII, or a new product workstream.
+
+**Growth lever chosen**: existing-search relevance plus one truthful creative
+survivor. Skipped another guide URL, more replacement images, outreach/backlink
+work, the weekly catalog job, publishing, and wishlist implementation because
+each is either separately owned, approval-gated, or unsupported by today's
+evidence. Next move: Cameron approves or rejects one exact review-queue package;
+the next unattended run rechecks public distribution and does not publish.
+
 ## 2026-07-16 - Creators API clean migration
 
 **Incident resolution**: replaced every executable Amazon PA-API/SigV4 path

@@ -114,6 +114,23 @@ report.
   2026-07-08 crawl and the representative white-elephant guide remains
   discovered but not indexed. Bulk guide publishing remains deferred.
 
+## Shipped 2026-07-31
+
+- [x] Improved the existing `/gift-guides/funny-gifts-for-coworkers` page from
+  current combined page/query evidence instead of creating another guide. The
+  page led the scheduled set with 269 impressions, 0 clicks, and average
+  position 39.9; observed clusters included funny coworker gifts, funny gifts
+  for employees and colleagues, and funny boss gifts.
+- [x] Extended the guide model with optional page-specific editorial sections
+  and FAQ overrides. The coworker page now explains the office-safe room test,
+  relationship and power-dynamic constraints, desk-gift tradeoffs, and links
+  contextually to boss, desk-toy, office-prank, and Secret Santa guides. No
+  generic copy was added to the other guides.
+- [ ] Recheck the coworker page after 14 and 28 days: impressions, CTR, average
+  position, organic sessions, and `gift_guide` outbound clicks. Do not revise
+  again before evidence has time to move unless a rendering/indexation defect
+  appears.
+
 ## Ongoing Daily Ops
 
 - [ ] Use on-site search logs to propose new guide pages, but only publish a
@@ -138,12 +155,9 @@ these existing pages on the first run each week. Current Search Console shows
 impressions but no clicks, so the goal is better relevance, usefulness, and
 authority—not more URLs.
 
-1. `/gift-guides/funny-gifts-for-coworkers` — highest current exposure. Add
-   page-specific selection guidance for office-safe jokes, desk gifts, bosses,
-   and work colleagues; replace generic FAQ answers with genuinely useful
-   workplace criteria; align title/description with the observed "funny
-   coworker gifts" and "funny boss gifts" language when the combined query/page
-   data supports it.
+1. `/gift-guides/funny-gifts-for-coworkers` — first evidence-backed pass shipped
+   2026-07-31. Hold for the 14/28-day metric recheck before another editorial
+   change.
 2. `/gift-guides/white-elephant-gifts` — explain the actual selection rubric
    (quick reaction, usefulness, stealability, and broad room fit), strengthen
    contextual links to adult, office-safe, and Secret Santa variants, and make

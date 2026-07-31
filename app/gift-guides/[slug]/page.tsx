@@ -5,7 +5,13 @@ import { ProductGrid } from '@/components/ProductGrid';
 import { Header } from '@/components/Header';
 import { PageHero } from '@/components/ui/PageHero';
 import { SectionHeading, BrowseCard } from '@/components/ui/SectionHeading';
-import { giftGuides, getFeaturedGiftGuides, getGiftGuide, getGiftGuideProducts } from '@/lib/gift-guides';
+import {
+  giftGuides,
+  getFeaturedGiftGuides,
+  getGiftGuide,
+  getGiftGuideProducts,
+} from '@/lib/gift-guides';
+import { getGiftGuideFaqs } from '@/lib/gift-guide-editorial';
 import { getSiteUrl } from '@/lib/site';
 import type { Product } from '@/lib/types';
 
@@ -14,25 +20,6 @@ export const revalidate = 3600;
 
 interface GiftGuidePageProps {
   params: Promise<{ slug: string }>;
-}
-
-function buildGuideFaqs(guide: NonNullable<ReturnType<typeof getGiftGuide>>) {
-  const title = guide.title.toLowerCase();
-
-  return [
-    {
-      question: `What makes a good ${title}?`,
-      answer: `${guide.intro} Look for a gift with a clear joke, a real use case, and enough specificity that it feels chosen for the recipient.`,
-    },
-    {
-      question: `Are the ${title} on goose.gifts real products?`,
-      answer: 'Yes. goose.gifts uses active catalog items with product images and outbound affiliate links. Some products show Check price because the retailer has the current price.',
-    },
-    {
-      question: `How often is this ${title} page updated?`,
-      answer: 'The page is backed by the live goose.gifts catalog. Products can change as discovery, enrichment, engagement, and product-quality checks update the catalog.',
-    },
-  ];
 }
 
 function getRelatedGuides(guide: NonNullable<ReturnType<typeof getGiftGuide>>) {
@@ -60,7 +47,7 @@ function buildGuideSchema(
   guide: NonNullable<ReturnType<typeof getGiftGuide>>,
   url: string
 ) {
-  const faqs = buildGuideFaqs(guide);
+  const faqs = getGiftGuideFaqs(guide);
 
   return {
     '@context': 'https://schema.org',
@@ -204,7 +191,7 @@ export default async function GiftGuidePage({ params }: GiftGuidePageProps) {
   const products = await getGiftGuideProducts(guide, 36);
   const baseUrl = getSiteUrl();
   const canonicalUrl = `${baseUrl}/gift-guides/${guide.slug}`;
-  const faqs = buildGuideFaqs(guide);
+  const faqs = getGiftGuideFaqs(guide);
   const relatedGuides = getRelatedGuides(guide);
   const navGuides = getFeaturedGiftGuides(guide.slug, 10);
   const schema = JSON.stringify(buildGuideSchema(products, guide, canonicalUrl)).replace(/</g, '\\u003c');
@@ -238,6 +225,42 @@ export default async function GiftGuidePage({ params }: GiftGuidePageProps) {
           </Link>
         ))}
       </nav>
+
+      {guide.editorialSections && (
+        <section className="mx-auto max-w-6xl px-4 pb-2 pt-12 sm:pt-14">
+          <SectionHeading
+            title="Choose the joke before the product"
+            aside="Useful office-gift criteria"
+          />
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+            {guide.editorialSections.map((section) => (
+              <article key={section.title} className="border-t border-zinc-200 pt-5">
+                <h2 className="text-xl font-bold tracking-tight text-zinc-950">
+                  {section.title}
+                </h2>
+                <div className="mt-3 space-y-3 text-sm leading-6 text-zinc-600 sm:text-base sm:leading-7">
+                  {section.paragraphs.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                </div>
+                {section.links && (
+                  <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold">
+                    {section.links.map((link) => (
+                      <Link
+                        key={link.slug}
+                        href={`/gift-guides/${link.slug}`}
+                        className="text-brand underline-offset-4 transition hover:text-brand-ink hover:underline"
+                      >
+                        {link.label} →
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto max-w-6xl px-4 pb-16 pt-12 sm:pt-14">
         <SectionHeading title="Hand-picked from the catalog" aside="Real products, live prices" />

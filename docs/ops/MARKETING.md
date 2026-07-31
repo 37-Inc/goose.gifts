@@ -148,6 +148,37 @@ For every concept promoted beyond rough exploration, record:
 
 ## Experiment log
 
+### 2026-07-31 — Studio checkpoint, goat correction, and shortlist evidence check
+
+- **Public evidence**: the five legacy public v2 Pins now total 35 impressions;
+  the three public editorial Pins total 6 impressions. Both cohorts still have
+  zero saves, Pin clicks, and outbound clicks, and GA4/database attribution
+  shows no Pinterest sessions or affiliate clicks. This is insufficient
+  exposure for a creative verdict. Sandbox and v3 objects remain excluded.
+- **Creative cycle**: revalidated both unpublished hippo survivors, then used
+  the exact active `0762459816` listing and source image to causally correct the
+  boardroom goat. The first source-guided edit fixed the sculpt and stump base
+  but remained oversized; the second changed only scale and passed all truth,
+  single-idea, no-CTA, and no-template gates at `4.63/5`. It is the only new
+  survivor from this run and is queued, not approved.
+- **Organic move**: current Search Console page/query evidence selected
+  `/gift-guides/funny-gifts-for-coworkers` (269 impressions, 0 clicks, average
+  position 39.9). The page now has office-specific selection guidance,
+  boss/employee/colleague-aware FAQ answers, and contextual links rather than
+  generic copy. Recheck impressions, CTR, average position, organic sessions,
+  and guide outbound clicks after 14 and 28 days.
+- **Monthly shortlist decision**: do not start a wishlist or Secret Santa
+  product workstream. The latest 31 days show 61 visitors, 184 pageviews, only
+  7 product clicks, 3 `/random-gift` visitors, no tracked share event, and no
+  public Pinterest outbound click. Secret Santa has early search exposure (107
+  impressions) but no clicks. That supports improving discovery pages, not
+  adding account state, email/PII, or a wishlist clone. Recheck in August after
+  there is real sharing or seasonal click evidence.
+- **Publishing boundary**: Standard access is still submitted and awaiting
+  review. No Pin was published; the next public action requires an exact owner
+  approval event and an interactive signed-in browser session until production
+  OAuth is approved and verified.
+
 ### 2026-07-28 — Twice-weekly Pinterest and organic-growth studio
 
 - **Cadence**: Tuesday and Friday at 9:30 a.m. local time in an isolated Codex
