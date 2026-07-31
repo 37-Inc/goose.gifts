@@ -213,7 +213,7 @@ export default async function WeirdGiftIndexPage() {
         <header className="overflow-hidden border-b border-zinc-900 bg-zinc-950 text-white">
           <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:py-20 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)] lg:items-end">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-300">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brand-bright">
                 Original catalog research · Edition {index.version}
               </p>
               <h1 className="mt-5 max-w-4xl text-5xl font-black leading-[0.96] tracking-[-0.045em] sm:text-7xl">
@@ -230,7 +230,7 @@ export default async function WeirdGiftIndexPage() {
             </div>
 
             <div className="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-300">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-bright">
                 The short answer
               </p>
               <p className="mt-3 text-2xl font-bold leading-8 text-white">
@@ -340,7 +340,7 @@ export default async function WeirdGiftIndexPage() {
               Only {number(index.humorSignalCount)} of {number(index.totalProducts)} active titles ({humorSignalPercent}) use any of the {HUMOR_SIGNAL_TERMS.length} explicit humor words we track. The other {number(straightFacedCount)} ({straightFacedPercent}) sell the gag with a straight face — no “funny,” no “gag,” no wink at all.
             </p>
             <div className="mt-6 rounded-2xl bg-zinc-950 p-6 text-white">
-              <p className="font-mono text-sm text-orange-300">FUNNY / WEIRD</p>
+              <p className="font-mono text-sm text-brand-bright">FUNNY / WEIRD</p>
               <div className="mt-3 flex items-end gap-4">
                 <span className="text-6xl font-black tracking-tighter">{number(funny.count)}</span>
                 <span className="pb-2 text-2xl text-zinc-500">/</span>
@@ -367,7 +367,7 @@ export default async function WeirdGiftIndexPage() {
                     aria-label={`${signal.term}: ${number(signal.count)} titles, ${signal.percentage.toFixed(1)} percent`}
                   >
                     <div
-                      className="h-full rounded-full bg-orange-600"
+                      className="h-full rounded-full bg-brand"
                       style={{ width: `${Math.max((signal.count / maxSignalCount) * 100, 1)}%` }}
                     />
                   </div>

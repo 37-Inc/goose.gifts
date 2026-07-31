@@ -62,7 +62,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-07-30 — Warm-orange brand system unified `[owner+codex]`
+### 2026-07-30 — Warm-orange brand system unified `[owner+claude]` ([PR #75](https://github.com/37-Inc/goose.gifts/pull/75))
 
 Applied the approved useful-absurdity brand direction across the public site and
 share surfaces. `#c2410c` is now the accessible canonical orange, with the
