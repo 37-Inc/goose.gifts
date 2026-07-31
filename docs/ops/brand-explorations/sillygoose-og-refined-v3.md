@@ -32,5 +32,5 @@ Constraints: typography-only revision. Do not change, redraw, move, enlarge, or 
 | Product fidelity | 5 |
 | AI artifact control | 5 |
 
-All four hard gates pass. Recommendation: owner review before replacing the
-live default share card.
+All four hard gates pass. Owner approved the card for rollout in PR #76;
+verify the production asset after merge.
