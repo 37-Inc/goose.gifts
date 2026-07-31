@@ -7,6 +7,10 @@ candidate and publishing package.
 
 ## Ready for owner review
 
+Revalidated 2026-07-31 against the active catalog, exact source images, live
+destinations, and full-resolution artifacts. Three candidates are ready; none
+is approved by appearing here.
+
 ### 1. Patricia hippo mug — lipstick vanity
 
 - Candidate: `cand-v5-hippo-vanity` (`shortlisted`, internal score `4.88/5`)
@@ -50,17 +54,37 @@ candidate and publishing package.
 - Approval needed: exact image, board, copy, disclosure, destination, and
   tracking URL above.
 
+### 3. Screaming Goat — boardroom facilitator
+
+- Candidate: `cand-screaming-goat-meeting` (`shortlisted`, internal score
+  `4.63/5`)
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v4-concepts/03d-screaming-goat-meeting-scale-faithful.png`
+- Product: The Screaming Goat (Book & Figure), ASIN `0762459816`
+- Destination:
+  `https://www.goose.gifts/random-gift?gift=0762459816`
+- Board: `Funny Gifts for Coworkers`
+- Title: `The Goat Has the Floor`
+- Description: `An immaculate boardroom, ten empty chairs, and one tiny screaming-goat figure taking the agenda personally. See the actual Screaming Goat book-and-figure set and more funny coworker gifts on goose.gifts. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Tiny beige screaming-goat desk figure on a round stump base presiding over an empty glass-walled boardroom table.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/random-gift?gift=0762459816&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v2&utm_content=screaming_goat_boardroom`
+- Why it earns a pause: the polished corporate symmetry reads first, then the
+  scale-correct screaming-goat figure becomes the only person taking the
+  meeting seriously.
+- What was verified: the active listing, beige open-mouthed sculpt, short
+  horns, four legs, round faux tree-stump base, miniature scale, and live 200
+  destination. The final revision is approximately water-glass height.
+- Remaining risk: the truthful miniature scale makes the joke intentionally
+  subtle at phone size; this needs owner taste confirmation before posting.
+- Approval needed: exact image, board, copy, AI/affiliate disclosure,
+  destination, and tracking URL above.
+
 ## Revision queue
 
-### Screaming goat boardroom
-
-- Candidate: `cand-screaming-goat-meeting` (`review`, revise)
-- Current lead:
-  `docs/ops/pinterest-creative-lab/v4-concepts/03b-screaming-goat-meeting-refined.png`
-- Status: not publishable. Cameron liked the visual direction, and the tabletop
-  scale revision improved it, but no verified source-product image or dimensions
-  were used. The next studio pass must identify the exact product, save its
-  reference, and causally revise the figurine before another fidelity review.
+None. Do not create another replacement while three valid survivors await
+owner review.
 
 ## Permanently rejected
 

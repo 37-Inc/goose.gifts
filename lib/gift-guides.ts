@@ -4,6 +4,9 @@ import { products } from './db/schema';
 import { cleanImageUrl } from './image-utils';
 import type { Product } from './types';
 import { selectGiftGuideDisplayProducts } from './db/product-scoring';
+import type { GiftGuideFaq } from './gift-guide-editorial';
+
+export type { GiftGuideFaq } from './gift-guide-editorial';
 
 export interface GiftGuideDefinition {
   slug: string;
@@ -12,6 +15,17 @@ export interface GiftGuideDefinition {
   description: string;
   intro: string;
   keywords: string[];
+  editorialSections?: GiftGuideEditorialSection[];
+  faqs?: GiftGuideFaq[];
+}
+
+export interface GiftGuideEditorialSection {
+  title: string;
+  paragraphs: string[];
+  links?: Array<{
+    slug: string;
+    label: string;
+  }>;
 }
 
 const MIN_FOCUSED_GUIDE_PRODUCTS = 6;
@@ -82,9 +96,47 @@ export const giftGuides: GiftGuideDefinition[] = [
     slug: 'funny-gifts-for-coworkers',
     title: 'Funny Gifts for Coworkers',
     h1: 'Funny gifts for coworkers that stay office-safe',
-    description: 'Find funny gifts for coworkers, desk toys, meeting jokes, and office-safe gag gifts from the goose.gifts catalog.',
+    description: 'Browse funny coworker gifts for bosses, employees, and work colleagues, with office-safe desk ideas from the goose.gifts catalog.',
     intro: 'Office gifts need a narrow lane: funny enough to land, safe enough to hand over in daylight, and useful enough to avoid the junk drawer.',
     keywords: ['coworker', 'office', 'desk', 'boss', 'meeting', 'work', 'safe'],
+    editorialSections: [
+      {
+        title: 'Use the room test, not the shock test',
+        paragraphs: [
+          'The safest office joke points at work itself: an overbooked calendar, a familiar meeting habit, or a desk ritual. Skip anything about a protected trait, someone’s body, politics, religion, relationships, or private life. If you would hesitate to explain the joke with the recipient’s boss standing there, choose another gift.',
+          'A quick laugh is enough. Small useful objects and mildly distracting desk pieces are easier to receive than giant props, messy pranks, or anything that creates a display obligation.',
+        ],
+        links: [
+          { slug: 'novelty-desk-toys', label: 'Browse novelty desk toys' },
+          { slug: 'office-prank-gifts', label: 'See office prank gifts for trusted teams' },
+        ],
+      },
+      {
+        title: 'Match the joke to the working relationship',
+        paragraphs: [
+          'For a close coworker, build on a harmless shared bit they already enjoy. For a colleague you know less well, choose something legible and low-pressure: a practical novelty, a small desk object, or a joke about the job rather than the person.',
+          'Bosses and direct reports need extra restraint because power changes how a joke lands. Keep the cost modest, avoid personal commentary, and favor team gifts or work-specific humor that does not ask for a particular reaction.',
+        ],
+        links: [
+          { slug: 'funny-gifts-for-bosses', label: 'Choose a funny gift for a boss' },
+          { slug: 'secret-santa-gag-gifts', label: 'Plan an office Secret Santa gift' },
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: 'What makes a funny coworker gift office-safe?',
+        answer: 'An office-safe gift makes the job, a shared routine, or a harmless desk habit the joke—not the recipient’s body, identity, politics, religion, relationships, health, or private life. It should be easy to open in a group and easy to put away afterward.',
+      },
+      {
+        question: 'What is a good funny gift for a boss?',
+        answer: 'Choose a modest, work-related joke with no personal edge. A team gift, practical novelty, or familiar meeting reference is safer than anything expensive, crude, intimate, or designed to embarrass the boss in front of other people.',
+      },
+      {
+        question: 'Are desk gifts better than pure gag gifts for coworkers?',
+        answer: 'Usually, if the recipient actually keeps things at their desk. A useful or mildly distracting object can earn a second life after the joke lands. For a minimalist workspace or a remote colleague, a small consumable or exchange-friendly gift may be a better fit.',
+      },
+    ],
   },
   {
     slug: 'funny-gifts-for-dads',
