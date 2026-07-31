@@ -23,6 +23,7 @@ is approved by appearing here.
 - Title: `Patricia Has a Lipstick Appointment`
 - Description: `An elegant vintage vanity, one classic red lipstick, and a personalized hippo mug that looks strangely at home. See the actual Patricia mug and more unusual gift finds on goose.gifts. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
 - Alt text: `Black personalized Patricia hippo mug with oversized red lips styled beside lipstick and perfume on a dark vintage vanity.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
 - Tracking URL:
   `https://www.goose.gifts/random-gift?gift=B0F9DZMQBL&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v2&utm_content=hippo_mug_vanity`
 - Why it earns a pause: the lipstick scene is derived from the product's exact
@@ -45,6 +46,7 @@ is approved by appearing here.
 - Title: `Patricia Is Running This Meeting`
 - Description: `A disciplined creative desk with one extremely undisciplined personalized hippo mug in the power position. See the actual Patricia mug and more funny coworker gifts on goose.gifts. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
 - Alt text: `Black personalized Patricia hippo mug arranged at the head of a polished creative desk with a notebook, pen, lamp, and color swatches.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
 - Tracking URL:
   `https://www.goose.gifts/random-gift?gift=B0F9DZMQBL&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v2&utm_content=hippo_mug_desk`
 - Why it earns a pause: it first reads as a saveable desk-styling image, then
