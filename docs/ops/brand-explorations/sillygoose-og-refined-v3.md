@@ -1,6 +1,6 @@
 # Refined default share card — V3
 
-- **Status:** owner-approved; prepared to replace the default share card
+- **Status:** owner-approved; shipping in PR #76
 - **Parent:** `sillygoose-og-refined-v2.png`
 - **Artifact:** `sillygoose-og-refined-v3.png`
 - **Tool:** Codex built-in image generation, edit mode

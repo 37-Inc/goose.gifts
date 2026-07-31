@@ -62,6 +62,16 @@ what's likely next.
 
 Newest first.
 
+### 2026-07-30 — Default share card refined `[owner+claude]` ([PR #76](https://github.com/37-Inc/goose.gifts/pull/76))
+
+Replaced the serviceable banner-like default share card with Cameron's approved
+editorial V3: a smaller signature goose, quiet warm-orange rule, and sturdier
+literary serif that keeps “The internet's least serious gift catalog” legible
+and confident at social-preview size. Preserved the rejected thin-serif V2,
+approved V3, exact prompt, and review rationale under
+`docs/ops/brand-explorations/` so future iterations build on the typography
+learning instead of repeating it.
+
 ### 2026-07-30 — Warm-orange brand system unified `[owner+claude]` ([PR #75](https://github.com/37-Inc/goose.gifts/pull/75))
 
 Applied the approved useful-absurdity brand direction across the public site and
