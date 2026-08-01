@@ -6,6 +6,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { ProductClickButton } from '@/components/ProductClickButton';
 import { ProductGrid } from '@/components/ProductGrid';
 import { ProductImage } from '@/components/ProductImage';
+import { RandomGiftLink } from '@/components/RandomGiftLink';
 import { getRandomGiftSelection, getProductById } from '@/lib/db/random-gift';
 import { getSiteUrl } from '@/lib/site';
 
@@ -182,12 +183,9 @@ export default async function RandomGiftPage({
         title={<>One <HeroUnderline>ridiculous</HeroUnderline> gift at a time</>}
         subtitle={`A fast spin through ${poolSize.toLocaleString('en-US')} catalog picks that passed the funny-gift relevance gate.`}
       >
-        <Link
-          href={`/random-gift?spin=${Date.now().toString(36)}`}
-          className="rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand"
-        >
+        <RandomGiftLink className="rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand">
           Another ridiculous gift
-        </Link>
+        </RandomGiftLink>
         <Link
           href={sharePath}
           className="rounded-full border border-zinc-200 bg-white px-6 py-3 text-sm font-semibold text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-50"
