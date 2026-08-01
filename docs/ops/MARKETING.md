@@ -30,8 +30,9 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Three product-faithful editorial Pins are live; exposure is still too small
-   for a creative verdict. A twice-weekly studio now advances at most one
+   Four product-faithful editorial Pins are live; the newly published goat has
+   no mature checkpoint yet, and prior exposure is still too small for a
+   creative verdict. A twice-weekly studio now advances at most one
    excellent survivor per run and maintains an exact owner-review queue.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
    catalog-supported pages. The Weird Gift Index is the first original-data
@@ -160,7 +161,9 @@ For every concept promoted beyond rough exploration, record:
   boardroom goat. The first source-guided edit fixed the sculpt and stump base
   but remained oversized; the second changed only scale and passed all truth,
   single-idea, no-CTA, and no-template gates at `4.63/5`. It is the only new
-  survivor from this run and is queued, not approved.
+  survivor from this run. Cameron later approved the exact package, and it was
+  published through the signed-in browser to the public `Funny Gifts for
+  Coworkers` board as Pin `1107815208385022014`.
 - **Organic move**: current Search Console page/query evidence selected
   `/gift-guides/funny-gifts-for-coworkers` (269 impressions, 0 clicks, average
   position 39.9). The page now has office-specific selection guidance,
@@ -175,8 +178,9 @@ For every concept promoted beyond rough exploration, record:
   adding account state, email/PII, or a wishlist clone. Recheck in August after
   there is real sharing or seasonal click evidence.
 - **Publishing boundary**: Standard access is still submitted and awaiting
-  review. No Pin was published; the next public action requires an exact owner
-  approval event and an interactive signed-in browser session until production
+  review. The goat publication used an exact owner approval event and an
+  interactive signed-in browser session; no production API path was used. The
+  same exact-package gate remains in force for every later Pin until production
   OAuth is approved and verified.
 
 ### 2026-07-28 — Twice-weekly Pinterest and organic-growth studio

@@ -42,12 +42,13 @@ what's likely next.
   Cameron submitted the upgrade request on 2026-07-28. Until Pinterest approves
   it and production OAuth is verified, public posting remains browser-only.
   Tracked as Beads `roadmap-fd1h`. Helps indexation (external signals).
-- **Pinterest creative workflow — owner review before more generation.** Three
-  exact unpublished packages are ready: hippo vanity, hippo desk, and the newly
-  source- and scale-corrected Screaming Goat boardroom. Do not generate a
-  replacement while these await approval. Public posting remains exact-
-  candidate approved and browser-only until Standard access plus production
-  OAuth are verified.
+- **Pinterest creative workflow — measure the goat; review the hippos.** The
+  source- and scale-corrected Screaming Goat boardroom was owner-approved and
+  browser-published as public Pin `1107815208385022014`. Two exact unpublished
+  packages remain ready: hippo vanity and hippo desk. Do not generate a
+  replacement while these await approval and the goat gathers distribution.
+  Public posting remains exact-candidate approved and browser-only until
+  Standard access plus production OAuth are verified.
 - **Amazon prices — deferred** (unchanged): the Creators API isn't delivering
   prices in practice (0.5% coverage; 0/122 recent enrichments), so
   commission/price-weighting stays parked.
@@ -62,7 +63,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-07-31 — Coworker guide + truthful goat survivor `[daily-ops]` ([PR #77](https://github.com/37-Inc/goose.gifts/pull/77))
+### 2026-07-31 — Coworker guide + truthful goat survivor `[daily-ops]` ([PR #77](https://github.com/37-Inc/goose.gifts/pull/77), [publication PR #79](https://github.com/37-Inc/goose.gifts/pull/79))
 
 Used current Search Console evidence to improve the existing funny-coworker
 guide (269 impressions, 0 clicks) with page-specific office-safe criteria,
@@ -70,10 +71,13 @@ boss/employee/colleague FAQs, and contextual guide links—no new URL or generic
 site-wide copy. Revalidated the two unpublished hippo creatives and produced
 one source- and scale-faithful Screaming Goat boardroom survivor from ASIN
 `0762459816`; every prompt, failed intermediate, review, metric checkpoint, and
-learning is preserved in the validated append-only log. The owner queue now has
-three exact packages. Pinterest public exposure remains too small for a verdict
-(35 legacy-v2 impressions; 6 editorial impressions; zero engagement), no Pin
-was published, and the monthly evidence check rejected starting a wishlist.
+learning is preserved in the validated append-only log. Cameron later approved
+the exact goat package, which was published through the signed-in browser to the
+public coworker board as
+[Pin `1107815208385022014`](https://www.pinterest.com/pin/1107815208385022014/).
+The two hippo packages remain in owner review. Prior Pinterest exposure remains
+too small for a verdict, and the monthly evidence check rejected starting a
+wishlist.
 
 ### 2026-07-30 — Default share card refined `[owner+claude]` ([PR #76](https://github.com/37-Inc/goose.gifts/pull/76))
 

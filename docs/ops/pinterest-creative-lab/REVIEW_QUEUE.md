@@ -8,7 +8,7 @@ candidate and publishing package.
 ## Ready for owner review
 
 Revalidated 2026-07-31 against the active catalog, exact source images, live
-destinations, and full-resolution artifacts. Three candidates are ready; none
+destinations, and full-resolution artifacts. Two candidates are ready; neither
 is approved by appearing here.
 
 ### 1. Patricia hippo mug — lipstick vanity
@@ -56,10 +56,15 @@ is approved by appearing here.
 - Approval needed: exact image, board, copy, disclosure, destination, and
   tracking URL above.
 
-### 3. Screaming Goat — boardroom facilitator
+## Published from this queue
 
-- Candidate: `cand-screaming-goat-meeting` (`shortlisted`, internal score
+### Screaming Goat — boardroom facilitator
+
+- Candidate: `cand-screaming-goat-meeting` (`published`, internal score
   `4.63/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208385022014/`
+- Published: 2026-07-31 through the signed-in `goosegifts` browser session after
+  Cameron approved this exact package.
 - Artifact:
   `docs/ops/pinterest-creative-lab/v4-concepts/03d-screaming-goat-meeting-scale-faithful.png`
 - Product: The Screaming Goat (Book & Figure), ASIN `0762459816`
@@ -78,15 +83,15 @@ is approved by appearing here.
 - What was verified: the active listing, beige open-mouthed sculpt, short
   horns, four legs, round faux tree-stump base, miniature scale, and live 200
   destination. The final revision is approximately water-glass height.
-- Remaining risk: the truthful miniature scale makes the joke intentionally
-  subtle at phone size; this needs owner taste confirmation before posting.
-- Approval needed: exact image, board, copy, AI/affiliate disclosure,
-  destination, and tracking URL above.
+- Publication verification: Pinterest shows the public `Funny Gifts for
+  Coworkers` board, exact title and tracked destination, affiliate disclosure,
+  and AI-modified label. Automatic similar-product recommendations were
+  disabled to preserve the single truthful product destination.
 
 ## Revision queue
 
-None. Do not create another replacement while three valid survivors await
-owner review.
+None. Do not create another replacement while two valid hippo survivors await
+owner review and the newly published goat gathers public distribution.
 
 ## Permanently rejected
 

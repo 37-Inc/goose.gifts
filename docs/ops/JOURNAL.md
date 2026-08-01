@@ -22,8 +22,13 @@ both unpublished 2:3 survivors at full resolution. Then verified Screaming Goat
 ASIN `0762459816`, saved its source, and causally revised the boardroom lead. An
 intermediate corrected the sculpt and stump base but remained about twice
 water-glass height; the final scale-only edit passed every hard gate at 4.63/5.
-The three owner-ready packages are hippo vanity, hippo desk, and goat boardroom.
-Nothing was posted; Standard access is still submitted and awaiting review.
+The three owner-ready packages were hippo vanity, hippo desk, and goat
+boardroom. Cameron then approved the exact goat package. It was published
+through the signed-in browser to the public `Funny Gifts for Coworkers` board
+as `https://www.pinterest.com/pin/1107815208385022014/`, with the tracked product
+destination, affiliate disclosure, Pinterest AI-modified label, exact alt text,
+and automatic similar-product recommendations disabled. The two hippo packages
+remain unapproved. Standard access is still submitted and awaiting review.
 
 **Organic work**: extended the guide definition with optional editorial
 sections and FAQ overrides, then used it only on
@@ -41,10 +46,10 @@ accounts, participant email/PII, or a new product workstream.
 
 **Growth lever chosen**: existing-search relevance plus one truthful creative
 survivor. Skipped another guide URL, more replacement images, outreach/backlink
-work, the weekly catalog job, publishing, and wishlist implementation because
-each is either separately owned, approval-gated, or unsupported by today's
-evidence. Next move: Cameron approves or rejects one exact review-queue package;
-the next unattended run rechecks public distribution and does not publish.
+work, the weekly catalog job, any additional Pin, and wishlist implementation
+because each is separately owned, approval-gated, or unsupported by today's
+evidence. Next move: recheck the new goat Pin's public distribution, while the
+two remaining hippo packages stay in owner review.
 
 ## 2026-07-16 - Creators API clean migration
 
