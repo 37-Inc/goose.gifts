@@ -1,4 +1,5 @@
 import { sql } from 'drizzle-orm';
+import { unstable_cache } from 'next/cache';
 import { db } from './index';
 import { products } from './schema';
 import { cleanImageUrl } from '../image-utils';
@@ -83,7 +84,7 @@ function hashSeed(value: string): number {
   return hash >>> 0;
 }
 
-async function getEligibleRandomGiftPool(): Promise<Product[]> {
+async function loadEligibleRandomGiftPool(): Promise<Product[]> {
   const rows = await db
     .select({
       id: products.id,
@@ -115,6 +116,20 @@ async function getEligibleRandomGiftPool(): Promise<Product[]> {
     .filter((product) => isCatalogDisplayEligibleProduct(product))
     .sort((a, b) => scoreProductForTrending(b) - scoreProductForTrending(a));
 }
+
+// This page is intentionally dynamic because each spin has its own seed, but
+// the eligible catalog pool is shared by every request. Keep the pool in the
+// Vercel Data Cache so crawlers cannot download the same catalog rows from Neon
+// on every request. Catalog changes may be up to one hour old here, which is
+// acceptable for a gift picker and matches the homepage catalog cache cadence.
+const getEligibleRandomGiftPool = unstable_cache(
+  loadEligibleRandomGiftPool,
+  ['random-gift-eligible-pool-v1'],
+  {
+    revalidate: 3600,
+    tags: ['catalog-products'],
+  }
+);
 
 export async function getRandomGiftSelection(seed: string, requestedId?: string) {
   const pool = await getEligibleRandomGiftPool();
