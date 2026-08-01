@@ -63,7 +63,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-07-31 — Coworker guide + truthful goat survivor `[daily-ops]` ([PR #77](https://github.com/37-Inc/goose.gifts/pull/77))
+### 2026-07-31 — Coworker guide + truthful goat survivor `[daily-ops]` ([PR #77](https://github.com/37-Inc/goose.gifts/pull/77), [publication PR #79](https://github.com/37-Inc/goose.gifts/pull/79))
 
 Used current Search Console evidence to improve the existing funny-coworker
 guide (269 impressions, 0 clicks) with page-specific office-safe criteria,
