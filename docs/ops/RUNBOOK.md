@@ -74,9 +74,11 @@ Boundaries (always in force):
    search interaction history.
    Also run `scripts/ops/gsc.sh analytics <start-date> <end-date>` when
    Search Console data is needed. The verified property is
-   `https://www.goose.gifts/`, read through the canonical portfolio identity at
-   `~/.config/gcloud/portfolio-search-console-sa.json`. The old Goose identity
-   remains only for GA4 until a separate analytics migration.
+   `https://www.goose.gifts/`, operated through the Full non-owner Portfolio
+   Search Operator at `~/.config/gcloud/portfolio-search-console-sa.json`.
+   The old Goose identity remains only for GA4 until a separate analytics
+   migration. `scripts/ops/gsc.sh submit-sitemap` and `delete-sitemap` are
+   external mutations and require explicit authorization for the exact sitemap.
    For GA4 source/event/landing-page reports, run `npm run analytics:ga4 --`
    followed by `events`, `traffic`, `landing-pages`, or
    `event <event-name>`. The goose.gifts GA4 property is `507421709`, using the

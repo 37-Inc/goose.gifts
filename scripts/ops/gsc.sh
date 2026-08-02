@@ -15,6 +15,7 @@ Usage:
   scripts/ops/gsc.sh inspect <url>
   scripts/ops/gsc.sh sitemaps
   scripts/ops/gsc.sh submit-sitemap [sitemap-url]
+  scripts/ops/gsc.sh delete-sitemap [sitemap-url]
 
 Dates use YYYY-MM-DD. The default property is https://www.goose.gifts/.
 Set GOOSE_GSC_SA_KEY or GOOSE_GSC_SITE to override.
@@ -93,6 +94,27 @@ case "$1" in
       curl -sS -o "$response_file" -w '%{http_code}' \
         -H "Authorization: Bearer $access_token" \
         -X PUT "https://searchconsole.googleapis.com/webmasters/v3/sites/$encoded_site/sitemaps/$encoded_sitemap"
+    )"
+    if [[ -s "$response_file" ]]; then
+      json < "$response_file"
+    else
+      printf '{\n  "ok": %s,\n  "status_code": %s\n}\n' "$([[ "$status" =~ ^2 ]] && echo true || echo false)" "$status"
+    fi
+    rm -f "$response_file"
+    if [[ ! "$status" =~ ^2 ]]; then
+      exit 1
+    fi
+    ;;
+  delete-sitemap)
+    sitemap="${2:-https://www.goose.gifts/sitemap.xml}"
+    encoded_site="$(encode "$SITE")"
+    encoded_sitemap="$(encode "$sitemap")"
+    access_token="$(token "$write_scope")"
+    response_file="$(mktemp)"
+    status="$(
+      curl -sS -o "$response_file" -w '%{http_code}' \
+        -H "Authorization: Bearer $access_token" \
+        -X DELETE "https://searchconsole.googleapis.com/webmasters/v3/sites/$encoded_site/sitemaps/$encoded_sitemap"
     )"
     if [[ -s "$response_file" ]]; then
       json < "$response_file"

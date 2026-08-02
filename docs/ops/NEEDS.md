@@ -77,10 +77,11 @@ you'd rather get real email/Slack from me, connect a connector at
   plus `$HOME/.codex/secrets/goose.gifts/vercel-token`); `pull-env.sh` can
   bootstrap from those stores without the token being in the repo.
 - 2026-08-02: Google Search Console access for
-  `https://www.goose.gifts/` is read through the canonical portfolio identity
+  `https://www.goose.gifts/` uses the Full non-owner Portfolio Search Operator
   `portfolio-search-reader@thirty-seven-search-ops.iam.gserviceaccount.com`
-  at `~/.config/gcloud/portfolio-search-console-sa.json`. The older Goose
-  identity is deprecated for GSC but remains in place for GA4.
+  at `~/.config/gcloud/portfolio-search-console-sa.json`. Its email retains the
+  earlier `reader` identifier. The older Goose identity is deprecated for GSC
+  but remains in place for GA4.
   `https://www.goose.gifts/sitemap.xml` is submitted with 38 URLs, 0 errors,
   and 0 warnings. Use `scripts/ops/gsc.sh` for repeatable checks.
 - 2026-07-05: Pinterest account and email alias. `goosegifts@37.technology`
