@@ -5,6 +5,53 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-04 - Pinterest and organic-growth studio
+
+**Evidence**: the public Pinterest launch cohort has 39 impressions, one Pin
+click, zero saves, and zero outbound clicks. The three earlier editorial Pins
+remain at six combined impressions with no engagement; the goat has zero after
+three days. GA4 shows no Pinterest source, and database attribution has no
+Pinterest affiliate click. Vercel reports 59 visitors and 164 pageviews over 31
+days; the database reports six product clicks and 34 searches over 30 days.
+Search Console shows coworkers at 341 impressions, white elephant at 260, dads
+at 238, Secret Santa at 134, and kitchen at 22, all with zero clicks. The
+white-elephant guide is individually submitted and indexed even though the
+sitemap aggregate still reports zero indexed and one warning. Sandbox and
+Pinterest v3 were excluded from traffic evidence.
+
+**Creative cycle**: inspected the exact active `B0F9DZMQBL` database listing,
+reachable catalog source image, live 200 destination, stored source reference,
+and both 1024x1536 unpublished artifacts at full resolution. Vanity and desk
+still preserve the black mug, hippo medallion, exaggerated red lips, turquoise
+`Patricia` name, ordinary scale, and all four hard gates. No replacement was
+generated. The owner queue remains vanity first (stronger product-derived hook)
+and desk second; neither is approved or published. The metrics helper now also
+discovers browser-published Creative Lab Pins from the validated event log, so
+the goat can no longer be omitted from public totals.
+
+**Organic work**: improved only `/gift-guides/white-elephant-gifts`, selected
+from its 260 impressions, zero clicks, and 66.8 average position. Query evidence
+was led by `funny white elephant gifts` (27 impressions), `funny white elephant
+gift ideas` (17), `hilarious white elephant gifts` (17), and `white elephant gag
+gifts` (16). The page now has a consistent people-will-actually-steal title/H1,
+a four-part room-and-steal rubric, three page-specific FAQs, and contextual
+links to adult, coworker, Secret Santa, and Dirty Santa guides. The catalog
+audit found 34 distinct products. Relevant tests, lint, build, and local 200
+render checks passed. Recheck impressions, CTR, position, organic sessions, and
+guide clicks after 14 and 28 days.
+
+**Monthly product decision**: do not build a wishlist or Secret Santa clone.
+Traffic remains 59 visitors/164 pageviews in 31 days, `/random-gift` has three
+visitors, the database has six product clicks in 30 days, GA4 exposes no share
+event, Pinterest has no outbound click, and Secret Santa has 134 impressions but
+zero clicks. That is seasonal discovery evidence, not evidence for accounts,
+email/PII, or a new product workstream.
+
+**Growth lever chosen**: existing-page usefulness plus survivor discipline.
+Published no Pin, ran no catalog job, performed no outreach, and spent nothing.
+Next move: Cameron can approve or reject the exact hippo vanity package; absent
+approval, recheck public distribution at the next studio run.
+
 ## 2026-07-31 - Pinterest and organic-growth studio
 
 **Evidence**: Pinterest public API metrics show 35 impressions across the five

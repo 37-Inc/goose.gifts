@@ -11,10 +11,13 @@ export type { GiftGuideFaq } from './gift-guide-editorial';
 export interface GiftGuideDefinition {
   slug: string;
   title: string;
+  metadataTitle?: string;
   h1: string;
   description: string;
   intro: string;
   keywords: string[];
+  editorialHeading?: string;
+  editorialAside?: string;
   editorialSections?: GiftGuideEditorialSection[];
   faqs?: GiftGuideFaq[];
 }
@@ -87,10 +90,51 @@ export const giftGuides: GiftGuideDefinition[] = [
   {
     slug: 'white-elephant-gifts',
     title: 'Funny White Elephant Gifts',
-    h1: 'Funny white elephant gifts that actually get picked',
-    description: 'Browse funny white elephant gifts, party exchange ideas, and weird novelty products with real images and current affiliate links.',
-    intro: 'A fast shortlist for gift exchanges where the goal is funny, useful, and just strange enough to get stolen twice.',
+    metadataTitle: 'Funny White Elephant Gifts People Will Actually Steal',
+    h1: 'Funny white elephant gifts people will actually steal',
+    description: 'Browse funny white elephant gifts people will actually steal, with useful gag-gift ideas, real product images, and current affiliate links.',
+    intro: 'The best white elephant gift gets a quick laugh, makes sense from across the room, and gives people a reason to steal it instead of politely passing.',
     keywords: ['white elephant', 'secret santa', 'party', 'exchange', 'holiday', 'funny', 'gag'],
+    editorialHeading: 'Choose for the exchange, not one perfect recipient',
+    editorialAside: 'A four-part steal test',
+    editorialSections: [
+      {
+        title: 'Start with the room test',
+        paragraphs: [
+          'A white elephant gift has to land with a mixed group before anyone knows who will take it home. Favor a joke people can understand in a few seconds, at ordinary speaking volume, without a long backstory about one specific recipient.',
+          'Broad room fit does not mean bland. A visibly strange useful object, an overcommitted version of an everyday tool, or a harmless gag with a second life usually travels better than clothing sizes, personal insults, dietary assumptions, or a joke that depends on embarrassing someone.',
+        ],
+        links: [
+          { slug: 'funny-gifts-for-coworkers', label: 'Use the office-safe room test' },
+          { slug: 'white-elephant-gifts-for-adults', label: 'Browse adult white elephant gifts' },
+        ],
+      },
+      {
+        title: 'Use the four-part steal test',
+        paragraphs: [
+          'Check four things: quick reaction, some usefulness after the laugh, enough visual or practical appeal to invite a steal, and a broad fit for the people in the room. A gift does not need to win every category, but it should have more going for it than shock value alone.',
+          'Pure prank packaging can get a reaction and still become dead weight once opened. If the gift underneath is useful, displayable, or satisfyingly odd, the joke keeps working after the exchange instead of ending at the reveal.',
+        ],
+        links: [
+          { slug: 'secret-santa-gag-gifts', label: 'Compare Secret Santa constraints' },
+          { slug: 'dirty-santa-gifts', label: 'Plan for a steal-heavy Dirty Santa game' },
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: 'What makes a good funny white elephant gift?',
+        answer: 'A strong white elephant gift gets a quick group reaction, works for more than one person in the room, and has enough usefulness or oddball appeal that somebody may steal it. The joke should be easy to understand without singling out or embarrassing a recipient.',
+      },
+      {
+        question: 'Should a white elephant gift be useful or just a gag?',
+        answer: 'Useful and funny is the safest combination. A pure gag can work when the group expects one, but a practical object with a ridiculous shape, message, or function gives people a reason to keep competing for it after the first laugh.',
+      },
+      {
+        question: 'How do you choose a white elephant gift for work?',
+        answer: 'Use the strictest room test: no jokes about bodies, protected traits, politics, religion, relationships, health, or private life. Choose a modest gift that can be opened in front of managers and coworkers, then taken home or kept at a desk without creating a problem.',
+      },
+    ],
   },
   {
     slug: 'funny-gifts-for-coworkers',
@@ -99,6 +143,8 @@ export const giftGuides: GiftGuideDefinition[] = [
     description: 'Browse funny coworker gifts for bosses, employees, and work colleagues, with office-safe desk ideas from the goose.gifts catalog.',
     intro: 'Office gifts need a narrow lane: funny enough to land, safe enough to hand over in daylight, and useful enough to avoid the junk drawer.',
     keywords: ['coworker', 'office', 'desk', 'boss', 'meeting', 'work', 'safe'],
+    editorialHeading: 'Choose the joke before the product',
+    editorialAside: 'Useful office-gift criteria',
     editorialSections: [
       {
         title: 'Use the room test, not the shock test',
