@@ -64,7 +64,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-04 — White-elephant guide + complete public Pin metrics `[daily-ops]` (PR pending)
+### 2026-08-04 — White-elephant guide + complete public Pin metrics `[daily-ops]` ([PR #80](https://github.com/37-Inc/goose.gifts/pull/80))
 
 Used current Search Console evidence to improve the existing white-elephant
 guide (260 impressions, zero clicks) with a people-will-actually-steal search
