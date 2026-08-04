@@ -150,14 +150,16 @@ export async function generateMetadata({ params }: GiftGuidePageProps): Promise<
     return {};
   }
 
+  const metadataTitle = guide.metadataTitle || guide.title;
+
   return {
-    title: `${guide.title} | goose.gifts`,
+    title: `${metadataTitle} | goose.gifts`,
     description: guide.description,
     alternates: {
       canonical: `/gift-guides/${guide.slug}`,
     },
     openGraph: {
-      title: `${guide.title} | goose.gifts`,
+      title: `${metadataTitle} | goose.gifts`,
       description: guide.description,
       url: `/gift-guides/${guide.slug}`,
       siteName: 'goose.gifts',
@@ -173,7 +175,7 @@ export async function generateMetadata({ params }: GiftGuidePageProps): Promise<
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${guide.title} | goose.gifts`,
+      title: `${metadataTitle} | goose.gifts`,
       description: guide.description,
       images: ['/sillygoose-og.png'],
     },
@@ -229,8 +231,8 @@ export default async function GiftGuidePage({ params }: GiftGuidePageProps) {
       {guide.editorialSections && (
         <section className="mx-auto max-w-6xl px-4 pb-2 pt-12 sm:pt-14">
           <SectionHeading
-            title="Choose the joke before the product"
-            aside="Useful office-gift criteria"
+            title={guide.editorialHeading || 'Choose the joke before the product'}
+            aside={guide.editorialAside}
           />
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
             {guide.editorialSections.map((section) => (

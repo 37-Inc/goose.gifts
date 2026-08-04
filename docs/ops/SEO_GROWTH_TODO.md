@@ -131,6 +131,24 @@ report.
   again before evidence has time to move unless a rendering/indexation defect
   appears.
 
+## Shipped 2026-08-04
+
+- [x] Improved the existing `/gift-guides/white-elephant-gifts` page from
+  current page/query evidence instead of creating another URL. It had 260
+  impressions, 0 clicks, and average position 66.8; its strongest clusters were
+  `funny white elephant gifts`, `funny white elephant gift ideas`, `hilarious
+  white elephant gifts`, and `white elephant gag gifts`.
+- [x] Aligned the search title, description, and H1 around funny white elephant
+  gifts people will actually steal. Added a people-first four-part rubric for
+  quick reaction, usefulness, stealability, and broad room fit; page-specific
+  FAQs; and contextual links to adult, workplace-safe, Secret Santa, and Dirty
+  Santa guides. The live catalog audit found 34 distinct products, so the
+  editorial layer is backed by useful inventory.
+- [ ] Recheck the white-elephant page after 14 and 28 days: impressions, CTR,
+  average position, organic sessions, and `gift_guide` outbound clicks. Do not
+  revise again before evidence has time to move unless rendering or indexation
+  regresses.
+
 ## Ongoing Daily Ops
 
 - [ ] Use on-site search logs to propose new guide pages, but only publish a
@@ -158,10 +176,9 @@ authority—not more URLs.
 1. `/gift-guides/funny-gifts-for-coworkers` — first evidence-backed pass shipped
    2026-07-31. Hold for the 14/28-day metric recheck before another editorial
    change.
-2. `/gift-guides/white-elephant-gifts` — explain the actual selection rubric
-   (quick reaction, usefulness, stealability, and broad room fit), strengthen
-   contextual links to adult, office-safe, and Secret Santa variants, and make
-   the headline/title promise consistent with "people will actually steal."
+2. `/gift-guides/white-elephant-gifts` — first evidence-backed pass shipped
+   2026-08-04. Hold for the 14/28-day metric recheck before another editorial
+   change.
 3. `/gift-guides/funny-gifts-for-dads` — add distinct paths for dad-joke,
    birthday, fishing, grilling, and practical novelty intent without pretending
    every catalog item fits every subtype; refine metadata around the observed

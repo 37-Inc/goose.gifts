@@ -12,6 +12,7 @@ const apiBase = sandbox ? 'https://api-sandbox.pinterest.com/v5' : 'https://api.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const approvedPinDraftsPath = path.join(root, 'docs/ops/pinterest-approved-pins.json');
 const legacyPublicWebResultsPath = path.join(root, 'docs/ops/pinterest-assets/batch-1-v3/manual-post-results.json');
+const creativeEventsPath = path.join(root, 'docs/ops/marketing-experiments/events.jsonl');
 
 if (!APP_SECRET) {
   throw new Error('Missing Pinterest app secret in PINTEREST_APP_SECRET or Keychain service goose.gifts.PINTEREST_APP_SECRET');
@@ -57,12 +58,19 @@ async function getPublicPinMetrics() {
     id: pin.id,
     title: pin.title,
   }));
-  const pins = await Promise.all([...publicPins, ...legacyPins].map(async (pin) => {
+  const uniquePins = new Map();
+  for (const pin of [...publicPins, ...legacyPins, ...readPublishedCreativePins()]) {
+    if (!pin.id) throw new Error(`Could not resolve public Pinterest Pin id for ${pin.title}`);
+    if (!uniquePins.has(pin.id)) uniquePins.set(pin.id, pin);
+  }
+
+  const pins = await Promise.all([...uniquePins.values()].map(async (pin) => {
     if (!pin.id) throw new Error(`Could not resolve public Pinterest Pin id for ${pin.title}`);
     const data = await apiGet(`/pins/${pin.id}?pin_metrics=true`, { sandbox: false });
     const lifetime = data.pin_metrics?.lifetime_metrics || {};
     return {
       ...pin,
+      title: data.title || pin.title,
       createdAt: data.created_at,
       impressions: Number(lifetime.impression || 0),
       pinClicks: Number(lifetime.pin_click || 0),
@@ -91,6 +99,31 @@ async function getPublicPinMetrics() {
   }, {}));
 
   return { generatedAt: new Date().toISOString(), cohorts, pins };
+}
+
+function readPublishedCreativePins() {
+  const candidates = new Map();
+  const published = [];
+  const lines = fs.readFileSync(creativeEventsPath, 'utf8').split(/\r?\n/).filter(Boolean);
+
+  for (const line of lines) {
+    const event = JSON.parse(line);
+    if (event.type === 'candidate.created') {
+      candidates.set(event.data.candidateId, event.data.title);
+      continue;
+    }
+    if (event.type !== 'candidate.status_changed' || event.data.to !== 'published') continue;
+
+    const pinId = event.data.evidenceUrl?.match(/pinterest\.com\/pin\/(\d+)/)?.[1];
+    if (!pinId) continue;
+    published.push({
+      cohort: 'pinterest_creative_lab_public',
+      id: pinId,
+      title: candidates.get(event.data.candidateId) || event.data.candidateId,
+    });
+  }
+
+  return published;
 }
 
 async function apiGet(path, { sandbox }) {

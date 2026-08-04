@@ -7,9 +7,11 @@ candidate and publishing package.
 
 ## Ready for owner review
 
-Revalidated 2026-07-31 against the active catalog, exact source images, live
-destinations, and full-resolution artifacts. Two candidates are ready; neither
-is approved by appearing here.
+Revalidated 2026-08-04 against the active catalog, exact source image, live 200
+destination, and both full-resolution 1024x1536 artifacts. Two candidates are
+ready; neither is approved by appearing here. No replacement was generated:
+the current public creative cohort still has too little distribution to justify
+discarding these valid survivors.
 
 ### 1. Patricia hippo mug — lipstick vanity
 

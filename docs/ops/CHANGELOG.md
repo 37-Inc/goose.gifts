@@ -45,8 +45,9 @@ what's likely next.
 - **Pinterest creative workflow — measure the goat; review the hippos.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
   browser-published as public Pin `1107815208385022014`. Two exact unpublished
-  packages remain ready: hippo vanity and hippo desk. Do not generate a
-  replacement while these await approval and the goat gathers distribution.
+  packages remain ready: hippo vanity and hippo desk. Both were revalidated on
+  2026-08-04; do not generate a replacement while these await approval and the
+  goat gathers distribution.
   Public posting remains exact-candidate approved and browser-only until
   Standard access plus production OAuth are verified.
 - **Amazon prices — deferred** (unchanged): the Creators API isn't delivering
@@ -62,6 +63,18 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-04 — White-elephant guide + complete public Pin metrics `[daily-ops]` (PR pending)
+
+Used current Search Console evidence to improve the existing white-elephant
+guide (260 impressions, zero clicks) with a people-will-actually-steal search
+promise, a concrete reaction/usefulness/stealability/room-fit rubric,
+page-specific FAQs, and contextual exchange links. Revalidated both unpublished
+hippo survivors without generating a replacement, recorded public-only
+checkpoints through the append-only workflow, and fixed the metrics reader so
+the browser-published goat is included. No Pin was published; hippo vanity and
+desk remain exact-package owner decisions. The August wishlist check still
+found no product evidence for accounts, email/PII, or a new workstream.
 
 ### 2026-07-31 — Coworker guide + truthful goat survivor `[daily-ops]` ([PR #77](https://github.com/37-Inc/goose.gifts/pull/77), [publication PR #79](https://github.com/37-Inc/goose.gifts/pull/79))
 

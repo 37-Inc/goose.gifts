@@ -149,6 +149,38 @@ For every concept promoted beyond rough exploration, record:
 
 ## Experiment log
 
+### 2026-08-04 — Public checkpoint, survivor revalidation, and white-elephant guide
+
+- **Public evidence**: the five public launch Pins total 39 impressions, one Pin
+  click, zero saves, and zero outbound clicks. The three earlier editorial Pins
+  remain at six combined impressions with no engagement, and the three-day-old
+  goat Pin has zero impressions. GA4 and database attribution still show no
+  Pinterest session or affiliate click. Pinterest v3 and every Sandbox object
+  remain excluded.
+- **Creative cycle**: the exact active `B0F9DZMQBL` listing, stored source image,
+  200 destination, and 1024x1536 hippo vanity/desk artifacts were rechecked at
+  full useful resolution. Both still pass the one-idea, truthful-product,
+  no-CTA, and no-template gates. No replacement was generated; the vanity
+  remains the stronger first approval choice because its lipstick collision is
+  more immediately derived from the product's exaggerated red lips.
+- **Organic move**: current page/query evidence selected
+  `/gift-guides/white-elephant-gifts` (260 impressions, zero clicks, average
+  position 66.8). The page now aligns its search title and headline around
+  funny gifts people will actually steal, explains a four-part reaction/use/
+  stealability/room-fit rubric, adds workplace and exchange guidance, and links
+  contextually to adult, coworker, Secret Santa, and Dirty Santa variants.
+  Recheck impressions, CTR, average position, organic sessions, and
+  `gift_guide` outbound clicks after 14 and 28 days.
+- **Monthly shortlist decision**: do not start a wishlist or Secret Santa
+  product workstream. The last 31 days show 59 visitors, 164 pageviews, six
+  product clicks, three `/random-gift` visitors, no share event, and no public
+  Pinterest outbound click. Secret Santa has 134 impressions but zero clicks;
+  that still supports editorial discovery work, not accounts, email/PII, or a
+  wishlist clone.
+- **Publishing boundary**: Standard access remains submitted and awaiting
+  review. This unattended run published nothing and left the two exact hippo
+  packages in owner review.
+
 ### 2026-07-31 — Studio checkpoint, goat correction, and shortlist evidence check
 
 - **Public evidence**: the five legacy public v2 Pins now total 35 impressions;
