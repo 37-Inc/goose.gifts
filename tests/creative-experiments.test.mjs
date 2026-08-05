@@ -130,7 +130,7 @@ test("repository event log is valid and exposes publication-driven next actions"
     ["cand-alligator-editorial", "cand-ceramic-eye-interior", "cand-screaming-goat-meeting"],
   );
   assert.equal(actions.filter((item) => item.action.includes("requires revision")).length, 1);
-  assert.equal(actions.filter((item) => item.action.includes("owner selection")).length, 2);
+  assert.equal(actions.filter((item) => item.action.includes("owner selection")).length, 1);
 });
 
 test("folds prompt lineage and passing review into candidate state", () => {

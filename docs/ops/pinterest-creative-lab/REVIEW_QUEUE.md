@@ -8,35 +8,11 @@ candidate and publishing package.
 ## Ready for owner review
 
 Revalidated 2026-08-04 against the active catalog, exact source image, live 200
-destination, and both full-resolution 1024x1536 artifacts. Two candidates are
-ready; neither is approved by appearing here. No replacement was generated:
-the current public creative cohort still has too little distribution to justify
-discarding these valid survivors.
+destination, and both full-resolution 1024x1536 artifacts. Cameron approved the
+vanity package on 2026-08-04 and Codex selected it as the stronger isolated
+test. One candidate remains ready; appearing here does not authorize it.
 
-### 1. Patricia hippo mug — lipstick vanity
-
-- Candidate: `cand-v5-hippo-vanity` (`shortlisted`, internal score `4.88/5`)
-- Artifact:
-  `docs/ops/pinterest-creative-lab/v5-concepts/02-hippo-mug-lipstick-vanity.png`
-- Product: Personalized Patricia hippo mug, ASIN `B0F9DZMQBL`
-- Destination:
-  `https://www.goose.gifts/random-gift?gift=B0F9DZMQBL`
-- Board: `Weird Kitchen Gadgets`
-- Title: `Patricia Has a Lipstick Appointment`
-- Description: `An elegant vintage vanity, one classic red lipstick, and a personalized hippo mug that looks strangely at home. See the actual Patricia mug and more unusual gift finds on goose.gifts. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
-- Alt text: `Black personalized Patricia hippo mug with oversized red lips styled beside lipstick and perfume on a dark vintage vanity.`
-- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
-- Tracking URL:
-  `https://www.goose.gifts/random-gift?gift=B0F9DZMQBL&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v2&utm_content=hippo_mug_vanity`
-- Why it earns a pause: the lipstick scene is derived from the product's exact
-  exaggerated red lips, so the category collision breaks if another mug is
-  substituted.
-- Remaining risk: dark styling may be less broadly saveable than the already
-  published breakfast scene.
-- Approval needed: exact image, board, copy, disclosure, destination, and
-  tracking URL above.
-
-### 2. Patricia hippo mug — creative-director desk
+### 1. Patricia hippo mug — creative-director desk
 
 - Candidate: `cand-v5-hippo-desk` (`shortlisted`, internal score `4.75/5`)
 - Artifact:
@@ -59,6 +35,36 @@ discarding these valid survivors.
   tracking URL above.
 
 ## Published from this queue
+
+### Patricia hippo mug — lipstick vanity
+
+- Candidate: `cand-v5-hippo-vanity` (`measuring`, internal score `4.88/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208385331910/`
+- Published: 2026-08-04 through the signed-in `goose.gifts` browser session
+  after Cameron approved the exact vanity package and delegated the one-versus-
+  two choice. Codex published only vanity to keep the tiny same-product cohort
+  interpretable; the desk remains unapproved.
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v5-concepts/02-hippo-mug-lipstick-vanity.png`
+- Product: Personalized Patricia hippo mug, ASIN `B0F9DZMQBL`
+- Destination:
+  `https://www.goose.gifts/random-gift?gift=B0F9DZMQBL`
+- Board: `Weird Kitchen Gadgets`
+- Title: `Patricia Has a Lipstick Appointment`
+- Description: `An elegant vintage vanity, one classic red lipstick, and a personalized hippo mug that looks strangely at home. See the actual Patricia mug and more unusual gift finds on goose.gifts. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Black personalized Patricia hippo mug with oversized red lips styled beside lipstick and perfume on a dark vintage vanity.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/random-gift?gift=B0F9DZMQBL&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v2&utm_content=hippo_mug_vanity`
+- Why it earns a pause: the lipstick scene is derived from the product's exact
+  exaggerated red lips, so the category collision breaks if another mug is
+  substituted.
+- Publication verification: Pinterest shows the public `Weird Kitchen Gadgets`
+  board, exact title and tracked destination, affiliate disclosure, and
+  AI-modified label. Automatic similar-product recommendations were disabled.
+- Baseline: Pinterest API v5 found zero impressions, saves, Pin clicks, and
+  outbound clicks within one minute of publication; this is a receipt, not a
+  performance verdict.
 
 ### Screaming Goat — boardroom facilitator
 
@@ -92,8 +98,8 @@ discarding these valid survivors.
 
 ## Revision queue
 
-None. Do not create another replacement while two valid hippo survivors await
-owner review and the newly published goat gathers public distribution.
+None. Do not create another replacement while the valid hippo desk survivor
+awaits owner review and the public goat and vanity Pins gather distribution.
 
 ## Permanently rejected
 
