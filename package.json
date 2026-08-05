@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "test:ranking": "node --experimental-strip-types --test tests/product-scoring.test.mjs",
     "test:index": "node --experimental-strip-types --test tests/weird-gift-index.test.mjs",
+    "test:robots": "node --test tests/robots.test.mjs",
     "analytics:snapshot": "node scripts/ops/analytics-snapshot.mjs",
     "analytics:ga4": "bash scripts/ops/ga4.sh",
     "indexnow:submit": "node scripts/ops/indexnow-submit.mjs",
