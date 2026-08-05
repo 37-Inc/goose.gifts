@@ -42,12 +42,13 @@ what's likely next.
   Cameron submitted the upgrade request on 2026-07-28. Until Pinterest approves
   it and production OAuth is verified, public posting remains browser-only.
   Tracked as Beads `roadmap-fd1h`. Helps indexation (external signals).
-- **Pinterest creative workflow — measure the goat; review the hippos.** The
+- **Pinterest creative workflow — measure the goat and vanity; review the desk.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
-  browser-published as public Pin `1107815208385022014`. Two exact unpublished
-  packages remain ready: hippo vanity and hippo desk. Both were revalidated on
-  2026-08-04; do not generate a replacement while these await approval and the
-  goat gathers distribution.
+  browser-published as public Pin `1107815208385022014`. The stronger hippo
+  vanity package was then owner-approved and browser-published as public Pin
+  `1107815208385331910`; the hippo desk is the only exact unpublished package
+  left in owner review. Do not generate a replacement while these public Pins
+  gather distribution and the valid desk survivor awaits a decision.
   Public posting remains exact-candidate approved and browser-only until
   Standard access plus production OAuth are verified.
 - **Amazon prices — deferred** (unchanged): the Creators API isn't delivering
@@ -63,6 +64,17 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-04 — Hippo vanity Pin published `[owner+codex]`
+
+Cameron approved the exact hippo vanity package and delegated whether to post
+one or both remaining hippo concepts. Published only the stronger lipstick-
+derived vanity scene to keep the tiny same-product cohort interpretable:
+[Pin `1107815208385331910`](https://www.pinterest.com/pin/1107815208385331910/)
+is live on `Weird Kitchen Gadgets` with the tracked Goose Gifts destination,
+affiliate disclosure, Pinterest AI-modified label, exact alt text, and similar-
+product recommendations disabled. Pinterest API v5 confirmed the public Pin at
+a zero-distribution publication baseline. The desk remains unapproved.
 
 ### 2026-08-04 — White-elephant guide + complete public Pin metrics `[daily-ops]` ([PR #80](https://github.com/37-Inc/goose.gifts/pull/80))
 

@@ -30,10 +30,10 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Four product-faithful editorial Pins are live; the newly published goat has
-   no mature checkpoint yet, and prior exposure is still too small for a
-   creative verdict. A twice-weekly studio now advances at most one
-   excellent survivor per run and maintains an exact owner-review queue.
+   Five product-faithful editorial Pins are live; the newly published vanity
+   and goat have no mature checkpoint yet, and prior exposure is still too
+   small for a creative verdict. A twice-weekly studio now advances at most
+   one excellent survivor per run and maintains an exact owner-review queue.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
    catalog-supported pages. The Weird Gift Index is the first original-data
    acquisition asset and should be improved as a cited, editioned report rather
@@ -148,6 +148,23 @@ For every concept promoted beyond rough exploration, record:
 - performance checkpoints and conclusion.
 
 ## Experiment log
+
+### 2026-08-04 — Owner-approved hippo vanity publication
+
+- **Decision**: Cameron approved the exact hippo vanity publishing package and
+  delegated whether to publish vanity alone or both remaining hippo scenes.
+  Vanity alone was chosen because its lipstick/oversized-lips collision is more
+  immediately product-derived, while posting two same-product Pins together
+  would make an already tiny public cohort harder to interpret.
+- **Publication**: the signed-in `goose.gifts` browser posted Pin
+  `1107815208385331910` to `Weird Kitchen Gadgets` with the exact approved
+  image, title, description, alt text, tracked destination, affiliate
+  disclosure, Pinterest AI-modified label, and similar-product recommendations
+  disabled. The hippo desk remains shortlisted and unapproved.
+- **Baseline**: Pinterest API v5 confirmed the public Pin within one minute at
+  zero impressions, saves, Pin clicks, and outbound clicks. This is a
+  publication receipt, not performance evidence; Sandbox and v3 remain
+  excluded. Recheck the public Pin after it has had time to distribute.
 
 ### 2026-08-04 — Public checkpoint, survivor revalidation, and white-elephant guide
 

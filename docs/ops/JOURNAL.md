@@ -5,6 +5,26 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-04 - Owner-approved hippo vanity publication
+
+**Decision and publication**: Cameron approved the exact hippo vanity package
+and delegated whether to post vanity alone or both remaining hippo concepts.
+Published only vanity because the lipstick scene has the stronger product-
+derived hook and a simultaneous desk post would muddy a tiny same-product
+cohort. The signed-in `goose.gifts` browser published
+`https://www.pinterest.com/pin/1107815208385331910/` to `Weird Kitchen Gadgets`
+with the exact tracked destination, title, description, affiliate disclosure,
+alt text, Pinterest AI-modified label, and similar-product recommendations
+disabled. No API publication, paid spend, catalog job, outreach, or second Pin
+occurred. The desk remains shortlisted and unapproved.
+
+**Receipt and next move**: the public detail page verified the board, title,
+tracked destination, description, disclosure, and AI label. Pinterest API v5
+then confirmed the new public Pin with zero impressions, saves, Pin clicks, or
+outbound clicks within one minute of publication. That zero is only a baseline;
+recheck after real distribution before comparing the vanity with breakfast or
+goat creative. Sandbox and Pinterest v3 remain excluded.
+
 ## 2026-08-04 - Pinterest and organic-growth studio
 
 **Evidence**: the public Pinterest launch cohort has 39 impressions, one Pin
