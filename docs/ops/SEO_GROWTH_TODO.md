@@ -148,6 +148,11 @@ report.
   average position, organic sessions, and `gift_guide` outbound clicks. Do not
   revise again before evidence has time to move unless rendering or indexation
   regresses.
+- [x] 2026-08-07 early hold checkpoint: the current 28-day window shows white
+  elephant at 292 impressions, 0 clicks, and position 66.3; coworkers is at 392
+  impressions, 0 clicks, and position 39.5. Both URLs are submitted and indexed,
+  but Search Console's last crawls are still 2026-07-18, before their editorial
+  changes. Keep both 14/28-day holds; do not confound them with another edit.
 
 ## Ongoing Daily Ops
 

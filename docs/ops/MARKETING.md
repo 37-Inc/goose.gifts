@@ -149,6 +149,37 @@ For every concept promoted beyond rough exploration, record:
 
 ## Experiment log
 
+### 2026-08-07 — Public distribution and desk-survivor checkpoint
+
+- **Public evidence**: the five-Pin launch cohort has 40 impressions, one Pin
+  click, zero saves, and zero outbound clicks. The three earlier editorial
+  Pins now have 32 impressions with no engagement, led by the alligator oven
+  mitt at 23. The goat remains at zero impressions and the newly published
+  vanity has one; together the two Creative Lab browser publications have one
+  impression and no engagement. GA4 and database attribution still show no
+  Pinterest session or affiliate click. Pinterest v3 and every Sandbox object
+  remain excluded.
+- **Creative cycle**: Amazon Creators API remotely verified the exact active
+  `B0F9DZMQBL` mug, current title, $11.99 listing, source image, and affiliate
+  destination. The current source image exactly matches the stored reference;
+  the tracked Goose destination is 200. A new full-resolution inspection of
+  the 1024x1536 desk artifact reconfirmed its black ceramic mug, hippo medallion,
+  exaggerated red lips, turquoise `Patricia` name, ordinary scale, and all four
+  hard gates. It remains the sole ready candidate; no replacement was generated.
+- **Organic evidence**: over the current 28-day Search Console window,
+  coworkers has 392 impressions, white elephant 292, dads 265, Secret Santa
+  151, and kitchen 24, all with zero clicks. The two already edited pages are
+  submitted and indexed, but their last recorded crawls predate those edits.
+  Their 14/28-day holds remain correct, so this second weekly run made no SEO
+  page change.
+- **Monthly shortlist decision**: the August evidence check was completed on
+  2026-08-04 and remains no-build. Today added no Pinterest outbound click,
+  share event, or product demand signal that justifies reopening it before the
+  September cadence.
+- **Publishing boundary**: Standard access remains submitted and awaiting
+  review, and no production OAuth path has been verified. This unattended run
+  published nothing; the exact desk package remains an owner decision.
+
 ### 2026-08-04 — Owner-approved hippo vanity publication
 
 - **Decision**: Cameron approved the exact hippo vanity publishing package and

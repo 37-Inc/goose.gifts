@@ -5,6 +5,49 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-07 - Pinterest and organic-growth studio
+
+**Evidence**: public Pinterest now totals 73 impressions, one Pin click, zero
+saves, and zero outbound clicks across ten Pins. The five-Pin launch cohort is
+40/1/0/0; the three editorial Pins are 32/0/0/0; goat plus vanity are 1/0/0/0.
+The oven-mitt Pin accounts for 23 editorial impressions, while goat remains at
+zero and vanity has one. GA4 reports 37 active users, 56 sessions, 110 page
+views, and three outbound-click conversion events over 28 days, but no
+Pinterest source. Vercel reports 54 visitors and 117 pageviews over 31 days;
+the database has five product clicks and 34 searches over 30 days, with no
+Pinterest-attributed click. Sandbox and Pinterest v3 were excluded.
+
+**Search evidence**: the 28-day Search Console page set remains all-zero CTR:
+coworkers 392 impressions at position 39.5, white elephant 292 at 66.3, dads
+265 at 44.0, Secret Santa 151 at 53.4, and kitchen 24 at 44.5. Coworkers and
+white elephant are submitted and indexed with matching canonicals, but the
+latest recorded crawls are 2026-07-18, before their 2026-07-31 and 2026-08-04
+edits. The sitemap aggregate remains 47 submitted, zero indexed, one warning,
+which conflicts with the successful individual inspections. This was the
+second run of the week, so no SEO page changed; both edited pages stay on their
+14/28-day hold.
+
+**Creative cycle**: Amazon Creators API remotely verified the active
+`B0F9DZMQBL` personalized hippo mug, its exact current title, $11.99 listing,
+source image, and tracked affiliate destination. The current source image hash
+exactly matches the stored reference. The Goose destination and desk tracking
+URL returned 200. Full-resolution inspection reconfirmed that the 1024x1536
+desk artifact preserves the glossy black mug, flat hippo medallion, red lips,
+turquoise `Patricia` name, handle, and ordinary scale. It still passes the
+single-idea, truthful-product, no-CTA, and no-template gates at 4.75/5. It
+remains the sole ready queue item; no new image was generated.
+
+**Product and publishing decisions**: the August wishlist/Secret Santa evidence
+check was completed three days ago and remains no-build; today added no share,
+Pinterest outbound click, or product-demand evidence that warrants an early
+reopen. Standard access remains submitted/awaiting review, with no verified
+production OAuth path. This unattended run published no Pin, ran no catalog
+job, performed no outreach, and spent nothing.
+
+**Growth lever chosen**: public-only learning plus survivor discipline. The
+next move is one exact owner decision on the desk package; absent approval,
+continue measuring public distribution rather than generating more inventory.
+
 ## 2026-08-04 - Owner-approved hippo vanity publication
 
 **Decision and publication**: Cameron approved the exact hippo vanity package
