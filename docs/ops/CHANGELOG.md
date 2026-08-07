@@ -65,7 +65,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-07 — Desk survivor revalidated; public metrics advanced `[daily-ops]`
+### 2026-08-07 — Desk survivor revalidated; public metrics advanced `[daily-ops]` ([PR #83](https://github.com/37-Inc/goose.gifts/pull/83))
 
 Rechecked all public-only Pinterest, GA4, Vercel/database, and Search Console
 signals; recorded fresh causal checkpoints without using Sandbox/v3 as traffic
