@@ -7,10 +7,10 @@ candidate and publishing package.
 
 ## Ready for owner review
 
-Revalidated 2026-08-04 against the active catalog, exact source image, live 200
-destination, and both full-resolution 1024x1536 artifacts. Cameron approved the
-vanity package on 2026-08-04 and Codex selected it as the stronger isolated
-test. One candidate remains ready; appearing here does not authorize it.
+Revalidated 2026-08-07 against the live Amazon Creators API listing, exact
+current source image, live 200 destination, and full-resolution 1024x1536
+artifact. The current source image is byte-for-byte identical to the stored
+reference. One candidate remains ready; appearing here does not authorize it.
 
 ### 1. Patricia hippo mug — creative-director desk
 
