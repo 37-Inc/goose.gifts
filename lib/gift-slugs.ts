@@ -49,11 +49,62 @@ export function getEditorialParagraphs(writeup?: string): string[] {
     .filter(Boolean);
 }
 
-export function hasIndexableGiftEditorial(product: Pick<ProductEditorial, 'editorialWriteup'>): boolean {
+export const INDEXABLE_EDITORIAL_STATUSES = ['generated_ready', 'manual_locked'] as const;
+export const PURCHASABLE_AVAILABILITY_STATUSES = [
+  'IN_STOCK',
+  'IN_STOCK_SCARCE',
+  'INSTOCKSCARCE',
+  'AVAILABLE_DATE',
+  'LEADTIME',
+  'PREORDER',
+] as const;
+
+export function isPurchasableAvailability(status?: string): boolean {
+  return PURCHASABLE_AVAILABILITY_STATUSES.includes(
+    String(status || '').toUpperCase() as typeof PURCHASABLE_AVAILABILITY_STATUSES[number]
+  );
+}
+
+function editorialWordCount(editorial: string): number {
+  return editorial.split(/\s+/).filter(Boolean).length;
+}
+
+export function hasIndexableGiftEditorial(product: ProductEditorial, now: Date = new Date()): boolean {
   const editorial = product.editorialWriteup?.trim() || '';
-  return Array.from(editorial).length >= 500;
+  const verifiedAt = product.availabilityCheckedAt || product.lastVerifiedAt;
+  const verifiedTime = verifiedAt ? new Date(verifiedAt).getTime() : Number.NaN;
+  const maxVerificationAgeMs = 35 * 24 * 60 * 60 * 1000;
+  const freshVerification = Number.isFinite(verifiedTime)
+    && now.getTime() - verifiedTime <= maxVerificationAgeMs;
+  const approved = INDEXABLE_EDITORIAL_STATUSES.includes(
+    String(product.editorialStatus || '') as typeof INDEXABLE_EDITORIAL_STATUSES[number]
+  );
+  const reviewedQuality = Number(product.editorialQualityScore || 0) >= 0.8;
+  const substantive = Array.from(editorial).length >= 500
+    && editorialWordCount(editorial) >= 90
+    && getEditorialParagraphs(editorial).length >= 2;
+  const currentFacts = Boolean(product.sourceFactsHash)
+    && product.sourceFactsHash === product.editorialSourceHash;
+
+  return product.isActive !== false
+    && !product.duplicateOfProductId
+    && isPurchasableAvailability(product.availabilityStatus)
+    && freshVerification
+    && approved
+    && reviewedQuality
+    && currentFacts
+    && substantive;
 }
 
 interface ProductEditorial {
   editorialWriteup?: string;
+  isActive?: boolean;
+  duplicateOfProductId?: string;
+  availabilityStatus?: string;
+  availabilityCheckedAt?: Date | string;
+  lastVerifiedAt?: Date | string;
+  editorialStatus?: string;
+  editorialQualityScore?: number;
+  sourceFactsHash?: string;
+  editorialSourceHash?: string;
 }

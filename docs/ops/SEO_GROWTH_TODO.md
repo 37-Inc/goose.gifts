@@ -28,6 +28,18 @@ report.
   pages remain `noindex` until reviewed.
 - [x] Preserved every existing product-pinned `/random-gift?gift=<id>` URL as a
   permanent redirect to its canonical gift page, retaining UTM attribution.
+- [x] Replaced the product-page 500-character indexing shortcut with a factual
+  gate covering fresh Amazon verification, explicit offer availability,
+  current source hashes, editorial review quality, duplicate ownership, and
+  substantive multi-paragraph copy. Held pages remain `noindex, follow`.
+- [x] Backfilled a bounded first cohort of 25 source-verified catalog products,
+  bringing the indexable product total to 29, and added a crawlable paginated
+  `/gifts` directory. The sitemap uses editorial content timestamps rather than
+  catalog clicks or routine refresh dates.
+- [ ] Recheck the 2026-08-07 product cohort after 7, 14, and 28 days: submitted,
+  discovered, crawled, indexed, Google-selected canonical, impressions, clicks,
+  and soft-404/duplicate exclusions. Expand in bounded cohorts only when factual
+  QA and crawl/index signals remain clean.
 
 ## Shipped 2026-07-05
 

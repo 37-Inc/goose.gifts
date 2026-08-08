@@ -80,6 +80,19 @@ export const products = pgTable('products', {
   punnyTitle: text('punny_title'),
   wittyDescription: text('witty_description'),
   editorialWriteup: text('editorial_writeup'),
+  sourceFacts: jsonb('source_facts').$type<Record<string, unknown>>(),
+  sourceFactsHash: varchar('source_facts_hash', { length: 64 }),
+  editorialSourceHash: varchar('editorial_source_hash', { length: 64 }),
+  availabilityStatus: varchar('availability_status', { length: 32 }),
+  availabilityCheckedAt: timestamp('availability_checked_at'),
+  editorialStatus: varchar('editorial_status', { length: 32 }).notNull().default('pending'),
+  editorialQualityScore: numeric('editorial_quality_score', { precision: 5, scale: 4 }),
+  editorialModel: varchar('editorial_model', { length: 100 }),
+  editorialPromptVersion: varchar('editorial_prompt_version', { length: 50 }),
+  editorialGeneratedAt: timestamp('editorial_generated_at'),
+  editorialBlockReason: text('editorial_block_reason'),
+  duplicateOfProductId: varchar('duplicate_of_product_id', { length: 255 }),
+  contentUpdatedAt: timestamp('content_updated_at'),
   qualityScore: numeric('quality_score', { precision: 5, scale: 4 }),
   isActive: boolean('is_active').notNull().default(true),
   lastVerifiedAt: timestamp('last_verified_at'),
@@ -97,10 +110,27 @@ export const products = pgTable('products', {
   sourceIdx: index('products_source_idx').on(table.source),
   isActiveIdx: index('products_is_active_idx').on(table.isActive),
   qualityScoreIdx: index('products_quality_score_idx').on(table.qualityScore),
+  editorialStatusIdx: index('products_editorial_status_idx').on(table.editorialStatus),
+  availabilityStatusIdx: index('products_availability_status_idx').on(table.availabilityStatus),
+  duplicateOfProductIdIdx: index('products_duplicate_of_product_id_idx').on(table.duplicateOfProductId),
   humorTagsIdx: index('products_humor_tags_idx').using('gin', table.humorTags),
   embeddingIdx: index('products_embedding_hnsw_idx')
     .using('hnsw', table.embedding.op('vector_cosine_ops'))
     .where(sql`${table.embedding} IS NOT NULL`),
+}));
+
+// Append-only record of catalog editorial decisions and generation attempts.
+export const catalogEditorialEvents = pgTable('catalog_editorial_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  runId: uuid('run_id').notNull(),
+  productId: varchar('product_id', { length: 255 }).notNull().references(() => products.id, { onDelete: 'cascade' }),
+  eventType: varchar('event_type', { length: 50 }).notNull(),
+  status: varchar('status', { length: 32 }).notNull(),
+  details: jsonb('details').$type<Record<string, unknown>>(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  runIdIdx: index('catalog_editorial_events_run_id_idx').on(table.runId),
+  productIdIdx: index('catalog_editorial_events_product_id_idx').on(table.productId),
 }));
 
 // Preserve old canonical paths when an editor deliberately changes a gift slug.

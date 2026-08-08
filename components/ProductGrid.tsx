@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import type { Product } from '@/lib/types';
+import { isPurchasableAvailability } from '@/lib/gift-slugs';
 import { ProductImage } from './ProductImage';
 
 interface ProductGridProps {
@@ -45,6 +46,16 @@ function formatPrice(product: Product): string {
     style: 'currency',
     currency: product.currency || 'USD',
   }).format(product.price);
+}
+
+function hasFreshProductPrice(product: Product): boolean {
+  const checkedAt = product.availabilityCheckedAt
+    ? new Date(product.availabilityCheckedAt).getTime()
+    : Number.NaN;
+  return product.price > 0
+    && isPurchasableAvailability(product.availabilityStatus)
+    && Number.isFinite(checkedAt)
+    && Date.now() - checkedAt <= 60 * 60 * 1000;
 }
 
 function getDisplayTitle(product: Product): string {
@@ -279,7 +290,7 @@ export function ProductGrid({ products, clickSource, contextSlug, searchQueryId 
       {products.map((product, index) => {
         const title = getDisplayTitle(product);
         const description = getDisplayDescription(product);
-        const hasPrice = product.price > 0;
+        const hasPrice = hasFreshProductPrice(product);
         const giftPath = product.slug ? `/gifts/${encodeURIComponent(product.slug)}` : undefined;
 
         return (

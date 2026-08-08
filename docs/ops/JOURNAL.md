@@ -5,6 +5,50 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-07 - Factual editorial pipeline and first product-page cohort
+
+**Catalog evidence**: production held 3,358 Amazon products, 3,353 active pages,
+and only four hand-edited editorials. The existing quality gate identified 922
+high-quality display candidates and 842 distinct families, but 738 of those
+titles were truncated and only 221 products had been remotely verified within
+30 days. A read-only Creators sample returned 41/50 of the oldest distinct
+candidates and supplied a complete title for all 41; nine were absent twice.
+That made live batch verification a prerequisite rather than a browser lookup
+problem. No catalog-wide browser inspection was attempted.
+
+**Implementation**: collection, enrichment, and material revalidation now share
+rich Creators facts and a two-stage generated-draft/fact-review path. The
+database stores source facts and hashes, explicit offer availability, editorial
+status/quality/model/prompt/timestamps, duplicate ownership, content-only
+last-modified time, and append-only decision events. Generated copy must be
+140–280 words in multiple paragraphs, use several listing-specific facts, avoid
+mutable offer claims and generic sales phrases, survive a second model review,
+and match the current source hash. Manual copy is locked. Only fresh,
+purchasable, active, distinct `generated_ready` or `manual_locked` pages are
+indexable; every held page stays available as `200, noindex, follow` so old
+shares do not break.
+
+**Backfill**: the initial 25-product cohort was re-fetched immediately before
+write and all 25 source-backed editorials passed deterministic specificity,
+length, paragraph, availability, and cross-copy duplication checks. The copy is
+checked in at `docs/ops/catalog-editorial-cohorts/2026-08-07-initial.json` for
+auditable replay and was applied without a paid external generation call. The
+four previously public Pinterest products were also freshly reverified and
+their manual source hashes now match. Production therefore has 29 indexable
+product pages. The new `/gifts` directory renders 24 per page with crawlable
+pagination; only those 29 enter the sitemap.
+
+**Corrections and proof**: review caught Amazon's observed
+`IN_STOCK_SCARCE`/`AVAILABLE_DATE` values, a camel/snake-case merge mismatch,
+and a Postgres placeholder cast before rollout was complete. The product schema
+no longer infers `InStock` from an internal active flag, price badges require
+fresh offer evidence, and click tracking no longer changes sitemap dates.
+Build, lint, TypeScript, eight test suites, live Creators SearchItems/GetItems,
+desktop browser renders, index/noindex metadata, the 77-URL local sitemap, and
+the exact legacy Pinterest 308 path all passed. Recheck this 25-product cohort
+in Search Console at 7, 14, and 28 days before widening by more than the normal
+bounded enrichment batch.
+
 ## 2026-08-07 - Canonical gift-page launch
 
 **Decision and implementation**: Cameron chose one human-readable slug per gift,

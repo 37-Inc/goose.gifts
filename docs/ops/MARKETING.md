@@ -149,6 +149,20 @@ For every concept promoted beyond rough exploration, record:
 
 ## Experiment log
 
+### 2026-08-07 — Product-page editorial backfill foundation
+
+- **Destination quality**: new-product collection and existing-product
+  enrichment now require current Amazon facts, availability, source hashes,
+  duplicate ownership, and reviewed multi-paragraph editorial before a gift
+  page can be indexed. The first 25-product cohort plus four existing public-Pin
+  destinations gives Pinterest and organic work 29 stable, crawlable editorial
+  destinations without exposing thin catalog pages.
+- **Discovery**: `/gifts` is a server-rendered, paginated directory linking only
+  to the approved cohort. Old product-pinned random-gift URLs still redirect to
+  their exact canonical pages with UTM attribution. Sandbox and Pinterest v3
+  remain excluded from public evidence, and no Pin was published as part of
+  this catalog work.
+
 ### 2026-08-07 — Owner-approved hippo desk publication
 
 - **Publication**: Cameron approved the exact `cand-v5-hippo-desk` package.

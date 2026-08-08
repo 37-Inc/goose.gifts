@@ -24,6 +24,9 @@ export function Header() {
           <RandomGiftLink className="whitespace-nowrap transition hover:text-brand">
             Random
           </RandomGiftLink>
+          <Link href="/gifts" className="whitespace-nowrap transition hover:text-brand">
+            Gifts
+          </Link>
           <Link href="/gift-guides" className="whitespace-nowrap transition hover:text-brand">
             Guides
           </Link>
