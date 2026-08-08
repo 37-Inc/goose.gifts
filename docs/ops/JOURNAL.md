@@ -39,7 +39,9 @@ identity/history triggers. The repository migration journal also contained an
 old filename mismatch and was corrected. Production's historical
 `drizzle.__drizzle_migrations` table is unseeded, so the normal all-history
 migrator remains unsafe until a separate audited baseline repair; this launch
-did not guess or rewrite that history.
+did not guess or rewrite that history. Review also tightened the shared insert/
+slug-update trigger so no current gift can claim a URL reserved in another
+gift's history; the updated function and trigger definition were verified live.
 
 **Review**: desktop and 390px mobile browser passes found a clean hierarchy,
 clear retailer disclosure, correct internal related-product navigation, and no

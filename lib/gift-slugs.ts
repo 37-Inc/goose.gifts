@@ -50,7 +50,8 @@ export function getEditorialParagraphs(writeup?: string): string[] {
 }
 
 export function hasIndexableGiftEditorial(product: Pick<ProductEditorial, 'editorialWriteup'>): boolean {
-  return (product.editorialWriteup?.trim().length || 0) >= 500;
+  const editorial = product.editorialWriteup?.trim() || '';
+  return Array.from(editorial).length >= 500;
 }
 
 interface ProductEditorial {

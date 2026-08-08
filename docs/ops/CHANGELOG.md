@@ -67,7 +67,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-07 — Canonical gift pages and legacy Pin redirects `[owner+codex]`
+### 2026-08-07 — Canonical gift pages and legacy Pin redirects `[owner+claude]` ([PR #85](https://github.com/37-Inc/goose.gifts/pull/85))
 
 Added a Goose-owned UUID and unique human-readable slug for every catalog gift,
 plus `/gifts/<slug>` product pages that keep browsing inside Goose before an

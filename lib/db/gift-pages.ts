@@ -132,6 +132,7 @@ export async function getIndexableGiftSitemapEntries(): Promise<Array<{ slug: st
     .from(products)
     .where(and(
       eq(products.isActive, true),
+      isNotNull(products.imageUrl),
       isNotNull(products.editorialWriteup),
       sql`length(trim(${products.editorialWriteup})) >= 500`
     ));

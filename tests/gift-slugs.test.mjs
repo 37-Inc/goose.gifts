@@ -34,5 +34,6 @@ test('legacy Pinterest links retain campaign attribution but drop retailer and s
 test('only substantive reviewed editorial is indexable', () => {
   assert.equal(hasIndexableGiftEditorial({ editorialWriteup: 'Too short.' }), false);
   assert.equal(hasIndexableGiftEditorial({ editorialWriteup: 'x'.repeat(499) }), false);
+  assert.equal(hasIndexableGiftEditorial({ editorialWriteup: '🪿'.repeat(250) }), false);
   assert.equal(hasIndexableGiftEditorial({ editorialWriteup: 'x'.repeat(500) }), true);
 });
