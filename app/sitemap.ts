@@ -1,11 +1,13 @@
 import { MetadataRoute } from 'next';
 import { giftGuides } from '@/lib/gift-guides';
 import { getSiteUrl } from '@/lib/site';
+import { getIndexableGiftSitemapEntries } from '@/lib/db/gift-pages';
 
 export const revalidate = 3600;
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getSiteUrl();
+  const giftPages = await getIndexableGiftSitemapEntries();
 
   // Omit lastModified until each page has a durable content-updated timestamp.
   // Using new Date() here makes every sitemap request claim that every page changed.
@@ -39,5 +41,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
   }));
 
-  return [...staticPages, ...guidePages];
+  const editorialGiftPages: MetadataRoute.Sitemap = giftPages.map((gift) => ({
+    url: `${baseUrl}/gifts/${encodeURIComponent(gift.slug)}`,
+    lastModified: gift.updatedAt,
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  }));
+
+  return [...staticPages, ...guidePages, ...editorialGiftPages];
 }

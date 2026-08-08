@@ -13,7 +13,7 @@
       "idx": 1,
       "version": "7",
       "when": 1759999316975,
-      "tag": "0001_friendly_vindicator",
+      "tag": "0001_add_relational_products",
       "breakpoints": true
     },
     {
@@ -35,6 +35,13 @@
       "version": "7",
       "when": 1783440000000,
       "tag": "0004_add_click_attribution",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786149000000,
+      "tag": "0005_add_canonical_gift_pages",
       "breakpoints": true
     }
   ]

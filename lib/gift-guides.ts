@@ -636,9 +636,12 @@ async function selectGiftGuideRows(
   return db
     .select({
       id: products.id,
+      publicId: products.publicId,
+      slug: products.slug,
       title: products.title,
       punnyTitle: products.punnyTitle,
       wittyDescription: products.wittyDescription,
+      editorialWriteup: products.editorialWriteup,
       humorTags: products.humorTags,
       qualityScore: products.qualityScore,
       sourceQuery: products.sourceQuery,
@@ -673,9 +676,12 @@ export async function getGiftGuideProducts(
   const candidateLimit = Math.max(limit, Math.min(limit * 2, 72));
   const toProduct = (row: Awaited<ReturnType<typeof selectGiftGuideRows>>[number]): Product => ({
       id: row.id,
+      publicId: row.publicId,
+      slug: row.slug,
       title: row.title,
       punnyTitle: row.punnyTitle || undefined,
       wittyDescription: row.wittyDescription || undefined,
+      editorialWriteup: row.editorialWriteup || undefined,
       humorTags: row.humorTags || undefined,
       qualityScore: row.qualityScore ? parseFloat(row.qualityScore) : undefined,
       sourceQuery: row.sourceQuery || undefined,

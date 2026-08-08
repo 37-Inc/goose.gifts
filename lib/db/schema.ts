@@ -56,6 +56,10 @@ export const products = pgTable('products', {
   // Product ID (ASIN for Amazon, listing ID for Etsy)
   id: varchar('id', { length: 255 }).primaryKey(),
 
+  // Goose-owned public identity. Retailer IDs remain private integration keys.
+  publicId: uuid('public_id').notNull().defaultRandom().unique(),
+  slug: varchar('slug', { length: 160 }).notNull().unique(),
+
   // Product details
   title: text('title').notNull(),
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
@@ -75,6 +79,7 @@ export const products = pgTable('products', {
   humorTags: text('humor_tags').array(),
   punnyTitle: text('punny_title'),
   wittyDescription: text('witty_description'),
+  editorialWriteup: text('editorial_writeup'),
   qualityScore: numeric('quality_score', { precision: 5, scale: 4 }),
   isActive: boolean('is_active').notNull().default(true),
   lastVerifiedAt: timestamp('last_verified_at'),
@@ -96,6 +101,15 @@ export const products = pgTable('products', {
   embeddingIdx: index('products_embedding_hnsw_idx')
     .using('hnsw', table.embedding.op('vector_cosine_ops'))
     .where(sql`${table.embedding} IS NOT NULL`),
+}));
+
+// Preserve old canonical paths when an editor deliberately changes a gift slug.
+export const productSlugHistory = pgTable('product_slug_history', {
+  slug: varchar('slug', { length: 160 }).primaryKey(),
+  productId: varchar('product_id', { length: 255 }).notNull().references(() => products.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  productIdIdx: index('product_slug_history_product_id_idx').on(table.productId),
 }));
 
 // Legacy gift idea tables retained for historical data only.

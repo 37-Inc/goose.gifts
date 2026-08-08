@@ -21,13 +21,16 @@ export function buildHomeItemListSchema(products: Product[], siteUrl: string) {
     url: siteUrl,
     numberOfItems: eligibleProducts.length,
     itemListElement: eligibleProducts.map((product, index) => {
+      const giftUrl = product.slug
+        ? `${siteUrl}/gifts/${encodeURIComponent(product.slug)}`
+        : product.affiliateUrl;
       const item: Record<string, unknown> = {
         '@type': 'Product',
         name: product.punnyTitle || product.title,
         image: product.imageUrl,
         description: product.wittyDescription || product.sourceQuery || product.title,
         category: 'Gag gifts',
-        url: product.affiliateUrl,
+        url: giftUrl,
       };
 
       if (product.price > 0) {

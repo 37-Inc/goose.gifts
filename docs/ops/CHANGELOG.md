@@ -48,8 +48,9 @@ what's likely next.
   vanity package was then owner-approved and browser-published as public Pin
   `1107815208385331910`; the exact hippo desk package is now also live as public
   Pin `1107815208385562809`. Do not generate a replacement while these public
-  Pins gather distribution. Before another campaign batch, evaluate canonical
-  product landing pages instead of using product-pinned random-gift URLs.
+  Pins gather distribution. Canonical gift pages now replace product-pinned
+  random-gift URLs for future campaign packages; existing Pin destinations
+  permanently redirect without losing their UTM attribution.
   Public posting remains exact-candidate approved and browser-only until
   Standard access plus production OAuth are verified.
 - **Amazon prices — deferred** (unchanged): the Creators API isn't delivering
@@ -65,6 +66,17 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-07 — Canonical gift pages and legacy Pin redirects `[owner+codex]`
+
+Added a Goose-owned UUID and unique human-readable slug for every catalog gift,
+plus `/gifts/<slug>` product pages that keep browsing inside Goose before an
+explicit retailer click. The four products already used by public Pinterest
+campaigns received edited, listing-faithful write-ups and are the only gift
+pages currently indexable; every other gift page is `noindex` until its own
+substantive copy is reviewed. All six existing public Pin destinations retain
+their full UTM attribution through permanent redirects to the new canonical
+pages. Historical slugs are also preserved if an editor renames a gift later.
 
 ### 2026-08-07 — Hippo desk Pin published `[owner+codex]` ([PR #84](https://github.com/37-Inc/goose.gifts/pull/84))
 
