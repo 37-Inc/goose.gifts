@@ -7,14 +7,18 @@ candidate and publishing package.
 
 ## Ready for owner review
 
-Revalidated 2026-08-07 against the live Amazon Creators API listing, exact
-current source image, live 200 destination, and full-resolution 1024x1536
-artifact. The current source image is byte-for-byte identical to the stored
-reference. One candidate remains ready; appearing here does not authorize it.
+None. The previously ready hippo-desk package was explicitly approved and
+published on 2026-08-07. Shortlisting remains distinct from approval for every
+future candidate.
 
-### 1. Patricia hippo mug — creative-director desk
+## Published from this queue
 
-- Candidate: `cand-v5-hippo-desk` (`shortlisted`, internal score `4.75/5`)
+### Patricia hippo mug — creative-director desk
+
+- Candidate: `cand-v5-hippo-desk` (`measuring`, internal score `4.75/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208385562809/`
+- Published: 2026-08-07 through the signed-in `goose.gifts` browser session
+  after Cameron approved the exact desk package.
 - Artifact:
   `docs/ops/pinterest-creative-lab/v5-concepts/03-hippo-mug-creative-director-desk.png`
 - Product: Personalized Patricia hippo mug, ASIN `B0F9DZMQBL`
@@ -29,12 +33,12 @@ reference. One candidate remains ready; appearing here does not authorize it.
   `https://www.goose.gifts/random-gift?gift=B0F9DZMQBL&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v2&utm_content=hippo_mug_desk`
 - Why it earns a pause: it first reads as a saveable desk-styling image, then
   the mug's name and face become the person apparently running the meeting.
-- Remaining risk: the narrative is less immediate and the setting is more
-  interchangeable than the vanity concept.
-- Approval needed: exact image, board, copy, disclosure, destination, and
-  tracking URL above.
-
-## Published from this queue
+- Publication verification: Pinterest shows the public `Funny Gifts for
+  Coworkers` board, exact title, tracked destination, affiliate disclosure, and
+  AI-modified label. Automatic similar-product recommendations were disabled.
+- Baseline: Pinterest API v5 found zero impressions, saves, Pin clicks, and
+  outbound clicks about one minute after publication; this is a receipt, not a
+  performance verdict.
 
 ### Patricia hippo mug — lipstick vanity
 
@@ -98,8 +102,8 @@ reference. One candidate remains ready; appearing here does not authorize it.
 
 ## Revision queue
 
-None. Do not create another replacement while the valid hippo desk survivor
-awaits owner review and the public goat and vanity Pins gather distribution.
+None. Do not create a replacement while the published goat and three hippo
+variants gather enough public distribution to support a useful creative choice.
 
 ## Permanently rejected
 

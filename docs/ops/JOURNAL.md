@@ -5,6 +5,25 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-07 - Owner-approved hippo desk publication
+
+**Decision and publication**: Cameron explicitly approved the exact
+`cand-v5-hippo-desk` package. The signed-in `goose.gifts` browser published
+`https://www.pinterest.com/pin/1107815208385562809/` to `Funny Gifts for
+Coworkers` with the approved 1024x1536 artifact, title, description, alt text,
+tracked Goose destination, affiliate disclosure, and Pinterest AI-modified
+label. Similar-product recommendations were disabled. No API publication,
+paid spend, catalog job, outreach, or second Pin occurred.
+
+**Receipt and architecture finding**: the public detail page verified the
+exact board, title, copy, AI label, and tracked link. Pinterest API v5 measured
+zero impressions, saves, Pin clicks, and outbound clicks about one minute after
+publication; this is a receipt, not a verdict, and Sandbox/v3 remain excluded.
+The destination is a product-pinned random-gift utility rather than a product
+page: `?gift=<id>` selects the exact catalog item, but the canonical remains
+`/random-gift`. Recommend a bounded canonical product-page design before the
+next campaign batch, keeping random gift for discovery and old links working.
+
 ## 2026-08-07 - Pinterest and organic-growth studio
 
 **Evidence**: public Pinterest now totals 73 impressions, one Pin click, zero
