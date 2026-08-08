@@ -162,6 +162,10 @@ For every concept promoted beyond rough exploration, record:
   their exact canonical pages with UTM attribution. Sandbox and Pinterest v3
   remain excluded from public evidence, and no Pin was published as part of
   this catalog work.
+- **Rollout receipt**: the live sitemap contains 29 approved gift URLs and 77
+  URLs total. Google accepted its refresh with HTTP 204 and currently reports
+  it pending; sample inspection states are unknown or discovered but not
+  indexed. Recheck at 7, 14, and 28 days before expanding the cohort.
 
 ### 2026-08-07 — Owner-approved hippo desk publication
 
