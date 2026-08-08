@@ -126,8 +126,11 @@ Priority order:
   another branded product-grid template. Concept generation and the learning
   loop are active; subscriptions, public-pilot preparation, public posting, and
   spend remain unauthorized until the creative and product fidelity are ready.
-- Shareability: OG images per product, Pinterest-optimized pages
-  (gag gifts are a strong Pinterest category).
+- Shareability: replace campaign use of product-pinned `/random-gift?gift=`
+  URLs with canonical, Pinterest-optimized `/gifts/<slug>-<id>` landing pages
+  for a bounded set of eligible catalog products. Keep `/random-gift` as the
+  discovery utility, preserve old share-link compatibility, and avoid indexing
+  thin pages merely because a catalog record exists.
 - Creative acquisition experiments: maintain a backlog of low-cost tests that
   could bring qualified shoppers without waiting for Google, such as themed
   Pinterest batches, linkable "ridiculous find of the day" pages, embeddable

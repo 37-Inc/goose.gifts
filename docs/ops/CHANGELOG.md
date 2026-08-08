@@ -42,13 +42,14 @@ what's likely next.
   Cameron submitted the upgrade request on 2026-07-28. Until Pinterest approves
   it and production OAuth is verified, public posting remains browser-only.
   Tracked as Beads `roadmap-fd1h`. Helps indexation (external signals).
-- **Pinterest creative workflow — measure the goat and vanity; review the desk.** The
+- **Pinterest creative workflow — measure the goat and three hippo variants.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
   browser-published as public Pin `1107815208385022014`. The stronger hippo
   vanity package was then owner-approved and browser-published as public Pin
-  `1107815208385331910`; the hippo desk is the only exact unpublished package
-  left in owner review. Do not generate a replacement while these public Pins
-  gather distribution and the valid desk survivor awaits a decision.
+  `1107815208385331910`; the exact hippo desk package is now also live as public
+  Pin `1107815208385562809`. Do not generate a replacement while these public
+  Pins gather distribution. Before another campaign batch, evaluate canonical
+  product landing pages instead of using product-pinned random-gift URLs.
   Public posting remains exact-candidate approved and browser-only until
   Standard access plus production OAuth are verified.
 - **Amazon prices — deferred** (unchanged): the Creators API isn't delivering
@@ -64,6 +65,19 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-07 — Hippo desk Pin published `[owner+codex]`
+
+Cameron approved the exact hippo desk package, which was browser-published as
+[Pin `1107815208385562809`](https://www.pinterest.com/pin/1107815208385562809/)
+on `Funny Gifts for Coworkers` with the approved creative, copy, tracked link,
+affiliate disclosure, AI-modified label, alt text, and similar-product
+recommendations disabled. Pinterest API v5 confirmed the public Pin at a zero-
+distribution publication baseline. The destination audit also confirmed that
+Goose Gifts currently has no product-detail route: `?gift=` selects a product
+inside `/random-gift`, whose variants canonicalize to the base utility. A true
+canonical product landing route is now the recommended pre-campaign design
+decision; no product-page implementation was mixed into this publication.
 
 ### 2026-08-07 — Desk survivor revalidated; public metrics advanced `[daily-ops]` ([PR #83](https://github.com/37-Inc/goose.gifts/pull/83))
 

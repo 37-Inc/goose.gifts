@@ -30,10 +30,10 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Five product-faithful editorial Pins are live; the newly published vanity
-   and goat have no mature checkpoint yet, and prior exposure is still too
-   small for a creative verdict. A twice-weekly studio now advances at most
-   one excellent survivor per run and maintains an exact owner-review queue.
+   Six product-faithful editorial Pins are live; the newly published desk,
+   vanity, and goat have no mature checkpoint yet, and prior exposure is still
+   too small for a creative verdict. A twice-weekly studio advances at most one
+   excellent survivor per run and maintains an exact owner-review queue.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
    catalog-supported pages. The Weird Gift Index is the first original-data
    acquisition asset and should be improved as a cited, editioned report rather
@@ -148,6 +148,26 @@ For every concept promoted beyond rough exploration, record:
 - performance checkpoints and conclusion.
 
 ## Experiment log
+
+### 2026-08-07 — Owner-approved hippo desk publication
+
+- **Publication**: Cameron approved the exact `cand-v5-hippo-desk` package.
+  The signed-in `goose.gifts` browser posted public Pin
+  `1107815208385562809` to `Funny Gifts for Coworkers` with the exact image,
+  title, description, alt text, tracked destination, affiliate disclosure,
+  Pinterest AI-modified label, and similar-product recommendations disabled.
+- **Receipt**: the public detail page verified the board, title, description,
+  AI label, and exact tracking link. Pinterest API v5 then measured zero
+  impressions, saves, Pin clicks, and outbound clicks about one minute after
+  publication. This is a receipt, not a performance verdict; Sandbox and v3
+  remain excluded.
+- **Destination architecture**: Goose Gifts does not currently expose a true
+  product-detail route. `/random-gift?gift=<id>` pins one exact catalog item
+  into the random-gift experience and produces product-specific share metadata,
+  while all variants canonicalize to `/random-gift`; normal catalog cards link
+  directly to the retailer. Before another campaign batch, evaluate canonical
+  `/gifts/<slug>-<id>` landing pages for eligible products, while preserving
+  `/random-gift` as the discovery utility and old share-link compatibility.
 
 ### 2026-08-07 — Public distribution and desk-survivor checkpoint
 
