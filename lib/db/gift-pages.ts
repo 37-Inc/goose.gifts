@@ -1,4 +1,5 @@
 import { and, desc, eq, isNotNull, ne, or, sql } from 'drizzle-orm';
+import { unstable_cache } from 'next/cache';
 import { db } from './index';
 import { productSlugHistory, products } from './schema';
 import { cleanImageUrl } from '../image-utils';
@@ -119,7 +120,7 @@ export interface GiftPageLookup {
   duplicateOfSlug?: string;
 }
 
-export async function getGiftPageBySlug(slug: string): Promise<GiftPageLookup | undefined> {
+async function loadGiftPageBySlug(slug: string): Promise<GiftPageLookup | undefined> {
   const rows = await db
     .select(productSelection)
     .from(products)
@@ -150,8 +151,20 @@ export async function getGiftPageBySlug(slug: string): Promise<GiftPageLookup | 
   };
 }
 
-export async function getRelatedGiftProducts(product: Product, limit: number = 6): Promise<Product[]> {
-  const tags = product.humorTags || [];
+const getCachedGiftPageBySlug = unstable_cache(
+  loadGiftPageBySlug,
+  ['gift-page-by-slug-v1'],
+  {
+    revalidate: 3600,
+    tags: ['catalog-products', 'gift-pages'],
+  }
+);
+
+export async function getGiftPageBySlug(slug: string): Promise<GiftPageLookup | undefined> {
+  return getCachedGiftPageBySlug(slug);
+}
+
+async function loadRelatedGiftProducts(productId: string, tags: string[], limit: number): Promise<Product[]> {
   const tagArray = tags.length > 0
     ? sql`ARRAY[${sql.join(tags.map((tag) => sql`${tag}`), sql`, `)}]::text[]`
     : sql`ARRAY[]::text[]`;
@@ -167,7 +180,7 @@ export async function getRelatedGiftProducts(product: Product, limit: number = 6
     .select(productSelection)
     .from(products)
     .where(and(
-      ne(products.id, product.id),
+      ne(products.id, productId),
       eq(products.isActive, true),
       isNotNull(products.imageUrl),
       isNotNull(products.affiliateUrl),
@@ -183,7 +196,20 @@ export async function getRelatedGiftProducts(product: Product, limit: number = 6
     .slice(0, limit);
 }
 
-export async function getIndexableGiftSitemapEntries(): Promise<Array<{ slug: string; updatedAt: Date }>> {
+const getCachedRelatedGiftProducts = unstable_cache(
+  loadRelatedGiftProducts,
+  ['related-gift-products-v1'],
+  {
+    revalidate: 3600,
+    tags: ['catalog-products', 'gift-pages'],
+  }
+);
+
+export async function getRelatedGiftProducts(product: Product, limit: number = 6): Promise<Product[]> {
+  return getCachedRelatedGiftProducts(product.id, product.humorTags || [], limit);
+}
+
+async function loadIndexableGiftSitemapEntries(): Promise<Array<{ slug: string; updatedAt: Date }>> {
   const rows = await db
     .select(productSelection)
     .from(products)
@@ -204,7 +230,20 @@ export async function getIndexableGiftSitemapEntries(): Promise<Array<{ slug: st
     .filter((entry) => entry.slug && Number.isFinite(entry.updatedAt.getTime()));
 }
 
-export async function getIndexableGiftDirectoryPage(page: number, pageSize: number = 24): Promise<{
+const getCachedIndexableGiftSitemapEntries = unstable_cache(
+  loadIndexableGiftSitemapEntries,
+  ['indexable-gift-sitemap-entries-v1'],
+  {
+    revalidate: 3600,
+    tags: ['catalog-products', 'gift-pages'],
+  }
+);
+
+export async function getIndexableGiftSitemapEntries(): Promise<Array<{ slug: string; updatedAt: Date }>> {
+  return getCachedIndexableGiftSitemapEntries();
+}
+
+async function loadIndexableGiftDirectoryPage(page: number, pageSize: number = 24): Promise<{
   products: Product[];
   page: number;
   pageCount: number;
@@ -231,4 +270,22 @@ export async function getIndexableGiftDirectoryPage(page: number, pageSize: numb
     pageCount,
     total: eligible.length,
   };
+}
+
+const getCachedIndexableGiftDirectoryPage = unstable_cache(
+  loadIndexableGiftDirectoryPage,
+  ['indexable-gift-directory-v1'],
+  {
+    revalidate: 3600,
+    tags: ['catalog-products', 'gift-pages'],
+  }
+);
+
+export async function getIndexableGiftDirectoryPage(page: number, pageSize: number = 24): Promise<{
+  products: Product[];
+  page: number;
+  pageCount: number;
+  total: number;
+}> {
+  return getCachedIndexableGiftDirectoryPage(page, pageSize);
 }
