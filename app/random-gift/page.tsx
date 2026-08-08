@@ -121,7 +121,7 @@ export default async function RandomGiftPage({
 
   if (requestedId) {
     const requestedProduct = await getProductById(requestedId).catch(() => undefined);
-    if (requestedProduct?.isActive && requestedProduct.slug) {
+    if (requestedProduct?.slug) {
       permanentRedirect(getLegacyGiftRedirectPath(requestedProduct.slug, params));
     }
   }

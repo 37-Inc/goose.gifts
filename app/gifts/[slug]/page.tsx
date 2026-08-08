@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: GiftPageProps): Promise<Metad
   const { slug } = await params;
   const lookup = await getGiftPageBySlug(slug).catch(() => undefined);
 
-  if (!lookup?.product.isActive) {
+  if (!lookup) {
     return {};
   }
 
@@ -69,7 +69,7 @@ export async function generateMetadata({ params }: GiftPageProps): Promise<Metad
   const searchTitle = metadataTitle(product);
   const description = metadataDescription(product);
   const canonicalPath = getGiftPath(canonicalSlug);
-  const indexable = hasIndexableGiftEditorial(product);
+  const indexable = product.isActive && hasIndexableGiftEditorial(product);
   const ogImage = `${getSiteUrl()}/api/og/random-gift?slug=${encodeURIComponent(canonicalSlug)}`;
 
   return {
@@ -113,7 +113,7 @@ function buildGiftSchema(product: Product, canonicalUrl: string) {
     url: canonicalUrl,
   };
 
-  if (product.price > 0) {
+  if (product.isActive && product.price > 0) {
     productSchema.offers = {
       '@type': 'Offer',
       url: product.affiliateUrl,
@@ -176,7 +176,7 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
   const query = searchParams ? await searchParams : {};
   const lookup = await getGiftPageBySlug(slug);
 
-  if (!lookup?.product.isActive || !lookup.product.imageUrl || !lookup.product.affiliateUrl) {
+  if (!lookup?.product.imageUrl) {
     notFound();
   }
 
@@ -223,7 +223,9 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
 
           <div className="flex flex-col justify-center">
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">
-              <span className="text-base normal-case tracking-normal text-zinc-950">{formatPrice(product)}</span>
+              <span className="text-base normal-case tracking-normal text-zinc-950">
+                {product.isActive ? formatPrice(product) : 'No longer listed'}
+              </span>
               <span aria-hidden="true">·</span>
               <span>{product.source === 'amazon' ? 'Amazon' : 'Etsy'}</span>
             </div>
@@ -245,17 +247,25 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
               </ul>
             )}
 
-            <ProductClickButton
-              product={product}
-              clickSource="gift_page"
-              contextSlug={lookup.canonicalSlug}
-              className="mt-7 inline-flex w-fit rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand"
-            >
-              {product.price > 0 ? 'See it at the retailer' : 'Check price and availability'}
-            </ProductClickButton>
-            <p className="mt-3 max-w-sm text-xs leading-5 text-zinc-400">
-              Affiliate disclosure: goose.gifts may earn from qualifying purchases at no extra cost to you.
-            </p>
+            {product.isActive ? (
+              <>
+                <ProductClickButton
+                  product={product}
+                  clickSource="gift_page"
+                  contextSlug={lookup.canonicalSlug}
+                  className="mt-7 inline-flex w-fit rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand"
+                >
+                  {product.price > 0 ? 'See it at the retailer' : 'Check price and availability'}
+                </ProductClickButton>
+                <p className="mt-3 max-w-sm text-xs leading-5 text-zinc-400">
+                  Affiliate disclosure: goose.gifts may earn from qualifying purchases at no extra cost to you.
+                </p>
+              </>
+            ) : (
+              <p className="mt-7 rounded-2xl bg-white px-4 py-3 text-sm leading-6 text-zinc-600 ring-1 ring-zinc-950/[0.06]">
+                This exact gift is no longer listed. Its page stays here so old shares still work; browse the active alternatives below.
+              </p>
+            )}
           </div>
         </article>
       </section>

@@ -27,7 +27,9 @@ destinations. Each returned HTTP 308, retained its complete campaign UTM set,
 and finished on the expected canonical gift page with HTTP 200. The older
 `/api/og/random-gift?gift=` contract remains available for existing crawlers;
 new canonical pages use the slug-based form. Random spins without `gift` retain
-their existing behavior.
+their existing behavior. Deactivating a catalog product no longer breaks its
+old shares: the stable page becomes `noindex`, removes the retailer exit, and
+points visitors toward active related gifts.
 
 **Data and migration note**: the additive production migration completed over
 the established HTTPS Postgres path. Postflight checks found 3,358 populated

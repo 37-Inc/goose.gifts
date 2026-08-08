@@ -77,6 +77,8 @@ pages currently indexable; every other gift page is `noindex` until its own
 substantive copy is reviewed. All six existing public Pin destinations retain
 their full UTM attribution through permanent redirects to the new canonical
 pages. Historical slugs are also preserved if an editor renames a gift later.
+If a pinned product is later deactivated, its page remains available as a
+`noindex` historical record without a stale retailer button.
 
 ### 2026-08-07 — Hippo desk Pin published `[owner+codex]` ([PR #84](https://github.com/37-Inc/goose.gifts/pull/84))
 
