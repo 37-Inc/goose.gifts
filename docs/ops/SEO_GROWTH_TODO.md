@@ -40,6 +40,9 @@ report.
   discovered, crawled, indexed, Google-selected canonical, impressions, clicks,
   and soft-404/duplicate exclusions. Expand in bounded cohorts only when factual
   QA and crawl/index signals remain clean.
+  - Baseline: sitemap resubmission accepted at `2026-08-08T04:10:47Z` with HTTP
+    204 and pending processing. One approved URL was unknown to Google and one
+    was discovered but not indexed. Do not count either state as indexation.
 
 ## Shipped 2026-07-05
 

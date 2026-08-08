@@ -49,6 +49,17 @@ the exact legacy Pinterest 308 path all passed. Recheck this 25-product cohort
 in Search Console at 7, 14, and 28 days before widening by more than the normal
 bounded enrichment batch.
 
+**Production rollout**: PRs #86 and #87 are merged and their Vercel production
+deployments completed successfully. The follow-up caches canonical gift,
+related-product, directory, and sitemap database reads for one hour so crawler
+requests do not repeatedly download the same catalog cohort. Live verification
+found 29 gift URLs in the 77-URL sitemap, an indexable approved page, a stable
+`200, noindex, follow` held page, and the exact old Pinterest destination still
+returning a 308 with its UTM parameters preserved. Search Console accepted the
+refreshed sitemap at `2026-08-08T04:10:47Z` (HTTP 204) and marked it pending.
+The first two URL inspections were respectively unknown and discovered but not
+indexed; those are the rollout baseline, not evidence of indexation.
+
 ## 2026-08-07 - Canonical gift-page launch
 
 **Decision and implementation**: Cameron chose one human-readable slug per gift,

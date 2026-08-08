@@ -67,6 +67,17 @@ what's likely next.
 
 Newest first.
 
+### 2026-08-07 — Catalog editorial production verification `[owner+codex]` ([PR #87](https://github.com/37-Inc/goose.gifts/pull/87))
+
+Verified the 29-page editorial cohort on production after PR #86 and added
+one-hour tagged data caches for canonical gift lookups, related gifts, the gift
+directory, and sitemap reads. The live sitemap contains 77 URLs and only the 29
+approved gift pages; held pages remain `200, noindex, follow`. Old Pinterest
+destinations still permanently redirect with attribution intact. Search Console
+accepted the refreshed sitemap with HTTP 204 and currently reports it pending;
+sample pages are unknown or discovered but not indexed, establishing the honest
+7/14/28-day measurement baseline.
+
 ### 2026-08-07 — Factual catalog editorial pipeline and first indexable cohort `[owner+codex]` ([PR #86](https://github.com/37-Inc/goose.gifts/pull/86))
 
 Integrated substantive product editorial into both new-product collection and
