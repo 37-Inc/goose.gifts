@@ -66,7 +66,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-07 — Hippo desk Pin published `[owner+codex]`
+### 2026-08-07 — Hippo desk Pin published `[owner+codex]` ([PR #84](https://github.com/37-Inc/goose.gifts/pull/84))
 
 Cameron approved the exact hippo desk package, which was browser-published as
 [Pin `1107815208385562809`](https://www.pinterest.com/pin/1107815208385562809/)
