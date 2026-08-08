@@ -3,6 +3,7 @@ import { db } from './index';
 import { productSlugHistory, products } from './schema';
 import { cleanImageUrl } from '../image-utils';
 import type { Product } from '../types';
+import { hasIndexableGiftEditorial } from '../gift-slugs';
 
 const productSelection = {
   id: products.id,
@@ -12,6 +13,20 @@ const productSelection = {
   punnyTitle: products.punnyTitle,
   wittyDescription: products.wittyDescription,
   editorialWriteup: products.editorialWriteup,
+  sourceFacts: products.sourceFacts,
+  sourceFactsHash: products.sourceFactsHash,
+  editorialSourceHash: products.editorialSourceHash,
+  availabilityStatus: products.availabilityStatus,
+  availabilityCheckedAt: products.availabilityCheckedAt,
+  lastVerifiedAt: products.lastVerifiedAt,
+  editorialStatus: products.editorialStatus,
+  editorialQualityScore: products.editorialQualityScore,
+  editorialModel: products.editorialModel,
+  editorialPromptVersion: products.editorialPromptVersion,
+  editorialGeneratedAt: products.editorialGeneratedAt,
+  editorialBlockReason: products.editorialBlockReason,
+  duplicateOfProductId: products.duplicateOfProductId,
+  contentUpdatedAt: products.contentUpdatedAt,
   humorTags: products.humorTags,
   qualityScore: products.qualityScore,
   sourceQuery: products.sourceQuery,
@@ -33,6 +48,20 @@ type ProductRow = {
   punnyTitle: string | null;
   wittyDescription: string | null;
   editorialWriteup: string | null;
+  sourceFacts: Record<string, unknown> | null;
+  sourceFactsHash: string | null;
+  editorialSourceHash: string | null;
+  availabilityStatus: string | null;
+  availabilityCheckedAt: Date | null;
+  lastVerifiedAt: Date | null;
+  editorialStatus: string;
+  editorialQualityScore: string | null;
+  editorialModel: string | null;
+  editorialPromptVersion: string | null;
+  editorialGeneratedAt: Date | null;
+  editorialBlockReason: string | null;
+  duplicateOfProductId: string | null;
+  contentUpdatedAt: Date | null;
   humorTags: string[] | null;
   qualityScore: string | null;
   sourceQuery: string | null;
@@ -55,6 +84,20 @@ function toProduct(row: ProductRow): Product {
     punnyTitle: row.punnyTitle || undefined,
     wittyDescription: row.wittyDescription || undefined,
     editorialWriteup: row.editorialWriteup || undefined,
+    sourceFacts: row.sourceFacts || undefined,
+    sourceFactsHash: row.sourceFactsHash || undefined,
+    editorialSourceHash: row.editorialSourceHash || undefined,
+    availabilityStatus: row.availabilityStatus || undefined,
+    availabilityCheckedAt: row.availabilityCheckedAt || undefined,
+    lastVerifiedAt: row.lastVerifiedAt || undefined,
+    editorialStatus: row.editorialStatus || undefined,
+    editorialQualityScore: row.editorialQualityScore ? parseFloat(row.editorialQualityScore) : undefined,
+    editorialModel: row.editorialModel || undefined,
+    editorialPromptVersion: row.editorialPromptVersion || undefined,
+    editorialGeneratedAt: row.editorialGeneratedAt || undefined,
+    editorialBlockReason: row.editorialBlockReason || undefined,
+    duplicateOfProductId: row.duplicateOfProductId || undefined,
+    contentUpdatedAt: row.contentUpdatedAt || undefined,
     humorTags: row.humorTags || undefined,
     qualityScore: row.qualityScore ? parseFloat(row.qualityScore) : undefined,
     sourceQuery: row.sourceQuery || undefined,
@@ -73,6 +116,7 @@ export interface GiftPageLookup {
   product: Product;
   canonicalSlug: string;
   matchedHistoricalSlug: boolean;
+  duplicateOfSlug?: string;
 }
 
 export async function getGiftPageBySlug(slug: string): Promise<GiftPageLookup | undefined> {
@@ -88,10 +132,21 @@ export async function getGiftPageBySlug(slug: string): Promise<GiftPageLookup | 
     return undefined;
   }
 
+  let duplicateOfSlug: string | undefined;
+  if (row.duplicateOfProductId) {
+    const winner = await db
+      .select({ slug: products.slug })
+      .from(products)
+      .where(eq(products.id, row.duplicateOfProductId))
+      .limit(1);
+    duplicateOfSlug = winner[0]?.slug;
+  }
+
   return {
     product: toProduct(row),
     canonicalSlug: row.slug,
     matchedHistoricalSlug: row.slug !== slug,
+    duplicateOfSlug,
   };
 }
 
@@ -115,25 +170,65 @@ export async function getRelatedGiftProducts(product: Product, limit: number = 6
       ne(products.id, product.id),
       eq(products.isActive, true),
       isNotNull(products.imageUrl),
-      isNotNull(products.affiliateUrl)
+      isNotNull(products.affiliateUrl),
+      isNotNull(products.editorialWriteup),
+      or(eq(products.editorialStatus, 'generated_ready'), eq(products.editorialStatus, 'manual_locked'))
     ))
     .orderBy(desc(sharedTagScore), desc(products.qualityScore), desc(products.clickCount))
-    .limit(Math.max(1, Math.min(limit, 12)));
+    .limit(Math.max(12, Math.min(limit * 4, 48)));
 
-  return (rows as ProductRow[]).map(toProduct);
+  return (rows as ProductRow[])
+    .map(toProduct)
+    .filter((candidate) => hasIndexableGiftEditorial(candidate))
+    .slice(0, limit);
 }
 
 export async function getIndexableGiftSitemapEntries(): Promise<Array<{ slug: string; updatedAt: Date }>> {
-  return db
-    .select({
-      slug: products.slug,
-      updatedAt: products.updatedAt,
-    })
+  const rows = await db
+    .select(productSelection)
     .from(products)
     .where(and(
       eq(products.isActive, true),
       isNotNull(products.imageUrl),
       isNotNull(products.editorialWriteup),
-      sql`length(trim(${products.editorialWriteup})) >= 500`
+      or(eq(products.editorialStatus, 'generated_ready'), eq(products.editorialStatus, 'manual_locked'))
     ));
+
+  return (rows as ProductRow[])
+    .map(toProduct)
+    .filter((product) => hasIndexableGiftEditorial(product))
+    .map((product) => ({
+      slug: product.slug || '',
+      updatedAt: new Date(product.contentUpdatedAt || product.editorialGeneratedAt || product.lastVerifiedAt || 0),
+    }))
+    .filter((entry) => entry.slug && Number.isFinite(entry.updatedAt.getTime()));
+}
+
+export async function getIndexableGiftDirectoryPage(page: number, pageSize: number = 24): Promise<{
+  products: Product[];
+  page: number;
+  pageCount: number;
+  total: number;
+}> {
+  const rows = await db
+    .select(productSelection)
+    .from(products)
+    .where(and(
+      eq(products.isActive, true),
+      isNotNull(products.imageUrl),
+      isNotNull(products.editorialWriteup),
+      or(eq(products.editorialStatus, 'generated_ready'), eq(products.editorialStatus, 'manual_locked'))
+    ))
+    .orderBy(desc(products.qualityScore), desc(products.clickCount));
+  const eligible = (rows as ProductRow[]).map(toProduct).filter((product) => hasIndexableGiftEditorial(product));
+  const safePageSize = Math.max(1, Math.min(pageSize, 48));
+  const pageCount = Math.max(1, Math.ceil(eligible.length / safePageSize));
+  const safePage = Math.max(1, Math.min(page, pageCount));
+
+  return {
+    products: eligible.slice((safePage - 1) * safePageSize, safePage * safePageSize),
+    page: safePage,
+    pageCount,
+    total: eligible.length,
+  };
 }

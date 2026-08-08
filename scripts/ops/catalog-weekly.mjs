@@ -44,6 +44,12 @@ function formatReport(discovery, revalidation) {
     ? 'Catalog writes: dry run; no products changed'
     : `Catalog writes: ${discovery.inserted} inserted, ${discovery.updated} refreshed, `
       + `${discovery.backfilled} older products enriched`;
+  const editorial = discovery.backfill;
+  const editorialSummary = editorial
+    ? `Editorial: ${editorial.selected} selected, ${editorial.ready} ready, `
+      + `${editorial.needsReview} needs review, ${editorial.blocked} blocked, `
+      + `${editorial.duplicates} duplicate, ${editorial.markedUnavailable} unavailable`
+    : undefined;
   const reviewCandidates = (Array.isArray(discovery.reviewCandidates)
     ? discovery.reviewCandidates
     : [])
@@ -61,8 +67,10 @@ function formatReport(discovery, revalidation) {
     `Discovery: ${discovery.discoveredCandidates} fetched, ${discovery.qualityRejected} quality-rejected, `
       + `${discovery.duplicatesFiltered} duplicates filtered, ${retained} retained`,
     writeSummary,
+    ...(editorialSummary ? [editorialSummary] : []),
     `Revalidation: ${revalidation.selected} checked, ${revalidation.refreshed} refreshed, `
-      + `${revalidation.confirmedMissing} confirmed missing, ${revalidation.deactivated} deactivated`,
+      + `${revalidation.confirmedMissing} confirmed missing, ${revalidation.markedUnavailable || 0} unavailable, `
+      + `${revalidation.deactivated} deactivated`,
     `Themes: ${discovery.themes.join(', ')}`,
     ...(reviewLines.length > 0
       ? ['', `Visual spot-check (${reviewCandidates.length}):`, ...reviewLines]

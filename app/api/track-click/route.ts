@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
       .set({
         clickCount: sql`${products.clickCount} + 1`,
         lastClickedAt: new Date(),
-        updatedAt: new Date(),
       })
       .where(eq(products.id, productId));
 

@@ -32,8 +32,24 @@ test('legacy Pinterest links retain campaign attribution but drop retailer and s
 });
 
 test('only substantive reviewed editorial is indexable', () => {
-  assert.equal(hasIndexableGiftEditorial({ editorialWriteup: 'Too short.' }), false);
-  assert.equal(hasIndexableGiftEditorial({ editorialWriteup: 'x'.repeat(499) }), false);
-  assert.equal(hasIndexableGiftEditorial({ editorialWriteup: '🪿'.repeat(250) }), false);
-  assert.equal(hasIndexableGiftEditorial({ editorialWriteup: 'x'.repeat(500) }), true);
+  const now = new Date('2026-08-07T12:00:00Z');
+  const editorial = `${'specific product fact '.repeat(55).trim()}.\n\n${'honest gift guidance '.repeat(50).trim()}.`;
+  const eligible = {
+    isActive: true,
+    editorialWriteup: editorial,
+    editorialStatus: 'generated_ready',
+    editorialQualityScore: 0.9,
+    availabilityStatus: 'IN_STOCK',
+    availabilityCheckedAt: '2026-08-06T12:00:00Z',
+    sourceFactsHash: 'same',
+    editorialSourceHash: 'same',
+  };
+
+  assert.equal(hasIndexableGiftEditorial({ ...eligible, editorialWriteup: 'Too short.' }, now), false);
+  assert.equal(hasIndexableGiftEditorial(eligible, now), true);
+  assert.equal(hasIndexableGiftEditorial({ ...eligible, editorialStatus: 'needs_review' }, now), false);
+  assert.equal(hasIndexableGiftEditorial({ ...eligible, availabilityStatus: 'UNAVAILABLE' }, now), false);
+  assert.equal(hasIndexableGiftEditorial({ ...eligible, availabilityCheckedAt: '2026-06-01T12:00:00Z' }, now), false);
+  assert.equal(hasIndexableGiftEditorial({ ...eligible, editorialSourceHash: 'stale' }, now), false);
+  assert.equal(hasIndexableGiftEditorial({ ...eligible, duplicateOfProductId: 'winner' }, now), false);
 });

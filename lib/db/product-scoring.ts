@@ -14,7 +14,7 @@ export const DISTINCTIVE_ODDITY_TERMS = [
   'angry mama', 'animal butt', 'bacon candle', 'beer bong', 'cat butt',
   'cereal killer', 'crab', 'duck decanter', 'emotional support',
   'fake poop', 'fart machine', 'loch ness', 'nessie', 'pizza boss',
-  'rubber chicken', 'screaming chicken', 'squirrel hot tub', 'sword shaped',
+  'rubber chicken', 'screaming chicken', 'squirrel hot tub', 'sword shaped', 'gratiator',
   'wacky waving', 'yodeling',
 ];
 

@@ -67,6 +67,23 @@ what's likely next.
 
 Newest first.
 
+### 2026-08-07 — Factual catalog editorial pipeline and first indexable cohort `[owner+codex]` ([PR #86](https://github.com/37-Inc/goose.gifts/pull/86))
+
+Integrated substantive product editorial into both new-product collection and
+existing-catalog enrichment. Amazon Creators data now supplies full titles,
+availability, brand, features, dimensions, condition, and vended URLs before a
+draft can be reviewed. Durable source hashes, approval/block states, duplicate
+winners, availability checks, content timestamps, and append-only events
+replace the former 500-character indexing shortcut. Unavailable, generic,
+ambiguous, stale, and duplicate pages remain stable `noindex, follow` URLs.
+Twenty-five existing products received fact-checked 167–193-word editorials in
+the first bounded cohort; combined with the four hand-edited Pinterest
+destinations, 29 product pages now qualify for the sitemap and the new
+crawlable `/gifts` directory. The cohort used no paid external copy-generation
+call. Product schema no longer invents `InStock`, stale prices are suppressed,
+analytics clicks no longer alter sitemap dates, and old pinned URLs still 308
+to the same canonical gift pages with attribution intact.
+
 ### 2026-08-07 — Canonical gift pages and legacy Pin redirects `[owner+claude]` ([PR #85](https://github.com/37-Inc/goose.gifts/pull/85))
 
 Added a Goose-owned UUID and unique human-readable slug for every catalog gift,

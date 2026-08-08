@@ -131,20 +131,28 @@ Boundaries (always in force):
    For a read-only rehearsal use `npm run catalog:weekly -- --dry-run`.
    Use `npm run catalog:audit-guides` for a read-only audit of the product
    counts currently rendered by every canonical gift guide.
-   The command uses `@vercel/postgres` over HTTPS, enriches product copy/tags
-   and embeddings, upserts discovered products, and backfills a bounded set of
-   existing active products missing catalog fields. Amazon Creators API is the
-   primary source for product discovery, enrichment, and revalidation. Google
-   CSE is an optional discovery fallback; do not treat its metadata as remote
-   price or availability verification.
+   The command uses `@vercel/postgres` over HTTPS, enriches product copy/tags,
+   substantive editorial, and embeddings, upserts discovered products, and
+   backfills a bounded set of existing active products missing or carrying
+   stale editorial. Amazon Creators API is the primary source for product
+   discovery, enrichment, and revalidation. It must supply a full current title,
+   explicit offer availability, image, vended affiliate URL, and enough listing
+   facts before editorial can become `generated_ready`; Google CSE is only a
+   discovery fallback and never proves price or availability. Browser lookup is
+   exception-only for the small `needs_review` queue, never a catalog-wide step.
    Its default theme pool
    rotates deterministically by UTC date. Low-quality commodity formats are
    rejected, and ASIN, product-family, and existing-catalog duplicates are
    collapsed before enrichment. Dry runs perform the same existing-catalog
    deduplication whenever `POSTGRES_URL` is available. Known prices still gate the
    configured min/max range; unknown-price products should link through to
-   Amazon for the current price. Use `npm run catalog:enrich` when you only
-   need to backfill existing active products.
+   Amazon for the current price. Use `npm run catalog:editorial` (or the legacy
+   `catalog:enrich` alias) to backfill existing products. By default it processes
+   at most 25, re-fetches Amazon in batches of ten, holds unavailable/generic/
+   ambiguous/duplicate items, and writes append-only decision events. Use
+   `--ids ASIN,ASIN` for an exact cohort or `--editorial-seed <repo-json>` to
+   replay owner-reviewed copy; a seed is still rejected if live facts, source
+   hashes, availability, length, specificity, or uniqueness fail.
 5. **Review your own work.** Before verification, do a deliberate review pass
    over the diff as if reviewing someone else's PR. Look for regressions,
    over-broad changes, bad assumptions, missing error handling, data-policy

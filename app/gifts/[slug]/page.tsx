@@ -13,11 +13,12 @@ import {
   getGiftPath,
   getLegacyGiftRedirectPath,
   hasIndexableGiftEditorial,
+  isPurchasableAvailability,
 } from '@/lib/gift-slugs';
 import { getSiteUrl } from '@/lib/site';
 import type { Product } from '@/lib/types';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 interface GiftPageProps {
   params: Promise<{ slug: string }>;
@@ -28,8 +29,38 @@ function displayTitle(product: Product): string {
   return product.punnyTitle || product.title;
 }
 
+function hasFreshOffer(product: Product): boolean {
+  const checkedAt = product.availabilityCheckedAt
+    ? new Date(product.availabilityCheckedAt).getTime()
+    : Number.NaN;
+  return product.price > 0
+    && isPurchasableAvailability(product.availabilityStatus)
+    && Number.isFinite(checkedAt)
+    && Date.now() - checkedAt <= 60 * 60 * 1000;
+}
+
+function hasUsableRetailerDestination(product: Product): boolean {
+  const status = String(product.availabilityStatus || '').toUpperCase();
+  return product.isActive !== false
+    && !['OUTOFSTOCK', 'OUT_OF_STOCK', 'UNAVAILABLE'].includes(status);
+}
+
+function schemaAvailability(status?: string): string | undefined {
+  switch (String(status || '').toUpperCase()) {
+    case 'IN_STOCK':
+      return 'https://schema.org/InStock';
+    case 'IN_STOCK_SCARCE':
+    case 'INSTOCKSCARCE':
+      return 'https://schema.org/LimitedAvailability';
+    case 'PREORDER':
+      return 'https://schema.org/PreOrder';
+    default:
+      return undefined;
+  }
+}
+
 function formatPrice(product: Product): string {
-  if (product.price <= 0) {
+  if (!hasFreshOffer(product)) {
     return 'Check current price';
   }
 
@@ -69,7 +100,7 @@ export async function generateMetadata({ params }: GiftPageProps): Promise<Metad
   const searchTitle = metadataTitle(product);
   const description = metadataDescription(product);
   const canonicalPath = getGiftPath(canonicalSlug);
-  const indexable = product.isActive && hasIndexableGiftEditorial(product);
+  const indexable = hasIndexableGiftEditorial(product);
   const ogImage = `${getSiteUrl()}/api/og/random-gift?slug=${encodeURIComponent(canonicalSlug)}`;
 
   return {
@@ -107,19 +138,20 @@ function buildGiftSchema(product: Product, canonicalUrl: string) {
     '@id': `${canonicalUrl}#product`,
     name: title,
     description,
-    image: product.imageUrl,
     sku: product.publicId,
     category: product.sourceQuery || 'Funny gifts',
     url: canonicalUrl,
   };
+  if (product.imageUrl) productSchema.image = product.imageUrl;
 
-  if (product.isActive && product.price > 0) {
+  const offerAvailability = schemaAvailability(product.availabilityStatus);
+  if (hasFreshOffer(product) && offerAvailability) {
     productSchema.offers = {
       '@type': 'Offer',
       url: product.affiliateUrl,
       price: product.price.toFixed(2),
       priceCurrency: product.currency || 'USD',
-      availability: 'https://schema.org/InStock',
+      availability: offerAvailability,
       seller: {
         '@type': 'Organization',
         name: product.source === 'amazon' ? 'Amazon' : 'Etsy',
@@ -176,8 +208,12 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
   const query = searchParams ? await searchParams : {};
   const lookup = await getGiftPageBySlug(slug);
 
-  if (!lookup?.product.imageUrl) {
+  if (!lookup) {
     notFound();
+  }
+
+  if (lookup.duplicateOfSlug) {
+    permanentRedirect(getLegacyGiftRedirectPath(lookup.duplicateOfSlug, query));
   }
 
   if (lookup.matchedHistoricalSlug) {
@@ -200,7 +236,7 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
       <Header />
 
       <nav className="mx-auto max-w-4xl px-4 pt-8 text-sm text-zinc-400" aria-label="Breadcrumb">
-        <Link href="/" className="transition hover:text-brand">Gift catalog</Link>
+        <Link href="/gifts" className="transition hover:text-brand">Gift catalog</Link>
         <span className="px-2" aria-hidden="true">/</span>
         <span aria-current="page">Gift idea</span>
       </nav>
@@ -210,21 +246,27 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
       <section className="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:pt-10">
         <article className="grid gap-8 rounded-3xl bg-zinc-50 p-5 ring-1 ring-zinc-950/[0.06] sm:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] sm:p-8">
           <div className="relative aspect-square overflow-hidden rounded-2xl bg-white ring-1 ring-zinc-950/[0.05]">
-            <div className="absolute inset-6 sm:inset-8">
-              <ProductImage
-                imageUrl={product.imageUrl}
-                alt={product.title}
-                className="object-contain"
-                sizes="(max-width: 768px) 90vw, 42vw"
-                priority
-              />
-            </div>
+            {product.imageUrl ? (
+              <div className="absolute inset-6 sm:inset-8">
+                <ProductImage
+                  imageUrl={product.imageUrl}
+                  alt={product.title}
+                  className="object-contain"
+                  sizes="(max-width: 768px) 90vw, 42vw"
+                  priority
+                />
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center px-8 text-center text-sm text-zinc-400">
+                The original product image is no longer available.
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col justify-center">
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">
               <span className="text-base normal-case tracking-normal text-zinc-950">
-                {product.isActive ? formatPrice(product) : 'No longer listed'}
+                {hasUsableRetailerDestination(product) ? formatPrice(product) : 'No longer listed'}
               </span>
               <span aria-hidden="true">·</span>
               <span>{product.source === 'amazon' ? 'Amazon' : 'Etsy'}</span>
@@ -247,7 +289,13 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
               </ul>
             )}
 
-            {product.isActive ? (
+            {product.rating && product.reviewCount ? (
+              <p className="mt-5 text-sm text-zinc-500">
+                Retailer rating: {product.rating.toFixed(1)} from {product.reviewCount.toLocaleString()} reviews.
+              </p>
+            ) : null}
+
+            {hasUsableRetailerDestination(product) ? (
               <>
                 <ProductClickButton
                   product={product}

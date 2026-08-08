@@ -20,6 +20,12 @@ import {
   selectRotatingThemes,
   titleSimilarity,
 } from '../scripts/ops/prefetch-catalog.mjs';
+import {
+  editorialSimilarity,
+  editorialSourceHash,
+  selectDuplicateWinner,
+  validateEditorialDraft,
+} from '../scripts/ops/catalog-editorial-core.mjs';
 
 test('daily theme selection rotates deterministically across the full pool', () => {
   const themes = Array.from({ length: 12 }, (_, index) => `theme-${index}`);
@@ -50,8 +56,53 @@ test('Creators API item mapping reads lowerCamelCase offersV2 data', () => {
     affiliateUrl: 'https://www.amazon.com/dp/B012345678?tag=example-20',
     source: 'amazon',
     remotelyVerified: true,
+    availabilityStatus: 'UNKNOWN',
+    availabilityMessage: '',
+    sourceFacts: {},
     rating: 4.6,
     reviewCount: 123,
+  });
+});
+
+test('Creators API mapping retains factual listing context and explicit availability', () => {
+  const product = amazonCreators.mapItem({
+    asin: 'B012345678',
+    parentASIN: 'B087654321',
+    detailPageURL: 'https://www.amazon.com/dp/B012345678?tag=example-20&linkCode=ogi',
+    images: { primary: { large: { url: 'https://images.example/product.jpg' } } },
+    itemInfo: {
+      title: { displayValue: 'Shark-shaped ceramic coffee mug' },
+      byLineInfo: {
+        brand: { displayValue: 'Glazery' },
+        manufacturer: { displayValue: 'Mug Works' },
+      },
+      classifications: { productGroup: { displayValue: 'Kitchen' } },
+      features: { displayValues: ['Raised shark figure', '13.5 ounce capacity'] },
+      productInfo: {
+        color: { displayValue: 'Gray' },
+        itemDimensions: { height: { displayValue: 4.5, unit: 'inches' } },
+      },
+    },
+    offersV2: {
+      listings: [{
+        availability: { type: 'IN_STOCK', message: 'In Stock' },
+        condition: { displayValue: 'New' },
+        price: { money: { amount: 18.95, currency: 'USD' } },
+      }],
+    },
+  });
+
+  assert.equal(product.availabilityStatus, 'IN_STOCK');
+  assert.equal(product.affiliateUrl, 'https://www.amazon.com/dp/B012345678?tag=example-20&linkCode=ogi');
+  assert.deepEqual(product.sourceFacts, {
+    brand: 'Glazery',
+    manufacturer: 'Mug Works',
+    productGroup: 'Kitchen',
+    features: ['Raised shark figure', '13.5 ounce capacity'],
+    color: 'Gray',
+    itemDimensions: { height: '4.5 inches' },
+    parentAsin: 'B087654321',
+    offerCondition: 'New',
   });
 });
 
@@ -77,6 +128,14 @@ test('weekly catalog reporting parses command output and includes owner-facing s
     inserted: 2,
     updated: 20,
     backfilled: 3,
+    backfill: {
+      selected: 8,
+      ready: 5,
+      needsReview: 1,
+      blocked: 1,
+      duplicates: 1,
+      markedUnavailable: 0,
+    },
     themes: ['weird kitchen gadgets'],
     reviewCandidates: Array.from({ length: 7 }, (_, index) => ({
       title: `Candidate ${index + 1}`,
@@ -93,6 +152,7 @@ test('weekly catalog reporting parses command output and includes owner-facing s
 
   assert.match(report, /60 fetched, 24 quality-rejected, 14 duplicates filtered/);
   assert.match(report, /2 inserted, 20 refreshed, 3 older products enriched/);
+  assert.match(report, /Editorial: 8 selected, 5 ready, 1 needs review, 1 blocked, 1 duplicate, 0 unavailable/);
   assert.match(report, /50 checked, 49 refreshed, 1 confirmed missing/);
   assert.match(report, /Visual spot-check \(5\):/);
   assert.match(report, /Candidate 5/);
@@ -281,7 +341,7 @@ test('affiliate URL repair can run without product revalidation', () => {
   assert.equal(options.revalidate, false);
 });
 
-test('revalidation preserves a known price when Amazon omits offer data', () => {
+test('revalidation preserves a known price but does not claim availability when Amazon omits offer data', () => {
   const result = revalidatedProduct({
     id: 'B012345678',
     title: 'Funny Existing Product',
@@ -311,6 +371,43 @@ test('revalidation preserves a known price when Amazon omits offer data', () => 
 
   assert.equal(result.price, 29.99);
   assert.equal(result.currency, 'CAD');
-  assert.equal(result.isActive, true);
+  assert.equal(result.isActive, false);
+  assert.equal(result.availabilityStatus, 'UNKNOWN');
   assert.equal(result.imageUrl, 'https://example.com/current.jpg');
+});
+
+test('editorial validation accepts specific factual copy and rejects generic duplicated copy', () => {
+  const product = {
+    id: 'B012345678',
+    title: 'Gray shark-shaped ceramic coffee mug with raised fin handle',
+    imageUrl: 'https://images.example/shark.jpg',
+    sourceFacts: {
+      brand: 'Glazery',
+      color: 'Gray',
+      features: ['Raised shark figure', '13.5 ounce capacity', 'Ceramic construction'],
+    },
+  };
+  const paragraph = 'This gray ceramic mug turns the body of a shark into the cup itself, with a raised shark figure and fin-like details that make the object readable before anyone takes a sip. The listing identifies a 13.5 ounce capacity, so it is a real coffee mug rather than a decorative miniature. Glazery keeps the palette gray and white, which lets the sculpted shape do most of the joke work without relying on printed slogans.';
+  const second = 'It makes sense for a shark enthusiast, an ocean-obsessed coworker, or a white elephant exchange where useful objects tend to survive the trading. The ceramic construction gives the recipient an everyday cup after the reveal, while the dimensional figure supplies the strange shelf presence. Anyone ordering it should still check the retailer listing for current care guidance and package details, because those can change independently of the object described here.';
+  const editorial = `${paragraph}\n\n${second}`;
+
+  assert.equal(validateEditorialDraft(product, editorial).approved, true);
+  assert.ok(editorialSourceHash(product).match(/^[a-f0-9]{64}$/));
+  assert.ok(editorialSimilarity(editorial, editorial) > 0.99);
+  assert.equal(validateEditorialDraft(product, editorial, [editorial]).approved, false);
+  assert.equal(validateEditorialDraft(product, 'This unique product is the perfect gift.').approved, false);
+});
+
+test('duplicate winner favors verified factual and reviewed inventory deterministically', () => {
+  const winner = selectDuplicateWinner([
+    { id: 'B000000001', qualityScore: 0.9, availabilityStatus: 'UNKNOWN', sourceFacts: {} },
+    {
+      id: 'B000000002',
+      qualityScore: 0.7,
+      availabilityStatus: 'IN_STOCK',
+      editorialStatus: 'manual_locked',
+      sourceFacts: { brand: 'Odd Co', features: ['Concrete fact'] },
+    },
+  ]);
+  assert.equal(winner.id, 'B000000002');
 });
