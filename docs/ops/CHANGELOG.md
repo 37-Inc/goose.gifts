@@ -67,7 +67,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-07 — Factual catalog editorial pipeline and first indexable cohort `[owner+codex]`
+### 2026-08-07 — Factual catalog editorial pipeline and first indexable cohort `[owner+codex]` ([PR #86](https://github.com/37-Inc/goose.gifts/pull/86))
 
 Integrated substantive product editorial into both new-product collection and
 existing-catalog enrichment. Amazon Creators data now supplies full titles,
