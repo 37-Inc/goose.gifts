@@ -6,6 +6,7 @@ import { buildHomeItemListSchema } from '../lib/home-item-list-schema.ts';
 function product(overrides = {}) {
   return {
     id: 'product-1',
+    slug: 'silly-gift',
     title: 'Silly Gift',
     price: 0,
     currency: 'USD',
@@ -28,6 +29,8 @@ test('omits products that cannot produce valid Google product snippets', () => {
   assert.equal(schema.itemListElement[0].position, 1);
   assert.ok(schema.itemListElement[0].item.offers);
   assert.ok(schema.itemListElement[1].item.aggregateRating);
+  assert.equal(schema.itemListElement[0].item.url, 'https://www.goose.gifts/gifts/silly-gift');
+  assert.equal(schema.itemListElement[0].item.offers.url, 'https://example.com/gift');
 });
 
 test('reports an empty list when no products have valid snippet signals', () => {

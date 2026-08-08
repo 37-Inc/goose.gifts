@@ -161,13 +161,13 @@ For every concept promoted beyond rough exploration, record:
   impressions, saves, Pin clicks, and outbound clicks about one minute after
   publication. This is a receipt, not a performance verdict; Sandbox and v3
   remain excluded.
-- **Destination architecture**: Goose Gifts does not currently expose a true
-  product-detail route. `/random-gift?gift=<id>` pins one exact catalog item
-  into the random-gift experience and produces product-specific share metadata,
-  while all variants canonicalize to `/random-gift`; normal catalog cards link
-  directly to the retailer. Before another campaign batch, evaluate canonical
-  `/gifts/<slug>-<id>` landing pages for eligible products, while preserving
-  `/random-gift` as the discovery utility and old share-link compatibility.
+- **Destination architecture**: canonical `/gifts/<slug>` pages shipped on
+  2026-08-07 with Goose-owned UUIDs, explicit retailer exits, and substantive
+  product-specific editorial for the four products already used by public Pins.
+  All six existing `/random-gift?gift=<retailer-id>` campaign destinations now
+  permanently redirect to the appropriate canonical page while preserving UTM
+  attribution. `/random-gift` remains the discovery utility; unreviewed catalog
+  gift pages stay `noindex` rather than becoming thin search inventory.
 
 ### 2026-08-07 — Public distribution and desk-survivor checkpoint
 

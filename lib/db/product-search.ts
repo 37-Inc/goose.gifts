@@ -14,9 +14,12 @@ const SEARCH_OVERFETCH_FACTOR = 4;
 
 type ProductSearchRow = {
   id: string;
+  public_id: string;
+  slug: string;
   title: string;
   punny_title: string | null;
   witty_description: string | null;
+  editorial_writeup: string | null;
   humor_tags: string[] | null;
   quality_score: string | null;
   source_query: string | null;
@@ -47,9 +50,12 @@ function normalizeLimit(limit: number): number {
 function toProductSearchResult(row: ProductSearchRow): ProductSearchResult {
   return {
     id: row.id,
+    publicId: row.public_id,
+    slug: row.slug,
     title: row.title,
     punnyTitle: row.punny_title || undefined,
     wittyDescription: row.witty_description || undefined,
+    editorialWriteup: row.editorial_writeup || undefined,
     humorTags: row.humor_tags || undefined,
     qualityScore: row.quality_score ? parseFloat(row.quality_score) : undefined,
     sourceQuery: row.source_query || undefined,
@@ -115,9 +121,12 @@ async function keywordSearchProducts(
   const rows = await db.execute<ProductSearchRow>(sql`
     SELECT
       id,
+      public_id,
+      slug,
       title,
       punny_title,
       witty_description,
+      editorial_writeup,
       humor_tags,
       quality_score,
       source_query,
@@ -200,9 +209,12 @@ export async function searchCatalogProducts(
     const semanticRows = await db.execute<ProductSearchRow>(sql`
       SELECT
         id,
+        public_id,
+        slug,
         title,
         punny_title,
         witty_description,
+        editorial_writeup,
         humor_tags,
         quality_score,
         source_query,

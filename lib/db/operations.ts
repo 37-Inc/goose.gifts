@@ -67,9 +67,12 @@ async function loadHomepageEligibleProducts(): Promise<ProductWithStats[]> {
   const allProducts = await db
     .select({
       id: products.id,
+      publicId: products.publicId,
+      slug: products.slug,
       title: products.title,
       punnyTitle: products.punnyTitle,
       wittyDescription: products.wittyDescription,
+      editorialWriteup: products.editorialWriteup,
       humorTags: products.humorTags,
       qualityScore: products.qualityScore,
       sourceQuery: products.sourceQuery,
@@ -104,9 +107,12 @@ async function loadHomepageEligibleProducts(): Promise<ProductWithStats[]> {
 
   return allProducts.map((product) => ({
     id: product.id,
+    publicId: product.publicId,
+    slug: product.slug,
     title: product.title,
     punnyTitle: product.punnyTitle || undefined,
     wittyDescription: product.wittyDescription || undefined,
+    editorialWriteup: product.editorialWriteup || undefined,
     humorTags: product.humorTags || undefined,
     qualityScore: product.qualityScore ? parseFloat(product.qualityScore) : undefined,
     sourceQuery: product.sourceQuery || undefined,

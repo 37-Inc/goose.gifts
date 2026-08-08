@@ -248,6 +248,28 @@ export function ProductGrid({ products, clickSource, contextSlug, searchQueryId 
     }
   };
 
+  const handleGiftPageClick = (product: Product, index: number) => {
+    getClickAttribution();
+    const gtag = getGtag();
+    if (!gtag) {
+      return;
+    }
+
+    gtag('event', 'select_item', {
+      item_list_id: itemListId,
+      item_list_name: contextSlug || clickSource,
+      items: [{
+        item_id: product.id,
+        item_name: getDisplayTitle(product),
+        item_brand: getSourceLabel(product.source),
+        item_category: product.sourceQuery || 'catalog',
+        price: product.price > 0 ? product.price : undefined,
+        currency: product.currency || 'USD',
+        index,
+      }],
+    });
+  };
+
   if (products.length === 0) {
     return null;
   }
@@ -258,14 +280,17 @@ export function ProductGrid({ products, clickSource, contextSlug, searchQueryId 
         const title = getDisplayTitle(product);
         const description = getDisplayDescription(product);
         const hasPrice = product.price > 0;
+        const giftPath = product.slug ? `/gifts/${encodeURIComponent(product.slug)}` : undefined;
 
         return (
           <a
             key={product.id}
-            href={product.affiliateUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => handleProductClick(product.affiliateUrl, product, index)}
+            href={giftPath || product.affiliateUrl}
+            target={giftPath ? undefined : '_blank'}
+            rel={giftPath ? undefined : 'noopener noreferrer'}
+            onClick={() => giftPath
+              ? handleGiftPageClick(product, index)
+              : handleProductClick(product.affiliateUrl, product, index)}
             className="group flex flex-col"
           >
             <div className="relative aspect-square overflow-hidden rounded-2xl bg-white ring-1 ring-zinc-950/[0.07] transition duration-300 group-hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.18)] group-hover:ring-zinc-950/10">
@@ -303,8 +328,10 @@ export function ProductGrid({ products, clickSource, contextSlug, searchQueryId 
               )}
 
               <p className="pt-0.5 text-[11px] font-medium uppercase tracking-[0.08em] text-zinc-400">
-                {getSourceLabel(product.source)}
-                <span aria-hidden="true" className="ml-1 inline-block transition-transform duration-200 group-hover:-translate-y-px group-hover:translate-x-px">↗</span>
+                {giftPath ? 'View gift' : getSourceLabel(product.source)}
+                <span aria-hidden="true" className="ml-1 inline-block transition-transform duration-200 group-hover:-translate-y-px group-hover:translate-x-px">
+                  {giftPath ? '→' : '↗'}
+                </span>
               </p>
             </div>
           </a>

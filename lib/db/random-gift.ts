@@ -8,9 +8,12 @@ import type { Product } from '../types';
 
 function toProduct(row: {
   id: string;
+  publicId: string;
+  slug: string;
   title: string;
   punnyTitle: string | null;
   wittyDescription: string | null;
+  editorialWriteup: string | null;
   humorTags: string[] | null;
   qualityScore: string | null;
   sourceQuery: string | null;
@@ -25,9 +28,12 @@ function toProduct(row: {
 }): Product {
   return {
     id: row.id,
+    publicId: row.publicId,
+    slug: row.slug,
     title: row.title,
     punnyTitle: row.punnyTitle || undefined,
     wittyDescription: row.wittyDescription || undefined,
+    editorialWriteup: row.editorialWriteup || undefined,
     humorTags: row.humorTags || undefined,
     qualityScore: row.qualityScore ? parseFloat(row.qualityScore) : undefined,
     sourceQuery: row.sourceQuery || undefined,
@@ -50,9 +56,12 @@ export async function getProductById(id: string): Promise<Product | undefined> {
   const rows = await db
     .select({
       id: products.id,
+      publicId: products.publicId,
+      slug: products.slug,
       title: products.title,
       punnyTitle: products.punnyTitle,
       wittyDescription: products.wittyDescription,
+      editorialWriteup: products.editorialWriteup,
       humorTags: products.humorTags,
       qualityScore: products.qualityScore,
       sourceQuery: products.sourceQuery,
@@ -88,9 +97,12 @@ async function loadEligibleRandomGiftPool(): Promise<Product[]> {
   const rows = await db
     .select({
       id: products.id,
+      publicId: products.publicId,
+      slug: products.slug,
       title: products.title,
       punnyTitle: products.punnyTitle,
       wittyDescription: products.wittyDescription,
+      editorialWriteup: products.editorialWriteup,
       humorTags: products.humorTags,
       qualityScore: products.qualityScore,
       sourceQuery: products.sourceQuery,

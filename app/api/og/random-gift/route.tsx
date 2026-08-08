@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import type { NextRequest } from 'next/server';
+import { getGiftPageBySlug } from '@/lib/db/gift-pages';
 import { getProductById } from '@/lib/db/random-gift';
 import type { Product } from '@/lib/types';
 
@@ -8,7 +9,7 @@ export const runtime = 'nodejs';
 const SIZE = { width: 1200, height: 630 };
 
 // Cache generated cards hard at the edge — the punny title + product image for a
-// given id are effectively immutable, and share crawlers hit this repeatedly.
+// given gift are effectively immutable, and share crawlers hit this repeatedly.
 const CACHE_HEADERS = {
   'Cache-Control': 'public, immutable, no-transform, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
 };
@@ -102,15 +103,18 @@ function Fallback() {
 }
 
 export async function GET(request: NextRequest) {
+  const slug = request.nextUrl.searchParams.get('slug');
   const id = request.nextUrl.searchParams.get('gift');
 
-  if (!id) {
+  if (!slug && !id) {
     return Fallback();
   }
 
   let product: Product | undefined;
   try {
-    product = await getProductById(id);
+    product = slug
+      ? (await getGiftPageBySlug(slug))?.product
+      : await getProductById(id || '');
   } catch {
     return Fallback();
   }

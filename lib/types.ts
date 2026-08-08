@@ -1,9 +1,12 @@
 // Product from Amazon/Etsy
 export interface Product {
   id: string;
+  publicId?: string;
+  slug?: string;
   title: string;
   punnyTitle?: string;
   wittyDescription?: string;
+  editorialWriteup?: string;
   humorTags?: string[];
   qualityScore?: number;
   sourceQuery?: string;

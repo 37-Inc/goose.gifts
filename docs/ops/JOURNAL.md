@@ -5,6 +5,50 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-07 - Canonical gift-page launch
+
+**Decision and implementation**: Cameron chose one human-readable slug per gift,
+with an optional Goose-owned identity rather than a retailer identifier. Added a
+stable UUID and unique `/gifts/<slug>` path to all 3,358 products while retaining
+the ASIN/Etsy listing ID as the private catalog and relational integration key.
+Slug history makes later editorial renames redirectable. Product grids now lead
+to the internal gift page and only the explicit product-page button records an
+affiliate exit.
+
+**Editorial and indexation gate**: the four products already used by public
+Pinterest campaigns (hippo mug, alligator oven mitt, ceramic eye, and screaming
+goat) received manually edited, source-faithful write-ups. Those four alone are
+indexable and present in the sitemap. The remaining 3,354 pages exist for stable
+navigation but return `noindex, follow` until each has substantive reviewed copy;
+the implementation does not mass-produce generic SEO text.
+
+**Compatibility proof**: locally replayed all six exact public Pinterest
+destinations. Each returned HTTP 308, retained its complete campaign UTM set,
+and finished on the expected canonical gift page with HTTP 200. The older
+`/api/og/random-gift?gift=` contract remains available for existing crawlers;
+new canonical pages use the slug-based form. Random spins without `gift` retain
+their existing behavior. Deactivating a catalog product no longer breaks its
+old shares: the stable page becomes `noindex`, removes the retailer exit, and
+points visitors toward active related gifts.
+
+**Data and migration note**: the additive production migration completed over
+the established HTTPS Postgres path. Postflight checks found 3,358 populated
+public UUIDs, 3,358 populated unique slugs, zero duplicate or missing values,
+four eligible editorials, both slug indexes, the history table, and both
+identity/history triggers. The repository migration journal also contained an
+old filename mismatch and was corrected. Production's historical
+`drizzle.__drizzle_migrations` table is unseeded, so the normal all-history
+migrator remains unsafe until a separate audited baseline repair; this launch
+did not guess or rewrite that history. Review also tightened the shared insert/
+slug-update trigger so no current gift can claim a URL reserved in another
+gift's history; the updated function and trigger definition were verified live.
+
+**Review**: desktop and 390px mobile browser passes found a clean hierarchy,
+clear retailer disclosure, correct internal related-product navigation, and no
+browser errors. Metadata titles are at most 60 characters, descriptions are
+151-154 characters for the four indexable pages, and unreviewed samples return
+`noindex, follow`.
+
 ## 2026-08-07 - Owner-approved hippo desk publication
 
 **Decision and publication**: Cameron explicitly approved the exact

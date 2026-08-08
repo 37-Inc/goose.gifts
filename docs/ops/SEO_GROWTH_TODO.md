@@ -20,6 +20,15 @@ report.
 - [x] Compress and resize public share assets so social preview images match
   declared metadata dimensions and do not waste crawl/share weight.
 
+## Shipped 2026-08-07
+
+- [x] Added canonical `/gifts/<slug>` pages with Goose-owned public UUIDs and
+  stable slug history. The four public-Pinterest products have edited,
+  listing-specific copy and are included in the sitemap; all other catalog gift
+  pages remain `noindex` until reviewed.
+- [x] Preserved every existing product-pinned `/random-gift?gift=<id>` URL as a
+  permanent redirect to its canonical gift page, retaining UTM attribution.
+
 ## Shipped 2026-07-05
 
 - [x] Recovered the stale optical illusion decor bundle URL into the canonical

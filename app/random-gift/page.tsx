@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { permanentRedirect } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { PageHero, HeroUnderline } from '@/components/ui/PageHero';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -8,6 +9,7 @@ import { ProductGrid } from '@/components/ProductGrid';
 import { ProductImage } from '@/components/ProductImage';
 import { RandomGiftLink } from '@/components/RandomGiftLink';
 import { getRandomGiftSelection, getProductById } from '@/lib/db/random-gift';
+import { getGiftPath, getLegacyGiftRedirectPath } from '@/lib/gift-slugs';
 import { getSiteUrl } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
@@ -64,6 +66,7 @@ export async function generateMetadata({
   const productTitle = product.punnyTitle || product.title;
   const shareTitle = `${productTitle} · Random Ridiculous Gift | goose.gifts`;
   const shareDescription = product.wittyDescription || PAGE_DESCRIPTION;
+  const canonicalPath = product.slug ? getGiftPath(product.slug) : '/random-gift';
   const ogImageUrl = `${getSiteUrl()}/api/og/random-gift?gift=${encodeURIComponent(product.id)}`;
   const ogImage = {
     url: ogImageUrl,
@@ -75,12 +78,11 @@ export async function generateMetadata({
   return {
     title: shareTitle,
     description: shareDescription,
-    // Keep every share variant canonicalizing to the base page (no duplicate content).
-    alternates: { canonical: '/random-gift' },
+    alternates: { canonical: canonicalPath },
     openGraph: {
       title: shareTitle,
       description: shareDescription,
-      url: `/random-gift?gift=${encodeURIComponent(product.id)}`,
+      url: canonicalPath,
       siteName: 'goose.gifts',
       type: 'website',
       images: [ogImage],
@@ -112,10 +114,18 @@ function displayTitle(product: { punnyTitle?: string; title: string }): string {
 export default async function RandomGiftPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ gift?: string | string[]; spin?: string | string[] }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = searchParams ? await searchParams : {};
   const requestedId = Array.isArray(params.gift) ? params.gift[0] : params.gift;
+
+  if (requestedId) {
+    const requestedProduct = await getProductById(requestedId).catch(() => undefined);
+    if (requestedProduct?.slug) {
+      permanentRedirect(getLegacyGiftRedirectPath(requestedProduct.slug, params));
+    }
+  }
+
   const spin = Array.isArray(params.spin) ? params.spin[0] : params.spin;
   const seed = spin || requestedId || new Date().toISOString().slice(0, 13);
   const { product, alternates, poolSize } = await getRandomGiftSelection(seed, requestedId);
@@ -141,7 +151,9 @@ export default async function RandomGiftPage({
   }
 
   const title = displayTitle(product);
-  const sharePath = `/random-gift?gift=${encodeURIComponent(product.id)}`;
+  const sharePath = product.slug
+    ? getGiftPath(product.slug)
+    : `/random-gift?gift=${encodeURIComponent(product.id)}`;
   const shareUrl = `${baseUrl}${sharePath}`;
   const schema = JSON.stringify({
     '@context': 'https://schema.org',
@@ -190,7 +202,7 @@ export default async function RandomGiftPage({
           href={sharePath}
           className="rounded-full border border-zinc-200 bg-white px-6 py-3 text-sm font-semibold text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-50"
         >
-          Stable share link
+          View gift page
         </Link>
       </PageHero>
 

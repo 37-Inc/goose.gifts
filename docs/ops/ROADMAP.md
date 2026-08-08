@@ -126,11 +126,12 @@ Priority order:
   another branded product-grid template. Concept generation and the learning
   loop are active; subscriptions, public-pilot preparation, public posting, and
   spend remain unauthorized until the creative and product fidelity are ready.
-- Shareability: replace campaign use of product-pinned `/random-gift?gift=`
-  URLs with canonical, Pinterest-optimized `/gifts/<slug>-<id>` landing pages
-  for a bounded set of eligible catalog products. Keep `/random-gift` as the
-  discovery utility, preserve old share-link compatibility, and avoid indexing
-  thin pages merely because a catalog record exists.
+- **Shareability foundation shipped 2026-08-07**: campaign destinations can now
+  use canonical `/gifts/<slug>` pages backed by Goose-owned UUIDs. `/random-gift`
+  remains the discovery utility, old `?gift=<retailer-id>` links permanently
+  redirect with attribution intact, and only gifts with reviewed substantive
+  editorial copy are indexable. Expand the indexable set deliberately rather
+  than turning the entire catalog into thin SEO pages.
 - Creative acquisition experiments: maintain a backlog of low-cost tests that
   could bring qualified shoppers without waiting for Google, such as themed
   Pinterest batches, linkable "ridiculous find of the day" pages, embeddable
