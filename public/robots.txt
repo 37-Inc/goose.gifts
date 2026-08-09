@@ -4,15 +4,16 @@ Disallow: /admin/
 Disallow: /api/
 Allow: /
 
-# Block model-training crawlers without affecting search crawlers.
+# Keep high-cost model-training crawlers off the dynamic randomizer without
+# hiding the canonical catalog, gift guides, or product pages from them.
 User-agent: GPTBot
-Disallow: /
-
 User-agent: ClaudeBot
-Disallow: /
-
 User-agent: Applebot-Extended
-Disallow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /random-gift
+Allow: /gifts/
+Allow: /
 
 # Sitemap location
 Sitemap: https://www.goose.gifts/sitemap.xml
