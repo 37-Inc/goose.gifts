@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
-import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
+import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -110,20 +110,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: siteSchema }}
         />
 
-        {/* Google Analytics & Google Ads */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-6RR3HPR747"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-6RR3HPR747');
-            gtag('config', 'AW-17626116539');
-          `}
-        </Script>
+        <AnalyticsProvider />
 
         {/* Pages render their own <main> landmark; this wrapper stays a div so
             the document has exactly one <main> (nested mains are invalid HTML). */}
