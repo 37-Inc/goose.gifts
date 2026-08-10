@@ -44,6 +44,19 @@ report.
     204 and pending processing. One approved URL was unknown to Google and one
     was discovered but not indexed. Do not count either state as indexation.
 
+## Shipped 2026-08-09
+
+- [x] Scoped the random-gift bot mitigation to `/random-gift` and private API/
+  admin routes. Effective robots-policy tests prove Googlebot, Bingbot,
+  OAI-SearchBot, and PerplexityBot can fetch canonical gift pages and guides;
+  GPTBot, ClaudeBot, and Applebot-Extended can also fetch those public
+  editorial pages while remaining blocked from the high-cost random route.
+- [x] Added durable run/cohort telemetry before any catalog catch-up: exact
+  selection and rejection histories, stable reason codes, factual snapshots,
+  timing, Git revision, provider token usage, dated cost estimates, and an
+  owner-readable intervention queue. The next weekly run must be audited by
+  run ID before enabling the proposed 100/day catch-up.
+
 ## Shipped 2026-07-05
 
 - [x] Recovered the stale optical illusion decor bundle URL into the canonical

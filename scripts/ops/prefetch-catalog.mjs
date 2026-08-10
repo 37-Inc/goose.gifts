@@ -16,6 +16,18 @@ import {
   selectDuplicateWinner,
   validateEditorialDraft,
 } from './catalog-editorial-core.mjs';
+import {
+  addTiming,
+  createRunItemCollector,
+  createUsageLedger,
+  finalizeUsageLedger,
+  finishCatalogRun,
+  getGitRevision,
+  recordOpenAIUsage,
+  redactTelemetryText,
+  safeCatalogConfig,
+  startCatalogRun,
+} from './catalog-telemetry.mjs';
 
 dotenv.config({ path: '.env.local', quiet: true });
 dotenv.config({ quiet: true });
@@ -72,6 +84,10 @@ function parseArgs(argv) {
     themes: undefined,
     ids: undefined,
     editorialSeed: undefined,
+    runId: undefined,
+    runTrigger: process.env.CATALOG_RUN_TRIGGER || 'manual',
+    runMode: undefined,
+    managedRun: false,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -107,6 +123,14 @@ function parseArgs(argv) {
         .filter((id) => /^[A-Z0-9]{10}$/.test(id));
     } else if (arg === '--editorial-seed') {
       options.editorialSeed = argv[++index];
+    } else if (arg === '--run-id') {
+      options.runId = argv[++index];
+    } else if (arg === '--run-trigger') {
+      options.runTrigger = argv[++index];
+    } else if (arg === '--run-mode') {
+      options.runMode = argv[++index];
+    } else if (arg === '--managed-run') {
+      options.managedRun = true;
     }
   }
 
@@ -149,6 +173,7 @@ Options:
   --deactivate-after-days 90
                             Deactivate only products this stale that are absent from two Creators API checks (minimum 60).
   --no-deactivate           Audit and refresh only; never deactivate missing products.
+  --run-trigger NAME        Telemetry trigger label (manual or scheduled).
 `);
 }
 
@@ -361,29 +386,44 @@ function includesTitleTerm(title, terms) {
   return terms.some((term) => normalized.includes(` ${term} `));
 }
 
-function isHighQualityDiscoveryCandidate(product, minQualityScore = 0.65) {
-  if (!product.isActive || product.qualityScore < minQualityScore) return false;
-  if (includesTitleTerm(product.title, DISCOVERY_TASTE_EXCLUSIONS)) return false;
+function discoveryCandidateBlockReason(product, minQualityScore = 0.65) {
+  if (!product.imageUrl) return 'missing_image';
+  if (!product.affiliateUrl) return 'missing_destination';
+  if (!product.isActive) {
+    const availability = String(product.availabilityStatus || '').toUpperCase();
+    return availability && availability !== 'UNKNOWN' ? 'unavailable' : 'inactive_candidate';
+  }
+  if (product.qualityScore < minQualityScore) return 'low_quality_score';
+  if (includesTitleTerm(product.title, DISCOVERY_TASTE_EXCLUSIONS)) return 'taste_exclusion';
   const hasFormatException = includesTitleTerm(product.title, DISCOVERY_FORMAT_EXCEPTIONS);
   if (!hasFormatException && includesTitleTerm(product.title, DISCOVERY_FORMAT_EXCLUSIONS)) {
-    return false;
+    return 'generic_format';
   }
-  return includesTitleTerm(product.title, DISCOVERY_BRAND_FIT_TERMS);
+  if (!includesTitleTerm(product.title, DISCOVERY_BRAND_FIT_TERMS)) return 'off_brand';
+  return undefined;
+}
+
+function isHighQualityDiscoveryCandidate(product, minQualityScore = 0.65) {
+  return discoveryCandidateBlockReason(product, minQualityScore) === undefined;
 }
 
 function deduplicateCandidates(products, threshold = 0.8) {
   const kept = [];
+  const rejected = [];
   let duplicates = 0;
 
   for (const product of products) {
-    const duplicate = kept.some((existing) => (
+    const duplicate = kept.find((existing) => (
       existing.id === product.id || areNearDuplicateTitles(existing.title, product.title, threshold)
     ));
-    if (duplicate) duplicates += 1;
+    if (duplicate) {
+      duplicates += 1;
+      rejected.push({ ...product, duplicateOfProductId: duplicate.id });
+    }
     else kept.push(product);
   }
 
-  return { products: kept, duplicates };
+  return { products: kept, duplicates, rejected };
 }
 
 function deduplicateAgainstCatalog(products, catalogProducts, threshold = 0.8) {
@@ -402,7 +442,7 @@ function deduplicateAgainstCatalog(products, catalogProducts, threshold = 0.8) {
       rejected.push({ ...product, duplicateOfProductId: winner.id });
       return false;
     }
-    superseded.push(...matches.map((existing) => ({ id: existing.id, winnerId: product.id })));
+    superseded.push(...matches.map((existing) => ({ ...existing, winnerId: product.id })));
     return true;
   });
   return { products: filtered, duplicates, superseded, rejected };
@@ -520,7 +560,7 @@ function buildProductEmbeddingText(product) {
   ].filter(Boolean).join('. ');
 }
 
-async function enrichCopyBatch(products) {
+async function enrichCopyBatch(products, telemetry) {
   const openai = getOpenAIClient();
 
   if (!openai) {
@@ -536,8 +576,12 @@ async function enrichCopyBatch(products) {
     availabilityStatus: product.availabilityStatus,
   }));
 
-  const completion = await openai.chat.completions.create({
-    model: process.env.CATALOG_EDITORIAL_MODEL || process.env.CATALOG_ENRICH_MODEL || 'gpt-4o-mini',
+  const model = process.env.CATALOG_EDITORIAL_MODEL || process.env.CATALOG_ENRICH_MODEL || 'gpt-4o-mini';
+  const startedAt = Date.now();
+  let completion;
+  try {
+    completion = await openai.chat.completions.create({
+    model,
     messages: [
       {
         role: 'system',
@@ -582,7 +626,11 @@ ${JSON.stringify(productSummaries, null, 2)}`,
       },
     ],
     response_format: { type: 'json_object' },
-  });
+    });
+  } finally {
+    addTiming(telemetry?.timingsMs, 'openai_draft', Date.now() - startedAt);
+  }
+  recordOpenAIUsage(telemetry?.usage, { model, operation: 'editorial_draft', usage: completion.usage });
 
   const content = completion.choices[0]?.message?.content;
   if (!content) {
@@ -593,7 +641,7 @@ ${JSON.stringify(productSummaries, null, 2)}`,
   return new Map((parsed.products || []).map((item) => [item.id, item]));
 }
 
-async function reviewEditorialBatch(products) {
+async function reviewEditorialBatch(products, telemetry) {
   const openai = getOpenAIClient();
   if (!openai || products.length === 0) return new Map();
 
@@ -603,11 +651,15 @@ async function reviewEditorialBatch(products) {
     sourceFacts: product.sourceFacts || {},
     editorialWriteup: product.editorialWriteup,
   }));
-  const completion = await openai.chat.completions.create({
-    model: process.env.CATALOG_EDITORIAL_REVIEW_MODEL
+  const model = process.env.CATALOG_EDITORIAL_REVIEW_MODEL
       || process.env.CATALOG_EDITORIAL_MODEL
       || process.env.CATALOG_ENRICH_MODEL
-      || 'gpt-4o-mini',
+      || 'gpt-4o-mini';
+  const startedAt = Date.now();
+  let completion;
+  try {
+    completion = await openai.chat.completions.create({
+    model,
     messages: [
       {
         role: 'system',
@@ -637,7 +689,11 @@ ${JSON.stringify(reviewItems, null, 2)}`,
       },
     ],
     response_format: { type: 'json_object' },
-  });
+    });
+  } finally {
+    addTiming(telemetry?.timingsMs, 'openai_review', Date.now() - startedAt);
+  }
+  recordOpenAIUsage(telemetry?.usage, { model, operation: 'editorial_review', usage: completion.usage });
 
   const content = completion.choices[0]?.message?.content;
   if (!content) throw new Error('No editorial review response from OpenAI.');
@@ -645,7 +701,7 @@ ${JSON.stringify(reviewItems, null, 2)}`,
   return new Map((parsed.products || []).map((item) => [item.id, item]));
 }
 
-async function generateProductEmbeddings(products) {
+async function generateProductEmbeddings(products, telemetry) {
   const openai = getOpenAIClient();
 
   if (!openai || products.length === 0) {
@@ -653,11 +709,19 @@ async function generateProductEmbeddings(products) {
   }
 
   const inputs = products.map(buildProductEmbeddingText);
-  const response = await openai.embeddings.create({
-    model: 'text-embedding-3-small',
+  const model = process.env.CATALOG_EMBEDDING_MODEL || 'text-embedding-3-small';
+  const startedAt = Date.now();
+  let response;
+  try {
+    response = await openai.embeddings.create({
+    model,
     input: inputs,
     encoding_format: 'float',
-  });
+    });
+  } finally {
+    addTiming(telemetry?.timingsMs, 'openai_embedding', Date.now() - startedAt);
+  }
+  recordOpenAIUsage(telemetry?.usage, { model, operation: 'embedding', usage: response.usage });
 
   return new Map(response.data.map((item, index) => [
     products[index].id,
@@ -665,7 +729,7 @@ async function generateProductEmbeddings(products) {
   ]));
 }
 
-async function enrichProducts(products, options, existingWriteups = []) {
+async function enrichProducts(products, options, existingWriteups = [], telemetry) {
   if (products.length === 0) {
     return [];
   }
@@ -684,10 +748,13 @@ async function enrichProducts(products, options, existingWriteups = []) {
 
   for (const [batchIndex, batch] of batches.entries()) {
     let copyById = new Map();
+    let copyFailure;
 
     try {
-      copyById = await enrichCopyBatch(batch);
+      copyById = await enrichCopyBatch(batch, telemetry);
     } catch (error) {
+      copyFailure = 'copy_generation_failed';
+      telemetry?.warnings.push({ phase: 'editorial_draft', reasonCode: copyFailure, message: redactTelemetryText(error.message) });
       console.warn(`OpenAI copy enrichment failed for ${batch.length} products; using fallback copy: ${error.message}`);
     }
 
@@ -706,18 +773,22 @@ async function enrichProducts(products, options, existingWriteups = []) {
         editorialWriteup: lockedEditorial
           ? product.editorialWriteup
           : String(copy.editorialWriteup || '').trim(),
+        pipelineWarnings: copyFailure ? [copyFailure] : [],
       };
     });
 
     let reviewsById = new Map();
+    let reviewFailure;
     const reviewCandidates = copyEnriched.filter((product) => (
       product.editorialStatus !== 'manual_locked'
         && product.editorialWriteup
         && !editorialCandidateBlock(product)
     ));
     try {
-      reviewsById = await reviewEditorialBatch(reviewCandidates);
+      reviewsById = await reviewEditorialBatch(reviewCandidates, telemetry);
     } catch (error) {
+      reviewFailure = 'editorial_review_failed';
+      telemetry?.warnings.push({ phase: 'editorial_review', reasonCode: reviewFailure, message: redactTelemetryText(error.message) });
       console.warn(`OpenAI editorial review failed for ${reviewCandidates.length} products; holding drafts for review: ${error.message}`);
     }
 
@@ -743,8 +814,13 @@ async function enrichProducts(products, options, existingWriteups = []) {
       const reviewQuality = normalizeQualityScore(review.qualityScore, 0.05);
       const approved = review.approved === true && reviewQuality >= 0.8 && validation.approved;
       const reasons = [
-        ...(Array.isArray(review.reasons) ? review.reasons.map(String) : []),
+        ...(product.pipelineWarnings || []),
+        ...(reviewFailure ? [reviewFailure] : []),
+        ...(reviewCandidates.some((candidate) => candidate.id === product.id) && !review.approved && !reviewFailure
+          ? ['editorial_review_not_approved']
+          : []),
         ...validation.reasons,
+        ...(Array.isArray(review.reasons) ? review.reasons.map(String) : []),
       ];
 
       if (approved) reviewedWriteups.push(editorialWriteup);
@@ -768,8 +844,9 @@ async function enrichProducts(products, options, existingWriteups = []) {
     let embeddingsById = new Map();
 
     try {
-      embeddingsById = await generateProductEmbeddings(reviewedProducts);
+      embeddingsById = await generateProductEmbeddings(reviewedProducts, telemetry);
     } catch (error) {
+      telemetry?.warnings.push({ phase: 'embedding', reasonCode: 'embedding_failed', message: redactTelemetryText(error.message) });
       console.warn(`OpenAI embedding enrichment failed for ${batch.length} products: ${error.message}`);
     }
 
@@ -1064,7 +1141,7 @@ async function upsertProduct(product) {
         END,
         last_verified_at = CASE WHEN $17 THEN NOW() ELSE products.last_verified_at END,
         updated_at = NOW()
-      RETURNING (xmax = 0) AS inserted
+      RETURNING (xmax = 0) AS inserted, slug
     `,
     [
       product.id,
@@ -1099,12 +1176,16 @@ async function upsertProduct(product) {
     ]
   );
 
-  return Boolean(result.rows[0]?.inserted);
+  return {
+    inserted: Boolean(result.rows[0]?.inserted),
+    slug: result.rows[0]?.slug || product.slug || null,
+  };
 }
 
 async function getActiveCatalogIdentities() {
   const result = await sql.query(
-    `SELECT id, title, quality_score AS "qualityScore", availability_status AS "availabilityStatus",
+    `SELECT id, slug, title, image_url AS "imageUrl", affiliate_url AS "affiliateUrl",
+            quality_score AS "qualityScore", availability_status AS "availabilityStatus",
             availability_checked_at AS "availabilityCheckedAt", last_verified_at AS "lastVerifiedAt",
             editorial_status AS "editorialStatus", review_count AS "reviewCount", click_count AS "clickCount",
             NULL::jsonb AS "sourceFacts"
@@ -1162,7 +1243,7 @@ async function auditAndRepairAmazonAffiliateUrls({ dryRun }) {
 async function getProductsForRevalidation(limit, staleDays) {
   const result = await sql.query(
     `
-      SELECT id, title, price, currency, image_url, affiliate_url, source, source_query,
+      SELECT id, slug, title, price, currency, image_url, affiliate_url, source, source_query,
              humor_tags, punny_title, witty_description, quality_score, rating, review_count,
              is_active, last_verified_at, editorial_writeup, source_facts, source_facts_hash,
              editorial_source_hash, availability_status, availability_checked_at, editorial_status,
@@ -1200,6 +1281,7 @@ function revalidatedProduct(existing, remote, options) {
     || (storedEditorialStatus === 'manual_locked' ? sourceFactsHash : undefined);
   const product = {
     id: existing.id,
+    slug: existing.slug,
     title: remote.title || existing.title,
     price,
     currency: remotePrice > 0
@@ -1239,38 +1321,55 @@ function revalidatedProduct(existing, remote, options) {
 }
 
 async function deactivateConfirmedMissing(ids, deactivateAfterDays, dryRun) {
-  if (ids.length === 0 || dryRun) return 0;
+  if (ids.length === 0 || dryRun) return [];
   const result = await sql.query(
     `
       UPDATE products
       SET is_active = false, updated_at = NOW()
       WHERE id = ANY($1::text[])
         AND COALESCE(last_verified_at, created_at) <= NOW() - ($2 * INTERVAL '1 day')
+      RETURNING id
     `,
     [ids, deactivateAfterDays]
   );
-  return result.rowCount || 0;
+  return result.rows.map((row) => row.id);
 }
 
 async function markConfirmedMissingUnavailable(ids, dryRun) {
-  if (ids.length === 0 || dryRun) return 0;
+  if (ids.length === 0 || dryRun) return [];
   const result = await sql.query(
     `UPDATE products
      SET availability_status = 'UNAVAILABLE', availability_checked_at = NOW(), updated_at = NOW()
-     WHERE id = ANY($1::text[])`,
+     WHERE id = ANY($1::text[])
+     RETURNING id`,
     [ids]
   );
-  return result.rowCount || 0;
+  return result.rows.map((row) => row.id);
 }
 
-async function revalidateCatalog(options) {
+function recordExistingSelection(telemetry, product, phase) {
+  telemetry?.items.record(product, {
+    phase,
+    stage: 'selection',
+    decision: 'selected',
+    sourceQuery: product.source_query ?? product.sourceQuery,
+    imageUrl: product.image_url ?? product.imageUrl,
+    affiliateUrl: product.affiliate_url ?? product.affiliateUrl,
+  });
+}
+
+async function revalidateCatalog(options, telemetry) {
+  const phaseStartedAt = Date.now();
   const affiliateAudit = await auditAndRepairAmazonAffiliateUrls(options);
   const existing = await getProductsForRevalidation(options.revalidateLimit, options.staleDays);
+  existing.forEach((product) => recordExistingSelection(telemetry, product, 'revalidation'));
+  await telemetry.items.flush();
   let refreshed = 0;
   let confirmedMissing = 0;
   let markedUnavailable = 0;
   let deactivated = 0;
   let throttled = false;
+  const terminalIds = new Set();
 
   for (const batch of chunkArray(existing, 10)) {
     let remoteProducts;
@@ -1279,6 +1378,7 @@ async function revalidateCatalog(options) {
     } catch (error) {
       if (isAmazonThrottleError(error)) {
         throttled = true;
+        telemetry.warnings.push({ phase: 'revalidation', reasonCode: 'provider_throttled', message: redactTelemetryText(error.message) });
         console.warn('Stopping revalidation after Amazon throttling; remaining products were left unchanged.');
         break;
       }
@@ -1297,6 +1397,19 @@ async function revalidateCatalog(options) {
         confirmedPresent.forEach((product, id) => remoteById.set(id, product));
         confirmedIds = missing.filter((product) => !confirmedPresent.has(product.id)).map((product) => product.id);
       } catch (error) {
+        telemetry.warnings.push({ phase: 'revalidation', reasonCode: 'missing_confirmation_failed', message: redactTelemetryText(error.message) });
+        missing.forEach((product) => {
+          terminalIds.add(product.id);
+          telemetry.items.record(product, {
+            phase: 'revalidation',
+            stage: 'availability_confirmation',
+            decision: 'deferred',
+            reasonCode: 'missing_confirmation_failed',
+            nextAction: 'Leave active and retry automatically on the next bounded revalidation run.',
+            imageUrl: product.image_url,
+            affiliateUrl: product.affiliate_url,
+          });
+        });
         console.warn(`Could not confirm ${missing.length} missing Amazon items; leaving them active: ${error.message}`);
       }
     }
@@ -1304,17 +1417,60 @@ async function revalidateCatalog(options) {
     for (const product of batch) {
       const remote = remoteById.get(product.id);
       if (!remote) continue;
-      if (!options.dryRun) await upsertProduct(revalidatedProduct(product, remote, options));
+      const refreshedProduct = revalidatedProduct(product, remote, options);
+      let persistence = { slug: product.slug };
+      if (!options.dryRun) persistence = await upsertProduct(refreshedProduct);
+      refreshedProduct.slug = persistence.slug || refreshedProduct.slug;
+      terminalIds.add(product.id);
+      telemetry.items.record(refreshedProduct, {
+        phase: 'revalidation',
+        stage: 'persistence',
+        decision: refreshedProduct.isActive ? 'refreshed' : 'unavailable',
+        reasonCode: refreshedProduct.isActive ? 'source_refreshed' : 'listing_unavailable',
+        details: { availabilityStatus: refreshedProduct.availabilityStatus },
+      });
       refreshed += 1;
     }
 
     confirmedMissing += confirmedIds.length;
-    markedUnavailable += await markConfirmedMissingUnavailable(confirmedIds, options.dryRun);
+    const unavailableIds = await markConfirmedMissingUnavailable(confirmedIds, options.dryRun);
+    markedUnavailable += options.dryRun ? confirmedIds.length : unavailableIds.length;
+    let deactivatedIds = [];
     if (options.deactivateMissing) {
-      deactivated += await deactivateConfirmedMissing(confirmedIds, options.deactivateAfterDays, options.dryRun);
+      deactivatedIds = await deactivateConfirmedMissing(confirmedIds, options.deactivateAfterDays, options.dryRun);
+      deactivated += deactivatedIds.length;
     }
+    const deactivatedSet = new Set(deactivatedIds);
+    for (const id of confirmedIds) {
+      terminalIds.add(id);
+      const product = batch.find((candidate) => candidate.id === id) || { id };
+      telemetry.items.record(product, {
+        phase: 'revalidation',
+        stage: 'availability_confirmation',
+        decision: deactivatedSet.has(id) ? 'deactivated' : 'unavailable',
+        reasonCode: 'confirmed_missing_twice',
+        nextAction: 'No owner action; the next catalog run will re-evaluate only if the item becomes eligible again.',
+        imageUrl: product.image_url,
+        affiliateUrl: product.affiliate_url,
+      });
+    }
+    await telemetry.items.flush();
     await sleep(1200);
   }
+
+  for (const product of existing.filter((candidate) => !terminalIds.has(candidate.id))) {
+    telemetry.items.record(product, {
+      phase: 'revalidation',
+      stage: 'provider',
+      decision: 'deferred',
+      reasonCode: throttled ? 'provider_throttled' : 'not_processed',
+      nextAction: 'No owner action; retry automatically on the next bounded run.',
+      imageUrl: product.image_url,
+      affiliateUrl: product.affiliate_url,
+    });
+  }
+  await telemetry.items.flush();
+  addTiming(telemetry.timingsMs, 'revalidation', Date.now() - phaseStartedAt);
 
   return { selected: existing.length, refreshed, confirmedMissing, markedUnavailable, deactivated, throttled, affiliateAudit };
 }
@@ -1328,6 +1484,7 @@ async function getProductsNeedingEnrichment(limit, ids) {
     `
       SELECT
         id,
+        slug,
         title,
         price,
         currency,
@@ -1394,6 +1551,7 @@ async function getProductsNeedingEnrichment(limit, ids) {
 
   return result.rows.map((row) => ({
     id: row.id,
+    slug: row.slug,
     title: row.title,
     price: Number.parseFloat(String(row.price || '0')),
     currency: row.currency || 'USD',
@@ -1434,9 +1592,11 @@ async function getProductsNeedingEnrichment(limit, ids) {
   }));
 }
 
-async function refreshProductsForEditorial(products, options) {
+async function refreshProductsForEditorial(products, options, telemetry) {
+  const phaseStartedAt = Date.now();
   const refreshed = [];
   const confirmedMissingIds = [];
+  const deferredIds = new Set();
   let throttled = false;
 
   for (const batch of chunkArray(products, 10)) {
@@ -1446,6 +1606,7 @@ async function refreshProductsForEditorial(products, options) {
     } catch (error) {
       if (isAmazonThrottleError(error)) {
         throttled = true;
+        telemetry.warnings.push({ phase: 'backfill_refresh', reasonCode: 'provider_throttled', message: redactTelemetryText(error.message) });
         break;
       }
       throw error;
@@ -1463,19 +1624,59 @@ async function refreshProductsForEditorial(products, options) {
           .filter((product) => !confirmedById.has(product.id))
           .map((product) => product.id));
       } catch (error) {
+        telemetry.warnings.push({ phase: 'backfill_refresh', reasonCode: 'missing_confirmation_failed', message: redactTelemetryText(error.message) });
+        missing.forEach((product) => deferredIds.add(product.id));
         console.warn(`Could not confirm ${missing.length} missing editorial candidates; leaving them unchanged: ${error.message}`);
       }
     }
 
     for (const existing of batch) {
       const remote = remoteById.get(existing.id);
-      if (remote) refreshed.push(revalidatedProduct(existing, remote, options));
+      if (remote) {
+        const product = revalidatedProduct(existing, remote, options);
+        refreshed.push(product);
+        telemetry.items.record(product, {
+          phase: 'backfill',
+          stage: 'source_refresh',
+          decision: 'source_refreshed',
+          reasonCode: 'source_refreshed',
+          details: { availabilityStatus: product.availabilityStatus },
+        });
+      }
     }
     await sleep(1100);
   }
 
-  const markedUnavailable = await markConfirmedMissingUnavailable(confirmedMissingIds, options.dryRun);
-  return { products: refreshed, confirmedMissingIds, markedUnavailable, throttled };
+  const markedUnavailableIds = await markConfirmedMissingUnavailable(confirmedMissingIds, options.dryRun);
+  for (const id of confirmedMissingIds) {
+    const product = products.find((candidate) => candidate.id === id) || { id };
+    telemetry.items.record(product, {
+      phase: 'backfill',
+      stage: 'availability_confirmation',
+      decision: 'unavailable',
+      reasonCode: 'confirmed_missing_twice',
+      nextAction: 'No owner action; keep the stable page held and retry only through a future verified listing refresh.',
+    });
+  }
+  const refreshedIds = new Set(refreshed.map((product) => product.id));
+  const confirmedSet = new Set(confirmedMissingIds);
+  for (const product of products.filter((candidate) => !refreshedIds.has(candidate.id) && !confirmedSet.has(candidate.id))) {
+    telemetry.items.record(product, {
+      phase: 'backfill',
+      stage: 'source_refresh',
+      decision: 'deferred',
+      reasonCode: throttled && !deferredIds.has(product.id) ? 'provider_throttled' : 'missing_confirmation_failed',
+      nextAction: 'No owner action; retry automatically in a later bounded cohort.',
+    });
+  }
+  await telemetry.items.flush();
+  addTiming(telemetry.timingsMs, 'backfill_refresh', Date.now() - phaseStartedAt);
+  return {
+    products: refreshed,
+    confirmedMissingIds,
+    markedUnavailable: options.dryRun ? confirmedMissingIds.length : markedUnavailableIds.length,
+    throttled,
+  };
 }
 
 function partitionDuplicateCandidates(products) {
@@ -1595,34 +1796,52 @@ function applyEditorialSeed(products, seedProducts, existingWriteups = []) {
   });
 }
 
-async function main() {
-  const options = parseArgs(process.argv.slice(2));
+function catalogMode(options) {
+  if (options.runMode) return options.runMode;
+  if (options.repairAffiliateUrlsOnly) return 'affiliate_repair';
+  if (options.revalidate) return 'revalidation';
+  if (options.enrichOnly) return 'editorial_backfill';
+  return 'discovery';
+}
 
-  const editorialSeedProducts = options.editorialSeed
-    ? loadEditorialSeed(options.editorialSeed)
-    : undefined;
-  if (editorialSeedProducts) {
-    options.ids = editorialSeedProducts.map((product) => product.id);
-    options.backfillLimit = Math.max(options.backfillLimit, editorialSeedProducts.length);
+function catalogResultCounts(result) {
+  const counts = {};
+  for (const [key, value] of Object.entries(result || {})) {
+    if (typeof value === 'number' || typeof value === 'boolean') counts[key] = value;
   }
+  if (result?.backfill) counts.backfill = result.backfill;
+  if (result?.affiliateAudit) counts.affiliateAudit = result.affiliateAudit;
+  if (Array.isArray(result?.themes)) counts.themes = result.themes;
+  return counts;
+}
 
-  if (options.help) {
-    printHelp();
-    return;
-  }
+function persistenceOutcome(product, options, readyStatuses = ['generated_ready']) {
+  const status = product.editorialStatus;
+  const skipped = status === 'pending' && options.skipEnrichment;
+  const ready = readyStatuses.includes(status);
+  return {
+    decision: ready ? 'ready' : skipped ? 'persisted' : status || 'persisted',
+    reasonCode: status === 'generated_ready'
+      ? 'editorial_approved'
+      : skipped
+        ? 'enrichment_skipped'
+        : product.editorialBlockReason || status || 'catalog_persisted',
+    requiresManualReview: status === 'needs_review',
+    nextAction: status === 'needs_review'
+      ? 'Review the source facts and draft; approve a corrected version or leave the page held.'
+      : 'No owner action; indexing eligibility remains governed by the shared factual gate.',
+  };
+}
 
-  assertConfigured(options);
-
+async function executeCatalog(options, editorialSeedProducts, telemetry) {
   if (options.repairAffiliateUrlsOnly) {
     const affiliateAudit = await auditAndRepairAmazonAffiliateUrls(options);
-    console.log(JSON.stringify({ dryRun: options.dryRun, repairAffiliateUrlsOnly: true, affiliateAudit }, null, 2));
-    return;
+    return { dryRun: options.dryRun, repairAffiliateUrlsOnly: true, affiliateAudit };
   }
 
   if (options.revalidate) {
-    const result = await revalidateCatalog(options);
-    console.log(JSON.stringify({ dryRun: options.dryRun, revalidate: true, ...result }, null, 2));
-    return;
+    const result = await revalidateCatalog(options, telemetry);
+    return { dryRun: options.dryRun, revalidate: true, ...result };
   }
 
   const envThemes = process.env.CATALOG_DISCOVERY_THEMES
@@ -1633,7 +1852,7 @@ async function main() {
   const themes = options.themes
     ? themePool.slice(0, options.themeLimit)
     : selectRotatingThemes(themePool, options.themeLimit);
-  const seen = new Set();
+  const seen = new Map();
   const candidates = [];
   let backfilled = 0;
   let backfillStats = {
@@ -1659,11 +1878,12 @@ async function main() {
   if (options.backfillLimit > 0 && (!options.dryRun || process.env.POSTGRES_URL)) {
     const backfillProducts = await getProductsNeedingEnrichment(options.backfillLimit, options.ids);
     backfillStats.selected = backfillProducts.length;
+    backfillProducts.forEach((product) => recordExistingSelection(telemetry, product, 'backfill'));
+    await telemetry.items.flush();
 
     if (!options.dryRun && backfillProducts.length > 0) {
-      const runId = randomUUID();
       console.log(`Refreshing ${backfillProducts.length} editorial candidates from Amazon before generation`);
-      const refresh = await refreshProductsForEditorial(backfillProducts, options);
+      const refresh = await refreshProductsForEditorial(backfillProducts, options, telemetry);
       backfillStats = {
         ...backfillStats,
         refreshed: refresh.products.length,
@@ -1675,14 +1895,14 @@ async function main() {
       const qualityCandidates = [];
       const blockedCandidates = [];
       for (const product of refresh.products) {
-        if (product.editorialStatus === 'manual_locked'
-          || isHighQualityDiscoveryCandidate(product, options.minQualityScore)) {
+        const blockReason = discoveryCandidateBlockReason(product, options.minQualityScore);
+        if (product.editorialStatus === 'manual_locked' || !blockReason) {
           qualityCandidates.push(product);
         } else {
           blockedCandidates.push({
             ...product,
             editorialStatus: 'blocked',
-            editorialBlockReason: product.isActive ? 'generic_or_low_quality' : 'unavailable',
+            editorialBlockReason: blockReason,
           });
         }
       }
@@ -1698,24 +1918,57 @@ async function main() {
       }));
 
       for (const product of [...blockedCandidates, ...duplicateCandidates]) {
-        await upsertProduct(product);
-        await recordEditorialEvent(runId, product, product.editorialStatus === 'duplicate' ? 'deduplicated' : 'blocked');
+        const persistence = await upsertProduct(product);
+        product.slug = persistence.slug || product.slug;
+        await recordEditorialEvent(telemetry.runId, product, product.editorialStatus === 'duplicate' ? 'deduplicated' : 'blocked');
+        telemetry.items.record(product, {
+          phase: 'backfill',
+          stage: 'quality_gate',
+          decision: product.editorialStatus,
+          reasonCode: product.editorialStatus === 'duplicate' ? 'near_duplicate' : product.editorialBlockReason,
+          winnerProductId: product.duplicateOfProductId,
+          nextAction: 'No owner action; keep this page held unless new source or demand evidence changes the decision.',
+        });
       }
       for (const duplicate of catalogPartition.superseded) {
-        await markCatalogDuplicate(runId, duplicate.id, duplicate.winnerId);
+        await markCatalogDuplicate(telemetry.runId, duplicate.id, duplicate.winnerId);
+        telemetry.items.record(duplicate, {
+          phase: 'backfill',
+          stage: 'deduplication',
+          decision: 'duplicate',
+          reasonCode: 'superseded_by_stronger_candidate',
+          winnerProductId: duplicate.winnerId,
+          nextAction: 'No owner action; preserve the stable URL while consolidating indexing signals on the winner.',
+        });
       }
 
       const existingWriteups = await getExistingEditorialWriteups(
         duplicatePartition.winners.map((product) => product.id)
       );
+      const enrichmentStartedAt = Date.now();
       const enrichedBackfill = editorialSeedProducts
         ? applyEditorialSeed(duplicatePartition.winners, editorialSeedProducts, existingWriteups)
-        : await enrichProducts(duplicatePartition.winners, options, existingWriteups);
+        : await enrichProducts(duplicatePartition.winners, options, existingWriteups, telemetry);
+      addTiming(telemetry.timingsMs, 'backfill_enrichment', Date.now() - enrichmentStartedAt);
       for (const product of enrichedBackfill) {
-        await upsertProduct(product);
-        await recordEditorialEvent(runId, product, 'enriched');
+        const persistence = await upsertProduct(product);
+        product.slug = persistence.slug || product.slug;
+        await recordEditorialEvent(telemetry.runId, product, 'enriched');
+        const outcome = persistenceOutcome(product, options, ['generated_ready', 'manual_locked']);
+        telemetry.items.record(product, {
+          phase: 'backfill',
+          stage: 'persistence',
+          ...outcome,
+          details: {
+            editorialQualityScore: product.editorialQualityScore,
+            model: product.editorialModel,
+            promptVersion: product.editorialPromptVersion,
+            pipelineWarnings: product.pipelineWarnings || [],
+          },
+        });
         backfilled += 1;
       }
+      await telemetry.items.flush();
 
       backfillStats = {
         ...backfillStats,
@@ -1728,15 +1981,16 @@ async function main() {
   }
 
   if (options.enrichOnly) {
-    console.log(JSON.stringify({
+    return {
       dryRun: options.dryRun,
       enrichOnly: true,
       backfilled,
       backfill: backfillStats,
-    }, null, 2));
-    return;
+      manualIntervention: backfillStats.needsReview,
+    };
   }
 
+  const discoveryStartedAt = Date.now();
   for (const theme of themes) {
     let found = [];
     try {
@@ -1745,6 +1999,7 @@ async function main() {
       discoveredCandidates += found.length;
     } catch (error) {
       if (isAmazonThrottleError(error)) {
+        telemetry.warnings.push({ phase: 'discovery', reasonCode: 'provider_throttled', sourceQuery: theme, message: redactTelemetryText(error.message) });
         console.warn(`Skipping "${theme}" after repeated Amazon throttling`);
         continue;
       }
@@ -1752,23 +2007,57 @@ async function main() {
     }
 
     for (const product of found) {
-      if (seen.has(product.id)) {
+      const existing = seen.get(product.id);
+      if (existing) {
         asinDuplicates += 1;
+        telemetry.items.record(product, {
+          phase: 'discovery',
+          stage: 'deduplication',
+          decision: 'duplicate',
+          reasonCode: 'duplicate_asin_across_themes',
+          winnerProductId: existing.id,
+          details: { firstSourceQuery: existing.sourceQuery },
+        });
         continue;
       }
-      seen.add(product.id);
+      seen.set(product.id, product);
       candidates.push(product);
+      telemetry.items.record(product, {
+        phase: 'discovery',
+        stage: 'selection',
+        decision: 'selected',
+        reasonCode: 'remote_candidate',
+      });
     }
   }
+  await telemetry.items.flush();
 
   candidates.sort((a, b) => b.qualityScore - a.qualityScore);
   const rawCandidates = candidates.length;
+  const rejectedByQuality = candidates
+    .map((product) => ({ product, reasonCode: discoveryCandidateBlockReason(product, options.minQualityScore) }))
+    .filter(({ reasonCode }) => reasonCode);
+  rejectedByQuality.forEach(({ product, reasonCode }) => telemetry.items.record(product, {
+    phase: 'discovery',
+    stage: 'quality_gate',
+    decision: 'rejected',
+    reasonCode,
+    nextAction: 'No owner action; selection can change only with new listing or demand evidence.',
+    details: { qualityScore: product.qualityScore, minimumQualityScore: options.minQualityScore },
+  }));
   const qualityCandidates = candidates.filter((product) => (
     isHighQualityDiscoveryCandidate(product, options.minQualityScore)
   ));
-  const qualityRejected = candidates.length - qualityCandidates.length;
+  const qualityRejected = rejectedByQuality.length;
   candidates.splice(0, candidates.length, ...qualityCandidates);
   const deduplicated = deduplicateCandidates(candidates);
+  deduplicated.rejected.forEach((product) => telemetry.items.record(product, {
+    phase: 'discovery',
+    stage: 'deduplication',
+    decision: 'duplicate',
+    reasonCode: 'near_duplicate_in_discovery',
+    winnerProductId: product.duplicateOfProductId,
+  }));
   candidates.splice(0, candidates.length, ...deduplicated.products);
   let catalogDuplicates = 0;
   let catalogSuperseded = [];
@@ -1779,11 +2068,20 @@ async function main() {
       candidates.splice(0, candidates.length, ...catalogDeduplicated.products);
       catalogDuplicates = catalogDeduplicated.duplicates;
       catalogSuperseded = catalogDeduplicated.superseded || [];
+      (catalogDeduplicated.rejected || []).forEach((product) => telemetry.items.record(product, {
+        phase: 'discovery',
+        stage: 'deduplication',
+        decision: 'duplicate',
+        reasonCode: 'near_duplicate_in_catalog',
+        winnerProductId: product.duplicateOfProductId,
+      }));
     } catch (error) {
       if (!options.dryRun) throw error;
+      telemetry.warnings.push({ phase: 'discovery', reasonCode: 'dry_run_catalog_dedupe_unavailable', message: redactTelemetryText(error.message) });
       console.warn(`Dry-run catalog deduplication unavailable; continuing with discovery-only results: ${error.message}`);
     }
   }
+  await telemetry.items.flush();
   const duplicatesFiltered = asinDuplicates + deduplicated.duplicates + catalogDuplicates;
   if (qualityRejected > 0 || duplicatesFiltered > 0) {
     console.log(`Filtered ${qualityRejected} low-quality and ${duplicatesFiltered} duplicate discoveries`);
@@ -1798,9 +2096,11 @@ async function main() {
       qualityScore: product.qualityScore,
       sourceQuery: product.sourceQuery,
     }));
-    console.log(JSON.stringify({
+    addTiming(telemetry.timingsMs, 'discovery', Date.now() - discoveryStartedAt);
+    return {
       dryRun: true,
       themes,
+      backfill: backfillStats,
       discoveredCandidates,
       rawCandidates,
       qualityRejected,
@@ -1809,37 +2109,68 @@ async function main() {
       catalogDuplicates,
       duplicatesFiltered,
       activeCandidates: candidates.filter((product) => product.isActive).length,
+      manualIntervention: backfillStats.needsReview,
       candidates: candidates.slice(0, options.maxNew),
       reviewCandidates,
-    }, null, 2));
-    return;
+    };
   }
 
   let inserted = 0;
   let updated = 0;
   const existingWriteups = await getExistingEditorialWriteups(candidates.map((product) => product.id));
-  const enrichedCandidates = await enrichProducts(candidates, options, existingWriteups);
-  const discoveryRunId = randomUUID();
+  const enrichedCandidates = await enrichProducts(candidates, options, existingWriteups, telemetry);
+  let persistenceStopped = false;
 
   for (const product of enrichedCandidates) {
-    const wasInserted = await upsertProduct(product);
-    await recordEditorialEvent(discoveryRunId, product, 'discovered');
-    if (wasInserted) inserted += 1;
-    else updated += 1;
-
-    if (inserted >= options.maxNew) {
-      break;
+    if (persistenceStopped) {
+      telemetry.items.record(product, {
+        phase: 'discovery',
+        stage: 'persistence',
+        decision: 'not_persisted',
+        reasonCode: 'max_new_limit',
+        nextAction: 'No owner action; this candidate may be rediscovered in a later bounded run.',
+      });
+      continue;
     }
+    const persistence = await upsertProduct(product);
+    product.slug = persistence.slug || product.slug;
+    await recordEditorialEvent(telemetry.runId, product, 'discovered');
+    if (persistence.inserted) inserted += 1;
+    else updated += 1;
+    const outcome = persistenceOutcome(product, options);
+    telemetry.items.record(product, {
+      phase: 'discovery',
+      stage: 'persistence',
+      ...outcome,
+      details: {
+        inserted: persistence.inserted,
+        editorialQualityScore: product.editorialQualityScore,
+        model: product.editorialModel,
+        promptVersion: product.editorialPromptVersion,
+      },
+    });
+    if (inserted >= options.maxNew) persistenceStopped = true;
   }
 
   for (const duplicate of catalogSuperseded) {
-    await markCatalogDuplicate(discoveryRunId, duplicate.id, duplicate.winnerId);
+    await markCatalogDuplicate(telemetry.runId, duplicate.id, duplicate.winnerId);
+    telemetry.items.record(duplicate, {
+      phase: 'discovery',
+      stage: 'deduplication',
+      decision: 'duplicate',
+      reasonCode: 'superseded_by_stronger_candidate',
+      winnerProductId: duplicate.winnerId,
+      nextAction: 'No owner action; preserve the stable URL while consolidating indexing signals on the winner.',
+    });
   }
+  await telemetry.items.flush();
+  addTiming(telemetry.timingsMs, 'discovery', Date.now() - discoveryStartedAt);
 
-  console.log(JSON.stringify({
+  return {
     dryRun: false,
     themes,
     backfilled,
+    backfill: backfillStats,
     discoveredCandidates,
     rawCandidates,
     qualityRejected,
@@ -1851,8 +2182,13 @@ async function main() {
     activeCandidates: enrichedCandidates.filter((product) => product.isActive).length,
     enrichedCandidates: enrichedCandidates.length,
     embeddedCandidates: enrichedCandidates.filter((product) => Array.isArray(product.embedding) && product.embedding.length > 0).length,
+    discoveryReady: enrichedCandidates.filter((product) => product.editorialStatus === 'generated_ready').length,
+    discoveryNeedsReview: enrichedCandidates.filter((product) => product.editorialStatus === 'needs_review').length,
+    manualIntervention: backfillStats.needsReview
+      + enrichedCandidates.filter((product) => product.editorialStatus === 'needs_review').length,
     reviewCandidates: enrichedCandidates.slice(0, 5).map((product) => ({
       id: product.id,
+      slug: product.slug,
       title: product.title,
       imageUrl: product.imageUrl,
       affiliateUrl: product.affiliateUrl,
@@ -1861,13 +2197,100 @@ async function main() {
     })),
     inserted,
     updated,
-  }, null, 2));
+  };
+}
+
+async function main() {
+  const options = parseArgs(process.argv.slice(2));
+  if (options.help) {
+    printHelp();
+    return;
+  }
+
+  const editorialSeedProducts = options.editorialSeed
+    ? loadEditorialSeed(options.editorialSeed)
+    : undefined;
+  if (editorialSeedProducts) {
+    options.ids = editorialSeedProducts.map((product) => product.id);
+    options.backfillLimit = Math.max(options.backfillLimit, editorialSeedProducts.length);
+  }
+
+  assertConfigured(options);
+  const runId = options.runId || randomUUID();
+  const telemetryEnabled = !options.dryRun && Boolean(process.env.POSTGRES_URL);
+  const ownsRun = telemetryEnabled && !options.managedRun;
+  const telemetryWarnings = [];
+  const telemetry = {
+    runId,
+    usage: createUsageLedger(),
+    timingsMs: {},
+    warnings: telemetryWarnings,
+    items: createRunItemCollector({
+      runId,
+      enabled: telemetryEnabled,
+      warnings: telemetryWarnings,
+    }),
+  };
+  const startedAt = Date.now();
+
+  if (ownsRun) {
+    await startCatalogRun({
+      id: runId,
+      mode: catalogMode(options),
+      trigger: options.runTrigger,
+      dryRun: options.dryRun,
+      config: safeCatalogConfig(options),
+      gitSha: getGitRevision(),
+    });
+  }
+
+  try {
+    const result = await executeCatalog(options, editorialSeedProducts, telemetry);
+    addTiming(telemetry.timingsMs, 'total', Date.now() - startedAt);
+    const usage = finalizeUsageLedger(telemetry.usage);
+    const output = {
+      ...result,
+      telemetry: { runId, timingsMs: telemetry.timingsMs, usage, warnings: telemetry.warnings },
+    };
+    if (ownsRun) {
+      await finishCatalogRun(runId, {
+        status: 'completed',
+        counts: catalogResultCounts(result),
+        timingsMs: telemetry.timingsMs,
+        usage,
+        warnings: telemetry.warnings,
+      });
+    }
+    console.log(JSON.stringify(output, null, 2));
+    return output;
+  } catch (error) {
+    try {
+      await telemetry.items.flush();
+    } catch (flushError) {
+      telemetry.warnings.push({ phase: 'telemetry', reasonCode: 'item_flush_failed', message: redactTelemetryText(flushError.message) });
+    }
+    addTiming(telemetry.timingsMs, 'total', Date.now() - startedAt);
+    if (ownsRun) {
+      try {
+        await finishCatalogRun(runId, {
+          status: 'failed',
+          timingsMs: telemetry.timingsMs,
+          usage: finalizeUsageLedger(telemetry.usage),
+          warnings: telemetry.warnings,
+          error,
+        });
+      } catch (telemetryError) {
+        console.error(`Catalog telemetry finalization failed: ${redactTelemetryText(telemetryError.message)}`);
+      }
+    }
+    throw error;
+  }
 }
 
 const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isDirectRun) {
   main().catch((error) => {
-    console.error(error);
+    console.error(redactTelemetryText(error instanceof Error ? error.message : error));
     process.exitCode = 1;
   });
 }
@@ -1877,6 +2300,7 @@ export {
   amazonAffiliateUrl,
   deduplicateAgainstCatalog,
   deduplicateCandidates,
+  discoveryCandidateBlockReason,
   isHighQualityDiscoveryCandidate,
   normalizedTitleTokens,
   parseArgs,

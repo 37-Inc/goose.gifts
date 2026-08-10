@@ -5,6 +5,58 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-09 - Catalog telemetry, auditability, and crawler-scope closure
+
+**Why this work**: the factual editorial pipeline could describe current
+product state, but it did not leave one reconstructable receipt across weekly
+revalidation, discovery, and backfill. Candidates rejected before insertion,
+confirmed missing items, partial failures, model usage, phase timing, and exact
+manual intervention were aggregate-only or transcript-only. That was not
+adequate evidence for scaling the catch-up plan.
+
+**Implementation**: added additive `catalog_runs` and append-only
+`catalog_run_items` telemetry. Each scheduled invocation shares one UUID across
+both child commands and records an allowlisted configuration, Git revision,
+honest completion/partial/failure state, phase timing, warnings,
+provider-reported OpenAI tokens, and an estimate using the dated public model
+prices. Candidate transitions preserve source ID/query, small title/image/
+destination/canonical snapshots, source/editorial hashes, stable reason codes,
+duplicate winner, explicit manual-review flag, and next action. Unknown custom
+models stay unpriced. A deterministic report command folds the event stream
+into the latest item state and exposes interrupted candidates after partial
+runs. The legacy editorial event foreign key is removed so later product
+cleanup cannot erase decision history.
+
+**Review corrections**: the pass found that the weekly Slack formatter expected
+backfill details the discovery result did not return; the result and report now
+agree. It also found production's legacy editorial foreign-key name differs
+from the generated Drizzle name, so the narrow migration handles both. Because
+production's historical Drizzle baseline remains unseeded, rollout uses the
+reviewed `db:migrate:catalog-telemetry` HTTPS command instead of replaying all
+migrations. Secret-like keys and error text are redacted and configuration is
+allowlisted before persistence.
+
+**Crawler/indexing boundary**: PR #89 is the separate production receipt that
+the random-page bot mitigation does not leak onto canonical product pages.
+Effective-policy tests allow public gift pages and guides for Googlebot,
+Bingbot, OAI-SearchBot, PerplexityBot, GPTBot, ClaudeBot, and
+Applebot-Extended; the model-training bots remain blocked only from
+`/random-gift` and private routes. Product discoverability still depends on the
+shared fresh-facts/editorial/duplicate gate, and held pages remain stable
+`200, noindex, follow` rather than entering the sitemap prematurely.
+
+**Verification and next evidence**: focused telemetry and catalog tests cover
+token/cost aggregation, unknown models, redaction, deterministic reporting,
+partial-run recovery, stable reason codes, migration history retention, weekly
+report linkage, and existing catalog/editorial behavior. Robots, ranking,
+index analysis, structured data, gift-guide, gift-page, and creative-event
+tests also pass, along with lint, TypeScript, and the production Next.js build.
+The first production
+run after rollout remains at the normal 50 revalidations, 25 editorial
+candidates, and 20-new maximum. A deferred Bead and one-time scheduled audit
+will reconcile its run ID, per-item terminal states, Slack receipt, token/cost
+totals, redaction, and manual queue before catch-up cadence changes.
+
 ## 2026-08-07 - Factual editorial pipeline and first product-page cohort
 
 **Catalog evidence**: production held 3,358 Amazon products, 3,353 active pages,

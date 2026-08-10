@@ -126,9 +126,27 @@ Boundaries (always in force):
    work. The scheduled command is `npm run catalog:weekly`. It revalidates at
    most 50 stale products, searches six rotating themes (covering the full
    12-theme pool every two weeks), admits at most 20 net-new products, and
-   reports basic run statistics plus at most five title/image/product-link
+   reports run statistics plus at most five title/image/product-link
    candidates for visual spot-checking to the OpenClaw Slack marketing channel.
+   Every non-dry run now has one UUID shared across revalidation, discovery,
+   and editorial backfill. `catalog_runs` stores the sanitized configuration,
+   Git revision, completion state, phase timings, warnings, provider-reported
+   OpenAI token usage, and a dated cost estimate. Append-only
+   `catalog_run_items` records each selection and terminal decision—including
+   candidates rejected before product insertion—with stable reason codes and
+   small title/image/destination/page snapshots. Product cleanup must not erase
+   this history.
    For a read-only rehearsal use `npm run catalog:weekly -- --dry-run`.
+   Use `npm run catalog:report -- --latest` to reconstruct the newest run,
+   `npm run catalog:report -- --run <uuid>` for an exact historical receipt,
+   and `npm run catalog:review-queue` for the exact owner-intervention queue.
+   Add `--json` to an exact-run report to retrieve the complete append-only
+   candidate transition stream for deeper audit or reconciliation.
+   The queue includes the source image, retailer destination, canonical Goose
+   page when assigned, reason, and next action. `pending`, unavailable,
+   duplicate, and generic candidates advance automatically or stay held; an
+   owner only needs to act when the report explicitly marks `needs_review`, a
+   candidate-specific failure, or interrupted work.
    Use `npm run catalog:audit-guides` for a read-only audit of the product
    counts currently rendered by every canonical gift guide.
    The command uses `@vercel/postgres` over HTTPS, enriches product copy/tags,
@@ -153,6 +171,12 @@ Boundaries (always in force):
    `--ids ASIN,ASIN` for an exact cohort or `--editorial-seed <repo-json>` to
    replay owner-reviewed copy; a seed is still rejected if live facts, source
    hashes, availability, length, specificity, or uniqueness fail.
+   Before the first instrumented production run, apply only the additive
+   telemetry migration with
+   `npm run db:migrate:catalog-telemetry -- --apply`, then run the command
+   without `--apply` for its schema receipt. This uses `@vercel/postgres` over
+   HTTPS. Do **not** run the all-history `npm run db:migrate` in production
+   until the separate historical Drizzle baseline repair is complete.
 5. **Review your own work.** Before verification, do a deliberate review pass
    over the diff as if reviewing someone else's PR. Look for regressions,
    over-broad changes, bad assumptions, missing error handling, data-policy
