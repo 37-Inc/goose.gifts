@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Product, ProductSearchResult } from '@/lib/types';
+import { captureSearch } from '@/lib/client-analytics';
 import { ProductGrid } from './ProductGrid';
 
 interface CatalogSearchFeedProps {
@@ -22,16 +23,6 @@ interface CatalogFeedResponse {
   products?: Product[];
   hasMore?: boolean;
   error?: string;
-}
-
-type Gtag = (command: 'event', eventName: string, params: Record<string, unknown>) => void;
-
-function getGtag(): Gtag | undefined {
-  if (typeof window === 'undefined') {
-    return undefined;
-  }
-
-  return (window as Window & { gtag?: Gtag }).gtag;
 }
 
 function updateSearchUrl(query: string) {
@@ -121,14 +112,7 @@ export function CatalogSearchFeed({
       setSearchId(data.searchId || null);
       setHasMore(false);
 
-      const gtag = getGtag();
-      if (gtag) {
-        gtag('event', 'search', {
-          search_term: trimmed,
-          event_category: 'catalog_search',
-          event_label: `${data.results?.length ?? 0} products`,
-        });
-      }
+      captureSearch(data.results?.length ?? 0);
     } catch (searchError) {
       if (requestId !== requestIdRef.current) {
         return;

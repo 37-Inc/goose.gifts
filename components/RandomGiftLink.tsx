@@ -3,6 +3,7 @@
 import type { MouseEvent, ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { captureRandomGiftSpin } from '@/lib/client-analytics';
 
 interface RandomGiftLinkProps {
   children: ReactNode;
@@ -24,6 +25,7 @@ export function RandomGiftLink({ children, className }: RandomGiftLinkProps) {
     }
 
     event.preventDefault();
+    captureRandomGiftSpin();
 
     const seed = typeof window.crypto?.randomUUID === 'function'
       ? window.crypto.randomUUID()

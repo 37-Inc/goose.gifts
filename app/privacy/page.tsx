@@ -34,6 +34,7 @@ const sections = [
     title: 'Analytics',
     body: [
       'We may use analytics tools to understand aggregate site activity, including searches, page views, outbound product clicks, and referral sources.',
+      'Third-party analytics receive only limited event details such as page paths, result counts, product identifiers and sources, link domains, and coarse campaign attribution. We do not send them search or recipient text, affiliate URLs, URL query strings, form contents, or session recordings. Browser Do Not Track and Global Privacy Control signals disable Google Analytics and PostHog collection.',
     ],
   },
   {
@@ -60,7 +61,7 @@ export default function PrivacyPage() {
           Privacy Policy
         </h1>
         <p className="mt-3 text-sm leading-6 text-zinc-400">
-          Last updated July 7, 2026
+          Last updated August 9, 2026
         </p>
         <p className="mt-6 text-base leading-7 text-zinc-600">
           This policy explains how goose.gifts handles information for visitors
