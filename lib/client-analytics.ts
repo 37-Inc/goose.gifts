@@ -20,6 +20,29 @@ const GOOGLE_ADS_ID = 'AW-17626116539';
 const PRODUCTION_HOSTS = new Set(['goose.gifts', 'www.goose.gifts']);
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+const POSTHOG_ALLOWED_PROPERTIES = new Set([
+  'distinct_id',
+  'item_list_id',
+  'items',
+  'link_domain',
+  'pathname',
+  'product_id',
+  'result_count',
+  'source',
+  'token',
+  'traffic_campaign',
+  'traffic_medium',
+  'traffic_source',
+  'ui_context',
+]);
+const EXPLICIT_EVENT_NAMES = new Set<ExplicitAnalyticsEvent['name']>([
+  'page_view',
+  'search',
+  'view_item_list',
+  'select_item',
+  'conversion_event_outbound_click',
+  'random_gift_spin',
+]);
 
 type Gtag = (...args: unknown[]) => void;
 
@@ -124,6 +147,21 @@ function initializePostHog(): Promise<typeof import('posthog-js').default | unde
         'utm_content',
         'utm_term',
       ],
+      before_send: (event) => {
+        if (!event || !EXPLICIT_EVENT_NAMES.has(event.event as ExplicitAnalyticsEvent['name'])) {
+          return null;
+        }
+
+        return {
+          ...event,
+          properties: Object.fromEntries(
+            Object.entries(event.properties || {})
+              .filter(([key]) => POSTHOG_ALLOWED_PROPERTIES.has(key))
+          ),
+          $set: undefined,
+          $set_once: undefined,
+        };
+      },
     });
     posthogClient = posthog;
     return posthog;
