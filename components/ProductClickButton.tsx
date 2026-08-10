@@ -70,7 +70,12 @@ export function ProductClickButton({
         openOutbound(product.affiliateUrl);
       }
     };
-    const callbackQueued = captureOutboundProductClick({
+
+    // Open inside the original user gesture so browser popup protection cannot
+    // block the affiliate destination. The analytics callback remains an
+    // idempotent delivery safety net.
+    openOnce();
+    captureOutboundProductClick({
       clickSource,
       contextSlug,
       productId: product.id,
@@ -79,13 +84,6 @@ export function ProductClickButton({
       attribution,
       callback: openOnce,
     });
-
-    if (callbackQueued) {
-      window.setTimeout(openOnce, 2100);
-      return;
-    }
-
-    openOnce();
   };
 
   return (
