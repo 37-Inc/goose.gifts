@@ -120,6 +120,11 @@ test('the single client adapter preserves destinations and disables broad captur
   assert.match(adapter, /disable_session_recording: true/);
   assert.match(adapter, /disable_surveys: true/);
   assert.match(adapter, /respect_dnt: true/);
+  assert.match(adapter, /POSTHOG_ALLOWED_PROPERTIES/);
+  assert.match(adapter, /EXPLICIT_EVENT_NAMES/);
+  assert.match(adapter, /before_send:/);
+  assert.match(adapter, /\$set: undefined/);
+  assert.match(adapter, /\$set_once: undefined/);
   assert.match(layout, /<AnalyticsProvider \/>/);
   assert.doesNotMatch(layout, /googletagmanager/);
 
