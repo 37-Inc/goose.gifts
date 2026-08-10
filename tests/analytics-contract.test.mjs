@@ -127,6 +127,7 @@ test('the single client adapter preserves destinations and disables broad captur
   assert.match(adapter, /before_send:/);
   assert.match(adapter, /\$set: undefined/);
   assert.match(adapter, /\$set_once: undefined/);
+  assert.match(adapter, /\$geoip_disable: true/);
   assert.match(layout, /<AnalyticsProvider \/>/);
   assert.doesNotMatch(layout, /googletagmanager/);
 

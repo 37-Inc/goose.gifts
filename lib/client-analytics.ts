@@ -156,10 +156,13 @@ function initializePostHog(): Promise<typeof import('posthog-js').default | unde
 
         return {
           ...event,
-          properties: Object.fromEntries(
-            Object.entries(event.properties || {})
-              .filter(([key]) => POSTHOG_ALLOWED_PROPERTIES.has(key))
-          ),
+          properties: {
+            ...Object.fromEntries(
+              Object.entries(event.properties || {})
+                .filter(([key]) => POSTHOG_ALLOWED_PROPERTIES.has(key))
+            ),
+            $geoip_disable: true,
+          },
           $set: undefined,
           $set_once: undefined,
         };
