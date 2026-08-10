@@ -113,6 +113,8 @@ test('the single client adapter preserves destinations and disables broad captur
 
   assert.match(adapter, /G-6RR3HPR747/);
   assert.match(adapter, /AW-17626116539/);
+  assert.match(adapter, /push\(arguments\)/);
+  assert.match(adapter, /page_referrer: ''/);
   assert.match(adapter, /autocapture: false/);
   assert.match(adapter, /capture_pageview: false/);
   assert.match(adapter, /capture_pageleave: false/);

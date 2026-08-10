@@ -52,7 +52,7 @@ declare global {
   }
 
   interface Window {
-    dataLayer?: unknown[][];
+    dataLayer?: unknown[];
     doNotTrack?: string | null;
     gtag?: Gtag;
   }
@@ -80,9 +80,11 @@ function initializeGoogle() {
   }
 
   window.dataLayer = window.dataLayer || [];
-  window.gtag = window.gtag || ((...args: unknown[]) => {
-    window.dataLayer?.push(args);
-  });
+  window.gtag = window.gtag || function gtag() {
+    // Google Tag explicitly requires the function's Arguments object here.
+    // eslint-disable-next-line prefer-rest-params
+    window.dataLayer?.push(arguments);
+  };
   window.gtag('js', new Date());
   window.gtag('config', GA4_MEASUREMENT_ID, { send_page_view: false });
   window.gtag('config', GOOGLE_ADS_ID, { send_page_view: false });
@@ -190,6 +192,7 @@ function dispatchEvent(
   const properties = {
     ...event.properties,
     page_location: getSanitizedPageLocation(event.properties.pathname),
+    page_referrer: '',
   };
 
   if (!window.gtag) {
