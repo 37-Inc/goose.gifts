@@ -1363,7 +1363,7 @@ async function revalidateCatalog(options, telemetry) {
   const affiliateAudit = await auditAndRepairAmazonAffiliateUrls(options);
   const existing = await getProductsForRevalidation(options.revalidateLimit, options.staleDays);
   existing.forEach((product) => recordExistingSelection(telemetry, product, 'revalidation'));
-  await telemetry?.items.flush();
+  await telemetry.items.flush();
   let refreshed = 0;
   let confirmedMissing = 0;
   let markedUnavailable = 0;
@@ -1378,7 +1378,7 @@ async function revalidateCatalog(options, telemetry) {
     } catch (error) {
       if (isAmazonThrottleError(error)) {
         throttled = true;
-        telemetry?.warnings.push({ phase: 'revalidation', reasonCode: 'provider_throttled', message: redactTelemetryText(error.message) });
+        telemetry.warnings.push({ phase: 'revalidation', reasonCode: 'provider_throttled', message: redactTelemetryText(error.message) });
         console.warn('Stopping revalidation after Amazon throttling; remaining products were left unchanged.');
         break;
       }
@@ -1397,10 +1397,10 @@ async function revalidateCatalog(options, telemetry) {
         confirmedPresent.forEach((product, id) => remoteById.set(id, product));
         confirmedIds = missing.filter((product) => !confirmedPresent.has(product.id)).map((product) => product.id);
       } catch (error) {
-        telemetry?.warnings.push({ phase: 'revalidation', reasonCode: 'missing_confirmation_failed', message: redactTelemetryText(error.message) });
+        telemetry.warnings.push({ phase: 'revalidation', reasonCode: 'missing_confirmation_failed', message: redactTelemetryText(error.message) });
         missing.forEach((product) => {
           terminalIds.add(product.id);
-          telemetry?.items.record(product, {
+          telemetry.items.record(product, {
             phase: 'revalidation',
             stage: 'availability_confirmation',
             decision: 'deferred',
@@ -1422,7 +1422,7 @@ async function revalidateCatalog(options, telemetry) {
       if (!options.dryRun) persistence = await upsertProduct(refreshedProduct);
       refreshedProduct.slug = persistence.slug || refreshedProduct.slug;
       terminalIds.add(product.id);
-      telemetry?.items.record(refreshedProduct, {
+      telemetry.items.record(refreshedProduct, {
         phase: 'revalidation',
         stage: 'persistence',
         decision: refreshedProduct.isActive ? 'refreshed' : 'unavailable',
@@ -1444,7 +1444,7 @@ async function revalidateCatalog(options, telemetry) {
     for (const id of confirmedIds) {
       terminalIds.add(id);
       const product = batch.find((candidate) => candidate.id === id) || { id };
-      telemetry?.items.record(product, {
+      telemetry.items.record(product, {
         phase: 'revalidation',
         stage: 'availability_confirmation',
         decision: deactivatedSet.has(id) ? 'deactivated' : 'unavailable',
@@ -1454,12 +1454,12 @@ async function revalidateCatalog(options, telemetry) {
         affiliateUrl: product.affiliate_url,
       });
     }
-    await telemetry?.items.flush();
+    await telemetry.items.flush();
     await sleep(1200);
   }
 
   for (const product of existing.filter((candidate) => !terminalIds.has(candidate.id))) {
-    telemetry?.items.record(product, {
+    telemetry.items.record(product, {
       phase: 'revalidation',
       stage: 'provider',
       decision: 'deferred',
@@ -1469,8 +1469,8 @@ async function revalidateCatalog(options, telemetry) {
       affiliateUrl: product.affiliate_url,
     });
   }
-  await telemetry?.items.flush();
-  addTiming(telemetry?.timingsMs, 'revalidation', Date.now() - phaseStartedAt);
+  await telemetry.items.flush();
+  addTiming(telemetry.timingsMs, 'revalidation', Date.now() - phaseStartedAt);
 
   return { selected: existing.length, refreshed, confirmedMissing, markedUnavailable, deactivated, throttled, affiliateAudit };
 }
@@ -1606,7 +1606,7 @@ async function refreshProductsForEditorial(products, options, telemetry) {
     } catch (error) {
       if (isAmazonThrottleError(error)) {
         throttled = true;
-        telemetry?.warnings.push({ phase: 'backfill_refresh', reasonCode: 'provider_throttled', message: redactTelemetryText(error.message) });
+        telemetry.warnings.push({ phase: 'backfill_refresh', reasonCode: 'provider_throttled', message: redactTelemetryText(error.message) });
         break;
       }
       throw error;
@@ -1624,7 +1624,7 @@ async function refreshProductsForEditorial(products, options, telemetry) {
           .filter((product) => !confirmedById.has(product.id))
           .map((product) => product.id));
       } catch (error) {
-        telemetry?.warnings.push({ phase: 'backfill_refresh', reasonCode: 'missing_confirmation_failed', message: redactTelemetryText(error.message) });
+        telemetry.warnings.push({ phase: 'backfill_refresh', reasonCode: 'missing_confirmation_failed', message: redactTelemetryText(error.message) });
         missing.forEach((product) => deferredIds.add(product.id));
         console.warn(`Could not confirm ${missing.length} missing editorial candidates; leaving them unchanged: ${error.message}`);
       }
@@ -1635,7 +1635,7 @@ async function refreshProductsForEditorial(products, options, telemetry) {
       if (remote) {
         const product = revalidatedProduct(existing, remote, options);
         refreshed.push(product);
-        telemetry?.items.record(product, {
+        telemetry.items.record(product, {
           phase: 'backfill',
           stage: 'source_refresh',
           decision: 'source_refreshed',
@@ -1650,7 +1650,7 @@ async function refreshProductsForEditorial(products, options, telemetry) {
   const markedUnavailableIds = await markConfirmedMissingUnavailable(confirmedMissingIds, options.dryRun);
   for (const id of confirmedMissingIds) {
     const product = products.find((candidate) => candidate.id === id) || { id };
-    telemetry?.items.record(product, {
+    telemetry.items.record(product, {
       phase: 'backfill',
       stage: 'availability_confirmation',
       decision: 'unavailable',
@@ -1661,7 +1661,7 @@ async function refreshProductsForEditorial(products, options, telemetry) {
   const refreshedIds = new Set(refreshed.map((product) => product.id));
   const confirmedSet = new Set(confirmedMissingIds);
   for (const product of products.filter((candidate) => !refreshedIds.has(candidate.id) && !confirmedSet.has(candidate.id))) {
-    telemetry?.items.record(product, {
+    telemetry.items.record(product, {
       phase: 'backfill',
       stage: 'source_refresh',
       decision: 'deferred',
@@ -1669,8 +1669,8 @@ async function refreshProductsForEditorial(products, options, telemetry) {
       nextAction: 'No owner action; retry automatically in a later bounded cohort.',
     });
   }
-  await telemetry?.items.flush();
-  addTiming(telemetry?.timingsMs, 'backfill_refresh', Date.now() - phaseStartedAt);
+  await telemetry.items.flush();
+  addTiming(telemetry.timingsMs, 'backfill_refresh', Date.now() - phaseStartedAt);
   return {
     products: refreshed,
     confirmedMissingIds,
@@ -2219,12 +2219,17 @@ async function main() {
   const runId = options.runId || randomUUID();
   const telemetryEnabled = !options.dryRun && Boolean(process.env.POSTGRES_URL);
   const ownsRun = telemetryEnabled && !options.managedRun;
+  const telemetryWarnings = [];
   const telemetry = {
     runId,
     usage: createUsageLedger(),
     timingsMs: {},
-    warnings: [],
-    items: createRunItemCollector({ runId, enabled: telemetryEnabled }),
+    warnings: telemetryWarnings,
+    items: createRunItemCollector({
+      runId,
+      enabled: telemetryEnabled,
+      warnings: telemetryWarnings,
+    }),
   };
   const startedAt = Date.now();
 

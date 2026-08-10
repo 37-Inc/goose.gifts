@@ -26,6 +26,17 @@ const notify = !args.has('--no-notify') && !dryRun;
 const marketingTarget = process.env.GOOSE_CATALOG_SLACK_TARGET || 'C0AGRSTBP5H';
 const openClawBinary = process.env.OPENCLAW_BIN
   || (fs.existsSync('/opt/homebrew/bin/openclaw') ? '/opt/homebrew/bin/openclaw' : 'openclaw');
+const WEEKLY_REVALIDATION = {
+  revalidateLimit: 50,
+  staleDays: 30,
+  deactivateAfterDays: 90,
+};
+const WEEKLY_DISCOVERY = {
+  themeLimit: 6,
+  perTheme: 10,
+  maxNew: 20,
+  minQualityScore: 0.65,
+};
 
 function parseFinalJson(output) {
   const start = output.lastIndexOf('\n{');
@@ -125,6 +136,7 @@ async function main() {
   const runId = randomUUID();
   const telemetryEnabled = !dryRun && Boolean(process.env.POSTGRES_URL);
   const runTrigger = process.env.CATALOG_RUN_TRIGGER || 'scheduled';
+  const backfillLimit = Number(process.env.CATALOG_ENRICH_EXISTING_LIMIT || 25);
   const managedRunArgs = telemetryEnabled
     ? ['--run-id', runId, '--run-mode', 'weekly', '--run-trigger', runTrigger, '--managed-run']
     : [];
@@ -142,31 +154,27 @@ async function main() {
         dryRun,
         gitSha: getGitRevision(),
         config: {
-          backfillLimit: Number(process.env.CATALOG_ENRICH_EXISTING_LIMIT || 25),
-          revalidateLimit: 50,
-          staleDays: 30,
-          deactivateAfterDays: 90,
-          themeLimit: 6,
-          perTheme: 10,
-          maxNew: 20,
-          minQualityScore: 0.65,
+          backfillLimit,
+          ...WEEKLY_REVALIDATION,
+          ...WEEKLY_DISCOVERY,
         },
       });
       runStarted = true;
     }
     revalidation = runCatalog([
       '--revalidate',
-      '--revalidate-limit', '50',
-      '--stale-days', '30',
-      '--deactivate-after-days', '90',
+      '--revalidate-limit', String(WEEKLY_REVALIDATION.revalidateLimit),
+      '--stale-days', String(WEEKLY_REVALIDATION.staleDays),
+      '--deactivate-after-days', String(WEEKLY_REVALIDATION.deactivateAfterDays),
       ...managedRunArgs,
       ...sharedDryRunArgs,
     ]);
     discovery = runCatalog([
-      '--theme-limit', '6',
-      '--per-theme', '10',
-      '--max-new', '20',
-      '--min-quality-score', '0.65',
+      '--theme-limit', String(WEEKLY_DISCOVERY.themeLimit),
+      '--per-theme', String(WEEKLY_DISCOVERY.perTheme),
+      '--max-new', String(WEEKLY_DISCOVERY.maxNew),
+      '--min-quality-score', String(WEEKLY_DISCOVERY.minQualityScore),
+      '--backfill-limit', String(backfillLimit),
       ...managedRunArgs,
       ...sharedDryRunArgs,
     ]);

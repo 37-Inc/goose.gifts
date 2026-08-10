@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import test from 'node:test';
 import {
   catalogRunItem,
+  createRunItemCollector,
   createUsageLedger,
   finalizeUsageLedger,
   formatCatalogRunReport,
@@ -149,6 +150,30 @@ test('reason codes are normalized to the database width without risking run pers
   });
   assert.equal(item.reasonCode.length, 64);
   assert.match(item.reasonCode, /^[a-z0-9_]+$/);
+});
+
+test('item telemetry failures stay retryable and do not abort observed catalog work', async () => {
+  const warnings = [];
+  let attempts = 0;
+  const collector = createRunItemCollector({
+    runId: '11111111-1111-1111-1111-111111111111',
+    warnings,
+    writeItems: async (_runId, items) => {
+      attempts += 1;
+      assert.equal(items.length, 1);
+      if (attempts === 1) throw new Error('authorization=should-not-leak');
+    },
+  });
+  collector.record({ id: 'B012345678', title: 'Retryable item' }, { decision: 'selected' });
+
+  await collector.flush();
+  assert.equal(collector.size, 1);
+  assert.equal(warnings.length, 1);
+  assert.equal(warnings[0].message, 'authorization=[REDACTED]');
+
+  await collector.flush();
+  assert.equal(collector.size, 0);
+  assert.equal(attempts, 2);
 });
 
 test('report CLI rejects missing and invalid option values', () => {

@@ -222,7 +222,12 @@ export function catalogRunItem(product = {}, fields = {}) {
   };
 }
 
-export function createRunItemCollector({ runId, enabled = true } = {}) {
+export function createRunItemCollector({
+  runId,
+  enabled = true,
+  warnings = [],
+  writeItems = insertCatalogRunItems,
+} = {}) {
   const pending = [];
   return {
     record(product, fields) {
@@ -236,8 +241,17 @@ export function createRunItemCollector({ runId, enabled = true } = {}) {
         pending.length = 0;
         return;
       }
-      const items = pending.splice(0, pending.length);
-      await insertCatalogRunItems(runId, items);
+      const items = pending.slice();
+      try {
+        await writeItems(runId, items);
+        pending.splice(0, items.length);
+      } catch (error) {
+        warnings.push({
+          phase: 'telemetry',
+          reasonCode: 'run_item_insert_failed',
+          message: redactTelemetryText(error instanceof Error ? error.message : error),
+        });
+      }
     },
   };
 }
@@ -317,7 +331,8 @@ export async function insertCatalogRunItems(runId, items) {
          id, run_id, phase, stage, decision, reason_code, product_id, external_id, source,
          source_query, title, image_url, affiliate_url, canonical_path, winner_product_id,
          source_facts_hash, editorial_source_hash, requires_manual_review, next_action, details
-       ) VALUES ${rows.join(', ')}`,
+       ) VALUES ${rows.join(', ')}
+       ON CONFLICT (id) DO NOTHING`,
       values
     );
   }
