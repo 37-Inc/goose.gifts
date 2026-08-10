@@ -6,6 +6,8 @@ import {
   createUsageLedger,
   finalizeUsageLedger,
   formatCatalogRunReport,
+  formatEstimatedCatalogRunCost,
+  formatManualReviewQueue,
   latestRunItemStates,
   manualInterventionItems,
   mergeUsageReports,
@@ -15,6 +17,7 @@ import {
   sanitizeTelemetryValue,
 } from '../scripts/ops/catalog-telemetry.mjs';
 import { splitMigrationStatements } from '../scripts/ops/apply-catalog-telemetry-migration.mjs';
+import { parseArgs as parseReportArgs } from '../scripts/ops/catalog-report.mjs';
 
 test('provider usage aggregates exact tokens and dated public price estimates', () => {
   const ledger = createUsageLedger();
@@ -56,6 +59,8 @@ test('unknown model usage remains visible and is never assigned a fabricated cos
   assert.equal(report.models['custom-editor-v9'].estimatedCostUsd, null);
   assert.equal(report.estimateComplete, false);
   assert.deepEqual(report.unpricedModels, ['custom-editor-v9']);
+  assert.equal(formatEstimatedCatalogRunCost({ usage: report, estimated_cost_usd: 0 }), '$0.000000 (partial; unpriced: custom-editor-v9)');
+  assert.equal(formatEstimatedCatalogRunCost({ usage: {} }), 'unpriced');
 });
 
 test('telemetry redacts credentials and allowlists run configuration', () => {
@@ -91,6 +96,7 @@ test('append-only histories fold deterministically into exact manual interventio
   const selected = {
     ...catalogRunItem(product, { phase: 'backfill', stage: 'selection', decision: 'selected' }),
     id: 'a',
+    sequence: 1,
     created_at: '2026-08-10T01:00:00Z',
   };
   const needsReview = {
@@ -103,6 +109,7 @@ test('append-only histories fold deterministically into exact manual interventio
       nextAction: 'Check the source facts.',
     }),
     id: 'b',
+    sequence: 2,
     created_at: '2026-08-10T01:01:00Z',
   };
   const items = [needsReview, selected];
@@ -129,6 +136,34 @@ test('append-only histories fold deterministically into exact manual interventio
   assert.match(first, /Latest reason codes: \{"unsupported_material_claim":1\}/);
   assert.match(first, /https:\/\/www\.goose\.gifts\/gifts\/ridiculous-desk-goat/);
   assert.match(first, /unsupported_material_claim/);
+  const queue = formatManualReviewQueue(run, items);
+  assert.match(queue, /Manual intervention: 1/);
+  assert.match(queue, /unsupported_material_claim/);
+  assert.doesNotMatch(queue, /Counts:/);
+  assert.doesNotMatch(queue, /Latest item outcomes:/);
+});
+
+test('reason codes are normalized to the database width without risking run persistence', () => {
+  const item = catalogRunItem({ id: 'B012345678' }, {
+    reasonCode: 'A very long reviewer explanation '.repeat(10),
+  });
+  assert.equal(item.reasonCode.length, 64);
+  assert.match(item.reasonCode, /^[a-z0-9_]+$/);
+});
+
+test('report CLI rejects missing and invalid option values', () => {
+  assert.throws(() => parseReportArgs(['--run']), /requires a value/);
+  assert.throws(() => parseReportArgs(['--run', '--json']), /requires a value/);
+  assert.throws(() => parseReportArgs(['--limit']), /requires a value/);
+  assert.throws(() => parseReportArgs(['--limit', 'nope']), /positive integer/);
+  assert.throws(() => parseReportArgs(['--limit', '0']), /positive integer/);
+  assert.deepEqual(parseReportArgs(['--limit', '5', '--json']), {
+    json: true,
+    latest: false,
+    manualReview: false,
+    limit: 5,
+    runId: null,
+  });
 });
 
 test('partial runs surface selected-but-unfinished candidates as interrupted work', () => {
@@ -151,9 +186,12 @@ test('telemetry migration keeps legacy editorial history independent of product 
     new URL('../lib/db/migrations/0007_add_catalog_run_telemetry.sql', import.meta.url),
     'utf8'
   );
+  const statements = splitMigrationStatements(migration);
   assert.match(migration, /catalog_run_items/);
+  assert.match(statements[3], /CREATE TABLE IF NOT EXISTS "catalog_run_items" \([\s\S]+"sequence" bigserial NOT NULL/);
+  assert.doesNotMatch(statements[0], /"sequence" bigserial NOT NULL/);
   assert.match(migration, /DROP CONSTRAINT IF EXISTS "catalog_editorial_events_product_id_products_id_fk"/);
   assert.match(migration, /DROP CONSTRAINT IF EXISTS "catalog_editorial_events_product_id_fkey"/);
   assert.doesNotMatch(migration, /catalog_run_items[\s\S]+product_id[^\n]+REFERENCES "products"/);
-  assert.equal(splitMigrationStatements(migration).length, 9);
+  assert.equal(statements.length, 9);
 });

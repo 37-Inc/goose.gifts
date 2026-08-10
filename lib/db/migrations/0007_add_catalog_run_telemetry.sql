@@ -29,6 +29,7 @@ CREATE INDEX IF NOT EXISTS "catalog_runs_status_idx" ON "catalog_runs" ("status"
 -- later removed. Product IDs are intentionally not foreign keys.
 CREATE TABLE IF NOT EXISTS "catalog_run_items" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "sequence" bigserial NOT NULL,
   "run_id" uuid NOT NULL REFERENCES "catalog_runs"("id") ON DELETE CASCADE,
   "phase" varchar(32) NOT NULL,
   "stage" varchar(32) NOT NULL,
@@ -50,7 +51,7 @@ CREATE TABLE IF NOT EXISTS "catalog_run_items" (
   "details" jsonb DEFAULT '{}'::jsonb NOT NULL,
   "created_at" timestamp DEFAULT now() NOT NULL
 );--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS "catalog_run_items_run_id_idx" ON "catalog_run_items" ("run_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "catalog_run_items_run_id_idx" ON "catalog_run_items" ("run_id", "sequence");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "catalog_run_items_external_id_idx" ON "catalog_run_items" ("external_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "catalog_run_items_decision_idx" ON "catalog_run_items" ("decision");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "catalog_run_items_manual_review_idx"

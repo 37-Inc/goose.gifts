@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, integer, jsonb, timestamp, index, numeric, boolean, vector } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, integer, bigserial, jsonb, timestamp, index, numeric, boolean, vector } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
 // Legacy bundle tables are kept mapped until a destructive database cleanup
@@ -149,6 +149,7 @@ export const catalogRuns = pgTable('catalog_runs', {
 // key so rejected discoveries and later-deleted products keep their history.
 export const catalogRunItems = pgTable('catalog_run_items', {
   id: uuid('id').primaryKey().defaultRandom(),
+  sequence: bigserial('sequence', { mode: 'number' }).notNull(),
   runId: uuid('run_id').notNull().references(() => catalogRuns.id, { onDelete: 'cascade' }),
   phase: varchar('phase', { length: 32 }).notNull(),
   stage: varchar('stage', { length: 32 }).notNull(),
@@ -170,7 +171,7 @@ export const catalogRunItems = pgTable('catalog_run_items', {
   details: jsonb('details').$type<Record<string, unknown>>().notNull().default({}),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
-  runIdIdx: index('catalog_run_items_run_id_idx').on(table.runId),
+  runIdIdx: index('catalog_run_items_run_id_idx').on(table.runId, table.sequence),
   externalIdIdx: index('catalog_run_items_external_id_idx').on(table.externalId),
   decisionIdx: index('catalog_run_items_decision_idx').on(table.decision),
   manualReviewIdx: index('catalog_run_items_manual_review_idx')

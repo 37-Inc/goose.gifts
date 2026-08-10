@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   finishCatalogRun,
+  formatEstimatedCatalogRunCost,
   getGitRevision,
   mergeUsageReports,
   redactTelemetryText,
@@ -81,7 +82,7 @@ function formatReport(discovery, revalidation, run = {}) {
 
   return [
     `🪿 goose.gifts weekly catalog run ${status}`,
-    `Run: ${run.id || discovery.telemetry?.runId || 'dry-run'}${run.estimatedCostUsd !== undefined ? ` | estimated API cost: $${Number(run.estimatedCostUsd).toFixed(6)}` : ''}`,
+    `Run: ${run.id || discovery.telemetry?.runId || 'dry-run'}${run.estimatedCostUsd !== undefined || run.usage ? ` | estimated API cost: ${formatEstimatedCatalogRunCost(run)}` : ''}`,
     '',
     `Discovery: ${discovery.discoveredCandidates} fetched, ${discovery.qualityRejected} quality-rejected, `
       + `${discovery.duplicatesFiltered} duplicates filtered, ${retained} retained`,
@@ -183,6 +184,7 @@ async function main() {
     const report = formatReport(discovery, revalidation, {
       id: runId,
       estimatedCostUsd: usage.estimatedCostUsd,
+      usage,
     });
     console.log(`\n${report}`);
     if (notify) {
@@ -206,6 +208,7 @@ async function main() {
               'discoveredCandidates', 'rawCandidates', 'qualityRejected',
               'duplicatesFiltered', 'inserted', 'updated', 'backfilled',
               'discoveryReady', 'discoveryNeedsReview', 'manualIntervention',
+              'themes',
             ]),
             backfill: discovery.backfill,
           },
@@ -220,39 +223,44 @@ async function main() {
   } catch (error) {
     if (runStarted && !notificationError) {
       const usage = mergeUsageReports([revalidation?.telemetry?.usage, discovery?.telemetry?.usage]);
-      await finishCatalogRun(runId, {
-        status: revalidation || discovery ? 'partial' : 'failed',
-        counts: {
-          revalidation: revalidation ? phaseCounts(revalidation, [
-            'selected', 'refreshed', 'confirmedMissing', 'markedUnavailable',
-            'deactivated', 'throttled', 'affiliateAudit',
-          ]) : null,
-          discovery: discovery ? {
-            ...phaseCounts(discovery, [
-              'discoveredCandidates', 'rawCandidates', 'qualityRejected',
-              'duplicatesFiltered', 'inserted', 'updated', 'backfilled',
-              'discoveryReady', 'discoveryNeedsReview', 'manualIntervention',
-            ]),
-            backfill: discovery.backfill,
-          } : null,
-        },
-        timingsMs: {
-          revalidation: revalidation?.telemetry?.timingsMs?.total || 0,
-          discovery: discovery?.telemetry?.timingsMs?.total || 0,
-        },
-        usage,
-        warnings: [
-          ...(revalidation?.telemetry?.warnings || []),
-          ...(discovery?.telemetry?.warnings || []),
-        ],
-        error,
-      });
+      try {
+        await finishCatalogRun(runId, {
+          status: revalidation || discovery ? 'partial' : 'failed',
+          counts: {
+            revalidation: revalidation ? phaseCounts(revalidation, [
+              'selected', 'refreshed', 'confirmedMissing', 'markedUnavailable',
+              'deactivated', 'throttled', 'affiliateAudit',
+            ]) : null,
+            discovery: discovery ? {
+              ...phaseCounts(discovery, [
+                'discoveredCandidates', 'rawCandidates', 'qualityRejected',
+                'duplicatesFiltered', 'inserted', 'updated', 'backfilled',
+                'discoveryReady', 'discoveryNeedsReview', 'manualIntervention',
+                'themes',
+              ]),
+              backfill: discovery.backfill,
+            } : null,
+          },
+          timingsMs: {
+            revalidation: revalidation?.telemetry?.timingsMs?.total || 0,
+            discovery: discovery?.telemetry?.timingsMs?.total || 0,
+          },
+          usage,
+          warnings: [
+            ...(revalidation?.telemetry?.warnings || []),
+            ...(discovery?.telemetry?.warnings || []),
+          ],
+          error,
+        });
+      } catch (telemetryError) {
+        console.error(`Catalog telemetry finalization failed: ${redactTelemetryText(telemetryError.message)}`);
+      }
     }
     if (notify) {
       try {
-        sendOpenClaw(`🪿 goose.gifts weekly catalog run failed\n${error.message}`);
+        sendOpenClaw(`🪿 goose.gifts weekly catalog run failed\n${redactTelemetryText(error.message)}`);
       } catch (notificationError) {
-        console.error(notificationError.message);
+        console.error(redactTelemetryText(notificationError.message));
       }
     }
     throw error;
@@ -262,7 +270,7 @@ async function main() {
 const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isDirectRun) {
   main().catch((error) => {
-    console.error(error.message);
+    console.error(redactTelemetryText(error.message));
     process.exitCode = 1;
   });
 }

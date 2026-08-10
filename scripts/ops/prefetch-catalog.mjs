@@ -819,8 +819,8 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
         ...(reviewCandidates.some((candidate) => candidate.id === product.id) && !review.approved && !reviewFailure
           ? ['editorial_review_not_approved']
           : []),
-        ...(Array.isArray(review.reasons) ? review.reasons.map(String) : []),
         ...validation.reasons,
+        ...(Array.isArray(review.reasons) ? review.reasons.map(String) : []),
       ];
 
       if (approved) reviewedWriteups.push(editorialWriteup);
@@ -1811,7 +1811,26 @@ function catalogResultCounts(result) {
   }
   if (result?.backfill) counts.backfill = result.backfill;
   if (result?.affiliateAudit) counts.affiliateAudit = result.affiliateAudit;
+  if (Array.isArray(result?.themes)) counts.themes = result.themes;
   return counts;
+}
+
+function persistenceOutcome(product, options, readyStatuses = ['generated_ready']) {
+  const status = product.editorialStatus;
+  const skipped = status === 'pending' && options.skipEnrichment;
+  const ready = readyStatuses.includes(status);
+  return {
+    decision: ready ? 'ready' : skipped ? 'persisted' : status || 'persisted',
+    reasonCode: status === 'generated_ready'
+      ? 'editorial_approved'
+      : skipped
+        ? 'enrichment_skipped'
+        : product.editorialBlockReason || status || 'catalog_persisted',
+    requiresManualReview: status === 'needs_review',
+    nextAction: status === 'needs_review'
+      ? 'Review the source facts and draft; approve a corrected version or leave the page held.'
+      : 'No owner action; indexing eligibility remains governed by the shared factual gate.',
+  };
 }
 
 async function executeCatalog(options, editorialSeedProducts, telemetry) {
@@ -1935,24 +1954,11 @@ async function executeCatalog(options, editorialSeedProducts, telemetry) {
         const persistence = await upsertProduct(product);
         product.slug = persistence.slug || product.slug;
         await recordEditorialEvent(telemetry.runId, product, 'enriched');
-        const finalDecision = product.editorialStatus === 'generated_ready' || product.editorialStatus === 'manual_locked'
-          ? 'ready'
-          : product.editorialStatus === 'pending' && options.skipEnrichment
-            ? 'persisted'
-            : product.editorialStatus;
+        const outcome = persistenceOutcome(product, options, ['generated_ready', 'manual_locked']);
         telemetry.items.record(product, {
           phase: 'backfill',
           stage: 'persistence',
-          decision: finalDecision,
-          reasonCode: product.editorialStatus === 'generated_ready'
-            ? 'editorial_approved'
-            : product.editorialStatus === 'pending' && options.skipEnrichment
-              ? 'enrichment_skipped'
-              : product.editorialBlockReason || product.editorialStatus,
-          requiresManualReview: product.editorialStatus === 'needs_review',
-          nextAction: product.editorialStatus === 'needs_review'
-            ? 'Review the source facts and draft; approve a corrected version or leave the page held.'
-            : 'No owner action; indexing eligibility remains governed by the shared factual gate.',
+          ...outcome,
           details: {
             editorialQualityScore: product.editorialQualityScore,
             model: product.editorialModel,
@@ -2131,24 +2137,11 @@ async function executeCatalog(options, editorialSeedProducts, telemetry) {
     await recordEditorialEvent(telemetry.runId, product, 'discovered');
     if (persistence.inserted) inserted += 1;
     else updated += 1;
-    const finalDecision = product.editorialStatus === 'generated_ready'
-      ? 'ready'
-      : product.editorialStatus === 'pending' && options.skipEnrichment
-        ? 'persisted'
-        : product.editorialStatus || 'persisted';
+    const outcome = persistenceOutcome(product, options);
     telemetry.items.record(product, {
       phase: 'discovery',
       stage: 'persistence',
-      decision: finalDecision,
-      reasonCode: product.editorialStatus === 'generated_ready'
-        ? 'editorial_approved'
-        : product.editorialStatus === 'pending' && options.skipEnrichment
-          ? 'enrichment_skipped'
-          : product.editorialBlockReason || 'catalog_persisted',
-      requiresManualReview: product.editorialStatus === 'needs_review',
-      nextAction: product.editorialStatus === 'needs_review'
-        ? 'Review the source facts and draft; approve a corrected version or leave the page held.'
-        : 'No owner action.',
+      ...outcome,
       details: {
         inserted: persistence.inserted,
         editorialQualityScore: product.editorialQualityScore,
@@ -2273,13 +2266,17 @@ async function main() {
     }
     addTiming(telemetry.timingsMs, 'total', Date.now() - startedAt);
     if (ownsRun) {
-      await finishCatalogRun(runId, {
-        status: 'failed',
-        timingsMs: telemetry.timingsMs,
-        usage: finalizeUsageLedger(telemetry.usage),
-        warnings: telemetry.warnings,
-        error,
-      });
+      try {
+        await finishCatalogRun(runId, {
+          status: 'failed',
+          timingsMs: telemetry.timingsMs,
+          usage: finalizeUsageLedger(telemetry.usage),
+          warnings: telemetry.warnings,
+          error,
+        });
+      } catch (telemetryError) {
+        console.error(`Catalog telemetry finalization failed: ${redactTelemetryText(telemetryError.message)}`);
+      }
     }
     throw error;
   }
@@ -2288,7 +2285,7 @@ async function main() {
 const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isDirectRun) {
   main().catch((error) => {
-    console.error(error);
+    console.error(redactTelemetryText(error instanceof Error ? error.message : error));
     process.exitCode = 1;
   });
 }

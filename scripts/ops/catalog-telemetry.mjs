@@ -191,7 +191,13 @@ export function addTiming(timings, phase, elapsedMs) {
 }
 
 export function catalogRunItem(product = {}, fields = {}) {
-  const reasonCode = String(fields.reasonCode || product.editorialBlockReason || '').split(',')[0].trim() || null;
+  const reasonCode = String(fields.reasonCode || product.editorialBlockReason || '')
+    .split(',')[0]
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 64) || null;
   const slug = fields.slug || product.slug || null;
   return {
     id: randomUUID(),
@@ -248,7 +254,7 @@ export async function startCatalogRun({
     `INSERT INTO catalog_runs (
        id, telemetry_version, mode, trigger, status, dry_run, git_sha, config, started_at, updated_at
      ) VALUES ($1, $2, $3, $4, 'running', $5, $6, $7::jsonb, NOW(), NOW())
-     ON CONFLICT (id) DO NOTHING`,
+     `,
     [id, CATALOG_TELEMETRY_VERSION, mode || 'catalog', trigger, dryRun, gitSha, JSON.stringify(safeCatalogConfig(config))]
   );
   return id;
@@ -263,7 +269,7 @@ export async function finishCatalogRun(runId, {
   error,
 } = {}) {
   const safeError = error ? redactTelemetryText(error instanceof Error ? error.message : error) : null;
-  await sql.query(
+  const result = await sql.query(
     `UPDATE catalog_runs
      SET status = $2,
          completed_at = NOW(),
@@ -286,6 +292,7 @@ export async function finishCatalogRun(runId, {
       safeError,
     ]
   );
+  if (result.rowCount !== 1) throw new Error(`Catalog run finalization updated ${result.rowCount || 0} rows.`);
 }
 
 export async function insertCatalogRunItems(runId, items) {
@@ -319,7 +326,8 @@ export async function insertCatalogRunItems(runId, items) {
 export function latestRunItemStates(items = []) {
   const latest = new Map();
   const sorted = [...items].sort((left, right) => (
-    new Date(left.created_at || left.createdAt || 0).getTime()
+    Number(left.sequence || 0) - Number(right.sequence || 0)
+      || new Date(left.created_at || left.createdAt || 0).getTime()
       - new Date(right.created_at || right.createdAt || 0).getTime()
       || String(left.id || '').localeCompare(String(right.id || ''))
   ));
@@ -350,6 +358,38 @@ function compactJson(value) {
   return JSON.stringify(value || {});
 }
 
+export function formatEstimatedCatalogRunCost(run = {}) {
+  const usage = run.usage || {};
+  const rawEstimate = run.estimated_cost_usd ?? run.estimatedCostUsd ?? usage.estimatedCostUsd;
+  if (rawEstimate === null || rawEstimate === undefined || !Number.isFinite(Number(rawEstimate))) {
+    return 'unpriced';
+  }
+  const partial = usage.estimateComplete === false;
+  const unpriced = Array.isArray(usage.unpricedModels) && usage.unpricedModels.length > 0
+    ? `; unpriced: ${usage.unpricedModels.join(', ')}`
+    : '';
+  return `$${Number(rawEstimate).toFixed(6)}${partial ? ` (partial${unpriced})` : ''}`;
+}
+
+function manualItemLines(item) {
+  const lines = [`- ${item.title || item.external_id || item.externalId}`];
+  lines.push(`  phase/decision: ${item.phase}/${item.effectiveDecision}`);
+  lines.push(`  reason: ${item.reason_code || item.reasonCode || 'unspecified'}`);
+  if (item.canonical_path || item.canonicalPath) lines.push(`  page: https://www.goose.gifts${item.canonical_path || item.canonicalPath}`);
+  if (item.image_url || item.imageUrl) lines.push(`  image: ${item.image_url || item.imageUrl}`);
+  if (item.affiliate_url || item.affiliateUrl) lines.push(`  retailer: ${item.affiliate_url || item.affiliateUrl}`);
+  lines.push(`  next: ${item.effectiveNextAction}`);
+  return lines;
+}
+
+export function formatManualReviewQueue(run, items = []) {
+  const manual = manualInterventionItems(run, items);
+  const lines = [`Catalog run ${run.id}`, `Manual intervention: ${manual.length}`];
+  if (manual.length === 0) return [...lines, 'No owner action is required.'].join('\n');
+  for (const item of manual) lines.push('', ...manualItemLines(item));
+  return lines.join('\n');
+}
+
 export function formatCatalogRunReport(run, items = []) {
   const latestItems = latestRunItemStates(items);
   const manual = manualInterventionItems(run, items);
@@ -371,19 +411,12 @@ export function formatCatalogRunReport(run, items = []) {
     `Latest reason codes: ${compactJson(reasonTotals)}`,
     `Timings (ms): ${compactJson(run.timings_ms || run.timingsMs)}`,
     `OpenAI usage: ${compactJson(usage.models || {})}`,
-    `Estimated API cost: $${Number(run.estimated_cost_usd ?? run.estimatedCostUsd ?? usage.estimatedCostUsd ?? 0).toFixed(6)}${usage.estimateComplete === false ? ' (partial; unpriced model present)' : ''}`,
+    `Pricing basis: ${usage.pricingVersion || 'unavailable'}`,
+    `Estimated API cost: ${formatEstimatedCatalogRunCost(run)}`,
     `Manual intervention: ${manual.length}`,
   ];
   if (run.error_summary || run.errorSummary) lines.push(`Error: ${redactTelemetryText(run.error_summary || run.errorSummary)}`);
-  for (const item of manual) {
-    lines.push('', `- ${item.title || item.external_id || item.externalId}`);
-    lines.push(`  phase/decision: ${item.phase}/${item.effectiveDecision}`);
-    lines.push(`  reason: ${item.reason_code || item.reasonCode || 'unspecified'}`);
-    if (item.canonical_path || item.canonicalPath) lines.push(`  page: https://www.goose.gifts${item.canonical_path || item.canonicalPath}`);
-    if (item.image_url || item.imageUrl) lines.push(`  image: ${item.image_url || item.imageUrl}`);
-    if (item.affiliate_url || item.affiliateUrl) lines.push(`  retailer: ${item.affiliate_url || item.affiliateUrl}`);
-    lines.push(`  next: ${item.effectiveNextAction}`);
-  }
+  for (const item of manual) lines.push('', ...manualItemLines(item));
   return lines.join('\n');
 }
 
@@ -391,7 +424,7 @@ export async function loadCatalogRun(runId) {
   const runResult = await sql.query('SELECT * FROM catalog_runs WHERE id = $1', [runId]);
   if (!runResult.rows[0]) return null;
   const itemsResult = await sql.query(
-    'SELECT * FROM catalog_run_items WHERE run_id = $1 ORDER BY created_at, id',
+    'SELECT * FROM catalog_run_items WHERE run_id = $1 ORDER BY sequence',
     [runId]
   );
   return { run: runResult.rows[0], items: itemsResult.rows };

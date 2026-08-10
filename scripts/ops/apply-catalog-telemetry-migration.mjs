@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { sql } from '@vercel/postgres';
+import { redactTelemetryText } from './catalog-telemetry.mjs';
 
 dotenv.config({ path: '.env.local', quiet: true });
 dotenv.config({ quiet: true });
@@ -75,7 +76,7 @@ the historical Drizzle baseline has been repaired separately.
 const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isDirectRun) {
   main().catch((error) => {
-    console.error(error.message);
+    console.error(redactTelemetryText(error.message));
     process.exitCode = 1;
   });
 }

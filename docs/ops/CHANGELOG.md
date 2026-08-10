@@ -67,7 +67,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-09 — Durable catalog telemetry and public crawler repair `[owner+codex]`
+### 2026-08-09 — Durable catalog telemetry and public crawler repair `[owner+claude]` ([PR #90](https://github.com/37-Inc/goose.gifts/pull/90))
 
 Added one durable receipt for every catalog invocation and append-only
 candidate histories spanning selection, source refresh, quality rejection,

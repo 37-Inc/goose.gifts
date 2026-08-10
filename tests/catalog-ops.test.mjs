@@ -304,6 +304,25 @@ test('discovery quality gate keeps distinctive gag objects and rejects generic m
   }), true);
 });
 
+test('discovery quality gate exposes a stable reason for every rejection branch', () => {
+  const base = {
+    title: 'The Screaming Goat Book and Figure',
+    price: 15,
+    imageUrl: 'https://example.com/image.jpg',
+    affiliateUrl: 'https://example.com/product',
+    isActive: true,
+    qualityScore: 0.75,
+  };
+  assert.equal(discoveryCandidateBlockReason({ ...base, imageUrl: null }), 'missing_image');
+  assert.equal(discoveryCandidateBlockReason({ ...base, affiliateUrl: null }), 'missing_destination');
+  assert.equal(discoveryCandidateBlockReason({ ...base, isActive: false, availabilityStatus: 'OUT_OF_STOCK' }), 'unavailable');
+  assert.equal(discoveryCandidateBlockReason({ ...base, isActive: false, availabilityStatus: 'UNKNOWN' }), 'inactive_candidate');
+  assert.equal(discoveryCandidateBlockReason({ ...base, qualityScore: 0.4 }), 'low_quality_score');
+  assert.equal(discoveryCandidateBlockReason({ ...base, title: "I'm Gay Rainbow Heat Change Mug Prank Gift" }), 'taste_exclusion');
+  assert.equal(discoveryCandidateBlockReason({ ...base, title: 'Funny Sandalwood Scented Candle for Dad' }), 'generic_format');
+  assert.equal(discoveryCandidateBlockReason({ ...base, title: 'Acme Household Object' }), 'off_brand');
+});
+
 test('a different ASIN duplicating the active catalog is filtered without blocking an update', () => {
   const catalog = [{ id: 'B000000001', title: 'Dad Bag Belly Fanny Pack Funny Beer Belly Waist Pack' }];
   const discoveries = [

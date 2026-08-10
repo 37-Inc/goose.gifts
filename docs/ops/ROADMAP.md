@@ -31,7 +31,8 @@ pages are indexed before expanding the page network.
   `sourceQuery`, `isActive`, `lastVerifiedAt`. pgvector is already enabled.
 - Weekly ingestion job (the local Codex scheduled task, not Vercel): pick N
   discovery themes (seasonal occasions, trending topics,
-  gaps from search analytics) → search Google CSE/Amazon + Etsy → dedupe
+  gaps from search analytics) → search Amazon Creators API, with Google CSE as
+  a discovery-only fallback that still requires Creators verification → dedupe
   against existing catalog → LLM pass to filter for genuine gag-gift quality,
   tag, and write punny copy → embed (`text-embedding-3-small`) → upsert.
 - Current bound: at most 20 net-new discoveries and 25 existing editorial
