@@ -1,9 +1,21 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
+import dotenv from 'dotenv';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+  finishCatalogRun,
+  getGitRevision,
+  mergeUsageReports,
+  redactTelemetryText,
+  startCatalogRun,
+} from './catalog-telemetry.mjs';
+
+dotenv.config({ path: '.env.local', quiet: true });
+dotenv.config({ quiet: true });
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const prefetchScript = path.join(scriptDirectory, 'prefetch-catalog.mjs');
@@ -35,7 +47,13 @@ function runCatalog(argsForScript) {
   return parseFinalJson(result.stdout);
 }
 
-function formatReport(discovery, revalidation) {
+function phaseCounts(result, fields) {
+  return Object.fromEntries(fields
+    .filter((field) => result?.[field] !== undefined)
+    .map((field) => [field, result[field]]));
+}
+
+function formatReport(discovery, revalidation, run = {}) {
   const status = revalidation.throttled ? 'completed with Amazon throttling' : 'completed';
   const retained = Array.isArray(discovery.candidates)
     ? discovery.candidates.length
@@ -63,6 +81,7 @@ function formatReport(discovery, revalidation) {
 
   return [
     `🪿 goose.gifts weekly catalog run ${status}`,
+    `Run: ${run.id || discovery.telemetry?.runId || 'dry-run'}${run.estimatedCostUsd !== undefined ? ` | estimated API cost: $${Number(run.estimatedCostUsd).toFixed(6)}` : ''}`,
     '',
     `Discovery: ${discovery.discoveredCandidates} fetched, ${discovery.qualityRejected} quality-rejected, `
       + `${discovery.duplicatesFiltered} duplicates filtered, ${retained} retained`,
@@ -72,6 +91,7 @@ function formatReport(discovery, revalidation) {
       + `${revalidation.confirmedMissing} confirmed missing, ${revalidation.markedUnavailable || 0} unavailable, `
       + `${revalidation.deactivated} deactivated`,
     `Themes: ${discovery.themes.join(', ')}`,
+    `Owner intervention: ${Number(discovery.manualIntervention || editorial?.needsReview || 0)} item(s); inspect with npm run catalog:review-queue`,
     ...(reviewLines.length > 0
       ? ['', `Visual spot-check (${reviewCandidates.length}):`, ...reviewLines]
       : []),
@@ -101,27 +121,133 @@ function sendOpenClaw(message, { dryRun: messageDryRun = false } = {}) {
 
 async function main() {
   const sharedDryRunArgs = dryRun ? ['--dry-run'] : [];
+  const runId = randomUUID();
+  const telemetryEnabled = !dryRun && Boolean(process.env.POSTGRES_URL);
+  const runTrigger = process.env.CATALOG_RUN_TRIGGER || 'scheduled';
+  const managedRunArgs = telemetryEnabled
+    ? ['--run-id', runId, '--run-mode', 'weekly', '--run-trigger', runTrigger, '--managed-run']
+    : [];
   let revalidation;
+  let discovery;
+  let notificationError;
+  let runStarted = false;
 
   try {
+    if (telemetryEnabled) {
+      await startCatalogRun({
+        id: runId,
+        mode: 'weekly',
+        trigger: runTrigger,
+        dryRun,
+        gitSha: getGitRevision(),
+        config: {
+          backfillLimit: Number(process.env.CATALOG_ENRICH_EXISTING_LIMIT || 25),
+          revalidateLimit: 50,
+          staleDays: 30,
+          deactivateAfterDays: 90,
+          themeLimit: 6,
+          perTheme: 10,
+          maxNew: 20,
+          minQualityScore: 0.65,
+        },
+      });
+      runStarted = true;
+    }
     revalidation = runCatalog([
       '--revalidate',
       '--revalidate-limit', '50',
       '--stale-days', '30',
       '--deactivate-after-days', '90',
+      ...managedRunArgs,
       ...sharedDryRunArgs,
     ]);
-    const discovery = runCatalog([
+    discovery = runCatalog([
       '--theme-limit', '6',
       '--per-theme', '10',
       '--max-new', '20',
       '--min-quality-score', '0.65',
+      ...managedRunArgs,
       ...sharedDryRunArgs,
     ]);
-    const report = formatReport(discovery, revalidation);
+    const usage = mergeUsageReports([revalidation.telemetry?.usage, discovery.telemetry?.usage]);
+    const timingsMs = {
+      revalidation: revalidation.telemetry?.timingsMs?.total || 0,
+      discovery: discovery.telemetry?.timingsMs?.total || 0,
+      total: Number(revalidation.telemetry?.timingsMs?.total || 0)
+        + Number(discovery.telemetry?.timingsMs?.total || 0),
+    };
+    const warnings = [
+      ...(revalidation.telemetry?.warnings || []),
+      ...(discovery.telemetry?.warnings || []),
+    ];
+    const report = formatReport(discovery, revalidation, {
+      id: runId,
+      estimatedCostUsd: usage.estimatedCostUsd,
+    });
     console.log(`\n${report}`);
-    if (notify) sendOpenClaw(report);
+    if (notify) {
+      try {
+        sendOpenClaw(report);
+      } catch (error) {
+        notificationError = error;
+        warnings.push({ phase: 'notification', reasonCode: 'slack_notification_failed', message: redactTelemetryText(error.message) });
+      }
+    }
+    if (runStarted) {
+      await finishCatalogRun(runId, {
+        status: notificationError ? 'partial' : 'completed',
+        counts: {
+          revalidation: phaseCounts(revalidation, [
+            'selected', 'refreshed', 'confirmedMissing', 'markedUnavailable',
+            'deactivated', 'throttled', 'affiliateAudit',
+          ]),
+          discovery: {
+            ...phaseCounts(discovery, [
+              'discoveredCandidates', 'rawCandidates', 'qualityRejected',
+              'duplicatesFiltered', 'inserted', 'updated', 'backfilled',
+              'discoveryReady', 'discoveryNeedsReview', 'manualIntervention',
+            ]),
+            backfill: discovery.backfill,
+          },
+        },
+        timingsMs,
+        usage,
+        warnings,
+        error: notificationError,
+      });
+    }
+    if (notificationError) throw notificationError;
   } catch (error) {
+    if (runStarted && !notificationError) {
+      const usage = mergeUsageReports([revalidation?.telemetry?.usage, discovery?.telemetry?.usage]);
+      await finishCatalogRun(runId, {
+        status: revalidation || discovery ? 'partial' : 'failed',
+        counts: {
+          revalidation: revalidation ? phaseCounts(revalidation, [
+            'selected', 'refreshed', 'confirmedMissing', 'markedUnavailable',
+            'deactivated', 'throttled', 'affiliateAudit',
+          ]) : null,
+          discovery: discovery ? {
+            ...phaseCounts(discovery, [
+              'discoveredCandidates', 'rawCandidates', 'qualityRejected',
+              'duplicatesFiltered', 'inserted', 'updated', 'backfilled',
+              'discoveryReady', 'discoveryNeedsReview', 'manualIntervention',
+            ]),
+            backfill: discovery.backfill,
+          } : null,
+        },
+        timingsMs: {
+          revalidation: revalidation?.telemetry?.timingsMs?.total || 0,
+          discovery: discovery?.telemetry?.timingsMs?.total || 0,
+        },
+        usage,
+        warnings: [
+          ...(revalidation?.telemetry?.warnings || []),
+          ...(discovery?.telemetry?.warnings || []),
+        ],
+        error,
+      });
+    }
     if (notify) {
       try {
         sendOpenClaw(`🪿 goose.gifts weekly catalog run failed\n${error.message}`);

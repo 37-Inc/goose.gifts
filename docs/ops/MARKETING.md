@@ -149,6 +149,27 @@ For every concept promoted beyond rough exploration, record:
 
 ## Experiment log
 
+### 2026-08-09 — Catalog enrichment observability and crawler scope
+
+- **Run evidence**: weekly revalidation, discovery, and editorial backfill now
+  share one durable run ID. The database keeps append-only selection,
+  rejection, duplicate, unavailable, generated, failed, and manual-review
+  transitions even for candidates never inserted into the catalog. Run
+  receipts include sanitized configuration, Git revision, timing, provider
+  token usage, dated API-cost estimates, warnings, and honest partial/failure
+  states; Slack cites the same run ID.
+- **Owner review**: `npm run catalog:report -- --latest` reconstructs a run and
+  `npm run catalog:review-queue` returns only exact items that need intervention
+  with product evidence, destination, canonical page, reason, and next action.
+  Generic, duplicate, and unavailable items stay held without creating a
+  catalog-wide browser-review burden.
+- **Crawl boundary**: PR #89 confines model-training crawler protection to
+  `/random-gift` and private routes. Canonical `/gifts/<slug>` pages and guides
+  remain fetchable by search and model crawlers; their per-page factual index
+  gate, not the random-page bot incident, controls sitemap/index eligibility.
+  The next scheduled weekly run is the first production telemetry cohort and
+  must be audited before catch-up volume changes.
+
 ### 2026-08-07 — Product-page editorial backfill foundation
 
 - **Destination quality**: new-product collection and existing-product

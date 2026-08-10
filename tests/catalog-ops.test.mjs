@@ -14,6 +14,7 @@ import {
   amazonAffiliateUrl,
   deduplicateAgainstCatalog,
   deduplicateCandidates,
+  discoveryCandidateBlockReason,
   isHighQualityDiscoveryCandidate,
   parseArgs,
   revalidatedProduct,
@@ -142,19 +143,24 @@ test('weekly catalog reporting parses command output and includes owner-facing s
       imageUrl: `https://images.example/${index + 1}.jpg`,
       affiliateUrl: `https://shop.example/${index + 1}`,
     })),
+    manualIntervention: 1,
+    telemetry: { runId: '11111111-1111-1111-1111-111111111111' },
   }, {
     selected: 50,
     refreshed: 49,
     confirmedMissing: 1,
     deactivated: 0,
     throttled: false,
-  });
+  }, { id: '11111111-1111-1111-1111-111111111111', estimatedCostUsd: 0.012345 });
 
   assert.match(report, /60 fetched, 24 quality-rejected, 14 duplicates filtered/);
   assert.match(report, /2 inserted, 20 refreshed, 3 older products enriched/);
   assert.match(report, /Editorial: 8 selected, 5 ready, 1 needs review, 1 blocked, 1 duplicate, 0 unavailable/);
   assert.match(report, /50 checked, 49 refreshed, 1 confirmed missing/);
   assert.match(report, /Visual spot-check \(5\):/);
+  assert.match(report, /Run: 11111111-1111-1111-1111-111111111111/);
+  assert.match(report, /estimated API cost: \$0\.012345/);
+  assert.match(report, /Owner intervention: 1 item/);
   assert.match(report, /Candidate 5/);
   assert.doesNotMatch(report, /Candidate 6/);
 
@@ -272,6 +278,10 @@ test('discovery quality gate keeps distinctive gag objects and rejects generic m
     ...base,
     title: 'Funny Sandalwood Scented Candle for Dad',
   }), false);
+  assert.equal(discoveryCandidateBlockReason({
+    ...base,
+    title: 'Funny Sandalwood Scented Candle for Dad',
+  }), 'generic_format');
   assert.equal(isHighQualityDiscoveryCandidate({
     ...base,
     title: 'Sarcastic Candles for Coworkers',

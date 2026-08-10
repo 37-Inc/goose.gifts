@@ -67,6 +67,23 @@ what's likely next.
 
 Newest first.
 
+### 2026-08-09 — Durable catalog telemetry and public crawler repair `[owner+codex]`
+
+Added one durable receipt for every catalog invocation and append-only
+candidate histories spanning selection, source refresh, quality rejection,
+deduplication, availability, generation, persistence, failure, and explicit
+manual review. Weekly revalidation and discovery now share one run ID; Slack
+cites it, while `catalog:report` and `catalog:review-queue` reconstruct exact
+outcomes with title/image/destination/page snapshots, reason codes, next
+actions, phase timing, Git SHA, provider-reported tokens, and dated API-cost
+estimates. Partial runs and unknown-price models stay explicit. The migration
+also prevents product deletion from cascading away legacy editorial history.
+PR #89 separately restored public `/gifts/<slug>` and guide access for search
+and model crawlers while keeping the high-cost random route protected, so the
+random-page incident does not suppress the factual product-page SEO cohort.
+The first production telemetry cohort remains bounded and scheduled for a
+post-run audit before any 100/day catch-up is enabled.
+
 ### 2026-08-07 — Catalog editorial production verification `[owner+codex]` ([PR #87](https://github.com/37-Inc/goose.gifts/pull/87))
 
 Verified the 29-page editorial cohort on production after PR #86 and added

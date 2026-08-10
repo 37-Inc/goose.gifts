@@ -119,11 +119,70 @@ export const products = pgTable('products', {
     .where(sql`${table.embedding} IS NOT NULL`),
 }));
 
+// Durable invocation-level telemetry for catalog discovery, revalidation, and
+// editorial work. Writers persist only allowlisted configuration.
+export const catalogRuns = pgTable('catalog_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  telemetryVersion: varchar('telemetry_version', { length: 50 }).notNull(),
+  mode: varchar('mode', { length: 50 }).notNull(),
+  trigger: varchar('trigger', { length: 32 }).notNull(),
+  status: varchar('status', { length: 16 }).notNull(),
+  dryRun: boolean('dry_run').notNull().default(false),
+  gitSha: varchar('git_sha', { length: 64 }),
+  config: jsonb('config').$type<Record<string, unknown>>().notNull().default({}),
+  counts: jsonb('counts').$type<Record<string, unknown>>().notNull().default({}),
+  timingsMs: jsonb('timings_ms').$type<Record<string, number>>().notNull().default({}),
+  usage: jsonb('usage').$type<Record<string, unknown>>().notNull().default({}),
+  estimatedCostUsd: numeric('estimated_cost_usd', { precision: 12, scale: 6 }),
+  warnings: jsonb('warnings').$type<Array<Record<string, unknown>>>().notNull().default([]),
+  errorSummary: text('error_summary'),
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  startedAtIdx: index('catalog_runs_started_at_idx').on(table.startedAt),
+  statusIdx: index('catalog_runs_status_idx').on(table.status),
+}));
+
+// Append-only candidate transitions. productId is deliberately not a foreign
+// key so rejected discoveries and later-deleted products keep their history.
+export const catalogRunItems = pgTable('catalog_run_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  runId: uuid('run_id').notNull().references(() => catalogRuns.id, { onDelete: 'cascade' }),
+  phase: varchar('phase', { length: 32 }).notNull(),
+  stage: varchar('stage', { length: 32 }).notNull(),
+  decision: varchar('decision', { length: 32 }).notNull(),
+  reasonCode: varchar('reason_code', { length: 64 }),
+  productId: varchar('product_id', { length: 255 }),
+  externalId: varchar('external_id', { length: 255 }).notNull(),
+  source: varchar('source', { length: 20 }),
+  sourceQuery: text('source_query'),
+  title: text('title'),
+  imageUrl: text('image_url'),
+  affiliateUrl: text('affiliate_url'),
+  canonicalPath: text('canonical_path'),
+  winnerProductId: varchar('winner_product_id', { length: 255 }),
+  sourceFactsHash: varchar('source_facts_hash', { length: 64 }),
+  editorialSourceHash: varchar('editorial_source_hash', { length: 64 }),
+  requiresManualReview: boolean('requires_manual_review').notNull().default(false),
+  nextAction: text('next_action'),
+  details: jsonb('details').$type<Record<string, unknown>>().notNull().default({}),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  runIdIdx: index('catalog_run_items_run_id_idx').on(table.runId),
+  externalIdIdx: index('catalog_run_items_external_id_idx').on(table.externalId),
+  decisionIdx: index('catalog_run_items_decision_idx').on(table.decision),
+  manualReviewIdx: index('catalog_run_items_manual_review_idx')
+    .on(table.requiresManualReview)
+    .where(sql`${table.requiresManualReview} = true`),
+}));
+
 // Append-only record of catalog editorial decisions and generation attempts.
 export const catalogEditorialEvents = pgTable('catalog_editorial_events', {
   id: uuid('id').primaryKey().defaultRandom(),
   runId: uuid('run_id').notNull(),
-  productId: varchar('product_id', { length: 255 }).notNull().references(() => products.id, { onDelete: 'cascade' }),
+  productId: varchar('product_id', { length: 255 }).notNull(),
   eventType: varchar('event_type', { length: 50 }).notNull(),
   status: varchar('status', { length: 32 }).notNull(),
   details: jsonb('details').$type<Record<string, unknown>>(),

@@ -14,12 +14,12 @@ live Amazon/Etsy searches — has three problems:
 3. **SEO**: the best content is trapped behind a form; crawlers see little.
 
 The catalog model inverts it: discovery, curation, scoring, and embedding
-happen **once per product, in a nightly batch**. The user-facing site becomes
+happen **once per product, in a bounded weekly batch**. The user-facing site becomes
 fast, cheap, and crawlable.
 
 ## Phase 1 — Catalog-first architecture (architecture shipped; quality gate active)
 
-The schema, homepage feed, semantic search, and daily enrichment loop are live.
+The schema, homepage feed, semantic search, and weekly enrichment loop are live.
 The current work is not more catalog volume: it is enforcing gag-gift relevance,
 reducing exposure of source-less legacy inventory, and proving that crawlable
 pages are indexed before expanding the page network.
@@ -29,14 +29,22 @@ pages are indexed before expanding the page network.
 - Extend `products` with: `embedding vector(1536)`, `humorTags text[]`,
   `punnyTitle`/`wittyDescription` (LLM-written copy), `qualityScore`,
   `sourceQuery`, `isActive`, `lastVerifiedAt`. pgvector is already enabled.
-- Nightly ingestion job (script run during the daily ops session, later a
-  Vercel cron): pick N discovery themes (seasonal occasions, trending topics,
+- Weekly ingestion job (the local Codex scheduled task, not Vercel): pick N
+  discovery themes (seasonal occasions, trending topics,
   gaps from search analytics) → search Google CSE/Amazon + Etsy → dedupe
   against existing catalog → LLM pass to filter for genuine gag-gift quality,
   tag, and write punny copy → embed (`text-embedding-3-small`) → upsert.
-- Target: 50–150 net-new products/day; catalog of thousands within a month.
+- Current bound: at most 20 net-new discoveries and 25 existing editorial
+  candidates per weekly run. The proposed 100/day catch-up remains disabled
+  until the first instrumented run is audited and the 7/14/28-day Search
+  Console cohort shows the factual pages are being crawled and indexed without
+  duplicate, soft-404, or load regressions.
 - Re-verify stale products periodically (dead links, price drift) and
   deactivate the broken ones.
+- Keep one durable run receipt across revalidation, discovery, and editorial:
+  selection and rejection reasons, final item states, manual intervention,
+  phase timing, Git SHA, provider token usage, and estimated API cost must be
+  reviewable before changing volume or cadence.
 - Homepage eligibility requires a usable image/link, quality score of at least
   0.55, and either a curated discovery source or an explicit gag/funny signal
   in the original marketplace title. LLM-written puns alone do not establish
@@ -67,7 +75,7 @@ pages are indexed before expanding the page network.
 
 ### Cost effect
 
-LLM + product-API spend becomes a fixed nightly batch (bounded, tunable);
+LLM + product-API spend becomes a measured weekly batch (bounded, tunable);
 marginal cost per visitor drops to ~zero. This is the main margin lever.
 
 ## Phase 2 — SEO page network
