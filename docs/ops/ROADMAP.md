@@ -36,12 +36,11 @@ pages are indexed before expanding the page network.
   against existing catalog → LLM pass to filter for genuine gag-gift quality,
   tag, and write punny copy → embed (`text-embedding-3-small`) → upsert.
 - Current bound: at most 20 net-new discoveries and 25 existing editorial
-  candidates per weekly run. The proposed 100/day catch-up remains disabled
-  after the first instrumented run exposed incomplete model batches. Resume
-  catch-up planning only after the exact held cohort succeeds through the
-  bounded retry path and the 7/14/28-day Search Console cohort shows the factual
-  pages are being crawled and indexed without duplicate, soft-404, or load
-  regressions.
+  candidates per weekly run. The exact remediation replay is accepted (20
+  ready, five blocked, one automatic pending, no owner queue), but the proposed
+  100/day catch-up remains disabled. Resume catch-up planning only after the
+  7/14/28-day Search Console cohort shows the factual pages are being crawled
+  and indexed without duplicate, soft-404, canonical, or load regressions.
 - Re-verify stale products periodically (dead links, price drift) and
   deactivate the broken ones.
 - Keep one durable run receipt across revalidation, discovery, and editorial:
@@ -49,8 +48,9 @@ pages are indexed before expanding the page network.
   phase timing, Git SHA, provider token usage, and estimated API cost must be
   reviewable before changing volume or cadence.
 - Treat generation completeness as automatic pipeline work, not an owner
-  queue. Limit generation to four products per request, retry an omitted/short
-  response once per item, preserve every previously approved write-up, and
+  queue. Limit generation to four products per request, retry an omitted,
+  structurally incomplete, or first rejected response once per item, preserve
+  every previously approved write-up, and
   reserve manual review for explicit factual conflicts. Store response
   completeness diagnostics and invalidate every crawler-facing catalog cache
   after a successful write.

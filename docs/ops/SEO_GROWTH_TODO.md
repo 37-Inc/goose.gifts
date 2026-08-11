@@ -74,12 +74,24 @@ report.
   sitemap, with a five-minute fallback. This keeps sitemap membership aligned
   with the same eligibility gate that emits page robots metadata without
   reopening the high-cost random-page crawler path.
-- [ ] Production receipt: deploy the remediation, apply the UTC migration,
-  restore the three reviewed pages from
+- [x] Production receipt: deployed the remediation, applied the UTC migration,
+  restored the three reviewed pages from
   `catalog-editorial-cohorts/2026-08-10-recovery.json`, replay the exact held
   2026-08-10 cohort, and record run IDs, ready/pending/manual counts, token
   usage, API cost, sitemap membership, and live robots state before considering
   any catch-up cadence.
+  - Recovery run `11d51739-ddf2-4496-8ba8-45a11efb309b` restored 3/3 reviewed
+    pages. Exact held-cohort run `081dac8d-3e13-4a38-bebc-0882a5982279` and
+    acceptance run `bdc8aa17-fb82-4f31-a044-c4768effa37d` ended at 20 ready,
+    five blocked, one automatic pending item, and zero owner interventions.
+    The two paid replays used 52,350 total provider-reported tokens and an
+    estimated $0.013099.
+  - Live acceptance: 46 gift URLs in the sitemap; every one returned 200 with a
+    matching canonical and no `noindex`. Sampled held pages returned
+    `200, noindex, follow` outside the sitemap. The legacy product-pinned random
+    URL still returned a UTM-preserving 308. No sitemap resubmission was needed.
+  - Keep 100/day disabled until the already-defined 7/14/28-day Search Console
+    cohort shows healthy crawl, Google canonical, exclusions, and indexation.
 
 ## Shipped 2026-07-05
 

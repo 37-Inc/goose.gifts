@@ -178,7 +178,8 @@ Boundaries (always in force):
    replay owner-reviewed copy; a seed is still rejected if live facts, source
    hashes, availability, length, specificity, or uniqueness fail.
    Generation requests contain at most four products. Missing or structurally
-   incomplete draft/review entries receive one bounded per-item retry, with
+   incomplete draft/review entries and a first reviewer rejection receive one
+   bounded per-item retry, with
    expected/returned IDs, finish reason, word count, and retry count retained
    in the event receipt. Completeness failures stay `pending` for automatic
    retry; `needs_review` is reserved for a candidate-specific factual rejection.
