@@ -129,8 +129,14 @@ test("repository event log is valid and exposes publication-driven next actions"
       .sort(),
     ["cand-alligator-editorial", "cand-ceramic-eye-interior", "cand-screaming-goat-meeting"],
   );
-  assert.equal(actions.filter((item) => item.action.includes("requires revision")).length, 1);
+  assert.equal(actions.filter((item) => item.action.includes("requires revision")).length, 0);
   assert.equal(actions.filter((item) => item.action.includes("owner selection")).length, 0);
+  assert.equal(
+    summary.experiments[0].candidates.find(
+      (candidate) => candidate.candidateId === "cand-unhinged-desk-guide",
+    )?.status,
+    "rejected",
+  );
 });
 
 test("folds prompt lineage and passing review into candidate state", () => {

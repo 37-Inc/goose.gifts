@@ -9,7 +9,9 @@ candidate and publishing package.
 
 None. The previously ready hippo-desk package was explicitly approved and
 published on 2026-08-07. Shortlisting remains distinct from approval for every
-future candidate.
+future candidate. Reconciled on 2026-08-11: all valid survivors are public and
+the six-product-faithful-Pin cohort has only 42 combined impressions, so no
+replacement is justified yet.
 
 ## Published from this queue
 
@@ -104,6 +106,9 @@ future candidate.
 
 None. Do not create a replacement while the published goat and three hippo
 variants gather enough public distribution to support a useful creative choice.
+The old `cand-unhinged-desk-guide` was closed as rejected on 2026-08-11 because
+its only attempt lacked verified product references and failed the truthful-
+product gate; it is not pending owner work.
 
 ## Permanently rejected
 

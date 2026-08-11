@@ -30,10 +30,11 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Six product-faithful editorial Pins are live; the newly published desk,
-   vanity, and goat have no mature checkpoint yet, and prior exposure is still
-   too small for a creative verdict. A twice-weekly studio advances at most one
-   excellent survivor per run and maintains an exact owner-review queue.
+   Six product-faithful editorial Pins are live. As of 2026-08-11 they have 42
+   public impressions in total, no engagement, and no attributable site
+   session, so exposure is still too small for a creative verdict. A
+   twice-weekly studio advances at most one excellent survivor per run and
+   maintains an exact owner-review queue.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
    catalog-supported pages. The Weird Gift Index is the first original-data
    acquisition asset and should be improved as a cited, editioned report rather
@@ -148,6 +149,46 @@ For every concept promoted beyond rough exploration, record:
 - performance checkpoints and conclusion.
 
 ## Experiment log
+
+### 2026-08-11 — Public hold checkpoint and funny-dad guide improvement
+
+- **Evidence checked**: Pinterest API v5 reports 40 impressions and one Pin
+  click for the five-Pin launch cohort, 41 impressions for the three earlier
+  editorial Pins, and one impression for the three later Creative Lab Pins;
+  none has an outbound click or save. The six product-faithful creative Pins
+  total 42 impressions: alligator 32, ceramic eye seven, breakfast two, vanity
+  one, goat zero, and desk zero. GA4 has no Pinterest session or outbound-click
+  event, and the database's two `Pinterest / social / goose-proof` clicks are
+  explicitly QA traffic rather than public-Pin acquisition. Sandbox and
+  Pinterest v3 remain excluded.
+- **Creative cycle**: no replacement was generated. The public cohort is still
+  testing distribution, not creative quality, and every valid prior survivor
+  is already live. The stale `cand-unhinged-desk-guide` revision was rejected
+  because it never had verified product references and failed the truthful-
+  product gate; the owner-ready queue and revision queue are now both empty.
+- **Organic move**: current Search Console evidence selected
+  `/gift-guides/funny-gifts-for-dads` (285 impressions, zero clicks, average
+  position 44.1). Its observed demand includes `funny gifts for dad` (40
+  impressions), `funny dad gifts` (31), and `dad joke gifts` (16). The page now
+  distinguishes dad-joke, birthday/holiday, hobby, and practical-novelty
+  choices; avoids pretending every dad fishes or grills; links to fishing,
+  golf, coffee, kitchen, and sarcastic-gift guides; and exposes matching visible
+  FAQs and schema. The catalog audit found 36 distinct eligible products.
+- **Crawl and model access**: the Dad guide is submitted and indexed with the
+  `www` canonical, successful mobile fetch, and indexing allowed. The live
+  sitemap has 94 URLs with no reported errors. A representative editorial gift
+  page is `index, follow`, self-canonical, present in the sitemap, and currently
+  discovered but not yet indexed; the existing 7/14/28-day product cohort gate
+  remains in force. GPTBot, ClaudeBot, and Applebot-Extended remain blocked only
+  from the high-cost randomizer, not `/gifts/` or gift guides.
+- **Monthly shortlist decision**: the August check was completed on 2026-08-04.
+  Today's evidence added no real Pinterest outbound click, share signal, or
+  seasonal conversion evidence, so the no-account shortlist idea stays closed
+  until the September evidence check. No wishlist, email/PII, or new product
+  workstream was started.
+- **Publishing boundary**: Standard access is still awaiting review and no
+  production OAuth path has been verified. This unattended run published no
+  Pin and spent no money.
 
 ### 2026-08-10 — Catalog telemetry acceptance and crawlable expansion
 

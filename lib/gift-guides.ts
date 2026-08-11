@@ -187,10 +187,52 @@ export const giftGuides: GiftGuideDefinition[] = [
   {
     slug: 'funny-gifts-for-dads',
     title: 'Funny Gifts for Dads',
-    h1: 'Funny gifts for dads, grandpas, and proud pun collectors',
-    description: 'Shop funny dad gifts, grandpa gag gifts, punny finds, and practical novelty products with real catalog items.',
-    intro: 'For dads who already own the socks, the mug, and the opinion about the thermostat. These skew practical, punny, and proudly unnecessary.',
+    metadataTitle: 'Funny Dad Gifts and Dad Joke Gifts',
+    h1: 'Funny dad gifts for birthdays, holidays, and bad puns',
+    description: 'Browse funny dad gifts and dad joke gifts for birthdays and holidays, with practical novelty ideas for fishing, grilling, and everyday routines.',
+    intro: 'The strongest funny gift for a dad starts with something recognizably his: the pun he repeats, the hobby he disappears into, or the everyday job he has quietly claimed as his department.',
     keywords: ['dad', 'father', 'grandpa', 'pun', 'joke', 'gadget', 'grill'],
+    editorialHeading: 'Pick the dad before the punchline',
+    editorialAside: 'Dad joke, hobby joke, or useful oddity?',
+    editorialSections: [
+      {
+        title: 'Decide what kind of funny dad gift you mean',
+        paragraphs: [
+          'A dad-joke gift works when the joke sounds like something he would actually say. A birthday or Christmas gift can be broader, but it should still point to a real habit: guarding the thermostat, making coffee before conversation, narrating a home repair, or treating the grill like a control panel.',
+          'Skip a generic “best dad” object unless the object itself fits his routine. A small practical novelty usually lasts longer than a punchline printed on something he will never use, and a specific joke feels chosen even when the gift is inexpensive.',
+        ],
+        links: [
+          { slug: 'funny-coffee-mugs', label: 'Browse funny coffee mugs' },
+          { slug: 'sarcastic-gifts', label: 'Find drier, more sarcastic gifts' },
+        ],
+      },
+      {
+        title: 'Use hobbies to narrow the field—not to fake expertise',
+        paragraphs: [
+          'Fishing, grilling, golf, gardening, and tinkering are useful filters only when they describe this dad. If you know his setup well enough to choose compatible gear, a genuinely useful tool can carry the joke. If you do not, stay adjacent: a funny mug, desk object, serving tool, or harmless accessory avoids guessing at sizes, brands, or technical preferences.',
+          'For a grandpa, father-in-law, or newer dad you do not know as well, choose the lowest-pressure version of the idea. The gift should be easy to understand, easy to keep, and funny without asking him to perform a stereotype for the room.',
+        ],
+        links: [
+          { slug: 'funny-gifts-for-dads-who-fish', label: 'Choose a fishing-dad gift' },
+          { slug: 'weird-kitchen-gadgets', label: 'Compare useful kitchen oddities' },
+          { slug: 'funny-golf-gifts', label: 'Browse funny golf gifts' },
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: 'What makes a good funny gift for a dad?',
+        answer: 'Start with a real habit, hobby, or running joke, then choose an object he can understand and use without a long explanation. Specificity matters more than shock value: a modest gift tied to his coffee routine, workshop, grill, fishing habit, or favorite terrible pun usually feels more personal than a generic dad slogan.',
+      },
+      {
+        question: 'What is a good funny birthday gift for Dad?',
+        answer: 'A birthday is a good excuse for a practical novelty with one clear joke, such as an odd desk object, exaggerated everyday tool, or mug that fits an existing routine. Avoid clothing sizes and specialized hobby gear unless you know exactly what he uses.',
+      },
+      {
+        question: 'Should I buy a fishing or grilling gift for Dad?',
+        answer: 'Only if fishing or grilling is genuinely his thing. Buy technical gear when you know the required size, brand, or setup; otherwise choose a funny adjacent item that does not need to fit his equipment. The goal is to recognize the hobby, not prove that every dad has the same one.',
+      },
+    ],
   },
   {
     slug: 'weird-kitchen-gadgets',

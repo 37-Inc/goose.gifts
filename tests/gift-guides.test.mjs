@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { getGiftGuideFaqs } from '../lib/gift-guide-editorial.ts';
+
+const giftGuidesPath = new URL('../lib/gift-guides.ts', import.meta.url);
 
 test('page-specific FAQ overrides replace the shared fallback', () => {
   const guide = {
@@ -32,4 +35,18 @@ test('guides without overrides keep the shared three-question fallback', () => {
 
   assert.equal(getGiftGuideFaqs(guide).length, 3);
   assert.match(getGiftGuideFaqs(guide)[0].question, /what makes a good weird kitchen gadgets/i);
+});
+
+test('the dad guide answers observed dad-joke and hobby intent with specific guidance', async () => {
+  const source = await readFile(giftGuidesPath, 'utf8');
+  const dadGuide = source.match(/slug: 'funny-gifts-for-dads',[\s\S]*?\n  \},\n  \{\n    slug: 'weird-kitchen-gadgets'/)?.[0];
+
+  assert.ok(dadGuide);
+  assert.match(dadGuide, /metadataTitle: 'Funny Dad Gifts and Dad Joke Gifts'/);
+  assert.match(dadGuide, /thermostat.*coffee.*home repair.*grill/);
+  assert.match(dadGuide, /sizes, brands, or technical preferences/);
+  assert.match(dadGuide, /slug: 'funny-gifts-for-dads-who-fish'/);
+  assert.match(dadGuide, /slug: 'weird-kitchen-gadgets'/);
+  assert.match(dadGuide, /slug: 'funny-golf-gifts'/);
+  assert.match(dadGuide, /recognize the hobby/);
 });

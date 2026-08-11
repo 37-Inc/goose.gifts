@@ -5,6 +5,56 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-11 - Pinterest and organic-growth studio
+
+**Evidence checked**: Pinterest API v5 public lifetime metrics, GA4 traffic,
+landing pages and outbound events, the first-party database snapshot, Vercel
+HTTP/cache health, Search Console page/query evidence, sitemap processing, and
+URL Inspection. The five-Pin launch cohort is at 40 impressions and one Pin
+click. The six product-faithful Pins total 42 impressions—32 alligator, seven
+ceramic eye, two hippo breakfast, one hippo vanity, zero goat, and zero hippo
+desk—with no save, Pin click, outbound click, attributable site session, or
+affiliate click. GA4 shows no Pinterest traffic. The database has four product
+clicks and five searches in seven days; its two `Pinterest / social /
+goose-proof` clicks are explicit QA and were excluded from public acquisition
+evidence. Pinterest Sandbox and v3 were excluded throughout.
+
+**Creative cycle**: all previously valid survivors are already public and the
+owner queue is empty. Generating another product image would add inventory
+without answering the current distribution question, so this run recorded six
+validated metric events and two evidence-linked learnings instead. The old
+`cand-unhinged-desk-guide` was moved from review to rejected: its only attempt
+had no verified listing reference, failed the truthful-product gate, and had
+already been superseded by the product-first standard. No creative was
+generated, no Pin was published, no production API was used, and no money was
+spent.
+
+**Organic move**: the first studio run of the week selected the existing
+`/gift-guides/funny-gifts-for-dads` opportunity. Search Console measured 285
+impressions, zero clicks, and average position 44.1 from 2026-07-14 through
+2026-08-09. The main query evidence was `funny gifts for dad` (40 impressions),
+`funny dad gifts` (31), and `dad joke gifts` (16). The page now starts with the
+specific dad rather than a generic stereotype, distinguishes dad-joke,
+birthday/holiday, hobby, and practical-novelty intent, warns against guessing
+at specialized gear, links to five relevant guide paths, and exposes three
+page-specific FAQs in both visible HTML and existing matching schema. The live
+catalog audit found 36 distinct eligible products.
+
+**Crawler and acquisition health**: the Dad guide is submitted and indexed,
+indexing is allowed, the Google and user canonicals match `www`, and its last
+mobile fetch was successful. The processed sitemap has 94 URLs and zero errors.
+The representative hippo gift page is `index, follow`, self-canonical, and
+discovered but not yet indexed; the product cohort therefore remains on its
+7/14/28-day hold. `/search` still redirects to the canonical homepage query,
+the homepage and semantic query return 200 from Vercel, and model-training bots
+remain blocked only from the expensive randomizer—not gift pages or guides.
+
+**Decision**: recheck Dad-page metrics on 2026-08-25 and 2026-09-08, and do not
+enable the 100/day product catch-up before the existing product cohort supplies
+healthy crawl/index evidence. The monthly no-account shortlist idea remains a
+September evidence check; no new sharing, seasonal, or Pinterest conversion
+signal justified reopening it today.
+
 ## 2026-08-10 - First instrumented catalog-run audit and remediation
 
 **Evidence checked**: the scheduled run

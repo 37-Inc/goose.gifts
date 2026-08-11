@@ -24,17 +24,12 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **Indexation (top blocker) — all near-term levers pulled; now monitoring.**
-  Diagnosis complete (2026-07-17): on-site healthy; guides never crawled
-  (crawl-budget/authority); homepage stale-consolidated to the apex.
-  **Request Indexing DONE 2026-07-17/18** for all 7 targets (homepage, guides hub,
-  white-elephant, coworkers, dads, secret-santa, weird-kitchen) via the GSC UI —
-  each confirmed queued. Cameron's account (`cam@37.technology`) is now a verified
-  **owner** of the GSC property (DNS auto-verify), so UI access is permanent.
-  **IndexNow seeded** (47 URLs, HTTP 202 — Bing/Yandex only; `docs/ops/indexnow.md`).
-  Next: re-inspect ~Jul 25 / Aug 1 / Aug 17 via `scripts/ops/gsc.sh` and track
-  Discovered→Crawled→Indexed (Beads `roadmap-fkvo`; dates recorded there). The
-  remaining lever is external authority — Pinterest (`roadmap-fd1h`).
+- **Indexation — guide baseline healthy; product cohort monitoring.** The seven
+  priority guide surfaces are submitted and indexed, and the first 46 factual
+  product pages are live in the processed 94-URL sitemap. Representative gift
+  pages are allowed, self-canonical, and discovered but not yet indexed. Keep
+  the 7/14/28-day product cohort gate before catch-up volume and recheck the Dad
+  guide on 2026-08-25 and 2026-09-08 (Beads `roadmap-fkvo`).
 - **Distribution / Pinterest — submitted; awaiting review.** Standard-access application
   package written (`docs/ops/pinterest-standard-access.md`): use-case text, scope
   justifications, data-handling statement, terminal demo shot-list, and exact
@@ -66,6 +61,19 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-11 — Funny-dad guide and public Pinterest hold `[daily-ops]`
+
+Improved the indexed Dad guide from its current 285-impression, zero-click
+Search Console cluster with specific dad-joke, birthday/holiday, hobby, and
+practical-novelty guidance; contextual related guides; and matching visible
+FAQs/schema. The page remains backed by 36 distinct eligible products. The
+public-only creative checkpoint recorded all six product-faithful Pins through
+the validated append-only event workflow: 42 total impressions, no engagement,
+and no attributable Pinterest session. No replacement or Pin was generated or
+published, the stale unverified desk moodboard was rejected, and the owner queue
+is empty. Robots, sitemap, canonical, and GSC checks confirm that the randomizer
+bot rule is not suppressing canonical product or guide discovery.
 
 ### 2026-08-10 — Catalog recovery accepted `[owner+codex]` ([PR #99](https://github.com/37-Inc/goose.gifts/pull/99))
 
