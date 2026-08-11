@@ -687,7 +687,7 @@ async function reviewEditorialBatch(products, telemetry, operation = 'editorial_
           role: 'user',
           content: `Review each draft against only its supplied listing title and sourceFacts.
 
-Reject unsupported materials, dimensions, package contents, capabilities, personalization, recipients, prices, availability, ratings, or overly generic/template copy. Correct a draft only when the correction is fully supported. The corrected copy must remain 160-240 words in 2-3 paragraphs and retain at least two concrete product facts. Return correctedEditorial as null when the supplied draft is already acceptable; never rewrite merely for style.
+Reject unsupported materials, dimensions, package contents, capabilities, personalization, recipients, prices, availability, ratings, or overly generic/template copy. Correct a draft only when the correction is fully supported. The corrected copy must remain 160-240 words in 2-3 paragraphs and retain at least two concrete product facts. Return correctedEditorial as null when the supplied draft is already acceptable; never rewrite merely for style. Set approved to true when either the original draft or a supplied correction is fully supported and publishable. Set approved to false only when no safe publishable correction can be produced from the supplied facts.
 
 Return exactly:
 {
@@ -728,14 +728,22 @@ ${JSON.stringify(reviewItems, null, 2)}`,
   };
 }
 
+function hasRetryableEditorialStructure(value) {
+  const editorial = String(value || '').trim();
+  const paragraphCount = editorial.split(/\n\s*\n/).map((paragraph) => paragraph.trim()).filter(Boolean).length;
+  const wordCount = editorialWordCount(editorial);
+  return wordCount >= 140 && wordCount <= 280 && paragraphCount >= 2 && paragraphCount <= 4;
+}
+
 function retryableDraft(item) {
-  return !item || editorialWordCount(item.editorialWriteup) < 140;
+  return !item || !hasRetryableEditorialStructure(item.editorialWriteup);
 }
 
 function retryableReview(item) {
   if (!item) return true;
   const corrected = String(item.correctedEditorial || '').trim();
-  return Boolean(corrected) && editorialWordCount(corrected) < 140;
+  if (item.approved !== true) return true;
+  return Boolean(corrected) && !hasRetryableEditorialStructure(corrected);
 }
 
 async function requestEditorialWithRetries(products, requestBatch, shouldRetry, telemetry, phase) {
