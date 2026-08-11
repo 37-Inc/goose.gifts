@@ -5,6 +5,24 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-10 - Vercel analytics retirement and affiliate-tag audit
+
+Vercel Web Analytics is metered beyond the plan allowance and duplicated the
+new GA4/PostHog product contract, so it was disabled in the Vercel project and
+the `@vercel/analytics` client was removed. The database snapshot command now
+reports only first-party interaction and catalog data; GA4 remains the traffic
+and landing-page reporting path. The provider API confirms Web Analytics has a
+`disabledAt` timestamp.
+
+Production configuration and all 3,363 Amazon catalog rows were audited against
+the dedicated tracking ID `goose-gifts-37-20`. Every row has the correct tag,
+valid URL, and matching ASIN path; 3,343 are active and none of the active rows
+lacks an affiliate destination. Live homepage, random-gift, and catalog HTML
+also exposed only the dedicated tag. Both Creators API requests and canonical
+URL construction read `AMAZON_ASSOCIATE_TAG`; the weekly automation now refreshes
+its local environment from Vercel before running the existing catalog-wide
+repair pass.
+
 ## 2026-08-09 - Catalog telemetry, auditability, and crawler-scope closure
 
 **Why this work**: the factual editorial pipeline could describe current

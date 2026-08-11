@@ -52,8 +52,11 @@ Boundaries (always in force):
 
 ## Daily run
 
-0. **Bootstrap credentials.** If `.env.local` is absent, run
-   `./scripts/ops/pull-env.sh` to pull production env vars from Vercel. The
+0. **Bootstrap credentials.** Before a scheduled catalog run or any affiliate
+   URL repair, run `./scripts/ops/pull-env.sh` to refresh production env vars
+   from Vercel even when `.env.local` already exists. This keeps
+   `AMAZON_ASSOCIATE_TAG` and other catalog configuration tied to one source of
+   truth. The
    script reads `VERCEL_TOKEN` from the environment, macOS Keychain service
    `goose.gifts.VERCEL_TOKEN`, or `$HOME/.codex/secrets/goose.gifts/vercel-token`
    / `VERCEL_TOKEN_FILE`. Then run `set -a; source .env.local; set +a` before
@@ -66,12 +69,11 @@ Boundaries (always in force):
    such as `/?q=dad%20with%20no%20spare%20time`. If the site is
    down or broken: fixing it is the entire day's work; escalate (see below) if
    not fixable within the run.
-3. **Read the data.** If `VERCEL_TOKEN` and `POSTGRES_URL` are available, run
-   `npm run analytics:snapshot` to pull Vercel visitor/pageview data plus
-   database searches, clicks, product counts, and catalog-quality gaps.
-   Let the data pick the work. Vercel Hobby Web Analytics only exposes the
-   latest 31 days, so use the database counters for longer-running product and
-   search interaction history.
+3. **Read the data.** If `POSTGRES_URL` is available, run
+   `npm run analytics:snapshot` to pull database searches, clicks, product
+   counts, and catalog-quality gaps. Let the data pick the work. Use GA4 for
+   traffic and landing-page activity; Vercel Web Analytics is intentionally
+   disabled to avoid redundant metered analytics.
    Also run `scripts/ops/gsc.sh analytics <start-date> <end-date>` when
    Search Console data is needed. The verified property is
    `https://www.goose.gifts/`, operated through the Full non-owner Portfolio

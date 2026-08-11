@@ -239,13 +239,13 @@ git push origin main
 ### Google Analytics not tracking
 - Verify gtag is loaded: Check browser console for `window.gtag`
 - Check GA dashboard real-time events
-- Confirm the hardcoded GA4 measurement ID in `app/layout.tsx` is still the
+- Confirm the GA4 measurement ID in `lib/client-analytics.ts` is still the
   intended goose.gifts property: `G-6RR3HPR747`.
 - For programmatic GA reports, run `npm run analytics:ga4 -- events`,
   `npm run analytics:ga4 -- traffic`, `npm run analytics:ga4 -- landing-pages`,
   or `npm run analytics:ga4 -- event conversion_event_outbound_click`.
 - For weekly product/search reporting, run
-  `npm run analytics:snapshot -- --days 31`; the database section includes
+  `npm run analytics:snapshot`; the database snapshot includes
   click sources, guide-page product clicks, campaign-attributed product clicks,
   product-click referrers, zero-result searches, top clicked products, and
   catalog readiness.

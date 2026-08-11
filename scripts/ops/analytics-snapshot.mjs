@@ -5,23 +5,12 @@ import { createPool } from '@vercel/postgres';
 dotenv.config({ path: '.env.local', quiet: true });
 dotenv.config({ path: '.env', quiet: true });
 
-const DEFAULT_DAYS = 31;
-
 function parseArgs(argv) {
-  const options = {
-    days: DEFAULT_DAYS,
-    json: false,
-  };
+  const options = { json: false };
 
-  for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index];
+  for (const arg of argv) {
     if (arg === '--json') {
       options.json = true;
-    } else if (arg === '--days') {
-      options.days = Number(argv[index + 1]);
-      index += 1;
-    } else if (arg.startsWith('--days=')) {
-      options.days = Number(arg.slice('--days='.length));
     } else if (arg === '--help' || arg === '-h') {
       printHelp();
       process.exit(0);
@@ -30,163 +19,14 @@ function parseArgs(argv) {
     }
   }
 
-  if (!Number.isFinite(options.days) || options.days < 1) {
-    throw new Error('--days must be a positive number');
-  }
-
-  return {
-    ...options,
-    days: Math.min(Math.floor(options.days), 31),
-    requestedDays: Math.floor(options.days),
-  };
+  return options;
 }
 
 function printHelp() {
-  console.log(`Usage: npm run analytics:snapshot -- [--days 31] [--json]
+  console.log(`Usage: npm run analytics:snapshot -- [--json]
 
-Pulls a read-only traffic and interaction snapshot from:
-- Vercel Web Analytics API for visitor/pageview data.
-- Neon/Vercel Postgres for search, click, and catalog-quality data.
-
-The Vercel Hobby plan exposes the latest 31 days of Web Analytics data, so
-larger --days values are clamped to 31.`);
-}
-
-function formatDate(date) {
-  return date.toISOString().slice(0, 10);
-}
-
-function dateRange(days) {
-  const untilDate = new Date();
-  untilDate.setUTCHours(0, 0, 0, 0);
-
-  const sinceDate = new Date(untilDate);
-  sinceDate.setUTCDate(sinceDate.getUTCDate() - (days - 1));
-
-  return {
-    since: formatDate(sinceDate),
-    until: formatDate(untilDate),
-  };
-}
-
-async function vercelApi(path, params = {}) {
-  const token = process.env.VERCEL_TOKEN;
-  if (!token) {
-    throw new Error('VERCEL_TOKEN is required for Vercel Web Analytics');
-  }
-
-  const url = new URL(`https://api.vercel.com${path}`);
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== null && value !== '') {
-      url.searchParams.set(key, String(value));
-    }
-  }
-
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  const text = await response.text();
-  const body = text ? JSON.parse(text) : null;
-
-  if (!response.ok) {
-    const message = body?.error?.message ?? response.statusText;
-    const code = body?.error?.code ?? response.status;
-    throw new Error(`${path} failed (${code}): ${message}`);
-  }
-
-  return body;
-}
-
-async function findVercelProject() {
-  const configuredProjectId = process.env.VERCEL_PROJECT_ID;
-  const configuredTeamId = process.env.VERCEL_TEAM_ID;
-  if (configuredProjectId) {
-    return {
-      id: configuredProjectId,
-      name: process.env.VERCEL_PROJECT_NAME || 'configured-project',
-      scope: configuredTeamId ? { teamId: configuredTeamId } : {},
-    };
-  }
-
-  const scopes = [{ label: 'personal', scope: {} }];
-  try {
-    const teams = await vercelApi('/v2/teams');
-    for (const team of teams.teams ?? []) {
-      scopes.push({
-        label: team.slug || team.name || team.id,
-        scope: { teamId: team.id },
-      });
-    }
-  } catch {
-    // Project-scoped tokens may not be able to list teams; personal scope can
-    // still find the project when the token is scoped directly to it.
-  }
-
-  for (const { label, scope } of scopes) {
-    const projects = await vercelApi('/v9/projects', { ...scope, search: 'goose' });
-    const match = (projects.projects ?? []).find((project) => (
-      project.name === 'goose-gifts' || project.name.includes('goose')
-    ));
-    if (match) {
-      return {
-        id: match.id,
-        name: match.name,
-        accountId: match.accountId,
-        scope,
-        scopeLabel: label,
-      };
-    }
-  }
-
-  throw new Error('Could not find the goose.gifts Vercel project');
-}
-
-async function fetchVercelAnalytics({ days }) {
-  const project = await findVercelProject();
-  const range = dateRange(days);
-  const baseParams = {
-    projectId: project.id,
-    ...project.scope,
-    ...range,
-  };
-
-  const [totals, daily, paths, referrers, countries] = await Promise.all([
-    vercelApi('/v1/query/web-analytics/visits/count', baseParams),
-    vercelApi('/v1/query/web-analytics/visits/aggregate', {
-      ...baseParams,
-      by: 'day',
-    }),
-    vercelApi('/v1/query/web-analytics/visits/aggregate', {
-      ...baseParams,
-      by: 'requestPath',
-      limit: 10,
-    }),
-    vercelApi('/v1/query/web-analytics/visits/aggregate', {
-      ...baseParams,
-      by: 'referrerHostname',
-      limit: 10,
-    }),
-    vercelApi('/v1/query/web-analytics/visits/aggregate', {
-      ...baseParams,
-      by: 'country',
-      limit: 10,
-    }),
-  ]);
-
-  return {
-    project: {
-      id: project.id,
-      name: project.name,
-      scopeLabel: project.scopeLabel,
-      accountId: project.accountId,
-    },
-    range,
-    totals: totals.data,
-    daily: daily.data,
-    topPaths: paths.data,
-    topReferrers: referrers.data,
-    topCountries: countries.data,
-  };
+Pulls a read-only interaction and catalog-quality snapshot from Neon/Vercel
+Postgres. Use npm run analytics:ga4 for traffic and landing-page reports.`);
 }
 
 async function queryDb(name, db, text) {
@@ -327,10 +167,6 @@ async function fetchDatabaseAnalytics() {
   }
 }
 
-function latestNonzeroDay(daily) {
-  return [...daily].reverse().find((row) => row.visitors || row.pageviews) ?? null;
-}
-
 function formatRows(rows, mapper) {
   if (!rows.length) {
     return '  none';
@@ -352,35 +188,11 @@ function formatTimestamp(value) {
 }
 
 function printText(snapshot) {
-  const { vercel, database, notes } = snapshot;
+  const { database } = snapshot;
   const summary = database.summary[0];
   const catalog = database.catalogQuality[0];
-  const latestDay = latestNonzeroDay(vercel.daily);
 
   console.log('goose.gifts analytics snapshot');
-  console.log(`Range: ${vercel.range.since} through ${vercel.range.until} UTC`);
-  console.log('');
-  console.log('Vercel Web Analytics');
-  console.log(`- Project: ${vercel.project.name} (${vercel.project.id})`);
-  console.log(`- Visitors: ${vercel.totals.visitors.toLocaleString()}`);
-  console.log(`- Pageviews: ${vercel.totals.pageviews.toLocaleString()}`);
-  console.log(`- Last nonzero day: ${latestDay ? `${latestDay.timestamp} (${latestDay.visitors} visitors, ${latestDay.pageviews} pageviews)` : 'none'}`);
-  console.log('- Top paths:');
-  console.log(formatRows(
-    vercel.topPaths,
-    (row) => `  ${row.requestPath || '/'} - ${row.visitors} visitors, ${row.pageviews} pageviews`,
-  ));
-  console.log('- Top referrers:');
-  console.log(formatRows(
-    vercel.topReferrers,
-    (row) => `  ${row.referrerHostname || '(direct/unknown)'} - ${row.visitors} visitors, ${row.pageviews} pageviews`,
-  ));
-  console.log('- Top countries:');
-  console.log(formatRows(
-    vercel.topCountries,
-    (row) => `  ${row.country || '(unknown)'} - ${row.visitors} visitors, ${row.pageviews} pageviews`,
-  ));
-  console.log('');
   console.log('Database interaction analytics');
   console.log(`- Products: ${summary.products.toLocaleString()} (${summary.active_products.toLocaleString()} active)`);
   console.log(`- Product impressions/click events: ${summary.product_impressions_lifetime.toLocaleString()} impressions, ${summary.product_click_events_lifetime.toLocaleString()} click events`);
@@ -435,33 +247,15 @@ function printText(snapshot) {
   console.log(`- Homepage relevance-gate eligible: ${catalog.homepage_eligible.toLocaleString()}`);
   console.log(`- Embedded products: ${catalog.embedded_products.toLocaleString()}`);
   console.log(`- Products with punny copy: ${catalog.products_with_punny_copy.toLocaleString()}`);
-
-  if (notes.length) {
-    console.log('');
-    console.log('Notes');
-    for (const note of notes) {
-      console.log(`- ${note}`);
-    }
-  }
 }
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
-  const notes = [];
-  if (options.requestedDays > options.days) {
-    notes.push(`Requested ${options.requestedDays} days; clamped to ${options.days} because Vercel Hobby Web Analytics exposes 31 days.`);
-  }
-
-  const [vercel, database] = await Promise.all([
-    fetchVercelAnalytics(options),
-    fetchDatabaseAnalytics(),
-  ]);
+  const database = await fetchDatabaseAnalytics();
 
   const snapshot = {
     generatedAt: new Date().toISOString(),
-    vercel,
     database,
-    notes,
   };
 
   if (options.json) {
