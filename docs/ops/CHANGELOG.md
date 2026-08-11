@@ -62,7 +62,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-11 — Funny-dad guide and public Pinterest hold `[daily-ops]`
+### 2026-08-11 — Funny-dad guide and public Pinterest hold `[daily-ops]` ([PR #101](https://github.com/37-Inc/goose.gifts/pull/101))
 
 Improved the indexed Dad guide from its current 285-impression, zero-click
 Search Console cluster with specific dad-joke, birthday/holiday, hobby, and
