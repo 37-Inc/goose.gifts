@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
-import { Analytics } from "@vercel/analytics/react";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
@@ -182,8 +181,6 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
-
-        <Analytics />
       </body>
     </html>
   );

@@ -67,6 +67,16 @@ what's likely next.
 
 Newest first.
 
+### 2026-08-10 — Retired redundant Vercel analytics and verified affiliate routing `[owner+claude]`
+
+Vercel Web Analytics was disabled at the project level and removed from the
+application so it cannot generate metered events; GA4 and PostHog remain the
+explicit product-analytics destinations. A production-wide audit confirmed all
+3,363 Amazon URLs use the dedicated `goose-gifts-37-20` tag, with no foreign or
+malformed destinations. Vercel Production remains the single source for
+`AMAZON_ASSOCIATE_TAG`, and the weekly catalog job now refreshes that environment
+before its catalog-wide repair pass.
+
 ### 2026-08-09 — Durable catalog telemetry and public crawler repair `[owner+claude]` ([PR #90](https://github.com/37-Inc/goose.gifts/pull/90))
 
 Added one durable receipt for every catalog invocation and append-only

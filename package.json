@@ -52,7 +52,6 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@vercel/analytics": "^1.5.0",
     "@vercel/postgres": "^0.10.0",
     "drizzle-orm": "^0.39.0",
     "next": "15.1.11",

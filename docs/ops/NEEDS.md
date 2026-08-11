@@ -44,8 +44,9 @@ any paid/video-generation tooling before spend.
 
 ### 2. Funnel and admin analytics rebuild
 
-Vercel Web Analytics, Google Search Console, GA4 Data API, and the app database
-are now readable by ops scripts. Catalog jobs now have durable run/item
+PostHog, Google Search Console, GA4 Data API, and the app database cover the
+current analytics stack; Vercel Web Analytics is intentionally disabled.
+Catalog jobs now have durable run/item
 receipts, token/cost/timing telemetry, rejection reasons, and a CLI manual-review
 queue, so this is no longer a blocker for the first measured enrichment run.
 The remaining product analytics work is guide-page product impressions/clicks,

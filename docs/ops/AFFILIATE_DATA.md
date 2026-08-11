@@ -1,16 +1,26 @@
 # Affiliate Data Availability
 
-Last audited: 2026-07-22
+Last audited: 2026-08-10
 
 ## Current production path
 
-- All 3,280 pre-run catalog products were Amazon products.
+- All 3,363 catalog products are Amazon products; 3,343 are active.
 - Amazon Creators API is the sole Amazon product-data path. It uses OAuth 2.0
   credentials and supports `SearchItems` discovery plus `GetItems` enrichment
   and stale-product revalidation.
 - Amazon requests and stored product links use the dedicated Associates tracking
   ID `goose-gifts-37-20` through `AMAZON_ASSOCIATE_TAG`. The Creators API
   application remains attached to the parent Store ID `rileyehrlic0b-20`.
+- The production environment is the source of truth for `AMAZON_ASSOCIATE_TAG`.
+  The weekly catalog automation refreshes its local environment from Vercel,
+  and its revalidation phase audits and repairs every stored Amazon URL before
+  fetching products. To change tracking IDs, update the Vercel variable once;
+  the next weekly run will rewrite existing links, or run
+  `npm run catalog:repair-affiliate-urls` after refreshing `.env.local` for an
+  immediate repair.
+- The 2026-08-10 production audit found 3,363 correctly tagged URLs and zero
+  foreign tags, missing tags, malformed URLs, or ASIN/path mismatches. Live
+  homepage, random-gift, and catalog HTML exposed only `goose-gifts-37-20`.
 - Google CSE is optional discovery-only resilience. CSE metadata is never
   recorded as Amazon price, availability, or freshness verification.
 - Amazon product APIs do not expose the Associates

@@ -129,6 +129,8 @@ test('the single client adapter preserves destinations and disables broad captur
   assert.match(adapter, /\$set_once: undefined/);
   assert.match(adapter, /\$geoip_disable: true/);
   assert.match(layout, /<AnalyticsProvider \/>/);
+  assert.doesNotMatch(layout, /@vercel\/analytics/);
+  assert.doesNotMatch(layout, /<Analytics \/>/);
   assert.doesNotMatch(layout, /googletagmanager/);
 
   const componentSource = clientComponents.join('\n');
