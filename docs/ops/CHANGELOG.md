@@ -67,7 +67,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-10 — Catalog first-run remediation `[owner+codex]`
+### 2026-08-10 — Catalog first-run remediation `[owner+codex]` ([PR #97](https://github.com/37-Inc/goose.gifts/pull/97))
 
 The first instrumented weekly run proved the receipt path worked, but exposed
 four implementation defects before catch-up volume was enabled: token counters
