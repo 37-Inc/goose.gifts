@@ -149,6 +149,25 @@ For every concept promoted beyond rough exploration, record:
 
 ## Experiment log
 
+### 2026-08-10 — Catalog telemetry acceptance and crawlable expansion
+
+- **Recovery outcome**: the first instrumented run exposed over-redacted token
+  counters, ambiguous timestamps, incomplete model batches, and three approved
+  pages that had been demoted. The production migration and bounded recovery
+  replays restored the three pages and resolved the original 26-item hold to 20
+  ready, five blocked, one automatic pending item, and no owner queue. The two
+  paid replays used 52,350 provider-reported tokens and an estimated $0.013099.
+- **Crawler acceptance**: the live sitemap now contains 46 eligible gift URLs
+  and 94 URLs total. Every gift URL in it returned 200 with a matching canonical
+  and no `noindex`; sampled held pages remained `200, noindex, follow` outside
+  the sitemap. The old product-pinned random destination still returned a
+  UTM-preserving 308 to the exact canonical slug. The random-page bot rule has
+  not leaked onto product SEO surfaces.
+- **Cadence decision**: the normal bounded weekly job continues. Do not enable
+  the proposed 100/day catch-up merely because generation recovered; wait for
+  the existing 7/14/28-day Search Console cohort to show healthy crawl,
+  canonical selection, exclusions, and indexation.
+
 ### 2026-08-09 — Catalog enrichment observability and crawler scope
 
 - **Run evidence**: weekly revalidation, discovery, and editorial backfill now

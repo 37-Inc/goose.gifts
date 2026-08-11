@@ -49,12 +49,44 @@ return to uncached per-spin random-gift database work. Canonical product pages
 remain allowed to search/model crawlers, and the factual eligibility gate still
 controls robots, directory membership, and sitemap membership.
 
-**QA and rollout gate**: focused telemetry, cache, catalog, gift-page, and
-robots tests pass; TypeScript, lint, and the production-data build pass. The
-remaining production sequence is narrow: deploy, install the cache secret,
-apply migration 0008, replay the checked-in three-page recovery cohort, replay
-only the exact 26-item held cohort, and audit token/cost/manual/sitemap/robots
-receipts. Do not schedule catch-up volume until that receipt is recorded.
+**Production receipt**: PRs
+[#97](https://github.com/37-Inc/goose.gifts/pull/97),
+[#98](https://github.com/37-Inc/goose.gifts/pull/98), and
+[#99](https://github.com/37-Inc/goose.gifts/pull/99) are merged and deployed.
+Migration 0008 converted all five run/item timestamp columns to
+`timestamp with time zone`; the original run now reports the correct
+`2026-08-10T15:30:55.656Z` start. The cache secret is production-only, and PR
+#98 canonicalizes the configured apex before sending its Bearer header because
+the apex 308 otherwise stripped authorization. An unauthenticated request is
+401, the authenticated canonical-host request is 200, and new runs record
+`cacheInvalidated: true`.
+
+The reviewed recovery run `11d51739-ddf2-4496-8ba8-45a11efb309b` restored all
+three demoted pages with no model call. The exact 26-item replay
+`081dac8d-3e13-4a38-bebc-0882a5982279` completed in 148 seconds: 15 ready, five
+automatic pending, four inactive blocks, two factual reviews, 39,474 chat
+tokens plus 1,853 embedding tokens, and $0.010530 estimated cost. That run
+proved numeric counters, absolute UTC timestamps, per-item omission retry, and
+post-write invalidation. Its structural holds also exposed a smaller gap:
+one-paragraph drafts and reviewer rejections were not using the same-run retry.
+PR #99 now retries those once, clarifies that a safe reviewer correction is
+approvable, and recognizes “lacks support” as a factual-review reason.
+
+The seven-item acceptance replay `bdc8aa17-fb82-4f31-a044-c4768effa37d`
+completed in 33 seconds with five ready, one correctly blocked low-quality mug,
+one automatic generic-language hold, zero owner interventions, 10,560 chat
+tokens plus 463 embedding tokens, and $0.002569 estimated cost. Final state for
+the original held 26 is 20 ready, five blocked, one pending, and no manual
+queue. The live sitemap contains 94 URLs, including 46 eligible gift pages; all
+46 returned 200 with a matching canonical and no `noindex`. Six representative
+held pages returned stable `200, noindex, follow` and were absent from the
+sitemap. A legacy `/random-gift?gift=B0F95X117Q` Pinterest URL returned 308 to
+the canonical slug while preserving UTM attribution and dropping `spin`.
+
+**Decision**: the remediation and telemetry work is accepted. No Search
+Console resubmission is needed—the already-submitted sitemap updates in place.
+Keep the proposed 100/day catch-up disabled until the existing 7/14/28-day
+Search Console cohort supplies crawl, canonical, exclusion, and index evidence.
 
 ## 2026-08-10 - Vercel analytics retirement and affiliate-tag audit
 

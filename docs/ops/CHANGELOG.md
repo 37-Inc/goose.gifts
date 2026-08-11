@@ -67,6 +67,20 @@ what's likely next.
 
 Newest first.
 
+### 2026-08-10 — Catalog recovery accepted `[owner+codex]` ([PR #99](https://github.com/37-Inc/goose.gifts/pull/99))
+
+Completed the production telemetry migration and exact recovery replays after
+PRs [#97](https://github.com/37-Inc/goose.gifts/pull/97) and
+[#98](https://github.com/37-Inc/goose.gifts/pull/98). The three reviewed pages
+are restored; the original 26 held items now resolve to 20 ready, five blocked,
+one automatic pending item, and no owner queue. Numeric token/cost counters,
+UTC instants, authenticated cache invalidation, and live sitemap/robots
+alignment all passed. The final hardening uses the same bounded retry for
+malformed paragraphs and one reviewer rejection. The live sitemap contains 46
+self-canonical, indexable gift pages; held pages remain stable and followable
+but out of the sitemap. Catch-up volume remains gated on the existing 7/14/28
+day Search Console cohort, not merely a successful generation run.
+
 ### 2026-08-10 — Catalog first-run remediation `[owner+codex]` ([PR #97](https://github.com/37-Inc/goose.gifts/pull/97))
 
 The first instrumented weekly run proved the receipt path worked, but exposed
