@@ -98,10 +98,12 @@ marginal cost per visitor drops to ~zero. This is the main margin lever.
   clear target query, H1, meta title/description, canonical, ItemList/Product
   schema where eligible, internal links to sibling clusters, and at least one
   product grid that is useful without JavaScript.
-- Recurring cadence: every weekly check-in run should publish 3-5 new
-  catalog-backed guide pages or materially improve existing ones, unless the
-  catalog cannot support that many useful pages yet. These are non-legacy guide
-  and roundup pages, not a return to bundle permalinks.
+- Recurring cadence: on the first Pinterest/organic studio run each week,
+  materially improve at most one existing Search Console opportunity from
+  current page/query evidence. Do not create more guide URLs while the current
+  priority pages and first product cohort are still establishing crawl and
+  index evidence. Any later new guide must be catalog-backed and editorially
+  distinct, not a return to bundle permalinks or a quota-driven template batch.
 - Presentation standard: guide pages should feel editorially finished, with
   polished intro copy, scannable sections, useful product ordering, visible
   FAQ answers, related guide links, and desktop/mobile visual QA before merge.

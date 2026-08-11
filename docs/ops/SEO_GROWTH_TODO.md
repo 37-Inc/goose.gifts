@@ -93,6 +93,33 @@ report.
   - Keep 100/day disabled until the already-defined 7/14/28-day Search Console
     cohort shows healthy crawl, Google canonical, exclusions, and indexation.
 
+## Shipped 2026-08-11
+
+- [x] Improved the existing `/gift-guides/funny-gifts-for-dads` page from
+  current page/query evidence rather than creating another URL. The 2026-07-14
+  through 2026-08-09 window showed 285 impressions, zero clicks, and average
+  position 44.1; the clearest clusters were `funny gifts for dad` (40
+  impressions), `funny dad gifts` (31), and `dad joke gifts` (16).
+- [x] Aligned the title, description, H1, and visible editorial around funny dad
+  gifts and dad-joke intent. Added distinct birthday/holiday, hobby, and
+  practical-novelty guidance; explicitly warns against guessing at technical
+  fishing or grilling gear and against treating every dad as the same person;
+  links contextually to fishing, golf, coffee, kitchen, and sarcastic-gift
+  guides; and supplies page-specific visible FAQs that match the FAQ schema.
+- [x] Verified that the Dad guide is submitted and indexed, indexing is
+  allowed, Google and user canonicals both use `www`, the last mobile fetch was
+  successful, and the live guide has 36 distinct eligible products. The live
+  sitemap remains processed with zero errors and contains 94 URLs.
+- [x] Reconfirmed that the random-page crawler mitigation has not leaked onto
+  canonical product SEO. A representative enriched `/gifts/<slug>` page emits
+  `index, follow` with a matching canonical and is discoverable in Search
+  Console; it is currently discovered but not yet indexed, which is a rollout
+  result to monitor rather than a reason to expose held pages.
+- [ ] Recheck the Dad guide after 14 and 28 days (2026-08-25 and 2026-09-08):
+  impressions, CTR, average position, organic sessions, and `gift_guide`
+  outbound clicks. Do not revise it again before the evidence window closes
+  unless rendering, canonical, schema, or indexation regresses.
+
 ## Shipped 2026-07-05
 
 - [x] Recovered the stale optical illusion decor bundle URL into the canonical
