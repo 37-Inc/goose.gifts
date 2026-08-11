@@ -1,5 +1,14 @@
 const DEFAULT_SITE_URL = 'https://www.goose.gifts';
 
+export function canonicalCatalogSiteUrl(value) {
+  const url = new URL(value || DEFAULT_SITE_URL);
+  if (url.hostname === 'goose.gifts') url.hostname = 'www.goose.gifts';
+  url.pathname = '';
+  url.search = '';
+  url.hash = '';
+  return url.toString().replace(/\/$/, '');
+}
+
 export async function invalidateCatalogCaches({
   fetchImpl = fetch,
   secret = process.env.CATALOG_CACHE_REVALIDATE_SECRET,
@@ -9,7 +18,7 @@ export async function invalidateCatalogCaches({
     return { ok: false, reason: 'cache_revalidation_not_configured' };
   }
 
-  const response = await fetchImpl(`${siteUrl.replace(/\/$/, '')}/api/admin/catalog-cache`, {
+  const response = await fetchImpl(`${canonicalCatalogSiteUrl(siteUrl)}/api/admin/catalog-cache`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${secret}`,
