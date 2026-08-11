@@ -1,0 +1,33 @@
+{
+  "cohort": "2026-08-10-recovery",
+  "reason": "Restore three reviewed initial-cohort pages whose approved copy was overwritten by the incomplete 2026-08-10 generator run. Every entry is revalidated against current live Amazon source facts before persistence.",
+  "products": [
+    {
+      "id": "B0F95X117Q",
+      "punnyTitle": "The Meeting-Is-Over Mug",
+      "wittyDescription": "A 15-ounce ceramic mug with a profane message waiting underneath.",
+      "humorTags": ["coffee", "rude-humor", "office"],
+      "editorialQualityScore": 0.91,
+      "promptVersion": "reviewed-cohort-v1-recovery",
+      "editorialWriteup": "Hogg’s hidden-message mug is a 15-ounce ceramic coffee cup with a profane phrase positioned to reveal itself as the drinker tilts or empties the mug. From the outside it reads as a conventional dark coffee cup; the surprise is the wording inside. The listing describes BPA-free ceramic, heat retention for hot drinks, microwave use, and dishwasher cleaning on low heat, so this is intended as functional drinkware rather than a display-only gag.\n\nThe delayed reveal makes it a good match for a close coworker, manager, friend, or sibling whose response to a long day is already unprintable. It has more staying power than a slogan printed across the front because the joke can remain hidden during an ordinary video call or desk break. The exact phrase is explicit, though, so the recipient and setting need to support that language; it is not a neutral office gift. For the right person, the useful 15-ounce capacity and the concealed punch line make the cup feel like an inside reaction captured in ceramic."
+    },
+    {
+      "id": "B0D3HQPGFD",
+      "punnyTitle": "The Deliberately Ugly Pet Pillow",
+      "wittyDescription": "A double-sided custom shape pillow made from the recipient’s most gloriously awkward pet photo.",
+      "humorTags": ["personalized", "pets", "home-decor"],
+      "editorialQualityScore": 0.9,
+      "promptVersion": "reviewed-cohort-v1-recovery",
+      "editorialWriteup": "FETNHU’s custom pet pillow turns an uploaded photograph into a double-sided, stuffed shape with no white border around the subject. The buyer provides a high-resolution image showing the pet’s full head or full body, and the maker uses the longest side as the sizing reference. The listing offers several lengths from 20 to 70 centimeters and can work from cats, dogs, horses, turtles, people, or other clear subjects. The intentionally awkward result depends heavily on the chosen photograph.\n\nThis is strongest for a pet owner whose camera roll already contains one spectacularly unflattering expression. It can be a funny memorial object, couch decoration, or personalized gift that is specific to one animal rather than a generic breed illustration. Custom work requires more preparation than an off-the-shelf plush: image resolution, crop, selected size, and the listing’s current production guidance all deserve attention before submission. A centered, complete subject gives the maker more usable material than a dark or partially hidden photo. The humor should come from a beloved image and the odd custom silhouette, not from pretending the finished pillow will match a stock shape exactly."
+    },
+    {
+      "id": "B0CYKK1167",
+      "punnyTitle": "The Mystic Pickle",
+      "wittyDescription": "A five-inch green fortune teller with one hundred possible answers and no respect for solemnity.",
+      "humorTags": ["pickle", "fortune-teller", "desk-toy"],
+      "editorialQualityScore": 0.91,
+      "promptVersion": "reviewed-cohort-v1-recovery",
+      "editorialWriteup": "DR DINGUS’s Mystic Pickle is a green, pickle-shaped novelty fortune teller with one hundred possible responses. The listing describes the original version as about five inches long and compact enough to carry to a party, desk, or vacation. Its job is simple: turn a question into an answer delivered through an object that looks far less authoritative than a crystal ball. The pickle form and oversized response count provide the entire visual and interactive premise.\n\nIt works for a host who needs an icebreaker, a coworker who enjoys arbitrary lunch decisions, or a friend whose advice would improve if vegetables supplied it. The number of responses gives repeated use more variety than a single catchphrase, while the small size keeps it from demanding permanent display space. It is still a novelty decision toy, not a source of factual predictions, counseling, or serious guidance. That boundary is part of the fun: ask it which snack to open or who should pick the next movie, then reserve consequential choices for humans. The result is a portable conversation object with an admirably absurd confidence-to-credential ratio."
+    }
+  ]
+}

@@ -138,6 +138,10 @@ Boundaries (always in force):
    candidates rejected before product insertion—with stable reason codes and
    small title/image/destination/page snapshots. Product cleanup must not erase
    this history.
+   Telemetry timestamps are stored as absolute UTC instants. Numeric
+   `inputTokens`, `cachedInputTokens`, `outputTokens`, and `totalTokens` are
+   evidence and must remain visible; only credential-shaped singular token,
+   key, password, and secret fields are redacted.
    For a read-only rehearsal use `npm run catalog:weekly -- --dry-run`.
    Use `npm run catalog:report -- --latest` to reconstruct the newest run,
    `npm run catalog:report -- --run <uuid>` for an exact historical receipt,
@@ -173,12 +177,26 @@ Boundaries (always in force):
    `--ids ASIN,ASIN` for an exact cohort or `--editorial-seed <repo-json>` to
    replay owner-reviewed copy; a seed is still rejected if live facts, source
    hashes, availability, length, specificity, or uniqueness fail.
-   Before the first instrumented production run, apply only the additive
-   telemetry migration with
+   Generation requests contain at most four products. Missing or structurally
+   incomplete draft/review entries receive one bounded per-item retry, with
+   expected/returned IDs, finish reason, word count, and retry count retained
+   in the event receipt. Completeness failures stay `pending` for automatic
+   retry; `needs_review` is reserved for a candidate-specific factual rejection.
+   An incomplete attempt can never replace reviewed copy. If source facts are
+   unchanged the reviewed page stays ready; if facts changed, the old copy is
+   retained as `stale` and noindexed until a complete replacement passes.
+   After any non-dry catalog write, the job calls the authenticated catalog
+   cache endpoint using `CATALOG_CACHE_REVALIDATE_SECRET`. It revalidates the
+   product pages, directory, related products, random pool, and sitemap
+   together. A missing or failed invalidation remains visible as a run warning;
+   crawler-facing caches also have a five-minute fallback.
+   Apply only the additive telemetry migrations with
    `npm run db:migrate:catalog-telemetry -- --apply`, then run the command
-   without `--apply` for its schema receipt. This uses `@vercel/postgres` over
-   HTTPS. Do **not** run the all-history `npm run db:migrate` in production
-   until the separate historical Drizzle baseline repair is complete.
+   without `--apply` for its schema receipt. The narrow command safely applies
+   both the telemetry tables and the UTC timestamp correction and is
+   idempotent. This uses `@vercel/postgres` over HTTPS. Do **not** run the
+   all-history `npm run db:migrate` in production until the separate historical
+   Drizzle baseline repair is complete.
 5. **Review your own work.** Before verification, do a deliberate review pass
    over the diff as if reviewing someone else's PR. Look for regressions,
    over-broad changes, bad assumptions, missing error handling, data-policy

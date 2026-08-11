@@ -136,10 +136,10 @@ export const catalogRuns = pgTable('catalog_runs', {
   estimatedCostUsd: numeric('estimated_cost_usd', { precision: 12, scale: 6 }),
   warnings: jsonb('warnings').$type<Array<Record<string, unknown>>>().notNull().default([]),
   errorSummary: text('error_summary'),
-  startedAt: timestamp('started_at').notNull().defaultNow(),
-  completedAt: timestamp('completed_at'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
   startedAtIdx: index('catalog_runs_started_at_idx').on(table.startedAt),
   statusIdx: index('catalog_runs_status_idx').on(table.status),
@@ -169,7 +169,7 @@ export const catalogRunItems = pgTable('catalog_run_items', {
   requiresManualReview: boolean('requires_manual_review').notNull().default(false),
   nextAction: text('next_action'),
   details: jsonb('details').$type<Record<string, unknown>>().notNull().default({}),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
   runIdIdx: index('catalog_run_items_run_id_idx').on(table.runId, table.sequence),
   externalIdIdx: index('catalog_run_items_external_id_idx').on(table.externalId),

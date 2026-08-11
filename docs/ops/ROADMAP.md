@@ -37,15 +37,23 @@ pages are indexed before expanding the page network.
   tag, and write punny copy → embed (`text-embedding-3-small`) → upsert.
 - Current bound: at most 20 net-new discoveries and 25 existing editorial
   candidates per weekly run. The proposed 100/day catch-up remains disabled
-  until the first instrumented run is audited and the 7/14/28-day Search
-  Console cohort shows the factual pages are being crawled and indexed without
-  duplicate, soft-404, or load regressions.
+  after the first instrumented run exposed incomplete model batches. Resume
+  catch-up planning only after the exact held cohort succeeds through the
+  bounded retry path and the 7/14/28-day Search Console cohort shows the factual
+  pages are being crawled and indexed without duplicate, soft-404, or load
+  regressions.
 - Re-verify stale products periodically (dead links, price drift) and
   deactivate the broken ones.
 - Keep one durable run receipt across revalidation, discovery, and editorial:
   selection and rejection reasons, final item states, manual intervention,
   phase timing, Git SHA, provider token usage, and estimated API cost must be
   reviewable before changing volume or cadence.
+- Treat generation completeness as automatic pipeline work, not an owner
+  queue. Limit generation to four products per request, retry an omitted/short
+  response once per item, preserve every previously approved write-up, and
+  reserve manual review for explicit factual conflicts. Store response
+  completeness diagnostics and invalidate every crawler-facing catalog cache
+  after a successful write.
 - Homepage eligibility requires a usable image/link, quality score of at least
   0.55, and either a curated discovery source or an explicit gag/funny signal
   in the original marketplace title. LLM-written puns alone do not establish

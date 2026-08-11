@@ -3,7 +3,9 @@ import { giftGuides } from '@/lib/gift-guides';
 import { getSiteUrl } from '@/lib/site';
 import { getIndexableGiftSitemapEntries } from '@/lib/db/gift-pages';
 
-export const revalidate = 3600;
+// Catalog jobs explicitly revalidate this path and the underlying tagged
+// query. Keep a bounded fallback in case an external invalidation fails.
+export const revalidate = 300;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getSiteUrl();
