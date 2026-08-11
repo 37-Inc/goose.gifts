@@ -143,7 +143,7 @@ export function validateEditorialDraft(product, editorialWriteup, existingWriteu
   };
 }
 
-const MANUAL_EDITORIAL_REASON = /(unsupported|not[_ -]?supported|invented|inaccurate|contradict|misleading|wrong product|image mismatch|factual mismatch)/i;
+const MANUAL_EDITORIAL_REASON = /(unsupported|not[_ -]?supported|lack(?:s|ed|ing)? (?:of )?support|invented|inaccurate|contradict|misleading|wrong product|image mismatch|factual mismatch)/i;
 
 export function editorialReasonsRequireManualReview(reasons = []) {
   return reasons.some((reason) => MANUAL_EDITORIAL_REASON.test(String(reason || '')));

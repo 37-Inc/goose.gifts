@@ -21,12 +21,14 @@ import {
   requestEditorialWithRetries,
   revalidatedProduct,
   retryableDraft,
+  retryableReview,
   selectRotatingThemes,
   titleSimilarity,
 } from '../scripts/ops/prefetch-catalog.mjs';
 import {
   editorialSimilarity,
   editorialSourceHash,
+  editorialReasonsRequireManualReview,
   resolveEditorialAttempt,
   selectDuplicateWinner,
   validateEditorialDraft,
@@ -515,6 +517,18 @@ test('generation completeness is retryable while factual rejections remain owner
   });
   assert.equal(rejected.editorialStatus, 'needs_review');
   assert.equal(rejected.requiresManualReview, true);
+  assert.equal(editorialReasonsRequireManualReview(['Lacks support for personalization details.']), true);
+});
+
+test('editorial retries include malformed paragraphs and one reviewer rejection', () => {
+  const oneParagraph = Array.from({ length: 160 }, (_, index) => `detail${index}`).join(' ');
+  const twoParagraphs = `${Array.from({ length: 80 }, (_, index) => `first${index}`).join(' ')}\n\n${Array.from({ length: 80 }, (_, index) => `second${index}`).join(' ')}`;
+
+  assert.equal(retryableDraft({ editorialWriteup: oneParagraph }), true);
+  assert.equal(retryableDraft({ editorialWriteup: twoParagraphs }), false);
+  assert.equal(retryableReview({ approved: false, correctedEditorial: twoParagraphs }), true);
+  assert.equal(retryableReview({ approved: true, correctedEditorial: oneParagraph }), true);
+  assert.equal(retryableReview({ approved: true, correctedEditorial: null }), false);
 });
 
 test('editorial batch omissions and short drafts receive one bounded per-item retry', async () => {
