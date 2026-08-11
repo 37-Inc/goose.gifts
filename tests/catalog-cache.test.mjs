@@ -5,7 +5,10 @@ import {
   catalogCacheBearerToken,
   hasValidCatalogCacheSecret,
 } from '../lib/catalog-cache-auth.ts';
-import { invalidateCatalogCaches } from '../scripts/ops/catalog-cache-invalidation.mjs';
+import {
+  canonicalCatalogSiteUrl,
+  invalidateCatalogCaches,
+} from '../scripts/ops/catalog-cache-invalidation.mjs';
 
 test('catalog cache endpoint authentication is exact and bearer-only', () => {
   assert.equal(catalogCacheBearerToken('Bearer exact-secret'), 'exact-secret');
@@ -35,6 +38,11 @@ test('catalog jobs request one authenticated public cache invalidation', async (
   assert.equal(request.options.method, 'POST');
   assert.equal(request.options.headers.Authorization, 'Bearer exact-secret');
   assert.deepEqual(result, { ok: true, status: 200, revalidated: ['/sitemap.xml'] });
+});
+
+test('catalog invalidation resolves the configured apex to the canonical host before auth', () => {
+  assert.equal(canonicalCatalogSiteUrl('https://goose.gifts/'), 'https://www.goose.gifts');
+  assert.equal(canonicalCatalogSiteUrl('https://www.goose.gifts/path?q=ignored'), 'https://www.goose.gifts');
 });
 
 test('catalog cache invalidation stays observable when configuration or delivery fails', async () => {
