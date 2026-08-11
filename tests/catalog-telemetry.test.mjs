@@ -68,12 +68,28 @@ test('telemetry redacts credentials and allowlists run configuration', () => {
   const value = sanitizeTelemetryValue({
     POSTGRES_URL: 'postgres://name:password@example.com/db',
     apiKey: 'sk-secret-example-value',
-    nested: { token: 'bearer-secret', note: 'authorization=top-secret' },
+    nested: {
+      token: 'bearer-secret',
+      accessToken: 'oauth-secret',
+      inputTokens: 123,
+      cachedInputTokens: 12,
+      outputTokens: 45,
+      totalTokens: 168,
+      note: 'authorization=top-secret',
+    },
   });
   assert.deepEqual(value, {
     POSTGRES_URL: '[REDACTED]',
     apiKey: '[REDACTED]',
-    nested: { token: '[REDACTED]', note: 'authorization=[REDACTED]' },
+    nested: {
+      token: '[REDACTED]',
+      accessToken: '[REDACTED]',
+      inputTokens: 123,
+      cachedInputTokens: 12,
+      outputTokens: 45,
+      totalTokens: 168,
+      note: 'authorization=[REDACTED]',
+    },
   });
   assert.equal(
     redactTelemetryText('failed postgres://name:password@example.com/db with sk-abcdefghijklmnop'),
@@ -219,4 +235,33 @@ test('telemetry migration keeps legacy editorial history independent of product 
   assert.match(migration, /DROP CONSTRAINT IF EXISTS "catalog_editorial_events_product_id_fkey"/);
   assert.doesNotMatch(migration, /catalog_run_items[\s\S]+product_id[^\n]+REFERENCES "products"/);
   assert.equal(statements.length, 9);
+});
+
+test('telemetry timestamp migration preserves existing UTC wall-clock values and is idempotent', () => {
+  const migration = fs.readFileSync(
+    new URL('../lib/db/migrations/0008_catalog_telemetry_timestamptz.sql', import.meta.url),
+    'utf8'
+  );
+  const statements = splitMigrationStatements(migration);
+  assert.equal(statements.length, 2);
+  assert.match(migration, /data_type = 'timestamp without time zone'/);
+  assert.match(migration, /USING "started_at" AT TIME ZONE 'UTC'/);
+  assert.match(migration, /USING "created_at" AT TIME ZONE 'UTC'/);
+  assert.match(migration, /TYPE timestamptz/);
+});
+
+test('catalog reports render absolute timestamp values as UTC in a Pacific process', () => {
+  const report = formatCatalogRunReport({
+    id: '11111111-1111-1111-1111-111111111111',
+    status: 'completed',
+    mode: 'weekly',
+    trigger: 'scheduled',
+    dry_run: false,
+    started_at: new Date('2026-08-10T15:30:55.000Z'),
+    completed_at: new Date('2026-08-10T15:34:49.000Z'),
+    counts: {},
+    timings_ms: {},
+    usage: {},
+  });
+  assert.match(report, /Started: 2026-08-10T15:30:55\.000Z \| completed: 2026-08-10T15:34:49\.000Z/);
 });

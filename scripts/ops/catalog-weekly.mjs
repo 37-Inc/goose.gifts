@@ -73,11 +73,11 @@ function formatReport(discovery, revalidation, run = {}) {
   const writeSummary = discovery.dryRun
     ? 'Catalog writes: dry run; no products changed'
     : `Catalog writes: ${discovery.inserted} inserted, ${discovery.updated} refreshed, `
-      + `${discovery.backfilled} older products enriched`;
+      + `${discovery.backfilled} older products processed`;
   const editorial = discovery.backfill;
   const editorialSummary = editorial
     ? `Editorial: ${editorial.selected} selected, ${editorial.ready} ready, `
-      + `${editorial.needsReview} needs review, ${editorial.blocked} blocked, `
+      + `${editorial.pending || 0} pending retry, ${editorial.needsReview} needs review, ${editorial.blocked} blocked, `
       + `${editorial.duplicates} duplicate, ${editorial.markedUnavailable} unavailable`
     : undefined;
   const reviewCandidates = (Array.isArray(discovery.reviewCandidates)
@@ -87,6 +87,8 @@ function formatReport(discovery, revalidation, run = {}) {
     .slice(0, 5);
   const reviewLines = reviewCandidates.flatMap((product) => [
     `• ${product.title.replace(/\s+/g, ' ').trim().slice(0, 100)}`,
+    `  status: ${product.editorialStatus || 'unknown'}${product.editorialBlockReason ? ` | reason: ${product.editorialBlockReason}` : ''}`,
+    ...(product.slug ? [`  page: https://www.goose.gifts/gifts/${encodeURIComponent(product.slug)}`] : []),
     `  image: ${product.imageUrl}`,
     `  product: ${product.affiliateUrl}`,
   ]);
@@ -103,7 +105,7 @@ function formatReport(discovery, revalidation, run = {}) {
       + `${revalidation.confirmedMissing} confirmed missing, ${revalidation.markedUnavailable || 0} unavailable, `
       + `${revalidation.deactivated} deactivated`,
     `Themes: ${discovery.themes.join(', ')}`,
-    `Owner intervention: ${Number(discovery.manualIntervention || editorial?.needsReview || 0)} item(s); inspect with npm run catalog:review-queue`,
+    `Owner intervention: ${Number(discovery.manualIntervention || editorial?.manualReview || 0)} item(s); inspect with npm run catalog:review-queue`,
     ...(reviewLines.length > 0
       ? ['', `Visual spot-check (${reviewCandidates.length}):`, ...reviewLines]
       : []),
@@ -216,6 +218,7 @@ async function main() {
               'discoveredCandidates', 'rawCandidates', 'qualityRejected',
               'duplicatesFiltered', 'inserted', 'updated', 'backfilled',
               'discoveryReady', 'discoveryNeedsReview', 'manualIntervention',
+              'discoveryPending',
               'themes',
             ]),
             backfill: discovery.backfill,

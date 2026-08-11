@@ -67,6 +67,22 @@ what's likely next.
 
 Newest first.
 
+### 2026-08-10 — Catalog first-run remediation `[owner+codex]` ([PR #97](https://github.com/37-Inc/goose.gifts/pull/97))
+
+The first instrumented weekly run proved the receipt path worked, but exposed
+four implementation defects before catch-up volume was enabled: token counters
+were over-redacted, timestamp-without-time-zone values rendered seven hours
+late, incomplete batched editorial responses were treated as 26 owner tasks,
+and three reviewed pages were overwritten and left in a stale sitemap. The
+remediation keeps numeric provider usage, migrates telemetry instants to UTC,
+limits generation to four products with one bounded per-item retry, records
+response completeness, preserves approved copy in both the resolver and SQL
+upsert, and reserves `needs_review` for real factual conflicts. Catalog writes
+now call an authenticated revalidation endpoint covering every crawler-facing
+catalog cache, with a five-minute fallback. A checked-in three-product recovery
+cohort supports factual live restoration after deploy; 100/day remains off
+until the exact held cohort is replayed and audited.
+
 ### 2026-08-10 — Retired redundant Vercel analytics and verified affiliate routing `[owner+claude]`
 
 Vercel Web Analytics was disabled at the project level and removed from the

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-export const EDITORIAL_PROMPT_VERSION = 'catalog-editorial-v1';
+export const EDITORIAL_PROMPT_VERSION = 'catalog-editorial-v2';
 export const EDITORIAL_READY_STATUSES = new Set(['generated_ready', 'manual_locked']);
 export const PURCHASABLE_AVAILABILITY = new Set([
   'IN_STOCK',
@@ -71,7 +71,7 @@ export function sourceFactCount(product) {
   return values.filter((value) => value !== undefined && value !== null && String(value).trim()).length;
 }
 
-function wordCount(value) {
+export function editorialWordCount(value) {
   return String(value || '').trim().split(/\s+/).filter(Boolean).length;
 }
 
@@ -115,7 +115,7 @@ function listingEvidenceTerms(product) {
 export function validateEditorialDraft(product, editorialWriteup, existingWriteups = []) {
   const editorial = String(editorialWriteup || '').trim();
   const reasons = [];
-  const words = wordCount(editorial);
+  const words = editorialWordCount(editorial);
   const sections = paragraphs(editorial);
   const normalized = editorial.toLowerCase();
 
@@ -140,6 +140,105 @@ export function validateEditorialDraft(product, editorialWriteup, existingWriteu
     wordCount: words,
     paragraphCount: sections.length,
     evidenceMatches,
+  };
+}
+
+const MANUAL_EDITORIAL_REASON = /(unsupported|not[_ -]?supported|invented|inaccurate|contradict|misleading|wrong product|image mismatch|factual mismatch)/i;
+
+export function editorialReasonsRequireManualReview(reasons = []) {
+  return reasons.some((reason) => MANUAL_EDITORIAL_REASON.test(String(reason || '')));
+}
+
+export function resolveEditorialAttempt(product, {
+  draftWriteup,
+  review,
+  reviewQuality = 0.05,
+  pipelineReasons = [],
+  existingWriteups = [],
+  model,
+  promptVersion = EDITORIAL_PROMPT_VERSION,
+  generatedAt = new Date(),
+} = {}) {
+  const draft = String(draftWriteup || '').trim();
+  const corrected = String(review?.correctedEditorial || '').trim();
+  const draftValidation = validateEditorialDraft(product, draft, existingWriteups);
+  const correctedValidation = corrected
+    ? validateEditorialDraft(product, corrected, existingWriteups)
+    : null;
+  // A reviewer correction is optional. A truncated or otherwise invalid
+  // correction must never replace a complete factual draft.
+  const selectedWriteup = corrected && correctedValidation?.approved ? corrected : draft;
+  const selectedValidation = selectedWriteup === corrected && correctedValidation
+    ? correctedValidation
+    : draftValidation;
+  const reviewerReasons = Array.isArray(review?.reasons) ? review.reasons.map(String) : [];
+  const reasons = [...new Set([
+    ...pipelineReasons.map(String),
+    ...(review && review.approved !== true ? ['editorial_review_not_approved'] : []),
+    ...selectedValidation.reasons,
+    ...reviewerReasons,
+    ...(corrected && !correctedValidation?.approved ? ['invalid_reviewer_correction'] : []),
+  ])];
+  const approved = review?.approved === true
+    && Number(reviewQuality) >= 0.8
+    && selectedValidation.approved;
+  const currentHash = editorialSourceHash(product);
+  const requiresManualReview = review?.approved === false
+    && editorialReasonsRequireManualReview(reviewerReasons);
+
+  if (approved) {
+    return {
+      editorialWriteup: selectedWriteup,
+      editorialSourceHash: currentHash,
+      editorialStatus: 'generated_ready',
+      editorialQualityScore: reviewQuality,
+      editorialModel: model,
+      editorialPromptVersion: promptVersion,
+      editorialGeneratedAt: generatedAt,
+      editorialBlockReason: undefined,
+      requiresManualReview: false,
+      preservation: null,
+      validation: selectedValidation,
+    };
+  }
+
+  const preservableStatus = ['generated_ready', 'manual_locked', 'stale'].includes(product.editorialStatus);
+  const hasPreservableEditorial = preservableStatus
+    && Boolean(String(product.editorialWriteup || '').trim())
+    && Boolean(product.editorialSourceHash);
+  if (hasPreservableEditorial) {
+    const sourceUnchanged = product.editorialSourceHash === currentHash;
+    return {
+      editorialWriteup: product.editorialWriteup,
+      editorialSourceHash: product.editorialSourceHash,
+      editorialStatus: sourceUnchanged ? product.editorialStatus : 'stale',
+      editorialQualityScore: product.editorialQualityScore,
+      editorialModel: product.editorialModel,
+      editorialPromptVersion: product.editorialPromptVersion,
+      editorialGeneratedAt: product.editorialGeneratedAt,
+      editorialBlockReason: sourceUnchanged
+        ? product.editorialBlockReason
+        : requiresManualReview
+          ? 'source_facts_changed_manual_review_required'
+          : 'source_facts_changed_generation_incomplete',
+      requiresManualReview: !sourceUnchanged && requiresManualReview,
+      preservation: sourceUnchanged ? 'approved_source_unchanged' : 'stale_source_changed',
+      validation: selectedValidation,
+    };
+  }
+
+  return {
+    editorialWriteup: selectedWriteup || undefined,
+    editorialSourceHash: currentHash,
+    editorialStatus: requiresManualReview ? 'needs_review' : 'pending',
+    editorialQualityScore: review ? reviewQuality : undefined,
+    editorialModel: model,
+    editorialPromptVersion: promptVersion,
+    editorialGeneratedAt: generatedAt,
+    editorialBlockReason: reasons.length > 0 ? reasons.join(', ') : 'generation_incomplete',
+    requiresManualReview,
+    preservation: null,
+    validation: selectedValidation,
   };
 }
 

@@ -57,6 +57,30 @@ report.
   owner-readable intervention queue. The next weekly run must be audited by
   run ID before enabling the proposed 100/day catch-up.
 
+## First-run remediation 2026-08-10
+
+- [x] Corrected telemetry redaction so provider token counters remain numeric
+  while credentials stay redacted, and added an idempotent UTC timestamp
+  migration for exact run-time reporting.
+- [x] Made editorial enrichment complete and non-destructive: four-product
+  request maximum, one per-item retry for omitted/short drafts or reviews,
+  response diagnostics, retention of a valid draft when an optional reviewer
+  correction fails validation, and preservation of approved copy at both the
+  application and database-upsert layers.
+- [x] Reclassified incomplete generation as automatic `pending`/`stale` work;
+  only explicit unsupported-fact rejections enter the owner queue.
+- [x] Added authenticated post-job invalidation for canonical gift pages, the
+  crawlable directory, related-product caches, the random pool, and the
+  sitemap, with a five-minute fallback. This keeps sitemap membership aligned
+  with the same eligibility gate that emits page robots metadata without
+  reopening the high-cost random-page crawler path.
+- [ ] Production receipt: deploy the remediation, apply the UTC migration,
+  restore the three reviewed pages from
+  `catalog-editorial-cohorts/2026-08-10-recovery.json`, replay the exact held
+  2026-08-10 cohort, and record run IDs, ready/pending/manual counts, token
+  usage, API cost, sitemap membership, and live robots state before considering
+  any catch-up cadence.
+
 ## Shipped 2026-07-05
 
 - [x] Recovered the stale optical illusion decor bundle URL into the canonical

@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { sql } from '@vercel/postgres';
 
-export const CATALOG_TELEMETRY_VERSION = 'catalog-telemetry-v1';
+export const CATALOG_TELEMETRY_VERSION = 'catalog-telemetry-v2';
 export const OPENAI_PRICING_VERSION = 'openai-public-2026-08-09';
 
 // Standard API prices per 1M tokens on 2026-08-09. Unknown or overridden
@@ -28,7 +28,41 @@ export const TERMINAL_ITEM_DECISIONS = new Set([
   'not_persisted',
 ]);
 
-const SENSITIVE_KEY = /(authorization|cookie|credential|database_url|password|postgres_url|private_key|secret|token|api[_-]?key)/i;
+function normalizedTelemetryKey(key) {
+  return String(key || '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[^a-z0-9]+/gi, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase();
+}
+
+const SENSITIVE_KEYS = new Set([
+  'access_token',
+  'api_key',
+  'authorization',
+  'cookie',
+  'credential',
+  'database_url',
+  'password',
+  'postgres_url',
+  'private_key',
+  'refresh_token',
+  'secret',
+  'session_token',
+  'token',
+]);
+
+function isSensitiveTelemetryKey(key) {
+  const normalized = normalizedTelemetryKey(key);
+  return SENSITIVE_KEYS.has(normalized)
+    || normalized.endsWith('_api_key')
+    || normalized.endsWith('_password')
+    || normalized.endsWith('_private_key')
+    || normalized.endsWith('_secret')
+    || normalized.endsWith('_access_token')
+    || normalized.endsWith('_refresh_token')
+    || normalized.endsWith('_session_token');
+}
 
 export function redactTelemetryText(value) {
   return String(value || '')
@@ -40,7 +74,7 @@ export function redactTelemetryText(value) {
 }
 
 export function sanitizeTelemetryValue(value, key = '') {
-  if (SENSITIVE_KEY.test(key)) return '[REDACTED]';
+  if (isSensitiveTelemetryKey(key)) return '[REDACTED]';
   if (Array.isArray(value)) return value.slice(0, 100).map((item) => sanitizeTelemetryValue(item));
   if (value && typeof value === 'object') {
     return Object.fromEntries(Object.entries(value)

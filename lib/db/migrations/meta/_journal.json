@@ -57,6 +57,13 @@
       "when": 1786338000000,
       "tag": "0007_add_catalog_run_telemetry",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786381200000,
+      "tag": "0008_catalog_telemetry_timestamptz",
+      "breakpoints": true
     }
   ]
 }

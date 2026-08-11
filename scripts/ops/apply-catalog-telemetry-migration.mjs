@@ -11,10 +11,10 @@ dotenv.config({ path: '.env.local', quiet: true });
 dotenv.config({ quiet: true });
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
-const migrationPath = path.resolve(
-  scriptDirectory,
-  '../../lib/db/migrations/0007_add_catalog_run_telemetry.sql'
-);
+const migrationPaths = [
+  '0007_add_catalog_run_telemetry.sql',
+  '0008_catalog_telemetry_timestamptz.sql',
+].map((filename) => path.resolve(scriptDirectory, '../../lib/db/migrations', filename));
 
 export function splitMigrationStatements(source) {
   return String(source || '')
@@ -39,9 +39,21 @@ async function schemaReceipt() {
        AND table_name = 'catalog_editorial_events'
        AND constraint_type = 'FOREIGN KEY'`
   );
+  const telemetryTimestampColumns = await sql.query(
+    `SELECT table_name, column_name, data_type
+     FROM information_schema.columns
+     WHERE table_schema = 'public'
+       AND (
+         (table_name = 'catalog_runs' AND column_name = ANY($1::text[]))
+         OR (table_name = 'catalog_run_items' AND column_name = 'created_at')
+       )
+     ORDER BY table_name, column_name`,
+    [['started_at', 'completed_at', 'created_at', 'updated_at']]
+  );
   return {
     tables: tables.rows.map((row) => row.table_name),
     legacyEditorialForeignKeys: legacyForeignKeys.rows.map((row) => row.constraint_name),
+    telemetryTimestampColumns: telemetryTimestampColumns.rows,
   };
 }
 
@@ -49,8 +61,9 @@ async function main(argv = process.argv.slice(2)) {
   if (argv.includes('--help') || argv.includes('-h')) {
     console.log(`Usage: npm run db:migrate:catalog-telemetry -- [--apply]
 
-Without --apply, report whether the two telemetry tables already exist.
-With --apply, execute only the reviewed additive 0007 migration over the
+Without --apply, report whether the two telemetry tables and UTC timestamp
+types already exist. With --apply, execute only the reviewed additive 0007 and
+0008 migrations over the
 @vercel/postgres HTTPS connection. Do not substitute npm run db:migrate until
 the historical Drizzle baseline has been repaired separately.
 `);
@@ -59,17 +72,35 @@ the historical Drizzle baseline has been repaired separately.
   if (!process.env.POSTGRES_URL) throw new Error('POSTGRES_URL is required. Run scripts/ops/pull-env.sh first.');
 
   const before = await schemaReceipt();
-  const statements = splitMigrationStatements(fs.readFileSync(migrationPath, 'utf8'));
+  const migrations = migrationPaths.map((migrationPath) => ({
+    filename: path.basename(migrationPath),
+    statements: splitMigrationStatements(fs.readFileSync(migrationPath, 'utf8')),
+  }));
   if (!argv.includes('--apply')) {
-    console.log(JSON.stringify({ dryRun: true, migration: path.basename(migrationPath), statements: statements.length, before }, null, 2));
+    console.log(JSON.stringify({
+      dryRun: true,
+      migrations: migrations.map(({ filename, statements }) => ({ filename, statements: statements.length })),
+      before,
+    }, null, 2));
     return { before };
   }
 
-  for (const statement of statements) await sql.query(statement);
+  for (const migration of migrations) {
+    for (const statement of migration.statements) await sql.query(statement);
+  }
   const after = await schemaReceipt();
-  const complete = after.tables.length === 2 && after.legacyEditorialForeignKeys.length === 0;
+  const timestampsUseTimezone = after.telemetryTimestampColumns.length === 5
+    && after.telemetryTimestampColumns.every((column) => column.data_type === 'timestamp with time zone');
+  const complete = after.tables.length === 2
+    && after.legacyEditorialForeignKeys.length === 0
+    && timestampsUseTimezone;
   if (!complete) throw new Error(`Catalog telemetry migration postflight failed: ${JSON.stringify(after)}`);
-  console.log(JSON.stringify({ applied: true, migration: path.basename(migrationPath), statements: statements.length, before, after }, null, 2));
+  console.log(JSON.stringify({
+    applied: true,
+    migrations: migrations.map(({ filename, statements }) => ({ filename, statements: statements.length })),
+    before,
+    after,
+  }, null, 2));
   return { before, after };
 }
 

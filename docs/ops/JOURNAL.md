@@ -5,6 +5,57 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-10 - First instrumented catalog-run audit and remediation
+
+**Evidence checked**: the scheduled run
+`a469268b-1e99-4d20-855a-b109223ba604` completed in about 234 seconds and left
+complete run/item rows plus the matching OpenClaw Slack receipt. It revalidated
+50 products (37 refreshed, 13 confirmed missing), selected 25 backfill items,
+and processed 62 discoveries. The apparent 26-item owner queue was not 26
+human decisions: 23 terminal reasons were `word_count`, generated copy was only
+33–72 words despite a 160–240-word prompt, and 11 discovery products received
+no editorial response. The remaining non-structural reasons included two
+review-not-approved outcomes and one generic-language flag; the replay must
+separate any real factual conflict from model incompleteness. Estimated model cost was $0.007945, but the
+stored numeric token counters had been redacted. The report also rendered the
+15:30:55 UTC start as 22:30:55Z because telemetry columns lacked time zones.
+
+**SEO and data-integrity finding**: three previously reviewed cohort pages
+(`B0F95X117Q`, `B0D3HQPGFD`, and `B0CYKK1167`) were replaced by incomplete
+attempts and changed to `needs_review`. Their URLs stayed 200 and old Pinterest
+redirects stayed safe, but the cached sitemap continued listing the three pages
+after their robots metadata changed to `noindex, follow`. The 100/day proposal
+therefore remains disabled; the successful receipt is evidence for fixing the
+pipeline, not for increasing volume.
+
+**Remediation implemented**: telemetry redaction now distinguishes plural
+numeric token counters from singular credentials. Additive migration 0008
+converts every run/item timestamp to `timestamptz` while explicitly interpreting
+existing values as UTC and remains safe to rerun. Editorial requests are capped
+at four products, carry adequate output bounds, verify expected/returned IDs,
+and retry each omitted or short draft/review once. Reviewer corrections are
+optional and cannot replace a valid draft with truncated text. Approved copy is
+preserved in both the pure outcome resolver and SQL upsert; changed facts make
+the retained copy `stale`, while unchanged facts leave it ready. Systemic
+completeness failures return to `pending`; only explicit factual conflicts set
+the manual-review flag. Events retain finish reason, word count, expected and
+returned counts, retry count, preservation decision, and final status.
+
+**Crawler consistency**: non-dry catalog writes now call a secret-authenticated
+route that revalidates catalog tags plus `/gifts`, `/gifts/[slug]`,
+`/random-gift`, and `/sitemap.xml` together. The same surfaces retain a
+five-minute fallback. This is a single shared post-job invalidation, not a
+return to uncached per-spin random-gift database work. Canonical product pages
+remain allowed to search/model crawlers, and the factual eligibility gate still
+controls robots, directory membership, and sitemap membership.
+
+**QA and rollout gate**: focused telemetry, cache, catalog, gift-page, and
+robots tests pass; TypeScript, lint, and the production-data build pass. The
+remaining production sequence is narrow: deploy, install the cache secret,
+apply migration 0008, replay the checked-in three-page recovery cohort, replay
+only the exact 26-item held cohort, and audit token/cost/manual/sitemap/robots
+receipts. Do not schedule catch-up volume until that receipt is recorded.
+
 ## 2026-08-10 - Vercel analytics retirement and affiliate-tag audit
 
 Vercel Web Analytics is metered beyond the plan allowance and duplicated the

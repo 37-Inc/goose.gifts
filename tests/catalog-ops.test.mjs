@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import test from 'node:test';
 import amazonCreators from '../lib/amazon-creators.js';
 import { parseCsvRows } from '../scripts/ops/amazon-creators-env.mjs';
@@ -17,13 +18,16 @@ import {
   discoveryCandidateBlockReason,
   isHighQualityDiscoveryCandidate,
   parseArgs,
+  requestEditorialWithRetries,
   revalidatedProduct,
+  retryableDraft,
   selectRotatingThemes,
   titleSimilarity,
 } from '../scripts/ops/prefetch-catalog.mjs';
 import {
   editorialSimilarity,
   editorialSourceHash,
+  resolveEditorialAttempt,
   selectDuplicateWinner,
   validateEditorialDraft,
 } from '../scripts/ops/catalog-editorial-core.mjs';
@@ -154,8 +158,8 @@ test('weekly catalog reporting parses command output and includes owner-facing s
   }, { id: '11111111-1111-1111-1111-111111111111', estimatedCostUsd: 0.012345 });
 
   assert.match(report, /60 fetched, 24 quality-rejected, 14 duplicates filtered/);
-  assert.match(report, /2 inserted, 20 refreshed, 3 older products enriched/);
-  assert.match(report, /Editorial: 8 selected, 5 ready, 1 needs review, 1 blocked, 1 duplicate, 0 unavailable/);
+  assert.match(report, /2 inserted, 20 refreshed, 3 older products processed/);
+  assert.match(report, /Editorial: 8 selected, 5 ready, 0 pending retry, 1 needs review, 1 blocked, 1 duplicate, 0 unavailable/);
   assert.match(report, /50 checked, 49 refreshed, 1 confirmed missing/);
   assert.match(report, /Visual spot-check \(5\):/);
   assert.match(report, /Run: 11111111-1111-1111-1111-111111111111/);
@@ -360,6 +364,7 @@ test('revalidation arguments stay bounded and support audit-only behavior', () =
   const clamped = parseArgs(['--revalidate-limit', '500', '--deactivate-after-days', '2']);
   assert.equal(clamped.revalidateLimit, 100);
   assert.equal(clamped.deactivateAfterDays, 60);
+  assert.equal(parseArgs(['--enrichment-batch-size', '100']).enrichmentBatchSize, 4);
 });
 
 test('affiliate URL repair can run without product revalidation', () => {
@@ -425,6 +430,144 @@ test('editorial validation accepts specific factual copy and rejects generic dup
   assert.ok(editorialSimilarity(editorial, editorial) > 0.99);
   assert.equal(validateEditorialDraft(product, editorial, [editorial]).approved, false);
   assert.equal(validateEditorialDraft(product, 'This unique product is the perfect gift.').approved, false);
+});
+
+test('editorial resolution keeps a valid draft when an optional reviewer correction is truncated', () => {
+  const product = {
+    id: 'B012345678',
+    title: 'Gray shark-shaped ceramic coffee mug with raised fin handle',
+    imageUrl: 'https://images.example/shark.jpg',
+    sourceFacts: {
+      brand: 'Glazery',
+      color: 'Gray',
+      features: ['Raised shark figure', '13.5 ounce capacity', 'Ceramic construction'],
+    },
+    editorialStatus: 'pending',
+  };
+  const draft = 'This gray ceramic mug turns the body of a shark into the cup itself, with a raised shark figure and fin-like details that make the object readable before anyone takes a sip. The listing identifies a 13.5 ounce capacity, so it is a real coffee mug rather than a decorative miniature. Glazery keeps the palette gray and white, which lets the sculpted shape do most of the joke work without relying on printed slogans.\n\nIt makes sense for a shark enthusiast, an ocean-obsessed coworker, or a white elephant exchange where useful objects tend to survive the trading. The ceramic construction gives the recipient an everyday cup after the reveal, while the dimensional figure supplies the strange shelf presence. Anyone ordering it should still check the retailer listing for current care guidance and package details, because those can change independently of the object described here.';
+  const outcome = resolveEditorialAttempt(product, {
+    draftWriteup: draft,
+    review: { approved: true, qualityScore: 0.91, correctedEditorial: 'Too short.', reasons: [] },
+    reviewQuality: 0.91,
+    model: 'gpt-4o-mini',
+  });
+
+  assert.equal(outcome.editorialStatus, 'generated_ready');
+  assert.equal(outcome.editorialWriteup, draft);
+  assert.equal(outcome.requiresManualReview, false);
+});
+
+test('incomplete retries never overwrite approved copy and stale it only when source facts changed', () => {
+  const product = {
+    id: 'B012345678',
+    title: 'Gray shark-shaped ceramic coffee mug with raised fin handle',
+    imageUrl: 'https://images.example/shark.jpg',
+    sourceFacts: { brand: 'Glazery', features: ['Raised shark figure', '13.5 ounce capacity'] },
+    editorialStatus: 'generated_ready',
+    editorialWriteup: 'Previously approved substantive copy stays intact.',
+    editorialQualityScore: 0.92,
+    editorialModel: 'reviewed-model',
+    editorialPromptVersion: 'reviewed-v1',
+    editorialGeneratedAt: new Date('2026-08-08T12:00:00Z'),
+  };
+  product.editorialSourceHash = editorialSourceHash(product);
+
+  const unchanged = resolveEditorialAttempt(product, {
+    draftWriteup: 'Truncated attempt.',
+    pipelineReasons: ['draft_generation_incomplete'],
+  });
+  assert.equal(unchanged.editorialStatus, 'generated_ready');
+  assert.equal(unchanged.editorialWriteup, product.editorialWriteup);
+  assert.equal(unchanged.preservation, 'approved_source_unchanged');
+
+  const changedProduct = {
+    ...product,
+    sourceFacts: { ...product.sourceFacts, color: 'Gray' },
+  };
+  const changed = resolveEditorialAttempt(changedProduct, {
+    draftWriteup: 'Truncated attempt.',
+    pipelineReasons: ['draft_generation_incomplete'],
+  });
+  assert.equal(changed.editorialStatus, 'stale');
+  assert.equal(changed.editorialWriteup, product.editorialWriteup);
+  assert.equal(changed.preservation, 'stale_source_changed');
+});
+
+test('generation completeness is retryable while factual rejections remain owner-reviewable', () => {
+  const product = {
+    id: 'B012345678',
+    title: 'Gray shark-shaped ceramic coffee mug with raised fin handle',
+    imageUrl: 'https://images.example/shark.jpg',
+    sourceFacts: { brand: 'Glazery', features: ['Raised shark figure', '13.5 ounce capacity'] },
+    editorialStatus: 'pending',
+  };
+  const incomplete = resolveEditorialAttempt(product, {
+    draftWriteup: 'Truncated attempt.',
+    pipelineReasons: ['draft_generation_incomplete', 'review_response_missing'],
+  });
+  assert.equal(incomplete.editorialStatus, 'pending');
+  assert.equal(incomplete.requiresManualReview, false);
+
+  const rejected = resolveEditorialAttempt(product, {
+    draftWriteup: 'Truncated attempt.',
+    review: { approved: false, reasons: ['unsupported material claim'] },
+    pipelineReasons: [],
+  });
+  assert.equal(rejected.editorialStatus, 'needs_review');
+  assert.equal(rejected.requiresManualReview, true);
+});
+
+test('editorial batch omissions and short drafts receive one bounded per-item retry', async () => {
+  const products = [
+    { id: 'B000000001', editorialWriteup: '' },
+    { id: 'B000000002', editorialWriteup: '' },
+  ];
+  const calls = [];
+  const requestBatch = async (batch, _telemetry, operation) => {
+    calls.push({ ids: batch.map((product) => product.id), operation });
+    const entries = batch.length > 1
+      ? [['B000000001', { id: 'B000000001', editorialWriteup: 'Too short.' }]]
+      : [[batch[0].id, {
+        id: batch[0].id,
+        editorialWriteup: Array.from({ length: 160 }, (_, index) => `detail${index}`).join(' '),
+      }]];
+    return {
+      items: new Map(entries),
+      diagnostics: {
+        expectedIds: batch.map((product) => product.id),
+        returnedIds: entries.map(([id]) => id),
+        finishReason: 'stop',
+      },
+    };
+  };
+  const telemetry = { warnings: [] };
+  const result = await requestEditorialWithRetries(
+    products,
+    requestBatch,
+    retryableDraft,
+    telemetry,
+    'draft'
+  );
+
+  assert.deepEqual(calls, [
+    { ids: ['B000000001', 'B000000002'], operation: 'editorial_draft' },
+    { ids: ['B000000001'], operation: 'editorial_draft_retry' },
+    { ids: ['B000000002'], operation: 'editorial_draft_retry' },
+  ]);
+  assert.equal(result.byId.size, 2);
+  assert.equal(result.diagnosticsById.get('B000000001').retryCount, 1);
+  assert.equal(result.diagnosticsById.get('B000000002').retryCount, 1);
+  assert.equal(telemetry.warnings.length, 0);
+});
+
+test('product upsert has a database-level approved-copy preservation backstop', () => {
+  const source = fs.readFileSync(
+    new URL('../scripts/ops/prefetch-catalog.mjs', import.meta.url),
+    'utf8'
+  );
+  assert.match(source, /WHEN products\.editorial_status IN \('generated_ready', 'stale'\)\s+THEN products\.editorial_writeup/);
+  assert.match(source, /WHEN products\.editorial_status = 'generated_ready' THEN 'generated_ready'/);
+  assert.match(source, /products\.editorial_source_hash IS DISTINCT FROM EXCLUDED\.source_facts_hash THEN 'stale'/);
 });
 
 test('duplicate winner favors verified factual and reviewed inventory deterministically', () => {
