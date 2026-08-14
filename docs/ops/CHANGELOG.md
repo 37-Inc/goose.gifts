@@ -26,10 +26,10 @@ what's likely next.
 
 - **Indexation — guide baseline healthy; product cohort monitoring.** The seven
   priority guide surfaces are submitted and indexed, and the first 46 factual
-  product pages are live in the processed 94-URL sitemap. Representative gift
-  pages are allowed, self-canonical, and discovered but not yet indexed. Keep
-  the 7/14/28-day product cohort gate before catch-up volume and recheck the Dad
-  guide on 2026-08-25 and 2026-09-08 (Beads `roadmap-fkvo`).
+  product pages are live in the 94-URL sitemap. At the 7-day check, one of five
+  sampled gift pages is indexed, one is discovered, and three remain unknown.
+  Keep the 7/14/28-day product cohort gate before catch-up volume and recheck
+  the Dad guide on 2026-08-25 and 2026-09-08 (Beads `roadmap-fkvo`).
 - **Distribution / Pinterest — submitted; awaiting review.** Standard-access application
   package written (`docs/ops/pinterest-standard-access.md`): use-case text, scope
   justifications, data-handling statement, terminal demo shot-list, and exact
@@ -42,8 +42,10 @@ what's likely next.
   browser-published as public Pin `1107815208385022014`. The stronger hippo
   vanity package was then owner-approved and browser-published as public Pin
   `1107815208385331910`; the exact hippo desk package is now also live as public
-  Pin `1107815208385562809`. Do not generate a replacement while these public
-  Pins gather distribution. Canonical gift pages now replace product-pinned
+  Pin `1107815208385562809`. The goat now has 104 public impressions and two Pin
+  clicks, but no outbound click; the full truthful cohort has 149 impressions.
+  Do not generate a replacement while this first attention signal matures.
+  Canonical gift pages now replace product-pinned
   random-gift URLs for future campaign packages; existing Pin destinations
   permanently redirect without losing their UTM attribution.
   Public posting remains exact-candidate approved and browser-only until
@@ -61,6 +63,19 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-14 — Goat signal, product indexation check, and schema repair `[daily-ops]`
+
+Recorded fresh public-only metrics for all six truthful product creatives: the
+corrected goat advanced to 104 impressions and two Pin clicks, while the whole
+cohort totals 149 impressions with no save, outbound click, attributable
+Pinterest session, or affiliate click. The owner queue remains empty and no new
+creative or Pin was produced. The 7-day Search Console sample found the goat
+submitted and indexed, the hippo discovered, and three pages unknown. URL
+Inspection also surfaced invalid Product rich-result markup on offer-less
+pages, so gift pages now emit Product schema only with a current visible offer
+and otherwise keep valid WebPage/Breadcrumb markup. Catch-up volume remains
+gated on the 14/28-day cohort.
 
 ### 2026-08-11 — Funny-dad guide and public Pinterest hold `[daily-ops]` ([PR #101](https://github.com/37-Inc/goose.gifts/pull/101))
 

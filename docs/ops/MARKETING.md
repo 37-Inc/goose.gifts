@@ -30,9 +30,10 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Six product-faithful editorial Pins are live. As of 2026-08-11 they have 42
-   public impressions in total, no engagement, and no attributable site
-   session, so exposure is still too small for a creative verdict. A
+   Six product-faithful editorial Pins are live. As of 2026-08-14 they have 149
+   public impressions in total and two Pin clicks, both on the corrected goat,
+   but no save, outbound click, or attributable site session. That is the first
+   directional attention signal, not yet a creative or conversion verdict. A
    twice-weekly studio advances at most one excellent survivor per run and
    maintains an exact owner-review queue.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
@@ -149,6 +150,37 @@ For every concept promoted beyond rough exploration, record:
 - performance checkpoints and conclusion.
 
 ## Experiment log
+
+### 2026-08-14 — Goat attention signal and first product-index cohort check
+
+- **Evidence checked**: Pinterest API v5 reports 40 impressions and one Pin
+  click for the five-Pin launch cohort. The six truthful product creatives now
+  total 149 impressions and two Pin clicks: goat 104/two, alligator 33/zero,
+  ceramic eye seven/zero, breakfast two/zero, desk two/zero, and vanity
+  one/zero. None has a save or outbound click. GA4 has no Pinterest session or
+  outbound event, and first-party database acquisition has no public Pinterest
+  affiliate click; `goose-proof` QA traffic remains excluded. Sandbox and v3
+  remain excluded.
+- **Creative cycle**: recorded six public checkpoints and two evidence-linked
+  learnings through the validated append-only workflow. The goat is now the
+  first directional attention signal, but 104 impressions and no site click do
+  not justify a verdict or unnecessary seventh survivor. No image or Pin was
+  generated or published, and the owner queue remains empty.
+- **Organic checkpoint**: the 2026-08-07 product cohort produced its first
+  indexed sample. Search Console reports the Screaming Goat submitted and
+  indexed with matching Google/user canonicals and indexing allowed. Of five
+  sampled eligible gift URLs, one is indexed, the hippo is discovered but not
+  indexed, and three are unknown; product-page Search Analytics still has no
+  impressions. Keep the 100/day catch-up disabled.
+- **Technical repair**: URL Inspection exposed an invalid Product-snippet
+  object on pages without a fresh offer, review, or visible rating. Gift pages
+  now retain WebPage/Breadcrumb schema and emit Product schema only when a
+  current visible offer can satisfy Google's eligibility requirement. This
+  removes the rich-result error without changing the page's `index, follow`
+  status or factual editorial.
+- **Publishing boundary**: Standard access is still awaiting review and no
+  production OAuth path has been verified. This unattended run published no
+  Pin and spent no money.
 
 ### 2026-08-11 — Public hold checkpoint and funny-dad guide improvement
 

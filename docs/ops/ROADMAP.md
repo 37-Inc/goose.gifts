@@ -41,6 +41,9 @@ pages are indexed before expanding the page network.
   100/day catch-up remains disabled. Resume catch-up planning only after the
   7/14/28-day Search Console cohort shows the factual pages are being crawled
   and indexed without duplicate, soft-404, canonical, or load regressions.
+  The 2026-08-14 7-day sample found one of five eligible gift pages indexed,
+  one discovered, and three unknown, with no product-page Search Analytics
+  impressions; that is progress but not yet evidence to raise the bound.
 - Re-verify stale products periodically (dead links, price drift) and
   deactivate the broken ones.
 - Keep one durable run receipt across revalidation, discovery, and editorial:

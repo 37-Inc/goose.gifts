@@ -43,6 +43,20 @@ report.
   - Baseline: sitemap resubmission accepted at `2026-08-08T04:10:47Z` with HTTP
     204 and pending processing. One approved URL was unknown to Google and one
     was discovered but not indexed. Do not count either state as indexation.
+  - 7-day checkpoint (2026-08-14): one of five sampled eligible gift URLs is
+    submitted and indexed (the Screaming Goat), with matching Google/user
+    canonicals, indexing allowed, and a successful mobile crawl. The hippo is
+    discovered but not indexed; three sampled pages remain unknown. No
+    `/gifts/` URL appeared in the current Search Analytics page report. The
+    live sitemap contains 46 gift URLs and 94 URLs total, while Search
+    Console's sitemap detail still reflects the earlier 77-URL download. Keep
+    catch-up disabled and recheck at 14/28 days rather than extrapolating from
+    one indexed sample.
+  - The indexed goat exposed a Product-snippet error because its page declared
+    Product schema without a fresh offer, review, or visible rating. The gift
+    page schema now falls back to valid WebPage/Breadcrumb markup and emits a
+    Product only when it has a current visible offer; this leaves robots,
+    canonical, sitemap eligibility, and editorial content unchanged.
 
 ## Shipped 2026-08-09
 

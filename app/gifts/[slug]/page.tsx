@@ -8,12 +8,12 @@ import { ProductImage } from '@/components/ProductImage';
 import { PageHero } from '@/components/ui/PageHero';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { getGiftPageBySlug, getRelatedGiftProducts } from '@/lib/db/gift-pages';
+import { buildGiftPageSchema, hasFreshGiftOffer } from '@/lib/gift-page-schema';
 import {
   getEditorialParagraphs,
   getGiftPath,
   getLegacyGiftRedirectPath,
   hasIndexableGiftEditorial,
-  isPurchasableAvailability,
 } from '@/lib/gift-slugs';
 import { getSiteUrl } from '@/lib/site';
 import type { Product } from '@/lib/types';
@@ -29,38 +29,14 @@ function displayTitle(product: Product): string {
   return product.punnyTitle || product.title;
 }
 
-function hasFreshOffer(product: Product): boolean {
-  const checkedAt = product.availabilityCheckedAt
-    ? new Date(product.availabilityCheckedAt).getTime()
-    : Number.NaN;
-  return product.price > 0
-    && isPurchasableAvailability(product.availabilityStatus)
-    && Number.isFinite(checkedAt)
-    && Date.now() - checkedAt <= 60 * 60 * 1000;
-}
-
 function hasUsableRetailerDestination(product: Product): boolean {
   const status = String(product.availabilityStatus || '').toUpperCase();
   return product.isActive !== false
     && !['OUTOFSTOCK', 'OUT_OF_STOCK', 'UNAVAILABLE'].includes(status);
 }
 
-function schemaAvailability(status?: string): string | undefined {
-  switch (String(status || '').toUpperCase()) {
-    case 'IN_STOCK':
-      return 'https://schema.org/InStock';
-    case 'IN_STOCK_SCARCE':
-    case 'INSTOCKSCARCE':
-      return 'https://schema.org/LimitedAvailability';
-    case 'PREORDER':
-      return 'https://schema.org/PreOrder';
-    default:
-      return undefined;
-  }
-}
-
 function formatPrice(product: Product): string {
-  if (!hasFreshOffer(product)) {
+  if (!hasFreshGiftOffer(product)) {
     return 'Check current price';
   }
 
@@ -130,79 +106,6 @@ export async function generateMetadata({ params }: GiftPageProps): Promise<Metad
   };
 }
 
-function buildGiftSchema(product: Product, canonicalUrl: string) {
-  const title = displayTitle(product);
-  const description = metadataDescription(product);
-  const productSchema: Record<string, unknown> = {
-    '@type': 'Product',
-    '@id': `${canonicalUrl}#product`,
-    name: title,
-    description,
-    sku: product.publicId,
-    category: product.sourceQuery || 'Funny gifts',
-    url: canonicalUrl,
-  };
-  if (product.imageUrl) productSchema.image = product.imageUrl;
-
-  const offerAvailability = schemaAvailability(product.availabilityStatus);
-  if (hasFreshOffer(product) && offerAvailability) {
-    productSchema.offers = {
-      '@type': 'Offer',
-      url: product.affiliateUrl,
-      price: product.price.toFixed(2),
-      priceCurrency: product.currency || 'USD',
-      availability: offerAvailability,
-      seller: {
-        '@type': 'Organization',
-        name: product.source === 'amazon' ? 'Amazon' : 'Etsy',
-      },
-    };
-  }
-
-  if (product.rating && product.reviewCount) {
-    productSchema.aggregateRating = {
-      '@type': 'AggregateRating',
-      ratingValue: product.rating.toFixed(1),
-      reviewCount: product.reviewCount,
-    };
-  }
-
-  return {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'WebPage',
-        '@id': `${canonicalUrl}#webpage`,
-        name: title,
-        description,
-        url: canonicalUrl,
-        inLanguage: 'en-US',
-        isPartOf: { '@id': `${getSiteUrl()}/#website` },
-        mainEntity: { '@id': `${canonicalUrl}#product` },
-      },
-      {
-        '@type': 'BreadcrumbList',
-        '@id': `${canonicalUrl}#breadcrumbs`,
-        itemListElement: [
-          {
-            '@type': 'ListItem',
-            position: 1,
-            name: 'Home',
-            item: getSiteUrl(),
-          },
-          {
-            '@type': 'ListItem',
-            position: 2,
-            name: title,
-            item: canonicalUrl,
-          },
-        ],
-      },
-      productSchema,
-    ],
-  };
-}
-
 export default async function GiftPage({ params, searchParams }: GiftPageProps) {
   const { slug } = await params;
   const query = searchParams ? await searchParams : {};
@@ -228,7 +131,13 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
   const fallbackParagraph = product.wittyDescription
     || `A funny gift picked from the goose.gifts catalog. Check the retailer listing for the exact current details.`;
   const tags = (product.humorTags || []).slice(0, 5);
-  const schema = JSON.stringify(buildGiftSchema(product, canonicalUrl)).replace(/</g, '\\u003c');
+  const schema = JSON.stringify(buildGiftPageSchema(
+    product,
+    canonicalUrl,
+    title,
+    metadataDescription(product),
+    getSiteUrl()
+  )).replace(/</g, '\\u003c');
 
   return (
     <main className="min-h-screen bg-white text-zinc-950">
