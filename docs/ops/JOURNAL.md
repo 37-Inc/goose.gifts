@@ -5,6 +5,48 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-14 - Pinterest and organic-growth studio
+
+**Evidence checked**: Pinterest API v5 public lifetime metrics, GA4 traffic,
+landing pages and outbound events, the first-party database snapshot, Vercel
+deployment health, Search Console page/query data, sitemap state, live robots,
+legacy Pin redirects, and five product URL inspections. The five-Pin launch
+cohort remains at 40 impressions and one Pin click. The six product-faithful
+Pins now total 149 impressions: Screaming Goat 104 with two Pin clicks,
+alligator 33, ceramic eye seven, hippo breakfast two, hippo desk two, and hippo
+vanity one. None has a save or outbound click. GA4 has no Pinterest session or
+outbound event, and database Pinterest `goose-proof` QA clicks were excluded.
+Sandbox and v3 were excluded throughout. Production was healthy on Vercel at
+merge SHA `116c72cd7e9ba4d4eb03a4be4eeef19b62bd9828`.
+
+**Creative cycle**: all valid survivors are already public and the owner queue
+is empty. The corrected goat's move from zero to 104 impressions and two Pin
+clicks is the first directional attention signal, but it has not produced an
+outbound or site-side result. The run therefore recorded six validated public
+metric events and two causal learning events, and generated no unnecessary
+seventh survivor. No Pin was published, no production API was used, and no
+money was spent.
+
+**Organic checkpoint and repair**: the 7-day product-page sample found the
+Screaming Goat submitted and indexed with matching Google/user canonicals,
+indexing allowed, and a successful mobile crawl. The hippo is discovered but
+not indexed and three other eligible pages remain unknown; none of the 46 gift
+URLs appeared in current Search Analytics. The live sitemap has 94 URLs, 46 of
+them gifts, while Search Console's sitemap record still reflects its 77-URL
+2026-08-08 download. URL Inspection also found that the indexed goat's Product
+rich result failed because no current offer, review, or visible rating existed.
+The page now keeps WebPage/Breadcrumb schema for every editorial gift and adds
+Product schema only when a fresh visible offer can satisfy Google's required
+signal. This does not change canonical, robots, sitemap membership, editorial
+content, or crawler/model access.
+
+**Decision**: this was the second studio run of the week, so the Dad guide was
+not edited again; its 2026-08-25 and 2026-09-08 rechecks remain in place. Keep
+the 100/day catalog catch-up disabled until the 14/28-day product cohort shows
+broader discovery and indexation. The August no-account shortlist decision
+remains closed until September because today added attention inside Pinterest,
+not sharing or site conversion evidence.
+
 ## 2026-08-11 - Pinterest and organic-growth studio
 
 **Evidence checked**: Pinterest API v5 public lifetime metrics, GA4 traffic,
