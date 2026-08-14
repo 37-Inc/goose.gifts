@@ -49,8 +49,8 @@ report.
     discovered but not indexed; three sampled pages remain unknown. No
     `/gifts/` URL appeared in the current Search Analytics page report. The
     live sitemap contains 46 gift URLs and 94 URLs total. Search Console
-    accepted a refresh on 2026-08-14 with HTTP 204 and is pending; its detail
-    still reflects the earlier 77-URL download until Google fetches it. Keep
+    accepted a refresh on 2026-08-14 with HTTP 204, downloaded it at
+    `16:48:52Z`, and now reports all 94 URLs with zero warnings/errors. Keep
     catch-up disabled and recheck at 14/28 days rather than extrapolating from
     one indexed sample.
   - The indexed goat exposed a Product-snippet error because its page declared

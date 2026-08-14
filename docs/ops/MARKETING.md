@@ -182,8 +182,8 @@ For every concept promoted beyond rough exploration, record:
   `2eb445d8e51f7e2bd1da3218b6a06a31c5ae4ded` and the matching Vercel deployment
   reached READY on `www.goose.gifts`. Live HTML retains the matching canonical,
   `index, follow`, WebPage/Breadcrumb schema, and the UTM-preserving legacy 308.
-  Search Console accepted the refreshed 94-URL sitemap with HTTP 204; processing
-  is pending.
+  Search Console accepted the refreshed sitemap with HTTP 204, downloaded it at
+  `2026-08-14T16:48:52Z`, and now reports all 94 URLs with zero warnings/errors.
 - **Publishing boundary**: Standard access is still awaiting review and no
   production OAuth path has been verified. This unattended run published no
   Pin and spent no money.
