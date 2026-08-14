@@ -47,6 +47,16 @@ broader discovery and indexation. The August no-account shortlist decision
 remains closed until September because today added attention inside Pinterest,
 not sharing or site conversion evidence.
 
+**Production receipt**: PR
+[#102](https://github.com/37-Inc/goose.gifts/pull/102) merged as
+`2eb445d8e51f7e2bd1da3218b6a06a31c5ae4ded`; Vercel deployment
+`dpl_BLNPoZscxwSeU43JpVXD681nMjB6` reached READY with the production aliases.
+The live goat page remains `index, follow`, self-canonical, and now exposes only
+WebPage and BreadcrumbList schema. Its old product-pinned random URL still 308s
+to the exact slug with all Pinterest UTM values. Search Console accepted the
+94-URL sitemap refresh at `2026-08-14T16:48:46Z` with HTTP 204 and reports it
+pending with zero warnings/errors.
+
 ## 2026-08-11 - Pinterest and organic-growth studio
 
 **Evidence checked**: Pinterest API v5 public lifetime metrics, GA4 traffic,

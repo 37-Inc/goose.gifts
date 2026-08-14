@@ -75,7 +75,9 @@ submitted and indexed, the hippo discovered, and three pages unknown. URL
 Inspection also surfaced invalid Product rich-result markup on offer-less
 pages, so gift pages now emit Product schema only with a current visible offer
 and otherwise keep valid WebPage/Breadcrumb markup. Catch-up volume remains
-gated on the 14/28-day cohort.
+gated on the 14/28-day cohort. Production SHA `2eb445d8` is READY, live schema,
+robots/canonical, and the old UTM-preserving redirect passed, and Search Console
+accepted the sitemap refresh with HTTP 204.
 
 ### 2026-08-11 — Funny-dad guide and public Pinterest hold `[daily-ops]` ([PR #101](https://github.com/37-Inc/goose.gifts/pull/101))
 
