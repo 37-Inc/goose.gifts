@@ -178,6 +178,12 @@ For every concept promoted beyond rough exploration, record:
   current visible offer can satisfy Google's eligibility requirement. This
   removes the rich-result error without changing the page's `index, follow`
   status or factual editorial.
+- **Production receipt**: PR #102 merged as
+  `2eb445d8e51f7e2bd1da3218b6a06a31c5ae4ded` and the matching Vercel deployment
+  reached READY on `www.goose.gifts`. Live HTML retains the matching canonical,
+  `index, follow`, WebPage/Breadcrumb schema, and the UTM-preserving legacy 308.
+  Search Console accepted the refreshed 94-URL sitemap with HTTP 204; processing
+  is pending.
 - **Publishing boundary**: Standard access is still awaiting review and no
   production OAuth path has been verified. This unattended run published no
   Pin and spent no money.

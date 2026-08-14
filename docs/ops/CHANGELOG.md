@@ -64,7 +64,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-14 — Goat signal, product indexation check, and schema repair `[daily-ops]` ([PR #102](https://github.com/37-Inc/goose.gifts/pull/102))
+### 2026-08-14 — Goat signal, product indexation check, and schema repair `[daily-ops]` ([PR #102](https://github.com/37-Inc/goose.gifts/pull/102), [receipt #103](https://github.com/37-Inc/goose.gifts/pull/103))
 
 Recorded fresh public-only metrics for all six truthful product creatives: the
 corrected goat advanced to 104 impressions and two Pin clicks, while the whole
@@ -75,7 +75,9 @@ submitted and indexed, the hippo discovered, and three pages unknown. URL
 Inspection also surfaced invalid Product rich-result markup on offer-less
 pages, so gift pages now emit Product schema only with a current visible offer
 and otherwise keep valid WebPage/Breadcrumb markup. Catch-up volume remains
-gated on the 14/28-day cohort.
+gated on the 14/28-day cohort. Production SHA `2eb445d8` is READY, live schema,
+robots/canonical, and the old UTM-preserving redirect passed, and Search Console
+accepted the sitemap refresh with HTTP 204.
 
 ### 2026-08-11 — Funny-dad guide and public Pinterest hold `[daily-ops]` ([PR #101](https://github.com/37-Inc/goose.gifts/pull/101))
 

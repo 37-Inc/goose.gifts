@@ -48,8 +48,9 @@ report.
     canonicals, indexing allowed, and a successful mobile crawl. The hippo is
     discovered but not indexed; three sampled pages remain unknown. No
     `/gifts/` URL appeared in the current Search Analytics page report. The
-    live sitemap contains 46 gift URLs and 94 URLs total, while Search
-    Console's sitemap detail still reflects the earlier 77-URL download. Keep
+    live sitemap contains 46 gift URLs and 94 URLs total. Search Console
+    accepted a refresh on 2026-08-14 with HTTP 204 and is pending; its detail
+    still reflects the earlier 77-URL download until Google fetches it. Keep
     catch-up disabled and recheck at 14/28 days rather than extrapolating from
     one indexed sample.
   - The indexed goat exposed a Product-snippet error because its page declared
@@ -57,6 +58,9 @@ report.
     page schema now falls back to valid WebPage/Breadcrumb markup and emits a
     Product only when it has a current visible offer; this leaves robots,
     canonical, sitemap eligibility, and editorial content unchanged.
+    PR #102 is deployed at `2eb445d8e51f7e2bd1da3218b6a06a31c5ae4ded`;
+    live verification confirmed the indexed goat now has no Product object,
+    retains `index, follow`, and keeps its matching canonical.
 
 ## Shipped 2026-08-09
 
