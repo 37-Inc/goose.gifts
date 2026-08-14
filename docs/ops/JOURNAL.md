@@ -55,7 +55,8 @@ The live goat page remains `index, follow`, self-canonical, and now exposes only
 WebPage and BreadcrumbList schema. Its old product-pinned random URL still 308s
 to the exact slug with all Pinterest UTM values. Search Console accepted the
 94-URL sitemap refresh at `2026-08-14T16:48:46Z` with HTTP 204 and reports it
-pending with zero warnings/errors.
+downloaded at `2026-08-14T16:48:52Z`, processed with all 94 URLs, and free of
+warnings/errors.
 
 ## 2026-08-11 - Pinterest and organic-growth studio
 
