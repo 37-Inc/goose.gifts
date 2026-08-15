@@ -64,7 +64,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-15 — Branch and worktree lifecycle cleanup `[owner+claude]`
+### 2026-08-15 — Branch and worktree lifecycle cleanup `[owner+claude]` ([PR #105](https://github.com/37-Inc/goose.gifts/pull/105))
 
 Audited all 40 GitHub branches against merged PR heads, patch content, current
 architecture, and local worktree state. After creating and verifying a complete
