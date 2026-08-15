@@ -67,12 +67,16 @@ Newest first.
 ### 2026-08-15 — Dependency security and Next 16 migration `[owner+claude]` (direct `main` deploy)
 
 Removed all 19 known npm audit findings by upgrading Next.js to 16.3.1,
-React to 19.2.8, Drizzle ORM/Kit, PostCSS, and the remaining compatible direct
-dependencies. Migrated middleware to the Next 16 proxy convention, adopted the
-native ESLint 9 flat config, approved the exact native install scripts, and
+React to 19.2.8, OpenAI to 7.4.0, Drizzle ORM/Kit, PostCSS, and the remaining
+compatible direct dependencies. Migrated middleware to the Next 16 proxy
+convention, adopted the native ESLint 9 flat config, approved the exact native
+install scripts, and
 updated cache invalidation to the supported stale-while-revalidate contract.
 The package now declares its ESM module boundary explicitly, eliminating
 Node's typeless-module reparsing warning without suppressing runtime warnings.
+The release is pinned to Vercel's configured Node 22 line, and deprecated
+Drizzle/OpenAI/Tailwind transitive helpers were upgraded or replaced. A clean
+Node 22 install completes without dependency or deprecation warnings.
 The stricter React lint pass also removed render-time mutation and made admin
 and search effects cancellation-safe. The full application test suite,
 Drizzle migration check, lint, production build, dependency tree, and zero-

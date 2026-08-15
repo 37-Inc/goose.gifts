@@ -14,19 +14,23 @@ legacy esbuild chain, and PostCSS-related tooling. The repository otherwise
 started clean and aligned with `origin/main` after the branch-lifecycle cleanup.
 
 **Upgrade and warning repair**: upgraded to Next.js 16.3.1, React/React DOM
-19.2.8, Drizzle ORM 0.45.2, Drizzle Kit 0.31.10, ESLint 9.39.5 with the native
+19.2.8, OpenAI 7.4.0, Drizzle ORM 0.45.2, and ESLint 9.39.5 with the native
 Next 16 flat configuration, PostCSS 8.5.26, and current compatible releases of
-Autoprefixer, dotenv, PostHog, and Tailwind 3. The audited Drizzle Kit loader
-now resolves to esbuild 0.25.12 while its independent `tsx` path retains its
-compatible esbuild release. Exact native install scripts are allowlisted and
-no unreviewed script remains. The package now declares its ESM boundary and the
-single legacy CommonJS catalog helper exposes equivalent native ESM exports,
-removing Node's typeless-module warning without hiding other warnings. Breaking
-OpenAI, Tailwind, ESLint, TypeScript, and Node-type major migrations were
-intentionally kept out of this security update.
+Autoprefixer, dotenv, PostHog, and Tailwind 3. The compatible Drizzle Kit
+0.31.10 CLI remains pinned, while its unused deprecated loader dependency is
+resolved to the `tsx` package into which that loader was merged; the schema
+config check verifies the replacement. Tailwind's Sucrase helper resolves to
+the current glob API, and OpenAI 7 removes its deprecated DOMException
+polyfill. Exact native install scripts are allowlisted and no unreviewed script
+remains. The package now
+declares its ESM boundary and the single legacy CommonJS catalog helper exposes
+equivalent native ESM exports, removing Node's typeless-module warning without
+hiding other warnings. Breaking Tailwind, ESLint, TypeScript, and Node-type
+major migrations were intentionally kept out of this security update.
 
-**Framework migration**: declared Next's Node 20.9 minimum, removed the obsolete
-build-time ESLint option and redundant Turbopack flag, renamed middleware to
+**Framework migration**: pinned the repository and Vercel runtime to Node 22,
+which exceeds Next's Node 20.9 minimum, removed the obsolete build-time ESLint
+option and redundant Turbopack flag, renamed middleware to
 the Next 16 proxy convention without changing the admin protection boundary,
 and changed catalog tag invalidation to the supported `max` profile. The
 stricter React rules prompted real fixes rather than suppressions: admin data
@@ -40,6 +44,14 @@ navigation uses the router, and gift-guide priority selection is immutable.
 Next.js production build pass. The operations runbook now makes high-severity
 npm audit findings a release blocker, and the README reflects the deployed
 framework and Amazon Creators API stack.
+
+**Deploy-warning checkpoint**: the first Next 16 deployment was healthy but its
+log showed that the open-ended Node engine range overrode the project's Node 22
+setting, plus four upstream deprecation notices. The final dependency graph
+pins Node 22 and removes every deprecated package from the install tree. A clean
+`npm ci` under Node 22.23.1 completes with zero audit findings and no dependency
+or deprecation warning; the production log is checked again after the final
+direct-main deployment.
 
 ## 2026-08-15 - Branch and worktree lifecycle cleanup
 

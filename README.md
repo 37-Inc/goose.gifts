@@ -23,7 +23,7 @@ and admin bundle screens have been removed from the maintained runtime path.
 
 ## Tech Stack
 
-- Next.js 16 App Router and React 19 (Node.js 20.9 or newer)
+- Next.js 16 App Router and React 19 (Node.js 22; use `.nvmrc`)
 - Tailwind CSS
 - Vercel Postgres / Neon with pgvector
 - OpenAI for product copy, tags, quality scoring, and embeddings
