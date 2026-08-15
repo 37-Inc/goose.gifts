@@ -39,6 +39,9 @@ Keep entries short; heavy operational detail belongs in `JOURNAL.md`.
 
 - Develop on a `claude/`-prefixed branch; open a PR and (with standing owner
   authorization) merge to `main`, which auto-deploys to production via Vercel.
+- After a PR merges, remove its completed local worktree and local branch from
+  the canonical checkout; GitHub automatically deletes the merged remote
+  branch. Preserve or inspect any untracked files before removing a worktree.
 - Never merge a change that fails `npm run build` or `npm run lint`.
 - Credentials self-bootstrap via `./scripts/ops/pull-env.sh` (needs
   `VERCEL_TOKEN`). Database access works only over HTTPS (`@vercel/postgres`),

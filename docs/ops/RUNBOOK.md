@@ -216,6 +216,20 @@ Boundaries (always in force):
 7. **Ship.** Commit on a `claude/`-prefixed branch, push, open a PR with a
    clear description, and merge it. Confirm the production site still works
    after deploy (~2 min for Vercel).
+   - Use one branch and PR for one logical run. Put the planned code, tests,
+     operating docs, creative/event records, and known receipt fields in that
+     PR before merge. Do not create a follow-up PR solely to add its own PR
+     link. If production evidence can only be recorded after deploy,
+     consolidate it into at most one follow-up receipt PR.
+   - After merge, return to the canonical checkout, fetch with pruning, and
+     confirm the completed worktree has no tracked or untracked changes. Save
+     anything intentional, then remove the completed worktree and local
+     branch. GitHub's automatic head-branch deletion should remove the remote
+     branch; verify it rather than assuming.
+   - A squash-merged branch can look unmerged to Git ancestry. Before forcing
+     deletion, verify the PR is merged and its head matches the audited branch,
+     or compare the branch patch with `main`. Never delete a dirty worktree or
+     a branch with unresolved PR or patch content.
 8. **Log.** Append a dated entry to `docs/ops/JOURNAL.md`: metrics snapshot,
    what shipped, what review/QA found, what was learned, plan for tomorrow.
    Also append a short entry (tagged `[daily-ops]`) to `docs/ops/CHANGELOG.md`

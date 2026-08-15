@@ -64,6 +64,17 @@ what's likely next.
 
 Newest first.
 
+### 2026-08-15 — Branch and worktree lifecycle cleanup `[owner+claude]` ([PR #105](https://github.com/37-Inc/goose.gifts/pull/105))
+
+Audited all 40 GitHub branches against merged PR heads, patch content, current
+architecture, and local worktree state. After creating and verifying a complete
+recovery bundle, removed 39 stale remote branches, 34 stale local branches,
+seven completed auxiliary worktrees, and one dead worktree entry. GitHub now
+automatically deletes merged head branches. Historical Vercel preview
+deployments were intentionally retained as PR and rollback evidence, while the
+operator runbook now requires post-merge local cleanup and discourages
+self-referential receipt-only PR chains.
+
 ### 2026-08-14 — Goat signal, product indexation check, and schema repair `[daily-ops]` ([PR #102](https://github.com/37-Inc/goose.gifts/pull/102), [receipts #103](https://github.com/37-Inc/goose.gifts/pull/103) / [#104](https://github.com/37-Inc/goose.gifts/pull/104))
 
 Recorded fresh public-only metrics for all six truthful product creatives: the

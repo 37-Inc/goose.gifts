@@ -5,6 +5,34 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-15 - Branch and worktree lifecycle cleanup
+
+**Evidence checked**: GitHub had 40 branches total (`main` plus 39), no open
+pull requests, and automatic merged-branch deletion disabled. Thirty remote
+heads exactly matched merged PR heads. The remaining remote refs were either
+already reachable or patch-equivalent on `main`, or were 2025 image/Safari
+experiments against removed and superseded code. The canonical checkout was
+clean. Locally there were 34 non-main branches, seven completed auxiliary
+worktrees, one dead worktree record, and one untracked Playwright diagnostics
+folder with no source changes.
+
+**Recovery and cleanup**: before deleting anything, created and verified a
+complete Git bundle containing 96 refs plus a SHA/ref inventory, PR inventory,
+and worktree inventory at
+`~/.codex/backups/goose.gifts/branch-cleanup-2026-08-15/`. Archived and verified
+the Playwright diagnostics separately. Then removed all 39 audited remote
+branches, the seven completed worktrees and dead worktree record, and all 34
+stale local branches. `main` was explicitly excluded and remains aligned with
+`origin/main`.
+
+**Prevention and Vercel decision**: enabled GitHub's automatic deletion of
+merged head branches. The runbook now requires a clean-worktree check and local
+worktree/branch removal after every merge, requires PR/patch evidence before
+forcing deletion after a squash merge, and limits a logical run to one primary
+PR plus at most one genuinely post-deploy receipt PR. Historical Vercel preview
+deployments were left intact because they are useful PR/rollback evidence and
+are not additional production environments.
+
 ## 2026-08-14 - Pinterest and organic-growth studio
 
 **Evidence checked**: Pinterest API v5 public lifetime metrics, GA4 traffic,
