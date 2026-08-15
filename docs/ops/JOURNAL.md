@@ -5,6 +5,42 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-15 - Dependency security and Next 16 migration
+
+**Evidence checked**: the starting npm audit reported 19 advisories: two
+critical, 12 high, and five moderate. Directly affected surfaces included the
+Next.js 15.1.11 runtime, Drizzle ORM's SQL identifier handling, Drizzle Kit's
+legacy esbuild chain, and PostCSS-related tooling. The repository otherwise
+started clean and aligned with `origin/main` after the branch-lifecycle cleanup.
+
+**Upgrade and warning repair**: upgraded to Next.js 16.3.1, React/React DOM
+19.2.8, Drizzle ORM 0.45.2, Drizzle Kit 0.31.10, ESLint 9.39.5 with the native
+Next 16 flat configuration, PostCSS 8.5.26, and current compatible releases of
+Autoprefixer, dotenv, PostHog, and Tailwind 3. The audited Drizzle Kit loader
+now resolves to esbuild 0.25.12 while its independent `tsx` path retains its
+compatible esbuild release. Exact native install scripts are allowlisted and
+no unreviewed script remains. The package now declares its ESM boundary and the
+single legacy CommonJS catalog helper exposes equivalent native ESM exports,
+removing Node's typeless-module warning without hiding other warnings. Breaking
+OpenAI, Tailwind, ESLint, TypeScript, and Node-type major migrations were
+intentionally kept out of this security update.
+
+**Framework migration**: declared Next's Node 20.9 minimum, removed the obsolete
+build-time ESLint option and redundant Turbopack flag, renamed middleware to
+the Next 16 proxy convention without changing the admin protection boundary,
+and changed catalog tag invalidation to the supported `max` profile. The
+stricter React rules prompted real fixes rather than suppressions: admin data
+loads now ignore unmounted responses, search telemetry records the already
+server-rendered query without replacing the visible result set, internal clear
+navigation uses the router, and gift-guide priority selection is immutable.
+
+**Validation**: `npm audit --audit-level=low` reports zero vulnerabilities;
+`npm install-scripts ls` reports no unreviewed scripts; `npm ls --all`,
+`drizzle-kit check`, all 11 repository test commands, `npm run lint`, and the
+Next.js production build pass. The operations runbook now makes high-severity
+npm audit findings a release blocker, and the README reflects the deployed
+framework and Amazon Creators API stack.
+
 ## 2026-08-15 - Branch and worktree lifecycle cleanup
 
 **Evidence checked**: GitHub had 40 branches total (`main` plus 39), no open

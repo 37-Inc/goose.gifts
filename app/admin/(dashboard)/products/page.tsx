@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/admin/Card';
 import { useToast } from '@/components/admin/Toast';
 
@@ -21,28 +21,41 @@ export default function AdminProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'clicks' | 'ctr' | 'impressions'>('clicks');
 
-  const fetchProducts = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/admin/products');
-      const data = await response.json();
-
-      if (data.success) {
-        setProducts(data.data);
-      } else {
-        showToast('error', data.error || 'Failed to fetch products');
-      }
-    } catch (error) {
-      showToast('error', 'An error occurred while fetching products');
-      console.error('Products fetch error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [showToast]);
-
   useEffect(() => {
-    void fetchProducts();
-  }, [fetchProducts]);
+    let cancelled = false;
+
+    async function loadProducts() {
+      try {
+        const response = await fetch('/api/admin/products');
+        const data = await response.json();
+
+        if (cancelled) {
+          return;
+        }
+
+        if (data.success) {
+          setProducts(data.data);
+        } else {
+          showToast('error', data.error || 'Failed to fetch products');
+        }
+      } catch (error) {
+        if (!cancelled) {
+          showToast('error', 'An error occurred while fetching products');
+          console.error('Products fetch error:', error);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showToast]);
 
   const sortedProducts = [...products].sort((a, b) => {
     switch (sortBy) {

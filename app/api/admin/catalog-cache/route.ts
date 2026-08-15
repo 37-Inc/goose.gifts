@@ -11,8 +11,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  revalidateTag('catalog-products');
-  revalidateTag('gift-pages');
+  revalidateTag('catalog-products', 'max');
+  revalidateTag('gift-pages', 'max');
   revalidatePath('/gifts');
   revalidatePath('/gifts/[slug]', 'page');
   revalidatePath('/random-gift');

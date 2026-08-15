@@ -64,6 +64,20 @@ what's likely next.
 
 Newest first.
 
+### 2026-08-15 — Dependency security and Next 16 migration `[owner+claude]` (direct `main` deploy)
+
+Removed all 19 known npm audit findings by upgrading Next.js to 16.3.1,
+React to 19.2.8, Drizzle ORM/Kit, PostCSS, and the remaining compatible direct
+dependencies. Migrated middleware to the Next 16 proxy convention, adopted the
+native ESLint 9 flat config, approved the exact native install scripts, and
+updated cache invalidation to the supported stale-while-revalidate contract.
+The package now declares its ESM module boundary explicitly, eliminating
+Node's typeless-module reparsing warning without suppressing runtime warnings.
+The stricter React lint pass also removed render-time mutation and made admin
+and search effects cancellation-safe. The full application test suite,
+Drizzle migration check, lint, production build, dependency tree, and zero-
+vulnerability audit pass.
+
 ### 2026-08-15 — Branch and worktree lifecycle cleanup `[owner+claude]` ([PR #105](https://github.com/37-Inc/goose.gifts/pull/105))
 
 Audited all 40 GitHub branches against merged PR heads, patch content, current

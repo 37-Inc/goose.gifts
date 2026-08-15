@@ -204,7 +204,8 @@ Boundaries (always in force):
    mistakes, accessibility issues, stale docs, and SEO/GEO claims that are not
    backed by visible page content. Fix what you find before shipping. If the
    change is risky, add a targeted test or a narrower runtime check.
-6. **QA.** `npm install && npm run build && npm run lint` must pass. Test the
+6. **QA.** `npm install && npm audit --audit-level=high && npm run build && npm run lint`
+   must pass. Test the
    change as a user would where feasible. For UI or user-flow changes, run the
    site locally or inspect production after deploy in a browser at desktop and
    mobile widths; verify the affected workflow still functions, text does not

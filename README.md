@@ -23,11 +23,11 @@ and admin bundle screens have been removed from the maintained runtime path.
 
 ## Tech Stack
 
-- Next.js 15 App Router and React 19
+- Next.js 16 App Router and React 19 (Node.js 20.9 or newer)
 - Tailwind CSS
 - Vercel Postgres / Neon with pgvector
 - OpenAI for product copy, tags, quality scoring, and embeddings
-- Amazon Product Advertising API plus Google Custom Search for catalog discovery
+- Amazon Creators API plus Google Custom Search for catalog discovery
 
 ## Development
 

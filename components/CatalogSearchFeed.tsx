@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Product, ProductSearchResult } from '@/lib/types';
 import { captureSearch } from '@/lib/client-analytics';
@@ -47,6 +48,7 @@ export function CatalogSearchFeed({
   feedSeed,
   featuredGuides,
 }: CatalogSearchFeedProps) {
+  const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [activeQuery, setActiveQuery] = useState(initialQuery.trim());
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -132,13 +134,41 @@ export function CatalogSearchFeed({
   useEffect(() => {
     // A shared ?q= URL is already server-rendered, but this one intentional
     // request records the complete query and supplies a search ID for clicks.
-    if (initialQuery.trim().length >= 2) {
-      runSearch(initialQuery);
+    const trimmed = initialQuery.trim();
+
+    if (trimmed.length < 2) {
+      return;
     }
-    // Only hydrate the server-provided query once; subsequent searches submit
-    // through the form instead of logging every intermediate keystroke.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    const controller = new AbortController();
+
+    async function recordInitialSearch() {
+      try {
+        const response = await fetch(
+          `/api/search-products?q=${encodeURIComponent(trimmed)}&limit=36`,
+          { signal: controller.signal }
+        );
+        const data = (await response.json()) as ProductSearchResponse;
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Search tracking failed');
+        }
+
+        setSearchId(data.searchId || null);
+        captureSearch(data.results?.length ?? initialProducts.length);
+      } catch (searchError) {
+        if (searchError instanceof DOMException && searchError.name === 'AbortError') {
+          return;
+        }
+
+        console.error('Initial search tracking failed:', searchError);
+      }
+    }
+
+    void recordInitialSearch();
+
+    return () => controller.abort();
+  }, [initialProducts.length, initialQuery]);
 
   const hasSearch = activeQuery.length >= 2;
 
@@ -280,7 +310,7 @@ export function CatalogSearchFeed({
               type="button"
               onClick={() => {
                 if (initialQuery.trim().length >= 2) {
-                  window.location.assign('/');
+                  router.push('/');
                   return;
                 }
                 setQuery('');

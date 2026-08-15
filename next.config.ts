@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  eslint: {
-    // We run ESLint separately via npm run lint, skip during build
-    ignoreDuringBuilds: true,
-  },
   images: {
     remotePatterns: [
       // Amazon image domains - specific known CDNs

@@ -74,6 +74,10 @@ const guideSections = [
   },
 ];
 
+const priorityGuideSlugs = new Set(
+  guideSections.flatMap((section) => section.slugs).slice(0, 4)
+);
+
 function getGuide(slug: string) {
   const guide = giftGuides.find((item) => item.slug === slug);
 
@@ -117,7 +121,6 @@ export default async function GiftGuideIndexPage() {
   const baseUrl = getSiteUrl();
   const url = `${baseUrl}/gift-guides`;
   const previews = await getGuidePreviewImages(giftGuides);
-  let tileIndex = 0;
   const schema = JSON.stringify({
     '@context': 'https://schema.org',
     '@graph': [
@@ -182,15 +185,13 @@ export default async function GiftGuideIndexPage() {
                 <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-7">
                   {section.slugs.map((slug) => {
                     const guide = getGuide(slug);
-                    const isPriority = tileIndex < 4;
-                    tileIndex += 1;
                     return (
                       <GuideTile
                         key={guide.slug}
                         href={`/gift-guides/${guide.slug}`}
                         title={guide.title}
                         preview={previews[guide.slug]}
-                        priority={isPriority}
+                        priority={priorityGuideSlugs.has(slug)}
                       />
                     );
                   })}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardBody, CardHeader } from '@/components/admin/Card';
 import { useToast } from '@/components/admin/Toast';
@@ -12,28 +12,41 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchStats = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/admin/stats');
-      const data = await response.json();
-
-      if (data.success) {
-        setStats(data.data);
-      } else {
-        showToast('error', data.error || 'Failed to fetch stats');
-      }
-    } catch (error) {
-      showToast('error', 'An error occurred while fetching stats');
-      console.error('Stats fetch error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [showToast]);
-
   useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+    let cancelled = false;
+
+    async function loadStats() {
+      try {
+        const response = await fetch('/api/admin/stats');
+        const data = await response.json();
+
+        if (cancelled) {
+          return;
+        }
+
+        if (data.success) {
+          setStats(data.data);
+        } else {
+          showToast('error', data.error || 'Failed to fetch stats');
+        }
+      } catch (error) {
+        if (!cancelled) {
+          showToast('error', 'An error occurred while fetching stats');
+          console.error('Stats fetch error:', error);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadStats();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showToast]);
 
   const formatDate = (date: Date) => {
     const now = new Date();
