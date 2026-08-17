@@ -64,6 +64,17 @@ what's likely next.
 
 Newest first.
 
+### 2026-08-17 — Weekly catalog refresh and Vercel credential fallback `[daily-ops]`
+
+Completed the six-theme weekly catalog run: 50 stale products revalidated,
+60 discoveries screened down to 15 existing-product refreshes, zero affiliate
+tag mismatches, zero net-new catalog additions, and one weak personalized mug
+left in the owner-review hold. Fixed the local Amazon Creators hydrator so
+Vercel's unreadable Sensitive-value placeholders correctly fall back to the
+protected operator credential file, with regression coverage. The production
+cache was revalidated and the final run statistics were delivered to the Slack
+marketing channel through OpenClaw.
+
 ### 2026-08-15 — Dependency security and Next 16 migration `[owner+claude]` (direct `main` deploy)
 
 Removed all 19 known npm audit findings by upgrading Next.js to 16.3.1,
