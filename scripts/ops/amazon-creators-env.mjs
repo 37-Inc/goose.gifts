@@ -49,12 +49,19 @@ function readCredentialFile(filePath) {
   };
 }
 
+function isUsableCredentialValue(value) {
+  return typeof value === 'string'
+    && value.trim().length > 0
+    && !/^\[(?:encrypted|sensitive)\]$/i.test(value.trim());
+}
+
 export function hydrateLocalAmazonCreatorsEnv(env = process.env) {
-  if (
-    env.AMAZON_CREATORS_CREDENTIAL_ID
-    && env.AMAZON_CREATORS_CREDENTIAL_SECRET
-    && env.AMAZON_CREATORS_CREDENTIAL_VERSION
-  ) {
+  const credentialKeys = [
+    'AMAZON_CREATORS_CREDENTIAL_ID',
+    'AMAZON_CREATORS_CREDENTIAL_SECRET',
+    'AMAZON_CREATORS_CREDENTIAL_VERSION',
+  ];
+  if (credentialKeys.every((key) => isUsableCredentialValue(env[key]))) {
     return false;
   }
 
@@ -64,14 +71,12 @@ export function hydrateLocalAmazonCreatorsEnv(env = process.env) {
 
   const credentials = readCredentialFile(filePath);
   for (const [key, value] of Object.entries(credentials)) {
-    if (!env[key] && value) env[key] = value;
+    if (!isUsableCredentialValue(env[key]) && isUsableCredentialValue(value)) {
+      env[key] = value;
+    }
   }
 
-  return Boolean(
-    env.AMAZON_CREATORS_CREDENTIAL_ID
-    && env.AMAZON_CREATORS_CREDENTIAL_SECRET
-    && env.AMAZON_CREATORS_CREDENTIAL_VERSION
-  );
+  return credentialKeys.every((key) => isUsableCredentialValue(env[key]));
 }
 
-export { parseCsvRows, readCredentialFile };
+export { isUsableCredentialValue, parseCsvRows, readCredentialFile };

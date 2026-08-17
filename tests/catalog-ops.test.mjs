@@ -1,8 +1,13 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 import amazonCreators from '../lib/amazon-creators.js';
-import { parseCsvRows } from '../scripts/ops/amazon-creators-env.mjs';
+import {
+  hydrateLocalAmazonCreatorsEnv,
+  parseCsvRows,
+} from '../scripts/ops/amazon-creators-env.mjs';
 import { formatReport, parseFinalJson } from '../scripts/ops/catalog-weekly.mjs';
 import {
   auditGuideProducts,
@@ -123,6 +128,30 @@ test('local Creators credential CSV parsing handles quoted commas without exposi
     ['Application', 'Application Id', 'Credential Id', 'Secret', 'Version'],
     ['Goose, Gifts', 'app-id', 'credential-id', 'secret,with,commas', '3.1'],
   ]);
+});
+
+test('local Creators credentials replace unreadable Vercel placeholders', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'goose-creators-env-'));
+  const credentialFile = path.join(directory, 'credentials.csv');
+  fs.writeFileSync(
+    credentialFile,
+    'Credential Id,Secret,Version\nlocal-id,local-secret,3.1\n',
+  );
+  const env = {
+    AMAZON_CREATORS_CREDENTIALS_FILE: credentialFile,
+    AMAZON_CREATORS_CREDENTIAL_ID: '[Encrypted]',
+    AMAZON_CREATORS_CREDENTIAL_SECRET: '[Sensitive]',
+    AMAZON_CREATORS_CREDENTIAL_VERSION: '[Encrypted]',
+  };
+
+  try {
+    assert.equal(hydrateLocalAmazonCreatorsEnv(env), true);
+    assert.equal(env.AMAZON_CREATORS_CREDENTIAL_ID, 'local-id');
+    assert.equal(env.AMAZON_CREATORS_CREDENTIAL_SECRET, 'local-secret');
+    assert.equal(env.AMAZON_CREATORS_CREDENTIAL_VERSION, '3.1');
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test('weekly catalog reporting parses command output and includes owner-facing stats', () => {

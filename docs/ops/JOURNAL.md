@@ -5,6 +5,38 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-17 - Weekly catalog refresh and credential fallback repair
+
+**Evidence checked**: refreshed `.env.local` from the Vercel Production
+environment, then ran the bounded weekly catalog workflow under the repository's
+Node 22 runtime. The first attempt stopped before any catalog writes because
+Vercel CLI represented the three Sensitive Amazon Creators values as unreadable
+placeholders. The local credential hydrator treated those placeholders as real
+values instead of falling back to the protected operator CSV.
+
+**Safe pipeline repair**: the Amazon Creators environment helper now recognizes
+`[Encrypted]` and `[Sensitive]` as unusable and fills only those values from the
+existing local credential file. A regression test covers the exact Vercel
+placeholder case. `npm run test:catalog-ops` passes all 25 tests, and no
+credential values were printed or written to the repository.
+
+**Weekly run**: run `50a1e33f-d8a0-4d8e-8ca8-0b195b7d97ef` completed across six
+themes. Revalidation checked 50 stale products, refreshed 31, confirmed 19
+missing, and marked 19 unavailable. The affiliate audit found zero mismatches.
+Discovery fetched 60 candidates, rejected 34 for quality and 17 as duplicates,
+and retained 15; every retained item already existed, so the run refreshed 15
+records and inserted none. Three older products completed editorial processing.
+Cache invalidation succeeded with no warnings. Estimated OpenAI cost was
+`$0.009997`, and the final report was delivered to the Slack marketing channel
+through OpenClaw.
+
+**Quality review**: the exact owner queue contains one generic personalized
+"Grandpa, we love you" mug whose refreshed draft was not approved. Its source
+and image are real, but it is too commodity-like for the useful-absurdity bar,
+so it remains held. After the run the catalog has 3,318 active products, no
+active product missing an image or affiliate URL, and 966 homepage-eligible
+products. No social post or unrelated site change was made.
+
 ## 2026-08-15 - Dependency security and Next 16 migration
 
 **Evidence checked**: the starting npm audit reported 19 advisories: two
