@@ -53,6 +53,13 @@ report.
     `16:48:52Z`, and now reports all 94 URLs with zero warnings/errors. Keep
     catch-up disabled and recheck at 14/28 days rather than extrapolating from
     one indexed sample.
+  - Interim checkpoint (2026-08-18): the comparable five-page sample now has
+    two submitted/indexed pages with matching Google/user canonicals and
+    successful crawls (the original Screaming Goat and alligator), two
+    discovered-not-indexed pages (hippo and ceramic eye), and one URL still
+    unknown (Pizza Boss). No `/gifts/` URL appears in the current Search
+    Analytics page report. This is progress, but not enough breadth to enable
+    the 100/day catch-up before the scheduled 14/28-day checks.
   - The indexed goat exposed a Product-snippet error because its page declared
     Product schema without a fresh offer, review, or visible rating. The gift
     page schema now falls back to valid WebPage/Breadcrumb markup and emits a
@@ -249,6 +256,26 @@ report.
   again before evidence has time to move unless a rendering/indexation defect
   appears.
 
+## Shipped 2026-08-18
+
+- [x] Improved the existing `/gift-guides/secret-santa-gag-gifts` page from
+  current page/query evidence rather than creating another URL. The 2026-07-20
+  through 2026-08-16 window showed 248 impressions, zero clicks, and average
+  position 54.7. Visible page-filtered query evidence included `funny secret
+  santa gifts`, `gag gifts for christmas exchange`, `secret santa funny gifts`,
+  and adjacent white-elephant phrasing that the page needed to distinguish.
+- [x] Aligned the title, description, H1, and introduction around funny Secret
+  Santa gifts and assigned-recipient intent. Added specific recipient,
+  workplace, budget, handoff, and second-life guidance; contextual links to
+  coworker, boss, white-elephant, and Christmas guides; and three page-specific
+  visible FAQs that match the FAQ schema. The catalog audit found 12 distinct
+  eligible products.
+- [x] Verified before the edit that the Secret Santa URL is submitted/indexed,
+  indexing is allowed, Google and user canonicals match `www`, and its last
+  mobile fetch succeeded. Recheck impressions, CTR, position, organic sessions,
+  and `gift_guide` outbound clicks on 2026-09-01 and 2026-09-15; do not revise
+  again before those checkpoints unless a technical regression appears.
+
 ## Shipped 2026-08-04
 
 - [x] Improved the existing `/gift-guides/white-elephant-gifts` page from
@@ -302,13 +329,10 @@ authority—not more URLs.
 2. `/gift-guides/white-elephant-gifts` — first evidence-backed pass shipped
    2026-08-04. Hold for the 14/28-day metric recheck before another editorial
    change.
-3. `/gift-guides/funny-gifts-for-dads` — add distinct paths for dad-joke,
-   birthday, fishing, grilling, and practical novelty intent without pretending
-   every catalog item fits every subtype; refine metadata around the observed
-   dad-gift query cluster.
-4. `/gift-guides/secret-santa-gag-gifts` — add useful recipient and workplace
-   constraints, exchange-specific picking advice, and contextual links to
-   coworker and white-elephant guides ahead of seasonal demand.
+3. `/gift-guides/funny-gifts-for-dads` — first evidence-backed pass shipped
+   2026-08-11. Hold for the 2026-08-25 and 2026-09-08 rechecks.
+4. `/gift-guides/secret-santa-gag-gifts` — first evidence-backed pass shipped
+   2026-08-18. Hold for the 2026-09-01 and 2026-09-15 rechecks.
 5. `/gift-guides/weird-kitchen-gadgets` — distinguish actually usable tools
    from decorative novelty, add kitchen-specific buying criteria, and use its
    strong visual fit as the bridge between organic search and Pinterest.

@@ -50,3 +50,17 @@ test('the dad guide answers observed dad-joke and hobby intent with specific gui
   assert.match(dadGuide, /slug: 'funny-golf-gifts'/);
   assert.match(dadGuide, /recognize the hobby/);
 });
+
+test('the Secret Santa guide separates assigned-recipient intent from group exchanges', async () => {
+  const source = await readFile(giftGuidesPath, 'utf8');
+  const secretSantaGuide = source.match(/slug: 'secret-santa-gag-gifts',[\s\S]*?\n  \},\n  \{\n    slug: 'dirty-santa-gifts'/)?.[0];
+
+  assert.ok(secretSantaGuide);
+  assert.match(secretSantaGuide, /metadataTitle: 'Funny Secret Santa Gifts and Gag Gift Ideas'/);
+  assert.match(secretSantaGuide, /choosing for one person/);
+  assert.match(secretSantaGuide, /where will it be opened, who else will be there/);
+  assert.match(secretSantaGuide, /confirm the current price at the retailer/);
+  assert.match(secretSantaGuide, /slug: 'funny-gifts-for-coworkers'/);
+  assert.match(secretSantaGuide, /slug: 'white-elephant-gifts'/);
+  assert.match(secretSantaGuide, /Are Secret Santa and white elephant gifts the same/);
+});
