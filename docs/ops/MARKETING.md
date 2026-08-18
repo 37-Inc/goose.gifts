@@ -30,12 +30,12 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Six product-faithful editorial Pins are live. As of 2026-08-14 they have 149
-   public impressions in total and two Pin clicks, both on the corrected goat,
-   but no save, outbound click, or attributable site session. That is the first
-   directional attention signal, not yet a creative or conversion verdict. A
-   twice-weekly studio advances at most one excellent survivor per run and
-   maintains an exact owner-review queue.
+   Six product-faithful editorial Pins are live. As of 2026-08-18 they have 192
+   public impressions in total, two Pin clicks, and one save, all engagement on
+   the corrected goat, but no outbound click or attributable site session. That
+   is a directional attention signal, not yet a creative or conversion
+   verdict. A twice-weekly studio advances at most one excellent survivor per
+   run and maintains an exact owner-review queue.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
    catalog-supported pages. The Weird Gift Index is the first original-data
    acquisition asset and should be improved as a cited, editioned report rather
@@ -150,6 +150,41 @@ For every concept promoted beyond rough exploration, record:
 - performance checkpoints and conclusion.
 
 ## Experiment log
+
+### 2026-08-18 — First save, product-index interim check, and Secret Santa guide
+
+- **Evidence checked**: Pinterest API v5 reports 40 impressions and one Pin
+  click for the five-Pin launch cohort. The six truthful product creatives now
+  total 192 impressions: goat 129 with two Pin clicks and one save, alligator
+  47, ceramic eye eight, and the three hippo variants eight combined. None has
+  an outbound click. GA4 has no Pinterest session or outbound event, and the
+  first-party database has no public Pinterest affiliate click; `goose-proof`
+  QA remains excluded. Sandbox and v3 remain excluded.
+- **Creative cycle**: recorded six public checkpoints and two evidence-linked
+  learnings through the validated append-only workflow. The goat remains the
+  only attention leader, but no new product concept or replacement was made
+  while the existing cohort remains under-distributed. No image or Pin was
+  generated or published, and the owner queue remains empty.
+- **Organic checkpoint**: the interim 2026-08-07 product cohort sample now has
+  two submitted/indexed pages with matching canonicals (the original Screaming
+  Goat and alligator), two discovered-not-indexed pages (hippo and ceramic eye),
+  and one URL still unknown (Pizza Boss). No gift URL appears in current Search
+  Analytics, so the 100/day catch-up remains disabled for the scheduled 14/28-
+  day checks. Eligible gift pages remain crawlable and `index, follow`; held
+  pages remain stable `200, noindex, follow` outside the sitemap.
+- **SEO move**: current Search Console evidence selected the existing Secret
+  Santa guide: 248 impressions, zero clicks, and average position 54.7 in the
+  2026-07-20 through 2026-08-16 window. The page now distinguishes an assigned
+  recipient from a steal-and-swap exchange, adds recipient/workplace/handoff
+  constraints, links to four useful adjacent guides, and exposes three matching
+  visible FAQs/schema. The live catalog audit found 12 distinct eligible
+  products. Recheck on 2026-09-01 and 2026-09-15.
+- **Monthly shortlist decision**: August's no-account shortlist check remains
+  closed until September. A Pinterest save without an outbound or site-sharing
+  signal does not justify reopening a new product workstream.
+- **Publishing boundary**: Standard access is still awaiting review and no
+  production OAuth path has been verified. This unattended run published no
+  Pin, used no production posting API, and spent no money.
 
 ### 2026-08-14 — Goat attention signal and first product-index cohort check
 

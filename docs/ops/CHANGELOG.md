@@ -26,8 +26,9 @@ what's likely next.
 
 - **Indexation — guide baseline healthy; product cohort monitoring.** The seven
   priority guide surfaces are submitted and indexed, and the first 46 factual
-  product pages are live in the 94-URL sitemap. At the 7-day check, one of five
-  sampled gift pages is indexed, one is discovered, and three remain unknown.
+  product pages are live in the 94-URL sitemap. At the 2026-08-18 interim check,
+  two of five sampled gift pages are indexed, two are discovered, and one
+  remains unknown.
   Keep the 7/14/28-day product cohort gate before catch-up volume and recheck
   the Dad guide on 2026-08-25 and 2026-09-08 (Beads `roadmap-fkvo`).
 - **Distribution / Pinterest — submitted; awaiting review.** Standard-access application
@@ -42,8 +43,9 @@ what's likely next.
   browser-published as public Pin `1107815208385022014`. The stronger hippo
   vanity package was then owner-approved and browser-published as public Pin
   `1107815208385331910`; the exact hippo desk package is now also live as public
-  Pin `1107815208385562809`. The goat now has 104 public impressions and two Pin
-  clicks, but no outbound click; the full truthful cohort has 149 impressions.
+  Pin `1107815208385562809`. The goat now has 129 public impressions, two Pin
+  clicks, and one save, but no outbound click; the full truthful cohort has 192
+  impressions.
   Do not generate a replacement while this first attention signal matures.
   Canonical gift pages now replace product-pinned
   random-gift URLs for future campaign packages; existing Pin destinations
@@ -63,6 +65,19 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-18 — Secret Santa guide and public Pinterest checkpoint `[daily-ops]` ([PR #107](https://github.com/37-Inc/goose.gifts/pull/107))
+
+Improved the existing indexed Secret Santa guide from its current 248-
+impression, zero-click Search Console opportunity with assigned-recipient,
+workplace, handoff, and second-life guidance; four contextual guide links; and
+matching visible FAQs/schema. The page remains backed by 12 distinct eligible
+products. Recorded six public Pinterest checkpoints and two causal learnings:
+the truthful product cohort now has 192 impressions, two Pin clicks, and one
+save, with all engagement on the corrected goat but no outbound conversion. No
+new creative or Pin was produced, and the owner queue remains empty. An interim
+five-page product sample improved to two indexed, two discovered, and one
+unknown; keep the 100/day catch-up gated through the 14/28-day checks.
 
 ### 2026-08-17 — Weekly catalog refresh and Vercel credential fallback `[daily-ops]`
 

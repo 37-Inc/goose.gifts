@@ -5,6 +5,61 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-18 - Pinterest and organic-growth studio
+
+**Evidence checked**: Pinterest API v5 public lifetime metrics, GA4 traffic,
+landing pages and outbound events, the first-party database snapshot, Vercel
+production state, Search Console page/query evidence, sitemap processing, live
+robots, semantic-search health, and six product/guide URL inspections. The
+five-Pin launch cohort remains at 40 impressions and one Pin click. The six
+truthful product creatives total 192 impressions: Screaming Goat 129 with two
+Pin clicks and the first save, alligator 47, ceramic eye eight, hippo breakfast
+three, hippo desk three, and hippo vanity two. None has an outbound click. GA4
+has no Pinterest session or outbound event, and database Pinterest
+`goose-proof` QA clicks were excluded. Sandbox and Pinterest v3 were excluded
+throughout. The starting Vercel production deployment was READY at main SHA
+`233900fa979048ba668e9038232bfbbd04c74eed`.
+
+**Creative cycle**: all valid survivors are already public and the owner queue
+is empty. The goat's first save strengthens the same directional attention
+signal as its two Pin clicks, but there is still no click to goose.gifts. The
+run therefore recorded six validated public metric events and two causal
+learning events, and generated no unnecessary seventh survivor. No Pin was
+published, no production posting API was used, and no money was spent.
+
+**Organic move**: this was the first studio run of the week. The coworkers,
+white-elephant, and Dad guides remain inside their measurement holds, so current
+evidence selected the untouched `/gift-guides/secret-santa-gag-gifts` page: 248
+impressions, zero clicks, and average position 54.7 from 2026-07-20 through
+2026-08-16. Page-filtered evidence included funny Secret Santa, Christmas gag
+exchange, and adjacent white-elephant wording. The page now distinguishes an
+assigned recipient from a steal-and-swap exchange; adds specific recipient,
+workplace, budget, handoff, and second-life advice; links contextually to four
+adjacent guides; and supplies three page-specific visible FAQs that match the
+schema. The live catalog audit found 12 distinct eligible products. Recheck on
+2026-09-01 and 2026-09-15.
+
+**Crawl and product cohort**: the Secret Santa guide is submitted/indexed with
+indexing allowed, a matching `www` canonical, and a successful mobile crawl.
+The interim five-product sample now has two submitted/indexed pages with
+matching canonicals and successful crawls (the original Screaming Goat and
+alligator), two discovered-not-indexed pages (hippo and ceramic eye), and one
+unknown URL (Pizza Boss). No gift URL appears in current Search Analytics. The
+live sitemap contains 94 submitted URLs with no reported warning/error, but its
+aggregate indexed count is stale and not page-level truth. Eligible gift pages
+remain crawlable and `index, follow`; only held pages remain stable `200,
+noindex, follow` outside the sitemap. Keep the 100/day catch-up disabled through
+the scheduled 14/28-day checkpoints.
+
+**Decision**: creative measurement and one existing search opportunity were
+the highest-leverage reversible moves. Another Pin would add inventory before
+the existing cohort answers the distribution question; the weekly catalog job
+is a separate automation; and backlink/outreach execution is a separate thread.
+The August no-account shortlist check remains closed until September because
+one Pinterest save without an outbound, sharing, or seasonal site signal does
+not justify a new product workstream. Pinterest Standard access remains awaiting
+review, and exact-package owner approval remains mandatory after approval.
+
 ## 2026-08-17 - Weekly catalog refresh and credential fallback repair
 
 **Evidence checked**: refreshed `.env.local` from the Vercel Production

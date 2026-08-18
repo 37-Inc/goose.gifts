@@ -253,10 +253,51 @@ export const giftGuides: GiftGuideDefinition[] = [
   {
     slug: 'secret-santa-gag-gifts',
     title: 'Secret Santa Gag Gifts',
-    h1: 'Secret Santa gag gifts that are funny without being risky',
-    description: 'Find Secret Santa gag gifts, office exchange ideas, and funny holiday presents from the goose.gifts catalog.',
-    intro: 'Secret Santa gifts need to be quick to understand, easy to wrap, and funny enough for the room without creating cleanup afterward.',
+    metadataTitle: 'Funny Secret Santa Gifts and Gag Gift Ideas',
+    h1: 'Funny Secret Santa gifts that fit the person and the room',
+    description: 'Find funny Secret Santa gifts and gag gift ideas for coworkers, friends, and holiday exchanges, with practical ways to keep the joke low-risk.',
+    intro: 'A good Secret Santa gag gift fits one real recipient, stays appropriate for the room where it will be opened, and still has a life after the reveal.',
     keywords: ['secret santa', 'holiday', 'christmas', 'office-safe', 'coworker', 'party', 'gag'],
+    editorialHeading: 'Choose for one recipient, then check the room',
+    editorialAside: 'Recipient, setting, and handoff',
+    editorialSections: [
+      {
+        title: 'Start with what you actually know about the recipient',
+        paragraphs: [
+          'Secret Santa is different from a steal-and-swap exchange: you are choosing for one person, even when everyone watches the gift open. Use a harmless habit, shared interest, or running joke that the recipient already enjoys. If the only idea you have is a stereotype about their age, job, body, identity, or relationship, it is not specific enough to be personal.',
+          'For a friend, a strange object tied to a familiar bit can work. For a coworker, boss, or newer acquaintance, narrow the joke to something public and low-pressure, such as coffee, meetings, a desk ritual, or a practical object with an absurd shape. The gift should not require the recipient to explain private context to the room.',
+        ],
+        links: [
+          { slug: 'funny-gifts-for-coworkers', label: 'Apply the office-safe gift test' },
+          { slug: 'funny-gifts-for-bosses', label: 'Choose a low-pressure boss gift' },
+        ],
+      },
+      {
+        title: 'Check the setting, budget, and second life',
+        paragraphs: [
+          'Before buying, picture the handoff: where will it be opened, who else will be there, and can the recipient carry it home without a cleanup project? Avoid messy pranks, clothing sizes, strong scents, and jokes that depend on politics, religion, health, or embarrassment. Follow the exchange budget and confirm the current price at the retailer instead of relying on an old remembered price.',
+          'The strongest gag gift does something after the laugh. A useful novelty, small desk object, funny kitchen tool, or displayable oddity gives the recipient a reason to keep it. Pure prank packaging works better when the real gift inside is still chosen for that person rather than being a random prop for the group.',
+        ],
+        links: [
+          { slug: 'white-elephant-gifts', label: 'Compare a steal-and-swap exchange' },
+          { slug: 'funny-christmas-gifts', label: 'Browse broader funny Christmas gifts' },
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: 'What makes a good funny Secret Santa gift?',
+        answer: 'A good Secret Santa gift has one clear joke tied to something the recipient actually likes or does, stays appropriate for the room where it will be opened, and remains useful or displayable after the reveal. Specific and low-pressure usually works better than shocking or generic.',
+      },
+      {
+        question: 'How do I choose a Secret Santa gag gift for a coworker?',
+        answer: 'Keep the joke about a public work routine, desk habit, or shared interest rather than the person\'s body, identity, politics, religion, health, relationships, or private life. Choose something modest, easy to open in a group, and easy to take home or keep at a desk.',
+      },
+      {
+        question: 'Are Secret Santa and white elephant gifts the same?',
+        answer: 'Not usually. Secret Santa assigns one recipient, so the gift can reflect that person. White elephant gifts move around a group through choosing or stealing, so they need broader appeal and a joke the whole room can understand quickly.',
+      },
+    ],
   },
   {
     slug: 'dirty-santa-gifts',
