@@ -25,8 +25,8 @@ Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
 - **Indexation — guide baseline healthy; product cohort monitoring.** The seven
-  priority guide surfaces are submitted and indexed, and the first 46 factual
-  product pages are live in the 94-URL sitemap. At the 2026-08-18 interim check,
+  priority guide surfaces are submitted and indexed, and 49 factual product
+  pages are live in the current 97-URL sitemap. At the 2026-08-18 interim check,
   two of five sampled gift pages are indexed, two are discovered, and one
   remains unknown.
   Keep the 7/14/28-day product cohort gate before catch-up volume and recheck
@@ -78,6 +78,10 @@ save, with all engagement on the corrected goat but no outbound conversion. No
 new creative or Pin was produced, and the owner queue remains empty. An interim
 five-page product sample improved to two indexed, two discovered, and one
 unknown; keep the 100/day catch-up gated through the 14/28-day checks.
+PR #107 merged as `c7e9bcd8`; the matching Vercel production deployment is
+READY, the live guide returns 200 with its new title, matching canonical, and
+visible FAQ content, and the current sitemap contains the guide plus 49 eligible
+gift pages. The legacy goat Pin URL still returns an attribution-preserving 308.
 
 ### 2026-08-17 — Weekly catalog refresh and Vercel credential fallback `[daily-ops]`
 

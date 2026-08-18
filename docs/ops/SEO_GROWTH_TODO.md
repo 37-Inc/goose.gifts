@@ -275,6 +275,12 @@ report.
   mobile fetch succeeded. Recheck impressions, CTR, position, organic sessions,
   and `gift_guide` outbound clicks on 2026-09-01 and 2026-09-15; do not revise
   again before those checkpoints unless a technical regression appears.
+- [x] Production acceptance: PR #107 merged as `c7e9bcd8`; the exact Vercel
+  deployment is READY. The live guide returns 200 with its new title,
+  description, H1, editorial, FAQ content, and matching canonical, has no
+  `noindex`, and appears in the current 97-URL sitemap alongside 49 eligible
+  gift pages. The indexed Screaming Goat remains `index, follow`, and its old
+  Pinterest destination still returns a UTM-preserving 308 to the exact slug.
 
 ## Shipped 2026-08-04
 
