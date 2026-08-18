@@ -45,11 +45,12 @@ The interim five-product sample now has two submitted/indexed pages with
 matching canonicals and successful crawls (the original Screaming Goat and
 alligator), two discovered-not-indexed pages (hippo and ceramic eye), and one
 unknown URL (Pizza Boss). No gift URL appears in current Search Analytics. The
-live sitemap contains 94 submitted URLs with no reported warning/error, but its
-aggregate indexed count is stale and not page-level truth. Eligible gift pages
-remain crawlable and `index, follow`; only held pages remain stable `200,
-noindex, follow` outside the sitemap. Keep the 100/day catch-up disabled through
-the scheduled 14/28-day checkpoints.
+current live sitemap contains 97 URLs, including 49 eligible gift pages. Search
+Console's last processed receipt still reflects 94 submitted URLs with no
+reported warning/error, and its aggregate indexed count is stale rather than
+page-level truth. Eligible gift pages remain crawlable and `index, follow`;
+only held pages remain stable `200, noindex, follow` outside the sitemap. Keep
+the 100/day catch-up disabled through the scheduled 14/28-day checkpoints.
 
 **Decision**: creative measurement and one existing search opportunity were
 the highest-leverage reversible moves. Another Pin would add inventory before
@@ -59,6 +60,17 @@ The August no-account shortlist check remains closed until September because
 one Pinterest save without an outbound, sharing, or seasonal site signal does
 not justify a new product workstream. Pinterest Standard access remains awaiting
 review, and exact-package owner approval remains mandatory after approval.
+
+**Production receipt**: PR
+[#107](https://github.com/37-Inc/goose.gifts/pull/107) merged as
+`c7e9bcd8a57a5396af724053076eecac4d56debb`; Vercel deployment
+`dpl_REZ3RvwS1D1UJKUvbMFgPHcnvGN6` reached READY for that exact SHA. The live
+Secret Santa guide returns 200 with the new title, description, H1, editorial,
+FAQ content, and matching canonical, and has no `noindex` directive. Mobile
+browser verification found no console warning or error. The live robots policy
+allows guides and `/gifts/`, the indexed Screaming Goat remains explicit
+`index, follow`, and its old product-pinned Pinterest URL still returns a 308 to
+the exact slug with every UTM value preserved.
 
 ## 2026-08-17 - Weekly catalog refresh and credential fallback repair
 

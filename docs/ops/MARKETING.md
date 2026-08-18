@@ -185,6 +185,10 @@ For every concept promoted beyond rough exploration, record:
 - **Publishing boundary**: Standard access is still awaiting review and no
   production OAuth path has been verified. This unattended run published no
   Pin, used no production posting API, and spent no money.
+- **Production receipt**: PR #107 merged as `c7e9bcd8`; the matching Vercel
+  production deployment reached READY. The live guide returns 200 with the new
+  metadata, H1, editorial, FAQs, and matching canonical, appears in the current
+  97-URL sitemap, and remains open to public search and model crawlers.
 
 ### 2026-08-14 — Goat attention signal and first product-index cohort check
 
