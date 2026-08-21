@@ -49,7 +49,7 @@ another outlet, an account, a paid placement, or spend.
   interesting, funky, and goofy material
 - First name: Cameron
 - Last name: Ehrlich
-- Email: cameron@37.technology
+- Email: cam@37.technology
 - Destination entered in the form:
   https://www.goose.gifts/weird-gift-index
 
