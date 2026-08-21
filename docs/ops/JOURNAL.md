@@ -5,6 +5,24 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-21 - Public contact identity correction
+
+**Issue**: the live Weird Gift Index disclosure and privacy policy exposed the
+invalid personal address `cameron@37.technology`. A current read-only Gmail
+delivery check confirmed that mail addressed to the verified product alias
+`goosegifts@37.technology` is still arriving in the owner mailbox; the existing
+Google Workspace setup and July delivery test remain documented below.
+
+**Correction**: made `goosegifts@37.technology` the single public contact
+constant and used it on both surfaces. The Index disclosure now identifies the
+approved owner, Thirty Seven, Inc., instead of using Cameron's name as general
+product identity. The full public source audit found no other personal email in
+app code, metadata, site-wide schema, footer, public text assets, or generated
+asset source. Cameron's name remains only as the intentional Index author,
+visible byline, and suggested citation; changing that editorial credit is an
+owner-taste decision rather than part of the contact correction. Tracked in
+Beads as `roadmap-pkjg`.
+
 ## 2026-08-21 - Pinterest and organic-growth studio
 
 **Evidence checked**: Pinterest API v5 public lifetime metrics, GA4 traffic,

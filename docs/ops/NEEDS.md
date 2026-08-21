@@ -89,6 +89,9 @@ you'd rather get real email/Slack from me, connect a connector at
   and 0 warnings. Use `scripts/ops/gsc.sh` for repeatable checks.
 - 2026-07-05: Pinterest account and email alias. `goosegifts@37.technology`
   is a verified Google Workspace alternate email for `cam@37.technology`;
+  it is the canonical public contact for Goose Gifts. Do not publish
+  `cam@37.technology` or the invalid `cameron@37.technology` as a Goose Gifts
+  contact.
   `https://www.pinterest.com/goosegifts/` is live with profile name
   `goose.gifts`, the site URL, and a short public bio. Pinterest shows
   `goose.gifts` as a connected claimed website. Starter public boards exist for
