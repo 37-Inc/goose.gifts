@@ -66,6 +66,15 @@ what's likely next.
 
 Newest first.
 
+### 2026-08-21 — Public Goose contact identity correction `[owner+claude]`
+
+Replaced the invalid personal address on the Weird Gift Index and privacy
+policy with the verified product alias `goosegifts@37.technology`, centralized
+the public contact value, and aligned the Index ownership disclosure with the
+approved Thirty Seven, Inc. product packet. Audited app copy, metadata, schema,
+footer, public text assets, and generated-asset source for personal contact
+leaks. Cameron's name remains only as intentional Index authorship and citation.
+
 ### 2026-08-21 — Public Pinterest and 14-day product-index checkpoint `[daily-ops]` ([PR #109](https://github.com/37-Inc/goose.gifts/pull/109))
 
 Recorded six public Pinterest checkpoints and two causal learnings through the

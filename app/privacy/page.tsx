@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Header } from '@/components/Header';
+import { PUBLIC_CONTACT_EMAIL } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | goose.gifts',
@@ -46,7 +47,7 @@ const sections = [
   {
     title: 'Contact',
     body: [
-      'For privacy questions about goose.gifts, contact cameron@37.technology.',
+      `For privacy questions about goose.gifts, contact ${PUBLIC_CONTACT_EMAIL}.`,
     ],
   },
 ];
@@ -61,7 +62,7 @@ export default function PrivacyPage() {
           Privacy Policy
         </h1>
         <p className="mt-3 text-sm leading-6 text-zinc-400">
-          Last updated August 9, 2026
+          Last updated August 21, 2026
         </p>
         <p className="mt-6 text-base leading-7 text-zinc-600">
           This policy explains how goose.gifts handles information for visitors

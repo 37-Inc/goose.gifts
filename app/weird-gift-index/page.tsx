@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
-import { getSiteUrl } from '@/lib/site';
+import { getSiteUrl, PUBLIC_CONTACT_EMAIL } from '@/lib/site';
 import { getWeirdGiftIndex } from '@/lib/weird-gift-index';
 import {
   HUMOR_SIGNAL_TERMS,
@@ -413,7 +413,7 @@ export default async function WeirdGiftIndexPage() {
                 <div>
                   <h3 className="font-bold text-zinc-950">Disclosure &amp; contact</h3>
                   <p className="mt-1">
-                    Cameron Ehrlich operates goose.gifts. The site is affiliate-supported and may earn commissions from qualifying purchases, but this report uses aggregate catalog inventory rather than sales or commission data. Questions and corrections: <a className="underline decoration-zinc-400 underline-offset-2 hover:text-brand-ink" href="mailto:cameron@37.technology">cameron@37.technology</a>.
+                    goose.gifts is owned and operated by Thirty Seven, Inc. The site is affiliate-supported and may earn commissions from qualifying purchases, but this report uses aggregate catalog inventory rather than sales or commission data. Questions and corrections: <a className="underline decoration-zinc-400 underline-offset-2 hover:text-brand-ink" href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>.
                   </p>
                 </div>
               </div>
