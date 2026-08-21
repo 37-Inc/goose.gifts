@@ -66,7 +66,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-21 — Public Pinterest and 14-day product-index checkpoint `[daily-ops]`
+### 2026-08-21 — Public Pinterest and 14-day product-index checkpoint `[daily-ops]` ([PR #109](https://github.com/37-Inc/goose.gifts/pull/109))
 
 Recorded six public Pinterest checkpoints and two causal learnings through the
 validated creative ledger. The six truthful product Pins now total 210
