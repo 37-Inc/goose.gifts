@@ -29,17 +29,19 @@ obvious interest in sharing it. No need to reply if it isn’t a fit.
 **Gate:** replace the generic description with one demonstrably good behavior or
 visual. Do not send if the page feels like a product grid with a random button.
 
-## 2. The Awesomer — Index suggestion form (ready for owner review)
+## 2. The Awesomer — Index suggestion form (approved 2026-08-21)
 
-**Suggested title:** 71.7% of Weird Gifts Never Call Themselves Funny
+The live form has no separate title field. Begin the description with:
+
+**“Funny” appears 69× more than “weird” in a weird-gift catalog.**
 
 **Description:**
 
-We analyzed 3,314 active unusual-product listings to see how merchants signal
-that a gift is supposed to be funny. The strangest result: 2,377 listings
-(71.7%) use none of the ten explicit humor words we tracked—including “funny,”
-“gag,” “prank,” and “weird.” They sell the joke with a straight face. The
-report includes the method, limitations, and downloadable aggregate data:
+I analyzed 3,318 active product listings in the goose.gifts catalog using only
+the original merchant titles. The oddest language gap: “funny” appears in 896
+titles, while “weird” appears in just 13 — about 69 to 1 — even though the
+catalog is built around weird gifts. The report also shows the published
+dictionaries, methodology, limitations, and downloadable aggregate data:
 https://www.goose.gifts/weird-gift-index
 
 Disclosure: I run goose.gifts, the affiliate-supported weird-gift discovery
@@ -48,7 +50,7 @@ site that produced the report.
 **Gate:** the suggested title must state a finding, not announce that a report
 exists. Never claim a trend from generated tags without showing the method.
 
-## 3. Boing Boing — original data tip (ready for owner review)
+## 3. Boing Boing — original data tip (obsolete July 2026 example; hold)
 
 **To:** help@boingboing.net
 
@@ -56,9 +58,10 @@ exists. Never claim a trend from generated tags without showing the method.
 
 Hi Boing Boing editors,
 
-While cleaning a catalog of 3,314 purportedly strange gifts, we found that 2,377
-of them—71.7%—use none of the ten explicit humor words we tracked in their
-merchant titles. No “funny,” no “gag,” no “prank,” no “weird.”
+While cleaning the July 2026 catalog snapshot, we found that most listings used
+none of the ten explicit humor words tracked in merchant titles. This copy is a
+historical example only; its figures are obsolete and it is not approved to
+send.
 
 The weird-internet part is how straight-faced the novelty aisle is: merchants
 describe ceramic eyes, animal objects, and bathroom jokes as though nothing
@@ -73,8 +76,8 @@ is being requested.
 Best,
 Cameron
 
-**Gate:** if the finding cannot stand alone as the first two sentences of a
-short story, it is not ready for Boing Boing.
+**Gate:** Boing Boing is outside the approved pilot. Revalidate the live data,
+route, and exact copy and obtain a separate approval before any future email.
 
 ## 4. X — visual object post
 

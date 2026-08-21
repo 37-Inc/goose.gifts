@@ -1,7 +1,7 @@
 # Acquisition Policy and Route Sources
 
-Checked 2026-07-12 (America/Los_Angeles). The Awesomer and Boing Boing routes
-were rechecked 2026-07-18. Recheck the relevant primary source
+Checked 2026-07-12 (America/Los_Angeles). The Awesomer route was rechecked
+2026-08-21; the Boing Boing route was last rechecked 2026-07-18. Recheck the relevant primary source
 within 24 hours before any external action.
 
 ## Direct editorial and newsletter routes
@@ -25,9 +25,11 @@ within 24 hours before any external action.
   accepts reader submissions through its Suggest Link form.
 - Constraint: submit the original Index/utility page, not a rewritten press
   release; be transparent that goose.gifts is affiliate-supported.
-- 2026-07-18 refresh: the Suggest a Story route remains live, the navigation
+- 2026-08-21 refresh: the Suggest a Story route remains live, the navigation
   still exposes `Suggest`, and the About page still says reader submissions are
-  accepted through the Suggest Link form.
+  accepted through the Suggest Link form. Its disclosure page also remains
+  explicit about affiliate relationships, reinforcing the need for the sender's
+  clear ownership and affiliate disclosure.
 
 ### Boing Boing
 
