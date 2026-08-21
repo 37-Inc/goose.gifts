@@ -30,7 +30,7 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Six product-faithful editorial Pins are live. As of 2026-08-18 they have 192
+   Six product-faithful editorial Pins are live. As of 2026-08-21 they have 210
    public impressions in total, two Pin clicks, and one save, all engagement on
    the corrected goat, but no outbound click or attributable site session. That
    is a directional attention signal, not yet a creative or conversion
@@ -150,6 +150,40 @@ For every concept promoted beyond rough exploration, record:
 - performance checkpoints and conclusion.
 
 ## Experiment log
+
+### 2026-08-21 — 14-day product cohort and distribution hold
+
+- **Evidence checked**: Pinterest API v5 reports 40 impressions and one Pin
+  click for the five-Pin launch cohort. The six truthful product creatives now
+  total 210 impressions: goat 129 with two Pin clicks and one save, alligator
+  61, ceramic eye 11, hippo desk four, hippo breakfast three, and hippo vanity
+  two. None has an outbound click. GA4 has no Pinterest session or outbound
+  event, and the first-party database has no public-Pinterest affiliate click;
+  `goose-proof` QA remains excluded. Sandbox and v3 remain excluded.
+- **Creative cycle**: recorded six public checkpoints and two evidence-linked
+  learnings through the validated append-only workflow. The 18 impressions
+  added since 2026-08-18 went to the alligator, ceramic eye, and hippo desk;
+  the goat's directional attention signal did not move. That does not create a
+  concrete new-product hypothesis, so no image or Pin was generated or
+  published and the owner queue remains empty.
+- **Organic checkpoint**: the scheduled 14-day five-product sample has two
+  submitted/indexed pages with matching Google/user canonicals (Screaming Goat
+  and alligator), two discovered-not-indexed pages (ceramic eye and Pizza
+  Boss), and one URL currently unknown to Google (hippo). All five return 200,
+  are self-canonical, emit `index, follow`, and appear in the live 97-URL
+  sitemap. No `/gifts/` page appears in Search Analytics. Keep the 100/day
+  catch-up disabled for the 28-day checkpoint on 2026-09-04.
+- **SEO cadence**: this was the second studio run of the week, so no guide was
+  edited after the 2026-08-18 Secret Santa improvement. Current 28-day totals
+  are coworkers 544, white elephant 505, dads 424, Secret Santa 259, and
+  kitchen 40 impressions, all with zero clicks. Existing measurement holds
+  remain in force.
+- **Monthly shortlist decision**: August's no-account shortlist check remains
+  closed until September. The additional Pinterest impressions produced no
+  outbound, sharing, or seasonal site signal that justifies reopening it.
+- **Publishing boundary**: Standard access is still awaiting review and no
+  production OAuth path has been verified. This unattended run published no
+  Pin, used no production posting API, and spent no money.
 
 ### 2026-08-18 — First save, product-index interim check, and Secret Santa guide
 

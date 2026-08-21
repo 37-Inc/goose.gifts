@@ -26,9 +26,9 @@ what's likely next.
 
 - **Indexation — guide baseline healthy; product cohort monitoring.** The seven
   priority guide surfaces are submitted and indexed, and 49 factual product
-  pages are live in the current 97-URL sitemap. At the 2026-08-18 interim check,
+  pages are live in the current 97-URL sitemap. At the 2026-08-21 14-day check,
   two of five sampled gift pages are indexed, two are discovered, and one
-  remains unknown.
+  remains unknown; all five are technically crawlable and self-canonical.
   Keep the 7/14/28-day product cohort gate before catch-up volume and recheck
   the Dad guide on 2026-08-25 and 2026-09-08 (Beads `roadmap-fkvo`).
 - **Distribution / Pinterest — submitted; awaiting review.** Standard-access application
@@ -44,7 +44,7 @@ what's likely next.
   vanity package was then owner-approved and browser-published as public Pin
   `1107815208385331910`; the exact hippo desk package is now also live as public
   Pin `1107815208385562809`. The goat now has 129 public impressions, two Pin
-  clicks, and one save, but no outbound click; the full truthful cohort has 192
+  clicks, and one save, but no outbound click; the full truthful cohort has 210
   impressions.
   Do not generate a replacement while this first attention signal matures.
   Canonical gift pages now replace product-pinned
@@ -65,6 +65,19 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-21 — Public Pinterest and 14-day product-index checkpoint `[daily-ops]` ([PR #109](https://github.com/37-Inc/goose.gifts/pull/109))
+
+Recorded six public Pinterest checkpoints and two causal learnings through the
+validated creative ledger. The six truthful product Pins now total 210
+impressions, two Pin clicks, and one save, with no outbound click or attributable
+site session; the 18 new impressions since Tuesday did not produce a concrete
+creative follow-up hypothesis. No image or Pin was produced, and the owner queue
+remains empty. The scheduled five-page product sample remains two indexed, two
+discovered, and one unknown after 14 days; every sample is live, self-canonical,
+`index, follow`, and in the clean 97-URL sitemap, so the 100/day catch-up remains
+off until the 2026-09-04 28-day checkpoint. This second weekly run made no SEO
+page change.
 
 ### 2026-08-18 — Secret Santa guide and public Pinterest checkpoint `[daily-ops]` ([PR #107](https://github.com/37-Inc/goose.gifts/pull/107))
 
