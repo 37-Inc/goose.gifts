@@ -60,6 +60,17 @@ report.
     unknown (Pizza Boss). No `/gifts/` URL appears in the current Search
     Analytics page report. This is progress, but not enough breadth to enable
     the 100/day catch-up before the scheduled 14/28-day checks.
+  - 14-day checkpoint (2026-08-21): the same sample remains two submitted and
+    indexed pages with successful crawls and matching Google/user canonicals
+    (the original Screaming Goat and alligator), two discovered-not-indexed
+    pages (ceramic eye and Pizza Boss), and one URL currently unknown to Google
+    (hippo). The individual discovered/unknown assignments changed since the
+    interim check, but the cohort distribution did not. Every sampled page
+    returns 200, is self-canonical, emits `index, follow`, and appears in the
+    live sitemap; no `/gifts/` URL appears in Search Analytics. Search Console
+    downloaded the 97-URL sitemap on 2026-08-20 with zero warnings or errors.
+    This is technically clean but only 40% sampled indexation, so keep the
+    100/day catch-up disabled and run the 28-day checkpoint on 2026-09-04.
   - The indexed goat exposed a Product-snippet error because its page declared
     Product schema without a fresh offer, review, or visible rating. The gift
     page schema now falls back to valid WebPage/Breadcrumb markup and emits a

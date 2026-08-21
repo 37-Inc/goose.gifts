@@ -5,6 +5,65 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-21 - Pinterest and organic-growth studio
+
+**Evidence checked**: Pinterest API v5 public lifetime metrics, GA4 traffic,
+landing pages and outbound events, the first-party database snapshot, Vercel
+production state, Search Console page/query evidence, sitemap processing, live
+robots, legacy redirects, and five product URL inspections. The launch cohort
+remains at 40 impressions and one Pin click. The six truthful product creatives
+now total 210 impressions: Screaming Goat 129 with two Pin clicks and one save,
+alligator 61, ceramic eye 11, hippo desk four, hippo breakfast three, and hippo
+vanity two. None has an outbound click. GA4 has no Pinterest session or outbound
+event; the database has zero product clicks in seven days, and its two historic
+Pinterest `goose-proof` clicks remain excluded QA. Sandbox and v3 were excluded
+throughout. The starting Vercel production deployment
+`dpl_7sHAjVz8SGGyzDJMv3NUdDC3BUp1` was READY at main SHA
+`1029ede951ec47fb44acd0e1c2d3de039bcb22e1`.
+
+**Creative cycle**: the owner-ready and revision queues are empty and all six
+valid survivors are already public/measuring. Since 2026-08-18, the alligator
+added 14 impressions, ceramic eye three, and hippo desk one; the goat's metrics
+did not move and no Pin produced an outbound. The run recorded six validated
+public metric events and two causal learning events, and generated no
+unnecessary replacement. No Pin was published, no production posting API was
+used, and no money was spent.
+
+**Organic checkpoint**: this was the second studio run of the week, so no guide
+received another edit after the 2026-08-18 Secret Santa pass. Current 28-day
+Search Console totals are coworkers 544 impressions/zero clicks/position 39.5,
+white elephant 505/zero/66.0, dads 424/zero/44.8, Secret Santa 259/zero/54.6,
+and weird kitchen 40/zero/44.9. The existing page-specific recheck dates remain
+the appropriate next actions.
+
+**14-day product cohort**: the original Screaming Goat and alligator are
+submitted/indexed with successful crawls, indexing allowed, and matching Google
+and user canonicals. Ceramic eye and Pizza Boss are discovered but not indexed;
+hippo is currently unknown to Google. The latter two states swapped relative to
+the interim check without changing the two/two/one distribution. No `/gifts/`
+page appears in current Search Analytics. All five return 200, are
+self-canonical, emit `index, follow`, and appear in the live sitemap. Search
+Console downloaded that 97-URL sitemap on 2026-08-20 and reports zero warnings
+or errors. The aggregate sitemap indexed count remains stale and is not
+page-level evidence.
+
+**Crawler and rollout decision**: live robots continue to allow public guides
+and `/gifts/` for search and model crawlers while blocking GPTBot, ClaudeBot,
+and Applebot-Extended only from the high-cost randomizer and private paths. A
+sample held page remains stable `200, noindex, follow` outside the sitemap. The
+old Screaming Goat Pinterest URL still returns a UTM-preserving 308 to the exact
+canonical slug. The cohort is technically clean but only two of five sampled
+pages are indexed, so keep the 100/day catch-up disabled through the 28-day
+checkpoint on 2026-09-04.
+
+**Decision**: the additional 18 public impressions supplied distribution, not a
+new outbound or conversion hypothesis, so measurement was the bounded creative
+advance. August's no-account shortlist decision stays closed until September;
+there is still no sharing, seasonal conversion, or public Pinterest outbound
+signal. Pinterest Standard access remains awaiting review, and exact-package
+owner approval remains mandatory after approval. The weekly catalog job and
+backlink/outreach execution remain separate and were not run here.
+
 ## 2026-08-18 - Pinterest and organic-growth studio
 
 **Evidence checked**: Pinterest API v5 public lifetime metrics, GA4 traffic,
