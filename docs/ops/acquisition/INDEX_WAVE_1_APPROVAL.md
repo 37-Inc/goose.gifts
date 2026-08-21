@@ -1,8 +1,9 @@
 # Weird Gift Index — The Awesomer pilot packet
 
-Refreshed and approved 2026-08-21. Cameron approved the exact one-time action
-below. This approval does not include Boing Boing, a follow-up, altered copy,
-another outlet, an account, a paid placement, or spend.
+Refreshed, owner-revised, and executed 2026-08-21. Cameron manually submitted
+the one-time action and received the live Jotform confirmation. This execution
+does not authorize Boing Boing, a follow-up, another outlet, an account, a paid
+placement, or spend.
 
 ## Verified asset
 
@@ -36,7 +37,7 @@ another outlet, an account, a paid placement, or spend.
   earned feature through `theawesomer.com` referrer evidence. Do not place a
   UTM in the editorial suggestion.
 
-## Approved action — The Awesomer
+## Prepared action — The Awesomer
 
 - Draft ID: `acq-d002-awesomer-index-v2`
 - Recipient/channel: The Awesomer, Suggest a Story form
@@ -53,7 +54,11 @@ another outlet, an account, a paid placement, or spend.
 - Destination entered in the form:
   https://www.goose.gifts/weird-gift-index
 
-### Exact description
+### Rejected internal draft
+
+This dense internal draft was not the final owner-submitted copy. Cameron
+rejected it as unnatural and manually revised the live form before submission.
+It remains here only to explain the v2 history and must not be reused.
 
 > “Funny” appears 69× more than “weird” in a weird-gift catalog.
 >
@@ -67,10 +72,21 @@ another outlet, an account, a paid placement, or spend.
 > Disclosure: I run goose.gifts, the affiliate-supported weird-gift discovery
 > site that produced the report.
 
+## Execution receipt
+
+- Execution: manual owner submission on 2026-08-21
+- Contact visible before submission: `cam@37.technology`
+- Destination: https://www.goose.gifts/weird-gift-index
+- Confirmation verified in the live embedded form at 2026-08-21T21:34:49Z:
+  `Thank You! Your submission has been received.`
+- Receipt boundary: Jotform displayed no submission ID or public URL
+- Copy boundary: Cameron revised the description in the live form. The form no
+  longer exposed the submitted fields after success, so the exact final text
+  was not retained and must not be reconstructed or claimed as verified.
+
 ## Evidence and stop rules
 
-After execution, record the submission timestamp and the strongest available
-receipt or confirmation separately from any later public feature. Recheck at
+The submission receipt is not a public feature or earned link. Recheck at
 7, 30, and 60 days for:
 
 - a reply, rejection, or public The Awesomer page;

@@ -29,26 +29,30 @@ obvious interest in sharing it. No need to reply if it isn’t a fit.
 **Gate:** replace the generic description with one demonstrably good behavior or
 visual. Do not send if the page feels like a product grid with a random button.
 
-## 2. The Awesomer — Index suggestion form (approved 2026-08-21)
+## 2. The Awesomer — human editorial pattern
 
-The live form has no separate title field. Begin the description with:
+The owner rejected the earlier statistics-first draft as unnatural. For a
+future editorial suggestion, start with what the editor and readers might enjoy
+and keep the disclosure plain. This is a preferred pattern, not an exact archive
+of the 2026-08-21 submission.
 
-**“Funny” appears 69× more than “weird” in a weird-gift catalog.**
+Hi, I run goose.gifts, a site for finding funny and unusual gifts. While working
+on the catalog, I noticed that sellers almost never call weird products “weird,”
+so I dug into it.
 
-**Description:**
+Across 3,318 active listings, “funny” appeared 896 times and “weird” only 13
+times. I turned that into a short visual report with a few other odd findings,
+including how often animals, snacks, pranks, and bathroom jokes show up in gift
+listings.
 
-I analyzed 3,318 active product listings in the goose.gifts catalog using only
-the original merchant titles. The oddest language gap: “funny” appears in 896
-titles, while “weird” appears in just 13 — about 69 to 1 — even though the
-catalog is built around weird gifts. The report also shows the published
-dictionaries, methodology, limitations, and downloadable aggregate data:
+Thought it might be a fun fit for The Awesomer:
 https://www.goose.gifts/weird-gift-index
 
-Disclosure: I run goose.gifts, the affiliate-supported weird-gift discovery
-site that produced the report.
+Full disclosure: I run the site and it uses affiliate links.
 
-**Gate:** the suggested title must state a finding, not announce that a report
-exists. Never claim a trend from generated tags without showing the method.
+**Gate:** write to a human editor, not an internal SEO reviewer. Make the story
+and audience fit obvious before methodology. Never reuse rejected copy merely
+because its claims are accurate.
 
 ## 3. Boing Boing — original data tip (obsolete July 2026 example; hold)
 

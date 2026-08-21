@@ -6,24 +6,24 @@ submission, email, post, reply, direct message, paid placement, or spend.
 
 ## Current readiness
 
-As of 2026-08-21, one Weird Gift Index action is approved to execute while
-every other external action remains blocked on at least one prerequisite:
+As of 2026-08-21, one Weird Gift Index action has been executed and is measuring
+while every other external action remains blocked on at least one prerequisite:
 
 - the Weird Gift Index implementation is complete at `/weird-gift-index`, with
   a named byline, method, limitations, aggregate JSON, schema, social image, and
   a completed editorial pass. Its live 2026.1 edition analyzes 3,318 listings.
-  Cameron approved the exact The Awesomer draft in
-  `INDEX_WAVE_1_APPROVAL.md` on 2026-08-21. Boing Boing is held and is not part
-  of that approval;
+  Cameron manually submitted the The Awesomer suggestion on 2026-08-21 and the
+  live Jotform confirmed receipt. Boing Boing is held and was not part of that
+  action;
 - the random ridiculous gift utility is live as a polished, no-signup
   destination with fast refreshes, stable product share URLs, and custom social
   previews;
 - social and community accounts/API access have not been approved or confirmed;
 - no other outlet- or community-specific external action has owner approval.
 
-The queue is therefore useful for deciding what to build and for preparing
-channel-native copy. Only the exact approved The Awesomer v2 record is ready to
-execute; every other queued action remains blocked.
+The queue is therefore useful for deciding what to build, preparing
+channel-native copy, and measuring the one executed pilot. No other queued
+action is authorized.
 
 ## Files
 
@@ -143,8 +143,7 @@ editor response, and qualitative feedback. Record rejection/no-response too.
 
 ## Recommended sequence
 
-1. Execute only the exact approved The Awesomer action in
-   `INDEX_WAVE_1_APPROVAL.md`, record the receipt, and measure it before asking
+1. Measure the executed The Awesomer action at 7, 30, and 60 days before asking
    to widen distribution. Do not send the held Boing Boing example.
 2. Use each asset only for prospects whose editorial gate and audience it
    genuinely matches; a finished destination is not automatically a good pitch.
