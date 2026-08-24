@@ -69,8 +69,8 @@ test('cache invalidation covers every crawler-facing catalog surface', () => {
     new URL('../app/api/admin/catalog-cache/route.ts', import.meta.url),
     'utf8'
   );
-  assert.match(route, /revalidateTag\('catalog-products', 'max'\)/);
-  assert.match(route, /revalidateTag\('gift-pages', 'max'\)/);
+  assert.match(route, /revalidateTag\('catalog-products', \{ expire: 0 \}\)/);
+  assert.match(route, /revalidateTag\('gift-pages', \{ expire: 0 \}\)/);
   assert.match(route, /revalidatePath\('\/gifts\/\[slug\]', 'page'\)/);
   assert.match(route, /revalidatePath\('\/sitemap\.xml'\)/);
 });
