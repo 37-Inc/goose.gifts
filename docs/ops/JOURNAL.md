@@ -50,6 +50,14 @@ social post, unrelated site change, or speculative pipeline rewrite was made.
 Leave the one factual-review failure held unless Cameron wants to approve a
 corrected seed; the next routine catalog run remains weekly.
 
+**Production receipt**: PR
+[#111](https://github.com/37-Inc/goose.gifts/pull/111) merged as
+`a3faaf0ef3e3ba8772235f0369f469b5c6a6c7ff`; matching Vercel deployment
+`dpl_AJvUnfXT2KrRPm33rf69RjuYkN2u` reached READY. The authenticated catalog
+webhook then returned 200 and the next production sitemap request was a cache
+MISS with 106 URLs, including 58 factual gift pages and all five new canonical
+pages. Each new page returns 200, emits `index, follow`, and self-canonicalizes.
+
 ## 2026-08-21 - Public contact identity correction
 
 **Issue**: the live Weird Gift Index disclosure and privacy policy exposed the

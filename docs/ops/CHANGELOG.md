@@ -25,8 +25,8 @@ Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
 - **Indexation — guide baseline healthy; product cohort monitoring.** The seven
-  priority guide surfaces are submitted and indexed, and 49 factual product
-  pages are live in the current 97-URL sitemap. At the 2026-08-21 14-day check,
+  priority guide surfaces are submitted and indexed, and 58 factual product
+  pages are live in the current 106-URL sitemap. At the 2026-08-21 14-day check,
   two of five sampled gift pages are indexed, two are discovered, and one
   remains unknown; all five are technically crawlable and self-canonical.
   Keep the 7/14/28-day product cohort gate before catch-up volume and recheck
@@ -66,7 +66,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-24 — Weekly catalog refresh and quality gate `[daily-ops]`
+### 2026-08-24 — Weekly catalog refresh and quality gate `[daily-ops]` ([PR #111](https://github.com/37-Inc/goose.gifts/pull/111))
 
 Revalidated 50 stale Amazon products, repaired no affiliate URLs because all
 already use the canonical associate tag, and screened six rotating themes down
@@ -75,8 +75,8 @@ the five additions distinctive and on-brand. One customized ugly-pet pillow is
 held because its draft made unsupported claims; the factual gate behaved
 correctly. Fixed the separate sitemap refresh defect by immediately expiring
 tagged catalog data before crawler-facing path regeneration. Slack delivery
-succeeded, cache and catalog-ops tests pass, and the run cost an estimated
-`$0.012204`.
+succeeded, cache and catalog-ops tests pass, and the corrected 106-URL sitemap
+now exposes 58 factual product pages. The run cost an estimated `$0.012204`.
 
 ### 2026-08-21 — Public Goose contact identity correction `[owner+claude]`
 
