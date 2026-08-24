@@ -11,8 +11,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  revalidateTag('catalog-products', 'max');
-  revalidateTag('gift-pages', 'max');
+  // Catalog jobs are external writers: expire data before regenerating pages so
+  // the first render cannot capture stale-while-revalidate results.
+  revalidateTag('catalog-products', { expire: 0 });
+  revalidateTag('gift-pages', { expire: 0 });
   revalidatePath('/gifts');
   revalidatePath('/gifts/[slug]', 'page');
   revalidatePath('/random-gift');
