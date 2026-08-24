@@ -66,6 +66,17 @@ what's likely next.
 
 Newest first.
 
+### 2026-08-24 — Weekly catalog refresh and quality gate `[daily-ops]`
+
+Revalidated 50 stale Amazon products, repaired no affiliate URLs because all
+already use the canonical associate tag, and screened six rotating themes down
+to five net-new products plus 20 existing-product refreshes. Visual review found
+the five additions distinctive and on-brand. One customized ugly-pet pillow is
+held because its draft made unsupported claims; the factual gate behaved
+correctly, so no pipeline change or rerun was needed. Cache invalidation and
+Slack delivery succeeded, all 25 catalog-ops tests pass, and the run cost an
+estimated `$0.012204`.
+
 ### 2026-08-21 — Public Goose contact identity correction `[owner+claude]`
 
 Replaced the invalid personal address on the Weird Gift Index and privacy

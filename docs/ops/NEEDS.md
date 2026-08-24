@@ -32,7 +32,8 @@ outward-facing accounts. Best remaining channels:
   Sandbox Pins were removed, the app icon and stronger first-party purpose were
   saved, the review categories were corrected, and the 46-second demo video was
   recorded and successfully uploaded on 2026-07-24. Cameron submitted the
-  upgrade request on 2026-07-28. Owner action: watch
+  upgrade request on 2026-07-28 and submitted a Pinterest Help Center status
+  request on 2026-08-21; no case response is recorded yet. Owner action: watch
   `goosegifts@37.technology` for Pinterest's decision. Until approval and a
   verified production authorization flow, public Pins must be posted through
   the signed-in Pinterest browser; API work remains Sandbox-only.
@@ -42,7 +43,15 @@ any paid/video-generation tooling before spend.
 
 ## P2 — high value, not urgent
 
-### 2. Funnel and admin analytics rebuild
+### 2. Review one held catalog item
+
+The 2026-08-24 weekly run held the customized ugly-pet pillow at
+`/gifts/purr-sonalized-ugly-pet-pillow-cuddle-your-inner-weird` because its
+generated editorial made unsupported size and personalization claims. It is not
+publicly indexable. Either leave it held or provide corrected factual copy for
+an exact editorial seed; no broader catalog action is needed.
+
+### 3. Funnel and admin analytics rebuild
 
 PostHog, Google Search Console, GA4 Data API, and the app database cover the
 current analytics stack; Vercel Web Analytics is intentionally disabled.
@@ -53,7 +62,7 @@ The remaining product analytics work is guide-page product impressions/clicks,
 source/session stitching, zero-result and thin-result search reporting, and an
 admin dashboard shaped around catalog-first guide growth.
 
-### 3. Direct email/Slack channel (optional)
+### 4. Direct email/Slack channel (optional)
 
 Weekly check-ins arrive as GitHub issues, which email you automatically. If
 you'd rather get real email/Slack from me, connect a connector at

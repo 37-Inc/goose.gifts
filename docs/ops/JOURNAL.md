@@ -5,6 +5,40 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-24 - Weekly catalog refresh and quality review
+
+**Run receipt**: refreshed `.env.local` from Vercel Production and completed
+weekly run `504ed252-0d6e-4263-aba1-4e7bcdc99914` at git revision `11e0df1`.
+Revalidation checked 50 stale Amazon products, refreshed 27, confirmed 23
+missing twice, marked those 23 unavailable, and deactivated none. The
+catalog-wide affiliate audit found zero URLs using the wrong associate tag.
+Both crawler-facing cache invalidations returned 200 without warnings.
+
+**Discovery and editorial**: the six rotating themes returned 62 discoveries.
+The pipeline rejected 26 weak candidates and filtered 22 duplicates, then
+retained 25. It inserted five net-new products, refreshed 20 existing products,
+and completed editorial work for one older item. Twenty discovery items reached
+`generated_ready`; one customized ugly-pet pillow remains held for manual review
+because the generated copy made unsupported size and personalization claims.
+The rejection is candidate-specific and proves the factual review gate worked,
+so no pipeline change or rerun was warranted. Estimated OpenAI cost was
+`$0.012204`.
+
+**Quality and delivery**: visually reviewed all five inserted products—the Chia
+Gnome, middle-finger gnome, middle-finger Venus bust, raw-chicken vase, and
+medieval cat tapestry. Their source images are legible, product-faithful, and
+on-brand; none is generic commodity filler. `npm run test:catalog-ops` passes
+all 25 tests. The homepage, sitemap, semantic search, search redirect, and all
+five new canonical gift pages return the expected production responses. The
+completed run record confirms the final statistics were delivered through
+OpenClaw to the Slack marketing channel.
+
+**Decision**: catalog freshness, affiliate correctness, and disciplined
+discovery were the highest-leverage bounded work for this weekly automation.
+No social post, unrelated site change, or speculative pipeline rewrite was
+made. Leave the one factual-review failure held unless Cameron wants to approve
+a corrected seed; the next routine catalog run remains weekly.
+
 ## 2026-08-21 - Public contact identity correction
 
 **Issue**: the live Weird Gift Index disclosure and privacy policy exposed the
