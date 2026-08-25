@@ -64,7 +64,7 @@ if (!noStore) {
 }
 
 console.log(JSON.stringify({
-  environment: sandbox ? 'sandbox' : 'production-limited',
+  environment: sandbox ? 'sandbox' : 'production',
   tokenType: token.token_type,
   responseType: token.response_type,
   expiresIn: token.expires_in,

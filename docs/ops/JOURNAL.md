@@ -5,6 +5,33 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-25 - Pinterest Standard approval and production readiness
+
+**Approval proof**: Pinterest Developer Platform's verified sender emailed the
+`goosegifts@37.technology` alias on 2026-08-24 confirming that the `Goose.gifts`
+application was approved for Standard access. The completed two-message thread
+was read and archived from the Thirty Seven inbox on 2026-08-25.
+
+**Production verification**: the existing production refresh token exchanged
+successfully and returned all required scopes: `boards:read`, `boards:write`,
+`pins:read`, `pins:write`, and `user_accounts:read`. API v5 identified the
+correct `goosegifts` BUSINESS account, returned its real public and Trial boards,
+read the eleven known public Pin metrics, and resolved a complete image/title/
+description/alt/link payload against the real `Weird Home Decor` board. No
+public Pin was created during the test.
+
+**Operating decision**: Pinterest access is ready. Review found that the create
+command could select an already-published manifest draft, so production creates
+now reject any draft with a public Pin URL; the obsolete v3 batch is also
+hard-blocked from production. Unattended cadence remains off because the
+publisher does not yet machine-bind the draft to the exact owner-approval event
+or durably record/read-verify its receipt with idempotent retries. Keep the
+active Tuesday/Friday studio schedule and allow at most one eligible Pin per run
+only after those remaining guards land. The owner-ready queue is empty, so the
+correct current action is a no-op. Interactive exact-package browser publishing
+remains available; Sandbox and Pinterest v3 remain excluded from public
+evidence.
+
 ## 2026-08-25 - Pinterest and organic-growth studio
 
 **Evidence checked**: Pinterest API v5 public lifetime metrics, GA4 traffic,

@@ -33,13 +33,15 @@ what's likely next.
   guide's 2026-08-25 checkpoint remains inconclusive because Google has not
   recrawled the August 11 copy; recheck it and the newly improved kitchen guide
   on 2026-09-08 (Beads `roadmap-fkvo`).
-- **Distribution / Pinterest — submitted; awaiting review.** Standard-access application
-  package written (`docs/ops/pinterest-standard-access.md`): use-case text, scope
-  justifications, data-handling statement, terminal demo shot-list, and exact
-  portal steps. Prereqs were verified, the demo was recorded/uploaded, and
-  Cameron submitted the upgrade request on 2026-07-28. Until Pinterest approves
-  it and production OAuth is verified, public posting remains browser-only.
-  Tracked as Beads `roadmap-fd1h`. Helps indexation (external signals).
+- **Distribution / Pinterest — Standard approved; publisher hardening next.**
+  Pinterest approved the `Goose.gifts` app on 2026-08-24. Production OAuth
+  refresh, account/board/metrics reads, and a real-board create dry run passed
+  on 2026-08-25 with every required scope. Keep the existing Tuesday/Friday
+  studio cadence, but do not enable unattended writes until the publisher binds
+  an exact owner approval and durably records and reads back each public Pin
+  receipt with idempotent retries. Duplicate/already-live drafts and production
+  use of the obsolete v3 batch are now blocked. Tracked as Beads
+  `roadmap-fd1h`. Helps indexation (external signals).
 - **Pinterest creative workflow — measure the goat and three hippo variants.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
   browser-published as public Pin `1107815208385022014`. The stronger hippo
@@ -52,8 +54,9 @@ what's likely next.
   Canonical gift pages now replace product-pinned
   random-gift URLs for future campaign packages; existing Pin destinations
   permanently redirect without losing their UTM attribution.
-  Public posting remains exact-candidate approved and browser-only until
-  Standard access plus production OAuth are verified.
+  Public posting remains exact-candidate approved. The production API transport
+  is verified, but unattended writes remain off pending the publication guards
+  above; interactive browser publication remains the fallback.
 - **Amazon prices — deferred** (unchanged): the Creators API isn't delivering
   prices in practice (0.5% coverage; 0/122 recent enrichments), so
   commission/price-weighting stays parked.
@@ -67,6 +70,19 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-25 — Pinterest Standard approval and production verification `[owner+claude]`
+
+Confirmed Pinterest's verified 2026-08-24 email approving `Goose.gifts` for
+Standard access and archived the completed approval thread. Refreshed the
+production OAuth token with all five required scopes, verified the correct
+business account, public boards and public metrics, and resolved a full image
+payload against the real target board without creating a Pin. The production
+create command now refuses already-live drafts, and the obsolete v3 batch is
+permanently blocked from production. Access is ready; the remaining unattended-
+publisher work is exact-approval binding plus durable receipt/readback and
+idempotent retries. The twice-weekly studio remains active and the owner-ready
+queue is currently empty.
 
 ### 2026-08-25 — Weird-kitchen guide and public Pinterest checkpoint `[daily-ops]` ([PR #113](https://github.com/37-Inc/goose.gifts/pull/113))
 

@@ -108,13 +108,17 @@ Concept generation and internal review are authorized. The v4 and v5
 experiments contain explicit public-posting authorization only for candidates
 that have their own owner approval event. A scheduled run may publish a
 candidate only when production API access is confirmed and the exact image,
-board, copy, disclosure, destination, and tracking package are approved.
-The Standard-access application was submitted on 2026-07-28 and is awaiting
-review. Until approval and a verified production OAuth path, an explicitly
-approved candidate may be posted only through the signed-in Pinterest browser
-in an interactive owner-authorized session; unattended runs must stop at
-`docs/ops/pinterest-creative-lab/REVIEW_QUEUE.md`. Tool purchases,
-subscriptions, and paid distribution remain unauthorized.
+board, copy, disclosure, destination, tracking package, and cadence are
+approved. Pinterest approved the `Goose.gifts` app for Standard access on
+2026-08-24, and the production OAuth read/dry-run path was verified on
+2026-08-25 with all required scopes and the correct business account. The API
+primitives are ready, and the production create command now rejects any draft
+that already has a public Pin URL. Unattended publication must still stop at
+`docs/ops/pinterest-creative-lab/REVIEW_QUEUE.md` until the create path
+machine-checks the exact approval event and durably records and reads back each
+public Pin receipt with idempotent retry protection. An exact approved package
+may still be posted through an interactive signed-in browser session.
+Tool purchases, subscriptions, and paid distribution remain unauthorized.
 
 ### Tool strategy and access
 
@@ -150,6 +154,27 @@ For every concept promoted beyond rough exploration, record:
 - performance checkpoints and conclusion.
 
 ## Experiment log
+
+### 2026-08-25 — Standard access approved and production path verified
+
+- **Approval proof**: Pinterest Developer Platform's verified sender emailed
+  `goosegifts@37.technology` on 2026-08-24 confirming that the `Goose.gifts`
+  application was approved for Standard access. The completed two-message
+  approval thread was archived on 2026-08-25.
+- **Production verification**: the OAuth token refreshed with
+  `boards:read boards:write pins:read pins:write user_accounts:read`; API v5
+  identified the correct `goosegifts` BUSINESS account, returned the ten real
+  public/Trial boards, read the eleven known public Pin metrics, and built a
+  complete dry-run payload against the real `Weird Home Decor` board. No public
+  Pin was created.
+- **Automation decision**: access is no longer the blocker. The existing
+  twice-weekly studio remains the right cadence, with at most one exact-approved
+  Pin per run and a no-op when no package is ready. Unattended publishing stays
+  off until the publisher enforces approval-event binding, durable
+  receipt/readback, and retry idempotency. Production creates now refuse drafts
+  with an existing public URL, and the obsolete v3 batch is hard-blocked from
+  production. The current owner queue is empty, so there is nothing eligible to
+  publish now.
 
 ### 2026-08-25 — Kitchen-guide improvement and public creative hold
 
