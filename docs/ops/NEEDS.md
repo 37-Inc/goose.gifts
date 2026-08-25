@@ -18,25 +18,12 @@ outward-facing accounts. Best remaining channels:
 - **TikTok/Reels/Shorts**: short vertical product roundups generated from the
   catalog; I can prepare scripts/assets, but posting needs account access or
   approval of the publishing tool.
-- **Pinterest**: account access, profile polish, starter public boards,
-  OAuth/API Trial access, API Trial boards, and the first five-Pin v2
-  product-collage batch are live. A dry-run API pin manifest now maps those
-  assets to tracked guide URLs, and ops can build dry-run create-pin payloads
-  from approved copy/assets. Recurring public posting still needs Pinterest
-  Standard access plus owner approval of the publishing cadence or next batch.
-  **Submitted; awaiting Pinterest review (updated 2026-07-28):** the full
-  Standard-access application package
-  — use-case text, scope justifications, data-handling statement, terminal demo
-  shot-list, and exact dev-portal steps — is in
-  `docs/ops/pinterest-standard-access.md` (Beads `roadmap-fd1h`). The legacy
-  Sandbox Pins were removed, the app icon and stronger first-party purpose were
-  saved, the review categories were corrected, and the 46-second demo video was
-  recorded and successfully uploaded on 2026-07-24. Cameron submitted the
-  upgrade request on 2026-07-28 and submitted a Pinterest Help Center status
-  request on 2026-08-21; no case response is recorded yet. Owner action: watch
-  `goosegifts@37.technology` for Pinterest's decision. Until approval and a
-  verified production authorization flow, public Pins must be posted through
-  the signed-in Pinterest browser; API work remains Sandbox-only.
+- **Pinterest**: Standard access and the production OAuth read/dry-run path are
+  received and verified; see Received below. Future public Pins still need an
+  exact owner-approved package. Unattended API publishing remains an engineering
+  follow-up until its approval binding, receipt/readback, and retry-idempotency
+  guards are complete. Duplicate public drafts and production use of the legacy
+  v3 batch are now blocked.
 
 Needed from Cameron: choose which channels to authorize for posting and approve
 any paid/video-generation tooling before spend.
@@ -69,6 +56,13 @@ you'd rather get real email/Slack from me, connect a connector at
 **https://claude.ai/customize/connectors** and include it in the routine.
 
 ## Received
+
+- 2026-08-25: Pinterest Standard access. Pinterest's verified developer sender
+  confirmed on 2026-08-24 that the `Goose.gifts` app is approved. The production
+  token refreshed with all five requested scopes; API v5 verified the correct
+  `goosegifts` BUSINESS account, real public boards, public metrics, and a full
+  dry-run create payload. The approval email thread was archived. This clears
+  the access blocker, not the exact-package approval gate or paid-spend gate.
 
 - 2026-07-16: Amazon Creators API application and v3.1 credential received.
   The clean migration is merged as PR #57; credentials are installed in Vercel

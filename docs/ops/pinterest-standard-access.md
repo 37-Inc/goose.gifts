@@ -31,6 +31,8 @@ gate is a one-time **video-demo review**, not money.
 ## Approvability checklist
 
 - [x] **Trial access approved** (active since 2026-07-07).
+- [x] **Standard access approved** — Pinterest's verified developer-platform
+      sender confirmed approval for the `Goose.gifts` app on 2026-08-24.
 - [x] **Business account** (`account_type: BUSINESS`).
 - [x] **Publicly accessible privacy policy on the app's own domain** — the single
       most common rejection reason. https://www.goose.gifts/privacy ✅.
@@ -149,7 +151,7 @@ frame that shows a raw token.**
 6. Submit. Pinterest reviews on a rolling basis and **emails a decision** (no fixed
    SLA). Watch `goosegifts@37.technology`.
 
-## Current submission status (updated 2026-07-28)
+## Submission outcome and production verification (updated 2026-08-25)
 
 - The five legacy v3 Sandbox Pins were deleted. The three polished editorial
   examples remain on the two useful Sandbox boards.
@@ -164,22 +166,31 @@ frame that shows a raw token.**
 - The uploaded demo created Sandbox Pin `1107815208384458180`. Keep it available
   as review evidence until Pinterest decides the application, then delete the
   duplicate during post-review cleanup.
-- Cameron submitted the Standard-access upgrade request on 2026-07-28. The
-  application is now waiting for Pinterest review; do not resubmit it.
-- While review is pending, production/public posting is browser-only in an
-  interactive, signed-in Pinterest session. API commands may be used for
-  Sandbox work and dry runs, but must not be treated as public distribution.
+- Cameron submitted the Standard-access upgrade request on 2026-07-28.
+  Pinterest approved the `Goose.gifts` app for Standard access on 2026-08-24;
+  the verified approval email was read and its completed two-message thread was
+  archived on 2026-08-25. Do not resubmit it.
+- The production token refreshed successfully on 2026-08-25 with
+  `boards:read boards:write pins:read pins:write user_accounts:read`. Production
+  API v5 then identified the correct `goosegifts` BUSINESS account, returned the
+  real public boards and public Pin metrics, and resolved a complete dry-run Pin
+  payload against the intended public board. No public Pin was created during
+  verification.
 
-## After approval
+## Production operating state
 
-- Verify the production OAuth authorization and required scopes before using the
-  production API. Standard approval alone does not prove that the production
-  token path is ready.
+- Standard access and the production OAuth read/dry-run path are verified.
 - Public posting still needs exact candidate/package approval (per
-  `MARKETING.md` and `NEEDS.md`). Approved public-pin drafts live in
-  `docs/ops/pinterest-approved-pins.json`; use the signed-in browser until the
-  production API path is explicitly verified.
-- Update `NEEDS.md` (move Pinterest Standard to "Received") and `JOURNAL.md`.
+  `MARKETING.md` and `NEEDS.md`). Approval must cover the image, destination,
+  board, title, description, alt text, disclosure, tracking URL, and cadence.
+- The current CLI has the necessary API primitives and now refuses a production
+  create for any draft that already has a public Pin URL. Unattended publication
+  remains disabled until the create path also machine-checks the exact approval
+  event and records/read-verifies the returned public Pin with idempotent retry
+  protection.
+- Until those guards ship, exact approved packages may still be posted through
+  an interactive signed-in browser session. Sandbox and Pinterest v3 objects
+  remain excluded from public performance evidence forever.
 
 ## References
 

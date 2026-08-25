@@ -199,7 +199,7 @@ async function deletePinFromArgs({ sandbox }) {
   await apiDelete(`/pins/${pinId}`, { sandbox });
   return {
     deleted: true,
-    environment: sandbox ? 'sandbox' : 'production-limited',
+    environment: sandbox ? 'sandbox' : 'production',
     pinId,
   };
 }
@@ -218,6 +218,11 @@ async function createPinFromArgs({ sandbox }) {
   if (!draft) {
     throw new Error(`Unknown approved Pin draft: ${draftId}`);
   }
+  if (!sandbox && !dryRun && draft.livePinUrl) {
+    throw new Error(
+      `Refusing to republish ${draftId}: it already has a public Pin URL (${draft.livePinUrl}).`,
+    );
+  }
 
   const targetBoardName = boardName || (
     sandbox
@@ -230,7 +235,7 @@ async function createPinFromArgs({ sandbox }) {
   if (dryRun) {
     return {
       dryRun: true,
-      environment: sandbox ? 'sandbox' : 'production-limited',
+      environment: sandbox ? 'sandbox' : 'production',
       draft: draft.id,
       board: { id: board.id, name: board.name },
       payload: redactMediaData(payload),
@@ -240,7 +245,7 @@ async function createPinFromArgs({ sandbox }) {
   const response = await apiPost('/pins', payload, { sandbox });
   return {
     dryRun: false,
-    environment: sandbox ? 'sandbox' : 'production-limited',
+    environment: sandbox ? 'sandbox' : 'production',
     draft: draft.id,
     board: { id: board.id, name: board.name },
     response,
@@ -359,7 +364,7 @@ async function refreshAccessToken({ sandbox }) {
 function redactTokenResponse(token, sandbox) {
   const suffix = sandbox ? 'SANDBOX_' : '';
   return {
-    environment: sandbox ? 'sandbox' : 'production-limited',
+    environment: sandbox ? 'sandbox' : 'production',
     tokenType: token.token_type,
     responseType: token.response_type,
     expiresIn: token.expires_in,

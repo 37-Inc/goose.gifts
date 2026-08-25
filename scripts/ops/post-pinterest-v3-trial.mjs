@@ -8,7 +8,12 @@ const args = new Set(process.argv.slice(2));
 const production = args.has('--production');
 const dryRun = args.has('--dry-run');
 const force = args.has('--force');
-const environment = production ? 'production-limited' : 'sandbox';
+if (production && !dryRun) {
+  throw new Error(
+    'The legacy Pinterest v3 batch is permanently Sandbox-only and cannot publish to production. Use the exact-approval publisher for public Pins.',
+  );
+}
+const environment = production ? 'production-dry-run' : 'sandbox';
 const apiBase = production ? 'https://api.pinterest.com/v5' : 'https://api-sandbox.pinterest.com/v5';
 const manifestPath = getArgValue('--manifest') || path.join(root, 'docs/ops/pinterest-assets/batch-1-v3/manifest.json');
 const resultsPath = getArgValue('--results') || path.join(root, 'docs/ops/pinterest-assets/batch-1-v3/post-results.json');
