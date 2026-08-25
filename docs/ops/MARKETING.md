@@ -194,6 +194,12 @@ For every concept promoted beyond rough exploration, record:
   2026-08-21 status request, and no production OAuth path has been verified.
   This unattended run published no Pin, used no production posting API, ran no
   catalog job or outreach, and spent no money.
+- **Production receipt**: PR #113 merged as `829366bf`; the matching Vercel
+  deployment reached READY. Live verification found 14 distinct eligible
+  kitchen products, the new editorial/FAQs and matching canonical, no
+  `noindex`, and zero Product schema objects on both the kitchen and Dad guides.
+  Search Console accepted the refreshed 106-URL sitemap with HTTP 204; that
+  receipt is pending download and is not indexation evidence.
 
 ### 2026-08-21 — 14-day product cohort and distribution hold
 

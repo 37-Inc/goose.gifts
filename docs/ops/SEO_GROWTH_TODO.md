@@ -186,6 +186,14 @@ report.
   `gift_guide` outbound clicks on 2026-09-08 and 2026-09-22. Do not revise it
   before those checkpoints unless crawlability, canonical, schema, or
   rendering regresses.
+- [x] Production acceptance: PR #113 merged as `829366bf`; its matching Vercel
+  deployment reached READY. The live guide returns 14 distinct eligible
+  focused products with the new metadata/editorial/FAQs, a matching canonical,
+  no `noindex`, and no Product schema objects. The Dad guide also has no Product
+  objects and remains indexable/self-canonical. Search Console accepted the
+  current 106-URL sitemap with HTTP 204 at `2026-08-25T17:03:55.968Z`; wait for
+  its next download and the scheduled evidence windows rather than treating
+  submission as indexing.
 
 ## Shipped 2026-07-05
 

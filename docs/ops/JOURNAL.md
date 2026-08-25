@@ -68,8 +68,17 @@ and the 100/day catalog catch-up stays disabled for the 2026-09-04 product
 cohort check. The weekly catalog job and backlink/outreach work were not run.
 
 **Production receipt**: focused PR
-[#113](https://github.com/37-Inc/goose.gifts/pull/113) is pending green checks,
-merge, exact-SHA Vercel READY state, and live guide/schema verification.
+[#113](https://github.com/37-Inc/goose.gifts/pull/113) merged as
+`829366bf331444393eb30f724a4b3de9841c4462`; matching Vercel deployment
+`dpl_HwBSz3LRCEaAEwoC18K8TrymAm63` reached READY. The live kitchen guide has
+the new metadata, H1, editorial, FAQs, accurate catalog label, 14 eligible
+distinct focused products, matching canonical, no `noindex`, and zero Product
+schema objects. The Dad guide likewise has zero Product objects and remains
+indexable/self-canonical. The 106-URL sitemap contains the guide and 58 gift
+pages, and the legacy Goat destination still preserves every campaign
+parameter through its 308. Search Console accepted a refresh of the existing
+sitemap with HTTP 204 at `2026-08-25T17:03:55.968Z`; it is pending the next
+download, not counted as new indexation evidence.
 
 ## 2026-08-24 - Weekly catalog refresh and quality review
 

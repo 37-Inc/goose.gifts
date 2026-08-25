@@ -79,7 +79,10 @@ snippets or unavailable live prices. Recorded six public Pinterest checkpoints
 and two causal learnings; the six truthful creatives now total 225 impressions,
 two Pin clicks, and one save but no outbound, so no new image or Pin was made
 and the owner queue stays empty. The Dad 14-day checkpoint remains on hold
-because Google's last crawl predates its August 11 edit.
+because Google's last crawl predates its August 11 edit. PR #113 merged as
+`829366bf`; matching Vercel deployment `dpl_HwBSz3LRCEaAEwoC18K8TrymAm63`
+reached READY, and live content, schema, canonical, sitemap, focused inventory,
+and legacy UTM redirect checks pass.
 
 ### 2026-08-24 — Weekly catalog refresh and quality gate `[daily-ops]` ([PR #111](https://github.com/37-Inc/goose.gifts/pull/111))
 
