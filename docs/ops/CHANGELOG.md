@@ -68,7 +68,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-25 — Weird-kitchen guide and public Pinterest checkpoint `[daily-ops]`
+### 2026-08-25 — Weird-kitchen guide and public Pinterest checkpoint `[daily-ops]` ([PR #113](https://github.com/37-Inc/goose.gifts/pull/113))
 
 Improved the existing Weird Kitchen Gadgets guide from its 37-impression,
 zero-click Search Console opportunity with useful-versus-decorative guidance,

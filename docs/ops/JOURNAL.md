@@ -67,8 +67,9 @@ gift slug. August's no-account shortlist decision stays closed until September,
 and the 100/day catalog catch-up stays disabled for the 2026-09-04 product
 cohort check. The weekly catalog job and backlink/outreach work were not run.
 
-**Production receipt**: pending focused PR, green checks, merge, exact-SHA
-Vercel READY state, and live guide/schema verification.
+**Production receipt**: focused PR
+[#113](https://github.com/37-Inc/goose.gifts/pull/113) is pending green checks,
+merge, exact-SHA Vercel READY state, and live guide/schema verification.
 
 ## 2026-08-24 - Weekly catalog refresh and quality review
 
