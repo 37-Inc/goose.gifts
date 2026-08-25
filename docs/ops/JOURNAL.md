@@ -5,6 +5,71 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-25 - Pinterest and organic-growth studio
+
+**Evidence checked**: Pinterest API v5 public lifetime metrics, GA4 traffic,
+landing pages and outbound events, the first-party database snapshot, Vercel
+production state, Search Console page/query evidence, Dad URL Inspection,
+sitemap processing, live robots, and the legacy product-pinned redirect. The
+five-Pin launch cohort has 45 impressions and one Pin click. The six truthful
+product creatives total 225 impressions: Screaming Goat 131 with two Pin clicks
+and one save, alligator 64, ceramic eye 14, hippo desk seven, hippo breakfast
+five, and hippo vanity four. None has an outbound click. GA4 has no Pinterest
+session or outbound event; the database has zero product clicks in seven days,
+and its two historic Pinterest `goose-proof` clicks remain excluded QA.
+Sandbox and Pinterest v3 were excluded throughout. The starting production
+deployment `dpl_Cw86fJeCoBQ9nSZfJ2YjZKNLqWXy` was READY at main SHA
+`ed026e8df5adb3d0777e537b83cb6dd28dd5fffd`.
+
+**Creative cycle**: all six valid survivors are already public/measuring. The
+15 impressions added since 2026-08-21 produced no new save, Pin click,
+outbound, site session, or affiliate click. The run recorded six validated
+public metric events and two evidence-linked learning events, then generated no
+unnecessary replacement. The owner-ready and revision queues remain empty. No
+Pin was published, no production posting API was used, and no money was spent.
+
+**Dad checkpoint**: the latest complete 2026-07-27 through 2026-08-23 window
+shows 433 impressions, zero clicks, and average position 44.6, versus the
+recorded 285/zero/44.1 pre-edit baseline. URL Inspection is PASS—submitted and
+indexed, indexing allowed, matching Google and user canonicals, successful
+mobile fetch—but the recorded last crawl is still 2026-07-18. Because that
+predates the 2026-08-11 editorial change, the current performance cannot judge
+the new copy. Keep the guide unchanged for the 2026-09-08 recheck.
+
+**Organic move**: current evidence selected the one remaining untouched
+priority, `/gift-guides/weird-kitchen-gadgets`: 37 impressions, zero clicks,
+and position 44.6, with visible funny-kitchen gift, gadget, tool, accessory,
+kitchenware, and cooking-gift queries. The page now explains useful versus
+decorative weird, cleanup, storage, materials, size, cook fit, and handoff
+context; adds four contextual guide links and three matching visible FAQs; and
+uses concrete kitchen-tool focus terms so the existing catalog supplies 14
+focused products instead of generic mug fallback. Recheck on 2026-09-08 and
+2026-09-22.
+
+**Accuracy and schema review**: Search Console reported 24 Product-snippet
+errors on the Dad guide because the shared guide ItemList claimed Product
+objects without a qualifying offer, review, or visible rating. The guide schema
+now retains WebPage, BreadcrumbList, ItemList, and FAQ markup but represents
+the catalog as truthful linked ListItems. The catalog heading now says
+`Catalog-backed, retailer-linked` rather than promising live prices that are
+not broadly available. Focused schema/content tests, robots and gift-page tests,
+creative-ledger validation, lint, build, desktop/mobile local rendering, and
+console checks pass. The local page is self-canonical, indexable, and visually
+clean at 1440 and 390 pixels.
+
+**Crawler and scope decision**: the live sitemap currently contains 106 URLs,
+including 58 factual gift pages. Search Console last downloaded its 97-URL
+snapshot on 2026-08-20 with zero warnings/errors. Public guides and `/gifts/`
+remain allowed for search and model crawlers; only the high-cost randomizer and
+private paths have targeted bot restrictions. The old Screaming Goat Pinterest
+destination still returns an attribution-preserving 308 to its exact canonical
+gift slug. August's no-account shortlist decision stays closed until September,
+and the 100/day catalog catch-up stays disabled for the 2026-09-04 product
+cohort check. The weekly catalog job and backlink/outreach work were not run.
+
+**Production receipt**: pending focused PR, green checks, merge, exact-SHA
+Vercel READY state, and live guide/schema verification.
+
 ## 2026-08-24 - Weekly catalog refresh and quality review
 
 **Run receipt**: refreshed `.env.local` from Vercel Production and completed

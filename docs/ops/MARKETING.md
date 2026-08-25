@@ -30,7 +30,7 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Six product-faithful editorial Pins are live. As of 2026-08-21 they have 210
+   Six product-faithful editorial Pins are live. As of 2026-08-25 they have 225
    public impressions in total, two Pin clicks, and one save, all engagement on
    the corrected goat, but no outbound click or attributable site session. That
    is a directional attention signal, not yet a creative or conversion
@@ -150,6 +150,50 @@ For every concept promoted beyond rough exploration, record:
 - performance checkpoints and conclusion.
 
 ## Experiment log
+
+### 2026-08-25 — Kitchen-guide improvement and public creative hold
+
+- **Evidence checked**: Pinterest API v5 reports 45 impressions and one Pin
+  click for the five-Pin launch cohort. The six truthful product creatives now
+  total 225 impressions: goat 131 with two Pin clicks and one save, alligator
+  64, ceramic eye 14, hippo desk seven, hippo breakfast five, and hippo vanity
+  four. None has an outbound click. GA4 has no Pinterest session or outbound
+  event, and the first-party database has no new public-Pinterest affiliate
+  click; the two historic `goose-proof` campaign clicks remain QA. Sandbox and
+  Pinterest v3 were excluded.
+- **Creative cycle**: recorded six public checkpoints and two evidence-linked
+  learnings through the validated append-only workflow. The 15 impressions
+  added since 2026-08-21 produced no new engagement or product-derived
+  hypothesis, so no image or Pin was generated or published and the owner
+  queue remains empty.
+- **Dad recheck**: the latest complete 28-day window shows 433 impressions,
+  zero clicks, and average position 44.6, versus the recorded 285/zero/44.1
+  pre-edit baseline. URL Inspection still shows the last Google crawl on
+  2026-07-18, before the 2026-08-11 editorial change, so the apparent
+  impression gain is not a verdict on that copy. The page remains submitted,
+  indexed, indexing-allowed, and self-canonical; hold it for the 28-day
+  checkpoint on 2026-09-08.
+- **SEO move**: current evidence selected the remaining untouched priority,
+  `/gift-guides/weird-kitchen-gadgets`: 37 impressions, zero clicks, and
+  position 44.6, with visible funny-kitchen gift, tool, accessory, gadget, and
+  kitchenware queries. The page now explains useful-versus-decorative weird,
+  cleanup, storage, materials, kitchen fit, and exchange context; links to four
+  useful adjacent guides; exposes three matching page-specific FAQs; and
+  curates a focused kitchen-tool set instead of falling through to generic
+  mugs. Recheck on 2026-09-08 and 2026-09-22.
+- **Structured-data repair**: Dad URL Inspection exposed 24 Product objects
+  without a qualifying offer, review, or visible rating in the shared guide
+  ItemList. Guide pages now retain WebPage, BreadcrumbList, ItemList, and FAQ
+  markup but use truthful linked ListItems rather than claiming Product
+  snippets. The catalog label also says `Catalog-backed, retailer-linked`
+  instead of promising live prices that are usually unavailable.
+- **Monthly shortlist decision**: August's no-account shortlist check remains
+  closed until September. No new sharing, public outbound, or seasonal query
+  signal justifies a wishlist, accounts, email/PII, or a new product workstream.
+- **Publishing boundary**: Standard access is still awaiting review after the
+  2026-08-21 status request, and no production OAuth path has been verified.
+  This unattended run published no Pin, used no production posting API, ran no
+  catalog job or outreach, and spent no money.
 
 ### 2026-08-21 — 14-day product cohort and distribution hold
 
