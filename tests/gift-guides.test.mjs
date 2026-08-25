@@ -51,6 +51,21 @@ test('the dad guide answers observed dad-joke and hobby intent with specific gui
   assert.match(dadGuide, /recognize the hobby/);
 });
 
+test('the kitchen guide answers observed funny-kitchen intent with practical constraints', async () => {
+  const source = await readFile(giftGuidesPath, 'utf8');
+  const kitchenGuide = source.match(/slug: 'weird-kitchen-gadgets',[\s\S]*?\n  \},\n  \{\n    slug: 'novelty-desk-toys'/)?.[0];
+
+  assert.ok(kitchenGuide);
+  assert.match(kitchenGuide, /metadataTitle: 'Funny Kitchen Gadgets and Weird Kitchen Gifts'/);
+  assert.match(kitchenGuide, /cutting pizza.*grating cheese.*serving snacks.*hot pan.*making coffee/);
+  assert.match(kitchenGuide, /size, materials, heat limits, moving parts/);
+  assert.match(kitchenGuide, /Dishwasher-safe.*maker actually says it/);
+  assert.match(source, /'weird-kitchen-gadgets': \[\[[\s\S]*pizza cutter[\s\S]*cheese grater[\s\S]*egg separator[\s\S]*jar scraper/);
+  assert.match(kitchenGuide, /slug: 'funny-cooking-gifts'/);
+  assert.match(kitchenGuide, /slug: 'funny-hostess-gifts'/);
+  assert.match(kitchenGuide, /How do I avoid giving a weird kitchen tool that becomes clutter/);
+});
+
 test('the Secret Santa guide separates assigned-recipient intent from group exchanges', async () => {
   const source = await readFile(giftGuidesPath, 'utf8');
   const secretSantaGuide = source.match(/slug: 'secret-santa-gag-gifts',[\s\S]*?\n  \},\n  \{\n    slug: 'dirty-santa-gifts'/)?.[0];

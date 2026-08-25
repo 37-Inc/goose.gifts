@@ -29,8 +29,10 @@ what's likely next.
   pages are live in the current 106-URL sitemap. At the 2026-08-21 14-day check,
   two of five sampled gift pages are indexed, two are discovered, and one
   remains unknown; all five are technically crawlable and self-canonical.
-  Keep the 7/14/28-day product cohort gate before catch-up volume and recheck
-  the Dad guide on 2026-08-25 and 2026-09-08 (Beads `roadmap-fkvo`).
+  Keep the 7/14/28-day product cohort gate before catch-up volume. The Dad
+  guide's 2026-08-25 checkpoint remains inconclusive because Google has not
+  recrawled the August 11 copy; recheck it and the newly improved kitchen guide
+  on 2026-09-08 (Beads `roadmap-fkvo`).
 - **Distribution / Pinterest — submitted; awaiting review.** Standard-access application
   package written (`docs/ops/pinterest-standard-access.md`): use-case text, scope
   justifications, data-handling statement, terminal demo shot-list, and exact
@@ -43,8 +45,8 @@ what's likely next.
   browser-published as public Pin `1107815208385022014`. The stronger hippo
   vanity package was then owner-approved and browser-published as public Pin
   `1107815208385331910`; the exact hippo desk package is now also live as public
-  Pin `1107815208385562809`. The goat now has 129 public impressions, two Pin
-  clicks, and one save, but no outbound click; the full truthful cohort has 210
+  Pin `1107815208385562809`. The goat now has 131 public impressions, two Pin
+  clicks, and one save, but no outbound click; the full truthful cohort has 225
   impressions.
   Do not generate a replacement while this first attention signal matures.
   Canonical gift pages now replace product-pinned
@@ -65,6 +67,19 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-25 — Weird-kitchen guide and public Pinterest checkpoint `[daily-ops]` ([PR #113](https://github.com/37-Inc/goose.gifts/pull/113))
+
+Improved the existing Weird Kitchen Gadgets guide from its 37-impression,
+zero-click Search Console opportunity with useful-versus-decorative guidance,
+cleanup/storage/material checks, four contextual links, page-specific FAQs,
+and a focused 14-product kitchen-tool set instead of generic mug fallback.
+Corrected the shared guide ItemList so it no longer claims unsupported Product
+snippets or unavailable live prices. Recorded six public Pinterest checkpoints
+and two causal learnings; the six truthful creatives now total 225 impressions,
+two Pin clicks, and one save but no outbound, so no new image or Pin was made
+and the owner queue stays empty. The Dad 14-day checkpoint remains on hold
+because Google's last crawl predates its August 11 edit.
 
 ### 2026-08-24 — Weekly catalog refresh and quality gate `[daily-ops]` ([PR #111](https://github.com/37-Inc/goose.gifts/pull/111))
 

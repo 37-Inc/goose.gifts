@@ -9,11 +9,12 @@ candidate and publishing package.
 
 None. The previously ready hippo-desk package was explicitly approved and
 published on 2026-08-07. Shortlisting remains distinct from approval for every
-future candidate. Reconciled on 2026-08-21: all valid survivors are public. The
-six-product-faithful-Pin cohort has 210 combined impressions, two Pin clicks,
+future candidate. Reconciled on 2026-08-25: all valid survivors are public. The
+six-product-faithful-Pin cohort has 225 combined impressions, two Pin clicks,
 and one save, all engagement on the corrected goat, but no outbound click or
-attributable site session. That is useful directional evidence, not yet a
-reason to generate an unnecessary replacement.
+attributable site session. The 15 impressions added since 2026-08-21 produced
+no new engagement, so there is still no causal reason to generate an
+unnecessary replacement.
 
 ## Published from this queue
 
@@ -108,9 +109,9 @@ reason to generate an unnecessary replacement.
 
 None. Do not create a replacement while the published goat and three hippo
 variants gather enough public distribution to support a useful creative choice.
-The goat's two Pin clicks and first save were unchanged at the 2026-08-21
-checkpoint and remain an attention signal, not an outbound or conversion
-result.
+At the 2026-08-25 checkpoint the goat had 131 impressions, two Pin clicks, and
+one save; its two new impressions produced no new engagement. It remains an
+attention signal, not an outbound or conversion result.
 The old `cand-unhinged-desk-guide` was closed as rejected on 2026-08-11 because
 its only attempt lacked verified product references and failed the truthful-
 product gate; it is not pending owner work.

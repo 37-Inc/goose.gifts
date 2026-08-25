@@ -155,6 +155,37 @@ report.
   impressions, CTR, average position, organic sessions, and `gift_guide`
   outbound clicks. Do not revise it again before the evidence window closes
   unless rendering, canonical, schema, or indexation regresses.
+  - 14-day checkpoint (2026-08-25): the latest complete 28-day window is 433
+    impressions, zero clicks, and average position 44.6, versus the recorded
+    285/zero/44.1 pre-edit window. Search Console still reports the last Google
+    crawl on 2026-07-18, before the 2026-08-11 change, so the additional
+    impressions cannot yet evaluate the new copy. The page remains submitted
+    and indexed with indexing allowed and matching Google/user canonicals.
+    Hold it unchanged for the 2026-09-08 checkpoint.
+
+## Shipped 2026-08-25
+
+- [x] Improved the existing `/gift-guides/weird-kitchen-gadgets` page from
+  current page/query evidence instead of creating another URL. The 2026-07-27
+  through 2026-08-23 window showed 37 impressions, zero clicks, and average
+  position 44.6; visible queries included funny kitchen gifts, gadgets, tools,
+  accessories, kitchenware, cooking gifts, and kitchen gag gifts.
+- [x] Aligned the title, description, H1, and introduction with funny-kitchen
+  intent, then added page-specific guidance on useful versus decorative weird,
+  cleanup, storage, materials, size, cook fit, and exchange context. Added four
+  contextual links and three visible FAQs that match the FAQ schema. Broadened
+  the concrete kitchen-tool focus terms so the page uses the existing focused
+  catalog pool instead of padding the result with generic mugs.
+- [x] Corrected shared guide structured data after URL Inspection reported 24
+  unsupported Product snippets on the indexed Dad guide. Guide ItemLists now
+  expose linked ListItems without inventing price, availability, rating, or
+  review claims; WebPage, BreadcrumbList, ItemList, and visible FAQ markup
+  remain. Replaced the inaccurate `Real products, live prices` label with
+  `Catalog-backed, retailer-linked`.
+- [ ] Recheck kitchen-guide impressions, CTR, position, organic sessions, and
+  `gift_guide` outbound clicks on 2026-09-08 and 2026-09-22. Do not revise it
+  before those checkpoints unless crawlability, canonical, schema, or
+  rendering regresses.
 
 ## Shipped 2026-07-05
 
@@ -350,9 +381,10 @@ authority—not more URLs.
    2026-08-11. Hold for the 2026-08-25 and 2026-09-08 rechecks.
 4. `/gift-guides/secret-santa-gag-gifts` — first evidence-backed pass shipped
    2026-08-18. Hold for the 2026-09-01 and 2026-09-15 rechecks.
-5. `/gift-guides/weird-kitchen-gadgets` — distinguish actually usable tools
-   from decorative novelty, add kitchen-specific buying criteria, and use its
-   strong visual fit as the bridge between organic search and Pinterest.
+5. `/gift-guides/weird-kitchen-gadgets` — first evidence-backed pass shipped
+   2026-08-25 with focused kitchen-tool curation and useful-versus-decorative,
+   cleanup, storage, and fit guidance. Hold for the 2026-09-08 and 2026-09-22
+   rechecks.
 
 Implementation should extend the guide model with optional page-specific
 editorial sections and FAQ overrides rather than adding generic paragraphs to

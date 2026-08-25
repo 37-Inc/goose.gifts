@@ -44,7 +44,21 @@ const giftGuideFocusKeywordGroups: Record<string, string[][]> = {
   'white-elephant-gifts': [['white elephant']],
   'funny-gifts-for-coworkers': [['coworker', 'coworkers']],
   'funny-gifts-for-dads': [['dad', 'father', 'grandpa']],
-  'weird-kitchen-gadgets': [['kitchen gadget', 'kitchen tool', 'kitchen utensil']],
+  'weird-kitchen-gadgets': [[
+    'kitchen gadget',
+    'kitchen tool',
+    'kitchen utensil',
+    'pizza cutter',
+    'cheese grater',
+    'egg separator',
+    'jar scraper',
+    'microwave cleaner',
+    'spoon rest',
+    'garlic press',
+    'tea strainer',
+    'toothpick holder',
+    'oven mitt',
+  ]],
   'novelty-desk-toys': [['desk toy', 'desktop toy', 'fidget']],
   'secret-santa-gag-gifts': [['secret santa']],
   'dirty-santa-gifts': [['dirty santa']],
@@ -237,10 +251,51 @@ export const giftGuides: GiftGuideDefinition[] = [
   {
     slug: 'weird-kitchen-gadgets',
     title: 'Weird Kitchen Gadgets',
-    h1: 'Weird kitchen gadgets for cooks with a sense of humor',
-    description: 'Browse weird kitchen gadgets, funny mugs, cooking oddities, and novelty food gifts from the goose.gifts catalog.',
-    intro: 'Kitchen gifts work best when they are useful at least once and funny every time they come out of a drawer.',
+    metadataTitle: 'Funny Kitchen Gadgets and Weird Kitchen Gifts',
+    h1: 'Funny kitchen gadgets that earn drawer space',
+    description: 'Browse funny kitchen gadgets and weird kitchen gifts, with practical checks for usefulness, cleanup, storage, and cook-friendly fit.',
+    intro: 'The best weird kitchen gadget earns its laugh without becoming one more awkward tool the cook has to store.',
     keywords: ['kitchen', 'cook', 'cooking', 'mug', 'coffee', 'ramen', 'food'],
+    editorialHeading: 'Make the weird part do some work',
+    editorialAside: 'Usefulness, cleanup, and kitchen fit',
+    editorialSections: [
+      {
+        title: 'Choose useful weird, not decorative weird',
+        paragraphs: [
+          'Start with a kitchen job the recipient already does: cutting pizza, grating cheese, serving snacks, protecting a hand from a hot pan, or making coffee. A funny shape can make that familiar task more memorable. An object with no clear job has to compete for counter or cabinet space after the first laugh.',
+          'A novelty mug or serving piece still counts as useful when it fits an existing routine. For a small kitchen, favor one compact tool with an obvious purpose over a large single-use machine. For an experienced cook, avoid novelty versions of specialized gear unless you know the tool will suit the way they cook.',
+        ],
+        links: [
+          { slug: 'funny-cooking-gifts', label: 'Browse funny gifts for cooks' },
+          { slug: 'funny-coffee-mugs', label: 'Choose a mug for a real coffee routine' },
+        ],
+      },
+      {
+        title: 'Check the boring details before the joke',
+        paragraphs: [
+          'Look at size, materials, heat limits, moving parts, and the cleaning instructions on the current retailer listing. Dishwasher-safe is useful only when the maker actually says it; otherwise assume the recipient may need to wash an oddly shaped object by hand. Skip tools that appear difficult to dry, sharpen, or fit into a normal drawer.',
+          'Match the gadget to the handoff as well as the cook. A visually ridiculous but functional tool can work in a white elephant exchange because the room understands it quickly. A host gift should be smaller and low-pressure, while a close friend can receive the stranger object that connects to a shared meal or kitchen habit.',
+        ],
+        links: [
+          { slug: 'white-elephant-gifts', label: 'Apply the white elephant steal test' },
+          { slug: 'funny-hostess-gifts', label: 'Compare low-pressure host gifts' },
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: 'What makes a funny kitchen gadget a good gift?',
+        answer: 'It should have one obvious kitchen job, a joke or shape the recipient will understand quickly, and a realistic place to live after the gift is opened. A useful oddity usually lasts longer than a decorative prop or bulky single-use appliance.',
+      },
+      {
+        question: 'How do I avoid giving a weird kitchen tool that becomes clutter?',
+        answer: 'Choose a task the recipient already does, then check the product dimensions, materials, cleaning instructions, and storage needs on the current listing. Compact hand tools, mugs, and serving pieces are generally easier to keep than countertop machines or gadgets with many loose parts.',
+      },
+      {
+        question: 'Are practical kitchen gifts still funny enough for a gag exchange?',
+        answer: 'Yes. A familiar tool with an exaggerated shape, visual pun, or surprising mechanism can read immediately across the room and still be useful afterward. For a mixed group, avoid jokes about bodies, diets, health, or cooking ability.',
+      },
+    ],
   },
   {
     slug: 'novelty-desk-toys',

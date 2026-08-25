@@ -11,9 +11,9 @@ import {
   getGiftGuide,
   getGiftGuideProducts,
 } from '@/lib/gift-guides';
+import { buildGuideSchema } from '@/lib/gift-guide-schema';
 import { getGiftGuideFaqs } from '@/lib/gift-guide-editorial';
 import { getSiteUrl } from '@/lib/site';
-import type { Product } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
@@ -40,109 +40,6 @@ function getRelatedGuides(guide: NonNullable<ReturnType<typeof getGiftGuide>>) {
     })
     .slice(0, 8)
     .map(({ guide: candidate }) => candidate);
-}
-
-function buildGuideSchema(
-  products: Product[],
-  guide: NonNullable<ReturnType<typeof getGiftGuide>>,
-  url: string
-) {
-  const faqs = getGiftGuideFaqs(guide);
-
-  return {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'WebPage',
-        '@id': `${url}#webpage`,
-        name: guide.title,
-        headline: guide.h1,
-        description: guide.description,
-        url,
-        inLanguage: 'en-US',
-        isPartOf: {
-          '@type': 'WebSite',
-          name: 'goose.gifts',
-          url: getSiteUrl(),
-        },
-      },
-      {
-        '@type': 'BreadcrumbList',
-        '@id': `${url}#breadcrumbs`,
-        itemListElement: [
-          {
-            '@type': 'ListItem',
-            position: 1,
-            name: 'Home',
-            item: getSiteUrl(),
-          },
-          {
-            '@type': 'ListItem',
-            position: 2,
-            name: guide.title,
-            item: url,
-          },
-        ],
-      },
-      {
-        '@type': 'ItemList',
-        '@id': `${url}#products`,
-        name: guide.title,
-        description: guide.description,
-        url,
-        numberOfItems: products.length,
-        itemListElement: products.slice(0, 24).map((product, index) => {
-          const giftUrl = product.slug
-            ? `${getSiteUrl()}/gifts/${encodeURIComponent(product.slug)}`
-            : product.affiliateUrl;
-          const item: Record<string, unknown> = {
-            '@type': 'Product',
-            name: product.punnyTitle || product.title,
-            image: product.imageUrl,
-            description: product.wittyDescription || product.sourceQuery || product.title,
-            category: 'Gag gifts',
-            url: giftUrl,
-          };
-
-          if (product.price > 0) {
-            item.offers = {
-              '@type': 'Offer',
-              price: product.price.toFixed(2),
-              priceCurrency: product.currency || 'USD',
-              availability: 'https://schema.org/InStock',
-              url: product.affiliateUrl,
-            };
-          }
-
-          if (product.rating && product.reviewCount) {
-            item.aggregateRating = {
-              '@type': 'AggregateRating',
-              ratingValue: product.rating.toFixed(1),
-              reviewCount: product.reviewCount,
-            };
-          }
-
-          return {
-            '@type': 'ListItem',
-            position: index + 1,
-            item,
-          };
-        }),
-      },
-      {
-        '@type': 'FAQPage',
-        '@id': `${url}#faq`,
-        mainEntity: faqs.map((faq) => ({
-          '@type': 'Question',
-          name: faq.question,
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: faq.answer,
-          },
-        })),
-      },
-    ],
-  };
 }
 
 export async function generateMetadata({ params }: GiftGuidePageProps): Promise<Metadata> {
@@ -268,7 +165,7 @@ export default async function GiftGuidePage({ params }: GiftGuidePageProps) {
       )}
 
       <section className="mx-auto max-w-6xl px-4 pb-16 pt-12 sm:pt-14">
-        <SectionHeading title="Hand-picked from the catalog" aside="Real products, live prices" />
+        <SectionHeading title="Hand-picked from the catalog" aside="Catalog-backed, retailer-linked" />
 
         {products.length === 0 ? (
           <div className="rounded-2xl bg-zinc-50 px-6 py-16 text-center text-sm leading-6 text-zinc-500">
