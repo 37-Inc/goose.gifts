@@ -72,7 +72,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-25 — Pinterest clean baseline, catalog feed, and guarded publisher `[owner+claude]`
+### 2026-08-25 — Pinterest clean baseline, catalog feed, and guarded publisher `[owner+claude]` ([PR #116](https://github.com/37-Inc/goose.gifts/pull/116))
 
 Preserved the final metrics for the old five-Pin ad-style cohort, then deleted
 those five public Pins, all six remaining Sandbox/API-trial Pins, and all five
