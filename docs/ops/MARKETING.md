@@ -95,7 +95,9 @@ or superficial color swaps.
    pause; do not copy executions or brand assets.
 3. Write several distinct concept briefs, then verify the exact source listing,
    image, object type, and believable scale before product-bound generation.
-4. Produce roughs across at least three genuinely different art directions.
+4. Select the strongest of at least three genuinely different, product-derived
+   concepts, then generate one vertical 2:3 execution. Generate a revision only
+   to correct a diagnosed weakness.
 5. Apply a visual taste review and product-fidelity check; discard aggressively.
 6. Refine only the strongest concepts into 1000x1500 production candidates.
 7. Prepare an owner-review contact sheet and record the decision on each rough.
@@ -111,13 +113,18 @@ candidate only when production API access is confirmed and the exact image,
 board, copy, disclosure, destination, tracking package, and cadence are
 approved. Pinterest approved the `Goose.gifts` app for Standard access on
 2026-08-24, and the production OAuth read/dry-run path was verified on
-2026-08-25 with all required scopes and the correct business account. The API
-primitives are ready, and the production create command now rejects any draft
-that already has a public Pin URL. Unattended publication must still stop at
-`docs/ops/pinterest-creative-lab/REVIEW_QUEUE.md` until the create path
-machine-checks the exact approval event and durably records and reads back each
-public Pin receipt with idempotent retry protection. An exact approved package
-may still be posted through an interactive signed-in browser session.
+2026-08-25 with all required scopes and the correct business account. The
+production publisher now requires a reviewed package, Cameron's exact candidate
+approval event, a currently approved candidate, public-posting authorization,
+the expected account, a unique tracking URL, and a vertical 2:3 artifact. It
+checks for an existing Pin before POST, reads a created Pin back, records an
+append-only receipt and creative event, and marks the draft published. This is
+practical state-machine validation, not cryptographic package signing. A
+scheduled run may use it only for an exact package already approved in
+`docs/ops/pinterest-creative-lab/REVIEW_QUEUE.md`; no approval means no public
+write. `npm run pinterest:candidates` supplies a read-only shortlist from the
+current verified and enriched catalog. Interactive browser posting remains a
+fallback.
 Tool purchases, subscriptions, and paid distribution remain unauthorized.
 
 ### Tool strategy and access
@@ -155,6 +162,23 @@ For every concept promoted beyond rough exploration, record:
 
 ## Experiment log
 
+### 2026-08-25 — Clean production baseline and minimum safe publisher
+
+- **Profile cleanup**: preserved a final metrics snapshot, then deleted the five
+  old ad-style launch Pins (45 lifetime impressions, one Pin click, no saves or
+  outbound clicks), all six Sandbox/API-trial Pins, and all five confirmed-empty
+  `API Trial - ...` boards. API readback now reports exactly six production
+  Pins, all recent product-faithful creatives, and zero Sandbox Pins or boards.
+- **Minimum guards**: production create now validates Cameron's approval event,
+  current candidate/experiment state, package completeness, Goose-owned URLs,
+  visible affiliate and AI-modified disclosure, 2:3 PNG, connected account, and
+  an unpublished tracking URL. It reads success back and writes a durable
+  receipt; a retry recovers the exact existing Pin instead of duplicating it.
+- **Catalog bridge**: `npm run pinterest:candidates` reads current enriched
+  inventory without running the weekly job. It requires fresh verification,
+  purchasable availability, current source facts, approved substantive
+  editorial, strong quality, and a canonical non-duplicate product family.
+
 ### 2026-08-25 — Standard access approved and production path verified
 
 - **Approval proof**: Pinterest Developer Platform's verified sender emailed
@@ -169,12 +193,10 @@ For every concept promoted beyond rough exploration, record:
   Pin was created.
 - **Automation decision**: access is no longer the blocker. The existing
   twice-weekly studio remains the right cadence, with at most one exact-approved
-  Pin per run and a no-op when no package is ready. Unattended publishing stays
-  off until the publisher enforces approval-event binding, durable
-  receipt/readback, and retry idempotency. Production creates now refuse drafts
-  with an existing public URL, and the obsolete v3 batch is hard-blocked from
-  production. The current owner queue is empty, so there is nothing eligible to
-  publish now.
+  Pin per run and a no-op when no package is ready. The minimum approval,
+  receipt/readback, and duplicate-retry guards shipped later on 2026-08-25; the
+  obsolete v3 batch remains hard-blocked from production. The current owner
+  queue is empty, so there is nothing eligible to publish now.
 
 ### 2026-08-25 — Kitchen-guide improvement and public creative hold
 

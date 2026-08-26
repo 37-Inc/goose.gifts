@@ -18,12 +18,10 @@ outward-facing accounts. Best remaining channels:
 - **TikTok/Reels/Shorts**: short vertical product roundups generated from the
   catalog; I can prepare scripts/assets, but posting needs account access or
   approval of the publishing tool.
-- **Pinterest**: Standard access and the production OAuth read/dry-run path are
-  received and verified; see Received below. Future public Pins still need an
-  exact owner-approved package. Unattended API publishing remains an engineering
-  follow-up until its approval binding, receipt/readback, and retry-idempotency
-  guards are complete. Duplicate public drafts and production use of the legacy
-  v3 batch are now blocked.
+- **Pinterest**: the account, Standard access, production publisher, catalog
+  candidate feed, and minimum approval/duplicate/receipt guards are complete;
+  see Received below. Future public Pins still need Cameron to approve the exact
+  queue package. No broader channel or cadence approval is inferred.
 
 Needed from Cameron: choose which channels to authorize for posting and approve
 any paid/video-generation tooling before spend.
@@ -64,6 +62,15 @@ you'd rather get real email/Slack from me, connect a connector at
   dry-run create payload. The approval email thread was archived. This clears
   the access blocker, not the exact-package approval gate or paid-spend gate.
 
+- 2026-08-25: Pinterest guarded production workflow. The owner-authorized
+  cleanup removed five old ad-style Pins, six Sandbox test Pins, and five empty
+  API Trial boards; the account now contains only six product-faithful public
+  Pins. The publisher checks the exact owner approval event and candidate state,
+  account, complete disclosed package, 2:3 artifact, and duplicate tracking URL;
+  it read-verifies success and records durable receipts. `npm run
+  pinterest:candidates` supplies current high-quality enriched products without
+  running the weekly catalog job.
+
 - 2026-07-16: Amazon Creators API application and v3.1 credential received.
   The clean migration is merged as PR #57; credentials are installed in Vercel
   Production, Preview, and Development, while retired AWS variables and the
@@ -100,9 +107,9 @@ you'd rather get real email/Slack from me, connect a connector at
   `goose.gifts` as a connected claimed website. Starter public boards exist for
   funny white elephant gifts, funny coworker gifts, weird kitchen gadgets,
   novelty desk toys, and weird home decor, and the profile avatar uses the
-  goose.gifts logo. OAuth/API Trial access is connected, API Trial boards exist,
-  and `npm run pinterest:pin-drafts` can validate a tracked five-pin dry-run
-  manifest. Posting remains owner-approved only.
+  goose.gifts logo. OAuth Standard access is connected; the obsolete API Trial
+  Pins and boards were removed after approval. Posting remains exact-package
+  owner-approved only.
 - 2026-07-05: Google Analytics Data API read access for GA4 property
   `507421709` (`G-6RR3HPR747`). The dedicated goose service account has Viewer
   access to the property, Analytics Data/Admin APIs are enabled in

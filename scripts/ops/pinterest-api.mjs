@@ -3,6 +3,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { loadEvents, validateAndFold } from './creative-experiments.mjs';
+import {
+  assertCandidateReadyForPublication,
+  assertPinterestAccount,
+  findExistingPin,
+  findOwnerApproval,
+  hasUnresolvedPublication,
+  publicationReceipt,
+  validateDraftPackage,
+  validatePinReadback,
+} from './pinterest-publishing.mjs';
 
 const APP_ID = process.env.PINTEREST_APP_ID || readKeychain('goose.gifts.PINTEREST_APP_ID') || '1588384';
 const APP_SECRET = process.env.PINTEREST_APP_SECRET || readKeychain('goose.gifts.PINTEREST_APP_SECRET');
@@ -13,6 +24,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const approvedPinDraftsPath = path.join(root, 'docs/ops/pinterest-approved-pins.json');
 const legacyPublicWebResultsPath = path.join(root, 'docs/ops/pinterest-assets/batch-1-v3/manual-post-results.json');
 const creativeEventsPath = path.join(root, 'docs/ops/marketing-experiments/events.jsonl');
+const publicationReceiptsPath = path.join(root, 'docs/ops/pinterest-publication-receipts.jsonl');
 
 if (!APP_SECRET) {
   throw new Error('Missing Pinterest app secret in PINTEREST_APP_SECRET or Keychain service goose.gifts.PINTEREST_APP_SECRET');
@@ -25,30 +37,47 @@ if (command === 'refresh') {
   const data = await apiGet('/user_account', { sandbox });
   console.log(JSON.stringify(data, null, 2));
 } else if (command === 'boards') {
-  const data = await apiGet('/boards?page_size=10', { sandbox });
-  console.log(JSON.stringify(data, null, 2));
+  const items = await apiGetAll('/boards', { sandbox });
+  console.log(JSON.stringify({ items }, null, 2));
+} else if (command === 'pins') {
+  const items = await getAllOwnedPins({ sandbox });
+  console.log(JSON.stringify({ items }, null, 2));
+} else if (command === 'board-pins') {
+  const boardId = getArg('--board-id');
+  if (!boardId || !/^\d+$/.test(boardId)) {
+    throw new Error('Missing or invalid --board-id <numeric Pinterest board id>.');
+  }
+  const items = await apiGetAll(`/boards/${boardId}/pins`, { sandbox });
+  console.log(JSON.stringify({ boardId, items }, null, 2));
 } else if (command === 'approved-pins') {
   const drafts = readApprovedPinDrafts();
   console.log(JSON.stringify(drafts, null, 2));
 } else if (command === 'public-pin-metrics') {
   const metrics = await getPublicPinMetrics();
   console.log(JSON.stringify(metrics, null, 2));
+} else if (command === 'publication-receipts') {
+  console.log(JSON.stringify({ receipts: readPublicationReceipts() }, null, 2));
 } else if (command === 'create-pin') {
   const result = await createPinFromArgs({ sandbox });
   console.log(JSON.stringify(result, null, 2));
 } else if (command === 'delete-pin') {
   const result = await deletePinFromArgs({ sandbox });
   console.log(JSON.stringify(result, null, 2));
+} else if (command === 'delete-board') {
+  const result = await deleteBoardFromArgs({ sandbox });
+  console.log(JSON.stringify(result, null, 2));
 } else {
-  throw new Error(`Unknown command: ${command}. Use one of: refresh, whoami, boards, approved-pins, public-pin-metrics, create-pin, delete-pin`);
+  throw new Error(`Unknown command: ${command}. Use one of: refresh, whoami, boards, pins, board-pins, approved-pins, public-pin-metrics, publication-receipts, create-pin, delete-pin, delete-board`);
 }
 
 async function getPublicPinMetrics() {
-  const publicPins = readApprovedPinDrafts().pins.filter((pin) => pin.livePinUrl).map((pin) => ({
+  const publicPins = readApprovedPinDrafts().pins
+    .filter((pin) => pin.livePinUrl && pin.publicationStatus !== 'deleted')
+    .map((pin) => ({
     cohort: pin.id.startsWith('editorial-') ? 'pinterest_editorial_v1' : 'pinterest_launch_v2',
     id: pin.livePinUrl.match(/\/pin\/(\d+)/)?.[1],
     title: pin.title,
-  }));
+    }));
   const legacyPublicWeb = JSON.parse(fs.readFileSync(legacyPublicWebResultsPath, 'utf8'));
   if (legacyPublicWeb.environment !== 'production-web') {
     throw new Error('Legacy field-note results are not marked as production-web; refusing to treat them as public.');
@@ -146,6 +175,35 @@ async function apiGet(path, { sandbox }) {
   return response.json();
 }
 
+async function apiGetAll(path, { sandbox }) {
+  const items = [];
+  let bookmark = '';
+
+  do {
+    const separator = path.includes('?') ? '&' : '?';
+    const page = await apiGet(
+      `${path}${separator}page_size=100${bookmark ? `&bookmark=${encodeURIComponent(bookmark)}` : ''}`,
+      { sandbox },
+    );
+    items.push(...(page.items || []));
+    bookmark = page.bookmark || '';
+  } while (bookmark);
+
+  return items;
+}
+
+async function getAllOwnedPins({ sandbox }) {
+  const boards = await apiGetAll('/boards', { sandbox });
+  const boardPins = await Promise.all(
+    boards.map((board) => apiGetAll(`/boards/${board.id}/pins`, { sandbox })),
+  );
+  const unique = new Map();
+  for (const pin of boardPins.flat()) unique.set(pin.id, pin);
+  return [...unique.values()].sort((left, right) => (
+    new Date(right.created_at || 0).getTime() - new Date(left.created_at || 0).getTime()
+  ));
+}
+
 async function apiPost(path, body, { sandbox }) {
   const token = await getAccessToken({ sandbox });
   const response = await fetch(`${apiBase}${path}`, {
@@ -204,6 +262,25 @@ async function deletePinFromArgs({ sandbox }) {
   };
 }
 
+async function deleteBoardFromArgs({ sandbox }) {
+  const boardId = getArg('--board-id');
+  if (!boardId || !/^\d+$/.test(boardId)) {
+    throw new Error('Missing or invalid --board-id <numeric Pinterest board id>.');
+  }
+
+  const pins = await apiGetAll(`/boards/${boardId}/pins`, { sandbox });
+  if (pins.length > 0) {
+    throw new Error(`Refusing to delete non-empty board ${boardId}; it still has ${pins.length} Pin(s).`);
+  }
+
+  await apiDelete(`/boards/${boardId}`, { sandbox });
+  return {
+    deleted: true,
+    environment: sandbox ? 'sandbox' : 'production',
+    boardId,
+  };
+}
+
 async function createPinFromArgs({ sandbox }) {
   const draftId = getArg('--draft');
   const boardName = getArg('--board');
@@ -224,6 +301,51 @@ async function createPinFromArgs({ sandbox }) {
     );
   }
 
+  const packageValidation = draft.candidateId
+    ? validateDraftPackage(draft, { root })
+    : null;
+
+  let publicationContext = null;
+  if (!sandbox && !dryRun) {
+    if (!packageValidation) {
+      throw new Error(`Refusing production publish for legacy draft ${draftId}: add a candidateId, approvalEventId, exact disclosure, and reviewed package first.`);
+    }
+    const events = await loadEvents(creativeEventsPath);
+    const state = validateAndFold(events);
+    findOwnerApproval(events, draft);
+    const account = await apiGet('/user_account', { sandbox: false });
+    assertPinterestAccount(account);
+    const existingPin = findExistingPin(await getAllOwnedPins({ sandbox: false }), draft);
+    publicationContext = { events, state };
+
+    if (existingPin) {
+      const candidate = state.candidates.get(draft.candidateId);
+      if (!candidate || !['approved', 'published', 'measuring'].includes(candidate.status)) {
+        throw new Error(`Found an existing Pin for ${draftId}, but candidate state ${candidate?.status || '(missing)'} cannot be reconciled automatically.`);
+      }
+      const board = await resolveBoard({ boardIdArg: existingPin.board_id, boardName: boardName || draft.board });
+      validatePinReadback(existingPin, draft, board.id);
+      const finalized = finalizeProductionPublication({
+        draft,
+        board,
+        pin: existingPin,
+        events,
+        state,
+        receiptType: 'publication.recovered',
+      });
+      return { dryRun: false, recovered: true, environment: 'production', ...finalized };
+    }
+
+    const unresolved = hasUnresolvedPublication(readPublicationReceipts(), draft.id);
+    if (unresolved) {
+      throw new Error(
+        `Refusing to retry ${draft.id}: publication attempt ${unresolved.receiptId} has no terminal receipt and no exact Pin was found. Reconcile Pinterest before retrying.`,
+      );
+    }
+
+    assertCandidateReadyForPublication(state, draft);
+  }
+
   const targetBoardName = boardName || (
     sandbox
       ? draft.sandboxBoard || `API Trial - ${draft.board}`
@@ -238,23 +360,145 @@ async function createPinFromArgs({ sandbox }) {
       environment: sandbox ? 'sandbox' : 'production',
       draft: draft.id,
       board: { id: board.id, name: board.name },
+      guardState: draft.candidateId
+        ? { candidateId: draft.candidateId, approvalEventId: draft.approvalEventId }
+        : { legacyDraft: true, publishable: false },
       payload: redactMediaData(payload),
     };
   }
 
-  const response = await apiPost('/pins', payload, { sandbox });
+  if (sandbox) {
+    const response = await apiPost('/pins', payload, { sandbox });
+    return {
+      dryRun: false,
+      environment: 'sandbox',
+      draft: draft.id,
+      board: { id: board.id, name: board.name },
+      response,
+    };
+  }
+
+  appendPublicationReceipt(publicationReceipt({ type: 'publication.started', draft, boardId: board.id }));
+  let response;
+  let readback;
+  try {
+    response = await apiPost('/pins', payload, { sandbox: false });
+    if (!response?.id) throw new Error('Pinterest create response did not include a Pin id.');
+    readback = await apiGet(`/pins/${response.id}`, { sandbox: false });
+    validatePinReadback(readback, draft, board.id);
+  } catch (error) {
+    appendPublicationReceipt(publicationReceipt({
+      type: 'publication.failed',
+      draft,
+      boardId: board.id,
+      pinId: response?.id || null,
+      details: { message: String(error.message || error).slice(0, 500) },
+    }));
+    throw error;
+  }
+
+  const finalized = finalizeProductionPublication({
+    draft,
+    board,
+    pin: readback,
+    events: publicationContext.events,
+    state: publicationContext.state,
+    receiptType: 'publication.succeeded',
+  });
   return {
     dryRun: false,
-    environment: sandbox ? 'sandbox' : 'production',
-    draft: draft.id,
-    board: { id: board.id, name: board.name },
-    response,
+    recovered: false,
+    environment: 'production',
+    ...finalized,
   };
 }
 
+function finalizeProductionPublication({ draft, board, pin, events, state, receiptType }) {
+  const receipt = publicationReceipt({
+    type: receiptType,
+    draft,
+    boardId: board.id,
+    pinId: pin.id,
+    details: { readbackVerified: true },
+  });
+  appendPublicationReceipt(receipt);
+  appendPublishedCreativeEvent({ draft, pin, events, state });
+  recordDraftPublication({ draftId: draft.id, pinId: pin.id, receiptId: receipt.receiptId });
+
+  return {
+    draft: draft.id,
+    board: { id: board.id, name: board.name },
+    pin: {
+      id: pin.id,
+      url: `https://www.pinterest.com/pin/${pin.id}/`,
+      title: pin.title,
+      link: pin.link,
+    },
+    receiptId: receipt.receiptId,
+  };
+}
+
+function appendPublicationReceipt(receipt) {
+  fs.appendFileSync(publicationReceiptsPath, `${JSON.stringify(receipt)}\n`, 'utf8');
+}
+
+function readPublicationReceipts() {
+  if (!fs.existsSync(publicationReceiptsPath)) return [];
+  return fs.readFileSync(publicationReceiptsPath, 'utf8')
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((line, index) => {
+      try {
+        return JSON.parse(line);
+      } catch (error) {
+        throw new Error(`Invalid publication receipt at line ${index + 1}: ${error.message}`);
+      }
+    });
+}
+
+function appendPublishedCreativeEvent({ draft, pin, events, state }) {
+  const candidate = state.candidates.get(draft.candidateId);
+  if (!candidate) throw new Error(`Unknown creative candidate: ${draft.candidateId}`);
+  if (['published', 'measuring'].includes(candidate.status)) return;
+  if (candidate.status !== 'approved') {
+    throw new Error(`Cannot record publication for ${draft.candidateId} from ${candidate.status}.`);
+  }
+
+  const recordedAt = new Date().toISOString();
+  const event = {
+    schemaVersion: 1,
+    eventId: `evt-${recordedAt.slice(0, 10).replaceAll('-', '')}-${draft.candidateId}-published-${pin.id}`,
+    type: 'candidate.status_changed',
+    recordedAt,
+    actor: 'codex-pinterest-api',
+    data: {
+      experimentId: candidate.experimentId,
+      candidateId: draft.candidateId,
+      from: 'approved',
+      to: 'published',
+      rationale: 'Pinterest production API created and read-verified the exact owner-approved package; the durable publication receipt records the Pin id, board, title, and tracked destination.',
+      evidenceUrl: `https://www.pinterest.com/pin/${pin.id}/`,
+    },
+  };
+  validateAndFold([...events, event]);
+  fs.appendFileSync(creativeEventsPath, `${JSON.stringify(event)}\n`, 'utf8');
+}
+
+function recordDraftPublication({ draftId, pinId, receiptId }) {
+  const manifest = readApprovedPinDrafts();
+  const draft = manifest.pins.find((item) => item.id === draftId);
+  if (!draft) throw new Error(`Cannot update unknown Pin draft: ${draftId}`);
+  draft.livePinUrl = `https://www.pinterest.com/pin/${pinId}/`;
+  draft.publicationStatus = 'published';
+  draft.publishedAt = new Date().toISOString();
+  draft.publicationReceiptId = receiptId;
+  const temporaryPath = `${approvedPinDraftsPath}.tmp`;
+  fs.writeFileSync(temporaryPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+  fs.renameSync(temporaryPath, approvedPinDraftsPath);
+}
+
 async function resolveBoard({ boardIdArg, boardName }) {
-  const boards = await apiGet('/boards?page_size=100', { sandbox });
-  const items = boards.items || [];
+  const items = await apiGetAll('/boards', { sandbox });
 
   if (boardIdArg) {
     const found = items.find((board) => board.id === boardIdArg);

@@ -33,15 +33,16 @@ what's likely next.
   guide's 2026-08-25 checkpoint remains inconclusive because Google has not
   recrawled the August 11 copy; recheck it and the newly improved kitchen guide
   on 2026-09-08 (Beads `roadmap-fkvo`).
-- **Distribution / Pinterest — Standard approved; publisher hardening next.**
+- **Distribution / Pinterest — guarded publisher ready; exact approvals next.**
   Pinterest approved the `Goose.gifts` app on 2026-08-24. Production OAuth
   refresh, account/board/metrics reads, and a real-board create dry run passed
   on 2026-08-25 with every required scope. Keep the existing Tuesday/Friday
-  studio cadence, but do not enable unattended writes until the publisher binds
-  an exact owner approval and durably records and reads back each public Pin
-  receipt with idempotent retries. Duplicate/already-live drafts and production
-  use of the obsolete v3 batch are now blocked. Tracked as Beads
-  `roadmap-fd1h`. Helps indexation (external signals).
+  studio cadence. The minimum publisher now checks Cameron's exact approval
+  event, current candidate state, account, complete package, 2:3 asset, and
+  duplicate URL; it read-verifies and durably records the result. It may write
+  only an exact approved queue package, so an empty queue is a no-op. The old
+  ad-style and Sandbox profile debris is gone. Tracked as Beads `roadmap-fd1h`.
+  Helps indexation (external signals).
 - **Pinterest creative workflow — measure the goat and three hippo variants.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
   browser-published as public Pin `1107815208385022014`. The stronger hippo
@@ -55,8 +56,8 @@ what's likely next.
   random-gift URLs for future campaign packages; existing Pin destinations
   permanently redirect without losing their UTM attribution.
   Public posting remains exact-candidate approved. The production API transport
-  is verified, but unattended writes remain off pending the publication guards
-  above; interactive browser publication remains the fallback.
+  and minimum publication guards are ready; interactive browser publication
+  remains a fallback.
 - **Amazon prices — deferred** (unchanged): the Creators API isn't delivering
   prices in practice (0.5% coverage; 0/122 recent enrichments), so
   commission/price-weighting stays parked.
@@ -71,6 +72,19 @@ what's likely next.
 
 Newest first.
 
+### 2026-08-25 — Pinterest clean baseline, catalog feed, and guarded publisher `[owner+claude]` ([PR #116](https://github.com/37-Inc/goose.gifts/pull/116))
+
+Preserved the final metrics for the old five-Pin ad-style cohort, then deleted
+those five public Pins, all six remaining Sandbox/API-trial Pins, and all five
+empty API Trial boards. Pinterest API readback now shows only the six recent
+product-faithful production Pins and zero Sandbox objects. Added a read-only
+`pinterest:candidates` shortlist from current, verified, enriched catalog data
+with published product-family suppression. Hardened production create with
+exact Cameron-approval and candidate-state checks, account/package/2:3/
+disclosure validation, duplicate preflight and crash recovery, create readback,
+append-only receipts, and creative-event/manifest updates. No new Pin was
+generated or published, and no money was spent.
+
 ### 2026-08-25 — Pinterest Standard approval and production verification `[owner+claude]`
 
 Confirmed Pinterest's verified 2026-08-24 email approving `Goose.gifts` for
@@ -82,7 +96,8 @@ create command now refuses already-live drafts, and the obsolete v3 batch is
 permanently blocked from production. Access is ready; the remaining unattended-
 publisher work is exact-approval binding plus durable receipt/readback and
 idempotent retries. The twice-weekly studio remains active and the owner-ready
-queue is currently empty.
+queue is currently empty. The guarded-publisher entry above records completion
+of that follow-up later the same day.
 
 ### 2026-08-25 — Weird-kitchen guide and public Pinterest checkpoint `[daily-ops]` ([PR #113](https://github.com/37-Inc/goose.gifts/pull/113))
 
