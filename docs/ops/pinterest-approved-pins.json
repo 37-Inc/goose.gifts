@@ -1,10 +1,12 @@
 {
   "batch": "batch-1-plus-editorial-pilot",
-  "status": "three_editorial_candidates_approved_for_public_and_sandbox_2026-07-23",
+  "status": "clean_production_baseline_and_guarded_future_packages_2026-08-25",
   "notes": [
     "Use this file as the machine-readable source for repeatable Pinterest API posting tests.",
     "Run create commands with --dry-run first. Do not create new public Pins without owner-approved campaign copy and assets.",
-    "Cameron approved the hippo mug, product-faithful alligator mitt, and ceramic eye for public Pinterest and Sandbox on 2026-07-23."
+    "Cameron approved the hippo mug, product-faithful alligator mitt, and ceramic eye for public Pinterest and Sandbox on 2026-07-23.",
+    "The five old ad-style public Pins and every remaining Sandbox Pin/board were deleted on 2026-08-25 after preserving final metrics and cleanup receipts.",
+    "Every future production draft must add candidateId, approvalEventId, disclosure, a canonical gift-page target, and a unique organic-social tracking URL. The guarded publisher refuses production writes without them."
   ],
   "pins": [
     {
@@ -16,7 +18,10 @@
       "title": "Funny White Elephant Gifts People Will Actually Steal",
       "description": "Need a gift exchange idea that gets a reaction? Browse funny, weird, and useful white elephant picks from goose.gifts before the next party.",
       "altText": "Funny white elephant gift guide from goose.gifts.",
-      "livePinUrl": "https://www.pinterest.com/pin/1107815208383151361/"
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208383151361/",
+      "publicationStatus": "deleted",
+      "deletedAt": "2026-08-26T04:22:39Z",
+      "deletionReason": "Owner-authorized cleanup of the old ad-style launch cohort after preserving final public metrics."
     },
     {
       "id": "funny-gifts-for-coworkers",
@@ -27,7 +32,10 @@
       "title": "Office-Safe Funny Gifts for Coworkers",
       "description": "Funny coworker gifts that stay safe for the office: desk finds, meeting jokes, and small gag gifts that do not feel like junk.",
       "altText": "Office-safe funny gifts for coworkers from goose.gifts.",
-      "livePinUrl": "https://www.pinterest.com/pin/1107815208383131573/"
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208383131573/",
+      "publicationStatus": "deleted",
+      "deletedAt": "2026-08-26T04:22:40Z",
+      "deletionReason": "Owner-authorized cleanup of the old ad-style launch cohort after preserving final public metrics."
     },
     {
       "id": "weird-kitchen-gadgets",
@@ -38,7 +46,10 @@
       "title": "Weird Kitchen Gadgets That Are Actually Giftable",
       "description": "Browse odd kitchen gadgets, funny mugs, and cooking gifts that are useful at least once and funny every time they come out of a drawer.",
       "altText": "Weird kitchen gadget gift guide from goose.gifts.",
-      "livePinUrl": "https://www.pinterest.com/pin/1107815208383131619/"
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208383131619/",
+      "publicationStatus": "deleted",
+      "deletedAt": "2026-08-26T04:22:41Z",
+      "deletionReason": "Owner-authorized cleanup of the old ad-style launch cohort after preserving final public metrics."
     },
     {
       "id": "novelty-desk-toys",
@@ -49,7 +60,10 @@
       "title": "Novelty Desk Toys for Bad Meetings",
       "description": "Small desk toys, fidgets, and office gadgets for bored hands, home offices, and meetings that should have been shorter.",
       "altText": "Novelty desk toy gift guide from goose.gifts.",
-      "livePinUrl": "https://www.pinterest.com/pin/1107815208383131622/"
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208383131622/",
+      "publicationStatus": "deleted",
+      "deletedAt": "2026-08-26T04:22:42Z",
+      "deletionReason": "Owner-authorized cleanup of the old ad-style launch cohort after preserving final public metrics."
     },
     {
       "id": "weird-home-decor",
@@ -60,7 +74,10 @@
       "title": "Weird Home Decor Gifts for Rooms That Need a Double Take",
       "description": "Oddball shelf pieces, funny housewarming finds, and weird decor gifts for people who do not want another beige thing.",
       "altText": "Weird home decor gift guide from goose.gifts.",
-      "livePinUrl": "https://www.pinterest.com/pin/1107815208383131674/"
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208383131674/",
+      "publicationStatus": "deleted",
+      "deletedAt": "2026-08-26T04:22:43Z",
+      "deletionReason": "Owner-authorized cleanup of the old ad-style launch cohort after preserving final public metrics."
     },
     {
       "id": "editorial-hippo-mug-breakfast",
@@ -72,8 +89,10 @@
       "description": "A polished breakfast table, one aggressively lipsticked hippo, and a mug named Patricia. See the actual personalized mug and more weird kitchen finds on goose.gifts. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
       "altText": "Black personalized Patricia mug with a red-lipped hippo styled on a colorful breakfast table.",
       "livePinUrl": "https://www.pinterest.com/pin/1107815208384432735/",
+      "publicationStatus": "published",
       "sandboxPinId": "1107815208384433630",
-      "sandboxBoard": "API Trial - Weird Kitchen Gadgets"
+      "sandboxBoard": "API Trial - Weird Kitchen Gadgets",
+      "sandboxDeletedAt": "2026-08-26T04:22:46Z"
     },
     {
       "id": "editorial-alligator-oven-mitt",
@@ -85,8 +104,10 @@
       "description": "A serene kitchen, interrupted by an alligator oven mitt clamped around the pan handle. See the actual mitt and more weird kitchen finds on goose.gifts. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
       "altText": "Green alligator-shaped oven mitt gripping a hot pan handle in a calm editorial kitchen scene.",
       "livePinUrl": "https://www.pinterest.com/pin/1107815208384432759/",
+      "publicationStatus": "published",
       "sandboxPinId": "1107815208384433632",
-      "sandboxBoard": "API Trial - Weird Kitchen Gadgets"
+      "sandboxBoard": "API Trial - Weird Kitchen Gadgets",
+      "sandboxDeletedAt": "2026-08-26T04:22:45Z"
     },
     {
       "id": "editorial-ceramic-eye-interior",
@@ -98,8 +119,10 @@
       "description": "A warm minimalist room with one glossy ceramic eye quietly watching from the side table. See the actual sculpture and more weird home decor on goose.gifts. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
       "altText": "Glossy ceramic eye sculpture on a side table in a warm minimalist living room.",
       "livePinUrl": "https://www.pinterest.com/pin/1107815208384432788/",
+      "publicationStatus": "published",
       "sandboxPinId": "1107815208384433636",
-      "sandboxBoard": "API Trial - Weird Home Decor"
+      "sandboxBoard": "API Trial - Weird Home Decor",
+      "sandboxDeletedAt": "2026-08-26T04:22:44Z"
     }
   ]
 }

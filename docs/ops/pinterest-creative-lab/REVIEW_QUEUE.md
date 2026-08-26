@@ -9,12 +9,16 @@ candidate and publishing package.
 
 None. The previously ready hippo-desk package was explicitly approved and
 published on 2026-08-07. Shortlisting remains distinct from approval for every
-future candidate. Reconciled on 2026-08-25: all valid survivors are public. The
-six-product-faithful-Pin cohort has 225 combined impressions, two Pin clicks,
-and one save, all engagement on the corrected goat, but no outbound click or
-attributable site session. The 15 impressions added since 2026-08-21 produced
-no new engagement, so there is still no causal reason to generate an
-unnecessary replacement.
+future candidate. Reconciled on 2026-08-25: all valid survivors are public, and
+the owner-authorized cleanup left only those six product-faithful production
+Pins. The old five-Pin ad-style cohort, six Sandbox test Pins, and five empty API
+Trial boards were deleted after preserving their history and final metrics.
+
+The next creative cycle should run `npm run pinterest:candidates -- --limit 20`
+and choose a visually promising current product from the verified, enriched,
+duplicate-suppressed catalog shortlist. The command does not generate or post;
+the normal three-concept, one-selected-execution, full-resolution review, and
+exact-package approval gates still apply.
 
 ## Published from this queue
 

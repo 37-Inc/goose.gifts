@@ -94,8 +94,19 @@ Use `null`, not zero, when a metric is unavailable. Zero means the source
 measured the metric and observed none. Always name the source and checkpoint
 time. Revenue remains `null` until an actual affiliate report supplies it.
 
-Publishing remains a separately authorized action. The current v4 experiment
-allows generation but does not authorize public posting, paid spend, or paid
-tool subscriptions. When the owner changes one of those boundaries, record an
+Publishing remains a separately authorized action. Experiment-level
+`publicPosting: true` is only a technical ceiling for candidates with their own
+Cameron approval event; it is not blanket approval for an experiment, queue, or
+cadence. Paid spend and paid tool subscriptions remain unauthorized. When the
+owner changes an experiment boundary, record an
 `experiment.authorization_changed` event before taking the newly authorized
 action; the validator will reject publication that gets ahead of authorization.
+
+For production API posting, the reviewed manifest entry must also name the
+candidate and Cameron's exact `approved` event. Run a dry run first, then use
+`npm run pinterest:create-pin -- --draft <draftId>` only after the complete
+package in `REVIEW_QUEUE.md` is approved. The publisher checks the account and
+existing Pins, creates at most once, reads the Pin back, appends a publication
+receipt to `docs/ops/pinterest-publication-receipts.jsonl`, and records the
+`approved -> published` creative transition. This deliberately uses ordinary
+IDs and validated state; cryptographic signing is not required.

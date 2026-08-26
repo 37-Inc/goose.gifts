@@ -419,9 +419,12 @@ outbound clicks after each change.
   matches visible content.
 - [ ] Each weekly sprint should include desktop and mobile visual QA so the new
   pages feel intentionally designed, not like templated scrape pages.
-- [ ] **Weekly distribution prep**: prepare Pinterest/social/OG asset ideas for
-  new evergreen guide pages, but do not post externally until Cameron approves
-  the first publishing workflow.
+- [x] **Weekly Pinterest distribution workflow**: use current verified/enriched
+  catalog candidates, produce at most one excellent product-faithful survivor,
+  and post only an exact Cameron-approved queue package through the guarded
+  production API or signed-in browser fallback. The old ad-style and Sandbox
+  profile debris was removed on 2026-08-25; Pinterest v3/Sandbox remain excluded
+  from traffic evidence.
 - [ ] **Monthly refresh**: prune, merge, or rewrite thin pages; refresh titles,
   intros, FAQs, internal links, and candidate priorities using Search Console
   once available and on-site search/click data until then.

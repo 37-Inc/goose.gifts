@@ -153,19 +153,17 @@ frame that shows a raw token.**
 
 ## Submission outcome and production verification (updated 2026-08-25)
 
-- The five legacy v3 Sandbox Pins were deleted. The three polished editorial
-  examples remain on the two useful Sandbox boards.
-- Pinterest's Sandbox API returned HTTP 500 when deleting confirmed-empty boards,
-  so three empty legacy board containers remain. They contain no Pins and are not
-  a review blocker.
+- All remaining Sandbox Pins were deleted after Standard approval, including
+  the polished editorial examples and duplicate ceramic-eye demo attempts. The
+  five confirmed-empty `API Trial - ...` boards were then deleted successfully.
+  Sandbox now reports zero Pins and zero boards.
 - The portal app purpose is saved with the stronger first-party description and
   the app icon was uploaded.
 - The upgrade form is prepared with **Pin creation & scheduling** and
   **Reporting** selected. **Ad campaign management** is unselected. The audience
   is **Creators** and **Businesses**.
-- The uploaded demo created Sandbox Pin `1107815208384458180`. Keep it available
-  as review evidence until Pinterest decides the application, then delete the
-  duplicate during post-review cleanup.
+- The uploaded demo created Sandbox Pin `1107815208384458180`; it was deleted
+  during the 2026-08-25 post-approval cleanup.
 - Cameron submitted the Standard-access upgrade request on 2026-07-28.
   Pinterest approved the `Goose.gifts` app for Standard access on 2026-08-24;
   the verified approval email was read and its completed two-message thread was
@@ -183,14 +181,17 @@ frame that shows a raw token.**
 - Public posting still needs exact candidate/package approval (per
   `MARKETING.md` and `NEEDS.md`). Approval must cover the image, destination,
   board, title, description, alt text, disclosure, tracking URL, and cadence.
-- The current CLI has the necessary API primitives and now refuses a production
-  create for any draft that already has a public Pin URL. Unattended publication
-  remains disabled until the create path also machine-checks the exact approval
-  event and records/read-verifies the returned public Pin with idempotent retry
-  protection.
-- Until those guards ship, exact approved packages may still be posted through
-  an interactive signed-in browser session. Sandbox and Pinterest v3 objects
-  remain excluded from public performance evidence forever.
+- The guarded production CLI requires the draft's candidate ID and Cameron
+  approval-event ID, validates the current creative state and complete disclosed
+  package, checks the connected account and existing tracking URL, reads a
+  created Pin back, records a durable receipt, and marks the draft published. A
+  retry recovers an exact existing Pin rather than creating a duplicate.
+- `npm run pinterest:candidates` reads current verified/enriched catalog
+  products and excludes previously published product families. It does not run
+  the weekly catalog job, generate images, approve candidates, or publish.
+- An exact approved package may use the production API or the interactive
+  signed-in browser fallback. Sandbox and Pinterest v3 objects remain excluded
+  from public performance evidence forever.
 
 ## References
 
