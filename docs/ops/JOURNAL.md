@@ -32,7 +32,11 @@ resolution review scored it `4.75/5` with all hard gates passing. Minor wing
 smoothing and foreground flatware abundance were non-gating and did not justify
 a revision. The candidate is shortlisted—not approved—with one complete
 canonical package in `REVIEW_QUEUE.md`. No production dry run or create was
-attempted.
+attempted. Automated PR review then found two causal-ledger bindings that were
+too broad: the v4 decision mentioned v6, and the v6 strict-reference conclusion
+did not cite its prompt attempt. Append-only correction events now scope those
+claims to the exact product record, prompt, review, and public metric evidence;
+the original events remain preserved for auditability.
 
 **Organic checkpoint**: the coworker guide's first 28-day window after the
 2026-07-31 change reports 457 impressions, zero clicks, and average position

@@ -139,6 +139,18 @@ test("repository event log is valid and exposes approval-gated next actions", as
       candidateId: "cand-v6-raw-chicken-centerpiece",
     }],
   );
+  assert.doesNotMatch(
+    state.experiments.get("exp-pinterest-native-v4").learnings.at(-1).decision,
+    /v6/i,
+  );
+  assert.deepEqual(
+    state.candidates
+      .get("cand-v6-raw-chicken-centerpiece")
+      .learnings.at(-1)
+      .evidenceEventIds
+      .filter((eventId) => eventId === "evt-20260828-v6-raw-chicken-attempt-1"),
+    ["evt-20260828-v6-raw-chicken-attempt-1"],
+  );
   assert.equal(
     summary.experiments[0].candidates.find(
       (candidate) => candidate.candidateId === "cand-unhinged-desk-guide",

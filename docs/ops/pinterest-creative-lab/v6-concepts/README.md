@@ -2,6 +2,12 @@
 
 ## Product preflight
 
+Append-only evidence note: an automated review correctly found that the first
+preflight learning cited the experiment record instead of the candidate-specific
+listing and source-image record. Events 19-21 preserve the original history,
+scope the v4 learning to v4 evidence, and add the corrected v6 causal chain from
+the exact product record through prompt and full-resolution review.
+
 - Product: SAANG & JAT quirky pink ceramic raw-chicken vase
 - ASIN: `B0G9M9XPSX`
 - Canonical destination:
