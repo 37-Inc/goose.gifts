@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-raw-chicken-measuring",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-08-28T10:20:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "candidateId": "cand-v6-raw-chicken-centerpiece",
+    "from": "published",
+    "to": "measuring",
+    "rationale": "Pinterest production API v5 created public Pin 1107815208387225923 on the goosegifts BUSINESS account, and API readback verified the exact approved board, title, description, alt text, 1024x1536 image, and tracked canonical product destination. Begin public-only measurement; Sandbox and Pinterest v3 remain excluded."
+  }
+}

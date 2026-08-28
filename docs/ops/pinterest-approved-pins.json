@@ -123,6 +123,23 @@
       "sandboxPinId": "1107815208384433636",
       "sandboxBoard": "API Trial - Weird Home Decor",
       "sandboxDeletedAt": "2026-08-26T04:22:44Z"
+    },
+    {
+      "id": "editorial-raw-chicken-vase-formal-dinner",
+      "candidateId": "cand-v6-raw-chicken-centerpiece",
+      "approvalEventId": "evt-20260828-v6-raw-chicken-approved",
+      "board": "Weird Home Decor",
+      "assetPath": "docs/ops/pinterest-creative-lab/v6-concepts/01-raw-chicken-vase-formal-dinner.png",
+      "targetPage": "https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise",
+      "trackingUrl": "https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+      "title": "The Chicken Brought Flowers to Dinner",
+      "description": "A candlelit dinner table, cream anemones, and one glossy pink ceramic chicken vase trying very hard not to look like the main course. See the exact raw-chicken vase on goose.gifts. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Small glossy pale-pink ceramic vase shaped like a plucked chicken holding cream anemones on a candlelit formal dinner table.",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208387225923/",
+      "publishedAt": "2026-08-28T17:19:28.493Z",
+      "publicationReceiptId": "receipt-1787937568490-editorial-raw-chicken-vase-formal-dinner-publication-succeeded"
     }
   ]
 }

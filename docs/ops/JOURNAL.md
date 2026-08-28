@@ -51,6 +51,18 @@ September; current traffic and sharing evidence does not reopen it. The weekly
 catalog job, backlink/outreach work, public posting, paid tools, and spend were
 all excluded.
 
+**Owner-approved production publication**: after the scheduled run, Cameron
+approved the exact queued raw-chicken-vase package and explicitly requested the
+new production API path. The append-only ledger records the narrow v6 public
+ceiling and exact candidate approval; paid spend, another candidate, recurring
+cadence, and Sandbox posting remain unauthorized. Production OAuth refreshed
+against the `goosegifts` BUSINESS account, the required non-Sandbox dry run
+resolved `Weird Home Decor` and the exact complete payload, and API v5 created
+public Pin `1107815208387225923`. Independent API readback verified the board,
+title, description, alt text, tracked canonical product URL, image media, and
+full 1024x1536 rendition. The success receipt is durable and the candidate is
+now measuring; this is publication evidence, not performance evidence.
+
 ## 2026-08-25 - Pinterest Standard approval and production readiness
 
 **Approval proof**: Pinterest Developer Platform's verified sender emailed the

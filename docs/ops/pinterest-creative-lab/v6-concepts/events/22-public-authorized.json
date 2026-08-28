@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-public-authorized",
+  "type": "experiment.authorization_changed",
+  "recordedAt": "2026-08-28T10:18:19-07:00",
+  "actor": "cameron",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "from": {
+      "generation": true,
+      "publicPosting": false,
+      "paidSpend": false
+    },
+    "to": {
+      "generation": true,
+      "publicPosting": true,
+      "paidSpend": false
+    },
+    "rationale": "Cameron explicitly approved the exact queued raw-chicken-vase package and instructed Codex to publish it through the new Pinterest production API access. This enables the experiment-level technical ceiling required by the guarded publisher, but authorizes only cand-v6-raw-chicken-centerpiece, not another candidate, recurring cadence, paid spend, or Sandbox posting."
+  }
+}

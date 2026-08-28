@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-raw-chicken-approved",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-08-28T10:18:20-07:00",
+  "actor": "cameron",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "candidateId": "cand-v6-raw-chicken-centerpiece",
+    "from": "shortlisted",
+    "to": "approved",
+    "rationale": "Cameron approved the exact owner-ready package in REVIEW_QUEUE.md: the 1024x1536 raw-chicken-vase formal-dinner image; Weird Home Decor board; title The Chicken Brought Flowers to Dinner; complete description, alt text, AI-modified and affiliate disclosure; canonical product destination; pinterest_editorial_v3 raw_chicken_vase_formal_dinner tracking URL; and one immediate public post through the guarded Pinterest production API. No second candidate, recurring cadence, Sandbox post, paid tool, or spend is authorized."
+  }
+}

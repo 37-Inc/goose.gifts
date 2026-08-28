@@ -134,10 +134,11 @@ test("repository event log is valid and exposes approval-gated next actions", as
     actions
       .filter((item) => item.action.includes("owner selection"))
       .map(({ experimentId, candidateId }) => ({ experimentId, candidateId })),
-    [{
-      experimentId: "exp-pinterest-native-v6",
-      candidateId: "cand-v6-raw-chicken-centerpiece",
-    }],
+    [],
+  );
+  assert.equal(
+    state.candidates.get("cand-v6-raw-chicken-centerpiece").status,
+    "measuring",
   );
   assert.doesNotMatch(
     state.experiments.get("exp-pinterest-native-v4").learnings.at(-1).decision,
