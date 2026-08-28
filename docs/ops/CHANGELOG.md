@@ -77,7 +77,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-28 — First guarded production-API Pinterest publication `[owner+codex]`
+### 2026-08-28 — First guarded production-API Pinterest publication `[owner+codex]` ([PR #118](https://github.com/37-Inc/goose.gifts/pull/118))
 
 Cameron approved the exact raw-chicken-vase queue package and requested the new
 production API path. Recorded the narrow experiment ceiling and candidate
