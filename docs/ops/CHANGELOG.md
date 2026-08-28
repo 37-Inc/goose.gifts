@@ -75,7 +75,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-28 — Raw-chicken-vase Pinterest survivor `[daily-ops]`
+### 2026-08-28 — Raw-chicken-vase Pinterest survivor `[daily-ops]` ([PR #117](https://github.com/37-Inc/goose.gifts/pull/117))
 
 Used the new enriched-catalog bridge to select and reverify the in-stock pink
 ceramic raw-chicken vase from the latest weekly run. Recorded three divergent
