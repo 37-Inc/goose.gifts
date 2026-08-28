@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-candidate-learning-correction",
+  "type": "learning.recorded",
+  "recordedAt": "2026-08-28T10:02:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "candidateId": "cand-v6-raw-chicken-centerpiece",
+    "scope": "candidate",
+    "statement": "Evidence-binding correction for evt-20260828-v6-raw-chicken-learning: the candidate record supports exact product identity, the prompt event records the strict image reference and explicit anti-flesh constraints, and the full-resolution review records the resulting ceramic fidelity and passing hard gates.",
+    "evidenceEventIds": [
+      "evt-20260828-v6-raw-chicken-learning",
+      "evt-20260828-v6-raw-chicken-created",
+      "evt-20260828-v6-raw-chicken-attempt-1",
+      "evt-20260828-v6-raw-chicken-review-1",
+      "evt-20260828-v6-product-evidence-correction"
+    ],
+    "decision": "The causal chain supports shortlisting attempt-v6-raw-chicken-1, while the candidate remains unapproved and unpublished.",
+    "nextAction": "Present the complete package to Cameron for exact approval or rejection; without an approval event, leave the production API untouched."
+  }
+}

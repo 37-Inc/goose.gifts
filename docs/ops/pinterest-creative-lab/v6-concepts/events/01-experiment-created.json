@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-pinterest-v6-created",
+  "type": "experiment.created",
+  "recordedAt": "2026-08-28T09:35:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "name": "Pinterest-native creative v6 enriched-catalog test",
+    "channel": "pinterest",
+    "objective": "Forward-test the verified editorial catalog bridge on one visually distinctive product refreshed by the latest weekly catalog run.",
+    "hypothesis": "A polished formal tablescape built around the exact raw-chicken-shaped ceramic vase will create a beautiful-first, strange-second double take without relying on ad copy or a reusable product template.",
+    "initialStatus": "active",
+    "authorization": {
+      "generation": true,
+      "publicPosting": false,
+      "paidSpend": false
+    },
+    "successCriteria": [
+      "One source-verified 2:3 artifact passes every hard gate, averages at least 4.0, and has no score below 3.",
+      "The product remains recognizably smooth light-pink ceramic, cornish-hen sized, and shaped like the exact listing rather than real poultry.",
+      "The run records three divergent concepts, the exact prompt and reference, full-resolution review, and one concrete learning."
+    ],
+    "constraints": [
+      "Generate no more than one genuinely excellent survivor and revise only a diagnosed weakness.",
+      "Do not publish, post, spend, subscribe, contact anyone, or treat catalog rank as creative approval.",
+      "Use only public Pinterest cohorts as performance evidence and permanently exclude Sandbox and v3."
+    ],
+    "tags": ["pinterest", "creative-lab", "v6", "enriched-catalog", "organic"]
+  }
+}
+

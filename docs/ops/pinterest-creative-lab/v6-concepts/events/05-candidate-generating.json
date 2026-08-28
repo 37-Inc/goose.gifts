@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-raw-chicken-generating",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-08-28T09:39:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "candidateId": "cand-v6-raw-chicken-centerpiece",
+    "from": "briefed",
+    "to": "generating",
+    "rationale": "Generate one reference-bound 2:3 editorial attempt; internal generation is authorized while publication and spend remain prohibited."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v5-public-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-08-28T09:46:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v5",
+    "scope": "experiment",
+    "statement": "The three Patricia hippo variants total 17 public impressions: breakfast five, vanity four, and desk eight, with no save, Pin click, outbound click, attributable Pinterest session, or affiliate click. The single added desk impression does not resolve the same-product visual comparison.",
+    "evidenceEventIds": ["evt-20260828-hippo-breakfast-public-checkpoint", "evt-20260828-hippo-vanity-public-checkpoint", "evt-20260828-hippo-desk-public-checkpoint"],
+    "decision": "Keep all three in measurement and do not infer a creative winner or loser from minimal distribution.",
+    "nextAction": "Continue public-only measurement; no unattended publication and no spend."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v4-public-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-08-28T09:45:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v4",
+    "scope": "experiment",
+    "statement": "The three truthful v4 creatives now total 214 public impressions: goat 131 with two Pin clicks and one save, alligator 68, and ceramic eye 15. The five impressions added since 2026-08-25 produced no new engagement, outbound click, attributable Pinterest session, or affiliate click.",
+    "evidenceEventIds": ["evt-20260828-alligator-public-checkpoint", "evt-20260828-ceramic-eye-public-checkpoint", "evt-20260828-goat-public-checkpoint"],
+    "decision": "Keep the corrected goat as the only directional attention leader and keep all three published candidates in measurement; the new v6 creative is justified by a distinct verified catalog-product hypothesis rather than this small performance increment.",
+    "nextAction": "Continue public-only measurement and never use Sandbox or Pinterest v3 as traffic evidence."
+  }
+}
+

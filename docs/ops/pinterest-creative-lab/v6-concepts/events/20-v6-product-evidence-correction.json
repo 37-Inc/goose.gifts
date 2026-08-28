@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-product-evidence-correction",
+  "type": "learning.recorded",
+  "recordedAt": "2026-08-28T10:01:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "candidateId": "cand-v6-raw-chicken-centerpiece",
+    "scope": "candidate",
+    "statement": "Evidence-binding correction for evt-20260828-v6-product-preflight: the candidate record durably identifies the exact Amazon listing, canonical destination, and inspected local source image for ASIN B0G9M9XPSX. Those candidate-specific references, rather than the experiment-created event, support the product identity and source-image claims.",
+    "evidenceEventIds": [
+      "evt-20260828-v6-product-preflight",
+      "evt-20260828-v6-raw-chicken-created"
+    ],
+    "decision": "Treat evt-20260828-v6-raw-chicken-created as the causal product/source verification evidence for this candidate and preserve the earlier event as append-only history.",
+    "nextAction": "Require future product-preflight learnings to cite a prior candidate-specific listing and source-reference event before they make listing or object-identity claims."
+  }
+}

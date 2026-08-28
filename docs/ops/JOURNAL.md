@@ -5,6 +5,52 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-08-28 - Pinterest and organic-growth studio
+
+**Evidence checked**: Pinterest API v5 reports 231 lifetime public impressions
+for the six truthful product creatives, with two Pin clicks and one save on the
+corrected goat and no outbound click anywhere. The earlier editorial trio is at
+88 impressions; the newer Creative Lab trio is at 143. GA4's 2026-08-21 through
+2026-08-27 window has 17 sessions, no Pinterest source, one direct `/gifts`
+`select_item`, and no outbound click event. The first-party database has one
+search and zero product clicks in seven days. Sandbox and v3 were excluded.
+
+**Creative cycle**: `npm run pinterest:candidates` read the current verified,
+editorially enriched catalog without running the weekly job. Four of the top
+five products were touched by the latest completed 2026-08-24 catalog run. The
+small pink ceramic raw-chicken vase (`B0G9M9XPSX`) supplied the clearest new
+visual mechanism. Amazon Creators API reverified the exact title, unchanged
+source image, `$26.99` price, `IN_STOCK` status, 6.3-inch scale, ceramic
+material, and small-bouquet use. Its canonical product page is live `200`,
+`index, follow`, and self-canonical; Search Console currently classifies it as
+discovered, not indexed.
+
+Three distinct product-derived directions were preserved under
+`pinterest-creative-lab/v6-concepts`. One reference-bound generation placed the
+exact small glossy ceramic chicken vase in a candlelit formal tablescape. Full-
+resolution review scored it `4.75/5` with all hard gates passing. Minor wing
+smoothing and foreground flatware abundance were non-gating and did not justify
+a revision. The candidate is shortlisted—not approved—with one complete
+canonical package in `REVIEW_QUEUE.md`. No production dry run or create was
+attempted. Automated PR review then found two causal-ledger bindings that were
+too broad: the v4 decision mentioned v6, and the v6 strict-reference conclusion
+did not cite its prompt attempt. Append-only correction events now scope those
+claims to the exact product record, prompt, review, and public metric evidence;
+the original events remain preserved for auditability.
+
+**Organic checkpoint**: the coworker guide's first 28-day window after the
+2026-07-31 change reports 457 impressions, zero clicks, and average position
+39.6, versus 269/zero/39.9 before the edit. URL Inspection is still PASS and
+indexing-allowed with matching canonicals, but its last Google crawl remains
+2026-07-18. Because Google has not recrawled the changed content, no second edit
+was made. The sitemap was downloaded on 2026-08-25 with 106 submitted URLs and
+zero warnings/errors, while Search Analytics still shows no `/gifts/` page.
+
+**Scope**: August's no-account shortlist decision remains closed until
+September; current traffic and sharing evidence does not reopen it. The weekly
+catalog job, backlink/outreach work, public posting, paid tools, and spend were
+all excluded.
+
 ## 2026-08-25 - Pinterest Standard approval and production readiness
 
 **Approval proof**: Pinterest Developer Platform's verified sender emailed the
