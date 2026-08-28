@@ -30,8 +30,9 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Six product-faithful editorial Pins are live. As of 2026-08-25 they have 225
-   public impressions in total, two Pin clicks, and one save, all engagement on
+   Seven product-faithful editorial Pins are live. Before the seventh launched,
+   the first six had 231 public impressions in total, two Pin clicks, and one
+   save, all engagement on
    the corrected goat, but no outbound click or attributable site session. That
    is a directional attention signal, not yet a creative or conversion
    verdict. A twice-weekly studio advances at most one excellent survivor per
@@ -49,6 +50,17 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-08-28 production API launch
+
+Cameron approved the complete raw-chicken-vase formal-dinner package and
+explicitly selected the new production API path. The guarded publisher passed
+the non-Sandbox dry run against the `goosegifts` BUSINESS account and `Weird
+Home Decor` board, created Standard Pin `1107815208387225923`, read back the
+exact copy, alt text, tracked canonical product destination, and 1024x1536
+image, then wrote the durable success receipt. The candidate is now measuring.
+This approval covered one exact package only; it did not authorize another
+candidate, automatic cadence, Sandbox posting, paid tools, or spend.
 
 ### Problem statement
 

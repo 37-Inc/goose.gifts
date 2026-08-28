@@ -33,7 +33,7 @@ what's likely next.
   guide's 2026-08-25 checkpoint remains inconclusive because Google has not
   recrawled the August 11 copy; recheck it and the newly improved kitchen guide
   on 2026-09-08 (Beads `roadmap-fkvo`).
-- **Distribution / Pinterest — one exact package awaits review.**
+- **Distribution / Pinterest — measure the first guarded production-API Pin.**
   Pinterest approved the `Goose.gifts` app on 2026-08-24. Production OAuth
   refresh, account/board/metrics reads, and a real-board create dry run passed
   on 2026-08-25 with every required scope. Keep the existing Tuesday/Friday
@@ -42,9 +42,10 @@ what's likely next.
   duplicate URL; it read-verifies and durably records the result. It may write
   only an exact approved queue package. The old ad-style and Sandbox profile
   debris is gone, and the completed access work is closed in Beads
-  `roadmap-fd1h`. The raw-chicken-vase package is shortlisted for owner review,
-  not approved. Helps indexation (external signals).
-- **Pinterest creative workflow — review the raw-chicken vase and measure the
+  `roadmap-fd1h`. Cameron approved the raw-chicken-vase package on 2026-08-28;
+  the production API created and read-verified public Pin
+  `1107815208387225923`. Helps indexation (external signals).
+- **Pinterest creative workflow — measure the raw-chicken vase and the
   public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
   browser-published as public Pin `1107815208385022014`. The stronger hippo
@@ -53,8 +54,9 @@ what's likely next.
   Pin `1107815208385562809`. The goat has 131 public impressions, two Pin
   clicks, and one save, but no outbound click; the full truthful cohort has 231
   impressions. The first enriched-catalog forward test produced one new
-  4.75/5 raw-chicken-vase survivor with a complete canonical package awaiting
-  exact approval; generate no second v6 survivor while that decision is open.
+  4.75/5 raw-chicken-vase survivor, now live through the guarded production API
+  as the seventh product-faithful Pin. Measure before drawing a performance
+  conclusion.
   Canonical gift pages now replace product-pinned
   random-gift URLs for future campaign packages; existing Pin destinations
   permanently redirect without losing their UTM attribution.
@@ -74,6 +76,19 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-28 — First guarded production-API Pinterest publication `[owner+codex]` ([PR #118](https://github.com/37-Inc/goose.gifts/pull/118))
+
+Cameron approved the exact raw-chicken-vase queue package and requested the new
+production API path. Recorded the narrow experiment ceiling and candidate
+approval through the validated append-only workflow; added the exact package to
+the guarded manifest; confirmed the `goosegifts` BUSINESS account; passed the
+non-Sandbox dry run; and created Standard public Pin
+`1107815208387225923` on `Weird Home Decor`. The publisher read back the exact
+approved board, copy, alt text, tracked canonical product URL, and 1024x1536
+image, wrote a durable success receipt, and advanced the candidate to measuring.
+No Sandbox object, second candidate, cadence expansion, paid tool, or spend was
+authorized.
 
 ### 2026-08-28 — Raw-chicken-vase Pinterest survivor `[daily-ops]` ([PR #117](https://github.com/37-Inc/goose.gifts/pull/117))
 

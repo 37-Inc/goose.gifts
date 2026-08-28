@@ -7,10 +7,18 @@ candidate and publishing package.
 
 ## Ready for owner review
 
+None.
+
+## Published from this queue
+
 ### Raw chicken vase — formal dinner centerpiece
 
-- Candidate: `cand-v6-raw-chicken-centerpiece` (`shortlisted`, internal score
-  `4.75/5`; **not approved**)
+- Candidate: `cand-v6-raw-chicken-centerpiece` (`measuring`, internal score
+  `4.75/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387225923/`
+- Published: 2026-08-28 through Pinterest production API v5 after Cameron
+  approved this exact complete package and specifically requested the new
+  production access path.
 - Artifact:
   `docs/ops/pinterest-creative-lab/v6-concepts/01-raw-chicken-vase-formal-dinner.png`
 - Exact product: SAANG & JAT quirky pink ceramic raw-chicken vase, ASIN
@@ -34,11 +42,11 @@ candidate and publishing package.
   six-inch scale, and physical table contact. Minor wing-detail smoothing and
   abundant foreground flatware do not change the product promise or any hard
   gate.
-- Owner action: approve or reject this exact complete package. Approval must be
-  recorded as Cameron's candidate event before the guarded publisher manifest,
-  dry run, or production create may proceed.
-
-## Published from this queue
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account and `Weird Home Decor` board, blocked duplicate tracked
+  destinations, created one Standard Pin, read back every approved field and
+  the 1024x1536 image, and wrote receipt
+  `receipt-1787937568490-editorial-raw-chicken-vase-formal-dinner-publication-succeeded`.
 
 ### Patricia hippo mug — creative-director desk
 
