@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-raw-chicken-review-status",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-08-28T09:41:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "candidateId": "cand-v6-raw-chicken-centerpiece",
+    "from": "generating",
+    "to": "review",
+    "rationale": "The 1024x1536 artifact is saved in the repository and has been inspected at full useful resolution against the exact source reference."
+  }
+}
+

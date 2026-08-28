@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-raw-chicken-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-08-28T09:44:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "candidateId": "cand-v6-raw-chicken-centerpiece",
+    "scope": "candidate",
+    "statement": "The enriched-catalog bridge produced a fresher and more visually authored direction than another mug or desk-toy scene: the exact chicken-shaped ceramic form creates a formal-dinner/floral contradiction while remaining truthful at small centerpiece scale. One strict identity reference plus explicit anti-flesh constraints preserved ceramic material and avoided the eye-rug and oversized-goat failure modes.",
+    "evidenceEventIds": [
+      "evt-20260828-v6-product-preflight",
+      "evt-20260828-v6-raw-chicken-review-1"
+    ],
+    "decision": "Shortlist attempt-v6-raw-chicken-1 as the run's only survivor and do not generate a cosmetic revision for minor non-gating simplifications.",
+    "nextAction": "Present the complete Weird Home Decor publishing package to Cameron for exact approval or rejection; without an approval event, leave the production API untouched."
+  }
+}

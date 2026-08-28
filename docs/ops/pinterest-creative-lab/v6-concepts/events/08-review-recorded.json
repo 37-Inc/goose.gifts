@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-raw-chicken-review-1",
+  "type": "review.recorded",
+  "recordedAt": "2026-08-28T09:42:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "candidateId": "cand-v6-raw-chicken-centerpiece",
+    "attemptId": "attempt-v6-raw-chicken-1",
+    "rubricVersion": 1,
+    "reviewer": "codex",
+    "scores": {
+      "scrollStop": 5,
+      "pinterestNative": 5,
+      "aestheticQuality": 5,
+      "conceptClarity": 5,
+      "saveworthiness": 5,
+      "brandRestraint": 5,
+      "productFidelity": 4,
+      "aiArtifactControl": 4
+    },
+    "gates": {
+      "singleIdea": true,
+      "truthfulProduct": true,
+      "noEmbeddedCta": true,
+      "noAdTemplate": true
+    },
+    "verdict": "advance",
+    "notes": [
+      "The complete small light-pink glazed chicken vessel, rounded body, two folded wing forms, two legs, open floral neck, table contact, and wine-glass-relative scale agree with the verified listing.",
+      "The dark formal room and natural candlelight read as saveable interiors photography before the raw-chicken-shaped centerpiece becomes the double take.",
+      "Minor sculpt smoothing and symmetry simplify the source wing detail, and the foreground flatware is slightly abundant, but neither changes product identity, physical plausibility, or the single focal idea.",
+      "No logo, caption, CTA, price, border, collage, packaging, or reusable product-card structure is present; revision is not justified by a failed gate."
+    ]
+  }
+}
+

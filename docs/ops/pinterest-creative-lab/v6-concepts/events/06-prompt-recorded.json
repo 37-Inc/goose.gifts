@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-raw-chicken-attempt-1",
+  "type": "prompt.recorded",
+  "recordedAt": "2026-08-28T09:40:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "candidateId": "cand-v6-raw-chicken-centerpiece",
+    "attemptId": "attempt-v6-raw-chicken-1",
+    "parentAttemptId": null,
+    "tool": "Codex built-in image generation (image_gen)",
+    "prompt": "Use case: photorealistic-natural\nAsset type: vertical 2:3 Pinterest-native editorial interior photograph\nPrimary request: Create a new beautiful, moody formal-dinner still life built specifically around the exact ceramic vase in Image 1.\nInput images: Image 1 is the strict product-identity reference. It controls the object type, silhouette, material, color, sculpted wings and legs, open neck, and real-world scale.\nScene/backdrop: a sophisticated intimate dining room at blue hour, dark oxblood painted walls, one round table set for a quiet dinner with an ivory linen cloth, restrained silver flatware, two simple taper candles, and a small loose bouquet of cream anemones and delicate dark-red stems emerging from the vase.\nSubject: the exact small light-pink glazed ceramic vessel shaped like a plucked whole chicken, seated upright at the center of the table. Preserve its smooth glossy pottery surface, rounded body, two folded sculpted wing forms, two short legs and feet, small rear tail contour, and open top at the neck. It is approximately 6.3 inches tall and holds only a small six-stem-scale bouquet.\nStyle/medium: photorealistic high-end interiors editorial photography with tactile natural materials and restrained analog film character.\nComposition/framing: vertical 2:3, eye-level three-quarter table view, the complete vase is the single focal object and fully inspectable, ordinary small centerpiece scale, physically grounded on the linen with a believable contact shadow. The room and table should feel genuinely saveable before the strange vessel registers.\nLighting/mood: soft directional window light mixed with warm candle glow; elegant, quiet, slightly uncanny; enough side light to clearly show the pale-pink ceramic silhouette and glaze.\nColor palette: oxblood, ivory, aged silver, cream flowers, dark-red stems, and the vase's exact light pink.\nMaterials/textures: smooth glazed ceramic, wrinkled linen, aged silver, natural flower petals, matte painted wall; realistic rather than glossy AI advertising polish.\nConstraints: one immediately legible visual idea; beautiful first and strange on the double take; truthful product form and small scale; no people or hands; no extra novelty objects.\nAvoid: real poultry flesh, skin pores, raw-meat texture, feathers, cooked turkey, roast chicken, bird head, eyes, beak, life-size bird, planter soil, plastic toy, plush animal, changed silhouette, missing wings or legs, floating object, extra vases, packaging, logo, typography, caption, CTA, badge, price, border, collage, product-card frame, excessive props, symmetrical e-commerce staging, watermark.",
+    "changesFromParent": "",
+    "referencePaths": [
+      "docs/ops/pinterest-creative-lab/v6-concepts/product-references/B0G9M9XPSX-primary.jpg"
+    ],
+    "artifactPaths": [
+      "docs/ops/pinterest-creative-lab/v6-concepts/01-raw-chicken-vase-formal-dinner.png"
+    ],
+    "settings": {
+      "aspectRatio": "2:3",
+      "resolution": "1024x1536",
+      "stage": "enriched-catalog product-bound forward test",
+      "sourceAsin": "B0G9M9XPSX",
+      "sha256": "d273f7057cc7331a7113bc2e3f610028b7b6ea50fdfbee8c15d1252cb7241df2"
+    },
+    "result": "generated",
+    "notes": [
+      "Generated with the exact downloaded Amazon source image as the strict product-identity reference.",
+      "The selected artifact was copied into the repository before review."
+    ]
+  }
+}
+

@@ -7,18 +7,36 @@ candidate and publishing package.
 
 ## Ready for owner review
 
-None. The previously ready hippo-desk package was explicitly approved and
-published on 2026-08-07. Shortlisting remains distinct from approval for every
-future candidate. Reconciled on 2026-08-25: all valid survivors are public, and
-the owner-authorized cleanup left only those six product-faithful production
-Pins. The old five-Pin ad-style cohort, six Sandbox test Pins, and five empty API
-Trial boards were deleted after preserving their history and final metrics.
+### Raw chicken vase — formal dinner centerpiece
 
-The next creative cycle should run `npm run pinterest:candidates -- --limit 20`
-and choose a visually promising current product from the verified, enriched,
-duplicate-suppressed catalog shortlist. The command does not generate or post;
-the normal three-concept, one-selected-execution, full-resolution review, and
-exact-package approval gates still apply.
+- Candidate: `cand-v6-raw-chicken-centerpiece` (`shortlisted`, internal score
+  `4.75/5`; **not approved**)
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v6-concepts/01-raw-chicken-vase-formal-dinner.png`
+- Exact product: SAANG & JAT quirky pink ceramic raw-chicken vase, ASIN
+  `B0G9M9XPSX`; Amazon Creators API reverified it `IN_STOCK` at `$26.99` on
+  2026-08-28 with the source image unchanged.
+- Destination:
+  `https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise`
+- Board: `Weird Home Decor`
+- Title: `The Chicken Brought Flowers to Dinner`
+- Description: `A candlelit dinner table, cream anemones, and one glossy pink ceramic chicken vase trying very hard not to look like the main course. See the exact raw-chicken vase on goose.gifts. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Small glossy pale-pink ceramic vase shaped like a plucked chicken holding cream anemones on a candlelit formal dinner table.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner`
+- Why it earns a pause: the image first reads as a saveable, restrained dinner
+  tablescape; the centerpiece then resolves as a small glossy plucked-chicken
+  sculpture. That collision depends on the exact product and fails the swap
+  test.
+- Truth/risk review: full-resolution inspection preserves the smooth pink
+  pottery, rounded body, folded wing forms, legs, open floral neck, ordinary
+  six-inch scale, and physical table contact. Minor wing-detail smoothing and
+  abundant foreground flatware do not change the product promise or any hard
+  gate.
+- Owner action: approve or reject this exact complete package. Approval must be
+  recorded as Cameron's candidate event before the guarded publisher manifest,
+  dry run, or production create may proceed.
 
 ## Published from this queue
 

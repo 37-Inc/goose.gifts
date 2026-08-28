@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-product-preflight",
+  "type": "learning.recorded",
+  "recordedAt": "2026-08-28T09:36:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "scope": "experiment",
+    "statement": "Amazon Creators API and full-resolution source inspection agree that B0G9M9XPSX is an in-stock, 6.3-inch-tall, smooth light-pink ceramic vase shaped like a plucked whole chicken, with sculpted folded wings and legs and an open neck for a small bouquet; it is not flesh, a cooked turkey, a feathered bird, or a planter with soil.",
+    "evidenceEventIds": ["evt-20260828-pinterest-v6-created"],
+    "decision": "Select the formal-dinner centerpiece concept because its culinary/floral contradiction depends on the verified silhouette and breaks when the product is swapped.",
+    "nextAction": "Record and generate one reference-bound vertical attempt, preserving smooth ceramic material, small scale, exact silhouette, and a clearly open floral neck."
+  }
+}
+

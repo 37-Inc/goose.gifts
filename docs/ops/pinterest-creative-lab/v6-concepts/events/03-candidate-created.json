@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-raw-chicken-created",
+  "type": "candidate.created",
+  "recordedAt": "2026-08-28T09:37:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "candidateId": "cand-v6-raw-chicken-centerpiece",
+    "title": "Raw chicken vase formal dinner centerpiece",
+    "creativeFamily": "beautiful room, one wrong thing",
+    "audience": "Pinterest users who save maximalist tablescapes, strange interiors, dopamine decor, and funny housewarming gifts",
+    "hook": "An elegant candlelit dinner table contains one tiny pale-pink ceramic plucked chicken serving as the floral centerpiece.",
+    "initialStatus": "idea",
+    "product": {
+      "name": "SAANG & JAT quirky pink ceramic raw-chicken vase (ASIN B0G9M9XPSX)",
+      "sourceUrl": "https://www.amazon.com/dp/B0G9M9XPSX?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+      "destinationUrl": "https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise"
+    },
+    "references": [
+      {
+        "source": "docs/ops/pinterest-creative-lab/v6-concepts/product-references/B0G9M9XPSX-primary.jpg",
+        "lesson": "Preserve the small glossy light-pink ceramic vessel, upright plucked-chicken silhouette, folded wing forms, two legs, rounded body, and open floral neck; never render real poultry texture or feathers."
+      }
+    ],
+    "notes": [
+      "The concept was selected after three product-derived directions were compared in the v6 README.",
+      "The product-specific dinner-versus-floral collision fails the swap test and is not a reusable product-card layout."
+    ]
+  }
+}
+

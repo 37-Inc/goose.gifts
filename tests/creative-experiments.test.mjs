@@ -115,7 +115,7 @@ function review(verdict = "advance", score = 4, gate = true) {
   );
 }
 
-test("repository event log is valid and exposes publication-driven next actions", async () => {
+test("repository event log is valid and exposes approval-gated next actions", async () => {
   const state = validateAndFold(await loadEvents());
   const summary = serializeState(state);
   const actions = nextActions(state);
@@ -130,7 +130,15 @@ test("repository event log is valid and exposes publication-driven next actions"
     ["cand-alligator-editorial", "cand-ceramic-eye-interior", "cand-screaming-goat-meeting"],
   );
   assert.equal(actions.filter((item) => item.action.includes("requires revision")).length, 0);
-  assert.equal(actions.filter((item) => item.action.includes("owner selection")).length, 0);
+  assert.deepEqual(
+    actions
+      .filter((item) => item.action.includes("owner selection"))
+      .map(({ experimentId, candidateId }) => ({ experimentId, candidateId })),
+    [{
+      experimentId: "exp-pinterest-native-v6",
+      candidateId: "cand-v6-raw-chicken-centerpiece",
+    }],
+  );
   assert.equal(
     summary.experiments[0].candidates.find(
       (candidate) => candidate.candidateId === "cand-unhinged-desk-guide",

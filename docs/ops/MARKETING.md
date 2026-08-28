@@ -162,6 +162,33 @@ For every concept promoted beyond rough exploration, record:
 
 ## Experiment log
 
+### 2026-08-28 — Enriched-catalog raw-chicken-vase creative
+
+- **Evidence checked**: the six truthful public Pins now total 231 impressions,
+  two Pin clicks, one save, and zero outbound clicks. The goat remains the only
+  directional attention signal at 131/two/one. GA4 reports no Pinterest session
+  or outbound event, and the database has zero product clicks in seven days;
+  historic `goose-proof` traffic remains QA. Sandbox and v3 were excluded.
+- **Catalog hypothesis**: the current verified/enriched shortlist surfaced
+  `B0G9M9XPSX` from the 2026-08-24 weekly run. Amazon Creators reverified the
+  exact in-stock `$26.99` listing and unchanged source image: a small 6.3-inch
+  light-pink glazed ceramic vase shaped like a plucked whole chicken.
+- **Creative cycle**: three product-derived concepts were recorded before one
+  execution. The selected formal-dinner tablescape passed every hard gate at
+  `4.75/5`; its dinner/floral contradiction breaks if the exact chicken-shaped
+  vessel is swapped. Minor sculpt smoothing did not justify a risky revision.
+  `cand-v6-raw-chicken-centerpiece` is the run's only survivor and is now in
+  owner review with a complete canonical package.
+- **Organic hold**: the coworker guide's 28-day window is 457 impressions,
+  zero clicks, and position 39.6, but URL Inspection still records a 2026-07-18
+  crawl that predates its 2026-07-31 edit. The page remains indexed,
+  self-canonical, and crawl-allowed; no second edit was made on confounded
+  evidence. The sitemap was downloaded on 2026-08-25 with 106 submitted URLs
+  and zero warnings/errors; Search Analytics still has no `/gifts/` page.
+- **Scope**: August's no-account shortlist decision stays closed until the
+  September check. No Pin was published, no production create was attempted,
+  no weekly catalog job or outreach ran, and no money was spent.
+
 ### 2026-08-25 — Clean production baseline and minimum safe publisher
 
 - **Profile cleanup**: preserved a final metrics snapshot, then deleted the five

@@ -33,25 +33,28 @@ what's likely next.
   guide's 2026-08-25 checkpoint remains inconclusive because Google has not
   recrawled the August 11 copy; recheck it and the newly improved kitchen guide
   on 2026-09-08 (Beads `roadmap-fkvo`).
-- **Distribution / Pinterest — guarded publisher ready; exact approvals next.**
+- **Distribution / Pinterest — one exact package awaits review.**
   Pinterest approved the `Goose.gifts` app on 2026-08-24. Production OAuth
   refresh, account/board/metrics reads, and a real-board create dry run passed
   on 2026-08-25 with every required scope. Keep the existing Tuesday/Friday
   studio cadence. The minimum publisher now checks Cameron's exact approval
   event, current candidate state, account, complete package, 2:3 asset, and
   duplicate URL; it read-verifies and durably records the result. It may write
-  only an exact approved queue package, so an empty queue is a no-op. The old
-  ad-style and Sandbox profile debris is gone. Tracked as Beads `roadmap-fd1h`.
-  Helps indexation (external signals).
-- **Pinterest creative workflow — measure the goat and three hippo variants.** The
+  only an exact approved queue package. The old ad-style and Sandbox profile
+  debris is gone, and the completed access work is closed in Beads
+  `roadmap-fd1h`. The raw-chicken-vase package is shortlisted for owner review,
+  not approved. Helps indexation (external signals).
+- **Pinterest creative workflow — review the raw-chicken vase and measure the
+  public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
   browser-published as public Pin `1107815208385022014`. The stronger hippo
   vanity package was then owner-approved and browser-published as public Pin
   `1107815208385331910`; the exact hippo desk package is now also live as public
-  Pin `1107815208385562809`. The goat now has 131 public impressions, two Pin
-  clicks, and one save, but no outbound click; the full truthful cohort has 225
-  impressions.
-  Do not generate a replacement while this first attention signal matures.
+  Pin `1107815208385562809`. The goat has 131 public impressions, two Pin
+  clicks, and one save, but no outbound click; the full truthful cohort has 231
+  impressions. The first enriched-catalog forward test produced one new
+  4.75/5 raw-chicken-vase survivor with a complete canonical package awaiting
+  exact approval; generate no second v6 survivor while that decision is open.
   Canonical gift pages now replace product-pinned
   random-gift URLs for future campaign packages; existing Pin destinations
   permanently redirect without losing their UTM attribution.
@@ -71,6 +74,18 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-28 — Raw-chicken-vase Pinterest survivor `[daily-ops]`
+
+Used the new enriched-catalog bridge to select and reverify the in-stock pink
+ceramic raw-chicken vase from the latest weekly run. Recorded three divergent
+product-derived concepts, generated and fully inspected one 1024x1536 formal-
+dinner execution, and advanced it at `4.75/5` with every truth, single-idea,
+no-CTA, and no-template gate passing. The exact canonical `Weird Home Decor`
+package is in owner review; it is not approved or published. Public truthful
+Pins now total 231 impressions, two Pin clicks, one save, and no outbound. The
+coworker guide stayed unchanged because Google's recorded crawl still predates
+its first edit despite the 28-day window rising to 457 impressions.
 
 ### 2026-08-25 — Pinterest clean baseline, catalog feed, and guarded publisher `[owner+claude]` ([PR #116](https://github.com/37-Inc/goose.gifts/pull/116))
 

@@ -305,6 +305,15 @@ report.
   position, organic sessions, and `gift_guide` outbound clicks. Do not revise
   again before evidence has time to move unless a rendering/indexation defect
   appears.
+  - 28-day checkpoint (2026-08-28): the latest 2026-07-31 through 2026-08-27
+    window reports 457 impressions, zero clicks, and average position 39.6,
+    versus the recorded 269/zero/39.9 pre-edit window. URL Inspection remains
+    PASS, submitted and indexed, indexing allowed, successfully mobile-fetched,
+    and self-canonical—but Google's last recorded crawl is still 2026-07-18,
+    before the 2026-07-31 editorial change. GA4 and the first-party database
+    show no new `gift_guide` outbound click. The higher impression count still
+    cannot evaluate copy Google has not recrawled, so hold the page unchanged
+    and recheck crawl state before considering a second editorial pass.
 
 ## Shipped 2026-08-18
 

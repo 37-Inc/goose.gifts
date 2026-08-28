@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260828-v6-raw-chicken-shortlisted",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-08-28T09:43:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "candidateId": "cand-v6-raw-chicken-centerpiece",
+    "from": "review",
+    "to": "shortlisted",
+    "rationale": "All hard gates pass at a 4.75 mean, the current listing and canonical destination are verified, and the product-specific dinner-versus-floral collision is owner-ready; shortlisting does not authorize publication."
+  }
+}
+
