@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-butt-tape-architecture-review",
+  "type": "review.recorded",
+  "recordedAt": "2026-08-31T09:51:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "candidateId": "cand-v7-butt-tape-architecture",
+    "attemptId": "attempt-v7-butt-tape-architecture-1",
+    "rubricVersion": 1,
+    "reviewer": "codex",
+    "scores": {"scrollStop": 5, "pinterestNative": 4, "aestheticQuality": 5, "conceptClarity": 4, "saveworthiness": 4, "brandRestraint": 5, "productFidelity": 5, "aiArtifactControl": 5},
+    "gates": {"singleIdea": true, "truthfulProduct": true, "noEmbeddedCta": true, "noAdTemplate": true},
+    "verdict": "advance",
+    "notes": ["Full-resolution inspection preserves one coherent blue figure, bent arm and clear tape roll, extended leg and foot cutter, white paperclip bowl/base, lime-yellow block, and one pen at credible desk scale.", "The task lamp, blueprint, and tape path produce one restrained useful-first joke; no text, CTA, badge, border, packaging, product-card structure, duplicated anatomy, floating parts, or visible AI defect is present.", "The blueprint tear is subtle rather than explicit, but the actual tape function remains legible; a revision would risk identity without correcting a failed gate."]
+  }
+}

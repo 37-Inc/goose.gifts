@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-butt-tape-created",
+  "type": "candidate.created",
+  "recordedAt": "2026-08-31T09:44:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "candidateId": "cand-v7-butt-tape-architecture",
+    "title": "Butt Station holding the blueprint together",
+    "creativeFamily": "serious workspace, absurd functional tool",
+    "audience": "Pinterest users who save unusual desk accessories, architecture studios, coworker gifts, and practical visual jokes",
+    "hook": "A serious late-night drafting desk is being held together by one tiny blue seated-figure tape station.",
+    "initialStatus": "idea",
+    "product": {
+      "name": "The Butt Station blue tape-dispenser desk organizer (ASIN B08BC25ZTP)",
+      "sourceUrl": "https://www.amazon.com/dp/B08BC25ZTP?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+      "destinationUrl": "https://www.goose.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time"
+    },
+    "references": [{
+      "source": "docs/ops/pinterest-creative-lab/v7-concepts/product-references/B08BC25ZTP-primary.jpg",
+      "lesson": "Preserve one coherent blue seated figure, bent arm and clear tape roll, extended leg and foot cutter, white paperclip bowl/base, lime-yellow block, and one blue pen; never separate or duplicate the anatomy."
+    }],
+    "notes": [
+      "Three product-derived concepts, stop features, click features, fidelity risks, and swap tests are recorded in the v7 README.",
+      "This product family has not appeared in a public Pin during the prior 30 days."
+    ]
+  }
+}

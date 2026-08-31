@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v6-receipt-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-08-31T10:06:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v6",
+    "candidateId": "cand-v6-raw-chicken-centerpiece",
+    "scope": "candidate",
+    "statement": "The raw-chicken-vase Pin has received one public impression in its first roughly 71 hours and no save, Pin click, outbound click, attributable site session, or affiliate click. This confirms production distribution receipt only and is too early and too small for a quality or traffic verdict.",
+    "evidenceEventIds": ["evt-20260831-v6-raw-chicken-public-checkpoint"],
+    "decision": "Keep the candidate measuring unchanged and wait for its seven-day checkpoint rather than replacing it or reading one impression causally.",
+    "nextAction": "Recheck public Pinterest, GA4, and first-party downstream clicks on or after 2026-09-04."
+  }
+}

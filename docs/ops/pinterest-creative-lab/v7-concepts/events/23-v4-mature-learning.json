@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v4-mature-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-08-31T10:04:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v4",
+    "scope": "experiment",
+    "statement": "At their mature 28-day-plus checkpoint, the three truthful v4 Pins total 218 public impressions. The goat accounts for 131 impressions, both Pin clicks, and the only save; alligator has 72 impressions and ceramic eye 15. None produced an outbound click, attributable Pinterest site session, or affiliate click.",
+    "evidenceEventIds": ["evt-20260831-alligator-public-checkpoint", "evt-20260831-ceramic-eye-public-checkpoint", "evt-20260831-goat-public-checkpoint"],
+    "decision": "Archive the mature candidate measurements while leaving their public Pins intact. Preserve the goat's tiny-object-in-serious-room mechanism as a directional attention signal, not evidence of traffic or conversion.",
+    "nextAction": "Use functional product explanation and unique tracked canonical destinations in new creatives; never infer outbound effectiveness from the goat's two internal Pin clicks."
+  }
+}
