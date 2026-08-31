@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-butt-tape-measuring",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-08-31T09:55:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "candidateId": "cand-v7-butt-tape-architecture",
+    "from": "published",
+    "to": "measuring",
+    "rationale": "Pinterest production API v5 created public Standard Pin 1107815208387477273 on the goosegifts BUSINESS account and readback verified the exact approved board, title, description, alt text, 1024x1536 image, and unique tracked canonical product destination. Begin public-only measurement; Sandbox and Pinterest v3 remain excluded."
+  }
+}

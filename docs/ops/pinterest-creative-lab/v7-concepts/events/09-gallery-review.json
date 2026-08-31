@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-butt-tape-gallery-review",
+  "type": "review.recorded",
+  "recordedAt": "2026-08-31T09:50:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "candidateId": "cand-v7-butt-tape-architecture",
+    "attemptId": "attempt-v7-butt-tape-gallery-1",
+    "rubricVersion": 1,
+    "reviewer": "codex",
+    "scores": {"scrollStop": 4, "pinterestNative": 4, "aestheticQuality": 5, "conceptClarity": 3, "saveworthiness": 3, "brandRestraint": 5, "productFidelity": 5, "aiArtifactControl": 4},
+    "gates": {"singleIdea": true, "truthfulProduct": true, "noEmbeddedCta": true, "noAdTemplate": false},
+    "verdict": "reject",
+    "notes": ["The exact product is coherent and faithful, but a lone object on a plinth is a replaceable product-display mechanism.", "The gallery treatment offers a weaker click reason and drifts too close to polished campaign imagery; do not revise it into a near-duplicate."]
+  }
+}

@@ -1,7 +1,7 @@
 # Pinterest Creative Review Queue
 
 This is the owner-facing handoff for tasteful Pinterest candidates. The
-twice-weekly growth studio keeps this list small and current. A candidate being
+scheduled growth studio keeps this list small and current. A candidate being
 listed here does not authorize publication; approval must identify the exact
 candidate and publishing package.
 
@@ -10,6 +10,44 @@ candidate and publishing package.
 None.
 
 ## Published from this queue
+
+### Butt Station — late-night architecture desk
+
+- Candidate: `cand-v7-butt-tape-architecture` (`measuring`, internal score
+  `4.63/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387477273/`
+- Published: 2026-08-31 through Pinterest production API v5 under Cameron's
+  exact scheduled-studio approval after the production dry-run and all guards
+  passed.
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v7-concepts/01-butt-tape-architecture-desk.png`
+- Exact product: The Butt Station blue tape-dispenser desk organizer, ASIN
+  `B08BC25ZTP`; Amazon Creators API reverified it `IN_STOCK` at `$11.95` on
+  2026-08-31 with the source image unchanged.
+- Destination:
+  `https://www.goose.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time`
+- Board: `Funny Gifts for Coworkers`
+- Title: `The Butt Is Holding This Project Together`
+- Description: `Late-night blueprints, one sharp pencil, and a blue desk organizer doing the literal tape work. See the exact Butt Station tape dispenser on goose.gifts. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Bright-blue seated-figure tape dispenser with clear tape, a white paperclip bowl, lime-yellow pen holder, and blue pen on architectural drawings under a desk lamp.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831`
+- Why it earns a pause: a serious warm drafting desk first reads as useful
+  workspace styling; then the tape dispenser resolves into a blue seated body
+  whose arm, leg, bowl, and back block each perform a real stationery function.
+- Truth/risk review: full-resolution inspection preserves one coherent blue
+  figure, clear tape roll, foot cutter, white paperclip bowl/base, lime-yellow
+  block, and one pen at ordinary desk scale. There is no embedded text, CTA,
+  reusable product-card layout, floating part, duplicated anatomy, or visible
+  AI defect.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account and `Funny Gifts for Coworkers` board, found no Pin dated
+  2026-08-31 and no duplicate tracked destination, created one Standard Pin,
+  read back every approved field and the 1024x1536 image, and wrote receipt
+  `receipt-1788194892341-editorial-butt-tape-architecture-desk-20260831-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about ten
+  seconds after publication; this is a receipt, not a performance verdict.
 
 ### Raw chicken vase — formal dinner centerpiece
 
@@ -137,11 +175,13 @@ None.
 
 ## Revision queue
 
-None. Do not create a replacement while the published goat and three hippo
-variants gather enough public distribution to support a useful creative choice.
-At the 2026-08-25 checkpoint the goat had 131 impressions, two Pin clicks, and
-one save; its two new impressions produced no new engagement. It remains an
-attention signal, not an outbound or conversion result.
+None. The goat, alligator, ceramic-eye, and hippo-breakfast candidates reached
+their 28-day-plus archive checkpoints on 2026-08-31; archiving closes their
+measurement lifecycle without deleting their public Pins. The goat remains the
+only directional attention signal at 131 impressions, two Pin clicks, and one
+save, but it produced no outbound click, attributable Pinterest session, or
+affiliate click. Hippo vanity and desk remain measuring until their own 28-day
+checkpoints; raw chicken remains measuring until its seven-day checkpoint.
 The old `cand-unhinged-desk-guide` was closed as rejected on 2026-08-11 because
 its only attempt lacked verified product references and failed the truthful-
 product gate; it is not pending owner work.

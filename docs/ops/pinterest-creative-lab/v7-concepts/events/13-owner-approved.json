@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-butt-tape-approved",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-08-31T09:54:00-07:00",
+  "actor": "Cameron",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "candidateId": "cand-v7-butt-tape-architecture",
+    "from": "shortlisted",
+    "to": "approved",
+    "rationale": "Cameron's standing scheduled-studio authorization and explicit 2026-08-31 approval authorize this exact complete package only: 01-butt-tape-architecture-desk.png; canonical Butt Station gift page; Funny Gifts for Coworkers board; title The Butt Is Holding This Project Together; approved description, alt text, AI and affiliate disclosure; unique pinterest_editorial_v4 / butt_tape_architecture_desk_20260831 tracking URL; and one guarded Pinterest production API publication today. No spend or additional Pin is authorized."
+  }
+}

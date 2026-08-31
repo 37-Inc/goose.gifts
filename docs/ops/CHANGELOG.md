@@ -33,30 +33,37 @@ what's likely next.
   guide's 2026-08-25 checkpoint remains inconclusive because Google has not
   recrawled the August 11 copy; recheck it and the newly improved kitchen guide
   on 2026-09-08 (Beads `roadmap-fkvo`).
-- **Distribution / Pinterest — measure the first guarded production-API Pin.**
+- **Distribution / Pinterest — measure the guarded production cohort.**
   Pinterest approved the `Goose.gifts` app on 2026-08-24. Production OAuth
   refresh, account/board/metrics reads, and a real-board create dry run passed
-  on 2026-08-25 with every required scope. Keep the existing Tuesday/Friday
-  studio cadence. The minimum publisher now checks Cameron's exact approval
-  event, current candidate state, account, complete package, 2:3 asset, and
-  duplicate URL; it read-verifies and durably records the result. It may write
-  only an exact approved queue package. The old ad-style and Sandbox profile
-  debris is gone, and the completed access work is closed in Beads
-  `roadmap-fd1h`. Cameron approved the raw-chicken-vase package on 2026-08-28;
-  the production API created and read-verified public Pin
-  `1107815208387225923`. Helps indexation (external signals).
-- **Pinterest creative workflow — measure the raw-chicken vase and the
-  public cohort.** The
+  on 2026-08-25 with every required scope. The scheduled studio may publish at
+  most one exact hard-gated package per calendar day under Cameron's current
+  standing authorization, with a quality-gated no-op otherwise. The minimum
+  publisher now checks Cameron's exact approval event, current candidate
+  state, account, complete package, 2:3 asset, and duplicate URL; it read-
+  verifies and durably records the result. It may write only an exact approved
+  queue package. The old ad-style and Sandbox profile debris is gone, and the
+  completed access work is closed in Beads `roadmap-fd1h`. Cameron approved the
+  raw-chicken-vase package on 2026-08-28; the production API created and read-
+  verified public Pin
+  `1107815208387225923`; the 2026-08-31 cycle then created and read-verified
+  Butt Station Pin `1107815208387477273` through the same production path.
+  Helps indexation (external signals).
+- **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
   browser-published as public Pin `1107815208385022014`. The stronger hippo
   vanity package was then owner-approved and browser-published as public Pin
   `1107815208385331910`; the exact hippo desk package is now also live as public
   Pin `1107815208385562809`. The goat has 131 public impressions, two Pin
-  clicks, and one save, but no outbound click; the full truthful cohort has 231
-  impressions. The first enriched-catalog forward test produced one new
+  clicks, and one save, but no outbound click; before the eighth Pin launched,
+  the full truthful cohort had 236 impressions. The first enriched-catalog forward test produced one new
   4.75/5 raw-chicken-vase survivor, now live through the guarded production API
-  as the seventh product-faithful Pin. Measure before drawing a performance
-  conclusion.
+  as the seventh product-faithful Pin. A second current-catalog test produced a
+  `4.63/5` Butt Station architecture-desk survivor and published it as the
+  eighth. The mature alligator, ceramic-eye, goat, and breakfast candidates are
+  archived in telemetry without deleting their public Pins; raw chicken,
+  hippo vanity/desk, and Butt Station remain measuring. Measure before drawing
+  a performance conclusion.
   Canonical gift pages now replace product-pinned
   random-gift URLs for future campaign packages; existing Pin destinations
   permanently redirect without losing their UTM attribution.
@@ -76,6 +83,22 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-08-31 — Butt Station production Pin and mature-cohort checkpoints `[daily-ops]`
+
+Pulled Pinterest production metrics, GA4, and first-party acquisition signals:
+the seven-Pin public cohort had 236 impressions, two Pin clicks, one save, and
+zero attributable outbound or product clicks. Closed the 28-day-plus
+alligator, ceramic-eye, goat, and hippo-breakfast candidate lifecycles in the
+append-only ledger without deleting their public Pins. Reverified the in-stock
+Butt Station organizer from the current enriched catalog and its crawlable,
+self-canonical gift page; recorded three product-derived concepts; generated
+two distinct 1024x1536 executions; and advanced only the architecture desk at
+`4.63/5` with every hard gate passing. The guarded Pinterest API v5 production
+path confirmed the exact approval, unique daily URL, BUSINESS account, board,
+and no same-day Pin, then created and read-verified Standard Pin
+`1107815208387477273` with durable success receipt. No Sandbox object, second
+Pin, paid tool, outreach, or spend was used.
 
 ### 2026-08-28 — First guarded production-API Pinterest publication `[owner+codex]` ([PR #118](https://github.com/37-Inc/goose.gifts/pull/118))
 

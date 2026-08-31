@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-pinterest-v7-created",
+  "type": "experiment.created",
+  "recordedAt": "2026-08-31T09:42:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "name": "Pinterest-native creative v7 daily outbound test",
+    "channel": "pinterest",
+    "objective": "Forward-test one current verified catalog product with a product-specific editorial mechanism and a unique canonical tracked destination.",
+    "hypothesis": "Showing the exact Butt Station organizer literally dispensing tape on a serious architecture desk will create a useful-first, strange-second double take and a credible reason to click through to the exact product.",
+    "initialStatus": "active",
+    "authorization": {"generation": true, "publicPosting": true, "paidSpend": false},
+    "successCriteria": [
+      "Two visually distinct executions are compared and no more than one survivor advances.",
+      "The survivor passes every hard gate, averages at least 4.0, has no score below 3, and preserves every identity-defining product part.",
+      "Any public production write uses the verified goosegifts BUSINESS account, a unique tracked canonical destination, durable receipt, and API readback."
+    ],
+    "constraints": [
+      "Generate no more than one genuinely excellent survivor and revise only a diagnosed weakness.",
+      "Never spend, use Sandbox, or treat Pinterest v3 as traffic evidence.",
+      "One public Pin maximum for the calendar day and only after the exact complete package is approved."
+    ],
+    "tags": ["pinterest", "creative-lab", "v7", "daily-studio", "organic", "outbound"]
+  }
+}

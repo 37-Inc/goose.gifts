@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-product-preflight",
+  "type": "learning.recorded",
+  "recordedAt": "2026-08-31T09:43:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "scope": "experiment",
+    "statement": "Amazon Creators API reverified B08BC25ZTP at $11.95 and IN_STOCK with the same primary image: one bright-blue seated molded-plastic figure carries a clear tape roll, extends a long leg to the cutter, sits in a white paperclip bowl/base, and has a lime-yellow pen block behind it. The canonical goose.gifts product page returned 200, self-canonical, index, follow, and matching enriched copy.",
+    "evidenceEventIds": ["evt-20260831-pinterest-v7-created"],
+    "decision": "Select the architecture-desk concept because its actual tape path and serious drafting context depend on the exact multi-part product and avoid the recent tablescape and boardroom mechanisms.",
+    "nextAction": "Generate the architecture desk and gallery-plinth executions from the strict source reference, then keep at most one truth-gated survivor."
+  }
+}

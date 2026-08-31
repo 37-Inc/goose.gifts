@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-butt-tape-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-08-31T09:53:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "candidateId": "cand-v7-butt-tape-architecture",
+    "scope": "candidate",
+    "statement": "A current enriched desk product supported a stronger functional narrative than a generic strange-object portrait: the architecture execution explains the improbable tape roll, cutter, paperclip bowl, and pen block in one frame, while the equally faithful gallery execution lost because its display mechanism was replaceable.",
+    "evidenceEventIds": ["evt-20260831-v7-product-preflight", "evt-20260831-v7-butt-tape-gallery-review", "evt-20260831-v7-butt-tape-architecture-review"],
+    "decision": "Keep attempt-v7-butt-tape-architecture-1 as the run's only survivor and do not spend the one allowed revision on a non-gating cosmetic preference.",
+    "nextAction": "Validate the complete unique-tracking publishing package, run the production dry-run and account/day checks, then create at most one public Pin through Pinterest API v5 if every guard remains green."
+  }
+}

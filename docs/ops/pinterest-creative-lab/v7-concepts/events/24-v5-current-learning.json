@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v5-current-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-08-31T10:05:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v5",
+    "scope": "experiment",
+    "statement": "The v5 hippo cohort remains distribution-limited at 17 total impressions with no save, Pin click, outbound click, attributable Pinterest session, or affiliate click. Breakfast is past 28 days; vanity and desk reach their archive windows on 2026-09-02 and 2026-09-05 UTC.",
+    "evidenceEventIds": ["evt-20260831-hippo-breakfast-public-checkpoint", "evt-20260831-hippo-vanity-public-checkpoint", "evt-20260831-hippo-desk-public-checkpoint"],
+    "decision": "Archive breakfast now and keep vanity and desk measuring until their own 28-day checkpoints; do not use the tiny zero-engagement cohort to choose a new product family.",
+    "nextAction": "Capture the remaining 28-day checkpoints on or after their due dates, then close those candidate measurements without deleting public Pins."
+  }
+}

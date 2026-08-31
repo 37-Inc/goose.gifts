@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-butt-tape-shortlisted",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-08-31T09:52:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "candidateId": "cand-v7-butt-tape-architecture",
+    "from": "review",
+    "to": "shortlisted",
+    "rationale": "Attempt 1 passes all hard gates at a 4.63 mean with no score below 4, the product and indexable canonical destination are current, and the product-specific tape-on-blueprint mechanism supplies a credible click reason."
+  }
+}

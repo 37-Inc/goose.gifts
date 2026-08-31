@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-butt-tape-attempt-1",
+  "type": "prompt.recorded",
+  "recordedAt": "2026-08-31T09:47:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "candidateId": "cand-v7-butt-tape-architecture",
+    "attemptId": "attempt-v7-butt-tape-architecture-1",
+    "parentAttemptId": null,
+    "tool": "Codex built-in image generation (image_gen)",
+    "prompt": "Use case: photorealistic-natural\nAsset type: vertical 2:3 Pinterest editorial image for an organic product post\nInput images: Image 1 is the exact product reference and the product identity must remain visually faithful.\nPrimary request: Create a sophisticated late-night architecture-studio still life in which the exact small blue Butt Station desk organizer is genuinely being used to repair a torn architectural blueprint with clear tape.\nScene/backdrop: a warm walnut drafting desk with one cream blueprint sheet, one sharp black pencil, and a metal task lamp; understated architecture studio, not a corporate boardroom.\nSubject: the exact small desk organizer from Image 1: a smooth bright-blue seated human-like figure on a white toilet-bowl base; one bent arm carries a real clear tape roll; the extended blue leg ends in the tape cutter; a lime-yellow rectangular block behind it holds one blue pen; a few colored paperclips rest in the small white bowl. A short strip of clear tape extends naturally from the roll across one clean tear in the blueprint toward the cutter, showing the product doing its actual job.\nStyle/medium: believable high-end editorial interiors photography, natural material texture, restrained and witty, not glossy ad photography.\nComposition/framing: vertical 2:3, intimate three-quarter close-up, whole product fully visible and ordinary desk-organizer scale, product centered slightly low with the blueprint creating one clean diagonal; quiet negative space above, no border or layout.\nLighting/mood: warm pool of tungsten task-lamp light with cool blue evening shadows; dry, intelligent humor.\nColor palette: walnut brown, blueprint cream, charcoal, and the product's exact bright blue, white, lime-yellow, and clear plastic accents.\nMaterials/textures: smooth molded blue plastic, matte white plastic bowl/base, transparent tape with one realistic highlight, paper blueprint fibers, worn walnut grain.\nText: Do not add any text anywhere. Blueprint markings may be abstract lines only and must not form words.\nConstraints: preserve the product's strange seated anatomy and all functional parts from Image 1; one blue figure only; one tape roll only; the figure must not become a real person, toy character, toilet, or generic sculpture; no duplicated limbs; no extra stationery; no brand marks; no CTA; no badges; no product-card frame; no watermark; no template; no surreal scale.\nAvoid: ad copy, price tags, packaging, hands, people, exaggerated comedy props, extra tape dispensers, malformed anatomy, illegible pseudo-text, overly polished ecommerce lighting.",
+    "changesFromParent": "",
+    "referencePaths": ["docs/ops/pinterest-creative-lab/v7-concepts/product-references/B08BC25ZTP-primary.jpg"],
+    "artifactPaths": ["docs/ops/pinterest-creative-lab/v7-concepts/01-butt-tape-architecture-desk.png"],
+    "settings": {"aspectRatio": "2:3", "resolution": "1024x1536", "sourceAsin": "B08BC25ZTP", "sha256": "3ea8b2e1d565825fc5cf1c85bc24b557e8826b9bb99fd7adce2104295c9a7731"},
+    "result": "generated",
+    "notes": ["Generated with the exact downloaded Amazon primary image as the strict identity reference.", "The repository copy was inspected at full useful resolution."]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-butt-tape-review-status",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-08-31T09:49:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "candidateId": "cand-v7-butt-tape-architecture",
+    "from": "generating",
+    "to": "review",
+    "rationale": "Both 1024x1536 attempts are saved and the architecture execution has been visually inspected at full useful resolution against the exact source reference."
+  }
+}

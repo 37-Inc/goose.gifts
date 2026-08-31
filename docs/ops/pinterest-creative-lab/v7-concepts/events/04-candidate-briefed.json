@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-butt-tape-briefed",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-08-31T09:45:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "candidateId": "cand-v7-butt-tape-architecture",
+    "from": "idea",
+    "to": "briefed",
+    "rationale": "The current listing, canonical destination, exact anatomy, real materials, ordinary scale, three concepts, audience, click hypothesis, fidelity risks, and anti-template constraints are explicit."
+  }
+}

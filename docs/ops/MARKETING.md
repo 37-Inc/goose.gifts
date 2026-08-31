@@ -30,13 +30,13 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Seven product-faithful editorial Pins are live. Before the seventh launched,
-   the first six had 231 public impressions in total, two Pin clicks, and one
-   save, all engagement on
-   the corrected goat, but no outbound click or attributable site session. That
-   is a directional attention signal, not yet a creative or conversion
-   verdict. A twice-weekly studio advances at most one excellent survivor per
-   run and maintains an exact owner-review queue.
+   Eight product-faithful editorial Pins are live. Before the eighth launched,
+   the first seven had 236 public impressions in total, two Pin clicks, and one
+   save, all engagement on the corrected goat, but no outbound click,
+   attributable Pinterest session, or downstream product click. That is a
+   directional attention signal, not yet a creative or conversion verdict. The
+   scheduled studio advances and publishes at most one excellent exact package
+   per calendar day, with a quality-gated no-op when nothing is strong enough.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
    catalog-supported pages. The Weird Gift Index is the first original-data
    acquisition asset and should be improved as a cited, editioned report rather
@@ -50,6 +50,39 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-08-31 daily production cycle
+
+The current public cohort reached 236 impressions, two Pin clicks, one save,
+zero Pinterest outbound clicks, zero GA4 Pinterest sessions, and zero
+first-party attributed product clicks before today's publication. The mature
+alligator, ceramic-eye, goat, and hippo-breakfast candidates reached their
+28-day-plus archive checkpoints; archiving closes their measurement lifecycle
+without deleting the public Pins. The goat remains the only directional
+attention leader, not an outbound or conversion result. The raw-chicken Pin's
+first available checkpoint at roughly 71 hours is one impression and no
+engagement, which is only a distribution receipt; its seven-day checkpoint is
+due 2026-09-04.
+
+The read-only enriched-catalog shortlist surfaced the in-stock Butt Station
+desk organizer. Amazon Creators API reverified ASIN `B08BC25ZTP`, `$11.95`, the
+unchanged source image, and its tape-roll, foot-cutter, paperclip-bowl, and pen-
+block anatomy; the canonical gift page returned `200`, self-canonical, and
+`index, follow`. Three product-derived concepts were recorded and the two
+strongest were generated. The late-night architecture desk beat the gallery
+plinth causally: it explains all four real functions in one frame, passes every
+hard gate at `4.63/5`, and provides a stronger click reason without text or an
+ad layout.
+
+The guarded production dry-run resolved the exact approved package to `Funny
+Gifts for Coworkers`, confirmed the `goosegifts` BUSINESS account, unique daily
+tracking URL, no Pin dated 2026-08-31, and no duplicate destination. Pinterest
+API v5 then created and read-verified Standard Pin `1107815208387477273`; the
+publisher wrote durable receipt
+`receipt-1788194892341-editorial-butt-tape-architecture-desk-20260831-publication-succeeded`
+and the candidate is measuring. The immediate zero-metric checkpoint is a
+publication receipt, not a performance verdict. No Sandbox object, second Pin,
+paid tool, outreach, or spend was used.
 
 ### 2026-08-28 production API launch
 
@@ -118,12 +151,13 @@ or superficial color swaps.
 9. If a later pilot is approved and published, record impressions, saves, Pin clicks, outbound
    clicks, site-side attribution, observations, and the next decision.
 
-Concept generation and internal review are authorized. The v4 and v5
-experiments contain explicit public-posting authorization only for candidates
-that have their own owner approval event. A scheduled run may publish a
-candidate only when production API access is confirmed and the exact image,
-board, copy, disclosure, destination, tracking package, and cadence are
-approved. Pinterest approved the `Goose.gifts` app for Standard access on
+Concept generation and internal review are authorized. Every public candidate
+still requires its own explicit approval event for the exact image, board,
+copy, disclosure, destination, tracking package, and cadence. Cameron's current
+scheduled-studio authorization permits the automation to record that exact
+event and publish at most one hard-gated package per calendar day; it does not
+authorize a second Pin, a weak creative, paid distribution, or spend. Pinterest
+approved the `Goose.gifts` app for Standard access on
 2026-08-24, and the production OAuth read/dry-run path was verified on
 2026-08-25 with all required scopes and the correct business account. The
 production publisher now requires a reviewed package, Cameron's exact candidate
@@ -132,11 +166,11 @@ the expected account, a unique tracking URL, and a vertical 2:3 artifact. It
 checks for an existing Pin before POST, reads a created Pin back, records an
 append-only receipt and creative event, and marks the draft published. This is
 practical state-machine validation, not cryptographic package signing. A
-scheduled run may use it only for an exact package already approved in
-`docs/ops/pinterest-creative-lab/REVIEW_QUEUE.md`; no approval means no public
-write. `npm run pinterest:candidates` supplies a read-only shortlist from the
-current verified and enriched catalog. Interactive browser posting remains a
-fallback.
+scheduled run may use it only for an exact package preserved in
+`docs/ops/pinterest-creative-lab/REVIEW_QUEUE.md`; no exact approval event means
+no public write. `npm run pinterest:candidates` supplies a read-only shortlist
+from the current verified and enriched catalog. Interactive browser posting
+remains a fallback.
 Tool purchases, subscriptions, and paid distribution remain unauthorized.
 
 ### Tool strategy and access

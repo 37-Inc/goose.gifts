@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-hippo-desk-public-checkpoint",
+  "type": "metrics.recorded",
+  "recordedAt": "2026-08-31T10:02:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v5", "candidateId": "cand-v5-hippo-desk", "checkpointAt": "2026-08-31T16:48:21.644Z", "cohort": "public",
+    "source": "Pinterest production API v5 public-pin metrics plus GA4 and first-party database acquisition checks",
+    "metrics": {"impressions": 8, "saves": 0, "pinClicks": 0, "outboundClicks": 0, "siteSessions": 0, "affiliateClicks": 0, "revenueCents": null},
+    "caveats": ["The 28-day checkpoint is due on 2026-09-05 UTC and remains open.", "Pinterest v3 and Sandbox objects are excluded.", "Revenue remains unavailable and null."]
+  }
+}

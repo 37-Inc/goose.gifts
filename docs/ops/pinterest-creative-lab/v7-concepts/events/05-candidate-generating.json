@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-butt-tape-generating",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-08-31T09:46:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "candidateId": "cand-v7-butt-tape-architecture",
+    "from": "briefed",
+    "to": "generating",
+    "rationale": "Generate the two strongest distinct reference-bound 2:3 executions; internal generation is authorized and no public write occurs at this stage."
+  }
+}

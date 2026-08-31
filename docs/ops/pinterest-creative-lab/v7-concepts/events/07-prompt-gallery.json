@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260831-v7-butt-tape-attempt-2",
+  "type": "prompt.recorded",
+  "recordedAt": "2026-08-31T09:48:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v7",
+    "candidateId": "cand-v7-butt-tape-architecture",
+    "attemptId": "attempt-v7-butt-tape-gallery-1",
+    "parentAttemptId": null,
+    "tool": "Codex built-in image generation (image_gen)",
+    "prompt": "Use case: photorealistic-natural\nAsset type: vertical 2:3 Pinterest editorial image for an organic product post\nInput images: Image 1 is the exact product reference and the product identity must remain visually faithful.\nPrimary request: Photograph the exact small blue Butt Station desk organizer as the lone Blue Period object in a quiet contemporary design gallery, treated with dead-serious curatorial restraint rather than as an advertisement.\nScene/backdrop: pale limestone gallery wall and low honed-stone plinth, with one soft out-of-focus archway in the distance; no signage.\nSubject: the exact small organizer from Image 1 at ordinary 6-to-8-inch desk-object scale: smooth bright-blue seated human-like figure on a white toilet-bowl base; clear tape roll carried by one bent arm; extended blue leg with the metal tape cutter at the foot; lime-yellow rectangular pen block behind it holding one blue pen; a few colored paperclips in the small bowl. All parts must form one coherent physical molded-plastic product.\nStyle/medium: believable editorial design-magazine photography with quiet absurdity, tactile real materials, sophisticated and sparse, not ecommerce or campaign art.\nComposition/framing: vertical 2:3; entire little product fully visible in the lower-middle third on a broad plinth; generous asymmetrical gallery space; eye-level three-quarter view; no border, no type, no layout modules.\nLighting/mood: soft north-window daylight, subtle limestone bounce, gentle physical contact shadow, museum calm.\nColor palette: chalk limestone and warm gray with only the product's exact bright blue, white, lime-yellow, clear tape, and small paperclip accents.\nMaterials/textures: smooth molded blue plastic, matte white plastic, translucent clear tape, brushed metal cutter, honed limestone.\nText: No text anywhere.\nConstraints: preserve the strange seated anatomy and every functional part from Image 1; one blue figure only; one tape roll only; ordinary desk-organizer scale; do not transform it into a real person, ceramic sculpture, toilet, or generic art figure; no duplicated limbs; no missing tape cutter; no extra objects; no packaging; no brand marks; no CTA; no badges; no product-card frame; no watermark; no ad template.\nAvoid: large monumental scale, labels or wall text, hands, people, ropes or barriers, price tags, glossy product ad lighting, visual clutter, malformed anatomy, duplicated accessories.",
+    "changesFromParent": "Distinct gallery-plinth execution of the same verified product hypothesis; not a causal revision.",
+    "referencePaths": ["docs/ops/pinterest-creative-lab/v7-concepts/product-references/B08BC25ZTP-primary.jpg"],
+    "artifactPaths": ["docs/ops/pinterest-creative-lab/v7-concepts/02-butt-tape-gallery-plinth.png"],
+    "settings": {"aspectRatio": "2:3", "resolution": "1024x1536", "sourceAsin": "B08BC25ZTP", "sha256": "cda6a262f446dbf9ea0a3c7ef7392e8887a1f3a2b7f13c74657aca92da76312a"},
+    "result": "generated",
+    "notes": ["Generated separately to compare a genuinely different visual mechanism.", "Retained as evidence even though it did not win."]
+  }
+}

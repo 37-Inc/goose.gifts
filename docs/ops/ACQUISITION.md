@@ -98,6 +98,16 @@ X is a possible first channel after account/API access and an approved content
 format. Bluesky is a lower-cost secondary test. Queueing drafts can be
 autonomous; account creation, posting, replies, and API spend are not.
 
+**2026-08-31 Pinterest evidence:** before the eighth product-faithful Pin was
+published, the seven-Pin public cohort had 236 impressions, two Pin clicks, one
+save, and zero Pinterest outbound clicks. GA4 showed no Pinterest sessions in
+the prior seven days, and the first-party database showed no attributed
+Pinterest product click. The new Butt Station architecture-desk Pin uses a
+unique canonical product URL and daily UTM, so its 24-hour, 7-day, and 28-day
+checkpoints can measure the full Pinterest impression-to-affiliate-click path.
+This is still a creative/distribution test, not evidence that Pinterest is an
+acquisition channel yet.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before
