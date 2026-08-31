@@ -84,7 +84,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-08-31 — Butt Station production Pin and mature-cohort checkpoints `[daily-ops]`
+### 2026-08-31 — Butt Station production Pin and mature-cohort checkpoints `[daily-ops]` ([PR #119](https://github.com/37-Inc/goose.gifts/pull/119))
 
 Pulled Pinterest production metrics, GA4, and first-party acquisition signals:
 the seven-Pin public cohort had 236 impressions, two Pin clicks, one save, and
