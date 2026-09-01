@@ -88,7 +88,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-09-01 — Lick'em cat-spa production Pin `[daily-ops]`
+### 2026-09-01 — Lick'em cat-spa production Pin `[daily-ops]` ([PR #120](https://github.com/37-Inc/goose.gifts/pull/120))
 
 Pulled Pinterest production, GA4, first-party database, and Search Console
 evidence. The truthful eight-Pin cohort had 237 impressions, two Pin clicks,
