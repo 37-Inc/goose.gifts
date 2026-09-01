@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-cat-brush-created",
+  "type": "candidate.created",
+  "recordedAt": "2026-09-01T09:36:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "candidateId": "cand-v8-lickem-cat-spa",
+    "title": "Lick'em tongue brush cat-spa appointment",
+    "creativeFamily": "serene pet ritual, absurd functional tool",
+    "audience": "Pinterest users who save cat care ideas, unusual pet products, white elephant gifts, and deadpan visual humor",
+    "hook": "A composed cat-spa portrait becomes strange only when the groomer is revealed to be using one rigid red mouth-held tongue brush.",
+    "initialStatus": "idea",
+    "product": {
+      "name": "Lick'em Tongue Cat Brush (ASIN B081KFS7QW)",
+      "sourceUrl": "https://www.amazon.com/dp/B081KFS7QW?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+      "destinationUrl": "https://www.goose.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming"
+    },
+    "references": [{
+      "source": "docs/ops/pinterest-creative-lab/v8-concepts/product-references/B081KFS7QW-primary.jpg",
+      "lesson": "Preserve one rigid red curved mouth tray, one connected broad tongue flap, short blunt underside pegs, ordinary roughly 4.5-inch scale, and mouth-held grooming use; never render a human tongue, loose hand brush, flexible strip, or mask."
+    }],
+    "notes": [
+      "Three product-derived concepts with stop feature, click feature, product feature, fidelity risk, and swap test are recorded in the v8 README.",
+      "This ASIN and pet-grooming visual mechanism have not appeared in a public Goose Gifts Pin."
+    ]
+  }
+}

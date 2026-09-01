@@ -20,8 +20,10 @@ outward-facing accounts. Best remaining channels:
   approval of the publishing tool.
 - **Pinterest**: the account, Standard access, production publisher, catalog
   candidate feed, and minimum approval/duplicate/receipt guards are complete;
-  see Received below. Future public Pins still need Cameron to approve the exact
-  queue package. No broader channel or cadence approval is inferred.
+  see Received below. Cameron's scheduled-studio exception now authorizes at
+  most one hard-gated exact package per calendar day, including a documented
+  no-op when quality or evidence is weak. It does not authorize a second Pin,
+  Sandbox use, paid distribution, or spend.
 
 Needed from Cameron: choose which channels to authorize for posting and approve
 any paid/video-generation tooling before spend.
@@ -64,8 +66,10 @@ you'd rather get real email/Slack from me, connect a connector at
 
 - 2026-08-25: Pinterest guarded production workflow. The owner-authorized
   cleanup removed five old ad-style Pins, six Sandbox test Pins, and five empty
-  API Trial boards; the account now contains only six product-faithful public
-  Pins. The publisher checks the exact owner approval event and candidate state,
+  API Trial boards; at that cleanup checkpoint the account contained only six
+  product-faithful public Pins. Subsequent guarded daily cycles added raw
+  chicken, Butt Station, and Lick'em cat brush, bringing the current total to
+  nine. The publisher checks the exact owner approval event and candidate state,
   account, complete disclosed package, 2:3 artifact, and duplicate tracking URL;
   it read-verifies success and records durable receipts. `npm run
   pinterest:candidates` supplies current high-quality enriched products without

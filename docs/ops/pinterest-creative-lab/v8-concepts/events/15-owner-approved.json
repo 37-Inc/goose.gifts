@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-cat-brush-approved",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-09-01T09:48:00-07:00",
+  "actor": "Cameron",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "candidateId": "cand-v8-lickem-cat-spa",
+    "from": "shortlisted",
+    "to": "approved",
+    "rationale": "Cameron's standing scheduled-studio authorization and explicit 2026-09-01 instruction to approve and use the new production API authorize this exact complete package only: 03-cat-brush-spa-contact-revision.png; canonical Lick'em Tongue Cat Brush gift page; Funny White Elephant Gifts board; title The Cat Spa Has Taken a Turn; approved description, alt text, AI and affiliate disclosure; unique pinterest_editorial_v5 / lickem_cat_brush_spa_20260901 tracking URL; and one guarded Pinterest production API publication today. No spend or additional Pin is authorized."
+  }
+}

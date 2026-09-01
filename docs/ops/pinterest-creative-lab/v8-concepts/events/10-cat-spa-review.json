@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-cat-spa-review",
+  "type": "review.recorded",
+  "recordedAt": "2026-09-01T09:43:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "candidateId": "cand-v8-lickem-cat-spa",
+    "attemptId": "attempt-v8-cat-brush-spa-1",
+    "rubricVersion": 1,
+    "reviewer": "codex",
+    "scores": {"scrollStop": 5, "pinterestNative": 5, "aestheticQuality": 5, "conceptClarity": 4, "saveworthiness": 4, "brandRestraint": 5, "productFidelity": 4, "aiArtifactControl": 5},
+    "gates": {"singleIdea": true, "truthfulProduct": true, "noEmbeddedCta": true, "noAdTemplate": true},
+    "verdict": "revise",
+    "notes": ["The composed cat-spa ritual creates the strongest exact-product click reason, with one coherent red mouth tray and peg flap, one normal person, one calm cat, and no template structure.", "The lowest peg rows only graze the shoulder; revise once to create a small gentle fur-contact patch while preserving everything else."]
+  }
+}

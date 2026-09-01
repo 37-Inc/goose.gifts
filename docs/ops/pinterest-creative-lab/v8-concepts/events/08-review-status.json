@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-cat-brush-review-status",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-09-01T09:41:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "candidateId": "cand-v8-lickem-cat-spa",
+    "from": "generating",
+    "to": "review",
+    "rationale": "Both distinct 1024x1536 attempts are saved and visually inspected at full useful resolution against the exact source reference."
+  }
+}

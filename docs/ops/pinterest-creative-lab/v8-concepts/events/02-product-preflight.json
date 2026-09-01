@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-product-preflight",
+  "type": "learning.recorded",
+  "recordedAt": "2026-09-01T09:35:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "scope": "experiment",
+    "statement": "Amazon Creators API reverified B081KFS7QW at $9.99 and IN_STOCK with the same primary image: one rigid red food-grade-plastic mouth tray connects to one broad tongue-shaped flap with rows of short blunt grooming pegs. The canonical enriched gift page returned 200, self-canonical, index, follow.",
+    "evidenceEventIds": ["evt-20260901-pinterest-v8-created"],
+    "decision": "Select a calm cat-spa use reveal because it depends on the exact mouth-held grooming mechanism and rotates away from the recent desk, room-object, and formal-tablescape mechanisms.",
+    "nextAction": "Generate the reading-nook close-up and cat-spa portrait from the exact source, inspect both at 1024x1536, and keep at most one truth-gated survivor."
+  }
+}

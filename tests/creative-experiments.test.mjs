@@ -124,7 +124,7 @@ test("repository event log is valid and exposes approval-gated next actions", as
   assert.equal(summary.experiments[0].candidates.length, 5);
   assert.deepEqual(
     summary.experiments[0].candidates
-      .filter((candidate) => candidate.status === "measuring")
+      .filter((candidate) => candidate.status === "archived")
       .map((candidate) => candidate.candidateId)
       .sort(),
     ["cand-alligator-editorial", "cand-ceramic-eye-interior", "cand-screaming-goat-meeting"],
@@ -144,13 +144,12 @@ test("repository event log is valid and exposes approval-gated next actions", as
     state.experiments.get("exp-pinterest-native-v4").learnings.at(-1).decision,
     /v6/i,
   );
-  assert.deepEqual(
+  assert.equal(
     state.candidates
       .get("cand-v6-raw-chicken-centerpiece")
-      .learnings.at(-1)
-      .evidenceEventIds
-      .filter((eventId) => eventId === "evt-20260828-v6-raw-chicken-attempt-1"),
-    ["evt-20260828-v6-raw-chicken-attempt-1"],
+      .learnings
+      .some((learning) => learning.evidenceEventIds.includes("evt-20260828-v6-raw-chicken-attempt-1")),
+    true,
   );
   assert.equal(
     summary.experiments[0].candidates.find(

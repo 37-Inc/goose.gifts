@@ -5,6 +5,52 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-01 - Lick'em cat-spa production cycle
+
+**Evidence checked**: Pinterest production API v5 reported 237 lifetime
+impressions, two Pin clicks, one save, and zero outbound clicks across the eight
+truthful public Pins before today's post. The Butt Station Pin reached its
+exact 24-hour checkpoint at zero impressions; raw chicken remained at one
+impression. GA4's prior seven days contained 25 sessions (24 direct, one Amazon
+organic shopping), no Pinterest source, and no outbound event. The first-party
+database recorded zero product-click events in both 24 hours and seven days.
+Search Console's 2026-08-05 through 2026-08-31 page report remained
+impression-only: coworker 455 impressions/position 39.2, dad 371/46.1, Secret
+Santa 259/57.0, white elephant 509/64.3, and weird kitchen 38/50.6, all with
+zero clicks. Sandbox and Pinterest v3 were excluded.
+
+**Creative cycle**: no valid unpublished survivor existed, so the read-only
+enriched-catalog feed supplied Lick'em Tongue Cat Brush (`B081KFS7QW`). Amazon
+Creators API reverified the exact unchanged primary image, red food-grade
+plastic mouth tray and single peg-covered tongue flap, `$9.99`, and `IN_STOCK`.
+Its canonical product page returned `200`, self-canonical, and `index, follow`.
+Three distinct product-derived concepts were preserved. Two 1024x1536
+reference-bound executions were generated: the reading-nook close-up failed
+because its pegs hovered above the fur; the cat-spa portrait won but initially
+only grazed the cat's shoulder. The single allowed causal revision created a
+small credible contact patch. Full-resolution review advanced it at `4.75/5`
+with every single-idea, product-truth, no-CTA, and no-template gate passing.
+
+**Production publication**: Cameron's explicit approval and standing daily
+studio exception authorized this exact package only. The production dry run
+resolved the empty `Funny White Elephant Gifts` board, complete disclosure,
+unique canonical daily UTM, current candidate state, and approval event. Live
+API checks confirmed the `goosegifts` BUSINESS account, eight existing Pins,
+no Pin dated 2026-09-01, and no duplicate tracking URL. Pinterest production
+API v5 created Standard Pin `1107815208387553278`; readback matched the board,
+title, description, alt text, tracked link, and 1024x1536 image. Durable receipt
+`receipt-1788281361404-editorial-lickem-cat-brush-spa-20260901-publication-succeeded`
+and append-only publication, measuring, and zero-baseline events were written.
+No second Pin, Sandbox object, SEO mutation, weekly catalog job, outreach, paid
+tool, or spend occurred.
+
+**Review repair**: the creative test suite still expected the four-week-old v4
+candidates to be measuring and assumed the raw-chicken prompt evidence lived in
+the latest learning. The August 31 append-only archive and later receipt
+learning made both assumptions stale. The test now expects the mature v4
+candidates to be archived and finds the prompt evidence across the complete
+candidate learning history. No production behavior changed.
+
 ## 2026-08-28 - Pinterest and organic-growth studio
 
 **Evidence checked**: Pinterest API v5 reports 231 lifetime public impressions

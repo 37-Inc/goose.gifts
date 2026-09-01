@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-cat-brush-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-09-01T09:47:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "candidateId": "cand-v8-lickem-cat-spa",
+    "scope": "candidate",
+    "statement": "The calm medium cat-spa portrait created a stronger, more saveable product-use contradiction than the close crop, but the product's click reason depended on physically legible peg-to-fur contact. One targeted spatial revision fixed that causal weakness without changing the mechanism.",
+    "evidenceEventIds": ["evt-20260901-v8-product-preflight", "evt-20260901-v8-reading-nook-review", "evt-20260901-v8-cat-spa-review", "evt-20260901-v8-contact-review"],
+    "decision": "Keep attempt-v8-cat-brush-spa-contact-2 as the run's only survivor and reject both unrevised attempts.",
+    "nextAction": "Validate the exact complete unique-tracking package, run production account/day/duplicate dry-run guards, and publish at most one public Standard Pin through Pinterest API v5."
+  }
+}

@@ -178,9 +178,12 @@ frame that shows a raw token.**
 ## Production operating state
 
 - Standard access and the production OAuth read/dry-run path are verified.
-- Public posting still needs exact candidate/package approval (per
-  `MARKETING.md` and `NEEDS.md`). Approval must cover the image, destination,
-  board, title, description, alt text, disclosure, tracking URL, and cadence.
+- Public posting still needs an exact candidate/package approval event (per
+  `MARKETING.md` and `NEEDS.md`). Cameron's scheduled-studio exception permits
+  at most one hard-gated exact package per calendar day; it covers no second
+  Pin, Sandbox object, paid distribution, or spend. The event must bind the
+  image, destination, board, title, description, alt text, disclosure, tracking
+  URL, and daily ceiling.
 - The guarded production CLI requires the draft's candidate ID and Cameron
   approval-event ID, validates the current creative state and complete disclosed
   package, checks the connected account and existing tracking URL, reads a
@@ -192,6 +195,10 @@ frame that shows a raw token.**
 - An exact approved package may use the production API or the interactive
   signed-in browser fallback. Sandbox and Pinterest v3 objects remain excluded
   from public performance evidence forever.
+- The guarded production API has now created and read-verified the raw-chicken,
+  Butt Station, and Lick'em cat-brush Pins. Combined with the six retained
+  product-faithful browser posts, the current clean profile has nine public
+  Pins and zero Sandbox objects.
 
 ## References
 

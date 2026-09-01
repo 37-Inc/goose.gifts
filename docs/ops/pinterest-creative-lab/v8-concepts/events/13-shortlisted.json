@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-cat-brush-shortlisted",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-09-01T09:46:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "candidateId": "cand-v8-lickem-cat-spa",
+    "from": "review",
+    "to": "shortlisted",
+    "rationale": "The contact revision passes every hard gate at a 4.75 mean with no score below 4, the listing and indexable canonical destination are current, and the product-specific cat-spa use reveal provides a credible click reason."
+  }
+}

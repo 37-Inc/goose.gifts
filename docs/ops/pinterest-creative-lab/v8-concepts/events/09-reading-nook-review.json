@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-reading-nook-review",
+  "type": "review.recorded",
+  "recordedAt": "2026-09-01T09:42:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "candidateId": "cand-v8-lickem-cat-spa",
+    "attemptId": "attempt-v8-cat-brush-reading-nook-1",
+    "rubricVersion": 1,
+    "reviewer": "codex",
+    "scores": {"scrollStop": 4, "pinterestNative": 4, "aestheticQuality": 5, "conceptClarity": 3, "saveworthiness": 4, "brandRestraint": 5, "productFidelity": 4, "aiArtifactControl": 5},
+    "gates": {"singleIdea": true, "truthfulProduct": true, "noEmbeddedCta": true, "noAdTemplate": true},
+    "verdict": "reject",
+    "notes": ["One coherent rigid red brush, normal person, and normal cat survive, but the peg rows visibly hover above the fur.", "The missing contact weakens the actual-use claim and loses causally to the wider spa execution; do not spend a second revision path on it."]
+  }
+}

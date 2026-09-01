@@ -11,6 +11,47 @@ None.
 
 ## Published from this queue
 
+### Lick'em Tongue Cat Brush — quiet cat-spa appointment
+
+- Candidate: `cand-v8-lickem-cat-spa` (`measuring`, internal score `4.75/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387553278/`
+- Published: 2026-09-01 through Pinterest production API v5 under Cameron's
+  explicit approval and standing scheduled-studio authorization after the
+  production dry-run and all guards passed.
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v8-concepts/03-cat-brush-spa-contact-revision.png`
+- Exact product: Lick'em Tongue Cat Brush, ASIN `B081KFS7QW`; Amazon Creators
+  API reverified it `IN_STOCK` at `$9.99` on 2026-09-01 with the red mouth tray,
+  single tongue-shaped peg flap, and source image unchanged.
+- Destination:
+  `https://www.goose.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming`
+- Board: `Funny White Elephant Gifts`
+- Title: `The Cat Spa Has Taken a Turn`
+- Description: `A quiet cat spa, one very patient cat, and the exact Lick'em mouth-held red tongue brush doing the grooming. Product details are on goose.gifts. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Woman using a rigid red mouth-held tongue-shaped brush with blunt pegs to groom the shoulder fur of a calm long-haired gray cat on a vintage chair.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901`
+- Why it earns a pause: a composed, saveable cat-grooming ritual reads first;
+  the vivid red tool then resolves as a rigid mouth-held brush whose blunt pegs
+  are doing the actual grooming.
+- Rejected alternatives: the reading-nook close-up was beautiful but its pegs
+  hovered above the fur; the initial spa portrait had the stronger mechanism
+  but only grazed the shoulder. One targeted contact revision fixed that exact
+  causal weakness; no other revision was generated.
+- Truth/risk review: full-resolution inspection shows one normal person, one
+  coherent calm cat, one rigid red mouth tray, one connected tongue-shaped peg
+  flap, ordinary scale, and a believable shoulder-fur contact patch. There is
+  no human tongue, licking, duplicated anatomy, embedded text, CTA, product-
+  card layout, floating part, packaging, or visible AI defect.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, empty `Funny White Elephant Gifts` board, no 2026-09-01
+  Pin, and no duplicate tracked destination; created one Standard Pin; read
+  back every approved field and the 1024x1536 image; and wrote receipt
+  `receipt-1788281361404-editorial-lickem-cat-brush-spa-20260901-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about 65
+  seconds after publication; this is a receipt, not a performance verdict.
+
 ### Butt Station — late-night architecture desk
 
 - Candidate: `cand-v7-butt-tape-architecture` (`measuring`, internal score
@@ -47,7 +88,8 @@ None.
   read back every approved field and the 1024x1536 image, and wrote receipt
   `receipt-1788194892341-editorial-butt-tape-architecture-desk-20260831-publication-succeeded`.
 - Baseline: zero impressions, saves, Pin clicks, and outbound clicks about ten
-  seconds after publication; this is a receipt, not a performance verdict.
+  seconds after publication; its exact 24-hour checkpoint also remained zero.
+  Pinterest had not distributed it, so this is not a creative verdict.
 
 ### Raw chicken vase — formal dinner centerpiece
 

@@ -30,8 +30,8 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Eight product-faithful editorial Pins are live. Before the eighth launched,
-   the first seven had 236 public impressions in total, two Pin clicks, and one
+   Nine product-faithful editorial Pins are live. Before the ninth launched,
+   the first eight had 237 public impressions in total, two Pin clicks, and one
    save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. The
@@ -50,6 +50,42 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-01 daily production cycle
+
+The eight-Pin truthful public cohort reached 237 impressions, two Pin clicks,
+one save, zero Pinterest outbound clicks, zero GA4 Pinterest sessions, and zero
+first-party attributed product clicks before today's publication. The Butt
+Station Pin reached its exact 24-hour checkpoint with zero impressions or
+engagement. That is a distribution signal, not evidence against its creative;
+Pinterest has not shown it yet. The older raw-chicken Pin remains at one
+impression and no engagement before its seven-day checkpoint on 2026-09-04.
+GA4 reported 25 sessions in the prior seven days—24 direct and one Amazon
+organic-shopping session—and no Pinterest source or outbound event. Search
+Console's 28-day page evidence remained impression-only: the five priority
+guides had 38–509 impressions, zero clicks, and average positions 39–64. The
+daily studio made no SEO page change because today's bounded work was the
+approved production creative cycle.
+
+The current enriched-catalog shortlist supplied the in-stock Lick'em Tongue
+Cat Brush. Amazon Creators API reverified ASIN `B081KFS7QW`, `$9.99`, the
+unchanged red mouth-tray and peg-flap source image, and the canonical product
+page's `200`, self-canonical, `index, follow` state. Three product-derived
+concepts were recorded. Two distinct 1024x1536 executions were generated; the
+cat-spa portrait beat the reading-nook close-up, then received one targeted
+contact correction. The final survivor passes every hard gate at `4.75/5`
+without text, CTA, template structure, deceptive product substitution, or
+visible AI defects.
+
+Cameron's explicit approval and standing one-Pin scheduled-studio exception
+covered the exact package. The guarded non-Sandbox dry run confirmed the
+`goosegifts` BUSINESS account, `Funny White Elephant Gifts` board, unique daily
+tracking URL, complete disclosures, current approval, and no Pin dated
+2026-09-01. Pinterest production API v5 created and read-verified public
+Standard Pin `1107815208387553278`; the publisher wrote durable receipt
+`receipt-1788281361404-editorial-lickem-cat-brush-spa-20260901-publication-succeeded`.
+Its zero baseline about one minute later is a publication receipt. No Sandbox
+object, second Pin, paid tool, outreach, or spend was used.
 
 ### 2026-08-31 daily production cycle
 
