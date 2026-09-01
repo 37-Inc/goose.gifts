@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-contact-review",
+  "type": "review.recorded",
+  "recordedAt": "2026-09-01T09:45:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "candidateId": "cand-v8-lickem-cat-spa",
+    "attemptId": "attempt-v8-cat-brush-spa-contact-2",
+    "rubricVersion": 1,
+    "reviewer": "codex",
+    "scores": {"scrollStop": 5, "pinterestNative": 5, "aestheticQuality": 5, "conceptClarity": 5, "saveworthiness": 4, "brandRestraint": 5, "productFidelity": 4, "aiArtifactControl": 5},
+    "gates": {"singleIdea": true, "truthfulProduct": true, "noEmbeddedCta": true, "noAdTemplate": true},
+    "verdict": "advance",
+    "notes": ["Full-resolution inspection shows one normal person, one coherent cat, and one rigid red mouth tray connected to one tongue-shaped peg flap making a small believable shoulder-fur contact patch at ordinary scale.", "The cat is calm; there is no human tongue, licking, duplicated anatomy, floating part, text, CTA, border, package, reusable product-card structure, or visible AI defect.", "The side view compresses the flap depth compared with the catalog three-quarter view, but preserves the verified product promise and function."]
+  }
+}

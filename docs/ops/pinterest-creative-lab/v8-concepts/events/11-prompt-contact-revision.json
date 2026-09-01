@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-cat-brush-attempt-3",
+  "type": "prompt.recorded",
+  "recordedAt": "2026-09-01T09:44:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "candidateId": "cand-v8-lickem-cat-spa",
+    "attemptId": "attempt-v8-cat-brush-spa-contact-2",
+    "parentAttemptId": "attempt-v8-cat-brush-spa-1",
+    "tool": "Codex built-in image generation (image_gen)",
+    "prompt": "Edit the most recent cat-spa portrait only. Preserve the exact same person, face, hair, expression, pose, mouth tray, cat identity and anatomy, chair, room, lighting, camera, framing, colors, materials, and vertical 2:3 composition. Make one targeted physical correction: move the complete red plastic brush head approximately 1.5 cm down and slightly toward the cat so the lower two rows of its short blunt red pegs visibly part and compress a small patch of shoulder fur. Keep the red mouth tray and single tongue-shaped flap coherently connected at the same realistic 4.5-inch scale. The contact should look gentle and safe, with the cat still calm. Do not redesign, stretch, bend, duplicate, or add pegs; do not turn the brush into flesh or a human tongue. Change nothing else. No text, logo, packaging, CTA, border, ad layout, or watermark.",
+    "changesFromParent": "Move only the complete brush slightly down and toward the cat to create a clear gentle contact patch; preserve the entire winning composition.",
+    "referencePaths": ["docs/ops/pinterest-creative-lab/v8-concepts/product-references/B081KFS7QW-primary.jpg", "docs/ops/pinterest-creative-lab/v8-concepts/02-cat-brush-spa-portrait.png"],
+    "artifactPaths": ["docs/ops/pinterest-creative-lab/v8-concepts/03-cat-brush-spa-contact-revision.png"],
+    "settings": {"aspectRatio": "2:3", "resolution": "1024x1536", "sourceAsin": "B081KFS7QW", "sha256": "59492b22e75e3066f43da565b72090cf519315ea71a11cedc902357f735f0038"},
+    "result": "generated",
+    "notes": ["This was the single allowed causal revision and third/final generation call.", "The repository copy was inspected at full useful resolution."]
+  }
+}

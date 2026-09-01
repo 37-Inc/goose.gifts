@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-cat-brush-generating",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-09-01T09:38:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "candidateId": "cand-v8-lickem-cat-spa",
+    "from": "briefed",
+    "to": "generating",
+    "rationale": "Generate the two strongest distinct reference-bound 2:3 editorial executions; internal generation and at most one diagnosed revision are authorized."
+  }
+}

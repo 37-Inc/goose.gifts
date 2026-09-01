@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-pinterest-v8-created",
+  "type": "experiment.created",
+  "recordedAt": "2026-09-01T09:34:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "name": "Pinterest-native creative v8 daily outbound test",
+    "channel": "pinterest",
+    "objective": "Forward-test one current verified enriched catalog product with a product-specific editorial use reveal and a unique canonical tracked destination.",
+    "hypothesis": "Showing the exact mouth-held tongue cat brush in a composed cat-spa ritual will create a calm-first, absurd-second double take and a credible reason to click through to the exact product.",
+    "initialStatus": "active",
+    "authorization": {"generation": true, "publicPosting": true, "paidSpend": false},
+    "successCriteria": [
+      "Compare two genuinely distinct executions and advance no more than one survivor.",
+      "The survivor passes every hard gate, averages at least 4.0, has no score below 3, and preserves the product's rigid mouth tray, tongue flap, peg rows, scale, and function.",
+      "Any public write uses Pinterest production API v5 on the goosegifts BUSINESS account with unique tracking, durable receipt, and readback."
+    ],
+    "constraints": [
+      "Maximum three image-generation calls, one diagnosed revision, and one survivor.",
+      "Never spend, use Sandbox, or treat Pinterest v3 as traffic evidence.",
+      "One public Pin maximum for 2026-09-01 under the standing scheduled-studio authorization and Cameron's explicit approval."
+    ],
+    "tags": ["pinterest", "creative-lab", "v8", "daily-studio", "organic", "outbound", "pets"]
+  }
+}

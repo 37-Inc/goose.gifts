@@ -48,6 +48,9 @@ what's likely next.
   verified public Pin
   `1107815208387225923`; the 2026-08-31 cycle then created and read-verified
   Butt Station Pin `1107815208387477273` through the same production path.
+  The 2026-09-01 cycle published the ninth product-faithful Pin, Lick'em cat
+  brush `1107815208387553278`, through the guarded production API after a
+  product-truth-gated 4.75/5 review.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -60,10 +63,11 @@ what's likely next.
   4.75/5 raw-chicken-vase survivor, now live through the guarded production API
   as the seventh product-faithful Pin. A second current-catalog test produced a
   `4.63/5` Butt Station architecture-desk survivor and published it as the
-  eighth. The mature alligator, ceramic-eye, goat, and breakfast candidates are
-  archived in telemetry without deleting their public Pins; raw chicken,
-  hippo vanity/desk, and Butt Station remain measuring. Measure before drawing
-  a performance conclusion.
+  eighth. A third current-catalog test produced a `4.75/5` Lick'em cat-spa
+  use-reveal and published it as the ninth. The mature alligator, ceramic-eye,
+  goat, and breakfast candidates are archived in telemetry without deleting
+  their public Pins; raw chicken, hippo vanity/desk, Butt Station, and Lick'em
+  remain measuring. Measure before drawing a performance conclusion.
   Canonical gift pages now replace product-pinned
   random-gift URLs for future campaign packages; existing Pin destinations
   permanently redirect without losing their UTM attribution.
@@ -83,6 +87,23 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-01 — Lick'em cat-spa production Pin `[daily-ops]` ([PR #120](https://github.com/37-Inc/goose.gifts/pull/120))
+
+Pulled Pinterest production, GA4, first-party database, and Search Console
+evidence. The truthful eight-Pin cohort had 237 impressions, two Pin clicks,
+one save, and no attributable outbound or product clicks; Butt Station's exact
+24-hour checkpoint remained at zero impressions. Reverified the in-stock
+Lick'em Tongue Cat Brush from the enriched catalog and its indexable canonical
+gift page; recorded three product-derived concepts; generated two distinct
+1024x1536 executions; and used the single allowed revision only to make the
+winning cat-spa portrait's peg-to-fur contact causal. The final artifact passed
+every truth/no-CTA/no-template gate at `4.75/5`. The guarded production API v5
+path confirmed the approval, BUSINESS account, empty target board, unique URL,
+and no same-day Pin, then created and read-verified Standard Pin
+`1107815208387553278` with durable success receipt. Updated stale lifecycle
+test expectations exposed by the August 31 archives. No Sandbox object, second
+Pin, SEO page mutation, paid tool, outreach, or spend was used.
 
 ### 2026-08-31 — Butt Station production Pin and mature-cohort checkpoints `[daily-ops]` ([PR #119](https://github.com/37-Inc/goose.gifts/pull/119))
 

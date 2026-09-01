@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-cat-brush-attempt-1",
+  "type": "prompt.recorded",
+  "recordedAt": "2026-09-01T09:39:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "candidateId": "cand-v8-lickem-cat-spa",
+    "attemptId": "attempt-v8-cat-brush-reading-nook-1",
+    "parentAttemptId": null,
+    "tool": "Codex built-in image generation (image_gen)",
+    "prompt": "Use case: photorealistic-natural\nAsset type: vertical 2:3 Pinterest editorial product image\nInput images: Image 1 is the exact product identity and geometry reference. Preserve the product faithfully.\nPrimary request: create a tasteful, strange, instantly understandable editorial photograph of the exact red Lick'em mouth-held tongue-shaped cat brush being used gently on a calm cat. The image should earn a click by making the viewer wonder what this absurd but real grooming tool is, while showing how it works without any text.\nScene/backdrop: a warm, lived-in apartment reading nook in soft morning light; restrained linen chair and subtle home textures, no staged ad set.\nSubject: a naturally styled adult shown in clean side profile, wearing the exact red plastic mouthpiece correctly: the shallow curved mouth tray is held between closed lips/teeth, with one single broad red tongue-shaped flap extending outward and downward. The underside of that single flap has many short, evenly spaced, blunt conical grooming pegs exactly like the reference. The pegs make gentle believable contact with the shoulder fur of one relaxed domestic cat perched beside the person. The person is not licking the cat with a human tongue. The product remains clearly hard red plastic, approximately 4.5 inches long, not flesh and not oversized.\nStyle/medium: photorealistic independent design-magazine lifestyle photography, candid, clever, beautiful but not glossy; natural skin and fur texture, subtle grain.\nComposition/framing: vertical 2:3 portrait, intimate medium close-up, eye level, product and contact point fully visible, one person and one cat only; calm negative space; no text overlay.\nLighting/mood: quiet morning window light, warm neutral palette with the saturated red brush as the only vivid accent; deadpan rather than slapstick.\nConstraints: exact product geometry and function; one coherent brush only; one normal person; one anatomically correct cat; ordinary scale; mouthpiece visibly attached to the red tongue-shaped brush; underside pegs visible and contacting fur; physically credible shadows and contact; no brand logo or packaging; no embedded copy; no CTA; no border; no split layout; no watermark.\nAvoid: a real human tongue, flesh-colored tongue, tongue emerging directly from the mouth without the plastic tray, licking, cat discomfort, duplicated teeth/lips/limbs, extra cats, extra brush, floating pegs, deformed fur, surreal anatomy, promotional product-shot composition, discount badges, infographic labels, mockup template, over-retouching.",
+    "changesFromParent": "",
+    "referencePaths": ["docs/ops/pinterest-creative-lab/v8-concepts/product-references/B081KFS7QW-primary.jpg"],
+    "artifactPaths": ["docs/ops/pinterest-creative-lab/v8-concepts/01-cat-brush-reading-nook.png"],
+    "settings": {"aspectRatio": "2:3", "resolution": "1024x1536", "sourceAsin": "B081KFS7QW", "sha256": "cba0d1c758d2facdfc0ca8a7230fdc18a9224d18ffdfc423b9658f9975422458"},
+    "result": "generated",
+    "notes": ["Generated from the exact downloaded Amazon primary image.", "The repository copy was inspected at full useful resolution."]
+  }
+}

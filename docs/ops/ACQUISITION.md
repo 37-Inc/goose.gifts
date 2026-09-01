@@ -108,6 +108,18 @@ checkpoints can measure the full Pinterest impression-to-affiliate-click path.
 This is still a creative/distribution test, not evidence that Pinterest is an
 acquisition channel yet.
 
+**2026-09-01 Pinterest evidence:** the eight-Pin truthful cohort had 237
+impressions, two Pin clicks, one save, and no Pinterest outbound click before
+the ninth Pin launched. The Butt Station Pin remained at zero impressions at
+its exact 24-hour checkpoint, while raw chicken remained at one impression;
+both are still distribution receipts rather than creative verdicts. GA4 showed
+25 seven-day sessions and no Pinterest source, and the first-party database
+showed zero product-click events in both the prior 24 hours and seven days.
+The new Lick'em cat-brush Pin uses a unique canonical product URL and daily UTM
+so its 24-hour, 7-day, and 28-day checkpoints continue testing the full public
+impression-to-affiliate-click path. No acquisition-channel claim is justified
+until attributable outbound clicks appear.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

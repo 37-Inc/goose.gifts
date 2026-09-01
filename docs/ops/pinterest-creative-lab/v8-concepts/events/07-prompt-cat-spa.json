@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260901-v8-cat-brush-attempt-2",
+  "type": "prompt.recorded",
+  "recordedAt": "2026-09-01T09:40:00-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-native-v8",
+    "candidateId": "cand-v8-lickem-cat-spa",
+    "attemptId": "attempt-v8-cat-brush-spa-1",
+    "parentAttemptId": null,
+    "tool": "Codex built-in image generation (image_gen)",
+    "prompt": "Use case: photorealistic-natural\nAsset type: vertical 2:3 Pinterest editorial product image\nInput images: Image 1 is the exact product identity and geometry reference. Preserve the product faithfully.\nPrimary request: create a deadpan, high-taste editorial portrait in the spirit of the cat spa appointment, showing the exact red Lick'em mouth-held tongue-shaped cat brush in unmistakable, gentle use. No written title or text appears in the image. The click reason is the surprising discovery that the elegant grooming scene uses a real absurd mouth brush.\nScene/backdrop: a quiet, sunlit home dressing area with one vintage upholstered chair, warm plaster wall, and minimal natural textures; it should feel like an independent interiors magazine, not a commercial set.\nSubject: one naturally styled adult kneels beside one calm long-haired domestic cat sitting upright on the chair. Show the adult in three-quarter side profile holding the exact red plastic mouth tray between closed lips/teeth. One single broad red tongue-shaped flap curves down from the tray; its underside has many short, evenly spaced, blunt red conical grooming pegs like the reference. The lower rows of pegs visibly sink a few millimeters into the cat's shoulder fur in one clear contact patch. The brush is hard red plastic and roughly 4.5 inches long. The cat looks relaxed and comfortable.\nStyle/medium: photorealistic European editorial portrait, candid and restrained, real skin, hair, wool upholstery and fur texture, subtle analog grain, gentle imperfection.\nComposition/framing: vertical 2:3; medium portrait showing the full relationship among face, complete brush, and cat; product centered in the visual triangle and fully readable; one person and one cat only; no product pack shot or text overlay.\nLighting/mood: calm late-afternoon window light, muted cream and tobacco palette, vivid red brush as the one visual interruption; composed, sincere, slightly absurd.\nConstraints: exact product geometry and function; one brush only; mouth tray visibly connected to the tongue-shaped flap; underside peg rows clearly visible and making believable contact with fur; normal human mouth and face; anatomically correct cat; ordinary product scale; physically credible shadows; no brand logo or packaging; no embedded copy; no CTA; no border; no collage; no watermark.\nAvoid: human tongue, flesh-colored tongue, licking, tongue emerging directly from mouth, cat distress, product hovering above fur, duplicated lips/teeth/limbs/ears, extra people or cats, extra brush, malformed pegs, overlong or flexible tongue, promotional ad layout, studio product shot, discount graphic, template structure, over-retouching.",
+    "changesFromParent": "A deliberately wider, dead-serious cat-spa ritual rather than the intimate reading-nook close-up.",
+    "referencePaths": ["docs/ops/pinterest-creative-lab/v8-concepts/product-references/B081KFS7QW-primary.jpg"],
+    "artifactPaths": ["docs/ops/pinterest-creative-lab/v8-concepts/02-cat-brush-spa-portrait.png"],
+    "settings": {"aspectRatio": "2:3", "resolution": "1024x1536", "sourceAsin": "B081KFS7QW", "sha256": "40b7636c4a24892bbc38f3a3c34f28826eeccc74db01a3b84075db9e2e469e3f"},
+    "result": "generated",
+    "notes": ["Generated separately as a distinct execution.", "The repository copy was inspected at full useful resolution."]
+  }
+}
