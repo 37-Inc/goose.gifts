@@ -11,6 +11,49 @@ None.
 
 ## Published from this queue
 
+### Pizza Boss 3000 — old-master pizza still life
+
+- Candidate: `cand-v9-pizza-boss-still-life` (`measuring`, internal score
+  `4.75/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387630624/`
+- Published: 2026-09-02 through Pinterest production API v5 under Cameron's
+  standing daily authorization after the exact production dry run and all
+  guards passed.
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v9-concepts/attempts/pizza-boss-renaissance-still-life-v1.png`
+- Exact product: Genuine Fred PIZZA BOSS 3000, ASIN `B001XSFW42`; Amazon
+  Creators API reverified it `IN_STOCK` at `$23.50` on 2026-09-02 with the
+  source image unchanged. The shortlist's `$17.99` price was stale.
+- Destination:
+  `https://www.goose.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes`
+- Board: `Weird Kitchen Gadgets`
+- Title: `The Pizza Called in a Contractor`
+- Description: `A candlelit pizza still life, one clean slice, and a six-inch circular saw that is actually the pizza wheel. See the exact Pizza Boss 3000 on goose.gifts. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Blue-and-gray circular-saw-shaped pizza cutter with one steel wheel resting beside a sliced basil pizza on a dark wooden table.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902`
+- Why it earns a pause: a dark, appetizing pizza still life reads first; the
+  compact blue-and-gray object then resolves as one real pizza wheel shaped
+  like a circular saw.
+- Rejected alternatives: the ungenerated flour-dusted workbench repeated the
+  recent desk mechanism and risked implying power; the generated chef's tool
+  wall enlarged the cutter, emphasized generated lettering, and made it feel
+  displayed. The winning first attempt had no causal weakness worth revising.
+- Truth/risk review: full-resolution inspection shows one compact cutter at
+  plausible six-inch scale, one smooth stainless wheel with center fastener,
+  one lower guard/plate, and one gray handle physically grounded beside the
+  pizza. There is no extra blade, toothed construction blade, cord, battery,
+  spark, hand, packaging, embedded creative copy, CTA, product-card layout, or
+  visible AI defect.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, `Weird Kitchen Gadgets` board, no 2026-09-02 Pin, and no
+  duplicate tracked destination; created one Standard Pin; read back every
+  approved field and the 1024x1536 image; and wrote receipt
+  `receipt-1788367813772-editorial-pizza-boss-still-life-20260902-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about 17
+  seconds after publication; this is a receipt, not a performance verdict.
+
 ### Lick'em Tongue Cat Brush — quiet cat-spa appointment
 
 - Candidate: `cand-v8-lickem-cat-spa` (`measuring`, internal score `4.75/5`)
@@ -157,7 +200,7 @@ None.
 
 ### Patricia hippo mug — lipstick vanity
 
-- Candidate: `cand-v5-hippo-vanity` (`measuring`, internal score `4.88/5`)
+- Candidate: `cand-v5-hippo-vanity` (`archived`, internal score `4.88/5`)
 - Public Pin: `https://www.pinterest.com/pin/1107815208385331910/`
 - Published: 2026-08-04 through the signed-in `goose.gifts` browser session
   after Cameron approved the exact vanity package and delegated the one-versus-
@@ -187,7 +230,7 @@ None.
 
 ### Screaming Goat — boardroom facilitator
 
-- Candidate: `cand-screaming-goat-meeting` (`published`, internal score
+- Candidate: `cand-screaming-goat-meeting` (`archived`, internal score
   `4.63/5`)
 - Public Pin: `https://www.pinterest.com/pin/1107815208385022014/`
 - Published: 2026-07-31 through the signed-in `goosegifts` browser session after
@@ -218,12 +261,14 @@ None.
 ## Revision queue
 
 None. The goat, alligator, ceramic-eye, and hippo-breakfast candidates reached
-their 28-day-plus archive checkpoints on 2026-08-31; archiving closes their
-measurement lifecycle without deleting their public Pins. The goat remains the
-only directional attention signal at 131 impressions, two Pin clicks, and one
-save, but it produced no outbound click, attributable Pinterest session, or
-affiliate click. Hippo vanity and desk remain measuring until their own 28-day
-checkpoints; raw chicken remains measuring until its seven-day checkpoint.
+their 28-day-plus archive checkpoints on 2026-08-31; hippo vanity followed on
+2026-09-02 at four impressions. Archiving closes measurement without deleting
+public Pins. The goat remains the only directional attention signal at 131
+impressions, two Pin clicks, and one save, but it produced no outbound click,
+attributable Pinterest session, or affiliate click. Hippo desk remains
+measuring until its 2026-09-05 28-day checkpoint; raw chicken is due for its
+seven-day checkpoint on 2026-09-04; Butt Station, Lick'em, and Pizza Boss also
+remain measuring.
 The old `cand-unhinged-desk-guide` was closed as rejected on 2026-08-11 because
 its only attempt lacked verified product references and failed the truthful-
 product gate; it is not pending owner work.
