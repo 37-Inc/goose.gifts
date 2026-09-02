@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildGiftPageSchema } from '../lib/gift-page-schema.ts';
+import {
+  buildGiftPageSchema,
+  hasUsableRetailerDestination,
+} from '../lib/gift-page-schema.ts';
 
 const canonicalUrl = 'https://www.goose.gifts/gifts/the-screaming-goat';
 const siteUrl = 'https://www.goose.gifts';
@@ -65,6 +68,24 @@ test('includes Product markup only when it carries a current visible offer', () 
 test('omits Product markup when the offer snapshot is stale', () => {
   const schema = buildGiftPageSchema(
     product({ price: 12.99, availabilityCheckedAt: '2026-08-14T14:00:00Z' }),
+    canonicalUrl,
+    'The Screaming Goat',
+    'A tiny goat for a desk with a loud sense of humor.',
+    siteUrl,
+    now
+  );
+
+  assert.deepEqual(graphTypes(schema), ['WebPage', 'BreadcrumbList']);
+});
+
+test('retailer destinations fail closed when the affiliate URL is blank or unsafe', () => {
+  assert.equal(hasUsableRetailerDestination(product({ affiliateUrl: '' })), false);
+  assert.equal(hasUsableRetailerDestination(product({ affiliateUrl: '   ' })), false);
+  assert.equal(hasUsableRetailerDestination(product({ affiliateUrl: 'http://example.com/goat' })), false);
+  assert.equal(hasUsableRetailerDestination(product()), true);
+
+  const schema = buildGiftPageSchema(
+    product({ price: 12.99, affiliateUrl: '   ' }),
     canonicalUrl,
     'The Screaming Goat',
     'A tiny goat for a desk with a loud sense of humor.',

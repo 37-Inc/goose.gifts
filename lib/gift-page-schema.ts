@@ -8,6 +8,21 @@ const PURCHASABLE_AVAILABILITY = new Set([
   'PREORDER',
 ]);
 
+export function hasUsableRetailerDestination(product: Product): boolean {
+  const status = String(product.availabilityStatus || '').toUpperCase();
+  let destination: URL;
+
+  try {
+    destination = new URL(product.affiliateUrl.trim());
+  } catch {
+    return false;
+  }
+
+  return destination.protocol === 'https:'
+    && product.isActive !== false
+    && !['OUTOFSTOCK', 'OUT_OF_STOCK', 'UNAVAILABLE'].includes(status);
+}
+
 export function hasFreshGiftOffer(product: Product, now = new Date()): boolean {
   const checkedAt = product.availabilityCheckedAt
     ? new Date(product.availabilityCheckedAt).getTime()
@@ -73,7 +88,7 @@ export function buildGiftPageSchema(
   ];
 
   const offerAvailability = schemaAvailability(product.availabilityStatus);
-  if (hasFreshGiftOffer(product, now) && offerAvailability) {
+  if (hasUsableRetailerDestination(product) && hasFreshGiftOffer(product, now) && offerAvailability) {
     const productId = `${canonicalUrl}#product`;
     const productSchema: Record<string, unknown> = {
       '@type': 'Product',
