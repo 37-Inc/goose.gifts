@@ -120,6 +120,18 @@ so its 24-hour, 7-day, and 28-day checkpoints continue testing the full public
 impression-to-affiliate-click path. No acquisition-channel claim is justified
 until attributable outbound clicks appear.
 
+**2026-09-02 Pinterest evidence:** the nine-Pin truthful cohort had 240
+impressions, two Pin clicks, one save, and zero Pinterest outbound clicks
+before the tenth Pin launched. The Lick'em cat-spa Pin remained at zero
+impressions at its exact 24-hour checkpoint; Butt Station received its first
+impression without engagement. GA4 showed 29 seven-day sessions and no
+Pinterest source or outbound event, while the first-party database showed zero
+product clicks in both 24 hours and seven days. The new Pizza Boss still-life
+Pin uses an indexable canonical product page and unique daily UTM to continue
+testing the full public impression-to-affiliate-click path. The profile still
+has no attributable outbound result, so no acquisition-channel claim or cadence
+expansion is justified.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

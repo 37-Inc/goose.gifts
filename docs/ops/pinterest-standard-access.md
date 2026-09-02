@@ -196,9 +196,9 @@ frame that shows a raw token.**
   signed-in browser fallback. Sandbox and Pinterest v3 objects remain excluded
   from public performance evidence forever.
 - The guarded production API has now created and read-verified the raw-chicken,
-  Butt Station, and Lick'em cat-brush Pins. Combined with the six retained
-  product-faithful browser posts, the current clean profile has nine public
-  Pins and zero Sandbox objects.
+  Butt Station, Lick'em cat-brush, and Pizza Boss Pins. Combined with the six
+  retained product-faithful browser posts, the current clean profile has ten
+  public Pins and zero Sandbox objects.
 
 ## References
 

@@ -174,6 +174,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208387553278/",
       "publishedAt": "2026-09-01T16:49:21.409Z",
       "publicationReceiptId": "receipt-1788281361404-editorial-lickem-cat-brush-spa-20260901-publication-succeeded"
+    },
+    {
+      "id": "editorial-pizza-boss-still-life-20260902",
+      "candidateId": "cand-v9-pizza-boss-still-life",
+      "approvalEventId": "evt-20260902-v9-pizza-boss-approved",
+      "board": "Weird Kitchen Gadgets",
+      "assetPath": "docs/ops/pinterest-creative-lab/v9-concepts/attempts/pizza-boss-renaissance-still-life-v1.png",
+      "targetPage": "https://www.goose.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes",
+      "trackingUrl": "https://www.goose.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+      "title": "The Pizza Called in a Contractor",
+      "description": "A candlelit pizza still life, one clean slice, and a six-inch circular saw that is actually the pizza wheel. See the exact Pizza Boss 3000 on goose.gifts. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Blue-and-gray circular-saw-shaped pizza cutter with one steel wheel resting beside a sliced basil pizza on a dark wooden table.",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208387630624/",
+      "publishedAt": "2026-09-02T16:50:13.774Z",
+      "publicationReceiptId": "receipt-1788367813772-editorial-pizza-boss-still-life-20260902-publication-succeeded"
     }
   ]
 }

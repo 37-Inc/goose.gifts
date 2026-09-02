@@ -50,7 +50,9 @@ what's likely next.
   Butt Station Pin `1107815208387477273` through the same production path.
   The 2026-09-01 cycle published the ninth product-faithful Pin, Lick'em cat
   brush `1107815208387553278`, through the guarded production API after a
-  product-truth-gated 4.75/5 review.
+  product-truth-gated 4.75/5 review. The 2026-09-02 cycle published the tenth,
+  Pizza Boss 3000 `1107815208387630624`, after a separate 4.75/5 still-life
+  review and guarded production readback.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -64,10 +66,12 @@ what's likely next.
   as the seventh product-faithful Pin. A second current-catalog test produced a
   `4.63/5` Butt Station architecture-desk survivor and published it as the
   eighth. A third current-catalog test produced a `4.75/5` Lick'em cat-spa
-  use-reveal and published it as the ninth. The mature alligator, ceramic-eye,
-  goat, and breakfast candidates are archived in telemetry without deleting
-  their public Pins; raw chicken, hippo vanity/desk, Butt Station, and Lick'em
-  remain measuring. Measure before drawing a performance conclusion.
+  use-reveal and published it as the ninth. A fourth produced the 4.75/5 Pizza
+  Boss old-master still life and published it as the tenth. The mature
+  alligator, ceramic-eye, goat, breakfast, and hippo-vanity candidates are
+  archived in telemetry without deleting their public Pins; raw chicken, hippo
+  desk, Butt Station, Lick'em, and Pizza Boss remain measuring. Measure before
+  drawing a performance conclusion.
   Canonical gift pages now replace product-pinned
   random-gift URLs for future campaign packages; existing Pin destinations
   permanently redirect without losing their UTM attribution.
@@ -87,6 +91,22 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-02 — Pizza Boss production Pin `[daily-ops]` ([PR #121](https://github.com/37-Inc/goose.gifts/pull/121))
+
+Pulled Pinterest production, GA4, first-party database, and current Search
+Console evidence. The truthful nine-Pin cohort had 240 impressions, two Pin
+clicks, one save, and no attributable outbound or product click; Lick'em's
+exact 24-hour checkpoint remained at zero impressions. Reverified the in-stock
+Pizza Boss 3000 from the enriched catalog at the corrected `$23.50` price and
+confirmed its indexable canonical gift page; recorded three product-derived
+concepts; generated two distinct 1024x1536 executions; and advanced only the
+old-master pizza still life at `4.75/5` with every hard gate passing. The
+guarded production API v5 created and read-verified Standard Pin
+`1107815208387630624` with durable success receipt. Hippo vanity closed its
+28-day lifecycle without deleting the public Pin. September's wishlist check
+remains no-build. No Sandbox object, second Pin, SEO page mutation, paid tool,
+outreach, or spend was used.
 
 ### 2026-09-01 — Lick'em cat-spa production Pin `[daily-ops]` ([PR #120](https://github.com/37-Inc/goose.gifts/pull/120))
 
