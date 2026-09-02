@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { Header } from '@/components/Header';
+import { MobileStickyRetailerCta } from '@/components/MobileStickyRetailerCta';
 import { ProductClickButton } from '@/components/ProductClickButton';
 import { ProductGrid } from '@/components/ProductGrid';
 import { ProductImage } from '@/components/ProductImage';
@@ -131,6 +132,8 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
   const fallbackParagraph = product.wittyDescription
     || `A funny gift picked from the goose.gifts catalog. Check the retailer listing for the exact current details.`;
   const tags = (product.humorTags || []).slice(0, 5);
+  const retailerLabel = product.source === 'amazon' ? 'Amazon' : 'Etsy';
+  const hasRetailerDestination = hasUsableRetailerDestination(product);
   const schema = JSON.stringify(buildGiftPageSchema(
     product,
     canonicalUrl,
@@ -140,7 +143,7 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
   )).replace(/</g, '\\u003c');
 
   return (
-    <main className="min-h-screen bg-white text-zinc-950">
+    <main className="min-h-screen bg-white pb-24 text-zinc-950 sm:pb-0">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: schema }} />
       <Header />
 
@@ -153,8 +156,35 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
       <PageHero title={title} subtitle={product.wittyDescription || 'A funny gift idea worth a closer look.'} />
 
       <section className="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:pt-10">
-        <article className="grid gap-8 rounded-3xl bg-zinc-50 p-5 ring-1 ring-zinc-950/[0.06] sm:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] sm:p-8">
-          <div className="relative aspect-square overflow-hidden rounded-2xl bg-white ring-1 ring-zinc-950/[0.05]">
+        <article className="grid gap-6 rounded-3xl bg-zinc-50 p-5 ring-1 ring-zinc-950/[0.06] sm:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] sm:grid-rows-[auto_1fr] sm:gap-x-8 sm:gap-y-5 sm:p-8">
+          <div className="sm:col-start-2 sm:row-start-1 sm:self-end">
+            {hasRetailerDestination ? (
+              <ProductClickButton
+                product={product}
+                clickSource="gift_page_price"
+                contextSlug={lookup.canonicalSlug}
+                ariaLabel={`${formatPrice(product)} at ${retailerLabel} (opens in a new tab)`}
+                className="group inline-flex min-h-11 items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-zinc-950 outline-none ring-1 ring-zinc-950/10 transition hover:text-brand hover:ring-brand/30 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 motion-reduce:transition-none"
+              >
+                <span id="gift-retailer-primary">
+                  {formatPrice(product)}
+                  <span className="px-2 text-zinc-300" aria-hidden="true">·</span>
+                  <span className="text-xs uppercase tracking-[0.08em] text-zinc-500 group-hover:text-brand">
+                    {retailerLabel}
+                  </span>
+                  <span aria-hidden="true" className="ml-1.5 text-zinc-400">↗</span>
+                </span>
+              </ProductClickButton>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">
+                <span className="text-base normal-case tracking-normal text-zinc-950">No longer listed</span>
+                <span aria-hidden="true">·</span>
+                <span>{retailerLabel}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="relative aspect-square overflow-hidden rounded-2xl bg-white ring-1 ring-zinc-950/[0.05] sm:col-start-1 sm:row-span-2 sm:row-start-1">
             {product.imageUrl ? (
               <div className="absolute inset-6 sm:inset-8">
                 <ProductImage
@@ -172,16 +202,8 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
             )}
           </div>
 
-          <div className="flex flex-col justify-center">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">
-              <span className="text-base normal-case tracking-normal text-zinc-950">
-                {hasUsableRetailerDestination(product) ? formatPrice(product) : 'No longer listed'}
-              </span>
-              <span aria-hidden="true">·</span>
-              <span>{product.source === 'amazon' ? 'Amazon' : 'Etsy'}</span>
-            </div>
-
-            <h2 className="mt-5 text-xl font-bold tracking-tight text-zinc-950">Why it works as a gift</h2>
+          <div className="flex flex-col justify-center sm:col-start-2 sm:row-start-2">
+            <h2 className="text-xl font-bold tracking-tight text-zinc-950">Why it works as a gift</h2>
             <div className="mt-3 space-y-4 text-[15px] leading-7 text-zinc-600">
               {(editorialParagraphs.length > 0 ? editorialParagraphs : [fallbackParagraph]).map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
@@ -204,16 +226,21 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
               </p>
             ) : null}
 
-            {hasUsableRetailerDestination(product) ? (
+            {hasRetailerDestination ? (
               <>
-                <ProductClickButton
-                  product={product}
-                  clickSource="gift_page"
-                  contextSlug={lookup.canonicalSlug}
-                  className="mt-7 inline-flex w-fit rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand"
-                >
-                  {product.price > 0 ? 'See it at the retailer' : 'Check price and availability'}
-                </ProductClickButton>
+                <div id="gift-retailer-editorial" className="mt-7 w-fit">
+                  <ProductClickButton
+                    product={product}
+                    clickSource="gift_page_editorial"
+                    contextSlug={lookup.canonicalSlug}
+                    ariaLabel={`See ${title} at ${retailerLabel} (opens in a new tab)`}
+                    trackImpression={false}
+                    className="inline-flex min-h-11 w-fit items-center rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white outline-none transition hover:bg-brand focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 motion-reduce:transition-none"
+                  >
+                    {product.price > 0 ? `See it at ${retailerLabel}` : 'Check price and availability'}
+                    <span aria-hidden="true" className="ml-1.5">↗</span>
+                  </ProductClickButton>
+                </div>
                 <p className="mt-3 max-w-sm text-xs leading-5 text-zinc-400">
                   Affiliate disclosure: goose.gifts may earn from qualifying purchases at no extra cost to you.
                 </p>
@@ -226,6 +253,14 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
           </div>
         </article>
       </section>
+
+      {hasRetailerDestination ? (
+        <MobileStickyRetailerCta
+          product={product}
+          contextSlug={lookup.canonicalSlug}
+          retailerLabel={retailerLabel}
+        />
+      ) : null}
 
       {relatedProducts.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 pb-20">

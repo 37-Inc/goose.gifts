@@ -102,6 +102,35 @@ test('outbound contract reduces affiliate URLs to domains and drops raw attribut
   assert.equal(serialized.includes('recipient name'), false);
 });
 
+test('product-page retailer placements remain separately attributable', () => {
+  for (const clickSource of [
+    'gift_page_price',
+    'gift_page_editorial',
+    'gift_page_sticky',
+  ]) {
+    const event = buildOutboundClickEvent({
+      pathname: '/gifts/example?utm_source=pinterest',
+      clickSource,
+      contextSlug: 'example',
+      productId: 'amazon:123',
+      productSource: 'amazon',
+      affiliateUrl: 'https://www.amazon.com/dp/123?tag=goose-gifts-37-20',
+      attribution: {
+        utmSource: 'pinterest',
+        utmMedium: 'organic_social',
+        utmCampaign: 'pinterest_editorial_v4',
+      },
+    });
+
+    assert.equal(event.properties.pathname, '/gifts/example');
+    assert.equal(event.properties.ui_context, `${clickSource}:example`);
+    assert.equal(event.properties.traffic_source, 'pinterest');
+    assert.equal(event.properties.traffic_medium, 'organic_social');
+    assert.equal(event.properties.traffic_campaign, 'pinterest_editorial_v4');
+    assert.equal(event.properties.link_domain, 'www.amazon.com');
+  }
+});
+
 test('the single client adapter preserves destinations and disables broad capture', async () => {
   const adapter = await readFile(new URL('../lib/client-analytics.ts', import.meta.url), 'utf8');
   const layout = await readFile(new URL('../app/layout.tsx', import.meta.url), 'utf8');

@@ -5,6 +5,33 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-02 - Pinterest landing-page retailer friction
+
+**Decision**: improve the conversion path on every canonical `/gifts/<slug>`
+page without changing the product model, canonical metadata, structured data,
+or old Pinterest redirect behavior. The price-and-retailer label now opens the
+existing affiliate destination through `ProductClickButton` before the product
+image on mobile and alongside it on desktop. The post-editorial retailer CTA
+remains in place, and a mobile-only sticky CTA appears after the first link has
+scrolled away, hides while the inline CTA or footer is visible, and leaves
+bottom document space so the final content remains reachable.
+
+**Attribution and compliance**: the three placements use separate
+`gift_page_price`, `gift_page_editorial`, and `gift_page_sticky` UI contexts but
+the same sanitized `conversion_event_outbound_click` contract, session/UTM
+capture, first-party `/api/track-click` path, affiliate URL, new-tab behavior,
+and nearby Amazon/Etsy disclosure. Secondary links opt out of impression
+recording so a single product-page view is not tripled.
+
+**Review**: the page has no reliable public mapping from a product to its exact
+Pinterest creative; those files remain in the operational experiment ledger.
+The proposed visual-continuity treatment was therefore not implemented. Local
+mobile and desktop rendering used a live catalog product with Pinterest UTM
+parameters: the primary link was present in the initial mobile viewport, the
+sticky bar appeared only after scrolling, yielded to the inline CTA and footer,
+and remained absent at desktop width. Focused gift-page and analytics tests,
+lint, and the production build passed under the repository's Node 22 runtime.
+
 ## 2026-09-02 - Pizza Boss production cycle
 
 **Evidence checked**: Pinterest production API v5 reported 240 lifetime

@@ -92,6 +92,18 @@ what's likely next.
 
 Newest first.
 
+### 2026-09-02 — Product-page retailer path tightened `[owner+codex]`
+
+Turned the quiet price-and-retailer label on canonical gift pages into the
+first tracked affiliate affordance, retained a separate retailer CTA after the
+editorial explanation, and added a restrained mobile retailer bar that appears
+only after the first link scrolls away and yields to the inline CTA and footer.
+All three placements reuse the existing first-party and GA4/PostHog outbound
+contract with distinct UI contexts while counting the product impression only
+once. The Pinterest-to-page visual-continuity idea remains deferred because the
+creative ledger is not consistently mapped into the public product model; the
+live retailer image remains the truthful page image.
+
 ### 2026-09-02 — Pizza Boss production Pin `[daily-ops]` ([PR #121](https://github.com/37-Inc/goose.gifts/pull/121))
 
 Pulled Pinterest production, GA4, first-party database, and current Search

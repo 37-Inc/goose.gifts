@@ -15,6 +15,8 @@ interface ProductClickButtonProps {
   contextSlug?: string;
   children: ReactNode;
   className: string;
+  ariaLabel?: string;
+  trackImpression?: boolean;
 }
 
 function openOutbound(url: string) {
@@ -27,8 +29,14 @@ export function ProductClickButton({
   contextSlug,
   children,
   className,
+  ariaLabel,
+  trackImpression = true,
 }: ProductClickButtonProps) {
   useEffect(() => {
+    if (!trackImpression) {
+      return;
+    }
+
     fetch('/api/track-impression', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -38,7 +46,7 @@ export function ProductClickButton({
         contextSlug,
       }),
     }).catch(() => {});
-  }, [clickSource, contextSlug, product.id]);
+  }, [clickSource, contextSlug, product.id, trackImpression]);
 
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -93,6 +101,7 @@ export function ProductClickButton({
       rel="noopener noreferrer"
       onClick={handleClick}
       className={className}
+      aria-label={ariaLabel}
     >
       {children}
     </a>

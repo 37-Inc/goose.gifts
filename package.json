@@ -54,7 +54,7 @@
     "test:catalog-cache": "node --experimental-strip-types --test tests/catalog-cache.test.mjs",
     "test:structured-data": "node --experimental-strip-types --test tests/home-item-list-schema.test.mjs",
     "test:gift-guides": "node --import tsx --test tests/gift-guides.test.mjs tests/gift-guide-schema.test.mjs",
-    "test:gift-pages": "node --experimental-strip-types --test tests/gift-slugs.test.mjs tests/gift-page-schema.test.mjs",
+    "test:gift-pages": "node --experimental-strip-types --test tests/gift-slugs.test.mjs tests/gift-page-schema.test.mjs tests/gift-page-retailer-cta.test.mjs",
     "test:amazon": "node scripts/ops/test-amazon-creators.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
