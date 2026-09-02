@@ -9,7 +9,11 @@ import { ProductImage } from '@/components/ProductImage';
 import { PageHero } from '@/components/ui/PageHero';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { getGiftPageBySlug, getRelatedGiftProducts } from '@/lib/db/gift-pages';
-import { buildGiftPageSchema, hasFreshGiftOffer } from '@/lib/gift-page-schema';
+import {
+  buildGiftPageSchema,
+  hasFreshGiftOffer,
+  hasUsableRetailerDestination,
+} from '@/lib/gift-page-schema';
 import {
   getEditorialParagraphs,
   getGiftPath,
@@ -28,12 +32,6 @@ interface GiftPageProps {
 
 function displayTitle(product: Product): string {
   return product.punnyTitle || product.title;
-}
-
-function hasUsableRetailerDestination(product: Product): boolean {
-  const status = String(product.availabilityStatus || '').toUpperCase();
-  return product.isActive !== false
-    && !['OUTOFSTOCK', 'OUT_OF_STOCK', 'UNAVAILABLE'].includes(status);
 }
 
 function formatPrice(product: Product): string {

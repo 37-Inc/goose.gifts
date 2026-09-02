@@ -20,7 +20,8 @@ bottom document space so the final content remains reachable.
 `gift_page_price`, `gift_page_editorial`, and `gift_page_sticky` UI contexts but
 the same sanitized `conversion_event_outbound_click` contract, session/UTM
 capture, first-party `/api/track-click` path, affiliate URL, new-tab behavior,
-and nearby Amazon/Etsy disclosure. Secondary links opt out of impression
+and nearby Amazon/Etsy disclosure. Blank, malformed, non-HTTPS, inactive, and
+unavailable destinations fail closed. Secondary links opt out of impression
 recording so a single product-page view is not tripled.
 
 **Review**: the page has no reliable public mapping from a product to its exact
