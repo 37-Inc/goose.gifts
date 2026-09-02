@@ -180,10 +180,11 @@ frame that shows a raw token.**
 - Standard access and the production OAuth read/dry-run path are verified.
 - Public posting still needs an exact candidate/package approval event (per
   `MARKETING.md` and `NEEDS.md`). Cameron's scheduled-studio exception permits
-  at most one hard-gated exact package per calendar day; it covers no second
-  Pin, Sandbox object, paid distribution, or spend. The event must bind the
-  image, destination, board, title, description, alt text, disclosure, tracking
-  URL, and daily ceiling.
+  at most one hard-gated exact package per spaced run and two per local day
+  inside the bounded 12-Pin static-format comparison; it covers no third Pin,
+  weak creative, video, Sandbox object, paid distribution, or spend. The event
+  must bind the image, destination, board, title, description, alt text,
+  disclosure, tracking URL, arm, slot, and experiment ceiling.
 - The guarded production CLI requires the draft's candidate ID and Cameron
   approval-event ID, validates the current creative state and complete disclosed
   package, checks the connected account and existing tracking URL, reads a
@@ -196,9 +197,11 @@ frame that shows a raw token.**
   signed-in browser fallback. Sandbox and Pinterest v3 objects remain excluded
   from public performance evidence forever.
 - The guarded production API has now created and read-verified the raw-chicken,
-  Butt Station, Lick'em cat-brush, and Pizza Boss Pins. Combined with the six
-  retained product-faithful browser posts, the current clean profile has ten
-  public Pins and zero Sandbox objects.
+  Butt Station, Lick'em cat-brush, Pizza Boss, and Bullshit Button Pins.
+  Combined with the six retained product-faithful browser posts, the current
+  clean profile has eleven public Pins and zero Sandbox objects. The Bullshit
+  Button is the first Pin created under the new bounded headline-versus-clean
+  static-format authorization.
 
 ## References
 

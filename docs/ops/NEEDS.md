@@ -20,9 +20,10 @@ outward-facing accounts. Best remaining channels:
   approval of the publishing tool.
 - **Pinterest**: the account, Standard access, production publisher, catalog
   candidate feed, and minimum approval/duplicate/receipt guards are complete;
-  see Received below. Cameron's scheduled-studio exception now authorizes at
-  most one hard-gated exact package per calendar day, including a documented
-  no-op when quality or evidence is weak. It does not authorize a second Pin,
+  see Received below. Cameron's scheduled-studio exception now authorizes a
+  bounded 12-Pin static-format comparison with at most one hard-gated package
+  per spaced run and two per local day, including documented no-ops when
+  quality or evidence is weak. It does not authorize a third daily Pin, video,
   Sandbox use, paid distribution, or spend.
 
 Needed from Cameron: choose which channels to authorize for posting and approve
@@ -68,8 +69,9 @@ you'd rather get real email/Slack from me, connect a connector at
   cleanup removed five old ad-style Pins, six Sandbox test Pins, and five empty
   API Trial boards; at that cleanup checkpoint the account contained only six
   product-faithful public Pins. Subsequent guarded daily cycles added raw
-  chicken, Butt Station, Lick'em cat brush, and Pizza Boss, bringing the current
-  total to ten. The publisher checks the exact owner approval event and candidate state,
+  chicken, Butt Station, Lick'em cat brush, Pizza Boss, and the first
+  headline-format Bullshit Button, bringing the current total to eleven. The
+  publisher checks the exact owner approval event and candidate state,
   account, complete disclosed package, 2:3 artifact, and duplicate tracking URL;
   it read-verifies success and records durable receipts. `npm run
   pinterest:candidates` supplies current high-quality enriched products without

@@ -30,13 +30,15 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Ten product-faithful editorial Pins are live. Before the tenth launched,
+   Eleven product-faithful editorial Pins are live. Before the eleventh launched,
    the first nine had 240 public impressions in total, two Pin clicks, and one
    save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
-   directional attention signal, not yet a creative or conversion verdict. The
-   scheduled studio advances and publishes at most one excellent exact package
-   per calendar day, with a quality-gated no-op when nothing is strong enough.
+   directional attention signal, not yet a creative or conversion verdict. A
+   bounded 12-Pin static-format comparison now uses two spaced daily slots,
+   alternating clean text-free editorial scenes with restrained 4–7 word
+   headlines. Each run may publish at most one hard-gated exact package and
+   each local day at most two; quality-gated no-ops remain expected.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
    catalog-supported pages. The Weird Gift Index is the first original-data
    acquisition asset and should be improved as a cited, editioned report rather
@@ -50,6 +52,36 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-02 afternoon static-format cycle
+
+The public cohort remained at 240 impressions, two Pin clicks, one save, and
+zero Pinterest outbound clicks immediately before the afternoon slot. Neither
+today's Pizza Boss Pin nor the new headline candidate had received distribution
+at that checkpoint, so the result is a publication baseline rather than a
+performance comparison. The site-side snapshot still showed no attributable
+Pinterest session or product click. Pinterest v3 and Sandbox remained excluded.
+
+The current enriched catalog supplied the in-stock Gemmy Bullshit Button, ASIN
+`B000L70MQO`. Amazon Creators API reverified the `$8.99` listing, exact loose
+five-inch red-dome sound toy, five-phrase plus siren/light behavior, and source
+image; its canonical product page returned `200`, self-canonical, and `index,
+follow`. Three product-derived concepts were recorded. The meeting-referee and
+archive executions were generated at 1024x1536; the emergency-brake concept was
+rejected before generation for safety-device ambiguity. The contextual meeting
+scene beat the attractive but display-like archive. A deterministic six-word
+headline was added only after generation, and the final Arm B artifact passed
+every truth, no-CTA, and no-template gate at `4.50/5`.
+
+Under Cameron's bounded two-slot authorization, the guarded production dry run
+verified the exact approval, `goosegifts` BUSINESS account, `Funny Gifts for
+Coworkers` board, unique headline-arm UTM, complete disclosures, and vertical
+artifact. Pinterest API v5 created and read-verified Standard Pin
+`1107815208387654951` and wrote durable receipt
+`receipt-1788392579312-editorial-bullshit-button-meeting-headline-20260902-pm-publication-succeeded`.
+This is the first Pin created under the new 12-Pin format-test authorization;
+the text-free morning Pin supplies a same-day reference. No video, Sandbox
+object, third Pin, weekly catalog job, paid tool, outreach, or spend was used.
 
 ### 2026-09-02 daily production cycle
 
@@ -236,8 +268,10 @@ Concept generation and internal review are authorized. Every public candidate
 still requires its own explicit approval event for the exact image, board,
 copy, disclosure, destination, tracking package, and cadence. Cameron's current
 scheduled-studio authorization permits the automation to record that exact
-event and publish at most one hard-gated package per calendar day; it does not
-authorize a second Pin, a weak creative, paid distribution, or spend. Pinterest
+event and publish at most one hard-gated package per spaced run and two per
+local calendar day inside the bounded 12-Pin static-format comparison. It does
+not authorize a third daily Pin, a weak creative, video, paid distribution, or
+spend. Pinterest
 approved the `Goose.gifts` app for Standard access on
 2026-08-24, and the production OAuth read/dry-run path was verified on
 2026-08-25 with all required scopes and the correct business account. The

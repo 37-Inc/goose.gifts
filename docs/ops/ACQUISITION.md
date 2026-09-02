@@ -132,6 +132,18 @@ testing the full public impression-to-affiliate-click path. The profile still
 has no attributable outbound result, so no acquisition-channel claim or cadence
 expansion is justified.
 
+**2026-09-02 afternoon format-test evidence:** the owner authorized a bounded
+12-Pin static comparison to learn whether tasteful 4–7 word headlines earn more
+qualified attention than clean text-free editorial scenes without introducing
+video or ad-template devices. The new Bullshit Button headline Pin is live at
+`1107815208387654951` through the guarded production API, with a unique
+headline-arm UTM and indexable canonical product destination. The pre-launch
+public baseline remained 240 impressions, two Pin clicks, one save, and zero
+outbound clicks; GA4 and the first-party database still showed no attributable
+Pinterest action. This is an intentionally capped creative experiment, not a
+claim that higher posting volume is already working. Stop after 12 newly
+authorized format-test Pins and review each arm after seven days.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before
