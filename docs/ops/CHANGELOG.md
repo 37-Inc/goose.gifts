@@ -36,9 +36,10 @@ what's likely next.
 - **Distribution / Pinterest — measure the guarded production cohort.**
   Pinterest approved the `Goose.gifts` app on 2026-08-24. Production OAuth
   refresh, account/board/metrics reads, and a real-board create dry run passed
-  on 2026-08-25 with every required scope. The scheduled studio may publish at
-  most one exact hard-gated package per calendar day under Cameron's current
-  standing authorization, with a quality-gated no-op otherwise. The minimum
+  on 2026-08-25 with every required scope. The scheduled studio now runs a
+  bounded 12-Pin static-format comparison with two spaced slots: each run may
+  publish at most one exact hard-gated package and each local day at most two,
+  with a quality-gated no-op otherwise. The minimum
   publisher now checks Cameron's exact approval event, current candidate
   state, account, complete package, 2:3 asset, and duplicate URL; it read-
   verifies and durably records the result. It may write only an exact approved
@@ -52,7 +53,9 @@ what's likely next.
   brush `1107815208387553278`, through the guarded production API after a
   product-truth-gated 4.75/5 review. The 2026-09-02 cycle published the tenth,
   Pizza Boss 3000 `1107815208387630624`, after a separate 4.75/5 still-life
-  review and guarded production readback.
+  review and guarded production readback. The afternoon slot published the
+  eleventh, Bullshit Button `1107815208387654951`, as the first restrained
+  headline-format test after a 4.50/5 full-resolution review.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -91,6 +94,19 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-02 — Bullshit Button headline-format Pin `[daily-ops]`
+
+Started the bounded static-format comparison with a second spaced slot. The
+current public baseline remained 240 impressions, two Pin clicks, one save, and
+zero Pinterest outbound clicks. Reverified the in-stock `$8.99` Bullshit Button
+and its indexable canonical page, recorded three distinct product-derived
+concepts, generated two vertical executions, rejected the generic archive
+display, and added one deterministic six-word headline to the stronger vintage
+meeting scene. The final Arm B artifact passed every hard gate at `4.50/5`.
+Pinterest production API v5 created and read-verified Pin
+`1107815208387654951` with its unique headline-arm UTM and durable receipt. No
+video, Sandbox object, third Pin, paid tool, outreach, or spend was used.
 
 ### 2026-09-02 — Product-page retailer path tightened `[owner+codex]`
 

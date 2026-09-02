@@ -191,6 +191,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208387630624/",
       "publishedAt": "2026-09-02T16:50:13.774Z",
       "publicationReceiptId": "receipt-1788367813772-editorial-pizza-boss-still-life-20260902-publication-succeeded"
+    },
+    {
+      "id": "editorial-bullshit-button-meeting-headline-20260902-pm",
+      "candidateId": "cand-v10-bullshit-button-referee",
+      "approvalEventId": "evt-20260902-v10-bullshit-button-approved",
+      "board": "Funny Gifts for Coworkers",
+      "assetPath": "docs/ops/pinterest-creative-lab/v10-concepts/01-bullshit-button-meeting-headline.png",
+      "targetPage": "https://www.goose.gifts/gifts/bullshit-button-hit-for-instant-hilarity",
+      "trackingUrl": "https://www.goose.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+      "title": "Bullshit Button for Office Meetings",
+      "description": "A red sound-and-light Bullshit Button for meetings with too much confidence—press it for one of five phrases, siren sounds, and a flashing light. A funny coworker or white elephant desk gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Red Bullshit Button sound toy on a walnut moderator console in an empty vintage corporate presentation room beneath the headline “For meetings with too much confidence.”",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208387654951/",
+      "publishedAt": "2026-09-02T23:42:59.314Z",
+      "publicationReceiptId": "receipt-1788392579312-editorial-bullshit-button-meeting-headline-20260902-pm-publication-succeeded"
     }
   ]
 }

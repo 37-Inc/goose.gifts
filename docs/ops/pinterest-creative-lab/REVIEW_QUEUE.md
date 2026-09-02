@@ -11,6 +11,46 @@ None.
 
 ## Published from this queue
 
+### Bullshit Button — meetings with too much confidence
+
+- Candidate: `cand-v10-bullshit-button-referee` (`measuring`, Arm B headline,
+  internal score `4.50/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387654951/`
+- Published: 2026-09-02 through Pinterest production API v5 in the afternoon
+  slot of Cameron's bounded two-slot, 12-Pin static-format comparison, after
+  the exact production dry run and every guard passed.
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v10-concepts/01-bullshit-button-meeting-headline.png`
+- Exact product: Gemmy Bullshit Button, ASIN `B000L70MQO`; Amazon Creators API
+  reverified it `IN_STOCK` at `$8.99` on 2026-09-02.
+- Destination:
+  `https://www.goose.gifts/gifts/bullshit-button-hit-for-instant-hilarity`
+- Board: `Funny Gifts for Coworkers`
+- Title: `Bullshit Button for Office Meetings`
+- Description: `A red sound-and-light Bullshit Button for meetings with too much confidence—press it for one of five phrases, siren sounds, and a flashing light. A funny coworker or white elephant desk gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Red Bullshit Button sound toy on a walnut moderator console in an empty vintage corporate presentation room beneath the headline “For meetings with too much confidence.”`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm`
+- Why it earns a pause: the meeting-specific six-word headline reads before the
+  restrained vintage room; the small red button then resolves as the exact
+  sound toy acting as the meeting's blunt referee.
+- Rejected alternatives: the generated archive display was attractive but too
+  interchangeable and product-card-like; the emergency-brake concept was
+  rejected before generation because it could imply a real safety device.
+- Truth/risk review: full-resolution inspection shows one loose, plausible-size
+  red dome button on a gray speaker base, grounded on a walnut console. The
+  actual product word is correct. The headline is six words, editorial rather
+  than a CTA, and no price, badge, fake UI, product card, package, detector,
+  emergency mount, hand, or visible AI defect is present.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, `Funny Gifts for Coworkers` board, unique tracked
+  destination, exact approval, and 1024x1536 image; created one Standard Pin;
+  read back every approved field; and wrote receipt
+  `receipt-1788392579312-editorial-bullshit-button-meeting-headline-20260902-pm-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about five
+  seconds after publication; this is a receipt, not a performance verdict.
+
 ### Pizza Boss 3000 — old-master pizza still life
 
 - Candidate: `cand-v9-pizza-boss-still-life` (`measuring`, internal score
