@@ -92,7 +92,7 @@ what's likely next.
 
 Newest first.
 
-### 2026-09-02 — Pizza Boss production Pin `[daily-ops]`
+### 2026-09-02 — Pizza Boss production Pin `[daily-ops]` ([PR #121](https://github.com/37-Inc/goose.gifts/pull/121))
 
 Pulled Pinterest production, GA4, first-party database, and current Search
 Console evidence. The truthful nine-Pin cohort had 240 impressions, two Pin
