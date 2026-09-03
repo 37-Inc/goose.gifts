@@ -58,6 +58,9 @@ what's likely next.
   headline-format test after a 4.50/5 full-resolution review. The 2026-09-03
   morning Arm B slot then published the twelfth, Toilet Golf
   `1107815208387708056`, after a separate 4.50/5 truth and typography review.
+  The afternoon Arm A slot published the thirteenth, Middle Management statue
+  `1107815208387734801`, after a 4.75/5 clean-editorial review. Three of the
+  bounded 12 format-test Pins are now live: one clean and two headline.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -96,6 +99,21 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-03 — Middle Management clean-format Pin `[daily-ops]`
+
+The truthful twelve-Pin profile remained at 247 impressions, two Pin clicks,
+one save, and zero outbound clicks; Pizza Boss and both headline-format Pins
+had not distributed. Reverified the latest-run, in-stock `$12.99` Junwait blue
+smiling middle-finger statue and its indexable canonical page, recorded three
+product-derived concepts, and generated two vertical clean executions. Rejected
+the interchangeable sand garden and ungenerated gallery-plinth direction. The
+winning miniature boardroom passed every hard gate at `4.75/5` without a
+headline or revision. Pinterest production API v5 created and read-verified Arm
+A Pin `1107815208387734801` with a unique UTM and durable receipt. This was the
+second and final Pin today and the third of 12 authorized format-test Pins. No
+video, Sandbox object, third Pin, weekly catalog job, paid tool, outreach,
+account mutation, deletion, or spend was used.
 
 ### 2026-09-03 — Toilet Golf headline-format Pin `[daily-ops]`
 

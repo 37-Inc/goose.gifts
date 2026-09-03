@@ -225,6 +225,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208387708056/",
       "publishedAt": "2026-09-03T16:42:12.077Z",
       "publicationReceiptId": "receipt-1788453732073-editorial-toilet-golf-country-club-headline-20260903-am-publication-succeeded"
+    },
+    {
+      "id": "editorial-middle-management-boardroom-clean-20260903-pm",
+      "candidateId": "cand-v10-middle-management-statue",
+      "approvalEventId": "evt-20260903-v10-middle-management-approved",
+      "board": "Funny Gifts for Coworkers",
+      "assetPath": "docs/ops/pinterest-creative-lab/v12-concepts/01-middle-management-boardroom.png",
+      "targetPage": "https://www.goose.gifts/gifts/give-the-finger-office-edition",
+      "trackingUrl": "https://www.goose.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+      "title": "Middle Management Is Making a Point",
+      "description": "A tiny blue resin statue with a smiling middle-finger head chairs an improbably serious miniature board meeting. A funny desk gift for coworkers with no patience left. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Small matte-blue seated resin character whose smiling face is a raised middle finger, presiding over a miniature walnut boardroom table with six empty chairs.",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208387734801/",
+      "publishedAt": "2026-09-03T23:41:39.708Z",
+      "publicationReceiptId": "receipt-1788478899705-editorial-middle-management-boardroom-clean-20260903-pm-publication-succeeded"
     }
   ]
 }
