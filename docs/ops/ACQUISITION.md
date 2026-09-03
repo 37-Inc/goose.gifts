@@ -144,6 +144,17 @@ Pinterest action. This is an intentionally capped creative experiment, not a
 claim that higher posting volume is already working. Stop after 12 newly
 authorized format-test Pins and review each arm after seven days.
 
+**2026-09-03 morning format-test evidence:** the public profile reached 247
+impressions, two Pin clicks, one save, and zero outbound clicks before the new
+slot; both September 2 Pins remained undistributed. GA4 and the first-party
+database still showed no attributable Pinterest session or downstream product
+click. Arm B's second qualifying Pin, Toilet Golf
+`1107815208387708056`, uses a unique headline-format UTM and an indexable
+canonical product page. The experiment currently has two headline Pins and no
+post-authorization text-free control, so there is no arm comparison yet. Keep
+the afternoon slot quality-gated and prefer a comparably giftable Arm A control;
+do not infer traction from the increased cadence.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

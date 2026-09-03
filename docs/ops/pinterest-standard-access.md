@@ -197,11 +197,12 @@ frame that shows a raw token.**
   signed-in browser fallback. Sandbox and Pinterest v3 objects remain excluded
   from public performance evidence forever.
 - The guarded production API has now created and read-verified the raw-chicken,
-  Butt Station, Lick'em cat-brush, Pizza Boss, and Bullshit Button Pins.
+  Butt Station, Lick'em cat-brush, Pizza Boss, Bullshit Button, and Toilet Golf
+  Pins.
   Combined with the six retained product-faithful browser posts, the current
-  clean profile has eleven public Pins and zero Sandbox objects. The Bullshit
-  Button is the first Pin created under the new bounded headline-versus-clean
-  static-format authorization.
+  clean profile has twelve public Pins and zero Sandbox objects. Bullshit Button
+  and Toilet Golf are the first two Arm B Pins created under the new bounded
+  headline-versus-clean static-format authorization.
 
 ## References
 
