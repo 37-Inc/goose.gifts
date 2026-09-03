@@ -155,6 +155,18 @@ post-authorization text-free control, so there is no arm comparison yet. Keep
 the afternoon slot quality-gated and prefer a comparably giftable Arm A control;
 do not infer traction from the increased cadence.
 
+**2026-09-03 afternoon format-test evidence:** the profile remained at 247
+impressions, two Pin clicks, one save, and zero outbound clicks before the
+second slot. Pizza Boss reached its first due checkpoint without distribution;
+GA4 and the first-party database still showed no attributable Pinterest
+session or downstream product click. Arm A's first qualifying clean control,
+the blue smiling middle-finger statue boardroom Pin `1107815208387734801`, now
+uses a unique clean-format UTM and an indexable canonical product page. The
+experiment has one clean Pin and two headline Pins, all at zero immediate
+metrics, so there is still no arm winner. This is Pin 3 of 12 and the second and
+final 2026-09-03 publication; continue alternating slots and preserve the
+seven-day comparison gate.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

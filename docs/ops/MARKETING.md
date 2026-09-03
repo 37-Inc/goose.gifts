@@ -30,9 +30,9 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Twelve product-faithful editorial Pins are live. Before the twelfth launched,
-   the first eleven had 247 public impressions in total, two Pin clicks, and one
-   save, all engagement on the corrected goat, but no outbound click,
+   Thirteen product-faithful editorial Pins are live. Before the thirteenth
+   launched, the first twelve had 247 public impressions in total, two Pin
+   clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
    bounded 12-Pin static-format comparison now uses two spaced daily slots,
@@ -52,6 +52,43 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-03 afternoon static-format cycle
+
+The twelve-Pin truthful public cohort remained at 247 impressions, two Pin
+clicks, one save, and zero outbound clicks before this slot. Pizza Boss reached
+its first due checkpoint about 30 hours after publication with no distribution
+or engagement. Both Arm B headline Pins were also still at zero impressions.
+GA4 reported 30 sessions in the trailing seven days—28 direct and two Amazon
+organic-shopping—with no Pinterest source and no `product_click` or
+`affiliate_click` row. The first-party database recorded zero product clicks in
+the trailing seven days. These are distribution receipts, not a format verdict;
+Pinterest v3 and Sandbox remain excluded.
+
+The current enriched-catalog shortlist supplied the Junwait blue smiling
+middle-finger resin statue from the latest completed weekly run. Amazon
+Creators API reverified ASIN `B0C7J5SMPK` `IN_STOCK` at `$12.99`, the same
+source image, and its roughly four-to-five-inch scale; the canonical Goose page
+returned `200`, self-canonical, and `index, follow`. Three product-derived
+concepts were recorded. The miniature boardroom and sand-garden executions were
+generated at 1024x1536; the museum-plinth idea was rejected before generation
+because the composition survived a product swap. The sand garden was attractive
+and truthful but too centered and interchangeable. The clean boardroom used
+the statue's smiling finger-head as its calm chairperson, passed every hard gate
+at `4.75/5`, and needed no revision.
+
+The afternoon slot was assigned Arm A. Under Cameron's bounded authorization,
+the production dry run verified the exact package, `goosegifts` BUSINESS
+account, `Funny Gifts for Coworkers` board, unique clean-arm UTM, complete
+disclosures, second-and-final daily slot, and vertical artifact. Pinterest API
+v5 created and read-verified Standard Pin `1107815208387734801` and wrote
+durable receipt
+`receipt-1788478899705-editorial-middle-management-boardroom-clean-20260903-pm-publication-succeeded`.
+The format experiment now has one Arm A clean Pin and two Arm B headline Pins;
+all three remain at zero immediate metrics. This is the third of the bounded 12
+format-test Pins. No video, Sandbox object, second Pin in this run, third Pin
+today, weekly catalog job, paid tool, outreach, account mutation, deletion, or
+spend was used.
 
 ### 2026-09-03 morning static-format cycle
 

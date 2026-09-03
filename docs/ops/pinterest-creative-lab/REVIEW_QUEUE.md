@@ -11,6 +11,46 @@ None.
 
 ## Published from this queue
 
+### Middle management — clean boardroom control
+
+- Candidate: `cand-v10-middle-management-statue` (`measuring`, Arm A clean,
+  internal score `4.75/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387734801/`
+- Published: 2026-09-03 through Pinterest production API v5 in the afternoon
+  Arm A slot after the exact production dry run and every guard passed.
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v12-concepts/01-middle-management-boardroom.png`
+- Exact product: Junwait blue smiling middle-finger synthetic-resin desk
+  statue, ASIN `B0C7J5SMPK`; Amazon Creators API reverified it `IN_STOCK` at
+  `$12.99` on 2026-09-03.
+- Destination:
+  `https://www.goose.gifts/gifts/give-the-finger-office-edition`
+- Board: `Funny Gifts for Coworkers`
+- Title: `Middle Management Is Making a Point`
+- Description: `A tiny blue resin statue with a smiling middle-finger head chairs an improbably serious miniature board meeting. A funny desk gift for coworkers with no patience left. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Small matte-blue seated resin character whose smiling face is a raised middle finger, presiding over a miniature walnut boardroom table with six empty chairs.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm`
+- Why it earns a pause: serious walnut, leather, brass, and miniature
+  boardroom geometry read first; the exact smiling middle-finger character
+  presiding at the head of the table supplies the second-look joke.
+- Rejected alternatives: the generated sand garden was attractive and
+  truthful but too centered and product-swap-safe; the gallery concept was
+  rejected before generation because it risked a reusable pedestal packshot.
+- Truth/risk review: full-resolution inspection preserves one small matte-blue
+  seated body, short arms, tiny flesh-tone hands and feet, and one long smiling
+  flesh-tone finger/head at believable four-to-five-inch scale. No scene text,
+  CTA, product card, badge, price, package, duplicate, extra limb, separate
+  raised hand, floating object, or visible artifact appears.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, `Funny Gifts for Coworkers` board, exact approval, second-
+  and-final daily slot, unique tracking URL, and 1024x1536 image; created one
+  Standard Pin; read back every approved field; and wrote receipt
+  `receipt-1788478899705-editorial-middle-management-boardroom-clean-20260903-pm-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about
+  eight seconds after publication; this is a receipt, not a performance verdict.
+
 ### Toilet Golf — par for the porcelain
 
 - Candidate: `cand-v10-toilet-golf-country-club` (`measuring`, Arm B headline,
