@@ -30,8 +30,8 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Eleven product-faithful editorial Pins are live. Before the eleventh launched,
-   the first nine had 240 public impressions in total, two Pin clicks, and one
+   Twelve product-faithful editorial Pins are live. Before the twelfth launched,
+   the first eleven had 247 public impressions in total, two Pin clicks, and one
    save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
@@ -52,6 +52,43 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-03 morning static-format cycle
+
+The eleven-Pin truthful public cohort reached 247 impressions, two Pin clicks,
+one save, and zero Pinterest outbound clicks before this slot. All engagement
+remained on the older corrected goat; yesterday's text-free Pizza Boss and
+headline-format Bullshit Button were still at zero impressions. GA4 reported 30
+sessions in the trailing seven days—28 direct and two Amazon organic-shopping—
+with no Pinterest source and no `product_click` or `affiliate_click` event. The
+first-party database likewise recorded zero product clicks in 24 hours or seven
+days. These are distribution receipts, not a format verdict, and all Sandbox
+and Pinterest v3 objects remain excluded.
+
+The current enriched-catalog shortlist supplied the GOODLYSPORTS Toilet Golf
+kit from the latest completed weekly run. Amazon Creators API reverified ASIN
+`B0BBCHQJSN` `IN_STOCK` at `$13.37`, confirmed the same five-piece bathroom
+putting-game source, and the canonical Goose page returned `200`, self-
+canonical, and `index, follow`. Three product-derived concepts were recorded.
+The country-club powder room and overhead tournament flat lay were generated at
+1024x1536; the toilet-paper-caddy idea was rejected before generation because
+it invented a confusing accessory. The contextual room preserved the playable
+kit and supplied the better double take. The overhead execution was rejected
+because its receiving cup looked solid and the arrangement felt catalog-like.
+A deterministic four-word headline on the winning base passed every hard gate
+at `4.50/5`; no model revision was needed.
+
+The 2026-09-03 morning slot was assigned Arm B so time of day alternates by
+local date. Under Cameron's bounded authorization, the production dry run
+verified the exact package, `goosegifts` BUSINESS account, `Funny White Elephant
+Gifts` board, unique headline-arm UTM, complete disclosures, empty daily slot,
+and vertical artifact. Pinterest API v5 created and read-verified Standard Pin
+`1107815208387708056` and wrote durable receipt
+`receipt-1788453732073-editorial-toilet-golf-country-club-headline-20260903-am-publication-succeeded`.
+The format experiment now has two Arm B Pins and no post-authorization Arm A
+control Pin; both headline Pins remain at zero immediate metrics. No video,
+Sandbox object, second Pin in this run, weekly catalog job, paid tool, outreach,
+account mutation, or spend was used.
 
 ### 2026-09-02 afternoon static-format cycle
 

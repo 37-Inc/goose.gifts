@@ -208,6 +208,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208387654951/",
       "publishedAt": "2026-09-02T23:42:59.314Z",
       "publicationReceiptId": "receipt-1788392579312-editorial-bullshit-button-meeting-headline-20260902-pm-publication-succeeded"
+    },
+    {
+      "id": "editorial-toilet-golf-country-club-headline-20260903-am",
+      "candidateId": "cand-v10-toilet-golf-country-club",
+      "approvalEventId": "evt-20260903-v10-toilet-golf-approved",
+      "board": "Funny White Elephant Gifts",
+      "assetPath": "docs/ops/pinterest-creative-lab/v11-concepts/01-toilet-golf-country-club-headline.png",
+      "targetPage": "https://www.goose.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift",
+      "trackingUrl": "https://www.goose.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+      "title": "Toilet Golf Gag Gift for Golfers",
+      "description": "Toilet Golf turns bathroom downtime into a tiny putting round with a printed green, short putter, practice balls, and flagged cup. A playable white elephant gift for golfers and dads. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Green Toilet Golf mat, short black-and-red putter, white ball, and red-flagged practice cup arranged in front of a white toilet in a vintage country-club powder room beneath the headline “Par for the porcelain.”",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208387708056/",
+      "publishedAt": "2026-09-03T16:42:12.077Z",
+      "publicationReceiptId": "receipt-1788453732073-editorial-toilet-golf-country-club-headline-20260903-am-publication-succeeded"
     }
   ]
 }

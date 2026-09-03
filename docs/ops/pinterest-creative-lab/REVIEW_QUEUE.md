@@ -11,6 +11,48 @@ None.
 
 ## Published from this queue
 
+### Toilet Golf — par for the porcelain
+
+- Candidate: `cand-v10-toilet-golf-country-club` (`measuring`, Arm B headline,
+  internal score `4.50/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387708056/`
+- Published: 2026-09-03 through Pinterest production API v5 in the morning
+  Arm B slot after the exact production dry run and every guard passed.
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v11-concepts/01-toilet-golf-country-club-headline.png`
+- Exact product: GOODLYSPORTS Toilet Golf bathroom putting game, ASIN
+  `B0BBCHQJSN`; Amazon Creators API reverified it `IN_STOCK` at `$13.37` on
+  2026-09-03.
+- Destination:
+  `https://www.goose.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift`
+- Board: `Funny White Elephant Gifts`
+- Title: `Toilet Golf Gag Gift for Golfers`
+- Description: `Toilet Golf turns bathroom downtime into a tiny putting round with a printed green, short putter, practice balls, and flagged cup. A playable white elephant gift for golfers and dads. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Green Toilet Golf mat, short black-and-red putter, white ball, and red-flagged practice cup arranged in front of a white toilet in a vintage country-club powder room beneath the headline “Par for the porcelain.”`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am`
+- Why it earns a pause: the four-word golf pun and handsome powder room read
+  first; the tiny playable green in front of the toilet supplies the double
+  take and a product-specific reason to inspect the actual kit.
+- Rejected alternatives: the toilet-paper-caddy concept was rejected before
+  generation because it invented a confusing accessory. The generated
+  overhead flat lay was polished but made the receiving cup look solid and
+  drifted toward catalog arrangement.
+- Truth/risk review: full-resolution inspection shows one ordinary toilet as
+  context and one scale-plausible, grounded kit with green printed mat, short
+  putter, white ball, open practice cup, and red number-one flag. The headline
+  is four words and contains no sales command. There is no person, package,
+  extra club, fake fixture, price, badge, logo, product card, or visible AI
+  defect.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, `Funny White Elephant Gifts` board, exact approval, unique
+  tracking URL, and 1024x1536 image; created one Standard Pin; read back every
+  approved field; and wrote receipt
+  `receipt-1788453732073-editorial-toilet-golf-country-club-headline-20260903-am-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about ten
+  seconds after publication; this is a receipt, not a performance verdict.
+
 ### Bullshit Button — meetings with too much confidence
 
 - Candidate: `cand-v10-bullshit-button-referee` (`measuring`, Arm B headline,

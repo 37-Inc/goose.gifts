@@ -55,7 +55,9 @@ what's likely next.
   Pizza Boss 3000 `1107815208387630624`, after a separate 4.75/5 still-life
   review and guarded production readback. The afternoon slot published the
   eleventh, Bullshit Button `1107815208387654951`, as the first restrained
-  headline-format test after a 4.50/5 full-resolution review.
+  headline-format test after a 4.50/5 full-resolution review. The 2026-09-03
+  morning Arm B slot then published the twelfth, Toilet Golf
+  `1107815208387708056`, after a separate 4.50/5 truth and typography review.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -94,6 +96,20 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-03 — Toilet Golf headline-format Pin `[daily-ops]`
+
+The truthful eleven-Pin profile had 247 impressions, two Pin clicks, one save,
+and zero Pinterest outbound clicks; neither September 2 Pin had distributed.
+Reverified the latest-run, in-stock `$13.37` Toilet Golf kit and its indexable
+canonical page, recorded three product-derived concepts, and generated two
+vertical executions. Rejected an invented-accessory concept before generation
+and a polished overhead flat lay whose receiving cup looked solid. The winning
+country-club powder room plus deterministic four-word headline passed every
+hard gate at `4.50/5`. Pinterest production API v5 created and read-verified Arm
+B Pin `1107815208387708056` with a unique UTM and durable receipt. No video,
+Sandbox object, second Pin in this run, weekly catalog job, paid tool, outreach,
+account mutation, or spend was used.
 
 ### 2026-09-02 — Bullshit Button headline-format Pin `[daily-ops]`
 
