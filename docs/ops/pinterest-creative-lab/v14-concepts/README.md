@@ -197,7 +197,7 @@ this run, third daily Pin, or publication beyond the experiment ceiling.
   `receipt-1788565272225-editorial-wacky-tube-guy-dealership-headline-20260904-pm-publication-succeeded`
 
 The guarded production dry run and create resolved the correct `goosegifts`
-BUSINESS account and `Novelty Desk Toys` board. The create read back the exact
+BUSINESS account and `Novelty Desk Toys` board. The API read back the exact
 title, description, alt text, unique canonical tracking URL, and 1024x1536
 artifact. The immediate baseline was zero impressions, saves, Pin clicks,
 outbound clicks, attributable sessions, and downstream product clicks. The
