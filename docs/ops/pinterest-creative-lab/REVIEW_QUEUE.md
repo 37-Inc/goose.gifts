@@ -11,6 +11,51 @@ None.
 
 ## Published from this queue
 
+### Wacky Waving Inflatable Tube Guy — desk-sized dealership
+
+- Candidate: `cand-v10-wacky-tube-guy-hype` (`measuring`, Arm B headline,
+  internal score `4.63/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387817822/`
+- Published: 2026-09-04 through Pinterest production API v5 in the afternoon
+  Arm B slot after the exact production dry run and every guard passed.
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v14-concepts/01-wacky-tube-guy-dealership-headline.png`
+- Exact product: Wacky Waving Inflatable Tube Guy (The Original), RP Minis,
+  ISBN-10 `0762462876`; Amazon Creators API reverified it `IN_STOCK` at
+  `$11.66` on 2026-09-04, and the publisher confirms a 17-inch red dancer,
+  fan base, and separate 32-page mini history book. Battery and adapter are not
+  included.
+- Destination:
+  `https://www.goose.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend`
+- Board: `Novelty Desk Toys`
+- Title: `Wacky Waving Inflatable Tube Guy for Your Desk`
+- Description: `The original 17-inch Wacky Waving Inflatable Tube Guy brings full dealership energy to a desk with its own fan base and a 32-page mini history book. A funny coworker or white elephant gift. Battery and adapter not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Seventeen-inch red Wacky Waving Inflatable Tube Guy dancing on its black fan base behind a miniature three-car dealership diorama beneath the headline “Full dealership energy. Desk-sized.”`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm`
+- Why it earns a pause: the meticulous miniature car lot reads first; the real
+  working red air dancer and four-word scale contradiction make a desktop
+  version of full dealership energy instantly legible.
+- Rejected alternatives: the generated home office was polished and truthful
+  but repeated a generic novelty-object-on-desk treatment; the conference-room
+  dance break was rejected before generation because it repeated recent office
+  storytelling. The first 72-pixel headline layout crossed the raised arm, so
+  one deterministic typography-only correction reduced and restacked it.
+- Truth/risk review: full-resolution inspection preserves one flexible red
+  fabric dancer, fringed top, two eyes, smile, exactly two arms, continuous
+  wrinkled body, visible square black fan base, and believable 17-inch scale.
+  Contextual cars and building are unbranded and not presented as included.
+  No package, mini book, duplicate, extra limb, pseudo-writing, CTA, badge,
+  price, product card, or visible defect appears.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, `Novelty Desk Toys` board, exact approval, second-and-final
+  daily slot, unique tracking URL, and 1024x1536 image; created one Standard
+  Pin; read back every approved field; and wrote receipt
+  `receipt-1788565272225-editorial-wacky-tube-guy-dealership-headline-20260904-pm-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about seven
+  seconds after publication; this is a receipt, not a performance verdict.
+
 ### Medieval cat tapestry — clean soup-night control
 
 - Candidate: `cand-v10-medieval-cat-tapestry` (`measuring`, Arm A clean,

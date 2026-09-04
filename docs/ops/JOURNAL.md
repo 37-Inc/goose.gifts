@@ -5,6 +5,43 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-04 - Wacky Tube Guy headline-format production cycle
+
+**Evidence checked**: Pinterest production API v5 reported 253 lifetime public
+impressions, two Pin clicks, one save, and zero outbound clicks across the 14
+truthful Pins before the afternoon post. Middle Management reached its first
+scheduled checkpoint after 24 hours at zero impressions. GA4's trailing seven
+days contained 30 sessions and no Pinterest source or outbound-product event.
+The first-party database recorded zero product clicks and zero searches in 24
+hours or seven days. Sandbox and Pinterest v3 were excluded.
+
+**Creative cycle**: the read-only enriched-catalog shortlist supplied Wacky
+Waving Inflatable Tube Guy (`0762462876`). Amazon Creators API reverified it
+`IN_STOCK` at `$11.66`, and Hachette confirmed the 17-inch red dancer, fan base,
+separate 32-page mini book, and missing battery/adapter. Its canonical gift page
+returned `200`, self-canonical, and `index, follow`. Three distinct product-
+derived concepts were preserved. The miniature dealership and home office were
+generated as separate 1024x1536 bases; the conference-room direction was
+rejected before generation. Full-resolution review rejected the generic home
+office. The winning tiny car lot retains one flexible red fabric dancer, two
+arms, fringe, face, continuous body, visible square black fan base, and
+believable 17-inch scale. It advanced at `4.63/5` with every hard gate passing.
+One deterministic typography-only correction moved and reduced the exact
+four-word headline after its first layout crossed the raised arm.
+
+**Production publication**: the 2026-09-04 afternoon slot was Arm B. Cameron's
+standing bounded-experiment approval covered this exact complete package only.
+The guarded production dry run resolved `Novelty Desk Toys`, complete
+disclosure, current candidate approval, unique UTM, second-and-final daily
+slot, and correct `goosegifts` BUSINESS account. Pinterest production API v5
+created Standard Pin `1107815208387817822`; readback matched every field and
+the 1024x1536 image. Durable receipt
+`receipt-1788565272225-editorial-wacky-tube-guy-dealership-headline-20260904-pm-publication-succeeded`
+plus append-only publication, measuring, and zero-baseline events were written.
+The static experiment now has two Arm A and three Arm B Pins, all still
+undistributed. No third daily Pin, second Pin in this run, Sandbox object, SEO
+mutation, weekly catalog job, outreach, paid tool, or spend occurred.
+
 ## 2026-09-04 - Medieval cat clean-format production cycle
 
 **Evidence checked**: Pinterest production API v5 reported 253 lifetime public
