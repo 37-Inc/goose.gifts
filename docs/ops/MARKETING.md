@@ -30,8 +30,8 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Thirteen product-faithful editorial Pins are live. Before the thirteenth
-   launched, the first twelve had 247 public impressions in total, two Pin
+   Fourteen product-faithful editorial Pins are live. Before the fourteenth
+   launched, the first thirteen had 253 public impressions in total, two Pin
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
@@ -52,6 +52,40 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-04 morning static-format cycle
+
+The thirteen-Pin truthful public cohort reached 253 impressions, two Pin
+clicks, one save, and zero outbound clicks before this slot. The Bullshit
+Button Arm B Pin reached its first scheduled checkpoint after 24 hours with no
+distribution or engagement; Toilet Golf and Middle Management were also still
+at zero. GA4 reported 29 sessions in the trailing seven days—26 direct, two
+Amazon organic-shopping, and one unassigned—with no Pinterest source or
+outbound-product event. The first-party database recorded zero product clicks
+in 24 hours or seven days and one search in seven days. These are distribution
+receipts, not a format verdict; Pinterest v3 and Sandbox remain excluded.
+
+The current enriched-catalog shortlist supplied the in-stock FoxUncle medieval
+cat tapestry. Amazon Creators API reverified ASIN `B0GSW1X3P4` at `$16.14`,
+the same 40-by-60-inch source, and the canonical Goose page's `200`, self-
+canonical, `index, follow` state. Three product-derived concepts were recorded.
+The warm kitchen banquette and colorful reading room were generated at
+1024x1536; a literal medieval kitchen was rejected before generation as costume
+staging. The reading room was attractive but product-swap-safe. The winning
+kitchen preserved the actual cat, cauldron, fixed product sentence, and one
+restrained soup cue, passed every hard gate at `4.88/5`, and needed no revision.
+
+The morning slot was assigned Arm A. The product's own fixed printed sentence
+is truthfully preserved, but there is no added headline or other creative
+typography. The production dry run verified the exact package, `goosegifts`
+BUSINESS account, `Weird Home Decor` board, unique clean-arm UTM, complete
+disclosures, first daily slot, and vertical artifact. Pinterest API v5 created
+and read-verified Standard Pin `1107815208387789981` and wrote durable receipt
+`receipt-1788540089872-editorial-medieval-cat-soup-banquette-clean-20260904-am-publication-succeeded`.
+The format experiment now has two Arm A and two Arm B Pins; all four remain at
+zero immediate metrics, so there is no winner. This is Pin 4 of 12. No video,
+Sandbox object, second Pin in this run, weekly catalog job, paid tool, outreach,
+account mutation, deletion, or spend was used.
 
 ### 2026-09-03 afternoon static-format cycle
 
