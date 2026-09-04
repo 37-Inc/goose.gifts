@@ -179,6 +179,19 @@ product, not an added headline. The experiment is balanced at two Arm A and two
 Arm B Pins, all with zero immediate metrics; continue alternating and do not
 name a winner until the seven-day cohort gate has meaningful impressions.
 
+**2026-09-04 afternoon format-test evidence:** the truthful public cohort
+remained at 253 impressions, two Pin clicks, one save, and zero outbound clicks
+before the second slot. Middle Management's first scheduled post-24-hour
+checkpoint was also zero, while GA4 and the first-party database still showed
+no attributable Pinterest session or product click. Arm B's third headline
+Pin, Wacky Waving Inflatable Tube Guy `1107815208387817822`, uses a unique
+headline-format UTM and an indexable canonical product page. Its miniature
+dealership scene and four-word scale headline test a product-specific identity
+mechanism rather than a generic product overlay. The experiment now has two
+Arm A and three Arm B Pins, all at zero immediate metrics; do not name a winner
+until the seven-day cohort gate has meaningful impressions. This was the
+second and final 2026-09-04 publication.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

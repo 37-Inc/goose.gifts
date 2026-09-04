@@ -30,8 +30,8 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Fourteen product-faithful editorial Pins are live. Before the fourteenth
-   launched, the first thirteen had 253 public impressions in total, two Pin
+   Fifteen product-faithful editorial Pins are live. Before the fifteenth
+   launched, the first fourteen had 253 public impressions in total, two Pin
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
@@ -52,6 +52,41 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-04 afternoon static-format cycle
+
+The fourteen-Pin truthful public cohort remained at 253 impressions, two Pin
+clicks, one save, and zero outbound clicks before this slot. Middle Management
+reached its first scheduled checkpoint after 24 hours with no distribution or
+engagement. GA4 reported 30 sessions in the trailing seven days—27 direct, two
+Amazon organic-shopping, and one unassigned—with no Pinterest source or
+outbound-product event. The first-party database recorded zero product clicks
+and zero searches in 24 hours or seven days. These are distribution receipts,
+not a format verdict; Pinterest v3 and Sandbox remain excluded.
+
+The current enriched-catalog shortlist supplied the original Wacky Waving
+Inflatable Tube Guy. Amazon Creators API reverified ISBN-10 `0762462876`
+`IN_STOCK` at `$11.66` with the same source, while Hachette confirmed the
+17-inch red fan-driven dancer, separate 32-page mini book, and no included
+battery or adapter. The canonical Goose page returned `200`, self-canonical,
+and `index, follow`. Three product-derived concepts were recorded. The
+miniature dealership and direct home-office use were generated at 1024x1536;
+an after-hours conference room was rejected before generation for repeating
+recent office storytelling. The home office was polished but interchangeable.
+The winning car-lot diorama preserved one flexible red dancer and its visible
+fan base, passed every hard gate at `4.63/5`, and needed one deterministic
+typography-only correction after the first layout crossed an arm.
+
+The afternoon slot was assigned Arm B. The production dry run verified the
+exact package, `goosegifts` BUSINESS account, `Novelty Desk Toys` board,
+unique headline-arm UTM, complete disclosures, second-and-final daily slot,
+and vertical artifact. Pinterest API v5 created and read-verified Standard Pin
+`1107815208387817822` and wrote durable receipt
+`receipt-1788565272225-editorial-wacky-tube-guy-dealership-headline-20260904-pm-publication-succeeded`.
+The format experiment now has two Arm A and three Arm B Pins; all five remain
+at zero immediate metrics, so there is no winner. This is Pin 5 of 12. No
+video, Sandbox object, second Pin in this run, weekly catalog job, paid tool,
+outreach, account mutation, deletion, or spend was used.
 
 ### 2026-09-04 morning static-format cycle
 

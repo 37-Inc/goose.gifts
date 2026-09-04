@@ -63,7 +63,10 @@ what's likely next.
   bounded 12 format-test Pins were live at that point. The 2026-09-04 morning
   Arm A slot published the fourteenth product-faithful Pin, medieval cat
   tapestry `1107815208387789981`, after a 4.88/5 review. Four of 12 format-test
-  Pins are now live: two clean and two headline.
+  Pins were live at that point. The afternoon Arm B slot then published the
+  fifteenth product-faithful Pin, Wacky Waving Inflatable Tube Guy
+  `1107815208387817822`, after a 4.63/5 truth and typography review. Five of 12
+  format-test Pins are now live: two clean and three headline.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -102,6 +105,24 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-04 — Wacky Tube Guy headline-format Pin `[daily-ops]`
+
+The truthful fourteen-Pin profile remained at 253 impressions, two Pin clicks,
+one save, and zero outbound clicks; none of the first four format Pins had
+distributed, and Middle Management's first scheduled post-24-hour checkpoint
+was still zero. Reverified the in-stock `$11.66` original 17-inch Wacky Waving
+Inflatable Tube Guy and its indexable canonical page, recorded three product-
+derived concepts, and generated two clean vertical bases. Rejected the generic
+home-office setting and ungenerated conference-room direction. The miniature
+dealership turned the product's real origin into a desk-scale visual joke,
+passed every hard gate at `4.63/5`, and needed one typography-only correction
+after the first headline layout crossed an arm. Pinterest production API v5
+created and read-verified Arm B Pin `1107815208387817822` with a unique UTM and
+durable receipt. This was the second and final Pin today and the fifth of 12
+authorized format-test Pins. No video, Sandbox object, third Pin, weekly
+catalog job, paid tool, outreach, account mutation, deletion, or spend was
+used.
 
 ### 2026-09-04 — Medieval cat clean-format Pin `[daily-ops]`
 
