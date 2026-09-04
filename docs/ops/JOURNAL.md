@@ -5,6 +5,43 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-04 - Medieval cat clean-format production cycle
+
+**Evidence checked**: Pinterest production API v5 reported 253 lifetime public
+impressions, two Pin clicks, one save, and zero outbound clicks across the 13
+truthful Pins before today's post. Bullshit Button reached the first scheduled
+checkpoint after 24 hours at zero impressions; Toilet Golf and Middle
+Management were also undistributed. GA4's trailing seven days contained 29
+sessions and no Pinterest source or outbound-product event. The first-party
+database recorded zero product clicks in 24 hours or seven days and one search
+in seven days. Sandbox and Pinterest v3 were excluded.
+
+**Creative cycle**: the read-only enriched-catalog shortlist supplied FoxUncle
+medieval cat tapestry (`B0GSW1X3P4`). Amazon Creators API reverified it
+`IN_STOCK` at `$16.14`, with the unchanged 40-by-60-inch source. Its canonical
+gift page returned `200`, self-canonical, and `index, follow`. Three distinct
+product-derived concepts were preserved. The kitchen banquette and reading room
+were generated as separate 1024x1536 attempts; the literal medieval kitchen was
+rejected before generation. Full-resolution review rejected the beautiful but
+interchangeable reading room. The winning breakfast nook retains one tapestry,
+the grumpy gray cat, cauldron, flames, ornate border, exact fixed product
+sentence, and one soup-bowl cue. It advanced at `4.88/5` with every hard gate
+passing. No revision was warranted.
+
+**Production publication**: the 2026-09-04 morning slot was Arm A; the product's
+fixed wording was preserved but no creative headline was added. Cameron's
+standing bounded-experiment approval covered this exact complete package only.
+The guarded production dry run resolved `Weird Home Decor`, complete disclosure,
+current candidate approval, unique UTM, first daily slot, and correct
+`goosegifts` BUSINESS account. Pinterest production API v5 created Standard Pin
+`1107815208387789981`; readback matched every field and the 1024x1536 image.
+Durable receipt
+`receipt-1788540089872-editorial-medieval-cat-soup-banquette-clean-20260904-am-publication-succeeded`
+plus append-only publication, measuring, and zero-baseline events were written.
+The static experiment is balanced at two Arm A and two Arm B Pins, all still
+undistributed. No second Pin, Sandbox object, SEO mutation, weekly catalog job,
+outreach, paid tool, or spend occurred.
+
 ## 2026-09-02 - Pinterest landing-page retailer friction
 
 **Decision**: improve the conversion path on every canonical `/gifts/<slug>`

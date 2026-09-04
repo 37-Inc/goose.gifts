@@ -167,6 +167,18 @@ metrics, so there is still no arm winner. This is Pin 3 of 12 and the second and
 final 2026-09-03 publication; continue alternating slots and preserve the
 seven-day comparison gate.
 
+**2026-09-04 morning format-test evidence:** the profile reached 253
+impressions, two Pin clicks, one save, and zero outbound clicks before the new
+slot. The Bullshit Button's first scheduled post-24-hour checkpoint and all
+three prior format Pins still showed zero distribution, while GA4 and the
+first-party database showed no attributable Pinterest session or product
+click. Arm A's second clean control, medieval cat tapestry Pin
+`1107815208387789981`, now uses a unique clean-format UTM and an indexable
+canonical product page. Its actual printed sentence is part of the verified
+product, not an added headline. The experiment is balanced at two Arm A and two
+Arm B Pins, all with zero immediate metrics; continue alternating and do not
+name a winner until the seven-day cohort gate has meaningful impressions.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

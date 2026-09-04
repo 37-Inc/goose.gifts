@@ -242,6 +242,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208387734801/",
       "publishedAt": "2026-09-03T23:41:39.708Z",
       "publicationReceiptId": "receipt-1788478899705-editorial-middle-management-boardroom-clean-20260903-pm-publication-succeeded"
+    },
+    {
+      "id": "editorial-medieval-cat-soup-banquette-clean-20260904-am",
+      "candidateId": "cand-v10-medieval-cat-tapestry",
+      "approvalEventId": "evt-20260904-v10-medieval-cat-approved",
+      "board": "Weird Home Decor",
+      "assetPath": "docs/ops/pinterest-creative-lab/v13-concepts/01-medieval-cat-kitchen-banquette.png",
+      "targetPage": "https://www.goose.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor",
+      "trackingUrl": "https://www.goose.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+      "title": "This Cat Has a Soup Policy",
+      "description": "A grumpy medieval cat, one simmering cauldron, and the exact “you're going in the soup” tapestry presiding over a warm breakfast nook. A weird wall-decor gift for cat people with dramatic kitchens. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Beige medieval-style tapestry showing a grumpy gray cat stirring a steaming cauldron beneath the words “That's it, you're going in the soup,” above a warm oak breakfast nook.",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208387789981/",
+      "publishedAt": "2026-09-04T16:41:29.876Z",
+      "publicationReceiptId": "receipt-1788540089872-editorial-medieval-cat-soup-banquette-clean-20260904-am-publication-succeeded"
     }
   ]
 }

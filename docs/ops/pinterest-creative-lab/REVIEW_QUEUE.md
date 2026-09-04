@@ -11,6 +11,47 @@ None.
 
 ## Published from this queue
 
+### Medieval cat tapestry — clean soup-night control
+
+- Candidate: `cand-v10-medieval-cat-tapestry` (`measuring`, Arm A clean,
+  internal score `4.88/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387789981/`
+- Published: 2026-09-04 through Pinterest production API v5 in the morning
+  Arm A slot after the exact production dry run and every guard passed.
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v13-concepts/01-medieval-cat-kitchen-banquette.png`
+- Exact product: FoxUncle weird medieval cat tapestry, 40 by 60 inches, ASIN
+  `B0GSW1X3P4`; Amazon Creators API reverified it `IN_STOCK` at `$16.14` on
+  2026-09-04.
+- Destination:
+  `https://www.goose.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor`
+- Board: `Weird Home Decor`
+- Title: `This Cat Has a Soup Policy`
+- Description: `A grumpy medieval cat, one simmering cauldron, and the exact “you're going in the soup” tapestry presiding over a warm breakfast nook. A weird wall-decor gift for cat people with dramatic kitchens. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Beige medieval-style tapestry showing a grumpy gray cat stirring a steaming cauldron beneath the words “That's it, you're going in the soup,” above a warm oak breakfast nook.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am`
+- Why it earns a pause: the warm attainable breakfast nook reads first; the
+  exact grumpy cat, cauldron, fixed soup threat, and one quiet bowl create the
+  product-specific second look.
+- Rejected alternatives: the generated reading room was beautiful and truthful
+  but accepted too many substitute tapestries; the literal medieval kitchen
+  was rejected before generation because it risked costume-set staging.
+- Truth/risk review: full-resolution inspection preserves one vertical,
+  scale-plausible tapestry with the defining parchment field, floral-vine
+  border, grumpy gray cat, steaming cauldron, flames, and exact singular fixed
+  sentence. The illustration is a source-bound reconstruction rather than a
+  pixel-identical print, so fidelity scored 4. No added headline, CTA, product
+  card, badge, price, package, duplicate, pet, person, or visible defect appears.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, `Weird Home Decor` board, exact approval, first daily slot,
+  unique tracking URL, and 1024x1536 image; created one Standard Pin; read back
+  every approved field; and wrote receipt
+  `receipt-1788540089872-editorial-medieval-cat-soup-banquette-clean-20260904-am-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about ten
+  seconds after publication; this is a receipt, not a performance verdict.
+
 ### Middle management — clean boardroom control
 
 - Candidate: `cand-v10-middle-management-statue` (`measuring`, Arm A clean,
