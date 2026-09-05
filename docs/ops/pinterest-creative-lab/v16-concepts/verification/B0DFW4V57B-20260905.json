@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-05T23:35:55Z",
+  "productId": "B0DFW4V57B",
+  "amazonCreatorsApi": {
+    "availabilityStatus": "IN_STOCK",
+    "availabilityMessage": "In Stock",
+    "price": 19.99,
+    "currency": "USD",
+    "title": "Glazery 13.5 oz Funny 3D Shark Ceramic Coffee Mug, Cute Gray White Cartoon Handmade Figurine Tea Cup Novelty Coffee Cup with Handle for Shark Lovers Holiday Birthday Gifts for Women Men Mom Dad",
+    "imageUrl": "https://m.media-amazon.com/images/I/31gEHwKvzwL._SL500_.jpg",
+    "affiliateUrl": "https://www.amazon.com/dp/B0DFW4V57B?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+    "remotelyVerified": true
+  },
+  "savedSource": {
+    "path": "docs/ops/pinterest-creative-lab/v16-concepts/product-references/B0DFW4V57B-source.jpg",
+    "width": 500,
+    "height": 500,
+    "sha256": "10df9a9c0cffbae6c81d8bc4f3948c0d84583f007feae6dcbdec51a7d66f2dcd"
+  },
+  "canonicalPage": {
+    "url": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips",
+    "httpStatus": 200,
+    "title": "The Shark-in-a-Mug Mug | goose.gifts",
+    "canonical": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips",
+    "robots": "index, follow"
+  }
+}

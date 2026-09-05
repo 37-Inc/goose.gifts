@@ -30,6 +30,9 @@ impression is a delivery receipt, not a format winner.
 - Canonical destination:
   `https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips`
 - Saved reference: `product-references/B0DFW4V57B-source.jpg`
+- Durable verification receipt:
+  `verification/B0DFW4V57B-20260905.json`, linked by append-only event
+  `evt-20260905-v10-shark-mug-verification-receipt`
 - Live state: Amazon Creators API returned `IN_STOCK`, `$19.99`, and the same
   current primary image on 2026-09-05
 - Page state: production returned 200, `index, follow`, and a self-canonical
