@@ -276,6 +276,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208387817822/",
       "publishedAt": "2026-09-04T23:41:12.228Z",
       "publicationReceiptId": "receipt-1788565272225-editorial-wacky-tube-guy-dealership-headline-20260904-pm-publication-succeeded"
+    },
+    {
+      "id": "editorial-gratiator-caesar-headline-20260905-am",
+      "candidateId": "cand-v10-gratiator-caesar",
+      "approvalEventId": "evt-20260905-v10-gratiator-approved",
+      "board": "Weird Kitchen Gadgets",
+      "assetPath": "docs/ops/pinterest-creative-lab/v15-concepts/01-gratiator-caesar-headline.png",
+      "targetPage": "https://www.goose.gifts/gifts/the-gratiator-grate-expectations",
+      "trackingUrl": "https://www.goose.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+      "title": "Gratiator Sword-Shaped Cheese Grater",
+      "description": "The PELEG DESIGN Gratiator turns a food-safe stainless-steel cheese grater into a tiny Roman sword, complete with a navy crossguard and hanging pommel. Use it for hard cheese, chocolate, nutmeg, or citrus zest. A funny kitchen or housewarming gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Navy-and-stainless sword-shaped Gratiator cheese grater resting across a Caesar salad beside Parmesan beneath the headline “Caesar salad, meet your Gratiator.”",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208387877454/",
+      "publishedAt": "2026-09-05T16:45:01.126Z",
+      "publicationReceiptId": "receipt-1788626701123-editorial-gratiator-caesar-headline-20260905-am-publication-succeeded"
     }
   ]
 }

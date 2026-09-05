@@ -5,6 +5,42 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-05 - Gratiator headline-format production cycle
+
+**Evidence checked**: Pinterest production API v5 reported 261 lifetime public
+impressions, two Pin clicks, one save, and zero outbound clicks across the 15
+truthful Pins before publication. The static-format cohort was Arm A two Pins at
+zero impressions and Arm B three Pins at one impression, with no action.
+Medieval Cat's 24-hour checkpoint was zero; Hippo Desk closed its 28-day
+measurement at nine impressions and no action. GA4 had 10 trailing-seven-day
+sessions and no Pinterest source or outbound-product event. The first-party
+database had zero product clicks and searches in 24 hours or seven days.
+Sandbox and Pinterest v3 were excluded.
+
+**Creative cycle**: the read-only enriched-catalog shortlist supplied PELEG
+DESIGN Gratiator (`B074J425V7`). Amazon Creators API reverified `IN_STOCK` at
+`$15.90`; the maker confirmed its stainless-steel/plastic food-safe construction,
+dimensions, and real grating uses. The canonical page returned `200`, self-
+canonical, and `index, follow`. Three concepts were preserved. Caesar salad and
+cheese-board armory bases were generated at 1024x1536; the dinner duel was
+rejected before generation. Full-resolution review rejected the attractive but
+less-specific armory. The Caesar execution preserved one source-faithful sword
+grater at plausible scale, made its function obvious, and passed every hard gate
+at `4.88/5`. The first deterministic five-word headline layout was clean, so no
+revision was used.
+
+**Production publication**: the morning slot was Arm B. The guarded dry run
+verified Cameron's exact standing package approval, the `goosegifts` BUSINESS
+account, `Weird Kitchen Gadgets`, complete disclosures, unique UTM, first daily
+slot, and vertical asset. Pinterest API v5 created and read-verified Standard
+Pin `1107815208387877454`. Receipt
+`receipt-1788626701123-editorial-gratiator-caesar-headline-20260905-am-publication-succeeded`
+and append-only measuring/baseline events were recorded. The experiment is now
+six of 12: two Arm A and four Arm B Pins. Arm B has one impression total and
+neither arm has a downstream action, so there is no winner. No second Pin,
+video, Sandbox write, weekly catalog, SEO mutation, outreach, paid tool, account
+change, deletion, or spend occurred.
+
 ## 2026-09-04 - Wacky Tube Guy headline-format production cycle
 
 **Evidence checked**: Pinterest production API v5 reported 253 lifetime public
