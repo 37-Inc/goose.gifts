@@ -192,6 +192,18 @@ Arm A and three Arm B Pins, all at zero immediate metrics; do not name a winner
 until the seven-day cohort gate has meaningful impressions. This was the
 second and final 2026-09-04 publication.
 
+**2026-09-05 morning format-test evidence:** the truthful public cohort reached
+261 impressions, two Pin clicks, one save, and zero outbound clicks before the
+new slot. Medieval Cat reached its 24-hour checkpoint with zero distribution;
+GA4 and the first-party database still showed no attributable Pinterest session
+or product click. Arm B's fourth headline Pin, Gratiator
+`1107815208387877454`, uses a unique headline-format UTM and an indexable
+canonical product page. Its Caesar-salad scene and five-word product-name joke
+test whether useful food context plus restrained copy creates a stronger click
+reason. The experiment now has two Arm A and four Arm B Pins. Arm B has one
+impression total and neither arm has a downstream action; continue alternating
+and do not name a winner before the seven-day gate has meaningful impressions.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

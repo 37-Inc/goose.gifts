@@ -65,8 +65,11 @@ what's likely next.
   tapestry `1107815208387789981`, after a 4.88/5 review. Four of 12 format-test
   Pins were live at that point. The afternoon Arm B slot then published the
   fifteenth product-faithful Pin, Wacky Waving Inflatable Tube Guy
-  `1107815208387817822`, after a 4.63/5 truth and typography review. Five of 12
-  format-test Pins are now live: two clean and three headline.
+  `1107815208387817822`, after a 4.63/5 truth and typography review. The
+  2026-09-05 morning Arm B slot published the sixteenth product-faithful Pin,
+  Gratiator `1107815208387877454`, after a 4.88/5 source, function, and
+  typography review. Six of 12 format-test Pins are now live: two clean and
+  four headline.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -105,6 +108,20 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-05 — Gratiator Caesar-headline Pin `[daily-ops]`
+
+Reverified the in-stock `$15.90` PELEG DESIGN Gratiator, its official size and
+food-safe uses, and its indexable canonical page. Generated two of three
+product-derived concepts, rejected the less-specific cheese-board armory, and
+advanced the Caesar-salad execution at `4.88/5` with all hard gates passing and
+no revision. The guarded production API created and read-verified Standard Pin
+`1107815208387877454` on `Weird Kitchen Gadgets` with the exact five-word Arm B
+package and durable receipt. This is Pin 6 of the capped 12-Pin format test.
+Before launch, Arm B had one impression and Arm A zero; neither had a downstream
+action, so no winner was declared. The Medieval Cat 24-hour checkpoint and the
+Hippo Desk 28-day lifecycle were also recorded. No product, SEO, weekly-catalog,
+outreach, account, deletion, or spend mutation occurred.
 
 ### 2026-09-04 — Wacky Tube Guy headline-format Pin `[daily-ops]`
 

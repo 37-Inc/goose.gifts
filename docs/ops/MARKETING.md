@@ -30,8 +30,8 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Fifteen product-faithful editorial Pins are live. Before the fifteenth
-   launched, the first fourteen had 253 public impressions in total, two Pin
+   Sixteen product-faithful editorial Pins are live. Before the sixteenth
+   launched, the first fifteen had 261 public impressions in total, two Pin
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
@@ -52,6 +52,39 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-05 morning static-format cycle
+
+The fifteen-Pin truthful public cohort reached 261 impressions, two Pin clicks,
+one save, and zero outbound clicks before this slot. Arm B's Bullshit Button
+had the format cohort's only impression; the Medieval Cat Arm A Pin reached its
+24-hour checkpoint at zero impressions. GA4 reported 10 sessions in the
+trailing seven days with no Pinterest source or outbound-product event, and the
+first-party database recorded zero product clicks and searches in 24 hours or
+seven days. Sandbox and Pinterest v3 were excluded.
+
+The enriched-catalog shortlist supplied the PELEG DESIGN Gratiator. Amazon
+Creators API reverified ASIN `B074J425V7` `IN_STOCK` at `$15.90`; PELEG DESIGN
+confirmed the food-safe stainless-steel/plastic dimensions and uses, and the
+canonical Goose page returned `200`, self-canonical, and `index, follow`. Three
+product-derived concepts were recorded. Two clean bases were generated and
+inspected at 1024x1536. The polished cheese-board armory was rejected because
+it was less product-specific; the dinner duel was rejected before generation.
+The Caesar-salad execution made the sword silhouette and real grating function
+legible together. Its five-word Arm B headline fit on the first deterministic
+layout, and the artifact passed every hard gate at `4.88/5` with no revision.
+
+The production dry run verified the exact package, correct `goosegifts`
+BUSINESS account, `Weird Kitchen Gadgets` board, unique headline-arm UTM,
+complete disclosures, first daily slot, and vertical artifact. Pinterest API
+v5 created and read-verified Standard Pin `1107815208387877454` and wrote
+receipt
+`receipt-1788626701123-editorial-gratiator-caesar-headline-20260905-am-publication-succeeded`.
+The experiment is now 6 of 12: two Arm A Pins and four Arm B Pins. Arm B has one
+impression total; neither arm has a save, click, outbound, attributable session,
+or downstream product click, so there is no winner. No video, Sandbox object,
+second Pin, weekly catalog job, SEO mutation, outreach, paid tool, account
+change, deletion, or spend occurred.
 
 ### 2026-09-04 afternoon static-format cycle
 

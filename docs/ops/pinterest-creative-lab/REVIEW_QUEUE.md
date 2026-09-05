@@ -11,6 +11,38 @@ None.
 
 ## Published from this queue
 
+### Gratiator — Caesar salad headline
+
+- Candidate: `cand-v10-gratiator-caesar` (`measuring`, Arm B headline,
+  internal score `4.88/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387877454/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v15-concepts/01-gratiator-caesar-headline.png`
+- Exact product: PELEG DESIGN Gratiator sword-shaped handheld grater, ASIN
+  `B074J425V7`; Amazon Creators API reverified it `IN_STOCK` at `$15.90`, and
+  the maker confirms stainless-steel/plastic, food-safe construction at 20.5
+  by 7.6 by 1.4 cm.
+- Destination:
+  `https://www.goose.gifts/gifts/the-gratiator-grate-expectations`
+- Board: `Weird Kitchen Gadgets`
+- Title: `Gratiator Sword-Shaped Cheese Grater`
+- Description: `The PELEG DESIGN Gratiator turns a food-safe stainless-steel cheese grater into a tiny Roman sword, complete with a navy crossguard and hanging pommel. Use it for hard cheese, chocolate, nutmeg, or citrus zest. A funny kitchen or housewarming gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Navy-and-stainless sword-shaped Gratiator cheese grater resting across a Caesar salad beside Parmesan beneath the headline “Caesar salad, meet your Gratiator.”`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am`
+- Rejected alternatives: the generated cheese-board armory was truthful and
+  attractive but less specific; the dinner-arena concept was rejected before
+  generation for repeating face-off geometry and partially surviving a product
+  swap. No revision was needed.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, exact approval, first daily slot, unique UTM, vertical
+  artifact, and `Weird Kitchen Gadgets` board; it read back every approved
+  field and wrote receipt
+  `receipt-1788626701123-editorial-gratiator-caesar-headline-20260905-am-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about ten
+  seconds after publication; this is not a creative verdict.
+
 ### Wacky Waving Inflatable Tube Guy — desk-sized dealership
 
 - Candidate: `cand-v10-wacky-tube-guy-hype` (`measuring`, Arm B headline,
