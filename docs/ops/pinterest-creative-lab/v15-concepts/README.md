@@ -8,8 +8,11 @@
 - Public profile before generation: 15 Pins, 261 impressions, 2 Pin clicks,
   1 save, 0 Pinterest outbound clicks
 - Format cohort before generation: 2 Arm A Pins at 0 impressions and 3 Arm B
-  Pins at 1 impression; neither arm has a save, Pin click, outbound click,
-  attributable site session, or downstream product click
+  Pins at 1 impression, specifically Bullshit Button Pin
+  `1107815208387654951` as recorded by
+  `evt-20260905-v10-bullshit-button-interim-metrics`; neither arm has a save,
+  Pin click, outbound click, attributable site session, or downstream product
+  click
 - GA4, trailing 7 days: 10 sessions (8 direct, 1 Amazon Organic Shopping,
   1 unassigned), with no Pinterest source and no `product_click` or
   `affiliate_click` event
