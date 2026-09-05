@@ -198,12 +198,11 @@ frame that shows a raw token.**
   from public performance evidence forever.
 - The guarded production API has now created and read-verified the raw-chicken,
   Butt Station, Lick'em cat-brush, Pizza Boss, Bullshit Button, Toilet Golf,
-  and Middle Management statue Pins.
-  Combined with the six retained product-faithful browser posts, the current
-  clean profile has thirteen public Pins and zero Sandbox objects. Bullshit
-  Button and Toilet Golf are the first two Arm B Pins; the Middle Management
-  boardroom is the first Arm A clean control created under the bounded
-  headline-versus-clean static-format authorization.
+  Middle Management statue, medieval cat tapestry, Wacky Waving Inflatable Tube
+  Guy, Gratiator, and Shark Coffee Mug Pins. Combined with the six retained
+  product-faithful browser posts, the current clean profile has seventeen public
+  Pins and zero Sandbox objects. The bounded static-format cohort is seven of
+  twelve: three Arm A clean Pins and four Arm B headline Pins.
 
 ## References
 

@@ -69,9 +69,11 @@ you'd rather get real email/Slack from me, connect a connector at
   cleanup removed five old ad-style Pins, six Sandbox test Pins, and five empty
   API Trial boards; at that cleanup checkpoint the account contained only six
   product-faithful public Pins. Subsequent guarded daily cycles added raw
-  chicken, Butt Station, Lick'em cat brush, Pizza Boss, and headline-format
-  Bullshit Button and Toilet Golf creatives plus the first clean-format Middle
-  Management statue control, bringing the current total to thirteen. The
+  chicken, Butt Station, Lick'em cat brush, Pizza Boss, headline-format Bullshit
+  Button and Toilet Golf, clean-format Middle Management and medieval cat,
+  headline-format Wacky Waving Inflatable Tube Guy and Gratiator, and the clean
+  Shark Coffee Mug. The current total is seventeen, and the bounded format
+  experiment is seven of twelve: three clean and four headline Pins. The
   publisher checks the exact owner approval event and candidate state,
   account, complete disclosed package, 2:3 artifact, and duplicate tracking URL;
   it read-verifies success and records durable receipts. `npm run

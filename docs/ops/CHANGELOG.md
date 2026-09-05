@@ -68,8 +68,11 @@ what's likely next.
   `1107815208387817822`, after a 4.63/5 truth and typography review. The
   2026-09-05 morning Arm B slot published the sixteenth product-faithful Pin,
   Gratiator `1107815208387877454`, after a 4.88/5 source, function, and
-  typography review. Six of 12 format-test Pins are now live: two clean and
-  four headline.
+  typography review. The afternoon Arm A slot published the seventeenth
+  product-faithful Pin, Shark Coffee Mug `1107815208387907452`, after a
+  4.88/5 source and full-resolution review. Seven of 12 format-test Pins are now
+  live: three clean and four headline. The cohort still has only one impression
+  and no downstream action, so keep the cap and measurement gate intact.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and

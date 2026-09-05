@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260905-v10-shark-mug-created",
+  "type": "candidate.created",
+  "recordedAt": "2026-09-05T16:36:50-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-static-format-v10",
+    "candidateId": "cand-v10-shark-mug-coastal-breakfast",
+    "title": "A shark mug circles a quiet coastal breakfast",
+    "creativeFamily": "clean coastal breakfast editorial built around the product's open shark-mouth rim and three-dimensional snout and fins",
+    "audience": "Pinterest users saving shark gifts, funny coffee mugs, weird kitchen finds, coastal breakfast styling, and gifts for ocean lovers",
+    "hook": "A bright, attainable breakfast scene registers first; the exact gray-and-white mug's open red shark mouth, teeth, snout, and fins become the second-look surprise.",
+    "initialStatus": "idea",
+    "product": {
+      "name": "Glazery 13.5-ounce gray 3D shark ceramic coffee mug (ASIN B0DFW4V57B)",
+      "sourceUrl": "https://www.amazon.com/dp/B0DFW4V57B?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+      "destinationUrl": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips"
+    },
+    "references": [
+      {
+        "source": "docs/ops/pinterest-creative-lab/v16-concepts/product-references/B0DFW4V57B-source.jpg",
+        "lesson": "Preserve one glossy 13.5-ounce mug with a gray shark face wrapping the front, white back and handle, projecting pointed snout, two small side fins, blue base rim, black dot eyes, and a wide irregular red mouth opening edged with blunt white teeth."
+      }
+    ],
+    "notes": [
+      "The 2026-09-05 afternoon slot is assigned Arm A, so both generated attempts and any survivor must remain text-free apart from unavoidable unreadable background texture.",
+      "Concept 1, coastal breakfast: pale limestone, blue-striped linen, toast, and watery window reflections give the shark mug a useful breakfast setting and a product-specific ocean cue without turning it into a fantasy prop.",
+      "Concept 2, oceanographer flat lay: the mug sits with a blank blue field notebook, brass pencil, shell, and folded nautical chart; rejected before generation because the top-down angle would hide the projecting snout and wraparound shark face.",
+      "Concept 3, dark tide-pool still life: a moody blue tile counter and narrow dawn light make the red mouth and white teeth pop; selected as the contrasting second generation because it tests a materially different lighting and palette treatment while preserving an ordinary usable mug.",
+      "Click reason: the source-faithful open-mouth drinking rim is both useful and surprising; the scene invites a closer look without a headline or a bait-and-switch.",
+      "Stop conditions: reject any attempt that turns the mug into a living shark, adds a dorsal fin or extra teeth, changes the gray-white-red-blue color blocking, hides the handle or mouth opening, duplicates the mug, or introduces readable scene text."
+    ]
+  }
+}

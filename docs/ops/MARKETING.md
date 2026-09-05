@@ -30,8 +30,8 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Sixteen product-faithful editorial Pins are live. Before the sixteenth
-   launched, the first fifteen had 261 public impressions in total, two Pin
+   Seventeen product-faithful editorial Pins are live. Before the seventeenth
+   launched, the first sixteen had 261 public impressions in total, two Pin
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
@@ -52,6 +52,41 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-05 afternoon static-format cycle
+
+The sixteen-Pin truthful public cohort remained at 261 impressions, two Pin
+clicks, one save, and zero outbound clicks before this slot. Wacky Waving
+Inflatable Tube Guy reached its exact 24-hour checkpoint at zero impressions.
+The format cohort was Arm A two Pins at zero impressions and Arm B four Pins at
+one impression. GA4 recorded 11 `session_start` events in the trailing seven
+days with no Pinterest source or outbound-product event; the first-party
+database recorded zero product clicks and searches in 24 hours or seven days.
+Pinterest v3 and Sandbox were excluded.
+
+The current verified enriched-catalog shortlist supplied the Glazery shark
+coffee mug. Amazon Creators API reverified ASIN `B0DFW4V57B` `IN_STOCK` at
+`$19.99`, correcting the stale shortlist price; the canonical Goose page
+returned `200`, self-canonical, and `index, follow`. Three product-derived
+concepts were recorded. The bright coastal breakfast and dark blue-tile still
+life were generated and inspected at 1024x1536; the flat lay was rejected
+before generation because it hid defining product features. The dark attempt
+passed every gate but was less bright and saveable at thumbnail size. The
+coastal execution preserved the gray face, white handle, snout, fin, eye, blue
+base, red mouth, and blunt teeth, passed every hard gate at `4.88/5`, and needed
+no revision.
+
+The afternoon slot was Arm A. The production dry run verified the exact
+package, correct `goosegifts` BUSINESS account, `Weird Kitchen Gadgets` board,
+unique clean-arm UTM, complete disclosures, second-and-final daily slot, and
+vertical artifact. Pinterest API v5 created and read-verified Standard Pin
+`1107815208387907452` and wrote receipt
+`receipt-1788651683856-editorial-shark-mug-coastal-breakfast-clean-20260905-pm-publication-succeeded`.
+The experiment is now 7 of 12: three Arm A Pins and four Arm B Pins. Arm B has
+one impression total and neither arm has a downstream action, so there is no
+winner. No video, added image text, Sandbox object, third daily Pin, weekly
+catalog job, SEO mutation, outreach, paid tool, account change, deletion, or
+spend occurred.
 
 ### 2026-09-05 morning static-format cycle
 

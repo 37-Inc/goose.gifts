@@ -204,6 +204,19 @@ reason. The experiment now has two Arm A and four Arm B Pins. Arm B has one
 impression total and neither arm has a downstream action; continue alternating
 and do not name a winner before the seven-day gate has meaningful impressions.
 
+**2026-09-05 afternoon format-test evidence:** the truthful public cohort
+remained at 261 impressions, two Pin clicks, one save, and zero outbound clicks
+before the second slot. Wacky Waving Inflatable Tube Guy reached its exact
+24-hour checkpoint with zero distribution; GA4 and the first-party database
+still showed no attributable Pinterest session or product click. Arm A's third
+clean Pin, Shark Coffee Mug `1107815208387907452`, uses a unique clean-format
+UTM and an indexable canonical product page. Its bright breakfast setting tests
+whether a highly legible sculptural product can earn attention without overlay
+copy. The experiment now has three Arm A and four Arm B Pins. Arm B has one
+impression total and neither arm has a downstream action; this was the second
+and final 2026-09-05 publication, and there is still no format or acquisition
+winner.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before
