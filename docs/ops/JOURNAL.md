@@ -5,6 +5,40 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-05 - Shark mug clean-format production cycle
+
+**Evidence checked**: Pinterest production API v5 reported 261 lifetime public
+impressions, two Pin clicks, one save, and zero outbound clicks across the 16
+truthful Pins before publication. The static-format cohort was Arm A two Pins
+at zero impressions and Arm B four Pins at one impression, with no downstream
+action. Wacky Waving Inflatable Tube Guy reached its exact 24-hour checkpoint
+at zero. GA4 had 11 trailing-seven-day `session_start` events and no Pinterest
+source or outbound-product event. The first-party database had zero product
+clicks and searches in 24 hours or seven days. Sandbox and Pinterest v3 were
+excluded.
+
+**Creative cycle**: the read-only verified enriched-catalog shortlist supplied
+the Glazery shark mug (`B0DFW4V57B`). Amazon Creators API reverified `IN_STOCK`
+at `$19.99`, and the canonical page returned `200`, self-canonical, and
+`index, follow`. Three concepts were preserved. Coastal breakfast and dark
+blue-tile still-life attempts were generated at 1024x1536; the top-down flat lay
+was rejected before generation. Full-resolution review rejected the truthful
+but darker attempt. The bright breakfast survivor preserved one usable gray,
+white, red, and blue shark mug at plausible scale, passed every hard gate at
+`4.88/5`, and needed no revision.
+
+**Production publication**: the afternoon slot was Arm A. The guarded dry run
+verified Cameron's standing exact-package authorization, the `goosegifts`
+BUSINESS account, `Weird Kitchen Gadgets`, complete disclosures, unique UTM,
+second-and-final daily slot, and vertical asset. Pinterest API v5 created and
+read-verified Standard Pin `1107815208387907452`. Receipt
+`receipt-1788651683856-editorial-shark-mug-coastal-breakfast-clean-20260905-pm-publication-succeeded`
+and append-only measuring/baseline events were recorded. The experiment is now
+seven of 12: three Arm A and four Arm B Pins. Arm B has one impression total and
+neither arm has a downstream action, so there is no winner. No video, added
+image text, third Pin, Sandbox write, weekly catalog, SEO mutation, outreach,
+paid tool, account change, deletion, or spend occurred.
+
 ## 2026-09-05 - Gratiator headline-format production cycle
 
 **Evidence checked**: Pinterest production API v5 reported 261 lifetime public

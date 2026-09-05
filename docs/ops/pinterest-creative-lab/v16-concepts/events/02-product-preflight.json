@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260905-v10-shark-mug-preflight",
+  "type": "learning.recorded",
+  "recordedAt": "2026-09-05T16:36:55-07:00",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-static-format-v10",
+    "candidateId": "cand-v10-shark-mug-coastal-breakfast",
+    "scope": "candidate",
+    "statement": "Amazon Creators API reverified B0DFW4V57B as IN_STOCK at $19.99 with the current primary image: one glossy gray-and-white 13.5-ounce ceramic shark mug with a projecting snout and side fins, black dot eyes, blue base rim, white handle, and a wide red mouth opening edged with blunt white teeth. The canonical enriched Goose page returned 200, self-canonical, index, follow. The product and breakfast mechanism are absent from the prior 30-day production cohort.",
+    "evidenceEventIds": [
+      "evt-20260905-v10-shark-mug-created"
+    ],
+    "decision": "Generate the high-key coastal breakfast and dark tide-pool still-life concepts for clean Arm A; reject the oceanographer flat lay before generation because it would conceal the mug's most distinctive three-dimensional features.",
+    "nextAction": "Generate two materially different source-bound vertical 2:3 editorials with no added typography, inspect both at full useful resolution, and retain at most one truthful survivor."
+  }
+}

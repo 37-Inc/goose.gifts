@@ -11,6 +11,38 @@ None.
 
 ## Published from this queue
 
+### Shark coffee mug — clean coastal breakfast
+
+- Candidate: `cand-v10-shark-mug-coastal-breakfast` (`measuring`, Arm A clean,
+  internal score `4.88/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387907452/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v16-concepts/01-shark-mug-coastal-breakfast.png`
+- Exact product: Glazery gray 13.5-ounce 3D shark ceramic mug, ASIN
+  `B0DFW4V57B`; Amazon Creators API reverified it `IN_STOCK` at `$19.99` on
+  2026-09-05 with the same current primary image.
+- Destination:
+  `https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips`
+- Board: `Weird Kitchen Gadgets`
+- Title: `Shark Coffee Mug for Ocean Lovers`
+- Description: `This 13.5-ounce Glazery ceramic mug wraps morning coffee in a glossy gray shark, complete with a projecting snout, tiny fins, and a red tooth-lined drinking rim. A funny kitchen, birthday, or ocean-lover gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Gray-and-white ceramic shark mug filled with coffee on a pale limestone breakfast table beside striped linen, sourdough toast, and a teaspoon.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm`
+- Rejected alternatives: the generated dark blue-tile still life was truthful
+  and attractive but less bright and saveable at thumbnail size; the
+  oceanographer flat lay was rejected before generation because it would hide
+  the mug's three-dimensional face and partially survive a product swap. No
+  revision was needed.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, exact approval, second-and-final daily slot, unique UTM,
+  1024x1536 artifact, and `Weird Kitchen Gadgets` board; it read back every
+  approved field and wrote receipt
+  `receipt-1788651683856-editorial-shark-mug-coastal-breakfast-clean-20260905-pm-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about
+  eleven seconds after publication; this is not a creative verdict.
+
 ### Gratiator — Caesar salad headline
 
 - Candidate: `cand-v10-gratiator-caesar` (`measuring`, Arm B headline,

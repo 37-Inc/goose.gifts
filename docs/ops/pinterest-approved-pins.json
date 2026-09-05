@@ -293,6 +293,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208387877454/",
       "publishedAt": "2026-09-05T16:45:01.126Z",
       "publicationReceiptId": "receipt-1788626701123-editorial-gratiator-caesar-headline-20260905-am-publication-succeeded"
+    },
+    {
+      "id": "editorial-shark-mug-coastal-breakfast-clean-20260905-pm",
+      "candidateId": "cand-v10-shark-mug-coastal-breakfast",
+      "approvalEventId": "evt-20260905-v10-shark-mug-approved",
+      "board": "Weird Kitchen Gadgets",
+      "assetPath": "docs/ops/pinterest-creative-lab/v16-concepts/01-shark-mug-coastal-breakfast.png",
+      "targetPage": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips",
+      "trackingUrl": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+      "title": "Shark Coffee Mug for Ocean Lovers",
+      "description": "This 13.5-ounce Glazery ceramic mug wraps morning coffee in a glossy gray shark, complete with a projecting snout, tiny fins, and a red tooth-lined drinking rim. A funny kitchen, birthday, or ocean-lover gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Gray-and-white ceramic shark mug filled with coffee on a pale limestone breakfast table beside striped linen, sourdough toast, and a teaspoon.",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208387907452/",
+      "publishedAt": "2026-09-05T23:41:23.858Z",
+      "publicationReceiptId": "receipt-1788651683856-editorial-shark-mug-coastal-breakfast-clean-20260905-pm-publication-succeeded"
     }
   ]
 }
