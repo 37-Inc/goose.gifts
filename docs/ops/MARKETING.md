@@ -58,8 +58,9 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 The seventeen-Pin truthful public cohort remained at 261 impressions, two Pin
 clicks, one save, and zero outbound clicks before this slot. The format cohort
 was Arm A three Pins at zero impressions and Arm B four Pins at one impression,
-with no downstream action. Gratiator then reached its exact 24-hour checkpoint
-at zero impressions or actions. GA4 recorded 13 `session_start` events in the
+with no downstream action. Gratiator's scheduled 24-hour checkpoint, captured
+24 hours and 36 seconds after publication, remained at zero impressions or
+actions. GA4 recorded 13 `session_start` events in the
 trailing seven days with no Pinterest source or outbound-product event; the
 first-party database recorded zero product clicks and searches in 24 hours or
 seven days. Pinterest v3 and Sandbox were excluded.

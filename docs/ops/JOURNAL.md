@@ -11,8 +11,9 @@ operator's memory across runs — write for a cold start.
 impressions, two Pin clicks, one save, and zero outbound clicks across the 17
 truthful Pins before publication. The static-format cohort was Arm A three Pins
 at zero impressions and Arm B four Pins at one impression, with no downstream
-action. Gratiator reached its exact 24-hour checkpoint at zero impressions or
-actions. GA4 had 13 trailing-seven-day `session_start` events and no Pinterest
+action. Gratiator's scheduled 24-hour checkpoint, captured 24 hours and 36
+seconds after publication, remained at zero impressions or actions. GA4 had 13
+trailing-seven-day `session_start` events and no Pinterest
 source or outbound-product event. The first-party database had zero product
 clicks and searches in 24 hours or seven days. Sandbox and Pinterest v3 were
 excluded.

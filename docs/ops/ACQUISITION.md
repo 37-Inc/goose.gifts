@@ -221,7 +221,8 @@ winner.
 remained at 261 impressions, two Pin clicks, one save, and zero outbound clicks
 before the new slot. GA4 and the first-party database still showed no
 attributable Pinterest session or downstream product click, and Gratiator's
-exact 24-hour checkpoint remained at zero impressions. Arm A's fourth
+scheduled 24-hour checkpoint, captured 24 hours and 36 seconds after
+publication, remained at zero impressions. Arm A's fourth
 clean Pin, Fresh Memes dog toy `1107815208387966131`, uses a unique clean-format
 UTM and an indexable canonical product page. Its active carry moment tests
 whether a fashion-editorial pet identity can make the exact slipper-shaped toy

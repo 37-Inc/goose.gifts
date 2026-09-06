@@ -126,8 +126,9 @@ The guarded production API created and read-verified Standard Pin
 `1107815208387966131` on `Funny White Elephant Gifts` with the exact clean Arm
 A package and durable receipt. This is Pin 8 of the capped 12-Pin format test,
 balanced at four per arm. Before launch, Arm B had one impression and Arm A
-zero; Gratiator's exact 24-hour checkpoint was also zero, and neither arm had a
-downstream action, so no winner was declared. No product,
+zero; Gratiator's scheduled 24-hour checkpoint, captured 24 hours and 36
+seconds after publication, was also zero, and neither arm had a downstream
+action, so no winner was declared. No product,
 SEO, weekly-catalog, outreach, account, deletion, or spend mutation occurred.
 
 ### 2026-09-05 — Gratiator Caesar-headline Pin `[daily-ops]`
