@@ -217,6 +217,19 @@ impression total and neither arm has a downstream action; this was the second
 and final 2026-09-05 publication, and there is still no format or acquisition
 winner.
 
+**2026-09-06 morning format-test evidence:** the truthful public cohort
+remained at 261 impressions, two Pin clicks, one save, and zero outbound clicks
+before the new slot. GA4 and the first-party database still showed no
+attributable Pinterest session or downstream product click, and Gratiator's
+scheduled 24-hour checkpoint, captured 24 hours and 36 seconds after
+publication, remained at zero impressions. Arm A's fourth
+clean Pin, Fresh Memes dog toy `1107815208387966131`, uses a unique clean-format
+UTM and an indexable canonical product page. Its active carry moment tests
+whether a fashion-editorial pet identity can make the exact slipper-shaped toy
+immediately legible without overlay text. The experiment is balanced at four
+Arm A and four Arm B Pins; Arm B has one impression, Arm A has none, and neither
+has a downstream action. Keep the cap and seven-day gate intact.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

@@ -30,8 +30,8 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Seventeen product-faithful editorial Pins are live. Before the seventeenth
-   launched, the first sixteen had 261 public impressions in total, two Pin
+   Eighteen product-faithful editorial Pins are live. Before the eighteenth
+   launched, the first seventeen had 261 public impressions in total, two Pin
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
@@ -52,6 +52,43 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-06 morning static-format cycle
+
+The seventeen-Pin truthful public cohort remained at 261 impressions, two Pin
+clicks, one save, and zero outbound clicks before this slot. The format cohort
+was Arm A three Pins at zero impressions and Arm B four Pins at one impression,
+with no downstream action. Gratiator's scheduled 24-hour checkpoint, captured
+24 hours and 36 seconds after publication, remained at zero impressions or
+actions. GA4 recorded 13 `session_start` events in the
+trailing seven days with no Pinterest source or outbound-product event; the
+first-party database recorded zero product clicks and searches in 24 hours or
+seven days. Pinterest v3 and Sandbox were excluded.
+
+The current verified enriched-catalog shortlist first surfaced the belly fanny
+pack, but live Amazon Creators API evidence marked it `OUT_OF_STOCK`, so it was
+rejected before concepting. The next distinct eligible product was the Fresh
+Memes medium ChewyV squeaky dog toy. Amazon reverified ASIN `B0FNNBK8Q6`
+`IN_STOCK` at `$18.99`; the canonical Goose page returned `200`, self-canonical,
+and `index, follow`. Three product-derived concepts were recorded. The gallery
+runway and mudroom mix-up were generated and inspected at 1024x1536; the velvet
+lobby was rejected before generation because it survived too much of a product
+swap. Both generated attempts passed every gate. The mudroom was less active at
+thumbnail size; the gallery survivor preserved the tan slipper form, fuzzy
+ochre opening, stripe, intrinsic lettering, plush texture, plausible scale,
+natural carry use, and dog anatomy at `4.88/5`. No revision was justified.
+
+The morning slot was Arm A. The production dry run verified the exact package,
+correct `goosegifts` BUSINESS account, `Funny White Elephant Gifts` board,
+unique clean-arm UTM, complete disclosures, first-and-only daily slot, and
+vertical artifact. Pinterest API v5 created and read-verified Standard Pin
+`1107815208387966131` and wrote receipt
+`receipt-1788712937232-editorial-dog-toy-gallery-runway-clean-20260906-am-publication-succeeded`.
+The experiment is now balanced at 8 of 12: four Arm A and four Arm B Pins. Arm
+B has one impression total and neither arm has a downstream action, so there is
+no winner. No video, added image text, Sandbox object, second Pin, weekly
+catalog job, SEO mutation, outreach, paid tool, account change, deletion, or
+spend occurred.
 
 ### 2026-09-05 afternoon static-format cycle
 
