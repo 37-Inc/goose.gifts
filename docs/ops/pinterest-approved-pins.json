@@ -310,6 +310,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208387907452/",
       "publishedAt": "2026-09-05T23:41:23.858Z",
       "publicationReceiptId": "receipt-1788651683856-editorial-shark-mug-coastal-breakfast-clean-20260905-pm-publication-succeeded"
+    },
+    {
+      "id": "editorial-dog-toy-gallery-runway-clean-20260906-am",
+      "candidateId": "cand-v10-dog-toy-runway",
+      "approvalEventId": "evt-20260906-v10-dog-toy-approved",
+      "board": "Funny White Elephant Gifts",
+      "assetPath": "docs/ops/pinterest-creative-lab/v17-concepts/01-dog-toy-gallery-runway.png",
+      "targetPage": "https://www.goose.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh",
+      "trackingUrl": "https://www.goose.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+      "title": "Funny Squeaky Dog Toy for Stylish Pups",
+      "description": "This medium slipper-shaped plush dog toy turns chew time into a runway moment, with a hidden squeaker, soft pearl-cotton filling, and a fashion-parody stripe. A funny gift for dogs and dog owners. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Golden retriever walking through sunlit arches while carrying a tan slipper-shaped plush squeaky dog toy with a fuzzy ochre opening and green-red stripe.",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208387966131/",
+      "publishedAt": "2026-09-06T16:42:17.234Z",
+      "publicationReceiptId": "receipt-1788712937232-editorial-dog-toy-gallery-runway-clean-20260906-am-publication-succeeded"
     }
   ]
 }

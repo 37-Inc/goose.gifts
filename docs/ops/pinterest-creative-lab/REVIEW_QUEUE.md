@@ -11,6 +11,37 @@ None.
 
 ## Published from this queue
 
+### Fresh Memes dog toy — clean gallery runway
+
+- Candidate: `cand-v10-dog-toy-runway` (`measuring`, Arm A clean, internal
+  score `4.88/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387966131/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v17-concepts/01-dog-toy-gallery-runway.png`
+- Exact product: Fresh Memes medium ChewyV plush squeaky dog toy, ASIN
+  `B0FNNBK8Q6`; Amazon Creators API reverified it `IN_STOCK` at `$18.99` on
+  2026-09-06 with the same current primary image.
+- Destination:
+  `https://www.goose.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh`
+- Board: `Funny White Elephant Gifts`
+- Title: `Funny Squeaky Dog Toy for Stylish Pups`
+- Description: `This medium slipper-shaped plush dog toy turns chew time into a runway moment, with a hidden squeaker, soft pearl-cotton filling, and a fashion-parody stripe. A funny gift for dogs and dog owners. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Golden retriever walking through sunlit arches while carrying a tan slipper-shaped plush squeaky dog toy with a fuzzy ochre opening and green-red stripe.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am`
+- Rejected alternatives: the generated mudroom mix-up was truthful and
+  attractive but less active at thumbnail size; the velvet-lobby portrait was
+  rejected before generation because a generic plush could preserve too much
+  of the concept. No revision was needed.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, exact approval, first-and-only daily slot, unique UTM,
+  1024x1536 artifact, and `Funny White Elephant Gifts` board; it read back
+  every approved field and wrote receipt
+  `receipt-1788712937232-editorial-dog-toy-gallery-runway-clean-20260906-am-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about
+  eleven seconds after publication; this is not a creative verdict.
+
 ### Shark coffee mug — clean coastal breakfast
 
 - Candidate: `cand-v10-shark-mug-coastal-breakfast` (`measuring`, Arm A clean,

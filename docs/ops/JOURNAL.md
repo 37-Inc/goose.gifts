@@ -5,6 +5,42 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-06 - Dog-toy gallery runway clean-format production cycle
+
+**Evidence checked**: Pinterest production API v5 reported 261 lifetime public
+impressions, two Pin clicks, one save, and zero outbound clicks across the 17
+truthful Pins before publication. The static-format cohort was Arm A three Pins
+at zero impressions and Arm B four Pins at one impression, with no downstream
+action. Gratiator reached its exact 24-hour checkpoint at zero impressions or
+actions. GA4 had 13 trailing-seven-day `session_start` events and no Pinterest
+source or outbound-product event. The first-party database had zero product
+clicks and searches in 24 hours or seven days. Sandbox and Pinterest v3 were
+excluded.
+
+**Creative cycle**: the shortlist's belly fanny pack failed the live Amazon
+availability gate and was rejected before concepting. Amazon Creators API then
+reverified the Fresh Memes medium ChewyV plush dog toy (`B0FNNBK8Q6`) `IN_STOCK`
+at `$18.99`; its canonical page returned `200`, self-canonical, and
+`index, follow`. Three product-derived concepts were preserved. Gallery runway
+and mudroom mix-up attempts were generated at 1024x1536; the weaker generic
+luxury-pet portrait was rejected before generation. Full-resolution review
+rejected the truthful but more static mudroom. The gallery survivor preserved
+the exact slipper form, fuzzy opening, stripe, intrinsic lettering, plush
+texture, ordinary scale, real carry use, and dog anatomy, passed every hard
+gate at `4.88/5`, and needed no revision.
+
+**Production publication**: the morning slot was Arm A. The guarded dry run
+verified Cameron's standing exact-package authorization, the `goosegifts`
+BUSINESS account, `Funny White Elephant Gifts`, complete disclosures, unique
+UTM, first-and-only daily slot, and vertical asset. Pinterest API v5 created and
+read-verified Standard Pin `1107815208387966131`. Receipt
+`receipt-1788712937232-editorial-dog-toy-gallery-runway-clean-20260906-am-publication-succeeded`
+and append-only measuring/baseline events were recorded. The experiment is now
+eight of 12 and balanced: four Arm A and four Arm B Pins. Arm B has one
+impression, Arm A has none, and neither has a downstream action, so there is no
+winner. No video, added image text, second Pin, Sandbox write, weekly catalog,
+SEO mutation, outreach, paid tool, account change, deletion, or spend occurred.
+
 ## 2026-09-05 - Shark mug clean-format production cycle
 
 **Evidence checked**: Pinterest production API v5 reported 261 lifetime public

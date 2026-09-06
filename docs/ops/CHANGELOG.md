@@ -70,9 +70,12 @@ what's likely next.
   Gratiator `1107815208387877454`, after a 4.88/5 source, function, and
   typography review. The afternoon Arm A slot published the seventeenth
   product-faithful Pin, Shark Coffee Mug `1107815208387907452`, after a
-  4.88/5 source and full-resolution review. Seven of 12 format-test Pins are now
-  live: three clean and four headline. The cohort still has only one impression
-  and no downstream action, so keep the cap and measurement gate intact.
+  4.88/5 source and full-resolution review. The 2026-09-06 morning Arm A slot
+  published the eighteenth product-faithful Pin, Fresh Memes squeaky dog toy
+  `1107815208387966131`, after a 4.88/5 source and full-resolution review. Eight
+  of 12 format-test Pins are now live, balanced at four clean and four headline.
+  Arm B has one impression, Arm A has none, and neither has a downstream action,
+  so keep the cap and measurement gate intact.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -111,6 +114,21 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-06 — Dog-toy gallery runway clean Pin `[daily-ops]`
+
+Rejected the shortlist's unavailable belly fanny pack, then reverified the
+in-stock `$18.99` Fresh Memes medium squeaky dog toy and its indexable canonical
+page. Generated two of three product-derived concepts, rejected the less-active
+mudroom and ungenerated generic lobby portrait, and advanced the natural
+gallery carry moment at `4.88/5` with all hard gates passing and no revision.
+The guarded production API created and read-verified Standard Pin
+`1107815208387966131` on `Funny White Elephant Gifts` with the exact clean Arm
+A package and durable receipt. This is Pin 8 of the capped 12-Pin format test,
+balanced at four per arm. Before launch, Arm B had one impression and Arm A
+zero; Gratiator's exact 24-hour checkpoint was also zero, and neither arm had a
+downstream action, so no winner was declared. No product,
+SEO, weekly-catalog, outreach, account, deletion, or spend mutation occurred.
 
 ### 2026-09-05 — Gratiator Caesar-headline Pin `[daily-ops]`
 
