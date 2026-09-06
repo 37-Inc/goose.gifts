@@ -11,6 +11,44 @@ None.
 
 ## Published from this queue
 
+### My First Fire prank box — false-alarm party reveal
+
+- Candidate: `cand-v10-first-fire-false-alarm` (`measuring`, Arm B headline,
+  internal score `4.75/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208387994026/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v18-concepts/01-first-fire-false-alarm-headline.png`
+- Exact product: Prank-O My First Fire empty prank gift box, ASIN
+  `B0757WW6KB`; Amazon Creators API reverified it `IN_STOCK` at `$8.99` on
+  2026-09-06 with the unchanged primary image. It is an empty recyclable box
+  that hides a real present; none of the fire-starting components pictured on
+  the package is included.
+- Destination:
+  `https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is`
+- Board: `Funny White Elephant Gifts`
+- Title: `Funny Prank Gift Box for White Elephant`
+- Description: `This empty My First Fire prank gift box makes a present look like a wildly questionable fire-starting kit for kids—then reveals the real gift hidden inside. The recyclable cardboard box ships flat and measures 11.25 by 9 by 3.25 inches when assembled. No fire starter included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `My First Fire empty prank gift box sitting in torn cream wrapping paper on a dinner table while three adults laugh beneath the headline “False alarm. It’s just the box.”`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm`
+- Rejected alternatives: the quiet aftermath passed the hard gates but had less
+  social tension; the office exchange was rejected before generation for
+  repeating the current desk/workplace mix. Direct source expansion was blocked
+  by the source package's fixed child-and-flame art, so the survivor uses the
+  exact verified package pixels over a generated editorial plate. One mask and
+  scale correction removed a white catalog-shadow wedge.
+- Approval scope: Cameron's standing bounded-experiment approval event
+  `evt-20260906-v10-first-fire-approved` covers this exact complete package as
+  the second-and-final 2026-09-06 Pin and ninth of 12 qualifying format Pins.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, exact approval, second-and-final daily slot, unique UTM,
+  1024x1536 artifact, and `Funny White Elephant Gifts` board; it read back
+  every approved field and wrote receipt
+  `receipt-1788738598412-editorial-first-fire-false-alarm-headline-20260906-pm-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about 18
+  seconds after publication; this is not a creative verdict.
+
 ### Fresh Memes dog toy — clean gallery runway
 
 - Candidate: `cand-v10-dog-toy-runway` (`measuring`, Arm A clean, internal

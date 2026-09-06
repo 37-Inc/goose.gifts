@@ -30,8 +30,8 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Eighteen product-faithful editorial Pins are live. Before the eighteenth
-   launched, the first seventeen had 261 public impressions in total, two Pin
+   Nineteen product-faithful editorial Pins are live. Before the nineteenth
+   launched, the first eighteen had 261 public impressions in total, two Pin
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
@@ -52,6 +52,42 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-06 afternoon static-format cycle
+
+The 18-Pin truthful public cohort remained at 261 impressions, two Pin clicks,
+one save, and zero outbound clicks before this slot. The format cohort was
+balanced at Arm A four Pins/zero impressions and Arm B four Pins/one
+impression, with no downstream action. Shark Mug's scheduled 24-hour checkpoint,
+captured 24 hours, 1 minute, and 22 seconds after publication, also remained at
+zero. GA4 recorded 13 trailing-seven-day sessions with no Pinterest source or
+outbound-product event; the first-party database recorded zero product clicks
+and searches in 24 hours or seven days. Pinterest v3 and Sandbox were excluded.
+
+The current verified enriched-catalog shortlist supplied the Prank-O My First
+Fire empty prank gift box (`B0757WW6KB`), which also has one first-party catalog
+click in the 90-day window. Amazon Creators API reverified it `IN_STOCK` at
+`$8.99` with the unchanged primary image, and the canonical Goose page returned
+`200`, self-canonical, and `index, follow`. Three concepts were preserved. The
+office exchange was rejected before generation for category repetition. Direct
+source-image expansion was blocked by the source package's fixed child-and-
+flame artwork, so two clean editorial plates were generated and the exact
+verified package pixels were composited into each. The quiet aftermath needed
+one bounded mask/scale correction and then passed, but the more specific social
+reveal became the only survivor. Its six-word `FALSE ALARM. IT'S JUST THE BOX.`
+headline, exact-source package, three secondary adult reactions, and coherent
+wrapping scene passed every hard gate at `4.75/5`.
+
+The afternoon slot was Arm B. The production dry run verified the exact package,
+correct `goosegifts` BUSINESS account, `Funny White Elephant Gifts` board,
+unique headline-arm UTM, complete disclosures, second-and-final daily slot, and
+vertical artifact. Pinterest API v5 created and read-verified Standard Pin
+`1107815208387994026` and wrote receipt
+`receipt-1788738598412-editorial-first-fire-false-alarm-headline-20260906-pm-publication-succeeded`.
+The experiment is now 9 of 12: four Arm A and five Arm B Pins. Arm B still has
+one total impression and neither arm has a downstream action, so there is no
+winner. No video, third daily Pin, weekly catalog job, SEO mutation, outreach,
+paid tool, account change, deletion, or spend occurred.
 
 ### 2026-09-06 morning static-format cycle
 

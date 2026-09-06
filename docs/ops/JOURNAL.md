@@ -5,6 +5,40 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-06 - My First Fire false-alarm headline production cycle
+
+**Evidence checked**: Pinterest production API v5 reported 261 lifetime public
+impressions, two Pin clicks, one save, and zero outbound clicks across the 18
+truthful Pins before publication. The static-format cohort was balanced at Arm
+A four Pins/zero impressions and Arm B four Pins/one impression, with no
+downstream action. Shark Mug's exact 24-hour checkpoint was zero. GA4 had 13
+trailing-seven-day sessions and no Pinterest source or outbound-product event.
+The first-party database had zero product clicks and searches in 24 hours or
+seven days. Sandbox and Pinterest v3 were excluded.
+
+**Creative cycle**: Amazon Creators API reverified the Prank-O My First Fire
+empty prank box (`B0757WW6KB`) `IN_STOCK` at `$8.99`; its canonical page returned
+`200`, self-canonical, and `index, follow`. It has one first-party catalog click
+in 90 days. Three product-derived concepts were saved. The direct product-scene
+call was blocked because the fixed package art contains a child and flames, so
+the workflow preserved the product photo exactly and generated two text-free
+editorial plates around it. The quiet aftermath passed after one mask/scale
+correction but was rejected as less active. The social reveal with three adult
+guests and exact six-word false-alarm headline became the only survivor, passing
+every truth, single-idea, no-CTA, and no-template gate at `4.75/5`.
+
+**Production publication**: the afternoon slot was Arm B. The guarded dry run
+verified Cameron's standing exact-package authorization, `goosegifts` BUSINESS
+account, `Funny White Elephant Gifts`, disclosures, unique UTM, second-and-final
+daily slot, and vertical asset. Pinterest API v5 created and read-verified
+Standard Pin `1107815208387994026`. Receipt
+`receipt-1788738598412-editorial-first-fire-false-alarm-headline-20260906-pm-publication-succeeded`
+and append-only measuring/baseline events were recorded. The experiment is now
+nine of 12: four Arm A and five Arm B Pins. Arm B has one impression, Arm A has
+none, and neither has a downstream action, so there is no winner. No video,
+third Pin, Sandbox write, weekly catalog, SEO mutation, outreach, paid tool,
+account change, deletion, or spend occurred.
+
 ## 2026-09-06 - Dog-toy gallery runway clean-format production cycle
 
 **Evidence checked**: Pinterest production API v5 reported 261 lifetime public
