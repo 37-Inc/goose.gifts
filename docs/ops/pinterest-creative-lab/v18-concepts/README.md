@@ -30,6 +30,8 @@ winner.
   `https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is`
 - Saved source: `product-references/B0757WW6KB-source.jpg`
 - Durable receipt: `verification/B0757WW6KB-20260906.json`
+- Catalog/cohort measurement artifact:
+  `verification/catalog-and-cohort-measurements-20260906.json`
 - Live state: Amazon Creators API returned `IN_STOCK`, `$8.99`, and the same
   primary image on 2026-09-06
 - Product truth: this is one empty professionally printed recyclable cardboard
@@ -135,6 +137,11 @@ or spend is authorized.
   creation; this is a receipt, not a creative verdict
 - Experiment state: 9 of 12; Arm A 4 Pins/0 impressions, Arm B 5 Pins/1
   impression; neither arm has a downstream action
+
+The catalog-click and 30-day product-family comparison are bound to dedicated
+append-only measurement events and the preflight correction event
+`evt-20260906-v10-first-fire-preflight-evidence-correction`; the original
+preflight event was not rewritten.
 
 ## Checkpoint captured
 
