@@ -339,6 +339,10 @@ test('discovery quality gate keeps distinctive gag objects and rejects generic m
   }), true);
   assert.equal(isHighQualityDiscoveryCandidate({
     ...base,
+    title: 'Weird Color-Change Coffee Mug',
+  }), true);
+  assert.equal(isHighQualityDiscoveryCandidate({
+    ...base,
     title: 'Funny Cocktail Socks and Party Stockings',
   }), false);
   assert.equal(isHighQualityDiscoveryCandidate({

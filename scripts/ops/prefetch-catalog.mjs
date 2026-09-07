@@ -332,8 +332,9 @@ const DISCOVERY_FORMAT_EXCEPTIONS = [
 ];
 
 const DISCOVERY_MUG_PHYSICAL_NOVELTY_TERMS = [
-  '3d', 'color changing', 'colour changing', 'heat change', 'heat reactive',
-  'hidden message', 'sculpted', 'shaped', 'toilet mug',
+  '3d', 'color change', 'color changing', 'colour change', 'colour changing',
+  'heat change', 'heat reactive', 'hidden message', 'sculpted', 'shaped',
+  'toilet mug',
 ];
 
 const DISCOVERY_TASTE_EXCLUSIONS = [
