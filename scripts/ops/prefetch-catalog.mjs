@@ -331,6 +331,11 @@ const DISCOVERY_FORMAT_EXCEPTIONS = [
   'book and figure', 'book with figure', 'prank o',
 ];
 
+const DISCOVERY_MUG_PHYSICAL_NOVELTY_TERMS = [
+  '3d', 'color changing', 'colour changing', 'heat change', 'heat reactive',
+  'hidden message', 'sculpted', 'shaped', 'toilet mug',
+];
+
 const DISCOVERY_TASTE_EXCLUSIONS = [
   'anonymous mail', 'i m gay', 'you re gay', 'lgbt prank',
 ];
@@ -393,6 +398,12 @@ function includesTitleTerm(title, terms) {
   return terms.some((term) => normalized.includes(` ${term} `));
 }
 
+function isGenericSloganMug(title) {
+  const normalized = String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ');
+  const isMug = /\b(?:coffee|tea)\s+(?:cup|mug)\b|\bmug\b/.test(normalized);
+  return isMug && !includesTitleTerm(title, DISCOVERY_MUG_PHYSICAL_NOVELTY_TERMS);
+}
+
 function discoveryCandidateBlockReason(product, minQualityScore = 0.65) {
   if (!product.imageUrl) return 'missing_image';
   if (!product.affiliateUrl) return 'missing_destination';
@@ -402,6 +413,7 @@ function discoveryCandidateBlockReason(product, minQualityScore = 0.65) {
   }
   if (product.qualityScore < minQualityScore) return 'low_quality_score';
   if (includesTitleTerm(product.title, DISCOVERY_TASTE_EXCLUSIONS)) return 'taste_exclusion';
+  if (isGenericSloganMug(product.title)) return 'generic_format';
   const hasFormatException = includesTitleTerm(product.title, DISCOVERY_FORMAT_EXCEPTIONS);
   if (!hasFormatException && includesTitleTerm(product.title, DISCOVERY_FORMAT_EXCLUSIONS)) {
     return 'generic_format';
