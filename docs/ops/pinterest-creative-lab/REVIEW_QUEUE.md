@@ -11,6 +11,40 @@ None.
 
 ## Published from this queue
 
+### Mystic Pickle — clean midnight oracle
+
+- Candidate: `cand-v10-mystic-pickle-oracle` (`measuring`, Arm A clean,
+  internal score `4.75/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208388077586/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v20-concepts/01-mystic-pickle-midnight-oracle.png`
+- Exact product: DR DINGUS Mystic Pickle five-inch fortune-teller toy, ASIN
+  `B0CYKK1167`; Amazon Creators API reverified it `IN_STOCK` at `$14.99` on
+  2026-09-07 with the unchanged primary image and 100-response purpose.
+- Destination:
+  `https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller`
+- Board: `Funny White Elephant Gifts`
+- Title: `Mystic Pickle Fortune Teller Gag Gift`
+- Description: `This five-inch translucent pickle-shaped fortune teller delivers 100 responses for questions that deserve questionable wisdom. Its bumpy yellow-green shell and circular answer window make it an absurd conversation starter for parties or white elephant swaps. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Translucent yellow-green Mystic Pickle fortune teller standing on a small brass saucer over plum velvet beneath a crescent-shaped light.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm`
+- Rejected alternatives: the source-faithful refrigerator reveal passed every
+  hard gate but made the toy look too edible and weakened the fortune-teller
+  click promise; the dinner-party tie breaker was rejected before generation
+  because a Magic 8 Ball preserved too much of the scene. No revision was
+  needed.
+- Approval scope: Cameron's standing bounded-experiment approval event
+  `evt-20260907-v10-mystic-pickle-approved` covers this exact package as the
+  second-and-final 2026-09-07 Pin and eleventh of 12 qualifying format Pins.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, exact approval, second daily slot, unique UTM, 1024x1536
+  artifact, and board; it read back every field and wrote receipt
+  `receipt-1788825061222-editorial-mystic-pickle-midnight-oracle-clean-20260907-pm-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about 25
+  seconds after publication; this is not a creative verdict.
+
 ### Wiener Switch night light — serious interiors headline
 
 - Candidate: `cand-v10-wiener-switch-mood-lighting` (`measuring`, Arm B

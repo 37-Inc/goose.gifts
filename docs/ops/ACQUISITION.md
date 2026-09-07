@@ -230,6 +230,19 @@ immediately legible without overlay text. The experiment is balanced at four
 Arm A and four Arm B Pins; Arm B has one impression, Arm A has none, and neither
 has a downstream action. Keep the cap and seven-day gate intact.
 
+**2026-09-07 afternoon format-test evidence:** the truthful public cohort
+remained at 262 impressions, two Pin clicks, one save, and zero outbound clicks
+before the second slot. My First Fire reached its exact 24-hour checkpoint with
+zero distribution; GA4 and the first-party database still showed no
+attributable Pinterest session or downstream product click. Arm A's fifth clean
+Pin, Mystic Pickle `1107815208388077586`, uses a unique clean-format UTM and an
+indexable canonical product page. Its serious midnight-oracle still life tests
+whether a product's actual fortune-teller function can earn a click without
+overlay copy. The experiment now has five Arm A and six Arm B Pins; Arm B has
+one impression total and neither arm has a downstream action. This was the
+second and final 2026-09-07 publication. One qualifying Pin remains before the
+seven-day measurement hold begins.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

@@ -79,9 +79,12 @@ what's likely next.
   exact-source composite and typography review. The 2026-09-07 morning Arm B
   slot then published the twentieth truthful public Pin, Wiener Switch night
   light `1107815208388049691`, after a 4.5/5 exact-source composite and
-  typography review. Ten of 12 format-test Pins are now live: four clean and
-  six headline. Arm B has one impression, Arm A has none, and neither has a
-  downstream action, so keep the cap and measurement gate intact.
+  typography review. The afternoon Arm A slot then published the twenty-first
+  truthful public Pin, Mystic Pickle `1107815208388077586`, after a 4.75/5
+  source and full-resolution review. Eleven of 12 format-test Pins are now
+  live: five clean and six headline. Arm B has one impression, Arm A has none,
+  and neither has a downstream action, so keep the cap and measurement gate
+  intact.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -120,6 +123,21 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-07 — Mystic Pickle midnight-oracle clean Pin `[daily-ops]`
+
+Reverified the in-stock `$14.99` DR DINGUS Mystic Pickle fortune teller and its
+indexable canonical page, explicitly discarding contradictory one-inch and
+zero-unit metadata. Generated two of three product-derived clean concepts,
+rejected the refrigerator version because it looked too edible, and advanced
+the serious midnight oracle at `4.75/5` with every hard gate passing and no
+revision. The guarded production API created and read-verified Pin
+`1107815208388077586` on `Funny White Elephant Gifts` with the exact Arm A
+package and durable receipt. This is Pin 11 of the capped 12-Pin format test and
+the second and final 2026-09-07 publication. The format cohort still has only
+one total impression and no downstream action; My First Fire's exact 24-hour
+checkpoint was zero, so no winner was declared. No video, third Pin, weekly-
+catalog, SEO, outreach, account, deletion, or spend mutation occurred.
 
 ### 2026-09-07 — Wiener Switch serious-interiors headline Pin `[daily-ops]`
 
