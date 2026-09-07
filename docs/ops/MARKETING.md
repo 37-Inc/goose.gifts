@@ -30,8 +30,8 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Nineteen product-faithful editorial Pins are live. Before the nineteenth
-   launched, the first eighteen had 261 public impressions in total, two Pin
+   Twenty product-faithful editorial Pins are live. Before the twentieth
+   launched, the first nineteen had 262 public impressions in total, two Pin
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
@@ -52,6 +52,42 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-07 morning static-format cycle
+
+The 19-Pin truthful public cohort reached 262 impressions, two Pin clicks, one
+save, and zero outbound clicks before this slot. The one new impression since
+the previous run landed in the older editorial cohort, not the bounded format
+cohort. That format cohort remained Arm A four Pins/zero impressions and Arm B
+five Pins/one impression, with no downstream action. Fresh Memes Dog Toy's
+scheduled 24-hour checkpoint, captured 24 hours, 5 minutes, and 32 seconds after
+publication, was also zero. GA4 recorded 13 trailing-seven-day sessions from
+Direct or Amazon Organic Shopping and no Pinterest source or outbound-product
+event; the first-party database recorded zero product clicks and searches in 24
+hours or seven days. Pinterest v3 and Sandbox were excluded.
+
+The current verified enriched-catalog shortlist supplied the AIVXV `OMG that
+Wiener Switch` ambient night light (`B0CGXSKGXL`). Amazon Creators API reverified
+it `IN_STOCK` at `$16.99` with the unchanged primary image, and the canonical
+Goose page returned `200`, self-canonical, and `index, follow`. Three concepts
+were preserved. The social reveal was rejected before generation for repeating
+the prior Pin. Direct source-bound generation was blocked because the product
+is anatomy-shaped, so two text-free context plates were generated and the exact
+verified product pixels were hand-masked into each. The truthful gallery
+treatment was rejected because it weakened functional context. The serious
+bedroom-interiors execution with the four-word `MOOD LIGHTING GOT WEIRD`
+headline became the only survivor and passed every hard gate at `4.5/5`.
+
+The morning slot was Arm B. The guarded dry run verified the exact package,
+correct `goosegifts` BUSINESS account, `Weird Home Decor` board, unique UTM,
+complete disclosures, first daily slot, and vertical artifact. Pinterest API
+v5 created and read-verified Standard Pin `1107815208388049691` and wrote
+receipt
+`receipt-1788800062165-editorial-wiener-switch-mood-lighting-headline-20260907-am-publication-succeeded`.
+The experiment is now 10 of 12: four Arm A and six Arm B Pins. Arm B still has
+one total impression and neither arm has a downstream action, so there is no
+winner. No video, second Pin, weekly catalog job, SEO mutation, outreach, paid
+tool, account change, deletion, or spend occurred.
 
 ### 2026-09-06 afternoon static-format cycle
 

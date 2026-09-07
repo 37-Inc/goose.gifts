@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260907-v10-wiener-switch-briefed",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-09-07T16:36:48Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-static-format-v10",
+    "candidateId": "cand-v10-wiener-switch-mood-lighting",
+    "from": "idea",
+    "to": "briefed",
+    "rationale": "Three product-derived concepts, two selected executions, one explicit rejection, the click reason, swap tests, fidelity risks, and hard stop conditions are documented before generation."
+  }
+}

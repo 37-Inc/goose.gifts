@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-07T16:35:35Z",
+  "productId": "B0CGXSKGXL",
+  "listing": {
+    "title": "AIVXV OMG that Wiener Switch! White Elephant Gifts for Adults, Funny Anniversary Birthday Gag Gifts, Bedside Night Light, Gifts for Men Women Boyfriend Girlfriend Christmas, Mens Gifts",
+    "url": "https://www.amazon.com/dp/B0CGXSKGXL?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+    "availabilityStatus": "IN_STOCK",
+    "availabilityMessage": "In Stock",
+    "price": 16.99,
+    "currency": "USD",
+    "remotelyVerified": true,
+    "primaryImageUrl": "https://m.media-amazon.com/images/I/51Li0ORe-xL._SL500_.jpg",
+    "brand": "AIVXV",
+    "color": "Yellow",
+    "size": "Medium",
+    "dimensions": {
+      "height": "3.93700787 inches",
+      "length": "3.93700787 inches",
+      "width": "3.93700787 inches",
+      "weight": "1.08 Pounds"
+    },
+    "verifiedFacts": [
+      "The protruding front control is pushed up and pressed down to turn the light on and off.",
+      "The product is intended as an ambient night light and is not designed as a bright reading lamp.",
+      "A replacement bulb may be fitted if a different brightness is wanted."
+    ]
+  },
+  "sourceImage": {
+    "path": "docs/ops/pinterest-creative-lab/v19-concepts/product-references/B0CGXSKGXL-source.jpg",
+    "width": 500,
+    "height": 500,
+    "sha256": "8785a5b8739c9fbb5a6e2e8d2109c80ce2ca4199d520722b885c9b4ef3a7cf76"
+  },
+  "destination": {
+    "url": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter",
+    "status": 200,
+    "robots": "index, follow",
+    "canonical": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter"
+  }
+}
