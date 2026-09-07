@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260907-v10-wiener-switch-preflight",
+  "type": "learning.recorded",
+  "recordedAt": "2026-09-07T16:36:47Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-static-format-v10",
+    "candidateId": "cand-v10-wiener-switch-mood-lighting",
+    "scope": "candidate",
+    "statement": "Amazon Creators API reverified B0CGXSKGXL as IN_STOCK at $16.99 with the unchanged primary image: one compact yellow male-torso ambient night light whose protruding front control is pushed up and pressed down for power. Source inspection confirms the ribbed shade, warm bulb, glossy torso, rounded feet, and small scale. The canonical enriched Goose page returned 200, self-canonical, index, follow.",
+    "evidenceEventIds": ["evt-20260907-v10-wiener-switch-verification-receipt"],
+    "decision": "Generate the serious-interiors and after-hours-gallery bases for Arm B; reject the party reveal before generation because it repeats the immediately prior social gift-reveal mechanism.",
+    "nextAction": "Generate two materially different source-bound vertical 2:3 editorial bases without added typography, inspect both at full useful resolution, then add the exact four-word headline only to the stronger truthful base."
+  }
+}

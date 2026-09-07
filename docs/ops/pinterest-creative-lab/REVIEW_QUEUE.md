@@ -11,6 +11,43 @@ None.
 
 ## Published from this queue
 
+### Wiener Switch night light — serious interiors headline
+
+- Candidate: `cand-v10-wiener-switch-mood-lighting` (`measuring`, Arm B
+  headline, internal score `4.5/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208388049691/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v19-concepts/01-wiener-switch-mood-lighting-headline.png`
+- Exact product: AIVXV `OMG that Wiener Switch` compact yellow ambient night
+  light, ASIN `B0CGXSKGXL`; Amazon Creators API reverified it `IN_STOCK` at
+  `$16.99` on 2026-09-07 with the unchanged primary image. It is approximately
+  four inches tall, turns on and off via the small protruding front control,
+  and is intended for ambient light rather than reading.
+- Destination:
+  `https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter`
+- Board: `Weird Home Decor`
+- Title: `Funny Wiener Switch Night Light for Weird Decor`
+- Description: `This compact yellow novelty night light looks like a tiny serious design object until you notice the anatomy-operated switch. Push it up and press it down to turn the light on and off; the warm glow is meant for ambience, not reading. A funny white elephant, anniversary, or weird home-decor gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Small yellow male-torso night light with a ribbed shade glowing on a walnut nightstand beneath the headline “Mood lighting got weird.”`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am`
+- Rejected alternatives: direct product-scene generation was blocked at the
+  output safety stage, so the survivor uses a generated clean room plate plus
+  a hand-masked exact-source product cutout. The truthful gallery alternative
+  was rejected because the plinth weakened functional night-light context; the
+  party reveal was rejected before generation for repeating the prior Pin.
+- Approval scope: Cameron's standing bounded-experiment approval event
+  `evt-20260907-v10-wiener-switch-approved` covers this exact complete package
+  as the first 2026-09-07 Pin and tenth of 12 qualifying format Pins.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, exact approval, first daily slot, unique UTM, 1024-by-1536
+  artifact, and `Weird Home Decor` board; it read back every approved field and
+  wrote receipt
+  `receipt-1788800062165-editorial-wiener-switch-mood-lighting-headline-20260907-am-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about 17
+  seconds after publication; this is not a creative verdict.
+
 ### My First Fire prank box — false-alarm party reveal
 
 - Candidate: `cand-v10-first-fire-false-alarm` (`measuring`, Arm B headline,

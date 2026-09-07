@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260907-v10-wiener-switch-generating",
+  "type": "candidate.status_changed",
+  "recordedAt": "2026-09-07T16:36:49Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-static-format-v10",
+    "candidateId": "cand-v10-wiener-switch-mood-lighting",
+    "from": "briefed",
+    "to": "generating",
+    "rationale": "The live product, exact source, indexable destination, two selected base executions, and Arm B typography constraint have passed preflight."
+  }
+}

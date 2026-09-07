@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20260907-v10-wiener-switch-created",
+  "type": "candidate.created",
+  "recordedAt": "2026-09-07T16:36:45Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-static-format-v10",
+    "candidateId": "cand-v10-wiener-switch-mood-lighting",
+    "title": "The cheeky night light gets a serious interiors treatment",
+    "creativeFamily": "headline-led editorial interior built around the exact anatomy-operated ambient night light",
+    "audience": "Pinterest users saving funny bedroom decor, white elephant gifts, playful anniversary gifts, and weird functional home objects",
+    "hook": "A warm, polished interiors image registers first; the exact tiny torso light and restrained headline reward a closer second look at its operating switch.",
+    "initialStatus": "idea",
+    "product": {
+      "name": "AIVXV OMG that Wiener Switch yellow ambient night light (ASIN B0CGXSKGXL)",
+      "sourceUrl": "https://www.amazon.com/dp/B0CGXSKGXL?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+      "destinationUrl": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter"
+    },
+    "references": [
+      {
+        "source": "docs/ops/pinterest-creative-lab/v19-concepts/product-references/B0CGXSKGXL-source.jpg",
+        "lesson": "Preserve one compact glossy yellow male-torso night light with rounded feet, a ribbed yellow drum shade, warm bulb, and one small protruding front toggle. Keep roughly four-inch scale; do not exaggerate anatomy or turn it into a full-size lamp."
+      }
+    ],
+    "notes": [
+      "The 2026-09-07 morning slot is assigned Arm B, so bases are generated clean and the exact four-word headline MOOD LIGHTING GOT WEIRD is added only after a base passes product-truth review.",
+      "Concept 1, serious interiors shoot: the exact light sits on a walnut nightstand in a restrained 1970s-inspired bedroom; selected because a normal lamp removes the double take and makes the headline meaningless.",
+      "Concept 2, after-hours design museum: the exact light sits on a small travertine plinth in a dim gallery; selected as a materially different functional-sculpture treatment with the product still dominant.",
+      "Concept 3, white-elephant reveal: rejected before generation because the prior Pin already used a social gift reveal and hands introduce extra product-fidelity risk.",
+      "Click reason: the serious styling earns attention, then the unusual switch placement invites the viewer to confirm how the tiny ambient light operates.",
+      "Stop conditions: reject any attempt that enlarges the object to table-lamp scale, exaggerates or changes the anatomy, omits the front toggle, changes the yellow torso or ribbed shade, duplicates the product, adds price or sales copy, or resembles a product card or conventional ad."
+    ]
+  }
+}

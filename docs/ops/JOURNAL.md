@@ -5,6 +5,42 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-07 - Wiener Switch serious-interiors headline production cycle
+
+**Evidence checked**: Pinterest production API v5 reported 262 lifetime public
+impressions, two Pin clicks, one save, and zero outbound clicks across the 19
+truthful Pins before publication. The additional impression since the previous
+run belonged to the older editorial cohort; the static-format cohort remained
+Arm A four Pins/zero impressions and Arm B five Pins/one impression with no
+downstream action. Fresh Memes Dog Toy's 24-hour checkpoint was zero. GA4 had 13
+trailing-seven-day sessions and no Pinterest source or outbound-product event.
+The first-party database had zero product clicks and searches in 24 hours or
+seven days. Sandbox and Pinterest v3 were excluded.
+
+**Creative cycle**: Amazon Creators API reverified the AIVXV `OMG that Wiener
+Switch` night light (`B0CGXSKGXL`) `IN_STOCK` at `$16.99`; its canonical page
+returned `200`, self-canonical, and `index, follow`. Three product-derived
+concepts were saved. The prior-run-like social reveal was rejected before
+generation. Direct source-bound generation was safety-blocked because the exact
+product is anatomy-shaped; no artifact was produced. Two clean context plates
+were generated instead, and a hand-masked exact-source product was composited
+without changing its visible pixels. The gallery treatment passed truth but was
+less clear. The walnut-nightstand survivor with the exact four-word headline
+passed every truth, single-idea, no-CTA, and no-template gate at `4.5/5`.
+
+**Production publication**: the morning slot was Arm B. Creative and publishing
+tests, lint, build, and the production dry run passed. The guarded publisher
+verified Cameron's standing exact-package authorization, `goosegifts` BUSINESS
+account, `Weird Home Decor`, disclosures, unique UTM, first daily slot, and
+1024-by-1536 asset. Pinterest API v5 created and read-verified Standard Pin
+`1107815208388049691`. Receipt
+`receipt-1788800062165-editorial-wiener-switch-mood-lighting-headline-20260907-am-publication-succeeded`
+and append-only measuring/baseline events were recorded. The experiment is now
+10 of 12: four Arm A and six Arm B Pins. Arm B has one impression, Arm A none,
+and neither has a downstream action, so there is no winner. No video, second
+Pin, Sandbox write, weekly catalog run, SEO mutation, outreach, paid tool,
+account change, deletion, or spend occurred.
+
 ## 2026-09-07 - Weekly catalog quality run
 
 **Catalog receipt**: refreshed the Production environment from Vercel, then ran

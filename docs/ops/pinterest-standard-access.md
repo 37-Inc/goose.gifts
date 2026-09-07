@@ -199,11 +199,11 @@ frame that shows a raw token.**
 - The guarded production API has now created and read-verified the raw-chicken,
   Butt Station, Lick'em cat-brush, Pizza Boss, Bullshit Button, Toilet Golf,
   Middle Management statue, medieval cat tapestry, Wacky Waving Inflatable Tube
-  Guy, Gratiator, Shark Coffee Mug, Fresh Memes dog-toy, and My First Fire prank-
-  box Pins. Combined with the six retained product-faithful browser posts, the
-  current clean profile has nineteen public Pins and zero Sandbox objects. The
-  bounded static-format cohort is nine of twelve: four Arm A clean Pins and five
-  Arm B headline Pins.
+  Guy, Gratiator, Shark Coffee Mug, Fresh Memes dog-toy, My First Fire prank-box,
+  and Wiener Switch night-light Pins. Combined with the six retained product-
+  faithful browser posts, the current clean profile has twenty public Pins and
+  zero Sandbox objects. The bounded static-format cohort is ten of twelve: four
+  Arm A clean Pins and six Arm B headline Pins.
 
 ## References
 

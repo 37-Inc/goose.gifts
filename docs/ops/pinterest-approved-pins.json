@@ -344,6 +344,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208387994026/",
       "publishedAt": "2026-09-06T23:49:58.415Z",
       "publicationReceiptId": "receipt-1788738598412-editorial-first-fire-false-alarm-headline-20260906-pm-publication-succeeded"
+    },
+    {
+      "id": "editorial-wiener-switch-mood-lighting-headline-20260907-am",
+      "candidateId": "cand-v10-wiener-switch-mood-lighting",
+      "approvalEventId": "evt-20260907-v10-wiener-switch-approved",
+      "board": "Weird Home Decor",
+      "assetPath": "docs/ops/pinterest-creative-lab/v19-concepts/01-wiener-switch-mood-lighting-headline.png",
+      "targetPage": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter",
+      "trackingUrl": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+      "title": "Funny Wiener Switch Night Light for Weird Decor",
+      "description": "This compact yellow novelty night light looks like a tiny serious design object until you notice the anatomy-operated switch. Push it up and press it down to turn the light on and off; the warm glow is meant for ambience, not reading. A funny white elephant, anniversary, or weird home-decor gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Small yellow male-torso night light with a ribbed shade glowing on a walnut nightstand beneath the headline “Mood lighting got weird.”",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208388049691/",
+      "publishedAt": "2026-09-07T16:54:22.170Z",
+      "publicationReceiptId": "receipt-1788800062165-editorial-wiener-switch-mood-lighting-headline-20260907-am-publication-succeeded"
     }
   ]
 }

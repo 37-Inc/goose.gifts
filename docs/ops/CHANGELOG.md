@@ -76,10 +76,12 @@ what's likely next.
   of 12 format-test Pins were live at that point, balanced at four clean and
   four headline. The afternoon Arm B slot published the nineteenth truthful
   public Pin, Prank-O My First Fire box `1107815208387994026`, after a 4.75/5
-  exact-source composite and typography review. Nine of 12 format-test Pins are
-  now live: four clean and five headline. Arm B has one impression, Arm A has
-  none, and neither has a downstream action, so keep the cap and measurement
-  gate intact.
+  exact-source composite and typography review. The 2026-09-07 morning Arm B
+  slot then published the twentieth truthful public Pin, Wiener Switch night
+  light `1107815208388049691`, after a 4.5/5 exact-source composite and
+  typography review. Ten of 12 format-test Pins are now live: four clean and
+  six headline. Arm B has one impression, Arm A has none, and neither has a
+  downstream action, so keep the cap and measurement gate intact.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -118,6 +120,23 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-07 — Wiener Switch serious-interiors headline Pin `[daily-ops]`
+
+Reverified the in-stock `$16.99` AIVXV `OMG that Wiener Switch` ambient night
+light and its indexable canonical page. A direct source-bound generation was
+safety-blocked because the exact product is anatomy-shaped, so two clean context
+plates were generated and a hand-masked exact-source product was composited
+without changing its visible pixels. Rejected the less-clear gallery treatment
+and the ungenerated repetitive party reveal; the warm bedroom execution with
+the four-word `MOOD LIGHTING GOT WEIRD` headline passed every hard gate at
+`4.5/5`. The guarded production API created and read-verified Pin
+`1107815208388049691` on `Weird Home Decor` with the exact Arm B package and
+durable receipt. This is Pin 10 of the capped 12-Pin format test. The format
+cohort still has only one total impression and no downstream action; Fresh
+Memes Dog Toy's 24-hour checkpoint was zero, so no winner was declared. No
+video, second Pin, weekly-catalog, SEO, outreach, account, deletion, or spend
+mutation occurred.
 
 ### 2026-09-07 — Reject generic slogan mugs during discovery `[daily-ops]`
 
