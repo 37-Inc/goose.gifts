@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-06T23:35:39Z",
+  "source": "Amazon Creators API GetItems plus live Goose Gifts HTTP metadata",
+  "product": {
+    "id": "B0757WW6KB",
+    "title": "Prank-O My First Fire Prank Gift Box – Funny Empty Gag Gift Packaging for White Elephant, Christmas & Office Parties, Hilarious Joke Gift Box to Hide Real Presents for Friends & Family",
+    "price": 8.99,
+    "currency": "USD",
+    "availabilityStatus": "IN_STOCK",
+    "availabilityMessage": "In Stock",
+    "remotelyVerified": true,
+    "imageUrl": "https://m.media-amazon.com/images/I/518AqVEHqRL._SL500_.jpg",
+    "affiliateUrl": "https://www.amazon.com/dp/B0757WW6KB?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+    "brand": "Prank Pack",
+    "manufacturer": "Prank-O",
+    "size": "1 Count (Pack of 1)",
+    "dimensions": {
+      "assembledBox": "11.25 x 9 x 3.25 inches",
+      "storedHeight": "1 inches",
+      "storedLength": "11 inches",
+      "storedWidth": "12 inches"
+    },
+    "verifiedFacts": [
+      "This is one empty, professionally printed prank gift box; it does not contain a fire starter, fire ring, poker, logs, or fuel can.",
+      "A real present can be hidden inside the assembled box before wrapping.",
+      "The box is recyclable cardboard, ships flat, and assembles without glue or tape.",
+      "Wrapping paper, ribbon, furniture, people, and any real gift placed inside are context and are not included."
+    ]
+  },
+  "savedReference": {
+    "path": "docs/ops/pinterest-creative-lab/v18-concepts/product-references/B0757WW6KB-source.jpg",
+    "width": 500,
+    "height": 500,
+    "sha256": "aff58da8b136c5e825ae0ab832c786a4b1c2b94c22f0c6471d213c89096a27f4"
+  },
+  "destination": {
+    "url": "https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is",
+    "httpStatus": 200,
+    "canonical": "https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is",
+    "robots": "index, follow",
+    "title": "My First Fire, Definitely Not Included | goose.gifts"
+  }
+}

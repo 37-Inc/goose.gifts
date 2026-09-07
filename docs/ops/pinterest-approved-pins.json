@@ -327,6 +327,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208387966131/",
       "publishedAt": "2026-09-06T16:42:17.234Z",
       "publicationReceiptId": "receipt-1788712937232-editorial-dog-toy-gallery-runway-clean-20260906-am-publication-succeeded"
+    },
+    {
+      "id": "editorial-first-fire-false-alarm-headline-20260906-pm",
+      "candidateId": "cand-v10-first-fire-false-alarm",
+      "approvalEventId": "evt-20260906-v10-first-fire-approved",
+      "board": "Funny White Elephant Gifts",
+      "assetPath": "docs/ops/pinterest-creative-lab/v18-concepts/01-first-fire-false-alarm-headline.png",
+      "targetPage": "https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is",
+      "trackingUrl": "https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+      "title": "Funny Prank Gift Box for White Elephant",
+      "description": "This empty My First Fire prank gift box makes a present look like a wildly questionable fire-starting kit for kids—then reveals the real gift hidden inside. The recyclable cardboard box ships flat and measures 11.25 by 9 by 3.25 inches when assembled. No fire starter included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "My First Fire empty prank gift box sitting in torn cream wrapping paper on a dinner table while three adults laugh beneath the headline “False alarm. It’s just the box.”",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208387994026/",
+      "publishedAt": "2026-09-06T23:49:58.415Z",
+      "publicationReceiptId": "receipt-1788738598412-editorial-first-fire-false-alarm-headline-20260906-pm-publication-succeeded"
     }
   ]
 }

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-09-06T23:33:59.582Z",
+  "firstPartyDatabase": {
+    "source": "npm run analytics:snapshot -- --json",
+    "window": "90 days",
+    "productId": "B0757WW6KB",
+    "productClicks": 1,
+    "lastProductClickAt": "2026-07-23T20:09:09.946Z",
+    "lastKnownClickSource": "catalog_home"
+  },
+  "publicPinterestCohort": {
+    "source": "Pinterest production API v5 pins and public-pin-metrics",
+    "snapshotAt": "2026-09-06T23:33:57.038Z",
+    "publicPinCount": 18,
+    "lookback": "30 days",
+    "myFirstFireOrEmptyPrankPackagingPins": 0,
+    "productFamiliesObserved": [
+      "personalized hippo mug",
+      "raw chicken vase",
+      "butt tape dispenser",
+      "tongue cat brush",
+      "pizza saw wheel",
+      "bullshit sound button",
+      "toilet golf game",
+      "middle-finger statue",
+      "medieval cat tapestry",
+      "miniature inflatable tube guy",
+      "sword cheese grater",
+      "shark mug",
+      "slipper-shaped dog toy"
+    ],
+    "sandboxAndPinterestV3Excluded": true
+  }
+}

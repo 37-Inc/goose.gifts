@@ -73,9 +73,13 @@ what's likely next.
   4.88/5 source and full-resolution review. The 2026-09-06 morning Arm A slot
   published the eighteenth product-faithful Pin, Fresh Memes squeaky dog toy
   `1107815208387966131`, after a 4.88/5 source and full-resolution review. Eight
-  of 12 format-test Pins are now live, balanced at four clean and four headline.
-  Arm B has one impression, Arm A has none, and neither has a downstream action,
-  so keep the cap and measurement gate intact.
+  of 12 format-test Pins were live at that point, balanced at four clean and
+  four headline. The afternoon Arm B slot published the nineteenth truthful
+  public Pin, Prank-O My First Fire box `1107815208387994026`, after a 4.75/5
+  exact-source composite and typography review. Nine of 12 format-test Pins are
+  now live: four clean and five headline. Arm B has one impression, Arm A has
+  none, and neither has a downstream action, so keep the cap and measurement
+  gate intact.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
