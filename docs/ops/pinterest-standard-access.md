@@ -204,6 +204,15 @@ frame that shows a raw token.**
   faithful browser posts, the current clean profile has twenty public Pins and
   zero Sandbox objects. The bounded static-format cohort is ten of twelve: four
   Arm A clean Pins and six Arm B headline Pins.
+- The production API `GET /v5/pins` response is the authoritative live-count
+  source and currently returns twenty Pins. `pinterest-approved-pins.json` is a
+  package/publication ledger rather than the profile inventory: it contains the
+  three original retained browser posts and every guarded API publication, but
+  the separately event-ledgered Goat, Hippo Vanity, and Hippo Desk browser posts
+  predate that manifest. It also retains five deleted drafts as explicit cleanup
+  history. Do not infer the live profile count from raw manifest row or URL
+  counts; the metrics command joins and de-duplicates the manifest, creative
+  event ledger, and verified legacy records against production API reads.
 
 ## References
 

@@ -127,6 +127,15 @@ spend.
 - Experiment state: 10 of 12; Arm A 4 Pins/0 impressions, Arm B 6 Pins/1
   impression; neither arm has a downstream action
 
+The append-only linkage event
+`evt-20260907-v10-wiener-switch-evidence-linkage` explicitly connects the
+candidate-specific verification receipt to both exact-source composites, the
+headline, both reviews, and the exact-package approval. The production API is
+the authoritative twenty-Pin live inventory; the package manifest intentionally
+does not duplicate the separately event-ledgered Goat, Hippo Vanity, and Hippo
+Desk browser-era publications and retains five deleted drafts as cleanup
+history.
+
 ## Checkpoint captured
 
 Fresh Memes Dog Toy reached its 24-hour public checkpoint 24 hours, 5 minutes,
