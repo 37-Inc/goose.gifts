@@ -5,6 +5,32 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-07 - Weekly catalog quality run
+
+**Catalog receipt**: refreshed the Production environment from Vercel, then ran
+the complete weekly workflow. The final run (`c83e392b-3c1b-48d0-b852-e292feda4db9`)
+searched six rotating themes, fetched 63 candidates, rejected 37 for quality,
+filtered 16 duplicates, and retained 16. The first pass inserted two new
+products; the verified rerun refreshed 16 without another insert. Revalidation
+checked 50 stale products, refreshed 21, marked 29 twice-missing listings
+unavailable, deactivated none, found zero affiliate-tag mismatches, and
+successfully invalidated all catalog caches. Estimated OpenAI cost for the
+final pass was `$0.007095`; telemetry recorded no warnings.
+
+**Quality review and repair**: visual review found the Mystic Pickle, middle-
+finger gnome, cat brush, and bizarre chicken print appropriately strange, but
+also found a generic printed slogan mug in the first-pass survivor set. Added a
+narrow discovery guard that rejects ordinary slogan/graphic mugs while keeping
+explicit physical novelty such as shaped, sculpted, heat-reactive, hidden-
+message, and toilet mugs. `npm run test:catalog-ops` passed 25/25. The rerun
+records the original mug as `generic_format`; the unusual chicken print advanced
+with approved factual editorial. The customized ugly-pet pillow remains the
+single manual-review item and stays held, matching the existing owner ask.
+
+**Operations**: both passes completed, sent their sanitized run summaries to
+the Slack marketing channel, and left the public cache current. No social post,
+SEO change, outreach, spend, or unrelated site mutation occurred.
+
 ## 2026-09-06 - My First Fire false-alarm headline production cycle
 
 **Evidence checked**: Pinterest production API v5 reported 261 lifetime public

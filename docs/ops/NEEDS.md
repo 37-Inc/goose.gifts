@@ -36,8 +36,9 @@ any paid/video-generation tooling before spend.
 The 2026-08-24 weekly run held the customized ugly-pet pillow at
 `/gifts/purr-sonalized-ugly-pet-pillow-cuddle-your-inner-weird` because its
 generated editorial made unsupported size and personalization claims. It is not
-publicly indexable. Either leave it held or provide corrected factual copy for
-an exact editorial seed; no broader catalog action is needed.
+publicly indexable. The 2026-09-07 weekly run reconfirmed the hold after a fresh
+listing read and rejected draft. Either leave it held or provide corrected
+factual copy for an exact editorial seed; no broader catalog action is needed.
 
 ### 3. Funnel and admin analytics rebuild
 

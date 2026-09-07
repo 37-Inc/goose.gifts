@@ -119,6 +119,17 @@ what's likely next.
 
 Newest first.
 
+### 2026-09-07 — Reject generic slogan mugs during discovery `[daily-ops]`
+
+The weekly catalog run added two products, rechecked 50 stale listings, repaired
+no affiliate URLs because all tags already matched, and refreshed the public
+caches. A visual spot-check found one ordinary printed slogan mug surviving on
+merchant keyword language, so the discovery gate now rejects generic mugs while
+preserving explicit physical novelty such as shaped, sculpted, heat-reactive,
+hidden-message, and toilet designs. The focused catalog suite passed 25/25 and
+a full rerun recorded the rejected mug as `generic_format`; only the already-
+held customized ugly-pet pillow remains in manual review.
+
 ### 2026-09-06 — Dog-toy gallery runway clean Pin `[daily-ops]`
 
 Rejected the shortlist's unavailable belly fanny pack, then reverified the
