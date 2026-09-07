@@ -321,6 +321,26 @@ test('discovery quality gate keeps distinctive gag objects and rejects generic m
     ...base,
     title: 'Sarcastic Candles for Coworkers',
   }), false);
+  assert.equal(discoveryCandidateBlockReason({
+    ...base,
+    title: 'Vivulla68 And Here We Fucking Go Again I Mean Good Morning Funny Coffee Mug',
+  }), 'generic_format');
+  assert.equal(isHighQualityDiscoveryCandidate({
+    ...base,
+    title: 'Weird Shark-Shaped Ceramic Coffee Mug',
+  }), true);
+  assert.equal(isHighQualityDiscoveryCandidate({
+    ...base,
+    title: 'Funny Shark Coffee Mug for Dad',
+  }), false);
+  assert.equal(isHighQualityDiscoveryCandidate({
+    ...base,
+    title: 'Funny Hidden Message Coffee Mug with Middle Finger',
+  }), true);
+  assert.equal(isHighQualityDiscoveryCandidate({
+    ...base,
+    title: 'Weird Color-Change Coffee Mug',
+  }), true);
   assert.equal(isHighQualityDiscoveryCandidate({
     ...base,
     title: 'Funny Cocktail Socks and Party Stockings',
