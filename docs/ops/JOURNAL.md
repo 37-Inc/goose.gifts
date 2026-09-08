@@ -5,6 +5,30 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-08 afternoon - Pinterest measurement hold
+
+**Evidence checked**: Pinterest production API v5 confirmed the correct
+`goosegifts` BUSINESS account and 22 public Pins. The profile held at 264
+impressions, two Pin clicks, one save, and zero outbound clicks. The two
+impressions added after the morning pre-publication baseline remained on old
+July editorials, not either static-format arm. Arm A remains six Pins/zero
+impressions; Arm B remains six Pins/one impression; both have zero saves, Pin
+clicks, Pinterest outbound clicks, attributable site sessions, and downstream
+product clicks. GA4 had 17 trailing-seven-day sessions and no Pinterest source
+or outbound-product event. The first-party database had zero product clicks and
+searches in 24 hours or seven days. Sandbox and Pinterest v3 were excluded.
+Mystic Pickle's exact 24-hour receipt was captured 24 hours and 28 seconds after
+publication at zero impressions, saves, Pin clicks, outbound clicks,
+attributable site sessions, and downstream product clicks.
+
+**Decision**: the format experiment is already paused at its exact 12-Pin
+ceiling, and the owner-ready queue is empty. This slot was therefore a required
+metric-only no-op: no candidate selection, source verification, generation,
+package, approval, API dry run, or public write occurred. Continue individual
+24-hour, seven-day, and 28-day public receipts without reopening creative work;
+the arms should be compared only after the final Pin reaches seven days on
+2026-09-15 and Cameron chooses the next experiment.
+
 ## 2026-09-08 - American Mustache final clean-format production cycle
 
 **Evidence checked**: Pinterest production API v5 reported 262 lifetime public
