@@ -54,6 +54,25 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-09-08 afternoon measurement hold
+
+The first scheduled slot after the experiment reached its 12-Pin ceiling was a
+documented metric-only no-op. Pinterest production API v5 reported 22 public
+Pins, 264 impressions, two Pin clicks, one save, and zero outbound clicks. The
+two impressions added since the morning baseline remained on older July
+editorials, not either format arm. Arm A remains six Pins at zero impressions;
+Arm B remains six Pins at one impression; both remain at zero saves, Pin
+clicks, Pinterest outbound clicks, attributable site sessions, and downstream
+product clicks. GA4 recorded 17 trailing-seven-day sessions without a Pinterest
+source or outbound-product event, and the first-party database recorded zero
+product clicks and searches in 24 hours and seven days. The `goosegifts`
+BUSINESS account still has 22 Pins, the review queue is empty, and Sandbox and
+Pinterest v3 remain excluded. Mystic Pickle's exact 24-hour checkpoint,
+captured 24 hours and 28 seconds after publication, was also zero across all
+Pinterest and downstream metrics. No product was selected, no creative was
+generated, and no public write was attempted; the experiment remains paused
+until the complete seven-day evidence gate and Cameron's next decision.
+
 ### 2026-09-08 morning static-format cycle
 
 The 21-Pin truthful public cohort remained at 262 impressions, two Pin clicks,
