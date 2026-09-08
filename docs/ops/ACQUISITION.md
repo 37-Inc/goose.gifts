@@ -243,6 +243,19 @@ one impression total and neither arm has a downstream action. This was the
 second and final 2026-09-07 publication. One qualifying Pin remains before the
 seven-day measurement hold begins.
 
+**2026-09-08 morning format-test evidence:** the truthful public cohort
+remained at 262 impressions, two Pin clicks, one save, and zero outbound clicks
+before the final slot. GA4 and the first-party database still showed no
+attributable Pinterest session or downstream product click. Arm A's sixth clean
+Pin, The American Mustache `1107815208388134634`, uses a unique clean-format
+UTM and an indexable canonical product page. Its exact-source book cover on a
+museum plinth beneath a single handlebar-mustache shadow tests whether a
+product-specific cultural-object treatment can earn attention without added
+copy. The bounded experiment is complete at six Arm A and six Arm B Pins; Arm B
+has one impression, Arm A has none, and neither has a downstream action. The
+experiment is paused, and scheduled runs must remain measurement-only until the
+seven-day review and Cameron's next decision.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

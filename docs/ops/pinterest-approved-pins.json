@@ -378,6 +378,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208388077586/",
       "publishedAt": "2026-09-07T23:51:01.223Z",
       "publicationReceiptId": "receipt-1788825061222-editorial-mystic-pickle-midnight-oracle-clean-20260907-pm-publication-succeeded"
+    },
+    {
+      "id": "editorial-american-mustache-national-archive-clean-20260908-am",
+      "candidateId": "cand-v10-american-mustache-museum",
+      "approvalEventId": "evt-20260908-v10-mustache-approved",
+      "board": "Funny White Elephant Gifts",
+      "assetPath": "docs/ops/pinterest-creative-lab/v21-concepts/01-american-mustache-national-archive.png",
+      "targetPage": "https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair",
+      "trackingUrl": "https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+      "title": "Funny Mustache Coffee Table Book for Dads",
+      "description": "The American 'Stache is a large 113-page hardcover collection of full-page mustache portraits from around the United States, with customizable pages for adding a favorite mustache photo, title, and quote. A funny coffee-table or dad gift for people who take facial hair seriously. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "The American 'Stache hardcover coffee-table book standing on a pale stone museum plinth beneath an oversized handlebar-mustache-shaped shadow.",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208388134634/",
+      "publishedAt": "2026-09-08T16:49:59.048Z",
+      "publicationReceiptId": "receipt-1788886199043-editorial-american-mustache-national-archive-clean-20260908-am-publication-succeeded"
     }
   ]
 }

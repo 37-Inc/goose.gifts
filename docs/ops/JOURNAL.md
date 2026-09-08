@@ -5,6 +5,47 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-08 - American Mustache final clean-format production cycle
+
+**Evidence checked**: Pinterest production API v5 reported 262 lifetime public
+impressions, two Pin clicks, one save, and zero outbound clicks across the 21
+truthful Pins before publication. The bounded format cohort was Arm A five
+Pins/zero impressions and Arm B six Pins/one impression with no downstream
+action. GA4 had 15 trailing-seven-day sessions from Direct, Amazon Organic
+Shopping, or Unassigned and no Pinterest source or outbound-product event. The
+first-party database had zero product clicks and searches in 24 hours or seven
+days. Search Console's current 28-day page evidence showed one click and 65
+impressions for the weird-kitchen guide, impressions without clicks across the
+other priority surfaces, and two impressions at average position 9.5 for one
+indexable product page. Wiener Switch's exact 24-hour checkpoint, captured 24
+hours and 56 seconds after publication, was zero. Sandbox and Pinterest v3 were
+excluded.
+
+**Creative cycle**: Amazon Creators API reverified The American Mustache large
+hardcover coffee-table book (`B07KGJS2F3`) `IN_STOCK` at `$12.99`; its canonical
+page returned `200`, self-canonical, and `index, follow`. Three product-derived
+concepts were saved. The field-guide layout was rejected before generation for
+template risk. Two text-free context plates were generated and the exact source
+book pixels were composited into each so its printed cover could not drift. The
+barbershop treatment passed every gate but was rejected as more conventional.
+The national-archive treatment with one handlebar-mustache shadow passed every
+truth, single-idea, no-CTA, and no-template gate at `4.63/5`. No revision was
+needed, so the run stopped after two generation calls.
+
+**Production publication**: the morning slot was Arm A. Creative and publishing
+tests and the production dry run passed. The guarded publisher verified
+Cameron's standing exact-package authorization, `goosegifts` BUSINESS account,
+`Funny White Elephant Gifts`, disclosures, unique UTM, first daily slot, and
+1024-by-1536 artifact. Pinterest API v5 created and read-verified Standard Pin
+`1107815208388134634`. Receipt
+`receipt-1788886199043-editorial-american-mustache-national-archive-clean-20260908-am-publication-succeeded`
+and append-only measuring/baseline events were recorded. The experiment is
+complete and paused at 12 of 12: six Arm A and six Arm B Pins. Arm B has one
+impression, Arm A has none, and neither has a downstream action. Future studio
+runs are measurement-only no-ops until the seven-day review and Cameron's next
+decision. No video, second Pin, Sandbox write, weekly catalog run, SEO mutation,
+outreach, paid tool, account change, deletion, or spend occurred.
+
 ## 2026-09-07 - Wiener Switch serious-interiors headline production cycle
 
 **Evidence checked**: Pinterest production API v5 reported 262 lifetime public

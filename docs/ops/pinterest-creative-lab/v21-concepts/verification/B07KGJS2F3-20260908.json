@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-08T16:35:42Z",
+  "productId": "B07KGJS2F3",
+  "literalProduct": "one large 8.5-by-12.5-inch hardcover coffee-table book with a pale blue The American 'Stache cover, a photograph of a sunglasses-wearing mustached man holding a fish, and visible interior pages",
+  "amazon": {
+    "source": "Amazon Creators API",
+    "remotelyVerified": true,
+    "availabilityStatus": "IN_STOCK",
+    "availabilityMessage": "In Stock",
+    "price": 12.99,
+    "currency": "USD",
+    "title": "The American Mustache - Funny Hardcover Coffee Table Book Featuring Hilarious Mustache Photos, Americana Humor, Customizable Pages - Unique Gag Gift for Men, Brothers, and Dads",
+    "affiliateUrl": "https://www.amazon.com/dp/B07KGJS2F3?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+    "primaryImageUrl": "https://m.media-amazon.com/images/I/41wpjDu7MkL._SL500_.jpg",
+    "facts": {
+      "brand": "Gears Out",
+      "size": "Large",
+      "pageCount": 113,
+      "dimensions": "8.5 by 12.5 by 1 inches",
+      "weight": "1.65 pounds",
+      "features": [
+        "full-page photographs of mustaches from around the United States",
+        "customizable pages for adding a favorite mustache photograph, title, and quote",
+        "large hardcover coffee-table format"
+      ]
+    }
+  },
+  "reference": {
+    "path": "docs/ops/pinterest-creative-lab/v21-concepts/product-references/B07KGJS2F3-source.jpg",
+    "width": 489,
+    "height": 500,
+    "sha256": "0e7400b9915cc88a0f9fecebd1ef9a8219a82a5219ed359feb70962f6ef7a0a9"
+  },
+  "destination": {
+    "url": "https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair",
+    "httpStatus": 200,
+    "canonical": "https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair",
+    "robots": "index, follow"
+  },
+  "uncertainties": [
+    "The Creators API classifies the binding and product group as Toy even though the inspected source and listing consistently identify a hardcover book; the literal inspected object controls.",
+    "The primary image proves the closed cover and visible page block but not the appearance of every interior spread, so no unseen interior page is depicted."
+  ]
+}

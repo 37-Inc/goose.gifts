@@ -20,11 +20,12 @@ outward-facing accounts. Best remaining channels:
   approval of the publishing tool.
 - **Pinterest**: the account, Standard access, production publisher, catalog
   candidate feed, and minimum approval/duplicate/receipt guards are complete;
-  see Received below. Cameron's scheduled-studio exception now authorizes a
-  bounded 12-Pin static-format comparison with at most one hard-gated package
-  per spaced run and two per local day, including documented no-ops when
-  quality or evidence is weak. It does not authorize a third daily Pin, video,
-  Sandbox use, paid distribution, or spend.
+  see Received below. Cameron's bounded 12-Pin static-format comparison reached
+  its exact six-clean/six-headline ceiling on 2026-09-08 and is paused. The
+  prior two-slot exception now authorizes no new creative or public write;
+  scheduled runs are measurement-only until the seven-day review and Cameron's
+  next decision. It never authorized video, Sandbox use, paid distribution, or
+  spend.
 
 Needed from Cameron: choose which channels to authorize for posting and approve
 any paid/video-generation tooling before spend.
@@ -74,9 +75,10 @@ you'd rather get real email/Slack from me, connect a connector at
   Button and Toilet Golf, clean-format Middle Management and medieval cat,
   headline-format Wacky Waving Inflatable Tube Guy and Gratiator, the clean
   Shark Coffee Mug and Fresh Memes squeaky dog toy, the headline-format My First
-  Fire prank box and Wiener Switch night light, and the clean Mystic Pickle
-  oracle still. The current total is twenty-one, and the bounded format
-  experiment is eleven of twelve: five clean and six headline Pins. The
+  Fire prank box and Wiener Switch night light, the clean Mystic Pickle oracle
+  still, and the clean American Mustache national-archive still. The current
+  total is twenty-two, and the bounded format experiment is complete and
+  paused at twelve of twelve: six clean and six headline Pins. The
   publisher checks the exact owner approval event and candidate state,
   account, complete disclosed package, 2:3 artifact, and duplicate tracking URL;
   it read-verifies success and records durable receipts. `npm run
