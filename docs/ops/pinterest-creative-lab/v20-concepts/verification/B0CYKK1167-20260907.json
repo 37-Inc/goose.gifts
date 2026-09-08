@@ -1,0 +1,43 @@
+{
+  "verifiedAt": "2026-09-07T23:36:38Z",
+  "repositoryCommit": "50a9035dc0be32ae9fb2c69b38bac6fc79c5c3d8",
+  "product": {
+    "id": "B0CYKK1167",
+    "title": "DR DINGUS Mystic Pickle | 100 Responses | Magic Fortune Teller Novelty Gift",
+    "price": 14.99,
+    "currency": "USD",
+    "availabilityStatus": "IN_STOCK",
+    "availabilityMessage": "In Stock",
+    "remotelyVerified": true,
+    "imageUrl": "https://m.media-amazon.com/images/I/413UeFe35jL._SL500_.jpg",
+    "affiliateUrl": "https://www.amazon.com/dp/B0CYKK1167?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+    "brand": "DR DINGUS",
+    "size": "5 Inch",
+    "color": "Green",
+    "binding": "Toy",
+    "productGroup": "Toy",
+    "features": [
+      "The Mystic Pickle is a novelty fortune teller with 100 responses.",
+      "The listing describes it as a portable conversation starter and party gift.",
+      "The listing identifies a protected DR DINGUS Mystic Pickle design."
+    ],
+    "unreliableFieldsExcluded": {
+      "unitCount": 0,
+      "itemDimensions": {"width": "1 inches", "height": "1 inches", "length": "1 inches"},
+      "reason": "These API fields conflict with the explicit five-inch size and visible single-object source image."
+    }
+  },
+  "sourceImage": {
+    "path": "docs/ops/pinterest-creative-lab/v20-concepts/product-references/B0CYKK1167-source.jpg",
+    "width": 500,
+    "height": 492,
+    "sha256": "4b09d330cfbe6a82ad859b7ae5fd07c9f0e3d9208e110e872d0d96926390a91a",
+    "literalInspection": "One curved translucent yellow-green plastic pickle-shaped toy with raised bumps and a circular recessed answer-viewing window beside a purple retail box. Packaging and illustrated wizard are not included product components."
+  },
+  "destination": {
+    "url": "https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller",
+    "httpStatus": 200,
+    "canonical": "https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller",
+    "robots": "index, follow"
+  }
+}

@@ -30,8 +30,8 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Twenty product-faithful editorial Pins are live. Before the twentieth
-   launched, the first nineteen had 262 public impressions in total, two Pin
+   Twenty-one product-faithful editorial Pins are live. Before the twenty-first
+   launched, the first twenty had 262 public impressions in total, two Pin
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
@@ -52,6 +52,43 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-07 afternoon static-format cycle
+
+The 20-Pin truthful public cohort remained at 262 impressions, two Pin clicks,
+one save, and zero outbound clicks before this slot. The format cohort was Arm
+A four Pins/zero impressions and Arm B six Pins/one impression, with no
+downstream action. My First Fire's exact 24-hour checkpoint, captured 24 hours
+and 21 seconds after publication, was also zero. GA4 recorded 14 trailing-
+seven-day sessions from Direct or Amazon Organic Shopping and no Pinterest
+source or outbound-product event; the first-party database recorded zero
+product clicks and searches in 24 hours and seven days. Current 28-day Search
+Console evidence showed impressions but no clicks on the priority guides, plus
+two impressions for one eligible product page. Pinterest v3 and Sandbox were
+excluded.
+
+The latest completed weekly catalog shortlist supplied the DR DINGUS Mystic
+Pickle fortune-teller toy (`B0CYKK1167`). Amazon Creators API reverified it
+`IN_STOCK` at `$14.99` with the unchanged primary image, and the canonical
+Goose page returned `200`, self-canonical, and `index, follow`. The receipt
+explicitly rejects contradictory one-inch dimensions and zero unit count in
+favor of the listing's explicit five-inch size and inspected single-object
+source. Three concepts were preserved. The dinner-party tie breaker was
+rejected before generation because it survived a Magic 8 Ball swap. Both
+generated clean attempts passed every hard gate at full resolution. The
+refrigerator reveal was rejected because it made the toy look too edible; the
+midnight-oracle still became the only survivor at `4.75/5` with no revision.
+
+The afternoon slot was Arm A. The guarded dry run verified the exact package,
+correct `goosegifts` BUSINESS account, `Funny White Elephant Gifts` board,
+unique UTM, complete disclosures, second-and-final daily slot, and vertical
+artifact. Pinterest API v5 created and read-verified Standard Pin
+`1107815208388077586` and wrote receipt
+`receipt-1788825061222-editorial-mystic-pickle-midnight-oracle-clean-20260907-pm-publication-succeeded`.
+The experiment is now 11 of 12: five Arm A and six Arm B Pins. Arm B still has
+one total impression and neither arm has a downstream action, so there is no
+winner. No video, third Pin, weekly catalog job, SEO mutation, outreach, paid
+tool, account change, deletion, or spend occurred.
 
 ### 2026-09-07 morning static-format cycle
 

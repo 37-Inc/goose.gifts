@@ -361,6 +361,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208388049691/",
       "publishedAt": "2026-09-07T16:54:22.170Z",
       "publicationReceiptId": "receipt-1788800062165-editorial-wiener-switch-mood-lighting-headline-20260907-am-publication-succeeded"
+    },
+    {
+      "id": "editorial-mystic-pickle-midnight-oracle-clean-20260907-pm",
+      "candidateId": "cand-v10-mystic-pickle-oracle",
+      "approvalEventId": "evt-20260907-v10-mystic-pickle-approved",
+      "board": "Funny White Elephant Gifts",
+      "assetPath": "docs/ops/pinterest-creative-lab/v20-concepts/01-mystic-pickle-midnight-oracle.png",
+      "targetPage": "https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller",
+      "trackingUrl": "https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+      "title": "Mystic Pickle Fortune Teller Gag Gift",
+      "description": "This five-inch translucent pickle-shaped fortune teller delivers 100 responses for questions that deserve questionable wisdom. Its bumpy yellow-green shell and circular answer window make it an absurd conversation starter for parties or white elephant swaps. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Translucent yellow-green Mystic Pickle fortune teller standing on a small brass saucer over plum velvet beneath a crescent-shaped light.",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208388077586/",
+      "publishedAt": "2026-09-07T23:51:01.223Z",
+      "publicationReceiptId": "receipt-1788825061222-editorial-mystic-pickle-midnight-oracle-clean-20260907-pm-publication-succeeded"
     }
   ]
 }
