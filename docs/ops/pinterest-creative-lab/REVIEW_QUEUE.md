@@ -11,6 +11,42 @@ None.
 
 ## Published from this queue
 
+### The American Mustache — clean national archive
+
+- Candidate: `cand-v10-american-mustache-museum` (`published`, Arm A clean,
+  internal score `4.63/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208388134634/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v21-concepts/01-american-mustache-national-archive.png`
+- Exact product: Gears Out The American Mustache large 113-page hardcover
+  coffee-table book, ASIN `B07KGJS2F3`; Amazon Creators API reverified it
+  `IN_STOCK` at `$12.99` on 2026-09-08 with the unchanged primary image,
+  full-page mustache-photo premise, and customizable pages.
+- Destination:
+  `https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair`
+- Board: `Funny White Elephant Gifts`
+- Title: `Funny Mustache Coffee Table Book for Dads`
+- Description: `The American 'Stache is a large 113-page hardcover collection of full-page mustache portraits from around the United States, with customizable pages for adding a favorite mustache photo, title, and quote. A funny coffee-table or dad gift for people who take facial hair seriously. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `The American 'Stache hardcover coffee-table book standing on a pale stone museum plinth beneath an oversized handlebar-mustache-shaped shadow.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am`
+- Rejected alternatives: the exact-source barbershop-chair image passed every
+  hard gate but read closer to conventional product styling; the field-guide
+  flat lay was rejected before generation for reusable-grid risk. No revision
+  was needed, so the run stopped after two generation calls.
+- Approval scope: Cameron's standing bounded-experiment approval event
+  `evt-20260908-v10-mustache-approved` covered only this exact package as the
+  first and only 2026-09-08 Pin and twelfth and final qualifying format Pin.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, exact approval, first daily slot, unique UTM, 1024x1536
+  artifact, and `Funny White Elephant Gifts` board; it read back every field
+  and wrote receipt
+  `receipt-1788886199043-editorial-american-mustache-national-archive-clean-20260908-am-publication-succeeded`.
+- Experiment state: this completed the 12-Pin static-format cohort at six Arm A
+  clean and six Arm B headline Pins. New generation and publication now stop
+  until the seven-day review and Cameron's next decision.
+
 ### Mystic Pickle — clean midnight oracle
 
 - Candidate: `cand-v10-mystic-pickle-oracle` (`measuring`, Arm A clean,

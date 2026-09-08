@@ -179,12 +179,14 @@ frame that shows a raw token.**
 
 - Standard access and the production OAuth read/dry-run path are verified.
 - Public posting still needs an exact candidate/package approval event (per
-  `MARKETING.md` and `NEEDS.md`). Cameron's scheduled-studio exception permits
+  `MARKETING.md` and `NEEDS.md`). Cameron's scheduled-studio exception permitted
   at most one hard-gated exact package per spaced run and two per local day
-  inside the bounded 12-Pin static-format comparison; it covers no third Pin,
-  weak creative, video, Sandbox object, paid distribution, or spend. The event
-  must bind the image, destination, board, title, description, alt text,
-  disclosure, tracking URL, arm, slot, and experiment ceiling.
+  inside the now-complete 12-Pin static-format comparison; it never covered a
+  third Pin, weak creative, video, Sandbox object, paid distribution, or spend.
+  The experiment is paused, so that exception currently authorizes no new
+  creative or public write. Any future approval must again bind the image,
+  destination, board, title, description, alt text, disclosure, tracking URL,
+  arm, slot, and experiment ceiling.
 - The guarded production CLI requires the draft's candidate ID and Cameron
   approval-event ID, validates the current creative state and complete disclosed
   package, checks the connected account and existing tracking URL, reads a
@@ -200,13 +202,15 @@ frame that shows a raw token.**
   Butt Station, Lick'em cat-brush, Pizza Boss, Bullshit Button, Toilet Golf,
   Middle Management statue, medieval cat tapestry, Wacky Waving Inflatable Tube
   Guy, Gratiator, Shark Coffee Mug, Fresh Memes dog-toy, My First Fire prank-box,
-  Wiener Switch night-light, and Mystic Pickle fortune-teller Pins. Combined
+  Wiener Switch night-light, Mystic Pickle fortune-teller, and The American
+  Mustache coffee-table-book Pins. Combined
   with the six retained product-faithful browser posts, the current clean
-  profile has twenty-one public Pins and zero Sandbox objects. The bounded
-  static-format cohort is eleven of twelve: five Arm A clean Pins and six Arm B
-  headline Pins.
+  profile has twenty-two public Pins and zero Sandbox objects. The bounded
+  static-format cohort is complete and paused at twelve of twelve: six Arm A
+  clean Pins and six Arm B headline Pins. New creative and publication remain
+  stopped until the seven-day review and Cameron's next decision.
 - The production API `GET /v5/pins` response is the authoritative live-count
-  source and currently returns twenty-one Pins. `pinterest-approved-pins.json`
+  source and currently returns twenty-two Pins. `pinterest-approved-pins.json`
   is a package/publication ledger rather than the profile inventory: it contains
   the three original retained browser posts and every guarded API publication,
   but the separately event-ledgered Goat, Hippo Vanity, and Hippo Desk browser

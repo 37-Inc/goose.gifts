@@ -84,7 +84,12 @@ what's likely next.
   source and full-resolution review. Eleven of 12 format-test Pins are now
   live: five clean and six headline. Arm B has one impression, Arm A has none,
   and neither has a downstream action, so keep the cap and measurement gate
-  intact.
+  intact. The 2026-09-08 morning slot published the twenty-second truthful
+  public Pin, The American Mustache `1107815208388134634`, after a 4.63/5
+  exact-source museum editorial review. The comparison is complete and paused
+  at six clean and six headline Pins. Neither arm has a downstream action, so
+  subsequent studio runs remain measurement-only until the seven-day review
+  and Cameron's next decision.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and

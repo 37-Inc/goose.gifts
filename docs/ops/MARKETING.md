@@ -30,15 +30,16 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Twenty-one product-faithful editorial Pins are live. Before the twenty-first
-   launched, the first twenty had 262 public impressions in total, two Pin
+   Twenty-two product-faithful editorial Pins are live. Before the twenty-second
+   launched, the first twenty-one had 262 public impressions in total, two Pin
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
-   bounded 12-Pin static-format comparison now uses two spaced daily slots,
-   alternating clean text-free editorial scenes with restrained 4–7 word
-   headlines. Each run may publish at most one hard-gated exact package and
-   each local day at most two; quality-gated no-ops remain expected.
+   bounded 12-Pin static-format comparison is now complete and paused at six
+   clean text-free editorials and six restrained 4–7 word headlines. Arm B has
+   one impression and Arm A has none; neither has a downstream action. New
+   generation and publication remain stopped until the seven-day evidence gate
+   and Cameron's next decision.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
    catalog-supported pages. The Weird Gift Index is the first original-data
    acquisition asset and should be improved as a cited, editioned report rather
@@ -52,6 +53,47 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-08 morning static-format cycle
+
+The 21-Pin truthful public cohort remained at 262 impressions, two Pin clicks,
+one save, and zero outbound clicks before the final slot. The bounded cohort
+was five Arm A Pins at zero impressions and six Arm B Pins at one impression,
+with no saves, Pin clicks, outbound clicks, attributable site sessions, or
+downstream product clicks. GA4 recorded 15 trailing-seven-day sessions from
+Direct, Amazon Organic Shopping, or Unassigned and no Pinterest source or
+product-click event; the first-party database recorded zero product clicks and
+searches in 24 hours and seven days. Current 28-day Search Console evidence
+showed one click and 65 impressions for the weird-kitchen guide, impressions
+without clicks across the other priority surfaces, and two impressions at
+average position 9.5 for one indexable product page. Pinterest v3 and Sandbox
+were excluded.
+
+The current verified catalog shortlist supplied Gears Out's The American
+Mustache large hardcover coffee-table book (`B07KGJS2F3`). Amazon Creators API
+reverified it `IN_STOCK` at `$12.99` with the unchanged primary image, 113-page
+format, full-page mustache-photo premise, and customizable pages; its canonical
+Goose page returned `200`, self-canonical, and `index, follow`. Three concepts
+were preserved. The field-guide flat lay was rejected before generation for
+reusable-grid risk. Two text-free context plates were generated and the exact
+verified source pixels were composited into each so the printed cover could not
+drift. The tasteful barbershop alternative passed every gate but was rejected
+as more conventional product styling. The national-archive scene's single
+handlebar-mustache shadow made the premise product-specific and passed every
+hard gate at `4.63/5`; no revision was justified.
+
+The morning slot was Arm A. The production dry run verified the exact package,
+correct `goosegifts` BUSINESS account, `Funny White Elephant Gifts` board,
+unique UTM, complete disclosures, first daily slot, and 1024x1536 artifact.
+Pinterest API v5 created and read-verified Standard Pin
+`1107815208388134634` and wrote receipt
+`receipt-1788886199043-editorial-american-mustache-national-archive-clean-20260908-am-publication-succeeded`.
+The experiment is complete at 12 of 12: six Arm A clean and six Arm B headline
+Pins. Arm B has one total impression, Arm A has none, and neither has a
+downstream action, so the experiment is paused. Future studio runs are
+measurement-only no-ops until the qualifying seven-day review and Cameron's
+next decision. No video, second Pin, weekly catalog job, SEO mutation,
+outreach, paid tool, account change, deletion, Sandbox write, or spend occurred.
 
 ### 2026-09-07 afternoon static-format cycle
 
