@@ -54,6 +54,35 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-09-09 morning measurement hold
+
+This scheduled slot remained a documented metric-only no-op because the
+12-Pin comparison is complete and paused. Pinterest production API v5
+confirmed the correct `goosegifts` BUSINESS account, 22 public Pins, 264
+impressions, two Pin clicks, one save, and zero outbound clicks. Arm A remains
+six Pins at zero impressions; Arm B remains six Pins at one impression; neither
+arm has a save, Pin click, Pinterest outbound click, attributable site session,
+or downstream product click. The American Mustache final Arm A Pin's exact
+24-hour checkpoint, captured 24 hours and 49 seconds after publication, was
+zero across every Pinterest and downstream metric. The older Pizza Boss clean
+editorial's exact seven-day checkpoint, captured seven days and 34 seconds
+after publication, was also zero; with no impressions, it does not isolate
+creative quality from account distribution.
+
+GA4 recorded 12 trailing-seven-day sessions from Direct, Amazon Organic
+Shopping, or Unassigned, with no Pinterest source or `product_click` /
+`affiliate_click` row. The first-party database's two recent product clicks
+were explicitly tagged PostHog QA, not Pinterest traffic. Current Search
+Console page evidence has one click and 519 impressions across the returned
+surfaces, including one click on `weird-kitchen-gadgets`, impressions without
+clicks on the four other priority guides, and two impressions for an indexable
+product page; the submitted 112-URL sitemap has no errors or warnings. The
+owner-review queue remains empty. No product was selected, no asset was
+generated, and no public write was attempted. Keep the experiment paused,
+capture Bullshit Button's first Arm B seven-day checkpoint after
+2026-09-09T23:42:58Z, and do not compare the complete arms before the final Pin
+reaches seven days on 2026-09-15. Pinterest v3 and Sandbox remain excluded.
+
 ### 2026-09-08 afternoon measurement hold
 
 The first scheduled slot after the experiment reached its 12-Pin ceiling was a

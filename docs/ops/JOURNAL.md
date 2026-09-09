@@ -5,6 +5,34 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-09 morning - Pinterest measurement hold
+
+**Evidence checked**: Pinterest production API v5 confirmed the correct
+`goosegifts` BUSINESS account and 22 public Pins. The profile remains at 264
+impressions, two Pin clicks, one save, and zero outbound clicks. Arm A remains
+six Pins/zero impressions and Arm B remains six Pins/one impression; neither
+arm has a save, Pin click, Pinterest outbound click, attributable site session,
+or downstream product click. American Mustache's exact 24-hour receipt was
+captured 24 hours and 49 seconds after publication at zero across every metric.
+Pizza Boss's exact seven-day receipt was captured seven days and 34 seconds
+after publication and was also zero. GA4 had 12 trailing-seven-day sessions
+from Direct, Amazon Organic Shopping, or Unassigned and no Pinterest source or
+outbound-product event. The database's two recent product clicks were tagged
+PostHog QA, not Pinterest. Search Console returned one click and 519
+impressions across current page evidence; the submitted 112-URL sitemap has no
+errors or warnings. Sandbox and Pinterest v3 were excluded.
+
+**Decision**: the format experiment remains paused at its exact 12-Pin ceiling,
+and the owner-ready queue remains empty. This run was a metric-only no-op: no
+candidate selection, product verification, generation, artifact, review,
+package, approval, API dry run, or public write occurred. A zero-impression
+seven-day Pizza Boss result cannot distinguish creative quality from
+distribution, so do not replace it on that evidence. Capture Bullshit Button's
+first Arm B seven-day checkpoint after 2026-09-09T23:42:58Z and keep individual
+public receipts moving; compare the complete six-versus-six arms only after
+American Mustache reaches seven days on 2026-09-15 and Cameron chooses the next
+experiment.
+
 ## 2026-09-08 afternoon - Pinterest measurement hold
 
 **Evidence checked**: Pinterest production API v5 confirmed the correct
