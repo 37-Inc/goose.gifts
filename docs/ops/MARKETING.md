@@ -35,8 +35,9 @@ or intriguing first impression followed by a funny double take.
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
-   bounded 12-Pin static-format comparison is now complete and paused at six
-   clean text-free editorials and six restrained 4–7 word headlines. Arm B has
+   bounded 12-Pin static-format cohort is now fully enrolled and evaluation is
+   paused at six clean text-free editorials and six restrained 4–7 word
+   headlines. Arm B has
    one impression and Arm A has none; neither has a downstream action. New
    generation and publication remain stopped until the seven-day evidence gate
    and Cameron's next decision.
@@ -54,10 +55,37 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-09-09 afternoon measurement hold
+
+The second scheduled slot remained a metric-only no-op because enrollment in
+the bounded 12-Pin cohort is complete and the comparison remains paused.
+Pinterest production API v5
+confirmed the correct `goosegifts` BUSINESS account, 22 public Pins, 265
+impressions, three Pin clicks, one save, and zero outbound clicks. The one new
+impression and Pin click since the morning landed on the older July Patricia
+breakfast editorial, not either test arm. Arm A remains six Pins at zero
+impressions; Arm B remains six Pins at one impression; neither arm has a save,
+Pin click, Pinterest outbound click, attributable site session, or downstream
+product click.
+
+Bullshit Button, the first Arm B candidate to reach seven days, had one
+impression and no action at its checkpoint captured seven days and 47 seconds
+after publication. This confirms minimal delivery but is far below the exposure
+needed to judge the headline or compare formats. GA4 recorded 12 trailing-
+seven-day sessions from Direct, Amazon Organic Shopping, or Unassigned, with no
+Pinterest source or `product_click` / `affiliate_click` row. The first-party
+database's two recent product clicks remain explicitly tagged PostHog QA. The
+owner-review queue remains empty. No product was selected, no asset was
+generated, and no public write was attempted. Keep the experiment paused,
+capture Toilet Golf's seven-day checkpoint after 2026-09-10T16:42:11Z, and do
+not compare the full six-versus-six arms before 2026-09-15. Pinterest v3 and
+Sandbox remain excluded.
+
 ### 2026-09-09 morning measurement hold
 
-This scheduled slot remained a documented metric-only no-op because the
-12-Pin comparison is complete and paused. Pinterest production API v5
+This scheduled slot remained a documented metric-only no-op because enrollment
+in the 12-Pin cohort is complete and the comparison remains paused. Pinterest
+production API v5
 confirmed the correct `goosegifts` BUSINESS account, 22 public Pins, 264
 impressions, two Pin clicks, one save, and zero outbound clicks. Arm A remains
 six Pins at zero impressions; Arm B remains six Pins at one impression; neither
