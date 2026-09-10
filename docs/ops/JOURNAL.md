@@ -26,9 +26,9 @@ candidate selection, product verification, generation, artifact, review,
 package, approval, API dry run, or public write occurred. The first Arm A Pin
 to reach seven days received no distribution, so clean versus headline remains
 unevaluable. Capture Medieval Cat's seven-day checkpoint after
-2026-09-11T16:41:29Z and continue candidate-level receipts; compare the complete
-six-versus-six arms only after American Mustache reaches seven days on
-2026-09-15 and Cameron chooses the next experiment.
+2026-09-11T16:41:29Z and continue candidate-level receipts. After American
+Mustache reaches seven days on 2026-09-15, compare the complete six-versus-six
+arms before Cameron chooses the next experiment.
 
 ## 2026-09-10 morning - Pinterest measurement hold
 
