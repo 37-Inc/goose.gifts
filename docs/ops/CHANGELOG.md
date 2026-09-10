@@ -129,6 +129,17 @@ what's likely next.
 
 Newest first.
 
+### 2026-09-10 — Pinterest cohort remains distribution-limited `[daily-ops]`
+
+Recorded Middle Management's exact seven-day public checkpoint at zero
+impressions or actions and kept the capped 12-Pin format experiment paused.
+The full cohort remains six clean Pins at zero impressions versus six headline
+Pins at one impression, with no saves, Pin clicks, outbound clicks,
+Pinterest-attributable sessions, or downstream product clicks in either arm.
+No creative or public write occurred. Continue candidate-level receipts and
+wait for the complete-arm review gate after 2026-09-15 before Cameron chooses
+the next experiment.
+
 ### 2026-09-07 — Mystic Pickle midnight-oracle clean Pin `[daily-ops]`
 
 Reverified the in-stock `$14.99` DR DINGUS Mystic Pickle fortune teller and its
