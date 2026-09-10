@@ -77,9 +77,11 @@ Organic Shopping, or Unassigned, with no Pinterest source or `product_click` /
 two seven-day clicks remain explicitly tagged PostHog QA. The owner-review
 queue remains empty. No product was selected, no asset was generated, and no
 public write was attempted. Keep the experiment paused, capture Middle
-Management's seven-day checkpoint after 2026-09-10T23:41:38Z, and do not
-compare the complete arms before 2026-09-15. Pinterest v3 and Sandbox remain
-excluded.
+Management's seven-day checkpoint after 2026-09-10T23:41:38Z, and keep later
+runs measurement-only. After American Mustache reaches seven days on
+2026-09-15, summarize the complete-arm evidence for Cameron; do not resume
+creative or public writes until he selects the next experiment. Pinterest v3
+and Sandbox remain excluded.
 
 ### 2026-09-09 afternoon measurement hold
 
