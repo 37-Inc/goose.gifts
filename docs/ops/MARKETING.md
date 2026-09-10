@@ -55,6 +55,32 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-09-10 afternoon measurement hold
+
+This scheduled slot remained a metric-only no-op because enrollment in the
+bounded 12-Pin cohort is complete and the comparison remains paused. Pinterest
+production API v5 confirmed the correct `goosegifts` BUSINESS account, 22
+public Pins, 266 impressions, three Pin clicks, one save, and zero outbound
+clicks. Nothing changed from the morning sample. Arm A remains six Pins at zero
+impressions; Arm B remains six Pins at one impression; neither arm has a save,
+Pin click, Pinterest outbound click, attributable site session, or downstream
+product click.
+
+Middle Management, the first Arm A candidate to reach seven days, had zero
+impressions or action at its checkpoint captured seven days and 44 seconds
+after publication. This is evidence of absent delivery, not a verdict on the
+clean editorial format. GA4 recorded 14 trailing-seven-day sessions from
+Direct, Amazon Organic Shopping, or Unassigned, with no Pinterest source or
+`product_click` / `affiliate_click` row. The database recorded no product click
+in 24 hours; its two seven-day clicks remain explicitly tagged PostHog QA. The
+owner-review queue remains empty. No product was selected, no asset was
+generated, and no public write was attempted. Keep the experiment paused,
+capture Medieval Cat's seven-day checkpoint after 2026-09-11T16:41:29Z, and
+keep later runs measurement-only. After American Mustache reaches seven days
+on 2026-09-15, summarize the complete-arm evidence for Cameron; do not resume
+creative or public writes until he selects the next experiment. Pinterest v3
+and Sandbox remain excluded.
+
 ### 2026-09-10 morning measurement hold
 
 This scheduled slot remained a metric-only no-op because enrollment in the

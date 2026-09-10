@@ -5,6 +5,31 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-10 afternoon - Pinterest measurement hold
+
+**Evidence checked**: Pinterest production API v5 confirmed the correct
+`goosegifts` BUSINESS account and 22 public Pins. The profile held at 266
+impressions, three Pin clicks, one save, and zero outbound clicks, unchanged
+from the morning sample. Arm A remains six Pins/zero impressions and Arm B
+remains six Pins/one impression; neither arm has a save, Pin click, Pinterest
+outbound click, attributable site session, or downstream product click. Middle
+Management's seven-day receipt was captured seven days and 44 seconds after
+publication at zero across every metric. GA4 had 14 trailing-seven-day sessions
+from Direct, Amazon Organic Shopping, or Unassigned and no Pinterest source or
+outbound-product event. The database had zero product clicks in 24 hours; its
+two seven-day clicks remained explicitly tagged PostHog QA. Sandbox and
+Pinterest v3 were excluded.
+
+**Decision**: the experiment remains paused at its exact 12-Pin ceiling, and
+the owner-ready queue remains empty. This run was a metric-only no-op: no
+candidate selection, product verification, generation, artifact, review,
+package, approval, API dry run, or public write occurred. The first Arm A Pin
+to reach seven days received no distribution, so clean versus headline remains
+unevaluable. Capture Medieval Cat's seven-day checkpoint after
+2026-09-11T16:41:29Z and continue candidate-level receipts. After American
+Mustache reaches seven days on 2026-09-15, compare the complete six-versus-six
+arms before Cameron chooses the next experiment.
+
 ## 2026-09-10 morning - Pinterest measurement hold
 
 **Evidence checked**: Pinterest production API v5 confirmed the correct
