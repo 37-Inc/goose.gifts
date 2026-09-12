@@ -129,6 +129,16 @@ what's likely next.
 
 Newest first.
 
+### 2026-09-12 — Six format Pins reach seven-day eligibility `[daily-ops]`
+
+Recorded the first scheduled post-seven-day public checkpoints for Medieval
+Cat and Wacky Tube Guy plus Gratiator's exact post-boundary checkpoint. All
+three were zero across Pinterest and downstream metrics. Two of six clean Pins
+and four of six headline Pins are now eligible, but the six candidates have
+only one combined impression, so the capped experiment remains paused and no
+creative or public write occurred. Continue receipts through the complete-arm
+review gate after 2026-09-15.
+
 ### 2026-09-10 — Pinterest cohort remains distribution-limited `[daily-ops]`
 
 Recorded Middle Management's exact seven-day public checkpoint at zero

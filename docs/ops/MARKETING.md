@@ -55,6 +55,33 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-09-12 morning measurement hold
+
+This scheduled slot remained a metric-only no-op because the bounded 12-Pin
+cohort is complete and paused. Pinterest production API v5 confirmed the
+correct `goosegifts` BUSINESS account, 22 public Pins, 269 impressions, three
+Pin clicks, one save, and zero outbound clicks. The three impressions added
+since the prior documented run landed on Raw Chicken, Lick'em, and Hippo
+Vanity, not either format-test arm. Arm A remains six Pins at zero impressions;
+Arm B remains six Pins at one impression; neither arm has a save, Pin click,
+Pinterest outbound click, attributable site session, or downstream product
+click.
+
+Medieval Cat and Wacky Tube Guy were captured at their first scheduled
+post-seven-day checkpoints, both with zero impressions or action. Gratiator's
+checkpoint was captured 15 seconds after its exact seven-day boundary and was
+also zero. Two of six Arm A Pins and four of six Arm B Pins are now eligible;
+the eligible Arm B Pins have one combined impression, so there is still no
+format-response evidence. GA4 recorded 11 trailing-seven-day sessions from
+Direct or Amazon Organic Shopping and no Pinterest source or `product_click` /
+`affiliate_click` row. The database recorded no product click in 24 hours; its
+two seven-day clicks remain explicitly tagged PostHog QA. The owner-review
+queue remains empty. No product was selected, no asset was generated, and no
+public write was attempted. Keep the experiment paused, capture Shark Mug's
+seven-day checkpoint after 2026-09-12T23:41:23.856Z, and compare the complete arms
+only after American Mustache reaches seven days on 2026-09-15 and before
+Cameron selects the next experiment. Pinterest v3 and Sandbox remain excluded.
+
 ### 2026-09-10 afternoon measurement hold
 
 This scheduled slot remained a metric-only no-op because enrollment in the
