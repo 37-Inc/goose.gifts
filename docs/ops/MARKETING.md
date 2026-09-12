@@ -78,7 +78,7 @@ Direct or Amazon Organic Shopping and no Pinterest source or `product_click` /
 two seven-day clicks remain explicitly tagged PostHog QA. The owner-review
 queue remains empty. No product was selected, no asset was generated, and no
 public write was attempted. Keep the experiment paused, capture Shark Mug's
-seven-day checkpoint after 2026-09-12T23:41:23Z, and compare the complete arms
+seven-day checkpoint after 2026-09-12T23:41:23.856Z, and compare the complete arms
 only after American Mustache reaches seven days on 2026-09-15 and before
 Cameron selects the next experiment. Pinterest v3 and Sandbox remain excluded.
 

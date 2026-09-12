@@ -29,7 +29,7 @@ candidate selection, product verification, generation, artifact, review,
 package, approval, API dry run, or public write occurred. Two Arm A Pins and
 four Arm B Pins are now seven-day eligible, but one combined impression across
 all six is not enough to compare formats. Capture Shark Mug's seven-day
-checkpoint after 2026-09-12T23:41:23Z and continue candidate-level receipts.
+checkpoint after 2026-09-12T23:41:23.856Z and continue candidate-level receipts.
 After American Mustache reaches seven days on 2026-09-15, compare the complete
 six-versus-six arms before Cameron chooses the next experiment.
 
