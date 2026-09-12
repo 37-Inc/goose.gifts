@@ -5,6 +5,34 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-12 afternoon - Pinterest measurement hold
+
+**Evidence checked**: Pinterest production API v5 confirmed the correct
+`goosegifts` BUSINESS account and 22 public Pins. The profile reached 270
+impressions, three Pin clicks, one save, and zero outbound clicks. The one
+impression added since the morning pull belonged to Raw Chicken, not the format
+experiment. Arm A remains six Pins/zero impressions and Arm B remains six
+Pins/one impression; neither arm has a save, Pin click, Pinterest outbound
+click, attributable site session, or downstream product click. Shark Mug's
+seven-day receipt was captured seven days, three minutes, and 13 seconds after
+its exact production receipt and was zero across every metric. GA4 had 11
+trailing-seven-day sessions from Direct or Amazon Organic Shopping and no
+Pinterest source or outbound-product event. The database had zero product
+clicks in 24 hours and zero non-QA product clicks in seven days; its two
+seven-day clicks were explicitly tagged QA. Sandbox and Pinterest v3 were
+excluded.
+
+**Decision**: the experiment remains paused at its exact 12-Pin ceiling, and
+the owner-ready queue remains empty. This run was a metric-only no-op: no
+candidate selection, product verification, generation, artifact, review,
+package, approval, API dry run, or public write occurred. Three Arm A Pins and
+four Arm B Pins are now seven-day eligible, but one combined impression across
+all seven is not enough to compare formats. Capture Dog Toy only after its
+exact seven-day boundary at 2026-09-13T16:42:17.232Z and continue candidate-
+level receipts. After American Mustache reaches seven days on 2026-09-15,
+compare the complete six-versus-six arms before Cameron chooses the next
+experiment.
+
 ## 2026-09-12 morning - Pinterest measurement hold
 
 **Evidence checked**: Pinterest production API v5 confirmed the correct
