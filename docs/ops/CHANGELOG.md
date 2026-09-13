@@ -129,6 +129,15 @@ what's likely next.
 
 Newest first.
 
+### 2026-09-13 — Eight format Pins reach seven-day eligibility `[daily-ops]`
+
+Recorded Dog Toy's exact post-seven-day public checkpoint at zero across
+Pinterest and downstream metrics. Four of six clean Pins and four of six
+headline Pins are now eligible, but the eight candidates have only one
+combined impression, so the capped experiment remains paused and no creative
+or public write occurred. Continue receipts through the complete-arm review
+gate after 2026-09-15.
+
 ### 2026-09-12 — Seven format Pins reach seven-day eligibility `[daily-ops]`
 
 Recorded Shark Mug's exact post-seven-day public checkpoint at zero across
