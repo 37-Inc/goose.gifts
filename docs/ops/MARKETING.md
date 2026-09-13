@@ -55,6 +55,32 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-09-13 afternoon measurement hold
+
+This scheduled slot remained a metric-only no-op because the bounded 12-Pin
+cohort is complete and paused. Pinterest production API v5 confirmed the
+correct `goosegifts` BUSINESS account, 22 public Pins, 275 impressions, three
+Pin clicks, one save, and zero outbound clicks, unchanged from the morning
+pull. Arm A remains six Pins at zero impressions; Arm B remains six Pins at one
+impression; neither arm has a save, Pin click, Pinterest outbound click,
+attributable site session, or downstream product click.
+
+My First Fire's seven-day checkpoint was captured seven days and 14 seconds
+after its exact production receipt and remained zero across every Pinterest
+and downstream metric. Four of six Arm A Pins and five of six Arm B Pins are
+now seven-day eligible; the nine eligible Pins have one combined impression,
+so clean versus headline remains unevaluable. GA4 recorded 10
+trailing-seven-day sessions from Direct, Amazon Organic Shopping, or
+Unassigned and no Pinterest source or `product_click` / `affiliate_click` row.
+The database recorded no product click in 24 hours and no non-QA product click
+in seven days; its two seven-day clicks are explicitly tagged QA. The
+owner-review queue remains empty. No product was selected, no asset was
+generated, and no public write was attempted. Keep the experiment paused,
+capture Wiener Switch only after its exact seven-day boundary at
+2026-09-14T16:54:22.166Z, and compare the complete arms only after American
+Mustache reaches seven days on 2026-09-15 and before Cameron selects the next
+experiment. Pinterest v3 and Sandbox remain excluded.
+
 ### 2026-09-13 morning measurement hold
 
 This scheduled slot remained a metric-only no-op because the bounded 12-Pin
