@@ -14,7 +14,8 @@ from the morning pull. Arm A remains six Pins/zero impressions and Arm B
 remains six Pins/one impression; neither arm has a save, Pin click, Pinterest
 outbound click, attributable site session, or downstream product click. My
 First Fire's seven-day receipt was captured seven days and 14 seconds after its
-exact production receipt and was zero across every metric. GA4 had 10
+exact production receipt. Its Pinterest and observed downstream metrics were
+zero; revenue remained unavailable. GA4 had 10
 trailing-seven-day sessions from Direct, Amazon Organic Shopping, or
 Unassigned and no Pinterest source or outbound-product event. The database had
 zero product clicks in 24 hours and zero non-QA product clicks in seven days;

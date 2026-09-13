@@ -66,8 +66,9 @@ impression; neither arm has a save, Pin click, Pinterest outbound click,
 attributable site session, or downstream product click.
 
 My First Fire's seven-day checkpoint was captured seven days and 14 seconds
-after its exact production receipt and remained zero across every Pinterest
-and downstream metric. Four of six Arm A Pins and five of six Arm B Pins are
+after its exact production receipt. Its Pinterest and observed downstream
+metrics remained zero; revenue remained unavailable. Four of six Arm A Pins
+and five of six Arm B Pins are
 now seven-day eligible; the nine eligible Pins have one combined impression,
 so clean versus headline remains unevaluable. GA4 recorded 10
 trailing-seven-day sessions from Direct, Amazon Organic Shopping, or
