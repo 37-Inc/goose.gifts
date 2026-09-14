@@ -37,8 +37,8 @@ or intriguing first impression followed by a funny double take.
    directional attention signal, not yet a creative or conversion verdict. A
    bounded 12-Pin static-format cohort is now fully enrolled and evaluation is
    paused at six clean text-free editorials and six restrained 4–7 word
-   headlines. Arm B has
-   one impression and Arm A has none; neither has a downstream action. New
+   headlines. Each arm has one impression and neither has a downstream
+   action. New
    generation and publication remain stopped until the seven-day evidence gate
    and Cameron's next decision.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
@@ -54,6 +54,34 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-14 morning measurement hold
+
+This scheduled slot remained a metric-only no-op because the bounded 12-Pin
+cohort is complete and paused. Pinterest production API v5 confirmed the
+correct `goosegifts` BUSINESS account, 22 public Pins, 280 impressions, three
+Pin clicks, one save, and zero outbound clicks. Five impressions added since
+the prior documented pull: two each on Butt Station and Lick'em plus one on
+Medieval Cat. Only Medieval Cat belongs to the format test, bringing Arm A to
+one impression against Arm B's one; neither arm has a save, Pin click,
+Pinterest outbound click, attributable site session, or downstream product
+click.
+
+Wiener Switch's seven-day checkpoint was captured seven days and 25 seconds
+after its exact production receipt. Its Pinterest and observed downstream
+metrics remained zero; revenue remained unavailable. Four of six Arm A Pins
+and all six Arm B Pins are now seven-day eligible; the ten eligible Pins have
+two combined impressions, so clean versus headline remains unevaluable. GA4
+recorded 10 trailing-seven-day sessions from Direct, Amazon Organic Shopping,
+or Unassigned and no Pinterest source or `product_click` / `affiliate_click`
+row. The database recorded no product click in 24 hours and no non-QA product
+click in seven days; its two seven-day clicks are explicitly tagged QA. The
+owner-review queue remains empty. No product was selected, no asset was
+generated, and no public write was attempted. Keep the experiment paused,
+capture Mystic Pickle only after its exact seven-day boundary at
+2026-09-14T23:51:01.222Z, then capture American Mustache after
+2026-09-15T16:49:59.043Z before the complete-cohort review. Pinterest v3 and
+Sandbox remain excluded.
 
 ### 2026-09-13 afternoon measurement hold
 
