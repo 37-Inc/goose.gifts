@@ -5,6 +5,35 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-14 afternoon - Pinterest measurement hold
+
+**Evidence checked**: Pinterest production API v5 confirmed the correct
+`goosegifts` BUSINESS account and 22 public Pins. The profile held at 280
+impressions, three Pin clicks, one save, and zero outbound clicks, unchanged
+from the morning pull. Arm A and Arm B remain tied at one impression each;
+neither has a save, Pin click, Pinterest outbound click, attributable site
+session, or downstream product click. Mystic Pickle's seven-day receipt was
+captured seven days and one minute after its exact production receipt. Its
+Pinterest and observed downstream metrics were zero; revenue remained
+unavailable. GA4 had 10 trailing-seven-day sessions from Direct, Amazon
+Organic Shopping, or Unassigned and no Pinterest source or outbound-product
+event. The database had zero product clicks in 24 hours and zero non-QA product
+clicks in seven days; its two seven-day clicks were explicitly tagged QA.
+Search Console's September 7–12 public window returned one click and 519
+impressions across its reported pages. The sitemap remains healthy at 112
+submitted URLs, zero errors, and zero warnings. Sandbox and Pinterest v3 were
+excluded.
+
+**Decision**: the experiment remains paused at its exact 12-Pin ceiling, and
+the owner-ready queue remains empty. This run was a metric-only no-op: no
+candidate selection, product verification, generation, artifact, review,
+package, approval, API dry run, or public write occurred. Five Arm A Pins and
+all six Arm B Pins are now seven-day eligible, but two combined impressions
+across all eleven are not enough to compare formats. Capture American Mustache
+only after its exact seven-day boundary at 2026-09-15T16:49:59.043Z, then
+perform the complete six-versus-six cohort review before Cameron chooses the
+next experiment.
+
 ## 2026-09-14 morning - Pinterest measurement hold
 
 **Evidence checked**: Pinterest production API v5 confirmed the correct
