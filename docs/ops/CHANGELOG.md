@@ -87,9 +87,9 @@ what's likely next.
   intact. The 2026-09-08 morning slot published the twenty-second truthful
   public Pin, The American Mustache `1107815208388134634`, after a 4.63/5
   exact-source museum editorial review. The comparison is complete and paused
-  at six clean and six headline Pins. Neither arm has a downstream action, so
-  subsequent studio runs remain measurement-only until the seven-day review
-  and Cameron's next decision.
+  at six clean and six headline Pins. Each arm currently has one impression
+  and neither has a downstream action, so subsequent studio runs remain
+  measurement-only until the seven-day review and Cameron's next decision.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -128,6 +128,16 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-14 — Ten format Pins reach seven-day eligibility `[daily-ops]`
+
+Recorded Wiener Switch's exact post-seven-day public checkpoint with zero
+Pinterest or observed downstream action and unavailable revenue. Four of six
+clean Pins and all six headline Pins are now eligible. Medieval Cat supplied
+the clean arm's first impression, leaving the two complete arms tied at one
+impression and no action; the capped experiment remains paused and no creative
+or public write occurred. Continue receipts through the complete-arm review
+gate after 2026-09-15.
 
 ### 2026-09-13 — Nine format Pins reach seven-day eligibility `[daily-ops]`
 
