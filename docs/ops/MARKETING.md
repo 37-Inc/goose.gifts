@@ -55,6 +55,34 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-09-14 afternoon measurement hold
+
+This scheduled slot remained a metric-only no-op because the bounded 12-Pin
+cohort is complete and paused. Pinterest production API v5 confirmed the
+correct `goosegifts` BUSINESS account, 22 public Pins, 280 impressions, three
+Pin clicks, one save, and zero outbound clicks, unchanged from the morning
+pull. Arm A and Arm B remain tied at one impression each and neither has a
+save, Pin click, Pinterest outbound click, attributable site session, or
+downstream product click.
+
+Mystic Pickle's seven-day checkpoint was captured seven days and one minute
+after its exact production receipt. Its Pinterest and observed downstream
+metrics remained zero; revenue remained unavailable. Five of six Arm A Pins
+and all six Arm B Pins are now seven-day eligible; the eleven eligible Pins
+have two combined impressions, so clean versus headline remains unevaluable.
+GA4 recorded 10 trailing-seven-day sessions from Direct, Amazon Organic
+Shopping, or Unassigned and no Pinterest source or `product_click` /
+`affiliate_click` row. The database recorded no product click in 24 hours and
+no non-QA product click in seven days; its two seven-day clicks are explicitly
+tagged QA. Search Console's current September 7–12 window recorded one organic
+click and 519 impressions across the returned public pages; the sitemap has
+112 submitted URLs with zero errors or warnings. The owner-review queue
+remains empty. No product was selected, no asset was generated, and no public
+write was attempted. Keep the experiment paused, capture American Mustache
+only after its exact seven-day boundary at 2026-09-15T16:49:59.043Z, then
+perform the complete six-versus-six cohort review before Cameron chooses the
+next experiment. Pinterest v3 and Sandbox remain excluded.
+
 ### 2026-09-14 morning measurement hold
 
 This scheduled slot remained a metric-only no-op because the bounded 12-Pin

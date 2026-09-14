@@ -137,6 +137,15 @@ what's likely next.
 
 Newest first.
 
+### 2026-09-14 — Eleven format Pins reach seven-day eligibility `[daily-ops]`
+
+Recorded Mystic Pickle's exact post-seven-day public checkpoint with zero
+Pinterest or observed downstream action and unavailable revenue. Five of six
+clean Pins and all six headline Pins are now eligible. The two complete arms
+remain tied at one impression and no action; the capped experiment remains
+paused and no creative or public write occurred. Capture American Mustache
+after its exact September 15 gate, then conduct the complete-cohort review.
+
 ### 2026-09-14 — Neon wake-up reduction prepared in PR #146 `[owner+claude]`
 
 Opened PR #146 without merging it. The change removes Neon writes for passive
