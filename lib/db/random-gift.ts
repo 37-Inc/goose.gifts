@@ -5,6 +5,7 @@ import { products } from './schema';
 import { cleanImageUrl } from '../image-utils';
 import { isCatalogDisplayEligibleProduct, scoreProductForTrending } from './product-scoring';
 import type { Product } from '../types';
+import { PUBLIC_CATALOG_CACHE_SECONDS } from '../catalog-cache-policy';
 
 function toProduct(row: {
   id: string;
@@ -138,7 +139,7 @@ const getEligibleRandomGiftPool = unstable_cache(
   loadEligibleRandomGiftPool,
   ['random-gift-eligible-pool-v1'],
   {
-    revalidate: 3600,
+    revalidate: PUBLIC_CATALOG_CACHE_SECONDS,
     tags: ['catalog-products'],
   }
 );

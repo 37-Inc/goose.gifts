@@ -232,7 +232,6 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
                     clickSource="gift_page_editorial"
                     contextSlug={lookup.canonicalSlug}
                     ariaLabel={`See ${title} at ${retailerLabel} (opens in a new tab)`}
-                    trackImpression={false}
                     className="inline-flex min-h-11 w-fit items-center rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white outline-none transition hover:bg-brand focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 motion-reduce:transition-none"
                   >
                     {product.price > 0 ? `See it at ${retailerLabel}` : 'Check price and availability'}

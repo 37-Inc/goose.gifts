@@ -79,7 +79,6 @@ export function MobileStickyRetailerCta({
           clickSource="gift_page_sticky"
           contextSlug={contextSlug}
           ariaLabel={`See this gift at ${retailerLabel} (opens in a new tab)`}
-          trackImpression={false}
           className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-semibold text-white outline-none transition hover:bg-brand focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 motion-reduce:transition-none"
         >
           See at {retailerLabel}

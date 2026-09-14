@@ -5,7 +5,7 @@ import { GuideTile } from '@/components/GuideTile';
 import { giftGuides, getGuidePreviewImages } from '@/lib/gift-guides';
 import { getSiteUrl } from '@/lib/site';
 
-export const revalidate = 3600;
+export const revalidate = 86_400;
 
 const GUIDE_INDEX_TITLE = 'Funny Gift Guides';
 const GUIDE_INDEX_DESCRIPTION = 'Browse every goose.gifts guide for funny gag gifts, white elephant ideas, coworker gifts, weird kitchen finds, novelty desk toys, and hard-to-shop-for people.';

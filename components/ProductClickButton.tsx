@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import type { MouseEvent, ReactNode } from 'react';
 import type { Product } from '@/lib/types';
 import {
@@ -16,7 +15,6 @@ interface ProductClickButtonProps {
   children: ReactNode;
   className: string;
   ariaLabel?: string;
-  trackImpression?: boolean;
 }
 
 function openOutbound(url: string) {
@@ -30,24 +28,7 @@ export function ProductClickButton({
   children,
   className,
   ariaLabel,
-  trackImpression = true,
 }: ProductClickButtonProps) {
-  useEffect(() => {
-    if (!trackImpression) {
-      return;
-    }
-
-    fetch('/api/track-impression', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        productIds: [product.id],
-        source: clickSource,
-        contextSlug,
-      }),
-    }).catch(() => {});
-  }, [clickSource, contextSlug, product.id, trackImpression]);
-
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     const attribution = getClickAttribution();

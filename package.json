@@ -52,6 +52,7 @@
     "test:catalog-ops": "node --experimental-strip-types --test tests/catalog-ops.test.mjs",
     "test:catalog-telemetry": "node --test tests/catalog-telemetry.test.mjs",
     "test:catalog-cache": "node --experimental-strip-types --test tests/catalog-cache.test.mjs",
+    "test:neon-compute": "node --test tests/neon-compute-boundary.test.mjs",
     "test:structured-data": "node --experimental-strip-types --test tests/home-item-list-schema.test.mjs",
     "test:gift-guides": "node --import tsx --test tests/gift-guides.test.mjs tests/gift-guide-schema.test.mjs",
     "test:gift-pages": "node --experimental-strip-types --test tests/gift-slugs.test.mjs tests/gift-page-schema.test.mjs tests/gift-page-retailer-cta.test.mjs",

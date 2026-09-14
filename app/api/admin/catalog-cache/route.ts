@@ -17,7 +17,11 @@ export async function POST(request: NextRequest) {
   revalidateTag('gift-pages', { expire: 0 });
   revalidatePath('/gifts');
   revalidatePath('/gifts/[slug]', 'page');
+  revalidatePath('/gift-guides');
+  revalidatePath('/gift-guides/[slug]', 'page');
   revalidatePath('/random-gift');
+  revalidatePath('/weird-gift-index');
+  revalidatePath('/weird-gift-index/data');
   revalidatePath('/sitemap.xml');
 
   return NextResponse.json({
@@ -27,7 +31,11 @@ export async function POST(request: NextRequest) {
       'gift-pages',
       '/gifts',
       '/gifts/[slug]',
+      '/gift-guides',
+      '/gift-guides/[slug]',
       '/random-gift',
+      '/weird-gift-index',
+      '/weird-gift-index/data',
       '/sitemap.xml',
     ],
   });

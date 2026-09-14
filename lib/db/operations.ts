@@ -4,6 +4,7 @@ import { db } from './index';
 import { products } from './schema';
 import type { Product } from '../types';
 import { cleanImageUrl } from '../image-utils';
+import { PUBLIC_CATALOG_CACHE_SECONDS } from '../catalog-cache-policy';
 import {
   HOMEPAGE_BRAND_FIT_TERMS,
   isCatalogDisplayEligibleProduct,
@@ -13,14 +14,11 @@ import {
 } from './product-scoring';
 
 const HOMEPAGE_CANDIDATE_LIMIT = 1200;
-const HOMEPAGE_CACHE_SECONDS = 3600;
 const HOMEPAGE_DIVERSITY_LOOKAHEAD_FACTOR = 3;
 const HOMEPAGE_MAX_PRODUCTS_PER_TYPE = 4;
 
 interface ProductWithStats extends Product {
   clickCount: number;
-  impressionCount: number;
-  lastClickedAt: Date | null;
 }
 
 interface CatalogFeedOptions {
@@ -85,8 +83,6 @@ async function loadHomepageEligibleProducts(): Promise<ProductWithStats[]> {
       rating: products.rating,
       reviewCount: products.reviewCount,
       clickCount: products.clickCount,
-      impressionCount: products.impressionCount,
-      lastClickedAt: products.lastClickedAt,
     })
     .from(products)
     .where(sql`
@@ -125,8 +121,6 @@ async function loadHomepageEligibleProducts(): Promise<ProductWithStats[]> {
     rating: product.rating ? parseFloat(product.rating) : undefined,
     reviewCount: product.reviewCount || undefined,
     clickCount: product.clickCount || 0,
-    impressionCount: product.impressionCount || 0,
-    lastClickedAt: product.lastClickedAt,
   })).filter((product) => isCatalogDisplayEligibleProduct(product));
 }
 
@@ -138,7 +132,7 @@ const getHomepageEligibleProducts = unstable_cache(
   loadHomepageEligibleProducts,
   ['homepage-eligible-products-v2'],
   {
-    revalidate: HOMEPAGE_CACHE_SECONDS,
+    revalidate: PUBLIC_CATALOG_CACHE_SECONDS,
     tags: ['catalog-products'],
   }
 );
@@ -170,9 +164,9 @@ export async function getCatalogFeedProducts({
     const rankStartedAt = performance.now();
     const ranked = eligibleProducts
       .map((product) => {
-        const impressions = Math.max(product.impressionCount, 1);
-        const ctr = Math.min(product.clickCount / impressions, 0.25);
-        const engagementBonus = product.impressionCount >= 10 ? ctr * 48 : 2;
+        // Clicks remain a deliberate database signal. Impressions live in
+        // PostHog/GA so ordinary page views do not wake Neon.
+        const engagementBonus = Math.min(Math.log2(product.clickCount + 1) * 3, 18);
         const discoveryJitter = seededFraction(`${seed}:${product.id}`) * 12;
 
         return {

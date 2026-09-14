@@ -1,10 +1,12 @@
 import { sql } from 'drizzle-orm';
+import { unstable_cache } from 'next/cache';
 import { db } from './db/index';
 import { products } from './db/schema';
 import { cleanImageUrl } from './image-utils';
 import type { Product } from './types';
 import { selectGiftGuideDisplayProducts } from './db/product-scoring';
 import type { GiftGuideFaq } from './gift-guide-editorial';
+import { PUBLIC_CATALOG_CACHE_SECONDS } from './catalog-cache-policy';
 
 export type { GiftGuideFaq } from './gift-guide-editorial';
 
@@ -806,10 +808,12 @@ async function selectGiftGuideRows(
     .limit(limit);
 }
 
-export async function getGiftGuideProducts(
-  guide: GiftGuideDefinition,
-  limit: number = 36
-): Promise<Product[]> {
+async function loadGiftGuideProducts(guideSlug: string, limit: number): Promise<Product[]> {
+  const guide = getGiftGuide(guideSlug);
+  if (!guide) {
+    return [];
+  }
+
   const focusGroups = giftGuideFocusKeywordGroups[guide.slug] || [guide.keywords.slice(0, 1)];
   const candidateLimit = Math.max(limit, Math.min(limit * 2, 72));
   const toProduct = (row: Awaited<ReturnType<typeof selectGiftGuideRows>>[number]): Product => ({
@@ -846,6 +850,22 @@ export async function getGiftGuideProducts(
     [...focusedProducts, ...fallbackRows.map(toProduct)],
     Math.min(limit, MAX_FALLBACK_GUIDE_PRODUCTS)
   );
+}
+
+const getCachedGiftGuideProducts = unstable_cache(
+  loadGiftGuideProducts,
+  ['gift-guide-products-v1'],
+  {
+    revalidate: PUBLIC_CATALOG_CACHE_SECONDS,
+    tags: ['catalog-products'],
+  }
+);
+
+export async function getGiftGuideProducts(
+  guide: GiftGuideDefinition,
+  limit: number = 36
+): Promise<Product[]> {
+  return getCachedGiftGuideProducts(guide.slug, limit);
 }
 
 export interface GuidePreview {
