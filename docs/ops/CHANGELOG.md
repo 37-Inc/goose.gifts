@@ -24,6 +24,14 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **Neon compute — deploy and measure PR #146 before changing plans.** Passive
+  product views move to GA/PostHog, crawler-facing catalog reads use a shared
+  24-hour cache with explicit catalog invalidation, and meaningful searches,
+  clicks, admin work, and catalog maintenance remain database-backed. Neon had
+  used about 52.8 CU-hours through 2026-09-14. After deployment, confirm
+  scale-to-zero remains enabled and measure 3–7 days of usage before deciding
+  whether the Free plan's 100 CU-hour allowance is sufficient (Beads
+  `roadmap-2pxe`).
 - **Indexation — guide baseline healthy; product cohort monitoring.** The seven
   priority guide surfaces are submitted and indexed, and 58 factual product
   pages are live in the current 106-URL sitemap. At the 2026-08-21 14-day check,
@@ -128,6 +136,15 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-14 — Neon wake-up reduction prepared in PR #146 `[owner+claude]`
+
+Opened PR #146 without merging it. The change removes Neon writes for passive
+product impressions, caches public catalog reads for 24 hours with immediate
+catalog-job invalidation, and keeps searches, product clicks, admin activity,
+and weekly catalog work database-backed. All focused tests, lint, TypeScript,
+and the production build pass. This is not deployed yet; verify scale-to-zero
+and measure post-deploy compute before changing the Neon plan.
 
 ### 2026-09-14 — Ten format Pins reach seven-day eligibility `[daily-ops]`
 

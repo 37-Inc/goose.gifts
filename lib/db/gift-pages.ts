@@ -5,8 +5,8 @@ import { productSlugHistory, products } from './schema';
 import { cleanImageUrl } from '../image-utils';
 import type { Product } from '../types';
 import { hasIndexableGiftEditorial } from '../gift-slugs';
+import { PUBLIC_CATALOG_CACHE_SECONDS } from '../catalog-cache-policy';
 
-const GIFT_PAGE_CACHE_SECONDS = 300;
 
 const productSelection = {
   id: products.id,
@@ -157,7 +157,7 @@ const getCachedGiftPageBySlug = unstable_cache(
   loadGiftPageBySlug,
   ['gift-page-by-slug-v1'],
   {
-    revalidate: GIFT_PAGE_CACHE_SECONDS,
+    revalidate: PUBLIC_CATALOG_CACHE_SECONDS,
     tags: ['catalog-products', 'gift-pages'],
   }
 );
@@ -202,7 +202,7 @@ const getCachedRelatedGiftProducts = unstable_cache(
   loadRelatedGiftProducts,
   ['related-gift-products-v1'],
   {
-    revalidate: GIFT_PAGE_CACHE_SECONDS,
+    revalidate: PUBLIC_CATALOG_CACHE_SECONDS,
     tags: ['catalog-products', 'gift-pages'],
   }
 );
@@ -236,7 +236,7 @@ const getCachedIndexableGiftSitemapEntries = unstable_cache(
   loadIndexableGiftSitemapEntries,
   ['indexable-gift-sitemap-entries-v1'],
   {
-    revalidate: GIFT_PAGE_CACHE_SECONDS,
+    revalidate: PUBLIC_CATALOG_CACHE_SECONDS,
     tags: ['catalog-products', 'gift-pages'],
   }
 );
@@ -278,7 +278,7 @@ const getCachedIndexableGiftDirectoryPage = unstable_cache(
   loadIndexableGiftDirectoryPage,
   ['indexable-gift-directory-v1'],
   {
-    revalidate: GIFT_PAGE_CACHE_SECONDS,
+    revalidate: PUBLIC_CATALOG_CACHE_SECONDS,
     tags: ['catalog-products', 'gift-pages'],
   }
 );

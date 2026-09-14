@@ -80,16 +80,6 @@ export function ProductGrid({ products, clickSource, contextSlug, searchQueryId 
     newProducts.forEach((product) => impressedProductIdsRef.current.add(product.id));
     getClickAttribution();
 
-    fetch('/api/track-impression', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        productIds: newProducts.map((product) => product.id),
-        source: clickSource,
-        contextSlug,
-      }),
-    }).catch(() => {});
-
     captureViewItemList({
       clickSource,
       contextSlug,

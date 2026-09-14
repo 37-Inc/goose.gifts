@@ -3,6 +3,7 @@ import { and, eq, isNotNull } from 'drizzle-orm';
 import { db } from '@/lib/db/index';
 import { products } from '@/lib/db/schema';
 import { analyzeWeirdGiftCatalog } from '@/lib/weird-gift-index-analysis';
+import { PUBLIC_CATALOG_CACHE_SECONDS } from '@/lib/catalog-cache-policy';
 
 async function queryWeirdGiftIndex() {
   const rows = await db
@@ -26,7 +27,7 @@ export const getWeirdGiftIndex = unstable_cache(
   queryWeirdGiftIndex,
   ['weird-gift-index-2026-1'],
   {
-    revalidate: 3600,
-    tags: ['weird-gift-index'],
+    revalidate: PUBLIC_CATALOG_CACHE_SECONDS,
+    tags: ['catalog-products', 'weird-gift-index'],
   }
 );

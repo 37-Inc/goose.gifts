@@ -1,0 +1,1 @@
+export const PUBLIC_CATALOG_CACHE_SECONDS = 86_400;
