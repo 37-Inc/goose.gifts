@@ -66,6 +66,35 @@ security prerequisite `roadmap-93fq` clears the inherited dependency audit
 before this conversion release. Success is qualified retailer clicks per
 product landing, not a claim of uplift from this low-traffic baseline.
 
+## 2026-09-15 morning - v10 final review and v11 authorization
+
+**Evidence checked**: Pinterest production API v5 confirmed 22 public Pins on
+the correct `goosegifts` BUSINESS account with 280 impressions, three Pin
+clicks, one save, and zero outbound clicks. American Mustache's exact
+post-seven-day checkpoint was zero. The complete six-clean/six-headline v10
+cohort has one current impression per arm and no save, Pin click, Pinterest
+outbound click, attributable site session, or downstream product click in
+either arm. GA4 had nine trailing-seven-day sessions from Direct or Amazon
+Organic Shopping and no Pinterest source or outbound-product event. The
+database had zero product clicks in 24 hours and zero non-QA product clicks in
+seven days; its two seven-day clicks were QA. Search Console's September 8–13
+window had zero clicks and 520 impressions across reported pages. The current
+92-URL sitemap has zero errors or warnings. A delegated audit confirmed that
+its lower gift count is the existing 35-day verification-age gate, not a
+crawler-directive change. Pinterest v3 and Sandbox were excluded.
+
+**Decision**: v10 is complete and inconclusive because two total impressions
+cannot distinguish the formats. Cameron's direct instruction authorizes a new
+12-Pin static mix with two scheduled slots per day: Arm P is a bespoke playful
+poster with one polished 4–7 word product-specific line; Arm F is a bespoke
+one-hero field note with two or three accurate annotations. Both keep every
+truth, taste, no-CTA, no-template, exact-package, production-account,
+duplicate, receipt, and no-spend guard. The arms wait for a full 14-day gate,
+and fewer than 50 impressions in either arm means the result remains
+distribution-limited. No creative or public write occurred in this morning
+slot. The queue is empty; the afternoon slot may begin v11 from the current
+verified and enriched catalog.
+
 ## 2026-09-14 afternoon - Pinterest measurement hold
 
 **Evidence checked**: Pinterest production API v5 confirmed the correct

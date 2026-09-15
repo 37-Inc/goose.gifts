@@ -18,15 +18,6 @@ outward-facing accounts. Best remaining channels:
 - **TikTok/Reels/Shorts**: short vertical product roundups generated from the
   catalog; I can prepare scripts/assets, but posting needs account access or
   approval of the publishing tool.
-- **Pinterest**: the account, Standard access, production publisher, catalog
-  candidate feed, and minimum approval/duplicate/receipt guards are complete;
-  see Received below. Cameron's bounded 12-Pin static-format comparison reached
-  its exact six-clean/six-headline ceiling on 2026-09-08 and is paused. The
-  prior two-slot exception now authorizes no new creative or public write;
-  scheduled runs are measurement-only until the seven-day review and Cameron's
-  next decision. It never authorized video, Sandbox use, paid distribution, or
-  spend.
-
 Needed from Cameron: choose which channels to authorize for posting and approve
 any paid/video-generation tooling before spend.
 
@@ -59,6 +50,16 @@ you'd rather get real email/Slack from me, connect a connector at
 **https://claude.ai/customize/connectors** and include it in the routine.
 
 ## Received
+
+- 2026-09-15: next Pinterest editorial mix and cadence. The first 12-Pin
+  clean-versus-headline cohort completed with only one impression per arm and
+  no action, so no winner was declared. Cameron chose to continue with up to
+  two scheduled posts per day, mix genuinely different editorial styles, use
+  tasteful playful in-image text, and skip product-reveal video. The authorized
+  v11 cap is 12 Pins: six playful product-specific posters and six bespoke
+  annotated field notes, each still subject to the exact-package and production
+  guards. No paid tool, video, Sandbox write, account change, or spend is
+  authorized.
 
 - 2026-08-25: Pinterest Standard access. Pinterest's verified developer sender
   confirmed on 2026-08-24 that the `Goose.gifts` app is approved. The production

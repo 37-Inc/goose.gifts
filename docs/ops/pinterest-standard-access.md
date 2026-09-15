@@ -206,9 +206,13 @@ frame that shows a raw token.**
   Mustache coffee-table-book Pins. Combined
   with the six retained product-faithful browser posts, the current clean
   profile has twenty-two public Pins and zero Sandbox objects. The bounded
-  static-format cohort is complete and paused at twelve of twelve: six Arm A
-  clean Pins and six Arm B headline Pins. New creative and publication remain
-  stopped until the seven-day review and Cameron's next decision.
+  static-format cohort completed at twelve of twelve: six Arm A clean Pins and
+  six Arm B headline Pins. At the final seven-day gate each arm had one
+  impression and no action, so the result is inconclusive. Cameron then
+  authorized a new 12-Pin editorial-text mix at the same one-Pin-per-run,
+  two-per-day ceiling: playful product-specific posters versus bespoke one-hero
+  annotated field notes. Video, paid tools, paid distribution, Sandbox writes,
+  account changes, deletion, and spend remain excluded.
 - The production API `GET /v5/pins` response is the authoritative live-count
   source and currently returns twenty-two Pins. `pinterest-approved-pins.json`
   is a package/publication ledger rather than the profile inventory: it contains
