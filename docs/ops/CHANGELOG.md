@@ -52,7 +52,7 @@ what's likely next.
 - **Distribution / Pinterest — measure the guarded production cohort.**
   Pinterest approved the `Goose.gifts` app on 2026-08-24. Production OAuth
   refresh, account/board/metrics reads, and a real-board create dry run passed
-  on 2026-08-25 with every required scope. The scheduled studio now runs a
+  on 2026-08-25 with every required scope. The scheduled studio now runs
   bounded editorial-format comparisons with two spaced slots: each run may
   publish at most one exact hard-gated package and each local day at most two,
   with a quality-gated no-op otherwise. The minimum
@@ -106,7 +106,9 @@ what's likely next.
   completed at one impression per arm and no action, so it is inconclusive from
   lack of distribution. Cameron authorized the next 12-Pin mix: six playful
   product-specific editorial posters and six bespoke annotated field notes,
-  with the same two-slot ceiling and harder 14-day/minimum-exposure review.
+  with the same two-slot ceiling and harder 14-day/minimum-exposure review. The
+  first Arm F package, Red the Crab `1107815208388715714`, is now public and
+  read-verified; v11 stands at Arm F 1/6, Arm P 0/6, and 1/12 overall.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -145,6 +147,15 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-15 — Launch the annotated field-note arm with Red the Crab `[daily-ops]`
+
+Reverified OTOTO Red the Crab against Amazon and its indexable gift page,
+compared two distinct 2:3 annotated editorials, and advanced the copper-lit
+steam-release portrait as the only 4.75/5 survivor. The guarded production API
+created and read-verified public Pin `1107815208388715714` with its exact Arm F
+package and unique tracking URL. V11 is now 1 of 12, with no performance claim
+from the zero-action publication baseline.
 
 ### 2026-09-15 — Clear the dependency security release gate `[daily-ops]`
 

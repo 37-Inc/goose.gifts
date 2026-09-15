@@ -5,6 +5,41 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-15 afternoon - v11 Red the Crab field note
+
+**Evidence checked**: Pinterest production API v5 confirmed the correct
+`goosegifts` BUSINESS account and an unchanged pre-publication profile of 22
+Pins, 290 impressions, three Pin clicks, one save, and zero outbound clicks.
+GA4 had nine trailing-seven-day sessions from Direct or Amazon Organic
+Shopping and no Pinterest source or outbound-product event. The database had
+zero product clicks in 24 hours and zero non-QA product clicks in seven days;
+its two seven-day clicks were QA. Search Console's September 9–14 public
+window had zero clicks; the coworker guide led the returned pages with 215
+impressions. Pinterest v3 and Sandbox were excluded.
+
+**Creative and publication**: the current enriched shortlist supplied OTOTO
+Red the Crab, ASIN `B07VLBVQBP`. Amazon Creators API reverified it `IN_STOCK`
+at `$12.88`, and the exact source and canonical `index, follow` destination
+passed preflight. Of three product-derived concepts, the top-down plate was
+rejected before generation for template risk. Two Arm F executions were
+generated and inspected at full resolution. The bright kitchen attempt passed
+at `4.63/5` but had less exact leader-line targeting. The 4.75/5 copper-lit
+steam-room portrait was the only survivor; its three notes accurately identify
+the secured ladle, released steam, and verified four-inch height. No causal
+revision was warranted.
+
+The guarded production dry run verified Cameron's exact-package approval,
+the `goosegifts` BUSINESS account, `Weird Kitchen Gadgets` board, unique Arm F
+tracking URL, vertical artifact, empty daily publication count, and v11 cap.
+Pinterest created and read-verified Pin `1107815208388715714`; receipt
+`receipt-1789515650765-editorial-red-crab-steam-field-note-20260915-pm-publication-succeeded`
+is durable. The public baseline was zero actions about eight seconds after
+publication. V11 is now Arm F 1/6, Arm P 0/6, and 1/12 overall. No video,
+weekly catalog job, second daily Pin, paid tool, outreach, account change,
+deletion, or spend occurred. The next scheduled slot is 2026-09-16 morning,
+assigned Arm F by the predeclared time-balancing rule; choose a distinct
+product and visual mechanism or take a quality-gated no-op.
+
 ## 2026-09-15 — Dependency security prerequisite
 
 The mobile-conversion audit encountered the known release-gate findings in
