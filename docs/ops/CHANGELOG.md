@@ -138,6 +138,14 @@ what's likely next.
 
 Newest first.
 
+### 2026-09-15 — Clear the dependency security release gate `[daily-ops]`
+
+Updated Next.js and its matching ESLint configuration to 16.3.5, bringing
+Sharp to 0.35.4. Refreshed the two vulnerable, compatible tooling transitive
+dependencies (js-yaml and postcss-selector-parser). The audit now reports zero
+vulnerabilities. This is the separately tracked security prerequisite
+(`roadmap-93fq`), not a change to the product landing layout or catalog cache.
+
 ### 2026-09-15 — Editorial-text mix authorized after inconclusive cohort `[daily-ops]`
 
 Captured American Mustache's exact seven-day checkpoint and closed the 12-Pin

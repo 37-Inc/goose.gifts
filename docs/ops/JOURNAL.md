@@ -5,6 +5,20 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-15 — Dependency security prerequisite
+
+The mobile-conversion audit encountered the known release-gate findings in
+`roadmap-93fq`: Next.js 16.3.1 and Sharp, plus js-yaml and a low-severity CSS
+parser issue. Updated Next.js and eslint-config-next to 16.3.5, Sharp to
+0.35.4, js-yaml to 4.3.2, and postcss-selector-parser to 6.1.4. These are
+compatible security updates; no application, cache, analytics, or environment
+configuration changed. `npm audit --audit-level=high` now reports zero
+vulnerabilities. The complete offline test suite and lint passed; build and
+production verification remain mandatory release gates. Keep this patch in
+its own PR before merging the separate conversion change.
+
+Reference: https://nextjs.org/blog/august-2026-security-release.
+
 ## 2026-09-15 morning - v10 final review and v11 authorization
 
 **Evidence checked**: Pinterest production API v5 confirmed 22 public Pins on
