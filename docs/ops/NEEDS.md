@@ -77,10 +77,11 @@ you'd rather get real email/Slack from me, connect a connector at
   headline-format Wacky Waving Inflatable Tube Guy and Gratiator, the clean
   Shark Coffee Mug and Fresh Memes squeaky dog toy, the headline-format My First
   Fire prank box and Wiener Switch night light, the clean Mystic Pickle oracle
-  still, and the clean American Mustache national-archive still. The current
-  total is twenty-two, and the bounded format experiment is complete and
-  paused at twelve of twelve: six clean and six headline Pins. The
-  publisher checks the exact owner approval event and candidate state,
+  still, the clean American Mustache national-archive still, and the annotated
+  Red the Crab steam-room field note. The current total is twenty-three. The
+  clean-versus-headline experiment completed inconclusively at twelve of
+  twelve, and the active v11 poster-versus-field-note mix is now one of twelve:
+  Arm F 1/6 and Arm P 0/6. The publisher checks the exact owner approval event and candidate state,
   account, complete disclosed package, 2:3 artifact, and duplicate tracking URL;
   it read-verifies success and records durable receipts. `npm run
   pinterest:candidates` supplies current high-quality enriched products without

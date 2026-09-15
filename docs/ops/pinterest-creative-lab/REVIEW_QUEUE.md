@@ -11,6 +11,44 @@ None.
 
 ## Published from this queue
 
+### Red the Crab — steam-room field note
+
+- Candidate: `cand-v11-red-crab-field-note` (`measuring`, Arm F annotated field
+  note, internal score `4.75/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208388715714/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v22-concepts/02-red-crab-steam-room-field-note.png`
+- Exact product: OTOTO Red the Crab four-inch red food-grade silicone spoon
+  rest and steam releaser, ASIN `B07VLBVQBP`; Amazon Creators API reverified it
+  `IN_STOCK` at `$12.88` on 2026-09-15 with the unchanged primary image. Its
+  claws hold spoons, tongs, or ladles, its legs grip a pot lid to release steam,
+  and it is dishwasher safe.
+- Destination:
+  `https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen`
+- Board: `Weird Kitchen Gadgets`
+- Title: `Red Crab Spoon Rest and Steam Releaser`
+- Description: `OTOTO Red the Crab is a four-inch food-grade silicone kitchen gadget whose claws hold a spoon or ladle while its legs lift a pot lid to release steam. Dishwasher-safe and weirdly competent, it makes a useful housewarming or home-cook gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Small red silicone crab holding a ladle above a vented pot lid in a copper-lit kitchen beside the notes “Ladle: secured,” “Steam: released,” and “Height: 4 inches.”`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm`
+- Rejected alternatives: the bright kitchen field note passed every hard gate
+  at `4.63/5` but its lower leader lines were less exact; the top-down plate was
+  rejected before generation for product-card/infographic risk. No revision was
+  needed, so the run stopped after two generation calls.
+- Approval scope: Cameron's 2026-09-15 standing scheduled-task authorization,
+  recorded as `evt-20260915-v11-red-crab-approved`, covered only this exact
+  Arm F package as the first and only 2026-09-15 publication, in the final
+  scheduled slot, and first of 12 qualifying v11 Pins.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, exact approval, first-and-only daily publication, unique
+  UTM, 1024×1536 artifact, and `Weird Kitchen Gadgets` board; it read back every
+  field and wrote receipt
+  `receipt-1789515650765-editorial-red-crab-steam-field-note-20260915-pm-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about
+  eight seconds after publication. V11 is Arm F 1/6, Arm P 0/6, and 1/12
+  overall; this is not a performance verdict.
+
 ### The American Mustache — clean national archive
 
 - Candidate: `cand-v10-american-mustache-museum` (`published`, Arm A clean,

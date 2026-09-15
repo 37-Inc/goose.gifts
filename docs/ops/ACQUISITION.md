@@ -268,6 +268,15 @@ production path; video and spend remain excluded. Require a full 14-day review
 and treat either arm below 50 impressions as distribution-limited rather than
 forcing a result.
 
+**2026-09-15 first v11 publication:** Arm F launched with the exact OTOTO Red
+the Crab spoon-rest and steam-releaser package on `Weird Kitchen Gadgets` as
+public Pin `1107815208388715714`. Its annotations describe only verified
+functions and four-inch scale; the unique tracked destination is the canonical
+indexable gift page. The immediate baseline was zero actions. V11 is Arm F
+1/6, Arm P 0/6, and 1/12 overall, so no format or acquisition conclusion is
+available. Keep the two-per-day ceiling, 14-day full-cohort gate, and minimum
+50 impressions per arm before naming a winner.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

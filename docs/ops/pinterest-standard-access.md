@@ -179,14 +179,14 @@ frame that shows a raw token.**
 
 - Standard access and the production OAuth read/dry-run path are verified.
 - Public posting still needs an exact candidate/package approval event (per
-  `MARKETING.md` and `NEEDS.md`). Cameron's scheduled-studio exception permitted
-  at most one hard-gated exact package per spaced run and two per local day
-  inside the now-complete 12-Pin static-format comparison; it never covered a
-  third Pin, weak creative, video, Sandbox object, paid distribution, or spend.
-  The experiment is paused, so that exception currently authorizes no new
-  creative or public write. Any future approval must again bind the image,
-  destination, board, title, description, alt text, disclosure, tracking URL,
-  arm, slot, and experiment ceiling.
+  `MARKETING.md` and `NEEDS.md`). Cameron's current scheduled-studio
+  authorization permits at most one hard-gated exact package per spaced run
+  and two per local day inside the active 12-Pin v11 editorial-text mix. Every
+  publication must bind the image, destination, board, title, description, alt
+  text, disclosure, tracking URL, arm, slot, and experiment ceiling in its own
+  Cameron approval event. It does not cover a third daily Pin, weak creative,
+  video, Sandbox objects, paid distribution, account changes, deletion, or
+  spend.
 - The guarded production CLI requires the draft's candidate ID and Cameron
   approval-event ID, validates the current creative state and complete disclosed
   package, checks the connected account and existing tracking URL, reads a
@@ -203,18 +203,21 @@ frame that shows a raw token.**
   Middle Management statue, medieval cat tapestry, Wacky Waving Inflatable Tube
   Guy, Gratiator, Shark Coffee Mug, Fresh Memes dog-toy, My First Fire prank-box,
   Wiener Switch night-light, Mystic Pickle fortune-teller, and The American
-  Mustache coffee-table-book Pins. Combined
-  with the six retained product-faithful browser posts, the current clean
-  profile has twenty-two public Pins and zero Sandbox objects. The bounded
+  Mustache coffee-table-book, and Red the Crab annotated field-note Pins.
+  Combined with the six retained product-faithful browser posts, the current
+  clean profile has twenty-three public Pins and zero Sandbox objects. The bounded
   static-format cohort completed at twelve of twelve: six Arm A clean Pins and
   six Arm B headline Pins. At the final seven-day gate each arm had one
   impression and no action, so the result is inconclusive. Cameron then
   authorized a new 12-Pin editorial-text mix at the same one-Pin-per-run,
   two-per-day ceiling: playful product-specific posters versus bespoke one-hero
-  annotated field notes. Video, paid tools, paid distribution, Sandbox writes,
-  account changes, deletion, and spend remain excluded.
+  annotated field notes. The first Arm F Pin, Red the Crab
+  `1107815208388715714`, was production-created and read-verified on
+  2026-09-15; v11 is 1 of 12 with no performance verdict. Video, paid tools,
+  paid distribution, Sandbox writes, account changes, deletion, and spend
+  remain excluded.
 - The production API `GET /v5/pins` response is the authoritative live-count
-  source and currently returns twenty-two Pins. `pinterest-approved-pins.json`
+  source and currently returns twenty-three Pins. `pinterest-approved-pins.json`
   is a package/publication ledger rather than the profile inventory: it contains
   the three original retained browser posts and every guarded API publication,
   but the separately event-ledgered Goat, Hippo Vanity, and Hippo Desk browser

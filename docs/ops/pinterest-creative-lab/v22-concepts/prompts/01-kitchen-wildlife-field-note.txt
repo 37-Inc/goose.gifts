@@ -1,0 +1,11 @@
+Use case: ads-marketing
+Asset type: vertical Pinterest-native editorial image for Goose Gifts, Arm F annotated field note
+Input image: the provided source is the strict product-identity reference. It controls every property of the product: one small four-inch bright-red silicone crab, rounded body, two eye stalks, two small central antennae, two raised pointed claws holding one stainless-steel ladle, four visible lower legs gripping the front edge of one slightly lifted metal pot lid. Preserve the exact object type, red silicone material, limb count, silhouette, and believable scale. Do not turn it into a living crab or redesign it.
+Primary request: Create a photorealistic vertical 2:3 kitchen-wildlife editorial close-up. The exact tiny red crab is on duty at the front edge of a cream enamel stockpot, simultaneously parking the ladle across its raised claws and lifting the lid just enough for steam to escape. Treat the scene like a beautifully observed design-magazine detail before the absurdity registers.
+Scene/backdrop: warm lived-in home kitchen, pale stone counter, soft sage tile out of focus, restrained curl of real steam, no people or hands.
+Composition/framing: close three-quarter view; the crab and its two functional contact points are large and immediately inspectable, with clean breathing room around three marginal notes. One clear visual idea only.
+Lighting/mood: soft late-afternoon window light with natural shadows, realistic brushed metal, enamel, and matte silicone texture; editorial, witty, not glossy or commercial.
+Text (verbatim, exactly once each): "CLAWS PARK THE LADLE" / "LEGS VENT THE LID" / "4-INCH FOOD-GRADE SILICONE"
+Typography: small refined dark-charcoal all-caps grotesk, three separate marginal observations, each connected with one thin restrained leader line to the correct verified feature. No title or headline.
+Constraints: vertical 2:3; product-faithful; legible text; physically plausible contact; annotations are part of an authored field note, not a product card.
+Avoid: living-animal texture, extra or missing claws, eyes, antennae, or legs; giant scale; floating ladle or lid; invented product functions; duplicate product; packaging; logo; brand name; price; button; badge; CTA; border; grid; collage; card frame; watermark; additional text; ad layout.

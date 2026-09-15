@@ -1,0 +1,43 @@
+{
+  "verifiedAt": "2026-09-15T23:34:00Z",
+  "source": "Amazon Creators API GetItems",
+  "product": {
+    "id": "B07VLBVQBP",
+    "title": "OTOTO 2 in 1 Silicone Spoon Rest & Steam Releaser - Large Spoon Holder for Stove Top - Unique and Useful Gift for Cooking - Heat Resistant Utensil Rest, Kitchen Gadgets, Red Gift (Red the Crab)",
+    "availabilityStatus": "IN_STOCK",
+    "availabilityMessage": "In Stock",
+    "price": 12.88,
+    "currency": "USD",
+    "brand": "OTOTO",
+    "manufacturer": "OTOTO",
+    "color": "Red Crab",
+    "size": "One Size",
+    "dimensions": {
+      "width": "4 inches",
+      "height": "4 inches",
+      "length": "4 inches",
+      "weight": "0.1 pounds"
+    },
+    "materialAndFunctions": [
+      "100% food-grade silicone",
+      "heat-resistant claws hold spoons, tongs, and ladles",
+      "legs grip a pot lid so steam can vent",
+      "dishwasher safe"
+    ],
+    "affiliateUrl": "https://www.amazon.com/dp/B07VLBVQBP?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+    "primaryImageUrl": "https://m.media-amazon.com/images/I/41SFpTcCToL._SL500_.jpg"
+  },
+  "sourceImage": {
+    "path": "docs/ops/pinterest-creative-lab/v22-concepts/product-references/B07VLBVQBP-source.jpg",
+    "width": 500,
+    "height": 500,
+    "sha256": "3cdda076cbf2f15d3c67a40bd47b3616658b616b8ff4b7050705bddbea3f954d",
+    "visualInspection": "One small bright-red silicone crab sits at the front edge of a white pot, with two lower legs bracing a tilted metal lid and two raised claws holding a stainless ladle. The crab has a rounded body, two eye stalks, two small central antennae, two large pointed claws, and four visible lower legs. The source makes both advertised functions visible at once."
+  },
+  "destination": {
+    "url": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen",
+    "status": 200,
+    "canonical": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen",
+    "robots": "index, follow"
+  }
+}

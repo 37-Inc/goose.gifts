@@ -56,6 +56,35 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-09-15 afternoon Arm F launch
+
+The first v11 slot used the current verified and editorially enriched catalog,
+not a repeated survivor or the weekly catalog job. Amazon Creators API
+reverified OTOTO Red the Crab (`B07VLBVQBP`) `IN_STOCK` at `$12.88` with the
+unchanged source. The canonical product page returned `200`, self-canonical,
+and `index, follow`. Three product-derived concepts were preserved; a top-down
+specimen plate was rejected before generation for reusable infographic/card
+risk. Two distinct annotated editorials were generated and inspected at
+1024×1536. The bright kitchen field note passed at `4.63/5` but its lower
+leader lines were less exact. The copper-lit steam-room shift portrait became
+the run's only survivor at `4.75/5`: `LADLE: SECURED`, `STEAM: RELEASED`, and
+`HEIGHT: 4 INCHES` accurately explain the exact crab's two functions without a
+headline, price, CTA, badge, grid, or product card. No revision was justified.
+
+The production dry run verified the exact package, Cameron approval event,
+correct `goosegifts` BUSINESS account, `Weird Kitchen Gadgets` board, unique
+Arm F UTM, first-and-only daily publication, and vertical artifact. Pinterest
+API v5 created and read-verified public Pin
+`1107815208388715714` and wrote durable receipt
+`receipt-1789515650765-editorial-red-crab-steam-field-note-20260915-pm-publication-succeeded`.
+This is the first of 12 v11 Pins: Arm F has one Pin at its zero-action
+publication baseline and Arm P has none, so there is no arm comparison yet.
+The full truthful profile now has 23 Pins, 290 impressions, three Pin clicks,
+one save, and zero outbound clicks. GA4 and the first-party database still show
+no attributable Pinterest session or non-QA downstream product click.
+Pinterest v3 and Sandbox remain excluded. No video, weekly catalog job, paid
+tool, outreach, account change, deletion, second daily Pin, or spend occurred.
+
 ### 2026-09-15 final v10 review and v11 authorization
 
 Pinterest production API v5 confirmed the correct `goosegifts` BUSINESS
