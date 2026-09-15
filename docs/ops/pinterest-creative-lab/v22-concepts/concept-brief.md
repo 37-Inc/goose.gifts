@@ -53,13 +53,19 @@ and real interaction with a metal lid and ladle.
 - Decision: reject before generation. The field-note arm should annotate a
   lived editorial scene rather than turn the product into a catalog diagram.
 
-## Annotation set
+## Annotation sets
 
-The final layout may use only these accurate notes, set as restrained marginal
+Concept 1 may use only these accurate notes, set as restrained marginal
 observations with fine leader lines:
 
 - `CLAWS PARK THE LADLE`
 - `LEGS VENT THE LID`
 - `4-INCH FOOD-GRADE SILICONE`
+
+Concept 2 may use only these accurate notes in the same restrained treatment:
+
+- `LADLE: SECURED`
+- `STEAM: RELEASED`
+- `HEIGHT: 4 INCHES`
 
 No price, logo, badge, button, border, call to action, or extra copy.
