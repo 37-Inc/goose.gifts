@@ -23,3 +23,23 @@ test('gift pages use distinct tracked retailer placements without database impre
   assert.match(sticky, /!isInViewport\(editorialCta\)/);
   assert.match(sticky, /!isInViewport\(footer\)/);
 });
+
+test('the product-first landing keeps the exact image and retailer exit ahead of editorial', async () => {
+  const page = await readFile(new URL('../app/gifts/[slug]/page.tsx', import.meta.url), 'utf8');
+  const image = page.indexOf('<ProductImage');
+  const heading = page.indexOf('<h1');
+  const primary = page.indexOf('id="gift-retailer-primary"');
+  const disclosure = page.indexOf('As an Amazon Associate');
+  const editorial = page.indexOf('Why it works as a gift');
+
+  assert.ok(image >= 0 && image < heading && heading < primary);
+  assert.ok(primary < disclosure && disclosure < editorial);
+  assert.match(page, /imageUrl=\{product.imageUrl\}/);
+  assert.match(page, /alt=\{product.title\}/);
+  assert.match(page, /className="object-contain"/);
+  assert.match(page, /View on \{retailerLabel\}/);
+  assert.match(page, /hasRetailerDestination \? \(/);
+  assert.match(page, /if \(!hasFreshGiftOffer\(product\)\)/);
+  assert.match(page, /editorialParagraphs\.length > 0 \? editorialParagraphs : \[fallbackParagraph\]/);
+  assert.doesNotMatch(page, /PageHero/);
+});

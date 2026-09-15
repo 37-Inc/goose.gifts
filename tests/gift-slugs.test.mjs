@@ -16,6 +16,28 @@ test('creates a readable stable slug without retailer identifiers', () => {
   assert.equal(getGiftPath('mug-of-mischief-custom-cartoon-hippo'), '/gifts/mug-of-mischief-custom-cartoon-hippo');
 });
 
+test('reviewed pages age out at the existing 35-day verification boundary without a catalog write', () => {
+  const verifiedAt = new Date('2026-08-08T10:54:09.990Z');
+  const expiry = new Date(verifiedAt.getTime() + 35 * 24 * 60 * 60 * 1000);
+  const product = {
+    isActive: true,
+    editorialWriteup: `${'specific product fact '.repeat(55)}\n\n${'honest gift guidance '.repeat(50)}`,
+    editorialStatus: 'generated_ready',
+    editorialQualityScore: 0.9,
+    availabilityStatus: 'IN_STOCK',
+    availabilityCheckedAt: verifiedAt,
+    sourceFactsHash: 'same',
+    editorialSourceHash: 'same',
+  };
+
+  assert.equal(hasIndexableGiftEditorial(product, expiry), true);
+  assert.equal(hasIndexableGiftEditorial(product, new Date(expiry.getTime() + 1)), false);
+  assert.equal(hasIndexableGiftEditorial({
+    ...product,
+    availabilityCheckedAt: new Date(expiry.getTime() + 1),
+  }, new Date(expiry.getTime() + 1)), true);
+});
+
 test('legacy Pinterest links retain campaign attribution but drop retailer and spin parameters', () => {
   assert.equal(
     getLegacyGiftRedirectPath('mug-of-mischief-custom-cartoon-hippo', {
