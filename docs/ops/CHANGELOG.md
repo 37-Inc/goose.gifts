@@ -24,6 +24,14 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **Published gift freshness**: prioritize due-soon reviewed product pages
+  within the bounded weekly revalidation queue (`roadmap-qsti`). The sitemap
+  contraction is the existing 35-day verification guard, not new filtering
+  from the Neon cache change. Do not inflate URL counts with stale listings.
+- **Product landing measurement**: compare qualified product-page visits and
+  existing retailer-click events after the compact product-first layout
+  (`roadmap-8hls`); keep QA identities out of acquisition reporting.
+
 - **Neon compute — deploy and measure PR #146 before changing plans.** Passive
   product views move to GA/PostHog, crawler-facing catalog reads use a shared
   24-hour cache with explicit catalog invalidation, and meaningful searches,
@@ -145,6 +153,18 @@ Sharp to 0.35.4. Refreshed the two vulnerable, compatible tooling transitive
 dependencies (js-yaml and postcss-selector-parser). The audit now reports zero
 vulnerabilities. This is the separately tracked security prerequisite
 (`roadmap-93fq`), not a change to the product landing layout or catalog cache.
+
+### 2026-09-15 — Bring the exact gift and retailer exit into the first screen `[daily-ops]`
+
+Replaced the generic product-page hero with a compact photo-first layout,
+smaller heading, explicit retailer button, and nearby affiliate disclosure.
+Kept the full reviewed editorial, canonical/schema behavior, source image,
+fresh-price policy, existing tracked exits, and mobile sticky CTA. The Wiener
+Switch image moves from 461 px to 157 px down at 390 px width; image and
+retailer button both fit at 320×568. Separately reconciled the 112→92 sitemap
+drop to 20 listings aging past the unchanged 35-day verification gate; queued
+published-page revalidation priority in `roadmap-qsti` rather than loosening
+indexability or increasing discovery volume. Task: `roadmap-8hls`.
 
 ### 2026-09-15 — Editorial-text mix authorized after inconclusive cohort `[daily-ops]`
 

@@ -6,7 +6,6 @@ import { MobileStickyRetailerCta } from '@/components/MobileStickyRetailerCta';
 import { ProductClickButton } from '@/components/ProductClickButton';
 import { ProductGrid } from '@/components/ProductGrid';
 import { ProductImage } from '@/components/ProductImage';
-import { PageHero } from '@/components/ui/PageHero';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { getGiftPageBySlug, getRelatedGiftProducts } from '@/lib/db/gift-pages';
 import {
@@ -145,46 +144,17 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: schema }} />
       <Header />
 
-      <nav className="mx-auto max-w-4xl px-4 pt-8 text-sm text-zinc-400" aria-label="Breadcrumb">
+      <nav className="mx-auto max-w-4xl px-4 pt-5 text-sm text-zinc-400 sm:pt-8" aria-label="Breadcrumb">
         <Link href="/gifts" className="transition hover:text-brand">Gift catalog</Link>
         <span className="px-2" aria-hidden="true">/</span>
         <span aria-current="page">Gift idea</span>
       </nav>
 
-      <PageHero title={title} subtitle={product.wittyDescription || 'A funny gift idea worth a closer look.'} />
-
-      <section className="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:pt-10">
-        <article className="grid gap-6 rounded-3xl bg-zinc-50 p-5 ring-1 ring-zinc-950/[0.06] sm:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] sm:grid-rows-[auto_1fr] sm:gap-x-8 sm:gap-y-5 sm:p-8">
-          <div className="sm:col-start-2 sm:row-start-1 sm:self-end">
-            {hasRetailerDestination ? (
-              <ProductClickButton
-                product={product}
-                clickSource="gift_page_price"
-                contextSlug={lookup.canonicalSlug}
-                ariaLabel={`${formatPrice(product)} at ${retailerLabel} (opens in a new tab)`}
-                className="group inline-flex min-h-11 items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-zinc-950 outline-none ring-1 ring-zinc-950/10 transition hover:text-brand hover:ring-brand/30 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 motion-reduce:transition-none"
-              >
-                <span id="gift-retailer-primary">
-                  {formatPrice(product)}
-                  <span className="px-2 text-zinc-300" aria-hidden="true">·</span>
-                  <span className="text-xs uppercase tracking-[0.08em] text-zinc-500 group-hover:text-brand">
-                    {retailerLabel}
-                  </span>
-                  <span aria-hidden="true" className="ml-1.5 text-zinc-400">↗</span>
-                </span>
-              </ProductClickButton>
-            ) : (
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">
-                <span className="text-base normal-case tracking-normal text-zinc-950">No longer listed</span>
-                <span aria-hidden="true">·</span>
-                <span>{retailerLabel}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="relative aspect-square overflow-hidden rounded-2xl bg-white ring-1 ring-zinc-950/[0.05] sm:col-start-1 sm:row-span-2 sm:row-start-1">
+      <section className="mx-auto max-w-4xl px-4 pb-16 pt-5 sm:pt-8">
+        <article className="grid gap-5 rounded-3xl bg-zinc-50 p-4 ring-1 ring-zinc-950/[0.06] sm:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] sm:grid-rows-[auto_1fr] sm:gap-x-8 sm:gap-y-6 sm:p-8">
+          <div className="relative aspect-square max-h-72 w-full overflow-hidden rounded-2xl bg-white ring-1 ring-zinc-950/[0.05] sm:col-start-1 sm:row-span-2 sm:row-start-1 sm:max-h-none sm:self-start">
             {product.imageUrl ? (
-              <div className="absolute inset-6 sm:inset-8">
+              <div className="absolute inset-4 sm:inset-8">
                 <ProductImage
                   imageUrl={product.imageUrl}
                   alt={product.title}
@@ -196,6 +166,42 @@ export default async function GiftPage({ params, searchParams }: GiftPageProps) 
             ) : (
               <div className="flex h-full items-center justify-center px-8 text-center text-sm text-zinc-400">
                 The original product image is no longer available.
+              </div>
+            )}
+          </div>
+
+          <div className="sm:col-start-2 sm:row-start-1">
+            <h1 className="text-balance text-2xl font-semibold leading-tight tracking-tight text-zinc-950 sm:text-3xl">
+              {title}
+            </h1>
+            {hasRetailerDestination ? (
+              <>
+                <div id="gift-retailer-primary" className="mt-4">
+                  <ProductClickButton
+                    product={product}
+                    clickSource="gift_page_price"
+                    contextSlug={lookup.canonicalSlug}
+                    ariaLabel={`View ${title} on ${retailerLabel} (opens in a new tab)`}
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white outline-none transition hover:bg-brand focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 motion-reduce:transition-none sm:w-auto"
+                  >
+                    View on {retailerLabel}
+                    <span aria-hidden="true" className="ml-1.5">↗</span>
+                  </ProductClickButton>
+                </div>
+                <p className="mt-2 text-sm text-zinc-600">
+                  {formatPrice(product)} · Availability at {retailerLabel}
+                </p>
+                <p className="mt-2 text-xs leading-5 text-zinc-500">
+                  {product.source === 'amazon'
+                    ? 'As an Amazon Associate, we earn from qualifying purchases.'
+                    : 'Affiliate link: we may earn a commission at no extra cost to you.'}
+                </p>
+              </>
+            ) : (
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                <span className="text-base normal-case tracking-normal text-zinc-950">No longer listed</span>
+                <span aria-hidden="true">·</span>
+                <span>{retailerLabel}</span>
               </div>
             )}
           </div>

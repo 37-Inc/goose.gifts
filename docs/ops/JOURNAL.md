@@ -19,6 +19,53 @@ its own PR before merging the separate conversion change.
 
 Reference: https://nextjs.org/blog/august-2026-security-release.
 
+## 2026-09-15 — Product-first mobile landing and sitemap diagnosis
+
+**Chosen lever**: remove landing friction for a visitor arriving from a Pin,
+without changing creative, posting cadence, or catalog volume. On the Wiener
+Switch page at 390×844, the exact product photo previously began 461 px down,
+after a large marketing heading/tagline and a subtle price chip. The compact
+product-first layout moves the photo to 157 px, follows it with a smaller H1
+and an explicit `View on Amazon` exit, and places affiliate disclosure beside
+that action. At 320×568 the complete image and 44 px retailer link fit in the
+first viewport (button bottom 537 px). The original image, complete reviewed
+editorial, metadata/schema, related links, availability/fresh-price checks,
+and existing price/editorial/sticky analytics vocabulary are retained.
+
+**Crawl reconciliation**: Search Console downloaded the 92-URL sitemap on
+September 15 at 11:03 UTC, with zero errors/warnings. Its 44 gift URLs match
+the previous eligibility snapshot, not the current number of ready records.
+An uncached production read reproduced 64 eligible gifts before September 12
+and 44 afterward: exactly 20 records last verified August 8 crossed the
+existing 35-day age limit. Their stored facts/status did not change. PR #146
+changed cache duration, not this eligibility predicate; the later sitemap
+refresh caught up with time-based exclusions. Seven August 11 records then
+expired September 15, leaving 37 currently eligible gifts while the cached
+sitemap temporarily retained 44. Sample expired pages return 200,
+self-canonical, `noindex, follow`; the fresh Wiener Switch page remains
+`index, follow`. No missing currently eligible URL or rule-tightening was
+found. Do not restore stale pages by weakening the quality gate.
+
+**Maintenance follow-up**: `roadmap-qsti` owns the underlying refresh queue:
+3,150 stale active Amazon records compete for 50 weekly slots, with 3,115
+older/unverified rows ahead of the expired public cohort. Latest durable
+weekly receipts are September 7; verify the September 14 run separately.
+Prioritize a bounded due-soon public cohort without increasing discovery
+volume, and read-verify actual source facts before restoring indexability.
+The existing 24-hour database cache and authenticated invalidation remain
+unchanged; after this release, reconcile all currently eligible URLs again.
+
+**Verification**: gift-page, analytics, catalog-cache and Neon boundary tests
+passed (24 checks), along with lint. Browser checks confirmed mobile/desktop
+layout, exact Amazon ASIN/tag navigation, UTM attribution in the existing
+click request, and sticky-CTA visibility only after the primary exit leaves
+view and before the editorial CTA/footer enters view. Local click requests
+were intercepted for testing, not counted as customer conversions. Final
+production event evidence belongs on `roadmap-8hls`. The separately tracked
+security prerequisite `roadmap-93fq` clears the inherited dependency audit
+before this conversion release. Success is qualified retailer clicks per
+product landing, not a claim of uplift from this low-traffic baseline.
+
 ## 2026-09-15 morning - v10 final review and v11 authorization
 
 **Evidence checked**: Pinterest production API v5 confirmed 22 public Pins on
