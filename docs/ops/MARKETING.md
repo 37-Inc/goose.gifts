@@ -35,12 +35,13 @@ or intriguing first impression followed by a funny double take.
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
    directional attention signal, not yet a creative or conversion verdict. A
-   bounded 12-Pin static-format cohort is now fully enrolled and evaluation is
-   paused at six clean text-free editorials and six restrained 4–7 word
-   headlines. Each arm has one impression and neither has a downstream
-   action. New
-   generation and publication remain stopped until the seven-day evidence gate
-   and Cameron's next decision.
+   bounded 12-Pin static-format cohort completed with six clean text-free
+   editorials and six restrained 4–7 word headlines. Each arm has one
+   impression and neither has a downstream action, so the result is
+   distribution-limited and inconclusive rather than a format win. Cameron has
+   authorized a new 12-Pin editorial-text mix: playful product-specific posters
+   versus bespoke annotated field notes, still capped at one Pin per scheduled
+   slot and two per local day.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
    catalog-supported pages. The Weird Gift Index is the first original-data
    acquisition asset and should be improved as a cited, editioned report rather
@@ -54,6 +55,42 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-15 final v10 review and v11 authorization
+
+Pinterest production API v5 confirmed the correct `goosegifts` BUSINESS
+account, 22 public Pins, 280 impressions, three Pin clicks, one save, and zero
+outbound clicks. American Mustache's seven-day checkpoint was captured 23
+seconds after its exact gate and remained zero across Pinterest and observed
+downstream metrics; revenue remained unavailable. All 12 v10 Pins are now
+seven-day eligible. The six clean Pins have one current impression and the six
+headline Pins have one; neither arm has a save, Pin click, Pinterest outbound
+click, attributable site session, or downstream product click. V10 is complete
+but inconclusive because two impressions cannot distinguish format response.
+
+GA4 recorded nine trailing-seven-day sessions from Direct or Amazon Organic
+Shopping and no Pinterest source or `product_click` / `affiliate_click` row.
+The database recorded no product click in 24 hours and no non-QA product click
+in seven days; its two seven-day clicks are explicitly tagged QA. Search
+Console's September 8–13 public window recorded zero clicks and 520
+impressions across reported pages. Its 92-URL sitemap had zero errors or
+warnings. The delegated site audit traced the lower gift-page count to the
+existing 35-day verification-age gate, not a `noindex` or crawler-policy
+regression; the separate Goose manager owns any follow-up.
+
+Cameron's direct choice to mix the proposed editorial styles, use playful and
+tasteful in-image text, skip product-reveal video, and compare up to two
+scheduled posts per day now authorizes `exp-pinterest-editorial-mix-v11`.
+V11 is capped at 12 Pins: six bespoke playful posters with one polished 4–7
+word product-derived line and six one-hero annotated field notes with two or
+three accurate, useful marginal notes. Both formats retain the product-truth,
+single-idea, no-CTA, no-ad-template, production-account, exact-package,
+duplicate, receipt, and no-spend gates. Review the arms only after every Pin
+has 14 days; fewer than 50 impressions in either arm means another explicit
+distribution-limited result, not a forced winner. This morning slot did not
+generate or publish a replacement while the final v10 gate was pending. The
+owner queue remains empty. The next scheduled slot may begin v11 with the
+current enriched-catalog shortlist. Pinterest v3 and Sandbox remain excluded.
 
 ### 2026-09-14 afternoon measurement hold
 

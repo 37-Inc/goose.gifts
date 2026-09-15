@@ -45,7 +45,7 @@ what's likely next.
   Pinterest approved the `Goose.gifts` app on 2026-08-24. Production OAuth
   refresh, account/board/metrics reads, and a real-board create dry run passed
   on 2026-08-25 with every required scope. The scheduled studio now runs a
-  bounded 12-Pin static-format comparison with two spaced slots: each run may
+  bounded editorial-format comparisons with two spaced slots: each run may
   publish at most one exact hard-gated package and each local day at most two,
   with a quality-gated no-op otherwise. The minimum
   publisher now checks Cameron's exact approval event, current candidate
@@ -94,10 +94,11 @@ what's likely next.
   and neither has a downstream action, so keep the cap and measurement gate
   intact. The 2026-09-08 morning slot published the twenty-second truthful
   public Pin, The American Mustache `1107815208388134634`, after a 4.63/5
-  exact-source museum editorial review. The comparison is complete and paused
-  at six clean and six headline Pins. Each arm currently has one impression
-  and neither has a downstream action, so subsequent studio runs remain
-  measurement-only until the seven-day review and Cameron's next decision.
+  exact-source museum editorial review. The clean-versus-headline comparison
+  completed at one impression per arm and no action, so it is inconclusive from
+  lack of distribution. Cameron authorized the next 12-Pin mix: six playful
+  product-specific editorial posters and six bespoke annotated field notes,
+  with the same two-slot ceiling and harder 14-day/minimum-exposure review.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -136,6 +137,16 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-15 — Editorial-text mix authorized after inconclusive cohort `[daily-ops]`
+
+Captured American Mustache's exact seven-day checkpoint and closed the 12-Pin
+clean-versus-headline comparison with no winner: each arm has one impression
+and no action. Cameron's selected follow-up is now an active 12-Pin comparison
+of playful product-specific posters versus bespoke annotated field notes, at
+one Pin per scheduled slot and two per local day. The first v11 creative waits
+for the afternoon slot; the site-side mobile conversion and sitemap-age audit
+was delegated to the Goose manager in an isolated worktree.
 
 ### 2026-09-14 — Eleven format Pins reach seven-day eligibility `[daily-ops]`
 

@@ -256,6 +256,18 @@ has one impression, Arm A has none, and neither has a downstream action. The
 experiment is paused, and scheduled runs must remain measurement-only until the
 seven-day review and Cameron's next decision.
 
+**2026-09-15 complete format-test evidence:** all 12 Pins reached seven days.
+The six clean Pins and six restrained-headline Pins each have one current
+impression and no save, Pin click, Pinterest outbound click, attributable site
+session, or downstream product click. The test is complete but inconclusive;
+two impressions diagnose scarce distribution, not a creative winner. Cameron
+chose a new bounded 12-Pin mix at the existing two-slot ceiling: playful
+product-specific editorial posters versus one-hero annotated field notes. Both
+use tasteful text, exact canonical tracking, and the existing guarded
+production path; video and spend remain excluded. Require a full 14-day review
+and treat either arm below 50 impressions as distribution-limited rather than
+forcing a result.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before
