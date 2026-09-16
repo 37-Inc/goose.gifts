@@ -71,7 +71,7 @@ rejected before generation for reusable card risk. Two 1024×1536 Arm F images
 were generated and inspected at full resolution. The candlelit proposal-
 forensics image passed at `4.75/5` but repeated the prior Pin's warm low-light
 palette. The green clover courtship field note became the run's sole survivor
-at `4.88/5`; its three labels accurately state the 2.5-inch box height,
+at `4.88/5`; its three labels accurately state the 2.5-inch box length,
 fart-on-open behavior, and opening trigger. It has no price, CTA, badge, grid,
 or template shell. No diagnosed weakness justified a revision.
 
