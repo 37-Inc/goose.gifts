@@ -30,7 +30,7 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Twenty-four product-faithful editorial Pins are live. Before the twenty-second
+   Twenty-five product-faithful editorial Pins are live. Before the twenty-second
    launched, the first twenty-one had 262 public impressions in total, two Pin
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
@@ -55,6 +55,40 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-16 afternoon Arm P launch
+
+The third v11 slot used the current verified and editorially enriched catalog
+without running the weekly catalog job. Before publication, the correct
+`goosegifts` BUSINESS profile had 24 Pins, 290 impressions, three Pin clicks,
+one save, and zero outbound clicks. GA4 had no Pinterest source, and the
+database had zero customer product clicks after excluding two QA receipts; its
+single GA4 outbound event was the documented product-landing QA validation,
+not customer acquisition. Pinterest v3 and Sandbox remained excluded.
+
+Amazon Creators API reverified the Chia Pet Classic Gnome (`B008VVUWQC`)
+`IN_STOCK` at `$24.82`, with the unchanged primary image and a kit containing
+the reusable terracotta planter, drip tray, and seed for three plantings. The
+canonical gift page passed `200`, self-canonical, and `index, follow` checks.
+Three product-derived Arm P concepts were recorded. The kitchen-window idea
+was rejected before generation for a weak swap test. The barbershop and
+glasshouse posters were generated at 1024×1536 and inspected at full
+resolution; both initially invented an unsupported opening in the gnome's hat,
+and the glasshouse also repeated the morning Pin's botanical palette. One
+localized causal revision repaired the barbershop hat without changing its
+strong scene or exact four-word line, `HIS BEARD NEEDS WATERING`. The corrected
+image was the run's sole survivor at `4.88/5` and passed every product-truth,
+no-CTA, and no-template gate.
+
+The guarded production dry run verified the exact package and approval event,
+correct account, `Weird Home Decor` board, unique Arm P UTM, second-and-final
+daily slot, and vertical artifact. Pinterest API v5 created and read-verified
+public Pin `1107815208388788830` and wrote durable receipt
+`receipt-1789602107926-editorial-chia-gnome-barbershop-poster-20260916-pm-publication-succeeded`.
+Its immediate baseline was zero actions. The profile now has 25 Pins with the
+same aggregate metrics; v11 is Arm F 2/6, Arm P 1/6, and 3/12 overall, with no
+performance verdict. No video, weekly catalog job, SEO page change, outreach,
+third daily Pin, paid tool, account change, deletion, or spend occurred.
 
 ### 2026-09-16 morning Arm F launch
 

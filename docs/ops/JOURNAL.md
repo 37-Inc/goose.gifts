@@ -5,6 +5,48 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-16 afternoon - v11 Chia Pet Gnome poster
+
+**Evidence checked**: Pinterest production API v5 confirmed the correct
+`goosegifts` BUSINESS account and a pre-publication profile of 24 Pins, 290
+impressions, three Pin clicks, one save, and zero outbound clicks. GA4 had 12
+trailing-seven-day sessions from Direct, Unassigned, or Amazon Organic Shopping
+and no Pinterest source. The one GA4 outbound event was the documented QA
+validation. The database excluded two QA receipts and had zero customer product
+clicks in 24 hours or seven days and zero searches. Search Console's September
+9–15 public window had zero clicks; the coworker guide led the priority pages
+with 262 impressions, and the Chia Gnome gift page remained technically
+indexable. Pinterest v3 and Sandbox were excluded.
+
+**Creative and publication**: the current enriched shortlist supplied the Chia
+Pet Classic Gnome, ASIN `B008VVUWQC`, without running the weekly job. Amazon
+Creators API reverified it `IN_STOCK` at `$24.82`; the exact source and canonical
+`index, follow` destination passed preflight. Three Arm P concepts were
+preserved. The kitchen-window concept was rejected before generation for a weak
+swap test. The barbershop and glasshouse attempts were generated and inspected
+at full 1024×1536 resolution. Both invented an unsupported opening in the
+gnome's terracotta hat, and the glasshouse repeated more of the morning Pin's
+green palette. One localized revision corrected only the stronger barbershop
+image's hat. The final `HIS BEARD NEEDS WATERING` poster was the sole survivor
+at `4.88/5`, with the source-faithful terracotta body, sleepy molded face, bent
+legs, and living sprout beard intact.
+
+The guarded production dry run verified Cameron's exact-package approval, the
+correct account, `Weird Home Decor` board, unique Arm P tracking URL, vertical
+artifact, second-and-final daily publication, and v11 cap. Pinterest created
+and read-verified Pin `1107815208388788830`; receipt
+`receipt-1789602107926-editorial-chia-gnome-barbershop-poster-20260916-pm-publication-succeeded`
+is durable. A validated append-only correction notes that the approval event's
+manually supplied `recordedAt` value was 73 seconds late; successful
+pre-publication guard validation, file order, and the started receipt establish
+that approval preceded the create call. The public baseline was zero actions about 12 seconds after
+publication. The profile now has 25 Pins and unchanged aggregate metrics; v11
+is Arm F 2/6, Arm P 1/6, and 3/12 overall. No video, weekly catalog job, SEO
+page change, third daily Pin, paid tool, outreach, account change, deletion, or
+spend occurred. The next scheduled slot is 2026-09-17 morning, assigned Arm P
+by the predeclared time-balancing rule; choose a distinct product and visual
+mechanism or take a quality-gated no-op.
+
 ## 2026-09-16 afternoon - Product-landing production validation
 
 **Production evidence**: repeated the canonical Wiener Switch landing flow at
@@ -49,7 +91,7 @@ appraisal plate was rejected before generation for reusable card risk. Two Arm
 F executions were generated and inspected at full resolution. The 4.75/5
 candlelit proposal-forensics attempt repeated the previous Pin's warm palette.
 The 4.88/5 clover courtship field note was the only survivor; its notes state
-only the verified 2.5-inch box height, fart sound, and opening trigger. No
+only the verified 2.5-inch box length, fart sound, and opening trigger. No
 causal revision was warranted.
 
 The guarded production dry run verified Cameron's exact-package approval, the

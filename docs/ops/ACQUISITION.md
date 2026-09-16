@@ -286,6 +286,16 @@ overall; this is still a publication receipt, not an acquisition conclusion.
 Keep the two-per-day ceiling, 14-day full-cohort gate, and minimum 50
 impressions per arm before naming a winner.
 
+**2026-09-16 third v11 publication:** Arm P launched the Chia Pet Classic Gnome
+as public Pin `1107815208388788830` on `Weird Home Decor`. Its barbershop
+portrait and `HIS BEARD NEEDS WATERING` line are specific to the verified
+living-sprout beard, while its unique tracked destination is the canonical
+`index, follow` gift page. The immediate baseline was zero actions. V11 is Arm
+F 2/6, Arm P 1/6, and 3/12 overall; the single GA4 outbound event remains
+documented QA and is excluded from customer acquisition. Keep the two-per-day
+ceiling, 14-day full-cohort gate, and minimum 50 impressions per arm before
+naming a winner.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before
