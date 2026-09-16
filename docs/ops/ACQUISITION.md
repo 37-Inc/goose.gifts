@@ -277,6 +277,15 @@ indexable gift page. The immediate baseline was zero actions. V11 is Arm F
 available. Keep the two-per-day ceiling, 14-day full-cohort gate, and minimum
 50 impressions per arm before naming a winner.
 
+**2026-09-16 second v11 publication:** Arm F added The Moon Ring farting prank
+box as public Pin `1107815208388765155` on `Funny White Elephant Gifts`. Its
+macro clover field note uses only verified 2.5-inch scale and fart-on-open facts,
+and its unique tracked destination is the canonical `index, follow` gift page.
+The immediate baseline was zero actions. V11 is Arm F 2/6, Arm P 0/6, and 2/12
+overall; this is still a publication receipt, not an acquisition conclusion.
+Keep the two-per-day ceiling, 14-day full-cohort gate, and minimum 50
+impressions per arm before naming a winner.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before
