@@ -212,7 +212,7 @@ function printText(snapshot) {
   console.log('Database interaction analytics');
   console.log(`- Products: ${summary.products.toLocaleString()} (${summary.active_products.toLocaleString()} active)`);
   console.log(`- Product impressions/click events: ${summary.product_impressions_lifetime.toLocaleString()} impressions, ${summary.non_qa_product_click_events_lifetime.toLocaleString()} click events (${summary.qa_product_click_events_lifetime.toLocaleString()} QA excluded)`);
-  console.log(`- Product click counter: ${summary.product_clicks_lifetime.toLocaleString()} lifetime product clicks`);
+  console.log(`- Raw product click counter (includes QA): ${summary.product_clicks_lifetime.toLocaleString()} lifetime product clicks`);
   console.log(`- Searches: ${summary.searches_lifetime.toLocaleString()} lifetime; latest search ${formatTimestamp(summary.latest_search_at)}`);
   console.log('- Recent windows:');
   console.log(formatRows(
