@@ -5,6 +5,27 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-16 afternoon - Product-landing production validation
+
+**Production evidence**: repeated the canonical Wiener Switch landing flow at
+390x844 with an explicit Pinterest referrer and QA-tagged campaign. The page
+rendered the exact product and full-width primary retailer exit, opened Amazon
+ASIN `B0CGXSKGXL` with associate tag `goose-gifts-37-20`, and wrote a 200
+first-party click receipt with `gift_page_price`, the expected campaign, and
+`www.pinterest.com` referrer host. GA4 accepted `page_view`, `select_item`, and
+`conversion_event_outbound_click` for measurement ID `G-6RR3HPR747`; PostHog
+accepted the same explicit event path after the validation browser used a
+normal Chrome user agent. The initial headless user agent was intentionally
+filtered as bot traffic by the PostHog SDK, not an application failure.
+
+**Housekeeping**: customer-facing database reports now separate and exclude
+`utm_medium=qa` clicks from lifetime/window totals and from product, source,
+guide, referrer, and campaign rankings. The raw JSON still retains the total
+and QA counts for auditability. Corrected the runbook's stale cache fallback
+description from five minutes to the implemented 24-hour policy. This closes
+the production-evidence gap left by the product-first landing release; QA
+traffic must remain excluded from acquisition and conversion decisions.
+
 ## 2026-09-16 morning - v11 The Moon Ring field note
 
 **Evidence checked**: Pinterest production API v5 confirmed the correct

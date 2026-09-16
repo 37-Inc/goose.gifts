@@ -150,6 +150,14 @@ what's likely next.
 
 Newest first.
 
+### 2026-09-16 — Validate product exits and separate QA clicks `[owner+claude]`
+
+Production-validated the product-first mobile landing through its exact Amazon
+destination, first-party receipt, GA4 events, and PostHog ingestion. Updated the
+database snapshot so QA-tagged clicks stay visible as an audit count but cannot
+inflate customer click totals or rankings, and aligned the runbook with the
+implemented 24-hour catalog cache fallback. Follow-up to PR #150.
+
 ### 2026-09-16 — Publish The Moon Ring courtship field note `[daily-ops]`
 
 Rejected an unavailable dumpster-fire organizer at live Amazon preflight,
