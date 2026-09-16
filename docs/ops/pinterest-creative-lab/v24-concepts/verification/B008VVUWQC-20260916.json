@@ -1,0 +1,42 @@
+{
+  "verifiedAt": "2026-09-16T23:34:27Z",
+  "provider": "Amazon Creators API GetItems",
+  "productId": "B008VVUWQC",
+  "title": "Chia Pet Classic Gnome Terracotta Planter with Seed Pack",
+  "availabilityStatus": "IN_STOCK",
+  "availabilityMessage": "In Stock",
+  "price": 24.82,
+  "currency": "USD",
+  "affiliateUrl": "https://www.amazon.com/dp/B008VVUWQC?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+  "sourceImage": "https://m.media-amazon.com/images/I/51glHoaA4NL._SL500_.jpg",
+  "sourceReference": "docs/ops/pinterest-creative-lab/v24-concepts/product-references/B008VVUWQC-source.jpg",
+  "sourceSha256": "a763592c8b0407bc5eff5c511828416aae76161629a047a169e6bad853c624b8",
+  "sourceDimensions": "500x500",
+  "literalVisibleIdentity": "One small seated orange-brown terracotta garden gnome planter with a tall pointed hat, sleepy molded face, bent legs, and a dense green chia-sprout beard growing across its chest.",
+  "verifiedFacts": {
+    "brand": "Chia",
+    "manufacturer": "Chia",
+    "color": "Brown, Green",
+    "size": "Gnome",
+    "unitCount": 1,
+    "dimensions": {
+      "width": "4.5 inches",
+      "height": "7 inches",
+      "length": "8 inches",
+      "weight": "1.3 pounds"
+    },
+    "features": [
+      "Includes one pottery planter, a plastic drip tray, and chia seed packets for three plantings.",
+      "Full growth takes one to two weeks.",
+      "The planter can be washed and replanted indefinitely."
+    ]
+  },
+  "canonicalDestination": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition",
+  "destinationStatus": 200,
+  "destinationCanonical": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition",
+  "robots": "index, follow",
+  "uncertainties": [
+    "The source image shows a fully grown example beside retail packaging; generation must omit the package and preserve only the grown planter identity.",
+    "The still image cannot independently verify growth time or the number of included seed plantings, so those remain listing-confirmed facts and are not depicted as process claims."
+  ]
+}

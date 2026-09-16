@@ -1,0 +1,7 @@
+Use case: precise-object-edit
+Asset type: vertical Pinterest-native editorial image for Goose Gifts, Arm P playful editorial poster
+Input images: Image 1 is the edit target, the generated barbershop poster. Image 2 is the strict product-identity reference.
+Primary request: Revise Image 1 by correcting only the gnome hat. Remove the large dark opening cut into the front/top of the terracotta hat because it is not visibly established by the strict source. Continue the same smooth orange-brown porous terracotta surface across that small area, preserving the hat's exact pointed silhouette from Image 1 and the source-like material.
+Preserve unchanged: the entire barbershop scene, crop, counter, chair, mirror, towel, comb, lighting, shadows, film texture, exact seated gnome body, face, pose, legs, dense green chia-sprout beard, contact, scale, and the exact line HIS BEARD NEEDS WATERING with identical spelling, typography, size, color, position, and spacing.
+Constraints: change only the dark hat opening into continuous terracotta; no other visual or text changes; no new props, growth, labels, product parts, or retouching.
+Avoid: package, seed packet, brand name, product name, price, logo, watermark, button, CTA, badge, border, grid, collage, card frame, additional text, extra gnome, living-person transformation, fur or moss beard, changed face or leg pose, altered scene, altered typography, ad layout.

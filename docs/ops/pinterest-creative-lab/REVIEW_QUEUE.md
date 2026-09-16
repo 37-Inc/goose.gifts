@@ -11,6 +11,49 @@ None.
 
 ## Published from this queue
 
+### Chia Pet Gnome — barbershop poster
+
+- Candidate: `cand-v11-chia-gnome-poster` (`measuring`, Arm P playful
+  editorial poster, internal score `4.88/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208388788830/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v24-concepts/03-chia-gnome-barbershop-poster-hat-corrected.png`
+- Exact product: Chia Pet Classic Gnome terracotta planter with seed pack,
+  ASIN `B008VVUWQC`; Amazon Creators API reverified it `IN_STOCK` at `$24.82`
+  on 2026-09-16 with the unchanged primary image. The kit includes a reusable
+  pottery planter, drip tray, and seed for three plantings; its living beard
+  reaches full growth in one to two weeks.
+- Destination:
+  `https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition`
+- Board: `Weird Home Decor`
+- Title: `Chia Pet Gnome Planter for Weird Home Decor`
+- Description: `This seven-inch terracotta Chia Pet Gnome grows a living green beard in one to two weeks. The kit includes a reusable pottery planter, drip tray, and seed for three plantings, making it a funny housewarming or plant-lover gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Small seated terracotta Chia Pet Gnome with a lush green sprout beard on a vintage barbershop counter beneath the words “His beard needs watering.”`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm`
+- Click hypothesis: the polished grooming portrait earns the pause, while the
+  true living-beard line makes viewers click to learn how the planter grows,
+  what the kit includes, and how long the transformation takes.
+- Rejected alternatives: the glasshouse poster was rejected because the model
+  invented the same unverified hat opening and the green botanical palette was
+  closer to the morning Pin. The kitchen-window concept was rejected before
+  generation for a weak swap test. The original barbershop parent failed the
+  product-truth gate only on that localized hat opening; the final allowed call
+  corrected it without changing the winning scene or line.
+- Approval scope: Cameron's 2026-09-15 standing scheduled-task authorization,
+  recorded as `evt-20260916-v11-chia-gnome-approved`, covered only this exact
+  afternoon Arm P package as the second-and-final 2026-09-16 publication and
+  third of 12 qualifying v11 Pins.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, exact approval, second-and-final daily slot, unique UTM,
+  1024×1536 artifact, and `Weird Home Decor` board; it read back every field
+  and wrote receipt
+  `receipt-1789602107926-editorial-chia-gnome-barbershop-poster-20260916-pm-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about 12
+  seconds after publication. V11 is Arm F 2/6, Arm P 1/6, and 3/12 overall;
+  this is not a performance verdict.
+
 ### The Moon Ring — courtship field note
 
 - Candidate: `cand-v11-farting-ring-field-note` (`measuring`, Arm F annotated

@@ -204,9 +204,9 @@ frame that shows a raw token.**
   Guy, Gratiator, Shark Coffee Mug, Fresh Memes dog-toy, My First Fire prank-box,
   Wiener Switch night-light, Mystic Pickle fortune-teller, The American
   Mustache coffee-table-book, Red the Crab annotated field-note, and The Moon
-  Ring courtship field-note Pins.
+  Ring courtship field-note, and Chia Pet Gnome barbershop-poster Pins.
   Combined with the six retained product-faithful browser posts, the current
-  clean profile has twenty-four public Pins and zero Sandbox objects. The bounded
+  clean profile has twenty-five public Pins and zero Sandbox objects. The bounded
   static-format cohort completed at twelve of twelve: six Arm A clean Pins and
   six Arm B headline Pins. At the final seven-day gate each arm had one
   impression and no action, so the result is inconclusive. Cameron then
@@ -215,12 +215,14 @@ frame that shows a raw token.**
   annotated field notes. The first Arm F Pin, Red the Crab
   `1107815208388715714`, was production-created and read-verified on
   2026-09-15. The second, The Moon Ring `1107815208388765155`, was
-  production-created and read-verified on 2026-09-16; v11 is 2 of 12 with no
-  performance verdict. Video, paid tools,
+  production-created and read-verified on 2026-09-16. The third and first Arm P
+  Pin, Chia Pet Gnome `1107815208388788830`, was production-created and
+  read-verified in the second 2026-09-16 slot; v11 is Arm F 2/6, Arm P 1/6,
+  and 3/12 overall with no performance verdict. Video, paid tools,
   paid distribution, Sandbox writes, account changes, deletion, and spend
   remain excluded.
 - The production API `GET /v5/pins` response is the authoritative live-count
-  source and currently returns twenty-four Pins. `pinterest-approved-pins.json`
+  source and currently returns twenty-five Pins. `pinterest-approved-pins.json`
   is a package/publication ledger rather than the profile inventory: it contains
   the three original retained browser posts and every guarded API publication,
   but the separately event-ledgered Goat, Hippo Vanity, and Hippo Desk browser
