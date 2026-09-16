@@ -30,7 +30,7 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Twenty-two product-faithful editorial Pins are live. Before the twenty-second
+   Twenty-four product-faithful editorial Pins are live. Before the twenty-second
    launched, the first twenty-one had 262 public impressions in total, two Pin
    clicks, and one save, all engagement on the corrected goat, but no outbound click,
    attributable Pinterest session, or downstream product click. That is a
@@ -55,6 +55,38 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-16 morning Arm F launch
+
+The second v11 slot again used the current verified and editorially enriched
+catalog without running the weekly catalog job. Live Amazon preflight rejected
+the dumpster-fire organizer as unavailable and left the Desktop Therapist
+unselected because its primary image concealed the controls that would make an
+annotated image useful. Amazon Creators API then reverified The Moon Ring
+farting prank ring box (`B01KR3SAIS`) `IN_STOCK` at `$17.95`; the exact source
+and its canonical gift page passed product-truth and `index, follow` checks.
+
+Three product-derived concepts were recorded. The jewelry-appraisal plate was
+rejected before generation for reusable card risk. Two 1024×1536 Arm F images
+were generated and inspected at full resolution. The candlelit proposal-
+forensics image passed at `4.75/5` but repeated the prior Pin's warm low-light
+palette. The green clover courtship field note became the run's sole survivor
+at `4.88/5`; its three labels accurately state the 2.5-inch box length,
+fart-on-open behavior, and opening trigger. It has no price, CTA, badge, grid,
+or template shell. No diagnosed weakness justified a revision.
+
+The guarded production dry run verified the exact package and approval event,
+correct `goosegifts` BUSINESS account, `Funny White Elephant Gifts` board,
+unique Arm F UTM, first daily publication, and vertical artifact. Pinterest API
+v5 created and read-verified public Pin `1107815208388765155` and wrote durable
+receipt
+`receipt-1789576939922-editorial-farting-ring-courtship-field-note-20260916-am-publication-succeeded`.
+Its immediate baseline was zero actions. The profile now has 24 Pins, 290
+impressions, three Pin clicks, one save, and zero outbound clicks; GA4 and the
+database still show no Pinterest-attributable session or non-QA product click.
+V11 is Arm F 2/6, Arm P 0/6, and 2/12 overall, with no performance verdict.
+No video, weekly catalog job, SEO page change, outreach, second daily Pin, paid
+tool, account change, deletion, or spend occurred.
 
 ### 2026-09-15 afternoon Arm F launch
 

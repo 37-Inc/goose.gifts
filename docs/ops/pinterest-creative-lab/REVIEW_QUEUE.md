@@ -11,6 +11,48 @@ None.
 
 ## Published from this queue
 
+### The Moon Ring — courtship field note
+
+- Candidate: `cand-v11-farting-ring-field-note` (`measuring`, Arm F annotated
+  field note, internal score `4.88/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208388765155/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v23-concepts/02-farting-ring-courtship-field-note.png`
+- Exact product: The Moon Ring handmade farting prank ring box, ASIN
+  `B01KR3SAIS`; Amazon Creators API reverified it `IN_STOCK` at `$17.95` on
+  2026-09-16 with the unchanged primary image. The authentic white leatherette
+  box is 2 by 2 by 2.5 inches, contains no ring, reveals a molded trousered butt,
+  and makes a fart sound when opened; its batteries are replaceable.
+- Destination:
+  `https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up`
+- Board: `Funny White Elephant Gifts`
+- Title: `Farting Ring Box Prank Gift for White Elephant`
+- Description: `The Moon Ring is a 2.5-inch white leatherette proposal box with no ring—open it and the tiny trousered butt inside makes a fart sound. Handmade in the United States with replaceable batteries, it is a ridiculous white elephant or relationship prank gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Tiny open white ring box containing a molded bare butt in blue trousers among dewy clover, annotated “Box: 2.5 inches,” “Courtship call: fart,” and “Triggered on open.”`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am`
+- Click hypothesis: the beautiful macro courtship image earns the pause, while
+  the accurate fart-on-open observation makes viewers click to understand how
+  the authentic-looking proposal box works and who the prank is for.
+- Rejected alternatives: the candlelit proposal-forensics execution passed all
+  gates at `4.75/5` but repeated more of the previous Pin's warm low-light
+  palette; the jewelry-appraisal plate was rejected before generation for
+  reusable product-card risk. No revision was needed, so the run stopped after
+  two generation calls.
+- Approval scope: Cameron's 2026-09-15 standing scheduled-task authorization,
+  recorded as `evt-20260916-v11-farting-ring-approved`, covered only this exact
+  morning Arm F package as the first 2026-09-16 publication and second of 12
+  qualifying v11 Pins.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, exact approval, first daily slot, unique UTM, 1024×1536
+  artifact, and `Funny White Elephant Gifts` board; it read back every field
+  and wrote receipt
+  `receipt-1789576939922-editorial-farting-ring-courtship-field-note-20260916-am-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about 11
+  seconds after publication. V11 is Arm F 2/6, Arm P 0/6, and 2/12 overall;
+  this is not a performance verdict.
+
 ### Red the Crab — steam-room field note
 
 - Candidate: `cand-v11-red-crab-field-note` (`measuring`, Arm F annotated field

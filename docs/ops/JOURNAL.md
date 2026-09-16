@@ -5,6 +5,47 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-16 morning - v11 The Moon Ring field note
+
+**Evidence checked**: Pinterest production API v5 confirmed the correct
+`goosegifts` BUSINESS account and a pre-publication profile of 23 Pins, 290
+impressions, three Pin clicks, one save, and zero outbound clicks. GA4 had 11
+trailing-seven-day sessions from Direct, Unassigned, or Amazon Organic Shopping
+and no Pinterest source or outbound-product event. The database had zero
+product clicks in 24 hours or seven days and zero searches. Search Console's
+September 9–15 public window had zero clicks; the coworker guide led the
+priority pages with 262 impressions, and the exact Moon Ring gift page had one
+impression at average position six. Pinterest v3 and Sandbox were excluded.
+
+**Creative and publication**: the current enriched shortlist supplied live
+catalog options without running the weekly job. Amazon Creators API rejected
+the dumpster-fire organizer as unavailable; Desktop Therapist remained
+unselected because its primary source hid the controls needed for meaningful
+annotation. It reverified The Moon Ring farting prank box, ASIN `B01KR3SAIS`,
+`IN_STOCK` at `$17.95`, and the exact source and canonical `index, follow`
+destination passed preflight. Of three product-derived concepts, the jewelry-
+appraisal plate was rejected before generation for reusable card risk. Two Arm
+F executions were generated and inspected at full resolution. The 4.75/5
+candlelit proposal-forensics attempt repeated the previous Pin's warm palette.
+The 4.88/5 clover courtship field note was the only survivor; its notes state
+only the verified 2.5-inch box height, fart sound, and opening trigger. No
+causal revision was warranted.
+
+The guarded production dry run verified Cameron's exact-package approval, the
+`goosegifts` BUSINESS account, `Funny White Elephant Gifts` board, unique Arm F
+tracking URL, vertical artifact, first daily publication, and v11 cap.
+Pinterest created and read-verified Pin `1107815208388765155`; receipt
+`receipt-1789576939922-editorial-farting-ring-courtship-field-note-20260916-am-publication-succeeded`
+is durable. The public baseline was zero actions about 11 seconds after
+publication. The truthful profile now has 24 Pins and unchanged aggregate
+metrics; v11 is Arm F 2/6, Arm P 0/6, and 2/12 overall. Disk headroom had fallen
+to 115 MiB, so only the exact regenerable `.next` build output was cleared,
+restoring about 232 MiB; no user data or unrelated dirty work was touched. No
+video, weekly catalog job, SEO page change, second daily Pin, paid tool,
+outreach, account change, deletion, or spend occurred. The next scheduled slot
+is the afternoon Arm P slot; choose a distinct product and visual mechanism or
+take a quality-gated no-op.
+
 ## 2026-09-15 afternoon - v11 Red the Crab field note
 
 **Evidence checked**: Pinterest production API v5 confirmed the correct

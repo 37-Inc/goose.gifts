@@ -1,0 +1,43 @@
+{
+  "verifiedAt": "2026-09-16T16:34:34Z",
+  "provider": "Amazon Creators API GetItems",
+  "productId": "B01KR3SAIS",
+  "title": "The Moon Ring - Farts When Opened! Prank Ring Box with Farting Butt, No Ring",
+  "availabilityStatus": "IN_STOCK",
+  "availabilityMessage": "In Stock",
+  "price": 17.95,
+  "currency": "USD",
+  "affiliateUrl": "https://www.amazon.com/dp/B01KR3SAIS?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+  "sourceImage": "https://m.media-amazon.com/images/I/31i8RlM9A1L._SL500_.jpg",
+  "sourceReference": "docs/ops/pinterest-creative-lab/v23-concepts/product-references/B01KR3SAIS-source.jpg",
+  "sourceSha256": "42c04f8f12d389e568587eb197ce3a5f4ff5c86484b77284927fb70041abaf11",
+  "sourceDimensions": "500x500",
+  "literalVisibleIdentity": "One small open white leatherette ring box containing a peach-colored molded-plastic bare-butt figure with bent legs in dark-blue trousers and black shoes; no ring is visible.",
+  "verifiedFacts": {
+    "brand": "The Moon Ring",
+    "manufacturer": "The Moon Ring LLC",
+    "color": "White",
+    "size": "Small",
+    "unitCount": 1,
+    "dimensions": {
+      "width": "2 inches",
+      "height": "2 inches",
+      "length": "2.5 inches",
+      "weight": "0.24 pounds"
+    },
+    "features": [
+      "Handmade at home in the United States by the original inventors.",
+      "Authentic white leatherette ring box.",
+      "Farts when opened and contains no ring.",
+      "Replaceable batteries can last up to one year with regular use."
+    ]
+  },
+  "canonicalDestination": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+  "destinationStatus": 200,
+  "destinationCanonical": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+  "robots": "index, follow",
+  "uncertainties": [
+    "The source image does not expose the sound mechanism or battery compartment, so no internal construction is depicted or annotated.",
+    "The exact sound is described by the listing as a fart; the still image cannot independently verify audio quality."
+  ]
+}

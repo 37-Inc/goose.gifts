@@ -108,7 +108,9 @@ what's likely next.
   product-specific editorial posters and six bespoke annotated field notes,
   with the same two-slot ceiling and harder 14-day/minimum-exposure review. The
   first Arm F package, Red the Crab `1107815208388715714`, is now public and
-  read-verified; v11 stands at Arm F 1/6, Arm P 0/6, and 1/12 overall.
+  read-verified. The second Arm F package, The Moon Ring
+  `1107815208388765155`, is also public and read-verified after a 4.88/5
+  product-truth review; v11 stands at Arm F 2/6, Arm P 0/6, and 2/12 overall.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -147,6 +149,16 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-16 — Publish The Moon Ring courtship field note `[daily-ops]`
+
+Rejected an unavailable dumpster-fire organizer at live Amazon preflight,
+reverified The Moon Ring farting prank box and its indexable gift page, and
+compared two full-resolution annotated editorials. The 4.88/5 green-clover
+courtship field note was the only survivor. The guarded production API created
+and read-verified public Pin `1107815208388765155` with its exact Arm F package,
+unique tracking URL, and durable receipt. Its immediate baseline was zero
+actions; v11 is Arm F 2/6, Arm P 0/6, and 2/12 overall.
 
 ### 2026-09-15 — Launch the annotated field-note arm with Red the Crab `[daily-ops]`
 
