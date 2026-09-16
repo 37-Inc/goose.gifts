@@ -190,7 +190,7 @@ Boundaries (always in force):
    cache endpoint using `CATALOG_CACHE_REVALIDATE_SECRET`. It revalidates the
    product pages, directory, related products, random pool, and sitemap
    together. A missing or failed invalidation remains visible as a run warning;
-   crawler-facing caches also have a five-minute fallback.
+   crawler-facing caches also have a 24-hour fallback.
    Apply only the additive telemetry migrations with
    `npm run db:migrate:catalog-telemetry -- --apply`, then run the command
    without `--apply` for its schema receipt. The narrow command safely applies

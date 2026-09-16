@@ -50,13 +50,24 @@ async function fetchDatabaseAnalytics() {
           (SELECT coalesce(sum(impression_count),0)::int FROM products) AS product_impressions_lifetime,
           (SELECT coalesce(sum(click_count),0)::int FROM products) AS product_clicks_lifetime,
           (SELECT count(*)::int FROM product_clicks) AS product_click_events_lifetime,
+          (SELECT count(*)::int FROM product_clicks
+            WHERE coalesce(utm_medium, '') <> 'qa') AS non_qa_product_click_events_lifetime,
+          (SELECT count(*)::int FROM product_clicks
+            WHERE coalesce(utm_medium, '') = 'qa') AS qa_product_click_events_lifetime,
           (SELECT count(*)::int FROM search_queries) AS searches_lifetime,
-          (SELECT max(created_at) FROM product_clicks) AS latest_product_click_at,
+          (SELECT max(created_at) FROM product_clicks
+            WHERE coalesce(utm_medium, '') <> 'qa') AS latest_product_click_at,
           (SELECT max(created_at) FROM search_queries) AS latest_search_at
       `),
       queryDb('windows', db, `
         SELECT window_label,
           (SELECT count(*)::int FROM product_clicks WHERE created_at >= now() - window_label::interval) AS product_click_events,
+          (SELECT count(*)::int FROM product_clicks
+            WHERE created_at >= now() - window_label::interval
+              AND coalesce(utm_medium, '') <> 'qa') AS non_qa_product_click_events,
+          (SELECT count(*)::int FROM product_clicks
+            WHERE created_at >= now() - window_label::interval
+              AND coalesce(utm_medium, '') = 'qa') AS qa_product_click_events,
           (SELECT count(*)::int FROM search_queries WHERE created_at >= now() - window_label::interval) AS searches,
           (SELECT count(*)::int FROM products WHERE created_at >= now() - window_label::interval) AS products_created
         FROM (VALUES ('24 hours'), ('7 days'), ('30 days'), ('90 days')) AS w(window_label)
@@ -66,6 +77,7 @@ async function fetchDatabaseAnalytics() {
         FROM product_clicks pc
         LEFT JOIN products p ON p.id = pc.product_id
         WHERE pc.created_at >= now() - interval '90 days'
+          AND coalesce(pc.utm_medium, '') <> 'qa'
         GROUP BY pc.product_id, p.title, p.source
         ORDER BY clicks DESC, last_click_at DESC
         LIMIT 10
@@ -74,6 +86,7 @@ async function fetchDatabaseAnalytics() {
         SELECT source, count(*)::int AS clicks, max(created_at) AS last_click_at
         FROM product_clicks
         WHERE created_at >= now() - interval '90 days'
+          AND coalesce(utm_medium, '') <> 'qa'
         GROUP BY source
         ORDER BY clicks DESC, last_click_at DESC
         LIMIT 10
@@ -84,6 +97,7 @@ async function fetchDatabaseAnalytics() {
         WHERE created_at >= now() - interval '90 days'
           AND source = 'gift_guide'
           AND bundle_slug IS NOT NULL
+          AND coalesce(utm_medium, '') <> 'qa'
         GROUP BY bundle_slug
         ORDER BY clicks DESC, last_click_at DESC
         LIMIT 10
@@ -96,6 +110,7 @@ async function fetchDatabaseAnalytics() {
           count(*)::int AS clicks
         FROM product_clicks
         WHERE created_at >= now() - interval '90 days'
+          AND coalesce(utm_medium, '') <> 'qa'
         GROUP BY 1
         ORDER BY clicks DESC
         LIMIT 10
@@ -109,6 +124,7 @@ async function fetchDatabaseAnalytics() {
           max(created_at) AS last_click_at
         FROM product_clicks
         WHERE created_at >= now() - interval '90 days'
+          AND coalesce(utm_medium, '') <> 'qa'
           AND (
             nullif(utm_source, '') IS NOT NULL
             OR nullif(utm_medium, '') IS NOT NULL
@@ -195,13 +211,13 @@ function printText(snapshot) {
   console.log('goose.gifts analytics snapshot');
   console.log('Database interaction analytics');
   console.log(`- Products: ${summary.products.toLocaleString()} (${summary.active_products.toLocaleString()} active)`);
-  console.log(`- Product impressions/click events: ${summary.product_impressions_lifetime.toLocaleString()} impressions, ${summary.product_click_events_lifetime.toLocaleString()} click events`);
+  console.log(`- Product impressions/click events: ${summary.product_impressions_lifetime.toLocaleString()} impressions, ${summary.non_qa_product_click_events_lifetime.toLocaleString()} click events (${summary.qa_product_click_events_lifetime.toLocaleString()} QA excluded)`);
   console.log(`- Product click counter: ${summary.product_clicks_lifetime.toLocaleString()} lifetime product clicks`);
   console.log(`- Searches: ${summary.searches_lifetime.toLocaleString()} lifetime; latest search ${formatTimestamp(summary.latest_search_at)}`);
   console.log('- Recent windows:');
   console.log(formatRows(
     database.windows,
-    (row) => `  ${row.window_label}: ${row.searches} searches, ${row.product_click_events} product clicks, ${row.products_created} products created`,
+    (row) => `  ${row.window_label}: ${row.searches} searches, ${row.non_qa_product_click_events} product clicks (${row.qa_product_click_events} QA excluded), ${row.products_created} products created`,
   ));
   console.log('- Top clicked products in 90d:');
   console.log(formatRows(
