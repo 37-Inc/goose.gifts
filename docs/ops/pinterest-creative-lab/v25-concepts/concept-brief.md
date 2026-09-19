@@ -28,7 +28,7 @@ Candidate: `cand-v11-mini-bowling-poster`
   `e0d560203d79fd9e23e6295d51e95b5458e4fed75144e0f02375479287697360`).
 
 The object must stay a small physical tabletop game, never a full-size bowling
-alley. The source controls the lane shape, light wood, six visible pins,
+alley. The source controls the lane shape, light wood, eight visible pins,
 silver-colored ball, wooden launcher, gutters, backstop, and arrows.
 
 ## Concept 1 — After-hours boardroom league
