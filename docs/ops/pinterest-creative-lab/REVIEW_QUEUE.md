@@ -11,6 +11,47 @@ None.
 
 ## Published from this queue
 
+### Mini tabletop bowling — after-hours boardroom poster
+
+- Candidate: `cand-v11-mini-bowling-poster` (`measuring`, Arm P playful
+  editorial poster, internal score `4.88/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208389000013/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v25-concepts/01-mini-bowling-boardroom-poster.png`
+- Exact product: SYZ wooden table-top mini bowling game set, ASIN
+  `B082PSJYYP`; Amazon Creators API reverified it `IN_STOCK` at `$9.99` on
+  2026-09-19 with the same primary image. The compact wooden set has a roughly
+  12-inch longest dimension, two inset gutters, eight source-visible miniature
+  pins, a small silver-colored ball, and a wood launcher for tabletop play.
+- Destination:
+  `https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun`
+- Board: `Novelty Desk Toys`
+- Title: `Mini Tabletop Bowling Game for Office Desks`
+- Description: `This compact wooden tabletop bowling game uses a tiny silver-colored ball and wood launcher on a roughly 12-inch set with inset gutters and miniature pins. It turns a desk, break-room table, or coffee table into a funny office, white elephant, or bowler gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Small wooden tabletop bowling lane with eight white pins, a silver-colored ball, and a wood launcher on an after-hours conference table beneath the words “The break room has lanes.”`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am`
+- Click hypothesis: the serious after-hours tournament treatment earns the
+  pause, while the product-specific line makes viewers click to inspect how the
+  tiny launcher, ball, gutters, and pins turn a table into a playable lane.
+- Rejected alternatives: the rainy-day parlor image passed all hard gates at
+  `4.75/5` but its game-night premise was less surprising and more reusable;
+  the inbox-stress concept was rejected before generation for a weaker swap
+  test. No causal defect remained, so the run stopped after two calls.
+- Approval scope: Cameron's 2026-09-15 standing scheduled-task authorization,
+  recorded as `evt-20260919-v11-mini-bowling-approved`, covered only this exact
+  morning Arm P package as the first and only 2026-09-19 publication so far,
+  second Arm P Pin, and fourth of 12 qualifying v11 Pins.
+- Publication verification: the guarded publisher confirmed the `goosegifts`
+  BUSINESS account, first daily slot, exact approval, unique UTM, 1024×1536
+  artifact, canonical indexable destination, and `Novelty Desk Toys` board. It
+  read back every field and wrote receipt
+  `receipt-1789836323812-editorial-mini-bowling-boardroom-poster-20260919-am-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about 15
+  seconds after publication. V11 is Arm F 2/6, Arm P 2/6, and 4/12 overall;
+  all four Pins remain undistributed, so there is no arm verdict.
+
 ### Chia Pet Gnome — barbershop poster
 
 - Candidate: `cand-v11-chia-gnome-poster` (`measuring`, Arm P playful

@@ -30,18 +30,20 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Twenty-five product-faithful editorial Pins are live. Before the twenty-second
-   launched, the first twenty-one had 262 public impressions in total, two Pin
-   clicks, and one save, all engagement on the corrected goat, but no outbound click,
-   attributable Pinterest session, or downstream product click. That is a
-   directional attention signal, not yet a creative or conversion verdict. A
+   Twenty-six product-faithful editorial Pins are live. At the 2026-09-19
+   morning pull, the public profile had 444 impressions, four Pin clicks, one
+   save, and no Pinterest outbound click, attributable Pinterest session, or
+   downstream customer product click. That is a directional attention signal,
+   not yet a creative or conversion verdict. A
    bounded 12-Pin static-format cohort completed with six clean text-free
    editorials and six restrained 4–7 word headlines. Each arm has one
    impression and neither has a downstream action, so the result is
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
-   versus bespoke annotated field notes, still capped at one Pin per scheduled
-   slot and two per local day.
+   versus bespoke annotated field notes. Four are live—two in each arm—but all
+   four remain at zero impressions and actions. The mix stays capped at one Pin
+   per scheduled slot and two per local day, with no winner below 50 impressions
+   per arm.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
    catalog-supported pages. The Weird Gift Index is the first original-data
    acquisition asset and should be improved as a cited, editioned report rather
@@ -55,6 +57,43 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-19 morning Arm P launch
+
+The fourth v11 slot began with current public and site-side evidence and did
+not run the separate weekly catalog job. Before publication, Pinterest API v5
+confirmed the correct `goosegifts` BUSINESS account with 25 Pins, 443 public
+impressions, four Pin clicks, one save, and zero outbound clicks. All three
+existing v11 Pins remained at zero impressions and actions. GA4 had 80
+trailing-seven-day sessions and no Pinterest source; its one outbound event is
+documented QA. The database recorded zero customer product clicks after
+excluding two QA receipts, and Search Console's September 12–18 window had
+zero clicks. Pinterest v3 and Sandbox remained excluded.
+
+The enriched-catalog shortlist supplied the SYZ wooden table-top mini bowling
+game (`B082PSJYYP`). Amazon Creators API reverified it `IN_STOCK` at `$9.99`;
+its canonical Goose destination returned `200`, self-canonical, and `index,
+follow`. Three Arm P concepts were recorded. The generic inbox-stress setup was
+rejected before generation. The after-hours boardroom and rainy-day parlor
+posters were generated at 1024×1536 and inspected at original resolution. That
+inspection corrected an initial small-image count from six pins to the source's
+eight; the durable prompt history preserves the mistaken wording while both
+outputs visibly retain all eight pins. The parlor image passed at `4.75/5` but
+was less surprising. The boardroom `THE BREAK ROOM HAS LANES` poster became the
+sole survivor at `4.88/5`, passing every product-truth, no-CTA, no-template,
+typography, and visible-artifact gate. No third call was justified.
+
+The guarded production dry run verified the exact standing-authorized package,
+correct account, `Novelty Desk Toys` board, unique Arm P UTM, first daily slot,
+and 1024×1536 artifact. Pinterest created and read-verified public Pin
+`1107815208389000013` and wrote receipt
+`receipt-1789836323812-editorial-mini-bowling-boardroom-poster-20260919-am-publication-succeeded`.
+Its canonical tracked destination is live and indexable. The baseline was zero
+actions about 15 seconds after publication. The profile now has 26 Pins and 444
+aggregate impressions; v11 is Arm F 2/6, Arm P 2/6, and 4/12 overall. All four
+remain undistributed, so there is no arm verdict. No video, weekly catalog job,
+SEO page change, outreach, second daily Pin, paid tool, account change,
+deletion, or spend occurred.
 
 ### 2026-09-16 afternoon Arm P launch
 

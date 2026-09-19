@@ -78,12 +78,13 @@ you'd rather get real email/Slack from me, connect a connector at
   Shark Coffee Mug and Fresh Memes squeaky dog toy, the headline-format My First
   Fire prank box and Wiener Switch night light, the clean Mystic Pickle oracle
   still, the clean American Mustache national-archive still, the annotated
-  Red the Crab steam-room field note, The Moon Ring courtship field note, and
-  the playful Chia Pet Gnome barbershop poster. The current total is
-  twenty-five. The
+  Red the Crab steam-room field note, The Moon Ring courtship field note, the
+  playful Chia Pet Gnome barbershop poster, and the mini tabletop bowling
+  boardroom poster. The current total is twenty-six. The
   clean-versus-headline experiment completed inconclusively at twelve of
-  twelve, and the active v11 poster-versus-field-note mix is now three of
-  twelve: Arm F 2/6 and Arm P 1/6. The publisher checks the exact owner
+  twelve, and the active v11 poster-versus-field-note mix is now four of
+  twelve: Arm F 2/6 and Arm P 2/6. All four remain at zero impressions and
+  actions, so there is no arm verdict. The publisher checks the exact owner
   approval event and candidate state,
   account, complete disclosed package, 2:3 artifact, and duplicate tracking URL;
   it read-verifies success and records durable receipts. `npm run

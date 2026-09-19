@@ -112,8 +112,10 @@ what's likely next.
   `1107815208388765155`, is also public and read-verified after a 4.88/5
   product-truth review. The first Arm P package, Chia Pet Gnome
   `1107815208388788830`, is public after a 4.88/5 source-truth review and one
-  localized hat correction; v11 stands at Arm F 2/6, Arm P 1/6, and 3/12
-  overall.
+  localized hat correction. The second Arm P package, mini tabletop bowling
+  `1107815208389000013`, is public after a 4.88/5 source and full-resolution
+  review; v11 stands at Arm F 2/6, Arm P 2/6, and 4/12 overall. All four v11
+  Pins remain undistributed, so no arm conclusion is available.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -152,6 +154,18 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-19 — Publish the mini-bowling boardroom poster `[daily-ops]`
+
+Reverified the current mini wooden tabletop bowling listing and its indexable
+gift page, preserved three product-derived concepts, and inspected two distinct
+1024×1536 Arm P executions against the source. Original-resolution review
+corrected an initial pin-count read while confirming both outputs retained the
+source's eight pins. The 4.88/5 `THE BREAK ROOM HAS LANES` boardroom poster was
+the only survivor. The guarded production API created and read-verified public
+Pin `1107815208389000013` with the exact package, unique tracking URL, and
+durable receipt. Its immediate baseline was zero actions; v11 is Arm F 2/6,
+Arm P 2/6, and 4/12 overall, still distribution-limited.
 
 ### 2026-09-16 — Launch the playful-poster arm with Chia Pet Gnome `[daily-ops]`
 
