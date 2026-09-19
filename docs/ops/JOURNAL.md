@@ -5,6 +5,48 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-19 afternoon - v11 crochet birthday-toast field note
+
+**Evidence checked**: Pinterest production API v5 confirmed the correct
+`goosegifts` BUSINESS account and a pre-publication profile of 26 Pins, 444
+impressions, four Pin clicks, one save, and zero outbound clicks. All four
+existing v11 Pins were still at zero impressions and actions. GA4 had 76
+trailing-seven-day sessions and no Pinterest source; its one outbound event was
+unattributed and excluded from Pinterest evidence. The database excluded two QA
+receipts and had zero customer product clicks in seven days. Search Console's
+September 12–19 page window had one click to the kitchen guide, unrelated to
+Pinterest. Pinterest v3 and Sandbox were excluded.
+
+**Creative and publication**: the current enriched shortlist supplied the
+Ovrrcame crochet birthday-toast keepsake, ASIN `B0F88FJ56K`, without running the
+weekly catalog job. Amazon Creators API reverified it `IN_STOCK` at `$9.98`;
+the exact source and canonical `index, follow` destination passed preflight.
+Three Arm F concepts were preserved. The museum-vitrine concept was rejected
+before generation for a weak swap test and template risk. The plate-staged
+breakfast and walnut-desk attempts were generated and inspected at original
+1024×1536 resolution. Both passed every hard gate with exact product card copy,
+annotations, and leader lines. The 4.63/5 desk alternative was more familiar.
+The 4.88/5 breakfast field note was the sole survivor: `CROCHET, NOT BREAKFAST`,
+`2.5 INCHES TALL`, and `CARD BUILT IN` turn the initial food-photography read
+into a truthful explanation of the gift. No diagnosed defect warranted a third
+call.
+
+The guarded production dry run verified Cameron's standing exact-package
+authorization, the `goosegifts` BUSINESS account, `Funny Gifts for Coworkers`
+board, unique Arm F tracking URL, 1024×1536 artifact, second-and-final daily
+slot, and v11 cap. Pinterest created and read-verified Pin
+`1107815208389027583`; receipt
+`receipt-1789861234916-editorial-birthday-toast-breakfast-field-note-20260919-pm-publication-succeeded`
+is durable. The public Pin returned 200 and the tracked product destination
+remained self-canonical and `index, follow`. Its public baseline was zero
+actions about 14 seconds after publication. The profile now has 27 Pins and 444
+aggregate impressions; v11 is Arm F 3/6, Arm P 2/6, and 5/12 overall. Every
+v11 Pin remains undistributed, so no arm verdict is available. No video, weekly
+catalog job, SEO page change, third daily Pin, paid tool, outreach, account
+change, deletion, or spend occurred. The next scheduled slot is 2026-09-20
+morning, assigned Arm F by the predeclared parity rule; choose a distinct
+product and visual mechanism or take a quality-gated no-op.
+
 ## 2026-09-19 morning - v11 mini tabletop bowling poster
 
 **Evidence checked**: Pinterest production API v5 confirmed the correct
