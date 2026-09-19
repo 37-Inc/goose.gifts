@@ -5,6 +5,48 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-19 morning - v11 mini tabletop bowling poster
+
+**Evidence checked**: Pinterest production API v5 confirmed the correct
+`goosegifts` BUSINESS account and a pre-publication profile of 25 Pins, 443
+impressions, four Pin clicks, one save, and zero outbound clicks. All three
+existing v11 Pins were still at zero impressions and actions. GA4 had 80
+trailing-seven-day sessions from Direct, Unassigned, or Amazon Organic Shopping
+and no Pinterest source; its one outbound event is documented QA. The database
+excluded two QA receipts and had zero customer product clicks in 24 hours,
+seven days, or 30 days. Search Console's September 12–18 window had zero
+clicks; the coworker guide led the priority pages with 207 impressions.
+Pinterest v3 and Sandbox were excluded. First-available post-24-hour receipts
+for Red the Crab, The Moon Ring, and Chia Gnome all remained zero-distribution
+checkpoints, not creative verdicts.
+
+**Creative and publication**: the current enriched shortlist supplied the SYZ
+wooden table-top mini bowling game, ASIN `B082PSJYYP`, without running the
+weekly catalog job. Amazon Creators API reverified it `IN_STOCK` at `$9.99`;
+the exact source and canonical `index, follow` destination passed preflight.
+Three Arm P concepts were preserved. The inbox-stress concept was rejected
+before generation for a weaker swap test. The boardroom and rainy-parlor
+attempts were generated and inspected at original 1024×1536 resolution. That
+review corrected the initial small-source count from six pins to eight; the
+issued prompt is preserved as historical evidence, and both generated images
+visibly contain the source's eight pins. The 4.75/5 parlor alternative passed
+but was less surprising. The 4.88/5 boardroom poster, `THE BREAK ROOM HAS
+LANES`, was the sole survivor. No diagnosed defect warranted a third call.
+
+The guarded production dry run verified Cameron's standing exact-package
+authorization, the `goosegifts` BUSINESS account, `Novelty Desk Toys` board,
+unique Arm P tracking URL, 1024×1536 artifact, first daily slot, and v11 cap.
+Pinterest created and read-verified Pin `1107815208389000013`; receipt
+`receipt-1789836323812-editorial-mini-bowling-boardroom-poster-20260919-am-publication-succeeded`
+is durable. The tracked product destination returned 200, self-canonical, and
+`index, follow`. Its public baseline was zero actions about 15 seconds after
+publication. The profile now has 26 Pins and 444 aggregate impressions; v11 is
+Arm F 2/6, Arm P 2/6, and 4/12 overall. Every v11 Pin remains undistributed, so
+no arm verdict is available. No video, weekly catalog job, SEO page change,
+second daily Pin, paid tool, outreach, account change, deletion, or spend
+occurred. The next scheduled 2026-09-19 afternoon slot is Arm F; choose a
+distinct product and visual mechanism or take a quality-gated no-op.
+
 ## 2026-09-16 afternoon - v11 Chia Pet Gnome poster
 
 **Evidence checked**: Pinterest production API v5 confirmed the correct

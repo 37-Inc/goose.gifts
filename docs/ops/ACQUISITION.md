@@ -296,6 +296,18 @@ documented QA and is excluded from customer acquisition. Keep the two-per-day
 ceiling, 14-day full-cohort gate, and minimum 50 impressions per arm before
 naming a winner.
 
+**2026-09-19 fourth v11 publication:** Arm P added the mini wooden tabletop
+bowling game as public Pin `1107815208389000013` on `Novelty Desk Toys`. The
+after-hours boardroom scene and `THE BREAK ROOM HAS LANES` line depend on the
+verified playable miniature lane; the unique tracked destination is its
+canonical `index, follow` gift page. Its immediate baseline was zero actions.
+The profile had 444 aggregate impressions, four Pin clicks, one save, and zero
+Pinterest outbound clicks after publication; GA4 and the customer-only
+database still had no Pinterest-attributable downstream behavior. V11 is Arm F
+2/6, Arm P 2/6, and 4/12 overall, and every v11 Pin remains undistributed.
+Keep the two-per-day ceiling, 14-day full-cohort gate, and minimum 50
+impressions per arm before naming a winner.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

@@ -1,0 +1,43 @@
+{
+  "verifiedAt": "2026-09-19T16:33:00Z",
+  "provider": "Amazon Creators API GetItems",
+  "productId": "B082PSJYYP",
+  "title": "Table Top Mini Bowling Game Set",
+  "availabilityStatus": "IN_STOCK",
+  "availabilityMessage": "In Stock",
+  "price": 9.99,
+  "currency": "USD",
+  "affiliateUrl": "https://www.amazon.com/dp/B082PSJYYP?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+  "sourceImage": "https://m.media-amazon.com/images/I/51fLULUvr8L._SL500_.jpg",
+  "sourceReference": "docs/ops/pinterest-creative-lab/v25-concepts/product-references/B082PSJYYP-source.jpg",
+  "sourceSha256": "e0d560203d79fd9e23e6295d51e95b5458e4fed75144e0f02375479287697360",
+  "sourceDimensions": "500x500",
+  "literalVisibleIdentity": "One compact narrow light-wood tabletop bowling lane with a rounded near end, raised tan backstop, two recessed side gutters, black triangular lane arrows, eight small white pins with thin red neck stripes, one tiny silver-colored ball, and one light-wood spring/ramp launcher.",
+  "verifiedFacts": {
+    "brand": "SYZ",
+    "manufacturer": "SYZ",
+    "color": "White",
+    "size": "Small",
+    "productGroup": "Toy",
+    "dimensions": {
+      "width": "4.49 inches",
+      "height": "11.93 inches",
+      "length": "2.05 inches",
+      "weight": "0.75 pounds"
+    },
+    "features": [
+      "A small wooden bowling board intended for tabletop or desk play.",
+      "The set uses a wooden launcher and a small ball to knock down miniature pins.",
+      "The listing presents it as an office, white-elephant, and stress-relief gift."
+    ]
+  },
+  "canonicalDestination": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun",
+  "destinationStatus": 200,
+  "destinationCanonical": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun",
+  "robots": "index, follow",
+  "uncertainties": [
+    "The provider's dimension axis labels appear inconsistent with the visible lane orientation, so creative copy uses only the source-consistent roughly 12-inch longest dimension.",
+    "The primary image visibly establishes eight pins; the creative must not substitute a generic ten-pin regulation arrangement.",
+    "The still image cannot independently demonstrate motion, so playability remains a listing-confirmed fact and is expressed through visible physical components rather than an action claim."
+  ]
+}
