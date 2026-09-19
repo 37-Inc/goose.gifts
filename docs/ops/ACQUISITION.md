@@ -308,6 +308,18 @@ database still had no Pinterest-attributable downstream behavior. V11 is Arm F
 Keep the two-per-day ceiling, 14-day full-cohort gate, and minimum 50
 impressions per arm before naming a winner.
 
+**2026-09-19 fifth v11 publication:** Arm F added the 2.5-inch crochet birthday
+toast as public Pin `1107815208389027583` on `Funny Gifts for Coworkers`. The
+plate-staged field note uses exact material, height, and built-in-card
+annotations, while its unique tracked destination is the canonical `index,
+follow` gift page. Its immediate baseline was zero actions. The truthful public
+profile now has 444 aggregate impressions, four Pin clicks, one save, and zero
+Pinterest outbound clicks; GA4 and the customer-only database still have no
+Pinterest-attributable downstream behavior. V11 is Arm F 3/6, Arm P 2/6, and
+5/12 overall, and every v11 Pin remains undistributed. Keep the two-per-day
+ceiling, 14-day full-cohort gate, and minimum 50 impressions per arm before
+naming a winner.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

@@ -114,7 +114,9 @@ what's likely next.
   `1107815208388788830`, is public after a 4.88/5 source-truth review and one
   localized hat correction. The second Arm P package, mini tabletop bowling
   `1107815208389000013`, is public after a 4.88/5 source and full-resolution
-  review; v11 stands at Arm F 2/6, Arm P 2/6, and 4/12 overall. All four v11
+  review; the crochet birthday-toast breakfast field note followed after a
+  4.88/5 source, annotation, and full-resolution review. V11 stands at Arm F
+  3/6, Arm P 2/6, and 5/12 overall. All five v11
   Pins remain undistributed, so no arm conclusion is available.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
@@ -154,6 +156,18 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-19 — Publish the birthday-toast breakfast field note `[daily-ops]`
+
+Reverified the current 2.5-inch crochet birthday-toast keepsake and its
+indexable gift page, preserved three product-derived concepts, and inspected
+two distinct 1024×1536 Arm F executions against the source. Both passed the
+hard gates; the 4.88/5 plate-staged field note was the sharper double take and
+the only survivor. The guarded production API created and read-verified public
+Pin `1107815208389027583` with exact material, height, and built-in-card
+annotations, a unique tracking URL, and durable receipt. Its immediate baseline
+was zero actions; v11 is Arm F 3/6, Arm P 2/6, and 5/12 overall, still
+distribution-limited.
 
 ### 2026-09-19 — Publish the mini-bowling boardroom poster `[daily-ops]`
 

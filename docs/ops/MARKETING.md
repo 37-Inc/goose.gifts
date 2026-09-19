@@ -30,8 +30,8 @@ or intriguing first impression followed by a funny double take.
 ## Current channel priorities
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Twenty-six product-faithful editorial Pins are live. At the 2026-09-19
-   morning pull, the public profile had 444 impressions, four Pin clicks, one
+   Twenty-seven product-faithful editorial Pins are live. At the 2026-09-19
+   afternoon pull, the public profile had 444 impressions, four Pin clicks, one
    save, and no Pinterest outbound click, attributable Pinterest session, or
    downstream customer product click. That is a directional attention signal,
    not yet a creative or conversion verdict. A
@@ -40,8 +40,8 @@ or intriguing first impression followed by a funny double take.
    impression and neither has a downstream action, so the result is
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
-   versus bespoke annotated field notes. Four are live—two in each arm—but all
-   four remain at zero impressions and actions. The mix stays capped at one Pin
+   versus bespoke annotated field notes. Five are live—three Arm F and two Arm
+   P—but all five remain at zero impressions and actions. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
@@ -57,6 +57,44 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-09-19 afternoon Arm F launch
+
+The fifth v11 slot began with a fresh production and downstream evidence pull,
+without running the separately owned weekly catalog job. The correct
+`goosegifts` BUSINESS account had 26 Pins, 444 public impressions, four Pin
+clicks, one save, and zero Pinterest outbound clicks. All four existing v11
+Pins were still at zero impressions and actions. GA4 had 76 trailing-seven-day
+sessions and no Pinterest source; its single outbound event was unattributed
+and was not counted as Pinterest evidence. The customer-only database had zero
+product clicks in seven days after excluding two QA receipts. Search Console
+recorded one organic click to the kitchen guide in the September 12–19 page
+window, unrelated to Pinterest. Pinterest v3 and Sandbox remained excluded.
+
+The enriched shortlist supplied the Ovrrcame crochet birthday-toast keepsake
+(`B0F88FJ56K`). Amazon Creators API reverified it `IN_STOCK` at `$9.98`; the
+exact source and canonical `index, follow` gift page passed preflight. Three Arm
+F concepts were preserved. The museum-vitrine direction was rejected before
+generation for template risk. The breakfast and walnut-desk field notes were
+generated at 1024×1536 and inspected at original resolution. Both passed all
+hard gates with exact annotations and source-card copy. The desk attempt scored
+`4.63/5` but used a more familiar novelty-gift setting. The breakfast field note
+became the sole survivor at `4.88/5`: `CROCHET, NOT BREAKFAST`, `2.5 INCHES
+TALL`, and `CARD BUILT IN` accurately resolve the plate-staged double take and
+explain why the object is giftable. No third call was justified.
+
+The guarded production dry run verified the exact standing-authorized package,
+correct account, `Funny Gifts for Coworkers` board, unique Arm F UTM,
+second-and-final daily slot, 1024×1536 artifact, and experiment cap. Pinterest
+created and read-verified public Pin `1107815208389027583` and wrote receipt
+`receipt-1789861234916-editorial-birthday-toast-breakfast-field-note-20260919-pm-publication-succeeded`.
+The public Pin and canonical tracked destination both returned 200; the gift
+page remained self-canonical and `index, follow`. The baseline was zero actions
+about 14 seconds after publication. The profile now has 27 Pins and 444
+aggregate impressions; v11 is Arm F 3/6, Arm P 2/6, and 5/12 overall. All five
+remain undistributed, so there is no arm verdict. No video, weekly catalog job,
+SEO page change, outreach, third daily Pin, paid tool, account change, deletion,
+or spend occurred.
 
 ### 2026-09-19 morning Arm P launch
 

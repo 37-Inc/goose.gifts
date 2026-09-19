@@ -1,0 +1,42 @@
+{
+  "verifiedAt": "2026-09-19T23:33:28Z",
+  "provider": "Amazon Creators API GetItems",
+  "productId": "B0F88FJ56K",
+  "title": "A little Birthday Toast to you - Funny Happy Birthday Gifts for Women, Men, Mom, Dad, Sister, Best Friend - Unique Birthday Decorations Crochet Toast Gift Card for Her Him Coworker Gifts Ideas",
+  "availabilityStatus": "IN_STOCK",
+  "availabilityMessage": "In Stock",
+  "price": 9.98,
+  "currency": "USD",
+  "affiliateUrl": "https://www.amazon.com/dp/B0F88FJ56K?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+  "sourceImage": "https://m.media-amazon.com/images/I/5110feBWTDL._SL500_.jpg",
+  "sourceReference": "docs/ops/pinterest-creative-lab/v26-concepts/product-references/B0F88FJ56K-source.jpg",
+  "sourceSha256": "216f47724d355d28d6a68830027775d53be06d941f99df4419ff893a71004e04",
+  "sourceDimensions": "500x500",
+  "literalVisibleIdentity": "One tiny square crochet toast character with a golden-orange crust, cream center, two glossy black eyes, a short black mouth, two cream crochet arms, and a white greeting card held across its body reading A little Birthday toast to you! with one small magenta heart balloon.",
+  "verifiedFacts": {
+    "brand": "Ovrrcame",
+    "manufacturer": "Ovrrcame",
+    "productGroup": "Toy",
+    "size": "2 inches (W) x 2.5 inches (L) x 2.5 inches (H)",
+    "dimensions": {
+      "width": "2 inches",
+      "height": "2.5 inches",
+      "length": "2.5 inches",
+      "weight": "0.03968320716 pounds"
+    },
+    "features": [
+      "A crochet birthday keepsake shaped like a slice of toast.",
+      "A built-in greeting card reads A little Birthday toast to you!",
+      "The listing identifies it as collectible decor rather than a toy."
+    ]
+  },
+  "canonicalDestination": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+  "destinationStatus": 200,
+  "destinationCanonical": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+  "robots": "index, follow",
+  "uncertainties": [
+    "The provider describes the card as built in; the source visibly establishes the held card but not a removable or interchangeable mechanism.",
+    "The listing places this item in the Toy product group while explicitly describing it as collectible decor not intended as a toy; creative copy uses the narrower decor claim.",
+    "The source does not establish whether the piece is hand-crocheted, so the creative says crochet rather than handmade."
+  ]
+}

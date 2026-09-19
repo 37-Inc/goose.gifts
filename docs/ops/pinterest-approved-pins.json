@@ -463,6 +463,23 @@
       "publicationStatus": "published",
       "publishedAt": "2026-09-19T16:45:23.822Z",
       "publicationReceiptId": "receipt-1789836323812-editorial-mini-bowling-boardroom-poster-20260919-am-publication-succeeded"
+    },
+    {
+      "id": "editorial-birthday-toast-breakfast-field-note-20260919-pm",
+      "candidateId": "cand-v11-birthday-toast-field-note",
+      "approvalEventId": "evt-20260919-v11-birthday-toast-approved",
+      "board": "Funny Gifts for Coworkers",
+      "assetPath": "docs/ops/pinterest-creative-lab/v26-concepts/01-birthday-toast-breakfast-field-note.png",
+      "targetPage": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+      "trackingUrl": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+      "title": "Crochet Birthday Toast Gift for Coworkers",
+      "description": "This tiny 2.5-inch crochet birthday toast holds its own punny greeting card, making it a funny desk keepsake for a coworker, friend, or family member. The plate is editorial staging; the product is collectible decor, not food. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Tiny orange-and-cream crochet toast holding a card that says ‘A little Birthday toast to you!’ on a white plate, annotated ‘Crochet, not breakfast,’ ‘2.5 inches tall,’ and ‘Card built in.’",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208389027583/",
+      "publishedAt": "2026-09-19T23:40:34.918Z",
+      "publicationReceiptId": "receipt-1789861234916-editorial-birthday-toast-breakfast-field-note-20260919-pm-publication-succeeded"
     }
   ]
 }

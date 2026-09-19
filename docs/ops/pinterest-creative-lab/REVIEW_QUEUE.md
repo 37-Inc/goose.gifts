@@ -11,6 +11,50 @@ None.
 
 ## Published from this queue
 
+### Crochet birthday toast — breakfast field note
+
+- Candidate: `cand-v11-birthday-toast-field-note` (`measuring`, Arm F annotated
+  field note, internal score `4.88/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208389027583/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v26-concepts/01-birthday-toast-breakfast-field-note.png`
+- Exact product: Ovrrcame “A little Birthday Toast to you” crochet keepsake,
+  ASIN `B0F88FJ56K`; Amazon Creators API reverified it `IN_STOCK` at `$9.98`
+  on 2026-09-19 with the same primary image. The collectible decor is 2 inches
+  wide by 2.5 inches long by 2.5 inches high and holds a built-in birthday card.
+- Destination:
+  `https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card`
+- Board: `Funny Gifts for Coworkers`
+- Title: `Crochet Birthday Toast Gift for Coworkers`
+- Description: `This tiny 2.5-inch crochet birthday toast holds its own punny greeting card, making it a funny desk keepsake for a coworker, friend, or family member. The plate is editorial staging; the product is collectible decor, not food. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Tiny orange-and-cream crochet toast holding a card that says ‘A little Birthday toast to you!’ on a white plate, annotated ‘Crochet, not breakfast,’ ‘2.5 inches tall,’ and ‘Card built in.’`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm`
+- Click hypothesis: the elegant breakfast photograph earns the pause, then the
+  three factual annotations reveal that the tiny toast is crochet decor holding
+  its own birthday card, inviting a click for the full gift story and recipient
+  ideas.
+- Rejected alternatives: the walnut-desk attempt passed every hard gate at
+  `4.63/5` but its office still life was more familiar and its split measurement
+  label less immediate; the museum-vitrine concept was rejected before
+  generation for a weak swap test and template risk. No causal defect remained,
+  so the run stopped after two calls.
+- Approval scope: Cameron's 2026-09-15 standing scheduled-task authorization,
+  recorded as `evt-20260919-v11-birthday-toast-approved`, covered only this exact
+  afternoon Arm F package as the second-and-final 2026-09-19 publication, third
+  Arm F Pin, and fifth of 12 qualifying v11 Pins.
+- Publication verification: the guarded production API confirmed the
+  `goosegifts` BUSINESS account, second-and-final daily slot, exact approval,
+  unique UTM, 1024×1536 artifact, canonical `index, follow` destination, and
+  `Funny Gifts for Coworkers` board. Pinterest readback matched the title,
+  description, alt text, board, tracked link, and full-resolution dimensions;
+  durable receipt
+  `receipt-1789861234916-editorial-birthday-toast-breakfast-field-note-20260919-pm-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about 14
+  seconds after publication. V11 is Arm F 3/6, Arm P 2/6, and 5/12 overall;
+  all five Pins remain undistributed, so there is no arm verdict.
+
 ### Mini tabletop bowling — after-hours boardroom poster
 
 - Candidate: `cand-v11-mini-bowling-poster` (`measuring`, Arm P playful
