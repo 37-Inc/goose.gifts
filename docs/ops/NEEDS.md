@@ -80,11 +80,11 @@ you'd rather get real email/Slack from me, connect a connector at
   still, the clean American Mustache national-archive still, the annotated
   Red the Crab steam-room field note, The Moon Ring courtship field note, the
   playful Chia Pet Gnome barbershop poster, the mini tabletop bowling boardroom
-  poster, and the crochet birthday-toast breakfast field note. The current
-  total is twenty-seven. The
+  poster, the crochet birthday-toast breakfast field note, and the Desktop
+  Therapist boardroom field note. The current total is twenty-eight. The
   clean-versus-headline experiment completed inconclusively at twelve of
-  twelve, and the active v11 poster-versus-field-note mix is now five of
-  twelve: Arm F 3/6 and Arm P 2/6. All five remain at zero impressions and
+  twelve, and the active v11 poster-versus-field-note mix is now six of
+  twelve: Arm F 4/6 and Arm P 2/6. All six remain at zero impressions and
   actions, so there is no arm verdict. The publisher checks the exact owner
   approval event and candidate state,
   account, complete disclosed package, 2:3 artifact, and duplicate tracking URL;

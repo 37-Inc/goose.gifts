@@ -115,8 +115,9 @@ what's likely next.
   localized hat correction. The second Arm P package, mini tabletop bowling
   `1107815208389000013`, is public after a 4.88/5 source and full-resolution
   review; the crochet birthday-toast breakfast field note followed after a
-  4.88/5 source, annotation, and full-resolution review. V11 stands at Arm F
-  3/6, Arm P 2/6, and 5/12 overall. All five v11
+  4.88/5 source, annotation, and full-resolution review, followed by the
+  4.88/5 Desktop Therapist boardroom field note. V11 stands at Arm F 4/6, Arm P
+  2/6, and 6/12 overall. All six v11
   Pins remain undistributed, so no arm conclusion is available.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
@@ -156,6 +157,18 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-09-20 — Publish the Desktop Therapist boardroom field note `[daily-ops]`
+
+Rejected an unavailable dumpster organizer, an unverifiable drinking bird, and
+a near-duplicate mug cluster before revalidating the 3.5-inch Desktop Therapist
+and its indexable gift page. Two distinct Arm F executions passed the hard
+gates; the cleaner blue-hour boardroom field note was the sole 4.88/5 survivor.
+The guarded production API created and read-verified public Pin
+`1107815208389087383` with exact scale, phrase-count, and battery annotations,
+a unique tracking URL, and durable receipt. Its immediate baseline was zero
+actions; v11 is Arm F 4/6, Arm P 2/6, and 6/12 overall, still distribution-
+limited.
 
 ### 2026-09-19 — Publish the birthday-toast breakfast field note `[daily-ops]`
 

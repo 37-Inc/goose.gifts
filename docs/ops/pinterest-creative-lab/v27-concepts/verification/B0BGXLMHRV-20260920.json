@@ -1,0 +1,47 @@
+{
+  "verifiedAt": "2026-09-20T09:34:30-07:00",
+  "asin": "B0BGXLMHRV",
+  "title": "NPW Desktop Therapist Novelty Sound Machine – Funny Office Desk Toy, Stress Relief Prank Gift for Work & Home (16 Sound Phrases)",
+  "availabilityStatus": "IN_STOCK",
+  "availabilityMessage": "In Stock",
+  "price": 24.99,
+  "currency": "USD",
+  "imageUrl": "https://m.media-amazon.com/images/I/41+hKc8JtWL._SL500_.jpg",
+  "affiliateUrl": "https://www.amazon.com/dp/B0BGXLMHRV?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+  "sourceFacts": {
+    "brand": "NPW",
+    "binding": "Toy",
+    "color": "White",
+    "size": "3.5 inch (Pack of 1)",
+    "itemDimensions": {
+      "height": "3.5 inches",
+      "length": "3 inches",
+      "width": "3 inches",
+      "weight": "0.35 Pounds"
+    },
+    "features": [
+      "Batteries included",
+      "16 sound phrases (listing title)"
+    ]
+  },
+  "canonicalProductPage": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking",
+  "canonicalChecks": {
+    "status": 200,
+    "robots": "index, follow",
+    "canonical": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking"
+  },
+  "rejectedAlternatives": [
+    {
+      "asin": "B0DMFBG69H",
+      "reason": "Amazon Creators API returned OUT_OF_STOCK / Currently unavailable on 2026-09-20."
+    },
+    {
+      "asin": "B0HGF6KG81",
+      "reason": "Amazon Creators API did not return the requested item on 2026-09-20, so current availability and identity could not be verified."
+    },
+    {
+      "category": "sarcastic mugs",
+      "reason": "The highest-ranked shortlist entries repeat the recently published mug family and offer weaker Arm F mechanisms than the therapist's physical scale and hidden phrase behavior."
+    }
+  ]
+}

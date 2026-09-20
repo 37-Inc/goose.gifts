@@ -320,6 +320,18 @@ Pinterest-attributable downstream behavior. V11 is Arm F 3/6, Arm P 2/6, and
 ceiling, 14-day full-cohort gate, and minimum 50 impressions per arm before
 naming a winner.
 
+**2026-09-20 sixth v11 publication:** Arm F added the 3.5-inch Desktop Therapist
+sound machine as public Pin `1107815208389087383` on `Novelty Desk Toys`. The
+blue-hour performance-review field note names its verified scale, 16 phrases,
+and included batteries without revealing the audio; its unique tracked
+destination is the canonical `index, follow` gift page. Its immediate baseline
+was zero actions. The truthful public profile now has 494 aggregate impressions,
+five Pin clicks, one save, and zero Pinterest outbound clicks; GA4 and the
+customer-only database still have no Pinterest-attributable downstream
+behavior. V11 is Arm F 4/6, Arm P 2/6, and 6/12 overall, and every v11 Pin
+remains undistributed. Keep the two-per-day ceiling, 14-day full-cohort gate,
+and minimum 50 impressions per arm before naming a winner.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before

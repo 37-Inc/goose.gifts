@@ -1,0 +1,12 @@
+Use case: ads-marketing
+Asset type: Pinterest organic editorial image, vertical 2:3
+Primary request: Create a distinct bespoke annotated editorial photograph from the exact product in Image 1. Place the tiny Desktop Therapist at the head of a long dark conference table after a meeting, as if it is conducting the world's smallest performance review. The product is the single hero. One closed unmarked folder and two softly blurred empty chairs establish the boardroom and its absurd 3.5-inch scale. Leave asymmetrical negative space for three annotations.
+Input images: Image 1 is the sole strict identity and product-truth reference. Preserve its exact one-piece elderly therapist figurine seated cross-legged in a cognac button-tufted armchair: bald head, white side hair, white eyebrows and beard, black glasses, gray jacket, green vest, blue crossed trousers, black shoes, and white notepad held in both hands.
+Scene/backdrop: tasteful modern conference room at blue hour, dark wood table, muted glass wall, empty chairs out of focus; no visible people.
+Style/medium: cinematic but natural editorial still life, believable materials, sophisticated office humor, Pinterest-native rather than an ad.
+Composition/framing: 1024x1536 portrait; low tabletop perspective; product large enough to inspect while still visibly tiny; one single visual idea; no product card or reusable template.
+Lighting/mood: one warm practical lamp against cool blue-hour ambience, restrained contrast, quiet deadpan authority.
+Text (verbatim): "DESK-SIZED: 3.5 IN"; "16 PHRASES"; "BATTERIES INCLUDED".
+Typography: render each exact phrase once in polished small editorial sans serif, warm ivory with strong contrast. Use three fine restrained leader lines. Point the size note to a full-height dimension beside the toy; point the phrase and battery notes to the whole device without inventing visible controls. Keep every label fully legible at phone size.
+Constraints: preserve exact source product identity, seated pose, armchair silhouette, face, glasses, hair, beard, clothing colors, crossed legs, shoes, and notepad; one product only; no other readable text.
+Avoid: life-size furniture, human therapist, extra figure, hands, couch, speech bubble, quoted phrase, medical claim, invented button or control panel, altered face, duplicate product, open or readable folder, package, price, logo, watermark, badge, CTA, border, grid, collage, card frame, malformed typography, extra text, glossy commercial-ad finish.
