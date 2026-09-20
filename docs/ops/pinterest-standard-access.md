@@ -205,9 +205,10 @@ frame that shows a raw token.**
   Wiener Switch night-light, Mystic Pickle fortune-teller, The American
   Mustache coffee-table-book, Red the Crab annotated field-note, The Moon Ring
   courtship field-note, Chia Pet Gnome barbershop-poster, mini tabletop bowling
-  boardroom-poster, and crochet birthday-toast breakfast field-note Pins.
-  Combined with the six retained product-faithful browser posts, the current
-  clean profile has twenty-seven public Pins and zero Sandbox objects. The bounded
+  boardroom-poster, crochet birthday-toast breakfast field-note, and Desktop
+  Therapist boardroom field-note Pins. Combined with the six retained product-
+  faithful browser posts, the current clean profile has twenty-eight public Pins
+  and zero Sandbox objects. The bounded
   static-format cohort completed at twelve of twelve: six Arm A clean Pins and
   six Arm B headline Pins. At the final seven-day gate each arm had one
   impression and no action, so the result is inconclusive. Cameron then
@@ -222,13 +223,15 @@ frame that shows a raw token.**
   mini tabletop bowling `1107815208389000013`, was production-created and
   read-verified in the 2026-09-19 morning slot. The fifth and third Arm F Pin,
   crochet birthday toast `1107815208389027583`, was production-created and
-  read-verified in the afternoon slot; v11 is Arm F 3/6, Arm P 2/6,
-  and 5/12 overall with no performance verdict because every v11 Pin remains
+  read-verified in the afternoon slot. The sixth and fourth Arm F Pin, Desktop
+  Therapist `1107815208389087383`, was production-created and read-verified in
+  the 2026-09-20 morning slot; v11 is Arm F 4/6, Arm P 2/6, and 6/12 overall
+  with no performance verdict because every v11 Pin remains
   undistributed. Video, paid tools,
   paid distribution, Sandbox writes, account changes, deletion, and spend
   remain excluded.
 - The production API `GET /v5/pins` response is the authoritative live-count
-  source and currently returns twenty-seven Pins. `pinterest-approved-pins.json`
+  source and currently returns twenty-eight Pins. `pinterest-approved-pins.json`
   is a package/publication ledger rather than the profile inventory: it contains
   the three original retained browser posts and every guarded API publication,
   but the separately event-ledgered Goat, Hippo Vanity, and Hippo Desk browser

@@ -11,6 +11,49 @@ None.
 
 ## Published from this queue
 
+### Desktop Therapist — smallest performance review field note
+
+- Candidate: `cand-v11-desktop-therapist-field-note` (`measuring`, Arm F
+  annotated field note, internal score `4.88/5`)
+- Public Pin: `https://www.pinterest.com/pin/1107815208389087383/`
+- Artifact:
+  `docs/ops/pinterest-creative-lab/v27-concepts/02-desktop-therapist-boardroom-field-note.png`
+- Exact product: NPW Desktop Therapist novelty sound machine, ASIN
+  `B0BGXLMHRV`; Amazon Creators API reverified it `IN_STOCK` at `$24.99` on
+  2026-09-20 with the same primary image. The device is 3.5 inches tall, plays
+  16 phrases, and includes batteries.
+- Destination:
+  `https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking`
+- Board: `Novelty Desk Toys`
+- Title: `Desktop Therapist Sound Machine for Office Gifts`
+- Description: `This 3.5-inch Desktop Therapist is a novelty sound machine that delivers 16 phrases from a tiny cross-legged counselor in his own armchair. Batteries are included, so it can go straight onto a coworker's desk as a funny office or white elephant gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Tiny seated elderly therapist figurine in a cognac armchair at the head of a blue-hour conference table, annotated ‘Desk-sized: 3.5 in,’ ‘16 phrases,’ and ‘Batteries included.’`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL:
+  `https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am`
+- Click hypothesis: the tiny therapist commanding an empty boardroom earns the
+  pause, while the verified `16 PHRASES` annotation leaves the actual audio
+  undisclosed and gives viewers a concrete reason to inspect the product page.
+- Rejected alternatives: the daylight consultation attempt passed every hard
+  gate at `4.63/5` but its cup and notebook made the frame busier; the museum
+  concept was rejected before generation for weak product specificity. The
+  unavailable dumpster organizer, unverifiable drinking bird, and near-
+  duplicate mug family were rejected during product selection. No causal defect
+  remained, so the run stopped after two generation calls.
+- Approval scope: Cameron's 2026-09-15 standing scheduled-task authorization,
+  recorded as `evt-20260920-v11-desktop-therapist-approved`, covered only this
+  exact morning Arm F package as the first and only 2026-09-20 publication so
+  far, fourth Arm F Pin, and sixth of 12 qualifying v11 Pins.
+- Publication verification: the guarded production API confirmed the
+  `goosegifts` BUSINESS account, first daily slot, exact approval, unique UTM,
+  1024×1536 artifact, canonical `index, follow` destination, and `Novelty Desk
+  Toys` board. Pinterest readback matched the title, description, alt text,
+  board, tracked link, and full-resolution dimensions; durable receipt
+  `receipt-1789922459150-editorial-desktop-therapist-boardroom-field-note-20260920-am-publication-succeeded`.
+- Baseline: zero impressions, saves, Pin clicks, and outbound clicks about 13
+  seconds after publication. V11 is Arm F 4/6, Arm P 2/6, and 6/12 overall;
+  all six Pins remain undistributed, so there is no arm verdict.
+
 ### Crochet birthday toast — breakfast field note
 
 - Candidate: `cand-v11-birthday-toast-field-note` (`measuring`, Arm F annotated

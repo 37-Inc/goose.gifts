@@ -1,0 +1,12 @@
+Use case: ads-marketing
+Asset type: Pinterest organic editorial image, vertical 2:3
+Primary request: Create a bespoke annotated editorial photograph from the exact product in Image 1. Stage the tiny Desktop Therapist at the far end of a handsome walnut writing desk as if a serious private consultation is beginning. The product is the single hero. An ordinary stoneware coffee cup and an open notebook near the bottom foreground establish that the entire therapist-and-chair toy is only 3.5 inches tall. Leave calm negative space around the hero for three field-note annotations.
+Input images: Image 1 is the sole strict identity and product-truth reference. Preserve its exact one-piece elderly therapist figurine seated cross-legged in a cognac button-tufted armchair: bald head, white side hair, white eyebrows and beard, black glasses, gray jacket, green vest, blue crossed trousers, black shoes, and white notepad held in both hands.
+Scene/backdrop: quiet warm editorial office, walnut desktop, soft plaster wall, a hint of morning window light; no visible people.
+Style/medium: premium naturalistic magazine still life, tactile real materials, restrained wit, Pinterest-native rather than an ad.
+Composition/framing: 1024x1536 portrait; eye-level tabletop view; product large enough to inspect but unmistakably tiny beside the cup and notebook; one single visual idea; generous breathing room; no card frame or catalog layout.
+Lighting/mood: soft directional morning light, warm cognac and walnut tones, subtle shadow, calm and deadpan.
+Text (verbatim): "3.5 INCHES TALL"; "16 PHRASES"; "BATTERIES INCLUDED".
+Typography: render each exact phrase once in polished small editorial sans serif, dark charcoal with high contrast. Use three fine restrained leader lines. Point the height note to a clean vertical dimension beside the full toy; point the phrase and battery notes to the whole device without inventing visible controls. Keep every label fully legible at phone size.
+Constraints: preserve exact source product identity, seated pose, armchair silhouette, face, glasses, hair, beard, clothing colors, crossed legs, shoes, and notepad; one product only; accurate cup-scale 3.5-inch presence; no other readable text.
+Avoid: life-size furniture, human therapist, extra person, hands, couch, speech bubble, quoted phrase, medical claim, invented button or control panel, altered face, duplicate product, package, price, logo, watermark, badge, CTA, border, grid, collage, card frame, malformed typography, extra text, glossy commercial-ad finish.

@@ -5,6 +5,51 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-20 morning - v11 Desktop Therapist field note
+
+**Evidence checked**: Pinterest production API v5 confirmed the correct
+`goosegifts` BUSINESS account and a pre-publication profile of 27 Pins, 494
+impressions, five Pin clicks, one save, and zero outbound clicks. All five
+existing v11 Pins were still at zero impressions and actions. GA4 had 76
+trailing-seven-day sessions and no Pinterest source; its one outbound event was
+unattributed and excluded from Pinterest evidence. The database excluded two QA
+receipts and had zero customer product clicks in seven days. Search Console's
+September 13–20 page window had one click to the kitchen guide, unrelated to
+Pinterest. Pinterest v3 and Sandbox were excluded. The mini-bowling 24-hour
+checkpoint was still four minutes short of its exact gate when the creative
+work began, so it was not recorded prematurely.
+
+**Creative and publication**: the current enriched shortlist had no unpublished
+survivor. Live product preflight rejected the dumpster-fire organizer as
+unavailable, could not verify the drinking bird, and rejected the dominant
+near-duplicate profanity-mug family. Amazon Creators API reverified the NPW
+Desktop Therapist, ASIN `B0BGXLMHRV`, `IN_STOCK` at `$24.99`; its exact source
+and canonical `index, follow` destination passed preflight. Three Arm F concepts
+were preserved. The museum concept failed the swap test before generation. The
+daylight consultation and blue-hour boardroom were generated and inspected at
+original 1024×1536 resolution. Both passed every hard gate. The busier
+consultation scored 4.63/5; the cleaner 4.88/5 boardroom was the only survivor.
+Its exact `DESK-SIZED: 3.5 IN`, `16 PHRASES`, and `BATTERIES INCLUDED` notes
+turn verified hidden behavior into a curiosity gap without inventing controls
+or a medical claim. No defect warranted a third call.
+
+The production dry run verified Cameron's standing exact-package authorization,
+the correct account, `Novelty Desk Toys` board, unique Arm F tracking URL,
+1024×1536 artifact, first daily slot, and v11 cap. Pinterest created and read-
+verified Pin `1107815208389087383`; receipt
+`receipt-1789922459150-editorial-desktop-therapist-boardroom-field-note-20260920-am-publication-succeeded`
+is durable. The public Pin and tracked product destination returned 200, and the
+destination remained self-canonical and `index, follow`. Its public baseline
+was zero actions about 13 seconds after publication. The profile now has 28
+Pins and 494 aggregate impressions; v11 is Arm F 4/6, Arm P 2/6, and 6/12
+overall. Every v11 Pin remains undistributed, so no arm verdict is available.
+The mini-bowling Pin's exact 24-hour gate arrived later in this run and remained
+at zero impressions and actions; it stays measuring rather than being judged.
+No video, weekly catalog job, SEO change, second daily Pin, paid tool, outreach,
+account change, deletion, or spend occurred. The next scheduled slot is the
+2026-09-20 afternoon Arm P slot; choose a distinct product and visual mechanism
+or take a quality-gated no-op.
+
 ## 2026-09-19 afternoon - v11 crochet birthday-toast field note
 
 **Evidence checked**: Pinterest production API v5 confirmed the correct
