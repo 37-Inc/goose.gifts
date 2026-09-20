@@ -332,6 +332,18 @@ behavior. V11 is Arm F 4/6, Arm P 2/6, and 6/12 overall, and every v11 Pin
 remains undistributed. Keep the two-per-day ceiling, 14-day full-cohort gate,
 and minimum 50 impressions per arm before naming a winner.
 
+**2026-09-20 afternoon quality-gated no-op:** the profile and all six v11 Pins
+were unchanged at 494 aggregate impressions, five Pin clicks, one save, zero
+Pinterest outbound clicks, and no attributable site or product-click activity.
+The assigned Arm P shortlist had no product that was both source-grounded and
+distinct from the preceding 30-day product families: its leading hidden-message
+mug was live but the exact source did not show the reveal, while the rest of the
+pool repeated mugs, middle-finger statues, gnomes, text signs, a catalog-like
+multipack, or weapon-like desk toys. The slot therefore produced no creative
+and no public write. Keep the quality gate and do not backfill it; a refreshed
+eligible product pool is more useful than another near-duplicate impression-
+starved Pin.
+
 ### 5. Publisher and community distribution
 
 - Add original editorial posts, a named byline/contact surface, and RSS before
