@@ -158,6 +158,17 @@ what's likely next.
 
 Newest first.
 
+### 2026-09-20 — Preserve an Arm P quality-gated no-op `[daily-ops]`
+
+Rechecked public and downstream evidence, reviewed the complete current
+enriched shortlist, and live-reverified the strongest remaining Arm P product.
+Its source did not show the hidden-message reveal required by all three
+product-derived concepts, and every alternative repeated a recent family or
+introduced text-grid or safety risk. Recorded the rejected preflight and
+learning through the append-only creative workflow, generated and published
+nothing, left v11 at Arm F 4/6 and Arm P 2/6, and explicitly declined to
+backfill the skipped slot.
+
 ### 2026-09-20 — Publish the Desktop Therapist boardroom field note `[daily-ops]`
 
 Rejected an unavailable dumpster organizer, an unverifiable drinking bird, and

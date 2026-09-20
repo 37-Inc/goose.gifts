@@ -5,6 +5,44 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-09-20 afternoon - v11 Arm P quality-gated no-op
+
+**Evidence checked**: Pinterest production API v5 still showed the correct
+`goosegifts` BUSINESS account with 28 truthful public Pins, 494 impressions,
+five Pin clicks, one save, and zero outbound clicks. All six v11 Pins remained
+at zero impressions and actions. GA4 still had 76 trailing-seven-day sessions
+and no Pinterest source; its one unattributed outbound event was excluded. The
+database excluded two QA receipts and had zero customer product clicks in seven
+days. Search Console's one organic click in the September 13–20 page window was
+unrelated to Pinterest. Pinterest v3 and Sandbox were excluded.
+
+**Creative decision**: no unpublished Arm P survivor existed, so the read-only
+shortlist was refreshed. Six of 14 candidates were near-duplicate ceramic
+mugs. Amazon Creators API reverified the highest-ranked Hogg hidden-message mug
+(`B0F95X117Q`) in stock at `$7.99`; its canonical gift page is
+`/gifts/hogg-f-this-shit-mug-stir-ingly-honest`. The current primary image,
+however, establishes only a white patterned 15-ounce mug and branded packaging,
+not the hidden-message reveal claimed by the listing. Three genuinely distinct
+Arm P concepts were recorded—`THE LAST SIP HAS NOTES`, `MANAGEMENT FOUND THE
+BOTTOM LINE`, and `SOME MESSAGES NEED COFFEE FIRST`—but each depended on
+unverified reveal lettering, and the product family repeats the Shark Coffee
+Mug published within 30 days.
+
+The remaining candidates failed earlier product-selection gates: a Venus
+statue repeated a recent middle-finger statue, two gnomes repeated the current
+Chia family, two metal signs already contained their complete headline, an
+18-pack of acrylic signs encouraged a catalog grid, and wooden rubber-band guns
+introduced avoidable safety and weapon-like framing. The best candidate was
+recorded as `cand-v11-hidden-message-mug-poster-preflight` and rejected before
+generation. No image call, artifact, approval event, production dry run,
+tracking URL, publication receipt, or public Pin was created. V11 stays Arm F
+4/6, Arm P 2/6, and 6/12 overall; this skipped slot will not be backfilled. The
+crochet birthday-toast Arm F Pin reached its exact 24-hour checkpoint later in
+the run with zero impressions and actions; it remains measuring because this is
+non-delivery rather than a creative verdict. The single next move is to wait for
+the separately owned catalog refresh and use the
+next assigned slot only when an exact source supports a distinct mechanism.
+
 ## 2026-09-20 morning - v11 Desktop Therapist field note
 
 **Evidence checked**: Pinterest production API v5 confirmed the correct
