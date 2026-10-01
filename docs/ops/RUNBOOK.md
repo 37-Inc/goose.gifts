@@ -78,13 +78,14 @@ Boundaries (always in force):
    Search Console data is needed. The verified property is
    `https://www.goose.gifts/`, operated through the Full non-owner Portfolio
    Search Operator at `~/.config/gcloud/portfolio-search-console-sa.json`.
-   The old Goose identity remains only for GA4 until a separate analytics
-   migration. `scripts/ops/gsc.sh submit-sitemap` and `delete-sitemap` are
+   GA4 also uses this Portfolio reader after the October 1 migration.
+   `scripts/ops/gsc.sh submit-sitemap` and `delete-sitemap` are
    external mutations and require explicit authorization for the exact sitemap.
    For GA4 source/event/landing-page reports, run `npm run analytics:ga4 --`
    followed by `events`, `traffic`, `landing-pages`, or
    `event <event-name>`. The goose.gifts GA4 property is `507421709`, using the
-   same dedicated service account key unless `GOOSE_GA4_SA_KEY` overrides it.
+   Portfolio reader key unless `GOOSE_GA4_SA_KEY` overrides it.
+   Canonical Google routing: `~/37cli/README.md`, Google authentication.
    During the weekly check-in, also run `scripts/ops/gsc.sh sitemaps` and inspect
    the homepage plus one representative guide. If submitted URLs remain at zero
    indexed, Google selects a different canonical, or the guide is only

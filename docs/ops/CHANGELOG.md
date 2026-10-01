@@ -1122,3 +1122,10 @@ check-in, escalation, guardrails), `ROADMAP.md` (catalog-first pivot),
 - Learned (now load-bearing facts): cloud sandboxes block raw Postgres TCP 5432
   — use the `@vercel/postgres` HTTPS driver; production baseline showed the site
   had gone dormant, confirming the catalog pivot as a relaunch.
+
+## 2026-10-01 [owner+claude] — Shared Google reporting credentials
+
+Updated the GA4 ops wrapper and runbook to use the Portfolio reader already
+used by Search Console. The shared reader has GA4 Viewer access to property
+507421709; old/new metrics matched before migration. Local report checks precede
+retirement of the former Goose key. No site, catalog, or deployment change.
