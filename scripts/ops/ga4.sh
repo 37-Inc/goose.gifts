@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PROPERTY_ID="${GOOSE_GA4_PROPERTY_ID:-507421709}"
-SA_KEY="${GOOSE_GA4_SA_KEY:-${GOOSE_GSC_SA_KEY:-$HOME/.config/gcloud/goose-gifts-search-console-sa.json}}"
+SA_KEY="${GOOSE_GA4_SA_KEY:-${GOOSE_GSC_SA_KEY:-$HOME/.config/gcloud/portfolio-search-console-sa.json}}"
 readonly_scope="https://www.googleapis.com/auth/analytics.readonly"
 
 usage() {
