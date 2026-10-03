@@ -39,14 +39,26 @@ test('public catalog reads share the one-day cache policy', async () => {
   assert.match(sitemap, /export const revalidate = 86_400/);
 });
 
-test('meaningful searches and clicks still use the database', async () => {
-  const [clickRoute, searchRoute] = await Promise.all([
-    readSource('../app/api/track-click/route.ts'),
+test('search diagnostics remain while product clicks use the explicit provider adapter', async () => {
+  const [grid, button, searchRoute] = await Promise.all([
+    readSource('../components/ProductGrid.tsx'),
+    readSource('../components/ProductClickButton.tsx'),
     readSource('../app/api/search-products/route.ts'),
   ]);
 
-  assert.match(clickRoute, /db\s*\.update\(products\)/);
-  assert.match(clickRoute, /db\.insert\(productClicks\)/);
+  for (const source of [grid, button]) {
+    assert.match(source, /captureSelectItem/);
+    assert.match(source, /captureOutboundProductClick/);
+    assert.doesNotMatch(source, /\/api\/track-click/);
+  }
+  await assert.rejects(access(new URL('../app/api/track-click/route.ts', import.meta.url)), { code: 'ENOENT' });
   assert.match(searchRoute, /searchCatalogProducts\(query, limit\)/);
   assert.match(searchRoute, /db\.insert\(searchQueries\)/);
+});
+
+test('obsolete admin reports are retired while the bearer-authenticated catalog cache remains', async () => {
+  for (const path of ['admin/layout.tsx', 'api/admin/products/route.ts', 'api/admin/stats/route.ts', 'api/admin/auth/login/route.ts']) {
+    await assert.rejects(access(new URL(`../app/${path}`, import.meta.url)), { code: 'ENOENT' });
+  }
+  assert.match(await readSource('../app/api/admin/catalog-cache/route.ts'), /hasValidCatalogCacheSecret/);
 });

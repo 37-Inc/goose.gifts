@@ -5,6 +5,34 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-02 — Approved admin and click analytics simplification
+
+Owner-approved `roadmap-vpmm.4.3` removes unused admin pages, reports and
+session/auth helpers, including the unauthenticated whole-catalog report.
+The separately bearer-authenticated catalog-cache endpoint stays at its
+existing URL. Catalog tables, historical analytics schema/data, migrations,
+jobs and report/review tools are untouched.
+
+All maintained click/impression/last-click ranking consumers were inventoried:
+homepage, semantic/keyword search, guides, related gifts, directory, editorial
+duplicate winners/backfill and Pinterest candidates. They now use existing
+relevance/quality/factual freshness, deterministic tie-breaking and the
+existing daily exploration/diversity bounds. The unused Thompson helper is
+removed. Only after this replacement are `/api/track-click` and client calls
+retired. GA4/PostHog adapter, DNT/GPC/production gates, Ads callback and
+affiliate navigation remain unchanged. Snapshot CLI now labels historical
+metrics and emits aggregate search diagnostics without raw query text.
+
+Local ranking/catalog/analytics/cache/retailer/guide/Pinterest tests and lint
+pass. The first build lacked the worktree environment; after a fresh Vercel
+production pull the build passed. Release/production receipts follow in the
+single consolidated verification report. `npm audit` reports pre-existing
+dependency advisories (including conditional Next ImageResponse and development
+glob/braces issues); no dependencies are changed by this scoped cleanup and
+no clean-audit claim is made. The follow-on conversion review is recommendations
+only, with explicit QA/source-quality and measurement limitations.
+
+
 ## 2026-09-20 afternoon - v11 Arm P quality-gated no-op
 
 **Evidence checked**: Pinterest production API v5 still showed the correct

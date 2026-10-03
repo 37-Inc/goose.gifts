@@ -32,10 +32,17 @@ what's likely next.
   existing retailer-click events after the compact product-first layout
   (`roadmap-8hls`); keep QA identities out of acquisition reporting.
 
-- **Neon compute — deploy and measure PR #146 before changing plans.** Passive
+- **Approved simplification and conversion review**: retire unused admin
+  reporting/auth and detailed click writes (`roadmap-vpmm.4.3`), keeping catalog
+  operations and the explicit provider adapter; then complete the current
+  traffic/search/mobile/desktop investigation (`roadmap-vpmm.4.6`). Visual
+  changes require review of the resulting proposals.
+
+- **Neon compute — measure the deployed cache changes.** Passive
   product views move to GA/PostHog, crawler-facing catalog reads use a shared
   24-hour cache with explicit catalog invalidation, and meaningful searches,
-  clicks, admin work, and catalog maintenance remain database-backed. Neon had
+  server search diagnostics and catalog maintenance remain database-backed.
+  Detailed click writes/admin reports are retired in the approved cleanup. Neon had
   used about 52.8 CU-hours through 2026-09-14. After deployment, confirm
   scale-to-zero remains enabled and measure 3–7 days of usage before deciding
   whether the Free plan's 100 CU-hour allowance is sufficient (Beads

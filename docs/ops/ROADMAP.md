@@ -66,7 +66,9 @@ pages are indexed before expanding the page network.
 
 - Home page = dense, scrollable grid of the best catalog items: punny title,
   image, price, one-liner; affiliate link on click. Ranked by the existing
-  multi-armed bandit (CTR × recency × novelty), so the page self-optimizes.
+  catalog quality and title relevance with stable daily seeded exploration,
+  product-family deduplication, and format diversity. Historical click and
+  impression counters no longer influence ranking.
 - Statically rendered/ISR for speed and SEO; structured data (ItemList/Product)
   that matches visible products and uses clean, crawlable product images.
 - Catalog cards must avoid promotional/composite marketplace images where

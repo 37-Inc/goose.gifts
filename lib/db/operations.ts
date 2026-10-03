@@ -9,17 +9,13 @@ import {
   HOMEPAGE_BRAND_FIT_TERMS,
   isCatalogDisplayEligibleProduct,
   limitProductTypeDiversity,
-  scoreProductForTrending,
+  scoreProductForFeed,
   suppressNearDuplicateProducts,
 } from './product-scoring';
 
 const HOMEPAGE_CANDIDATE_LIMIT = 1200;
 const HOMEPAGE_DIVERSITY_LOOKAHEAD_FACTOR = 3;
 const HOMEPAGE_MAX_PRODUCTS_PER_TYPE = 4;
-
-interface ProductWithStats extends Product {
-  clickCount: number;
-}
 
 interface CatalogFeedOptions {
   seed: string;
@@ -46,18 +42,7 @@ function roundedMilliseconds(startedAt: number): number {
   return Math.round((performance.now() - startedAt) * 10) / 10;
 }
 
-function seededFraction(value: string): number {
-  let hash = 2166136261;
-
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return (hash >>> 0) / 4294967295;
-}
-
-async function loadHomepageEligibleProducts(): Promise<ProductWithStats[]> {
+async function loadHomepageEligibleProducts(): Promise<Product[]> {
   const merchantTitleBrandFit = sql.join(
     HOMEPAGE_BRAND_FIT_TERMS.map((term) => sql`${products.title} ILIKE ${`%${term}%`}`),
     sql` OR `
@@ -82,7 +67,6 @@ async function loadHomepageEligibleProducts(): Promise<ProductWithStats[]> {
       source: products.source,
       rating: products.rating,
       reviewCount: products.reviewCount,
-      clickCount: products.clickCount,
     })
     .from(products)
     .where(sql`
@@ -96,8 +80,8 @@ async function loadHomepageEligibleProducts(): Promise<ProductWithStats[]> {
     `)
     .orderBy(
       desc(products.qualityScore),
-      desc(products.clickCount),
-      desc(products.updatedAt)
+      desc(products.updatedAt),
+      products.id
     )
     .limit(HOMEPAGE_CANDIDATE_LIMIT);
 
@@ -120,7 +104,6 @@ async function loadHomepageEligibleProducts(): Promise<ProductWithStats[]> {
     source: product.source as 'amazon' | 'etsy',
     rating: product.rating ? parseFloat(product.rating) : undefined,
     reviewCount: product.reviewCount || undefined,
-    clickCount: product.clickCount || 0,
   })).filter((product) => isCatalogDisplayEligibleProduct(product));
 }
 
@@ -130,7 +113,7 @@ async function loadHomepageEligibleProducts(): Promise<ProductWithStats[]> {
 // result instead of downloading the catalog from Neon for every request.
 const getHomepageEligibleProducts = unstable_cache(
   loadHomepageEligibleProducts,
-  ['homepage-eligible-products-v2'],
+  ['homepage-eligible-products-v3'],
   {
     revalidate: PUBLIC_CATALOG_CACHE_SECONDS,
     tags: ['catalog-products'],
@@ -164,15 +147,10 @@ export async function getCatalogFeedProducts({
     const rankStartedAt = performance.now();
     const ranked = eligibleProducts
       .map((product) => {
-        // Clicks remain a deliberate database signal. Impressions live in
-        // PostHog/GA so ordinary page views do not wake Neon.
-        const engagementBonus = Math.min(Math.log2(product.clickCount + 1) * 3, 18);
-        const discoveryJitter = seededFraction(`${seed}:${product.id}`) * 12;
-
         return {
           product,
           title: product.title,
-          score: scoreProductForTrending(product) + engagementBonus + discoveryJitter,
+          score: scoreProductForFeed(product, seed),
         };
       })
       .sort((left, right) => right.score - left.score || left.product.id.localeCompare(right.product.id));
@@ -234,21 +212,5 @@ export async function getCatalogFeedProducts({
         suppressionLimit,
       },
     };
-  }
-}
-
-/**
- * Get trending products for homepage
- * Uses scoring algorithm optimized for high Amazon commissions + clickbait appeal
- */
-export async function getTrendingProducts(limit: number = 12): Promise<Product[]> {
-  try {
-    const { getTrendingProductsWithRotation } = await import('./trending-rotation');
-    const homepageEligibleProducts = await getHomepageEligibleProducts();
-
-    return getTrendingProductsWithRotation(homepageEligibleProducts, limit);
-  } catch (error) {
-    console.error('Error getting trending products:', error);
-    return [];
   }
 }

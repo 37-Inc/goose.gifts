@@ -10,13 +10,15 @@ without entering a slow bundle-generation flow.
 - **Homepage product feed**: best available catalog items are rendered directly
   on `/`, with affiliate disclosures and product-level click tracking.
 - **Semantic catalog search**: `/api/search-products` embeds the query and
-  ranks active products by pgvector similarity, catalog quality, engagement,
-  and recency. Keyword fallback keeps search usable while embeddings backfill.
+  ranks active products by pgvector similarity, catalog quality, and price
+  suitability. Keyword fallback keeps search usable while embeddings backfill.
 - **Catalog enrichment**: `scripts/ops/prefetch-catalog.mjs` discovers and
   backfills products with punny titles, short descriptions, humor tags, quality
   scores, and `text-embedding-3-small` vectors.
-- **Admin visibility**: `/admin` shows catalog health, product click metrics,
-  and search analytics.
+- **Operational visibility**: CLI catalog reports preserve job receipts and
+  review queues. GA4/PostHog record explicit product events; the obsolete admin
+  dashboard and detailed click writes are retired. Historical tables remain
+  intact. See `docs/SEARCH_ANALYTICS.md`.
 
 The old public bundle generator, bundle search endpoint, bundle permalink pages,
 and admin bundle screens have been removed from the maintained runtime path.

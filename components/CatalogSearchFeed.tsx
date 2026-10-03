@@ -16,7 +16,6 @@ interface CatalogSearchFeedProps {
 
 interface ProductSearchResponse {
   results?: ProductSearchResult[];
-  searchId?: string | null;
   error?: string;
 }
 
@@ -52,7 +51,6 @@ export function CatalogSearchFeed({
   const [query, setQuery] = useState(initialQuery);
   const [activeQuery, setActiveQuery] = useState(initialQuery.trim());
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [searchId, setSearchId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(initialQuery.trim().length < 2);
@@ -73,7 +71,6 @@ export function CatalogSearchFeed({
       lastRequestedQueryRef.current = null;
       setActiveQuery('');
       setProducts(initialProducts);
-      setSearchId(null);
       setHasMore(true);
       setIsLoading(false);
       setIsLoadingMore(false);
@@ -111,7 +108,6 @@ export function CatalogSearchFeed({
 
       setActiveQuery(trimmed);
       setProducts(data.results ?? []);
-      setSearchId(data.searchId || null);
       setHasMore(false);
 
       captureSearch(data.results?.length ?? 0);
@@ -122,7 +118,6 @@ export function CatalogSearchFeed({
 
       setError(searchError instanceof Error ? searchError.message : 'Search failed');
       setProducts([]);
-      setSearchId(null);
       setHasMore(false);
     } finally {
       if (requestId === requestIdRef.current) {
@@ -133,7 +128,7 @@ export function CatalogSearchFeed({
 
   useEffect(() => {
     // A shared ?q= URL is already server-rendered, but this one intentional
-    // request records the complete query and supplies a search ID for clicks.
+    // request preserves existing server search diagnostics and provider events.
     const trimmed = initialQuery.trim();
 
     if (trimmed.length < 2) {
@@ -154,7 +149,6 @@ export function CatalogSearchFeed({
           throw new Error(data.error || 'Search tracking failed');
         }
 
-        setSearchId(data.searchId || null);
         captureSearch(data.results?.length ?? initialProducts.length);
       } catch (searchError) {
         if (searchError instanceof DOMException && searchError.name === 'AbortError') {
@@ -358,7 +352,6 @@ export function CatalogSearchFeed({
           <ProductGrid
             products={products}
             clickSource={hasSearch ? 'catalog_search' : 'catalog_home'}
-            searchQueryId={searchId}
           />
         )}
 

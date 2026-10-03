@@ -79,14 +79,17 @@ want a GitHub Actions-based scheduler.
     (`@vercel/postgres`, already a dependency), never `postgres`/psql.
   - The Vercel env **list** API returns values encrypted; `pull-env.sh`
     already handles per-var decryption. Don't rewrite it, just run it.
-  - pgvector is enabled in Neon; product embeddings use 1536 dimensions and a
-    multi-armed bandit for product rotation exists (`lib/db/trending-rotation.ts`).
+  - pgvector is enabled in Neon; product embeddings use 1536 dimensions.
+    Homepage rotation uses catalog quality and daily seeded exploration.
   - Prod env gaps: no `AWIN_*` vars exist (Etsy affiliate revenue likely
     never wired). Amazon product data uses the Creators API OAuth variables
     (`AMAZON_CREATORS_CREDENTIAL_ID`, `_SECRET`, and `_VERSION`) plus
     `AMAZON_ASSOCIATE_TAG`; Google CSE is discovery-only fallback data.
-- **Admin dashboard** exists at `/admin` (`ADMIN_PASSWORD` in env) with
-  click/impression/search analytics.
+- **Admin dashboard** and detailed click writes are retired. Historical schema
+  and records remain for rollback. Use GA4/PostHog for current product actions,
+  `analytics:snapshot` for catalog/aggregate search diagnostics, and catalog
+  report/review CLIs for operations. `/api/admin/catalog-cache` retains separate
+  bearer authentication at its existing URL.
 
 ## Owner contact
 

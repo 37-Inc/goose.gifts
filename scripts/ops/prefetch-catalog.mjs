@@ -1330,7 +1330,7 @@ async function getActiveCatalogIdentities() {
     `SELECT id, slug, title, image_url AS "imageUrl", affiliate_url AS "affiliateUrl",
             quality_score AS "qualityScore", availability_status AS "availabilityStatus",
             availability_checked_at AS "availabilityCheckedAt", last_verified_at AS "lastVerifiedAt",
-            editorial_status AS "editorialStatus", review_count AS "reviewCount", click_count AS "clickCount",
+            editorial_status AS "editorialStatus", review_count AS "reviewCount",
             NULL::jsonb AS "sourceFacts"
      FROM products WHERE is_active = true AND title <> ''`
   );
@@ -1642,8 +1642,6 @@ async function getProductsNeedingEnrichment(limit, ids) {
         rating,
         review_count,
         is_active,
-        click_count,
-        impression_count,
         last_verified_at,
         editorial_writeup,
         source_facts,
@@ -1684,9 +1682,9 @@ async function getProductsNeedingEnrichment(limit, ids) {
         )
       ORDER BY
         CASE WHEN $2::text[] IS NULL THEN NULL ELSE array_position($2::text[], id) END,
-        click_count DESC,
         quality_score DESC NULLS LAST,
-        updated_at DESC
+        updated_at DESC,
+        id ASC
       LIMIT $1
     `,
     [limit, ids?.length ? ids : null]
@@ -1714,8 +1712,6 @@ async function getProductsNeedingEnrichment(limit, ids) {
     rating: row.rating ? Number.parseFloat(String(row.rating)) : undefined,
     reviewCount: row.review_count || undefined,
     isActive: row.is_active,
-    clickCount: row.click_count || 0,
-    impressionCount: row.impression_count || 0,
     lastVerifiedAt: row.last_verified_at,
     editorialWriteup: row.editorial_writeup || undefined,
     sourceFacts: row.source_facts || {},

@@ -189,7 +189,7 @@ async function loadRelatedGiftProducts(productId: string, tags: string[], limit:
       isNotNull(products.editorialWriteup),
       or(eq(products.editorialStatus, 'generated_ready'), eq(products.editorialStatus, 'manual_locked'))
     ))
-    .orderBy(desc(sharedTagScore), desc(products.qualityScore), desc(products.clickCount))
+    .orderBy(desc(sharedTagScore), desc(products.qualityScore), products.id)
     .limit(Math.max(12, Math.min(limit * 4, 48)));
 
   return (rows as ProductRow[])
@@ -260,7 +260,7 @@ async function loadIndexableGiftDirectoryPage(page: number, pageSize: number = 2
       isNotNull(products.editorialWriteup),
       or(eq(products.editorialStatus, 'generated_ready'), eq(products.editorialStatus, 'manual_locked'))
     ))
-    .orderBy(desc(products.qualityScore), desc(products.clickCount));
+    .orderBy(desc(products.qualityScore), products.id);
   const eligible = (rows as ProductRow[]).map(toProduct).filter((product) => hasIndexableGiftEditorial(product));
   const safePageSize = Math.max(1, Math.min(pageSize, 48));
   const pageCount = Math.max(1, Math.ceil(eligible.length / safePageSize));

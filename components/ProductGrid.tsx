@@ -15,7 +15,6 @@ interface ProductGridProps {
   products: Product[];
   clickSource: string;
   contextSlug?: string;
-  searchQueryId?: string | null;
 }
 
 function formatPrice(product: Product): string {
@@ -55,7 +54,7 @@ function getItemListId(clickSource: string, contextSlug?: string): string {
   return contextSlug ? `${clickSource}:${contextSlug}` : clickSource;
 }
 
-export function ProductGrid({ products, clickSource, contextSlug, searchQueryId }: ProductGridProps) {
+export function ProductGrid({ products, clickSource, contextSlug }: ProductGridProps) {
   const impressedProductIdsRef = useRef(new Set<string>());
   const productIdsKey = useMemo(
     () => products.map((product) => product.id).join('|'),
@@ -92,23 +91,6 @@ export function ProductGrid({ products, clickSource, contextSlug, searchQueryId 
 
   const handleProductClick = (url: string, product: Product, index: number) => {
     const attribution = getClickAttribution();
-    const clickPayload = JSON.stringify({
-      productId: product.id,
-      source: clickSource,
-      contextSlug,
-      searchQueryId: searchQueryId || undefined,
-      attribution,
-    });
-    const sentWithBeacon = typeof navigator.sendBeacon === 'function'
-      && navigator.sendBeacon('/api/track-click', new Blob([clickPayload], { type: 'application/json' }));
-
-    if (!sentWithBeacon) fetch('/api/track-click', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: clickPayload,
-      keepalive: true,
-    }).catch(() => {});
-
     captureSelectItem({
       clickSource,
       contextSlug,

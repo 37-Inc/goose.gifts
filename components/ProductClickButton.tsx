@@ -33,17 +33,6 @@ export function ProductClickButton({
     event.preventDefault();
     const attribution = getClickAttribution();
 
-    fetch('/api/track-click', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        productId: product.id,
-        source: clickSource,
-        contextSlug,
-        attribution,
-      }),
-    }).catch(() => {});
-
     captureSelectItem({
       clickSource,
       contextSlug,

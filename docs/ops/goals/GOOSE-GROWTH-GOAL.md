@@ -29,7 +29,8 @@ At the beginning of every cycle:
 3. Check current production evidence where available:
    - GA4 acquisition, landing pages, engagement, and outbound clicks
    - Search Console queries, pages, CTR, indexing, and sitemap state
-   - database acquisition/referrer and product-click analytics
+   - GA4/PostHog product actions and aggregate database search diagnostics;
+     database click/acquisition records are historical after admin retirement
    - Vercel deployment and runtime health
    - public Pinterest metrics only
 4. Remember permanently: Pinterest v3 was created through the Sandbox API. It
