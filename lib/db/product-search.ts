@@ -31,9 +31,6 @@ type ProductSearchRow = {
   source: string;
   rating: string | null;
   review_count: number | null;
-  click_count: number | null;
-  impression_count: number | null;
-  last_clicked_at: Date | null;
   similarity: string | null;
   rank_score: string | null;
   match_type: 'semantic' | 'keyword';
@@ -138,9 +135,6 @@ async function keywordSearchProducts(
       source,
       rating,
       review_count,
-      click_count,
-      impression_count,
-      last_clicked_at,
       CASE
         WHEN punny_title ILIKE ${likeQuery} THEN 0.78
         WHEN title ILIKE ${likeQuery} THEN 0.74
@@ -158,8 +152,7 @@ async function keywordSearchProducts(
           WHEN array_to_string(COALESCE(humor_tags, ARRAY[]::text[]), ' ') ILIKE ${likeQuery} THEN 0.62
           ELSE 0.48
         END * 0.76
-        + COALESCE(quality_score, 0)::float * 0.18
-        + LEAST(COALESCE(click_count, 0), 50)::float / 50 * 0.04
+        + COALESCE(quality_score, 0)::float * 0.22
         + CASE WHEN price::float > 0 AND price::float <= 75 THEN 0.02 ELSE 0 END
       )::numeric(7,4) AS rank_score,
       'keyword'::text AS match_type
@@ -178,7 +171,7 @@ async function keywordSearchProducts(
         OR array_to_string(COALESCE(humor_tags, ARRAY[]::text[]), ' ') ILIKE ${likeQuery}
         ${termSearchClause}
       )
-    ORDER BY rank_score DESC, quality_score DESC NULLS LAST, click_count DESC
+    ORDER BY rank_score DESC, quality_score DESC NULLS LAST, id ASC
     LIMIT ${limit}
   `);
 
@@ -226,16 +219,11 @@ export async function searchCatalogProducts(
         source,
         rating,
         review_count,
-        click_count,
-        impression_count,
-        last_clicked_at,
         (1 - (embedding <=> ${vector}::vector))::numeric(5,4) AS similarity,
         (
           (1 - (embedding <=> ${vector}::vector)) * 0.76
-          + COALESCE(quality_score, 0)::float * 0.16
-          + LEAST(COALESCE(click_count, 0), 50)::float / 50 * 0.04
+          + COALESCE(quality_score, 0)::float * 0.22
           + CASE WHEN price::float > 0 AND price::float <= 75 THEN 0.02 ELSE 0 END
-          + CASE WHEN last_clicked_at >= NOW() - INTERVAL '14 days' THEN 0.02 ELSE 0 END
         )::numeric(7,4) AS rank_score,
         'semantic'::text AS match_type
       FROM products
@@ -245,7 +233,7 @@ export async function searchCatalogProducts(
         AND title <> ''
         AND embedding IS NOT NULL
         AND (${products.price} <= 0 OR ${products.price} <= 250)
-      ORDER BY rank_score DESC, embedding <=> ${vector}::vector
+      ORDER BY rank_score DESC, embedding <=> ${vector}::vector, id ASC
       LIMIT ${candidateLimit}
     `);
 

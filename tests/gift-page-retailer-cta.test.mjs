@@ -15,7 +15,9 @@ test('gift pages use distinct tracked retailer placements without database impre
   assert.doesNotMatch(page, /trackImpression/);
 
   assert.doesNotMatch(button, /track-impression/);
-  assert.match(button, /\/api\/track-click/);
+  assert.doesNotMatch(button, /\/api\/track-click/);
+  assert.match(button, /captureOutboundProductClick/);
+  assert.match(button, /href=\{product\.affiliateUrl\}/);
   assert.match(sticky, /clickSource="gift_page_sticky"/);
   assert.doesNotMatch(sticky, /trackImpression/);
   assert.match(sticky, /document\.querySelector\('footer'\)/);

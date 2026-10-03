@@ -354,7 +354,7 @@ export function isCatalogDisplayEligibleProduct(
 /**
  * Brand-fit score for the homepage feed.
  *
- * Engagement and recency are added by the rotation layer. This base score is
+ * Daily seeded exploration is added by the feed. This base score is
  * deliberately about catalog quality and gag-gift relevance, not an assumed
  * commission category. That prevents generic beauty, wellness, and book items
  * from outranking products that actually deliver on the goose.gifts promise.
@@ -377,4 +377,14 @@ export function scoreProductForTrending(product: Product): number {
   }
 
   return Math.max(0, Math.round(score));
+}
+
+export function scoreProductForFeed(product: Product, seed: string): number {
+  let hash = 2166136261;
+  const value = `${seed}:${product.id}`;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return scoreProductForTrending(product) + (hash >>> 0) / 4294967295 * 12;
 }

@@ -25,8 +25,9 @@ function parseArgs(argv) {
 function printHelp() {
   console.log(`Usage: npm run analytics:snapshot -- [--json]
 
-Pulls a read-only interaction and catalog-quality snapshot from Neon/Vercel
-Postgres. Use npm run analytics:ga4 for traffic and landing-page reports.`);
+Pulls read-only catalog health, aggregate search diagnostics, and historical
+click records. Click/impression collection is retired; use GA4/PostHog for
+current traffic and product actions. Raw search text is not exported.`);
 }
 
 async function queryDb(name, db, text) {
@@ -134,22 +135,23 @@ async function fetchDatabaseAnalytics() {
         ORDER BY clicks DESC, last_click_at DESC
         LIMIT 10
       `),
-      queryDb('topSearches90d', db, `
-        SELECT query, count(*)::int AS count, avg(result_count)::numeric(10,2) AS avg_results, max(created_at) AS last_search_at
+      queryDb('searchResults90d', db, `
+        SELECT CASE WHEN result_count = 0 THEN 'zero'
+                    WHEN result_count <= 5 THEN '1-5'
+                    ELSE '6+' END AS result_bucket,
+          count(*)::int AS searches,
+          avg(top_similarity)::numeric(5,4) AS avg_top_similarity,
+          max(created_at) AS last_search_at
         FROM search_queries
         WHERE created_at >= now() - interval '90 days'
-        GROUP BY query
-        ORDER BY count DESC, last_search_at DESC
-        LIMIT 20
+        GROUP BY 1
+        ORDER BY 1
       `),
       queryDb('zeroResultSearches30d', db, `
-        SELECT query, count(*)::int AS count, max(created_at) AS last_search_at
+        SELECT count(*)::int AS searches, max(created_at) AS last_search_at
         FROM search_queries
         WHERE created_at >= now() - interval '30 days'
           AND result_count = 0
-        GROUP BY query
-        ORDER BY count DESC, last_search_at DESC
-        LIMIT 20
       `),
       queryDb('catalogQuality', db, `
         SELECT
@@ -209,7 +211,8 @@ function printText(snapshot) {
   const catalog = database.catalogQuality[0];
 
   console.log('goose.gifts analytics snapshot');
-  console.log('Database interaction analytics');
+  console.log('Catalog diagnostics and historical interaction records');
+  console.log('- Click/impression collection is retired. Stored counters are historical, not a current CTR or customer funnel. Use GA4/PostHog for current product events.');
   console.log(`- Products: ${summary.products.toLocaleString()} (${summary.active_products.toLocaleString()} active)`);
   console.log(`- Product impressions/click events: ${summary.product_impressions_lifetime.toLocaleString()} impressions, ${summary.non_qa_product_click_events_lifetime.toLocaleString()} click events (${summary.qa_product_click_events_lifetime.toLocaleString()} QA excluded)`);
   console.log(`- Raw product click counter (includes QA): ${summary.product_clicks_lifetime.toLocaleString()} lifetime product clicks`);
@@ -234,10 +237,10 @@ function printText(snapshot) {
     database.guideClicks90d,
     (row) => `  ${row.guide_slug} - ${row.clicks} clicks - latest ${formatTimestamp(row.last_click_at)}`,
   ));
-  console.log('- Top searches in 90d:');
+  console.log('- Aggregate search-result diagnostics in 90d (requests, not proven humans):');
   console.log(formatRows(
-    database.topSearches90d,
-    (row) => `  ${row.query} - ${row.count} searches - avg ${row.avg_results} results - latest ${formatTimestamp(row.last_search_at)}`,
+    database.searchResults90d,
+    (row) => `  ${row.result_bucket} results: ${row.searches} searches - avg top similarity ${row.avg_top_similarity ?? 'unknown'} - latest ${formatTimestamp(row.last_search_at)}`,
   ));
   console.log('- Campaign-attributed clicks in 90d:');
   console.log(formatRows(
@@ -252,7 +255,7 @@ function printText(snapshot) {
   console.log('- Zero-result searches in 30d:');
   console.log(formatRows(
     database.zeroResultSearches30d,
-    (row) => `  ${row.query} - ${row.count} searches - latest ${formatTimestamp(row.last_search_at)}`,
+    (row) => `  ${row.searches} searches - latest ${formatTimestamp(row.last_search_at)}`,
   ));
   console.log('');
   console.log('Catalog readiness');
@@ -271,6 +274,12 @@ async function main() {
 
   const snapshot = {
     generatedAt: new Date().toISOString(),
+    measurementStatus: {
+      clicks: 'historical_only_collection_retired',
+      impressions: 'historical_only_collection_retired',
+      searches: 'server_request_diagnostics_not_human_or_conversion_evidence',
+      currentProductEvents: 'GA4 507421709 and PostHog 550427',
+    },
     database,
   };
 

@@ -646,3 +646,11 @@ test('duplicate winner favors verified factual and reviewed inventory determinis
   ]);
   assert.equal(winner.id, 'B000000002');
 });
+
+test('historical click counters cannot determine the editorial duplicate winner', () => {
+  const facts = { qualityScore: 0.8, availabilityStatus: 'IN_STOCK', sourceFacts: { brand: 'Odd Co' } };
+  assert.equal(selectDuplicateWinner([
+    { ...facts, id: 'B000000002', clickCount: 100_000 },
+    { ...facts, id: 'B000000001', clickCount: 0 },
+  ]).id, 'B000000001');
+});

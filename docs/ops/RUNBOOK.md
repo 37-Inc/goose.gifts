@@ -70,8 +70,10 @@ Boundaries (always in force):
    down or broken: fixing it is the entire day's work; escalate (see below) if
    not fixable within the run.
 3. **Read the data.** If `POSTGRES_URL` is available, run
-   `npm run analytics:snapshot` to pull database searches, clicks, product
-   counts, and catalog-quality gaps. Let the data pick the work. Use GA4 for
+   `npm run analytics:snapshot` to pull aggregate search diagnostics, product
+   counts, catalog-quality gaps, and explicitly historical click records.
+   Detailed click/impression writes and the admin dashboard are retired.
+   Let the data pick the work. Use GA4/PostHog explicit events for current
    traffic and landing-page activity; Vercel Web Analytics is intentionally
    disabled to avoid redundant metered analytics.
    Also run `scripts/ops/gsc.sh analytics <start-date> <end-date>` when
@@ -108,7 +110,7 @@ Boundaries (always in force):
       commission beauty/books/bath inventory dressed up with generated copy.
    4. Analytics and learning loops: source/session stitching, funnel dashboards,
       thin-result reports, product impression/click cohorts, revenue-readiness,
-      or admin views that make the next growth decision sharper.
+      or bounded CLI reports that make the next growth decision sharper.
    5. SEO/GEO and lead-generation work informed by step 3. This remains
       important, but it is not a permission slip to publish thin or repetitive
       pages. Ship or prepare a crawlable growth asset only when it is the best

@@ -265,7 +265,6 @@ export function editorialWinnerScore(product) {
     + Number(product.qualityScore || 0) * 20
     + dateScore(product.availabilityCheckedAt || product.lastVerifiedAt) * 10
     + Math.min(10, Math.log10(Number(product.reviewCount || 0) + 1) * 3)
-    + Math.min(10, Math.log10(Number(product.clickCount || 0) + 1) * 4)
     + Math.min(8, sourceFactCount(product));
 }
 

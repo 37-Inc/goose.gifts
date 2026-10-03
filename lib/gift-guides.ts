@@ -793,8 +793,6 @@ async function selectGiftGuideRows(
       source: products.source,
       rating: products.rating,
       reviewCount: products.reviewCount,
-      clickCount: products.clickCount,
-      impressionCount: products.impressionCount,
     })
     .from(products)
     .where(sql`
@@ -804,7 +802,7 @@ async function selectGiftGuideRows(
       AND (${products.price} <= 0 OR ${products.price} <= 250)
       AND ${relevanceClause}
     `)
-    .orderBy(sql`${matchScore} DESC, ${products.qualityScore} DESC NULLS LAST, ${products.clickCount} DESC, ${products.impressionCount} DESC`)
+    .orderBy(sql`${matchScore} DESC, ${products.qualityScore} DESC NULLS LAST, ${products.id} ASC`)
     .limit(limit);
 }
 

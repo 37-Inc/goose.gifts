@@ -1,310 +1,73 @@
-# Search Analytics Feature
+# Product analytics and search diagnostics
 
-## Overview
+Current browser events use one explicit adapter in `lib/client-analytics.ts`
+and the sanitized contract in `lib/analytics-contract.ts`:
+`page_view`, `search`, `view_item_list`, `select_item`,
+`conversion_event_outbound_click`, and `random_gift_spin`.
 
-Search analytics system for tracking, analyzing, and improving product-catalog search on goose.gifts. This system helps identify catalog gaps, measure search effectiveness, and understand user behavior.
+GA4 is `G-6RR3HPR747` (property `507421709`), Google Ads is
+`AW-17626116539`, and the dedicated PostHog project is `550427`.
+Use the Portfolio automation reader for GA4. Vercel Web Analytics is disabled.
+The production-host allowlist and DNT/GPC checks remain unchanged. Preview and
+localhost are suppressed. Autocapture, replay, text/form capture, surveys and
+automatic pageviews remain disabled. Raw search terms, full affiliate URLs,
+query-bearing landing URLs and first-party session payloads are not forwarded.
 
-## 🎯 Features Implemented
+## What each signal means
 
-### 1. Database Tracking
-- **Table**: `search_queries`
-- **Tracked Data**:
-  - Search query text
-  - Result count
-  - Top similarity score (best match quality)
-  - Click-through (did user click a result?)
-  - Click-through flag
-  - User agent
-  - Timestamp
+- `search` fires after a successful catalog-search response, with
+  `result_count`; zero results are distinguishable in PostHog. It is not an
+  independent submit event and failed requests do not emit it.
+- `view_item_list` records rendered products, not viewport exposure.
+- `select_item` can open an owned gift page or select a retailer CTA. Filter
+  `ui_context` before interpreting it as a detail opening.
+- `conversion_event_outbound_click` records a retailer exit, not a sale.
+- PostHog uses memory-only identity. Do not infer durable users, returning
+  shoppers or cross-visit funnels. Provider counts need not agree under privacy
+  suppression or delivery failure. GA4 custom QA/result-count dimensions may
+  be unavailable; verify reporting metadata before querying them.
 
-### 2. Product-Side Tracking
-- **Tables/counters**: `product_clicks`, `products.click_count`, and
-  `products.impression_count`
-- **Tracked surfaces**:
-  - Homepage fresh-find grid (`catalog_home`)
-  - Catalog search results (`catalog_search`)
-  - SEO gift-guide product grids (`gift_guide`, with the guide slug stored in
-    the legacy `bundle_slug` context column)
-- **Tracked events**:
-  - Product impressions via `/api/track-impression`
-  - Outbound affiliate clicks via `/api/track-click`
-  - Search-result clicks tied back to `search_queries.clicked`
-  - First-touch UTM/referrer/session context on outbound product clicks, so
-    Pinterest, creator, newsletter, or other acquisition tests can be measured
-    through to affiliate exits
-  - GA4 `view_item_list`, `select_item`, and
-    `conversion_event_outbound_click` events
+## Retired October 2026
 
-### 3. Google Analytics Integration
+The unused `/admin` UI, login/session/auth endpoints, stats report and public
+`/api/admin/products` are removed. `/api/track-click` and its client writes
+are removed. Historical `product_clicks`, product counters, `search_queries`,
+admin/error tables and all migration files remain unchanged for rollback.
+Frozen impressions and old clicks cannot form a current CTR. The historical
+`search_queries.clicked` flag is no longer maintained and never proved a
+complete search-to-retailer funnel.
 
-GA4 browser tagging is installed in `app/layout.tsx` with measurement ID
-`G-6RR3HPR747`, and Google Ads tagging is installed with `AW-17626116539`.
-The matching GA4 property is `507421709`. The dedicated goose service account
-has Viewer access, so Codex can read GA4 through `npm run analytics:ga4 -- ...`
-without using the browser.
+Homepage, search, guides, related gifts, directory, editorial duplicate winners
+and Pinterest candidates use existing relevance/quality/factual freshness,
+stable tie-breaking and existing diversity/exploration rules instead of click
+or impression counters. The unused Thompson-sampling helper is removed.
 
-- **Search Event**: Fires on every catalog search with:
-  - `event`: `'search'`
-  - `search_term`: The query
-  - `event_category`: `'catalog_search'`
-  - `event_label`: Product result count
+## Operational data retained
 
-- **Click Event**: Fires when user clicks a catalog product:
-  - `event`: `'conversion_event_outbound_click'`
-  - `event_category`: `'catalog_product'`
-  - `product_id`: Product identifier
-  - `click_source`: `catalog_home`, `catalog_search`, or `gift_guide`
-  - `context_slug`: Guide slug when the click came from a guide page
-  - `link_domain`: Affiliate destination domain
-  - `landing_page`, `traffic_source`, `traffic_medium`, and
-    `traffic_campaign`: first-touch acquisition context when the visitor arrived
-    through UTM-tagged or referred traffic
+`GET /api/search-products` retains its existing best-effort server diagnostics
+(query, result count, similarity, user agent, timestamp). These are request
+records, including possible QA/bots, rather than proven humans. No collection
+was added. The server-rendered `/?q=` path searches directly; its client makes
+one existing diagnostic API request after hydration. Therefore SSR search
+activity alone does not guarantee a stored search row.
 
-### 4. Admin Dashboard
+`npm run analytics:snapshot -- --json` returns catalog health, result-count
+buckets and explicitly labeled historical clicks without exporting raw search
+text. Catalog runs/items/editorial events, the weekly runner, report/review
+queues and affiliate repair tooling remain maintained.
 
-Located at: `/admin/search-analytics`
+`POST /api/admin/catalog-cache` retains its URL and exact bearer-secret
+authentication. Catalog writers expire the shared data tags and crawler-facing
+paths. `npm run test:catalog-cache` verifies this contract.
 
-#### Summary Metrics (by Day/Week/Month)
-- **Total Searches**: Volume of search activity
-- **Unique Queries**: Distinct search terms
-- **Avg Results/Search**: How many results per search
-- **Click-Through Rate**: % of searches that lead to clicks
-- **Zero Result Rate**: % of searches with no results (catalog gaps)
+## Measurement and rollback
 
-#### Top Search Terms
-- Most popular queries
-- Search count
-- Average results
-- Click-through rate
-- Color-coded CTR (green >20%, yellow >10%, red <10%)
+Compare complete windows in the GA4 property's America/Los_Angeles timezone;
+apply production-host and symmetric source-quality filters. Separately exclude
+explicit QA identities in PostHog. Missing coverage, an observed zero, unknown
+human status, and sales are different claims. Never export raw searches or
+identities into reports. No database deletion, retention change, provider
+configuration change or tracking expansion is included in this cleanup.
 
-#### Failed Searches (Catalog Gaps)
-- Queries returning 0 results
-- Frequency count
-- Last searched timestamp
-- **Action**: Add these queries to catalog discovery themes.
-
-#### Poor Result Quality
-- Queries with low similarity scores (<0.6)
-- May indicate semantic mismatch
-- **Action**: Enrich or discover better products for those intents.
-
-#### Recent Searches
-- Last 50 searches
-- Real-time debugging view
-- Shows query, results, similarity, clicked status
-
-The main `/admin` dashboard also shows catalog health, product impressions,
-outbound product clicks, average product CTR, top products, and a click-source
-breakdown so guide-page clicks are visible separately from search clicks.
-
-## 📊 Data Flow
-
-```
-User searches -> CatalogSearchFeed component
-                ↓
-    Google Analytics event fired
-                ↓
-    API: /api/search-products
-                ↓
-    Database: Log to search_queries table
-                ↓
-    Return product results to user
-                ↓
-    User clicks product -> track-click updates product + search row
-                         -> GA conversion event fired
-                         -> affiliate link opens in new tab
-
-Guide page view -> GA4 page_view
-                -> ProductGrid view_item_list + DB impressions
-                -> ProductGrid stores first-touch UTM/referrer context
-                -> Product click stores source=gift_guide + guide slug
-                   + campaign/referrer/session attribution
-                -> GA4 select_item + outbound conversion event with attribution
-```
-
-## 🗄️ Database Schema
-
-```sql
-CREATE TABLE "search_queries" (
-  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-  "query" text NOT NULL,
-  "result_count" integer DEFAULT 0 NOT NULL,
-  "top_similarity" numeric(5, 4),
-  "clicked" integer DEFAULT 0 NOT NULL,
-  "session_id" varchar(100),
-  "user_agent" text,
-  "created_at" timestamp DEFAULT now() NOT NULL
-);
-
--- Indexes for fast queries
-CREATE INDEX "search_queries_created_at_idx" ON "search_queries" USING btree ("created_at");
-CREATE INDEX "search_queries_result_count_idx" ON "search_queries" USING btree ("result_count");
-CREATE INDEX "search_queries_clicked_idx" ON "search_queries" USING btree ("clicked");
-CREATE INDEX "search_queries_query_created_at_idx" ON "search_queries" USING btree ("query","created_at");
-```
-
-## 🚀 Deployment Instructions
-
-### 1. Run Database Migration
-
-**Option A: Using drizzle-kit**
-```bash
-npx drizzle-kit push
-```
-
-**Option B: Direct SQL (recommended for production)**
-```bash
-# Connect to production database
-psql $POSTGRES_URL
-
-# Run migration
-\i lib/db/migrations/0002_add_search_queries.sql
-```
-
-### 2. Verify Migration
-```bash
-# Check table exists
-psql $POSTGRES_URL -c "\d search_queries"
-
-# Check indexes
-psql $POSTGRES_URL -c "\d search_queries_created_at_idx"
-```
-
-### 3. Test Locally
-```bash
-npm run dev
-```
-- Visit http://localhost:3000
-- Try searching for various terms
-- Check admin at http://localhost:3000/admin/search-analytics
-
-### 4. Deploy to Production
-```bash
-git add .
-git commit -m "Add search analytics tracking system"
-git push origin main
-```
-
-## 📈 Using the Analytics
-
-### Daily Workflow
-1. Visit `/admin/search-analytics?period=day`
-2. Check **Failed Searches** section
-3. Identify high-frequency zero-result queries
-4. Add those topics to catalog discovery themes or run targeted prefetch
-5. Re-check CTR and zero-result rate
-
-### Weekly Review
-1. View `/admin/search-analytics?period=week`
-2. Analyze **Top Search Terms**
-3. Prioritize catalog discovery for high-volume, low-CTR queries
-4. Review **Poor Result Quality** for enrichment and embedding improvements
-
-### Monthly Analysis
-1. View `/admin/search-analytics?period=month`
-2. Track overall search volume trend
-3. Measure improvement in zero-result rate over time
-4. Compare CTR month-over-month
-
-## 🎓 Key Insights to Track
-
-### Catalog Gaps (Priority #1)
-- **Metric**: Failed Searches with count > 5
-- **Action**: Add products for these queries immediately
-- **Impact**: Convert lost searches into engaged users
-
-### Search Effectiveness
-- **Metric**: Overall Click-Through Rate
-- **Target**: >25% CTR
-- **If Low**: Improve product titles/descriptions and catalog coverage
-
-### Search Volume
-- **Metric**: Total searches per day
-- **Trend**: Should grow with traffic
-- **If Low**: Search bar may not be visible enough
-
-### Result Quality
-- **Metric**: Average similarity score
-- **Target**: >0.7
-- **If Low**: Improve embedding quality or product descriptions
-
-## 🔧 Troubleshooting
-
-### No data showing up
-- Check migration ran successfully: `psql $POSTGRES_URL -c "SELECT COUNT(*) FROM search_queries"`
-- Verify search bar is visible and functional
-- Check browser console for API errors
-
-### Google Analytics not tracking
-- Verify gtag is loaded: Check browser console for `window.gtag`
-- Check GA dashboard real-time events
-- Confirm the GA4 measurement ID in `lib/client-analytics.ts` is still the
-  intended goose.gifts property: `G-6RR3HPR747`.
-- For programmatic GA reports, run `npm run analytics:ga4 -- events`,
-  `npm run analytics:ga4 -- traffic`, `npm run analytics:ga4 -- landing-pages`,
-  or `npm run analytics:ga4 -- event conversion_event_outbound_click`.
-- For weekly product/search reporting, run
-  `npm run analytics:snapshot`; the database snapshot includes
-  click sources, guide-page product clicks, campaign-attributed product clicks,
-  product-click referrers, zero-result searches, top clicked products, and
-  catalog readiness.
-
-### Poor similarity scores
-- Review product copy - is it semantic and descriptive?
-- Check product embedding generation in `scripts/ops/prefetch-catalog.mjs`
-- Run `npm run catalog:enrich` to backfill existing active products
-
-## 📝 Files Modified
-
-### New Files
-- `lib/db/migrations/0002_add_search_queries.sql` - Database migration
-- `lib/db/search-analytics.ts` - Analytics query functions
-- `app/admin/(dashboard)/search-analytics/page.tsx` - Admin UI
-- `docs/SEARCH_ANALYTICS.md` - This documentation
-
-### Modified Files
-- `lib/db/schema.ts` - Added searchQueries table
-- `app/api/search-products/route.ts` - Product search logging
-- `app/api/track-click/route.ts` - Product click logging and source context
-- `components/ProductGrid.tsx` - First-touch campaign/referrer capture for
-  product click attribution
-- `app/api/admin/stats/route.ts` - Dashboard catalog and click-source metrics
-- `components/CatalogSearchFeed.tsx` - Catalog search UI and GA search event
-- `components/ProductGrid.tsx` - Product click, impression, and GA item-list tracking
-- `app/gift-guides/[slug]/page.tsx` - Guide products use tracked ProductGrid cards
-- `app/admin/(dashboard)/page.tsx` - Catalog dashboard and click-source breakdown
-- `scripts/ops/analytics-snapshot.mjs` - Weekly product/search/source snapshot
-
-## 🎉 Success Metrics
-
-After 1 week, you should see:
-- ✅ 90%+ of searches logged to database
-- ✅ GA events showing in real-time view
-- ✅ Admin dashboard showing clear trends
-- ✅ Identified top 10 catalog gaps
-- ✅ Baseline CTR established
-
-After 1 month:
-- ✅ Zero-result rate decreased by >50%
-- ✅ CTR improved by >10 percentage points
-- ✅ Search volume increased with traffic growth
-- ✅ Added or enriched products based on search demand
-
-## 🚨 Important Notes
-
-- Search logging is **fire-and-forget** - won't slow down searches
-- Database is indexed for fast queries even with millions of searches
-- GA events use standard Google Analytics 4 event names
-- All times are stored in UTC in database
-- Click tracking works even though results open in new tab
-- Price and revenue reporting is not ready to automate from this data alone.
-  We can measure intent and outbound affiliate clicks now, but revenue analysis
-  still needs reliable affiliate-network reporting, commission mapping by
-  source/category, and a join strategy from outbound click to paid transaction.
-
----
-
-**Questions?** Check the code comments or search for `searchQueries` in the codebase.
-
-**Ready to deploy?** Run the migration and push to main.
+Rollback is a code revert of the simplification PR. No data restoration or
+migration is required; historical tables and columns remain available.

@@ -32,16 +32,18 @@ publicly indexable. The 2026-09-07 weekly run reconfirmed the hold after a fresh
 listing read and rejected draft. Either leave it held or provide corrected
 factual copy for an exact editorial seed; no broader catalog action is needed.
 
-### 3. Funnel and admin analytics rebuild
+### 3. Product funnel evidence
 
 PostHog, Google Search Console, GA4 Data API, and the app database cover the
 current analytics stack; Vercel Web Analytics is intentionally disabled.
 Catalog jobs now have durable run/item
 receipts, token/cost/timing telemetry, rejection reasons, and a CLI manual-review
 queue, so this is no longer a blocker for the first measured enrichment run.
-The remaining product analytics work is guide-page product impressions/clicks,
-source/session stitching, zero-result and thin-result search reporting, and an
-admin dashboard shaped around catalog-first guide growth.
+The unused admin dashboard and detailed click collection are retired under
+`roadmap-vpmm.4.3`. Existing GA4/PostHog events supply current product actions;
+the CLI keeps aggregate search diagnostics and historical click evidence.
+The next investigation is `roadmap-vpmm.4.6`: qualify traffic, verify search
+coverage, and propose a small conversion improvement from current evidence.
 
 ### 4. Direct email/Slack channel (optional)
 

@@ -8,6 +8,7 @@ import {
   productDisplayTypeKey,
   productFamilyFingerprint,
   scoreProductForTrending,
+  scoreProductForFeed,
   selectGiftGuideDisplayProducts,
   suppressNearDuplicateProducts,
 } from '../lib/db/product-scoring.ts';
@@ -26,6 +27,18 @@ function product(overrides = {}) {
     ...overrides,
   };
 }
+
+test('feed exploration is repeatable, bounded, and independent of historical engagement', () => {
+  const candidate = product({ title: 'Funny Fart Button Gag Gift' });
+  const base = scoreProductForTrending(candidate);
+  const score = scoreProductForFeed(candidate, 'home-2026-10-02');
+  assert.equal(score, scoreProductForFeed(candidate, 'home-2026-10-02'));
+  assert.ok(score >= base && score <= base + 12);
+  assert.equal(score, scoreProductForFeed({
+    ...candidate, clickCount: 100_000, impressionCount: 1, lastClickedAt: new Date(),
+  }, 'home-2026-10-02'));
+  assert.notEqual(score, scoreProductForFeed(candidate, 'home-2026-10-03'));
+});
 
 test('explicit gag gifts are eligible while generic legacy gifts are not', () => {
   assert.equal(isCatalogDisplayEligibleProduct(product({ title: 'Funny Fart Button Gag Gift' })), true);

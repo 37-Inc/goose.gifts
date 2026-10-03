@@ -148,7 +148,7 @@ async function main() {
     sql.query(`
       SELECT id, slug, title, price, currency, image_url, affiliate_url, source,
              source_query, humor_tags, rating, review_count, quality_score,
-             is_active, click_count, impression_count, source_facts,
+             is_active, source_facts,
              source_facts_hash, editorial_source_hash, availability_status,
              availability_checked_at, last_verified_at, editorial_status,
              editorial_quality_score, editorial_generated_at,
@@ -165,7 +165,7 @@ async function main() {
         AND source_facts_hash IS NOT NULL
         AND source_facts_hash = editorial_source_hash
         AND COALESCE(availability_checked_at, last_verified_at) >= NOW() - INTERVAL '35 days'
-      ORDER BY editorial_generated_at DESC NULLS LAST, quality_score DESC, click_count DESC
+      ORDER BY editorial_generated_at DESC NULLS LAST, quality_score DESC, id ASC
       LIMIT 500
     `),
     sql.query(`
