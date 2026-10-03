@@ -1,0 +1,232 @@
+{
+  "capturedAt": "2026-10-03T05:27:56.343Z",
+  "deployment": {
+    "id": "dpl_GbLBCzQr5d47Y1thxqcc2Mkhc3jC",
+    "state": "READY",
+    "sha": "f26311f2c78b650bf5cfd939044e08b31506c519",
+    "alias": "www.goose.gifts",
+    "expectedSha": "f26311f2c78b650bf5cfd939044e08b31506c519",
+    "matches": true
+  },
+  "ga4Realtime": {
+    "request": {
+      "dimensions": [
+        {
+          "name": "eventName"
+        },
+        {
+          "name": "minutesAgo"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "eventCount"
+        }
+      ],
+      "dimensionFilter": {
+        "filter": {
+          "fieldName": "eventName",
+          "inListFilter": {
+            "values": [
+              "page_view",
+              "search",
+              "view_item_list",
+              "select_item",
+              "conversion_event_outbound_click"
+            ]
+          }
+        }
+      },
+      "limit": "1000"
+    },
+    "rows": [
+      {
+        "event": "page_view",
+        "minutesAgo": 5,
+        "count": 2
+      },
+      {
+        "event": "page_view",
+        "minutesAgo": 6,
+        "count": 2
+      },
+      {
+        "event": "view_item_list",
+        "minutesAgo": 5,
+        "count": 2
+      },
+      {
+        "event": "view_item_list",
+        "minutesAgo": 6,
+        "count": 2
+      },
+      {
+        "event": "conversion_event_outbound_click",
+        "minutesAgo": 9,
+        "count": 1
+      },
+      {
+        "event": "page_view",
+        "minutesAgo": 2,
+        "count": 1
+      },
+      {
+        "event": "page_view",
+        "minutesAgo": 7,
+        "count": 1
+      },
+      {
+        "event": "page_view",
+        "minutesAgo": 10,
+        "count": 1
+      },
+      {
+        "event": "page_view",
+        "minutesAgo": 14,
+        "count": 1
+      },
+      {
+        "event": "page_view",
+        "minutesAgo": 15,
+        "count": 1
+      },
+      {
+        "event": "search",
+        "minutesAgo": 14,
+        "count": 1
+      },
+      {
+        "event": "select_item",
+        "minutesAgo": 9,
+        "count": 1
+      },
+      {
+        "event": "select_item",
+        "minutesAgo": 10,
+        "count": 1
+      },
+      {
+        "event": "view_item_list",
+        "minutesAgo": 2,
+        "count": 1
+      },
+      {
+        "event": "view_item_list",
+        "minutesAgo": 7,
+        "count": 1
+      },
+      {
+        "event": "view_item_list",
+        "minutesAgo": 10,
+        "count": 1
+      },
+      {
+        "event": "view_item_list",
+        "minutesAgo": 14,
+        "count": 1
+      },
+      {
+        "event": "view_item_list",
+        "minutesAgo": 15,
+        "count": 1
+      }
+    ]
+  },
+  "posthogQa": {
+    "sql": "SELECT event, properties.traffic_medium AS medium, properties.traffic_campaign AS campaign, properties.pathname AS pathname, properties.ui_context AS context, count() AS events FROM events WHERE timestamp >= toDateTime('2026-10-03 05:10:19','UTC') AND distinct_id IN (SELECT distinct_id FROM events WHERE properties.traffic_campaign='admin_cleanup_20261002' AND properties.traffic_medium='qa' AND timestamp >= toDateTime('2026-10-03 05:10:19','UTC')) GROUP BY event,medium,campaign,pathname,context ORDER BY event LIMIT 100",
+    "columns": [
+      "event",
+      "medium",
+      "campaign",
+      "pathname",
+      "context",
+      "events"
+    ],
+    "results": []
+  },
+  "posthogFreshness": {
+    "sql": "SELECT max(timestamp) AS latest_event,now() AS provider_now,count() AS stored_events FROM events",
+    "columns": [
+      "latest_event",
+      "provider_now",
+      "stored_events"
+    ],
+    "results": [
+      [
+        "2026-09-19T05:33:37.870000Z",
+        "2026-10-03T05:27:58.392581Z",
+        325
+      ]
+    ]
+  },
+  "database": [
+    {
+      "historical_clicks": 108,
+      "search_requests": 336,
+      "latest_search_utc": "2026-10-03T05:13:17.751Z"
+    }
+  ],
+  "routes": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/gifts",
+      "status": 200
+    },
+    {
+      "path": "/gift-guides/weird-kitchen-gadgets",
+      "status": 200
+    },
+    {
+      "path": "/random-gift",
+      "status": 200
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 200
+    },
+    {
+      "path": "/admin",
+      "status": 404
+    },
+    {
+      "path": "/admin/login",
+      "status": 404
+    },
+    {
+      "path": "/api/admin/products",
+      "status": 404
+    },
+    {
+      "path": "/api/admin/stats",
+      "status": 404
+    },
+    {
+      "path": "/api/admin/auth/verify",
+      "status": 404
+    }
+  ],
+  "retiredClickStatus": 404,
+  "cacheRejectedStatus": 401,
+  "cacheAccepted": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "revalidated": [
+        "catalog-products",
+        "gift-pages",
+        "/gifts",
+        "/gifts/[slug]",
+        "/gift-guides",
+        "/gift-guides/[slug]",
+        "/random-gift",
+        "/weird-gift-index",
+        "/weird-gift-index/data",
+        "/sitemap.xml"
+      ]
+    }
+  }
+}
+

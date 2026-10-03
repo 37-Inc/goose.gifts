@@ -42,8 +42,14 @@ queue, so this is no longer a blocker for the first measured enrichment run.
 The unused admin dashboard and detailed click collection are retired under
 `roadmap-vpmm.4.3`. Existing GA4/PostHog events supply current product actions;
 the CLI keeps aggregate search diagnostics and historical click evidence.
-The next investigation is `roadmap-vpmm.4.6`: qualify traffic, verify search
-coverage, and propose a small conversion improvement from current evidence.
+The completed `roadmap-vpmm.4.6` review is
+`CONVERSION_REVIEW_2026-10-02.md`. Owner choice: a compact product-first
+homepage/guide entry and factual curated opening cohort; no redesign shipped.
+Final cleanup verification (`roadmap-vpmm.4.3`) retains one account gate:
+PostHog Product Analytics ingestion is stopped by the shared organization
+billing cap. Keep the cap and use GA4 until the October 8 reset, or explicitly
+approve a different shared billing policy. No automatic spending increase.
+After storage resumes, verify a stored QA page/retailer receipt before closure.
 
 ### 4. Direct email/Slack channel (optional)
 

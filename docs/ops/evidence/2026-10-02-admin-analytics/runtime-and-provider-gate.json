@@ -1,0 +1,54 @@
+{
+  "observedOn": "2026-10-03",
+  "production": "www.goose.gifts",
+  "qaCampaign": "admin_cleanup_20261002",
+  "navigation": {
+    "resultToOwnedDetail": true,
+    "retailerOpenedNewTab": true,
+    "merchantDomain": "www.amazon.com",
+    "asin": "B0CYKK1167",
+    "associateTag": "goose-gifts-37-20"
+  },
+  "feed": {"pageCounts": [24, 24, 24], "sameSeedStable": true, "excludedPageDisjoint": true},
+  "privacy": {
+    "dnt": {"gtag": false, "dataLayerEvents": 0, "providerRequests": 0},
+    "gpc": {"gtag": false, "dataLayerEvents": 0, "providerRequests": 0},
+    "posthogOutgoingEventNamesInspected": ["page_view", "view_item_list"],
+    "posthogOutgoingPropertiesInspected": ["distinct_id", "pathname", "traffic_source", "traffic_medium", "traffic_campaign", "token", "$geoip_disable", "ui_context", "item_list_id", "result_count", "items"],
+    "rawInquiryOrAffiliateUrlInInspectedProviderProperties": false
+  },
+  "posthogGate": {
+    "project": 550427,
+    "publicProjectKeyMatchesProduction": true,
+    "browserTransportStatus": 200,
+    "browserTransportResponse": "Ok",
+    "directIngestionQaCampaign": "admin_cleanup_20261002_direct_ingest",
+    "directIngestionTransportStatus": 200,
+    "storedQaEvents": 0,
+    "latestStoredEventUtc": "2026-09-19T05:33:37.870000Z",
+    "newIngestionWarningsRead": "empty",
+    "signedInActivityBanner": "Usage limit reached for Product analytics",
+    "signedInBilling": {
+      "scope": "shared organization; not Goose-only usage",
+      "periodStart": "2026-09-08",
+      "periodEnd": "2026-10-08",
+      "freeEventsDisplayed": "1 M",
+      "eventBillingLimitDisplayed": "1.15 M",
+      "currentEventsDisplayed": "1.24 M",
+      "spendingLimitUsd": 37,
+      "nextPeriodSpendingLimitUsd": 0
+    },
+    "providerSettingsOrBillingChanged": false,
+    "acceptance": "stored PostHog receipt pending owner billing decision or reset"
+  },
+  "visual": {
+    "mobileViewport": [390, 844],
+    "desktopViewport": [1440, 1000],
+    "homeFirstCardMobileY": 719.5,
+    "homeFirstCardDesktopY": 626.1875,
+    "guideFirstCardMobileY": 1889.5,
+    "brokenLoadedImages": 0,
+    "horizontalOverflow": false,
+    "speculativeVisualChangesDeployed": false
+  }
+}
