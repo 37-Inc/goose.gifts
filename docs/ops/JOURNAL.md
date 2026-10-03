@@ -25,8 +25,38 @@ metrics and emits aggregate search diagnostics without raw query text.
 
 Local ranking/catalog/analytics/cache/retailer/guide/Pinterest tests and lint
 pass. The first build lacked the worktree environment; after a fresh Vercel
-production pull the build passed. Release/production receipts follow in the
-single consolidated verification report. `npm audit` reports pre-existing
+production pull the build passed. All 110 tests, lint and build pass. PR #160
+merged as `f26311f2c78b650bf5cfd939044e08b31506c519`; READY deployment
+`dpl_GbLBCzQr5d47Y1thxqcc2Mkhc3jC` serves the production alias. Retired admin
+and click routes return 404; cache POST rejects missing auth (401) and accepts
+the existing bearer secret (200). Stable/disjoint feed pagination, actual
+search, owned detail and exact tagged Amazon navigation pass. Click history
+remains 108 rows; one QA search increments diagnostics 335 to 336. GA4 receives
+page/search/list/select/outbound events; fresh DNT/GPC pages send neither vendor.
+See `CONVERSION_REVIEW_2026-10-02.md` and its safe aggregate evidence.
+
+PostHog's latest stored event remains September 19 05:33 UTC / September 18
+Pacific despite correct allowlisted browser payloads and 200 responses. The
+signed-in Activity and Billing UI confirms the shared Product Analytics cap
+has been reached: September 8–October 8 period, 1.24 M current vs 1.15 M limit,
+$37 current cap, already $0 next period. These are organization totals, not
+Goose's bill. No provider/account/billing change was made. `.4.3` stays open
+until storage resumes and a real QA flow receives a stored PostHog receipt;
+an owner spending decision or the October 8 reset is required first.
+
+The completed `.4.6` review uses matched 28-day windows. Recent GA4 reports
+103 sessions / 12 engaged, but excluding the exact September 17 direct-desktop
+burst leaves 41 / 11; these are not all verified humans. All three stored
+PostHog recent outbounds are explicit QA, while GA4's fourth unmatched outbound
+remains unclassified. PostHog's later zeros are coverage loss, not customer
+inactivity proof. Current search collection is functional; old diagnostics
+mean no successful stored requests, not proven absence of attempts.
+Recommendations only: compact homepage/guide entry hierarchy, factual curated
+opening products, then bounded offline search relevance evaluation. Mobile
+header is already compact; the hero/chips/intro delay products. No visual
+changes or new capture were implemented.
+
+`npm audit` reports pre-existing
 dependency advisories (including conditional Next ImageResponse and development
 glob/braces issues); no dependencies are changed by this scoped cleanup and
 no clean-audit claim is made. The follow-on conversion review is recommendations

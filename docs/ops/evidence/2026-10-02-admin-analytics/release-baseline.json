@@ -1,0 +1,64 @@
+{
+  "capturedAt": "2026-10-03T05:11:53.887Z",
+  "deployment": {
+    "id": "dpl_GbLBCzQr5d47Y1thxqcc2Mkhc3jC",
+    "state": "READY",
+    "sha": "f26311f2c78b650bf5cfd939044e08b31506c519",
+    "alias": "www.goose.gifts",
+    "expectedSha": "f26311f2c78b650bf5cfd939044e08b31506c519",
+    "matches": true
+  },
+  "ga4Realtime": {
+    "request": {
+      "dimensions": [
+        {
+          "name": "eventName"
+        },
+        {
+          "name": "minutesAgo"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "eventCount"
+        }
+      ],
+      "dimensionFilter": {
+        "filter": {
+          "fieldName": "eventName",
+          "inListFilter": {
+            "values": [
+              "page_view",
+              "search",
+              "view_item_list",
+              "select_item",
+              "conversion_event_outbound_click"
+            ]
+          }
+        }
+      },
+      "limit": "1000"
+    },
+    "rows": []
+  },
+  "posthogQa": {
+    "sql": "SELECT event, properties.traffic_medium AS medium, properties.traffic_campaign AS campaign, properties.pathname AS pathname, properties.ui_context AS context, count() AS events FROM events WHERE timestamp >= toDateTime('2026-10-03 05:10:19','UTC') AND distinct_id IN (SELECT distinct_id FROM events WHERE properties.traffic_campaign='admin_cleanup_20261002' AND properties.traffic_medium='qa' AND timestamp >= toDateTime('2026-10-03 05:10:19','UTC')) GROUP BY event,medium,campaign,pathname,context ORDER BY event LIMIT 100",
+    "columns": [
+      "event",
+      "medium",
+      "campaign",
+      "pathname",
+      "context",
+      "events"
+    ],
+    "results": []
+  },
+  "database": [
+    {
+      "historical_clicks": 108,
+      "search_requests": 335,
+      "latest_search": "2026-08-29T01:14:51.622Z"
+    }
+  ]
+}
+

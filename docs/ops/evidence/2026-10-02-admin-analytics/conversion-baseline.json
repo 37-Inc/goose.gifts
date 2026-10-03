@@ -1,0 +1,3799 @@
+{
+  "capturedAt": "2026-10-03T05:04:59.091Z",
+  "windows": {
+    "prior": {
+      "startDate": "2026-08-07",
+      "endDate": "2026-09-03",
+      "startUtc": "2026-08-07 07:00:00",
+      "endUtc": "2026-09-04 07:00:00"
+    },
+    "recent": {
+      "startDate": "2026-09-04",
+      "endDate": "2026-10-01",
+      "startUtc": "2026-09-04 07:00:00",
+      "endUtc": "2026-10-02 07:00:00"
+    }
+  },
+  "ga4": {
+    "settings": {
+      "property": "507421709",
+      "timeZone": "America/Los_Angeles"
+    },
+    "customFields": [],
+    "prior-total": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-08-07",
+            "endDate": "2026-09-03"
+          }
+        ],
+        "dimensions": [],
+        "metrics": [
+          {
+            "name": "sessions"
+          },
+          {
+            "name": "engagedSessions"
+          },
+          {
+            "name": "screenPageViews"
+          },
+          {
+            "name": "userEngagementDuration"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 1,
+      "rows": [
+        {
+          "sessions": 74,
+          "engagedSessions": 13,
+          "screenPageViews": 90,
+          "userEngagementDuration": 737
+        }
+      ]
+    },
+    "prior-sources": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-08-07",
+            "endDate": "2026-09-03"
+          }
+        ],
+        "dimensions": [
+          {
+            "name": "sessionSourceMedium"
+          }
+        ],
+        "metrics": [
+          {
+            "name": "sessions"
+          },
+          {
+            "name": "engagedSessions"
+          },
+          {
+            "name": "screenPageViews"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 6,
+      "rows": [
+        {
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 55,
+          "engagedSessions": 7,
+          "screenPageViews": 66
+        },
+        {
+          "sessionSourceMedium": "amazon / (not set)",
+          "sessions": 8,
+          "engagedSessions": 2,
+          "screenPageViews": 9
+        },
+        {
+          "sessionSourceMedium": "vercel.com / referral",
+          "sessions": 8,
+          "engagedSessions": 3,
+          "screenPageViews": 12
+        },
+        {
+          "sessionSourceMedium": "(not set)",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 0
+        },
+        {
+          "sessionSourceMedium": "vigoos.com / referral",
+          "sessions": 1,
+          "engagedSessions": 1,
+          "screenPageViews": 2
+        },
+        {
+          "sessionSourceMedium": "zanran.com / referral",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        }
+      ]
+    },
+    "prior-device": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-08-07",
+            "endDate": "2026-09-03"
+          }
+        ],
+        "dimensions": [
+          {
+            "name": "deviceCategory"
+          }
+        ],
+        "metrics": [
+          {
+            "name": "sessions"
+          },
+          {
+            "name": "engagedSessions"
+          },
+          {
+            "name": "screenPageViews"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 3,
+      "rows": [
+        {
+          "deviceCategory": "desktop",
+          "sessions": 66,
+          "engagedSessions": 9,
+          "screenPageViews": 75
+        },
+        {
+          "deviceCategory": "mobile",
+          "sessions": 6,
+          "engagedSessions": 3,
+          "screenPageViews": 12
+        },
+        {
+          "deviceCategory": "tablet",
+          "sessions": 2,
+          "engagedSessions": 1,
+          "screenPageViews": 3
+        }
+      ]
+    },
+    "prior-landings": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-08-07",
+            "endDate": "2026-09-03"
+          }
+        ],
+        "dimensions": [
+          {
+            "name": "landingPage"
+          }
+        ],
+        "metrics": [
+          {
+            "name": "sessions"
+          },
+          {
+            "name": "engagedSessions"
+          },
+          {
+            "name": "screenPageViews"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 31,
+      "rows": [
+        {
+          "landingPage": "/",
+          "sessions": 25,
+          "engagedSessions": 4,
+          "screenPageViews": 31
+        },
+        {
+          "landingPage": "/gifts",
+          "sessions": 9,
+          "engagedSessions": 3,
+          "screenPageViews": 13
+        },
+        {
+          "landingPage": "/random-gift",
+          "sessions": 4,
+          "engagedSessions": 2,
+          "screenPageViews": 6
+        },
+        {
+          "landingPage": "(not set)",
+          "sessions": 3,
+          "engagedSessions": 1,
+          "screenPageViews": 0
+        },
+        {
+          "landingPage": "/gift-guides/white-elephant-gifts",
+          "sessions": 3,
+          "engagedSessions": 1,
+          "screenPageViews": 5
+        },
+        {
+          "landingPage": "/gifts/mug-of-mischief-custom-cartoon-hippo",
+          "sessions": 3,
+          "engagedSessions": 0,
+          "screenPageViews": 3
+        },
+        {
+          "landingPage": "/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes",
+          "sessions": 2,
+          "engagedSessions": 1,
+          "screenPageViews": 2
+        },
+        {
+          "landingPage": "/weird-gift-index",
+          "sessions": 2,
+          "engagedSessions": 1,
+          "screenPageViews": 7
+        },
+        {
+          "landingPage": "/gift-guides/adult-coloring-book-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/dirty-santa-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/dog-lover-gag-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-birthday-gag-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-book-lover-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-christmas-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-cooking-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-coworkers",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-dads",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-dads-who-fish",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-gamers",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-nurses",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-golf-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-hostess-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-poop-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-retirement-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-stocking-stuffers",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-valentines-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/novelty-desk-toys",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/prank-gifts-for-friends",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/secret-santa-gag-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/weird-kitchen-gadgets",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/patricia-hippo-mug",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        }
+      ]
+    },
+    "prior-events": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-08-07",
+            "endDate": "2026-09-03"
+          }
+        ],
+        "dimensions": [
+          {
+            "name": "eventName"
+          }
+        ],
+        "metrics": [
+          {
+            "name": "eventCount"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              },
+              {
+                "filter": {
+                  "fieldName": "eventName",
+                  "inListFilter": {
+                    "values": [
+                      "page_view",
+                      "search",
+                      "view_item_list",
+                      "select_item",
+                      "conversion_event_outbound_click",
+                      "random_gift_spin"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 5,
+      "rows": [
+        {
+          "eventName": "page_view",
+          "eventCount": 90
+        },
+        {
+          "eventName": "view_item_list",
+          "eventCount": 83
+        },
+        {
+          "eventName": "select_item",
+          "eventCount": 3
+        },
+        {
+          "eventName": "conversion_event_outbound_click",
+          "eventCount": 2
+        },
+        {
+          "eventName": "random_gift_spin",
+          "eventCount": 1
+        }
+      ]
+    },
+    "prior-excluding-explicit-qa": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-08-07",
+            "endDate": "2026-09-03"
+          }
+        ],
+        "dimensions": [],
+        "metrics": [
+          {
+            "name": "sessions"
+          },
+          {
+            "name": "engagedSessions"
+          },
+          {
+            "name": "screenPageViews"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              },
+              {
+                "notExpression": {
+                  "filter": {
+                    "fieldName": "sessionMedium",
+                    "stringFilter": {
+                      "matchType": "EXACT",
+                      "value": "qa"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 1,
+      "rows": [
+        {
+          "sessions": 74,
+          "engagedSessions": 13,
+          "screenPageViews": 90
+        }
+      ]
+    },
+    "recent-total": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-09-04",
+            "endDate": "2026-10-01"
+          }
+        ],
+        "dimensions": [],
+        "metrics": [
+          {
+            "name": "sessions"
+          },
+          {
+            "name": "engagedSessions"
+          },
+          {
+            "name": "screenPageViews"
+          },
+          {
+            "name": "userEngagementDuration"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 1,
+      "rows": [
+        {
+          "sessions": 103,
+          "engagedSessions": 12,
+          "screenPageViews": 110,
+          "userEngagementDuration": 435
+        }
+      ]
+    },
+    "recent-sources": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-09-04",
+            "endDate": "2026-10-01"
+          }
+        ],
+        "dimensions": [
+          {
+            "name": "sessionSourceMedium"
+          }
+        ],
+        "metrics": [
+          {
+            "name": "sessions"
+          },
+          {
+            "name": "engagedSessions"
+          },
+          {
+            "name": "screenPageViews"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 4,
+      "rows": [
+        {
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 96,
+          "engagedSessions": 11,
+          "screenPageViews": 103
+        },
+        {
+          "sessionSourceMedium": "amazon / (not set)",
+          "sessions": 5,
+          "engagedSessions": 0,
+          "screenPageViews": 5
+        },
+        {
+          "sessionSourceMedium": "(not set)",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "sessionSourceMedium": "vercel.com / referral",
+          "sessions": 1,
+          "engagedSessions": 1,
+          "screenPageViews": 1
+        }
+      ]
+    },
+    "recent-device": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-09-04",
+            "endDate": "2026-10-01"
+          }
+        ],
+        "dimensions": [
+          {
+            "name": "deviceCategory"
+          }
+        ],
+        "metrics": [
+          {
+            "name": "sessions"
+          },
+          {
+            "name": "engagedSessions"
+          },
+          {
+            "name": "screenPageViews"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 3,
+      "rows": [
+        {
+          "deviceCategory": "desktop",
+          "sessions": 96,
+          "engagedSessions": 9,
+          "screenPageViews": 98
+        },
+        {
+          "deviceCategory": "mobile",
+          "sessions": 6,
+          "engagedSessions": 2,
+          "screenPageViews": 11
+        },
+        {
+          "deviceCategory": "tablet",
+          "sessions": 1,
+          "engagedSessions": 1,
+          "screenPageViews": 1
+        }
+      ]
+    },
+    "recent-landings": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-09-04",
+            "endDate": "2026-10-01"
+          }
+        ],
+        "dimensions": [
+          {
+            "name": "landingPage"
+          }
+        ],
+        "metrics": [
+          {
+            "name": "sessions"
+          },
+          {
+            "name": "engagedSessions"
+          },
+          {
+            "name": "screenPageViews"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 76,
+      "rows": [
+        {
+          "landingPage": "/",
+          "sessions": 18,
+          "engagedSessions": 8,
+          "screenPageViews": 19
+        },
+        {
+          "landingPage": "/gifts",
+          "sessions": 7,
+          "engagedSessions": 1,
+          "screenPageViews": 11
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-coworkers",
+          "sessions": 4,
+          "engagedSessions": 1,
+          "screenPageViews": 6
+        },
+        {
+          "landingPage": "/gift-guides/weird-kitchen-gadgets",
+          "sessions": 2,
+          "engagedSessions": 1,
+          "screenPageViews": 2
+        },
+        {
+          "landingPage": "/gifts/farting-fun-the-poop-pen-that-packs-a-punch",
+          "sessions": 2,
+          "engagedSessions": 0,
+          "screenPageViews": 2
+        },
+        {
+          "landingPage": "(not set)",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 0
+        },
+        {
+          "landingPage": "/gift-guides/funny-bath-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-coffee-mugs",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-bosses",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-dads",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-men",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-women",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-halloween-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-housewarming-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-wine-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/gifts-for-people-who-have-everything",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/office-prank-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/optical-illusion-decor-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/secret-santa-gag-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/weird-bathroom-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/weird-home-decor-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gift-guides/white-elephant-gifts",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/a-bag-of-poop-the-ultimate-prankster-s-delight",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/anonymous-mail-prank-a-how-to-for-harmless-fun",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/awesome-dad-t-shirt-praise-or-sarcasm-you-decide",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/belly-larious-apron-cooking-up-laughs-for-dad",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/belly-up-3d-beer-belly-fanny-pack-for-party-animals",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/bullshit-button-hit-for-instant-hilarity",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/butt-tape-keeping-it-together-one-roll-at-a-time",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/cluck-yeah-chicken-leg-socks-for-poultry-lovers",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/cock-a-doodle-do-freshen-up-with-rooster-mints",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/coffee-table-book-a-jolly-mustache-affair",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/cool-gag-gifts-because-regular-gifts-are-boring",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/culinary-chaos-pickles-cheese-and-bacon-joy",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/dad-joke-loading-grandpa-edition",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/dad-joke-loading-please-wait",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/dance-like-no-one-s-watching-at-your-desk",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/desktop-therapist-let-your-desk-do-the-talking",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/donald-socks-hair-today-gone-tomorrow",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/emergency-hammer-for-when-life-needs-a-smash",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/f-caw-f-coffee-mug-brew-tifully-sarcastic",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/farting-keychain-a-scent-sational-surprise",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/farting-santa-toy-the-ultimate-gag-gift",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/fresh-memes-dog-toy-fetch-a-laugh",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/fresh-out-of-coffee-inappropriate-but-cute-mug",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/funny-prank-pill-box-candy-for-the-sweetly-twisted",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/give-the-finger-office-edition",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/grumpy-mug-for-those-who-keep-it-real",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/heat-change-mug-sip-with-pride-change-with-style",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/hogg-f-this-shit-mug-stir-ingly-honest",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/i-came-i-saw-i-forgot-my-coffee-mug",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/i-myself-am-strange-and-unusual-sign",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/jolly-jokester-christmas-gag-toilet-paper",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/knee-high-cocktails-party-socks-to-toast",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/middle-finger-keychains-double-the-trouble",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/mini-desk-signs-humor-in-a-snap",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/mint-condition-you-smell-like-uranus",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/mug-with-a-twist-hidden-messages-for-sneaky-sippers",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/my-first-fire-not-what-you-think-it-is",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/pens-with-personality-write-right-or-cry-trying",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/poolside-pun-i-pee-in-pools-hat",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/poop-tastic-mini-poop-the-gift-that-really-stinks",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/poultry-in-motion-the-raw-chicken-vase-surprise",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/putt-on-the-potty-funny-toilet-golf-gift",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/quack-me-up-this-duck-s-got-attitude",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/random-cool-stuff-prank-box-of-surprises",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/screaming-goat-a-desk-toy-for-loud-laughter",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/shart-happens-survival-kit-for-the-brave",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/the-gratiator-grate-expectations",
+          "sessions": 1,
+          "engagedSessions": 1,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/the-infuser-that-s-a-brew-tiful-joke",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/toilet-paper-for-the-21st-birthday-roll-with-it",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/wiener-switch-light-up-your-night-with-laughter",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/gifts/work-forecast-mug-coffee-with-a-chance-of-sass",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        },
+        {
+          "landingPage": "/random-gift",
+          "sessions": 1,
+          "engagedSessions": 0,
+          "screenPageViews": 1
+        }
+      ]
+    },
+    "recent-events": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-09-04",
+            "endDate": "2026-10-01"
+          }
+        ],
+        "dimensions": [
+          {
+            "name": "eventName"
+          }
+        ],
+        "metrics": [
+          {
+            "name": "eventCount"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              },
+              {
+                "filter": {
+                  "fieldName": "eventName",
+                  "inListFilter": {
+                    "values": [
+                      "page_view",
+                      "search",
+                      "view_item_list",
+                      "select_item",
+                      "conversion_event_outbound_click",
+                      "random_gift_spin"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 4,
+      "rows": [
+        {
+          "eventName": "view_item_list",
+          "eventCount": 139
+        },
+        {
+          "eventName": "page_view",
+          "eventCount": 110
+        },
+        {
+          "eventName": "select_item",
+          "eventCount": 8
+        },
+        {
+          "eventName": "conversion_event_outbound_click",
+          "eventCount": 4
+        }
+      ]
+    },
+    "recent-excluding-explicit-qa": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-09-04",
+            "endDate": "2026-10-01"
+          }
+        ],
+        "dimensions": [],
+        "metrics": [
+          {
+            "name": "sessions"
+          },
+          {
+            "name": "engagedSessions"
+          },
+          {
+            "name": "screenPageViews"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              },
+              {
+                "notExpression": {
+                  "filter": {
+                    "fieldName": "sessionMedium",
+                    "stringFilter": {
+                      "matchType": "EXACT",
+                      "value": "qa"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 1,
+      "rows": [
+        {
+          "sessions": 103,
+          "engagedSessions": 12,
+          "screenPageViews": 110
+        }
+      ]
+    },
+    "recent-entry-segments": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-09-04",
+            "endDate": "2026-10-01"
+          }
+        ],
+        "dimensions": [
+          {
+            "name": "landingPage"
+          },
+          {
+            "name": "deviceCategory"
+          },
+          {
+            "name": "sessionSourceMedium"
+          }
+        ],
+        "metrics": [
+          {
+            "name": "sessions"
+          },
+          {
+            "name": "engagedSessions"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 82,
+      "rows": [
+        {
+          "landingPage": "/",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 15,
+          "engagedSessions": 6
+        },
+        {
+          "landingPage": "/gifts",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "amazon / (not set)",
+          "sessions": 5,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/",
+          "deviceCategory": "mobile",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 2,
+          "engagedSessions": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-coworkers",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 2,
+          "engagedSessions": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-coworkers",
+          "deviceCategory": "mobile",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 2,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/weird-kitchen-gadgets",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 2,
+          "engagedSessions": 1
+        },
+        {
+          "landingPage": "(not set)",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/",
+          "deviceCategory": "tablet",
+          "sessionSourceMedium": "vercel.com / referral",
+          "sessions": 1,
+          "engagedSessions": 1
+        },
+        {
+          "landingPage": "/gift-guides/funny-bath-gifts",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/funny-coffee-mugs",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-bosses",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-dads",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-men",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/funny-gifts-for-women",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/funny-halloween-gifts",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/funny-housewarming-gifts",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/funny-wine-gifts",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/gifts-for-people-who-have-everything",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/office-prank-gifts",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/optical-illusion-decor-gifts",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/secret-santa-gag-gifts",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/weird-bathroom-gifts",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/weird-home-decor-gifts",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gift-guides/white-elephant-gifts",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts",
+          "deviceCategory": "mobile",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 1
+        },
+        {
+          "landingPage": "/gifts/a-bag-of-poop-the-ultimate-prankster-s-delight",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/anonymous-mail-prank-a-how-to-for-harmless-fun",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/awesome-dad-t-shirt-praise-or-sarcasm-you-decide",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/belly-larious-apron-cooking-up-laughs-for-dad",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/belly-up-3d-beer-belly-fanny-pack-for-party-animals",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/bullshit-button-hit-for-instant-hilarity",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/butt-tape-keeping-it-together-one-roll-at-a-time",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/cluck-yeah-chicken-leg-socks-for-poultry-lovers",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/cock-a-doodle-do-freshen-up-with-rooster-mints",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/coffee-table-book-a-jolly-mustache-affair",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/cool-gag-gifts-because-regular-gifts-are-boring",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/culinary-chaos-pickles-cheese-and-bacon-joy",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/dad-joke-loading-grandpa-edition",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/dad-joke-loading-please-wait",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/dance-like-no-one-s-watching-at-your-desk",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/desktop-therapist-let-your-desk-do-the-talking",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/donald-socks-hair-today-gone-tomorrow",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/emergency-hammer-for-when-life-needs-a-smash",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/f-caw-f-coffee-mug-brew-tifully-sarcastic",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/farting-fun-the-poop-pen-that-packs-a-punch",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/farting-fun-the-poop-pen-that-packs-a-punch",
+          "deviceCategory": "mobile",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/farting-keychain-a-scent-sational-surprise",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/farting-santa-toy-the-ultimate-gag-gift",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/fresh-memes-dog-toy-fetch-a-laugh",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/fresh-out-of-coffee-inappropriate-but-cute-mug",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/funny-prank-pill-box-candy-for-the-sweetly-twisted",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/give-the-finger-office-edition",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/grumpy-mug-for-those-who-keep-it-real",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/heat-change-mug-sip-with-pride-change-with-style",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/hogg-f-this-shit-mug-stir-ingly-honest",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/i-came-i-saw-i-forgot-my-coffee-mug",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/i-myself-am-strange-and-unusual-sign",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/jolly-jokester-christmas-gag-toilet-paper",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/knee-high-cocktails-party-socks-to-toast",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/middle-finger-keychains-double-the-trouble",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/mini-desk-signs-humor-in-a-snap",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/mint-condition-you-smell-like-uranus",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/mug-with-a-twist-hidden-messages-for-sneaky-sippers",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/my-first-fire-not-what-you-think-it-is",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/pens-with-personality-write-right-or-cry-trying",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/poolside-pun-i-pee-in-pools-hat",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/poop-tastic-mini-poop-the-gift-that-really-stinks",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/poultry-in-motion-the-raw-chicken-vase-surprise",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/putt-on-the-potty-funny-toilet-golf-gift",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/quack-me-up-this-duck-s-got-attitude",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/random-cool-stuff-prank-box-of-surprises",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/screaming-goat-a-desk-toy-for-loud-laughter",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/shart-happens-survival-kit-for-the-brave",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/the-gratiator-grate-expectations",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 1
+        },
+        {
+          "landingPage": "/gifts/the-infuser-that-s-a-brew-tiful-joke",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/toilet-paper-for-the-21st-birthday-roll-with-it",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/wiener-switch-light-up-your-night-with-laughter",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(not set)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/gifts/work-forecast-mug-coffee-with-a-chance-of-sass",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "landingPage": "/random-gift",
+          "deviceCategory": "desktop",
+          "sessionSourceMedium": "(direct) / (none)",
+          "sessions": 1,
+          "engagedSessions": 0
+        }
+      ]
+    },
+    "recent-daily": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-09-04",
+            "endDate": "2026-10-01"
+          }
+        ],
+        "dimensions": [
+          {
+            "name": "date"
+          },
+          {
+            "name": "sessionSourceMedium"
+          },
+          {
+            "name": "deviceCategory"
+          }
+        ],
+        "metrics": [
+          {
+            "name": "sessions"
+          },
+          {
+            "name": "engagedSessions"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 25,
+      "rows": [
+        {
+          "date": "20260917",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 62,
+          "engagedSessions": 1
+        },
+        {
+          "date": "20260918",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 7,
+          "engagedSessions": 1
+        },
+        {
+          "date": "20260928",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 4,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260910",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 3,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260904",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 2,
+          "engagedSessions": 1
+        },
+        {
+          "date": "20260905",
+          "sessionSourceMedium": "amazon / (not set)",
+          "deviceCategory": "desktop",
+          "sessions": 2,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260908",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 2,
+          "engagedSessions": 2
+        },
+        {
+          "date": "20260913",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "mobile",
+          "sessions": 2,
+          "engagedSessions": 1
+        },
+        {
+          "date": "20260916",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 2,
+          "engagedSessions": 2
+        },
+        {
+          "date": "20260926",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 2,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260905",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 1,
+          "engagedSessions": 1
+        },
+        {
+          "date": "20260907",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260907",
+          "sessionSourceMedium": "amazon / (not set)",
+          "deviceCategory": "desktop",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260909",
+          "sessionSourceMedium": "amazon / (not set)",
+          "deviceCategory": "desktop",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260914",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "mobile",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260916",
+          "sessionSourceMedium": "(not set)",
+          "deviceCategory": "desktop",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260916",
+          "sessionSourceMedium": "amazon / (not set)",
+          "deviceCategory": "desktop",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260921",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260923",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "mobile",
+          "sessions": 1,
+          "engagedSessions": 1
+        },
+        {
+          "date": "20260924",
+          "sessionSourceMedium": "vercel.com / referral",
+          "deviceCategory": "tablet",
+          "sessions": 1,
+          "engagedSessions": 1
+        },
+        {
+          "date": "20260925",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260925",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "mobile",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260927",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 1,
+          "engagedSessions": 0
+        },
+        {
+          "date": "20260930",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "desktop",
+          "sessions": 1,
+          "engagedSessions": 1
+        },
+        {
+          "date": "20261001",
+          "sessionSourceMedium": "(direct) / (none)",
+          "deviceCategory": "mobile",
+          "sessions": 1,
+          "engagedSessions": 0
+        }
+      ]
+    },
+    "recent-event-pages": {
+      "request": {
+        "dateRanges": [
+          {
+            "startDate": "2026-09-04",
+            "endDate": "2026-10-01"
+          }
+        ],
+        "dimensions": [
+          {
+            "name": "eventName"
+          },
+          {
+            "name": "pagePath"
+          },
+          {
+            "name": "sessionSourceMedium"
+          }
+        ],
+        "metrics": [
+          {
+            "name": "eventCount"
+          }
+        ],
+        "dimensionFilter": {
+          "andGroup": {
+            "expressions": [
+              {
+                "filter": {
+                  "fieldName": "hostName",
+                  "inListFilter": {
+                    "values": [
+                      "goose.gifts",
+                      "www.goose.gifts"
+                    ]
+                  }
+                }
+              },
+              {
+                "filter": {
+                  "fieldName": "eventName",
+                  "inListFilter": {
+                    "values": [
+                      "page_view",
+                      "search",
+                      "view_item_list",
+                      "select_item",
+                      "conversion_event_outbound_click",
+                      "random_gift_spin"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "limit": "10000"
+      },
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "rowCount": 132,
+      "rows": [
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 86
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 17
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/funny-gifts-for-coworkers",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 5
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts",
+          "sessionSourceMedium": "amazon / (not set)",
+          "eventCount": 5
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts",
+          "sessionSourceMedium": "amazon / (not set)",
+          "eventCount": 5
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 4
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/funny-gifts-for-coworkers",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 4
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 3
+        },
+        {
+          "eventName": "conversion_event_outbound_click",
+          "pagePath": "/gifts/the-gratiator-grate-expectations",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 2
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/weird-kitchen-gadgets",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 2
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/butt-tape-keeping-it-together-one-roll-at-a-time",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 2
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/farting-fun-the-poop-pen-that-packs-a-punch",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 2
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 2
+        },
+        {
+          "eventName": "select_item",
+          "pagePath": "/gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 2
+        },
+        {
+          "eventName": "select_item",
+          "pagePath": "/gifts/the-gratiator-grate-expectations",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 2
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/weird-kitchen-gadgets",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 2
+        },
+        {
+          "eventName": "conversion_event_outbound_click",
+          "pagePath": "/gifts/poo-lar-bear-affirmation-cards-emotional-support-in-a-jar",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "conversion_event_outbound_click",
+          "pagePath": "/gifts/wiener-switch-light-up-your-night-with-laughter",
+          "sessionSourceMedium": "(not set)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/",
+          "sessionSourceMedium": "vercel.com / referral",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/funny-bath-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/funny-coffee-mugs",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/funny-gifts-for-bosses",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/funny-gifts-for-dads",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/funny-gifts-for-men",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/funny-gifts-for-women",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/funny-halloween-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/funny-housewarming-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/funny-wine-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/gifts-for-people-who-have-everything",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/office-prank-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/optical-illusion-decor-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/secret-santa-gag-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/weird-bathroom-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/weird-home-decor-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gift-guides/white-elephant-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/a-bag-of-poop-the-ultimate-prankster-s-delight",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/anonymous-mail-prank-a-how-to-for-harmless-fun",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/awesome-dad-t-shirt-praise-or-sarcasm-you-decide",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/belly-larious-apron-cooking-up-laughs-for-dad",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/belly-up-3d-beer-belly-fanny-pack-for-party-animals",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/bullshit-button-hit-for-instant-hilarity",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/bunny-business-quirky-rabbit-decor-figurine",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/cluck-yeah-chicken-leg-socks-for-poultry-lovers",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/cock-a-doodle-do-freshen-up-with-rooster-mints",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/coffee-table-book-a-jolly-mustache-affair",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/cool-gag-gifts-because-regular-gifts-are-boring",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/culinary-chaos-pickles-cheese-and-bacon-joy",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/dad-joke-loading-grandpa-edition",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/dad-joke-loading-please-wait",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/dance-like-no-one-s-watching-at-your-desk",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/desktop-therapist-let-your-desk-do-the-talking",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/donald-socks-hair-today-gone-tomorrow",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/emergency-hammer-for-when-life-needs-a-smash",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/f-caw-f-coffee-mug-brew-tifully-sarcastic",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/farting-keychain-a-scent-sational-surprise",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/farting-santa-toy-the-ultimate-gag-gift",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/fresh-memes-dog-toy-fetch-a-laugh",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/fresh-out-of-coffee-inappropriate-but-cute-mug",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/funny-prank-pill-box-candy-for-the-sweetly-twisted",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/give-the-finger-office-edition",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/grumpy-mug-for-those-who-keep-it-real",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/heat-change-mug-sip-with-pride-change-with-style",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/hogg-f-this-shit-mug-stir-ingly-honest",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/i-came-i-saw-i-forgot-my-coffee-mug",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/i-myself-am-strange-and-unusual-sign",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/jolly-jokester-christmas-gag-toilet-paper",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/knee-high-cocktails-party-socks-to-toast",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/middle-finger-keychains-double-the-trouble",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/mini-desk-signs-humor-in-a-snap",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/mint-condition-you-smell-like-uranus",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/mug-with-a-twist-hidden-messages-for-sneaky-sippers",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/my-first-fire-not-what-you-think-it-is",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/pens-with-personality-write-right-or-cry-trying",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/poo-lar-bear-affirmation-cards-emotional-support-in-a-jar",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/poolside-pun-i-pee-in-pools-hat",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/poop-tastic-mini-poop-the-gift-that-really-stinks",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/poultry-in-motion-the-raw-chicken-vase-surprise",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/putt-on-the-potty-funny-toilet-golf-gift",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/quack-me-up-this-duck-s-got-attitude",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/random-cool-stuff-prank-box-of-surprises",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/screaming-goat-a-desk-toy-for-loud-laughter",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/shart-happens-survival-kit-for-the-brave",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/the-gratiator-grate-expectations",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/the-infuser-that-s-a-brew-tiful-joke",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/toilet-paper-for-the-21st-birthday-roll-with-it",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/wiener-switch-light-up-your-night-with-laughter",
+          "sessionSourceMedium": "(not set)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/gifts/work-forecast-mug-coffee-with-a-chance-of-sass",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "page_view",
+          "pagePath": "/random-gift",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "select_item",
+          "pagePath": "/",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "select_item",
+          "pagePath": "/gift-guides/funny-gifts-for-coworkers",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "select_item",
+          "pagePath": "/gifts/poo-lar-bear-affirmation-cards-emotional-support-in-a-jar",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "select_item",
+          "pagePath": "/gifts/wiener-switch-light-up-your-night-with-laughter",
+          "sessionSourceMedium": "(not set)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/",
+          "sessionSourceMedium": "vercel.com / referral",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/funny-bath-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/funny-coffee-mugs",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/funny-gifts-for-bosses",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/funny-gifts-for-men",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/funny-gifts-for-women",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/funny-halloween-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/funny-housewarming-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/funny-wine-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/gifts-for-people-who-have-everything",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/office-prank-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/optical-illusion-decor-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/secret-santa-gag-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/weird-home-decor-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gift-guides/white-elephant-gifts",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/awesome-dad-t-shirt-praise-or-sarcasm-you-decide",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/belly-up-3d-beer-belly-fanny-pack-for-party-animals",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/bunny-business-quirky-rabbit-decor-figurine",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/butt-tape-keeping-it-together-one-roll-at-a-time",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/dad-joke-loading-please-wait",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/donald-socks-hair-today-gone-tomorrow",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/emergency-hammer-for-when-life-needs-a-smash",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/farting-fun-the-poop-pen-that-packs-a-punch",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/funny-prank-pill-box-candy-for-the-sweetly-twisted",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/grumpy-mug-for-those-who-keep-it-real",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/i-came-i-saw-i-forgot-my-coffee-mug",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/i-myself-am-strange-and-unusual-sign",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/middle-finger-keychains-double-the-trouble",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/mini-desk-signs-humor-in-a-snap",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/my-first-fire-not-what-you-think-it-is",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/poo-lar-bear-affirmation-cards-emotional-support-in-a-jar",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/poultry-in-motion-the-raw-chicken-vase-surprise",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/putt-on-the-potty-funny-toilet-golf-gift",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/screaming-goat-a-desk-toy-for-loud-laughter",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/the-gratiator-grate-expectations",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/toilet-paper-for-the-21st-birthday-roll-with-it",
+          "sessionSourceMedium": "(direct) / (none)",
+          "eventCount": 1
+        },
+        {
+          "eventName": "view_item_list",
+          "pagePath": "/gifts/wiener-switch-light-up-your-night-with-laughter",
+          "sessionSourceMedium": "(not set)",
+          "eventCount": 1
+        }
+      ]
+    }
+  },
+  "posthog": {
+    "project": {
+      "id": 550427,
+      "name": "Goose Gifts"
+    },
+    "prior-raw-events": {
+      "sql": "SELECT event, count() AS events FROM events WHERE timestamp >= toDateTime('2026-08-07 07:00:00', 'UTC') AND timestamp < toDateTime('2026-09-04 07:00:00', 'UTC') GROUP BY event ORDER BY event LIMIT 100",
+      "columns": [
+        "event",
+        "events"
+      ],
+      "results": [
+        [
+          "conversion_event_outbound_click",
+          3
+        ],
+        [
+          "page_view",
+          39
+        ],
+        [
+          "random_gift_spin",
+          1
+        ],
+        [
+          "search",
+          2
+        ],
+        [
+          "select_item",
+          3
+        ],
+        [
+          "view_item_list",
+          44
+        ]
+      ],
+      "hasMore": null
+    },
+    "prior-without-qa-events": {
+      "sql": "SELECT event, count() AS events FROM events WHERE timestamp >= toDateTime('2026-08-07 07:00:00', 'UTC') AND timestamp < toDateTime('2026-09-04 07:00:00', 'UTC') AND distinct_id NOT IN (SELECT distinct_id FROM events WHERE timestamp >= toDateTime('2026-08-07 07:00:00', 'UTC') AND timestamp < toDateTime('2026-09-04 07:00:00', 'UTC') AND (properties.traffic_medium = 'qa' OR properties.traffic_campaign IN ('ga-proof','no-geo-proof','cta_live_verify'))) GROUP BY event ORDER BY event LIMIT 100",
+      "columns": [
+        "event",
+        "events"
+      ],
+      "results": [
+        [
+          "conversion_event_outbound_click",
+          2
+        ],
+        [
+          "page_view",
+          34
+        ],
+        [
+          "random_gift_spin",
+          1
+        ],
+        [
+          "search",
+          2
+        ],
+        [
+          "select_item",
+          2
+        ],
+        [
+          "view_item_list",
+          39
+        ]
+      ],
+      "hasMore": null
+    },
+    "prior-qa-outbounds": {
+      "sql": "SELECT toDate(toTimeZone(timestamp,'America/Los_Angeles')) AS day, properties.traffic_medium AS medium, properties.traffic_campaign AS campaign, count() AS events FROM events WHERE timestamp >= toDateTime('2026-08-07 07:00:00', 'UTC') AND timestamp < toDateTime('2026-09-04 07:00:00', 'UTC') AND event = 'conversion_event_outbound_click' GROUP BY day,medium,campaign ORDER BY day LIMIT 100",
+      "columns": [
+        "day",
+        "medium",
+        "campaign",
+        "events"
+      ],
+      "results": [
+        [
+          "2026-08-09",
+          "qa",
+          "ga-proof",
+          1
+        ],
+        [
+          "2026-08-09",
+          "social",
+          "goose-proof",
+          2
+        ]
+      ],
+      "hasMore": null
+    },
+    "recent-raw-events": {
+      "sql": "SELECT event, count() AS events FROM events WHERE timestamp >= toDateTime('2026-09-04 07:00:00', 'UTC') AND timestamp < toDateTime('2026-10-02 07:00:00', 'UTC') GROUP BY event ORDER BY event LIMIT 100",
+      "columns": [
+        "event",
+        "events"
+      ],
+      "results": [
+        [
+          "conversion_event_outbound_click",
+          3
+        ],
+        [
+          "page_view",
+          77
+        ],
+        [
+          "select_item",
+          5
+        ],
+        [
+          "view_item_list",
+          148
+        ]
+      ],
+      "hasMore": null
+    },
+    "recent-without-qa-events": {
+      "sql": "SELECT event, count() AS events FROM events WHERE timestamp >= toDateTime('2026-09-04 07:00:00', 'UTC') AND timestamp < toDateTime('2026-10-02 07:00:00', 'UTC') AND distinct_id NOT IN (SELECT distinct_id FROM events WHERE timestamp >= toDateTime('2026-09-04 07:00:00', 'UTC') AND timestamp < toDateTime('2026-10-02 07:00:00', 'UTC') AND (properties.traffic_medium = 'qa' OR properties.traffic_campaign IN ('ga-proof','no-geo-proof','cta_live_verify'))) GROUP BY event ORDER BY event LIMIT 100",
+      "columns": [
+        "event",
+        "events"
+      ],
+      "results": [
+        [
+          "page_view",
+          75
+        ],
+        [
+          "select_item",
+          2
+        ],
+        [
+          "view_item_list",
+          146
+        ]
+      ],
+      "hasMore": null
+    },
+    "recent-qa-outbounds": {
+      "sql": "SELECT toDate(toTimeZone(timestamp,'America/Los_Angeles')) AS day, properties.traffic_medium AS medium, properties.traffic_campaign AS campaign, count() AS events FROM events WHERE timestamp >= toDateTime('2026-09-04 07:00:00', 'UTC') AND timestamp < toDateTime('2026-10-02 07:00:00', 'UTC') AND event = 'conversion_event_outbound_click' GROUP BY day,medium,campaign ORDER BY day LIMIT 100",
+      "columns": [
+        "day",
+        "medium",
+        "campaign",
+        "events"
+      ],
+      "results": [
+        [
+          "2026-09-08",
+          "qa",
+          "reporting_20260908",
+          2
+        ],
+        [
+          "2026-09-16",
+          "qa",
+          "mobile_landing_20260916_human",
+          1
+        ]
+      ],
+      "hasMore": null
+    },
+    "recent-page-sources-without-qa": {
+      "sql": "SELECT properties.pathname AS pathname, properties.traffic_source AS source, properties.traffic_medium AS medium, count() AS pageviews FROM events WHERE timestamp >= toDateTime('2026-09-04 07:00:00', 'UTC') AND timestamp < toDateTime('2026-10-02 07:00:00', 'UTC') AND distinct_id NOT IN (SELECT distinct_id FROM events WHERE timestamp >= toDateTime('2026-09-04 07:00:00', 'UTC') AND timestamp < toDateTime('2026-10-02 07:00:00', 'UTC') AND (properties.traffic_medium = 'qa' OR properties.traffic_campaign IN ('ga-proof','no-geo-proof','cta_live_verify'))) AND event = 'page_view' GROUP BY pathname,source,medium ORDER BY pageviews DESC LIMIT 100",
+      "columns": [
+        "pathname",
+        "source",
+        "medium",
+        "pageviews"
+      ],
+      "results": [
+        [
+          "/gifts",
+          "chatgpt.com",
+          null,
+          7
+        ],
+        [
+          "/",
+          "direct",
+          null,
+          6
+        ],
+        [
+          "/gift-guides/weird-kitchen-gadgets",
+          "www.google.com",
+          null,
+          2
+        ],
+        [
+          "/gifts/work-forecast-mug-coffee-with-a-chance-of-sass",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/poop-tastic-mini-poop-the-gift-that-really-stinks",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/toilet-paper-for-the-21st-birthday-roll-with-it",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/shart-happens-survival-kit-for-the-brave",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/f-caw-f-coffee-mug-brew-tifully-sarcastic",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/dad-joke-loading-grandpa-edition",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gift-guides/white-elephant-gifts",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/mini-desk-signs-humor-in-a-snap",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/screaming-goat-a-desk-toy-for-loud-laughter",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/dance-like-no-one-s-watching-at-your-desk",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/poolside-pun-i-pee-in-pools-hat",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/putt-on-the-potty-funny-toilet-golf-gift",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gift-guides/funny-gifts-for-coworkers",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/the-infuser-that-s-a-brew-tiful-joke",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/my-first-fire-not-what-you-think-it-is",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/farting-keychain-a-scent-sational-surprise",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gift-guides/secret-santa-gag-gifts",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/cool-gag-gifts-because-regular-gifts-are-boring",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/dad-joke-loading-please-wait",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/quack-me-up-this-duck-s-got-attitude",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/bunny-business-quirky-rabbit-decor-figurine",
+          "chatgpt.com",
+          null,
+          1
+        ],
+        [
+          "/gifts/butt-tape-keeping-it-together-one-roll-at-a-time",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/mug-with-a-twist-hidden-messages-for-sneaky-sippers",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/middle-finger-keychains-double-the-trouble",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/belly-larious-apron-cooking-up-laughs-for-dad",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/emergency-hammer-for-when-life-needs-a-smash",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/hogg-f-this-shit-mug-stir-ingly-honest",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+          "chatgpt.com",
+          null,
+          1
+        ],
+        [
+          "/gifts/belly-up-3d-beer-belly-fanny-pack-for-party-animals",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/fresh-out-of-coffee-inappropriate-but-cute-mug",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/farting-santa-toy-the-ultimate-gag-gift",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/i-came-i-saw-i-forgot-my-coffee-mug",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/poultry-in-motion-the-raw-chicken-vase-surprise",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/mint-condition-you-smell-like-uranus",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gift-guides/funny-gifts-for-coworkers",
+          "chatgpt.com",
+          null,
+          1
+        ],
+        [
+          "/gifts/i-myself-am-strange-and-unusual-sign",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/give-the-finger-office-edition",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/pens-with-personality-write-right-or-cry-trying",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gift-guides/funny-gifts-for-dads",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/donald-socks-hair-today-gone-tomorrow",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/fresh-memes-dog-toy-fetch-a-laugh",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/awesome-dad-t-shirt-praise-or-sarcasm-you-decide",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/desktop-therapist-let-your-desk-do-the-talking",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/jolly-jokester-christmas-gag-toilet-paper",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/heat-change-mug-sip-with-pride-change-with-style",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/coffee-table-book-a-jolly-mustache-affair",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/funny-prank-pill-box-candy-for-the-sweetly-twisted",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/cluck-yeah-chicken-leg-socks-for-poultry-lovers",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gift-guides/funny-gifts-for-dads",
+          "yandex.ru",
+          null,
+          1
+        ],
+        [
+          "/gifts/farting-fun-the-poop-pen-that-packs-a-punch",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/random-cool-stuff-prank-box-of-surprises",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/knee-high-cocktails-party-socks-to-toast",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/random-gift",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/bullshit-button-hit-for-instant-hilarity",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/cock-a-doodle-do-freshen-up-with-rooster-mints",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/anonymous-mail-prank-a-how-to-for-harmless-fun",
+          "direct",
+          null,
+          1
+        ],
+        [
+          "/gifts/culinary-chaos-pickles-cheese-and-bacon-joy",
+          "direct",
+          null,
+          1
+        ]
+      ],
+      "hasMore": null
+    },
+    "recent-search-results-without-qa": {
+      "sql": "SELECT properties.result_count AS result_count, count() AS searches FROM events WHERE timestamp >= toDateTime('2026-09-04 07:00:00', 'UTC') AND timestamp < toDateTime('2026-10-02 07:00:00', 'UTC') AND distinct_id NOT IN (SELECT distinct_id FROM events WHERE timestamp >= toDateTime('2026-09-04 07:00:00', 'UTC') AND timestamp < toDateTime('2026-10-02 07:00:00', 'UTC') AND (properties.traffic_medium = 'qa' OR properties.traffic_campaign IN ('ga-proof','no-geo-proof','cta_live_verify'))) AND event='search' GROUP BY result_count LIMIT 100",
+      "columns": [
+        "result_count",
+        "searches"
+      ],
+      "results": [],
+      "hasMore": null
+    },
+    "recent-select-context-without-qa": {
+      "sql": "SELECT properties.pathname AS pathname, properties.ui_context AS context, count() AS selections FROM events WHERE timestamp >= toDateTime('2026-09-04 07:00:00', 'UTC') AND timestamp < toDateTime('2026-10-02 07:00:00', 'UTC') AND distinct_id NOT IN (SELECT distinct_id FROM events WHERE timestamp >= toDateTime('2026-09-04 07:00:00', 'UTC') AND timestamp < toDateTime('2026-10-02 07:00:00', 'UTC') AND (properties.traffic_medium = 'qa' OR properties.traffic_campaign IN ('ga-proof','no-geo-proof','cta_live_verify'))) AND event='select_item' GROUP BY pathname,context LIMIT 100",
+      "columns": [
+        "pathname",
+        "context",
+        "selections"
+      ],
+      "results": [
+        [
+          "/gifts",
+          "gift_directory:page-1",
+          1
+        ],
+        [
+          "/gifts",
+          "gift_directory:page-2",
+          1
+        ]
+      ],
+      "hasMore": null
+    }
+  },
+  "database": {
+    "provenance": "Local connection equals current Vercel Production POSTGRES_URL",
+    "summary": [
+      {
+        "searches_lifetime": 335,
+        "last_search": "2026-08-29T01:14:51.622Z",
+        "zero_results_lifetime": 0
+      }
+    ],
+    "historicalClicks": [
+      {
+        "historical_clicks": 108,
+        "last_record": "2026-09-30T20:16:34.564Z"
+      }
+    ],
+    "prior": [
+      {
+        "search_requests": 11,
+        "zero_result_requests": 0,
+        "avg_top_similarity": "0.3378"
+      }
+    ],
+    "recent": [
+      {
+        "search_requests": 0,
+        "zero_result_requests": 0,
+        "avg_top_similarity": null
+      }
+    ]
+  },
+  "timestampNote": "Database naive timestamp maxima in this original snapshot were interpreted by the local driver; use UTC-corrected release-final latest_search_utc. Window predicates explicitly use AT TIME ZONE UTC."
+}
+

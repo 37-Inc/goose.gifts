@@ -32,11 +32,14 @@ what's likely next.
   existing retailer-click events after the compact product-first layout
   (`roadmap-8hls`); keep QA identities out of acquisition reporting.
 
-- **Approved simplification and conversion review**: retire unused admin
-  reporting/auth and detailed click writes (`roadmap-vpmm.4.3`), keeping catalog
-  operations and the explicit provider adapter; then complete the current
-  traffic/search/mobile/desktop investigation (`roadmap-vpmm.4.6`). Visual
-  changes require review of the resulting proposals.
+- **Cleanup shipped; PostHog receipt billing-gated**: PR #160 retired unused
+  admin/auth/reports and detailed click writes while preserving operations,
+  history and the explicit adapter (`roadmap-vpmm.4.3`). Production search,
+  GA4, affiliate and cache-auth checks pass; PostHog storage is stopped by the
+  shared billing cap. Do not raise it without owner authorization. The
+  completed conversion review (`roadmap-vpmm.4.6`) proposes a smaller entry
+  hero/guide block and a factual curated opening cohort; visual work awaits the
+  owner choice in `CONVERSION_REVIEW_2026-10-02.md`.
 
 - **Neon compute — measure the deployed cache changes.** Passive
   product views move to GA/PostHog, crawler-facing catalog reads use a shared
@@ -164,6 +167,20 @@ what's likely next.
 ## Changelog
 
 Newest first.
+
+### 2026-10-02 — Ship approved cleanup and complete conversion review `[owner+claude]`
+
+[PR #160](https://github.com/37-Inc/goose.gifts/pull/160) merged as `f26311f`
+and is verified on production: obsolete admin and click endpoints are 404,
+catalog-cache authorization/invalidation remains correct, stable feed/search
+and retailer navigation work, historical click records remain unchanged, and
+GA4 receives the real QA flow. All 110 tests, lint and build pass. The follow-on
+matched traffic review distinguishes the September 17 suspect burst, explicit
+QA, unattributed actions and low volume. It also found PostHog storage stopped
+September 18 local time because the shared organization billing cap is reached;
+no provider/billing setting was changed. `.4.3` retains that final receipt gate.
+`CONVERSION_REVIEW_2026-10-02.md` records source evidence and a small ranked
+product-first entry/curation proposal; no speculative visual redesign shipped.
 
 ### 2026-09-20 — Preserve an Arm P quality-gated no-op `[daily-ops]`
 
