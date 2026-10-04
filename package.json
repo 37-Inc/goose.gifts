@@ -49,7 +49,7 @@
     "catalog:review-queue": "node scripts/ops/catalog-report.mjs --latest --manual-review",
     "catalog:audit-guides": "node --experimental-strip-types scripts/ops/audit-gift-guides.mjs",
     "catalog:repair-affiliate-urls": "node scripts/ops/prefetch-catalog.mjs --repair-affiliate-urls-only",
-    "test:catalog-ops": "node --experimental-strip-types --test tests/catalog-ops.test.mjs",
+    "test:catalog-ops": "node --experimental-strip-types --test tests/catalog-ops.test.mjs tests/catalog-revalidation.test.mjs",
     "test:catalog-telemetry": "node --test tests/catalog-telemetry.test.mjs",
     "test:catalog-cache": "node --experimental-strip-types --test tests/catalog-cache.test.mjs",
     "test:neon-compute": "node --test tests/neon-compute-boundary.test.mjs",

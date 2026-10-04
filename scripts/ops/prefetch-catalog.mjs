@@ -1383,24 +1383,59 @@ async function auditAndRepairAmazonAffiliateUrls({ dryRun }) {
   return { mismatched, repaired };
 }
 
-async function getProductsForRevalidation(limit, staleDays) {
-  const result = await sql.query(
+async function getProductsForRevalidation(limit, staleDays, query = (...args) => sql.query(...args)) {
+  // Leave a full weekly cycle before the 35-day page gate, and reserve 20%
+  // for legacy work. Empty lanes give their slots back to the other lane.
+  const legacySlots = limit > 1 ? Math.max(1, Math.floor(limit / 5)) : 0;
+  const result = await query(
     `
-      SELECT id, slug, title, price, currency, image_url, affiliate_url, source, source_query,
-             humor_tags, punny_title, witty_description, quality_score, rating, review_count,
-             is_active, last_verified_at, editorial_writeup, source_facts, source_facts_hash,
-             editorial_source_hash, availability_status, availability_checked_at, editorial_status,
-             editorial_quality_score, editorial_model, editorial_prompt_version,
-             editorial_generated_at, editorial_block_reason, duplicate_of_product_id
-      FROM products
-      WHERE source = 'amazon'
-        AND is_active = true
-        AND id ~ '^[A-Z0-9]{10}$'
-        AND (last_verified_at IS NULL OR last_verified_at <= NOW() - ($2 * INTERVAL '1 day'))
-      ORDER BY last_verified_at ASC NULLS FIRST, updated_at ASC
-      LIMIT $1
+      WITH candidates AS (
+        SELECT id, last_verified_at, updated_at,
+               COALESCE(availability_checked_at, last_verified_at) AS verified_at,
+               COALESCE(
+                 slug <> '' AND image_url <> ''
+                 AND editorial_status IN ('generated_ready', 'manual_locked')
+                 AND editorial_quality_score >= 0.8
+                 AND duplicate_of_product_id IS NULL
+                 AND availability_status IN ('IN_STOCK', 'IN_STOCK_SCARCE', 'INSTOCKSCARCE', 'AVAILABLE_DATE', 'LEADTIME', 'PREORDER')
+                 AND source_facts_hash <> '' AND source_facts_hash = editorial_source_hash
+                 AND CHAR_LENGTH(TRIM(editorial_writeup)) >= 500
+                 AND CARDINALITY(REGEXP_SPLIT_TO_ARRAY(TRIM(editorial_writeup), '\\s+')) >= 90
+                 AND TRIM(editorial_writeup) ~ '\\n\\s*\\n',
+                 false
+               ) AS published
+        FROM products
+        WHERE source = 'amazon' AND is_active = true AND id ~ '^[A-Z0-9]{10}$'
+      ), ranked AS (
+        SELECT id, published,
+               ROW_NUMBER() OVER (
+                 PARTITION BY published
+                 ORDER BY CASE WHEN published THEN verified_at ELSE last_verified_at END ASC NULLS FIRST,
+                          updated_at ASC, id ASC
+               ) AS position
+        FROM candidates
+        WHERE (published AND (verified_at IS NULL OR verified_at <= NOW() - ($3 * INTERVAL '1 day')))
+           OR (NOT published AND (last_verified_at IS NULL OR last_verified_at <= NOW() - ($2 * INTERVAL '1 day')))
+      ), selected AS (
+        SELECT id,
+               CASE WHEN published AND position <= $4 THEN 0
+                    WHEN NOT published AND position <= $5 THEN 1
+                    WHEN published THEN 2 ELSE 3 END AS lane,
+               position
+        FROM ranked
+        ORDER BY lane, position
+        LIMIT $1
+      )
+      SELECT p.id, p.slug, p.title, p.price, p.currency, p.image_url, p.affiliate_url, p.source, p.source_query,
+             p.humor_tags, p.punny_title, p.witty_description, p.quality_score, p.rating, p.review_count,
+             p.is_active, p.last_verified_at, p.editorial_writeup, p.source_facts, p.source_facts_hash,
+             p.editorial_source_hash, p.availability_status, p.availability_checked_at, p.editorial_status,
+             p.editorial_quality_score, p.editorial_model, p.editorial_prompt_version,
+             p.editorial_generated_at, p.editorial_block_reason, p.duplicate_of_product_id
+      FROM selected JOIN products p USING (id)
+      ORDER BY selected.lane, selected.position
     `,
-    [limit, staleDays]
+    [limit, staleDays, Math.min(staleDays, 21), limit - legacySlots, legacySlots]
   );
   return result.rows;
 }
@@ -2480,6 +2515,7 @@ export {
   deduplicateAgainstCatalog,
   deduplicateCandidates,
   discoveryCandidateBlockReason,
+  getProductsForRevalidation,
   isHighQualityDiscoveryCandidate,
   normalizedTitleTokens,
   parseArgs,

@@ -129,10 +129,17 @@ Boundaries (always in force):
    Catalog discovery and stale-product revalidation run weekly rather than
    daily; the catalog changes too slowly to justify daily API and enrichment
    work. The scheduled command is `npm run catalog:weekly`. It revalidates at
-   most 50 stale products, searches six rotating themes (covering the full
+   most 50 due products, searches six rotating themes (covering the full
    12-theme pool every two weeks), admits at most 20 net-new products, and
    reports run statistics plus at most five title/image/product-link
    candidates for visual spot-checking to the OpenClaw Slack marketing channel.
+   Revalidation gives reviewed, otherwise publishable pages priority at 21
+   days since availability verification (falling back to `last_verified_at`).
+   At the normal 50-item limit, 40 slots serve these pages and 10 preserve the
+   oldest-first legacy lane, whose existing 30-day threshold stays unchanged.
+   Empty lanes return their unused slots; the total stays bounded at 50.
+   This does not change the 35-day indexability gate, holds, factual-copy
+   checks, discovery volume, embeddings, or the weekly schedule.
    Every non-dry run now has one UUID shared across revalidation, discovery,
    and editorial backfill. `catalog_runs` stores the sanitized configuration,
    Git revision, completion state, phase timings, warnings, provider-reported
@@ -259,7 +266,8 @@ pass in step 6. In addition:
 - **Weekly product review**: first run
   `npm run catalog:revalidate -- --revalidate-limit 50 --stale-days 30 --deactivate-after-days 90`.
   This repairs mismatched Amazon associate URLs catalog-wide, then rechecks at
-  most 50 stale active Amazon items. A product is deactivated only when it was
+  most 50 due active Amazon items using the published/legacy lanes above.
+  A product is deactivated only when it was
   last successfully verified at least 90 days ago and is absent from two
   consecutive Creators API responses in the same run. Throttling or a failed
   confirmation leaves the product unchanged. Use `--dry-run --no-deactivate`

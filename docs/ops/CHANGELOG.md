@@ -24,10 +24,11 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **Published gift freshness**: prioritize due-soon reviewed product pages
-  within the bounded weekly revalidation queue (`roadmap-qsti`). The sitemap
-  contraction is the existing 35-day verification guard, not new filtering
-  from the Neon cache change. Do not inflate URL counts with stale listings.
+- **Published gift freshness**: the bounded selection fix (`roadmap-qsti`)
+  is in implementation/review: reviewed pages become due at 21 days, with
+  40 published / 10 legacy slots at the unchanged weekly 50-item limit.
+  Close only after production revalidation and cache/page/sitemap receipts;
+  the 35-day guard and factual holds remain unchanged.
 - **Product landing measurement**: compare qualified product-page visits and
   existing retailer-click events after the compact product-first layout
   (`roadmap-8hls`); keep QA identities out of acquisition reporting.
@@ -165,6 +166,15 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-03 [owner+claude] — Bounded published-product freshness
+
+Implemented one-query selection for the existing weekly job: reviewed pages
+are due at 21 days, with a 20% oldest-first legacy reservation and unused-slot
+reuse. No extra schedule, migration, model work, or increased batch limit.
+Local PostgreSQL regression tests reproduce the 3,150-row starvation case and
+verification boundaries. Production release/repair evidence will be recorded
+in the journal and `roadmap-qsti` after review and deployment.
 
 Newest first.
 

@@ -5,6 +5,35 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-03 — Published-product freshness selection
+
+Owner approved the small `roadmap-qsti` fix through PR, review, simplification,
+merge, deployment and acceptance-based closure. The existing weekly command
+and 50-product limit remain: reviewed, otherwise publishable products are due
+at 21 days using the same availability-check/last-verification precedence as
+the page gate. The normal batch reserves 10 oldest-first legacy slots; empty
+lanes spill over. Candidate ranking is metadata-only inside PostgreSQL, and
+full payloads are fetched only for the bounded selected IDs. Embeddings are
+still excluded. No new scheduler, migrations, disclosure changes, quality-gate
+relaxation, discovery volume or generation work is introduced.
+
+Real local PostgreSQL tests cover the 3,150-legacy-row starvation regression,
+40/10 fairness, deterministic tie-breaking, unused-slot reuse, small limits,
+21/30-day millisecond boundaries, recent availability-check precedence,
+expired reviewed pages and held/inactive/non-Amazon exclusion from priority.
+All 31 catalog tests pass with no skips. Lint and production build pass;
+existing dependency advisories are unchanged, not resolved by this scope.
+
+Before repair, the actual production query selects 50 rows: 40 reviewed
+(9 currently indexable, 31 verification-expired) and 10 legacy. The returned
+JSON is 158,493 bytes, without vectors. The live sitemap has 26 product URLs.
+After merge, perform one bounded revalidation-only validation, preserving
+factual holds, and record exact refreshed/restored/held counts, cache receipt,
+page/schema/directory/sitemap agreement and deployment SHA in this entry and
+canonical Beads. Do not run discovery/enrichment or change the weekly schedule
+for this validation. Lever: maintain already-reviewed public pages; broader
+catalog expansion and speculative SEO publishing remain out of scope.
+
 ## 2026-10-02 — Approved admin and click analytics simplification
 
 Owner-approved `roadmap-vpmm.4.3` removes unused admin pages, reports and
