@@ -21,7 +21,11 @@ Real local PostgreSQL tests cover the 3,150-legacy-row starvation regression,
 40/10 fairness, deterministic tie-breaking, unused-slot reuse, small limits,
 21/30-day millisecond boundaries, recent availability-check precedence,
 expired reviewed pages and held/inactive/non-Amazon exclusion from priority.
-All 31 catalog tests pass with no skips. Lint and production build pass;
+All 32 catalog tests pass with no skips; the full suite passes 116 tests.
+The PR review corrected availability casing and leading/trailing blank-line
+handling so incomplete single-paragraph copy cannot gain published priority.
+The change remains one bounded query with no new flags/modules/dependencies.
+Lint and production build pass;
 existing dependency advisories are unchanged, not resolved by this scope.
 
 Before repair, the actual production query selects 50 rows: 40 reviewed

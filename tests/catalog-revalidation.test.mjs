@@ -31,7 +31,7 @@ test('revalidation uses one bounded query without embeddings or catalog writes',
 // No production credentials, network listener, provider usage or stored rows.
 const pgConfig = spawnSync('pg_config', ['--bindir'], { encoding: 'utf8' });
 const pgBin = pgConfig.status === 0 ? pgConfig.stdout.trim() : '';
-const hasPostgres = process.getuid?.() !== 0
+const hasPostgres = pgConfig.status === 0 && process.getuid?.() !== 0
   && ['initdb', 'pg_ctl', 'psql'].every((bin) => fs.existsSync(path.join(pgBin, bin)));
 const sqlTest = { skip: hasPostgres ? false : 'Local PostgreSQL binaries unavailable' };
 let directory;
@@ -148,4 +148,15 @@ test('legacy keeps its 30-day boundary and held/inactive/duplicate products get 
   ]);
   assert.deepEqual(selected.slice(0, 40).map((row) => row.id), published.slice(0, 40).map((row) => row.id));
   assert.deepEqual(selected.slice(40).map((row) => row.id), held.map((row) => row.id));
+});
+
+test('priority agrees with page availability casing and substantive paragraph checks', sqlTest, async () => {
+  const selected = await select([
+    product(1, { availability_status: 'in_stock' }),
+    product(2, { editorial_status: 'manual_locked' }),
+    product(3, { editorial_writeup: `\n\n${'one paragraph fact '.repeat(100)}\n\n` }),
+    product(4, { editorial_writeup: `${'x'.repeat(500)}\n\n${'y'.repeat(500)}` }),
+    product(5, { source_facts_hash: null, editorial_source_hash: null }),
+  ]);
+  assert.deepEqual(selected.map((row) => row.id), [product(1).id, product(2).id]);
 });

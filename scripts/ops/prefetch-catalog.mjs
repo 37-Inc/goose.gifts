@@ -1397,11 +1397,11 @@ async function getProductsForRevalidation(limit, staleDays, query = (...args) =>
                  AND editorial_status IN ('generated_ready', 'manual_locked')
                  AND editorial_quality_score >= 0.8
                  AND duplicate_of_product_id IS NULL
-                 AND availability_status IN ('IN_STOCK', 'IN_STOCK_SCARCE', 'INSTOCKSCARCE', 'AVAILABLE_DATE', 'LEADTIME', 'PREORDER')
+                 AND UPPER(availability_status) IN ('IN_STOCK', 'IN_STOCK_SCARCE', 'INSTOCKSCARCE', 'AVAILABLE_DATE', 'LEADTIME', 'PREORDER')
                  AND source_facts_hash <> '' AND source_facts_hash = editorial_source_hash
-                 AND CHAR_LENGTH(TRIM(editorial_writeup)) >= 500
-                 AND CARDINALITY(REGEXP_SPLIT_TO_ARRAY(TRIM(editorial_writeup), '\\s+')) >= 90
-                 AND TRIM(editorial_writeup) ~ '\\n\\s*\\n',
+                 AND CHAR_LENGTH(BTRIM(editorial_writeup, E' \\t\\n\\r')) >= 500
+                 AND CARDINALITY(REGEXP_SPLIT_TO_ARRAY(BTRIM(editorial_writeup, E' \\t\\n\\r'), '\\s+')) >= 90
+                 AND BTRIM(editorial_writeup, E' \\t\\n\\r') ~ '\\n\\s*\\n',
                  false
                ) AS published
         FROM products
