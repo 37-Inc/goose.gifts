@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
+import { createRequire } from 'node:module';
 import {
   catalogCacheBearerToken,
   hasValidCatalogCacheSecret,
@@ -77,4 +78,21 @@ test('cache invalidation covers every crawler-facing catalog surface', () => {
   assert.match(route, /revalidatePath\('\/weird-gift-index'\)/);
   assert.match(route, /revalidatePath\('\/weird-gift-index\/data'\)/);
   assert.match(route, /revalidatePath\('\/sitemap\.xml'\)/);
+  assert.match(route, /revalidatePath\('\/sitemap\/0\.xml'\)/);
+});
+
+test('the public sitemap maps to one ISR-capable shard instead of a fixed metadata file', async () => {
+  const require = createRequire(import.meta.url);
+  const { isStaticMetadataFile } = require('next/dist/lib/metadata/is-metadata-route.js');
+  assert.equal(isStaticMetadataFile('/sitemap.xml'), true);
+  assert.equal(isStaticMetadataFile('/sitemap/0.xml'), false);
+
+  const { default: config } = await import('../next.config.ts');
+  assert.deepEqual(await config.rewrites(), [
+    { source: '/sitemap.xml', destination: '/sitemap/0.xml' },
+  ]);
+  const sitemap = fs.readFileSync(new URL('../app/sitemap.ts', import.meta.url), 'utf8');
+  assert.match(sitemap, /return \[\{ id: 0 \}\];/);
+  assert.match(sitemap, /export const revalidate = 86_400;/);
+  assert.doesNotMatch(sitemap, /force-dynamic|connection\(/);
 });

@@ -1,0 +1,321 @@
+{
+  "bead": "roadmap-qsti",
+  "scope": "Existing weekly 50-item revalidation budget; no additional schedule, discovery, model generation, migrations or quality-gate relaxation.",
+  "implementation": {
+    "pr": "https://github.com/37-Inc/goose.gifts/pull/162",
+    "commit": "b7a7f91dfc64e3e91bf8da03fb8acc4b1d727905",
+    "deployment": "dpl_CfEXNg1sDKN1bHN91GJSrKASnkhY",
+    "productionAlias": "https://www.goose.gifts",
+    "ready": true
+  },
+  "selection": {
+    "limit": 50,
+    "publishedSlots": 40,
+    "legacySlots": 10,
+    "publishedDueDays": 21,
+    "legacyDueDays": 30,
+    "pageExpiryDays": 35,
+    "queryExecutionMs": 23.469,
+    "selectedJsonBytes": 158493,
+    "embeddingsIncluded": false
+  },
+  "baseline": {
+    "capturedAt": "2026-10-04T04:07:48.909Z",
+    "sitemapProductUrls": 26,
+    "selectedPublished": 40,
+    "selectedPublishedExpired": 31,
+    "selectedPublishedIndexable": 9,
+    "selectedLegacy": 10
+  },
+  "validation": {
+    "capturedAt": "2026-10-04T04:09:49.529Z",
+    "runId": "c6a7288f-0ffc-421f-bf07-045b7fc63d35",
+    "runStatus": "completed",
+    "counts": {
+      "dryRun": false,
+      "selected": 50,
+      "refreshed": 45,
+      "throttled": false,
+      "revalidate": true,
+      "deactivated": 3,
+      "affiliateAudit": {
+        "repaired": 0,
+        "mismatched": 0
+      },
+      "cacheInvalidated": true,
+      "confirmedMissing": 5,
+      "markedUnavailable": 5
+    },
+    "warningCount": 0,
+    "modelCalls": 0,
+    "selectedEvents": 50,
+    "itemEvents": 100,
+    "selectedCopyHashesUnchanged": true,
+    "restoredCount": 8,
+    "publishedEligibleAfter": 10,
+    "publishedHeldCount": 30,
+    "heldPersonalizedPillowUnchanged": true
+  },
+  "restored": [
+    {
+      "id": "B08KG6XHN1",
+      "slug": "the-annoying-cricket-prank-3-years-of-eternal-beeping-fun",
+      "status": "generated_ready"
+    },
+    {
+      "id": "B0FR5J39PR",
+      "slug": "grumpy-frog-not-happy-but-here-to-stay",
+      "status": "generated_ready"
+    },
+    {
+      "id": "B07H75BJWW",
+      "slug": "spider-prank-box-a-hauntingly-good-time",
+      "status": "generated_ready"
+    },
+    {
+      "id": "B01JQMNHNY",
+      "slug": "birthday-hat-of-awesomeness-wear-your-hilariousness",
+      "status": "generated_ready"
+    },
+    {
+      "id": "B0F9DZMQBL",
+      "slug": "mug-of-mischief-custom-cartoon-hippo",
+      "status": "manual_locked"
+    },
+    {
+      "id": "B08KRVMM1J",
+      "slug": "greatest-grandpa-mug-redefining-awesome",
+      "status": "generated_ready"
+    },
+    {
+      "id": "B0F8HFT26Y",
+      "slug": "fatbaby-funny-coffee-mug-for-women-men-sarcastic-gifts-for-coworker-office",
+      "status": "generated_ready"
+    },
+    {
+      "id": "0762459816",
+      "slug": "the-screaming-goat-a-baa-rilliant-desk-buddy",
+      "status": "manual_locked"
+    }
+  ],
+  "held": [
+    {
+      "id": "B08SBTP9DQ",
+      "slug": "angry-mama-will-clean-your-microwave-in-a-snap",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0DFW4V57B",
+      "slug": "shark-attack-coffee-mug-for-jawsome-sips",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0DMT2YR22",
+      "slug": "dance-like-no-one-s-watching-at-your-desk",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B091G572HT",
+      "slug": "fresh-out-of-coffee-inappropriate-but-cute-mug",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B001XSFW42",
+      "slug": "pizza-boss-3000-slice-of-humor-for-kitchen-heroes",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0757WW6KB",
+      "slug": "my-first-fire-not-what-you-think-it-is",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B07KGJS2F3",
+      "slug": "coffee-table-book-a-jolly-mustache-affair",
+      "status": "stale",
+      "availability": "IN_STOCK_SCARCE",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0BV8CRJTZ",
+      "slug": "joke-pill-box-swallow-your-pride",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B08BC25ZTP",
+      "slug": "butt-tape-keeping-it-together-one-roll-at-a-time",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B002SQG4TU",
+      "slug": "toilet-mug-perfect-for-liquid-assets",
+      "status": "generated_ready",
+      "availability": "UNAVAILABLE",
+      "reason": "availability_not_purchasable"
+    },
+    {
+      "id": "B074J425V7",
+      "slug": "the-gratiator-grate-expectations",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B005UGWDAE",
+      "slug": "alligator-oven-mitt-take-a-bite-out-of-safety",
+      "status": "manual_locked",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0CFBBBSHY",
+      "slug": "emotional-support-chicken-nuggets-cuddle-crunch",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0872DYVG7",
+      "slug": "farting-fun-the-poop-pen-that-packs-a-punch",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B008VVUWQC",
+      "slug": "gnome-pun-intended-the-chia-pet-edition",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0H3PHJX59",
+      "slug": "farting-keychain-a-scent-sational-surprise",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0DMFBG69H",
+      "slug": "trash-talk-with-the-raccoon-desk-buddy",
+      "status": "stale",
+      "availability": "OUT_OF_STOCK",
+      "reason": "inactive"
+    },
+    {
+      "id": "1837994080",
+      "slug": "silly-dogs-a-ridiculous-collection-of-the-world-s-goofiest-dogs-and-most-r",
+      "status": "stale",
+      "availability": "IN_STOCK_SCARCE",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0F53M78KY",
+      "slug": "fucktose-intolerant-mug-sip-with-a-side-of-sarcasm",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0FPCJ5KS3",
+      "slug": "mini-desk-signs-humor-in-a-snap",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0DRVFPBPL",
+      "slug": "rubber-band-gun-desk-warfare-awaits",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B09244GXL5",
+      "slug": "garden-gnome-having-a-gnome-nom-moment",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0BXB734QV",
+      "slug": "purr-fect-pizza-slices-cut-with-kitty-style",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0D57DDDM1",
+      "slug": "big-eye-bigger-laughs",
+      "status": "manual_locked",
+      "availability": "AVAILABLE_DATE",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B075S2ZCYQ",
+      "slug": "fake-it-till-you-make-it-belly-fanny-pack",
+      "status": "stale",
+      "availability": "AVAILABLE_DATE",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0784TZQHK",
+      "slug": "blast-off-with-the-hype-button",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0CPVTRNVT",
+      "slug": "bunny-business-quirky-rabbit-decor-figurine",
+      "status": "stale",
+      "availability": "IN_STOCK_SCARCE",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0G9M9XPSX",
+      "slug": "poultry-in-motion-the-raw-chicken-vase-surprise",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0BBCHQJSN",
+      "slug": "putt-on-the-potty-funny-toilet-golf-gift",
+      "status": "stale",
+      "availability": "IN_STOCK",
+      "reason": "source_facts_changed"
+    },
+    {
+      "id": "B0HGF6KG81",
+      "slug": "take-a-sip-retro-drinking-bird-toy",
+      "status": "generated_ready",
+      "availability": "UNAVAILABLE",
+      "reason": "availability_not_purchasable"
+    }
+  ],
+  "cacheAcceptance": {
+    "directoryProductUrls": 27,
+    "sitemapProductUrlsBeforeCacheFix": 26,
+    "localInvalidationRegeneratedCurrent27": true,
+    "rootCause": "Installed Next.js 16.3.5 adapter emits prerendered /sitemap.xml as a fixed static file; it cannot revalidate on Vercel.",
+    "workaround": "One generated sitemap shard with public /sitemap.xml rewrite and invalidation of /sitemap/0.xml; same 24-hour ISR and tagged data cache.",
+    "liveGate": "Verify exact production release, sitemap/directory set agreement, restored/held page robots and canonical tags, and successful cache regeneration. Append final provider/live receipt to the follow-up PR and canonical Bead before closure."
+  }
+}

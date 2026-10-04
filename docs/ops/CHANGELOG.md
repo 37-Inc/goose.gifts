@@ -24,11 +24,6 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **Published gift freshness**: the bounded selection fix (`roadmap-qsti`)
-  is in implementation/review: reviewed pages become due at 21 days, with
-  40 published / 10 legacy slots at the unchanged weekly 50-item limit.
-  Close only after production revalidation and cache/page/sitemap receipts;
-  the 35-day guard and factual holds remain unchanged.
 - **Product landing measurement**: compare qualified product-page visits and
   existing retailer-click events after the compact product-first layout
   (`roadmap-8hls`); keep QA identities out of acquisition reporting.
@@ -169,12 +164,17 @@ what's likely next.
 
 ### 2026-10-03 [owner+claude] — Bounded published-product freshness
 
-Implemented one-query selection for the existing weekly job: reviewed pages
+[PR #162](https://github.com/37-Inc/goose.gifts/pull/162), merged as `b7a7f91`,
+ships one-query selection for the existing weekly job: reviewed pages
 are due at 21 days, with a 20% oldest-first legacy reservation and unused-slot
 reuse. No extra schedule, migration, model work, or increased batch limit.
-Local PostgreSQL regression tests reproduce the 3,150-row starvation case and
-verification boundaries. Production release/repair evidence will be recorded
-in the journal and `roadmap-qsti` after review and deployment.
+The real 50-item repair restored eight expired reviewed pages and preserved
+30 factual/availability holds; no editorial copy changed. Live verification
+also exposed Next 16.3's fixed-file sitemap output. A single generated shard
+behind the unchanged `/sitemap.xml` URL preserves 24-hour ISR and explicit
+invalidation. All 117 tests, lint and build pass. Exact repair evidence is in
+the journal and `evidence/2026-10-03-published-freshness/receipt.json`; closure
+requires the final deployment and live cache/set receipt in `roadmap-qsti`.
 
 Newest first.
 

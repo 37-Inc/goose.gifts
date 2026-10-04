@@ -52,6 +52,12 @@ Boundaries (always in force):
 
 ## Daily run
 
+The public `/sitemap.xml` internally serves the single ISR sitemap shard
+`/sitemap/0.xml` to avoid Next 16.3's fixed metadata-file output. Keep both
+paths in catalog invalidation. After maintenance, compare actual sitemap
+URLs with the complete paginated gift directory; an invalidation HTTP 200
+alone is not proof that public caches refreshed. The 24-hour fallback remains.
+
 0. **Bootstrap credentials.** Before a scheduled catalog run or any affiliate
    URL repair, run `./scripts/ops/pull-env.sh` to refresh production env vars
    from Vercel even when `.env.local` already exists. This keeps
