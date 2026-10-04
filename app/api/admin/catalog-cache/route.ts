@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
   revalidatePath('/weird-gift-index');
   revalidatePath('/weird-gift-index/data');
   revalidatePath('/sitemap.xml');
+  revalidatePath('/sitemap/0.xml');
 
   return NextResponse.json({
     ok: true,
@@ -37,6 +38,7 @@ export async function POST(request: NextRequest) {
       '/weird-gift-index',
       '/weird-gift-index/data',
       '/sitemap.xml',
+      '/sitemap/0.xml',
     ],
   });
 }

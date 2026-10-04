@@ -7,6 +7,13 @@ import { getIndexableGiftSitemapEntries } from '@/lib/db/gift-pages';
 // query. Keep a bounded fallback in case an external invalidation fails.
 export const revalidate = 86_400;
 
+// Next 16.3's adapter emits the single /sitemap.xml metadata route as a
+// fixed file. One generated shard retains ISR; the public URL is rewritten
+// to it without changing the sitemap content or adding per-request DB reads.
+export async function generateSitemaps() {
+  return [{ id: 0 }];
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getSiteUrl();
   const giftPages = await getIndexableGiftSitemapEntries();

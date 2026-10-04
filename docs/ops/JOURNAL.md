@@ -21,7 +21,8 @@ Real local PostgreSQL tests cover the 3,150-legacy-row starvation regression,
 40/10 fairness, deterministic tie-breaking, unused-slot reuse, small limits,
 21/30-day millisecond boundaries, recent availability-check precedence,
 expired reviewed pages and held/inactive/non-Amazon exclusion from priority.
-All 32 catalog tests pass with no skips; the full suite passes 116 tests.
+All 32 catalog tests pass with no skips; the full suite passes 117 tests,
+including the subsequent sitemap routing regression.
 The PR review corrected availability casing and leading/trailing blank-line
 handling so incomplete single-paragraph copy cannot gain published priority.
 The change remains one bounded query with no new flags/modules/dependencies.
@@ -31,12 +32,40 @@ existing dependency advisories are unchanged, not resolved by this scope.
 Before repair, the actual production query selects 50 rows: 40 reviewed
 (9 currently indexable, 31 verification-expired) and 10 legacy. The returned
 JSON is 158,493 bytes, without vectors. The live sitemap has 26 product URLs.
-After merge, perform one bounded revalidation-only validation, preserving
-factual holds, and record exact refreshed/restored/held counts, cache receipt,
-page/schema/directory/sitemap agreement and deployment SHA in this entry and
-canonical Beads. Do not run discovery/enrichment or change the weekly schedule
-for this validation. Lever: maintain already-reviewed public pages; broader
-catalog expansion and speculative SEO publishing remain out of scope.
+
+PR #162 merged as `b7a7f91`; Vercel deployment
+`dpl_CfEXNg1sDKN1bHN91GJSrKASnkhY` is READY on both public aliases.
+The one revalidation-only production run
+`c6a7288f-0ffc-421f-bf07-045b7fc63d35` completed in 25 seconds: 50 selected
+(40 published/10 legacy), 45 refreshed, five confirmed missing/unavailable,
+three legacy deactivations under the existing confirmation/90-day rule,
+zero affiliate mismatches and zero warnings. No discovery, model calls,
+embeddings or editorial generation ran. Eight expired reviewed pages became
+indexable; ten of the selected published cohort are now eligible and 30 remain
+held for changed facts or availability. All 50 selected copy hashes and the
+held personalized-pillow copy/block reason are unchanged.
+
+Final verification caught a platform cache issue: dynamic product pages and
+both directory pages reflect 27 eligible products, but Vercel still served
+the pre-repair 26-product sitemap despite authenticated invalidation.
+The installed Next 16.3.5 adapter classifies prerendered `/sitemap.xml` as a
+fixed file and omits its regenerating function. Local invalidation worked,
+which is why the HTTP 200 alone was insufficient evidence.
+
+The narrow workaround uses `generateSitemaps` for exactly one shard,
+`/sitemap/0.xml`, with an internal rewrite preserving `/sitemap.xml` and its
+content. Invalidation covers the actual shard. The 24-hour ISR/data-cache
+fallback remains; nothing becomes force-dynamic. A local adapter verification
+confirmed PRERENDER output, revalidate 86400, and no fixed sitemap file.
+The cache regression, full 117-test suite, lint and build pass. No dependency
+or provider configuration changes are needed.
+
+`docs/ops/evidence/2026-10-03-published-freshness/receipt.json` contains the
+exact restored/held IDs and repair receipt. Append the final production
+deployment, sitemap/directory set agreement, page robots/canonical/schema and
+live cache regeneration receipt to the follow-up PR and `roadmap-qsti` before
+closure. Changed-fact holds remain with the existing editorial review flow;
+do not silently regenerate them or relax the 35-day gate.
 
 ## 2026-10-02 — Approved admin and click analytics simplification
 
