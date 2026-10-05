@@ -162,6 +162,18 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-05 [daily-ops] — Weekly catalog freshness and quality
+
+The silent weekly run `e6e8b438-01e2-4b20-bda2-3145e46ad8f3` checked 50 stale
+products, refreshed 48 and deactivated two confirmed missing listings. Six
+themes yielded 62 discoveries; 36 weak results and 16 duplicates were filtered,
+17 existing products updated, and no new products inserted. Production now
+serves 33 reviewed gift pages, with exact sitemap/directory agreement and zero
+affiliate-tag mismatches. The existing ugly-pet-pillow hold remains; no new
+owner action, pipeline change, Slack report or social publication was needed.
+The durable receipt records `$0.008853` estimated API cost; 32 catalog tests
+pass. Details and verification are in the journal.
+
 ### 2026-10-03 [owner+claude] — Bounded published-product freshness
 
 [PR #162](https://github.com/37-Inc/goose.gifts/pull/162), merged as `b7a7f91`,
