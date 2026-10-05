@@ -5,6 +5,43 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-05 — Weekly catalog maintenance, no separate notification
+
+Refreshed `.env.local` from Vercel Production, then ran the existing bounded
+`npm run catalog:weekly -- --no-notify` at commit `ac32f8b`. Run
+`e6e8b438-01e2-4b20-bda2-3145e46ad8f3` completed without warnings or throttling:
+50 stale products checked, 48 refreshed, and two confirmed missing products
+deactivated under the existing rules. The final read-only affiliate audit
+checked 3,378 stored Amazon products and found zero tag/ASIN mismatches.
+
+Six rotating themes returned 62 discoveries: 36 quality rejections and 16
+ASIN/family/catalog duplicates filtered. Seventeen existing products were
+updated; none were inserted. Of 25 older editorial candidates, seven proceeded
+through enrichment, four became ready, 17 stayed blocked, and one was
+unavailable. Discovery produced six ready pages and two automatic-retry holds.
+The only manual-review item is the already documented customized ugly-pet
+pillow; it remains held for unsupported size/personalization claims. No new
+owner action is required. Spot-checked approved editorial against current
+listing facts, including the empty prank-box disclosure, hidden mug message,
+pickle size/color and framed opossum artwork. Estimated model/embedding cost:
+`$0.008853` (provider token usage retained in the durable run receipt).
+
+Both authenticated catalog invalidations succeeded. Actual production
+`/sitemap.xml` regenerated (`REVALIDATED`, age zero): 81 URLs, including 33
+gift pages, exactly matching all products across the two directory pages.
+Sample ready pages are HTTP 200, self-canonical and indexable; the held pillow
+is still `noindex, follow` and absent from the sitemap. Homepage, robots and
+the `/search` redirect also passed. All 32 catalog-ops tests pass with no
+skips; lint and production build pass. No pipeline fix or rerun was necessary,
+and unrelated local files were preserved.
+
+This run deliberately chose the scheduled catalog-freshness/quality lever.
+Acquisition experiments, social publishing and unrelated site work were
+excluded by the maintenance scope. No Slack messages or social posts were
+sent. Continue the existing weekly bounds; pending candidates retry through
+the ordinary pipeline, and current sitemap discovery requires no new manual
+search-engine submission.
+
 ## 2026-10-03 — Published-product freshness selection
 
 Owner approved the small `roadmap-qsti` fix through PR, review, simplification,
