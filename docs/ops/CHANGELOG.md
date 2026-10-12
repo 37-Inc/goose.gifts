@@ -162,6 +162,16 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-12 [daily-ops] — Weekly catalog refresh
+
+Run `3c3b73be-5b86-4354-96d4-d3a9016c8d71` refreshed 41 listings, deactivated
+nine confirmed-missing products, added sheep toilet-roll holders and a duck
+figurine, and updated 15 existing products. Six themes returned 60 discoveries;
+33 weak results were rejected and 19 duplicate cases handled. The live sitemap
+and directory agree on 39 reviewed pages, all Amazon tags audit clean, and
+32 tests pass. No new owner queue, pipeline fix, social post or Slack report;
+estimated catalog API cost `$0.009627`. Full receipt and QA are in the journal.
+
 ### 2026-10-05 [daily-ops] — Weekly catalog freshness and quality
 
 The silent weekly run `e6e8b438-01e2-4b20-bda2-3145e46ad8f3` checked 50 stale

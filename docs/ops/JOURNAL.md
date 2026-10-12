@@ -5,6 +5,44 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-12 — Bounded weekly catalog run
+
+Refreshed production configuration with `pull-env.sh`, then ran
+`npm run catalog:weekly -- --no-notify` at `3a291e4`. Run
+`3c3b73be-5b86-4354-96d4-d3a9016c8d71` completed without warnings or
+throttling: 50 products checked, 41 refreshed, and nine long-unverified
+listings deactivated after two confirmed-missing responses. The final
+read-only audit found zero tag/ASIN mismatches across 3,380 Amazon products.
+
+The complementary six themes returned 60 discoveries. Quality checks rejected
+33 weak results and duplicate handling accounted for 19 ASIN/catalog cases.
+Two products were inserted (the three-pack sheep toilet-roll holders and
+resin middle-finger duck); 15 existing products were updated. Listing-fact
+spot checks covered those additions, the current 2027 calendar and screaming
+goat. The 25-item older editorial cohort produced 18 quality holds, one
+duplicate and six unavailable items, so none proceeded to generation.
+Discovery produced 15 ready drafts and one automatic-retry outcome. The
+rejected Pickle replacement did not overwrite its approved, source-matching
+copy or remove its indexing eligibility. The existing pet-pillow factual hold
+remains noindexed; this run's manual-intervention queue is empty.
+
+Both authenticated invalidations succeeded. The public sitemap visibly
+regenerated (`REVALIDATED`, age zero): 87 URLs, including 39 product pages
+exactly matching both directory pages. Sample ready pages are HTTP 200,
+self-canonical and indexable; the held pillow is excluded. Homepage, robots
+and the search redirect passed. A single tagged operator QA request to the
+real semantic-search API returned eight results and recorded its diagnostic;
+this is synthetic QA, not visitor evidence. Both additions have loading JPEGs,
+indexable pages, exact tagged Amazon links and no `$0.00` placeholder. All 32
+catalog tests pass with no skips; lint and production build pass. Estimated
+catalog API cost is `$0.009627` in the durable receipt.
+
+The scheduled catalog-quality/freshness lever stayed within existing bounds.
+No pipeline fix, rerun, new schedule, social post or Slack report was needed;
+unrelated workspace files were preserved. Acquisition, broader analytics and
+site changes were excluded by this heartbeat's scope. Continue the ordinary
+weekly cadence and bounded automatic retries; no new owner action is needed.
+
 ## 2026-10-05 — Weekly catalog maintenance, no separate notification
 
 Refreshed `.env.local` from Vercel Production, then ran the existing bounded
