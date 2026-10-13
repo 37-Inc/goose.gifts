@@ -79,6 +79,28 @@ promotion, outreach, account changes, deletions, video or unrelated site changes
 
 ## October 13 recovery evidence
 
+### Owner-requested live run passed
+
+Cameron asked to run the workflow once now and close the recovery Bead if it
+actually posted a good Pin. That manual run published
+[the sheep field note](https://www.pinterest.com/pin/1107815208391037211/)
+at 20:07:08 UTC / 1:07 PM Pacific. API readback matched the exact package;
+the logged-out browser rendered its final 1024x1536 image, title, description,
+AI label, brand and Visit control. The tracked gift page is HTTP 200,
+self-canonical and indexable. Current count: 29 public Pins; F 5/6, P 2/6,
+seven of twelve. Three concepts, three included image calls, rejection,
+causal revision, 4.75/5 internal review and public receipt are in v29.
+
+This is an actual owner-requested manual pipeline execution, **not proof the
+timer fired**. It satisfies the owner's remaining publication test and spends
+October 13's afternoon F slot. The saved ACTIVE heartbeat now explicitly makes
+4:30 PM measurement-only, without another/replacement Pin. Normal selection
+resumes October 14 at 9:30 AM (even-date Arm F), from current ledgers. Schedule,
+target and caps are unchanged. Close `roadmap-aguig` after this run's artifact/
+receipt PR is merged. The four-minute native baseline is zero actions; per-Pin
+site sessions and retailer exits are unknown, not a conversion verdict. The
+earlier recovery observations below are historical.
+
 - The saved heartbeat was **PAUSED**, last updated September 21 at 08:56 PDT.
   The last actual execution was September 20 afternoon: completed normally
   with an explicit source/quality-gated no-op. No later run is in that chat.
@@ -96,8 +118,9 @@ promotion, outreach, account changes, deletions, video or unrelated site changes
 - October 13 public lifetime totals: 2,505 impressions, 41 Pin opens, six
   saves, zero outbound clicks. The six v11 Pins are now distributed, so their
   old September zero-impression notes are historical, not current evidence.
-- Recovery Bead: `roadmap-aguig`. Keep it open until the **first resumed
+- Original recovery gate for `roadmap-aguig`: keep open until the **first resumed
   scheduled execution** has an actual public receipt or an explicit no-op.
   Saving `ACTIVE` proves configuration, not execution. Record the run timestamp,
   outcome and any owner gate before closing. The next slot after this repair is
-  October 13 at 4:30 PM Pacific, Arm F; there is no missed-morning catch-up.
+  October 13 at 4:30 PM Pacific, Arm F. The successful owner-requested manual
+  run above now spends this slot; no missed-morning catch-up is permitted.

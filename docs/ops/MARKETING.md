@@ -29,8 +29,10 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-13):** Cameron authorized restarting the
-existing Pinterest studio after it was found paused since September 21. Keep
+**Current scheduler state (2026-10-13):** the studio is ACTIVE and the owner's
+manual verification published sheep field-note Pin `1107815208391037211`.
+It spends today's afternoon F slot; 4:30 PM is measurement-only. Current
+profile: 29 Pins; v11 F 5/6, P 2/6, seven of twelve. Keep
 the original two spaced slots, tasteful product-faithful creative, exact
 package safeguards and remaining v11 quota; do not backfill missed posts.
 The recovery/measurement contract is `PINTEREST_STUDIO.md` and Bead
@@ -41,7 +43,7 @@ to click through, not attractive images or saves alone; current downstream
 measurement uses GA4/PostHog, not the retired detailed database click writes.
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Twenty-eight product-faithful editorial Pins are live. At the 2026-09-20
+   Twenty-nine product-faithful editorial Pins are live. At the 2026-09-20
    morning pull, the public profile had 494 impressions, five Pin clicks, one
    save, and no Pinterest outbound click, attributable Pinterest session, or
    downstream customer product click. That is a directional attention signal,
@@ -51,8 +53,10 @@ measurement uses GA4/PostHog, not the retired detailed database click writes.
    impression and neither has a downstream action, so the result is
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
-   versus bespoke annotated field notes. Six are live—four Arm F and two Arm
-   P—but all six remain at zero impressions and actions. The mix stays capped at one Pin
+   versus bespoke annotated field notes. Seven are live—five Arm F and two Arm
+   P. The earlier six have 547 impressions, 13 opens, three saves and no outbound
+   click at the October 13 preflight; the new sheep Pin starts at zero actions.
+   Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
 2. **SEO/GEO**: maintain crawl/indexation health and publish only useful,
@@ -68,6 +72,19 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-13 manual Arm F live verification
+
+The owner's requested one-time run posted
+[the sheep bathroom field note](https://www.pinterest.com/pin/1107815208391037211/)
+through the normal guarded pipeline. Three concepts, two images and one
+surgical annotation edit produced the sole 4.75/5 source-faithful survivor.
+Its paper-as-wool function, bathroom context and housewarming/set description
+are the click hypothesis. Current stock, exact readback, logged-out public
+rendering and tracked gift page verify. Source/prompts/rejection/receipt/baseline
+are in v29. F 5/6, P 2/6, seven of twelve; 29 public Pins. This spends today's
+afternoon slot, so 4:30 PM is measurement-only. Native baseline zero actions,
+downstream attribution unknown; no timer firing or conversion win claimed.
 
 ### 2026-09-20 afternoon Arm P quality-gated no-op
 

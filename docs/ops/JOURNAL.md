@@ -5,6 +5,45 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-13 — Real manual Pinterest verification passed
+
+Cameron asked to run once now and close the recovery Bead if it actually
+posted a good Pin. Executed the existing workflow manually, not a timer
+trigger. Fresh production configuration and Creators checks verified the
+VELENTI three-holder sheep set, ASIN B0CRRWZHK1, IN_STOCK with unchanged source
+and current affiliate tag. Three concepts, two initial images and one surgical
+annotation edit produced the sole 4.75/5 olive-bathroom field note. The linen
+alternative, source uncertainties and exact prompts/revision are retained in
+v29. No assembled dimension, oversized-roll or paper/prop inclusion is claimed.
+
+The guarded create ran once and read-verified public Pin
+`1107815208391037211` on Weird Home Decor at 20:07:08 UTC. Receipt
+`receipt-1791922029336-editorial-sheep-guest-bathroom-field-note-20261013-pm-publication-succeeded`
+binds the exact package. A second API readback and logged-out browser confirm
+the final 1024x1536 image, title, description, AI label and Visit control;
+tracked gift page is HTTP 200, self-canonical and indexable. No sign-in,
+personal information, Visit or retailer-click action was used for QA.
+
+Account: 29 public Pins; v11 F 5/6, P 2/6, total 7/12. Native four-minute
+baseline explicitly records zero actions; per-Pin sessions/retailer/revenue
+are unknown. Pre-run GA4 Oct 6–12 has 15 sessions and no retailer exit or
+Pinterest source; PostHog project 550427 has one page view in its partial UTC
+window with the October 8 coverage gap. This is delivery proof, not demand.
+Sheep checkpoints are at/after October 14 and 20, 20:07:09.336 UTC.
+
+Saved/read back ACTIVE with original target/cadence and a receipt-specific
+note: this early manual run spends today's afternoon F slot, so 4:30 PM is
+measurement-only. Next normal selection is October 14 at 9:30 AM (Arm F).
+All 14 targeted tests, lint/build and diff review pass. Merge this focused
+artifact/receipt PR, verify production and close `roadmap-aguig` under the
+owner's explicit manual-run acceptance. No timer firing, conversion win,
+extra cadence, new cohort, catalog run, paid tool, account change, deletion,
+outreach or website-runtime change is claimed or performed. Preserve the
+unrelated operator directories. Exact readback/public screenshot are in
+`v29-concepts/verification/`.
+
+---
+
 ## 2026-10-13 — Pinterest scheduler recovery
 
 Cameron asked why the Pinterest job stopped after September 20 and authorized
