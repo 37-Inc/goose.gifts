@@ -24,6 +24,12 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **Pinterest scheduler recovery:** restore the existing studio after its
+  September 21 pause, with no duplicate job or missed-slot backfill. Preserve
+  the 9:30 AM / 4:30 PM Pacific slots and v11 quotas. Verify the first resumed
+  execution before closing `roadmap-aguig`; use the updated click-through and
+  current-analytics contract in `PINTEREST_STUDIO.md`.
+
 - **Product landing measurement**: compare qualified product-page visits and
   existing retailer-click events after the compact product-first layout
   (`roadmap-8hls`); keep QA identities out of acquisition reporting.
@@ -123,8 +129,9 @@ what's likely next.
   review; the crochet birthday-toast breakfast field note followed after a
   4.88/5 source, annotation, and full-resolution review, followed by the
   4.88/5 Desktop Therapist boardroom field note. V11 stands at Arm F 4/6, Arm P
-  2/6, and 6/12 overall. All six v11
-  Pins remain undistributed, so no arm conclusion is available.
+  2/6, and 6/12 overall. The October 13 recovery pull confirms all six now
+  have public impressions; no outbound click is recorded. No conversion
+  winner or new cohort is authorized by that attention signal.
   Helps indexation (external signals).
 - **Pinterest creative workflow — measure the current public cohort.** The
   source- and scale-corrected Screaming Goat boardroom was owner-approved and
@@ -161,6 +168,19 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-13 [owner+claude] — Pinterest scheduler recovery contract
+
+Found the existing studio paused since September 21, not failing production
+OAuth. Prepared restoration of that same two-slot heartbeat without backlog
+posting or duplicate jobs. `PINTEREST_STUDIO.md` preserves taste, fidelity and
+v11 limits while emphasizing a useful reason to click through and current
+GA4/PostHog evidence. Live account/source/payload checks and all 14 creative/
+publisher tests pass. The validated log now has 658 events, including the
+recovery learning. `roadmap-aguig` retains the first actual resumed-run gate;
+an ACTIVE setting alone is not a new publication. No website runtime changed.
+The recovery contract and review are in
+[PR #166](https://github.com/37-Inc/goose.gifts/pull/166).
 
 ### 2026-10-12 [daily-ops] — Weekly catalog refresh
 

@@ -59,6 +59,13 @@ you'd rather get real email/Slack from me, connect a connector at
 
 ## Received
 
+- 2026-10-13: restart the existing paused Pinterest studio. Cameron authorized
+  resuming tasteful public content focused on clicks through to Goose. Preserve
+  the existing two-slot cadence, exact package safeguards and v11 cap; no
+  duplicate automation or missed-slot backfill. `PINTEREST_STUDIO.md` records
+  the recovery and current measurement contract; `roadmap-aguig` tracks the
+  first actual resumed execution separately from an ACTIVE configuration.
+
 - 2026-09-15: next Pinterest editorial mix and cadence. The first 12-Pin
   clean-versus-headline cohort completed with only one impression per arm and
   no action, so no winner was declared. Cameron chose to continue with up to

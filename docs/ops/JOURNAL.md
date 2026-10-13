@@ -5,6 +5,53 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-13 — Pinterest scheduler recovery
+
+Cameron asked why the Pinterest job stopped after September 20 and authorized
+restarting tasteful content focused on click-through. The exact existing
+heartbeat `goose-gifts-pinterest-growth-studio` is PAUSED, with saved update
+2026-09-21T15:56:03.503Z. Its last actual run, September 20 afternoon,
+completed normally with a source/quality no-op. No later execution is present.
+Available evidence does not identify the pause initiator/reason. The target
+chat is not archived; its historical worktree exists but is not the current
+canonical checkout. OpenClaw has no parallel Pinterest publisher.
+
+Current production API verifies the correct BUSINESS account and 28 Pins.
+Public lifetime metrics are 2,505 impressions, 41 Pin opens, six saves and zero
+outbound clicks; v11 has six of twelve live (F 4/6, P 2/6), now with actual
+distribution rather than the old September zeros. The read-only current
+catalog shortlist returns 20 eligible candidates. Creative history and all
+five creative/nine publisher tests pass; no unresolved started publication
+exists. Read-only payload replay uses the already-public Desktop Therapist
+package solely to check board resolution and encoding, never to repost it.
+
+The focused recovery keeps the same heartbeat, target, two daily Pacific
+slots and experimental limits. Its prompt references `PINTEREST_STUDIO.md`,
+ignores stale worktree/preview instructions, uses explicit current GA4/PostHog
+projects rather than retired detailed DB click/Vercel Analytics evidence,
+retains unknowns/QA exclusions and avoids treating secondary analytics gaps
+as a creative blocker. Source-based usefulness and a concrete reason to visit
+the exact gift page are the click hypotheses; taste/fidelity and no-ad-template
+gates remain. Ordinary no-ops leave the scheduler active, with actionable
+diagnosis required for repeated exhaustion or auth/publication failures.
+
+Restore configuration after this contract is merged into canonical main.
+Bead `roadmap-aguig` deliberately retains the first actual resumed execution
+gate: ACTIVE is not a new Pin or successful scheduled run. Next regular slot
+is October 13 at 4:30 PM Pacific, Arm F; do not backfill this morning. No new
+creative/publication, weekly catalog run, paid tool, outreach or analytics
+provider change is part of this repair. Preserve both unrelated operator
+output directories. Acquisition recovery was selected over unrelated SEO,
+catalog and feature work because the existing publishing schedule was off.
+
+Focused PR #166 contains the operating contract and validated learning. Local
+lint/build pass. An initial dependency symlink was outside Turbopack's root;
+installing ordinary isolated-worktree dependencies fixed that environment-only
+failure without changing source or the lockfile. Existing dependency audit
+advisories remain unchanged and outside this scheduler repair.
+
+---
+
 ## 2026-10-12 — Bounded weekly catalog run
 
 Refreshed production configuration with `pull-env.sh`, then ran

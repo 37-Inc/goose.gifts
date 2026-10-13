@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261013-v11-scheduler-recovery-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-13T19:28:16.177Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "The last September 20 afternoon slot completed as an explicit quality no-op, but the existing scheduler is PAUSED with a September 21 update and no later run in its chat. The production account and publisher preflight still work; the pause initiator is unknown. The October 13 public pull shows 28 Pins, 2505 impressions, 41 Pin opens, six saves and zero outbound clicks. V11 remains P 2/6 and F 4/6; its six Pins now have 547 impressions, 13 Pin opens, three saves and zero outbound clicks. Attention is not conversion evidence.",
+    "evidenceEventIds": [
+      "evt-20260920-v11-desktop-therapist-measuring",
+      "evt-20260920-v11-birthday-toast-post24h-metrics",
+      "evt-20260920-v11-birthday-toast-post24h-learning"
+    ],
+    "decision": "Under Cameron's October 13 restart request, restore the exact existing heartbeat and its original cadence/quotas without backfilling skipped slots. Preserve the truthful editorial standard and require a concrete product-derived reason to visit the canonical gift page. Retire database click/Vercel Analytics zeros as current outcome evidence; use explicit GA4/PostHog reads and preserve unknowns.",
+    "nextAction": "After merging the recovery contract, persist and read back ACTIVE for goose-gifts-pinterest-growth-studio. The next regular slot is October 13 at 4:30 PM Pacific, Arm F. Record its actual publication/readback receipt or explicit no-op before closing roadmap-aguig; configuration alone does not establish a completed run. Full cohort remains capped at 12 with the existing 14-day/minimum-exposure evaluation gate."
+  }
+}
