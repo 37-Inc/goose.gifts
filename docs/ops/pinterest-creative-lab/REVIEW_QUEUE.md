@@ -11,6 +11,28 @@ None.
 
 ## Published from this queue
 
+### Sheep toilet-roll holder — olive bathroom field note
+
+- Candidate: `cand-v11-sheep-roll-field-note`, measuring, Arm F, internal 4.75/5.
+- Public Pin: https://www.pinterest.com/pin/1107815208391037211/
+- Artifact: `v29-concepts/03-sheep-guest-bathroom-final.png`, 1024x1536.
+- Exact source: VELENTI set of three holders, ASIN B0CRRWZHK1, freshly IN_STOCK;
+  no paper/prop inclusion or assembled dimensions promised.
+- Board: `Weird Home Decor`. Destination:
+  https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder
+- Complete package: `pinterest-approved-pins.json`, draft
+  `editorial-sheep-guest-bathroom-field-note-20261013-pm`; approval event
+  `evt-20261013-v11-sheep-approved` binds Cameron's explicit one-run request.
+- Click hypothesis: real bathroom utility resolves the paper-as-wool double
+  take; the housewarming/set details offer a concrete reason to visit Goose.
+- Rejected: museum framing before generation; linen still life at 4.25/5.
+  One surgical leader-line cleanup improved the selected image. Three calls.
+- Exact production readback, logged-out public view and tracked destination
+  verify; receipt `receipt-1791922029336-editorial-sheep-guest-bathroom-field-note-20261013-pm-publication-succeeded`.
+- This spends today's afternoon F slot: 4:30 PM measurement-only. F 5/6,
+  P 2/6, total 7/12; 29 public Pins. Native baseline zero actions, downstream
+  attribution unknown. This is manual pipeline proof, not a timer/conversion win.
+
 ### Desktop Therapist — smallest performance review field note
 
 - Candidate: `cand-v11-desktop-therapist-field-note` (`measuring`, Arm F

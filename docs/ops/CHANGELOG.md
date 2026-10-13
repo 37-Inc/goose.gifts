@@ -24,11 +24,11 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **Pinterest scheduler recovery:** restore the existing studio after its
-  September 21 pause, with no duplicate job or missed-slot backfill. Preserve
-  the 9:30 AM / 4:30 PM Pacific slots and v11 quotas. Verify the first resumed
-  execution before closing `roadmap-aguig`; use the updated click-through and
-  current-analytics contract in `PINTEREST_STUDIO.md`.
+- **Pinterest — measure the resumed public cohort:** the owner's one-time
+  verification run published the sheep bathroom field note. Capture its 24-hour
+  and seven-day gates; F 5/6, P 2/6, seven of twelve. October 13's afternoon slot is
+  spent, so 4:30 PM is measurement-only. Retain cadence, truth/taste gates and
+  cap; no conversion winner is established.
 
 - **Product landing measurement**: compare qualified product-page visits and
   existing retailer-click events after the compact product-first layout
@@ -168,6 +168,17 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-13 [owner+claude] — Real Pinterest restart verification
+
+Published [the sheep bathroom field note](https://www.pinterest.com/pin/1107815208391037211/)
+through the restored pipeline under Cameron's run-once request. Three concepts,
+two initial images and one surgical annotation edit produced the sole 4.75/5
+survivor. Current listing, exact package/readback, public logged-out rendering
+and tracked gift destination pass. Source, prompts, rejections, artifact,
+baseline and receipt are durable in v29. This manual run spends today's
+afternoon F slot; 4:30 PM is measurement-only, not a second Pin. F 5/6, P 2/6,
+seven of twelve; performance unknown. Close `roadmap-aguig` after the receipt PR.
 
 ### 2026-10-13 [owner+claude] — Pinterest scheduler recovery contract
 

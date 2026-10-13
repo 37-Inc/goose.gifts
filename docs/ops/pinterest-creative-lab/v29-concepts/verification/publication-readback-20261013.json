@@ -1,0 +1,114 @@
+{
+  "checkedAt": "2026-10-13T20:11:11.687Z",
+  "environment": "production",
+  "id": "1107815208391037211",
+  "createdAt": "2026-10-13T20:07:08",
+  "boardId": "1107815277030422226",
+  "title": "Sheep Toilet Paper Holders: A Weird Housewarming Gift",
+  "link": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+  "media": {
+    "media_type": "image",
+    "images": {
+      "150x150": {
+        "width": 150,
+        "height": 150,
+        "url": "https://i.pinimg.com/150x150/08/f8/63/08f863a2663f9e31628c3e3cad8d8f77.jpg"
+      },
+      "400x300": {
+        "width": 400,
+        "height": 300,
+        "url": "https://i.pinimg.com/400x300/08/f8/63/08f863a2663f9e31628c3e3cad8d8f77.jpg"
+      },
+      "600x": {
+        "width": 564,
+        "height": 846,
+        "url": "https://i.pinimg.com/564x/08/f8/63/08f863a2663f9e31628c3e3cad8d8f77.jpg"
+      },
+      "1200x": {
+        "width": 1024,
+        "height": 1536,
+        "url": "https://i.pinimg.com/1200x/08/f8/63/08f863a2663f9e31628c3e3cad8d8f77.jpg"
+      }
+    }
+  },
+  "allPackageFieldsMatch": true,
+  "lifetimeMetrics": {
+    "last_updated": "Tue, 13 October 2026 20:11:11 +0000",
+    "impression": 0,
+    "save": 0,
+    "outbound_click": 0,
+    "pin_click": 0,
+    "profile_visit": null,
+    "user_follow": null,
+    "reaction": 0,
+    "comment": 0
+  },
+  "receipt": {
+    "schemaVersion": 1,
+    "receiptId": "receipt-1791922029336-editorial-sheep-guest-bathroom-field-note-20261013-pm-publication-succeeded",
+    "type": "publication.succeeded",
+    "recordedAt": "2026-10-13T20:07:09.336Z",
+    "environment": "production",
+    "draftId": "editorial-sheep-guest-bathroom-field-note-20261013-pm",
+    "candidateId": "cand-v11-sheep-roll-field-note",
+    "approvalEventId": "evt-20261013-v11-sheep-approved",
+    "boardId": "1107815277030422226",
+    "pinId": "1107815208391037211",
+    "title": "Sheep Toilet Paper Holders: A Weird Housewarming Gift",
+    "trackingUrl": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+    "details": {
+      "readbackVerified": true
+    }
+  },
+  "publicBrowser": {
+    "loggedIn": false,
+    "verified": true,
+    "url": "https://www.pinterest.com/pin/1107815208391037211/",
+    "title": "Sheep Toilet Paper Holders: A Weird Housewarming Gift",
+    "matchingFinalCreative": true,
+    "aiModifiedLabel": true,
+    "brand": "goose.gifts",
+    "visitControlPresent": true,
+    "screenshot": "docs/ops/pinterest-creative-lab/v29-concepts/verification/public-pin-verified.png",
+    "siteVisitClicked": false,
+    "personalDataEntered": false
+  },
+  "sourcePrePublish": {
+    "checkedAt": "2026-10-13T20:06:41.626Z",
+    "asin": "B0CRRWZHK1",
+    "availabilityStatus": "IN_STOCK",
+    "unitCount": 3,
+    "imageUnchanged": true,
+    "associateTag": "goose-gifts-37-20"
+  },
+  "destination": {
+    "url": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+    "status": 200,
+    "canonical": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder",
+    "robots": "index, follow"
+  },
+  "runMode": "Owner-requested manual execution of saved studio workflow; not a scheduled timer firing.",
+  "slot": "2026-10-13 afternoon F (spent)",
+  "nextScheduledSlotAction": "October13 16:30Pacific: measurement-only.",
+  "countsAfter": {
+    "publicPins": 29,
+    "F": 5,
+    "P": 2,
+    "total": 7
+  },
+  "scheduler": {
+    "id": "goose-gifts-pinterest-growth-studio",
+    "status": "ACTIVE",
+    "originalTargetPreserved": true,
+    "originalSchedulePreserved": true,
+    "exactPromptAndSpentSlotNoteReadbackVerified": true
+  },
+  "artifact": {
+    "path": "docs/ops/pinterest-creative-lab/v29-concepts/03-sheep-guest-bathroom-final.png",
+    "width": 1024,
+    "height": 1536,
+    "sha256": "f854f33f72fb0b4f51ee475290478c7ce356f4be61f9ddc73c58cb807556eb24"
+  },
+  "includedGenerationCalls": 3
+}
+

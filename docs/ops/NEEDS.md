@@ -59,6 +59,12 @@ you'd rather get real email/Slack from me, connect a connector at
 
 ## Received
 
+- 2026-10-13: requested one manual Pinterest run passed. Sheep Pin
+  `1107815208391037211` is public, source/readback/browser/destination verified;
+  exact package and receipt are in v29. It spends today's afternoon F slot;
+  4:30 PM is measurement-only. Existing ACTIVE cadence/caps remain. Close
+  `roadmap-aguig` after the receipt PR; no further owner approval is needed.
+
 - 2026-10-13: restart the existing paused Pinterest studio. Cameron authorized
   resuming tasteful public content focused on clicks through to Goose. Preserve
   the existing two-slot cadence, exact package safeguards and v11 cap; no

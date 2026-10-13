@@ -1,0 +1,16 @@
+# Sheep field note — one-off production verification
+
+Cameron explicitly authorized one manual run now and closure only if a good Pin is actually published. This uses the normal pipeline, not a simulated scheduler firing, and consumes the October 13 afternoon Arm F slot if successful. No backlog posting, paid tools, catalog maintenance or extra cohort.
+
+Exact source: ASIN B0CRRWZHK1; current Amazon Creators read confirms IN_STOCK and a three-holder set. The inspected 500 x 500 source shows black four-legged plastic sheep holders whose white wool is a toilet-paper roll. Current canonical gift page is HTTP 200, self-canonical, indexable. Inconsistent assembled dimensions and unverified paper inclusion are excluded from all claims.
+
+## Three distinct product-derived concepts, before generation
+
+1. **Guest-bathroom attendant (selected):** In a moody olive-tile powder room, a single very small sheep guards the spare roll. Audience/board: design-conscious housewarming shoppers / Weird Home Decor. Pause: attractive real bathroom interrupted by googly-eyed sheep. Click: inspect how the spare-roll sheep works and whether the three-holder set fits their bathroom or a housewarming gift. The actual roll-as-wool construction makes the premise; swapping another product breaks it. Risk: changing four legs, ears, face, paper orientation or real-world scale. Native field notes explain real function; no generic promotional shell.
+
+2. **Museum of bathroom curiosities (rejected before generation):** Isolated sheep on a stone plinth, labeled as an archival object. Pause: serious institutional treatment of a silly holder; click: inspect the supposed design artifact. Feature: the black face and paper wool form a recognizable animal. Risk: reads as a catalog packshot/ad or falsely implies a museum/designer provenance. Although product-specific, the framing gives too little actual gifting/use context and repeats earlier museum mechanisms.
+
+3. **Linen pasture (selected):** A single paper-bodied sheep stands on a bathroom linen shelf against loose ivory towel folds that suggest a tiny abstract pasture. Audience/board: tactile interiors / Weird Home Decor. Pause: almost monochrome linen still life resolves into a sheep whose wool is paper. Click: see the actual construction and three-holder set rather than assume it is a decorative figurine. Feature: ordinary white paper roll masquerades as wool; the concept breaks if swapped for another object. Risk: fabric mistaken for included product, invented fuzzy sheep body, studio packshot or unsupported terrain. Keep recognizable household linen, real shelf contact and strict source identity.
+
+Both selected executions use only the exact field notes THE WOOL IS TOILET PAPER and SET OF THREE HOLDERS. No dimensions, price, CTA, logo, fake scarcity or unverified features. Source inspection and the candidate/status record precede both generation calls. Compare both at full resolution, and make at most one causal revision only for a diagnosed defect. Publish at most one surviving package.
+

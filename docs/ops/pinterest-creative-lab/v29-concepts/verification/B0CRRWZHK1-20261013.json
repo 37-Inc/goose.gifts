@@ -1,0 +1,60 @@
+{
+  "verifiedAt": "2026-10-13T19:53:35.893Z",
+  "asin": "B0CRRWZHK1",
+  "title": "VELENTI Sheep Toilet Roll Holder — Set of 3",
+  "availabilityStatus": "IN_STOCK",
+  "availabilityMessage": "In Stock",
+  "price": 12.99,
+  "currency": "USD",
+  "imageUrl": "https://m.media-amazon.com/images/I/41QATXIoAiL._SL500_.jpg",
+  "affiliateUrl": "https://www.amazon.com/dp/B0CRRWZHK1?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+  "sourceFacts": {
+    "brand": "VELENTI",
+    "unitCount": 3,
+    "color": "X3",
+    "manufacturing": "3D printed (current listing)",
+    "assembly": "No glue, tools or assembly required (current listing)",
+    "itemDimensions": {
+      "height": "0.98818897537 inches",
+      "length": "7.086614166 inches",
+      "width": "3.7401574765 inches",
+      "weight": "0.5952481074 pounds"
+    },
+    "parentAsin": "B0GZJC3L37"
+  },
+  "literalVisualIdentity": "One matte-black sheep-shaped free-standing toilet-roll holder: four legs with hoof-like feet, oval snout with two nostrils, two side ears and googly eyes; a horizontal white toilet-paper roll forms the body/wool.",
+  "uncertainties": [
+    "Listed height is inconsistent with the fully assembled source photo; do not print dimensions or imply exact assembled size.",
+    "Toilet paper and scene props are not verified package inclusions; copy promises three holders only.",
+    "Product is plastic, not a real sheep, plush object or sculpted white wool. Preserve the source face/ears/feet rather than inventing details."
+  ],
+  "canonicalProductPage": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder",
+  "canonicalChecks": {
+    "status": 200,
+    "robots": "index, follow",
+    "canonical": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder"
+  },
+  "rejectedProductAlternatives": [
+    "Rank-1 caution sign: source's printed wording supplies the whole joke; weaker image-derived mechanism.",
+    "Sarcastic mugs: repeated family/weak novelty, including the previously rejected unverified hidden lettering.",
+    "Middle-finger duck/statues: repeats earlier gesture mechanism rather than useful absurdity."
+  ],
+  "runAuthorization": {
+    "request": "Can you run it once now and verify that it actually posts a good Pin? If it works, close out the bead.",
+    "mode": "Owner-requested manual execution of the existing workflow, not a timer-triggered heartbeat.",
+    "slot": "2026-10-13 afternoon Arm F; if published, consumes this slot and the normal 16:30 run must be metric-only.",
+    "countsBefore": {
+      "F": 4,
+      "P": 2,
+      "total": 6,
+      "today": 0
+    },
+    "caps": {
+      "arm": 6,
+      "total": 12,
+      "perRun": 1,
+      "perDay": 2
+    }
+  }
+}
+
