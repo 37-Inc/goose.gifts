@@ -169,6 +169,17 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-13 [daily-ops] — Confirm the resumed scheduled slot
+
+The afternoon heartbeat verified the earlier sheep Pin's exact public package
+and receipt, then completed as the required spent-slot measurement no-op.
+Recorded current public/GA4/PostHog evidence, late checkpoints for the older
+six, and downstream unknowns through the validated ledger. F remains 5/6 and P
+2/6, seven of twelve; no extra image or Pin. Red Crab's exact 28-day lifecycle
+was archived with its public Pin and cohort inclusion retained. Selection
+resumes October 14 at 09:30 Pacific, Arm F, with the existing cadence and cap.
+Evidence: [PR #168](https://github.com/37-Inc/goose.gifts/pull/168).
+
 ### 2026-10-13 [owner+claude] — Real Pinterest restart verification
 
 Published [the sheep bathroom field note](https://www.pinterest.com/pin/1107815208391037211/)

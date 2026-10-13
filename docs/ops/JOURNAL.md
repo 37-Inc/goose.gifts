@@ -5,6 +5,49 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-13 afternoon — scheduled spent-slot measurement
+
+The resumed heartbeat triggered at 23:33:56.747 UTC / 16:33 Pacific and used
+canonical main `1358871`, preserving the two unrelated operator directories.
+October 13 afternoon F was already spent by the owner's manual sheep run.
+This invocation verified the original success receipt, exact production
+package readback and 1024x1536 media; the public Pin and tracked self-canonical,
+indexable gift page were HTTP 200. Only one successful receipt exists today,
+with no unresolved publication. No generation, approval, replacement, new
+tracking URL, create request or additional Pin was needed. Owner queue remains
+empty. The recovery Bead was already closed after merged/deployed PR #167.
+
+Public profile: 29 Pins, 2,505 lifetime impressions, 41 opens, six saves and
+zero native outbound clicks. V11 remains seven of twelve: F 5/6 has 208
+impressions, four opens and one save; P 2/6 has 339 impressions, nine opens and
+two saves. Both have zero outbound clicks. Sheep is still zero across native
+metrics about 3.5 hours after publication. These values were read directly
+from explicit native fields, with unknown downstream values preserved.
+
+GA4 property 507421709, October 6–13 Pacific with October 13 partial, recorded
+16 production sessions / four engaged sessions after QA/operator exclusions;
+all sources were direct or unassigned and no `conversion_event_outbound_click`
+row appeared. Explicit REST project 550427 verified Goose Gifts and returned
+two `page_view` plus two `view_item_list` events in the bounded UTC window,
+with no Pinterest or retailer-exit row. The PostHog CLI's environment override
+did not override its stored unrelated project; that aggregate response was
+discarded and the verified project-specific REST reads supplied this evidence.
+The September 19–October 8 ingestion gap and attribution limits keep per-Pin
+sessions/retailer exits unknown. No retired database click or Vercel Analytics
+zero was used as current conversion evidence.
+
+Eight metric events, two learnings and one archive transition were appended
+through `creative:record`. The older six are late October 13 checkpoints after
+missed seven-day gates, not September seven-day results. Detailed source/readback
+evidence is `v29-concepts/verification/scheduled-spent-slot-20261013.json`.
+Preserve the active cadence and incomplete cohort; the next move is October 14
+09:30 Pacific Arm F selection with one F quota remaining. Sheep's 24-hour
+gate is October 14 20:07:09.336 UTC. Red Crab's exact 28-day gate arrived later
+in this run; its 23:41:14 UTC read still had seven impressions and no native
+action. Its individual lifecycle was archived with the public Pin and cohort
+inclusion retained. No catalog workflow, website implementation or external
+promotion ran.
+
 ## 2026-10-13 — Real manual Pinterest verification passed
 
 Cameron asked to run once now and close the recovery Bead if it actually

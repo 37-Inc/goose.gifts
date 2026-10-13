@@ -86,6 +86,17 @@ Posting or sending remains approval-gated.
 
 ### 4. Native social series
 
+**Current Pinterest measurement (October 13 scheduled afternoon check):** 29
+public Pins have 2,505 lifetime impressions, 41 opens, six saves and zero native
+outbound clicks. V11 is seven of twelve: F has 208 impressions across five Pins,
+P has 339 across two. Both have zero outbound clicks; attributed site sessions
+and retailer exits remain unknown under current GA4/PostHog coverage. The
+manual sheep publication spent this slot, so the scheduled run only verified
+its public receipt and recorded metrics. Continue the existing experiment and
+require a useful product-page payoff; no conversion or format winner is
+established. Earlier database/Vercel and zero-distribution notes below are
+historical. The current contract is `PINTEREST_STUDIO.md`.
+
 Prepare channel-native units rather than a repeated link feed:
 
 - one beautifully art-directed “object of the day” plus a sharp sentence;

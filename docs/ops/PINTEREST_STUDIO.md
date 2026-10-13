@@ -79,6 +79,38 @@ promotion, outreach, account changes, deletions, video or unrelated site changes
 
 ## October 13 recovery evidence
 
+### Scheduled afternoon invocation completed as a spent-slot no-op
+
+The October 13 16:33 Pacific heartbeat executed against canonical main
+`1358871`. It verified the earlier sheep success receipt and exact production
+readback, including board, copy, tracking URL and 1024x1536 media. The public
+Pin and canonical indexable gift page returned HTTP 200. The afternoon F slot
+was already spent: this scheduled invocation generated no image and published
+no additional Pin. One successful receipt exists today and none is unresolved.
+The recovery Bead was already closed after PR #167 and the owner's accepted
+manual publication; this adds actual scheduled-execution evidence.
+
+At 23:38 UTC, F is five Pins / 208 impressions / four opens / one save and P
+is two Pins / 339 impressions / nine opens / two saves. Both have zero native
+outbound clicks. The sheep Pin is still at zero native actions about 3.5 hours
+after creation; its 24-hour gate is October 14 at 20:07:09.336 UTC. GA4 has
+16 production sessions in October 6–13 Pacific (current day partial), all
+direct/unassigned, and no outbound-event row after QA/operator exclusions.
+Explicit PostHog project 550427 has two page views and two list views in the
+bounded UTC window, with no attributed Pinterest or retailer row. The earlier
+ingestion gap and attribution limitations keep per-Pin sessions and retailer
+exits unknown. Retired database click writes are not current evidence.
+
+Eight current metric events, two learnings and one archive transition were
+appended through the validator. The older six are late checkpoints after missed
+seven-day gates, not reconstructed historical results. Exact evidence is
+`pinterest-creative-lab/v29-concepts/verification/scheduled-spent-slot-20261013.json`.
+Keep the schedule active. Normal selection resumes October 14 at 09:30
+Pacific, Arm F, with one F quota remaining; full-cohort evaluation remains
+pending. Red Crab reached its exact 28-day gate later in this run, at 23:41:14
+UTC, still at seven impressions and no native actions. Its individual lifecycle
+was archived while retaining the public Pin and its full-cohort inclusion.
+
 ### Owner-requested live run passed
 
 Cameron asked to run the workflow once now and close the recovery Bead if it
