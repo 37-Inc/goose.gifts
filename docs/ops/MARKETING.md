@@ -29,6 +29,17 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
+**Current scheduler state (2026-10-13):** Cameron authorized restarting the
+existing Pinterest studio after it was found paused since September 21. Keep
+the original two spaced slots, tasteful product-faithful creative, exact
+package safeguards and remaining v11 quota; do not backfill missed posts.
+The recovery/measurement contract is `PINTEREST_STUDIO.md` and Bead
+`roadmap-aguig`. Current public totals are 2,505 impressions, 41 Pin opens,
+six saves and zero outbound clicks. Earlier zero-distribution checkpoints
+below remain historical evidence. Prioritize a concrete product/gifting reason
+to click through, not attractive images or saves alone; current downstream
+measurement uses GA4/PostHog, not the retired detailed database click writes.
+
 1. **Pinterest-native creative acquisition**: active public learning loop.
    Twenty-eight product-faithful editorial Pins are live. At the 2026-09-20
    morning pull, the public profile had 494 impressions, five Pin clicks, one
