@@ -178,6 +178,7 @@ six, and downstream unknowns through the validated ledger. F remains 5/6 and P
 2/6, seven of twelve; no extra image or Pin. Red Crab's exact 28-day lifecycle
 was archived with its public Pin and cohort inclusion retained. Selection
 resumes October 14 at 09:30 Pacific, Arm F, with the existing cadence and cap.
+Evidence: [PR #168](https://github.com/37-Inc/goose.gifts/pull/168).
 
 ### 2026-10-13 [owner+claude] — Real Pinterest restart verification
 
