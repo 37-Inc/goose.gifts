@@ -73,6 +73,31 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-10-13 scheduled afternoon spent-slot check
+
+The resumed scheduled invocation completed as a measurement-only no-op. The
+earlier sheep Pin and success receipt matched exact production readback; the
+public Pin and tracked canonical gift page were HTTP 200. Today has one public
+publication, so the already-spent F slot generated and posted nothing further.
+At 23:38 UTC, F is 5/6 with 208 impressions, four opens and one save; P is 2/6
+with 339 impressions, nine opens and two saves. Both have zero native outbound
+clicks. The sheep's 3.5-hour check is still zero native actions and is not its
+24-hour result. The original six received late current checkpoints after their
+missed seven-day gates; no September result was reconstructed.
+
+GA4 property 507421709 recorded 16 production sessions in October 6–13 Pacific
+(current day partial), all direct/unassigned, and no outbound-event row after
+QA/operator exclusions. Verified PostHog project 550427 recorded two page views
+and two list views in the bounded UTC window, no Pinterest/retailer row, and
+retains its October 8 coverage gap. Per-Pin site sessions and retailer exits
+remain unknown. The cohort is seven of twelve and incomplete; no arm winner is
+established. Exact evidence and the spent-slot learning are durable in v29 and
+the append-only event log. Normal selection resumes October 14 09:30 Pacific,
+Arm F, with one F quota left. The sheep 24-hour check is due at/after
+October 14 20:07:09.336 UTC. Red Crab then reached its exact 28-day checkpoint
+at 23:41:14 UTC with seven impressions and no native actions. Its individual
+lifecycle was archived while keeping the public Pin and full-cohort inclusion.
+
 ### 2026-10-13 manual Arm F live verification
 
 The owner's requested one-time run posted

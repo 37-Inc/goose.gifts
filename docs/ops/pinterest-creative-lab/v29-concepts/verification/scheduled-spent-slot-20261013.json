@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "automationId": "goose-gifts-pinterest-growth-studio",
+  "triggeredAt": "2026-10-13T23:33:56.747Z",
+  "outcome": "spent-slot measurement-only no-op",
+  "assignedArm": "F",
+  "localSlot": "2026-10-13 afternoon",
+  "newGenerationCalls": 0,
+  "newPublications": 0,
+  "existingPublication": {
+    "pinId": "1107815208391037211",
+    "publicPinUrl": "https://www.pinterest.com/pin/1107815208391037211/",
+    "publishedAt": "2026-10-13T20:07:09.336Z",
+    "receiptId": "receipt-1791922029336-editorial-sheep-guest-bathroom-field-note-20261013-pm-publication-succeeded",
+    "readbackAt": "2026-10-13T23:36:53.605Z",
+    "exactPackageReadback": true,
+    "mediaDimensions": [
+      1024,
+      1536
+    ],
+    "productId": "B0CRRWZHK1",
+    "destination": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder",
+    "artifactPath": "docs/ops/pinterest-creative-lab/v29-concepts/03-sheep-guest-bathroom-final.png",
+    "publicPinHttp": 200,
+    "destinationHttp": 200,
+    "destinationRobots": "index, follow",
+    "canonicalMatches": true,
+    "todaySucceededReceipts": 1,
+    "unresolvedStartedReceipts": 0
+  },
+  "account": {
+    "id": "1107815345747925810",
+    "username": "goosegifts",
+    "type": "BUSINESS",
+    "publicPins": 29,
+    "publicLifetime": {
+      "impressions": 2505,
+      "pinClicks": 41,
+      "saves": 6,
+      "outboundClicks": 0
+    }
+  },
+  "experiment": {
+    "id": "exp-pinterest-editorial-mix-v11",
+    "published": 7,
+    "cap": 12,
+    "arms": {
+      "F": {
+        "published": 5,
+        "cap": 6,
+        "impressions": 208,
+        "saves": 1,
+        "pinClicks": 4,
+        "outboundClicks": 0,
+        "siteSessions": null,
+        "affiliateClicks": null
+      },
+      "P": {
+        "published": 2,
+        "cap": 6,
+        "impressions": 339,
+        "saves": 2,
+        "pinClicks": 9,
+        "outboundClicks": 0,
+        "siteSessions": null,
+        "affiliateClicks": null
+      }
+    }
+  },
+  "pinterest": {
+    "checkpointAt": "2026-10-13T23:38:27.130Z",
+    "pins": [
+      {
+        "arm": "F",
+        "candidateId": "cand-v11-red-crab-field-note",
+        "id": "1107815208388715714",
+        "title": "Red Crab Spoon Rest and Steam Releaser",
+        "createdAt": "2026-09-15T23:40:50",
+        "metrics": {
+          "impressions": 7,
+          "saves": 0,
+          "pinClicks": 0,
+          "outboundClicks": 0,
+          "siteSessions": null,
+          "affiliateClicks": null,
+          "revenueCents": null
+        }
+      },
+      {
+        "arm": "F",
+        "candidateId": "cand-v11-farting-ring-field-note",
+        "id": "1107815208388765155",
+        "title": "Farting Ring Box Prank Gift for White Elephant",
+        "createdAt": "2026-09-16T16:42:19",
+        "metrics": {
+          "impressions": 19,
+          "saves": 0,
+          "pinClicks": 2,
+          "outboundClicks": 0,
+          "siteSessions": null,
+          "affiliateClicks": null,
+          "revenueCents": null
+        }
+      },
+      {
+        "arm": "P",
+        "candidateId": "cand-v11-chia-gnome-poster",
+        "id": "1107815208388788830",
+        "title": "Chia Pet Gnome Planter for Weird Home Decor",
+        "createdAt": "2026-09-16T23:41:47",
+        "metrics": {
+          "impressions": 22,
+          "saves": 0,
+          "pinClicks": 2,
+          "outboundClicks": 0,
+          "siteSessions": null,
+          "affiliateClicks": null,
+          "revenueCents": null
+        }
+      },
+      {
+        "arm": "P",
+        "candidateId": "cand-v11-mini-bowling-poster",
+        "id": "1107815208389000013",
+        "title": "Mini Tabletop Bowling Game for Office Desks",
+        "createdAt": "2026-09-19T16:45:23",
+        "metrics": {
+          "impressions": 317,
+          "saves": 2,
+          "pinClicks": 7,
+          "outboundClicks": 0,
+          "siteSessions": null,
+          "affiliateClicks": null,
+          "revenueCents": null
+        }
+      },
+      {
+        "arm": "F",
+        "candidateId": "cand-v11-birthday-toast-field-note",
+        "id": "1107815208389027583",
+        "title": "Crochet Birthday Toast Gift for Coworkers",
+        "createdAt": "2026-09-19T23:40:34",
+        "metrics": {
+          "impressions": 174,
+          "saves": 1,
+          "pinClicks": 2,
+          "outboundClicks": 0,
+          "siteSessions": null,
+          "affiliateClicks": null,
+          "revenueCents": null
+        }
+      },
+      {
+        "arm": "F",
+        "candidateId": "cand-v11-desktop-therapist-field-note",
+        "id": "1107815208389087383",
+        "title": "Desktop Therapist Sound Machine for Office Gifts",
+        "createdAt": "2026-09-20T16:40:58",
+        "metrics": {
+          "impressions": 8,
+          "saves": 0,
+          "pinClicks": 0,
+          "outboundClicks": 0,
+          "siteSessions": null,
+          "affiliateClicks": null,
+          "revenueCents": null
+        }
+      },
+      {
+        "arm": "F",
+        "candidateId": "cand-v11-sheep-roll-field-note",
+        "id": "1107815208391037211",
+        "title": "Sheep Toilet Paper Holders: A Weird Housewarming Gift",
+        "createdAt": "2026-10-13T20:07:08",
+        "metrics": {
+          "impressions": 0,
+          "saves": 0,
+          "pinClicks": 0,
+          "outboundClicks": 0,
+          "siteSessions": null,
+          "affiliateClicks": null,
+          "revenueCents": null
+        }
+      }
+    ]
+  },
+  "ga4": {
+    "propertyId": 507421709,
+    "window": "2026-10-06 through 2026-10-13 America/Los_Angeles; October 13 partial",
+    "productionHostnames": [
+      "goose.gifts",
+      "www.goose.gifts"
+    ],
+    "excludedCampaignPattern": "qa|operator|goose-proof",
+    "sessions": 16,
+    "engagedSessions": 4,
+    "sources": [
+      {
+        "sourceMedium": "(direct) / (none)",
+        "campaign": "(direct)",
+        "sessions": 15,
+        "engagedSessions": 4
+      },
+      {
+        "sourceMedium": "(not set)",
+        "campaign": "(not set)",
+        "sessions": 1,
+        "engagedSessions": 0
+      }
+    ],
+    "pinterestSourceRows": 0,
+    "outboundEventName": "conversion_event_outbound_click",
+    "outboundEventRows": 0,
+    "perPinSiteSessions": null,
+    "perPinRetailerExits": null,
+    "caveats": [
+      "Missing source attribution and partial current-day reporting prevent interpreting absence as proof of no customer visits."
+    ]
+  },
+  "posthog": {
+    "projectId": 550427,
+    "verifiedName": "Goose Gifts",
+    "queryAt": "2026-10-13T23:37:17.290Z",
+    "window": "2026-10-06 07:00 UTC through query time",
+    "excludedCampaignPattern": "qa|operator|goose-proof",
+    "events": [
+      {
+        "name": "view_item_list",
+        "count": 2,
+        "firstAt": "2026-10-10T16:44:29.886000Z",
+        "lastAt": "2026-10-13T11:07:40.834000Z"
+      },
+      {
+        "name": "page_view",
+        "count": 2,
+        "firstAt": "2026-10-10T16:44:29.875000Z",
+        "lastAt": "2026-10-13T11:07:40.814000Z"
+      }
+    ],
+    "pinterestOrRetailerRows": 0,
+    "perPinSiteSessions": null,
+    "perPinRetailerExits": null,
+    "caveats": [
+      "September 19 through October 8 ingestion coverage gap remains.",
+      "The CLI ignored POSTHOG_CLI_PROJECT_ID with stored credentials; that unrelated aggregate response was discarded. These results came from an explicit verified /api/projects/550427/ REST query."
+    ]
+  },
+  "redCrab28DayCheckpoint": {
+    "checkpointAt": "2026-10-13T23:41:14.380Z",
+    "pinId": "1107815208388715714",
+    "createdAt": "2026-09-15T23:40:50",
+    "metrics": {
+      "impressions": 7,
+      "saves": 0,
+      "pinClicks": 0,
+      "outboundClicks": 0,
+      "siteSessions": null,
+      "affiliateClicks": null,
+      "revenueCents": null
+    },
+    "gate": "2026-10-13T23:40:50.765Z",
+    "candidateState": "archived",
+    "publicPinRetained": true,
+    "cohortInclusionRetained": true
+  },
+  "next": {
+    "selection": "2026-10-14 09:30 America/Los_Angeles, Arm F",
+    "sheep24hAtOrAfter": "2026-10-14T20:07:09.336Z",
+    "sheep7dAtOrAfter": "2026-10-20T20:07:09.336Z",
+    "redCrab28dAtOrAfter": "2026-10-13T23:40:50.765Z",
+    "evaluation": "Full twelve-Pin cohort at fourteen days after its final publication; minimum fifty public impressions per arm."
+  }
+}

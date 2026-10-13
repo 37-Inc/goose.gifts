@@ -9,6 +9,10 @@ candidate and publishing package.
 
 None.
 
+The October 13 afternoon scheduled check confirmed the earlier sheep receipt
+and completed as a spent-slot measurement no-op. No new approval item exists.
+Current v11 quota: F 5/6, P 2/6; next selection is October 14 morning Arm F.
+
 ## Published from this queue
 
 ### Sheep toilet-roll holder — olive bathroom field note
@@ -248,7 +252,7 @@ None.
 
 ### Red the Crab — steam-room field note
 
-- Candidate: `cand-v11-red-crab-field-note` (`measuring`, Arm F annotated field
+- Candidate: `cand-v11-red-crab-field-note` (`archived`, Arm F annotated field
   note, internal score `4.75/5`)
 - Public Pin: `https://www.pinterest.com/pin/1107815208388715714/`
 - Artifact:
@@ -283,6 +287,9 @@ None.
 - Baseline: zero impressions, saves, Pin clicks, and outbound clicks about
   eight seconds after publication. V11 is Arm F 1/6, Arm P 0/6, and 1/12
   overall; this is not a performance verdict.
+- 28-day checkpoint: October 13 at 23:41:14 UTC, seven impressions and no
+  native saves, opens or outbound clicks; downstream attribution unknown.
+  Individual lifecycle archived, public Pin and experiment inclusion retained.
 
 ### The American Mustache — clean national archive
 
