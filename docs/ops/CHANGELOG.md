@@ -179,6 +179,8 @@ and tracked gift destination pass. Source, prompts, rejections, artifact,
 baseline and receipt are durable in v29. This manual run spends today's
 afternoon F slot; 4:30 PM is measurement-only, not a second Pin. F 5/6, P 2/6,
 seven of twelve; performance unknown. Close `roadmap-aguig` after the receipt PR.
+The focused creative, public screenshot and review receipt are in
+[PR #167](https://github.com/37-Inc/goose.gifts/pull/167).
 
 ### 2026-10-13 [owner+claude] — Pinterest scheduler recovery contract
 

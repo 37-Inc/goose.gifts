@@ -11,4 +11,3 @@ Final scores (1–5): scroll stop 5; Pinterest native 5; aesthetic quality 5; co
 Click hypothesis: tasteful bathroom styling earns the pause, the paper-as-wool note resolves real function, and the package/housewarming context gives viewers a useful reason to inspect the actual holder and gift details. It does not conceal an invented feature or imply a three-animal pack is pictured. Paper, flowers, vase, towel, brass fixture and stone are editorial staging, not promised inclusions.
 
 This is internal review under Cameron's one-run publishing authority, not his personal review, a measured conversion win or proof the timer fired. Exact package/approval in events and manifest; successful publication spends October 13's afternoon F slot. No second post at 16:30.
-
