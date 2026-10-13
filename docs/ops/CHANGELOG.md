@@ -179,6 +179,8 @@ GA4/PostHog evidence. Live account/source/payload checks and all 14 creative/
 publisher tests pass. The validated log now has 658 events, including the
 recovery learning. `roadmap-aguig` retains the first actual resumed-run gate;
 an ACTIVE setting alone is not a new publication. No website runtime changed.
+The recovery contract and review are in
+[PR #166](https://github.com/37-Inc/goose.gifts/pull/166).
 
 ### 2026-10-12 [daily-ops] — Weekly catalog refresh
 

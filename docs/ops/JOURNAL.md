@@ -44,6 +44,12 @@ provider change is part of this repair. Preserve both unrelated operator
 output directories. Acquisition recovery was selected over unrelated SEO,
 catalog and feature work because the existing publishing schedule was off.
 
+Focused PR #166 contains the operating contract and validated learning. Local
+lint/build pass. An initial dependency symlink was outside Turbopack's root;
+installing ordinary isolated-worktree dependencies fixed that environment-only
+failure without changing source or the lockfile. Existing dependency audit
+advisories remain unchanged and outside this scheduler repair.
+
 ---
 
 ## 2026-10-12 — Bounded weekly catalog run
