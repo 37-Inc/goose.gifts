@@ -9,18 +9,37 @@ candidate and publishing package.
 
 None.
 
-The October 14 morning slot published the spider field note below. No owner
-approval item remains. Current v11 quota: F 6/6, P 2/6; the next normal selection
-is October 14 afternoon Arm P. Assigned F slots are now measurement-only.
+Both October 14 slots published and read back successfully. No owner approval
+item remains. V11 is F 6/6, P 3/6, nine of twelve; two Pins today. Next normal
+selection is October 15 morning Arm P. Assigned F slots remain measurement-only.
 
 ## Published from this queue
+
+### Belly fanny pack — dad-bod carry-on poster
+
+- Candidate: `cand-v11-belly-bag-poster`, measuring, October 14 PM Arm P; internal original-resolution review 4.75/5, all gates pass.
+- Public Pin: https://www.pinterest.com/pin/1107815208391132026/
+- Artifact: `docs/ops/pinterest-creative-lab/v31-concepts/01-belly-bag-carry-on-poster.png`, 1024x1536; SHA256 `536b2168fd43a448f8c72c60b3e48c15805b0d49d1c8698073eda81729a60a60`.
+- Exact product: Fandicto belly-print waist bag, ASIN B075S2ZCYQ; current IN_STOCK Creators API/source verified. Printed PU+canvas crescent pouch, black top zipper/webbing/buckle. Conflicting sizes excluded; no waterproof or specific-capacity promise.
+- Destination: https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack
+- Board: `Funny White Elephant Gifts` (`1107815277030422220`).
+- Title: `Belly Fanny Pack for Funny White Elephant Gifts`
+- Description: `A dad bod with a zipper. This Fandicto waist bag uses a realistic belly print, an adjustable canvas strap and a buckle to turn an everyday carry into a dad-joke gift. Visit Goose Gifts for the bag's storage, strap and white-elephant gifting fit. Luggage and keys are editorial props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Tan belly-print waist bag with black top zipper, canvas strap and buckle on a navy suitcase beside keys and a rust-colored bench. The five-word ivory headline reads 'THE DAD BOD HAS STORAGE'.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL: https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm
+- Approval: `evt-20261014-v11-belly-approved` binds this complete exact package to Cameron's standing scheduled-task scope, not a separate personal visual review. Second/final Pin today; P 3/6, F 6/6, total 9/12 after success. No cadence change, catch-up or arm switch.
+- Click hypothesis: the five-word line and unmistakable real zippered accessory earn the pause; the Goose page's storage, adjustable strap and dad-joke/white-elephant fit give a useful reason to visit.
+- Alternatives: black-tie scene passed 4.63/5 but clothing distracted from storage; rejected for this slot. Unwrapping concept rejected before generation to avoid repeating the preceding spider reveal. Two included calls; no revision justified.
+- Publication: production dry run, 14 targeted tests, build/lint, exact account/cap/slot/receipt/unique-URL checks passed. Created once and exact readback passed twice, including 1024x1536 media. Logged-out public HTTP200 contains title/ID; the tracked self-canonical/indexable gift page is HTTP200. Receipt: `receipt-1792021230593-editorial-belly-bag-carry-on-poster-20261014-pm-publication-succeeded`.
+- Baseline: zero native actions about 28 seconds after creation, downstream attribution unknown. P 3/6 has 391 impressions/10 opens/2 saves; F 6/6 has 225/4/1; both zero native outbound clicks. No conversion/arm winner; the full cohort is incomplete.
 
 ### Spider prank box — unwrapped gift field note
 
 - Candidate: `cand-v11-spider-box-field-note`, measuring; Arm F; internal review 4.63/5 with every hard gate passing.
 - Public Pin: https://www.pinterest.com/pin/1107815208391104701/
 - Artifact: `docs/ops/pinterest-creative-lab/v30-concepts/03-spider-unwrapped-gift-final.png` (1024x1536).
-- Exact product: FunFamz Original Spider Prank Box with Hidden Gift Card Compartment, ASIN `B07H75BJWW`; current Creators API `IN_STOCK` with the unchanged inspected primary image. The wooden sliding-lid box raises a small rubber spider; the listing verifies a cash/gift-card compartment. No assembled dimension or visible compartment geometry is claimed.
+- Exact product: FunFamz Original Spider Prank Box with Hidden Gift Card Compartment, ASIN `B07H75BJWW`; current Creators API `IN_STOCK` with the unchanged inspected primary image. The wooden sliding-lid box raises a small toy spider; the listing verifies a cash/gift-card compartment. No assembled dimension, spider material or visible compartment geometry is claimed.
 - Destination: https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time
 - Board: `Funny White Elephant Gifts` (`1107815277030422220`).
 - Title: `Spider Prank Box for Gift Cards and White Elephant`

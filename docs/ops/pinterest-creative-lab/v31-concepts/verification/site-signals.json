@@ -1,0 +1,61 @@
+{
+  "checkedAt": "2026-10-14T23:34:17.185Z",
+  "window": "2026-10-07 through current partial 2026-10-14 Pacific",
+  "ga4": {
+    "property": 507421709,
+    "productionHostnames": [
+      "goose.gifts",
+      "www.goose.gifts"
+    ],
+    "excludedCampaignRegex": "qa|operator|goose-proof",
+    "sessions": 12,
+    "engagedSessions": 1,
+    "sources": [
+      {
+        "sourceMedium": "(direct) / (none)",
+        "campaign": "(direct)",
+        "sessions": 12,
+        "engagedSessions": 1
+      }
+    ],
+    "outboundEvent": "conversion_event_outbound_click",
+    "outboundRows": [],
+    "pinterestRows": []
+  },
+  "posthog": {
+    "projectId": 550427,
+    "name": "Goose Gifts",
+    "windowStartUtc": "2026-10-07T07:00:00Z",
+    "windowEnd": "now()",
+    "excludedCampaignProperties": [
+      "traffic_campaign",
+      "utm_campaign",
+      "$utm_campaign"
+    ],
+    "excludedCampaignRegex": "qa|operator|goose-proof",
+    "events": [
+      {
+        "event": "view_item_list",
+        "count": 2,
+        "first": "2026-10-10T16:44:29.886000Z",
+        "last": "2026-10-13T11:07:40.834000Z"
+      },
+      {
+        "event": "page_view",
+        "count": 2,
+        "first": "2026-10-10T16:44:29.875000Z",
+        "last": "2026-10-13T11:07:40.814000Z"
+      }
+    ],
+    "pinterestOrOutboundRows": []
+  },
+  "siteSessionsPerPin": null,
+  "retailerActionsPerPin": null,
+  "revenueCents": null,
+  "caveats": [
+    "Missing campaign attribution is unknown, not a measured zero",
+    "September 19–October 8 PostHog ingestion gap retained; storage receipt not proven by API query availability",
+    "No old database click/Vercel historical zeros used",
+    "GET /pins lists 28 but direct readback of known Gratiator/Mystic Pickle brings verified union to30; native_before preserves evidence"
+  ]
+}

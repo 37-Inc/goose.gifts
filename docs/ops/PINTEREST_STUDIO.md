@@ -79,6 +79,41 @@ promotion, outreach, account changes, deletions, video or unrelated site changes
 
 ## October 13 recovery evidence
 
+### October 14 afternoon — Arm P travel-function poster
+
+The scheduled PM slot published and exact-readback-verified the
+[belly waist-bag poster](https://www.pinterest.com/pin/1107815208391132026/)
+at 23:40:30.593 UTC. Current source is IN_STOCK; three concepts, two included
+1024x1536 executions, full-resolution review and the sole 4.75/5 survivor are
+durable in v31. The five-word `THE DAD BOD HAS STORAGE` line makes a real
+zippered accessory recognizable; the canonical page supplies storage,
+adjustable-strap and gifting context. The formalwear alternative was rejected
+for less direct utility; no third call was justified.
+
+Exact delegated package approval, 14 targeted tests, build/lint, production
+dry run, account, unique UTM and public/receipt cap guards passed. Created
+once, read back twice, public HTTP 200/title/ID and tracked canonical indexable
+destination verified. Durable receipt:
+`receipt-1792021230593-editorial-belly-bag-carry-on-poster-20261014-pm-publication-succeeded`.
+
+Current verified profile: 31 Pins, 2,615 impressions, 43 opens, six saves, zero
+native outbound clicks. The listing endpoint enumerated 28 before publication;
+exact-ID reads of known Gratiator/Mystic Pickle Pins completed the 30-Pin
+preflight union. Do not treat enumeration alone as inventory or delete/repost
+an omitted ID. V11 is now **P 3/6, F 6/6, nine of twelve**, second/final Pin today.
+P has 391 impressions/10 opens/2 saves; F has 225/4/1, both zero native outbound.
+GA4/PostHog per-Pin site/retailer attribution remains unknown. Sheep's late
+current 24h observation is zero distribution/actions, not a creative verdict.
+Chia crossed its exact 28-day gate at 23:41:47.926 UTC: 23 impressions, two
+opens, no native save/outbound. Its individual lifecycle is archived while
+its public Pin and v11 enrollment/cohort inclusion stay intact.
+
+Leave the schedule active. Next normal selection is October 15 morning P;
+three P quota remain, assigned F slots metric-only. Spider 24h is due at/after
+2026-10-15T16:42:53.716Z and belly 24h at/after 2026-10-15T23:40:30.593Z; capture only when
+eligible. No catch-up, arm switch, cadence increase or new cohort. Full-cohort
+14-day comparison remains pending. Recovery Bead already closed.
+
 ### October 14 ordinary creative slot completed
 
 The resumed morning scheduler created/read-verified the final Arm F Pin,
