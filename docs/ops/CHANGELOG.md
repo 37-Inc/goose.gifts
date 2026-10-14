@@ -179,6 +179,7 @@ public link and tracked canonical indexable page verify. V31 preserves all
 artifacts/rejections/receipts. P 3/F 6, total 9/12, two Pins today; next P selection
 October 15 morning. Recorded sheep's late 24h and Chia's 28-day checks, with
 downstream attribution unknown. No schedule, catalog or site changes.
+Evidence: [PR #170](https://github.com/37-Inc/goose.gifts/pull/170).
 
 ### 2026-10-14 [daily-ops] — Publish the final Arm F gift-card prank
 
