@@ -24,11 +24,11 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **Pinterest — measure the resumed public cohort:** the owner's one-time
-  verification run published the sheep bathroom field note. Capture its 24-hour
-  and seven-day gates; F 5/6, P 2/6, seven of twelve. October 13's afternoon slot is
-  spent, so 4:30 PM is measurement-only. Retain cadence, truth/taste gates and
-  cap; no conversion winner is established.
+- **Pinterest — finish only the remaining P slots:** the resumed scheduler
+  published the spider gift-card field note. F is full at 6/6; P is 2/6 and
+  eight of twelve are public. Assigned F slots are metric-only. Keep the
+  existing cadence/cap, finish P in its normal slots, and capture sheep/spider
+  24-hour and seven-day gates. No conversion winner is established.
 
 - **Product landing measurement**: compare qualified product-page visits and
   existing retailer-click events after the compact product-first layout
@@ -168,6 +168,18 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-14 [daily-ops] — Publish the final Arm F gift-card prank
+
+The ordinary resumed morning run reverified the FunFamz spider prank box,
+preserved three concepts and both attempts, and used one causal annotation
+edit to produce a 4.63/5 survivor. The guarded production API created and
+read-verified [Pin 1107815208391104701](https://www.pinterest.com/pin/1107815208391104701/)
+once, linking to its canonical gift page for the real mechanism/gift-card
+payoff. Exact package, source, prompts, reviews, baseline and receipt are in
+v30. F is now 6/6, P 2/6, eight of twelve; future F slots are metric-only.
+Moon Ring's 28-day lifecycle was archived with its public Pin/cohort retained.
+Current site attribution stays unknown; no outbound or format win is claimed.
 
 ### 2026-10-13 [daily-ops] — Confirm the resumed scheduled slot
 

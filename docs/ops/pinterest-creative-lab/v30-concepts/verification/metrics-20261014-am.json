@@ -1,0 +1,392 @@
+{
+  "triggeredAt": "2026-10-14T16:30:32.035Z",
+  "assignment": "morning Arm F",
+  "publication": {
+    "dryRun": false,
+    "recovered": false,
+    "environment": "production",
+    "draft": "editorial-spider-box-unwrapped-field-note-20261014-am",
+    "board": {
+      "id": "1107815277030422220",
+      "name": "Funny White Elephant Gifts"
+    },
+    "pin": {
+      "id": "1107815208391104701",
+      "url": "https://www.pinterest.com/pin/1107815208391104701/",
+      "title": "Spider Prank Box for Gift Cards and White Elephant",
+      "link": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am"
+    },
+    "receiptId": "receipt-1791996173716-editorial-spider-box-unwrapped-field-note-20261014-am-publication-succeeded"
+  },
+  "metrics": {
+    "checkpointAt": "2026-10-14T16:44:07.368Z",
+    "account": {
+      "id": "1107815345747925810",
+      "username": "goosegifts",
+      "type": "BUSINESS",
+      "pinCount": 30
+    },
+    "totals": {
+      "impressions": 2615,
+      "saves": 6,
+      "pinClicks": 43,
+      "outboundClicks": 0
+    },
+    "pins": [
+      {
+        "id": "1107815208384432735",
+        "title": "A Mug Named Patricia Has Entered the Breakfast",
+        "createdAt": "2026-07-24T14:32:47",
+        "impressions": 21,
+        "saves": 0,
+        "pinClicks": 1,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208384432759",
+        "title": "The Oven Mitt Is Biting Back",
+        "createdAt": "2026-07-24T14:33:08",
+        "impressions": 78,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208384432788",
+        "title": "The Side Table Is Looking Back",
+        "createdAt": "2026-07-24T14:33:31",
+        "impressions": 52,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387225923",
+        "title": "The Chicken Brought Flowers to Dinner",
+        "createdAt": "2026-08-28T17:19:27",
+        "impressions": 7,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387477273",
+        "title": "The Butt Is Holding This Project Together",
+        "createdAt": "2026-08-31T16:48:11",
+        "impressions": 7,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387553278",
+        "title": "The Cat Spa Has Taken a Turn",
+        "createdAt": "2026-09-01T16:49:20",
+        "impressions": 133,
+        "saves": 0,
+        "pinClicks": 2,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387630624",
+        "title": "The Pizza Called in a Contractor",
+        "createdAt": "2026-09-02T16:50:13",
+        "impressions": 87,
+        "saves": 0,
+        "pinClicks": 1,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387654951",
+        "title": "Bullshit Button for Office Meetings",
+        "createdAt": "2026-09-02T23:42:58",
+        "impressions": 12,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387708056",
+        "title": "Toilet Golf Gag Gift for Golfers",
+        "createdAt": "2026-09-03T16:42:11",
+        "impressions": 54,
+        "saves": 0,
+        "pinClicks": 3,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387734801",
+        "title": "Middle Management Is Making a Point",
+        "createdAt": "2026-09-03T23:41:38",
+        "impressions": 20,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387789981",
+        "title": "This Cat Has a Soup Policy",
+        "createdAt": "2026-09-04T16:41:29",
+        "impressions": 71,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387817822",
+        "title": "Wacky Waving Inflatable Tube Guy for Your Desk",
+        "createdAt": "2026-09-04T23:41:11",
+        "impressions": 34,
+        "saves": 0,
+        "pinClicks": 1,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387877454",
+        "title": "Gratiator Sword-Shaped Cheese Grater",
+        "createdAt": "2026-09-05T16:45:00",
+        "impressions": 1,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387907452",
+        "title": "Shark Coffee Mug for Ocean Lovers",
+        "createdAt": "2026-09-05T23:41:23",
+        "impressions": 883,
+        "saves": 2,
+        "pinClicks": 18,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387966131",
+        "title": "Funny Squeaky Dog Toy for Stylish Pups",
+        "createdAt": "2026-09-06T16:42:16",
+        "impressions": 343,
+        "saves": 0,
+        "pinClicks": 1,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208387994026",
+        "title": "Funny Prank Gift Box for White Elephant",
+        "createdAt": "2026-09-06T23:49:57",
+        "impressions": 5,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208388049691",
+        "title": "Funny Wiener Switch Night Light for Weird Decor",
+        "createdAt": "2026-09-07T16:54:20",
+        "impressions": 34,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208388077586",
+        "title": "Mystic Pickle Fortune Teller Gag Gift",
+        "createdAt": "2026-09-07T23:51:00",
+        "impressions": 1,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208388134634",
+        "title": "Funny Mustache Coffee Table Book for Dads",
+        "createdAt": "2026-09-08T16:49:58",
+        "impressions": 8,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208388715714",
+        "title": "Red Crab Spoon Rest and Steam Releaser",
+        "createdAt": "2026-09-15T23:40:50",
+        "impressions": 9,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208388765155",
+        "title": "Farting Ring Box Prank Gift for White Elephant",
+        "createdAt": "2026-09-16T16:42:19",
+        "impressions": 19,
+        "saves": 0,
+        "pinClicks": 2,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208388788830",
+        "title": "Chia Pet Gnome Planter for Weird Home Decor",
+        "createdAt": "2026-09-16T23:41:47",
+        "impressions": 23,
+        "saves": 0,
+        "pinClicks": 2,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208389000013",
+        "title": "Mini Tabletop Bowling Game for Office Desks",
+        "createdAt": "2026-09-19T16:45:23",
+        "impressions": 368,
+        "saves": 2,
+        "pinClicks": 8,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208389027583",
+        "title": "Crochet Birthday Toast Gift for Coworkers",
+        "createdAt": "2026-09-19T23:40:34",
+        "impressions": 189,
+        "saves": 1,
+        "pinClicks": 2,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208389087383",
+        "title": "Desktop Therapist Sound Machine for Office Gifts",
+        "createdAt": "2026-09-20T16:40:58",
+        "impressions": 8,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208391037211",
+        "title": "Sheep Toilet Paper Holders: A Weird Housewarming Gift",
+        "createdAt": "2026-10-13T20:07:08",
+        "impressions": 0,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:07 +0000"
+      },
+      {
+        "id": "1107815208385022014",
+        "title": "The Goat Has the Floor",
+        "createdAt": "2026-08-01T04:36:08",
+        "impressions": 131,
+        "saves": 1,
+        "pinClicks": 2,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208385331910",
+        "title": "Patricia Has a Lipstick Appointment",
+        "createdAt": "2026-08-05T03:48:09",
+        "impressions": 7,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208385562809",
+        "title": "Patricia Is Running This Meeting",
+        "createdAt": "2026-08-08T00:00:12",
+        "impressions": 10,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      },
+      {
+        "id": "1107815208391104701",
+        "title": "Spider Prank Box for Gift Cards and White Elephant",
+        "createdAt": "2026-10-14T16:42:53",
+        "impressions": 0,
+        "saves": 0,
+        "pinClicks": 0,
+        "outboundClicks": 0,
+        "lastUpdated": "Wed, 14 October 2026 16:44:06 +0000"
+      }
+    ]
+  },
+  "analyticsWindow": "October7-14 Pacific, current day partial; PostHog October7 07:00UTC through query time",
+  "analyticsPreflight": "{\"source\":\"GA4\",\"propertyId\":507421709,\"report\":\"sessions\",\"rows\":[{\"dimensionValues\":[{\"value\":\"(direct) / (none)\"},{\"value\":\"(direct)\"}],\"metricValues\":[{\"value\":\"12\"},{\"value\":\"1\"}]}],\"rowCount\":1,\"metadata\":{\"currencyCode\":\"USD\",\"timeZone\":\"America/Los_Angeles\"}}\n{\"source\":\"GA4\",\"propertyId\":507421709,\"report\":\"conversion_event_outbound_click\",\"rows\":[],\"rowCount\":0,\"metadata\":{\"currencyCode\":\"USD\",\"timeZone\":\"America/Los_Angeles\"}}\n{\"source\":\"PostHog\",\"projectId\":550427,\"name\":\"Goose Gifts\",\"report\":\"events\",\"queryAt\":\"2026-10-14T16:34:13.369Z\",\"columns\":[\"event\",\"events\",\"min(timestamp)\",\"max(timestamp)\"],\"results\":[[\"view_item_list\",2,\"2026-10-10T16:44:29.886000Z\",\"2026-10-13T11:07:40.834000Z\"],[\"page_view\",2,\"2026-10-10T16:44:29.875000Z\",\"2026-10-13T11:07:40.814000Z\"]],\"error\":null}\n",
+  "posthogAttribution": "{\"source\":\"PostHog\",\"projectId\":550427,\"report\":\"pinterest_or_outbound\",\"checkedAt\":\"2026-10-14T16:34:52.245Z\",\"columns\":[\"event\",\"source\",\"campaign\",\"events\"],\"results\":[],\"error\":null}",
+  "siteSessions": null,
+  "retailerExits": null,
+  "revenueCents": null,
+  "ring28DayRead": {
+    "checkpointAt": "2026-10-14T16:43:20.785Z",
+    "id": "1107815208388765155",
+    "createdAt": "2026-09-16T16:42:19",
+    "boardId": "1107815277030422220",
+    "title": "Farting Ring Box Prank Gift for White Elephant",
+    "description": "The Moon Ring is a 2.5-inch white leatherette proposal box with no ring—open it and the tiny trousered butt inside makes a fart sound. Handmade in the United States with replaceable batteries, it is a ridiculous white elephant or relationship prank gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+    "altText": "Tiny open white ring box containing a molded bare butt in blue trousers among dewy clover, annotated “Box: 2.5 inches,” “Courtship call: fart,” and “Triggered on open.”",
+    "link": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+    "media": {
+      "media_type": "image",
+      "images": {
+        "150x150": {
+          "width": 150,
+          "height": 150,
+          "url": "https://i.pinimg.com/150x150/6f/50/40/6f50405533054edfb7ddcbe34afe3401.jpg"
+        },
+        "400x300": {
+          "width": 400,
+          "height": 300,
+          "url": "https://i.pinimg.com/400x300/6f/50/40/6f50405533054edfb7ddcbe34afe3401.jpg"
+        },
+        "600x": {
+          "width": 564,
+          "height": 846,
+          "url": "https://i.pinimg.com/564x/6f/50/40/6f50405533054edfb7ddcbe34afe3401.jpg"
+        },
+        "1200x": {
+          "width": 1024,
+          "height": 1536,
+          "url": "https://i.pinimg.com/1200x/6f/50/40/6f50405533054edfb7ddcbe34afe3401.jpg"
+        }
+      }
+    },
+    "lifetime": {
+      "outbound_click": 0,
+      "user_follow": null,
+      "impression": 19,
+      "last_updated": "Wed, 14 October 2026 16:43:20 +0000",
+      "pin_click": 2,
+      "save": 0,
+      "profile_visit": null,
+      "reaction": 0,
+      "comment": 0
+    },
+    "readbackVerified": false
+  },
+  "next": "Arm F full; next normal selection October14 afternoon Arm P, no arm swap or catch-up."
+}

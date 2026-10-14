@@ -29,21 +29,22 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-13):** the studio is ACTIVE and the owner's
-manual verification published sheep field-note Pin `1107815208391037211`.
-It spends today's afternoon F slot; 4:30 PM is measurement-only. Current
-profile: 29 Pins; v11 F 5/6, P 2/6, seven of twelve. Keep
+**Current scheduler state (2026-10-14):** the studio is ACTIVE. The ordinary
+morning run published spider field-note Pin `1107815208391104701` through the
+guarded production API. Current profile: 30 Pins; v11 F 6/6, P 2/6, eight of
+twelve. Arm F is full, so later assigned F slots are measurement-only; the
+four remaining P Pins retain their normal scheduled slots. Keep
 the original two spaced slots, tasteful product-faithful creative, exact
 package safeguards and remaining v11 quota; do not backfill missed posts.
 The recovery/measurement contract is `PINTEREST_STUDIO.md` and Bead
-`roadmap-aguig`. Current public totals are 2,505 impressions, 41 Pin opens,
+`roadmap-aguig`. Current public totals are 2,615 impressions, 43 Pin opens,
 six saves and zero outbound clicks. Earlier zero-distribution checkpoints
 below remain historical evidence. Prioritize a concrete product/gifting reason
 to click through, not attractive images or saves alone; current downstream
 measurement uses GA4/PostHog, not the retired detailed database click writes.
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Twenty-nine product-faithful editorial Pins are live. At the 2026-09-20
+   Thirty product-faithful editorial Pins are live. At the 2026-09-20
    morning pull, the public profile had 494 impressions, five Pin clicks, one
    save, and no Pinterest outbound click, attributable Pinterest session, or
    downstream customer product click. That is a directional attention signal,
@@ -53,9 +54,9 @@ measurement uses GA4/PostHog, not the retired detailed database click writes.
    impression and neither has a downstream action, so the result is
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
-   versus bespoke annotated field notes. Seven are live—five Arm F and two Arm
-   P. The earlier six have 547 impressions, 13 opens, three saves and no outbound
-   click at the October 13 preflight; the new sheep Pin starts at zero actions.
+   versus bespoke annotated field notes. Eight are live—six Arm F and two Arm
+   P. They have 616 impressions, 14 opens, three saves and no outbound click at
+   the October 14 post-publication check; the new spider Pin starts at zero actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
@@ -72,6 +73,52 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-14 morning — final Arm F spider gift-card field note
+
+Current public metrics and bounded, explicit GA4/PostHog reads preceded source
+selection. No unpublished F survivor existed. The read-only 20-product
+shortlist included newly enriched inventory from the October 12 weekly run,
+but the top-ranked caution sign's dense intrinsic price table was a poor fit.
+Live Creators API reverified the distinct FunFamz wooden spider prank box,
+ASIN B07H75BJWW, IN_STOCK with the same inspected source. The canonical gift
+page is HTTP 200, self-canonical, indexable and describes both the lid-triggered
+toy spider and hidden cash/gift-card compartment. Uncertain assembled size and
+compartment geometry were excluded. The current belly pack was deferred
+because another material/body double-take would repeat yesterday's sheep.
+
+Three concepts were preserved before two source-guided 1024x1536 executions.
+The drawer-ambush concept hid the actual product and was rejected. Both initial
+images had a floating annotation leader; the naturalist scene also offered a
+less direct gift payoff. The third/final included call removed only that line
+and dot from the stronger unwrapped-gift image. Original-resolution review
+passed every hard gate at 4.63/5. The two exact notes, `LID-TRIGGERED SPIDER`
+and `GIFT-CARD SLOT INSIDE`, explain the real novelty gift without inventing
+an interior or adding a CTA. Copy naturally invites a Goose visit for the
+mechanism and prank-loving recipient fit.
+
+The production dry run, 14 targeted tests, exact delegated package approval,
+account, board, unused morning slot, cohort counts and UTM uniqueness passed.
+The guarded API created [Pin 1107815208391104701](https://www.pinterest.com/pin/1107815208391104701/)
+once on Funny White Elephant Gifts and read it back exactly. Receipt
+`receipt-1791996173716-editorial-spider-box-unwrapped-field-note-20261014-am-publication-succeeded`
+is durable. A second readback matched copy/link/media; logged-out public HTML
+contains the title/ID and its tracked canonical destination is HTTP 200 and
+indexable. Native baseline was zero actions about 27 seconds after creation.
+
+V11 is F 6/6 (225 impressions, four opens, one save) and P 2/6 (391
+impressions, ten opens, two saves), eight of twelve; both have zero native
+outbound clicks. Site sessions and retailer actions per Pin remain unknown.
+GA4 property 507421709 has 12 production sessions / one engaged session in
+October 7–14 Pacific (current day partial), all direct, and no outbound-event
+row after QA/operator exclusions. Verified PostHog 550427 has two page views
+and two list views, no Pinterest/retailer row, and retains the October 8
+coverage gap. The Moon Ring reached its 28-day checkpoint at 19 impressions,
+two opens and no outbound click/save; its individual lifecycle was archived
+while retaining its public Pin and full-cohort inclusion. Sheep is not yet
+24-hour eligible. Next normal selection is this afternoon's Arm P; assigned
+F slots are now metric-only. No cadence or cap changed, and no winner is
+established before the complete cohort matures.
 
 ### 2026-10-13 scheduled afternoon spent-slot check
 

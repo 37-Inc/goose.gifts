@@ -9,11 +9,30 @@ candidate and publishing package.
 
 None.
 
-The October 13 afternoon scheduled check confirmed the earlier sheep receipt
-and completed as a spent-slot measurement no-op. No new approval item exists.
-Current v11 quota: F 5/6, P 2/6; next selection is October 14 morning Arm F.
+The October 14 morning slot published the spider field note below. No owner
+approval item remains. Current v11 quota: F 6/6, P 2/6; the next normal selection
+is October 14 afternoon Arm P. Assigned F slots are now measurement-only.
 
 ## Published from this queue
+
+### Spider prank box — unwrapped gift field note
+
+- Candidate: `cand-v11-spider-box-field-note`, measuring; Arm F; internal review 4.63/5 with every hard gate passing.
+- Public Pin: https://www.pinterest.com/pin/1107815208391104701/
+- Artifact: `docs/ops/pinterest-creative-lab/v30-concepts/03-spider-unwrapped-gift-final.png` (1024x1536).
+- Exact product: FunFamz Original Spider Prank Box with Hidden Gift Card Compartment, ASIN `B07H75BJWW`; current Creators API `IN_STOCK` with the unchanged inspected primary image. The wooden sliding-lid box raises a small rubber spider; the listing verifies a cash/gift-card compartment. No assembled dimension or visible compartment geometry is claimed.
+- Destination: https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time
+- Board: `Funny White Elephant Gifts` (`1107815277030422220`).
+- Title: `Spider Prank Box for Gift Cards and White Elephant`
+- Description: `Gift cards can have a plot twist. Sliding the wooden lid makes a toy spider pop up, while a hidden compartment holds cash or a gift card. Visit Goose Gifts for the FunFamz box's mechanism and prank-loving gift fit. Envelope and wrapping are editorial styling. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Natural-wood prank box with its lid slid open and a small black toy spider raised at the opening, on ivory tissue beside a cream envelope and burgundy ribbon. Notes read 'LID-TRIGGERED SPIDER' and 'GIFT-CARD SLOT INSIDE'.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL: https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am
+- Approval: `evt-20261014-v11-spider-box-approved` binds this complete package to the October 14 morning Arm F slot under the existing one-per-run/two-per-day, six-per-arm/twelve-total authorization. This is the sixth/final F Pin and eighth of twelve, first Pin today; no later F quota is created.
+- Click hypothesis: the real sliding mechanism makes a giftable product immediately recognizable, while the verified gift-card feature and concrete Goose description offer a useful reason to visit.
+- Rejected alternatives: naturalist desk had a less direct gift payoff and the same floating leader defect; desk-drawer ambush concealed the product. The sole causal revision removed only the unwrapped-gift leader line/dot, preserving source identity and exact notes. Three included calls, no paid tool.
+- Publication/readback: guarded production dry run, exact approval, account, board, unused slot, quota, unique URL and receipt checks passed. The API created once and exact readback passed twice, including 1024x1536 media. Logged-out public HTML contains the exact title and Pin ID; the tracked self-canonical/indexable gift page is HTTP 200. Receipt: `receipt-1791996173716-editorial-spider-box-unwrapped-field-note-20261014-am-publication-succeeded`.
+- Baseline: zero native impressions/saves/opens/outbound clicks about 27 seconds after publication; site sessions/retailer actions unknown. Current arms: F six Pins / 225 impressions / four opens / one save, P two Pins / 391 impressions / ten opens / two saves; both zero outbound clicks. Full-cohort review remains pending.
 
 ### Sheep toilet-roll holder — olive bathroom field note
 
@@ -210,7 +229,7 @@ Current v11 quota: F 5/6, P 2/6; next selection is October 14 morning Arm F.
 
 ### The Moon Ring — courtship field note
 
-- Candidate: `cand-v11-farting-ring-field-note` (`measuring`, Arm F annotated
+- Candidate: `cand-v11-farting-ring-field-note` (`archived`, Arm F annotated
   field note, internal score `4.88/5`)
 - Public Pin: `https://www.pinterest.com/pin/1107815208388765155/`
 - Artifact:
@@ -249,6 +268,9 @@ Current v11 quota: F 5/6, P 2/6; next selection is October 14 morning Arm F.
 - Baseline: zero impressions, saves, Pin clicks, and outbound clicks about 11
   seconds after publication. V11 is Arm F 2/6, Arm P 0/6, and 2/12 overall;
   this is not a performance verdict.
+- 28-day checkpoint: October 14 at 16:43:20 UTC, 19 impressions, two opens,
+  no native saves/outbound clicks; downstream attribution unknown. Individual
+  lifecycle archived, public Pin and full-cohort inclusion retained.
 
 ### Red the Crab — steam-room field note
 

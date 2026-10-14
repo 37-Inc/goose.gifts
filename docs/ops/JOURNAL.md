@@ -5,6 +5,65 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-14 morning — final Arm F spider gift-card field note
+
+Used current canonical main `0a4d7c1`; only the two existing operator output
+directories were untracked and they were preserved. Pinterest production
+verified goosegifts BUSINESS, 29 pre-run Pins and 2,615 impressions / 43 opens /
+six saves / zero outbound clicks. V11 pre-run was F5/P2; no Pin existed today
+and no publication receipt was unresolved. The owner queue had no survivor.
+The read-only shortlist drew from current enriched catalog and the completed
+October 12 weekly run without executing maintenance.
+
+Reverified three live listings. The top caution sign had an intrinsic price
+table/dense text; the belly pack was available but repeated the preceding
+material/body misread. Selected FunFamz wooden spider prank box B07H75BJWW,
+IN_STOCK at $17.99 with the unchanged primary image. Exact source controls the
+wooden slider/knob and small rubber spider. Its gift-card/cash compartment is
+listing- and destination-verified; assembled size and internal geometry remain
+unclaimed. The canonical destination is HTTP 200, self-canonical and indexable.
+
+Three concepts were preserved. Drawer ambush concealed the product and was
+rejected before generation. Two distinct source-guided 1024x1536 executions
+were inspected at original resolution. Both initial annotation lines missed
+their target; the naturalist still life also had a weaker gifting cue. One
+causal third call removed only the line/dot from the better unwrapped-gift
+scene. Its exact notes and product identity pass all hard gates at 4.63/5.
+Source references, full prompts, attempts/reviews/rejections and final image
+are durable in v30. No additional generation or paid fallback was used.
+
+Under the standing heartbeat authorization, recorded Cameron approval for the
+exact image/board/copy/alt/disclosure/UTM and this morning F slot. All 14
+targeted tests, creative validation and the production dry run passed. Live
+public Pins, manifest and receipts confirmed F5/P2/total7, zero today, unique
+tracking URL and no unresolved create. Guarded production API created once
+at 16:42:53 UTC and read-verified Pin 1107815208391104701 on Funny White
+Elephant Gifts. Receipt:
+`receipt-1791996173716-editorial-spider-box-unwrapped-field-note-20261014-am-publication-succeeded`.
+A second readback matched all fields and 1024x1536 media; logged-out HTTP 200
+public HTML contains the exact title and ID. Tracked destination is HTTP 200,
+self-canonical and indexable. Native baseline zero about 27 seconds after
+creation; per-Pin sessions/retailer/revenue remain unknown.
+
+Current profile has 30 public Pins, 2,615 impressions, 43 opens, six saves and
+zero native outbound clicks. V11 F6/6 has 225 impressions / four opens / one
+save; P2/6 has 391 / ten / two; both zero outbound. GA4 property 507421709,
+October7–14 Pacific (current day partial), after production-host and QA/operator
+campaign filters: 12 direct sessions / one engaged session, no outbound-event
+row. Explicit REST PostHog550427 verifies Goose Gifts: two page_view and two
+view_item_list events in the bounded UTC window, no Pinterest/retailer row,
+with the October8 coverage gap and attribution limits retained. Do not use
+retired detailed database/Vercel analytics zeros as conversion evidence.
+
+The Moon Ring reached its exact 28-day gate during this run: 19 impressions,
+two opens, no native save/outbound, downstream unknown. Archived only its
+measurement lifecycle; public Pin and cohort/cap inclusion stay intact.
+Sheep's 24-hour gate is still pending until 20:07:09.336 UTC today. Next move:
+the normal afternoon Arm P slot with a distinct product/real payoff. All future
+assigned F slots are metric-only; no arm swap, added cadence, catch-up, new
+cohort or winner claim. No site implementation, catalog maintenance, outreach,
+account change, deletion or spend occurred.
+
 ## 2026-10-13 afternoon — scheduled spent-slot measurement
 
 The resumed heartbeat triggered at 23:33:56.747 UTC / 16:33 Pacific and used

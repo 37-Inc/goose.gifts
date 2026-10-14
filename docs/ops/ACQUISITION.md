@@ -86,13 +86,14 @@ Posting or sending remains approval-gated.
 
 ### 4. Native social series
 
-**Current Pinterest measurement (October 13 scheduled afternoon check):** 29
-public Pins have 2,505 lifetime impressions, 41 opens, six saves and zero native
-outbound clicks. V11 is seven of twelve: F has 208 impressions across five Pins,
-P has 339 across two. Both have zero outbound clicks; attributed site sessions
+**Current Pinterest measurement (October 14 morning):** 30 public Pins have
+2,615 lifetime impressions, 43 opens, six saves and zero native outbound clicks.
+V11 is eight of twelve: F has 225 impressions across six Pins, P has 391 across
+two. Both have zero outbound clicks; attributed site sessions
 and retailer exits remain unknown under current GA4/PostHog coverage. The
-manual sheep publication spent this slot, so the scheduled run only verified
-its public receipt and recorded metrics. Continue the existing experiment and
+new spider prank-box Pin is production-created/readback-verified and links to
+its exact gift page with a concrete mechanism/gift-card payoff. Arm F is full;
+continue the four remaining P Pins only in their assigned slots and
 require a useful product-page payoff; no conversion or format winner is
 established. Earlier database/Vercel and zero-distribution notes below are
 historical. The current contract is `PINTEREST_STUDIO.md`.
