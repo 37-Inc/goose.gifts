@@ -79,6 +79,30 @@ promotion, outreach, account changes, deletions, video or unrelated site changes
 
 ## October 13 recovery evidence
 
+### October 14 ordinary creative slot completed
+
+The resumed morning scheduler created/read-verified the final Arm F Pin,
+[the wooden spider prank box](https://www.pinterest.com/pin/1107815208391104701/),
+at 16:42:53 UTC. Exact source, three concepts, two initial images, one causal
+leader-line edit, 4.63/5 internal review, complete standing-authorized package,
+production dry run, current account/slot/cap/duplicate guards and the durable
+success receipt are in `pinterest-creative-lab/v30-concepts/`. Public HTML and
+the tracked self-canonical/indexable gift page verify. This is one real
+scheduled publication, first Pin today; the initial zero-action baseline is
+not a demand verdict.
+
+Current counts are **F 6/6, P 2/6, eight of twelve**. F has 225 impressions,
+four opens and one save; P has 391 impressions, ten opens and two saves. Both
+have zero native outbound clicks; per-Pin site/retailer attribution remains
+unknown under bounded GA4/PostHog evidence. Assigned F slots must now be
+measurement-only even while P enrollment remains open. Keep the same schedule,
+never swap arms or backfill, and finish P only in its four remaining eligible
+slots. Next normal selection: October 14 afternoon Arm P. Sheep reaches 24
+hours at October 14 20:07:09.336 UTC; spider reaches 24 hours at October 15
+16:42:53.716 UTC. The Moon Ring's 28-day lifecycle is archived with its public
+Pin and cohort inclusion retained. Full twelve-Pin/fourteen-day review remains
+pending; recovery Bead `roadmap-aguig` was already closed and is not reopened.
+
 ### Scheduled afternoon invocation completed as a spent-slot no-op
 
 The October 13 16:33 Pacific heartbeat executed against canonical main

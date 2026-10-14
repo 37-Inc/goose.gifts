@@ -1,0 +1,79 @@
+{
+  "publication": {
+    "dryRun": false,
+    "recovered": false,
+    "environment": "production",
+    "draft": "editorial-spider-box-unwrapped-field-note-20261014-am",
+    "board": {
+      "id": "1107815277030422220",
+      "name": "Funny White Elephant Gifts"
+    },
+    "pin": {
+      "id": "1107815208391104701",
+      "url": "https://www.pinterest.com/pin/1107815208391104701/",
+      "title": "Spider Prank Box for Gift Cards and White Elephant",
+      "link": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am"
+    },
+    "receiptId": "receipt-1791996173716-editorial-spider-box-unwrapped-field-note-20261014-am-publication-succeeded"
+  },
+  "spiderReadback": {
+    "checkpointAt": "2026-10-14T16:43:20.437Z",
+    "id": "1107815208391104701",
+    "createdAt": "2026-10-14T16:42:53",
+    "boardId": "1107815277030422220",
+    "title": "Spider Prank Box for Gift Cards and White Elephant",
+    "description": "Gift cards can have a plot twist. Sliding the wooden lid makes a toy spider pop up, while a hidden compartment holds cash or a gift card. Visit Goose Gifts for the FunFamz box's mechanism and prank-loving gift fit. Envelope and wrapping are editorial styling. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+    "altText": "Natural-wood prank box with its lid slid open and a small black toy spider raised at the opening, on ivory tissue beside a cream envelope and burgundy ribbon. Notes read 'LID-TRIGGERED SPIDER' and 'GIFT-CARD SLOT INSIDE'.",
+    "link": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+    "media": {
+      "media_type": "image",
+      "images": {
+        "150x150": {
+          "width": 150,
+          "height": 150,
+          "url": "https://i.pinimg.com/150x150/11/ae/ee/11aeeeea92fd661137fd507f36aee45c.jpg"
+        },
+        "400x300": {
+          "width": 400,
+          "height": 300,
+          "url": "https://i.pinimg.com/400x300/11/ae/ee/11aeeeea92fd661137fd507f36aee45c.jpg"
+        },
+        "600x": {
+          "width": 564,
+          "height": 846,
+          "url": "https://i.pinimg.com/564x/11/ae/ee/11aeeeea92fd661137fd507f36aee45c.jpg"
+        },
+        "1200x": {
+          "width": 1024,
+          "height": 1536,
+          "url": "https://i.pinimg.com/1200x/11/ae/ee/11aeeeea92fd661137fd507f36aee45c.jpg"
+        }
+      }
+    },
+    "lifetime": {
+      "save": 0,
+      "last_updated": "Wed, 14 October 2026 16:43:20 +0000",
+      "pin_click": 0,
+      "outbound_click": 0,
+      "user_follow": null,
+      "profile_visit": null,
+      "impression": 0,
+      "reaction": 0,
+      "comment": 0
+    },
+    "readbackVerified": true
+  },
+  "publicCheck": {
+    "publicPinCheckAt": "2026-10-14T16:43:21.211Z",
+    "url": "https://www.pinterest.com/pin/1107815208391104701/",
+    "status": 200,
+    "titlePresent": true,
+    "pinIdPresent": true
+  },
+  "destination": {
+    "destination": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+    "status": 200,
+    "canonical": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time",
+    "robots": "index, follow"
+  }
+}
