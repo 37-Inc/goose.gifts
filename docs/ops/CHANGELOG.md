@@ -25,10 +25,10 @@ Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
 - **Pinterest — finish only the remaining P slots:** the resumed scheduler
-  published the spider gift-card field note. F is full at 6/6; P is 2/6 and
-  eight of twelve are public. Assigned F slots are metric-only. Keep the
-  existing cadence/cap, finish P in its normal slots, and capture sheep/spider
-  24-hour and seven-day gates. No conversion winner is established.
+  published spider and belly-bag Pins. F is full at 6/6; P is 3/6 and nine of
+  twelve are public. Assigned F slots are metric-only. Keep the cadence/cap,
+  finish P in its three normal slots, and capture spider/belly 24-hour and
+  seven-day gates. Sheep 24h and Chia 28-day are recorded. No conversion winner.
 
 - **Product landing measurement**: compare qualified product-page visits and
   existing retailer-click events after the compact product-first layout
@@ -168,6 +168,17 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-14 [daily-ops] — Publish the dad-bod storage poster
+
+The scheduled PM slot source-verified Fandicto's belly waist bag and preserved
+three concepts/two included images. The sole 4.75/5 travel poster passed exact
+package approval, 14 targeted tests, build/lint and production dry run/guards.
+Created once/readback-verified [Pin 1107815208391132026](https://www.pinterest.com/pin/1107815208391132026/);
+public link and tracked canonical indexable page verify. V31 preserves all
+artifacts/rejections/receipts. P 3/F 6, total 9/12, two Pins today; next P selection
+October 15 morning. Recorded sheep's late 24h and Chia's 28-day checks, with
+downstream attribution unknown. No schedule, catalog or site changes.
 
 ### 2026-10-14 [daily-ops] — Publish the final Arm F gift-card prank
 

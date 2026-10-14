@@ -29,11 +29,11 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-14):** the studio is ACTIVE. The ordinary
-morning run published spider field-note Pin `1107815208391104701` through the
-guarded production API. Current profile: 30 Pins; v11 F 6/6, P 2/6, eight of
-twelve. Arm F is full, so later assigned F slots are measurement-only; the
-four remaining P Pins retain their normal scheduled slots. Keep
+**Current scheduler state (2026-10-14 afternoon):** the studio is ACTIVE. Both
+slots published/readback-verified once: morning spider `1107815208391104701`
+and afternoon belly-bag poster `1107815208391132026`. Verified profile: 31 Pins;
+v11 F 6/6, P 3/6, nine of twelve. Arm F is full, so later assigned F slots are
+measurement-only; the three remaining P Pins retain their normal slots. Keep
 the original two spaced slots, tasteful product-faithful creative, exact
 package safeguards and remaining v11 quota; do not backfill missed posts.
 The recovery/measurement contract is `PINTEREST_STUDIO.md` and Bead
@@ -44,7 +44,7 @@ to click through, not attractive images or saves alone; current downstream
 measurement uses GA4/PostHog, not the retired detailed database click writes.
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Thirty product-faithful editorial Pins are live. At the 2026-09-20
+   Thirty-one product-faithful editorial Pins are live. At the 2026-09-20
    morning pull, the public profile had 494 impressions, five Pin clicks, one
    save, and no Pinterest outbound click, attributable Pinterest session, or
    downstream customer product click. That is a directional attention signal,
@@ -54,9 +54,9 @@ measurement uses GA4/PostHog, not the retired detailed database click writes.
    impression and neither has a downstream action, so the result is
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
-   versus bespoke annotated field notes. Eight are live—six Arm F and two Arm
+   versus bespoke annotated field notes. Nine are live—six Arm F and three Arm
    P. They have 616 impressions, 14 opens, three saves and no outbound click at
-   the October 14 post-publication check; the new spider Pin starts at zero actions.
+   the October 14 afternoon check; today's spider and belly Pins start at zero actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
@@ -73,6 +73,48 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-14 afternoon — belly-bag travel poster
+
+Refreshed production metrics, GA4 property 507421709 and explicit PostHog 550427
+before source/creative work. Current profile: 2,615 impressions, 43 opens, six saves,
+zero native outbound. GA4 October 7–14 partial: 12 direct sessions/one engaged,
+no Pinterest/outbound row after production-host and QA/operator exclusions.
+PostHog has two page views/two list views, no Pinterest/retailer row; prior
+ingestion gaps and unavailable attribution keep per-Pin downstream unknown.
+
+No unpublished P survivor. Fresh read-only enriched shortlist, latest weekly
+October 12, supplied Fandicto B075S2ZCYQ. It is not newly touched by that run,
+but the printed-belly zipper/strap mechanism is stronger than the leading
+latest-enriched price-table sign. Creators API reverified IN_STOCK and exact
+image; source controls printed PU/canvas crescent pouch, black zipper/strap/
+buckle. Conflicting dimensions excluded. Canonical gift page is live,
+self-canonical and indexable with storage/adjustable-strap/gift-fit payoff.
+
+Three concepts preceded two included source-guided 1024x1536 images.
+Unwrapping would repeat the immediately preceding spider mechanism and was
+rejected before generation. Formalwear passed 4.63/5 but distracted from real
+utility. Carry-on travel editorial became the only 4.75/5 survivor, all hard
+gates passing, exact five-word `THE DAD BOD HAS STORAGE` line. Prompts call
+it six words in error; that label is corrected without rewriting issued
+history. No visible defect justified a third call. Props are explicitly not
+included; no capacity, universal-fit or waterproof promise.
+
+Exact standing-authorized complete package, production dry run, 14 targeted
+tests, build/lint, account, unused PM slot, receipts/caps and unique UTM passed.
+Created once/read back twice as [Pin 1107815208391132026](https://www.pinterest.com/pin/1107815208391132026/)
+on Funny White Elephant Gifts; receipt
+`receipt-1792021230593-editorial-belly-bag-carry-on-poster-20261014-pm-publication-succeeded`.
+Public HTTP 200/title/ID and tracked canonical indexable destination verified.
+Source, concepts, exact prompts, rejected image, reviews and checks are in v31.
+
+V11 P 3/F 6, total 9, second/final Pin today. P: 391 impressions/10 opens/2 saves;
+F: 225/4/1; both zero native outbound. New 28-second baseline is zero, not a
+verdict. Sheep's late 24h observation remains zero distribution/actions.
+Chia's exact 28-day check is 23 impressions/two opens/no save/outbound; archive
+only its individual lifecycle, retaining public Pin and cohort/cap inclusion.
+Next normal selection October 15 morning P; three P quotas remain, all F slots
+metric-only. Preserve cadence, gates and complete-cohort 14-day evaluation.
 
 ### 2026-10-14 morning — final Arm F spider gift-card field note
 

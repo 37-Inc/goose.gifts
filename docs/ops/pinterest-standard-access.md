@@ -177,6 +177,15 @@ frame that shows a raw token.**
 
 ## Production operating state
 
+**Current verified state, October 14 afternoon:** Standard production account
+`goosegifts` BUSINESS remains correct. The scheduled studio has published and
+read back sheep `1107815208391037211`, spider `1107815208391104701` and belly
+poster `1107815208391132026`. The verified public union is 31 Pins; v11 is
+F 6/6, P 3/6, nine of twelve. F slots are measurement-only and three P quota
+remain at the existing cadence. This dated state supersedes historical
+28-Pin/undistributed counts below; access never authorizes a new cohort or
+higher cap. Current contract and receipts: `PINTEREST_STUDIO.md` and v31.
+
 - Standard access and the production OAuth read/dry-run path are verified.
 - Public posting still needs an exact candidate/package approval event (per
   `MARKETING.md` and `NEEDS.md`). Cameron's current scheduled-studio
@@ -230,8 +239,10 @@ frame that shows a raw token.**
   undistributed. Video, paid tools,
   paid distribution, Sandbox writes, account changes, deletion, and spend
   remain excluded.
-- The production API `GET /v5/pins` response is the authoritative live-count
-  source and currently returns twenty-eight Pins. `pinterest-approved-pins.json`
+- The historical September 20 production `GET /v5/pins` response returned
+  twenty-eight Pins. For current inventory use the dated verified union above:
+  listing enumeration can omit known IDs that still pass exact production
+  readback. `pinterest-approved-pins.json`
   is a package/publication ledger rather than the profile inventory: it contains
   the three original retained browser posts and every guarded API publication,
   but the separately event-ledgered Goat, Hippo Vanity, and Hippo Desk browser

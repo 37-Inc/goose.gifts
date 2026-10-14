@@ -1,0 +1,59 @@
+{
+  "publication": {
+    "dryRun": false,
+    "recovered": false,
+    "environment": "production",
+    "draft": "editorial-belly-bag-carry-on-poster-20261014-pm",
+    "board": {
+      "id": "1107815277030422220",
+      "name": "Funny White Elephant Gifts"
+    },
+    "pin": {
+      "id": "1107815208391132026",
+      "url": "https://www.pinterest.com/pin/1107815208391132026/",
+      "title": "Belly Fanny Pack for Funny White Elephant Gifts",
+      "link": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm"
+    },
+    "receiptId": "receipt-1792021230593-editorial-belly-bag-carry-on-poster-20261014-pm-publication-succeeded"
+  },
+  "checkedAt": "2026-10-14T23:40:57.206Z",
+  "pin": {
+    "id": "1107815208391132026",
+    "createdAt": "2026-10-14T23:40:29",
+    "boardId": "1107815277030422220",
+    "title": "Belly Fanny Pack for Funny White Elephant Gifts",
+    "description": "A dad bod with a zipper. This Fandicto waist bag uses a realistic belly print, an adjustable canvas strap and a buckle to turn an everyday carry into a dad-joke gift. Visit Goose Gifts for the bag's storage, strap and white-elephant gifting fit. Luggage and keys are editorial props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+    "altText": "Tan belly-print waist bag with black top zipper, canvas strap and buckle on a navy suitcase beside keys and a rust-colored bench. The five-word ivory headline reads 'THE DAD BOD HAS STORAGE'.",
+    "link": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+    "media": {
+      "width": 1024,
+      "height": 1536,
+      "url": "https://i.pinimg.com/1200x/cd/6d/eb/cd6debee119c79632120fef0805a3120.jpg"
+    },
+    "lifetime": {
+      "save": 0,
+      "impression": 0,
+      "profile_visit": null,
+      "pin_click": 0,
+      "outbound_click": 0,
+      "last_updated": "Wed, 14 October 2026 23:40:56 +0000",
+      "user_follow": null,
+      "reaction": 0,
+      "comment": 0
+    },
+    "readbackVerified": true
+  },
+  "publicCheck": {
+    "url": "https://www.pinterest.com/pin/1107815208391132026/",
+    "status": 200,
+    "titlePresent": true,
+    "pinIdPresent": true
+  },
+  "destination": {
+    "url": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+    "status": 200,
+    "canonical": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack",
+    "robots": "index, follow"
+  },
+  "platformAiLabel": "AI modification disclosed in title-package description; payload/readback do not independently establish Pinterest UI label"
+}

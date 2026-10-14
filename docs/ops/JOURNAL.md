@@ -5,6 +5,72 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-14 afternoon — dad-bod storage poster
+
+Canonical main/origin `297caa1`; unrelated `.playwright-cli/` and `output/`
+preserved. Even-date PM assigns P. The current verified public union had 30
+Pins, 2,615 impressions, 43 opens, six saves and zero native outbound clicks.
+GET /pins enumerated 28; exact production reads also verified the known
+Gratiator and Mystic Pickle IDs. No object was treated as deleted or reposted.
+V11 preflight was F6/P2, eight total; spider was today's only publication,
+all receipts were resolved, and the PM slot/product/tracking URL were unused.
+
+GA4 property 507421709, October 7–14 Pacific/current day partial, filtered to
+production hosts and excluding QA/operator campaigns: 12 direct sessions,
+one engaged session, no Pinterest or outbound-event row. Explicit REST
+PostHog project 550427 verified Goose Gifts: two page views and two list
+views, no Pinterest/retailer row. September 19–October 8 coverage gap and
+unattributable per-Pin site/retailer/revenue remain unknown, never historic
+database/Vercel zeros.
+
+No unpublished survivor. The read-only current enriched shortlist includes
+October 12 weekly-run products; maintenance was not run. Chose Fandicto
+B075S2ZCYQ over the leading dense price-table sign for its stronger literal
+zippered-belly mechanism, not merely rank or cadence. This product was not
+newly touched by that weekly run. Creators API reverified IN_STOCK, exact
+primary image, printed PU/canvas pouch, black top zipper, canvas strap and
+buckle. Conflicting size fields were excluded. Live Goose page is HTTP 200,
+self-canonical and indexable, describing adjustable strap, storage and gift fit.
+
+Three distinct concepts saved before generation. Unwrapping repeated the
+preceding spider scene and was rejected. Two included source-guided 1024x1536
+images were inspected at original resolution. Formalwear passed 4.63/5 but
+clothing distracted from utility; travel carry-on became the sole 4.75/5
+survivor with every hard gate passing, source-shaped manufactured bag, exact
+print, coherent physical contact and polished five-word line. Prompts call
+the line six words in error; the exact issued prompts and a correction are
+preserved. No third call was justified. All source/prompts/attempts/reviews/
+rejections/checks are durable in v31.
+
+Recorded the exact complete Cameron approval event under this heartbeat's
+standing delegated scope, not an individual owner visual review. Fourteen
+targeted tests, creative validation, production dry run, build/lint, account,
+board, unique UTM and current slot/day/arm/cohort/receipt checks passed.
+Guarded production API created once at 23:40:30.593 UTC and read back Pin
+1107815208391132026 on Funny White Elephant Gifts. Success receipt:
+`receipt-1792021230593-editorial-belly-bag-carry-on-poster-20261014-pm-publication-succeeded`.
+Second exact readback matched all copy/link/board and 1024x1536 media;
+logged-out public HTML contains title/ID and returns 200. Tracked gift page
+is 200, self-canonical and indexable. AI-modified/affiliate disclosures are in
+the public description; API payload/readback alone do not prove a platform
+UI AI label. Native 28-second baseline is zero, downstream attribution unknown.
+
+Profile now 31 verified Pins. V11 P3/6: 391 impressions, ten opens, two saves;
+F6/6: 225 impressions, four opens, one save. Both native outbound counts zero.
+Nine of twelve, second/final Pin today. Same white-elephant occasion/board as
+morning spider but wearable vs mechanical-container category differs; not a
+causal product-matched comparison. No arm/conversion winner. Sheep's first
+scheduled post-24h observation (27.6h) is zero distribution/actions. Chia then
+crossed its exact 28-day gate: 23 impressions/two opens/no native save or
+outbound. Archived only its individual lifecycle, retaining public Pin and
+v11 count/cohort inclusion.
+
+Next normal selection October 15 morning P; three P quota remain. F slots
+metric-only, schedule untouched. Spider 24h due October 15 16:42:53.716 UTC;
+belly 24h due 23:40:30.593 UTC. Capture only after eligibility. No catalog
+workflow, site implementation, SEO change, outreach, account mutation,
+deletion, paid tool or spend. Recovery Bead already closed; no new workstream.
+
 ## 2026-10-14 morning — final Arm F spider gift-card field note
 
 Used current canonical main `0a4d7c1`; only the two existing operator output
