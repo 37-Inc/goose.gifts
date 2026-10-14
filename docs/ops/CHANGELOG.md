@@ -180,6 +180,7 @@ payoff. Exact package, source, prompts, reviews, baseline and receipt are in
 v30. F is now 6/6, P 2/6, eight of twelve; future F slots are metric-only.
 Moon Ring's 28-day lifecycle was archived with its public Pin/cohort retained.
 Current site attribution stays unknown; no outbound or format win is claimed.
+Evidence: [PR #169](https://github.com/37-Inc/goose.gifts/pull/169).
 
 ### 2026-10-13 [daily-ops] — Confirm the resumed scheduled slot
 
