@@ -182,6 +182,7 @@ eligible scheduled run delivers the six-versus-six acquisition-focused review.
 No generation/publication after twelve or a new experiment without owner
 authorization. Clarified the same contract in `PINTEREST_STUDIO.md`. No Pin,
 catalog job, new automation or site implementation in this interactive turn.
+Evidence: [PR #172](https://github.com/37-Inc/goose.gifts/pull/172).
 
 ### 2026-10-15 [daily-ops] — Publish the greenhouse complaint poster
 
