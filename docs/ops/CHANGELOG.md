@@ -172,6 +172,16 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-15 [daily-ops] — Respect full F quota and refresh evidence
+
+The afternoon F slot is a documented measurement-only no-op: no image or Pin.
+Exact production/public/destination reads verify, P4/F6 stays ten of twelve,
+and both arms still have zero outbound clicks. Bounded explicit GA4/PostHog
+reads keep downstream unknown. Saved V32 PM evidence, seven current metrics
+and one validated learning; no early belly 24h claim. Queue/operating docs
+retain the two normal remaining P slots and receipt-derived final review.
+Existing schedule stays ACTIVE unchanged; no catalog/site/account/spend action.
+
 ### 2026-10-15 [owner+claude] — Confirm v11 completion and final review
 
 Cameron accepted finishing the two remaining posters in normal P slots, then

@@ -29,7 +29,7 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-15 morning):** the studio is ACTIVE. The
+**Current scheduler state (2026-10-15 afternoon):** the studio is ACTIVE. The
 greenhouse frog poster `1107815208391186516` is production-published/readback-
 verified. Profile: 32 verified Pins; v11 F 6/6, P 4/6, ten of twelve. Arm F is
 full, so assigned F slots are measurement-only; the two remaining P Pins
@@ -73,6 +73,21 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-15 afternoon — Arm F quota no-op
+
+F is full, so the scheduled F slot generated and published nothing; P remains
+4/6, F 6/6, total ten. Current exact production reads retain P 651 impressions,
+11 opens/two saves and F 245/four/one; both zero native outbound. Mini bowling
+supplies 96.3% of P exposure, so no acquisition/format winner. GA4 October 9–15
+partial now has four direct plus one unassigned session, one engaged, no
+Pinterest/outbound row. Explicit PostHog 550427 remains two page views/two list
+views, no attributed Pinterest/retailer row; downstream stays unknown.
+V32 PM evidence and eight validated events preserve the no-op. Belly's exact
+24h gate is still pending at the snapshot, not falsely completed early.
+The existing schedule remains ACTIVE unchanged; the final two P slots and
+receipt-derived full-cohort review contract are unchanged. No extra creative,
+public write, arm swap, catch-up, catalog maintenance or spend.
 
 ### 2026-10-15 morning — greenhouse complaint poster
 
