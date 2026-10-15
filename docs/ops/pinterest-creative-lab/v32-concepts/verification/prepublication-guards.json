@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-10-15T16:44:28.509Z",
+  "account": {
+    "id": "1107815345747925810",
+    "username": "goosegifts",
+    "type": "BUSINESS"
+  },
+  "verifiedPublicPinCount": 31,
+  "listedPinCount": 29,
+  "arm": "P",
+  "slot": "2026-10-15 morning",
+  "before": {
+    "P": 3,
+    "F": 6,
+    "total": 9,
+    "publicToday": 0
+  },
+  "unresolvedReceipts": 0,
+  "uniqueTrackingUrl": true,
+  "productNotPublished": true,
+  "expectedAfter": {
+    "P": 4,
+    "F": 6,
+    "total": 10,
+    "publicToday": 1
+  },
+  "validation": {
+    "creativeEvents": 741,
+    "creativeTests": 5,
+    "publisherTests": 9,
+    "productionDryRun": "pass",
+    "build": "pass",
+    "lint": "pass"
+  },
+  "artifactSha256": "a4e956c33dcf9dace38c202ad546383bb61809afae4a6995411bff259146053a"
+}

@@ -9,11 +9,31 @@ candidate and publishing package.
 
 None.
 
-Both October 14 slots published and read back successfully. No owner approval
-item remains. V11 is F 6/6, P 3/6, nine of twelve; two Pins today. Next normal
-selection is October 15 morning Arm P. Assigned F slots remain measurement-only.
+The October 15 morning greenhouse poster is public/readback-verified. No owner
+approval remains. V11 is F 6/6, P 4/6, ten of twelve; one Pin today. This
+afternoon F slot is measurement-only; next normal P selection is October 16
+afternoon. No slot swap or catch-up.
 
 ## Published from this queue
+
+### Grumpy frog — greenhouse complaint poster
+
+- Candidate: `cand-v11-grumpy-frog-poster`, measuring, October 15 morning Arm P under delegated standing heartbeat scope; internal 4.75/5, all hard gates pass.
+- Public Pin: https://www.pinterest.com/pin/1107815208391186516/
+- Artifact: `docs/ops/pinterest-creative-lab/v32-concepts/01-grumpy-frog-greenhouse-poster.png`, 1024x1536; SHA256 `a4e956c33dcf9dace38c202ad546383bb61809afae4a6995411bff259146053a`.
+- Exact product: KYVANDO Grumpy Frog Statue, ASIN B0FR5J39PR; fresh Creators API IN_STOCK. Miniature bronze-look painted resin, exact source scowl/eyes/short legs, not a live or green frog. Conflicting exact dimensions and weather-performance promises excluded.
+- Destination: https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay
+- Board: `Weird Home Decor` (`1107815277030422226`).
+- Title: `Grumpy Frog Statue for Plant Lovers and Weird Decor`
+- Description: `Even the fern has a supervisor. This tiny KYVANDO frog is a resin ornament with an oversized scowl, suited to a desk, shelf or plant corner. Visit Goose Gifts for the material, placement ideas and boxed-gift details before choosing it for a plant lover or a wonderfully grumpy friend. Plant and pot are styling props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Bronze-look grumpy frog resin statue with heavy brows, dark eyes and short feet on a stone greenhouse bench beside a terracotta pot and fern. Dark-green type reads 'THE GARDEN HAS A COMPLAINT'.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL: https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am
+- Approval: `evt-20261015-v11-frog-approved` binds this exact image/board/copy/alt/disclosure/destination/UTM to the October 15 AM P slot under Cameron's quoted standing authorization, not an individual personal visual review. After success: P 4/F 6, total 10/12, first Pin today. Afternoon F slot remains metric-only; no catch-up, swap or higher cap.
+- Click hypothesis: a manufactured miniature with a very real scowl attracts plant lovers; the Goose page resolves resin, placement and boxed-gift fit. Plant/pot styling is explicitly not included.
+- Rejected alternatives: Monday desk passed 4.50/5 but its oversized quote and coffee styling were less distinctive. Classical-monument concept risked a reusable museum template and misleading scale. Two included calls, no causal revision needed.
+- Publication: 14 targeted tests, build/lint, creative validation, production dry run and current account/slot/day/arm/cohort/receipt/duplicate checks passed. Created once and exact readback verified twice, including 1024x1536 media. Logged-out public HTTP 200/title/ID and canonical indexable tracked destination verify. Receipt: `receipt-1792082692032-editorial-grumpy-frog-greenhouse-poster-20261015-am-publication-succeeded`.
+- Native baseline: zero about 43 seconds after success, downstream attribution unknown. Current P: four Pins, 651 impressions, 11 opens, two saves, zero outbound; F: six Pins, 245 impressions, four opens, one save, zero outbound. No conversion/arm winner; full cohort incomplete.
 
 ### Belly fanny pack — dad-bod carry-on poster
 

@@ -1,0 +1,129 @@
+{
+  "checkedAt": "2026-10-15T16:38:08.137Z",
+  "window": {
+    "ga4": "October9–15 Pacific,current day partial",
+    "posthog": "2026-10-09T07:00:00Z through now"
+  },
+  "qaOperatorCampaignsExcluded": true,
+  "ga4": {
+    "property": 507421709,
+    "traffic": {
+      "status": 200,
+      "dimensionHeaders": [
+        {
+          "name": "sessionSourceMedium"
+        },
+        {
+          "name": "sessionCampaignName"
+        }
+      ],
+      "metricHeaders": [
+        {
+          "name": "sessions",
+          "type": "TYPE_INTEGER"
+        },
+        {
+          "name": "engagedSessions",
+          "type": "TYPE_INTEGER"
+        }
+      ],
+      "rows": [
+        {
+          "dimensionValues": [
+            {
+              "value": "(direct) / (none)"
+            },
+            {
+              "value": "(direct)"
+            }
+          ],
+          "metricValues": [
+            {
+              "value": "4"
+            },
+            {
+              "value": "1"
+            }
+          ]
+        }
+      ],
+      "rowCount": 1,
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "kind": "analyticsData#runReport"
+    },
+    "outbound": {
+      "status": 200,
+      "dimensionHeaders": [
+        {
+          "name": "sessionSourceMedium"
+        },
+        {
+          "name": "sessionCampaignName"
+        }
+      ],
+      "metricHeaders": [
+        {
+          "name": "eventCount",
+          "type": "TYPE_INTEGER"
+        }
+      ],
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "kind": "analyticsData#runReport"
+    }
+  },
+  "posthog": {
+    "checkedAt": "2026-10-15T16:38:24.400Z",
+    "project": {
+      "id": 550427,
+      "name": "Goose Gifts"
+    },
+    "summary": {
+      "status": 200,
+      "columns": [
+        "event",
+        "count()",
+        "min(timestamp)",
+        "max(timestamp)"
+      ],
+      "results": [
+        [
+          "view_item_list",
+          2,
+          "2026-10-10T16:44:29.886000Z",
+          "2026-10-13T11:07:40.834000Z"
+        ],
+        [
+          "page_view",
+          2,
+          "2026-10-10T16:44:29.875000Z",
+          "2026-10-13T11:07:40.814000Z"
+        ]
+      ]
+    },
+    "pinterestOrOutbound": {
+      "status": 200,
+      "columns": [
+        "event",
+        "traffic_source",
+        "traffic_campaign",
+        "count()"
+      ],
+      "results": []
+    }
+  },
+  "perPinSiteSessions": null,
+  "perPinRetailerActions": null,
+  "revenueCents": null,
+  "caveats": [
+    "PostHog September19–October8 ingestion gap retained",
+    "Unattributable/missing measurements unknown, not zero",
+    "Retired DB/Vercel historical zeros excluded",
+    "Initial PostHog read query had a LIMIT-spacing syntax typo; corrected read succeeded, no zero inferred from the error."
+  ]
+}

@@ -25,10 +25,10 @@ Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
 - **Pinterest — finish only the remaining P slots:** the resumed scheduler
-  published spider and belly-bag Pins. F is full at 6/6; P is 3/6 and nine of
+  published the greenhouse frog poster. F is full at 6/6; P is 4/6 and ten of
   twelve are public. Assigned F slots are metric-only. Keep the cadence/cap,
-  finish P in its three normal slots, and capture spider/belly 24-hour and
-  seven-day gates. Sheep 24h and Chia 28-day are recorded. No conversion winner.
+  finish P in its two normal slots (next October 16 afternoon), and capture
+  belly/frog 24-hour and seven-day gates. Spider 24h is recorded. No conversion winner.
 
 - **Product landing measurement**: compare qualified product-page visits and
   existing retailer-click events after the compact product-first layout
@@ -168,6 +168,18 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-15 [daily-ops] — Publish the greenhouse complaint poster
+
+Source-verified KYVANDO's miniature resin frog and preserved three concepts,
+two included images and the sole 4.75/5 source-faithful greenhouse survivor.
+Exact package approval, production dry run, 14 targeted tests, build/lint and
+live guards passed; created once/readback-verified
+[Pin 1107815208391186516](https://www.pinterest.com/pin/1107815208391186516/).
+Public link and canonical indexable gift page verify. V32 holds all artifacts,
+rejections and receipts. P 4/F 6, total 10/12, first Pin today; afternoon F remains
+metric-only. Recorded current public/GA4/PostHog evidence and spider 24h;
+attention has not produced native outbound clicks. No schedule/catalog/site changes.
 
 ### 2026-10-14 [daily-ops] — Publish the dad-bod storage poster
 

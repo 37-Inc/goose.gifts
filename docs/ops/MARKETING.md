@@ -29,22 +29,22 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-14 afternoon):** the studio is ACTIVE. Both
-slots published/readback-verified once: morning spider `1107815208391104701`
-and afternoon belly-bag poster `1107815208391132026`. Verified profile: 31 Pins;
-v11 F 6/6, P 3/6, nine of twelve. Arm F is full, so later assigned F slots are
-measurement-only; the three remaining P Pins retain their normal slots. Keep
+**Current scheduler state (2026-10-15 morning):** the studio is ACTIVE. The
+greenhouse frog poster `1107815208391186516` is production-published/readback-
+verified. Profile: 32 verified Pins; v11 F 6/6, P 4/6, ten of twelve. Arm F is
+full, so assigned F slots are measurement-only; the two remaining P Pins
+retain their normal slots, next October 16 afternoon. Keep
 the original two spaced slots, tasteful product-faithful creative, exact
 package safeguards and remaining v11 quota; do not backfill missed posts.
 The recovery/measurement contract is `PINTEREST_STUDIO.md` and Bead
-`roadmap-aguig`. Current public totals are 2,615 impressions, 43 Pin opens,
-six saves and zero outbound clicks. Earlier zero-distribution checkpoints
+`roadmap-aguig`. Current preflight totals are 2,936 impressions, 45 Pin opens,
+seven saves and zero outbound clicks; the new frog starts at zero. Earlier zero-distribution checkpoints
 below remain historical evidence. Prioritize a concrete product/gifting reason
 to click through, not attractive images or saves alone; current downstream
 measurement uses GA4/PostHog, not the retired detailed database click writes.
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Thirty-one product-faithful editorial Pins are live. At the 2026-09-20
+   Thirty-two product-faithful editorial Pins are live. At the 2026-09-20
    morning pull, the public profile had 494 impressions, five Pin clicks, one
    save, and no Pinterest outbound click, attributable Pinterest session, or
    downstream customer product click. That is a directional attention signal,
@@ -54,9 +54,9 @@ measurement uses GA4/PostHog, not the retired detailed database click writes.
    impression and neither has a downstream action, so the result is
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
-   versus bespoke annotated field notes. Nine are live—six Arm F and three Arm
-   P. They have 616 impressions, 14 opens, three saves and no outbound click at
-   the October 14 afternoon check; today's spider and belly Pins start at zero actions.
+   versus bespoke annotated field notes. Ten are live—six Arm F and four Arm
+   P. They have 896 impressions, 15 opens, three saves and no outbound click at
+   the October 15 morning check; the new frog starts at zero actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
@@ -73,6 +73,54 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-15 morning — greenhouse complaint poster
+
+Public and bounded explicit GA4/PostHog reads preceded source work. No valid
+unpublished P survivor. The current enriched shortlist includes October 12
+weekly-run products; no maintenance was run. Reverified frog, Miracu apron and
+AnnoyingPCB IN_STOCK via Creators API and inspected all three exact sources.
+Apron has dense/profanity lettering with source blur; tiny PCB has a multi-view
+composite and invisible audio joke. Selected KYVANDO B0FR5J39PR for its strong
+miniature scowl mechanism, not rank or cadence. It was not newly touched by
+that weekly run. The source is bronze-look resin, not a green/live frog or
+actual bronze. Conflicting size fields and weather-performance promises are
+excluded. Exact gift page is HTTP 200, self-canonical and indexable.
+
+Three concepts were saved before two included 1024x1536 source-guided calls.
+Classical-monument treatment was rejected for template/scale risk. Monday desk
+passed 4.50/5 but its quote and coffee styling were less distinctive. The sole
+4.75/5 greenhouse survivor passes every hard gate, with exact five-word
+`THE GARDEN HAS A COMPLAINT`, source-shaped scowl/feet, coherent miniature
+placement and no visible AI defect. No third call was justified. Public copy
+invites a visit for resin, placement and boxed-gift fit; plant/pot are disclosed
+styling, not included. V32 preserves source, concepts, exact prompts, attempts,
+rejections, internal reviews and all checks.
+
+Exact full delegated package approval, 14 targeted tests, build/lint, production
+dry run, business account, live caps/receipts and unique UTM passed. Guarded
+production created [Pin 1107815208391186516](https://www.pinterest.com/pin/1107815208391186516/)
+once on Weird Home Decor and read it back exactly. Second readback matches
+copy/board/link/media; logged-out public HTTP 200/title/ID and tracked canonical
+indexable gift page verify. Receipt:
+`receipt-1792082692032-editorial-grumpy-frog-greenhouse-poster-20261015-am-publication-succeeded`.
+
+V11 P 4/F 6, total 10/12, first Pin today. P: 651 impressions/11 opens/two
+saves; F: 245/four/one; both zero native outbound. New 43-second baseline is
+zero, not a verdict. Mini bowling reached 627 impressions/nine opens without
+native outbound, so extra attention is not acquisition. GA4 property 507421709,
+October 9–15 Pacific/current day partial, after production-host/QA/operator
+exclusions: four direct sessions/one engaged, no Pinterest/outbound row.
+PostHog 550427 has two page views/two list views, no Pinterest/retailer row.
+Coverage/attribution limits keep per-Pin downstream unknown. Initial PostHog
+query spacing typo was corrected; no missing measurement became zero.
+
+Spider passed its exact 24h receipt boundary during normal work; exact current
+readback and zero distribution/actions recorded at 16:45:34 UTC. Belly 24h is
+not yet eligible. This afternoon F is metric-only, no swapped arm; two normal
+P slots remain, next October 16 afternoon. Keep cadence and cap, and evaluate
+only the complete mature cohort. No catalog workflow, site implementation,
+SEO development, outward outreach, paid tool, account change or deletion.
 
 ### 2026-10-14 afternoon — belly-bag travel poster
 

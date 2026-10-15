@@ -548,6 +548,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208391132026/",
       "publishedAt": "2026-10-14T23:40:30.595Z",
       "publicationReceiptId": "receipt-1792021230593-editorial-belly-bag-carry-on-poster-20261014-pm-publication-succeeded"
+    },
+    {
+      "id": "editorial-grumpy-frog-greenhouse-poster-20261015-am",
+      "candidateId": "cand-v11-grumpy-frog-poster",
+      "approvalEventId": "evt-20261015-v11-frog-approved",
+      "board": "Weird Home Decor",
+      "assetPath": "docs/ops/pinterest-creative-lab/v32-concepts/01-grumpy-frog-greenhouse-poster.png",
+      "targetPage": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay",
+      "trackingUrl": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+      "title": "Grumpy Frog Statue for Plant Lovers and Weird Decor",
+      "description": "Even the fern has a supervisor. This tiny KYVANDO frog is a resin ornament with an oversized scowl, suited to a desk, shelf or plant corner. Visit Goose Gifts for the material, placement ideas and boxed-gift details before choosing it for a plant lover or a wonderfully grumpy friend. Plant and pot are styling props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Bronze-look grumpy frog resin statue with heavy brows, dark eyes and short feet on a stone greenhouse bench beside a terracotta pot and fern. Dark-green type reads 'THE GARDEN HAS A COMPLAINT'.",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208391186516/",
+      "publishedAt": "2026-10-15T16:44:52.036Z",
+      "publicationReceiptId": "receipt-1792082692032-editorial-grumpy-frog-greenhouse-poster-20261015-am-publication-succeeded"
     }
   ]
 }
