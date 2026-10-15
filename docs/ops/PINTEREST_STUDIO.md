@@ -24,6 +24,37 @@ accelerate the schedule. After the twelfth Pin, use metric-only runs until the
 full cohort reaches its 14-day checkpoint. Retain the 50-impression-per-arm
 minimum and do not declare a winner from tiny samples or invent the next batch.
 
+### Owner-confirmed completion and final review — October 15
+
+Cameron explicitly accepted finishing the last two P posters and evaluating
+the complete cohort after its planned window. The current ledger is P 4/6,
+F 6/6, ten of twelve. Next intended P slots are October 16 afternoon and
+October 17 morning Pacific, only if each creative qualifies. A skipped slot
+does not create catch-up credit or permission to switch arms.
+
+The existing ACTIVE heartbeat now explicitly requires the twelfth publication
+to record all twelve public Pin IDs/arms and the exact evaluation deadline:
+the latest of their durable successful publication timestamps plus fourteen
+full days. Record that receipt-derived UTC deadline in the operating/experiment
+ledger. Do not substitute the scheduled slot or an estimated date; if the last
+Pin is delayed, the review moves with it.
+
+After twelve, scheduled runs are measurement-only with no new generation or
+publication, including after the deadline, until Cameron authorizes a new
+experiment. The first scheduled run at/after the deadline delivers and records
+the full six-versus-six review. Compare outbound clicks per impression first,
+then attributable Goose sessions/retailer actions; opens/impression and saves
+are secondary. Include Pin ages, product differences and exposure concentration
+in a single dominant Pin. Missing equal-age history/downstream attribution
+stays unknown. Fifty impressions per arm is a minimum gate, not sufficient
+proof of a winner; zero outbound in both arms means no demonstrated acquisition
+winner. Propose the next bounded test without starting it. Record delivery so
+later metric-only runs do not repeatedly report the same review as new.
+
+This is a prompt clarification in the existing job, not a new automation or
+schedule change. Its name, target thread, two daily slots, ACTIVE status,
+publication guards and no-spend boundary were preserved and read back.
+
 ## Creative and click-through standard
 
 Use `create-pinterest-native-product-images` and both references, then the

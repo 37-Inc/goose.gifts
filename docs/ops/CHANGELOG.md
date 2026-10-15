@@ -29,6 +29,9 @@ what's likely next.
   twelve are public. Assigned F slots are metric-only. Keep the cadence/cap,
   finish P in its two normal slots (next October 16 afternoon), and capture
   belly/frog 24-hour and seven-day gates. Spider 24h is recorded. No conversion winner.
+  Cameron confirmed completing the two posters, then a full-cohort review
+  fourteen days after the actual final publication; no further batch without
+  another owner decision.
 
 - **Product landing measurement**: compare qualified product-page visits and
   existing retailer-click events after the compact product-first layout
@@ -168,6 +171,18 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-15 [owner+claude] — Confirm v11 completion and final review
+
+Cameron accepted finishing the two remaining posters in normal P slots, then
+evaluating the complete mature cohort. Updated/read-back-verified the existing
+ACTIVE heartbeat without changing its cadence or target. The twelfth receipt
+must establish the exact final-publication-plus-14-day deadline; the first
+eligible scheduled run delivers the six-versus-six acquisition-focused review.
+No generation/publication after twelve or a new experiment without owner
+authorization. Clarified the same contract in `PINTEREST_STUDIO.md`. No Pin,
+catalog job, new automation or site implementation in this interactive turn.
+Evidence: [PR #172](https://github.com/37-Inc/goose.gifts/pull/172).
 
 ### 2026-10-15 [daily-ops] — Publish the greenhouse complaint poster
 
