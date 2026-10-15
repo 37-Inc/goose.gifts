@@ -5,6 +5,73 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-15 morning — greenhouse complaint poster
+
+Canonical main/origin `977253c`; unrelated `.playwright-cli/` and `output/`
+preserved. Odd-date morning assigns P. Thirty-one verified public Pins before
+the run had 2,936 impressions, 45 opens, seven saves and zero native outbound.
+Live listing enumerated 29, with known exact-ID production reads completing
+the union; no omitted Pin was deleted/reposted. Current F 6/P 3, total 9, no Pin
+today, all receipts resolved. No valid unpublished survivor. Read-only current
+enriched shortlist uses completed October 12 weekly run without maintenance.
+
+Fresh Creators API reverified KYVANDO grumpy frog, Miracu apron and AnnoyingPCB
+IN_STOCK. All source images saved and inspected: apron has dominant profanity
+lettering/source blur, PCB is a dense multi-view/hand composite with invisible
+sound. Selected B0FR5J39PR, not a newly touched weekly item, for a strong literal
+bronze-look miniature resin scowl. It is not green, alive or actually bronze.
+Conflicting dimension fields excluded; no waterproof/weather-performance
+promise. Canonical gift page is HTTP 200, self-canonical and indexable, with
+resin/placement/boxed-gift payoff. No product-page implementation.
+
+Three concepts before two included 1024x1536 generations. Classical monument
+risks reusable luxury template/scale distortion and was rejected before a
+call. Monday desk passed 4.50/5 but is a more generic quote/coffee scene.
+Greenhouse became sole 4.75/5 survivor, all four hard gates, no visible AI
+defect, source scowl/silhouette/feet and manufactured miniature scale intact.
+Surface texture is relit/resynthesized, not a claim of exact source pixels.
+Five-word THE GARDEN HAS A COMPLAINT is exact and legible. No causal defect
+justified a third call. Source, concepts, exact prompts, both full-resolution
+images, reviews and rejections are durable in v32 and validated event history.
+
+GA4 property 507421709, October 9–15 Pacific/current day partial, production
+hosts and QA/operator campaign exclusions: four direct sessions/one engaged,
+no Pinterest/outbound row. Explicit PostHog project 550427 verified Goose
+Gifts: two page views/two list views, no attributed Pinterest/retailer row.
+An initial HogQL LIMIT-spacing typo was corrected; no zero inferred from that
+read error. September 19–October 8 gap and attribution limits retained; per-Pin
+site/retailer/revenue remain unknown. Retired DB/Vercel zeros not used.
+
+Exact complete approval recorded under Cameron's standing heartbeat scope,
+not a personal owner visual review. Fourteen targeted tests, creative
+validation, build/lint, production dry run, current account, public union,
+receipts, unused slot/day/arm/cohort cap and unique UTM passed. One preliminary
+read collector did not complete; a successful fresh read established clear
+preflight state before any write. Guarded create ran once and read-verified
+Pin 1107815208391186516 on Weird Home Decor at 16:44:52.032 UTC. Receipt:
+`receipt-1792082692032-editorial-grumpy-frog-greenhouse-poster-20261015-am-publication-succeeded`.
+Second exact readback matched copy/board/tracking/media 1024x1536. Logged-out
+public HTTP 200 contains title/ID; tracked gift page is 200, self-canonical
+and indexable. Public description includes AI/affiliate disclosures; API
+readback alone does not prove the platform's UI AI label.
+
+Ten of twelve public, P 4/F 6, first Pin today, 32 verified profile Pins. At
+16:45:34 UTC, P has 651 impressions/11 opens/two saves and F 245/four/one;
+both zero native outbound. Mini bowling's 627 impressions/nine opens show
+distribution/attention, not acquisition. Frog's roughly 43-second baseline is
+zero, not demand verdict. Seven active-candidate metric refreshes, individual
+spider 24h learning and cohort learning appended through validator; previously
+archived Pins remain counted in cohort/caps and current raw snapshots.
+
+Spider reached its exact 24h receipt gate at 16:42:53.716 UTC during ordinary
+work; exact readback and zero native actions captured at 16:45:34.719 UTC,
+about 2m41s after gate. Keep measuring; seven-day gate October 21 same time.
+Belly 24h remains pending until tonight 23:40:30.593 UTC. This afternoon F slot
+is metric-only, not permission to swap or catch up. Two normal P quota remain,
+next October 16 afternoon. Schedule untouched, full-cohort 14-day review pending;
+no catalog workflow, site/SEO changes, outreach, video, account mutation,
+Pin deletion or spend. Recovery Bead already closed; no new workstream.
+
 ## 2026-10-14 afternoon — dad-bod storage poster
 
 Canonical main/origin `297caa1`; unrelated `.playwright-cli/` and `output/`

@@ -177,14 +177,15 @@ frame that shows a raw token.**
 
 ## Production operating state
 
-**Current verified state, October 14 afternoon:** Standard production account
+**Current verified state, October 15 morning:** Standard production account
 `goosegifts` BUSINESS remains correct. The scheduled studio has published and
 read back sheep `1107815208391037211`, spider `1107815208391104701` and belly
-poster `1107815208391132026`. The verified public union is 31 Pins; v11 is
-F 6/6, P 3/6, nine of twelve. F slots are measurement-only and three P quota
+poster `1107815208391132026`, then greenhouse frog `1107815208391186516`.
+The verified public union is 32 Pins; v11 is
+F 6/6, P 4/6, ten of twelve. F slots are measurement-only and two P quota
 remain at the existing cadence. This dated state supersedes historical
 28-Pin/undistributed counts below; access never authorizes a new cohort or
-higher cap. Current contract and receipts: `PINTEREST_STUDIO.md` and v31.
+higher cap. Current contract and receipts: `PINTEREST_STUDIO.md` and v32.
 
 - Standard access and the production OAuth read/dry-run path are verified.
 - Public posting still needs an exact candidate/package approval event (per

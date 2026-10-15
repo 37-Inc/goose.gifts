@@ -79,6 +79,39 @@ promotion, outreach, account changes, deletions, video or unrelated site changes
 
 ## October 13 recovery evidence
 
+### October 15 morning — greenhouse complaint poster
+
+The scheduled Arm P run published the [grumpy frog poster](https://www.pinterest.com/pin/1107815208391186516/)
+once at 16:44:52.032 UTC through guarded production. Exact current IN_STOCK
+listing/source, miniature bronze-look resin identity and canonical indexable
+destination verified. Three concepts, two included images, full-resolution
+reviews and the sole 4.75/5 greenhouse survivor are durable in v32. The generic
+Monday alternative was rejected; no causal revision was justified. The exact
+five-word line is `THE GARDEN HAS A COMPLAINT`; material, placement and
+boxed-gift details give a concrete plant-lover/housewarming click payoff.
+
+Complete delegated approval, 14 targeted tests, build/lint, production dry run,
+account, live public union/receipts, unused slot/day/arm/cohort cap and unique
+UTM passed. Exact API readback passed twice, public HTTP 200 contains title/ID,
+and tracked destination is self-canonical and indexable. Success receipt:
+`receipt-1792082692032-editorial-grumpy-frog-greenhouse-poster-20261015-am-publication-succeeded`.
+
+Current v11: **P 4/6, F 6/6, ten of twelve**, first Pin today. P has 651
+impressions, 11 opens, two saves; F has 245, four opens, one save. Both have
+zero native outbound clicks. Profile preflight: 2,936 impressions, 45 opens,
+seven saves; 32 verified Pins after this new zero-action baseline. Bounded
+October 9–15 GA4 has four direct sessions/one engaged, no Pinterest/outbound
+row; explicit PostHog 550427 has two page views/two list views and no attributed
+Pinterest/retailer row. Per-Pin downstream remains unknown, not historical
+DB/Vercel zeros. Mini bowling's increased delivery is attention, not acquisition.
+
+Spider's exact 24h gate passed during normal work: current readback and zero
+native distribution/actions captured at 16:45:34 UTC. Keep measuring; seven-day
+gate is October 21 at 16:42:53.716 UTC. Belly 24h remains pending until today
+23:40:30.593 UTC. Leave the schedule active. This afternoon F is metric-only;
+two P quota remain in their normal slots, next October 16 afternoon. No arm
+swap, catch-up, higher cap or new cohort; complete-cohort 14-day review pending.
+
 ### October 14 afternoon — Arm P travel-function poster
 
 The scheduled PM slot published and exact-readback-verified the
