@@ -10,9 +10,11 @@ candidate and publishing package.
 None.
 
 The October 15 morning greenhouse poster is public/readback-verified. No owner
-approval remains. V11 is F 6/6, P 4/6, ten of twelve; one Pin today. This
-afternoon F slot is measurement-only; next normal P selection is October 16
-afternoon. No slot swap or catch-up.
+approval remains. V11 is F 6/6, P 4/6, ten of twelve; one Pin today. The
+October 15 afternoon F slot completed as a documented measurement-only no-op:
+no new artifact, approval or public post. Next intended P selections remain
+October 16 afternoon and October 17 morning, subject to quality. No slot swap
+or catch-up; the full-cohort deadline awaits the twelfth successful receipt.
 
 ## Published from this queue
 

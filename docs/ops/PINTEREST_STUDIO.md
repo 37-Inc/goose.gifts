@@ -110,6 +110,32 @@ promotion, outreach, account changes, deletions, video or unrelated site changes
 
 ## October 13 recovery evidence
 
+### October 15 afternoon — full Arm F, measurement-only
+
+The scheduled odd-date PM slot is F, already six of six. No source selection,
+image generation, approval, dry run or public write occurred; P remains four,
+total ten. Exact production reads verify all ten current packages and receipt
+board IDs, 32 profile Pins and no unresolved publication receipt. Frog and
+belly public HTTP 200/title/ID and canonical indexable destinations verify.
+
+At 23:31:45 UTC, P is 651 impressions/11 opens/two saves; F is 245/four/one.
+Both have zero native outbound clicks. Mini bowling supplies 627/651 (96.3%)
+of P exposure; this is not an acquisition or format winner. GA4 507421709,
+October 9–15 Pacific/current day partial, has four direct plus one unassigned
+session, one engaged, no Pinterest/outbound row after production-host and
+QA/operator exclusions. Explicit PostHog 550427 has two page views/two list
+views, no attributed Pinterest/retailer row. Per-Pin downstream stays unknown.
+Seven current metric events and one no-op learning are append-only validated;
+raw public and bounded site evidence is `v32-concepts/verification/metrics-20261015-pm.json`.
+
+Belly 24h is not eligible at this snapshot: exact gate is 23:40:30.593 UTC.
+Frog 24h is October 16 at 16:44:52.032 UTC. Do not label early observations
+as completed checkpoints. Leave the existing schedule ACTIVE unchanged; next
+intended P slots remain October 16 afternoon and October 17 morning Pacific,
+subject to quality. F slots remain metric-only, no swaps or backfill. The
+full-cohort review deadline remains unset until the twelfth actual success;
+derive it from the latest durable successful timestamp plus fourteen days.
+
 ### October 15 morning — greenhouse complaint poster
 
 The scheduled Arm P run published the [grumpy frog poster](https://www.pinterest.com/pin/1107815208391186516/)
