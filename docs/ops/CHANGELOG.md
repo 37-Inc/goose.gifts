@@ -180,6 +180,7 @@ Public link and canonical indexable gift page verify. V32 holds all artifacts,
 rejections and receipts. P 4/F 6, total 10/12, first Pin today; afternoon F remains
 metric-only. Recorded current public/GA4/PostHog evidence and spider 24h;
 attention has not produced native outbound clicks. No schedule/catalog/site changes.
+Evidence: [PR #171](https://github.com/37-Inc/goose.gifts/pull/171).
 
 ### 2026-10-14 [daily-ops] — Publish the dad-bod storage poster
 
