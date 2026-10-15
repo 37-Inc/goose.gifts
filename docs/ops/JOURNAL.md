@@ -5,6 +5,37 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-15 owner confirmation — finish v11, then evaluate
+
+Cameron: "Okay do what you recommend. Finish the remaining two posters and
+evaluate the complete cohort after the planned measurement window."
+This confirms the existing normal-slot plan, not immediate/ad-hoc publication.
+Current ledger P4/F6,total10. The next intended P slots are October 16 PM and
+October 17 AM Pacific, subject to all source/taste/production gates. F slots
+remain metric-only; no swapped arm, catch-up, higher cap or weaker creative.
+
+Inspected the existing heartbeat `goose-gifts-pinterest-growth-studio` and
+updated its prompt through the app. Preserved name, heartbeat kind, target
+thread, ACTIVE status and exact existing two-slot recurrence; disk readback
+matched the full updated prompt and unchanged fields. No duplicate review job.
+The twelfth successful/readback-verified publication records all twelve Pin
+IDs/arms and latest success timestamp plus fourteen full days as exact UTC
+evaluation deadline. If the final slot is delayed, its actual receipt—not the
+calendar guess—moves the deadline.
+
+After twelve, no additional generation/publication even after the deadline
+without a new owner decision. First eligible scheduled run records/delivers
+the complete six-versus-six review, primary outbound/impression and attributable
+site/retailer actions, secondary opens/saves, explicit missing-data unknowns,
+Pin-age/product confounds and single-product exposure concentration. Minimum
+50 impressions per arm does not prove a winner. Zero outbound in both arms
+is no demonstrated acquisition winner; propose but do not start a next test.
+Record review delivery to avoid repeating it as new. Schedule remains active.
+
+No images generated, Pin published, catalog job, spend, account change, site
+implementation or new workstream in this interactive turn. Canonical checkout
+and unrelated `.playwright-cli/` / `output/` preserved. No global memory edit.
+
 ## 2026-10-15 morning — greenhouse complaint poster
 
 Canonical main/origin `977253c`; unrelated `.playwright-cli/` and `output/`
