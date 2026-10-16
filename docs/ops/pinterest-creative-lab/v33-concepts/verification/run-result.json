@@ -1,0 +1,217 @@
+{
+  "triggeredAt": "2026-10-16T23:25:53.285Z",
+  "localSlot": "2026-10-16 afternoon",
+  "experimentId": "exp-pinterest-editorial-mix-v11",
+  "arm": "P",
+  "product": {
+    "id": "B0H3P21YPW",
+    "name": "JAOYWAO Vintage Gold Framed Funny Opossum Wall Art",
+    "destination": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+    "seenInLatestWeeklyRun": false
+  },
+  "generation": {
+    "tool": "built-in included image_gen.imagegen",
+    "calls": 2,
+    "revisions": 0,
+    "conceptBrief": "docs/ops/pinterest-creative-lab/v33-concepts/concept-brief.md",
+    "prompts": [
+      "docs/ops/pinterest-creative-lab/v33-concepts/prompt-01-family-portrait.txt",
+      "docs/ops/pinterest-creative-lab/v33-concepts/prompt-02-reading-nook.txt"
+    ],
+    "artifacts": [
+      "docs/ops/pinterest-creative-lab/v33-concepts/01-opossum-family-portrait-poster.png",
+      "docs/ops/pinterest-creative-lab/v33-concepts/02-opossum-reading-nook-poster.png"
+    ],
+    "survivor": "docs/ops/pinterest-creative-lab/v33-concepts/01-opossum-family-portrait-poster.png",
+    "sha256": "bbedf97826973f664a680fb5793c145184f55fd8ba526e4ff51d9996323e55e9",
+    "internalMean": 4.75,
+    "allHardGatesPass": true,
+    "review": "docs/ops/pinterest-creative-lab/v33-concepts/reviews.json"
+  },
+  "publication": {
+    "dryRun": false,
+    "recovered": false,
+    "environment": "production",
+    "draft": "editorial-opossum-family-portrait-poster-20261016-pm",
+    "board": {
+      "id": "1107815277030422226",
+      "name": "Weird Home Decor"
+    },
+    "pin": {
+      "id": "1107815208391305222",
+      "url": "https://www.pinterest.com/pin/1107815208391305222/",
+      "title": "Opossum Wall Art for Funny Housewarming Gifts",
+      "link": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm"
+    },
+    "receiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded"
+  },
+  "receipt": {
+    "schemaVersion": 1,
+    "receiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded",
+    "type": "publication.succeeded",
+    "recordedAt": "2026-10-16T23:36:45.613Z",
+    "environment": "production",
+    "draftId": "editorial-opossum-family-portrait-poster-20261016-pm",
+    "candidateId": "cand-v11-opossum-portrait-poster",
+    "approvalEventId": "evt-20261016-pm-v11-opossum-approved",
+    "boardId": "1107815277030422226",
+    "pinId": "1107815208391305222",
+    "title": "Opossum Wall Art for Funny Housewarming Gifts",
+    "trackingUrl": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+    "details": {
+      "readbackVerified": true
+    }
+  },
+  "proof": {
+    "exactReadbacks": 2,
+    "publicPin": {
+      "url": "https://www.pinterest.com/pin/1107815208391305222/",
+      "status": 200,
+      "titlePresent": true,
+      "idPresent": true
+    },
+    "destination": {
+      "url": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+      "robots": "index, follow"
+    },
+    "platformHostedImageInspectedOriginal": true,
+    "platformImagePath": "docs/ops/pinterest-creative-lab/v33-concepts/verification/pinterest-published-image.jpg"
+  },
+  "profile": {
+    "pins": 33,
+    "impressions": 2936,
+    "pinClicks": 45,
+    "saves": 7,
+    "outboundClicks": 0
+  },
+  "arms": {
+    "P": {
+      "pins": 5,
+      "impressions": 651,
+      "pinClicks": 11,
+      "saves": 2,
+      "outboundClicks": 0,
+      "siteSessions": null,
+      "affiliateClicks": null
+    },
+    "F": {
+      "pins": 6,
+      "impressions": 245,
+      "pinClicks": 4,
+      "saves": 1,
+      "outboundClicks": 0,
+      "siteSessions": null,
+      "affiliateClicks": null
+    }
+  },
+  "successfulPublicationsToday": 1,
+  "unresolvedReceipts": 0,
+  "cohortMembers": [
+    {
+      "pinId": "1107815208388715714",
+      "arm": "F",
+      "candidateId": "cand-v11-red-crab-field-note",
+      "successfulPublicationAt": "2026-09-15T23:40:50.765Z",
+      "receiptId": "receipt-1789515650765-editorial-red-crab-steam-field-note-20260915-pm-publication-succeeded"
+    },
+    {
+      "pinId": "1107815208388765155",
+      "arm": "F",
+      "candidateId": "cand-v11-farting-ring-field-note",
+      "successfulPublicationAt": "2026-09-16T16:42:19.922Z",
+      "receiptId": "receipt-1789576939922-editorial-farting-ring-courtship-field-note-20260916-am-publication-succeeded"
+    },
+    {
+      "pinId": "1107815208388788830",
+      "arm": "P",
+      "candidateId": "cand-v11-chia-gnome-poster",
+      "successfulPublicationAt": "2026-09-16T23:41:47.926Z",
+      "receiptId": "receipt-1789602107926-editorial-chia-gnome-barbershop-poster-20260916-pm-publication-succeeded"
+    },
+    {
+      "pinId": "1107815208389000013",
+      "arm": "P",
+      "candidateId": "cand-v11-mini-bowling-poster",
+      "successfulPublicationAt": "2026-09-19T16:45:23.812Z",
+      "receiptId": "receipt-1789836323812-editorial-mini-bowling-boardroom-poster-20260919-am-publication-succeeded"
+    },
+    {
+      "pinId": "1107815208389027583",
+      "arm": "F",
+      "candidateId": "cand-v11-birthday-toast-field-note",
+      "successfulPublicationAt": "2026-09-19T23:40:34.916Z",
+      "receiptId": "receipt-1789861234916-editorial-birthday-toast-breakfast-field-note-20260919-pm-publication-succeeded"
+    },
+    {
+      "pinId": "1107815208389087383",
+      "arm": "F",
+      "candidateId": "cand-v11-desktop-therapist-field-note",
+      "successfulPublicationAt": "2026-09-20T16:40:59.150Z",
+      "receiptId": "receipt-1789922459150-editorial-desktop-therapist-boardroom-field-note-20260920-am-publication-succeeded"
+    },
+    {
+      "pinId": "1107815208391037211",
+      "arm": "F",
+      "candidateId": "cand-v11-sheep-roll-field-note",
+      "successfulPublicationAt": "2026-10-13T20:07:09.336Z",
+      "receiptId": "receipt-1791922029336-editorial-sheep-guest-bathroom-field-note-20261013-pm-publication-succeeded"
+    },
+    {
+      "pinId": "1107815208391104701",
+      "arm": "F",
+      "candidateId": "cand-v11-spider-box-field-note",
+      "successfulPublicationAt": "2026-10-14T16:42:53.716Z",
+      "receiptId": "receipt-1791996173716-editorial-spider-box-unwrapped-field-note-20261014-am-publication-succeeded"
+    },
+    {
+      "pinId": "1107815208391132026",
+      "arm": "P",
+      "candidateId": "cand-v11-belly-bag-poster",
+      "successfulPublicationAt": "2026-10-14T23:40:30.593Z",
+      "receiptId": "receipt-1792021230593-editorial-belly-bag-carry-on-poster-20261014-pm-publication-succeeded"
+    },
+    {
+      "pinId": "1107815208391186516",
+      "arm": "P",
+      "candidateId": "cand-v11-grumpy-frog-poster",
+      "successfulPublicationAt": "2026-10-15T16:44:52.032Z",
+      "receiptId": "receipt-1792082692032-editorial-grumpy-frog-greenhouse-poster-20261015-am-publication-succeeded"
+    },
+    {
+      "pinId": "1107815208391305222",
+      "arm": "P",
+      "candidateId": "cand-v11-opossum-portrait-poster",
+      "successfulPublicationAt": "2026-10-16T23:36:45.613Z",
+      "receiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded"
+    }
+  ],
+  "fullCohortReview": {
+    "deadline": null,
+    "status": "11/12; derive only after actual twelfth successful/readback-verified publication",
+    "nextIntendedFinalPSlot": "2026-10-17 morning Pacific",
+    "afterTwelve": "Metric-only indefinitely until new owner experiment authorization; first scheduled run at/after receipt-derived deadline records and delivers complete review once."
+  },
+  "validation": {
+    "creative": true,
+    "tests": 14,
+    "build": true,
+    "lint": true,
+    "productionDryRun": true,
+    "exactPackageAndAssetApproval": true
+  },
+  "evidenceCaveats": [
+    "No attributed row is not proof of zero actual customer actions.",
+    "PostHog ingestion gap September19-October8 and sparse resumed data; missing attribution remains unknown.",
+    "Sandbox/v3, QA/operator and retired DB/Vercel zeros excluded."
+  ],
+  "scope": {
+    "catalogJobRun": false,
+    "siteChanges": false,
+    "spend": 0,
+    "schedulerChanged": false,
+    "accountSettingsChanged": false,
+    "pinDeletion": false
+  }
+}

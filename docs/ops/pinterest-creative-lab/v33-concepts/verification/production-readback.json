@@ -1,0 +1,106 @@
+{
+  "checkedAt": "2026-10-16T23:37:22.312Z",
+  "exactSecondReadback": true,
+  "receipt": {
+    "schemaVersion": 1,
+    "receiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded",
+    "type": "publication.succeeded",
+    "recordedAt": "2026-10-16T23:36:45.613Z",
+    "environment": "production",
+    "draftId": "editorial-opossum-family-portrait-poster-20261016-pm",
+    "candidateId": "cand-v11-opossum-portrait-poster",
+    "approvalEventId": "evt-20261016-pm-v11-opossum-approved",
+    "boardId": "1107815277030422226",
+    "pinId": "1107815208391305222",
+    "title": "Opossum Wall Art for Funny Housewarming Gifts",
+    "trackingUrl": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+    "details": {
+      "readbackVerified": true
+    }
+  },
+  "pin": {
+    "board_owner": {
+      "username": "goosegifts"
+    },
+    "board_section_id": null,
+    "alt_text": "Small landscape gold-colored frame containing a printed portrait of a reclining gray-and-white opossum with open mouth and curled pink tail, leaning on a walnut console against a dark teal wall. Ivory text reads 'FINALLY, AN HONEST FAMILY PORTRAIT'.",
+    "has_been_promoted": false,
+    "link": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+    "dominant_color": "#3f2d2c",
+    "is_product": false,
+    "is_owner": true,
+    "product_tags": [],
+    "creative_type": "REGULAR",
+    "parent_pin_id": null,
+    "created_at": "2026-10-16T23:36:44",
+    "media": {
+      "media_type": "image",
+      "images": {
+        "150x150": {
+          "width": 150,
+          "height": 150,
+          "url": "https://i.pinimg.com/150x150/90/81/20/908120bd409c4ca4b6d0efa918cdd2cb.jpg"
+        },
+        "400x300": {
+          "width": 400,
+          "height": 300,
+          "url": "https://i.pinimg.com/400x300/90/81/20/908120bd409c4ca4b6d0efa918cdd2cb.jpg"
+        },
+        "600x": {
+          "width": 564,
+          "height": 846,
+          "url": "https://i.pinimg.com/564x/90/81/20/908120bd409c4ca4b6d0efa918cdd2cb.jpg"
+        },
+        "1200x": {
+          "width": 1024,
+          "height": 1536,
+          "url": "https://i.pinimg.com/1200x/90/81/20/908120bd409c4ca4b6d0efa918cdd2cb.jpg"
+        }
+      }
+    },
+    "pin_metrics": {
+      "90d": {
+        "user_follow": null,
+        "last_updated": "Fri, 16 October 2026 23:37:21 +0000",
+        "impression": 0,
+        "profile_visit": null,
+        "outbound_click": 0,
+        "pin_click": 0,
+        "save": 0
+      },
+      "lifetime_metrics": {
+        "user_follow": null,
+        "last_updated": "Fri, 16 October 2026 23:37:21 +0000",
+        "impression": 0,
+        "profile_visit": null,
+        "outbound_click": 0,
+        "pin_click": 0,
+        "save": 0,
+        "reaction": 0,
+        "comment": 0
+      }
+    },
+    "id": "1107815208391305222",
+    "title": "Opossum Wall Art for Funny Housewarming Gifts",
+    "is_removable": false,
+    "is_standard": true,
+    "board_id": "1107815277030422226",
+    "description": "A very distinguished little menace. This JAOYWAO canvas print puts a theatrically reclining opossum in a gold-colored frame. Visit Goose Gifts for its 8x10-inch format, ready-to-hang details and animal-lover housewarming fit. Console, vase, coat and keys are styling props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases."
+  },
+  "publicPin": {
+    "url": "https://www.pinterest.com/pin/1107815208391305222/",
+    "status": 200,
+    "titlePresent": true,
+    "idPresent": true
+  },
+  "destination": {
+    "url": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+    "status": 200,
+    "canonical": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+    "robots": "index, follow"
+  },
+  "caveats": [
+    "Readback proves API package/media and public HTML title/ID, not browser UI AI-label rendering. Description includes explicit AI/affiliate disclosure.",
+    "Initial native baseline is not a demand or format verdict."
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "capturedAt": "2026-10-16T23:27:15.640Z",
+  "ga4": {
+    "property": "507421709",
+    "dateRange": [
+      "2026-10-10",
+      "2026-10-16"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "currentDayPartial": true,
+    "productionHosts": [
+      "goose.gifts",
+      "www.goose.gifts"
+    ],
+    "excludedCampaigns": "qa|operator|goose-proof",
+    "sessions": {
+      "dimensionHeaders": [
+        {
+          "name": "sessionSourceMedium"
+        },
+        {
+          "name": "sessionCampaignName"
+        }
+      ],
+      "metricHeaders": [
+        {
+          "name": "sessions",
+          "type": "TYPE_INTEGER"
+        },
+        {
+          "name": "engagedSessions",
+          "type": "TYPE_INTEGER"
+        }
+      ],
+      "rows": [
+        {
+          "dimensionValues": [
+            {
+              "value": "(direct) / (none)"
+            },
+            {
+              "value": "(direct)"
+            }
+          ],
+          "metricValues": [
+            {
+              "value": "5"
+            },
+            {
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "dimensionValues": [
+            {
+              "value": "(not set)"
+            },
+            {
+              "value": "(not set)"
+            }
+          ],
+          "metricValues": [
+            {
+              "value": "2"
+            },
+            {
+              "value": "0"
+            }
+          ]
+        }
+      ],
+      "rowCount": 2,
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "kind": "analyticsData#runReport"
+    },
+    "outbound": {
+      "dimensionHeaders": [
+        {
+          "name": "sessionSourceMedium"
+        },
+        {
+          "name": "sessionCampaignName"
+        }
+      ],
+      "metricHeaders": [
+        {
+          "name": "eventCount",
+          "type": "TYPE_INTEGER"
+        }
+      ],
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "kind": "analyticsData#runReport"
+    }
+  },
+  "posthog": {
+    "projectId": 550427,
+    "projectName": "Goose Gifts",
+    "startInclusiveUtc": "2026-10-10T07:00:00Z",
+    "excludedCampaigns": "qa|operator|goose-proof",
+    "summary": {
+      "columns": [
+        "event",
+        "count()",
+        "min(timestamp)",
+        "max(timestamp)"
+      ],
+      "results": [
+        [
+          "view_item_list",
+          2,
+          "2026-10-10T16:44:29.886000Z",
+          "2026-10-13T11:07:40.834000Z"
+        ],
+        [
+          "page_view",
+          2,
+          "2026-10-10T16:44:29.875000Z",
+          "2026-10-13T11:07:40.814000Z"
+        ]
+      ]
+    },
+    "attribution": {
+      "columns": [
+        "event",
+        "toString(properties.traffic_source)",
+        "toString(properties.utm_source)",
+        "toString(properties.traffic_campaign)",
+        "count()"
+      ],
+      "results": []
+    }
+  },
+  "perPinDownstream": {
+    "siteSessions": null,
+    "affiliateClicks": null,
+    "revenueCents": null
+  },
+  "caveats": [
+    "No attributed row is not proof of zero actual customer actions.",
+    "PostHog ingestion gap September19-October8 and sparse resumed data; missing attribution remains unknown.",
+    "Sandbox/v3, QA/operator and retired DB/Vercel zeros excluded."
+  ]
+}

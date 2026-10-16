@@ -24,13 +24,12 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **Pinterest — finish only the remaining P slots:** the resumed scheduler
-  published the greenhouse frog poster. F is full at 6/6; P is 4/6 and ten of
-  twelve are public. Assigned F slots are metric-only. Keep the cadence/cap,
-  finish P in its two normal slots (next October 16 afternoon), and capture
-  frog 24-hour and seven-day gates. Belly's first eligible late 24h observation
-  and spider 24h are recorded. No conversion winner.
-  Cameron confirmed completing the two posters, then a full-cohort review
+- **Pinterest — finish only the final P slot:** the scheduled studio published
+  the opossum family-portrait poster. F 6/6, P 5/6, eleven of twelve are public.
+  Assigned F slots remain metric-only. Keep cadence/cap and finish the last P
+  in its normal intended October 17 morning slot if qualified. Capture opossum
+  24-hour, seven-day and due 28-day gates. Frog/belly late 24h and spider 24h are
+  recorded; no conversion winner. Cameron confirmed completing P, then review
   fourteen days after the actual final publication; no further batch without
   another owner decision.
 
@@ -172,6 +171,20 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-16 [daily-ops] — Publish the honest family-portrait poster
+
+Source-verified the JAOYWAO framed opossum print and canonical gift page;
+three concepts/two included images yielded one 4.75/5 product-faithful poster.
+Exact delegated package, 14 tests, build/lint, production dry run and fresh
+source/account/cap/receipt/UTM guards passed. Created once/readback-verified
+[Pin 1107815208391305222](https://www.pinterest.com/pin/1107815208391305222/),
+with public/platform-image/indexable-destination proof. V33 preserves source,
+prompts, rejected alternative, reviews and receipt. P 5/F 6, total 11, first Pin
+today; final P intended October 17 AM. Recorded frog's late 24h check/current
+public and GA4/PostHog evidence. No acquisition winner, schedule/catalog/site
+change or spend; full-cohort review deadline awaits actual twelfth success.
+Evidence: [publication and creative PR](https://github.com/37-Inc/goose.gifts/pull/175).
 
 ### 2026-10-16 [daily-ops] — Measure full F slot and belly's late 24h gate
 

@@ -9,16 +9,34 @@ candidate and publishing package.
 
 None.
 
-The October 15 greenhouse poster is public/readback-verified. No owner
-approval remains. As of October 16 morning, v11 is F 6/6, P 4/6, ten of twelve,
-with no Pin today. This full-F slot completed as a measurement-only no-op;
-no new artifact, product, approval or public post. Belly's first eligible late
-24h observation is recorded; frog 24h is pending at the 16:32 UTC snapshot.
-Next intended P selections remain October 16 afternoon and October 17 morning,
-subject to quality. No slot swap or catch-up; the full-cohort deadline awaits
-the twelfth successful receipt. The existing schedule stays ACTIVE unchanged.
+The October 16 afternoon opossum poster is public/readback-verified, with no
+owner-ready item or pending approval. V11 is F 6/6, P 5/6, eleven of twelve;
+one public Pin today. Only one P quota remains, next intended October 17
+morning Pacific if qualified. Frog's first eligible late 24h observation is
+recorded. No arm swap, catch-up or new cohort. The exact full-cohort deadline
+awaits the twelfth actual successful receipt. Schedule stays ACTIVE unchanged.
 
 ## Published from this queue
+
+### Framed opossum — honest family portrait
+- Candidate: `cand-v11-opossum-portrait-poster`, measuring, October16 afternoon Arm P under Cameron's exact standing heartbeat scope, not a personal owner visual review. Internal4.75/5/all hard gates; two included calls, no revision.
+- Public Pin: https://www.pinterest.com/pin/1107815208391305222/
+- Artifact: `docs/ops/pinterest-creative-lab/v33-concepts/01-opossum-family-portrait-poster.png`,1024x1536,SHA256 `bbedf97826973f664a680fb5793c145184f55fd8ba526e4ff51d9996323e55e9`.
+- Exact product: JAOYWAO Vintage Gold Framed Funny Opossum Wall Art, ASIN B0H3P21YPW; fresh Creators API purchasable IN_STOCK_SCARCE. Small 8x10-inch listing format, landscape printed canvas in a gold-colored frame; no actual-gold/wood/antique/hand-painted claim. No scarcity/price promise.
+- Destination: https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art
+- Board: `Weird Home Decor` (`1107815277030422226`).
+- Title: `Opossum Wall Art for Funny Housewarming Gifts`
+- Description: `A very distinguished little menace. This JAOYWAO canvas print puts a theatrically reclining opossum in a gold-colored frame. Visit Goose Gifts for its 8x10-inch format, ready-to-hang details and animal-lover housewarming fit. Console, vase, coat and keys are styling props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Small landscape gold-colored frame containing a printed portrait of a reclining gray-and-white opossum with open mouth and curled pink tail, leaning on a walnut console against a dark teal wall. Ivory text reads 'FINALLY, AN HONEST FAMILY PORTRAIT'.`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL: https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm
+- Approval: `evt-20261016-pm-v11-opossum-approved` binds this complete package, image hash and October16 PM P slot under the quoted standing authorization; P4/F6,total10 preflight, P5/F6,total11 after one qualified success. First Pin today, at most one this run. Next intended/final P slot October17 AM, no backfill/arm swap.
+- Click hypothesis: the recognizable small framed opossum is the hilariously honest family portrait; the exact Goose page resolves printed-canvas material, listed size, ready-to-hang details and housewarming fit.
+- Alternatives: reading-chair pose echo4.50/5 rejected comparatively because chair/book compete and wording is less specific; dinner-host concept rejected before generation because room/table competes or tempts misleading frame enlargement. Duck repeats animal-figurine mechanism/fidelity risk; dense calendar cover is a reproduction risk.
+- Publication: creative validation, all14 targeted tests, build/lint, production dry run and fresh source/account/cap/slot/day/receipt/unique-UTM checks passed. Created once at2026-10-16T23:36:45.613Z; exact readback verified twice. Public HTTP200/title/ID, platform-hosted1024x1536 image inspected, and tracked canonical/indexable destination verify. Receipt: `receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded`.
+- Baseline: zero native distribution/actions about44.787 seconds after success, not a demand verdict. P5:651impressions/11opens/2saves; F6:245/4/1; both zero native outbound. Per-Pin downstream remains unknown. One P quota remains; next intended October17 AM, with exact full-cohort review deadline pending final actual success.
+
+
 
 ### Grumpy frog — greenhouse complaint poster
 

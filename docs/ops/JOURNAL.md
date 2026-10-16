@@ -5,6 +5,102 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-16 afternoon — opossum family-portrait poster
+
+Heartbeat23:25:53.285 UTC; canonical main/origin617896c. Preserved unrelated
+`.playwright-cli/` and `output/`. Refreshed stale local Graphify index with
+local extraction only, queried relevant Creators/candidate/publisher symbols
+then read those files directly; no SQL dependency installation or code change.
+Even-date PM assigns P. Initial32 public Pins, P4/F6,total10, no public Pin
+today and no unresolved receipt. Public/GA4/PostHog evidence preceded source
+work. No valid unpublished survivor; read-only enriched shortlist returned19
+eligible products under limit20, using latest completed October12 weekly run
+without maintenance. No weekly/catalog job or paid tool invoked.
+
+Fresh Creators API checked duck B0CCVQTZJH, calendar B0D9GBGSMZ and framed
+opossum B0H3P21YPW; all purchasable and exact images inspected. Duck source is
+a hand-shaped long-neck figurine plus two inset scenes, repeating an animal
+figurine after frog and adding fidelity risk. Calendar's dense year/cover
+collage is a reproduction/multiple-focus risk. Rank1 price-table caution sign
+was not automatically selected. Chosen JAOYWAO print was not newly touched by
+weekly run; strong single-source identity and concept drove selection. Exact
+API recheck immediately pre-publication remained IN_STOCK_SCARCE; no public
+scarcity, price or urgency promise. Source500x429 even under1500 URL request.
+
+Literal object: small landscape framed printed canvas, gold-colored molding,
+reclining gray/cream opossum with upturned open mouth, dark ears, curled pink
+tail left, chest paw and right planted paw, green/ochre painted background.
+Listing8x10-inch format/ready-to-hang and live self-canonical/indexable Goose
+page verify. No live animal, sculpture, original oil painting, actual gold,
+frame wood/metal or antique claim. Concrete click payoff: size, printed-canvas
+material, ready-to-hang and animal-lover housewarming fit. No site implementation.
+
+Saved three concepts before two independent included1024x1536 calls. Entryway
+family-portrait role, reclining-chair pose echo and reluctant dinner-host role
+are distinct mechanisms. Dinner-host risks competing table/scale/template and
+was rejected before generation. Original-resolution source comparison selected
+family-portrait4.75/5, all four gates, min4; exact five-word FINALLY, AN HONEST
+FAMILY PORTRAIT. Reading-chair4.50/5 comparatively rejected for foreground
+chair/book weight and less specific phrase. Same painted pose/paws/face/curl/
+landscape frame and small scale remain recognizable; fine texture/molding
+is relit/resynthesized, not claimed pixel-identical source photography. No
+visible AI defect or diagnosed weakness justified a third call. Intrinsic
+product frame is not an added ad border; props explicitly excluded. Internal
+review is not a personal owner review. Both full artifacts/prompts preserved;
+generated originals left intact. No billed API/CLI fallback.
+
+Exact full package approval recorded under quoted standing heartbeat scope,
+image SHA256 bbedf97826973f664a680fb5793c145184f55fd8ba526e4ff51d9996323e55e9,
+board Weird Home Decor1107815277030422226 and unique poster UTM. Creative
+validation,14 tests, build/lint and production dry run passed. Fresh production
+BUSINESS identity, exact approval/candidate state/asset, source availability,
+unused day/slot/UTM, P4/F6,total10 and all resolved receipts verified before
+one create. Guarded publisher created/read-verified1107815208391305222 at
+2026-10-16T23:36:45.613Z. Success receipt:
+`receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded`.
+Second exact API readback, public HTTP200/title/ID, platform-hosted1024x1536
+image inspection and tracked self-canonical/indexable destination pass. API
+readback/public pixels do not prove browser UI AI-label rendering; explicit
+AI/affiliate disclosure is in the verified description. No retry/deletion.
+
+Now33 verified public Pins; P5/F6,total11, first Pin today, no unresolved
+receipt. Current profile2,936impressions/45opens/7saves/zero native outbound.
+P651/11/2, F245/4/1, both zero outbound. New44.787-second baseline is zero,
+not demand verdict. Bowling still supplies627/651 P exposure, so reach/open
+counts and unequal product/age mix do not establish acquisition/format winner.
+GA4 property507421709, Oct10–16 Pacific/current day partial, production hosts
+and QA/operator exclusions:5direct+2unassigned sessions/1engaged, no Pinterest/
+outbound row. Explicit PostHog550427 verifies Goose Gifts,2page views/2list
+views, no attributed Pinterest/retailer row. Sparse resumed data/prior gap
+and missing attribution keep per-Pin sessions, retailer actions and revenue
+unknown. No row is not zero actual customer actions; retired DB/Vercel and
+Sandbox/v3 excluded. No browser analytics QA or retailer click generated.
+
+Frog's first eligible late24h current checkpoint is zero at age30h52m38.368s,
+6h52m38.368s after its exact gate, not reconstructed historical exact24h.
+Frog7day due October22T16:44:52.032Z; new opossum24h due October17T23:36:45.613Z.
+V33 records exact listing/source, concepts, prompts, both artifacts/reviews,
+dry run, pre/post live state, readback, receipt and run result. All creative
+events append through validator; public receipt/published transition came
+through publisher, followed by measuring/current metric and learning events.
+No owner-ready queue remains. A small Markdown heading insertion error was
+fixed before publication; every creative/test/publisher gate itself passed.
+Final creative validation passes at 792 events/eight experiments/36 candidates;
+all 14 targeted tests, build, lint and diff checks pass. Prior creative/receipt
+prefixes are unchanged, with 23 events and two receipt lines added. All legacy
+manifest entries are unchanged; exactly one new published package was added.
+
+Only one P quota remains, next intended October17 AM Pacific if qualified.
+No arm swap, catch-up, extra post or new cohort. Exact full-cohort deadline
+remains unset at11/12: twelfth actual readback-verified success must record all
+twelve IDs/arms and latest durable success timestamp+14full days. Then no
+generation/publication, even after deadline, until new owner authorization;
+continue metric-only and deliver/record the full review once on first eligible
+scheduled run. Existing schedule remains ACTIVE untouched. Recovery Bead
+already closed; no roadmap mutation/new workstream, catalog job, product-page/
+SEO development, outreach, video, account change, Pin deletion, global memory
+edit or spend.
+
 ## 2026-10-16 morning — full F quota, belly's eligible late checkpoint
 
 Heartbeat 16:30:17.964 UTC, canonical main/origin ac6b881; unrelated

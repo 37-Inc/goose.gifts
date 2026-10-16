@@ -1,0 +1,1757 @@
+{
+  "capturedAt": "2026-10-16T23:37:30.400Z",
+  "account": {
+    "id": "1107815345747925810",
+    "username": "goosegifts",
+    "accountType": "BUSINESS"
+  },
+  "inventory": {
+    "listed": 31,
+    "verifiedUnion": 33,
+    "omitted": [
+      "1107815208387877454",
+      "1107815208388077586"
+    ]
+  },
+  "profile": {
+    "pins": 33,
+    "impressions": 2936,
+    "pinClicks": 45,
+    "saves": 7,
+    "outboundClicks": 0
+  },
+  "arms": {
+    "P": {
+      "pins": 5,
+      "impressions": 651,
+      "pinClicks": 11,
+      "saves": 2,
+      "outboundClicks": 0,
+      "siteSessions": null,
+      "affiliateClicks": null
+    },
+    "F": {
+      "pins": 6,
+      "impressions": 245,
+      "pinClicks": 4,
+      "saves": 1,
+      "outboundClicks": 0,
+      "siteSessions": null,
+      "affiliateClicks": null
+    }
+  },
+  "unresolvedReceipts": [],
+  "successfulReceiptsToday": [
+    {
+      "schemaVersion": 1,
+      "receiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded",
+      "type": "publication.succeeded",
+      "recordedAt": "2026-10-16T23:36:45.613Z",
+      "environment": "production",
+      "draftId": "editorial-opossum-family-portrait-poster-20261016-pm",
+      "candidateId": "cand-v11-opossum-portrait-poster",
+      "approvalEventId": "evt-20261016-pm-v11-opossum-approved",
+      "boardId": "1107815277030422226",
+      "pinId": "1107815208391305222",
+      "title": "Opossum Wall Art for Funny Housewarming Gifts",
+      "trackingUrl": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+      "details": {
+        "readbackVerified": true
+      }
+    }
+  ],
+  "pins": [
+    {
+      "id": "1107815208384432735",
+      "title": "A Mug Named Patricia Has Entered the Breakfast",
+      "createdAt": "2026-07-24T14:32:47",
+      "boardId": "1107815277030422224",
+      "link": "https://www.goose.gifts/random-gift?gift=B0F9DZMQBL&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v1&utm_content=hippo_mug_breakfast",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "profile_visit": 0,
+        "impression": 22,
+        "outbound_click": 0,
+        "save": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:27 +0000",
+        "user_follow": 0,
+        "pin_click": 1,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 22,
+        "pinClicks": 1,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": null,
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208384432759",
+      "title": "The Oven Mitt Is Biting Back",
+      "createdAt": "2026-07-24T14:33:08",
+      "boardId": "1107815277030422224",
+      "link": "https://www.goose.gifts/random-gift?gift=B005UGWDAE&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v1&utm_content=alligator_oven_mitt",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "user_follow": 0,
+        "profile_visit": 0,
+        "pin_click": 1,
+        "outbound_click": 0,
+        "save": 1,
+        "last_updated": "Fri, 16 October 2026 23:37:27 +0000",
+        "impression": 79,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 79,
+        "pinClicks": 1,
+        "saves": 1,
+        "outboundClicks": 0
+      },
+      "receipt": null,
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208384432788",
+      "title": "The Side Table Is Looking Back",
+      "createdAt": "2026-07-24T14:33:31",
+      "boardId": "1107815277030422226",
+      "link": "https://www.goose.gifts/random-gift?gift=B0D57DDDM1&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v1&utm_content=ceramic_eye_interior",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "user_follow": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:27 +0000",
+        "outbound_click": 0,
+        "profile_visit": 0,
+        "save": 0,
+        "impression": 52,
+        "pin_click": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 52,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": null,
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387225923",
+      "title": "The Chicken Brought Flowers to Dinner",
+      "createdAt": "2026-08-28T17:19:27",
+      "boardId": "1107815277030422226",
+      "link": "https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "impression": 7,
+        "profile_visit": null,
+        "user_follow": null,
+        "outbound_click": 0,
+        "pin_click": 0,
+        "save": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:27 +0000",
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 7,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1787937568490-editorial-raw-chicken-vase-formal-dinner-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-08-28T17:19:28.490Z",
+        "environment": "production",
+        "draftId": "editorial-raw-chicken-vase-formal-dinner",
+        "candidateId": "cand-v6-raw-chicken-centerpiece",
+        "approvalEventId": "evt-20260828-v6-raw-chicken-approved",
+        "boardId": "1107815277030422226",
+        "pinId": "1107815208387225923",
+        "title": "The Chicken Brought Flowers to Dinner",
+        "trackingUrl": "https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387477273",
+      "title": "The Butt Is Holding This Project Together",
+      "createdAt": "2026-08-31T16:48:11",
+      "boardId": "1107815277030422223",
+      "link": "https://www.goose.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "outbound_click": 0,
+        "user_follow": null,
+        "pin_click": 0,
+        "impression": 7,
+        "save": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:27 +0000",
+        "profile_visit": null,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 7,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788194892341-editorial-butt-tape-architecture-desk-20260831-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-08-31T16:48:12.341Z",
+        "environment": "production",
+        "draftId": "editorial-butt-tape-architecture-desk-20260831",
+        "candidateId": "cand-v7-butt-tape-architecture",
+        "approvalEventId": "evt-20260831-v7-butt-tape-approved",
+        "boardId": "1107815277030422223",
+        "pinId": "1107815208387477273",
+        "title": "The Butt Is Holding This Project Together",
+        "trackingUrl": "https://www.goose.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387553278",
+      "title": "The Cat Spa Has Taken a Turn",
+      "createdAt": "2026-09-01T16:49:20",
+      "boardId": "1107815277030422220",
+      "link": "https://www.goose.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "pin_click": 2,
+        "last_updated": "Fri, 16 October 2026 23:37:27 +0000",
+        "profile_visit": null,
+        "save": 0,
+        "impression": 136,
+        "user_follow": null,
+        "outbound_click": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 136,
+        "pinClicks": 2,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788281361404-editorial-lickem-cat-brush-spa-20260901-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-01T16:49:21.404Z",
+        "environment": "production",
+        "draftId": "editorial-lickem-cat-brush-spa-20260901",
+        "candidateId": "cand-v8-lickem-cat-spa",
+        "approvalEventId": "evt-20260901-v8-cat-brush-approved",
+        "boardId": "1107815277030422220",
+        "pinId": "1107815208387553278",
+        "title": "The Cat Spa Has Taken a Turn",
+        "trackingUrl": "https://www.goose.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387630624",
+      "title": "The Pizza Called in a Contractor",
+      "createdAt": "2026-09-02T16:50:13",
+      "boardId": "1107815277030422224",
+      "link": "https://www.goose.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "pin_click": 1,
+        "profile_visit": null,
+        "outbound_click": 0,
+        "impression": 90,
+        "save": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:27 +0000",
+        "user_follow": null,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 90,
+        "pinClicks": 1,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788367813772-editorial-pizza-boss-still-life-20260902-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-02T16:50:13.772Z",
+        "environment": "production",
+        "draftId": "editorial-pizza-boss-still-life-20260902",
+        "candidateId": "cand-v9-pizza-boss-still-life",
+        "approvalEventId": "evt-20260902-v9-pizza-boss-approved",
+        "boardId": "1107815277030422224",
+        "pinId": "1107815208387630624",
+        "title": "The Pizza Called in a Contractor",
+        "trackingUrl": "https://www.goose.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387654951",
+      "title": "Bullshit Button for Office Meetings",
+      "createdAt": "2026-09-02T23:42:58",
+      "boardId": "1107815277030422223",
+      "link": "https://www.goose.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "last_updated": "Fri, 16 October 2026 23:37:27 +0000",
+        "impression": 13,
+        "save": 0,
+        "profile_visit": null,
+        "user_follow": null,
+        "pin_click": 0,
+        "outbound_click": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 13,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788392579312-editorial-bullshit-button-meeting-headline-20260902-pm-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-02T23:42:59.312Z",
+        "environment": "production",
+        "draftId": "editorial-bullshit-button-meeting-headline-20260902-pm",
+        "candidateId": "cand-v10-bullshit-button-referee",
+        "approvalEventId": "evt-20260902-v10-bullshit-button-approved",
+        "boardId": "1107815277030422223",
+        "pinId": "1107815208387654951",
+        "title": "Bullshit Button for Office Meetings",
+        "trackingUrl": "https://www.goose.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387708056",
+      "title": "Toilet Golf Gag Gift for Golfers",
+      "createdAt": "2026-09-03T16:42:11",
+      "boardId": "1107815277030422220",
+      "link": "https://www.goose.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "profile_visit": null,
+        "outbound_click": 0,
+        "save": 0,
+        "pin_click": 3,
+        "user_follow": null,
+        "impression": 56,
+        "last_updated": "Fri, 16 October 2026 23:37:28 +0000",
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 56,
+        "pinClicks": 3,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788453732073-editorial-toilet-golf-country-club-headline-20260903-am-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-03T16:42:12.073Z",
+        "environment": "production",
+        "draftId": "editorial-toilet-golf-country-club-headline-20260903-am",
+        "candidateId": "cand-v10-toilet-golf-country-club",
+        "approvalEventId": "evt-20260903-v10-toilet-golf-approved",
+        "boardId": "1107815277030422220",
+        "pinId": "1107815208387708056",
+        "title": "Toilet Golf Gag Gift for Golfers",
+        "trackingUrl": "https://www.goose.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387734801",
+      "title": "Middle Management Is Making a Point",
+      "createdAt": "2026-09-03T23:41:38",
+      "boardId": "1107815277030422223",
+      "link": "https://www.goose.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "save": 0,
+        "pin_click": 0,
+        "impression": 20,
+        "profile_visit": null,
+        "last_updated": "Fri, 16 October 2026 23:37:28 +0000",
+        "user_follow": null,
+        "outbound_click": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 20,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788478899705-editorial-middle-management-boardroom-clean-20260903-pm-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-03T23:41:39.705Z",
+        "environment": "production",
+        "draftId": "editorial-middle-management-boardroom-clean-20260903-pm",
+        "candidateId": "cand-v10-middle-management-statue",
+        "approvalEventId": "evt-20260903-v10-middle-management-approved",
+        "boardId": "1107815277030422223",
+        "pinId": "1107815208387734801",
+        "title": "Middle Management Is Making a Point",
+        "trackingUrl": "https://www.goose.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387789981",
+      "title": "This Cat Has a Soup Policy",
+      "createdAt": "2026-09-04T16:41:29",
+      "boardId": "1107815277030422226",
+      "link": "https://www.goose.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "user_follow": null,
+        "profile_visit": null,
+        "save": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:28 +0000",
+        "pin_click": 0,
+        "impression": 71,
+        "outbound_click": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 71,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788540089872-editorial-medieval-cat-soup-banquette-clean-20260904-am-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-04T16:41:29.872Z",
+        "environment": "production",
+        "draftId": "editorial-medieval-cat-soup-banquette-clean-20260904-am",
+        "candidateId": "cand-v10-medieval-cat-tapestry",
+        "approvalEventId": "evt-20260904-v10-medieval-cat-approved",
+        "boardId": "1107815277030422226",
+        "pinId": "1107815208387789981",
+        "title": "This Cat Has a Soup Policy",
+        "trackingUrl": "https://www.goose.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387817822",
+      "title": "Wacky Waving Inflatable Tube Guy for Your Desk",
+      "createdAt": "2026-09-04T23:41:11",
+      "boardId": "1107815277030422225",
+      "link": "https://www.goose.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "profile_visit": null,
+        "pin_click": 1,
+        "impression": 34,
+        "user_follow": null,
+        "last_updated": "Fri, 16 October 2026 23:37:28 +0000",
+        "save": 0,
+        "outbound_click": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 34,
+        "pinClicks": 1,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788565272225-editorial-wacky-tube-guy-dealership-headline-20260904-pm-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-04T23:41:12.225Z",
+        "environment": "production",
+        "draftId": "editorial-wacky-tube-guy-dealership-headline-20260904-pm",
+        "candidateId": "cand-v10-wacky-tube-guy-hype",
+        "approvalEventId": "evt-20260904-v10-wacky-tube-guy-approved",
+        "boardId": "1107815277030422225",
+        "pinId": "1107815208387817822",
+        "title": "Wacky Waving Inflatable Tube Guy for Your Desk",
+        "trackingUrl": "https://www.goose.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387877454",
+      "title": "Gratiator Sword-Shaped Cheese Grater",
+      "createdAt": "2026-09-05T16:45:00",
+      "boardId": "1107815277030422224",
+      "link": "https://www.goose.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "profile_visit": null,
+        "pin_click": 0,
+        "user_follow": null,
+        "last_updated": "Fri, 16 October 2026 23:37:28 +0000",
+        "outbound_click": 0,
+        "save": 0,
+        "impression": 1,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 1,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788626701123-editorial-gratiator-caesar-headline-20260905-am-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-05T16:45:01.123Z",
+        "environment": "production",
+        "draftId": "editorial-gratiator-caesar-headline-20260905-am",
+        "candidateId": "cand-v10-gratiator-caesar",
+        "approvalEventId": "evt-20260905-v10-gratiator-approved",
+        "boardId": "1107815277030422224",
+        "pinId": "1107815208387877454",
+        "title": "Gratiator Sword-Shaped Cheese Grater",
+        "trackingUrl": "https://www.goose.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387907452",
+      "title": "Shark Coffee Mug for Ocean Lovers",
+      "createdAt": "2026-09-05T23:41:23",
+      "boardId": "1107815277030422224",
+      "link": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "save": 2,
+        "outbound_click": 0,
+        "profile_visit": null,
+        "user_follow": null,
+        "impression": 912,
+        "pin_click": 18,
+        "last_updated": "Fri, 16 October 2026 23:37:28 +0000",
+        "reaction": 1,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 912,
+        "pinClicks": 18,
+        "saves": 2,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788651683856-editorial-shark-mug-coastal-breakfast-clean-20260905-pm-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-05T23:41:23.856Z",
+        "environment": "production",
+        "draftId": "editorial-shark-mug-coastal-breakfast-clean-20260905-pm",
+        "candidateId": "cand-v10-shark-mug-coastal-breakfast",
+        "approvalEventId": "evt-20260905-v10-shark-mug-approved",
+        "boardId": "1107815277030422224",
+        "pinId": "1107815208387907452",
+        "title": "Shark Coffee Mug for Ocean Lovers",
+        "trackingUrl": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387966131",
+      "title": "Funny Squeaky Dog Toy for Stylish Pups",
+      "createdAt": "2026-09-06T16:42:16",
+      "boardId": "1107815277030422220",
+      "link": "https://www.goose.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "last_updated": "Fri, 16 October 2026 23:37:28 +0000",
+        "save": 0,
+        "outbound_click": 0,
+        "user_follow": null,
+        "pin_click": 1,
+        "profile_visit": null,
+        "impression": 343,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 343,
+        "pinClicks": 1,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788712937232-editorial-dog-toy-gallery-runway-clean-20260906-am-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-06T16:42:17.232Z",
+        "environment": "production",
+        "draftId": "editorial-dog-toy-gallery-runway-clean-20260906-am",
+        "candidateId": "cand-v10-dog-toy-runway",
+        "approvalEventId": "evt-20260906-v10-dog-toy-approved",
+        "boardId": "1107815277030422220",
+        "pinId": "1107815208387966131",
+        "title": "Funny Squeaky Dog Toy for Stylish Pups",
+        "trackingUrl": "https://www.goose.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208387994026",
+      "title": "Funny Prank Gift Box for White Elephant",
+      "createdAt": "2026-09-06T23:49:57",
+      "boardId": "1107815277030422220",
+      "link": "https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "user_follow": null,
+        "save": 0,
+        "pin_click": 0,
+        "profile_visit": null,
+        "impression": 5,
+        "outbound_click": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:28 +0000",
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 5,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788738598412-editorial-first-fire-false-alarm-headline-20260906-pm-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-06T23:49:58.412Z",
+        "environment": "production",
+        "draftId": "editorial-first-fire-false-alarm-headline-20260906-pm",
+        "candidateId": "cand-v10-first-fire-false-alarm",
+        "approvalEventId": "evt-20260906-v10-first-fire-approved",
+        "boardId": "1107815277030422220",
+        "pinId": "1107815208387994026",
+        "title": "Funny Prank Gift Box for White Elephant",
+        "trackingUrl": "https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208388049691",
+      "title": "Funny Wiener Switch Night Light for Weird Decor",
+      "createdAt": "2026-09-07T16:54:20",
+      "boardId": "1107815277030422226",
+      "link": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "last_updated": "Fri, 16 October 2026 23:37:29 +0000",
+        "save": 0,
+        "outbound_click": 0,
+        "pin_click": 0,
+        "impression": 35,
+        "profile_visit": null,
+        "user_follow": null,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 35,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788800062165-editorial-wiener-switch-mood-lighting-headline-20260907-am-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-07T16:54:22.165Z",
+        "environment": "production",
+        "draftId": "editorial-wiener-switch-mood-lighting-headline-20260907-am",
+        "candidateId": "cand-v10-wiener-switch-mood-lighting",
+        "approvalEventId": "evt-20260907-v10-wiener-switch-approved",
+        "boardId": "1107815277030422226",
+        "pinId": "1107815208388049691",
+        "title": "Funny Wiener Switch Night Light for Weird Decor",
+        "trackingUrl": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208388077586",
+      "title": "Mystic Pickle Fortune Teller Gag Gift",
+      "createdAt": "2026-09-07T23:51:00",
+      "boardId": "1107815277030422220",
+      "link": "https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "user_follow": null,
+        "outbound_click": 0,
+        "pin_click": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:29 +0000",
+        "save": 0,
+        "profile_visit": null,
+        "impression": 1,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 1,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788825061222-editorial-mystic-pickle-midnight-oracle-clean-20260907-pm-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-07T23:51:01.222Z",
+        "environment": "production",
+        "draftId": "editorial-mystic-pickle-midnight-oracle-clean-20260907-pm",
+        "candidateId": "cand-v10-mystic-pickle-oracle",
+        "approvalEventId": "evt-20260907-v10-mystic-pickle-approved",
+        "boardId": "1107815277030422220",
+        "pinId": "1107815208388077586",
+        "title": "Mystic Pickle Fortune Teller Gag Gift",
+        "trackingUrl": "https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208388134634",
+      "title": "Funny Mustache Coffee Table Book for Dads",
+      "createdAt": "2026-09-08T16:49:58",
+      "boardId": "1107815277030422220",
+      "link": "https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "pin_click": 0,
+        "impression": 8,
+        "save": 0,
+        "profile_visit": null,
+        "last_updated": "Fri, 16 October 2026 23:37:29 +0000",
+        "user_follow": null,
+        "outbound_click": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 8,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1788886199043-editorial-american-mustache-national-archive-clean-20260908-am-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-08T16:49:59.043Z",
+        "environment": "production",
+        "draftId": "editorial-american-mustache-national-archive-clean-20260908-am",
+        "candidateId": "cand-v10-american-mustache-museum",
+        "approvalEventId": "evt-20260908-v10-mustache-approved",
+        "boardId": "1107815277030422220",
+        "pinId": "1107815208388134634",
+        "title": "Funny Mustache Coffee Table Book for Dads",
+        "trackingUrl": "https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208388715714",
+      "title": "Red Crab Spoon Rest and Steam Releaser",
+      "createdAt": "2026-09-15T23:40:50",
+      "boardId": "1107815277030422224",
+      "link": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+      "candidateId": "cand-v11-red-crab-field-note",
+      "arm": "F",
+      "rawLifetimeMetrics": {
+        "profile_visit": null,
+        "last_updated": "Fri, 16 October 2026 23:37:29 +0000",
+        "save": 0,
+        "impression": 10,
+        "user_follow": null,
+        "outbound_click": 0,
+        "pin_click": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 10,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1789515650765-editorial-red-crab-steam-field-note-20260915-pm-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-15T23:40:50.765Z",
+        "environment": "production",
+        "draftId": "editorial-red-crab-steam-field-note-20260915-pm",
+        "candidateId": "cand-v11-red-crab-field-note",
+        "approvalEventId": "evt-20260915-v11-red-crab-approved",
+        "boardId": "1107815277030422224",
+        "pinId": "1107815208388715714",
+        "title": "Red Crab Spoon Rest and Steam Releaser",
+        "trackingUrl": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": {
+        "verified": true,
+        "description": "OTOTO Red the Crab is a four-inch food-grade silicone kitchen gadget whose claws hold a spoon or ladle while its legs lift a pot lid to release steam. Dishwasher-safe and weirdly competent, it makes a useful housewarming or home-cook gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+        "altText": "Small red silicone crab holding a ladle above a vented pot lid in a copper-lit kitchen beside the notes “Ladle: secured,” “Steam: released,” and “Height: 4 inches.”",
+        "media": {
+          "media_type": "image",
+          "images": {
+            "150x150": {
+              "width": 150,
+              "height": 150,
+              "url": "https://i.pinimg.com/150x150/e9/fa/19/e9fa19912c9e81e61407b4a656f764d9.jpg"
+            },
+            "400x300": {
+              "width": 400,
+              "height": 300,
+              "url": "https://i.pinimg.com/400x300/e9/fa/19/e9fa19912c9e81e61407b4a656f764d9.jpg"
+            },
+            "600x": {
+              "width": 564,
+              "height": 846,
+              "url": "https://i.pinimg.com/564x/e9/fa/19/e9fa19912c9e81e61407b4a656f764d9.jpg"
+            },
+            "1200x": {
+              "width": 1024,
+              "height": 1536,
+              "url": "https://i.pinimg.com/1200x/e9/fa/19/e9fa19912c9e81e61407b4a656f764d9.jpg"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "1107815208388765155",
+      "title": "Farting Ring Box Prank Gift for White Elephant",
+      "createdAt": "2026-09-16T16:42:19",
+      "boardId": "1107815277030422220",
+      "link": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+      "candidateId": "cand-v11-farting-ring-field-note",
+      "arm": "F",
+      "rawLifetimeMetrics": {
+        "impression": 20,
+        "last_updated": "Fri, 16 October 2026 23:37:29 +0000",
+        "outbound_click": 0,
+        "pin_click": 2,
+        "save": 0,
+        "profile_visit": null,
+        "user_follow": null,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 20,
+        "pinClicks": 2,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1789576939922-editorial-farting-ring-courtship-field-note-20260916-am-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-16T16:42:19.922Z",
+        "environment": "production",
+        "draftId": "editorial-farting-ring-courtship-field-note-20260916-am",
+        "candidateId": "cand-v11-farting-ring-field-note",
+        "approvalEventId": "evt-20260916-v11-farting-ring-approved",
+        "boardId": "1107815277030422220",
+        "pinId": "1107815208388765155",
+        "title": "Farting Ring Box Prank Gift for White Elephant",
+        "trackingUrl": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": {
+        "verified": true,
+        "description": "The Moon Ring is a 2.5-inch white leatherette proposal box with no ring—open it and the tiny trousered butt inside makes a fart sound. Handmade in the United States with replaceable batteries, it is a ridiculous white elephant or relationship prank gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+        "altText": "Tiny open white ring box containing a molded bare butt in blue trousers among dewy clover, annotated “Box: 2.5 inches,” “Courtship call: fart,” and “Triggered on open.”",
+        "media": {
+          "media_type": "image",
+          "images": {
+            "150x150": {
+              "width": 150,
+              "height": 150,
+              "url": "https://i.pinimg.com/150x150/6f/50/40/6f50405533054edfb7ddcbe34afe3401.jpg"
+            },
+            "400x300": {
+              "width": 400,
+              "height": 300,
+              "url": "https://i.pinimg.com/400x300/6f/50/40/6f50405533054edfb7ddcbe34afe3401.jpg"
+            },
+            "600x": {
+              "width": 564,
+              "height": 846,
+              "url": "https://i.pinimg.com/564x/6f/50/40/6f50405533054edfb7ddcbe34afe3401.jpg"
+            },
+            "1200x": {
+              "width": 1024,
+              "height": 1536,
+              "url": "https://i.pinimg.com/1200x/6f/50/40/6f50405533054edfb7ddcbe34afe3401.jpg"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "1107815208388788830",
+      "title": "Chia Pet Gnome Planter for Weird Home Decor",
+      "createdAt": "2026-09-16T23:41:47",
+      "boardId": "1107815277030422226",
+      "link": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+      "candidateId": "cand-v11-chia-gnome-poster",
+      "arm": "P",
+      "rawLifetimeMetrics": {
+        "user_follow": null,
+        "outbound_click": 0,
+        "impression": 24,
+        "last_updated": "Fri, 16 October 2026 23:37:29 +0000",
+        "save": 0,
+        "pin_click": 2,
+        "profile_visit": null,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 24,
+        "pinClicks": 2,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1789602107926-editorial-chia-gnome-barbershop-poster-20260916-pm-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-16T23:41:47.926Z",
+        "environment": "production",
+        "draftId": "editorial-chia-gnome-barbershop-poster-20260916-pm",
+        "candidateId": "cand-v11-chia-gnome-poster",
+        "approvalEventId": "evt-20260916-v11-chia-gnome-approved",
+        "boardId": "1107815277030422226",
+        "pinId": "1107815208388788830",
+        "title": "Chia Pet Gnome Planter for Weird Home Decor",
+        "trackingUrl": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": {
+        "verified": true,
+        "description": "This seven-inch terracotta Chia Pet Gnome grows a living green beard in one to two weeks. The kit includes a reusable pottery planter, drip tray, and seed for three plantings, making it a funny housewarming or plant-lover gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+        "altText": "Small seated terracotta Chia Pet Gnome with a lush green sprout beard on a vintage barbershop counter beneath the words “His beard needs watering.”",
+        "media": {
+          "media_type": "image",
+          "images": {
+            "150x150": {
+              "width": 150,
+              "height": 150,
+              "url": "https://i.pinimg.com/150x150/01/51/cf/0151cf0424cad6751781ce30b3c7a766.jpg"
+            },
+            "400x300": {
+              "width": 400,
+              "height": 300,
+              "url": "https://i.pinimg.com/400x300/01/51/cf/0151cf0424cad6751781ce30b3c7a766.jpg"
+            },
+            "600x": {
+              "width": 564,
+              "height": 846,
+              "url": "https://i.pinimg.com/564x/01/51/cf/0151cf0424cad6751781ce30b3c7a766.jpg"
+            },
+            "1200x": {
+              "width": 1024,
+              "height": 1536,
+              "url": "https://i.pinimg.com/1200x/01/51/cf/0151cf0424cad6751781ce30b3c7a766.jpg"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "1107815208389000013",
+      "title": "Mini Tabletop Bowling Game for Office Desks",
+      "createdAt": "2026-09-19T16:45:23",
+      "boardId": "1107815277030422225",
+      "link": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+      "candidateId": "cand-v11-mini-bowling-poster",
+      "arm": "P",
+      "rawLifetimeMetrics": {
+        "impression": 627,
+        "user_follow": null,
+        "profile_visit": null,
+        "last_updated": "Fri, 16 October 2026 23:37:29 +0000",
+        "outbound_click": 0,
+        "pin_click": 9,
+        "save": 2,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 627,
+        "pinClicks": 9,
+        "saves": 2,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1789836323812-editorial-mini-bowling-boardroom-poster-20260919-am-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-19T16:45:23.812Z",
+        "environment": "production",
+        "draftId": "editorial-mini-bowling-boardroom-poster-20260919-am",
+        "candidateId": "cand-v11-mini-bowling-poster",
+        "approvalEventId": "evt-20260919-v11-mini-bowling-approved",
+        "boardId": "1107815277030422225",
+        "pinId": "1107815208389000013",
+        "title": "Mini Tabletop Bowling Game for Office Desks",
+        "trackingUrl": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": {
+        "verified": true,
+        "description": "This compact wooden tabletop bowling game uses a tiny silver-colored ball and wood launcher on a roughly 12-inch set with inset gutters and miniature pins. It turns a desk, break-room table, or coffee table into a funny office, white elephant, or bowler gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+        "altText": "Small wooden tabletop bowling lane with eight white pins, a silver-colored ball, and a wood launcher on an after-hours conference table beneath the words “The break room has lanes.”",
+        "media": {
+          "media_type": "image",
+          "images": {
+            "150x150": {
+              "width": 150,
+              "height": 150,
+              "url": "https://i.pinimg.com/150x150/a8/69/85/a86985f68bcf8f2557e509250bb94127.jpg"
+            },
+            "400x300": {
+              "width": 400,
+              "height": 300,
+              "url": "https://i.pinimg.com/400x300/a8/69/85/a86985f68bcf8f2557e509250bb94127.jpg"
+            },
+            "600x": {
+              "width": 564,
+              "height": 846,
+              "url": "https://i.pinimg.com/564x/a8/69/85/a86985f68bcf8f2557e509250bb94127.jpg"
+            },
+            "1200x": {
+              "width": 1024,
+              "height": 1536,
+              "url": "https://i.pinimg.com/1200x/a8/69/85/a86985f68bcf8f2557e509250bb94127.jpg"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "1107815208389027583",
+      "title": "Crochet Birthday Toast Gift for Coworkers",
+      "createdAt": "2026-09-19T23:40:34",
+      "boardId": "1107815277030422223",
+      "link": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+      "candidateId": "cand-v11-birthday-toast-field-note",
+      "arm": "F",
+      "rawLifetimeMetrics": {
+        "last_updated": "Fri, 16 October 2026 23:37:29 +0000",
+        "outbound_click": 0,
+        "impression": 205,
+        "user_follow": null,
+        "save": 1,
+        "profile_visit": null,
+        "pin_click": 2,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 205,
+        "pinClicks": 2,
+        "saves": 1,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1789861234916-editorial-birthday-toast-breakfast-field-note-20260919-pm-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-19T23:40:34.916Z",
+        "environment": "production",
+        "draftId": "editorial-birthday-toast-breakfast-field-note-20260919-pm",
+        "candidateId": "cand-v11-birthday-toast-field-note",
+        "approvalEventId": "evt-20260919-v11-birthday-toast-approved",
+        "boardId": "1107815277030422223",
+        "pinId": "1107815208389027583",
+        "title": "Crochet Birthday Toast Gift for Coworkers",
+        "trackingUrl": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": {
+        "verified": true,
+        "description": "This tiny 2.5-inch crochet birthday toast holds its own punny greeting card, making it a funny desk keepsake for a coworker, friend, or family member. The plate is editorial staging; the product is collectible decor, not food. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+        "altText": "Tiny orange-and-cream crochet toast holding a card that says ‘A little Birthday toast to you!’ on a white plate, annotated ‘Crochet, not breakfast,’ ‘2.5 inches tall,’ and ‘Card built in.’",
+        "media": {
+          "media_type": "image",
+          "images": {
+            "150x150": {
+              "width": 150,
+              "height": 150,
+              "url": "https://i.pinimg.com/150x150/e1/cf/0b/e1cf0b87781f13e93465fd949fcff568.jpg"
+            },
+            "400x300": {
+              "width": 400,
+              "height": 300,
+              "url": "https://i.pinimg.com/400x300/e1/cf/0b/e1cf0b87781f13e93465fd949fcff568.jpg"
+            },
+            "600x": {
+              "width": 564,
+              "height": 846,
+              "url": "https://i.pinimg.com/564x/e1/cf/0b/e1cf0b87781f13e93465fd949fcff568.jpg"
+            },
+            "1200x": {
+              "width": 1024,
+              "height": 1536,
+              "url": "https://i.pinimg.com/1200x/e1/cf/0b/e1cf0b87781f13e93465fd949fcff568.jpg"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "1107815208389087383",
+      "title": "Desktop Therapist Sound Machine for Office Gifts",
+      "createdAt": "2026-09-20T16:40:58",
+      "boardId": "1107815277030422225",
+      "link": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+      "candidateId": "cand-v11-desktop-therapist-field-note",
+      "arm": "F",
+      "rawLifetimeMetrics": {
+        "impression": 10,
+        "last_updated": "Fri, 16 October 2026 23:37:29 +0000",
+        "pin_click": 0,
+        "save": 0,
+        "user_follow": null,
+        "outbound_click": 0,
+        "profile_visit": null,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 10,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1789922459150-editorial-desktop-therapist-boardroom-field-note-20260920-am-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-09-20T16:40:59.150Z",
+        "environment": "production",
+        "draftId": "editorial-desktop-therapist-boardroom-field-note-20260920-am",
+        "candidateId": "cand-v11-desktop-therapist-field-note",
+        "approvalEventId": "evt-20260920-v11-desktop-therapist-approved",
+        "boardId": "1107815277030422225",
+        "pinId": "1107815208389087383",
+        "title": "Desktop Therapist Sound Machine for Office Gifts",
+        "trackingUrl": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": {
+        "verified": true,
+        "description": "This 3.5-inch Desktop Therapist is a novelty sound machine that delivers 16 phrases from a tiny cross-legged counselor in his own armchair. Batteries are included, so it can go straight onto a coworker's desk as a funny office or white elephant gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+        "altText": "Tiny seated elderly therapist figurine in a cognac armchair at the head of a blue-hour conference table, annotated ‘Desk-sized: 3.5 in,’ ‘16 phrases,’ and ‘Batteries included.’",
+        "media": {
+          "media_type": "image",
+          "images": {
+            "150x150": {
+              "width": 150,
+              "height": 150,
+              "url": "https://i.pinimg.com/150x150/7f/ec/a9/7feca911158eed4ee02ec15755734464.jpg"
+            },
+            "400x300": {
+              "width": 400,
+              "height": 300,
+              "url": "https://i.pinimg.com/400x300/7f/ec/a9/7feca911158eed4ee02ec15755734464.jpg"
+            },
+            "600x": {
+              "width": 564,
+              "height": 846,
+              "url": "https://i.pinimg.com/564x/7f/ec/a9/7feca911158eed4ee02ec15755734464.jpg"
+            },
+            "1200x": {
+              "width": 1024,
+              "height": 1536,
+              "url": "https://i.pinimg.com/1200x/7f/ec/a9/7feca911158eed4ee02ec15755734464.jpg"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "1107815208391037211",
+      "title": "Sheep Toilet Paper Holders: A Weird Housewarming Gift",
+      "createdAt": "2026-10-13T20:07:08",
+      "boardId": "1107815277030422226",
+      "link": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+      "candidateId": "cand-v11-sheep-roll-field-note",
+      "arm": "F",
+      "rawLifetimeMetrics": {
+        "last_updated": "Fri, 16 October 2026 23:37:29 +0000",
+        "impression": 0,
+        "save": 0,
+        "profile_visit": null,
+        "outbound_click": 0,
+        "user_follow": null,
+        "pin_click": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 0,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1791922029336-editorial-sheep-guest-bathroom-field-note-20261013-pm-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-10-13T20:07:09.336Z",
+        "environment": "production",
+        "draftId": "editorial-sheep-guest-bathroom-field-note-20261013-pm",
+        "candidateId": "cand-v11-sheep-roll-field-note",
+        "approvalEventId": "evt-20261013-v11-sheep-approved",
+        "boardId": "1107815277030422226",
+        "pinId": "1107815208391037211",
+        "title": "Sheep Toilet Paper Holders: A Weird Housewarming Gift",
+        "trackingUrl": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": {
+        "verified": true,
+        "description": "Your spare roll just grew legs. These black, 3D-printed sheep holders turn toilet paper into their 'wool'—a useful, unusual housewarming gift. The listing is a set of three holders; one is shown with bathroom styling. Visit Goose Gifts to see the actual holder and gifting details. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+        "altText": "Black sheep-shaped toilet-roll holder with a white roll for its body, standing on a stone bathroom ledge against olive tiles. Two annotations read 'THE WOOL IS TOILET PAPER' and 'SET OF THREE HOLDERS'.",
+        "media": {
+          "media_type": "image",
+          "images": {
+            "150x150": {
+              "width": 150,
+              "height": 150,
+              "url": "https://i.pinimg.com/150x150/08/f8/63/08f863a2663f9e31628c3e3cad8d8f77.jpg"
+            },
+            "400x300": {
+              "width": 400,
+              "height": 300,
+              "url": "https://i.pinimg.com/400x300/08/f8/63/08f863a2663f9e31628c3e3cad8d8f77.jpg"
+            },
+            "600x": {
+              "width": 564,
+              "height": 846,
+              "url": "https://i.pinimg.com/564x/08/f8/63/08f863a2663f9e31628c3e3cad8d8f77.jpg"
+            },
+            "1200x": {
+              "width": 1024,
+              "height": 1536,
+              "url": "https://i.pinimg.com/1200x/08/f8/63/08f863a2663f9e31628c3e3cad8d8f77.jpg"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "1107815208391104701",
+      "title": "Spider Prank Box for Gift Cards and White Elephant",
+      "createdAt": "2026-10-14T16:42:53",
+      "boardId": "1107815277030422220",
+      "link": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+      "candidateId": "cand-v11-spider-box-field-note",
+      "arm": "F",
+      "rawLifetimeMetrics": {
+        "user_follow": null,
+        "last_updated": "Fri, 16 October 2026 23:37:29 +0000",
+        "pin_click": 0,
+        "profile_visit": null,
+        "save": 0,
+        "impression": 0,
+        "outbound_click": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 0,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1791996173716-editorial-spider-box-unwrapped-field-note-20261014-am-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-10-14T16:42:53.716Z",
+        "environment": "production",
+        "draftId": "editorial-spider-box-unwrapped-field-note-20261014-am",
+        "candidateId": "cand-v11-spider-box-field-note",
+        "approvalEventId": "evt-20261014-v11-spider-box-approved",
+        "boardId": "1107815277030422220",
+        "pinId": "1107815208391104701",
+        "title": "Spider Prank Box for Gift Cards and White Elephant",
+        "trackingUrl": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": {
+        "verified": true,
+        "description": "Gift cards can have a plot twist. Sliding the wooden lid makes a toy spider pop up, while a hidden compartment holds cash or a gift card. Visit Goose Gifts for the FunFamz box's mechanism and prank-loving gift fit. Envelope and wrapping are editorial styling. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+        "altText": "Natural-wood prank box with its lid slid open and a small black toy spider raised at the opening, on ivory tissue beside a cream envelope and burgundy ribbon. Notes read 'LID-TRIGGERED SPIDER' and 'GIFT-CARD SLOT INSIDE'.",
+        "media": {
+          "media_type": "image",
+          "images": {
+            "150x150": {
+              "width": 150,
+              "height": 150,
+              "url": "https://i.pinimg.com/150x150/11/ae/ee/11aeeeea92fd661137fd507f36aee45c.jpg"
+            },
+            "400x300": {
+              "width": 400,
+              "height": 300,
+              "url": "https://i.pinimg.com/400x300/11/ae/ee/11aeeeea92fd661137fd507f36aee45c.jpg"
+            },
+            "600x": {
+              "width": 564,
+              "height": 846,
+              "url": "https://i.pinimg.com/564x/11/ae/ee/11aeeeea92fd661137fd507f36aee45c.jpg"
+            },
+            "1200x": {
+              "width": 1024,
+              "height": 1536,
+              "url": "https://i.pinimg.com/1200x/11/ae/ee/11aeeeea92fd661137fd507f36aee45c.jpg"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "1107815208391132026",
+      "title": "Belly Fanny Pack for Funny White Elephant Gifts",
+      "createdAt": "2026-10-14T23:40:29",
+      "boardId": "1107815277030422220",
+      "link": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+      "candidateId": "cand-v11-belly-bag-poster",
+      "arm": "P",
+      "rawLifetimeMetrics": {
+        "user_follow": null,
+        "profile_visit": null,
+        "pin_click": 0,
+        "outbound_click": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:29 +0000",
+        "save": 0,
+        "impression": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 0,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1792021230593-editorial-belly-bag-carry-on-poster-20261014-pm-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-10-14T23:40:30.593Z",
+        "environment": "production",
+        "draftId": "editorial-belly-bag-carry-on-poster-20261014-pm",
+        "candidateId": "cand-v11-belly-bag-poster",
+        "approvalEventId": "evt-20261014-v11-belly-approved",
+        "boardId": "1107815277030422220",
+        "pinId": "1107815208391132026",
+        "title": "Belly Fanny Pack for Funny White Elephant Gifts",
+        "trackingUrl": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": {
+        "verified": true,
+        "description": "A dad bod with a zipper. This Fandicto waist bag uses a realistic belly print, an adjustable canvas strap and a buckle to turn an everyday carry into a dad-joke gift. Visit Goose Gifts for the bag's storage, strap and white-elephant gifting fit. Luggage and keys are editorial props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+        "altText": "Tan belly-print waist bag with black top zipper, canvas strap and buckle on a navy suitcase beside keys and a rust-colored bench. The five-word ivory headline reads 'THE DAD BOD HAS STORAGE'.",
+        "media": {
+          "media_type": "image",
+          "images": {
+            "150x150": {
+              "width": 150,
+              "height": 150,
+              "url": "https://i.pinimg.com/150x150/cd/6d/eb/cd6debee119c79632120fef0805a3120.jpg"
+            },
+            "400x300": {
+              "width": 400,
+              "height": 300,
+              "url": "https://i.pinimg.com/400x300/cd/6d/eb/cd6debee119c79632120fef0805a3120.jpg"
+            },
+            "600x": {
+              "width": 564,
+              "height": 846,
+              "url": "https://i.pinimg.com/564x/cd/6d/eb/cd6debee119c79632120fef0805a3120.jpg"
+            },
+            "1200x": {
+              "width": 1024,
+              "height": 1536,
+              "url": "https://i.pinimg.com/1200x/cd/6d/eb/cd6debee119c79632120fef0805a3120.jpg"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "1107815208391186516",
+      "title": "Grumpy Frog Statue for Plant Lovers and Weird Decor",
+      "createdAt": "2026-10-15T16:44:51",
+      "boardId": "1107815277030422226",
+      "link": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+      "candidateId": "cand-v11-grumpy-frog-poster",
+      "arm": "P",
+      "rawLifetimeMetrics": {
+        "profile_visit": null,
+        "impression": 0,
+        "save": 0,
+        "outbound_click": 0,
+        "pin_click": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:30 +0000",
+        "user_follow": null,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 0,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1792082692032-editorial-grumpy-frog-greenhouse-poster-20261015-am-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-10-15T16:44:52.032Z",
+        "environment": "production",
+        "draftId": "editorial-grumpy-frog-greenhouse-poster-20261015-am",
+        "candidateId": "cand-v11-grumpy-frog-poster",
+        "approvalEventId": "evt-20261015-v11-frog-approved",
+        "boardId": "1107815277030422226",
+        "pinId": "1107815208391186516",
+        "title": "Grumpy Frog Statue for Plant Lovers and Weird Decor",
+        "trackingUrl": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": {
+        "verified": true,
+        "description": "Even the fern has a supervisor. This tiny KYVANDO frog is a resin ornament with an oversized scowl, suited to a desk, shelf or plant corner. Visit Goose Gifts for the material, placement ideas and boxed-gift details before choosing it for a plant lover or a wonderfully grumpy friend. Plant and pot are styling props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+        "altText": "Bronze-look grumpy frog resin statue with heavy brows, dark eyes and short feet on a stone greenhouse bench beside a terracotta pot and fern. Dark-green type reads 'THE GARDEN HAS A COMPLAINT'.",
+        "media": {
+          "media_type": "image",
+          "images": {
+            "150x150": {
+              "width": 150,
+              "height": 150,
+              "url": "https://i.pinimg.com/150x150/fd/26/24/fd26241c3f6033abd58c0da0507268e1.jpg"
+            },
+            "400x300": {
+              "width": 400,
+              "height": 300,
+              "url": "https://i.pinimg.com/400x300/fd/26/24/fd26241c3f6033abd58c0da0507268e1.jpg"
+            },
+            "600x": {
+              "width": 564,
+              "height": 846,
+              "url": "https://i.pinimg.com/564x/fd/26/24/fd26241c3f6033abd58c0da0507268e1.jpg"
+            },
+            "1200x": {
+              "width": 1024,
+              "height": 1536,
+              "url": "https://i.pinimg.com/1200x/fd/26/24/fd26241c3f6033abd58c0da0507268e1.jpg"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "1107815208385022014",
+      "title": "The Goat Has the Floor",
+      "createdAt": "2026-08-01T04:36:08",
+      "boardId": "1107815277030422223",
+      "link": "https://www.goose.gifts/random-gift?gift=0762459816&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v2&utm_content=screaming_goat_boardroom",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "profile_visit": 0,
+        "user_follow": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:30 +0000",
+        "pin_click": 2,
+        "save": 1,
+        "impression": 131,
+        "outbound_click": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 131,
+        "pinClicks": 2,
+        "saves": 1,
+        "outboundClicks": 0
+      },
+      "receipt": null,
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208385331910",
+      "title": "Patricia Has a Lipstick Appointment",
+      "createdAt": "2026-08-05T03:48:09",
+      "boardId": "1107815277030422224",
+      "link": "https://www.goose.gifts/random-gift?gift=B0F9DZMQBL&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v2&utm_content=hippo_mug_vanity",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "profile_visit": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:30 +0000",
+        "save": 0,
+        "impression": 7,
+        "pin_click": 0,
+        "outbound_click": 0,
+        "user_follow": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 7,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": null,
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208385562809",
+      "title": "Patricia Is Running This Meeting",
+      "createdAt": "2026-08-08T00:00:12",
+      "boardId": "1107815277030422223",
+      "link": "https://www.goose.gifts/random-gift?gift=B0F9DZMQBL&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v2&utm_content=hippo_mug_desk",
+      "candidateId": null,
+      "arm": null,
+      "rawLifetimeMetrics": {
+        "outbound_click": 0,
+        "user_follow": 0,
+        "impression": 10,
+        "profile_visit": 0,
+        "save": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:30 +0000",
+        "pin_click": 0,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 10,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": null,
+      "exactReadback": null
+    },
+    {
+      "id": "1107815208391305222",
+      "title": "Opossum Wall Art for Funny Housewarming Gifts",
+      "createdAt": "2026-10-16T23:36:44",
+      "boardId": "1107815277030422226",
+      "link": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+      "candidateId": "cand-v11-opossum-portrait-poster",
+      "arm": "P",
+      "rawLifetimeMetrics": {
+        "pin_click": 0,
+        "impression": 0,
+        "user_follow": null,
+        "save": 0,
+        "last_updated": "Fri, 16 October 2026 23:37:30 +0000",
+        "outbound_click": 0,
+        "profile_visit": null,
+        "reaction": 0,
+        "comment": 0
+      },
+      "metrics": {
+        "impressions": 0,
+        "pinClicks": 0,
+        "saves": 0,
+        "outboundClicks": 0
+      },
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded",
+        "type": "publication.succeeded",
+        "recordedAt": "2026-10-16T23:36:45.613Z",
+        "environment": "production",
+        "draftId": "editorial-opossum-family-portrait-poster-20261016-pm",
+        "candidateId": "cand-v11-opossum-portrait-poster",
+        "approvalEventId": "evt-20261016-pm-v11-opossum-approved",
+        "boardId": "1107815277030422226",
+        "pinId": "1107815208391305222",
+        "title": "Opossum Wall Art for Funny Housewarming Gifts",
+        "trackingUrl": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+        "details": {
+          "readbackVerified": true
+        }
+      },
+      "exactReadback": {
+        "verified": true,
+        "description": "A very distinguished little menace. This JAOYWAO canvas print puts a theatrically reclining opossum in a gold-colored frame. Visit Goose Gifts for its 8x10-inch format, ready-to-hang details and animal-lover housewarming fit. Console, vase, coat and keys are styling props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+        "altText": "Small landscape gold-colored frame containing a printed portrait of a reclining gray-and-white opossum with open mouth and curled pink tail, leaning on a walnut console against a dark teal wall. Ivory text reads 'FINALLY, AN HONEST FAMILY PORTRAIT'.",
+        "media": {
+          "media_type": "image",
+          "images": {
+            "150x150": {
+              "width": 150,
+              "height": 150,
+              "url": "https://i.pinimg.com/150x150/90/81/20/908120bd409c4ca4b6d0efa918cdd2cb.jpg"
+            },
+            "400x300": {
+              "width": 400,
+              "height": 300,
+              "url": "https://i.pinimg.com/400x300/90/81/20/908120bd409c4ca4b6d0efa918cdd2cb.jpg"
+            },
+            "600x": {
+              "width": 564,
+              "height": 846,
+              "url": "https://i.pinimg.com/564x/90/81/20/908120bd409c4ca4b6d0efa918cdd2cb.jpg"
+            },
+            "1200x": {
+              "width": 1024,
+              "height": 1536,
+              "url": "https://i.pinimg.com/1200x/90/81/20/908120bd409c4ca4b6d0efa918cdd2cb.jpg"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "publicChecks": [
+    {
+      "id": "1107815208391186516",
+      "status": 200,
+      "titlePresent": true,
+      "idPresent": true,
+      "destinationStatus": 200,
+      "canonical": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay",
+      "robots": "index, follow"
+    }
+  ],
+  "frog24h": {
+    "dueAt": "2026-10-16T16:44:52.032Z",
+    "observedAt": "2026-10-16T23:37:30.400Z",
+    "ageMs": 111158368,
+    "delayAfter24hMs": 24758368
+  }
+}

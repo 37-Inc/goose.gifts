@@ -1,0 +1,70 @@
+{
+  "checkedAt": "2026-10-16T23:29:48.857Z",
+  "url": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+  "status": 200,
+  "canonical": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+  "robots": "index, follow",
+  "title": "Opossum-it&#x27;s So Funny: Vintage Wall Art | goose.gifts",
+  "schema": [
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://www.goose.gifts/#website",
+          "name": "goose.gifts",
+          "url": "https://www.goose.gifts",
+          "description": "Funny gag gift catalog for white elephant ideas, novelty products, and weird presents",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://www.goose.gifts/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://www.goose.gifts/#organization",
+          "name": "goose.gifts",
+          "url": "https://www.goose.gifts",
+          "logo": "https://www.goose.gifts/sillygoose.png",
+          "description": "Funny gag gift catalog and gift finder for weird, useful, and ridiculous presents"
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art#webpage",
+          "name": "Opossum-it's So Funny: Vintage Wall Art",
+          "description": "Spruce up your space with the Vintage Gold Framed Funny Opossum Wall Art, celebrating the charm of this often-overlooked creature. Measuring 8x10 inches,…",
+          "url": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+          "inLanguage": "en-US",
+          "isPartOf": {
+            "@id": "https://www.goose.gifts/#website"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art#breadcrumbs",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://www.goose.gifts"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Opossum-it's So Funny: Vintage Wall Art",
+              "item": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "text": " Opossum-it&#x27;s So Funny: Vintage Wall Art | goose.gifts goose.gifts Search Random Gifts Guides Gift catalog / Gift idea Opossum-it&#x27;s So Funny: Vintage Wall Art View on Amazon ↗ Check current price · Availability at Amazon As an Amazon Associate, we earn from qualifying purchases. Why it works as a gift Spruce up your space with the Vintage Gold Framed Funny Opossum Wall Art, celebrating the charm of this often-overlooked creature. Measuring 8x10 inches, this quirky canvas print captures a playful opossum in a whimsical pose, framed in an elegant gold border. The retro vibe gives it an artistic uniqueness that complements any home decor while quirkily standing out among the typical wall art options. This wall art serves as a delightful gift for animal lovers, quirky art collectors, or anyone looking to add humor to their living spaces. It’s perfect for occasions like housewarmings, birthdays, or as a light-hearted present for a friend who cherishes the beauty of quirky wildlife. Hang it in a living room, office, or bar to prompt chuckles and conversation! The artwork arrives ready to hang, making it an easy addition to any wall. While it’s designed to bring humor and cheer with its funky aesthetics, it’s best paired with similar whimsical decor styles to create a full expression of personality and fun in any room. animal art quirky decor office safe desk weird See it at Amazon ↗ Affiliate disclosure: goose.gifts may earn from qualifying purchases at no extra cost to you. More ridiculous gifts Product pages, not surprise retailer jumps Homebody&#x27;s Spooky Oasis: Skeleton Delight A spooky skeleton celebrates cozy nights in with this quirky wall art. View gift → Goddess of Sass: Venus with an Attitude This Venus ditches the beauty for boldness—with a cheeky middle finger! View gift → Frogot This Grumpy Face on My Desk! A quirky grumpy frog to remind you that office life can ribbit! View gift → Scream Your Worries Away with the Goat! This tiny goat will BAAA your cares away. Loudly! View gift → Middle Finger Smiley Statue: A Cheeky Wave of Humor Send a smile with a twinkle and a cheeky twist! View gift → Desktop Therapist: Your Sound Advice in a Box Get sound advice without being charged by the hour! View gift → goose.gifts Funny, weird, and actually purchasable gift ideas for people who are hard to shop for. Explore Fresh finds Random gift Search gifts Gift guides Privacy Social Pinterest As affiliates, we may earn from qualifying purchases at no extra cost to you. © 2026 goose.gifts "
+}
