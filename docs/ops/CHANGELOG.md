@@ -28,7 +28,8 @@ what's likely next.
   published the greenhouse frog poster. F is full at 6/6; P is 4/6 and ten of
   twelve are public. Assigned F slots are metric-only. Keep the cadence/cap,
   finish P in its two normal slots (next October 16 afternoon), and capture
-  belly/frog 24-hour and seven-day gates. Spider 24h is recorded. No conversion winner.
+  frog 24-hour and seven-day gates. Belly's first eligible late 24h observation
+  and spider 24h are recorded. No conversion winner.
   Cameron confirmed completing the two posters, then a full-cohort review
   fourteen days after the actual final publication; no further batch without
   another owner decision.
@@ -171,6 +172,16 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-16 [daily-ops] — Measure full F slot and belly's late 24h gate
+
+No new creative or Pin in the assigned, full F slot. Verified production
+packages/public destinations and current GA4/PostHog; P4/F6 stays ten of
+twelve, both zero native outbound, downstream unknown. Recorded belly's first
+eligible late 24h observation at age 40h52m, not fabricated exact-age history;
+frog's exact gate is still pending at the snapshot. Saved V32 AM evidence and
+nine validated events, updated queue/operating handoff. Two normal P slots,
+ACTIVE schedule and receipt-derived final-review contract are unchanged.
 
 ### 2026-10-15 [daily-ops] — Respect full F quota and refresh evidence
 

@@ -5,6 +5,67 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-16 morning — full F quota, belly's eligible late checkpoint
+
+Heartbeat 16:30:17.964 UTC, canonical main/origin ac6b881; unrelated
+`.playwright-cli/` and `output/` preserved. Even-date AM assigns F, already
+6/6. No creative/product selection, generation, approval, publisher dry run or
+public write. P remains 4/6, total 10/12. No production success today or
+unresolved publication receipt. Existing saved schedule is ACTIVE with the
+same two daily times/target; no scheduler mutation or duplicate job.
+
+Production API verifies goosegifts BUSINESS 1107815345747925810 and all ten
+v11 exact packages against successful-receipt boards. Current listing returns
+30; exact known Gratiator/Mystic Pickle reads complete 32 public IDs. Neither
+omission was treated as deletion or publication credit. At 16:32:13.260 UTC,
+profile totals remain 2,936 impressions/45 opens/seven saves/zero outbound.
+P4 is 651 impressions/11 opens/two saves, F6 is 245/four/one; both zero native
+outbound. Bowling has 627/651 P impressions (96.3%); toast has 205/245 F
+(83.7%). Unequal age/product/category and single-Pin concentration prevent
+format inference. Three archived individual lifecycles stay in cohort totals.
+
+GA4 507421709, October 10–16 Pacific/current day partial, production hosts and
+QA/operator campaign exclusions: five direct plus two unassigned sessions,
+one engaged, no Pinterest/outbound row. This rolling window differs from the
+prior October 9–15 read; do not infer a causal increment. Explicit PostHog
+550427 verifies Goose Gifts, two page views/two list views and no attributed
+Pinterest/retailer row. Sparse resumed data/prior ingestion gap and missing
+attribution keep site sessions, retailer actions and revenue per Pin unknown.
+No row is not proof of zero actual customer actions. Retired DB/Vercel zeros
+and Sandbox/v3 excluded. No retailer click or browser analytics QA generated.
+
+Belly Pin 1107815208391132026 exact package/readback, successful receipt,
+public HTTP 200/title/ID and tracked self-canonical/indexable destination pass.
+Its first eligible late 24h observation is zero native impressions/saves/opens/
+outbound at age 40h51m42.667s, 16h51m42.667s after the exact gate. No unavailable
+exact-24h history reconstructed. Keep measuring; seven-day gate October 21 at
+23:40:30.593 UTC. Frog public/destination checks pass but its 24h gate is not
+yet eligible at this snapshot: October 16 at 16:44:52.032 UTC. Capture only
+when eligible, without pretending this earlier read completed it. Bowling's
+28-day gate is October 17 at 16:45:23.812 UTC; other archive gates not due.
+
+V32 `verification/metrics-20261016-am.json` saves raw native metrics, current
+ten-package readbacks, successful receipts, explicit bounded site reports,
+inventory/cap state and gate times. Seven active-candidate metric events and
+two learnings appended only through creative:record; archived Pins' current
+metrics remain in the snapshot. No alternative executions evaluated in this
+quota-spent run, and no owner-ready queue item. This is not source/quality pool
+exhaustion. Recovery Bead is already closed; no new workstream.
+
+Creative validation passes at 769 events/eight experiments/35 candidates;
+the complete prior event prefix is unchanged. All fourteen targeted creative/
+publisher tests, build, lint and diff checks pass. Reviewed changes are only
+run evidence and operating docs; unrelated files remain unstaged.
+
+Next intended P slots today afternoon and October 17 morning Pacific, only
+if qualified. No arm switch, catch-up, acceleration or thirteenth Pin. At the
+twelfth actual readback-verified success record all twelve IDs/arms and latest
+durable successful timestamp plus fourteen full days; no exact deadline yet.
+Continue metric-only after twelve, even after the deadline, until a new owner
+decision. Deliver/record the full review once at the first eligible scheduled
+run without a duplicate automation. No catalog job, site/SEO work, outreach,
+paid tool, video, account change, Pin deletion, spend or global memory edit.
+
 ## 2026-10-15 afternoon — full F quota, truthful metric-only no-op
 
 Heartbeat triggered 23:28:42.193 UTC; canonical main/origin a6c6faf, unrelated
