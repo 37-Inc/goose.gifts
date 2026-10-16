@@ -184,6 +184,7 @@ prompts, rejected alternative, reviews and receipt. P 5/F 6, total 11, first Pin
 today; final P intended October 17 AM. Recorded frog's late 24h check/current
 public and GA4/PostHog evidence. No acquisition winner, schedule/catalog/site
 change or spend; full-cohort review deadline awaits actual twelfth success.
+Evidence: [publication and creative PR](https://github.com/37-Inc/goose.gifts/pull/175).
 
 ### 2026-10-16 [daily-ops] — Measure full F slot and belly's late 24h gate
 
