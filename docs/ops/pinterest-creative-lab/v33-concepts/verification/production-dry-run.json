@@ -1,0 +1,25 @@
+{
+  "dryRun": true,
+  "environment": "production",
+  "draft": "editorial-opossum-family-portrait-poster-20261016-pm",
+  "board": {
+    "id": "1107815277030422226",
+    "name": "Weird Home Decor"
+  },
+  "guardState": {
+    "candidateId": "cand-v11-opossum-portrait-poster",
+    "approvalEventId": "evt-20261016-pm-v11-opossum-approved"
+  },
+  "payload": {
+    "board_id": "1107815277030422226",
+    "title": "Opossum Wall Art for Funny Housewarming Gifts",
+    "description": "A very distinguished little menace. This JAOYWAO canvas print puts a theatrically reclining opossum in a gold-colored frame. Visit Goose Gifts for its 8x10-inch format, ready-to-hang details and animal-lover housewarming fit. Console, vase, coat and keys are styling props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+    "alt_text": "Small landscape gold-colored frame containing a printed portrait of a reclining gray-and-white opossum with open mouth and curled pink tail, leaning on a walnut console against a dark teal wall. Ivory text reads 'FINALLY, AN HONEST FAMILY PORTRAIT'.",
+    "link": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+    "media_source": {
+      "source_type": "image_base64",
+      "content_type": "image/png",
+      "data": "[base64 3128460 chars]"
+    }
+  }
+}

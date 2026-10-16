@@ -29,22 +29,22 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-16 morning):** the studio is ACTIVE. The
-greenhouse frog poster `1107815208391186516` is production-published/readback-
-verified. Profile: 32 verified Pins; v11 F 6/6, P 4/6, ten of twelve. Arm F is
-full, so assigned F slots are measurement-only; the two remaining P Pins
-retain their normal slots, next October 16 afternoon. Keep
+**Current scheduler state (2026-10-16 afternoon):** the studio is ACTIVE. The
+opossum family-portrait poster `1107815208391305222` is production-published/
+readback-verified. Profile: 33 verified Pins; v11 F 6/6, P 5/6, eleven of twelve.
+Arm F is full, so assigned F slots are measurement-only; the final remaining
+P Pin retains its normal slot, next intended October 17 morning Pacific. Keep
 the original two spaced slots, tasteful product-faithful creative, exact
 package safeguards and remaining v11 quota; do not backfill missed posts.
 The recovery/measurement contract is `PINTEREST_STUDIO.md` and Bead
 `roadmap-aguig`. Current preflight totals are 2,936 impressions, 45 Pin opens,
-seven saves and zero outbound clicks; the new frog starts at zero. Earlier zero-distribution checkpoints
+seven saves and zero outbound clicks; the new opossum starts at zero. Earlier zero-distribution checkpoints
 below remain historical evidence. Prioritize a concrete product/gifting reason
 to click through, not attractive images or saves alone; current downstream
 measurement uses GA4/PostHog, not the retired detailed database click writes.
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Thirty-two product-faithful editorial Pins are live. At the 2026-09-20
+   Thirty-three product-faithful editorial Pins are live. At the 2026-09-20
    morning pull, the public profile had 494 impressions, five Pin clicks, one
    save, and no Pinterest outbound click, attributable Pinterest session, or
    downstream customer product click. That is a directional attention signal,
@@ -54,9 +54,9 @@ measurement uses GA4/PostHog, not the retired detailed database click writes.
    impression and neither has a downstream action, so the result is
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
-   versus bespoke annotated field notes. Ten are live—six Arm F and four Arm
+   versus bespoke annotated field notes. Eleven are live—six Arm F and five Arm
    P. They have 896 impressions, 15 opens, three saves and no outbound click at
-   the October 15 morning check; the new frog starts at zero actions.
+   the October16 afternoon check; the new opossum starts at zero actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
@@ -73,6 +73,41 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-16 afternoon — honest family-portrait poster
+
+Fresh public/GA4/PostHog evidence preceded the read-only enriched shortlist;
+no unpublished survivor. Exact three-product API/source check favored the
+single framed opossum print over a hand-shaped duck/inset composite and a dense
+calendar cover. The selected JAOYWAO B0H3P21YPW was not touched in the latest
+October12 weekly run. Current purchasable listing, literal painted portrait/
+landscape frame/small scale and canonical page verify; no scarcity or price
+claim. Goose provides size, canvas, ready-to-hang and housewarming fit.
+
+Three distinct concepts preceded two included1024x1536 executions. Original
+resolution/source review selected the4.75/5 family-portrait role; chair pose
+echo4.50/5 competes with foreground styling, dinner-host concept risks scale/
+template drift. No visible defect justified a third call. Exact five-word
+FINALLY, AN HONEST FAMILY PORTRAIT and actual printed product remain legible;
+fine textures are AI-modified, not claimed as exact photographic pixels.
+Props are excluded, all gates pass, sole survivor. V33 saves every attempt.
+
+Complete delegated approval,14 tests, build/lint, production dry run and fresh
+live guards passed. Created once/readback-verified twice as
+[Pin1107815208391305222](https://www.pinterest.com/pin/1107815208391305222/);
+public HTML, platform image and tracked canonical/indexable destination verify.
+Receipt: `receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded`.
+P5/F6,total11, first Pin today. Native P651impressions/11opens/2saves and
+F245/4/1 remain zero outbound; new~45second baseline is not demand evidence.
+GA4 Oct10–16 partial has5direct+2unassigned sessions/1engaged, no Pinterest/
+outbound row; explicit PostHog550427 has2page views/2list views, no attributed
+Pinterest/retailer row. Per-Pin downstream remains unknown, no arm winner.
+
+Frog's first eligible late24h zero observation is recorded at age30h52m, not
+exact-age history. One P quota remains, next intended October17 AM if qualified.
+Leave schedule ACTIVE unchanged; twelfth actual receipt establishes full
+cohort deadline+14full days, then no generation/publication without a new
+owner decision. No catalog job, site implementation, account change or spend.
 
 ### 2026-10-16 morning — full F quota, eligible late belly check
 

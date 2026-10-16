@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-10-16T23:42:35.775Z",
+  "creative": {
+    "command": "npm run creative:validate",
+    "passed": true,
+    "eventCount": 792,
+    "experiments": 8,
+    "candidates": 36
+  },
+  "tests": {
+    "commands": [
+      "npm run test:creative",
+      "npm run test:pinterest"
+    ],
+    "passed": 14,
+    "failed": 0
+  },
+  "build": {
+    "command": "npm run build",
+    "passed": true
+  },
+  "lint": {
+    "command": "npm run lint",
+    "passed": true
+  },
+  "diffCheck": true,
+  "history": {
+    "creativePrefixUnchanged": true,
+    "creativeEventsAdded": 23,
+    "receiptPrefixUnchanged": true,
+    "receiptsAdded": 2,
+    "legacyManifestEntriesUnchanged": true,
+    "newDrafts": 1
+  },
+  "publication": {
+    "productionDryRunPassed": true,
+    "guardedCreateAttempts": 1,
+    "recovered": false,
+    "exactReadbacks": 2,
+    "publicHtmlVerified": true,
+    "platformHostedImageInspectedOriginal": true,
+    "canonicalIndexableDestinationVerified": true
+  },
+  "scope": {
+    "changedApplicationCode": false,
+    "spentMoney": false,
+    "schedulerChanged": false,
+    "unrelatedFilesPreserved": [
+      ".playwright-cli/",
+      "output/"
+    ]
+  }
+}

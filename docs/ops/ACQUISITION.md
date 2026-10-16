@@ -86,15 +86,15 @@ Posting or sending remains approval-gated.
 
 ### 4. Native social series
 
-**Current Pinterest measurement (October 15 morning):** 32 verified public Pins,
+**Current Pinterest measurement (October 16 afternoon):** 33 verified public Pins,
 2,936 preflight impressions, 45 opens, seven saves and zero native outbound clicks.
-V11 is ten of twelve: F has 245 impressions across six Pins, P has 651 across
-four. Both have zero outbound clicks; attributed site sessions
+V11 is eleven of twelve: F has 245 impressions across six Pins, P has 651 across
+five. Both have zero outbound clicks; attributed site sessions
 and retailer exits remain unknown under current GA4/PostHog coverage. The
-new greenhouse frog, spider prank-box and belly-bag Pins are production-created/readback-
+latest opossum poster, greenhouse frog, spider and belly Pins are production-created/readback-
 verified and link to exact canonical gift pages for real use/gifting details.
-Arm F is full; continue the two remaining P Pins only in their assigned slots and
-require a useful product-page payoff; no conversion or format winner is
+Arm F is full; the final P Pin has its normal intended October 17 AM slot and
+must offer a useful product-page payoff; no conversion or format winner is
 established. Earlier database/Vercel and zero-distribution notes below are
 historical. The current contract is `PINTEREST_STUDIO.md`.
 

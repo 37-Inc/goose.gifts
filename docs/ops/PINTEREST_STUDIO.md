@@ -27,10 +27,11 @@ minimum and do not declare a winner from tiny samples or invent the next batch.
 ### Owner-confirmed completion and final review — October 15
 
 Cameron explicitly accepted finishing the last two P posters and evaluating
-the complete cohort after its planned window. The current ledger is P 4/6,
-F 6/6, ten of twelve. Next intended P slots are October 16 afternoon and
-October 17 morning Pacific, only if each creative qualifies. A skipped slot
-does not create catch-up credit or permission to switch arms.
+the complete cohort after its planned window. At confirmation the ledger was
+P 4/6, F 6/6, ten of twelve. October 16 afternoon published the opossum poster
+below: now P 5/6, F 6/6, eleven of twelve. Only the October 17 morning Pacific
+P slot remains intended, if its creative qualifies. A skipped slot does not
+create catch-up credit or permission to switch arms.
 
 The existing ACTIVE heartbeat now explicitly requires the twelfth publication
 to record all twelve public Pin IDs/arms and the exact evaluation deadline:
@@ -109,6 +110,48 @@ bar and offer a safe alternative instead of silently stopping. No paid tools,
 promotion, outreach, account changes, deletions, video or unrelated site changes.
 
 ## October 13 recovery evidence
+
+### October 16 afternoon — opossum family-portrait poster
+
+The scheduled P slot published [Pin 1107815208391305222](https://www.pinterest.com/pin/1107815208391305222/)
+once at23:36:45.613 UTC through guarded production. Current Creators API/source
+verify JAOYWAO B0H3P21YPW as purchasable framed printed canvas, source landscape
+composition, small8x10-inch listing size and gold-colored frame. No scarcity,
+price, actual-gold/wood/antique or original-painting promise. Exact canonical
+page is200/self-canonical/indexable with material/size/ready-to-hang gift payoff.
+The selected product was not touched by the latest October12 weekly run;
+source/concept quality won over rank/latest-touch bonus. No catalog job ran.
+
+Three saved concepts, two included source-guided1024x1536 executions and
+original-resolution reviews yielded one4.75/5 survivor, all hard gates passing.
+Exact five-word line: FINALLY, AN HONEST FAMILY PORTRAIT. Printed pose, paws,
+tail/face and frame remain faithful, not pixel-identical source photography;
+fine texture/molding is relit/resynthesized. Reading-chair alternative4.50/5
+has competing foreground weight; dinner-host concept risks scale/template
+drift. Both rejected durably. No diagnosed defect justified a third call.
+
+Exact delegated package approval,14 targeted tests, build/lint, production dry
+run, current BUSINESS identity, unused slot/day/UTM, receipts and arm/cohort
+caps passed. Exact readback twice, public HTTP200/title/ID, platform-hosted
+image inspection and tracked canonical/indexable destination verify. Receipt:
+`receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded`.
+All source, prompts, artifacts, reviews, checks and receipts are in v33.
+
+Now **P5/F6,total11/12**, first Pin today;33 verified public Pins,2,936
+impressions/45opens/7saves/zero native outbound. P651/11/2 and F245/4/1
+remain zero outbound; new44.787-second baseline is not a verdict. Bounded
+GA4 507421709 October10–16 partial has5direct+2unassigned sessions/1engaged,
+no Pinterest/outbound row. PostHog550427 has2page views/2list views, no
+attributed Pinterest/retailer row. Per-Pin downstream remains unknown.
+
+Frog's first eligible late24h observation is zero at age30h52m38.368s, not
+reconstructed exact24h history; its7day gate is October22T16:44:52.032Z.
+Opossum24h is October17T23:36:45.613Z. Schedule stays ACTIVE unchanged.
+Only one P quota remains, next intended October17 morning Pacific if qualified.
+At twelfth success record all12 IDs/arms and latest durable success+14full days
+as exact review deadline. No generation/publication after twelve, even after
+deadline, without new owner authorization; keep metric-only and deliver review
+once at first eligible scheduled run. No arm swap, catch-up or new cohort.
 
 ### October 16 morning — full F slot; belly late 24h recorded
 

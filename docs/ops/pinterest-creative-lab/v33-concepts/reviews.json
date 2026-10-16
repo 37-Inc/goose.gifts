@@ -1,0 +1,64 @@
+{
+  "reviewedAt": "2026-10-16T23:34:37.779Z",
+  "generationCalls": 2,
+  "revisionCalls": 0,
+  "sourcePath": "docs/ops/pinterest-creative-lab/v33-concepts/product-references/B0H3P21YPW-amazon-large.jpg",
+  "reviews": [
+    {
+      "attemptId": "attempt-v33-opossum-family-portrait",
+      "rubricVersion": 1,
+      "reviewer": "codex internal original-resolution/source-comparison review",
+      "scores": {
+        "scrollStop": 5,
+        "pinterestNative": 5,
+        "aestheticQuality": 5,
+        "conceptClarity": 5,
+        "saveworthiness": 4,
+        "brandRestraint": 5,
+        "productFidelity": 4,
+        "aiArtifactControl": 5
+      },
+      "gates": {
+        "singleIdea": true,
+        "truthfulProduct": true,
+        "noEmbeddedCta": true,
+        "noAdTemplate": true
+      },
+      "verdict": "advance",
+      "notes": [
+        "Original 1024x1536 inspected against500x429 source. Same reclining/upturned open-mouth opossum, curled pink tail, chest/ground paws, ochre/green painted composition and complete landscape gold-colored frame; clearly a print, not a living animal or sculpture.",
+        "Believable small frame relative to cream envelopes, brass key and little vase; coherent tabletop/wall contact and warm window shadows. Fine brush/molding pixels are resynthesized/relit, not claimed to be a pixel-identical product photograph, so fidelity scored4 rather than5.",
+        "Five-word FINALLY, AN HONEST FAMILY PORTRAIT is exact, polished, high-contrast and legible. One coherent portrait-role joke, not an ad grid/card or CTA. Intrinsic product frame is not an added graphic border. No visible AI defect.",
+        "Mean4.75/5; all gates pass, min4. Sole survivor: stronger specific family-portrait role and clearer product/gifting payoff than the chair alternative. Goose resolves listed size, framed canvas, ready-to-hang and recipient fit.",
+        "Props are styling and explicitly excluded from package. No revision justified; two included calls only, no paid API/CLI. Internal judgment, not owner personal visual approval."
+      ]
+    },
+    {
+      "attemptId": "attempt-v33-opossum-reading-nook",
+      "rubricVersion": 1,
+      "reviewer": "codex internal original-resolution/source-comparison review",
+      "scores": {
+        "scrollStop": 4,
+        "pinterestNative": 5,
+        "aestheticQuality": 5,
+        "conceptClarity": 4,
+        "saveworthiness": 4,
+        "brandRestraint": 5,
+        "productFidelity": 4,
+        "aiArtifactControl": 5
+      },
+      "gates": {
+        "singleIdea": true,
+        "truthfulProduct": true,
+        "noEmbeddedCta": true,
+        "noAdTemplate": true
+      },
+      "verdict": "reject",
+      "notes": [
+        "Original1024x1536 source comparison preserves painted pose/tail/paws/face, landscape source composition and complete gold-colored frame. Small scale remains plausible relative to book and close chair arm; source pixels/molding are relit/resynthesized, not exact photographic pixels.",
+        "Verbatim five-word MY SOCIAL BATTERY IS FRAMED is polished/legible and no hard gate fails. No visible AI defect. Mean4.50/5, min4.",
+        "Rejected as this slot's alternative, not a failed product: chair/book dominate the lower half and the social-battery phrase is less specific than the family-portrait role. The pose-echo hypothesis is weaker at a glance; do not promote a second survivor or spend a revision without a diagnosed causal defect."
+      ]
+    }
+  ]
+}
