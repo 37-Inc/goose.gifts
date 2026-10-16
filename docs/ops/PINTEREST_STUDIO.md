@@ -110,6 +110,38 @@ promotion, outreach, account changes, deletions, video or unrelated site changes
 
 ## October 13 recovery evidence
 
+### October 16 morning — full F slot; belly late 24h recorded
+
+Even-date AM assigns F, already six of six. This scheduled run generated and
+published nothing, selected no product and created no approval/dry run. P4/F6
+remains ten of twelve, with no public success today and no unresolved receipt.
+Production verifies goosegifts BUSINESS and all ten exact packages/receipt
+boards. Listing enumeration returns 30; exact reads of the two known omitted
+IDs complete the 32-Pin public union. No omitted Pin was deleted or reposted.
+
+At 16:32:13.260 UTC, profile totals remain 2,936 impressions/45 opens/seven
+saves/zero outbound. P: 651 impressions/11 opens/two saves; F: 245/four/one;
+both zero native outbound. Mini bowling supplies 96.3% of P exposure and toast
+83.7% of F. Unequal age/product mix and concentrated exposure preclude a format
+claim. GA4 507421709, October 10–16 Pacific/current day partial, has five direct
+plus two unassigned sessions/one engaged, no Pinterest/outbound row after
+production-host and QA/operator exclusions. Explicit PostHog 550427 has two
+page views/two list views and no attributed Pinterest/retailer row. Downstream
+remains unknown. Public Pin/destination checks for belly and frog pass.
+
+Belly's first eligible late 24h check is now recorded: zero native distribution
+and actions at age 40h51m42.667s, 16h51m42.667s after the exact gate. This is
+current evidence, not reconstructed exact-24h history. Next belly gate is
+October 21 at 23:40:30.593 UTC. Frog 24h is not eligible at this snapshot:
+due today 16:44:52.032 UTC; capture only when eligible. Mini bowling reaches
+28 days October 17 at 16:45:23.812 UTC, not this run.
+
+V32 `verification/metrics-20261016-am.json`, seven current metric events and
+two validated learnings preserve the run. Owner-ready queue remains empty.
+Schedule stays ACTIVE unchanged. The next intended P slots are today afternoon
+and October 17 morning Pacific, only if qualified; no switched arm, catch-up
+or new cohort. Exact full-cohort review deadline remains pending twelfth success.
+
 ### October 15 afternoon — full Arm F, measurement-only
 
 The scheduled odd-date PM slot is F, already six of six. No source selection,
