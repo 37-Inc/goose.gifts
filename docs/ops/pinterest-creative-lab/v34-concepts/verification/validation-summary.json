@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-10-17T16:51:22.246Z",
+  "beforePublication": {
+    "creativeValidation": "passed813events",
+    "creativeTests": 5,
+    "pinterestTests": 9,
+    "build": "passed",
+    "lint": "passed",
+    "productionDryRun": "passed"
+  },
+  "finalAfterFreezeFix": {
+    "creativeValidation": "823events,prefix unchanged",
+    "creativeTests": 6,
+    "pinterestTests": 9,
+    "build": "passed",
+    "lint": "passed",
+    "testScope": "All four public lifecycle states measure after freeze; unpublished and archived-never-published metrics rejected; new generation/publication after freeze rejected."
+  },
+  "generationCalls": 2,
+  "revisions": 0,
+  "legacyManifestEntriesUnchanged": true,
+  "oldEventLines": 792,
+  "newEventLines": 823,
+  "oldReceiptLines": 58,
+  "newReceiptLines": 60,
+  "allTwelveSuccessfulReceiptsVerified": true
+}

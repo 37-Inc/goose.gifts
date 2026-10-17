@@ -1,0 +1,333 @@
+{
+  "runStartedAt": "2026-10-17T16:34:56.060Z",
+  "recordedAt": "2026-10-17T16:47:54.741Z",
+  "outcome": "published_final_qualifying_v11_pin",
+  "slot": "2026-10-17 morning Pacific Arm P",
+  "candidateId": "cand-v11-birthday-hat-poster",
+  "product": {
+    "name": "Sterling James Co. adult-language birthday trucker hat",
+    "id": "B01JQMNHNY",
+    "destination": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+    "availability": "IN_STOCK",
+    "touchedByLatestWeeklyRun": false
+  },
+  "artifact": {
+    "path": "docs/ops/pinterest-creative-lab/v34-concepts/01-birthday-hat-formal-attire.png",
+    "sha256": "27eafd5ae555a3a47ebfcc25796fe11c67cfa76016f1fb96c9ffb330f7ac0767",
+    "width": 1024,
+    "height": 1536
+  },
+  "generation": {
+    "tool": "included built-in image_gen",
+    "calls": 2,
+    "revisions": 0,
+    "promptPaths": [
+      "docs/ops/pinterest-creative-lab/v34-concepts/prompt-01-formal-attire.txt",
+      "docs/ops/pinterest-creative-lab/v34-concepts/prompt-02-no-filter-breakfast.txt"
+    ],
+    "internalWinnerScore": 4.625,
+    "internalAlternativeScore": 4.375
+  },
+  "publication": {
+    "dryRun": false,
+    "recovered": false,
+    "environment": "production",
+    "draft": "editorial-birthday-hat-formal-attire-poster-20261017-am",
+    "board": {
+      "id": "1107815277030422220",
+      "name": "Funny White Elephant Gifts"
+    },
+    "pin": {
+      "id": "1107815208391368990",
+      "url": "https://www.pinterest.com/pin/1107815208391368990/",
+      "title": "Funny Birthday Trucker Hat for an Unfiltered Friend",
+      "link": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am"
+    },
+    "receiptId": "receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded"
+  },
+  "durableSuccessReceipt": {
+    "schemaVersion": 1,
+    "receiptId": "receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded",
+    "type": "publication.succeeded",
+    "recordedAt": "2026-10-17T16:44:52.279Z",
+    "environment": "production",
+    "draftId": "editorial-birthday-hat-formal-attire-poster-20261017-am",
+    "candidateId": "cand-v11-birthday-hat-poster",
+    "approvalEventId": "evt-20261017-am-v11-birthday-hat-approved",
+    "boardId": "1107815277030422220",
+    "pinId": "1107815208391368990",
+    "title": "Funny Birthday Trucker Hat for an Unfiltered Friend",
+    "trackingUrl": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+    "details": {
+      "readbackVerified": true
+    }
+  },
+  "proof": {
+    "exactReadbacks": 2,
+    "publicPin": {
+      "url": "https://www.pinterest.com/pin/1107815208391368990/",
+      "status": 200,
+      "titlePresent": true,
+      "idPresent": true
+    },
+    "destination": {
+      "url": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+      "robots": "index, follow"
+    },
+    "platformHostedImageInspectedOriginal": true,
+    "platformImagePath": "docs/ops/pinterest-creative-lab/v34-concepts/verification/pinterest-published-image.jpg"
+  },
+  "profile": {
+    "pins": 34,
+    "impressions": 3169,
+    "pinClicks": 45,
+    "saves": 7,
+    "outboundClicks": 0
+  },
+  "arms": {
+    "P": {
+      "pins": 6,
+      "impressions": 845,
+      "pinClicks": 11,
+      "saves": 2,
+      "outboundClicks": 0,
+      "siteSessions": null,
+      "affiliateClicks": null
+    },
+    "F": {
+      "pins": 6,
+      "impressions": 256,
+      "pinClicks": 4,
+      "saves": 1,
+      "outboundClicks": 0,
+      "siteSessions": null,
+      "affiliateClicks": null
+    }
+  },
+  "successfulPublicationsToday": 1,
+  "unresolvedReceipts": 0,
+  "fullCohort": {
+    "schemaVersion": 1,
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "recordedAt": "2026-10-17T16:45:57.076Z",
+    "phase": "measurement_only_awaiting_full_cohort_review",
+    "qualifyingPublicPinCount": 12,
+    "armCounts": {
+      "P": 6,
+      "F": 6
+    },
+    "latestDurableSuccessfulPublicationAt": "2026-10-17T16:44:52.279Z",
+    "fullCohortEvaluationDeadlineUtc": "2026-10-31T16:44:52.279Z",
+    "deadlineFormula": "maximum(recordedAt of the twelve unique durable readback-verified publication.succeeded receipts) + 14 * 24 hours",
+    "expectedFirstRegularEligibleSlotUtc": "2026-10-31T23:30:00.000Z",
+    "expectedFirstRegularEligibleSlotPacific": "2026-10-31 16:30 America/Los_Angeles (09:30 slot precedes the09:44:52.279 local deadline)",
+    "finalReviewDelivered": false,
+    "finalReviewDeliveredAt": null,
+    "noFurtherGenerationOrPublicationUntilExplicitNewOwnerExperiment": true,
+    "scheduleAction": "leave existing two daily slots ACTIVE and unchanged; do not create duplicate review job",
+    "members": [
+      {
+        "pinId": "1107815208388715714",
+        "publicUrl": "https://www.pinterest.com/pin/1107815208388715714/",
+        "arm": "F",
+        "candidateId": "cand-v11-red-crab-field-note",
+        "draftId": "editorial-red-crab-steam-field-note-20260915-pm",
+        "receiptId": "receipt-1789515650765-editorial-red-crab-steam-field-note-20260915-pm-publication-succeeded",
+        "successfulPublicationAt": "2026-09-15T23:40:50.765Z",
+        "packageReadbackVerified": true
+      },
+      {
+        "pinId": "1107815208388765155",
+        "publicUrl": "https://www.pinterest.com/pin/1107815208388765155/",
+        "arm": "F",
+        "candidateId": "cand-v11-farting-ring-field-note",
+        "draftId": "editorial-farting-ring-courtship-field-note-20260916-am",
+        "receiptId": "receipt-1789576939922-editorial-farting-ring-courtship-field-note-20260916-am-publication-succeeded",
+        "successfulPublicationAt": "2026-09-16T16:42:19.922Z",
+        "packageReadbackVerified": true
+      },
+      {
+        "pinId": "1107815208388788830",
+        "publicUrl": "https://www.pinterest.com/pin/1107815208388788830/",
+        "arm": "P",
+        "candidateId": "cand-v11-chia-gnome-poster",
+        "draftId": "editorial-chia-gnome-barbershop-poster-20260916-pm",
+        "receiptId": "receipt-1789602107926-editorial-chia-gnome-barbershop-poster-20260916-pm-publication-succeeded",
+        "successfulPublicationAt": "2026-09-16T23:41:47.926Z",
+        "packageReadbackVerified": true
+      },
+      {
+        "pinId": "1107815208389000013",
+        "publicUrl": "https://www.pinterest.com/pin/1107815208389000013/",
+        "arm": "P",
+        "candidateId": "cand-v11-mini-bowling-poster",
+        "draftId": "editorial-mini-bowling-boardroom-poster-20260919-am",
+        "receiptId": "receipt-1789836323812-editorial-mini-bowling-boardroom-poster-20260919-am-publication-succeeded",
+        "successfulPublicationAt": "2026-09-19T16:45:23.812Z",
+        "packageReadbackVerified": true
+      },
+      {
+        "pinId": "1107815208389027583",
+        "publicUrl": "https://www.pinterest.com/pin/1107815208389027583/",
+        "arm": "F",
+        "candidateId": "cand-v11-birthday-toast-field-note",
+        "draftId": "editorial-birthday-toast-breakfast-field-note-20260919-pm",
+        "receiptId": "receipt-1789861234916-editorial-birthday-toast-breakfast-field-note-20260919-pm-publication-succeeded",
+        "successfulPublicationAt": "2026-09-19T23:40:34.916Z",
+        "packageReadbackVerified": true
+      },
+      {
+        "pinId": "1107815208389087383",
+        "publicUrl": "https://www.pinterest.com/pin/1107815208389087383/",
+        "arm": "F",
+        "candidateId": "cand-v11-desktop-therapist-field-note",
+        "draftId": "editorial-desktop-therapist-boardroom-field-note-20260920-am",
+        "receiptId": "receipt-1789922459150-editorial-desktop-therapist-boardroom-field-note-20260920-am-publication-succeeded",
+        "successfulPublicationAt": "2026-09-20T16:40:59.150Z",
+        "packageReadbackVerified": true
+      },
+      {
+        "pinId": "1107815208391037211",
+        "publicUrl": "https://www.pinterest.com/pin/1107815208391037211/",
+        "arm": "F",
+        "candidateId": "cand-v11-sheep-roll-field-note",
+        "draftId": "editorial-sheep-guest-bathroom-field-note-20261013-pm",
+        "receiptId": "receipt-1791922029336-editorial-sheep-guest-bathroom-field-note-20261013-pm-publication-succeeded",
+        "successfulPublicationAt": "2026-10-13T20:07:09.336Z",
+        "packageReadbackVerified": true
+      },
+      {
+        "pinId": "1107815208391104701",
+        "publicUrl": "https://www.pinterest.com/pin/1107815208391104701/",
+        "arm": "F",
+        "candidateId": "cand-v11-spider-box-field-note",
+        "draftId": "editorial-spider-box-unwrapped-field-note-20261014-am",
+        "receiptId": "receipt-1791996173716-editorial-spider-box-unwrapped-field-note-20261014-am-publication-succeeded",
+        "successfulPublicationAt": "2026-10-14T16:42:53.716Z",
+        "packageReadbackVerified": true
+      },
+      {
+        "pinId": "1107815208391132026",
+        "publicUrl": "https://www.pinterest.com/pin/1107815208391132026/",
+        "arm": "P",
+        "candidateId": "cand-v11-belly-bag-poster",
+        "draftId": "editorial-belly-bag-carry-on-poster-20261014-pm",
+        "receiptId": "receipt-1792021230593-editorial-belly-bag-carry-on-poster-20261014-pm-publication-succeeded",
+        "successfulPublicationAt": "2026-10-14T23:40:30.593Z",
+        "packageReadbackVerified": true
+      },
+      {
+        "pinId": "1107815208391186516",
+        "publicUrl": "https://www.pinterest.com/pin/1107815208391186516/",
+        "arm": "P",
+        "candidateId": "cand-v11-grumpy-frog-poster",
+        "draftId": "editorial-grumpy-frog-greenhouse-poster-20261015-am",
+        "receiptId": "receipt-1792082692032-editorial-grumpy-frog-greenhouse-poster-20261015-am-publication-succeeded",
+        "successfulPublicationAt": "2026-10-15T16:44:52.032Z",
+        "packageReadbackVerified": true
+      },
+      {
+        "pinId": "1107815208391305222",
+        "publicUrl": "https://www.pinterest.com/pin/1107815208391305222/",
+        "arm": "P",
+        "candidateId": "cand-v11-opossum-portrait-poster",
+        "draftId": "editorial-opossum-family-portrait-poster-20261016-pm",
+        "receiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded",
+        "successfulPublicationAt": "2026-10-16T23:36:45.613Z",
+        "packageReadbackVerified": true
+      },
+      {
+        "pinId": "1107815208391368990",
+        "publicUrl": "https://www.pinterest.com/pin/1107815208391368990/",
+        "arm": "P",
+        "candidateId": "cand-v11-birthday-hat-poster",
+        "draftId": "editorial-birthday-hat-formal-attire-poster-20261017-am",
+        "receiptId": "receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded",
+        "successfulPublicationAt": "2026-10-17T16:44:52.279Z",
+        "packageReadbackVerified": true
+      }
+    ],
+    "reviewContract": {
+      "primary": "Pinterest outbound clicks per impression, supported by attributable Goose sessions and retailer actions",
+      "secondary": [
+        "Pin opens per impression",
+        "saves"
+      ],
+      "minimumExposurePerArm": 50,
+      "minimumExposureIsNotProofOfWinner": true,
+      "ifBothZeroOutbound": "No demonstrated acquisition winner / inconclusive",
+      "include": [
+        "per-Pin ages",
+        "exposure concentration",
+        "product/category differences",
+        "effect of any single dominant Pin",
+        "missing or unavailable equal-age history explicitly unknown",
+        "downstream missing/unattributable/gap-affected evidence explicitly unknown"
+      ],
+      "nextTest": "Propose bounded next test without starting it or adopting a format autonomously",
+      "delivery": "Record final review delivery once; do not repeatedly present it as new"
+    }
+  },
+  "bowling28day": {
+    "checkpointAt": "2026-10-17T16:46:27.809Z",
+    "checkpoint": "first eligible28day receipt/native check",
+    "dueAt": "2026-10-17T16:45:23.812Z",
+    "lateByMs": 63997,
+    "ageMs": 2419263997,
+    "receipt": {
+      "schemaVersion": 1,
+      "receiptId": "receipt-1789836323812-editorial-mini-bowling-boardroom-poster-20260919-am-publication-succeeded",
+      "type": "publication.succeeded",
+      "recordedAt": "2026-09-19T16:45:23.812Z",
+      "environment": "production",
+      "draftId": "editorial-mini-bowling-boardroom-poster-20260919-am",
+      "candidateId": "cand-v11-mini-bowling-poster",
+      "approvalEventId": "evt-20260919-v11-mini-bowling-approved",
+      "boardId": "1107815277030422225",
+      "pinId": "1107815208389000013",
+      "title": "Mini Tabletop Bowling Game for Office Desks",
+      "trackingUrl": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+      "details": {
+        "readbackVerified": true
+      }
+    },
+    "publicPinId": "1107815208389000013",
+    "packageReadbackVerified": true,
+    "metrics": {
+      "impressions": 820,
+      "pinClicks": 9,
+      "saves": 2,
+      "outboundClicks": 0,
+      "siteSessions": null,
+      "affiliateClicks": null,
+      "revenueCents": null
+    },
+    "nativeLastUpdated": "Sat, 17 October 2026 16:46:27 +0000",
+    "caveats": [
+      "Not invented exact-age historical measurement; actual eligible check time recorded.",
+      "Lifecycle archive retains public Pin, successful receipt and v11 cohort/quota membership.",
+      "Attributable site sessions/retailer actions unknown; attention not acquisition."
+    ]
+  },
+  "experimentTechnicalAuthorization": {
+    "generation": false,
+    "publicPosting": false,
+    "paidSpend": false
+  },
+  "schedule": "existing ACTIVE schedule unchanged; metric-only until new owner-authorized experiment, including after final-review deadline",
+  "validatorCorrection": "Allow public metrics for existing published lifecycle after publication authority is disabled; keep new generation/publication blocked. Initial rejected metrics append did not write a line.",
+  "siteAttribution": "Unknown per-Pin; GA4property507421709 Oct11–17 partial8direct/0engaged, no Pinterest/retailer row. PostHogproject550427 onepage/onelistview, no attributed row. Historical gap retained.",
+  "futureCheckpoints": {
+    "birthdayHat24h": "2026-10-18T16:44:52.279Z",
+    "birthdayHat7d": "2026-10-24T16:44:52.279Z",
+    "birthdayHat28d": "2026-11-14T16:44:52.279Z",
+    "opossum24h": "2026-10-17T23:36:45.613Z",
+    "birthdayToast28d": "2026-10-17T23:40:34.916Z",
+    "desktopTherapist28d": "2026-10-18T16:40:59.150Z"
+  },
+  "evidenceChanged": "Exposure increased but native outbound stays zero in both arms; bowling dominatesP, no acquisition winner. Cohort now complete/frozen, exact14daydeadline anchored to final successful receipt.",
+  "nextMove": "Continue only scheduled metrics/checkpoints; deliver complete cohort review once at first scheduled run at/after2026-10-31T16:44:52.279Z. Propose next bounded hypothesis without starting it.",
+  "outOfScopeActionsTaken": []
+}

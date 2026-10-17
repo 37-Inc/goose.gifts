@@ -59,6 +59,15 @@ you'd rather get real email/Slack from me, connect a connector at
 
 ## Received
 
+- 2026-10-17: v11 completed at P6/F6,twelve of twelve after final birthday-hat
+  Pin1107815208391368990. Exact full-cohort review deadline is
+  2026-10-31T16:44:52.279Z, receipt-derived; first regular eligible scheduled
+  review October31 16:30Pacific. Generation/publicPosting disabled for this
+  cohort, existing scheduler ACTIVE unchanged for metrics only. No owner action
+  is needed for checkpoints/review; a new experiment requires a new explicit
+  owner decision, even after the deadline. Full membership/receipt contract is
+  in PINTEREST_STUDIO.md and v34. No conversion/format winner declared.
+
 - 2026-10-13: requested one manual Pinterest run passed. Sheep Pin
   `1107815208391037211` is public, source/readback/browser/destination verified;
   exact package and receipt are in v29. It spends today's afternoon F slot;

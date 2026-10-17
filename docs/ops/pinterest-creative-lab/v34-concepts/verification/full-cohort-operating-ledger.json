@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "exp-pinterest-editorial-mix-v11",
+  "recordedAt": "2026-10-17T16:45:57.076Z",
+  "phase": "measurement_only_awaiting_full_cohort_review",
+  "qualifyingPublicPinCount": 12,
+  "armCounts": {
+    "P": 6,
+    "F": 6
+  },
+  "latestDurableSuccessfulPublicationAt": "2026-10-17T16:44:52.279Z",
+  "fullCohortEvaluationDeadlineUtc": "2026-10-31T16:44:52.279Z",
+  "deadlineFormula": "maximum(recordedAt of the twelve unique durable readback-verified publication.succeeded receipts) + 14 * 24 hours",
+  "expectedFirstRegularEligibleSlotUtc": "2026-10-31T23:30:00.000Z",
+  "expectedFirstRegularEligibleSlotPacific": "2026-10-31 16:30 America/Los_Angeles (09:30 slot precedes the09:44:52.279 local deadline)",
+  "finalReviewDelivered": false,
+  "finalReviewDeliveredAt": null,
+  "noFurtherGenerationOrPublicationUntilExplicitNewOwnerExperiment": true,
+  "scheduleAction": "leave existing two daily slots ACTIVE and unchanged; do not create duplicate review job",
+  "members": [
+    {
+      "pinId": "1107815208388715714",
+      "publicUrl": "https://www.pinterest.com/pin/1107815208388715714/",
+      "arm": "F",
+      "candidateId": "cand-v11-red-crab-field-note",
+      "draftId": "editorial-red-crab-steam-field-note-20260915-pm",
+      "receiptId": "receipt-1789515650765-editorial-red-crab-steam-field-note-20260915-pm-publication-succeeded",
+      "successfulPublicationAt": "2026-09-15T23:40:50.765Z",
+      "packageReadbackVerified": true
+    },
+    {
+      "pinId": "1107815208388765155",
+      "publicUrl": "https://www.pinterest.com/pin/1107815208388765155/",
+      "arm": "F",
+      "candidateId": "cand-v11-farting-ring-field-note",
+      "draftId": "editorial-farting-ring-courtship-field-note-20260916-am",
+      "receiptId": "receipt-1789576939922-editorial-farting-ring-courtship-field-note-20260916-am-publication-succeeded",
+      "successfulPublicationAt": "2026-09-16T16:42:19.922Z",
+      "packageReadbackVerified": true
+    },
+    {
+      "pinId": "1107815208388788830",
+      "publicUrl": "https://www.pinterest.com/pin/1107815208388788830/",
+      "arm": "P",
+      "candidateId": "cand-v11-chia-gnome-poster",
+      "draftId": "editorial-chia-gnome-barbershop-poster-20260916-pm",
+      "receiptId": "receipt-1789602107926-editorial-chia-gnome-barbershop-poster-20260916-pm-publication-succeeded",
+      "successfulPublicationAt": "2026-09-16T23:41:47.926Z",
+      "packageReadbackVerified": true
+    },
+    {
+      "pinId": "1107815208389000013",
+      "publicUrl": "https://www.pinterest.com/pin/1107815208389000013/",
+      "arm": "P",
+      "candidateId": "cand-v11-mini-bowling-poster",
+      "draftId": "editorial-mini-bowling-boardroom-poster-20260919-am",
+      "receiptId": "receipt-1789836323812-editorial-mini-bowling-boardroom-poster-20260919-am-publication-succeeded",
+      "successfulPublicationAt": "2026-09-19T16:45:23.812Z",
+      "packageReadbackVerified": true
+    },
+    {
+      "pinId": "1107815208389027583",
+      "publicUrl": "https://www.pinterest.com/pin/1107815208389027583/",
+      "arm": "F",
+      "candidateId": "cand-v11-birthday-toast-field-note",
+      "draftId": "editorial-birthday-toast-breakfast-field-note-20260919-pm",
+      "receiptId": "receipt-1789861234916-editorial-birthday-toast-breakfast-field-note-20260919-pm-publication-succeeded",
+      "successfulPublicationAt": "2026-09-19T23:40:34.916Z",
+      "packageReadbackVerified": true
+    },
+    {
+      "pinId": "1107815208389087383",
+      "publicUrl": "https://www.pinterest.com/pin/1107815208389087383/",
+      "arm": "F",
+      "candidateId": "cand-v11-desktop-therapist-field-note",
+      "draftId": "editorial-desktop-therapist-boardroom-field-note-20260920-am",
+      "receiptId": "receipt-1789922459150-editorial-desktop-therapist-boardroom-field-note-20260920-am-publication-succeeded",
+      "successfulPublicationAt": "2026-09-20T16:40:59.150Z",
+      "packageReadbackVerified": true
+    },
+    {
+      "pinId": "1107815208391037211",
+      "publicUrl": "https://www.pinterest.com/pin/1107815208391037211/",
+      "arm": "F",
+      "candidateId": "cand-v11-sheep-roll-field-note",
+      "draftId": "editorial-sheep-guest-bathroom-field-note-20261013-pm",
+      "receiptId": "receipt-1791922029336-editorial-sheep-guest-bathroom-field-note-20261013-pm-publication-succeeded",
+      "successfulPublicationAt": "2026-10-13T20:07:09.336Z",
+      "packageReadbackVerified": true
+    },
+    {
+      "pinId": "1107815208391104701",
+      "publicUrl": "https://www.pinterest.com/pin/1107815208391104701/",
+      "arm": "F",
+      "candidateId": "cand-v11-spider-box-field-note",
+      "draftId": "editorial-spider-box-unwrapped-field-note-20261014-am",
+      "receiptId": "receipt-1791996173716-editorial-spider-box-unwrapped-field-note-20261014-am-publication-succeeded",
+      "successfulPublicationAt": "2026-10-14T16:42:53.716Z",
+      "packageReadbackVerified": true
+    },
+    {
+      "pinId": "1107815208391132026",
+      "publicUrl": "https://www.pinterest.com/pin/1107815208391132026/",
+      "arm": "P",
+      "candidateId": "cand-v11-belly-bag-poster",
+      "draftId": "editorial-belly-bag-carry-on-poster-20261014-pm",
+      "receiptId": "receipt-1792021230593-editorial-belly-bag-carry-on-poster-20261014-pm-publication-succeeded",
+      "successfulPublicationAt": "2026-10-14T23:40:30.593Z",
+      "packageReadbackVerified": true
+    },
+    {
+      "pinId": "1107815208391186516",
+      "publicUrl": "https://www.pinterest.com/pin/1107815208391186516/",
+      "arm": "P",
+      "candidateId": "cand-v11-grumpy-frog-poster",
+      "draftId": "editorial-grumpy-frog-greenhouse-poster-20261015-am",
+      "receiptId": "receipt-1792082692032-editorial-grumpy-frog-greenhouse-poster-20261015-am-publication-succeeded",
+      "successfulPublicationAt": "2026-10-15T16:44:52.032Z",
+      "packageReadbackVerified": true
+    },
+    {
+      "pinId": "1107815208391305222",
+      "publicUrl": "https://www.pinterest.com/pin/1107815208391305222/",
+      "arm": "P",
+      "candidateId": "cand-v11-opossum-portrait-poster",
+      "draftId": "editorial-opossum-family-portrait-poster-20261016-pm",
+      "receiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded",
+      "successfulPublicationAt": "2026-10-16T23:36:45.613Z",
+      "packageReadbackVerified": true
+    },
+    {
+      "pinId": "1107815208391368990",
+      "publicUrl": "https://www.pinterest.com/pin/1107815208391368990/",
+      "arm": "P",
+      "candidateId": "cand-v11-birthday-hat-poster",
+      "draftId": "editorial-birthday-hat-formal-attire-poster-20261017-am",
+      "receiptId": "receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded",
+      "successfulPublicationAt": "2026-10-17T16:44:52.279Z",
+      "packageReadbackVerified": true
+    }
+  ],
+  "reviewContract": {
+    "primary": "Pinterest outbound clicks per impression, supported by attributable Goose sessions and retailer actions",
+    "secondary": [
+      "Pin opens per impression",
+      "saves"
+    ],
+    "minimumExposurePerArm": 50,
+    "minimumExposureIsNotProofOfWinner": true,
+    "ifBothZeroOutbound": "No demonstrated acquisition winner / inconclusive",
+    "include": [
+      "per-Pin ages",
+      "exposure concentration",
+      "product/category differences",
+      "effect of any single dominant Pin",
+      "missing or unavailable equal-age history explicitly unknown",
+      "downstream missing/unattributable/gap-affected evidence explicitly unknown"
+    ],
+    "nextTest": "Propose bounded next test without starting it or adopting a format autonomously",
+    "delivery": "Record final review delivery once; do not repeatedly present it as new"
+  }
+}

@@ -29,22 +29,22 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-16 afternoon):** the studio is ACTIVE. The
-opossum family-portrait poster `1107815208391305222` is production-published/
-readback-verified. Profile: 33 verified Pins; v11 F 6/6, P 5/6, eleven of twelve.
-Arm F is full, so assigned F slots are measurement-only; the final remaining
-P Pin retains its normal slot, next intended October 17 morning Pacific. Keep
-the original two spaced slots, tasteful product-faithful creative, exact
-package safeguards and remaining v11 quota; do not backfill missed posts.
-The recovery/measurement contract is `PINTEREST_STUDIO.md` and Bead
-`roadmap-aguig`. Current preflight totals are 2,936 impressions, 45 Pin opens,
-seven saves and zero outbound clicks; the new opossum starts at zero. Earlier zero-distribution checkpoints
-below remain historical evidence. Prioritize a concrete product/gifting reason
-to click through, not attractive images or saves alone; current downstream
-measurement uses GA4/PostHog, not the retired detailed database click writes.
+**Current scheduler state (2026-10-17 morning):** ACTIVE, measurement-only.
+The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,
+twelve of twelve. Generation and public posting are disabled for this cohort;
+no new creative or publication, even after review, without a new explicit owner
+experiment. Existing two daily slots remain unchanged. The exact receipt-derived
+full-cohort review deadline is **2026-10-31T16:44:52.279Z**; first regular
+eligible slot October31 at4:30PM Pacific. All twelve membership/receipt records
+and one-time review-delivery state are linked from `PINTEREST_STUDIO.md`.
+Current profile:34 verified public Pins,3,169 impressions,45 opens,seven saves,
+zero native outbound. P845/11/2 and F256/4/1 (impressions/opens/saves) both have
+zero outbound; concentrated exposure is not a format win. Per-Pin downstream
+remains unknown under bounded GA4/PostHog coverage; retired DB/Vercel zeros
+and Sandbox/v3 are never current acquisition evidence.
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Thirty-three product-faithful editorial Pins are live. At the 2026-09-20
+   Thirty-four product-faithful editorial Pins are live. At the 2026-09-20
    morning pull, the public profile had 494 impressions, five Pin clicks, one
    save, and no Pinterest outbound click, attributable Pinterest session, or
    downstream customer product click. That is a directional attention signal,
@@ -54,9 +54,9 @@ measurement uses GA4/PostHog, not the retired detailed database click writes.
    impression and neither has a downstream action, so the result is
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
-   versus bespoke annotated field notes. Eleven are live—six Arm F and five Arm
-   P. They have 896 impressions, 15 opens, three saves and no outbound click at
-   the October16 afternoon check; the new opossum starts at zero actions.
+   versus bespoke annotated field notes. Twelve are live—six Arm F and six Arm
+   P. They have 1,101 impressions,15 opens,three saves and no outbound click at
+   the October17 morning check; the new birthday hat starts at zero actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
@@ -73,6 +73,39 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-17 morning — final poster; cohort frozen for review
+
+The Sterling James Co. birthday trucker hat B01JQMNHNY survived exact current
+Creators API/source, literal print/mesh/curved-brim and canonical-page checks.
+The sound-prank composite and near-duplicate button were not selected. Latest
+enriched shortlist was read-only; hat not touched by October12 weekly run.
+Three concepts preceded two included executions. Formal dinner versus frank
+birthday language passed4.625/5/all gates; breakfast4.375 was less distinctive,
+office takeover repeated a prior mechanism. No causal revision was needed.
+The skill's fidelity gates kept the actual wording/colors, ordinary wearable
+scale and adult recipient caveat; no fabricated fabric/size promise or CTA.
+
+Exact delegated approval, tests/build/lint, production dry run and fresh
+source/account/slot/day/quota/UTM/receipt guards passed. One production create,
+exact readback twice, public HTML, platform image and tracked canonical
+index/follow page verify [Pin1107815208391368990](https://www.pinterest.com/pin/1107815208391368990/).
+Success at2026-10-17T16:44:52.279Z spends final P quota: P6/F6,total12.
+Full-cohort review deadline is2026-10-31T16:44:52.279Z, latest of all twelve
+durable success receipts+14full days. First regular eligible review is
+October31 16:30Pacific. V34 preserves all12 IDs/arms/receipts, prompts, images,
+scores, rejected alternatives and exact one-time review contract.
+
+Generation/publicPosting ceilings are now false; schedule stays ACTIVE for
+metrics only, even after deadline, until a new explicit owner experiment.
+The validator now permits metrics for already-public lifecycle states without
+reopening generation/publication; regression coverage retains both guards.
+Bowling's eligible28day check820impressions/9opens/2saves/zerooutbound is
+recorded and lifecycle-archived without deleting its public Pin or membership.
+CurrentP845/11/2,F256/4/1 bothzerooutbound; bowling97.04%ofP,toast83.59%ofF.
+GA4Oct11–17partial8direct/0engaged, PostHogonepage/onelistview, no attributed
+Pinterest/retailer row. Downstream unknown; no acquisition winner. Next:
+scheduled checkpoints then complete cohort review, not another creative batch.
 
 ### 2026-10-16 afternoon — honest family-portrait poster
 

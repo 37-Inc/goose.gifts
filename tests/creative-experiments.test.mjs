@@ -247,3 +247,54 @@ test("keeps sandbox metrics separate and requires null for unavailable values", 
   assert.equal(state.candidates.get("cand-1").metrics[0].cohort, "sandbox");
   assert.equal(state.candidates.get("cand-1").metrics[0].metrics.impressions, null);
 });
+
+test("a frozen cohort can measure prior public Pins without reauthorizing generation or publication", () => {
+  const approved = [
+    experimentCreated({ authorization: { generation: true, publicPosting: true, paidSpend: false } }),
+    candidateCreated(),
+    status("evt-briefed", "idea", "briefed", 2),
+    status("evt-generating", "briefed", "generating", 3),
+    attempt(),
+    status("evt-review-status", "generating", "review", 5),
+    review(),
+    status("evt-shortlisted", "review", "shortlisted", 7),
+    status("evt-approved", "shortlisted", "approved", 8),
+  ];
+  const published = event("evt-published", "candidate.status_changed", {
+    experimentId: "exp-test", candidateId: "cand-1", from: "approved", to: "published",
+    rationale: "Authorized public receipt", evidenceUrl: "https://www.pinterest.com/pin/example",
+  }, 9);
+  const freeze = event("evt-freeze", "experiment.authorization_changed", {
+    experimentId: "exp-test",
+    from: { generation: true, publicPosting: true, paidSpend: false },
+    to: { generation: false, publicPosting: false, paidSpend: false },
+    rationale: "Cohort full; measurement only",
+  }, 10);
+  const metrics = event("evt-public-metrics", "metrics.recorded", {
+    experimentId: "exp-test", candidateId: "cand-1", checkpointAt: at(14),
+    cohort: "public", source: "Exact production readback",
+    metrics: { impressions: 50, saves: 1, pinClicks: 2, outboundClicks: 0,
+      siteSessions: null, affiliateClicks: null, revenueCents: null },
+    caveats: ["Unavailable attribution remains unknown"],
+  }, 14);
+  const lifecycle = [
+    status("evt-measuring", "published", "measuring", 11),
+    status("evt-learned", "measuring", "learned", 12),
+    status("evt-archived", "learned", "archived", 13),
+  ];
+  for (let count = 0; count <= lifecycle.length; count += 1) {
+    const state = validateAndFold([...approved, published, freeze, ...lifecycle.slice(0, count), metrics]);
+    assert.equal(state.candidates.get("cand-1").metrics[0].metrics.impressions, 50);
+    assert.deepEqual(state.experiments.get("exp-test").authorization,
+      { generation: false, publicPosting: false, paidSpend: false });
+  }
+  assert.throws(() => validateAndFold([...approved, freeze, published]), /public posting is not authorized/);
+  assert.throws(() => validateAndFold([...approved, freeze, metrics]), /public metrics require a published candidate/);
+  assert.throws(() => validateAndFold([
+    ...approved, freeze, status("evt-archived-unpublished", "approved", "archived", 11), metrics,
+  ]), /public metrics require a published candidate/);
+  const unpublished = [experimentCreated({ authorization: { generation: true, publicPosting: true, paidSpend: false } }),
+    candidateCreated(), status("evt-briefed", "idea", "briefed", 2),
+    status("evt-generating", "briefed", "generating", 3)];
+  assert.throws(() => validateAndFold([...unpublished, freeze, attempt()]), /generation is not authorized/);
+});

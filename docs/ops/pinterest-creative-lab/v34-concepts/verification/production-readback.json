@@ -1,0 +1,107 @@
+{
+  "checkedAt": "2026-10-17T16:45:11.330Z",
+  "receipt": {
+    "schemaVersion": 1,
+    "receiptId": "receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded",
+    "type": "publication.succeeded",
+    "recordedAt": "2026-10-17T16:44:52.279Z",
+    "environment": "production",
+    "draftId": "editorial-birthday-hat-formal-attire-poster-20261017-am",
+    "candidateId": "cand-v11-birthday-hat-poster",
+    "approvalEventId": "evt-20261017-am-v11-birthday-hat-approved",
+    "boardId": "1107815277030422220",
+    "pinId": "1107815208391368990",
+    "title": "Funny Birthday Trucker Hat for an Unfiltered Friend",
+    "trackingUrl": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+    "details": {
+      "readbackVerified": true
+    }
+  },
+  "exactReadback": {
+    "is_product": false,
+    "is_removable": false,
+    "product_tags": [],
+    "title": "Funny Birthday Trucker Hat for an Unfiltered Friend",
+    "created_at": "2026-10-17T16:44:51",
+    "is_standard": true,
+    "board_section_id": null,
+    "creative_type": "REGULAR",
+    "pin_metrics": {
+      "90d": {
+        "impression": 0,
+        "last_updated": "Sat, 17 October 2026 16:45:10 +0000",
+        "profile_visit": null,
+        "outbound_click": 0,
+        "user_follow": null,
+        "pin_click": 0,
+        "save": 0
+      },
+      "lifetime_metrics": {
+        "impression": 0,
+        "last_updated": "Sat, 17 October 2026 16:45:10 +0000",
+        "profile_visit": null,
+        "outbound_click": 0,
+        "user_follow": null,
+        "pin_click": 0,
+        "save": 0,
+        "reaction": 0,
+        "comment": 0
+      }
+    },
+    "media": {
+      "media_type": "image",
+      "images": {
+        "150x150": {
+          "width": 150,
+          "height": 150,
+          "url": "https://i.pinimg.com/150x150/66/4d/ef/664def1cbe13c6775591e4c8fe398c9b.jpg"
+        },
+        "400x300": {
+          "width": 400,
+          "height": 300,
+          "url": "https://i.pinimg.com/400x300/66/4d/ef/664def1cbe13c6775591e4c8fe398c9b.jpg"
+        },
+        "600x": {
+          "width": 564,
+          "height": 846,
+          "url": "https://i.pinimg.com/564x/66/4d/ef/664def1cbe13c6775591e4c8fe398c9b.jpg"
+        },
+        "1200x": {
+          "width": 1024,
+          "height": 1536,
+          "url": "https://i.pinimg.com/1200x/66/4d/ef/664def1cbe13c6775591e4c8fe398c9b.jpg"
+        }
+      }
+    },
+    "has_been_promoted": false,
+    "parent_pin_id": null,
+    "is_owner": true,
+    "id": "1107815208391368990",
+    "link": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+    "alt_text": "Black mesh-back trucker hat with multicolor printed text reading 'IT'S MY FUCKING BIRTHDAY', resting on an ivory upholstered dining chair beside a formally set table. Ivory editorial type reads 'FORMAL ATTIRE. INFORMAL LANGUAGE.'",
+    "board_owner": {
+      "username": "goosegifts"
+    },
+    "board_id": "1107815277030422220",
+    "description": "The dress code didn't mention vocabulary. This black Sterling James Co. trucker hat wears its birthday message in bright, very frank lettering. Visit Goose Gifts for adjustable-snapback and reusable party-fit details before choosing it for an adult friend who enjoys the language. Chair, glass and table are styling props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+    "dominant_color": null
+  },
+  "exactReadbacks": 2,
+  "publicPin": {
+    "url": "https://www.pinterest.com/pin/1107815208391368990/",
+    "status": 200,
+    "titlePresent": true,
+    "idPresent": true
+  },
+  "destination": {
+    "url": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+    "status": 200,
+    "canonical": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+    "robots": "index, follow"
+  },
+  "publishedImage": {
+    "width": 1024,
+    "height": 1536,
+    "url": "https://i.pinimg.com/1200x/66/4d/ef/664def1cbe13c6775591e4c8fe398c9b.jpg"
+  }
+}

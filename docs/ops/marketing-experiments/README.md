@@ -94,6 +94,13 @@ Use `null`, not zero, when a metric is unavailable. Zero means the source
 measured the metric and observed none. Always name the source and checkpoint
 time. Revenue remains `null` until an actual affiliate report supplies it.
 
+After a cohort spends its publication quota, record an authorization change
+disabling generation and public posting while keeping the experiment active
+for measurement. Public metrics remain valid for already published, measuring,
+learned or archived candidates; the prior authorized publication is still
+required. This does not reopen posting authority or create quota. Keep the
+existing schedule active for checkpoints and the receipt-derived final review.
+
 Publishing remains a separately authorized action. Experiment-level
 `publicPosting: true` is only a technical ceiling for candidates with their own
 Cameron approval event; it is not blanket approval for an experiment, queue, or

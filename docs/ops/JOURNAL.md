@@ -5,6 +5,97 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-17 morning — final P poster; v11 measurement-only
+
+Heartbeat16:34:56.060 UTC; canonical main/origin5646c333 at start, preserved
+unrelated .playwright-cli/ and output/. Read current studio/ops/creative skill
+and both references, refreshed local Graphify AST and queried affected source.
+No catalog maintenance, product-page/SEO work, outreach, paid tools, account
+change, deletion or scheduler mutation.
+
+Live production before source work:33 verified public Pins, P5/F6,total11,
+zero successful Pins today and no unresolved receipts. Exact receipt-board/
+package reads complete enumeration omissions. Public profile3,169impressions/
+45opens/7saves/zerooutbound; P845/11/2,F256/4/1. Bowling820/845=97.04%ofP and
+toast214/256=83.59%ofF; attention concentrated and not an acquisition winner.
+GA4 property507421709 Oct11–17Pacific/currentdaypartial has8direct sessions,
+zeroengaged, no Pinterest/outbound row under production-host/QA/operator filters.
+Explicit PostHog550427 hasonepage/onelistview, no attributed row. Per-Pin
+site/retailer/revenue remain unknown; historic ingestion gap/retired DB/Vercel
+zeros and Sandbox/v3 are never substituted as current conversion evidence.
+
+No valid unpublished P survivor. Read-only shortlist18, latest completed
+October12 weekly catalog run; no maintenance. Fresh Creators API/source photos
+for birthdayhat B01JQMNHNY, AnnoyingPCB B08KG6XHN1 and BlahButton B00KJJOWZG:
+allIN_STOCK. PCB's overlaid front/back/hand composite and hidden-audio visual
+identity risk rejected; button near-duplicates prior BullshitButton family.
+Selected SterlingJamesCo hat was not touched by latest weekly run. Exact
+source500x406: black structured crown/topbutton, mesh side/back, broad curved
+stitched bill and literal multicolor IT'S MY / FUCKING / BIRTHDAY print.
+Adult-language gift, no child/universal office-safe, fabric or size promise.
+Canonical page200,self-canonical,index/follow supplies snapback/reuse/party fit.
+
+Three concepts saved before two included1024x1536 calls: formal dinner dress
+code, unfiltered birthday breakfast, birthday taking office chair. Last rejected
+before generation for repeated boardroom mechanism. Full original-resolution
+source comparison selected formal dinner4.625/5,min4/all gates, exact four-word
+FORMAL ATTIRE. INFORMAL LANGUAGE. Breakfast4.375 passes truth/taste but is a
+less distinctive cake/hat still life, rejected comparatively. No visible defect
+justified third call. Fine weave/stitches resynthesized, not exact photo pixels;
+literal wording/color rhythm/cap shape/contact/ordinary wearable scale remain.
+All attempts/source/prompts/reviews preserved in v34; built-in generation only,
+no billed API fallback. Skill's exact-product/taste rules determined selection.
+
+Exact complete delegated approval quotes this heartbeat scope and binds image
+SHA256 27eafd5ae555a3a47ebfcc25796fe11c67cfa76016f1fb96c9ffb330f7ac0767,
+boardFunnyWhiteElephantGifts1107815277030422220, canonical gift destination,
+unique posterUTM, allcopy/alt/disclosure and finalP slot. Prepublication14
+targetedtests/build/lint/validation/dryrun, fresh source/account/arm/day/slot/
+unresolved-receipt/duplicate checks passed. One create, not retry/recovery:
+https://www.pinterest.com/pin/1107815208391368990/
+success 2026-10-17T16:44:52.279Z,
+receipt receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded.
+Exact readback twice, publicHTML200/title/ID, platform-hosted1024x1536 image
+visually inspected and tracked canonical/index-follow destination verify.
+Description visibly carries AI-modified/affiliate disclosure; API/image proof
+does not independently prove Pinterest browser AI-label UI. Initial24.424second
+nativezero baseline is not a demand verdict.
+
+P6/F6,total12; profile34. All12 exact production packages and durable success
+receipts recorded in v34/verification/full-cohort-operating-ledger.json and
+PINTEREST_STUDIO table. Maximum actual success2026-10-17T16:44:52.279Z plus
+14full days gives exact full-cohort review deadline2026-10-31T16:44:52.279Z,
+October31 09:44:52.279Pacific. First regular eligible scheduled run October31
+16:30Pacific/23:30UTC, not earlier09:30slot. Final review delivered=false/null.
+Existing two daily slots remain ACTIVE unchanged for metrics only; no more
+generation or publication even after deadline until a new explicit owner
+experiment. Review must include all6vs6, outbound/impression primary, downstream
+unknown, ages/exposure concentration/product differences/dominantPin and missing
+equal-age history;50impressions/arm is only exposure minimum. Zerooutboundboth
+=>no demonstrated acquisition winner, propose next test without starting it.
+
+Recorded experiment authorization generation=false/publicPosting=false/
+paidSpend=false while retaining active measurement status. This exposed an old
+validator coupling that refused metrics when posting disabled; initial rejected
+bowling append wrote no line. Narrow code correction removes only that coupling,
+retains prior-public lifecycle requirement and separate generation/publication
+guards. New regression covers published/measuring/learned/archived metrics,
+rejects unpublished metrics and new generation/publication after freeze.
+No authority reopened. Final6creative+9publisher tests/build/lint rerun required
+before merge. Append-only history preserved; no raw JSONL append/rewrite.
+
+Bowling first eligible28day receipt/native check16:46:27.809 UTC,63.997seconds
+after exact gate16:45:23.812:820impressions/9opens/2saves/zerooutbound, downstream
+unknown. Learning recorded and lifecycle learned/archived; public Pin/cohort
+membership/quota retained. Toast28day dueOct17T23:40:34.916Z,opossum24h
+Oct17T23:36:45.613Z,therapist28dayOct18T16:40:59.150Z remain pending until
+eligible. New hat24hOct18T16:44:52.279Z,7dayOct24T16:44:52.279Z,
+28dayNov14T16:44:52.279Z. Capture truthfully at first eligible run, not early.
+
+Next move: existing scheduled metric-only checks through receipt-derived
+full-cohort review; no duplicate review task, new creative/adopted winner,
+thirteenth Pin, re-post, catalog work or spend.
+
 ## 2026-10-16 afternoon — opossum family-portrait poster
 
 Heartbeat23:25:53.285 UTC; canonical main/origin617896c. Preserved unrelated
