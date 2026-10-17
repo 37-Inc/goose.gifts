@@ -16,6 +16,12 @@ eligible review slot October31 16:30Pacific. All later runs are metrics-only,
 even after that deadline, until Cameron explicitly authorizes a new experiment.
 Generation/publication are disabled for v11; existing schedule remains ACTIVE.
 
+October17 PM: no selection, generation, approval or publication. All twelve
+packages/receipts remain verified; P956impressions/12opens/2saves,F273/4/1,
+both zero outbound. Per-Pin downstream unknown. Opossum24h/toast28day were
+not due at the23:29 snapshot, so remain pending. Three stale editorial page
+holds are documented for the separate catalog workflow, not queued as Pins.
+
 ## Published from this queue
 
 ### Birthday trucker hat — formal attire, informal language

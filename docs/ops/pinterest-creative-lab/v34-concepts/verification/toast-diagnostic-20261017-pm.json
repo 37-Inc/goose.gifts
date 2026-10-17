@@ -1,0 +1,60 @@
+{
+  "checkedAt": "2026-10-17T23:30:43.023Z",
+  "database": [
+    {
+      "id": "B0F88FJ56K",
+      "slug": "a-toast-to-laughs-funny-birthday-gift-card",
+      "title": "A little Birthday Toast to you - Funny Happy Birthday Gifts for Women, Men, Mom, Dad, Sister, Best Friend - Unique Birthday Decorations Crochet Toast Gift Card for Her Him Coworker Gifts Ideas",
+      "is_active": true,
+      "availability_status": "IN_STOCK",
+      "availability_checked_at": "2026-10-05T22:38:14.820Z",
+      "last_verified_at": "2026-10-05T22:38:14.820Z",
+      "editorial_status": "stale",
+      "editorial_quality_score": "0.8800",
+      "editorial_generated_at": "2026-09-21T15:34:39.023Z",
+      "source_facts_hash": "e3e51896b169b13b8ce0b2bd88095a6f4ceb9798db062e35a7df1f997cad755a",
+      "editorial_source_hash": "5ec7b26eef28ba87c18e931a59b523e926263147a2c6c7976cd767f5c01dc54a",
+      "duplicate_of_product_id": null,
+      "updated_at": "2026-10-05T22:38:14.820Z"
+    }
+  ],
+  "readOnlyCreatorsResult": [
+    {
+      "id": "B0F88FJ56K",
+      "title": "A little Birthday Toast to you - Funny Happy Birthday Gifts for Women, Men, Mom, Dad, Sister, Best Friend - Unique Birthday Decorations Crochet Toast Gift Card for Her Him Coworker Gifts Ideas",
+      "price": 9.98,
+      "currency": "USD",
+      "imageUrl": "https://m.media-amazon.com/images/I/5110feBWTDL._SL500_.jpg",
+      "affiliateUrl": "https://www.amazon.com/dp/B0F88FJ56K?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+      "source": "amazon",
+      "remotelyVerified": true,
+      "availabilityStatus": "IN_STOCK",
+      "availabilityMessage": "In Stock",
+      "sourceFacts": {
+        "brand": "Ovrrcame",
+        "manufacturer": "Ovrrcame",
+        "productGroup": "Toy",
+        "features": [
+          "THE PERFECT UNIQUE BIRTHDAY SURPRISE – Tired of the usual boring gifts? The Ovrrcame Crochet Toast is the perfect funny and heartfelt present for everyone on your list. Surprise your best friend, sister, or mom with a gift they'll never forget. It's a wonderful choice for your dad, brother, or husband, and even a delightful surprise for a beloved coworker.",
+          "A HEARTFELT & FUNNY “TOAST” TO THEM – Featuring a witty, built-in greeting card that reads \"A little Birthday toast to you!\", this gift is a delightful pun that perfectly captures the celebratory spirit. It’s a clever way to say \"Happy Birthday\" that’s far more special than a generic card.",
+          "AN EVERLASTING KEEPSAKE OF JOY – Unlike flowers that wilt, this is a gift that lasts. Imagine your daughter taking it to her college dorm, a constant reminder of her parents' love. Or your grandma placing it on her nightstand, smiling every time she sees it from her loving grandson. It’s a memento that cherishes your special bond for years to come.",
+          "A THOUGHTFUL GIFT FROM Ovrrcame – From your quirky aunt to your hard-to-shop-for uncle, this versatile toast is the answer. It’s a heartwarming surprise for a niece or nephew and a perfect last-minute gift that feels incredibly personal and unique. Trust Ovrrcame for a gift that’s guaranteed to bring a smile. Please note: This is a collectible decor piece, not intended as a toy.",
+          "CHARMING DECOR FOR ANY SPACE & READY TO GIFT – With its perfect compact size , this adorable toast is a delightful piece of decor for any space. It’s the perfect desk buddy for an office, a cheerful touch for a bookshelf, or a cute companion for a car dashboard. Arriving ready to gift from Ovrrcame, it’s a guaranteed smile for anyone special in your life. Please note: This is a collectible decor piece, not intended as a toy."
+        ],
+        "color": "Birthday",
+        "size": "2 inches (W) x 2.5 inches (L) x 2.5 inches (H)",
+        "unitCount": 1,
+        "isAdultProduct": false,
+        "itemDimensions": {
+          "height": "2.5 inches",
+          "length": "2.5 inches",
+          "weight": "0.03968320716 pounds",
+          "width": "2 inches"
+        },
+        "parentAsin": "B0FD3QG69S",
+        "offerCondition": "New"
+      }
+    }
+  ],
+  "mutations": 0
+}

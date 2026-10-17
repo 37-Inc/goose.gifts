@@ -86,10 +86,10 @@ Posting or sending remains approval-gated.
 
 ### 4. Native social series
 
-**Current Pinterest measurement (October17 morning):**34 verified public Pins,
-3,169 impressions,45 opens,seven saves and zero native outbound clicks. V11
-is complete at six Pins per arm: P845impressions/11opens/2saves,F256/4/1;
-bothzerooutbound. Bowling supplies97.04%ofP exposure; product/age/concentration
+**Current Pinterest measurement (October17 afternoon):**34 verified public Pins,
+3,331 impressions,46 opens,seven saves and zero native outbound clicks. V11
+is complete at six Pins per arm: P956impressions/12opens/2saves,F273/4/1;
+bothzerooutbound. Bowling supplies97.38%ofP exposure; product/age/concentration
 confounds and unknown attributable site/retailer actions preclude a format or
 acquisition winner. The final birthday-hat poster is production-published/
 readback-verified and links to its canonical gift page for snapback/reuse/adult
@@ -99,6 +99,11 @@ with no generation/publication even after review until a new owner-authorized
 experiment. First regular eligible review slot:October31 16:30Pacific. Current
 GA4/PostHog reads retain unknown downstream, not historic DB/Vercel zeros.
 All twelve memberships/receipts and review-delivery state: `PINTEREST_STUDIO.md`.
+
+The PM bounded landing audit found all twelve canonical pages HTTP200 with
+retailer links. Chia, bowling and toast are noindex/follow due to stale
+editorial/source hashes, not a global crawler ban or broken direct-visit path.
+Separate catalog-workflow handoff is documented; no repair/requeue was run.
 
 Prepare channel-native units rather than a repeated link feed:
 

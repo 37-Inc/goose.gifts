@@ -5,6 +5,81 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-17 afternoon — completed-cohort metric-only run
+
+Heartbeat23:28:27.655 UTC, canonical main/origin d3e0c17 at start. Preserved
+unrelated .playwright-cli/ and output/. Read studio/repository/marketing/
+acquisition/access/creative-loop instructions and installed Pinterest skill/
+both required references. Refreshed stale local Graphify AST, queried metric/
+eligibility symbols and inspected exact source. Missing SQL parser/zero-node
+JSON warnings are local index limitations; no dependency or code change.
+
+Assigned F but full cohort P6/F6,total12 takes precedence: no shortlist,
+concept, generation, approval, dry run, publication or new experiment. Current
+experiment generation=false/publicPosting=false/paidSpend=false, status active
+for measurement. Exact original twelve receipts recompute deadline
+2026-10-31T16:44:52.279Z, first regular eligible review October31 16:30Pacific.
+Final review delivered=false/null; do not deliver early or change membership.
+
+At23:29:38.294 UTC production account goosegifts BUSINESS1107815345747925810
+and all twelve exact package/receipt-board reads verify. Enumeration32 plus
+two exact-ID known omissions gives34 public Pins. One successful Pin today is
+the morning birthday hat, not a publication in this run. No unresolved receipt.
+Profile3,331impressions/46opens/7saves/zerooutbound. P956/12/2,F273/4/1,
+bothzerooutbound; since morningP+111impressions/+1open,F+17impressions.
+Bowling931/956=97.38%P and toast229/273=83.88%F; without these products P25/
+2opens,F44/2opens,neither save/outbound. Unequal ages/category/board and
+dominant exposure prevent a format or acquisition claim. New Pins remain at
+zero, not a creative-quality verdict. No equal-age history reconstructed.
+
+Bounded GA4property507421709 Oct11–17Pacific/currentdaypartial, production
+hosts and QA/operator exclusions:8direct/0engaged sessions, no Pinterest/
+retailer event row. Explicit PostHog550427:2page/2list events, now including
+Oct17T21:57UTC, no attributed Pinterest or retailer row. Per-Pin sessions,
+retailer actions/revenue remain unknown, notzero. Retired DB/Vercel zeros and
+Sandbox/v3 never count as current conversion evidence; historical PostHog
+Sept19–Oct8 gap retained. No operator/test retailer click was performed.
+
+Initial public-page assertion found toast noindex/follow, not a broken HTTP/
+public Pin. Read exact hasIndexableGiftEditorial and generateMetadata source,
+one toast catalog record and one fresh Creators API listing: B0F88FJ56K
+IN_STOCK, editorial_status=stale, sourceFactsHash!=editorialSourceHash.
+Expanded only to bounded twelve-cohort destination/metadata audit: all200,
+self-canonical, visible Amazon CTA and retailer href. Nine index/follow,
+three noindex/follow: ChiaB008VVUWQC(P),bowlingB082PSJYYP(P),toastB0F88FJ56K(F).
+Allthree catalog records active/purchasable and stale/hash-mismatched. This
+explains their robots eligibility, not zero native Pinterest outbound; noindex
+does not block direct visits and links remain followable. A raw HTML literal
+CTA check initially missed React comment separators; normalized visible text
+and actual Amazon href confirmed all12 links without a customer click.
+
+Documented existing catalog-owner handoff in NEEDS: re-enrich exactly those
+three against current facts and verify indexability. No DB requeue executed,
+catalog workflow run, source write, page/SEO implementation, Pin replacement/
+deletion, new Bead or external thread message. This is not a new workstream.
+Keep original Pins in cohort and preserve14day comparison despite current
+landing eligibility; downstream missing stays unknown.
+
+At23:29–23:30 measurement times, opossum24h due23:36:45.613 UTC and toast
+28day due23:40:34.916 UTC are not yet eligible, so neither is closed early.
+Bowling28day already recorded/archived this morning, retained in metrics.
+Hat24h Oct18T16:44:52.279Z and therapist28day Oct18T16:40:59.150Z remain
+pending. Future first-eligible runs may be late; record actual time, never
+invent exact historical24h/28day measurements.
+
+Saved PM aggregate/contract/per-Pin ages, source diagnostic, public Pin/
+destination proof and twelve-page audit in v34 verification. Twelve public
+metric events and one experiment learning appended through creative:record;
+old prefixes/publication receipts/manifest/cohort operating ledger preserved.
+Queue empty, no new artifact/selected product or publication receipt. Existing
+schedule ACTIVE/unchanged; no reschedule, duplicate review job, spend, account
+change, outreach, catalog maintenance, roadmap write or next experiment.
+
+Next: existing metric-only checkpoints and full six-versus-six review at first
+scheduled run at/after exact deadline. Separately, catalog owner can refresh
+the three stale records through its own existing workflow; this run only
+provides read-only evidence/handoff. Do not adopt a format or begin a new test.
+
 ## 2026-10-17 morning — final P poster; v11 measurement-only
 
 Heartbeat16:34:56.060 UTC; canonical main/origin5646c333 at start, preserved
