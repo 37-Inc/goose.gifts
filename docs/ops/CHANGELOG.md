@@ -185,7 +185,8 @@ Bounded landing audit found three stale editorial hash holds (Chia/bowling/
 toast), all200/canonical with retailer links; separate catalog handoff recorded,
 not executed. Checkpoints not yet due at snapshot remain pending. Thirteen
 validated events and PM evidence saved in v34. Schedule and exact October31
-review deadline unchanged; no new experiment or format winner. PR pending.
+review deadline unchanged; no new experiment or format winner.
+[PR #177](https://github.com/37-Inc/goose.gifts/pull/177).
 
 ### 2026-10-17 [daily-ops] — Complete v11 and freeze creative for cohort review
 
