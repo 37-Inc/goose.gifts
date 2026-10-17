@@ -70,7 +70,7 @@ An initial rejected28day append wrote no event; the eligible bowling checkpoint
 then recorded successfully after the fix. Bowling's lifecycle is archived,
 not its public Pin or cohort membership.
 
-Current public profile:34 verified Pins,3,169 impressions,45 opens,seven saves,
+At cohort completion this morning:34 verified Pins,3,169 impressions,45 opens,seven saves,
 zero native outbound. P845/11/2 and F256/4/1 (impressions/opens/saves) both have
 zero outbound; bowling supplies97.04%of P exposure, toast83.59%of F. No format/
 acquisition winner. GA4property507421709 October11–17 partial:8direct sessions,
@@ -177,6 +177,63 @@ bar and offer a safe alternative instead of silently stopping. No paid tools,
 promotion, outreach, account changes, deletions, video or unrelated site changes.
 
 ## October 13 recovery evidence
+
+### October 17 afternoon — completed-cohort measurement-only slot
+
+This assigned F slot generated and published nothing: P 6/6, F 6/6, twelve
+of twelve. No candidate shortlist, concepts, approval or production create dry
+run; the spent cohort takes precedence. Production still verifies the correct
+goosegifts BUSINESS account, all twelve exact packages/receipt boards and the
+34-Pin public union (32 listed plus two known exact-ID omissions). One public
+success today belongs to the morning run; no unresolved receipt or new write.
+
+At 2026-10-17T23:29:38.294Z, P has 956 impressions, 12 opens, two saves and
+zero outbound clicks; F has 273 impressions, four opens, one save and zero
+outbound. Profile totals: 3,331 impressions, 46 opens, seven saves, zero
+outbound. Bowling supplies 97.38% of P exposure and toast 83.88% of F.
+Removing those dominant products leaves P 25 impressions/two opens and F
+44/two opens, both without saves/outbound. This is not an equal-age comparison
+or final review, and there is no demonstrated acquisition/format winner.
+
+Bounded GA4 property507421709, October11–17 Pacific/current day partial:
+eight direct sessions, zero engaged, no Pinterest/retailer row. PostHog550427
+has two page/two list views, including October17 activity, but no attributed
+Pinterest or retailer row. Per-Pin sessions/actions remain unknown, not zero;
+QA/operator campaigns, Sandbox/v3 and retired database/Vercel zeros excluded.
+
+A bounded twelve-destination audit found all HTTP200, self-canonical and
+retailer links/CTAs present. Nine are index/follow. Chia B008VVUWQC, bowling
+B082PSJYYP and toast B0F88FJ56K are noindex/follow: each is active/purchasable
+in the catalog but editorial_status=stale and sourceFactsHash differs from
+editorialSourceHash. This matches the product-specific editorial eligibility
+gate, not a global/random-page nofollow. Fresh read-only Creators API confirms
+toast IN_STOCK. Noindex does not prevent a direct Pinterest visit, so this
+does not establish a cause for zero native outbound clicks. Separate catalog
+workflow handoff: re-enrich those exact three records against current facts.
+No database requeue, catalog job, site implementation or Pin mutation occurred.
+
+The 23:29–23:30 snapshots precede opossum24h due23:36:45.613Z and toast28day
+due23:40:34.916Z; neither is closed early. Bowling28day was already recorded
+this morning and remains lifecycle-archived/public. All twelve members and
+receipt-derived deadline **2026-10-31T16:44:52.279Z** are unchanged; final
+review delivered=false. Existing schedule stays ACTIVE/unchanged, experiment
+generation/publicPosting remain false. First regular eligible final review is
+October31 at16:30Pacific. No new creative/publication even after the deadline
+without a new explicit owner experiment.
+
+Later in the same run, opossum's first eligible 24-hour receipt check was
+captured at 2026-10-17T23:37:21.545Z (35.932 seconds after its exact gate).
+Native impressions/opens/saves/outbound are all zero; exact production package
+still matches. This is current distribution evidence, not a creative verdict.
+Next opossum gate: 2026-10-23T23:36:45.613Z. Toast28day remains pending;
+it is not closed with the earlier snapshot. Two additional validated events
+and opossum-24h-20261017-pm.json preserve the actual observation.
+
+Evidence: [PM measurement receipt](pinterest-creative-lab/v34-concepts/verification/metrics-20261017-pm.json),
+[landing eligibility audit](pinterest-creative-lab/v34-concepts/verification/destinations-20261017-pm.json)
+and [single-product diagnostic](pinterest-creative-lab/v34-concepts/verification/toast-diagnostic-20261017-pm.json).
+Twelve public metric events plus one learning were validated/appended without
+rewriting history. The owner-ready queue stays empty.
 
 ### October 16 afternoon — opossum family-portrait poster
 

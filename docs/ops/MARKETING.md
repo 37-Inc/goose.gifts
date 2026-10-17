@@ -29,7 +29,7 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-17 morning):** ACTIVE, measurement-only.
+**Current scheduler state (2026-10-17 afternoon):** ACTIVE, measurement-only.
 The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,
 twelve of twelve. Generation and public posting are disabled for this cohort;
 no new creative or publication, even after review, without a new explicit owner
@@ -37,8 +37,8 @@ experiment. Existing two daily slots remain unchanged. The exact receipt-derived
 full-cohort review deadline is **2026-10-31T16:44:52.279Z**; first regular
 eligible slot October31 at4:30PM Pacific. All twelve membership/receipt records
 and one-time review-delivery state are linked from `PINTEREST_STUDIO.md`.
-Current profile:34 verified public Pins,3,169 impressions,45 opens,seven saves,
-zero native outbound. P845/11/2 and F256/4/1 (impressions/opens/saves) both have
+Current profile:34 verified public Pins,3,331 impressions,46 opens,seven saves,
+zero native outbound. P956/12/2 and F273/4/1 (impressions/opens/saves) both have
 zero outbound; concentrated exposure is not a format win. Per-Pin downstream
 remains unknown under bounded GA4/PostHog coverage; retired DB/Vercel zeros
 and Sandbox/v3 are never current acquisition evidence.
@@ -55,8 +55,8 @@ and Sandbox/v3 are never current acquisition evidence.
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
    versus bespoke annotated field notes. Twelve are live—six Arm F and six Arm
-   P. They have 1,101 impressions,15 opens,three saves and no outbound click at
-   the October17 morning check; the new birthday hat starts at zero actions.
+   P. They have 1,229 impressions,16 opens,three saves and no outbound click at
+   the October17 afternoon check; the new birthday hat remains at zero actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
@@ -73,6 +73,36 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-17 afternoon — full-cohort measurement no-op
+
+No creative selection, generation, approval, dry run or publication: P6/F6,
+twelve of twelve, generation/publicPosting disabled. All twelve exact public
+packages and successful receipts still verify. At23:29UTC, profile34 has
+3,331 impressions/46opens/seven saves/zero outbound. P956/12/2 and F273/4/1
+both remain zero outbound; bowling97.38%ofP and toast83.88%ofF dominate
+exposure. No format/acquisition winner or complete-cohort verdict yet.
+GA4Oct11–17partial has eight direct/zero engaged sessions, no attributed
+Pinterest/retailer row. PostHog550427 now has two page/two list events,
+including October17, no attributed row. Per-Pin downstream remains unknown.
+
+All twelve landing pages return200/canonical with retailer links. Chia,
+bowling and toast serve noindex/follow because their editorial status is stale
+and source hashes differ; nine remain index/follow. This is product-specific
+eligibility, not the random-page bot fix or a direct-visit block. Toast is
+freshly IN_STOCK via read-only Creators API. Documented handoff for separate
+catalog workflow to re-enrich exact B008VVUWQC/B082PSJYYP/B0F88FJ56K; no
+database requeue, maintenance, site fix or Pin mutation was performed here.
+
+Opossum24h/toast28day were not due at measurement time and remain pending,
+not falsely closed early. Existing ACTIVE schedule,12-Pin membership and exact
+review deadline2026-10-31T16:44:52.279Z remain unchanged. First regular
+eligible review October31 16:30Pacific; no new creative even after review
+without another explicit owner experiment. PM artifacts and13 validated
+append-only events preserve this measurement-only no-op; queue stays empty.
+Later opossum24h check at 2026-10-17T23:37:21.545Z verified its exact
+package and zero native distribution/actions; two additional events record the
+eligible observation. This is not a taste verdict. Toast28day stays pending.
 
 ### 2026-10-17 morning — final poster; cohort frozen for review
 

@@ -23,6 +23,20 @@ any paid/video-generation tooling before spend.
 
 ## P2 — high value, not urgent
 
+### Catalog-workflow handoff — three stale Pinterest destinations
+
+October17 PM audit: Chia Gnome B008VVUWQC, Mini Bowling B082PSJYYP and
+Birthday Toast B0F88FJ56K remain active/purchasable but editorial_status=stale
+and source-facts/editorial hashes differ. Their exact canonical pages return
+200 with Amazon links, but correctly serve noindex/follow under the current
+editorial gate; this is not the random-page nofollow rule. Toast's current
+Creators API read confirms IN_STOCK. The separate catalog-quality workflow
+should re-enrich those three against current facts and verify indexability.
+This is a documented handoff only, not an executed database requeue or a new
+workstream/Bead. This studio must not run catalog maintenance or change pages.
+Evidence: v34/verification/destinations-20261017-pm.json and toast diagnostic.
+Do not delete/repost public Pins or remove them from the completed cohort.
+
 ### 2. Review one held catalog item
 
 The 2026-08-24 weekly run held the customized ugly-pet pillow at

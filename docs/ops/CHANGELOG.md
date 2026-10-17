@@ -40,11 +40,12 @@ what's likely next.
   existing retailer-click events after the compact product-first layout
   (`roadmap-8hls`); keep QA identities out of acquisition reporting.
 
-- **Cleanup shipped; PostHog receipt billing-gated**: PR #160 retired unused
+- **Cleanup shipped; PostHog end-to-end receipt pending**: PR #160 retired unused
   admin/auth/reports and detailed click writes while preserving operations,
   history and the explicit adapter (`roadmap-vpmm.4.3`). Production search,
-  GA4, affiliate and cache-auth checks pass; PostHog storage is stopped by the
-  shared billing cap. Do not raise it without owner authorization. The
+  GA4, affiliate and cache-auth checks pass; sparse PostHog storage has resumed,
+  including October17 page/list events, but the operator retailer receipt still
+  needs verification. Retain the historical gap and shared billing cap. The
   completed conversion review (`roadmap-vpmm.4.6`) proposes a smaller entry
   hero/guide block and a factual curated opening cohort; visual work awaits the
   owner choice in `CONVERSION_REVIEW_2026-10-02.md`.
@@ -174,6 +175,20 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-17 afternoon [daily-ops] — Measure completed cohort; flag stale destinations
+
+Explicit measurement-only no-op: no new Pin or creative after P6/F6,total12.
+P956impressions/12opens/2saves,F273/4/1,bothzerooutbound; GA4/PostHog retain
+unknown downstream attribution. All twelve production packages/receipts verify.
+Bounded landing audit found three stale editorial hash holds (Chia/bowling/
+toast), all200/canonical with retailer links; separate catalog handoff recorded,
+not executed. Checkpoints not yet due at snapshot remain pending. Thirteen
+validated events and PM evidence saved in v34. Schedule and exact October31
+review deadline unchanged; no new experiment or format winner.
+[PR #177](https://github.com/37-Inc/goose.gifts/pull/177).
+Opossum's eligible24h receipt/native check was captured later in the same run:
+zero native distribution/actions, package intact; toast28day remains pending.
 
 ### 2026-10-17 [daily-ops] — Complete v11 and freeze creative for cohort review
 

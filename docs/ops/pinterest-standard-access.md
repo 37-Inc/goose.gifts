@@ -177,7 +177,7 @@ frame that shows a raw token.**
 
 ## Production operating state
 
-**Current verified state, October17 morning:** Standard production account
+**Current verified state, October17 afternoon:** Standard production account
 `goosegifts` BUSINESS remains correct. Final birthday-hat poster
 `1107815208391368990` was created once/readback-verified;34 public Pins in the
 verified union. V11 is **P6/F6,total12**, with experiment generation and public
@@ -187,6 +187,10 @@ Exact receipt-derived review deadline:2026-10-31T16:44:52.279Z; first regular
 eligible review slot October31 16:30Pacific. Current contract, all12 members,
 receipts and one-time review-delivery state: `PINTEREST_STUDIO.md` and v34.
 This supersedes historical counts below; Standard access never creates quota.
+The PM slot performed no generation or publication. All twelve exact package/
+receipt-board reads verify, with no unresolved receipt; account inventory
+remains34 (32 enumerated plus two exact-ID omissions). Native outbound stays
+zero in both arms; per-Pin site/retailer attribution remains unknown.
 
 - Standard access and the production OAuth read/dry-run path are verified.
 - Public posting still needs an exact candidate/package approval event (per

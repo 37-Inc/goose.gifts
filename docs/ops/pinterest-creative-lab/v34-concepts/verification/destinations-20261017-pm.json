@@ -1,0 +1,355 @@
+{
+  "checkedAt": "2026-10-17T23:31:16.745Z",
+  "checks": [
+    {
+      "pinId": "1107815208388715714",
+      "arm": "F",
+      "candidateId": "cand-v11-red-crab-field-note",
+      "targetPage": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen",
+      "robots": "index, follow",
+      "artifact": "docs/ops/pinterest-creative-lab/v22-concepts/02-red-crab-steam-room-field-note.png",
+      "catalog": {
+        "id": "B07VLBVQBP",
+        "slug": "crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen",
+        "is_active": true,
+        "availability_status": "IN_STOCK",
+        "availability_checked_at": "2026-10-12T22:36:03.027Z",
+        "editorial_status": "generated_ready",
+        "editorial_quality_score": "0.8800",
+        "source_facts_hash": "32b559d2dd05a6c85dc9f760e8c13c6a74a6fb2320ee87ac2bb03cc54ff812e1",
+        "editorial_source_hash": "32b559d2dd05a6c85dc9f760e8c13c6a74a6fb2320ee87ac2bb03cc54ff812e1",
+        "duplicate_of_product_id": null
+      },
+      "retailerCta": {
+        "url": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen",
+        "status": 200,
+        "visibleRetailerCta": true,
+        "retailerHostLinkPresent": true
+      },
+      "retailerCtaNote": "Normalized server-rendered visible text and retailer href only; no synthetic retailer click."
+    },
+    {
+      "pinId": "1107815208388765155",
+      "arm": "F",
+      "candidateId": "cand-v11-farting-ring-field-note",
+      "targetPage": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+      "robots": "index, follow",
+      "artifact": "docs/ops/pinterest-creative-lab/v23-concepts/02-farting-ring-courtship-field-note.png",
+      "catalog": {
+        "id": "B01KR3SAIS",
+        "slug": "farting-ring-box-the-ring-that-will-crack-you-up",
+        "is_active": true,
+        "availability_status": "AVAILABLE_DATE",
+        "availability_checked_at": "2026-10-12T22:36:03.181Z",
+        "editorial_status": "generated_ready",
+        "editorial_quality_score": "0.8800",
+        "source_facts_hash": "71652f64a0ca258f81f5c82c0e510d8e5934f2ffcecad291c63feef52d4485af",
+        "editorial_source_hash": "71652f64a0ca258f81f5c82c0e510d8e5934f2ffcecad291c63feef52d4485af",
+        "duplicate_of_product_id": null
+      },
+      "retailerCta": {
+        "url": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+        "status": 200,
+        "visibleRetailerCta": true,
+        "retailerHostLinkPresent": true
+      },
+      "retailerCtaNote": "Normalized server-rendered visible text and retailer href only; no synthetic retailer click."
+    },
+    {
+      "pinId": "1107815208388788830",
+      "arm": "P",
+      "candidateId": "cand-v11-chia-gnome-poster",
+      "targetPage": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition",
+      "robots": "noindex, follow",
+      "artifact": "docs/ops/pinterest-creative-lab/v24-concepts/03-chia-gnome-barbershop-poster-hat-corrected.png",
+      "catalog": {
+        "id": "B008VVUWQC",
+        "slug": "gnome-pun-intended-the-chia-pet-edition",
+        "is_active": true,
+        "availability_status": "IN_STOCK",
+        "availability_checked_at": "2026-10-04T11:08:02.104Z",
+        "editorial_status": "stale",
+        "editorial_quality_score": "0.8800",
+        "source_facts_hash": "751aa7553e69ec15dbcc0a97c73ab7dc0ff00475a600bfa24b8815df1660a97a",
+        "editorial_source_hash": "32f1621f3ddfdd31cd78341058436154d6ac465783fda996aa6a7fdfab81cd01",
+        "duplicate_of_product_id": null
+      },
+      "retailerCta": {
+        "url": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition",
+        "status": 200,
+        "visibleRetailerCta": true,
+        "retailerHostLinkPresent": true
+      },
+      "retailerCtaNote": "Normalized server-rendered visible text and retailer href only; no synthetic retailer click."
+    },
+    {
+      "pinId": "1107815208389000013",
+      "arm": "P",
+      "candidateId": "cand-v11-mini-bowling-poster",
+      "targetPage": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun",
+      "robots": "noindex, follow",
+      "artifact": "docs/ops/pinterest-creative-lab/v25-concepts/01-mini-bowling-boardroom-poster.png",
+      "catalog": {
+        "id": "B082PSJYYP",
+        "slug": "bowling-mini-toys-strike-up-some-fun",
+        "is_active": true,
+        "availability_status": "IN_STOCK",
+        "availability_checked_at": "2026-09-28T22:33:28.244Z",
+        "editorial_status": "stale",
+        "editorial_quality_score": "0.8800",
+        "source_facts_hash": "46c1f4fdf55f19b109aaf9d2f9feedace5e4b3939232f98bd72e00c15cac3d9e",
+        "editorial_source_hash": "7466550c288074d25ea327ec06c7765714269080ba58872c5ed938df9b1e10bc",
+        "duplicate_of_product_id": null
+      },
+      "retailerCta": {
+        "url": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun",
+        "status": 200,
+        "visibleRetailerCta": true,
+        "retailerHostLinkPresent": true
+      },
+      "retailerCtaNote": "Normalized server-rendered visible text and retailer href only; no synthetic retailer click."
+    },
+    {
+      "pinId": "1107815208389027583",
+      "arm": "F",
+      "candidateId": "cand-v11-birthday-toast-field-note",
+      "targetPage": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+      "robots": "noindex, follow",
+      "artifact": "docs/ops/pinterest-creative-lab/v26-concepts/01-birthday-toast-breakfast-field-note.png",
+      "catalog": {
+        "id": "B0F88FJ56K",
+        "slug": "a-toast-to-laughs-funny-birthday-gift-card",
+        "is_active": true,
+        "availability_status": "IN_STOCK",
+        "availability_checked_at": "2026-10-05T22:38:14.820Z",
+        "editorial_status": "stale",
+        "editorial_quality_score": "0.8800",
+        "source_facts_hash": "e3e51896b169b13b8ce0b2bd88095a6f4ceb9798db062e35a7df1f997cad755a",
+        "editorial_source_hash": "5ec7b26eef28ba87c18e931a59b523e926263147a2c6c7976cd767f5c01dc54a",
+        "duplicate_of_product_id": null
+      },
+      "retailerCta": {
+        "url": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+        "status": 200,
+        "visibleRetailerCta": true,
+        "retailerHostLinkPresent": true
+      },
+      "retailerCtaNote": "Normalized server-rendered visible text and retailer href only; no synthetic retailer click."
+    },
+    {
+      "pinId": "1107815208389087383",
+      "arm": "F",
+      "candidateId": "cand-v11-desktop-therapist-field-note",
+      "targetPage": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking",
+      "robots": "index, follow",
+      "artifact": "docs/ops/pinterest-creative-lab/v27-concepts/02-desktop-therapist-boardroom-field-note.png",
+      "catalog": {
+        "id": "B0BGXLMHRV",
+        "slug": "desktop-therapist-let-your-desk-do-the-talking",
+        "is_active": true,
+        "availability_status": "IN_STOCK",
+        "availability_checked_at": "2026-10-12T22:36:03.771Z",
+        "editorial_status": "generated_ready",
+        "editorial_quality_score": "0.8800",
+        "source_facts_hash": "bf3923189723a39f447354dfd127c92f05f4aa098ab4d5d27a522c03ce9a46e9",
+        "editorial_source_hash": "bf3923189723a39f447354dfd127c92f05f4aa098ab4d5d27a522c03ce9a46e9",
+        "duplicate_of_product_id": null
+      },
+      "retailerCta": {
+        "url": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking",
+        "status": 200,
+        "visibleRetailerCta": true,
+        "retailerHostLinkPresent": true
+      },
+      "retailerCtaNote": "Normalized server-rendered visible text and retailer href only; no synthetic retailer click."
+    },
+    {
+      "pinId": "1107815208391037211",
+      "arm": "F",
+      "candidateId": "cand-v11-sheep-roll-field-note",
+      "targetPage": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder",
+      "robots": "index, follow",
+      "artifact": "docs/ops/pinterest-creative-lab/v29-concepts/03-sheep-guest-bathroom-final.png",
+      "catalog": {
+        "id": "B0CRRWZHK1",
+        "slug": "shear-ly-the-best-toilet-roll-holder",
+        "is_active": true,
+        "availability_status": "IN_STOCK",
+        "availability_checked_at": "2026-10-12T22:36:02.436Z",
+        "editorial_status": "generated_ready",
+        "editorial_quality_score": "0.8800",
+        "source_facts_hash": "ae8ad522defe5ab5133fb6df9687d5dfafb089ca06f85a2cbe85248fad6dab88",
+        "editorial_source_hash": "ae8ad522defe5ab5133fb6df9687d5dfafb089ca06f85a2cbe85248fad6dab88",
+        "duplicate_of_product_id": null
+      },
+      "retailerCta": {
+        "url": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder",
+        "status": 200,
+        "visibleRetailerCta": true,
+        "retailerHostLinkPresent": true
+      },
+      "retailerCtaNote": "Normalized server-rendered visible text and retailer href only; no synthetic retailer click."
+    },
+    {
+      "pinId": "1107815208391104701",
+      "arm": "F",
+      "candidateId": "cand-v11-spider-box-field-note",
+      "targetPage": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time",
+      "robots": "index, follow",
+      "artifact": "docs/ops/pinterest-creative-lab/v30-concepts/03-spider-unwrapped-gift-final.png",
+      "catalog": {
+        "id": "B07H75BJWW",
+        "slug": "spider-prank-box-a-hauntingly-good-time",
+        "is_active": true,
+        "availability_status": "IN_STOCK",
+        "availability_checked_at": "2026-10-04T11:08:01.178Z",
+        "editorial_status": "generated_ready",
+        "editorial_quality_score": "0.8800",
+        "source_facts_hash": "9a8e995da19a390e5bcd97f779b6bcd03852d1304626585d305e5a94e76d5708",
+        "editorial_source_hash": "9a8e995da19a390e5bcd97f779b6bcd03852d1304626585d305e5a94e76d5708",
+        "duplicate_of_product_id": null
+      },
+      "retailerCta": {
+        "url": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time",
+        "status": 200,
+        "visibleRetailerCta": true,
+        "retailerHostLinkPresent": true
+      },
+      "retailerCtaNote": "Normalized server-rendered visible text and retailer href only; no synthetic retailer click."
+    },
+    {
+      "pinId": "1107815208391132026",
+      "arm": "P",
+      "candidateId": "cand-v11-belly-bag-poster",
+      "targetPage": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack",
+      "robots": "index, follow",
+      "artifact": "docs/ops/pinterest-creative-lab/v31-concepts/01-belly-bag-carry-on-poster.png",
+      "catalog": {
+        "id": "B075S2ZCYQ",
+        "slug": "fake-it-till-you-make-it-belly-fanny-pack",
+        "is_active": true,
+        "availability_status": "AVAILABLE_DATE",
+        "availability_checked_at": "2026-10-05T22:36:53.392Z",
+        "editorial_status": "generated_ready",
+        "editorial_quality_score": "0.8800",
+        "source_facts_hash": "f75976f0590f5304944ffc4b4d6a08dac2fdc65f718cc6c2cfcc81383696abfe",
+        "editorial_source_hash": "f75976f0590f5304944ffc4b4d6a08dac2fdc65f718cc6c2cfcc81383696abfe",
+        "duplicate_of_product_id": null
+      },
+      "retailerCta": {
+        "url": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack",
+        "status": 200,
+        "visibleRetailerCta": true,
+        "retailerHostLinkPresent": true
+      },
+      "retailerCtaNote": "Normalized server-rendered visible text and retailer href only; no synthetic retailer click."
+    },
+    {
+      "pinId": "1107815208391186516",
+      "arm": "P",
+      "candidateId": "cand-v11-grumpy-frog-poster",
+      "targetPage": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay",
+      "robots": "index, follow",
+      "artifact": "docs/ops/pinterest-creative-lab/v32-concepts/01-grumpy-frog-greenhouse-poster.png",
+      "catalog": {
+        "id": "B0FR5J39PR",
+        "slug": "grumpy-frog-not-happy-but-here-to-stay",
+        "is_active": true,
+        "availability_status": "IN_STOCK",
+        "availability_checked_at": "2026-10-04T11:08:01.740Z",
+        "editorial_status": "generated_ready",
+        "editorial_quality_score": "0.8800",
+        "source_facts_hash": "83adad67201da0b80830bfcff474f68147773b673f3c55b9977712a5aed5a0d9",
+        "editorial_source_hash": "83adad67201da0b80830bfcff474f68147773b673f3c55b9977712a5aed5a0d9",
+        "duplicate_of_product_id": null
+      },
+      "retailerCta": {
+        "url": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay",
+        "status": 200,
+        "visibleRetailerCta": true,
+        "retailerHostLinkPresent": true
+      },
+      "retailerCtaNote": "Normalized server-rendered visible text and retailer href only; no synthetic retailer click."
+    },
+    {
+      "pinId": "1107815208391305222",
+      "arm": "P",
+      "candidateId": "cand-v11-opossum-portrait-poster",
+      "targetPage": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+      "robots": "index, follow",
+      "artifact": "docs/ops/pinterest-creative-lab/v33-concepts/01-opossum-family-portrait-poster.png",
+      "catalog": {
+        "id": "B0H3P21YPW",
+        "slug": "opossum-ly-awesome-vintage-framed-art",
+        "is_active": true,
+        "availability_status": "IN_STOCK_SCARCE",
+        "availability_checked_at": "2026-10-05T22:38:13.484Z",
+        "editorial_status": "generated_ready",
+        "editorial_quality_score": "0.8800",
+        "source_facts_hash": "109a992638cabf8590e61173f27b7e1ff307149889441b1c8827179e2ca7227a",
+        "editorial_source_hash": "109a992638cabf8590e61173f27b7e1ff307149889441b1c8827179e2ca7227a",
+        "duplicate_of_product_id": null
+      },
+      "retailerCta": {
+        "url": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+        "status": 200,
+        "visibleRetailerCta": true,
+        "retailerHostLinkPresent": true
+      },
+      "retailerCtaNote": "Normalized server-rendered visible text and retailer href only; no synthetic retailer click."
+    },
+    {
+      "pinId": "1107815208391368990",
+      "arm": "P",
+      "candidateId": "cand-v11-birthday-hat-poster",
+      "targetPage": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+      "status": 200,
+      "canonical": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+      "robots": "index, follow",
+      "artifact": "docs/ops/pinterest-creative-lab/v34-concepts/01-birthday-hat-formal-attire.png",
+      "catalog": {
+        "id": "B01JQMNHNY",
+        "slug": "birthday-hat-of-awesomeness-wear-your-hilariousness",
+        "is_active": true,
+        "availability_status": "IN_STOCK",
+        "availability_checked_at": "2026-10-04T11:08:01.335Z",
+        "editorial_status": "generated_ready",
+        "editorial_quality_score": "0.8800",
+        "source_facts_hash": "6be62cc6cd2d8a51cff8e1dba7422274fcb8c4c86781856222ef0b3b43c8c33c",
+        "editorial_source_hash": "6be62cc6cd2d8a51cff8e1dba7422274fcb8c4c86781856222ef0b3b43c8c33c",
+        "duplicate_of_product_id": null
+      },
+      "retailerCta": {
+        "url": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+        "status": 200,
+        "visibleRetailerCta": true,
+        "retailerHostLinkPresent": true
+      },
+      "retailerCtaNote": "Normalized server-rendered visible text and retailer href only; no synthetic retailer click."
+    }
+  ],
+  "readOnly": true,
+  "publicOrDatabaseWrites": 0
+}

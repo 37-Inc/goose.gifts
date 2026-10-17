@@ -1,0 +1,1248 @@
+{
+  "schemaVersion": 1,
+  "triggeredAt": "2026-10-17T23:28:27.655Z",
+  "baseCommit": "d3e0c17e7bfd56e1f4b3c637ac8248dcab3eca67",
+  "recordedAt": "2026-10-17T23:32:26.403Z",
+  "slot": {
+    "localDate": "2026-10-17",
+    "localSlot": "afternoon",
+    "assignedArm": "F",
+    "outcome": "completed-cohort-cap-measurement-only",
+    "generatedImages": 0,
+    "publishedPins": 0,
+    "newApprovals": 0,
+    "dryRuns": 0,
+    "candidateShortlistsRun": 0,
+    "selectedProduct": null,
+    "ownerReadyItems": 0
+  },
+  "pinterest": {
+    "generatedAt": "2026-10-17T23:29:38.294Z",
+    "environment": "production",
+    "account": {
+      "account_type": "BUSINESS",
+      "pin_count": 34,
+      "website_url": "http://www.goose.gifts",
+      "monthly_views": 2959,
+      "profile_image": "https://i.pinimg.com/600x600_R/fd/5b/f5/fd5bf57516c722f324d004b93a5c5420.jpg",
+      "about": "Funny gift ideas, white elephant picks, and weird finds from goose.gifts.",
+      "follower_count": 0,
+      "business_name": "goose.gifts",
+      "following_count": 2,
+      "id": "1107815345747925810",
+      "username": "goosegifts",
+      "board_count": 5
+    },
+    "listedCount": 32,
+    "knownOmittedIds": [
+      "1107815208387877454",
+      "1107815208388077586"
+    ],
+    "profile": {
+      "pins": 34,
+      "impressions": 3331,
+      "pinClicks": 46,
+      "saves": 7,
+      "outboundClicks": 0
+    },
+    "arms": {
+      "P": {
+        "pins": 6,
+        "impressions": 956,
+        "pinClicks": 12,
+        "saves": 2,
+        "outboundClicks": 0,
+        "siteSessions": null,
+        "affiliateClicks": null
+      },
+      "F": {
+        "pins": 6,
+        "impressions": 273,
+        "pinClicks": 4,
+        "saves": 1,
+        "outboundClicks": 0,
+        "siteSessions": null,
+        "affiliateClicks": null
+      }
+    },
+    "cohortMembers": [
+      {
+        "pinId": "1107815208388715714",
+        "arm": "F",
+        "candidateId": "cand-v11-red-crab-field-note",
+        "draftId": "editorial-red-crab-steam-field-note-20260915-pm",
+        "receiptId": "receipt-1789515650765-editorial-red-crab-steam-field-note-20260915-pm-publication-succeeded",
+        "successfulPublicationAt": "2026-09-15T23:40:50.765Z",
+        "packageReadbackVerified": true,
+        "metrics": {
+          "profile_visit": null,
+          "save": 0,
+          "impression": 10,
+          "user_follow": null,
+          "last_updated": "Sat, 17 October 2026 23:29:36 +0000",
+          "pin_click": 0,
+          "outbound_click": 0,
+          "reaction": 0,
+          "comment": 0
+        }
+      },
+      {
+        "pinId": "1107815208388765155",
+        "arm": "F",
+        "candidateId": "cand-v11-farting-ring-field-note",
+        "draftId": "editorial-farting-ring-courtship-field-note-20260916-am",
+        "receiptId": "receipt-1789576939922-editorial-farting-ring-courtship-field-note-20260916-am-publication-succeeded",
+        "successfulPublicationAt": "2026-09-16T16:42:19.922Z",
+        "packageReadbackVerified": true,
+        "metrics": {
+          "save": 0,
+          "profile_visit": null,
+          "outbound_click": 0,
+          "last_updated": "Sat, 17 October 2026 23:29:36 +0000",
+          "pin_click": 2,
+          "impression": 21,
+          "user_follow": null,
+          "reaction": 0,
+          "comment": 0
+        }
+      },
+      {
+        "pinId": "1107815208388788830",
+        "arm": "P",
+        "candidateId": "cand-v11-chia-gnome-poster",
+        "draftId": "editorial-chia-gnome-barbershop-poster-20260916-pm",
+        "receiptId": "receipt-1789602107926-editorial-chia-gnome-barbershop-poster-20260916-pm-publication-succeeded",
+        "successfulPublicationAt": "2026-09-16T23:41:47.926Z",
+        "packageReadbackVerified": true,
+        "metrics": {
+          "impression": 25,
+          "last_updated": "Sat, 17 October 2026 23:29:36 +0000",
+          "outbound_click": 0,
+          "user_follow": null,
+          "profile_visit": null,
+          "pin_click": 2,
+          "save": 0,
+          "reaction": 0,
+          "comment": 0
+        }
+      },
+      {
+        "pinId": "1107815208389000013",
+        "arm": "P",
+        "candidateId": "cand-v11-mini-bowling-poster",
+        "draftId": "editorial-mini-bowling-boardroom-poster-20260919-am",
+        "receiptId": "receipt-1789836323812-editorial-mini-bowling-boardroom-poster-20260919-am-publication-succeeded",
+        "successfulPublicationAt": "2026-09-19T16:45:23.812Z",
+        "packageReadbackVerified": true,
+        "metrics": {
+          "save": 2,
+          "outbound_click": 0,
+          "user_follow": null,
+          "last_updated": "Sat, 17 October 2026 23:29:36 +0000",
+          "pin_click": 10,
+          "impression": 931,
+          "profile_visit": null,
+          "reaction": 0,
+          "comment": 0
+        }
+      },
+      {
+        "pinId": "1107815208389027583",
+        "arm": "F",
+        "candidateId": "cand-v11-birthday-toast-field-note",
+        "draftId": "editorial-birthday-toast-breakfast-field-note-20260919-pm",
+        "receiptId": "receipt-1789861234916-editorial-birthday-toast-breakfast-field-note-20260919-pm-publication-succeeded",
+        "successfulPublicationAt": "2026-09-19T23:40:34.916Z",
+        "packageReadbackVerified": true,
+        "metrics": {
+          "last_updated": "Sat, 17 October 2026 23:29:36 +0000",
+          "impression": 229,
+          "outbound_click": 0,
+          "profile_visit": null,
+          "save": 1,
+          "user_follow": null,
+          "pin_click": 2,
+          "reaction": 0,
+          "comment": 0
+        }
+      },
+      {
+        "pinId": "1107815208389087383",
+        "arm": "F",
+        "candidateId": "cand-v11-desktop-therapist-field-note",
+        "draftId": "editorial-desktop-therapist-boardroom-field-note-20260920-am",
+        "receiptId": "receipt-1789922459150-editorial-desktop-therapist-boardroom-field-note-20260920-am-publication-succeeded",
+        "successfulPublicationAt": "2026-09-20T16:40:59.150Z",
+        "packageReadbackVerified": true,
+        "metrics": {
+          "save": 0,
+          "pin_click": 0,
+          "profile_visit": null,
+          "outbound_click": 0,
+          "last_updated": "Sat, 17 October 2026 23:29:36 +0000",
+          "impression": 13,
+          "user_follow": null,
+          "reaction": 0,
+          "comment": 0
+        }
+      },
+      {
+        "pinId": "1107815208391037211",
+        "arm": "F",
+        "candidateId": "cand-v11-sheep-roll-field-note",
+        "draftId": "editorial-sheep-guest-bathroom-field-note-20261013-pm",
+        "receiptId": "receipt-1791922029336-editorial-sheep-guest-bathroom-field-note-20261013-pm-publication-succeeded",
+        "successfulPublicationAt": "2026-10-13T20:07:09.336Z",
+        "packageReadbackVerified": true,
+        "metrics": {
+          "pin_click": 0,
+          "impression": 0,
+          "last_updated": "Sat, 17 October 2026 23:29:36 +0000",
+          "save": 0,
+          "outbound_click": 0,
+          "user_follow": null,
+          "profile_visit": null,
+          "reaction": 0,
+          "comment": 0
+        }
+      },
+      {
+        "pinId": "1107815208391104701",
+        "arm": "F",
+        "candidateId": "cand-v11-spider-box-field-note",
+        "draftId": "editorial-spider-box-unwrapped-field-note-20261014-am",
+        "receiptId": "receipt-1791996173716-editorial-spider-box-unwrapped-field-note-20261014-am-publication-succeeded",
+        "successfulPublicationAt": "2026-10-14T16:42:53.716Z",
+        "packageReadbackVerified": true,
+        "metrics": {
+          "pin_click": 0,
+          "profile_visit": null,
+          "last_updated": "Sat, 17 October 2026 23:29:36 +0000",
+          "save": 0,
+          "outbound_click": 0,
+          "impression": 0,
+          "user_follow": null,
+          "reaction": 0,
+          "comment": 0
+        }
+      },
+      {
+        "pinId": "1107815208391132026",
+        "arm": "P",
+        "candidateId": "cand-v11-belly-bag-poster",
+        "draftId": "editorial-belly-bag-carry-on-poster-20261014-pm",
+        "receiptId": "receipt-1792021230593-editorial-belly-bag-carry-on-poster-20261014-pm-publication-succeeded",
+        "successfulPublicationAt": "2026-10-14T23:40:30.593Z",
+        "packageReadbackVerified": true,
+        "metrics": {
+          "profile_visit": null,
+          "save": 0,
+          "impression": 0,
+          "pin_click": 0,
+          "outbound_click": 0,
+          "user_follow": null,
+          "last_updated": "Sat, 17 October 2026 23:29:35 +0000",
+          "reaction": 0,
+          "comment": 0
+        }
+      },
+      {
+        "pinId": "1107815208391186516",
+        "arm": "P",
+        "candidateId": "cand-v11-grumpy-frog-poster",
+        "draftId": "editorial-grumpy-frog-greenhouse-poster-20261015-am",
+        "receiptId": "receipt-1792082692032-editorial-grumpy-frog-greenhouse-poster-20261015-am-publication-succeeded",
+        "successfulPublicationAt": "2026-10-15T16:44:52.032Z",
+        "packageReadbackVerified": true,
+        "metrics": {
+          "profile_visit": null,
+          "user_follow": null,
+          "save": 0,
+          "impression": 0,
+          "pin_click": 0,
+          "outbound_click": 0,
+          "last_updated": "Sat, 17 October 2026 23:29:35 +0000",
+          "reaction": 0,
+          "comment": 0
+        }
+      },
+      {
+        "pinId": "1107815208391305222",
+        "arm": "P",
+        "candidateId": "cand-v11-opossum-portrait-poster",
+        "draftId": "editorial-opossum-family-portrait-poster-20261016-pm",
+        "receiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded",
+        "successfulPublicationAt": "2026-10-16T23:36:45.613Z",
+        "packageReadbackVerified": true,
+        "metrics": {
+          "last_updated": "Sat, 17 October 2026 23:29:35 +0000",
+          "pin_click": 0,
+          "save": 0,
+          "user_follow": null,
+          "profile_visit": null,
+          "outbound_click": 0,
+          "impression": 0,
+          "reaction": 0,
+          "comment": 0
+        }
+      },
+      {
+        "pinId": "1107815208391368990",
+        "arm": "P",
+        "candidateId": "cand-v11-birthday-hat-poster",
+        "draftId": "editorial-birthday-hat-formal-attire-poster-20261017-am",
+        "receiptId": "receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded",
+        "successfulPublicationAt": "2026-10-17T16:44:52.279Z",
+        "packageReadbackVerified": true,
+        "metrics": {
+          "pin_click": 0,
+          "profile_visit": null,
+          "outbound_click": 0,
+          "last_updated": "Sat, 17 October 2026 23:29:35 +0000",
+          "impression": 0,
+          "user_follow": null,
+          "save": 0,
+          "reaction": 0,
+          "comment": 0
+        }
+      }
+    ],
+    "successfulPublicationsToday": 1,
+    "localToday": "2026-10-17",
+    "unresolvedReceipts": [],
+    "pins": [
+      {
+        "id": "1107815208391368990",
+        "title": "Funny Birthday Trucker Hat for an Unfiltered Friend",
+        "link": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+        "boardId": "1107815277030422220",
+        "createdAt": "2026-10-17T16:44:51",
+        "metrics": {
+          "impressions": 0,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:35 +0000"
+        }
+      },
+      {
+        "id": "1107815208391305222",
+        "title": "Opossum Wall Art for Funny Housewarming Gifts",
+        "link": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+        "boardId": "1107815277030422226",
+        "createdAt": "2026-10-16T23:36:44",
+        "metrics": {
+          "impressions": 0,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:35 +0000"
+        }
+      },
+      {
+        "id": "1107815208391186516",
+        "title": "Grumpy Frog Statue for Plant Lovers and Weird Decor",
+        "link": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+        "boardId": "1107815277030422226",
+        "createdAt": "2026-10-15T16:44:51",
+        "metrics": {
+          "impressions": 0,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:35 +0000"
+        }
+      },
+      {
+        "id": "1107815208391132026",
+        "title": "Belly Fanny Pack for Funny White Elephant Gifts",
+        "link": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+        "boardId": "1107815277030422220",
+        "createdAt": "2026-10-14T23:40:29",
+        "metrics": {
+          "impressions": 0,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:35 +0000"
+        }
+      },
+      {
+        "id": "1107815208391104701",
+        "title": "Spider Prank Box for Gift Cards and White Elephant",
+        "link": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+        "boardId": "1107815277030422220",
+        "createdAt": "2026-10-14T16:42:53",
+        "metrics": {
+          "impressions": 0,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208391037211",
+        "title": "Sheep Toilet Paper Holders: A Weird Housewarming Gift",
+        "link": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+        "boardId": "1107815277030422226",
+        "createdAt": "2026-10-13T20:07:08",
+        "metrics": {
+          "impressions": 0,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208389087383",
+        "title": "Desktop Therapist Sound Machine for Office Gifts",
+        "link": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+        "boardId": "1107815277030422225",
+        "createdAt": "2026-09-20T16:40:58",
+        "metrics": {
+          "impressions": 13,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208389027583",
+        "title": "Crochet Birthday Toast Gift for Coworkers",
+        "link": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+        "boardId": "1107815277030422223",
+        "createdAt": "2026-09-19T23:40:34",
+        "metrics": {
+          "impressions": 229,
+          "pinClicks": 2,
+          "saves": 1,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208389000013",
+        "title": "Mini Tabletop Bowling Game for Office Desks",
+        "link": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+        "boardId": "1107815277030422225",
+        "createdAt": "2026-09-19T16:45:23",
+        "metrics": {
+          "impressions": 931,
+          "pinClicks": 10,
+          "saves": 2,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208388788830",
+        "title": "Chia Pet Gnome Planter for Weird Home Decor",
+        "link": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+        "boardId": "1107815277030422226",
+        "createdAt": "2026-09-16T23:41:47",
+        "metrics": {
+          "impressions": 25,
+          "pinClicks": 2,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208388765155",
+        "title": "Farting Ring Box Prank Gift for White Elephant",
+        "link": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+        "boardId": "1107815277030422220",
+        "createdAt": "2026-09-16T16:42:19",
+        "metrics": {
+          "impressions": 21,
+          "pinClicks": 2,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208388715714",
+        "title": "Red Crab Spoon Rest and Steam Releaser",
+        "link": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+        "boardId": "1107815277030422224",
+        "createdAt": "2026-09-15T23:40:50",
+        "metrics": {
+          "impressions": 10,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208388134634",
+        "title": "Funny Mustache Coffee Table Book for Dads",
+        "link": "https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+        "boardId": "1107815277030422220",
+        "createdAt": "2026-09-08T16:49:58",
+        "metrics": {
+          "impressions": 9,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208388049691",
+        "title": "Funny Wiener Switch Night Light for Weird Decor",
+        "link": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+        "boardId": "1107815277030422226",
+        "createdAt": "2026-09-07T16:54:20",
+        "metrics": {
+          "impressions": 36,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208387994026",
+        "title": "Funny Prank Gift Box for White Elephant",
+        "link": "https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+        "boardId": "1107815277030422220",
+        "createdAt": "2026-09-06T23:49:57",
+        "metrics": {
+          "impressions": 5,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208387966131",
+        "title": "Funny Squeaky Dog Toy for Stylish Pups",
+        "link": "https://www.goose.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+        "boardId": "1107815277030422220",
+        "createdAt": "2026-09-06T16:42:16",
+        "metrics": {
+          "impressions": 345,
+          "pinClicks": 1,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208387907452",
+        "title": "Shark Coffee Mug for Ocean Lovers",
+        "link": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+        "boardId": "1107815277030422224",
+        "createdAt": "2026-09-05T23:41:23",
+        "metrics": {
+          "impressions": 952,
+          "pinClicks": 18,
+          "saves": 2,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208387817822",
+        "title": "Wacky Waving Inflatable Tube Guy for Your Desk",
+        "link": "https://www.goose.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+        "boardId": "1107815277030422225",
+        "createdAt": "2026-09-04T23:41:11",
+        "metrics": {
+          "impressions": 36,
+          "pinClicks": 1,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208387789981",
+        "title": "This Cat Has a Soup Policy",
+        "link": "https://www.goose.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+        "boardId": "1107815277030422226",
+        "createdAt": "2026-09-04T16:41:29",
+        "metrics": {
+          "impressions": 72,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208387734801",
+        "title": "Middle Management Is Making a Point",
+        "link": "https://www.goose.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+        "boardId": "1107815277030422223",
+        "createdAt": "2026-09-03T23:41:38",
+        "metrics": {
+          "impressions": 21,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:36 +0000"
+        }
+      },
+      {
+        "id": "1107815208387708056",
+        "title": "Toilet Golf Gag Gift for Golfers",
+        "link": "https://www.goose.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+        "boardId": "1107815277030422220",
+        "createdAt": "2026-09-03T16:42:11",
+        "metrics": {
+          "impressions": 60,
+          "pinClicks": 3,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:37 +0000"
+        }
+      },
+      {
+        "id": "1107815208387654951",
+        "title": "Bullshit Button for Office Meetings",
+        "link": "https://www.goose.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+        "boardId": "1107815277030422223",
+        "createdAt": "2026-09-02T23:42:58",
+        "metrics": {
+          "impressions": 15,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:37 +0000"
+        }
+      },
+      {
+        "id": "1107815208387630624",
+        "title": "The Pizza Called in a Contractor",
+        "link": "https://www.goose.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+        "boardId": "1107815277030422224",
+        "createdAt": "2026-09-02T16:50:13",
+        "metrics": {
+          "impressions": 93,
+          "pinClicks": 1,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:37 +0000"
+        }
+      },
+      {
+        "id": "1107815208387553278",
+        "title": "The Cat Spa Has Taken a Turn",
+        "link": "https://www.goose.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+        "boardId": "1107815277030422220",
+        "createdAt": "2026-09-01T16:49:20",
+        "metrics": {
+          "impressions": 137,
+          "pinClicks": 2,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:37 +0000"
+        }
+      },
+      {
+        "id": "1107815208387477273",
+        "title": "The Butt Is Holding This Project Together",
+        "link": "https://www.goose.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+        "boardId": "1107815277030422223",
+        "createdAt": "2026-08-31T16:48:11",
+        "metrics": {
+          "impressions": 7,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:37 +0000"
+        }
+      },
+      {
+        "id": "1107815208387225923",
+        "title": "The Chicken Brought Flowers to Dinner",
+        "link": "https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+        "boardId": "1107815277030422226",
+        "createdAt": "2026-08-28T17:19:27",
+        "metrics": {
+          "impressions": 7,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:37 +0000"
+        }
+      },
+      {
+        "id": "1107815208385562809",
+        "title": "Patricia Is Running This Meeting",
+        "link": "https://www.goose.gifts/random-gift?gift=B0F9DZMQBL&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v2&utm_content=hippo_mug_desk",
+        "boardId": "1107815277030422223",
+        "createdAt": "2026-08-08T00:00:12",
+        "metrics": {
+          "impressions": 10,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:37 +0000"
+        }
+      },
+      {
+        "id": "1107815208385331910",
+        "title": "Patricia Has a Lipstick Appointment",
+        "link": "https://www.goose.gifts/random-gift?gift=B0F9DZMQBL&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v2&utm_content=hippo_mug_vanity",
+        "boardId": "1107815277030422224",
+        "createdAt": "2026-08-05T03:48:09",
+        "metrics": {
+          "impressions": 7,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:37 +0000"
+        }
+      },
+      {
+        "id": "1107815208385022014",
+        "title": "The Goat Has the Floor",
+        "link": "https://www.goose.gifts/random-gift?gift=0762459816&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v2&utm_content=screaming_goat_boardroom",
+        "boardId": "1107815277030422223",
+        "createdAt": "2026-08-01T04:36:08",
+        "metrics": {
+          "impressions": 131,
+          "pinClicks": 2,
+          "saves": 1,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:37 +0000"
+        }
+      },
+      {
+        "id": "1107815208384432788",
+        "title": "The Side Table Is Looking Back",
+        "link": "https://www.goose.gifts/random-gift?gift=B0D57DDDM1&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v1&utm_content=ceramic_eye_interior",
+        "boardId": "1107815277030422226",
+        "createdAt": "2026-07-24T14:33:31",
+        "metrics": {
+          "impressions": 52,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:37 +0000"
+        }
+      },
+      {
+        "id": "1107815208384432759",
+        "title": "The Oven Mitt Is Biting Back",
+        "link": "https://www.goose.gifts/random-gift?gift=B005UGWDAE&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v1&utm_content=alligator_oven_mitt",
+        "boardId": "1107815277030422224",
+        "createdAt": "2026-07-24T14:33:08",
+        "metrics": {
+          "impressions": 83,
+          "pinClicks": 1,
+          "saves": 1,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:37 +0000"
+        }
+      },
+      {
+        "id": "1107815208384432735",
+        "title": "A Mug Named Patricia Has Entered the Breakfast",
+        "link": "https://www.goose.gifts/random-gift?gift=B0F9DZMQBL&utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v1&utm_content=hippo_mug_breakfast",
+        "boardId": "1107815277030422224",
+        "createdAt": "2026-07-24T14:32:47",
+        "metrics": {
+          "impressions": 22,
+          "pinClicks": 1,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:37 +0000"
+        }
+      },
+      {
+        "id": "1107815208387877454",
+        "title": "Gratiator Sword-Shaped Cheese Grater",
+        "link": "https://www.goose.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+        "boardId": "1107815277030422224",
+        "createdAt": "2026-09-05T16:45:00",
+        "metrics": {
+          "impressions": 1,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:38 +0000"
+        }
+      },
+      {
+        "id": "1107815208388077586",
+        "title": "Mystic Pickle Fortune Teller Gag Gift",
+        "link": "https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+        "boardId": "1107815277030422220",
+        "createdAt": "2026-09-07T23:51:00",
+        "metrics": {
+          "impressions": 1,
+          "pinClicks": 0,
+          "saves": 0,
+          "outboundClicks": 0,
+          "lastUpdated": "Sat, 17 October 2026 23:29:38 +0000"
+        }
+      }
+    ]
+  },
+  "siteSignals": {
+    "generatedAt": "2026-10-17T23:29:39.311Z",
+    "ga4": {
+      "property": "507421709",
+      "dateRange": {
+        "startDate": "2026-10-11",
+        "endDate": "2026-10-17",
+        "currentDayPartial": true,
+        "timeZone": "America/Los_Angeles"
+      },
+      "sessions": {
+        "dimensionHeaders": [
+          {
+            "name": "sessionSourceMedium"
+          },
+          {
+            "name": "sessionCampaignName"
+          }
+        ],
+        "metricHeaders": [
+          {
+            "name": "sessions",
+            "type": "TYPE_INTEGER"
+          },
+          {
+            "name": "engagedSessions",
+            "type": "TYPE_INTEGER"
+          }
+        ],
+        "rows": [
+          {
+            "dimensionValues": [
+              {
+                "value": "(direct) / (none)"
+              },
+              {
+                "value": "(direct)"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "8"
+              },
+              {
+                "value": "0"
+              }
+            ]
+          }
+        ],
+        "rowCount": 1,
+        "metadata": {
+          "currencyCode": "USD",
+          "timeZone": "America/Los_Angeles"
+        },
+        "kind": "analyticsData#runReport"
+      },
+      "retailerOutbound": {
+        "dimensionHeaders": [
+          {
+            "name": "sessionSourceMedium"
+          },
+          {
+            "name": "sessionCampaignName"
+          }
+        ],
+        "metricHeaders": [
+          {
+            "name": "eventCount",
+            "type": "TYPE_INTEGER"
+          }
+        ],
+        "metadata": {
+          "currencyCode": "USD",
+          "timeZone": "America/Los_Angeles"
+        },
+        "kind": "analyticsData#runReport"
+      },
+      "qaOperatorExcluded": true
+    },
+    "posthog": {
+      "project": {
+        "id": 550427,
+        "name": "Goose Gifts"
+      },
+      "startUtc": "2026-10-11T07:00:00Z",
+      "endUtc": "2026-10-17T23:29:33.071Z",
+      "qaOperatorExcluded": true,
+      "events": {
+        "columns": [
+          "event",
+          "count()",
+          "min(timestamp)",
+          "max(timestamp)"
+        ],
+        "results": [
+          [
+            "view_item_list",
+            2,
+            "2026-10-13T11:07:40.834000Z",
+            "2026-10-17T21:57:07.512000Z"
+          ],
+          [
+            "page_view",
+            2,
+            "2026-10-13T11:07:40.814000Z",
+            "2026-10-17T21:57:07.477000Z"
+          ]
+        ]
+      },
+      "attribution": {
+        "columns": [
+          "event",
+          "coalesce(toString(properties.traffic_source), toString(properties.utm_source), '')",
+          "coalesce(toString(properties.traffic_campaign), toString(properties.utm_campaign), '')",
+          "count()"
+        ],
+        "results": []
+      }
+    },
+    "caveats": [
+      "Missing per-Pin attribution is unknown, not zero.",
+      "PostHog historical September 19–October 8 ingestion gap is not evidence of no traffic.",
+      "Detailed database click writes and Vercel Web Analytics are retired."
+    ]
+  },
+  "operatingContract": {
+    "checkedAt": "2026-10-17T23:30:06.419Z",
+    "experimentStatus": "active",
+    "authorization": {
+      "generation": false,
+      "publicPosting": false,
+      "paidSpend": false
+    },
+    "cohortCount": 12,
+    "armCounts": {
+      "P": 6,
+      "F": 6
+    },
+    "deadlineUtc": "2026-10-31T16:44:52.279Z",
+    "deadlineRecomputedFromSuccessfulReceipts": true,
+    "firstRegularEligibleReviewSlotUtc": "2026-10-31T23:30:00.000Z",
+    "finalReviewDelivered": false,
+    "finalReviewDeliveredAt": null,
+    "reviewDue": false,
+    "members": [
+      {
+        "pinId": "1107815208388715714",
+        "candidateId": "cand-v11-red-crab-field-note",
+        "arm": "F",
+        "lifecycle": "archived",
+        "ageMs": 2764155654,
+        "successfulPublicationAt": "2026-09-15T23:40:50.765Z",
+        "receiptId": "receipt-1789515650765-editorial-red-crab-steam-field-note-20260915-pm-publication-succeeded",
+        "due24h": "2026-09-16T23:40:50.765Z",
+        "due7d": "2026-09-22T23:40:50.765Z",
+        "due28d": "2026-10-13T23:40:50.765Z"
+      },
+      {
+        "pinId": "1107815208388765155",
+        "candidateId": "cand-v11-farting-ring-field-note",
+        "arm": "F",
+        "lifecycle": "archived",
+        "ageMs": 2702866497,
+        "successfulPublicationAt": "2026-09-16T16:42:19.922Z",
+        "receiptId": "receipt-1789576939922-editorial-farting-ring-courtship-field-note-20260916-am-publication-succeeded",
+        "due24h": "2026-09-17T16:42:19.922Z",
+        "due7d": "2026-09-23T16:42:19.922Z",
+        "due28d": "2026-10-14T16:42:19.922Z"
+      },
+      {
+        "pinId": "1107815208388788830",
+        "candidateId": "cand-v11-chia-gnome-poster",
+        "arm": "P",
+        "lifecycle": "archived",
+        "ageMs": 2677698493,
+        "successfulPublicationAt": "2026-09-16T23:41:47.926Z",
+        "receiptId": "receipt-1789602107926-editorial-chia-gnome-barbershop-poster-20260916-pm-publication-succeeded",
+        "due24h": "2026-09-17T23:41:47.926Z",
+        "due7d": "2026-09-23T23:41:47.926Z",
+        "due28d": "2026-10-14T23:41:47.926Z"
+      },
+      {
+        "pinId": "1107815208389000013",
+        "candidateId": "cand-v11-mini-bowling-poster",
+        "arm": "P",
+        "lifecycle": "archived",
+        "ageMs": 2443482607,
+        "successfulPublicationAt": "2026-09-19T16:45:23.812Z",
+        "receiptId": "receipt-1789836323812-editorial-mini-bowling-boardroom-poster-20260919-am-publication-succeeded",
+        "due24h": "2026-09-20T16:45:23.812Z",
+        "due7d": "2026-09-26T16:45:23.812Z",
+        "due28d": "2026-10-17T16:45:23.812Z"
+      },
+      {
+        "pinId": "1107815208389027583",
+        "candidateId": "cand-v11-birthday-toast-field-note",
+        "arm": "F",
+        "lifecycle": "measuring",
+        "ageMs": 2418571503,
+        "successfulPublicationAt": "2026-09-19T23:40:34.916Z",
+        "receiptId": "receipt-1789861234916-editorial-birthday-toast-breakfast-field-note-20260919-pm-publication-succeeded",
+        "due24h": "2026-09-20T23:40:34.916Z",
+        "due7d": "2026-09-26T23:40:34.916Z",
+        "due28d": "2026-10-17T23:40:34.916Z"
+      },
+      {
+        "pinId": "1107815208389087383",
+        "candidateId": "cand-v11-desktop-therapist-field-note",
+        "arm": "F",
+        "lifecycle": "measuring",
+        "ageMs": 2357347269,
+        "successfulPublicationAt": "2026-09-20T16:40:59.150Z",
+        "receiptId": "receipt-1789922459150-editorial-desktop-therapist-boardroom-field-note-20260920-am-publication-succeeded",
+        "due24h": "2026-09-21T16:40:59.150Z",
+        "due7d": "2026-09-27T16:40:59.150Z",
+        "due28d": "2026-10-18T16:40:59.150Z"
+      },
+      {
+        "pinId": "1107815208391037211",
+        "candidateId": "cand-v11-sheep-roll-field-note",
+        "arm": "F",
+        "lifecycle": "measuring",
+        "ageMs": 357777083,
+        "successfulPublicationAt": "2026-10-13T20:07:09.336Z",
+        "receiptId": "receipt-1791922029336-editorial-sheep-guest-bathroom-field-note-20261013-pm-publication-succeeded",
+        "due24h": "2026-10-14T20:07:09.336Z",
+        "due7d": "2026-10-20T20:07:09.336Z",
+        "due28d": "2026-11-10T20:07:09.336Z"
+      },
+      {
+        "pinId": "1107815208391104701",
+        "candidateId": "cand-v11-spider-box-field-note",
+        "arm": "F",
+        "lifecycle": "measuring",
+        "ageMs": 283632703,
+        "successfulPublicationAt": "2026-10-14T16:42:53.716Z",
+        "receiptId": "receipt-1791996173716-editorial-spider-box-unwrapped-field-note-20261014-am-publication-succeeded",
+        "due24h": "2026-10-15T16:42:53.716Z",
+        "due7d": "2026-10-21T16:42:53.716Z",
+        "due28d": "2026-11-11T16:42:53.716Z"
+      },
+      {
+        "pinId": "1107815208391132026",
+        "candidateId": "cand-v11-belly-bag-poster",
+        "arm": "P",
+        "lifecycle": "measuring",
+        "ageMs": 258575826,
+        "successfulPublicationAt": "2026-10-14T23:40:30.593Z",
+        "receiptId": "receipt-1792021230593-editorial-belly-bag-carry-on-poster-20261014-pm-publication-succeeded",
+        "due24h": "2026-10-15T23:40:30.593Z",
+        "due7d": "2026-10-21T23:40:30.593Z",
+        "due28d": "2026-11-11T23:40:30.593Z"
+      },
+      {
+        "pinId": "1107815208391186516",
+        "candidateId": "cand-v11-grumpy-frog-poster",
+        "arm": "P",
+        "lifecycle": "measuring",
+        "ageMs": 197114387,
+        "successfulPublicationAt": "2026-10-15T16:44:52.032Z",
+        "receiptId": "receipt-1792082692032-editorial-grumpy-frog-greenhouse-poster-20261015-am-publication-succeeded",
+        "due24h": "2026-10-16T16:44:52.032Z",
+        "due7d": "2026-10-22T16:44:52.032Z",
+        "due28d": "2026-11-12T16:44:52.032Z"
+      },
+      {
+        "pinId": "1107815208391305222",
+        "candidateId": "cand-v11-opossum-portrait-poster",
+        "arm": "P",
+        "lifecycle": "measuring",
+        "ageMs": 86000806,
+        "successfulPublicationAt": "2026-10-16T23:36:45.613Z",
+        "receiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded",
+        "due24h": "2026-10-17T23:36:45.613Z",
+        "due7d": "2026-10-23T23:36:45.613Z",
+        "due28d": "2026-11-13T23:36:45.613Z"
+      },
+      {
+        "pinId": "1107815208391368990",
+        "candidateId": "cand-v11-birthday-hat-poster",
+        "arm": "P",
+        "lifecycle": "measuring",
+        "ageMs": 24314140,
+        "successfulPublicationAt": "2026-10-17T16:44:52.279Z",
+        "receiptId": "receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded",
+        "due24h": "2026-10-18T16:44:52.279Z",
+        "due7d": "2026-10-24T16:44:52.279Z",
+        "due28d": "2026-11-14T16:44:52.279Z"
+      }
+    ]
+  },
+  "publicPinAndDestinationProof": {
+    "checkedAt": "2026-10-17T23:30:22.549Z",
+    "checks": [
+      {
+        "draftId": "editorial-birthday-hat-formal-attire-poster-20261017-am",
+        "pinId": "1107815208391368990",
+        "expectedTitle": "Funny Birthday Trucker Hat for an Unfiltered Friend",
+        "publicPin": {
+          "url": "https://www.pinterest.com/pin/1107815208391368990/",
+          "status": 200,
+          "idPresent": true,
+          "titlePresent": true,
+          "htmlTitle": "Pin on Funny White Elephant Gifts"
+        },
+        "destination": {
+          "url": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+          "expectedCanonical": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+          "status": 200,
+          "canonical": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+          "robots": "index, follow",
+          "title": "Birthday Banter: The Hat That Says &#x27;Let’s… | goose.gifts",
+          "visibleText": " Birthday Banter: The Hat That Says &#x27;Let’s… | goose.gifts goose.gifts Search Random Gifts Guides Gift catalog / Gift idea Birthday Banter: The Hat That Says &#x27;Let’s Get This Party Started!&#x27; View on Amazon ↗ Check current price · Availability at Amazon As an Amazon Associate, we earn from qualifying purchases. Why it works as a gift The Sterling James Co. Funny Happy Birthday Novelty Trucker Hat is a vibrant celebration of age, designed with bold printed text that&#x27;s not just eye-catching, but also a guaranteed conversation starter. Fitted with an adjustable snapback, it&#x27;s designed for comfort and ease of wear, making it the ultimate accessory for birthday bashes or casual gatherings that could use a dose of fun. This makes for an amusing gift for anyone celebrating a birthday, whether they&#x27;re hitting milestone ages or simply enjoying another year. Friends, family, or coworkers would find it hilarious to don this hat while blowing out candles or participating in party games. It&#x27;s not just a hat; it&#x27;s a festive statement piece that ensures everyone knows the wearer is ready to party! Ideal for a variety of celebrations, this hat is lightweight and reusable, allowing the recipient to pull it out for future festivities. Pair it with some matching party props or just use it to make the birthday boy or girl the star of the show! birthday See it at Amazon ↗ Affiliate disclosure: goose.gifts may earn from qualifying purchases at no extra cost to you. More ridiculous gifts Product pages, not surprise retailer jumps Bulls**t Button: Press for Instant Honesty! Sound the alarm on nonsense with hilarious phrases and lights! View gift → Shear-ly the Best Toilet Roll Holder Add a woolly twist to bathroom decor with this pun-laden sheep toilet roll holder! View gift → Sip Happens: Fuck This Shit Mug for Dark Humor Lovers For those mornings when coffee isn&#x27;t the only thing brewing frustration! View gift → Designer Dog Toy for the Haute Pooch Let your pup flaunt their fashion sense with this squeaky delight! View gift → Spider&#x27;s Surprise: Prank Box of Jumps! Perfect for scaring your friends while hiding a sweet surprise inside! View gift → Homebody&#x27;s Spooky Oasis: Skeleton Delight A spooky skeleton celebrates cozy nights in with this quirky wall art. View gift → goose.gifts Funny, weird, and actually purchasable gift ideas for people who are hard to shop for. Explore Fresh finds Random gift Search gifts Gift guides Privacy Social Pinterest As affiliates, we may earn from qualifying purchases at no extra cost to you. © 2026 goose.gifts "
+        },
+        "artifact": "docs/ops/pinterest-creative-lab/v34-concepts/01-birthday-hat-formal-attire.png",
+        "receiptId": "receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded"
+      },
+      {
+        "draftId": "editorial-opossum-family-portrait-poster-20261016-pm",
+        "pinId": "1107815208391305222",
+        "expectedTitle": "Opossum Wall Art for Funny Housewarming Gifts",
+        "publicPin": {
+          "url": "https://www.pinterest.com/pin/1107815208391305222/",
+          "status": 200,
+          "idPresent": true,
+          "titlePresent": true,
+          "htmlTitle": "Pin on Weird Home Decor"
+        },
+        "destination": {
+          "url": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+          "expectedCanonical": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+          "status": 200,
+          "canonical": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+          "robots": "index, follow",
+          "title": "Opossum-it&#x27;s So Funny: Vintage Wall Art | goose.gifts",
+          "visibleText": " Opossum-it&#x27;s So Funny: Vintage Wall Art | goose.gifts goose.gifts Search Random Gifts Guides Gift catalog / Gift idea Opossum-it&#x27;s So Funny: Vintage Wall Art View on Amazon ↗ Check current price · Availability at Amazon As an Amazon Associate, we earn from qualifying purchases. Why it works as a gift Spruce up your space with the Vintage Gold Framed Funny Opossum Wall Art, celebrating the charm of this often-overlooked creature. Measuring 8x10 inches, this quirky canvas print captures a playful opossum in a whimsical pose, framed in an elegant gold border. The retro vibe gives it an artistic uniqueness that complements any home decor while quirkily standing out among the typical wall art options. This wall art serves as a delightful gift for animal lovers, quirky art collectors, or anyone looking to add humor to their living spaces. It’s perfect for occasions like housewarmings, birthdays, or as a light-hearted present for a friend who cherishes the beauty of quirky wildlife. Hang it in a living room, office, or bar to prompt chuckles and conversation! The artwork arrives ready to hang, making it an easy addition to any wall. While it’s designed to bring humor and cheer with its funky aesthetics, it’s best paired with similar whimsical decor styles to create a full expression of personality and fun in any room. animal art quirky decor office safe desk weird See it at Amazon ↗ Affiliate disclosure: goose.gifts may earn from qualifying purchases at no extra cost to you. More ridiculous gifts Product pages, not surprise retailer jumps Homebody&#x27;s Spooky Oasis: Skeleton Delight A spooky skeleton celebrates cozy nights in with this quirky wall art. View gift → Goddess of Sass: Venus with an Attitude This Venus ditches the beauty for boldness—with a cheeky middle finger! View gift → Frogot This Grumpy Face on My Desk! A quirky grumpy frog to remind you that office life can ribbit! View gift → Scream Your Worries Away with the Goat! This tiny goat will BAAA your cares away. Loudly! View gift → Middle Finger Smiley Statue: A Cheeky Wave of Humor Send a smile with a twinkle and a cheeky twist! View gift → Desktop Therapist: Your Sound Advice in a Box Get sound advice without being charged by the hour! View gift → goose.gifts Funny, weird, and actually purchasable gift ideas for people who are hard to shop for. Explore Fresh finds Random gift Search gifts Gift guides Privacy Social Pinterest As affiliates, we may earn from qualifying purchases at no extra cost to you. © 2026 goose.gifts "
+        },
+        "artifact": "docs/ops/pinterest-creative-lab/v33-concepts/01-opossum-family-portrait-poster.png",
+        "receiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded"
+      },
+      {
+        "draftId": "editorial-birthday-toast-breakfast-field-note-20260919-pm",
+        "pinId": "1107815208389027583",
+        "expectedTitle": "Crochet Birthday Toast Gift for Coworkers",
+        "publicPin": {
+          "url": "https://www.pinterest.com/pin/1107815208389027583/",
+          "status": 200,
+          "idPresent": true,
+          "titlePresent": true,
+          "htmlTitle": "Crochet Birthday Toast Gift for Coworkers | Small gifts for co workers, Crochet gift ideas for coworkers, Small gifts for a coworker diy"
+        },
+        "destination": {
+          "url": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+          "expectedCanonical": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+          "status": 200,
+          "canonical": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+          "robots": "noindex, follow",
+          "title": "A Toast to Birthdays – Un-Bread-ably Funny… | goose.gifts",
+          "visibleText": " A Toast to Birthdays – Un-Bread-ably Funny… | goose.gifts goose.gifts Search Random Gifts Guides Gift catalog / Gift idea A Toast to Birthdays – Un-Bread-ably Funny Gift! View on Amazon ↗ Check current price · Availability at Amazon As an Amazon Associate, we earn from qualifying purchases. Why it works as a gift Meet the Ovrrcame Crochet Toast, a unique birthday gift that delivers both humor and sentiment. This charming piece is not just a decoration; it features a built-in greeting card that cheekily reads &quot;A little Birthday toast to you!&quot; Whether it’s for your best friend, mom, or even a coworker, it offers a delightful twist on the traditional birthday card. Compact at just 2 inches wide and 2.5 inches tall, it fits effortlessly on a desk or shelf, adding a smile to anyone&#x27;s day. This gift works wonderfully for various recipients and occasions. Ideal for birthdays, it makes a heartwarming surprise for your dad, sister, or even a quirky aunt. It&#x27;s also suitable for last-minute gifts, proving to be a thoughtful gesture that feels personal and unique. Picture a college student cherishing it in their dorm or a grandma displaying it proudly on her nightstand—it&#x27;s a keepsake that fosters connections. Note that while it serves as a lively decor, the toast is a collectible piece meant for display rather than play. Its charm lies in its ability to remind loved ones of your affection long after the birthday cake has been eaten. birthday dad joke office safe desk See it at Amazon ↗ Affiliate disclosure: goose.gifts may earn from qualifying purchases at no extra cost to you. More ridiculous gifts Product pages, not surprise retailer jumps Goddess of Sass: Venus with an Attitude This Venus ditches the beauty for boldness—with a cheeky middle finger! View gift → Homebody&#x27;s Spooky Oasis: Skeleton Delight A spooky skeleton celebrates cozy nights in with this quirky wall art. View gift → Opossum-it&#x27;s So Funny: Vintage Wall Art Add some possum puns to your wall decor with this whimsical art piece! View gift → Mug Life: Sip Happens, So Enjoy It! Pour in a dose of sarcasm with this punny mug for all your coffee needs. View gift → Frogot This Grumpy Face on My Desk! A quirky grumpy frog to remind you that office life can ribbit! View gift → Duck You Figurine: A Quacky Prank for Your Desk! This cheeky duck gives a whole new meaning to office humor! View gift → goose.gifts Funny, weird, and actually purchasable gift ideas for people who are hard to shop for. Explore Fresh finds Random gift Search gifts Gift guides Privacy Social Pinterest As affiliates, we may earn from qualifying purchases at no extra cost to you. © 2026 goose.gifts "
+        },
+        "artifact": "docs/ops/pinterest-creative-lab/v26-concepts/01-birthday-toast-breakfast-field-note.png",
+        "receiptId": "receipt-1789861234916-editorial-birthday-toast-breakfast-field-note-20260919-pm-publication-succeeded"
+      }
+    ]
+  },
+  "landingAuditSummary": {
+    "pagesChecked": 12,
+    "http200": 12,
+    "canonicalMatch": 12,
+    "retailerCtasAndHostLinksPresent": 12,
+    "indexFollowPages": 9,
+    "noindexFollowPages": 3,
+    "staleEditorialProducts": [
+      {
+        "pinId": "1107815208388788830",
+        "arm": "P",
+        "productId": "B008VVUWQC",
+        "destination": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition",
+        "robots": "noindex, follow",
+        "editorialStatus": "stale",
+        "sourceFactsHash": "751aa7553e69ec15dbcc0a97c73ab7dc0ff00475a600bfa24b8815df1660a97a",
+        "editorialSourceHash": "32f1621f3ddfdd31cd78341058436154d6ac465783fda996aa6a7fdfab81cd01",
+        "catalogAvailability": "IN_STOCK",
+        "retailerLinkPresent": true
+      },
+      {
+        "pinId": "1107815208389000013",
+        "arm": "P",
+        "productId": "B082PSJYYP",
+        "destination": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun",
+        "robots": "noindex, follow",
+        "editorialStatus": "stale",
+        "sourceFactsHash": "46c1f4fdf55f19b109aaf9d2f9feedace5e4b3939232f98bd72e00c15cac3d9e",
+        "editorialSourceHash": "7466550c288074d25ea327ec06c7765714269080ba58872c5ed938df9b1e10bc",
+        "catalogAvailability": "IN_STOCK",
+        "retailerLinkPresent": true
+      },
+      {
+        "pinId": "1107815208389027583",
+        "arm": "F",
+        "productId": "B0F88FJ56K",
+        "destination": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+        "robots": "noindex, follow",
+        "editorialStatus": "stale",
+        "sourceFactsHash": "e3e51896b169b13b8ce0b2bd88095a6f4ceb9798db062e35a7df1f997cad755a",
+        "editorialSourceHash": "5ec7b26eef28ba87c18e931a59b523e926263147a2c6c7976cd767f5c01dc54a",
+        "catalogAvailability": "IN_STOCK",
+        "retailerLinkPresent": true
+      }
+    ],
+    "diagnosis": "The three pages are noindex/follow because editorial_status=stale and sourceFactsHash differs from editorialSourceHash, matching hasIndexableGiftEditorial; not the random-page bot fix or a global nofollow. All remain HTTP200, canonical and directly followable with retailer links. No evidence this explains native Pinterest outbound zeros.",
+    "safeNextAlternative": "Separate catalog-quality workflow should re-enrich the three exact active products against current source facts and verify resulting eligibility. This is a documented handoff, not an executed database requeue, catalog job or site fix. Keep existing public Pins and cohort membership."
+  },
+  "concentration": {
+    "posterBowlingShare": 0.9738493723849372,
+    "fieldNoteToastShare": 0.8388278388278388,
+    "PWithoutBowling": {
+      "impressions": 25,
+      "pinClicks": 2,
+      "saves": 0,
+      "outboundClicks": 0
+    },
+    "FWithoutToast": {
+      "impressions": 44,
+      "pinClicks": 2,
+      "saves": 0,
+      "outboundClicks": 0
+    }
+  },
+  "checkpointDisposition": {
+    "asOf": "2026-10-17T23:30:06.419Z",
+    "opossum24h": {
+      "dueAt": "2026-10-17T23:36:45.613Z",
+      "status": "pending_not_due_at_snapshot"
+    },
+    "birthdayToast28d": {
+      "dueAt": "2026-10-17T23:40:34.916Z",
+      "status": "pending_not_due_at_snapshot"
+    },
+    "birthdayHat24h": {
+      "dueAt": "2026-10-18T16:44:52.279Z",
+      "status": "pending"
+    },
+    "desktopTherapist28d": {
+      "dueAt": "2026-10-18T16:40:59.150Z",
+      "status": "pending"
+    },
+    "bowling28d": "Already recorded/lifecycle archived this morning; retained in public measurements and P quota"
+  },
+  "evidenceChanged": "Since morning, P+111 impressions/+1Pin open and F+17 impressions; no new native outbound click. PostHog now contains a current-day page/list event but no attributed Pinterest/retailer row. Three current destinations have intentionally stale editorial/indexation holds; direct paths remain working. No demonstrated acquisition/format winner, no complete-cohort verdict before deadline.",
+  "nextHypothesis": "At final review distinguish product-specific distribution and practical click payoff from format effect; do not launch a next test. Catalog owner should independently refresh the three stale editorial records without altering the Pinterest cohort.",
+  "publicWrites": 0,
+  "databaseWrites": 0,
+  "scheduleMutation": false,
+  "roadmapMutation": false,
+  "fullCohortReviewDeliveredThisRun": false
+}
