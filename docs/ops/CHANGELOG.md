@@ -187,7 +187,7 @@ disabled; regression covers all public lifecycle states and negative guards.
 Bowling28day learning archived without deleting public history. V34 saves
 all attempts, rejected alternatives, receipts and one-time review contract.
 P845impressions/11opens/2saves,F256/4/1; bothzerooutbound, downstream unknown,
-no format winner. Focused PR pending.
+no format winner. [PR #176](https://github.com/37-Inc/goose.gifts/pull/176).
 
 ### 2026-10-16 [daily-ops] — Publish the honest family-portrait poster
 
