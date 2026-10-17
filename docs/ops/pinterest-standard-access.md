@@ -177,16 +177,16 @@ frame that shows a raw token.**
 
 ## Production operating state
 
-**Current verified state, October16 afternoon:** Standard production account
-`goosegifts` BUSINESS remains correct. The scheduled studio has published and
-read back sheep `1107815208391037211`, spider `1107815208391104701` and belly
-poster `1107815208391132026`, greenhouse frog `1107815208391186516` and
-opossum family-portrait poster `1107815208391305222`.
-The verified public union is33 Pins; v11 is
-F6/6,P5/6,eleven of twelve. F slots are measurement-only and one P quota
-remain at the existing cadence. This dated state supersedes historical
-28-Pin/undistributed counts below; access never authorizes a new cohort or
-higher cap. Current contract and receipts: `PINTEREST_STUDIO.md` and v33.
+**Current verified state, October17 morning:** Standard production account
+`goosegifts` BUSINESS remains correct. Final birthday-hat poster
+`1107815208391368990` was created once/readback-verified;34 public Pins in the
+verified union. V11 is **P6/F6,total12**, with experiment generation and public
+posting disabled. Existing scheduler stays ACTIVE for metrics only; no new
+creative/publication, even after review, without a new explicit owner experiment.
+Exact receipt-derived review deadline:2026-10-31T16:44:52.279Z; first regular
+eligible review slot October31 16:30Pacific. Current contract, all12 members,
+receipts and one-time review-delivery state: `PINTEREST_STUDIO.md` and v34.
+This supersedes historical counts below; Standard access never creates quota.
 
 - Standard access and the production OAuth read/dry-run path are verified.
 - Public posting still needs an exact candidate/package approval event (per

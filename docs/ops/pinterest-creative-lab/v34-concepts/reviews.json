@@ -1,0 +1,67 @@
+{
+  "reviewedAt": "2026-10-17T16:43:17.828Z",
+  "sourceImage": "docs/ops/pinterest-creative-lab/v34-concepts/product-references/B01JQMNHNY-amazon-primary.jpg",
+  "reviewResolution": "original1024x1536",
+  "generationCalls": 2,
+  "causalRevisions": 0,
+  "reviews": [
+    {
+      "candidateId": "cand-v11-birthday-hat-poster",
+      "rubricVersion": 1,
+      "reviewer": "codex internal original-resolution source comparison; not personal owner review",
+      "gates": {
+        "singleIdea": true,
+        "truthfulProduct": true,
+        "noEmbeddedCta": true,
+        "noAdTemplate": true
+      },
+      "attemptId": "v34-birthday-hat-1",
+      "scores": {
+        "scrollStop": 4,
+        "pinterestNative": 5,
+        "aestheticQuality": 5,
+        "conceptClarity": 5,
+        "saveworthiness": 4,
+        "brandRestraint": 5,
+        "productFidelity": 4,
+        "aiArtifactControl": 5
+      },
+      "verdict": "advance",
+      "notes": [
+        "Mean4.625/5,min4,all gates. Formal black cap against dressed ivory chair makes literal rainbow profanity the authored dress-code contradiction.",
+        "All words/row order/source letter-color rhythm are legible and match; black crown/button/mesh/curved stitched brim/contact and normal wearable scale remain coherent. Fine weave/stitch detail is AI-resynthesized, not exact photographic pixels.",
+        "Large four-word serif editorial line is polished and separated from merchandise text. No added CTA/price/logo/card/frame or visible AI defect.",
+        "Adult-language novelty, no office-safe/child suitability promise. Chair/glass/table/linen are contextual props, not included. Exact Goose page supplies fit/reuse/gifting payoff."
+      ]
+    },
+    {
+      "candidateId": "cand-v11-birthday-hat-poster",
+      "rubricVersion": 1,
+      "reviewer": "codex internal original-resolution source comparison; not personal owner review",
+      "gates": {
+        "singleIdea": true,
+        "truthfulProduct": true,
+        "noEmbeddedCta": true,
+        "noAdTemplate": true
+      },
+      "attemptId": "v34-birthday-hat-2",
+      "scores": {
+        "scrollStop": 4,
+        "pinterestNative": 4,
+        "aestheticQuality": 5,
+        "conceptClarity": 4,
+        "saveworthiness": 4,
+        "brandRestraint": 5,
+        "productFidelity": 4,
+        "aiArtifactControl": 5
+      },
+      "verdict": "reject",
+      "notes": [
+        "Mean4.375/5,min4,all hard gates pass; comparative rejection, not a false-product failure.",
+        "Literal wording, color rhythm, cap structure, mesh and brim remain inspectable; no visible AI defect.",
+        "Quiet breakfast and exact five-word no-filter line are attractive but cake/candle supplies a more conventional birthday still-life; weaker specific contradiction and click distinctiveness than dinner dress code.",
+        "Preserve attempt as evidence. No replacement/revision just to chase cadence or improve already-passing details."
+      ]
+    }
+  ]
+}

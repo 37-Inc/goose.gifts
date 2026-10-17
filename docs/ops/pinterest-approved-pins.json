@@ -582,6 +582,23 @@
       "livePinUrl": "https://www.pinterest.com/pin/1107815208391305222/",
       "publishedAt": "2026-10-16T23:36:45.619Z",
       "publicationReceiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded"
+    },
+    {
+      "id": "editorial-birthday-hat-formal-attire-poster-20261017-am",
+      "candidateId": "cand-v11-birthday-hat-poster",
+      "approvalEventId": "evt-20261017-am-v11-birthday-hat-approved",
+      "board": "Funny White Elephant Gifts",
+      "assetPath": "docs/ops/pinterest-creative-lab/v34-concepts/01-birthday-hat-formal-attire.png",
+      "targetPage": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+      "trackingUrl": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+      "title": "Funny Birthday Trucker Hat for an Unfiltered Friend",
+      "description": "The dress code didn't mention vocabulary. This black Sterling James Co. trucker hat wears its birthday message in bright, very frank lettering. Visit Goose Gifts for adjustable-snapback and reusable party-fit details before choosing it for an adult friend who enjoys the language. Chair, glass and table are styling props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "altText": "Black mesh-back trucker hat with multicolor printed text reading 'IT'S MY FUCKING BIRTHDAY', resting on an ivory upholstered dining chair beside a formally set table. Ivory editorial type reads 'FORMAL ATTIRE. INFORMAL LANGUAGE.'",
+      "disclosure": "AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+      "publicationStatus": "published",
+      "livePinUrl": "https://www.pinterest.com/pin/1107815208391368990/",
+      "publishedAt": "2026-10-17T16:44:52.285Z",
+      "publicationReceiptId": "receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded"
     }
   ]
 }

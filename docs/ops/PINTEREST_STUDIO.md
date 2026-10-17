@@ -24,14 +24,81 @@ accelerate the schedule. After the twelfth Pin, use metric-only runs until the
 full cohort reaches its 14-day checkpoint. Retain the 50-impression-per-arm
 minimum and do not declare a winner from tiny samples or invent the next batch.
 
+### Completed cohort and exact review gate — October 17
+
+The final eligible P slot published/readback-verified birthday-hat Pin
+[1107815208391368990](https://www.pinterest.com/pin/1107815208391368990/)
+at **2026-10-17T16:44:52.279Z**, durable receipt
+`receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded`.
+V11 is **P 6/6, F 6/6, total 12/12**. No more generation or publication,
+including after the review deadline, until Cameron explicitly authorizes a new
+experiment. The existing schedule stays ACTIVE and unchanged for metrics only.
+
+The maximum of all twelve unique durable, readback-verified successful receipt
+timestamps is **2026-10-17T16:44:52.279Z**. Adding fourteen full 24-hour days
+sets the exact full-cohort evaluation deadline to **2026-10-31T16:44:52.279Z**
+(October31, 9:44:52.279 AM Pacific). The first regular eligible scheduled slot
+is October31 at **4:30 PM Pacific / 23:30 UTC**; the morning9:30 slot precedes
+the deadline. These are receipt-derived, not guessed from the scheduled slot.
+Final review delivered: **false**, timestamp **null**. Record delivery once;
+do not repeatedly present it as new or create another review automation.
+
+[Machine-readable operating ledger](pinterest-creative-lab/v34-concepts/verification/full-cohort-operating-ledger.json)
+contains every successful receipt ID, timestamp, public Pin, arm and final-review
+contract. All twelve packages were independently matched to production readbacks:
+
+| Arm | Product | Public Pin | Durable success UTC |
+|---|---|---|---|
+| F | Red Crab | [1107815208388715714](https://www.pinterest.com/pin/1107815208388715714/) | 2026-09-15T23:40:50.765Z |
+| F | Moon Ring | [1107815208388765155](https://www.pinterest.com/pin/1107815208388765155/) | 2026-09-16T16:42:19.922Z |
+| P | Chia Gnome | [1107815208388788830](https://www.pinterest.com/pin/1107815208388788830/) | 2026-09-16T23:41:47.926Z |
+| P | Mini Bowling | [1107815208389000013](https://www.pinterest.com/pin/1107815208389000013/) | 2026-09-19T16:45:23.812Z |
+| F | Birthday Toast | [1107815208389027583](https://www.pinterest.com/pin/1107815208389027583/) | 2026-09-19T23:40:34.916Z |
+| F | Desktop Therapist | [1107815208389087383](https://www.pinterest.com/pin/1107815208389087383/) | 2026-09-20T16:40:59.150Z |
+| F | Sheep Roll Holder | [1107815208391037211](https://www.pinterest.com/pin/1107815208391037211/) | 2026-10-13T20:07:09.336Z |
+| F | Spider Box | [1107815208391104701](https://www.pinterest.com/pin/1107815208391104701/) | 2026-10-14T16:42:53.716Z |
+| P | Belly Bag | [1107815208391132026](https://www.pinterest.com/pin/1107815208391132026/) | 2026-10-14T23:40:30.593Z |
+| P | Grumpy Frog | [1107815208391186516](https://www.pinterest.com/pin/1107815208391186516/) | 2026-10-15T16:44:52.032Z |
+| P | Opossum Portrait | [1107815208391305222](https://www.pinterest.com/pin/1107815208391305222/) | 2026-10-16T23:36:45.613Z |
+| P | Birthday Trucker Hat | [1107815208391368990](https://www.pinterest.com/pin/1107815208391368990/) | 2026-10-17T16:44:52.279Z |
+
+Experiment technical authorization is now generation=false, publicPosting=false,
+paidSpend=false; experiment remains active for measurement. A narrowly tested
+validator correction allows public metrics only for prior public lifecycle
+states even when new publication is disabled. It does not reopen either guard.
+An initial rejected28day append wrote no event; the eligible bowling checkpoint
+then recorded successfully after the fix. Bowling's lifecycle is archived,
+not its public Pin or cohort membership.
+
+Current public profile:34 verified Pins,3,169 impressions,45 opens,seven saves,
+zero native outbound. P845/11/2 and F256/4/1 (impressions/opens/saves) both have
+zero outbound; bowling supplies97.04%of P exposure, toast83.59%of F. No format/
+acquisition winner. GA4property507421709 October11–17 partial:8direct sessions,
+zero engaged, no Pinterest/retailer row. PostHog550427:onepage/onelistview,
+no attributed row. Per-Pin downstream remains unknown, not zero.
+
+The formal-dinner hat survived at4.625/5, all gates/min4, two included calls and
+no revision; breakfast4.375 was rejected comparatively, office takeover before
+generation. Exact cap/source print, mesh, curved brim and adult-language
+suitability verified; Goose gives snapback/reuse/recipient-fit payoff. Tests,
+build/lint/dry run, live guards, exact API readback twice, public HTML, platform
+image and canonical index/follow destination verify. All evidence is in v34.
+
+Bowling's first eligible28day observation at16:46:27.809 UTC,63.997seconds after
+its exact gate, is820impressions/nineopens/twosaves/zerooutbound; no exact-age
+history invented. Toast28day due October17T23:40:34.916Z and opossum24h due
+October17T23:36:45.613Z are not closed early. New hat24h is
+October18T16:44:52.279Z,7day October24T16:44:52.279Z,28day
+November14T16:44:52.279Z. Capture each at its first eligible run.
+
 ### Owner-confirmed completion and final review — October 15
 
 Cameron explicitly accepted finishing the last two P posters and evaluating
 the complete cohort after its planned window. At confirmation the ledger was
-P 4/6, F 6/6, ten of twelve. October 16 afternoon published the opossum poster
-below: now P 5/6, F 6/6, eleven of twelve. Only the October 17 morning Pacific
-P slot remains intended, if its creative qualifies. A skipped slot does not
-create catch-up credit or permission to switch arms.
+P 4/6, F 6/6, ten of twelve. October16 afternoon published the opossum poster;
+October17 morning published the final birthday-hat poster. Current P6/F6,
+twelve of twelve, and the exact measurement-only contract are recorded above.
+A skipped slot never creates catch-up credit or permission to switch arms.
 
 The existing ACTIVE heartbeat now explicitly requires the twelfth publication
 to record all twelve public Pin IDs/arms and the exact evaluation deadline:

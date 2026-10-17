@@ -1,0 +1,125 @@
+{
+  "generatedAt": "2026-10-17T16:39:20.341Z",
+  "ga4": {
+    "property": "507421709",
+    "dateRange": {
+      "startDate": "2026-10-11",
+      "endDate": "2026-10-17",
+      "currentDayPartial": true,
+      "timeZone": "America/Los_Angeles"
+    },
+    "sessions": {
+      "dimensionHeaders": [
+        {
+          "name": "sessionSourceMedium"
+        },
+        {
+          "name": "sessionCampaignName"
+        }
+      ],
+      "metricHeaders": [
+        {
+          "name": "sessions",
+          "type": "TYPE_INTEGER"
+        },
+        {
+          "name": "engagedSessions",
+          "type": "TYPE_INTEGER"
+        }
+      ],
+      "rows": [
+        {
+          "dimensionValues": [
+            {
+              "value": "(direct) / (none)"
+            },
+            {
+              "value": "(direct)"
+            }
+          ],
+          "metricValues": [
+            {
+              "value": "8"
+            },
+            {
+              "value": "0"
+            }
+          ]
+        }
+      ],
+      "rowCount": 1,
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "kind": "analyticsData#runReport"
+    },
+    "retailerOutbound": {
+      "dimensionHeaders": [
+        {
+          "name": "sessionSourceMedium"
+        },
+        {
+          "name": "sessionCampaignName"
+        }
+      ],
+      "metricHeaders": [
+        {
+          "name": "eventCount",
+          "type": "TYPE_INTEGER"
+        }
+      ],
+      "metadata": {
+        "currencyCode": "USD",
+        "timeZone": "America/Los_Angeles"
+      },
+      "kind": "analyticsData#runReport"
+    },
+    "qaOperatorExcluded": true
+  },
+  "posthog": {
+    "project": {
+      "id": 550427,
+      "name": "Goose Gifts"
+    },
+    "startUtc": "2026-10-11T07:00:00Z",
+    "endUtc": "2026-10-17T16:39:12.408Z",
+    "qaOperatorExcluded": true,
+    "events": {
+      "columns": [
+        "event",
+        "count()",
+        "min(timestamp)",
+        "max(timestamp)"
+      ],
+      "results": [
+        [
+          "view_item_list",
+          1,
+          "2026-10-13T11:07:40.834000Z",
+          "2026-10-13T11:07:40.834000Z"
+        ],
+        [
+          "page_view",
+          1,
+          "2026-10-13T11:07:40.814000Z",
+          "2026-10-13T11:07:40.814000Z"
+        ]
+      ]
+    },
+    "attribution": {
+      "columns": [
+        "event",
+        "coalesce(toString(properties.traffic_source), toString(properties.utm_source), '')",
+        "coalesce(toString(properties.traffic_campaign), toString(properties.utm_campaign), '')",
+        "count()"
+      ],
+      "results": []
+    }
+  },
+  "caveats": [
+    "Missing per-Pin attribution is unknown, not zero.",
+    "PostHog historical September 19–October 8 ingestion gap is not evidence of no traffic.",
+    "Detailed database click writes and Vercel Web Analytics are retired."
+  ]
+}

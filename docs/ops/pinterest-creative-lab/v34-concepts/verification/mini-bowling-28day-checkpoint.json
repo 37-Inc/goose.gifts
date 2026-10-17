@@ -1,0 +1,41 @@
+{
+  "checkpointAt": "2026-10-17T16:46:27.809Z",
+  "checkpoint": "first eligible28day receipt/native check",
+  "dueAt": "2026-10-17T16:45:23.812Z",
+  "lateByMs": 63997,
+  "ageMs": 2419263997,
+  "receipt": {
+    "schemaVersion": 1,
+    "receiptId": "receipt-1789836323812-editorial-mini-bowling-boardroom-poster-20260919-am-publication-succeeded",
+    "type": "publication.succeeded",
+    "recordedAt": "2026-09-19T16:45:23.812Z",
+    "environment": "production",
+    "draftId": "editorial-mini-bowling-boardroom-poster-20260919-am",
+    "candidateId": "cand-v11-mini-bowling-poster",
+    "approvalEventId": "evt-20260919-v11-mini-bowling-approved",
+    "boardId": "1107815277030422225",
+    "pinId": "1107815208389000013",
+    "title": "Mini Tabletop Bowling Game for Office Desks",
+    "trackingUrl": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+    "details": {
+      "readbackVerified": true
+    }
+  },
+  "publicPinId": "1107815208389000013",
+  "packageReadbackVerified": true,
+  "metrics": {
+    "impressions": 820,
+    "pinClicks": 9,
+    "saves": 2,
+    "outboundClicks": 0,
+    "siteSessions": null,
+    "affiliateClicks": null,
+    "revenueCents": null
+  },
+  "nativeLastUpdated": "Sat, 17 October 2026 16:46:27 +0000",
+  "caveats": [
+    "Not invented exact-age historical measurement; actual eligible check time recorded.",
+    "Lifecycle archive retains public Pin, successful receipt and v11 cohort/quota membership.",
+    "Attributable site sessions/retailer actions unknown; attention not acquisition."
+  ]
+}

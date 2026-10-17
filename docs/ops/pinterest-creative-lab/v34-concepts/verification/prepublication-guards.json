@@ -1,0 +1,95 @@
+{
+  "checkedAt": "2026-10-17T16:44:48.670Z",
+  "environment": "production",
+  "account": {
+    "account_type": "BUSINESS",
+    "profile_image": "https://i.pinimg.com/600x600_R/fd/5b/f5/fd5bf57516c722f324d004b93a5c5420.jpg",
+    "business_name": "goose.gifts",
+    "username": "goosegifts",
+    "following_count": 2,
+    "board_count": 5,
+    "website_url": "http://www.goose.gifts",
+    "pin_count": 33,
+    "monthly_views": 2646,
+    "about": "Funny gift ideas, white elephant picks, and weird finds from goose.gifts.",
+    "follower_count": 0,
+    "id": "1107815345747925810"
+  },
+  "source": {
+    "id": "B01JQMNHNY",
+    "title": "Birthday Hat \"It's My Birthday\" Naughty Multicolor Trucker Hat | Funny Decorations for Him or Her | Men & Women | Adjustable Snapback | Mesh Back | Party Supplies | Over the Hill",
+    "price": 14.99,
+    "currency": "USD",
+    "imageUrl": "https://m.media-amazon.com/images/I/41JG2s5bfZL._SL500_.jpg",
+    "affiliateUrl": "https://www.amazon.com/dp/B01JQMNHNY?tag=goose-gifts-37-20&linkCode=ogi&th=1&psc=1",
+    "source": "amazon",
+    "remotelyVerified": true,
+    "availabilityStatus": "IN_STOCK",
+    "availabilityMessage": "In Stock",
+    "sourceFacts": {
+      "brand": "Sterling James Co.",
+      "manufacturer": "Sterling James Company",
+      "binding": "Apparel",
+      "productGroup": "Kitchen",
+      "features": [
+        "ADJUSTABLE SNAPBACK - Funny novelty trucker hat with bold printed text that is visible across the room and pops in photos. Adjustable snapback closure fits most adult head sizes. Comfortable mesh back for all-day wear at the party.",
+        "HIGH QUALITY PRINT - Printed lettering on a structured front panel. Durable, lightweight, and designed to be kept as a keepsake long after the party is over. Reusable for future celebrations.",
+        "FUNNY BIRTHDAY GIFT - A hilarious birthday gift for men and women. Makes a great surprise gift, party favor, or conversation starter. The birthday boy or girl will love walking into the room wearing this.",
+        "MIX AND MATCH - Pairs with matching Sterling James Co. glitter banners, birthday sashes, photo booth props, and party packs for a complete themed birthday setup.",
+        "PERFECT FOR: A fun birthday gift idea and conversation starter for him or her. Wear as a costume accessory, photo prop, or party favor at home parties, office celebrations, backyard barbecues, bar crawls, and event spaces. Designed in the USA by a small family-run business."
+      ],
+      "color": "Multi",
+      "size": "One Size",
+      "unitCount": 1,
+      "isAdultProduct": false,
+      "itemDimensions": {
+        "height": "4 inches",
+        "length": "12 inches",
+        "width": "10 inches"
+      },
+      "offerCondition": "New"
+    }
+  },
+  "approvalEventId": "evt-20261017-am-v11-birthday-hat-approved",
+  "packageExactMatch": true,
+  "candidateStatus": "approved",
+  "artifact": {
+    "path": "docs/ops/pinterest-creative-lab/v34-concepts/01-birthday-hat-formal-attire.png",
+    "sha256": "27eafd5ae555a3a47ebfcc25796fe11c67cfa76016f1fb96c9ffb330f7ac0767",
+    "width": 1024,
+    "height": 1536
+  },
+  "board": {
+    "name": "Funny White Elephant Gifts",
+    "id": "1107815277030422220"
+  },
+  "destination": {
+    "url": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+    "status": 200,
+    "canonical": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+    "robots": "index, follow"
+  },
+  "assignedSlot": "2026-10-17 morning Pacific Arm P",
+  "before": {
+    "P": 5,
+    "F": 6,
+    "total": 11,
+    "successfulPublicationsToday": 0,
+    "unresolvedReceipts": 0
+  },
+  "maximumAfter": {
+    "P": 6,
+    "F": 6,
+    "total": 12,
+    "today": 1
+  },
+  "trackingUnique": true,
+  "tests": {
+    "creative": 5,
+    "pinterest": 9,
+    "build": "passed",
+    "lint": "passed"
+  },
+  "dryRunPassed": true,
+  "noFurtherGenerationOrPublicationAfterTwelfthWithoutNewOwnerAuthorization": true
+}

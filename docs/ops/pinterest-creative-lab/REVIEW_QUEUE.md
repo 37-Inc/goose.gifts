@@ -9,14 +9,33 @@ candidate and publishing package.
 
 None.
 
-The October 16 afternoon opossum poster is public/readback-verified, with no
-owner-ready item or pending approval. V11 is F 6/6, P 5/6, eleven of twelve;
-one public Pin today. Only one P quota remains, next intended October 17
-morning Pacific if qualified. Frog's first eligible late 24h observation is
-recorded. No arm swap, catch-up or new cohort. The exact full-cohort deadline
-awaits the twelfth actual successful receipt. Schedule stays ACTIVE unchanged.
+V11 is complete: P6/F6,twelve of twelve. The October17 morning birthday-hat
+poster is public/readback-verified, with no pending owner-ready package.
+Exact full-cohort review deadline:2026-10-31T16:44:52.279Z; first regular
+eligible review slot October31 16:30Pacific. All later runs are metrics-only,
+even after that deadline, until Cameron explicitly authorizes a new experiment.
+Generation/publication are disabled for v11; existing schedule remains ACTIVE.
 
 ## Published from this queue
+
+### Birthday trucker hat — formal attire, informal language
+
+- Candidate: `cand-v11-birthday-hat-poster`, measuring after production publication under Cameron's exact standing scheduled-heartbeat scope, not a personal visual review; Arm P, October17 morning. Internal4.625/5,min4,all gates pass.
+- Artifact: `docs/ops/pinterest-creative-lab/v34-concepts/01-birthday-hat-formal-attire.png`,1024x1536,SHA256 `27eafd5ae555a3a47ebfcc25796fe11c67cfa76016f1fb96c9ffb330f7ac0767`.
+- Exact product: Sterling James Co. black adult-language birthday trucker hat, ASIN B01JQMNHNY; current Creators API IN_STOCK, exact three-row rainbow print, structured crown/curved stitched brim/mesh back. Adjustable snapback verified. No unverified fabric or sizing promise.
+- Destination: https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness
+- Board: `Funny White Elephant Gifts` (`1107815277030422220`).
+- Title: `Funny Birthday Trucker Hat for an Unfiltered Friend`
+- Description: `The dress code didn't mention vocabulary. This black Sterling James Co. trucker hat wears its birthday message in bright, very frank lettering. Visit Goose Gifts for adjustable-snapback and reusable party-fit details before choosing it for an adult friend who enjoys the language. Chair, glass and table are styling props, not included. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Alt text: `Black mesh-back trucker hat with multicolor printed text reading 'IT'S MY FUCKING BIRTHDAY', resting on an ivory upholstered dining chair beside a formally set table. Ivory editorial type reads 'FORMAL ATTIRE. INFORMAL LANGUAGE.'`
+- Disclosure: `AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.`
+- Tracking URL: https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am
+- Approval: `evt-20261017-am-v11-birthday-hat-approved` quotes/binds the full standing scope and exact package/image hash/slot/cadence. At most one publication this run, first today, final P quota: P5/F6,total11 before, P6/F6,total12 only on verified success. Then all scheduled slots remain metric-only; no thirteenth Pin or new experiment without Cameron.
+- Click hypothesis: formal dinner versus the actual cap's frank birthday print is the immediate joke; Goose resolves adjustable snapback, reuse and adult recipient fit. Props excluded. No price/urgency/CTA.
+- Alternatives: breakfast still life4.375 passes truth/taste but has a more conventional cake/hat relationship and weaker contradiction; rejected comparatively. Office birthday takeover rejected before generation for repeated desk/boardroom mechanism. Two included calls, zero revisions.
+- Publication: created exactly once through guarded production, exact readback verified twice, public HTTP200/title/ID and platform-hosted1024x1536 image inspected; tracked self-canonical/index-follow destination verified. Durable success 2026-10-17T16:44:52.279Z, receipt `receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded`.
+- Public Pin: https://www.pinterest.com/pin/1107815208391368990/
+- Final cohort: P6/F6,total12. Native baseline zero about24.424seconds after success, not a verdict. P845impressions/11opens/2saves; F256/4/1; both zerooutbound, site/retailer attribution unknown. Exact full-cohort review deadline `2026-10-31T16:44:52.279Z`; first regular eligible slot October31 16:30Pacific. Generation/publicPosting technical authorization disabled; existing scheduler ACTIVE unchanged for metrics only, no further creative without a new explicit owner experiment.
 
 ### Framed opossum — honest family portrait
 - Candidate: `cand-v11-opossum-portrait-poster`, measuring, October16 afternoon Arm P under Cameron's exact standing heartbeat scope, not a personal owner visual review. Internal4.75/5/all hard gates; two included calls, no revision.

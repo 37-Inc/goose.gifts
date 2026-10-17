@@ -24,14 +24,17 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **Pinterest — finish only the final P slot:** the scheduled studio published
-  the opossum family-portrait poster. F 6/6, P 5/6, eleven of twelve are public.
-  Assigned F slots remain metric-only. Keep cadence/cap and finish the last P
-  in its normal intended October 17 morning slot if qualified. Capture opossum
-  24-hour, seven-day and due 28-day gates. Frog/belly late 24h and spider 24h are
-  recorded; no conversion winner. Cameron confirmed completing P, then review
-  fourteen days after the actual final publication; no further batch without
-  another owner decision.
+- **Pinterest — completed cohort, measurement only:** final birthday-hat poster
+  makes P6/F6,twelve of twelve. Exact full-cohort review deadline is
+  2026-10-31T16:44:52.279Z; first regular eligible scheduled review October31
+  at4:30PM Pacific. All twelve memberships/receipts and review-delivery state
+  are in PINTEREST_STUDIO.md/v34. Keep the existing schedule ACTIVE unchanged
+  for checkpoints, but generate/publish nothing further, even after review,
+  until a new explicit owner experiment. Generation/publication ceilings are
+  disabled; a regression-tested validator fix permits already-public metrics.
+  Bowling28day is recorded/lifecycle-archived; retain its public Pin/cohort
+  membership. Capture pending opossum24h/toast28day and new hat24h/7d/28d only
+  when eligible. No acquisition/format winner.
 
 - **Product landing measurement**: compare qualified product-page visits and
   existing retailer-click events after the compact product-first layout
@@ -171,6 +174,20 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-17 [daily-ops] — Complete v11 and freeze creative for cohort review
+
+Published/readback-verified birthday-hat poster1107815208391368990 through the
+guarded production API after source/creative/tests/build/lint/dry-run gates.
+P6/F6,total12; all12 receipts establish exact review deadline
+2026-10-31T16:44:52.279Z. Existing ACTIVE slots now measure only; no further
+generation/publication without a new owner experiment. Narrow validator fix
+keeps metrics legal for prior public Pins while both new-work guards stay
+disabled; regression covers all public lifecycle states and negative guards.
+Bowling28day learning archived without deleting public history. V34 saves
+all attempts, rejected alternatives, receipts and one-time review contract.
+P845impressions/11opens/2saves,F256/4/1; bothzerooutbound, downstream unknown,
+no format winner. [PR #176](https://github.com/37-Inc/goose.gifts/pull/176).
 
 ### 2026-10-16 [daily-ops] — Publish the honest family-portrait poster
 

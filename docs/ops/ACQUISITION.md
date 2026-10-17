@@ -86,17 +86,19 @@ Posting or sending remains approval-gated.
 
 ### 4. Native social series
 
-**Current Pinterest measurement (October 16 afternoon):** 33 verified public Pins,
-2,936 preflight impressions, 45 opens, seven saves and zero native outbound clicks.
-V11 is eleven of twelve: F has 245 impressions across six Pins, P has 651 across
-five. Both have zero outbound clicks; attributed site sessions
-and retailer exits remain unknown under current GA4/PostHog coverage. The
-latest opossum poster, greenhouse frog, spider and belly Pins are production-created/readback-
-verified and link to exact canonical gift pages for real use/gifting details.
-Arm F is full; the final P Pin has its normal intended October 17 AM slot and
-must offer a useful product-page payoff; no conversion or format winner is
-established. Earlier database/Vercel and zero-distribution notes below are
-historical. The current contract is `PINTEREST_STUDIO.md`.
+**Current Pinterest measurement (October17 morning):**34 verified public Pins,
+3,169 impressions,45 opens,seven saves and zero native outbound clicks. V11
+is complete at six Pins per arm: P845impressions/11opens/2saves,F256/4/1;
+bothzerooutbound. Bowling supplies97.04%ofP exposure; product/age/concentration
+confounds and unknown attributable site/retailer actions preclude a format or
+acquisition winner. The final birthday-hat poster is production-published/
+readback-verified and links to its canonical gift page for snapback/reuse/adult
+recipient fit. Latest durable successful receipt+14full days sets exact review
+deadline **2026-10-31T16:44:52.279Z**. Existing ACTIVE slots are now metrics-only,
+with no generation/publication even after review until a new owner-authorized
+experiment. First regular eligible review slot:October31 16:30Pacific. Current
+GA4/PostHog reads retain unknown downstream, not historic DB/Vercel zeros.
+All twelve memberships/receipts and review-delivery state: `PINTEREST_STUDIO.md`.
 
 Prepare channel-native units rather than a repeated link feed:
 

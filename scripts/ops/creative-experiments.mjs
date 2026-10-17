@@ -491,6 +491,7 @@ export function validateAndFold(events) {
               fail(`${event.eventId}: public posting is not authorized for ${data.experimentId}`);
             }
             if (!data.evidenceUrl) fail(`${event.eventId}: publication requires evidenceUrl`);
+            candidate.publishedEventId = event.eventId;
           }
           candidate.status = data.to;
           candidate.updatedAt = event.recordedAt;
@@ -537,10 +538,11 @@ export function validateAndFold(events) {
         case "metrics.recorded":
           if (!candidate) fail(`${event.eventId}: unknown candidateId ${data.candidateId}`);
           if (data.cohort === "public") {
-            if (!experiment.authorization.publicPosting) {
-              fail(`${event.eventId}: public metrics recorded without public-posting authorization`);
-            }
-            if (!new Set(["published", "measuring", "learned", "archived"]).has(candidate.status)) {
+            // A spent publication ceiling must not stop measurement of existing Pins.
+            // The prior publication event proves historical authorization;
+            // new publications and generation retain their separate guards above.
+            if (!candidate.publishedEventId ||
+                !new Set(["published", "measuring", "learned", "archived"]).has(candidate.status)) {
               fail(`${event.eventId}: public metrics require a published candidate`);
             }
           }
