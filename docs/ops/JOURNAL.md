@@ -75,6 +75,14 @@ Queue empty, no new artifact/selected product or publication receipt. Existing
 schedule ACTIVE/unchanged; no reschedule, duplicate review job, spend, account
 change, outreach, catalog maintenance, roadmap write or next experiment.
 
+Later in the same run, opossum's first eligible 24-hour receipt check was
+captured at 2026-10-17T23:37:21.545Z (35.932 seconds after its exact gate).
+Native impressions/opens/saves/outbound are all zero; exact production package
+still matches. This is current distribution evidence, not a creative verdict.
+Next opossum gate: 2026-10-23T23:36:45.613Z. Toast28day remains pending;
+it is not closed with the earlier snapshot. Two additional validated events
+and opossum-24h-20261017-pm.json preserve the actual observation.
+
 Next: existing metric-only checkpoints and full six-versus-six review at first
 scheduled run at/after exact deadline. Separately, catalog owner can refresh
 the three stale records through its own existing workflow; this run only

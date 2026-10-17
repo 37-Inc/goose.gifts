@@ -100,6 +100,9 @@ review deadline2026-10-31T16:44:52.279Z remain unchanged. First regular
 eligible review October31 16:30Pacific; no new creative even after review
 without another explicit owner experiment. PM artifacts and13 validated
 append-only events preserve this measurement-only no-op; queue stays empty.
+Later opossum24h check at 2026-10-17T23:37:21.545Z verified its exact
+package and zero native distribution/actions; two additional events record the
+eligible observation. This is not a taste verdict. Toast28day stays pending.
 
 ### 2026-10-17 morning — final poster; cohort frozen for review
 

@@ -221,6 +221,14 @@ generation/publicPosting remain false. First regular eligible final review is
 October31 at16:30Pacific. No new creative/publication even after the deadline
 without a new explicit owner experiment.
 
+Later in the same run, opossum's first eligible 24-hour receipt check was
+captured at 2026-10-17T23:37:21.545Z (35.932 seconds after its exact gate).
+Native impressions/opens/saves/outbound are all zero; exact production package
+still matches. This is current distribution evidence, not a creative verdict.
+Next opossum gate: 2026-10-23T23:36:45.613Z. Toast28day remains pending;
+it is not closed with the earlier snapshot. Two additional validated events
+and opossum-24h-20261017-pm.json preserve the actual observation.
+
 Evidence: [PM measurement receipt](pinterest-creative-lab/v34-concepts/verification/metrics-20261017-pm.json),
 [landing eligibility audit](pinterest-creative-lab/v34-concepts/verification/destinations-20261017-pm.json)
 and [single-product diagnostic](pinterest-creative-lab/v34-concepts/verification/toast-diagnostic-20261017-pm.json).

@@ -1,0 +1,45 @@
+{
+  "checkpointAt": "2026-10-17T23:37:21.545Z",
+  "checkpoint": "first eligible24-hour receipt/native check",
+  "dueAt": "2026-10-17T23:36:45.613Z",
+  "lateByMs": 35932,
+  "ageMs": 86435932,
+  "receipt": {
+    "schemaVersion": 1,
+    "receiptId": "receipt-1792193805613-editorial-opossum-family-portrait-poster-20261016-pm-publication-succeeded",
+    "type": "publication.succeeded",
+    "recordedAt": "2026-10-16T23:36:45.613Z",
+    "environment": "production",
+    "draftId": "editorial-opossum-family-portrait-poster-20261016-pm",
+    "candidateId": "cand-v11-opossum-portrait-poster",
+    "approvalEventId": "evt-20261016-pm-v11-opossum-approved",
+    "boardId": "1107815277030422226",
+    "pinId": "1107815208391305222",
+    "title": "Opossum Wall Art for Funny Housewarming Gifts",
+    "trackingUrl": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+    "details": {
+      "readbackVerified": true
+    }
+  },
+  "publicPinId": "1107815208391305222",
+  "publicUrl": "https://www.pinterest.com/pin/1107815208391305222/",
+  "packageReadbackVerified": true,
+  "metrics": {
+    "impressions": 0,
+    "pinClicks": 0,
+    "saves": 0,
+    "outboundClicks": 0,
+    "siteSessions": null,
+    "affiliateClicks": null,
+    "revenueCents": null
+  },
+  "nativeLastUpdated": "Sat, 17 October 2026 23:37:21 +0000",
+  "destination": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+  "artifact": "docs/ops/pinterest-creative-lab/v33-concepts/01-opossum-family-portrait-poster.png",
+  "next7dayAt": "2026-10-23T23:36:45.613Z",
+  "caveats": [
+    "Actual eligible check time, not reconstructed exact historical24h.",
+    "Native measured values; downstream attribution/revenue unknown.",
+    "No publication, source write, account change or spend."
+  ]
+}

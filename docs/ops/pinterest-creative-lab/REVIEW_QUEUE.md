@@ -21,6 +21,8 @@ packages/receipts remain verified; P956impressions/12opens/2saves,F273/4/1,
 both zero outbound. Per-Pin downstream unknown. Opossum24h/toast28day were
 not due at the23:29 snapshot, so remain pending. Three stale editorial page
 holds are documented for the separate catalog workflow, not queued as Pins.
+Later in this run, opossum24h was captured at 2026-10-17T23:37:21.545Z;
+zero native distribution/actions, exact package verified. Toast28day stays pending.
 
 ## Published from this queue
 
