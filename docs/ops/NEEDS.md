@@ -45,11 +45,14 @@ the CLI keeps aggregate search diagnostics and historical click evidence.
 The completed `roadmap-vpmm.4.6` review is
 `CONVERSION_REVIEW_2026-10-02.md`. Owner choice: a compact product-first
 homepage/guide entry and factual curated opening cohort; no redesign shipped.
-Final cleanup verification (`roadmap-vpmm.4.3`) retains one account gate:
-PostHog Product Analytics ingestion is stopped by the shared organization
-billing cap. Keep the cap and use GA4 until the October 8 reset, or explicitly
-approve a different shared billing policy. No automatic spending increase.
-After storage resumes, verify a stored QA page/retailer receipt before closure.
+Final cleanup verification (`roadmap-vpmm.4.3`) retains an end-to-end receipt
+gate. October17 reads of explicit PostHog project550427 show stored October13
+page/list events, so the earlier total billing-cap outage is historical, not
+current zero-conversion evidence. Coverage is sparse and the September19–
+October8 gap remains; missing Pinterest/retailer attribution stays unknown.
+Keep the existing shared billing policy; no automatic spending increase.
+A stored QA page/retailer receipt still needs verification before closing that
+separate end-to-end gate; this studio run did not perform an operator click.
 
 ### 4. Direct email/Slack channel (optional)
 
