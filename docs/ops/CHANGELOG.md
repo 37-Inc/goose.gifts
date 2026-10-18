@@ -32,9 +32,9 @@ what's likely next.
   for checkpoints, but generate/publish nothing further, even after review,
   until a new explicit owner experiment. Generation/publication ceilings are
   disabled; a regression-tested validator fix permits already-public metrics.
-  Bowling28day is recorded/lifecycle-archived; retain its public Pin/cohort
-  membership. Capture pending opossum24h/toast28day and new hat24h/7d/28d only
-  when eligible. No acquisition/format winner.
+  Bowling/toast28day are recorded/lifecycle-archived; retain public Pins/cohort
+  membership. Opossum24h is recorded. Therapist28day and hat24h/7d/28d remain
+  pending until eligible. No acquisition/format winner.
 
 - **Product landing measurement**: compare qualified product-page visits and
   existing retailer-click events after the compact product-first layout
@@ -175,6 +175,17 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-18 morning [daily-ops] — Record toast28day; keep cohort metric-only
+
+No generation/publication after P6/F6,total12. Current P1,064impressions/
+15opens/2saves,F279/5/1,bothzerooutbound; downstream unknown. Toast's first
+eligible scheduled28day check records234/3/1/zerooutbound at actual late time;
+archived lifecycle only, public Pin and F membership intact. Therapist28day/
+hat24h remain pending at snapshot. Five landings and all12 packages/receipts
+verify; prior catalog handoff unchanged, not executed. Seventeen validated
+events and AM receipts saved in v34. Existing schedule, publication freeze and
+exact October31 review deadline unchanged. No format winner. PR pending.
 
 ### 2026-10-17 afternoon [daily-ops] — Measure completed cohort; flag stale destinations
 

@@ -178,6 +178,57 @@ promotion, outreach, account changes, deletions, video or unrelated site changes
 
 ## October 13 recovery evidence
 
+### October 18 morning — measurement-only; toast 28-day lifecycle complete
+
+Assigned F; the full P 6/6, F 6/6 cohort still forbids generation/publication.
+No shortlist, concepts, new artifact, approval, dry run or public Pin. The
+correct goosegifts BUSINESS account and all twelve exact production packages/
+receipt boards verify. Public union remains 34 Pins: 32 enumerated plus the
+two known exact-ID omissions. Zero successful publications today and no
+unresolved receipt. Generation/publicPosting/paidSpend remain false.
+
+At 2026-10-18T16:28:53.437Z, P has 1,064 impressions, 15 opens, two saves,
+zero outbound; F has 279 impressions, five opens, one save, zero outbound.
+The full profile has 3,487 impressions, 51 opens, eight saves, zero outbound.
+Since yesterday PM, P gained 108 impressions/three opens; F gained six/one.
+Bowling supplies 97.65% of P exposure and toast 83.87% of F. Without those
+products P has 25 impressions/two opens, F 45/two; neither has a save or
+outbound click. Unequal ages/products and concentrated delivery still prevent
+a format or acquisition winner; this is not the final review.
+
+GA4 property 507421709, October 12–18 Pacific/current day partial, reports
+16 direct sessions, zero engaged, no attributed Pinterest/retailer row.
+Explicit PostHog project550427 has two page/two list events and no attributed
+Pinterest/retailer row. Production-host and QA/operator exclusions retained;
+missing per-Pin sessions/retailer actions/revenue remain unknown, not zero.
+Sandbox/v3 and retired database/Vercel zeros are excluded.
+
+Toast's first eligible scheduled 28-day observation is recorded at
+2026-10-18T16:30:01.476Z, due 2026-10-17T23:40:34.916Z, late
+16h49m26.560s. Native result: 234 impressions, three opens, one save, zero
+outbound. Exact package/receipt, public HTML, canonical page and retailer
+CTA/href verify. Actual late time is preserved, not invented equal-age history.
+Learning recorded; lifecycle moved measuring -> learned -> archived. The
+public Pin1107815208389027583, original F membership, receipt, tracking and
+future public metrics remain; no deletion, replacement or quota credit.
+
+At this snapshot, therapist28day due today16:40:59.150Z and hat24h due
+16:44:52.279Z are not yet eligible and remain pending for a first eligible
+run. Opossum24h was recorded yesterday. Five current pages were rechecked:
+Chia, bowling and toast remain200/self-canonical/noindex-follow with Amazon
+CTA/href; therapist and hat remain200/index-follow. The prior three-record
+catalog handoff remains unchanged, not requeued or repaired here. No fresh
+catalog/database/source write, cache mutation, catalog job or page/SEO change.
+
+All twelve memberships and receipt-derived deadline
+**2026-10-31T16:44:52.279Z** are unchanged, final review delivered=false.
+Existing ACTIVE two-slot schedule stays unchanged; first regular eligible full
+review is October31 at16:30Pacific. No new generation/publication even after
+that review until a new explicit owner experiment. Seventeen validated events
+and [AM measurement receipt](pinterest-creative-lab/v34-concepts/verification/metrics-20261018-am.json)
+plus [toast28day receipt](pinterest-creative-lab/v34-concepts/verification/toast-28day-20261018-am.json)
+preserve the no-op and actual checkpoint. Queue stays empty.
+
 ### October 17 afternoon — completed-cohort measurement-only slot
 
 This assigned F slot generated and published nothing: P 6/6, F 6/6, twelve
