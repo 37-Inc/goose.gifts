@@ -185,7 +185,8 @@ archived lifecycle only, public Pin and F membership intact. Therapist28day/
 hat24h remain pending at snapshot. Five landings and all12 packages/receipts
 verify; prior catalog handoff unchanged, not executed. Seventeen validated
 events and AM receipts saved in v34. Existing schedule, publication freeze and
-exact October31 review deadline unchanged. No format winner. PR pending.
+exact October31 review deadline unchanged. No format winner.
+[PR #178](https://github.com/37-Inc/goose.gifts/pull/178).
 
 ### 2026-10-17 afternoon [daily-ops] — Measure completed cohort; flag stale destinations
 
