@@ -5,6 +5,82 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-18 morning — toast28day lifecycle complete; measurement-only
+
+Heartbeat16:27:31.991UTC, canonical main/origin4a7ee1e at start. Preserved
+unrelated .playwright-cli/ and output/. Read current studio/repository/ops
+instructions and installed Pinterest skill/both references; current public
+cohort contract controls over stale prompt counts. Refreshed stale local
+Graphify AST and queried measurement symbols; known SQL-parser/zero-node
+warnings did not trigger dependency changes. No app code change.
+
+Even date AM assigns F, but P6/F6,total12 is spent. No candidate shortlist,
+product selection, concepts, generation, approval, dry run or public create.
+Experiment remains active for metrics with generation=false/publicPosting=false/
+paidSpend=false. Exact original twelve successful/readback receipts recompute
+deadline2026-10-31T16:44:52.279Z and first regular eligible review Oct31
+16:30Pacific. Final review delivered=false/null; membership/operating ledger
+unchanged. No new test/style adoption or future quota inferred.
+
+At16:28:53.437UTC, correct goosegifts BUSINESS1107815345747925810 and all
+twelve exact package/receipt-board reads verify. Listing32 plus known omitted
+Gratiator/MysticPickle exact reads completes34 public Pins. No public success
+today or unresolved receipt. Profile3,487impressions/51opens/8saves/0outbound.
+P1,064/15/2,F279/5/1,bothzerooutbound. Since yesterday PM,P+108impressions/
+3opens,F+6/1. Bowling1,039/1,064=97.65%P and toast234/279=83.87%F; without
+these products P25impressions/2opens,F45/2opens,bothzero saves/outbound.
+Unequal ages/products/categories/boards and concentrated exposure prevent
+format/acquisition inference. Full review not due; no equal-age history invented.
+
+Bounded GA4property507421709 Oct12–18Pacific/currentdaypartial, production
+hosts and QA/operator exclusions:16direct/0engaged sessions, no attributed
+Pinterest/retailer row. PostHog project550427:2page/2list events, no Pinterest/
+retailer attribution. Per-Pin sessions/retailer/revenue remain unknown, notzero;
+direct sessions are not assumed to be Pinterest/customer conversions.
+Historic Sept19–Oct8 ingestion gap, retired DB/Vercel zeros and Sandbox/v3
+remain excluded. No synthetic browser or operator retailer click was sent.
+
+Toast first eligible scheduled28day native/receipt check16:30:01.476UTC, exact
+gate yesterday23:40:34.916UTC: late60,566,560ms=16h49m26.560s, actual age
+28days16h49m26.560s. Native234impressions/3opens/1save/0outbound, downstream
+unknown. Exact original package/receipt, public HTTP200/title/ID, canonical
+HTTP200 and visible Amazon CTA/href verify. This is an actual late observation,
+not reconstructed historical exact28day. Recorded metrics/learning, then
+measuring -> learned -> archived lifecycle only. Keep public Pin1107815208389027583,
+original F membership, success receipt, tracking and future metrics; no deletion,
+repost, replacement or quota credit.
+
+Snapshot precedes therapist28day due today16:40:59.150UTC and hat24h due
+16:44:52.279UTC; do not mark complete early or hold this run just to force
+exact-age history. First eligible later scheduled run should record actual time.
+Opossum24h was already recorded yesterday at23:37:21.545UTC and stays measuring.
+No newer candidate is prematurely learned/archived.
+
+Bounded five-page follow-up: Chia, bowling and toast remain200/self-canonical/
+noindex-follow with visible Amazon CTA and retailer href; therapist and hat
+remain200/index-follow. Existing October17 source/hash diagnostic and three-record
+catalog handoff are retained, not requeued/repaired here. No new database or
+Amazon source query, source write, cache action, catalog workflow, page/SEO
+implementation, outside-thread message or new Bead. Noindex does not block direct
+visits and does not establish a cause for native Pinterest outbound zero.
+
+Saved AM aggregate/contract/ages/site/landing evidence and exact toast28day
+receipt in v34 verification. Twelve routine public metrics plus toast checkpoint,
+candidate learning/two lifecycle transitions and experiment no-op learning:
+17 validated append-only events. Old event prefix, complete publication receipts,
+all manifest entries and full-cohort operating ledger remain unchanged. Queue
+empty; no new image/product/publication receipt. Keep existing schedule ACTIVE
+unchanged, no duplicate final-review automation, no spend/account mutation,
+catalog job, Pin deletion or roadmap write.
+
+Next: existing metric-only eligible checkpoints and full six-P/six-F review once
+at first scheduled run at/after the exact deadline. Evaluate native outbound/
+impression first, downstream unknown, age/product/exposure concentration and
+dominant Pin effects;50impressions/arm is only exposure gate. If zero outbound
+or inseparable evidence persists, explicitly no demonstrated acquisition winner/
+inconclusive and propose a bounded next test without launching it. No further
+generation/publication even after review until a new explicit owner experiment.
+
 ## 2026-10-17 afternoon — completed-cohort metric-only run
 
 Heartbeat23:28:27.655 UTC, canonical main/origin d3e0c17 at start. Preserved

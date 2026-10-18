@@ -29,7 +29,7 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-17 afternoon):** ACTIVE, measurement-only.
+**Current scheduler state (2026-10-18 morning):** ACTIVE, measurement-only.
 The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,
 twelve of twelve. Generation and public posting are disabled for this cohort;
 no new creative or publication, even after review, without a new explicit owner
@@ -37,8 +37,8 @@ experiment. Existing two daily slots remain unchanged. The exact receipt-derived
 full-cohort review deadline is **2026-10-31T16:44:52.279Z**; first regular
 eligible slot October31 at4:30PM Pacific. All twelve membership/receipt records
 and one-time review-delivery state are linked from `PINTEREST_STUDIO.md`.
-Current profile:34 verified public Pins,3,331 impressions,46 opens,seven saves,
-zero native outbound. P956/12/2 and F273/4/1 (impressions/opens/saves) both have
+Current profile:34 verified public Pins,3,487 impressions,51 opens,eight saves,
+zero native outbound. P1064/15/2 and F279/5/1 (impressions/opens/saves) both have
 zero outbound; concentrated exposure is not a format win. Per-Pin downstream
 remains unknown under bounded GA4/PostHog coverage; retired DB/Vercel zeros
 and Sandbox/v3 are never current acquisition evidence.
@@ -55,8 +55,8 @@ and Sandbox/v3 are never current acquisition evidence.
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
    versus bespoke annotated field notes. Twelve are live—six Arm F and six Arm
-   P. They have 1,229 impressions,16 opens,three saves and no outbound click at
-   the October17 afternoon check; the new birthday hat remains at zero actions.
+   P. They have 1,343 impressions,20 opens,three saves and no outbound click at
+   the October18 morning check; the birthday hat remains at zero actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
@@ -73,6 +73,30 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-18 morning — toast28day recorded, cohort unchanged
+
+Measurement-only F slot: no creative selection, generation, approval, dry run
+or publication after P6/F6,total12. All twelve exact production packages and
+successful receipts verify;34 public Pins,zero published today,no unresolved
+receipt. P1,064impressions/15opens/2saves and F279/5/1 both have zero outbound.
+Bowling97.65%ofP and toast83.87%ofF dominate exposure; more opens are not
+Goose visits, so no acquisition/format winner or early complete-cohort verdict.
+GA4Oct12–18partial:16direct/0engaged sessions,no Pinterest/retailer row.
+PostHog550427:two page/two list events,no attribution. Downstream unknown.
+
+Toast's first eligible scheduled28day check at16:30:01.476UTC records234
+impressions/3opens/1save/zerooutbound,16h49m26.560s after the exact gate.
+Package,receipt,publicPin and followable retailer path remain valid. Archived
+only the completed creative lifecycle; public Pin/F membership/cap unchanged.
+Therapist28day and hat24h are not due at this snapshot; retain pending gates.
+Five current pages verify, including the same three noindex/follow editorial
+holds. Existing catalog handoff persists; no source/DB/catalog/page mutation.
+
+Seventeen validated events and v34 AM receipts preserve this no-op. Existing
+ACTIVE schedule,12members and2026-10-31T16:44:52.279Z full-review deadline
+unchanged; no new generation/publication even afterward without a new owner
+experiment. Queue empty. Next: scheduled eligible checkpoints, then review.
 
 ### 2026-10-17 afternoon — full-cohort measurement no-op
 

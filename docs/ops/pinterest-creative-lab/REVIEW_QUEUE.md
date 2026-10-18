@@ -21,8 +21,15 @@ packages/receipts remain verified; P956impressions/12opens/2saves,F273/4/1,
 both zero outbound. Per-Pin downstream unknown. Opossum24h/toast28day were
 not due at the23:29 snapshot, so remain pending. Three stale editorial page
 holds are documented for the separate catalog workflow, not queued as Pins.
-Later in this run, opossum24h was captured at 2026-10-17T23:37:21.545Z;
+Later in that run, opossum24h was captured at 2026-10-17T23:37:21.545Z;
 zero native distribution/actions, exact package verified. Toast28day stays pending.
+
+October18 AM: no new creative, approval or publication. P1,064impressions/
+15opens/2saves,F279/5/1,both zero outbound; downstream unknown. Toast28day
+was recorded at16:30:01.476UTC (late16h49m26.560s),234/3/1/zerooutbound,
+and its lifecycle archived. Its public Pin and F membership remain unchanged.
+Therapist28day/hat24h are not due at snapshot and remain pending. Queue empty;
+existing catalog handoff and exact October31 review deadline unchanged.
 
 ## Published from this queue
 
@@ -189,8 +196,11 @@ zero native distribution/actions, exact package verified. Toast28day stays pendi
 
 ### Crochet birthday toast — breakfast field note
 
-- Candidate: `cand-v11-birthday-toast-field-note` (`measuring`, Arm F annotated
+- Candidate: `cand-v11-birthday-toast-field-note` (`archived`, Arm F annotated
   field note, internal score `4.88/5`)
+- Lifecycle: first eligible scheduled28day observation recorded October18 at
+  16:30:01.476UTC:234impressions/3opens/1save/zero nativeoutbound, downstream
+  unknown. Archived lifecycle only; public Pin/F membership/receipt retained.
 - Public Pin: `https://www.pinterest.com/pin/1107815208389027583/`
 - Artifact:
   `docs/ops/pinterest-creative-lab/v26-concepts/01-birthday-toast-breakfast-field-note.png`
