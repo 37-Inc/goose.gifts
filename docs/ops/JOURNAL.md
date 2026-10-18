@@ -5,6 +5,72 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-18 afternoon — therapist28day and hat24h; cap-driven no-op
+
+Heartbeat23:30:34.866UTC, canonical main/origin f2ab8c2 at start. Preserved
+unrelated .playwright-cli/ and output/. Read studio/repository/ops instructions,
+installed Pinterest skill/both references and prior checkpoint history.
+Refreshed stale local Graphify AST and inspected targeted measurement symbols;
+existing SQL-parser/empty-node warnings did not cause dependency/app changes.
+
+Even-date PM assigns P, but P6/F6,total12 is spent. No candidate shortlist,
+selection, concepts, images, approval, create dry run or public write.
+Technical generation/publicPosting/paidSpend all false; experiment remains
+active for metrics only. Twelve exact original success receipts independently
+match production packages/receipt boards. All twelve memberships and maximum
+success+14days deadline2026-10-31T16:44:52.279Z unchanged, finalReviewDelivered
+false/null; first regular eligible scheduled review Oct31 16:30Pacific.
+
+Production23:33:53.088UTC: correct goosegifts BUSINESS1107815345747925810,
+34 public Pins(32 listed+known exact-ID omissions Gratiator/MysticPickle),zero
+successful publications today/no unresolved receipt. P1,064impressions/15opens/
+2saves,F279/5/1,bothzerooutbound; profile3,487/51/8/zerooutbound, unchangedAM.
+Bowling1,039/1,064=97.65%P and toast234/279=83.87%F. Remove dominant products:
+P25impressions/2opens,F45/2opens,zero saves/outbound. No demonstrated format/
+acquisition winner or premature full review; ages/products/boards differ.
+
+GA4explicit507421709 Oct12–18Pacific/currentdaypartial,productionhosts,
+QA/operator exclusions:39direct+1not-set sessions,zero engaged,no attributed
+Pinterest/retailer row. PostHogexplicit550427:6page/8list/1search events,
+no attributed row. Initial host-filter query discarded every event because
+the current privacy allowlist omits host/URL fields. Inspected exact client
+contract, corrected bounded project-scoped query retaining campaign exclusions;
+no app change or false no-traffic/outage claim. Production eligibility is
+client-enforced; project activity alone is not customer/Pinterest causality.
+Per-Pin sessions/retailer/revenue unknown, notzero. Historical ingestion gap,
+Sandbox/v3 and retired DB/Vercel zeros excluded; no operator retailer click.
+
+Therapist28day due16:40:59.150UTC, observed23:34:45.644UTC,late24,826,494ms
+(6h53m46.494s),actual age28days6h53m46.494s:13native impressions,zero opens/
+saves/outbound. Exact receipt/package,public200/title/id,image hash,canonical
+200/index-follow and visible Amazon CTA/href verify. Recorded metrics/learning,
+then measuring -> learned -> archived lifecycle only. Preserve public Pin
+1107815208389087383,original F membership/quota,receipts/tracking/futuremetrics;
+no deletion/repost/replacement. Tiny delivery is not a taste/format verdict.
+
+Birthday hat24h due16:44:52.279UTC, observed23:34:45.638UTC,late24,593,359ms
+(6h49m53.359s),actual age1day6h49m53.359s:zero native distribution/actions.
+Original exact package/receipt,image hash,public200/title/id and canonical200/
+index-follow retailer path verify. Stay measuring; next7day gate Oct24
+16:44:52.279UTC. Actual late observations retained, not invented exact-age
+history. Five pages rechecked; same three Chia/bowling/toast noindex-follow
+editorial holds remain200/canonical/retailer-linked. Prior catalog handoff
+unchanged; no source/DB requeue, catalog job, cache/page/SEO action or Bead.
+
+V34 PM aggregate/checkpoint receipts plus19 validated append-only events
+preserve this no-op. Old event prefix,publication receipts,approved manifest
+and full-cohort operating ledger remain unchanged. Owner-ready queue empty.
+Local review:874events valid,six creative tests+nine publisher tests,production
+build,lint and diff whitespace check pass. Explicit invariants verify only19
+new events,therapistarchived/hatmeasuring,disabled publication and unchanged
+receipt-derived deadline/undelivered final review. No application code diff.
+No schedule/account mutation,Pin deletion,spend,outreach or roadmap write.
+Next: existing ACTIVE metric-only slots and eligible checkpoints, then full
+six-versus-six review once after exact deadline; no creative even afterward
+without new explicit owner experiment. Fifty impressions/arm is only an
+exposure gate; if both0outbound/inseparable, report inconclusive and propose
+a bounded next test without launching/adopting it.
+
 ## 2026-10-18 morning — toast28day lifecycle complete; measurement-only
 
 Heartbeat16:27:31.991UTC, canonical main/origin4a7ee1e at start. Preserved

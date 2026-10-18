@@ -29,7 +29,7 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-18 morning):** ACTIVE, measurement-only.
+**Current scheduler state (2026-10-18 afternoon):** ACTIVE, measurement-only.
 The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,
 twelve of twelve. Generation and public posting are disabled for this cohort;
 no new creative or publication, even after review, without a new explicit owner
@@ -56,7 +56,7 @@ and Sandbox/v3 are never current acquisition evidence.
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
    versus bespoke annotated field notes. Twelve are live—six Arm F and six Arm
    P. They have 1,343 impressions,20 opens,three saves and no outbound click at
-   the October18 morning check; the birthday hat remains at zero actions.
+   the October18 afternoon check; the birthday hat remains at zero distribution/actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
@@ -73,6 +73,31 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-18 afternoon — therapist28day and hat24h; no new creative
+
+Assigned P, but P6/F6,total12 is spent. All twelve exact production packages/
+receipts still verify;34 public Pins,zero published today,no unresolved receipt.
+P1,064impressions/15opens/2saves,F279/5/1,bothzerooutbound, unchanged since AM.
+Bowling97.65%ofP and toast83.87%ofF still dominate exposure. No demonstrated
+acquisition/format winner; the complete-cohort review is not due yet.
+
+Therapist28day was observed at23:34:45.644UTC,6h53m46.494s after its exact
+gate:13impressions,zero opens/saves/outbound. Learned/archived its lifecycle
+only; retain public Pin,F membership and future metrics. Hat24h was observed
+at23:34:45.638UTC,6h49m53.359s late:zero native distribution/actions. It stays
+measuring;7day gate October24T16:44:52.279Z. Both actual late times, original
+receipts/packages, public HTML and index/follow retailer paths are preserved.
+
+GA4Oct12–18partial:39direct+1not-set sessions,zero engaged,no attributed
+Pinterest/retailer row. PostHog550427 has6page/8list/1search events, no attributed
+row. Its privacy allowlist strips host/URL fields; an initial empty host-filter
+query was corrected to the explicit bounded project without an app change.
+Missing per-Pin downstream stays unknown. The three existing editorial holds/
+catalog handoff are unchanged, not requeued/repaired. Nineteen validated events
+and v34 PM receipts preserve this no-op. Queue empty; schedule and exact
+October31 review deadline unchanged. No new creative even after review without
+a new explicit owner experiment.
 
 ### 2026-10-18 morning — toast28day recorded, cohort unchanged
 

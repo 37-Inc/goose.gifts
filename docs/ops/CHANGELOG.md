@@ -32,9 +32,9 @@ what's likely next.
   for checkpoints, but generate/publish nothing further, even after review,
   until a new explicit owner experiment. Generation/publication ceilings are
   disabled; a regression-tested validator fix permits already-public metrics.
-  Bowling/toast28day are recorded/lifecycle-archived; retain public Pins/cohort
-  membership. Opossum24h is recorded. Therapist28day and hat24h/7d/28d remain
-  pending until eligible. No acquisition/format winner.
+  Bowling/toast/therapist28day are recorded/lifecycle-archived; retain public
+  Pins/cohort membership. Opossum/hat24h are recorded. Hat7d/28d and other
+  newer checkpoints remain pending until eligible. No acquisition/format winner.
 
 - **Product landing measurement**: compare qualified product-page visits and
   existing retailer-click events after the compact product-first layout
@@ -175,6 +175,17 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-18 afternoon [daily-ops] — Record therapist28day and hat24h
+
+Completed-cohort measurement-only no-op; no creative or Pin. Native P1,064/
+15/2,F279/5/1(impressions/opens/saves),bothzerooutbound, unchangedAM. Therapist
+28day13impressions/zero actions, lifecycle-only archive/public retained; hat24h
+zero distribution/actions, stays measuring. All12 packages/receipts and five
+retailer paths verify. GA4/PostHog activity remains unattributed; corrected a
+PostHog query that filtered privacy-stripped host properties, no app change.
+Nineteen validated events and v34 PM evidence saved. Publication freeze,
+empty queue, schedule and exact October31 review deadline unchanged.
 
 ### 2026-10-18 morning [daily-ops] — Record toast28day; keep cohort metric-only
 

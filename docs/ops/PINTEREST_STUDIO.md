@@ -169,6 +169,14 @@ known limitations; PostHog had a September 19–October 8 ingestion gap. Missing
 unattributable or gap-affected evidence is **unknown**, not zero. A secondary
 analytics outage should not prevent source verification and creative work.
 
+PostHog's explicit client allowlist intentionally omits host/current-URL/
+referrer properties. Do not filter project550427 by `$host`, `$current_url`
+or `page_location`: those absent fields can falsely discard every event.
+Production-host eligibility is enforced by `isClientAnalyticsAllowed` in
+`lib/client-analytics.ts`; read this explicit project with bounded dates and
+QA/operator campaign exclusions. Project activity still does not prove
+Pinterest/arm-level attribution or qualified customer actions.
+
 Leave the schedule active after an ordinary quality no-op or quota checkpoint.
 Never pause/delete/reschedule this job on its own. Surface an actionable
 diagnosis for auth/publication failures needing intervention or three
@@ -177,6 +185,56 @@ bar and offer a safe alternative instead of silently stopping. No paid tools,
 promotion, outreach, account changes, deletions, video or unrelated site changes.
 
 ## October 13 recovery evidence
+
+### October 18 afternoon — therapist28day and hat24h, cohort still frozen
+
+Assigned P; full P6/F6,total12 means no selection, shortlist, concepts,
+generation, new artifact, approval, dry run or publication. Production still
+verifies correct goosegifts BUSINESS1107815345747925810, all twelve exact
+packages/receipt boards and34 public Pins(32 listed plus two exact-ID
+omissions). Zero successful publications today and no unresolved receipt.
+Experiment active for metrics, generation/publicPosting/paidSpend false.
+
+At2026-10-18T23:33:53.088Z, P1,064impressions/15opens/2saves and F279/5/1
+both retain zero outbound; full profile3,487/51/8/zerooutbound, unchangedAM.
+Bowling97.65%ofP,toast83.87%ofF; removing dominant products leaves P25
+impressions/2opens,F45/2opens,zero saves/outbound. Unequal ages/products/
+boards and concentration prevent a format/acquisition conclusion. Not the
+complete-cohort review; no equal-age history reconstructed.
+
+GA4property507421709 Oct12–18Pacific/currentdaypartial:39direct+1not-set
+sessions,zero engaged,no attributed Pinterest/retailer row. PostHog550427
+has6page/8list/1search events,no attributed row. The initial empty host-filter
+query was diagnosed against the privacy allowlist and corrected to this
+explicit bounded project; it was not reported as no traffic/outage. No app
+change. Per-Pin sessions/retailer/revenue remain unknown. QA/operator,
+Sandbox/v3 and retired database/Vercel zeros remain excluded.
+
+Therapist28day exact gate2026-10-18T16:40:59.150Z; actual first eligible
+scheduled observation23:34:45.644Z,late24,826,494ms(6h53m46.494s),13native
+impressions/zero opens,saves,outbound. Original receipt/package, publicHTML
+200/title/ID,image hash and canonical200/index-follow retailer path verify.
+Recorded learning; measuring -> learned -> archived lifecycle only. Public
+Pin1107815208389087383,original F membership/quota,receipts and future public
+metrics retained; no delete/repost/replacement credit.
+
+Hat24h exact gate2026-10-18T16:44:52.279Z; actual observation23:34:45.638Z,
+late24,593,359ms(6h49m53.359s),zero native distribution/actions. Exact original
+receipt/package, publicHTML,image hash and canonical200/index-follow retailer
+path verify. Stay measuring; lack of delivery is not a taste verdict. Seven-day
+gate October24T16:44:52.279Z. Both actual late timestamps are preserved,
+not substituted for unavailable exact-age historical data. Five canonical
+retailer paths verify; prior Chia/bowling/toast editorial noindex-follow holds
+and separate catalog handoff unchanged, not repaired/requeued here.
+
+Nineteen append-only validated events and [PM receipt](pinterest-creative-lab/v34-concepts/verification/metrics-20261018-pm.json),
+[therapist28day](pinterest-creative-lab/v34-concepts/verification/therapist-28day-20261018-pm.json)
+and [hat24h](pinterest-creative-lab/v34-concepts/verification/birthday-hat-24h-20261018-pm.json)
+preserve evidence. Original twelve membership/receipts and exact review deadline
+2026-10-31T16:44:52.279Z unchanged; final review delivered=false. Keep existing
+ACTIVE schedule unchanged, first regular eligible review Oct31 16:30Pacific.
+No new generation/publication even afterward until a new owner experiment.
+Queue empty; next move remains eligible metrics and the full review once.
 
 ### October 18 morning — measurement-only; toast 28-day lifecycle complete
 

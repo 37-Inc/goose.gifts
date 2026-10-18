@@ -31,6 +31,15 @@ and its lifecycle archived. Its public Pin and F membership remain unchanged.
 Therapist28day/hat24h are not due at snapshot and remain pending. Queue empty;
 existing catalog handoff and exact October31 review deadline unchanged.
 
+October18 PM: assignedP but completed cohort is metric-only. Native totals
+unchanged; all12 packages/receipts verify,34 public Pins,zero today,no unresolved
+receipt. Therapist28day13impressions/zero actions at23:34:45.644UTC; archived
+lifecycle only, public Pin/F membership retained. Hat24h zero distribution/
+actions at23:34:45.638UTC; stays measuring. Actual late observations, not
+equal-age reconstructions. GA4/PostHog show more unattributed activity, not
+Pinterest acquisition; per-Pin downstream unknown. No new creative/approval/
+publication or owner-ready package. Existing schedule/review gate unchanged.
+
 ## Published from this queue
 
 ### Birthday trucker hat — formal attire, informal language
@@ -51,6 +60,7 @@ existing catalog handoff and exact October31 review deadline unchanged.
 - Publication: created exactly once through guarded production, exact readback verified twice, public HTTP200/title/ID and platform-hosted1024x1536 image inspected; tracked self-canonical/index-follow destination verified. Durable success 2026-10-17T16:44:52.279Z, receipt `receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded`.
 - Public Pin: https://www.pinterest.com/pin/1107815208391368990/
 - Final cohort: P6/F6,total12. Native baseline zero about24.424seconds after success, not a verdict. P845impressions/11opens/2saves; F256/4/1; both zerooutbound, site/retailer attribution unknown. Exact full-cohort review deadline `2026-10-31T16:44:52.279Z`; first regular eligible slot October31 16:30Pacific. Generation/publicPosting technical authorization disabled; existing scheduler ACTIVE unchanged for metrics only, no further creative without a new explicit owner experiment.
+- Eligible24h check:2026-10-18T23:34:45.638Z,6h49m53.359s after receipt-derived gate. Native zero impressions/opens/saves/outbound; downstream unknown. Exact package/public HTML/image hash and canonical200/index-follow retailer path verify. Stay measuring; next7day gate2026-10-24T16:44:52.279Z. Receipt: `v34-concepts/verification/birthday-hat-24h-20261018-pm.json`.
 
 ### Framed opossum — honest family portrait
 - Candidate: `cand-v11-opossum-portrait-poster`, measuring, October16 afternoon Arm P under Cameron's exact standing heartbeat scope, not a personal owner visual review. Internal4.75/5/all hard gates; two included calls, no revision.
@@ -153,7 +163,7 @@ existing catalog handoff and exact October31 review deadline unchanged.
 
 ### Desktop Therapist — smallest performance review field note
 
-- Candidate: `cand-v11-desktop-therapist-field-note` (`measuring`, Arm F
+- Candidate: `cand-v11-desktop-therapist-field-note` (`archived`, Arm F
   annotated field note, internal score `4.88/5`)
 - Public Pin: `https://www.pinterest.com/pin/1107815208389087383/`
 - Artifact:
@@ -193,6 +203,12 @@ existing catalog handoff and exact October31 review deadline unchanged.
 - Baseline: zero impressions, saves, Pin clicks, and outbound clicks about 13
   seconds after publication. V11 is Arm F 4/6, Arm P 2/6, and 6/12 overall;
   all six Pins remain undistributed, so there is no arm verdict.
+- Eligible28day check:2026-10-18T23:34:45.644Z,6h53m46.494s after exact gate.
+  Thirteen native impressions,zero opens/saves/outbound; downstream unknown.
+  Original package/receipt, public200/title/ID and canonical200/index-follow
+  retailer path verify. Lifecycle learned/archived only; keep public Pin and
+  original F membership/cap, no deletion/repost/replacement. Actual late time
+  retained in `v34-concepts/verification/therapist-28day-20261018-pm.json`.
 
 ### Crochet birthday toast — breakfast field note
 

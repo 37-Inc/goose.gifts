@@ -86,7 +86,7 @@ Posting or sending remains approval-gated.
 
 ### 4. Native social series
 
-**Current Pinterest measurement (October18 morning):**34 verified public Pins,
+**Current Pinterest measurement (October18 afternoon):**34 verified public Pins,
 3,487 impressions,51 opens,eight saves and zero native outbound clicks. V11
 is complete at six Pins per arm: P1,064impressions/15opens/2saves,F279/5/1;
 bothzerooutbound. Bowling supplies97.65%ofP exposure; product/age/concentration
@@ -107,6 +107,13 @@ Separate catalog-workflow handoff is documented; no repair/requeue was run.
 October18 AM rechecked those three plus therapist/hat: all five canonical200
 pages retain retailer links; the three editorial holds persist. Toast's28day
 learning archived only its lifecycle, not the public Pin or F cohort membership.
+October18 PM rechecks retain those results. Therapist28day now records13
+impressions/zero actions and lifecycle-only archival; hat24h records zero
+distribution/actions and stays measuring. GA4 now39direct+1not-set sessions/
+zero engaged; PostHog6page/8list/1search, no attributed Pinterest/retailer row.
+Downstream remains unknown. PostHog strips host/URL properties for privacy;
+use the explicit project550427 plus QA exclusions, not a nonexistent-host
+filter that would silently discard all events. No app/catalog/Pin mutation.
 
 Prepare channel-native units rather than a repeated link feed:
 
