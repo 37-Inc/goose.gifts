@@ -186,6 +186,7 @@ retailer paths verify. GA4/PostHog activity remains unattributed; corrected a
 PostHog query that filtered privacy-stripped host properties, no app change.
 Nineteen validated events and v34 PM evidence saved. Publication freeze,
 empty queue, schedule and exact October31 review deadline unchanged.
+[PR #179](https://github.com/37-Inc/goose.gifts/pull/179).
 
 ### 2026-10-18 morning [daily-ops] — Record toast28day; keep cohort metric-only
 
