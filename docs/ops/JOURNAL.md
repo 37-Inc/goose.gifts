@@ -5,6 +5,54 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-19 morning — Pinterest completed-cohort measurement-only
+
+Heartbeat16:29:07.229UTC, canonical main/origin1d4dae2(PR180 catalog receipt)
+at start. Read current studio/repository/ops docs, installed Pinterest skill
+and both references; preserved .playwright-cli/ and output/. Updated stale
+local Graphify graph and inspected targeted metric/receipt symbols; existing
+SQL-parser/empty-node warnings did not trigger unrelated changes.
+
+Odd-date AM assigns P, but P6/F6,total12 is spent. No selection,shortlist,
+concepts,images,approval,create dryrun or public write. Production verifies
+goosegifts BUSINESS1107815345747925810 and all twelve exact packages/receipt
+boards;34 public Pins(32 enumerated+two known exact-ID omissions),zero
+successes today,no unresolved receipt. At16:30:05.052UTC native P1,064/15/2,
+F279/5/1(impressions/opens/saves),bothzerooutbound, unchangedOct18PM.
+Profile3,487/51/8/zerooutbound. Bowling97.65%P/toast83.87%F; without them
+P25impressions/2opens,F45/2,zero saves/outbound. No demonstrated acquisition/
+format winner or premature complete-cohort review.
+
+GA4property507421709 Oct13–19Pacific/currentdaypartial:109direct+1not-set
+sessions,one engaged direct,no attributed Pinterest/retailer row. PostHog550427
+has6page/8list/1search,no attributed row; privacy-stripped host fields are not
+filters. Production scope and QA/operator exclusions retained, no synthetic
+browser/retailer click. Per-Pin sessions/retailer/revenue unknown; retired
+DB/Vercel zeros,Sandbox/v3 and historical PostHog gap excluded.
+
+All12 destinations200/self-canonical/visible Amazon CTA+href. Separate weekly
+catalog run11928e5b completed15:32:09.255UTC and restored toastindex/follow;
+first studio confirmation16:30:25.676UTC. Ten pages index/follow,Chia/Bowling
+stillnoindex/follow. Exact content-change timestamp unknown; preserve dated
+destination intervention for final review, not native-click causality or proof
+of Google indexing. Existing two-record handoff in NEEDS is already current.
+No catalog job,API source query,DB requeue/write,cache/page/SEO action or Bead.
+
+No new checkpoint due: six newer24h and six older28day records retained;
+next sheep7day2026-10-20T20:07:09.336Z. No lifecycle transition this run.
+Thirteen validated append-only events and v34 AM metrics/twelve-page audit
+preserve the no-op. Old event prefix,publication receipts,approved manifest
+and full-cohort operating ledger unchanged; generation/publicPosting/paidSpend
+false. Exact review deadline2026-10-31T16:44:52.279Z,first regular eligible
+review Oct31 16:30Pacific,finalReviewDelivered=false/null. Queue empty.
+Review/verification:887events valid,six creative+nine publisher tests pass,
+production build/lint/diff whitespace checks pass. Explicit checks preserve
+all candidate lifecycles,old JSONL prefix,protected ledgers,cap and review gate.
+No application code diff; all twelve live page/retailer checks pass.
+Leave existing ACTIVE schedule unchanged; no creative/publication even after
+review until another explicit owner experiment. Next: eligible scheduled metrics
+and receipt-derived final6Pvs6F review once; no autonomous new test/style.
+
 ## 2026-10-19 — Silent weekly catalog maintenance
 
 Refreshed `.env.local` from Vercel Production before the bounded

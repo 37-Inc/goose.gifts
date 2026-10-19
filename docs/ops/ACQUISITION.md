@@ -86,7 +86,7 @@ Posting or sending remains approval-gated.
 
 ### 4. Native social series
 
-**Current Pinterest measurement (October18 afternoon):**34 verified public Pins,
+**Current Pinterest measurement (October19 morning):**34 verified public Pins,
 3,487 impressions,51 opens,eight saves and zero native outbound clicks. V11
 is complete at six Pins per arm: P1,064impressions/15opens/2saves,F279/5/1;
 bothzerooutbound. Bowling supplies97.65%ofP exposure; product/age/concentration
@@ -114,6 +114,16 @@ zero engaged; PostHog6page/8list/1search, no attributed Pinterest/retailer row.
 Downstream remains unknown. PostHog strips host/URL properties for privacy;
 use the explicit project550427 plus QA exclusions, not a nonexistent-host
 filter that would silently discard all events. No app/catalog/Pin mutation.
+
+October19 AM: native arm/profile totals unchanged, all twelve exact packages/
+receipt boards verify. GA4Oct13–19partial109direct+1not-set sessions,one engaged
+direct; PostHog6page/8list/1search. No attributed Pinterest/retailer row; per-Pin
+downstream remains unknown. All twelve canonical destinations are200 with
+retailer links. Separate catalog run11928e5b restored Birthday Toast index/
+follow; ten pages now index/follow, Chia/Bowling remain noindex/follow. This is
+technical eligibility, not proof of Google indexation or native-click causality.
+Preserve the dated landing intervention/product differences for the final
+review. No maintenance, requeue, new Pin or checkpoint transition here.
 
 Prepare channel-native units rather than a repeated link feed:
 

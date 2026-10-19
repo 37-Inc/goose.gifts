@@ -186,6 +186,44 @@ promotion, outreach, account changes, deletions, video or unrelated site changes
 
 ## October 13 recovery evidence
 
+### October 19 morning — metric-only; catalog handoff partially resolved
+
+Assigned P, but completed P6/F6,total12 remains frozen. No product selection,
+shortlist,concepts,generation,approval,dryrun or publication. Correct goosegifts
+BUSINESS1107815345747925810,all twelve exact packages/receipt boards verify;
+34 public Pins(32 listed+two known exact-ID omissions),zero successes today,
+no unresolved receipt. Generation/publicPosting/paidSpend remain false.
+
+At2026-10-19T16:30:05.052Z, P1,064impressions/15opens/2saves,F279/5/1,
+bothzerooutbound; profile3,487/51/8/zerooutbound, unchangedOct18PM. Bowling
+97.65%P and toast83.87%F dominate; without them P25impressions/2opens,F45/2,
+zero saves/outbound. No acquisition/format winner or equal-age inference.
+GA4explicit507421709 Oct13–19Pacific/currentdaypartial:109direct+1not-set
+sessions,one engaged direct,no Pinterest/retailer row. PostHog550427 has
+6page/8list/1search events,no attributed row; no absent-host filters. QA/operator,
+Sandbox/v3 and retired DB/Vercel zeros excluded. Per-Pin downstream unknown.
+
+All twelve canonical pages return200 with visible Amazon CTA/href. Separate
+weekly catalog run11928e5b completed15:32:09.255UTC and regenerated Birthday
+Toast; first studio verification16:30:25.676UTC now index/follow. Ten pages
+are index/follow,Chia/Bowling remain noindex/follow. Preserve this destination
+intervention chronology in final review; exact copy-change timestamp unknown.
+Technical indexability is not Google indexation proof, and noindex did not
+block direct visits or explain native outbound zero. Existing two-product
+catalog handoff is already current; no catalog/source/page/DB work here.
+
+All six newer24h and six older28day observations are already recorded; no
+new checkpoint due. Retain existing lifecycle states; next sheep7day gate
+2026-10-20T20:07:09.336Z. Do not duplicate a completed checkpoint or close
+the next gate early. Thirteen validated append-only events and
+[AM measurement receipt](pinterest-creative-lab/v34-concepts/verification/metrics-20261019-am.json)
+plus [twelve-page audit](pinterest-creative-lab/v34-concepts/verification/destinations-20261019-am.json)
+preserve this no-op. Original publication receipts,manifest,membership and
+2026-10-31T16:44:52.279Z deadline unchanged; finalReviewDelivered=false/null.
+First regular eligible review Oct31 16:30Pacific. Leave existing ACTIVE slots
+unchanged,queue empty,no new creative/publication even after review until a
+new explicit owner experiment. No Bead/schedule/account/Pin mutation or spend.
+
 ### October 18 afternoon — therapist28day and hat24h, cohort still frozen
 
 Assigned P; full P6/F6,total12 means no selection, shortlist, concepts,
