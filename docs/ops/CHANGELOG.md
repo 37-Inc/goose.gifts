@@ -187,6 +187,7 @@ stale editorial is repaired; Chia/Bowling remain held. The existing pet-pillow
 review is unchanged. Sitemap/directory agree on 43 reviewed pages, all Amazon
 tags audit clean, and 32 tests, lint and build pass. No pipeline fix, extra
 batch, social post or Slack report; estimated API cost `$0.008789`.
+[PR #180](https://github.com/37-Inc/goose.gifts/pull/180) records the receipt.
 
 ### 2026-10-18 afternoon [daily-ops] — Record therapist28day and hat24h
 
