@@ -29,7 +29,7 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-18 afternoon):** ACTIVE, measurement-only.
+**Current scheduler state (2026-10-19 morning):** ACTIVE, measurement-only.
 The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,
 twelve of twelve. Generation and public posting are disabled for this cohort;
 no new creative or publication, even after review, without a new explicit owner
@@ -56,7 +56,7 @@ and Sandbox/v3 are never current acquisition evidence.
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
    versus bespoke annotated field notes. Twelve are live—six Arm F and six Arm
    P. They have 1,343 impressions,20 opens,three saves and no outbound click at
-   the October18 afternoon check; the birthday hat remains at zero distribution/actions.
+   the October19 morning check; the birthday hat remains at zero distribution/actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
@@ -73,6 +73,30 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-19 morning — frozen-cohort metrics; toast destination improves
+
+Assigned P, but completed P6/F6,total12 stays measurement-only. All twelve
+exact production packages/receipt boards verify;34 public Pins,zero successes
+today,no unresolved receipt. P1,064impressions/15opens/2saves and F279/5/1
+bothzerooutbound, unchanged since yesterday PM. Bowling97.65%ofP and
+toast83.87%ofF dominate exposure; no acquisition/format winner or early review.
+GA4Oct13–19partial:109direct+1not-set sessions,one engaged direct,no attributed
+Pinterest/retailer row. PostHog550427:6page/8list/1search,no attributed row.
+Missing per-Pin sessions/retailer/revenue remain unknown, notzero.
+
+All twelve destinations are200/self-canonical with retailer CTA/href. The
+separate weekly catalog run restored Birthday Toast to index/follow; Chia and
+Bowling remain noindex/follow. Ten index/follow destinations now, two held.
+Record this external landing intervention for the final review; exact content
+transition time is unknown and noindex never blocked direct Pinterest visits.
+No catalog/source/page work or requeue here. No new checkpoint is due; prior
+24h/28day records retained, next sheep7day October20T20:07:09.336Z.
+
+Thirteen validated append-only events and v34 AM evidence preserve the no-op.
+No selection, concepts, generation, approval, dry run or publication. Queue
+empty; existing ACTIVE schedule and exact October31 review deadline unchanged.
+No new creative even after review without a new explicit owner experiment.
 
 ### 2026-10-18 afternoon — therapist28day and hat24h; no new creative
 

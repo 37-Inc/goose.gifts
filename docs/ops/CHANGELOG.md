@@ -34,7 +34,8 @@ what's likely next.
   disabled; a regression-tested validator fix permits already-public metrics.
   Bowling/toast/therapist28day are recorded/lifecycle-archived; retain public
   Pins/cohort membership. Opossum/hat24h are recorded. Hat7d/28d and other
-  newer checkpoints remain pending until eligible. No acquisition/format winner.
+  newer checkpoints remain pending until eligible; next sheep7day October20
+  at20:07:09.336UTC. No acquisition/format winner.
 
 - **Product landing measurement**: compare qualified product-page visits and
   existing retailer-click events after the compact product-first layout
@@ -175,6 +176,17 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-19 morning [daily-ops] — Measure frozen Pinterest cohort
+
+Cap-driven no-op: no creative/publication after P6/F6,total12. Native P1,064/
+15/2,F279/5/1(impressions/opens/saves),bothzerooutbound,unchangedPM; downstream
+unknown. All12 packages/receipt boards and canonical retailer paths verify.
+Separate weekly catalog run restored toastindex/follow; Chia/Bowling stay held.
+Recorded dated landing intervention, not Google indexing or click causality.
+No new checkpoint due;13 validated append-only events and v34 AM evidence.
+Existing ACTIVE slots,publication freeze and exact October31 review unchanged.
+[PR #181](https://github.com/37-Inc/goose.gifts/pull/181).
 
 ### 2026-10-19 [daily-ops] — Silent weekly catalog refresh
 
