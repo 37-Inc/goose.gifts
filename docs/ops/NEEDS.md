@@ -23,28 +23,32 @@ any paid/video-generation tooling before spend.
 
 ## P2 — high value, not urgent
 
-### Catalog-workflow handoff — three stale Pinterest destinations
+### Catalog-workflow handoff — two remaining stale Pinterest destinations
 
-October17 PM audit: Chia Gnome B008VVUWQC, Mini Bowling B082PSJYYP and
-Birthday Toast B0F88FJ56K remain active/purchasable but editorial_status=stale
-and source-facts/editorial hashes differ. Their exact canonical pages return
-200 with Amazon links, but correctly serve noindex/follow under the current
-editorial gate; this is not the random-page nofollow rule. Toast's current
-Creators API read confirms IN_STOCK. The separate catalog-quality workflow
-should re-enrich those three against current facts and verify indexability.
-This is a documented handoff only, not an executed database requeue or a new
-workstream/Bead. This studio must not run catalog maintenance or change pages.
-Evidence: v34/verification/destinations-20261017-pm.json and toast diagnostic.
-Do not delete/repost public Pins or remove them from the completed cohort.
+October19 weekly catalog run regenerated Birthday Toast B0F88FJ56K against
+current facts; its exact page now returns 200, self-canonical, index/follow.
+Of the original October17 PM handoff, Chia Gnome B008VVUWQC and Mini Bowling
+B082PSJYYP still remain active/purchasable but editorial_status=stale with
+different source-facts/editorial hashes. Their canonical pages return 200 with
+tagged Amazon links and correctly serve noindex/follow under the editorial
+gate; this is not the random-page nofollow rule. The catalog-quality workflow
+should re-enrich those two against current facts and verify indexability.
+No extra batch or database requeue was performed outside the bounded weekly
+run, and no new workstream/Bead was created. The Pinterest studio must not run
+catalog maintenance or change pages. Original evidence remains in
+v34/verification/destinations-20261017-pm.json and the toast diagnostic; the
+October19 run receipt and journal record the partial resolution. Do not delete
+or repost public Pins or remove them from the completed cohort.
 
 ### 2. Review one held catalog item
 
 The 2026-08-24 weekly run held the customized ugly-pet pillow at
 `/gifts/purr-sonalized-ugly-pet-pillow-cuddle-your-inner-weird` because its
 generated editorial made unsupported size and personalization claims. It is not
-publicly indexable. The 2026-09-07 weekly run reconfirmed the hold after a fresh
-listing read and rejected draft. Either leave it held or provide corrected
-factual copy for an exact editorial seed; no broader catalog action is needed.
+publicly indexable. The 2026-10-19 weekly run reconfirmed the existing hold
+after a fresh listing read and rejected draft. Either leave it held or provide
+corrected factual copy for an exact editorial seed; no broader catalog action
+is needed.
 
 ### 3. Product funnel evidence
 
