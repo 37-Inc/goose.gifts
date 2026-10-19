@@ -186,6 +186,7 @@ Separate weekly catalog run restored toastindex/follow; Chia/Bowling stay held.
 Recorded dated landing intervention, not Google indexing or click causality.
 No new checkpoint due;13 validated append-only events and v34 AM evidence.
 Existing ACTIVE slots,publication freeze and exact October31 review unchanged.
+[PR #181](https://github.com/37-Inc/goose.gifts/pull/181).
 
 ### 2026-10-19 [daily-ops] — Silent weekly catalog refresh
 
