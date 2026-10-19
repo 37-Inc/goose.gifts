@@ -5,6 +5,51 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-19 — Silent weekly catalog maintenance
+
+Refreshed `.env.local` from Vercel Production before the bounded
+`npm run catalog:weekly -- --no-notify` at `1e9df02`. Run
+`11928e5b-6199-4f8e-8e71-9a33192b33c0` completed at
+`2026-10-19T15:32:09.255Z`, with 290 durable item events, no warnings and no
+Amazon throttling. Revalidation checked 50 products, refreshed 35, marked 15
+unavailable and deactivated 14 under the existing age/two-confirmation rule.
+The final read-only audit covered all 3,383 stored Amazon products: zero tag
+or ASIN mismatches; production tag remains `goose-gifts-37-20`.
+
+The complementary six themes returned 62 discoveries; 36 weak results and
+16 ASIN/family/catalog duplicates were filtered. Three products were inserted
+and 13 existing products updated. Only two additions became ready pages:
+the sarcastic face-message mug and Stay Weird plaque. The third, framed frog
+art, stayed inactive/blocked and noindexed, not a published recommendation.
+The 25-item older editorial lane produced two ready pages (cat-pun card and
+dog sleep mask), 17 quality holds and six unavailable items. Discovery produced
+12 ready outcomes. Spot-checked all additions and both backfills against their
+stored current Amazon listing facts; image URLs return JPEGs successfully.
+
+The existing ugly-pet-pillow draft again failed unsupported-dimension/
+capability checks and remains held, with source-stale copy preserved. It is
+the same one-item owner queue already documented, not a new required action;
+leaving it held is safe. Ordinary discovery also regenerated Birthday Toast
+against current facts: it is now indexable. Chia Gnome and Mini Bowling remain
+source-stale, correctly noindexed but reachable with tagged retailer links;
+their separate catalog handoff remains open, without an extra batch or retry.
+
+Both authenticated cache invalidations succeeded. The actual public sitemap
+regenerated (`REVALIDATED`, age zero): 91 URLs, including 43 reviewed product
+pages exactly matching both directory pages. Five sampled ready pages are
+HTTP 200, self-canonical and index/follow, with the correct Amazon tag and no
+`$0.00` placeholder. The frog, pillow and two stale Pinterest destinations are
+correctly noindex/follow. Homepage, robots and `/search` redirect passed.
+Server-only QA did not trigger browser analytics or click a retailer link.
+All 32 catalog tests pass without skips; lint and production build pass.
+Estimated model/embedding API cost is `$0.008789` in the durable run receipt.
+
+The selected lever was the scheduled catalog quality/freshness loop, not
+acquisition or unrelated site work. No pipeline fix, rerun, schedule change,
+social publication, Slack message or search-engine submission was needed.
+Preserved unrelated `.playwright-cli/` and `output/`. Continue the existing
+weekly bounds; no new owner action is required.
+
 ## 2026-10-18 afternoon — therapist28day and hat24h; cap-driven no-op
 
 Heartbeat23:30:34.866UTC, canonical main/origin f2ab8c2 at start. Preserved

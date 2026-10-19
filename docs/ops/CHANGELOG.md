@@ -176,6 +176,18 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-19 [daily-ops] — Silent weekly catalog refresh
+
+Run `11928e5b-6199-4f8e-8e71-9a33192b33c0` checked 50 listings, refreshed 35
+and deactivated 14 long-unverified, twice-confirmed-missing products. Six themes
+yielded 62 discoveries; 36 weak results and 16 duplicates were filtered. Three
+catalog insertions include two ready additions and one inactive hold; 13
+existing products were updated and two older pages enriched. Birthday Toast's
+stale editorial is repaired; Chia/Bowling remain held. The existing pet-pillow
+review is unchanged. Sitemap/directory agree on 43 reviewed pages, all Amazon
+tags audit clean, and 32 tests, lint and build pass. No pipeline fix, extra
+batch, social post or Slack report; estimated API cost `$0.008789`.
+
 ### 2026-10-18 afternoon [daily-ops] — Record therapist28day and hat24h
 
 Completed-cohort measurement-only no-op; no creative or Pin. Native P1,064/
