@@ -29,7 +29,7 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-19 morning):** ACTIVE, measurement-only.
+**Current scheduler state (2026-10-19 afternoon):** ACTIVE, measurement-only.
 The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,
 twelve of twelve. Generation and public posting are disabled for this cohort;
 no new creative or publication, even after review, without a new explicit owner
@@ -56,7 +56,7 @@ and Sandbox/v3 are never current acquisition evidence.
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
    versus bespoke annotated field notes. Twelve are live—six Arm F and six Arm
    P. They have 1,343 impressions,20 opens,three saves and no outbound click at
-   the October19 morning check; the birthday hat remains at zero distribution/actions.
+   the October19 afternoon check; the birthday hat remains at zero distribution/actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
@@ -73,6 +73,27 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-19 afternoon — metric-only; transient analytics retry recorded
+
+Assigned F, but completed P6/F6,total12 remains frozen. No selection,concepts,
+generation,approval,dryrun or publication. All twelve exact production packages/
+receipt boards verify;34 public Pins,zero successes today,no unresolved receipt.
+Native P1,064impressions/15opens/2saves,F279/5/1,bothzerooutbound, unchangedAM.
+Bowling97.65%P/toast83.87%F dominate exposure; no acquisition/format winner.
+
+GA4Oct13–19partial:188direct+1not-set sessions,one engaged direct,no attributed
+Pinterest/retailer row. PostHog initial503 recovered on one bounded retry;
+6page/8list/1search,no attributed row. Preserve failure/recovery receipt and
+unknown per-Pin downstream, not fabricated zero or an ongoing outage claim.
+All12 destinations200/canonical/retailer-linked;10index-follow,Chia/Bowling
+stillheld. Toast's separate catalog intervention remains recorded; no new
+catalog/page work. No new checkpoint due; next sheep7day Oct20T20:07:09.336Z.
+
+Thirteen validated append-only events and v34 PM evidence preserve this
+cap-driven no-op, not a source/quality-pool exhaustion. Queue empty; existing
+ACTIVE schedule and exact October31 review deadline unchanged. No further
+creative/publication even after review until a new explicit owner experiment.
 
 ### 2026-10-19 morning — frozen-cohort metrics; toast destination improves
 
