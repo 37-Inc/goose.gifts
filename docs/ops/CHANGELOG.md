@@ -186,6 +186,7 @@ existingholds. GA4activity remains unattributed; PostHog transient503 recovered
 on one bounded retry, both outcomes preserved. No new checkpoint due or
 lifecycle change. Thirteen validated events and v34 PM receipts saved.
 Existing schedule,publication freeze and exact October31 review unchanged.
+[PR #182](https://github.com/37-Inc/goose.gifts/pull/182).
 
 ### 2026-10-19 morning [daily-ops] — Measure frozen Pinterest cohort
 
