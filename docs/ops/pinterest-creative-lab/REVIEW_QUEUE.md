@@ -49,6 +49,14 @@ No new checkpoint due; next sheep7day Oct20T20:07:09.336Z. No selection,
 generation,approval,dryrun or publication; owner-ready queue remains empty.
 Existing schedule,publication freeze and exact full-review deadline unchanged.
 
+October19 PM: assignedF but P6/F6,total12 stays measurement-only. Native
+totals unchanged; all12 exact packages/receipt boards verify,34publicPins,
+zero today/no unresolvedreceipt. GA4activity remains unattributed; PostHog
+transient503 recovered on one bounded retry. Per-Pin downstream unknown.
+All12 destinations work,10index-follow/2existingholds; no new checkpoint due.
+No selection,creative,approval,dryrun or public write. Queue remains empty;
+existing schedule and receipt-derived October31 review gate unchanged.
+
 ## Published from this queue
 
 ### Birthday trucker hat — formal attire, informal language
