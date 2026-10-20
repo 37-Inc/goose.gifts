@@ -73,6 +73,18 @@ test('checkpoint CAS, lost-response replay and immutable phase-complete/pins pre
   assert.equal((await w.readCheckpoint({controlOnly:true})).checkpoint.state,undefined);
 });
 
+test('same artifact retry after lost checkpoint ack reuses original observation/deadline, never renews',async t=>{
+  const f=await fixture(t),w=await f.open();const value={fixture:'immutable phase seal'};
+  const first=await w.putArtifact(value,{kind:'publication',observedAt:NOW});const bytes=await readFile(join(w.directory,first.reference));
+  f.setNow('2026-10-20T12:30:00.000Z');await w.close();const resumed=await f.open({mode:'resume'});
+  assert.deepEqual(await resumed.putArtifact(value,{kind:'publication',observedAt:'2026-10-20T12:30:00.000Z'}),first);
+  assert.deepEqual(await readFile(join(w.directory,first.reference)),bytes);
+  await assert.rejects(resumed.putArtifact(value,{kind:'phase',observedAt:NOW}),/kind/);
+  f.setNow('2026-10-20T13:00:00.000Z');
+  await assert.rejects(resumed.putArtifact(value,{kind:'publication',observedAt:'2026-10-20T13:00:00.000Z'}),/expired/);
+  assert.deepEqual(await readFile(join(w.directory,first.reference)),bytes);
+});
+
 test('budget reservations are charged before dispatch, exact-idempotent, capped, and unknown across reopen',async t=>{
   const f=await fixture(t,{budgetCaps:{httpRequests:3,sqlStatements:5}}),w=await f.open();
   await w.reserveBudget(reservation('identity',0));await w.settleBudget('identity',{status:'known',usage:{rowsRead:0,rowsWritten:0}});

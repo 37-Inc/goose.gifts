@@ -432,7 +432,7 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
     async function read(ref:ArtifactRef){if(!state.refs.has(ref.sha256))fail('unregistered_artifact');const v=await loadStored(directory,ref,manifest);fresh(v,now());return v;}
     const api={directory,repository,manifest,manifestSha256:info.manifestSha256,assertHeld,
       assertScope:async(expected:WorkspaceScope)=>{await assertHeld();scope(expected);if(!same(manifest.scope,expected))fail('scope_mismatch');},
-      putArtifact:(value:unknown,o:{kind:'phase'|'publication';observedAt:string})=>serial(async()=>{if(!o||!['phase','publication'].includes(o.kind))fail('kind');await usable();return put(json(value),o.kind,o.observedAt);}),
+      putArtifact:(value:unknown,o:{kind:'phase'|'publication';observedAt:string})=>serial(async()=>{if(!o||!['phase','publication'].includes(o.kind))fail('kind');await usable();return put(json(value),o.kind,o.observedAt,true);}),
       readArtifact:(ref:ArtifactRef)=>serial(async()=>{const v=await read(ref);if(!['phase','publication'].includes(v.kind))fail('kind');return structuredClone(v.value);}),
       saveReceipt:(o:Readonly<{sha256:string;receipt:ProviderReceipt}>)=>serial(async()=>{receipt(o.receipt);if(o.sha256!==refFor(o.receipt).sha256)fail('receipt_hash');
         await usable();return put(o.receipt,o.receipt.kind,o.receipt.observedAt);}),
