@@ -58,6 +58,17 @@ Receipt `local-burst-node22-600s.json`, SHA-256
 Final integrated tests: 373 staging passes/eight explicit opt-in skips,
 88 existing regressions, TypeScript, lint and production Next build pass.
 
+PR #195 merged as `e57a996bb198109e3b189054e2abe54025acbd75`; the exact source
+is published on protected Worker `e1dc4d7e-d834-495f-beae-cc7d7b4688da`.
+Independent release identity, original four-vector bytes/metadata and durable
+publication readback passed. Receipt `publication-proof-QAjm9v/receipt.json`,
+SHA-256 `68892baef7b58fa3a02855ab448d02a74948a4c15ebde3f4570f960a57560056`.
+`pr195-live-readback.json` records 20 protected checks, five healthy public
+routes, ten retired-bundle GET/HEAD 404/no-redirect checks and Vercel production
+`dpl_9Cy8ocYLRU8ekitiqPDoppQP6Gqa` READY at the same SHA. Public homepage
+title/canonical still identify Goose, not Stupid Gifts. Main is clean and its
+Graphify index refreshed. The sealed recovery package is retained privately.
+
 Current staging remains on migrations 0001–0008, with new ownership disabled.
 Keep Neon as production writer. The new-cohort publisher, concrete protected
 runner/secret bootstrap/schedule, full-catalog proof, compliant merchant refresh,

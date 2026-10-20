@@ -3,6 +3,21 @@
 This is an additive, protected Cloudflare preview, not a production cutover.
 The launch spec and `roadmap-lbbz1` remain authoritative.
 
+### Verified checkpoint — October 20, 10:20 UTC
+
+PRs #189–195 are merged. Source `e57a996bb198109e3b189054e2abe54025acbd75`
+is independently verified on protected Cloudflare staging and the unchanged
+Goose-branded Vercel production site. Staging has all 3,383 archived product
+identities and maintained operational history, but only four current
+rights-verified public products. Neon remains the production writer.
+
+Storage and vector-delivery adapters passed disposable-provider tests; 373
+staging and 88 existing regression tests pass. The 60,000-request local burst
+is not proof of Cloudflare Free-plan capacity. No new scheduler, public DNS
+cutover, paid plan, provider rebrand or decommissioning is active. Full
+publication/runner handoff, search coverage, final delta/recovery and owner
+launch checks remain open; see the sections below and canonical Beads.
+
 ## Build and deployment
 
 Use Node 22. Refresh source credentials using the runbook; never copy the
