@@ -1,0 +1,37 @@
+import type { PublicCatalogProduct } from '../../lib/catalog/types.ts';
+import type { SearchDiagnostic } from '../../lib/catalog/storage/d1.ts';
+
+/** Small structural interfaces: no Node runtime or generated provider types. */
+export interface AssetBinding {
+  fetch(request: Request): Promise<Response>;
+}
+
+export interface VectorBinding {
+  query(vector: number[], options: {
+    topK: number;
+    returnValues: false;
+    returnMetadata: 'none';
+    filter: Record<string, string | boolean>;
+  }): Promise<{ matches: { id: string; score: number }[] }>;
+}
+
+export interface SearchStorage {
+  byPublicIds(ids: string[], now: Date): Promise<PublicCatalogProduct[]>;
+  keyword(query: string, limit: number, now: Date): Promise<PublicCatalogProduct[]>;
+}
+
+export interface SiteEnv {
+  ASSETS: AssetBinding;
+  VECTORIZE?: VectorBinding;
+  OPENAI_API_KEY?: string;
+  /** Semantic calls require explicit opt-in; keyword search remains available. */
+  SEMANTIC_SEARCH_ENABLED?: string;
+  ENVIRONMENT?: string;
+  STAGING_AUTH_SECRET?: string;
+}
+
+export interface SearchAdapters<Env extends SiteEnv = SiteEnv> {
+  storage(env: Env): SearchStorage;
+  diagnostic?(record: SearchDiagnostic, env: Env, now: Date): Promise<void>;
+  embed?(query: string, env: Env, signal: AbortSignal): Promise<number[]>;
+}
