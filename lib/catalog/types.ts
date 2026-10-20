@@ -56,6 +56,7 @@ export interface CatalogReleaseManifest {
   releaseId: string;
   codeSha: string;
   catalogRevision: string;
+  catalogSnapshotSha256: string;
   generatedAt: string;
   nextExpiry: string | null;
   productCount: number;
