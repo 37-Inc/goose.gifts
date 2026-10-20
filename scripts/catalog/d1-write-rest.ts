@@ -1,4 +1,5 @@
 import type { CatalogD1, D1Statement } from '../../lib/catalog/storage/d1.ts';
+import { createHash, randomUUID } from 'node:crypto';
 
 /** Protected Node wiring only; no credentials/bootstrap, schema, lock or runner.
  * REST wire: https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/
@@ -14,6 +15,19 @@ type Limits = { [K in keyof typeof CATALOG_D1_REST_LIMITS]:number };
 type Param = string | number | null;
 type Query = { sql:string;params:readonly Param[] };
 type Result<T = Record<string,unknown>> = { success:true;results:T[];meta:Record<string,number|boolean> };
+export interface D1AccountingState {
+  httpRequests:number;sqlStatements:number;knownRowsRead:number;knownRowsWritten:number;unconfirmedRequests:number;
+}
+/** Trusted private durable ledger, bound to the same exact resources/run caps.
+ * Reservation MUST atomically enforce aggregate caps (including other clients)
+ * before acknowledging. Pending/unknown reservations never refund on restart.
+ * The ledger sees only request digests/units, never SQL, values or credentials.
+ */
+export interface D1Accounting {
+  scope:{accountId:string;databaseId:string;databaseName:string};initial:D1AccountingState;
+  reserve(input:{id:string;requestSha256:string;units:{httpRequests:1;sqlStatements:number}}):Promise<void>;
+  settle(id:string,result:{status:'known';usage:{rowsRead:number;rowsWritten:number}}|{status:'unknown';usage:null}):Promise<void>;
+}
 const integer = (value:unknown):value is number => Number.isSafeInteger(value) && Number(value)>=0;
 const object = (value:unknown):value is Record<string,unknown> => Boolean(value && typeof value==='object' && !Array.isArray(value));
 
@@ -38,7 +52,7 @@ function sqlText(value:unknown):string {
 }
 
 export async function createCatalogD1Rest(options: {
-  accountId:string;databaseId:string;databaseName:string;token:string;fetch?:typeof fetch;limits?:Partial<Limits>;
+  accountId:string;databaseId:string;databaseName:string;token:string;fetch?:typeof fetch;limits?:Partial<Limits>;accounting?:D1Accounting;
 }):Promise<CatalogD1 & { providerIdentity:string;metrics:()=>{
   requests:number;statements:number;reportedRowsRead:number|null;reportedRowsWritten:number|null;unconfirmedRequests:number;
 } }> {
@@ -54,6 +68,27 @@ export async function createCatalogD1Rest(options: {
   const send=options.fetch??fetch;
   const base=`https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}`;
   let requests=0,statements=0,rowsRead=0,rowsWritten=0,unconfirmedRequests=0;
+  const accounting=options.accounting;
+  if(accounting){
+    const initial=accounting.initial;
+    if(!object(accounting.scope)||accounting.scope.accountId!==accountId||accounting.scope.databaseId!==databaseId
+      ||accounting.scope.databaseName!==databaseName||typeof accounting.reserve!=='function'||typeof accounting.settle!=='function'
+      ||!object(initial)||Object.keys(initial).sort().join(',')!=='httpRequests,knownRowsRead,knownRowsWritten,sqlStatements,unconfirmedRequests'
+      ||Object.values(initial).some(value=>!integer(value))||initial.unconfirmedRequests>initial.httpRequests
+      ||initial.httpRequests>limits.requests||initial.sqlStatements>limits.statements)throw new Error('catalog_d1_accounting_invalid');
+    ({httpRequests:requests,sqlStatements:statements,knownRowsRead:rowsRead,knownRowsWritten:rowsWritten,unconfirmedRequests}=initial);
+  }
+  async function reserve(body:string|undefined,count:number){
+    if(!accounting)return undefined;
+    const id=randomUUID();const requestSha256=createHash('sha256').update(JSON.stringify({accountId,databaseId,body:body??null})).digest('hex');
+    try{await accounting.reserve({id,requestSha256,units:{httpRequests:1,sqlStatements:count}});return id;}
+    catch{throw new Error('catalog_d1_budget_reservation_failed');}
+  }
+  async function settle(id:string|undefined,usage:{rowsRead:number;rowsWritten:number}|null){
+    if(!accounting||!id)return;
+    try{await accounting.settle(id,usage?{status:'known',usage}:{status:'unknown',usage:null});}
+    catch{throw new Error('catalog_d1_accounting_unknown');}
+  }
   const bindings=new WeakMap<D1Statement,Query>();
   async function request(body?:string):Promise<unknown> {
     if(requests>=limits.requests)throw new Error('catalog_d1_budget_exhausted');requests++;
@@ -84,6 +119,9 @@ export async function createCatalogD1Rest(options: {
     if(Buffer.byteLength(body)>limits.requestBytes)throw new Error('catalog_d1_request_bound');
     if(statements+batch.length>limits.statements||requests>=limits.requests
       ||rowsRead>=limits.reportedRowsRead||rowsWritten>=limits.reportedRowsWritten)throw new Error('catalog_d1_budget_exhausted');
+    const reservation=await reserve(body,batch.length);
+    if(statements+batch.length>limits.statements||requests>=limits.requests
+      ||rowsRead>=limits.reportedRowsRead||rowsWritten>=limits.reportedRowsWritten)throw new Error('catalog_d1_budget_exhausted');
     statements+=batch.length;
     let results:Result[];
     try{
@@ -99,12 +137,14 @@ export async function createCatalogD1Rest(options: {
         }
         return {success:true as const,results:value.results,meta};
       });
-    }catch{unconfirmedRequests++;throw new Error('catalog_d1_result_unknown');}
+    }catch{unconfirmedRequests++;await settle(reservation,null);throw new Error('catalog_d1_result_unknown');}
     const read=results.reduce((sum,result)=>sum+Number(result.meta.rows_read),rowsRead);
     const written=results.reduce((sum,result)=>sum+Number(result.meta.rows_written),rowsWritten);
     if(!Number.isSafeInteger(read)||!Number.isSafeInteger(written)){
-      unconfirmedRequests++;throw new Error('catalog_d1_result_unknown');
+      unconfirmedRequests++;await settle(reservation,null);throw new Error('catalog_d1_result_unknown');
     }
+    try{await settle(reservation,{rowsRead:read-rowsRead,rowsWritten:written-rowsWritten});}
+    catch(error){unconfirmedRequests++;throw error;}
     rowsRead=read;rowsWritten=written;
     // Reported costs are checked AFTER execution, never a guarantee that an
     // arbitrary SQL query cannot exceed its allowance. Lost metadata stays
@@ -113,7 +153,13 @@ export async function createCatalogD1Rest(options: {
       ||rowsWritten>limits.reportedRowsWritten)throw new Error('catalog_d1_reported_usage_exceeded');
     return results;
   }
-  const identity=await request();
+  if(accounting&&(requests>=limits.requests||statements>=limits.statements||rowsRead>=limits.reportedRowsRead
+    ||rowsWritten>=limits.reportedRowsWritten))throw new Error('catalog_d1_budget_exhausted');
+  const reservation=await reserve(undefined,0);
+  let identity:unknown;
+  try{identity=await request();}
+  catch(error){await settle(reservation,null);throw error;}
+  await settle(reservation,{rowsRead:0,rowsWritten:0});
   if(!object(identity)||identity.uuid!==databaseId||identity.name!==databaseName||!object(identity.read_replication)
     ||identity.read_replication.mode!=='disabled')throw new Error('catalog_d1_identity_mismatch');
   // Disabled replication alone is insufficient during its documented drain

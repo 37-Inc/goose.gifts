@@ -523,9 +523,9 @@ function getOpenAIClient() {
     return null;
   }
 
-  openaiClient ??= new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  if (openaiClient?.apiKey !== process.env.OPENAI_API_KEY) {
+    openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
 
   return openaiClient;
 }
@@ -985,7 +985,7 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
       embeddingsById = await generateProductEmbeddings(reviewedProducts, telemetry, evidence);
     } catch (error) {
       telemetry?.warnings.push({ phase: 'embedding', reasonCode: 'embedding_failed', message: redactTelemetryText(error.message) });
-      console.warn(`OpenAI embedding enrichment failed for ${batch.length} products: ${error.message}`);
+      console.warn(`OpenAI embedding enrichment failed for ${batch.length} products.`);
     }
 
     reviewedProducts.forEach((product) => {
@@ -1080,8 +1080,8 @@ async function searchAmazonCandidates(theme, options, evidence) {
       throw new Error(`Google CSE failed (${response.status}): ${body.slice(0, 300)}`);
     }
     data = await response.json();
-  } catch (error) {
-    console.warn(`Google CSE fallback failed for "${theme}"; retaining verified Creators results: ${error.message}`);
+  } catch {
+    console.warn(`Google CSE fallback failed for "${theme}"; retaining verified Creators results.`);
     return creatorCandidates;
   }
 
@@ -1352,7 +1352,7 @@ async function revalidateCatalog(options, telemetry, store, evidence) {
             affiliateUrl: product.affiliate_url,
           });
         });
-        console.warn(`Could not confirm ${missing.length} missing Amazon items; leaving them active: ${error.message}`);
+        console.warn(`Could not confirm ${missing.length} missing Amazon items; leaving them active.`);
       }
     }
 
@@ -1499,7 +1499,7 @@ async function refreshProductsForEditorial(products, options, telemetry, store, 
       } catch (error) {
         telemetry.warnings.push({ phase: 'backfill_refresh', reasonCode: 'missing_confirmation_failed', message: redactTelemetryText(error.message) });
         missing.forEach((product) => deferredIds.add(product.id));
-        console.warn(`Could not confirm ${missing.length} missing editorial candidates; leaving them unchanged: ${error.message}`);
+        console.warn(`Could not confirm ${missing.length} missing editorial candidates; leaving them unchanged.`);
       }
     }
 
@@ -1957,7 +1957,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
     } catch (error) {
       if (!options.dryRun) throw error;
       telemetry.warnings.push({ phase: 'discovery', reasonCode: 'dry_run_catalog_dedupe_unavailable', message: redactTelemetryText(error.message) });
-      console.warn(`Dry-run catalog deduplication unavailable; continuing with discovery-only results: ${error.message}`);
+      console.warn('Dry-run catalog deduplication unavailable; continuing with discovery-only results.');
     }
   }
   await telemetry.items.flush();
@@ -2097,6 +2097,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
 async function runCatalogWithBackend(phaseOptions, {
   maintenanceStore, telemetryStore, publish, finalizeRun, runId, gitSha = null, mode = 'catalog', trigger = 'manual',
   execute = executeCatalog, editorialSeedProducts, providerEvidence,
+  deferPublicationFinalization = false,
 } = {}) {
   const phases = Array.isArray(phaseOptions) ? phaseOptions : [phaseOptions];
   const methods = ['startCatalogRun','finishCatalogRun','insertCatalogRunItems','loadCatalogRun','loadRecentCatalogRuns'];
@@ -2104,11 +2105,13 @@ async function runCatalogWithBackend(phaseOptions, {
     || typeof publish !== 'function' || typeof finalizeRun !== 'function' || typeof execute !== 'function' || typeof runId !== 'string'
     || !/^[a-zA-Z0-9._:/-]{1,200}$/.test(runId) || phases.length < 1 || phases.length > 2
     || phases.some(options => !options || typeof options !== 'object')
-    || phases.some(options => Boolean(options.dryRun) !== Boolean(phases[0].dryRun))) throw new Error('Invalid explicit catalog backend');
+    || phases.some(options => Boolean(options.dryRun) !== Boolean(phases[0].dryRun))
+    || typeof deferPublicationFinalization !== 'boolean') throw new Error('Invalid explicit catalog backend');
   const dryRun = Boolean(phases[0].dryRun);
   if (!dryRun && await telemetryStore.loadCatalogRun(runId)) throw new Error('Catalog run already exists; reconcile before replaying provider work');
   const warnings = []; const results = []; const startedAt = Date.now(); let started = false; let publication = null; let publicationOutcome;
   let pendingItems = [];
+  let phasesCompleted = false;
   const telemetry = {runId,usage:createUsageLedger(),timingsMs:{},warnings,
     items:createRunItemCollector({runId,enabled:!dryRun,warnings,writeItems:async(id,items) => {
       pendingItems=items.map(item=>sanitizeTelemetryValue(item));
@@ -2136,8 +2139,17 @@ async function runCatalogWithBackend(phaseOptions, {
       await telemetry.items.flush();
       if (telemetry.items.size) throw new Error('Catalog item accounting remains unpersisted');
     }
+    phasesCompleted = true;
     if (!dryRun) {
-      publicationOutcome = await publish({runId,results,telemetry:{timingsMs:telemetry.timingsMs,usage:finalizeUsageLedger(telemetry.usage),warnings}});
+      publicationOutcome = await publish({runId,results,telemetry:{timingsMs:telemetry.timingsMs,usage:finalizeUsageLedger(telemetry.usage),warnings},
+        ...(deferPublicationFinalization ? {finalization:{counts:counts(),timingsMs:{...telemetry.timingsMs,total:Date.now()-startedAt},usage:finalizeUsageLedger(telemetry.usage),warnings}} : {})});
+      // Explicit protected driver only: its durable phase checkpoint, not this
+      // return value, authorizes later resume. Never finalize pending work as a
+      // historical partial run that would then need to be rewritten completed.
+      if (deferPublicationFinalization && publicationOutcome?.status === 'pending') {
+        return {runId,dryRun,results,publication:null,deferred:true,
+          telemetry:{timingsMs:telemetry.timingsMs,usage:finalizeUsageLedger(telemetry.usage),warnings}};
+      }
       if (!publicationOutcome || publicationOutcome.status !== 'published' || typeof publicationOutcome.releaseId !== 'string'
         || !/^[a-zA-Z0-9._-]{1,200}$/.test(publicationOutcome.releaseId)
         || !/^[a-f0-9]{64}$/.test(publicationOutcome.receiptSha256 || '')) throw new Error('Publication is not independently verified');
@@ -2156,7 +2168,7 @@ async function runCatalogWithBackend(phaseOptions, {
     // log/serialize raw item payloads. The caller must protect it explicitly.
     if(recovery) Object.defineProperty(failure,'catalogRunRecovery',{value:recovery});
     addTiming(telemetry.timingsMs,'total',Date.now()-startedAt);
-    if (started) {
+    if (started && !(deferPublicationFinalization && phasesCompleted)) {
       try {
         await finish(results.length ? 'partial' : 'failed',failure);
       } catch (finalizationError) {
@@ -2294,6 +2306,7 @@ export {
   deduplicateCandidates,
   discoveryCandidateBlockReason,
   getProductsForRevalidation,
+  getOpenAIClient,
   isHighQualityDiscoveryCandidate,
   normalizedTitleTokens,
   parseArgs,
