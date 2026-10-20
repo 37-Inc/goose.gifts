@@ -88,6 +88,31 @@ facts and hashes, editorial holds, duplicate families, freshness decisions,
 review provenance, job IDs, and append-only operational history. Do not
 resurrect retired bundle pages, the admin dashboard, or detailed click writes.
 
+### Owner-approved feature retirement
+
+Gift guides replace the old personalized bundle feature. Retire its generators,
+top-level bundle URLs, redirect heuristics and unused runtime dependencies;
+retired URLs return a genuine 404/410, not a generated page, guide redirect or
+homepage fallback. Preserve current product/guide URLs and product slug history.
+
+Remove remaining obsolete admin/auth/reporting code and do not recreate the
+dashboard on Cloudflare. GA4 is the reporting focus, not a new first-party
+reporting UI or detailed click database. Catalog maintenance, publication
+authentication and minimal job/failure receipts remain operational necessities,
+not a visitor-reporting feature. This scope decision does not remove the
+existing PostHog adapter, Google Ads behavior or analytics privacy gates.
+
+“Legacy product-link redirects” below means the old
+`/random-gift?gift=<retailer-id>` format, not another page type or saved-share
+feature. The October 19 Pinterest readback still records six public Pins using
+it, including the hippo mug, screaming goat, eye and oven mitt. Live mug/goat
+checks returned 308 redirects to their normal `/gifts/[slug]` pages. The proposed
+compatibility is only a deployed ID-to-slug redirect map; new links use product
+slugs, with no new legacy-link generation or per-request database lookup. Evidence:
+`pinterest-creative-lab/v34-concepts/verification/metrics-20261019-pm.json`.
+This remains a compatibility recommendation pending the owner's final scope
+decision, not authorization to modify existing Pins.
+
 ## Serving architecture
 
 ```mermaid
@@ -125,11 +150,11 @@ Use the existing `37.technology` Cloudflare account, which also owns
 | `/gifts/[slug]` | Prebuilt product HTML, metadata, related products and share card. Thin Worker expiry guard serves the asset or a safe noindex fallback without querying D1. Existing slugs do not change for branding. |
 | `/gift-guides` and `/gift-guides/[slug]` | Prebuilt existing guides with current eligibility and internal links. |
 | `/random-gift` | Static useful initial selection plus client-side spinning over a bounded versioned eligible pool. No DB request per spin. Preserve no-immediate-repeat and share behavior. |
-| `/random-gift?gift=...` | Resolve through a deployed ID-to-slug map; preserve the existing permanent redirect and tracking allowlist. Unknown IDs get the generic random page, not a DB lookup. |
+| `/random-gift?gift=...` (legacy product link) | Redirect only, not a separate page: resolve through a deployed ID-to-slug map and preserve the tracking allowlist. New links use `/gifts/[slug]`. Unknown IDs get the generic random page, not a DB lookup. |
 | `/api/og/random-gift?gift=...` or `?slug=...` | Map to prebuilt share assets; return the branded fallback for unknown inputs. No remote fetch or image rendering per request. |
 | `/weird-gift-index` and `/weird-gift-index/data` | Static dated analysis and allowlisted public data generated together; preserve citation, methodology, schema, and contact identity. |
 | `/privacy`, robots, sitemap and verification files | Static artifacts. Retain `/sitemap/0.xml` compatibility while publishing `/sitemap.xml` directly. |
-| Existing legacy top-level slugs | Carry over the explicit redirect map. Unknown routes return a real 404, never the homepage with a 200. |
+| Retired top-level bundle slugs and old admin/auth/report routes | Do not port their pages, generators or redirect heuristics. Return a real 404/410; preserve only maintained product slug-history redirects, not bundle-to-guide redirects. |
 | `/howie` | New static weekly selection and links to the actual products; previous episodes remain reachable. |
 | `/howie/[episode]` | Stable dated episode page, exact product variants, show order, archived alternatives for unavailable items. |
 | Authenticated catalog publication endpoint | Replace Next cache invalidation with authenticated build dispatch/status. An accepted dispatch is not a completed release. |
@@ -251,8 +276,8 @@ Migrate active and inactive `products`, `product_slug_history`,
 `catalog_runs`, `catalog_run_items`, `catalog_editorial_events`, and maintained
 search diagnostics. Capture a complete protected export of every source table
 including legacy bundles, relationships, clicks, admin actions and error logs.
-Retired history may remain in a separately verified offline archive instead
-of runtime D1, but every source table must have a recorded destination and
+Retired bundle/admin/reporting history belongs in a separately verified offline
+archive, not runtime D1. Every source table must have a recorded destination and
 restoration test, subject to the content-rights retention review above. No
 source data deletion is implied.
 
