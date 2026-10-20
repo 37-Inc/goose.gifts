@@ -318,6 +318,13 @@ bytes. A lost mutation ID remains owned; no elapsed-time takeover or blind
 resend is allowed. Stable-ID rollback needs verified prior-vector restoration,
 not just an old Worker deployment.
 
+An actual disposable-index rehearsal passed upsert, exact processed-mutation
+identity, byte/metadata readback, delete and confirmed absence: 51 bounded
+requests, two writes, independently verified scratch cleanup. The API's
+processed marker can precede vector visibility, so visibility remains a
+separate check. This proves the single-vector REST contract, not throughput
+or full-index settlement; the exact receipt is in the journal.
+
 An expired, settled pruning delivery can explicitly abandon its importing
 revision while retaining all evidence. A new cutoff/operation may then prepare
 and activate a replacement; abandonment never means reconciled or publishable.
@@ -343,9 +350,10 @@ existing Neon job until these integrations and recovery checks are verified.
 
 `node --import tsx scripts/staging/local-burst.mts --seconds 600 --output /private/receipt.json`
 exercises the actual Worker and feed builders with 60 owned fictional products.
-The first full run used Node26.12.0: 60,000 requests over 600 seconds, a 95/5
-static/mock-semantic mix, zero failures or network calls; static p95 1.098 ms,
-mock-search p95 16.619 ms. Exactly 3,000 mock search-store calls occurred, none
+The repeated full run on the intended Node22.23.1 runtime completed 60,000
+requests over 600 seconds, a 95/5 static/mock-semantic mix, zero failures or
+network calls; static p95 1.245 ms, mock-search p95 16.250 ms.
+Exactly 3,000 mock search-store calls occurred, none
 from browsing. The retained-asset deadline crossed during the real-clock run.
 
 This is warm in-process Node behavior, **not** HTTP/CDN/Cloudflare CPU, real D1

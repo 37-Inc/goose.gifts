@@ -33,12 +33,30 @@ failure and one unknown transport response are preserved in private receipts
 deleted; active index inventory was unchanged. No uncertain mutation was
 blindly replayed into the same index.
 
+The final actual REST rehearsal on source `48db2fc52c95c9fb0219017eaef8ae6af236a98a`
+passed: one upsert, exact processing and native float32/metadata readback,
+then one delete, exact processing and absent UUID readback. It made 51
+bounded requests and exactly two writes. The temporary index is independently
+confirmed deleted with the prior index inventory unchanged. Private receipt
+`vectorize-rest-canary-2zJXZF/receipt.json`, SHA-256
+`c9c9026bb3004b110d64180f37ddc32b2d85e9a7e0ab66c8b61a80a7b84d6d14`.
+This is a single-vector compatibility proof, not a full-catalog throughput test.
+
 Initial full local burst receipt `local-burst-e9035f8-600s.json`, SHA-256
 `e98aded4d5b6e97362acf2f381c10efc64b421edb94e6e7c48b63dffd9a99b34`:
 60,000 requests/600 seconds/zero errors, actual Worker with owned fixtures,
 95% static and 5% mock semantic. Node26.12.0/macOS arm64, static p95 1.098 ms,
 mock-search p95 16.619 ms. No network attempts or browse-storage calls.
 This is not Cloudflare CPU/CDN, real provider/D1 cost or production capacity.
+
+The intended Node22.23.1 runtime repeated the complete rehearsal at source
+`0d030502d574f3f56589b0ea68b8ba1ee7a8d392`: 60,000 requests/600 seconds,
+zero errors/network attempts, static p95 1.245 ms and mock-search p95
+16.250 ms. Exactly 57,000 asset and 3,000 mock search calls were observed.
+Receipt `local-burst-node22-600s.json`, SHA-256
+`d0cbbf9cf93d8b1d1db78be93dac624c39fdbb2ceda05f186b73f62cb5717891`.
+Final integrated tests: 373 staging passes/eight explicit opt-in skips,
+88 existing regressions, TypeScript, lint and production Next build pass.
 
 Current staging remains on migrations 0001–0008, with new ownership disabled.
 Keep Neon as production writer. The new-cohort publisher, concrete protected
