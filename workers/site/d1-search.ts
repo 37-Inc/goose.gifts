@@ -9,8 +9,8 @@ export interface CatalogSiteEnv extends SiteEnv {
 /** Adapter only: catalog validation, indexed SQL and batch bounds live in lib/catalog. */
 export const d1SearchAdapters: SearchAdapters<CatalogSiteEnv> = {
   storage: (env) => ({
-    byPublicIds: (ids, now) => getProductsByPublicIds(env.DB, ids, now),
-    keyword: (query, limit, now) => keywordSearch(env.DB, query, limit, now),
+    byPublicIds: (ids, now, revision) => getProductsByPublicIds(env.DB, ids, now, revision),
+    keyword: (query, limit, now, revision) => keywordSearch(env.DB, query, limit, now, revision),
   }),
   diagnostic: (event, env, now) => appendSearchDiagnostic(env.DB, event, now),
 };

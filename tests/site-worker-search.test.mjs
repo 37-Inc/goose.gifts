@@ -9,8 +9,8 @@ function setup(options = {}) {
   let clock = NOW;
   const calls = { embed: 0, vector: [], ids: [], keyword: [], diagnostics: [] };
   const storage = {
-    async byPublicIds(ids) { calls.ids.push(ids); return [product()]; },
-    async keyword(query, limit) { calls.keyword.push({ query, limit }); return [product('keyword')]; },
+    async byPublicIds(ids, now, revision) { assert.equal(revision, 'revision-1'); calls.ids.push(ids); return [product()]; },
+    async keyword(query, limit, now, revision) { assert.equal(revision, 'revision-1'); calls.keyword.push({ query, limit }); return [product('keyword')]; },
     ...options.storage,
   };
   const env = { SEMANTIC_SEARCH_ENABLED: 'true', VECTORIZE: { async query(vector, parameters) { calls.vector.push(parameters); return { matches: [{ id: 'public-one', score: 0.9 }] }; } } };
@@ -119,6 +119,19 @@ test('disabled or absent semantic binding makes no paid call', async () => {
   const fixture = setup();
   delete fixture.env.VECTORIZE;
   assert.equal((await (await fixture.request()).json()).results[0].matchType, 'keyword');
+  assert.equal(fixture.calls.embed, 0);
+});
+
+test('keyword overfetch is capped at 240 and public results at 60', async () => {
+  const fixture = setup({ storage: { async keyword(query, limit) {
+    assert.equal(limit, 240);
+    return Array.from({ length: 300 }, (_, index) => product(`gift-${index}`, {
+      title: `Funny Gadget ${String.fromCharCode(97 + Math.floor(index / 26), 97 + index % 26)}`,
+    }));
+  } } });
+  fixture.env.SEMANTIC_SEARCH_ENABLED = 'false';
+  const body = await (await fixture.request('funny', '&limit=60')).json();
+  assert.equal(body.results.length, 60);
   assert.equal(fixture.calls.embed, 0);
 });
 

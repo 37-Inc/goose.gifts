@@ -18,9 +18,10 @@ function setup(overrides = {}) {
     '/gifts/fart-button.txt': ready('/gifts/fart-button', { assetPath: '/gifts/fart-button.txt', safeAssetPath: '/safe.txt' }),
     '/catalog/feed-1.json': ready('/catalog/feed-1', { assetPath: '/catalog/feed-1.json', safeAssetPath: '/safe.json' }),
     '/random-gift': ready('/random-gift'),
+    '/howie': ready('/howie', { indexable: false }),
   };
   const manifest = { schemaVersion: 1, releaseId: 'test', codeSha: 'test', catalogRevision: 'r1', generatedAt: snapshot.generatedAt, nextExpiry: DEADLINE, productCount: 1, slugCount: 1, vectorSyncWatermark: 1, priorReleaseId: null, checksums: {}, dataKind: snapshot.dataKind, routes };
-  const env = { ENVIRONMENT: 'production', ASSETS: { async fetch(request) { calls.push(request); return new Response(new URL(request.url).pathname, { headers: { 'Cache-Control': 'public, max-age=999999', Age: '99' } }); } } };
+  const env = { ENVIRONMENT: 'production', ASSETS: { async fetch(request) { calls.push(request); return new Response(new URL(request.url).pathname, { headers: { 'Cache-Control': 'public, max-age=31536000, immutable', ETag: 'asset-tag', Age: '99' } }); } } };
   const worker = createSiteWorker({ manifest, snapshot, now: () => clock, ...overrides });
   return { env, calls, worker, advance(ms) { clock += ms; }, request: (path, init) => worker.fetch(new Request(`https://preview.example${path}`, init), env) };
 }
@@ -48,6 +49,9 @@ test('held assets are safe and query roots are noindex', async () => {
   assert.equal(await (await fixture.request('/gifts/held')).text(), '/safe.html');
   assert.equal((await fixture.request('/?q=fart')).headers.get('X-Robots-Tag'), 'noindex, follow');
   assert.equal((await fixture.request('/')).headers.get('X-Robots-Tag'), null);
+  const neutral = await fixture.request('/howie');
+  assert.equal(await neutral.text(), '/howie.html');
+  assert.equal(neutral.headers.get('X-Robots-Tag'), 'noindex, follow');
   assert.equal(await (await fixture.request('/', { method: 'HEAD' })).text(), '');
 });
 
@@ -68,7 +72,7 @@ test('sitemap excludes held and expired routes, with both maintained sitemap pat
     const xml = await response.text();
     assert.match(xml, /https:\/\/preview.example\/<\/loc>/);
     assert.match(xml, /fart-button<\/loc>/);
-    assert.doesNotMatch(xml, /held|\.txt|\.json/);
+    assert.doesNotMatch(xml, /held|howie|\.txt|\.json/);
     assert.match(response.headers.get('Cache-Control'), /max-age=2/);
   }
   fixture.advance(2400);
@@ -93,6 +97,15 @@ test('retired, unknown HTML/data and missing routes never fall back to the homep
   }
   assert.equal(fixture.calls.length, 0);
   assert.equal((await fixture.request('/_next/static/app.js')).status, 200);
+});
+
+test('timeless privacy companions and owned illustrations remain available', async () => {
+  const fixture = setup();
+  fixture.advance(2400);
+  for (const path of ['/privacy', '/privacy.html', '/privacy.txt', '/privacy/__next._full.txt', '/illustrations/button.svg']) {
+    assert.equal((await fixture.request(path)).status, 200, path);
+  }
+  assert.equal(new URL(fixture.calls[0].url).pathname, '/privacy.html');
 });
 
 test('POST feed preserves products/hasMore, bounds input, and fails clearly after expiry', async () => {

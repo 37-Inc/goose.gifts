@@ -8,7 +8,7 @@ export type { SiteEnv, SearchAdapters, SearchStorage } from './bindings.ts';
 const MAX_FEED_BODY = 64_000;
 const TIMED_ROUTE = /^(?:\/$|\/gifts(?:\/|$)|\/gift-guides(?:\/|$)|\/howie(?:\/|$)|\/random-gift(?:[/.]|$)|\/weird-gift-index(?:[/.]|$)|\/catalog(?:[/.]|$)|\/data(?:\/|$)|\/sitemap(?:[/.]|$))/;
 const RETIRED_ROUTE = /^\/(?:admin|auth|login|report|reports|bundles)(?:\/|$)|^\/api\/(?:admin|auth|og|generate-bundle)(?:\/|$)/;
-const PUBLIC_ASSET = /^(?:\/_next\/static\/|\/fonts\/|\/brand\/)|^\/(?:favicon\.ico|robots\.txt|[a-zA-Z0-9_-]+\.(?:png|webp|svg|jpg|jpeg|woff2?|ttf)|google[a-z0-9]+\.html|BingSiteAuth\.xml)$/;
+const PUBLIC_ASSET = /^(?:\/_next\/static\/|\/fonts\/|\/brand\/|\/illustrations\/)|^\/(?:favicon\.ico|robots\.txt|[a-zA-Z0-9_-]+\.(?:png|webp|svg|jpg|jpeg|woff2?|ttf)|google[a-z0-9]+\.html|BingSiteAuth\.xml)$/;
 
 function expiry(route: CatalogAssetRoute): number {
   return route.eligibleUntil === null ? Infinity : Date.parse(route.eligibleUntil);
@@ -107,14 +107,14 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
     headers.set('Cloudflare-CDN-Cache-Control', cache);
     headers.set('CDN-Cache-Control', cache);
     headers.delete('Age');
-    if (safe || new URL(request.url).searchParams.has('q')) headers.set('X-Robots-Tag', 'noindex, follow');
+    if (safe || route.indexable === false || new URL(request.url).searchParams.has('q')) headers.set('X-Robots-Tag', 'noindex, follow');
     return new Response(response.body, { status: response.status, headers });
   }
 
   function sitemap(request: Request): Response {
     const origin = options.canonicalOrigin || new URL(request.url).origin;
     const entries = [...routes.entries()].filter(([path, route]) => (
-      route.state === 'ready' && expiry(route) > now()
+      route.state === 'ready' && route.indexable !== false && expiry(route) > now()
       && !path.includes('.') && !path.startsWith('/data/') && path !== '/weird-gift-index/data'
       && !path.startsWith('/catalog/') && !path.startsWith('/_') && (path === '/' || !path.endsWith('/'))
     ));
@@ -181,6 +181,11 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         if (path === '/sitemap.xml' || path === '/sitemap/0.xml') return respond(sitemap(request));
         const route = routes.get(path) || directAssets.get(path);
         if (route) return respond(await asset(request, env, route));
+        // Legal content is timeless and intentionally outside catalog manifests.
+        if (path === '/privacy' || /^\/privacy(?:\.(?:html|txt)|\/__next\.[^/]+\.txt)$/.test(path)) {
+          const assetPath = path === '/privacy' ? '/privacy.html' : path;
+          return respond(await asset(request, env, { assetPath, safeAssetPath: assetPath, eligibleUntil: null, state: 'ready', indexable: path === '/privacy' }));
+        }
         if (safeAssets.has(path)) {
           const safeRoute = [...routes.values()].find((entry) => entry.safeAssetPath === path)!;
           return respond(await asset(request, env, safeRoute, true));

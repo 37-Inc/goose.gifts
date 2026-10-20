@@ -63,6 +63,15 @@ function result(product: PublicCatalogProduct, similarity: number, matchType: 's
   };
 }
 
+function keywordSimilarity(product: PublicCatalogProduct, query: string): number {
+  const needle = query.toLowerCase();
+  if (product.punnyTitle?.toLowerCase().includes(needle)) return 0.78;
+  if (product.title.toLowerCase().includes(needle)) return 0.74;
+  if (product.wittyDescription?.toLowerCase().includes(needle)) return 0.68;
+  if (product.humorTags?.join(' ').toLowerCase().includes(needle)) return 0.62;
+  return 0.48;
+}
+
 function select(candidates: SearchResult[], limit: number, now: number): SearchResult[] {
   const ids = new Set<string>();
   return suppressNearDuplicateProducts(candidates.filter((product) => {
@@ -139,7 +148,7 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
           }
           vectorCount = scores.size;
           if (vectorCount) {
-            const products = await bounded(() => storage.byPublicIds([...scores.keys()], new Date(now())), timeout);
+            const products = await bounded(() => storage.byPublicIds([...scores.keys()], new Date(now()), options.catalogRevision), timeout);
             candidates = products.filter((product) => scores.has(product.publicId))
               .map((product) => result(product, scores.get(product.publicId)!, 'semantic'))
               .sort((a, b) => b.rankScore - a.rankScore || a.id.localeCompare(b.id));
@@ -150,11 +159,11 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
       }
       let results = select(candidates, limit, now());
       if (results.length < limit && vectorCount < candidateLimit) {
-        const products = await bounded(() => storage.keyword(query, candidateLimit - vectorCount, new Date(now())), timeout);
+        const products = await bounded(() => storage.keyword(query, candidateLimit - vectorCount, new Date(now()), options.catalogRevision), timeout);
         const semanticIds = new Set(candidates.map((product) => product.id));
         const keywords = products.slice(0, candidateLimit - vectorCount)
           .filter((product) => !semanticIds.has(product.id))
-          .map((product) => result(product, product.title.toLowerCase().includes(query.toLowerCase()) ? 0.74 : 0.48, 'keyword'))
+          .map((product) => result(product, keywordSimilarity(product, query), 'keyword'))
           .sort((a, b) => b.rankScore - a.rankScore || a.id.localeCompare(b.id));
         results = select([...results, ...keywords], limit, now());
       }

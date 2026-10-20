@@ -16,8 +16,8 @@ export interface VectorBinding {
 }
 
 export interface SearchStorage {
-  byPublicIds(ids: string[], now: Date): Promise<PublicCatalogProduct[]>;
-  keyword(query: string, limit: number, now: Date): Promise<PublicCatalogProduct[]>;
+  byPublicIds(ids: string[], now: Date, catalogRevision: string): Promise<PublicCatalogProduct[]>;
+  keyword(query: string, limit: number, now: Date, catalogRevision: string): Promise<PublicCatalogProduct[]>;
 }
 
 export interface SiteEnv {
