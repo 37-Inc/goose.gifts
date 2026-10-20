@@ -92,8 +92,15 @@ test("every exported product PNG has its original product deadline and owned bra
     }
   }
   for (const held of built.heldProducts) {
-    const html = fs.readFileSync(new URL(`./gifts/${held.slug}.html`, out), "utf8");
-    assert.ok(html.includes(`property="og:image" content="${siteIdentity.origin}${ogPath(release.brand)}"`));
+    const route = routes[held.path];
+    assert.equal(route.state, "held");
+    assert.equal(route.indexable, false);
+    assert.equal(route.assetPath, "/safe/product.html");
+    assert.equal(route.safeAssetPath, route.assetPath);
+    const html = fs.readFileSync(new URL(`.${route.assetPath}`, out), "utf8");
+    assert.match(html, /Not currently in the collection/);
+    assert.doesNotMatch(html, /rel="canonical"|property="og:|name="twitter:|"@type":"Product"|data-analytics-outbound/);
+    if (held.affiliateUrl) assert.equal(html.includes(held.affiliateUrl), false);
   }
 });
 test("PNG renderer is local-only, deterministic 1200x630 code-native typography/shapes", async () => {
