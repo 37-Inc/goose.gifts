@@ -5,6 +5,48 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Approved-cohort freeze, exact recovery metadata and read-only preflight
+
+The bounded final integration preserves the existing Neon writer, schedules,
+public brand and staging ownership state. Root reviewed each Sol extra-high
+agent's changes, with separate read-only reviews of the cohort and readiness
+paths. `prepareApprovedCohort` accepts a hash-pinned reviewed envelope, complete
+current-row/display hashes and immutable maintenance receipts; unchanged
+approved products retain their original bytes/deadlines. Unapproved factual
+changes, missing rights, unavailable items and family duplicates remain held.
+The original native vector payloads and exact metadata/removal readback are
+required before a real build request is queued. Queued is not published.
+
+`recovery-metadata-WpYBE3/receipt.json` records four read-only source SELECTs,
+SHA-256 `2056c943d3a2b5e425c851f60fbd9026392b3818e29e7ff5bc6a7099e526a192`.
+The protected supplement is explicitly later-observation evidence, pinned to
+the original archive. Native restore `recovery-native-pg17-5eHz6h/receipt.json`,
+SHA-256 `036f047ebcc68c01929f20b305e7e31868b40ed855992fa26ee3f3422319d704`,
+reconciles all 13 tables/11,921 rows/3,492 vectors and exact two sequence
+states/ownership plus two trigger modes. Independent labeled-resource reads
+confirm cleanup. PG17.11 source versus PG17.6 restore and unreplayed private
+ACL/settings remain explicit limitations; no original-snapshot or full-cluster
+recovery claim is made.
+
+Read-only runner rehearsal first timed out, then exposed the actual D1
+`sqlite_version()` prohibition (7500). The unused diagnostic was removed;
+the fake now rejects it too. `runner-readiness-SKjpgP/check/receipt.json`,
+SHA-256 `e0281fd149594588a4e27e7b6ce139521c234a02a50ff19bafbbbba56900de69`,
+verifies exact staging D1/index identity using four requests, 143 rows read and
+zero written. Its 27 missing-schema checks are expected: migrations 0009–0012
+and new ownership are intentionally not enabled. Status is blocked, execution
+is unavailable. Authentication used an explicitly injected existing Wrangler
+session; no Keychain item was created, and Keychain resolution is not an
+end-to-end proof. The staged candidate configuration is not a source-of-truth
+or credential cutover.
+
+Integrated Node22 checks: 399 staging passes/nine explicitly opt-in skips, 88
+existing regressions, both TypeScript projects, ESLint and production Next
+build pass. New native fixtures separately exercised all trigger modes and
+large exact sequence values. Still finish real merchant/embedding evidence
+capture, protected weekly publication/readback, final Neon delta, full catalog
+search and approved provider-scale capacity before any production handoff.
+
 ## 2026-10-20 — Owned vector delivery and explicit D1 weekly runner
 
 PR #195 continues the staged migration with reviewed opt-in adapters, not a

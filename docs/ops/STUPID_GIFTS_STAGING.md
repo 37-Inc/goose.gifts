@@ -196,6 +196,13 @@ They are not deployment assets.
   row/vector/schema checks. Implementation hashes match that checkout.
   Receipt SHA-256:
   `0a2e5608e64efcf5ca4c778dd192b030cc0d9d0cdd0c4012b1ff146608912bb4`.
+- `recovery-native-pg17-5eHz6h/receipt.json`: the metadata-aware repeat also
+  restores exact sequence state/ownership and trigger modes from the explicitly
+  later `recovery-metadata-WpYBE3` supplement. All original rows/vectors still
+  reconcile. Receipt SHA-256:
+  `036f047ebcc68c01929f20b305e7e31868b40ed855992fa26ee3f3422319d704`.
+  Four read-only source queries captured the supplement; ACL/settings are
+  private evidence only, not replayed. No final write barrier is implied.
 
 The first protected release was source `2f5f21d`, Worker version
 `069b3186-cd68-4e4f-b495-588790979ed9`; the bounded semantic QA version was
@@ -354,12 +361,33 @@ the existing weekly policy limits and never silently choose D1. Item writes
 are bounded, idempotent and retain private retry evidence on failure.
 Imported history and completed runs cannot be silently rewritten.
 
-Before selecting D1 for a real weekly run, finish concrete secret/bootstrap
-wiring, the new approved-cohort publisher, protected runner/schedule integration
-and one bounded complete run with independent live publication proof. The daily
-strict-subset pruner is not the weekly candidate-promotion path. Resolve final
-Neon delta handling before installing immutable-archive triggers. Retain the
-existing Neon job until these integrations and recovery checks are verified.
+`prepareApprovedCohort` now supplies the separate bounded candidate-promotion
+step: a private hash-pinned envelope explicitly names reviewed changes and
+their immutable maintenance receipts. Exact row/display hashes, current
+facts/rights, original vector payloads, family deduplication and final CAS
+checks gate its sealed projection. The same owned-delivery journal handles
+vector promotion and excluded-ID deletion. Unchanged candidates keep their
+existing deadlines. At most 20 ready-plus-removed IDs can enter the proof;
+larger cohorts refuse before publication work. Settlement queues a build;
+it does not fabricate a deployed receipt or refresh merchant evidence.
+
+The concrete `scripts/catalog/check-cloudflare-runner.ts` CLI is read-only:
+an explicit hash-pinned private config identifies exact account/database/index,
+affiliate configuration and an existing Goose-scoped Keychain reference.
+It sends only fixed SELECT/metadata-PRAGMA statements, inspects structural
+schema/ownership/pending work and writes a protected sanitized receipt.
+`--execute` refuses; even all checks passing means execution is unavailable.
+The actual staging rehearsal made four requests, 143 reads and zero writes,
+correctly reporting missing 0009–0012. It used explicitly injected Wrangler
+authentication; Keychain resolution remains separately unverified.
+
+Before selecting D1 for a real weekly run, finish real merchant/embedding
+evidence capture, credential/bootstrap provisioning, protected runner/schedule
+integration and one bounded complete run with independent live publication
+proof. The daily strict-subset pruner is not the weekly candidate-promotion
+path. Resolve final Neon delta handling before installing immutable-archive
+triggers. Retain the existing Neon job until these integrations and recovery
+checks are verified.
 
 ## Local burst rehearsal
 
