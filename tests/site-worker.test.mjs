@@ -119,7 +119,8 @@ test('POST feed preserves products/hasMore, bounds input, and fails clearly afte
   const response = await fixture.request('/api/catalog-feed', { method: 'POST', body: JSON.stringify({ seed: 'test', limit: 1 }) });
   assert.deepEqual(Object.keys(await response.json()).sort(), ['hasMore', 'products']);
   assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
-  assert.equal((await fixture.request('/api/catalog-feed', { method: 'POST', body: JSON.stringify({ excludeIds: ['asin-1'] }) })).status, 200);
+  const excluded = await fixture.request('/api/catalog-feed', { method: 'POST', body: JSON.stringify({ excludeIds: ['asin-1', 'unknown-id'] }) });
+  assert.deepEqual(await excluded.json(), { products: [], hasMore: false });
   assert.equal((await fixture.request('/api/catalog-feed', { method: 'POST', body: 'x'.repeat(64001) })).status, 413);
   assert.equal((await fixture.request('/api/catalog-feed')).status, 405);
   fixture.advance(2400);

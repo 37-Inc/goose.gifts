@@ -1,6 +1,6 @@
 import type { CatalogAssetRoute, CatalogSnapshot, SiteAssetManifest } from '../../lib/catalog/types.ts';
-import { isCatalogDisplayEligibleProduct, limitProductTypeDiversity, scoreProductForFeed, suppressNearDuplicateProducts } from '../../lib/db/product-scoring.ts';
 import type { SearchAdapters, SiteEnv } from './bindings.ts';
+import { prepareStaticFeed } from './feed.ts';
 import { createSearchHandler, json, sha256 } from './search.ts';
 
 export type { SiteEnv, SearchAdapters, SearchStorage } from './bindings.ts';
@@ -81,6 +81,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
     safeAssets.add(route.safeAssetPath);
   }
   const redirects = new Map(snapshot.slugHistory.map((entry) => [`/gifts/${entry.slug}`, `/gifts/${entry.canonicalSlug}`]));
+  const preparedFeed = prepareStaticFeed(snapshot.products, now());
   const search = options.searchAdapters ? createSearchHandler({
     catalogRevision: manifest.catalogRevision, adapters: options.searchAdapters, now,
   }) : undefined;
@@ -148,13 +149,9 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
     const seed = (typeof body.seed === 'string' ? body.seed : 'goose-gifts').slice(0, 80);
     const limit = typeof body.limit === 'number' && Number.isFinite(body.limit) ? Math.max(1, Math.min(36, Math.floor(body.limit))) : 24;
     const excluded = new Set((Array.isArray(body.excludeIds) ? body.excludeIds : []).filter((id): id is string => typeof id === 'string' && id.length > 0 && id.length <= 100).slice(0, 1200));
-    const ranked = snapshot.products.filter((product) => Date.parse(product.eligibleUntil) > now() && isCatalogDisplayEligibleProduct(product))
-      .map((product) => ({ product, title: product.title, score: scoreProductForFeed(product, seed) }))
-      .sort((a, b) => b.score - a.score || a.product.id.localeCompare(b.product.id));
-    const distinct = suppressNearDuplicateProducts(ranked, Math.min(ranked.length, excluded.size + limit * 4 + 1))
-      .filter(({ product }) => !excluded.has(product.id));
-    const diverse = limitProductTypeDiversity(distinct, limit + 1, 4);
-    return json({ products: diverse.slice(0, limit).map(({ product }) => product), hasMore: diverse.length > limit || distinct.length > diverse.length });
+    const selection = preparedFeed.select(seed, limit, excluded, now());
+    if (!selection || !(Math.min(expiry(guard), preparedFeed.expiresAt) > now())) return json({ error: 'Catalog temporarily unavailable' }, 503);
+    return json({ products: selection.products, hasMore: selection.hasMore });
   }
 
   return {
