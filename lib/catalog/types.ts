@@ -44,6 +44,7 @@ export interface CatalogAssetRoute {
   safeAssetPath: string;
   eligibleUntil: string | null;
   state: 'ready' | 'held';
+  indexable?: boolean;
 }
 export interface SiteAssetManifest extends CatalogReleaseManifest {
   dataKind: CatalogSnapshot['dataKind'];
