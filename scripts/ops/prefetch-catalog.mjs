@@ -823,7 +823,7 @@ async function requestEditorialWithRetries(products, requestBatch, shouldRetry, 
   return { byId, diagnosticsById };
 }
 
-async function generateProductEmbeddings(products, telemetry) {
+async function generateProductEmbeddings(products, telemetry, evidence) {
   const openai = getOpenAIClient();
 
   if (!openai || products.length === 0) {
@@ -844,6 +844,9 @@ async function generateProductEmbeddings(products, telemetry) {
     addTiming(telemetry?.timingsMs, 'openai_embedding', Date.now() - startedAt);
   }
   recordOpenAIUsage(telemetry?.usage, { model, operation: 'embedding', usage: response.usage });
+  // Opt-in private evidence only; never put exact inputs/provider payloads in
+  // telemetry or add another model request. Preserve the default return values.
+  await evidence?.embeddings({ products, model, inputs, response });
 
   return new Map(response.data.map((item, index) => [
     products[index].id,
@@ -851,7 +854,7 @@ async function generateProductEmbeddings(products, telemetry) {
   ]));
 }
 
-async function enrichProducts(products, options, existingWriteups = [], telemetry) {
+async function enrichProducts(products, options, existingWriteups = [], telemetry, evidence) {
   if (products.length === 0) {
     return [];
   }
@@ -979,7 +982,7 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
     let embeddingsById = new Map();
 
     try {
-      embeddingsById = await generateProductEmbeddings(reviewedProducts, telemetry);
+      embeddingsById = await generateProductEmbeddings(reviewedProducts, telemetry, evidence);
     } catch (error) {
       telemetry?.warnings.push({ phase: 'embedding', reasonCode: 'embedding_failed', message: redactTelemetryText(error.message) });
       console.warn(`OpenAI embedding enrichment failed for ${batch.length} products: ${error.message}`);
@@ -1023,15 +1026,28 @@ function sleep(ms) {
   });
 }
 
-async function searchAmazonCandidates(theme, options) {
+// No search arguments (queries/secrets) enter the hook. GetItems supplies only
+// the same bounded ASIN selection the existing client actually requests.
+// The existing image normalization is an explicit, reproducible derivation;
+// capture both original and normalized facts without changing provider values.
+function observedAmazon(operation, request, evidence) {
+  const load = () => amazonCreators[operation](request);
+  return evidence ? evidence.amazon(operation, load, product => ({
+    ...product, imageUrl: cleanAmazonImageUrl(product.imageUrl),
+  }), operation === 'getItems' ? [...new Set(request.filter(id => /^[A-Z0-9]{10}$/.test(id)))].slice(0, 10) : undefined) : load();
+}
+
+async function searchAmazonCandidates(theme, options, evidence) {
   let creatorCandidates = [];
   try {
     creatorCandidates = finalizeProducts(
-      await amazonCreators.searchItems({ keywords: theme, itemCount: options.perTheme }),
+      await observedAmazon('searchItems', { keywords: theme, itemCount: options.perTheme }, evidence),
       theme,
       options
     );
   } catch (error) {
+    // Receipt uncertainty is NOT provider throttling: propagate it before any
+    // Google/GetItems fallback, preserving the existing default call policy.
     if (!isAmazonThrottleError(error)) throw error;
     console.warn(`Amazon Creators SearchItems throttled for "${theme}"; trying Google CSE fallback.`);
   }
@@ -1090,9 +1106,11 @@ async function searchAmazonCandidates(theme, options) {
 
   let verifiedFallback = [];
   try {
-    verifiedFallback = await amazonCreators.getItems(discovered.map((item) => item.asin));
+    verifiedFallback = await observedAmazon('getItems', discovered.map((item) => item.asin), evidence);
   } catch (error) {
     if (creatorCandidates.length === 0 && !isAmazonThrottleError(error)) throw error;
+    // Prior verified search results may survive a failed fallback capture; the
+    // evidence adapter invalidates affected IDs rather than blessing fallback.
     console.warn(`Amazon Creators GetItems fallback failed for "${theme}"; preserving only verified search results.`);
   }
 
@@ -1201,13 +1219,15 @@ async function getProductsForRevalidation(limit, staleDays, storeOrQuery) {
   });
 }
 
-function revalidatedProduct(existing, remote, options) {
+function revalidatedProduct(existing, remote, options, evidence) {
   const stored = (camelKey, snakeKey) => existing[camelKey] ?? existing[snakeKey];
   const remotePrice = Number(remote.price || 0);
   const existingPrice = Number(existing.price || 0);
   const price = remotePrice > 0 ? remotePrice : existingPrice;
   const sourceFactsHash = remote.sourceFacts
-    ? editorialSourceHash(remote)
+    // The opt-in evidence path binds the exact existing image cleanup used in
+    // the payload BEFORE factual/stale checks. Keep legacy PG hashing unchanged.
+    ? editorialSourceHash(evidence ? { ...remote, imageUrl: cleanAmazonImageUrl(remote.imageUrl) } : remote)
     : stored('sourceFactsHash', 'source_facts_hash');
   const storedEditorialStatus = stored('editorialStatus', 'editorial_status') || 'pending';
   const editorialStatus = storedEditorialStatus === 'generated_ready'
@@ -1280,7 +1300,7 @@ function recordExistingSelection(telemetry, product, phase) {
   });
 }
 
-async function revalidateCatalog(options, telemetry, store) {
+async function revalidateCatalog(options, telemetry, store, evidence) {
   const phaseStartedAt = Date.now();
   const affiliateAudit = await auditAndRepairAmazonAffiliateUrls(options, store);
   const existing = await getProductsForRevalidation(options.revalidateLimit, options.staleDays, store);
@@ -1296,7 +1316,7 @@ async function revalidateCatalog(options, telemetry, store) {
   for (const batch of chunkArray(existing, 10)) {
     let remoteProducts;
     try {
-      remoteProducts = await amazonCreators.getItems(batch.map((product) => product.id));
+      remoteProducts = await observedAmazon('getItems', batch.map((product) => product.id), evidence);
     } catch (error) {
       if (isAmazonThrottleError(error)) {
         throttled = true;
@@ -1314,7 +1334,7 @@ async function revalidateCatalog(options, telemetry, store) {
     if (missing.length > 0) {
       await sleep(2000);
       try {
-        const confirmation = await amazonCreators.getItems(missing.map((product) => product.id));
+        const confirmation = await observedAmazon('getItems', missing.map((product) => product.id), evidence);
         const confirmedPresent = new Map(confirmation.map((product) => [product.id, product]));
         confirmedPresent.forEach((product, id) => remoteById.set(id, product));
         confirmedIds = missing.filter((product) => !confirmedPresent.has(product.id)).map((product) => product.id);
@@ -1339,7 +1359,7 @@ async function revalidateCatalog(options, telemetry, store) {
     for (const product of batch) {
       const remote = remoteById.get(product.id);
       if (!remote) continue;
-      const refreshedProduct = revalidatedProduct(product, remote, options);
+      const refreshedProduct = revalidatedProduct(product, remote, options, evidence);
       let persistence = { slug: product.slug };
       if (!options.dryRun) persistence = await upsertProduct(refreshedProduct, store);
       refreshedProduct.slug = persistence.slug || refreshedProduct.slug;
@@ -1445,7 +1465,7 @@ async function getProductsNeedingEnrichment(limit, ids, store = defaultMaintenan
   }));
 }
 
-async function refreshProductsForEditorial(products, options, telemetry, store) {
+async function refreshProductsForEditorial(products, options, telemetry, store, evidence) {
   const phaseStartedAt = Date.now();
   const refreshed = [];
   const confirmedMissingIds = [];
@@ -1455,7 +1475,7 @@ async function refreshProductsForEditorial(products, options, telemetry, store) 
   for (const batch of chunkArray(products, 10)) {
     let remoteProducts;
     try {
-      remoteProducts = await amazonCreators.getItems(batch.map((product) => product.id));
+      remoteProducts = await observedAmazon('getItems', batch.map((product) => product.id), evidence);
     } catch (error) {
       if (isAmazonThrottleError(error)) {
         throttled = true;
@@ -1470,7 +1490,7 @@ async function refreshProductsForEditorial(products, options, telemetry, store) 
     if (missing.length > 0) {
       await sleep(1200);
       try {
-        const confirmation = await amazonCreators.getItems(missing.map((product) => product.id));
+        const confirmation = await observedAmazon('getItems', missing.map((product) => product.id), evidence);
         const confirmedById = new Map(confirmation.map((product) => [product.id, product]));
         confirmedById.forEach((product, id) => remoteById.set(id, product));
         confirmedMissingIds.push(...missing
@@ -1486,7 +1506,7 @@ async function refreshProductsForEditorial(products, options, telemetry, store) 
     for (const existing of batch) {
       const remote = remoteById.get(existing.id);
       if (remote) {
-        const product = revalidatedProduct(existing, remote, options);
+        const product = revalidatedProduct(existing, remote, options, evidence);
         refreshed.push(product);
         telemetry.items.record(product, {
           phase: 'backfill',
@@ -1680,7 +1700,10 @@ function persistenceOutcome(product, options, readyStatuses = ['generated_ready'
 }
 
 /** @param {import('./catalog-maintenance-postgres.mjs').CatalogMaintenanceStore} [store] */
-async function executeCatalog(options, editorialSeedProducts, telemetry, store = defaultMaintenanceStore()) {
+async function executeCatalog(options, editorialSeedProducts, telemetry, store = defaultMaintenanceStore(), evidence) {
+  if (evidence !== undefined && (!evidence || typeof evidence.amazon !== 'function' || typeof evidence.embeddings !== 'function')) {
+    throw new Error('Invalid explicit provider evidence');
+  }
   // An explicit backend is a catalog read capability even without POSTGRES_URL.
   // Preserve the original environment guard only for the unchanged default CLI.
   const catalogReadsAvailable = arguments[3] !== undefined || Boolean(process.env.POSTGRES_URL);
@@ -1690,7 +1713,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
   }
 
   if (options.revalidate) {
-    const result = await revalidateCatalog(options, telemetry, store);
+    const result = await revalidateCatalog(options, telemetry, store, evidence);
     return { dryRun: options.dryRun, revalidate: true, ...result };
   }
 
@@ -1735,7 +1758,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
 
     if (!options.dryRun && backfillProducts.length > 0) {
       console.log(`Refreshing ${backfillProducts.length} editorial candidates from Amazon before generation`);
-      const refresh = await refreshProductsForEditorial(backfillProducts, options, telemetry, store);
+      const refresh = await refreshProductsForEditorial(backfillProducts, options, telemetry, store, evidence);
       backfillStats = {
         ...backfillStats,
         refreshed: refresh.products.length,
@@ -1800,7 +1823,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
       const enrichmentStartedAt = Date.now();
       const enrichedBackfill = editorialSeedProducts
         ? applyEditorialSeed(duplicatePartition.winners, editorialSeedProducts, existingWriteups)
-        : await enrichProducts(duplicatePartition.winners, options, existingWriteups, telemetry);
+        : await enrichProducts(duplicatePartition.winners, options, existingWriteups, telemetry, evidence);
       addTiming(telemetry.timingsMs, 'backfill_enrichment', Date.now() - enrichmentStartedAt);
       for (const product of enrichedBackfill) {
         const persistence = await upsertProduct(product, store);
@@ -1850,7 +1873,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
   for (const theme of themes) {
     let found = [];
     try {
-      found = await searchAmazonCandidates(theme, options);
+      found = await searchAmazonCandidates(theme, options, evidence);
       console.log(`${theme}: ${found.length} candidate discoveries`);
       discoveredCandidates += found.length;
     } catch (error) {
@@ -1974,7 +1997,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
   let inserted = 0;
   let updated = 0;
   const existingWriteups = await getExistingEditorialWriteups(candidates.map((product) => product.id), store);
-  const enrichedCandidates = await enrichProducts(candidates, options, existingWriteups, telemetry);
+  const enrichedCandidates = await enrichProducts(candidates, options, existingWriteups, telemetry, evidence);
   let persistenceStopped = false;
 
   for (const product of enrichedCandidates) {
@@ -2073,7 +2096,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
  */
 async function runCatalogWithBackend(phaseOptions, {
   maintenanceStore, telemetryStore, publish, finalizeRun, runId, gitSha = null, mode = 'catalog', trigger = 'manual',
-  execute = executeCatalog, editorialSeedProducts,
+  execute = executeCatalog, editorialSeedProducts, providerEvidence,
 } = {}) {
   const phases = Array.isArray(phaseOptions) ? phaseOptions : [phaseOptions];
   const methods = ['startCatalogRun','finishCatalogRun','insertCatalogRunItems','loadCatalogRun','loadRecentCatalogRuns'];
@@ -2109,7 +2132,7 @@ async function runCatalogWithBackend(phaseOptions, {
       started = true;
     }
     for (const options of phases) {
-      results.push(await execute({...options,runId,managedRun:true},editorialSeedProducts,telemetry,maintenanceStore));
+      results.push(await execute({...options,runId,managedRun:true},editorialSeedProducts,telemetry,maintenanceStore,providerEvidence));
       await telemetry.items.flush();
       if (telemetry.items.size) throw new Error('Catalog item accounting remains unpersisted');
     }
