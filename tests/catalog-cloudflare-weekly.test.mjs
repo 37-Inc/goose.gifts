@@ -405,16 +405,20 @@ test('ordered derived freeze artifacts switch to bounded blobs without canonical
   assert.equal((await resumed.readCheckpoint({controlOnly:true})).checkpoint.phase,'freezing');
 });
 
-test('actual driver pins reviewed oversized original-vector RAW file and resumes without paid replay or D1 budget reset',async t=>{
+test('actual driver pins reviewed oversized previous/original-vector RAW files and resumes without paid replay or D1 budget reset',async t=>{
   const f=await setup(t),nativeBase64=encodePgvectorSendBase64(values.map(Math.fround));
   const originals=Object.fromEntries(Array.from({length:80},(_,index)=>[`00000000-0000-4000-8000-${String(index+10).padStart(12,'0')}`,{nativeBase64}]));
   const bytes=Buffer.from(` {\n${JSON.stringify(originals).slice(1,-1)}\n}\n`);assert.ok(bytes.length>512*1024);
   const file=path.join(path.dirname(f.options.configPath),'reviewed-original-vectors.json');await put(file,bytes);
+  const previousBytes=Buffer.concat([Buffer.from(' \n'),await fs.readFile(f.config.inputs.previous.path),Buffer.alloc(520*1024,32)]);
+  await put(f.config.inputs.previous.path,previousBytes);f.config.inputs.previous.sha256=sha256(previousBytes);
   f.config.inputs.originalVectors={path:file,sha256:sha256(bytes),observedAt:NOW};await put(f.options.configPath,f.config);
   f.options.configSha256=sha256(await fs.readFile(f.options.configPath));f.workspaceOptions.configSha256=f.options.configSha256;
   assert.equal((await f.run('start')).reason,'awaiting_reviewed_approval');const paid={getItems:f.calls.getItems,chat:f.calls.chat,embedding:f.calls.embedding,search:f.calls.search};
   const w=await openRunWorkspace(f.workspaceOptions),saved=await w.readCheckpoint(),ref=saved.checkpoint.pins.originalVectors;
   assert.equal((await w.readArtifact(ref)).type,'run-workspace-blob');assert.deepEqual(await w.readBlob(ref),bytes);
+  const previousRef=saved.checkpoint.pins.previous;assert.equal((await w.readArtifact(previousRef)).type,'run-workspace-blob');
+  assert.deepEqual(await w.readBlob(previousRef),previousBytes);assert.deepEqual(await readOrdered(w,previousRef),f.previous);
   const before=await w.budget();await w.close();
   const oversized=path.join(path.dirname(f.options.configPath),'oversized-approval.json');await put(oversized,`{}${' '.repeat(512*1024)}`);
   await assert.rejects(f.run('resume',{path:oversized,sha256:sha256(await fs.readFile(oversized))}),/weekly_private_input/);
@@ -422,8 +426,23 @@ test('actual driver pins reviewed oversized original-vector RAW file and resumes
   const result=await f.run('resume',await f.approve());assert.equal(result.state,'finalized');assert.ok(result.budget.httpRequests>before.httpRequests);
   assert.deepEqual({getItems:f.calls.getItems,chat:f.calls.chat,embedding:f.calls.embedding,search:f.calls.search},paid);
   const reopened=await openRunWorkspace(f.workspaceOptions);try{assert.deepEqual(await reopened.readBlob(ref),bytes);
-    assert.equal((await reopened.readCheckpoint()).checkpoint.phase,'finalized');assert.deepEqual(await reopened.budget(),result.budget);}finally{await reopened.close();}
+    assert.deepEqual(await reopened.readBlob(previousRef),previousBytes);
+    assert.equal((await reopened.readCheckpoint()).checkpoint.phase,'finalized');assert.deepEqual(await reopened.budget(),result.budget);
+    f.advance(86400000);await assert.rejects(readOrdered(reopened,previousRef),/expired/);
+    assert.equal((await reopened.readCheckpoint({controlOnly:true})).checkpoint.phase,'finalized');}finally{await reopened.close();}
   assert.equal(f.calls.activate,1);assert.equal(f.calls.upload,1);
+});
+
+test('large previous ingress requires its exact raw SHA; context/rights inputs keep the old small limit',async t=>{
+  for(const label of ['previous','rights','context']){
+    const f=await setup(t),file=f.config.inputs[label].path;
+    const bytes=Buffer.concat([await fs.readFile(file),Buffer.alloc(520*1024,32)]);await put(file,bytes);
+    f.config.inputs[label].sha256=sha256(bytes);if(label==='previous')await fs.appendFile(file,' ');
+    await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+    f.workspaceOptions.configSha256=f.options.configSha256;
+    await assert.rejects(f.run('start'),label==='previous'?/weekly_input_digest/:/weekly_private_input/);
+    assert.equal(f.calls.getItems+f.calls.search+f.calls.chat+f.calls.embedding+f.calls.upsert+f.calls.upload+f.calls.activate,0);
+  }
 });
 
 test('oversized original input still binds reviewed RAW hash; config limit cannot be broadened by blob support',async t=>{

@@ -6,6 +6,8 @@ import { canonicalTime, EDITORIAL_MAX_AGE_MS, publicProductRightsExpiry,
 import { isPurchasableAvailability } from '../../lib/gift-slugs.ts';
 import { suppressNearDuplicateProducts } from '../../lib/db/product-scoring.ts';
 import { canonicalJson, canonicalTimestamp, sha256 } from './migration.ts';
+import { mutationFenceQuery } from '../../lib/catalog/mutation-fence.ts';
+import type { MutationOwner } from '../../lib/catalog/mutation-fence.ts';
 
 /** The sealed header/held/history/order are not versioned in D1. Supply these
  * from an independently reviewed, hash-pinned artifact, not mutable current rows.
@@ -44,12 +46,9 @@ const ARCHIVE_TIMES = Object.fromEntries(['id', 'public_id', 'source', 'availabi
  * inspection has an explicit global sequence ceiling until a separate indexed
  * revision-watermark reader is justified; exceeding it is held, never truncated.
  */
-const CAPTURE_SQL = `WITH ids AS (SELECT value FROM json_each(?)),
-  projection AS (SELECT * FROM catalog_public_products WHERE catalog_revision=? LIMIT ${SNAPSHOT_READ_LIMITS.ready + 1}),
-  vectors AS (SELECT sequence,source_revision,status FROM vector_sync_outbox WHERE sequence BETWEEN 1 AND ${SNAPSHOT_READ_LIMITS.outboxSequence}),
-  prior AS (SELECT release_id,catalog_revision,code_sha,completed_at,manifest_json FROM publication_receipts WHERE release_id=?),
-  captured AS (
-  SELECT 'header' kind,'' identity,json_object('observedAt',strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+const HEADER_CTES = `vectors AS (SELECT sequence,source_revision,status FROM vector_sync_outbox WHERE sequence BETWEEN 1 AND ${SNAPSHOT_READ_LIMITS.outboxSequence}),
+  prior AS (SELECT release_id,catalog_revision,code_sha,completed_at,manifest_json FROM publication_receipts WHERE release_id=?)`;
+const HEADER_SELECT = `SELECT 'header' kind,'' identity,json_object('observedAt',strftime('%Y-%m-%dT%H:%M:%fZ','now'),
     'revision',c.revision,'revisionStatus',c.status,'sourceDigest',c.source_export_sha256,
     'receipt',${jsonColumns('r', ['catalog_revision', 'snapshot_sha256', 'projection_sha256', 'source_export_sha256', 'product_count', 'created_at'])},
     'watermark',(SELECT coalesce(max(sequence),0) FROM vectors WHERE source_revision=?),
@@ -60,13 +59,88 @@ const CAPTURE_SQL = `WITH ids AS (SELECT value FROM json_each(?)),
     'publicationWatermark',(SELECT coalesce(max(rowid),0) FROM publication_receipts),
     'prior',${jsonColumns('prior', ['release_id', 'catalog_revision', 'code_sha', 'completed_at', 'manifest_json'])}) data
     FROM (SELECT 1) LEFT JOIN catalog_revisions c ON c.revision=?
-    LEFT JOIN catalog_projection_receipts r ON r.catalog_revision=c.revision LEFT JOIN prior ON 1
+    LEFT JOIN catalog_projection_receipts r ON r.catalog_revision=c.revision LEFT JOIN prior ON 1`;
+const CAPTURE_SQL = `WITH ids AS (SELECT value FROM json_each(?)),
+  projection AS (SELECT * FROM catalog_public_products WHERE catalog_revision=? LIMIT ${SNAPSHOT_READ_LIMITS.ready + 1}),
+  ${HEADER_CTES}, captured AS (${HEADER_SELECT}
   UNION ALL SELECT 'projection',v.public_id,${jsonColumns('v', PROJECTION)} FROM projection v
   UNION ALL SELECT 'current',p.public_id,${jsonColumns('p', CURRENT, ARCHIVE_TIMES)} FROM ids CROSS JOIN products p ON p.public_id=ids.value),
   sized AS (SELECT *,length(CAST(data AS BLOB)) row_bytes,
     sum(length(CAST(data AS BLOB))) OVER (ORDER BY kind,identity) total_bytes FROM captured)
   SELECT kind,identity,CASE WHEN row_bytes>${SNAPSHOT_READ_LIMITS.rowBytes} OR total_bytes>${SNAPSHOT_READ_LIMITS.resultBytes}
     THEN '{"readBoundsExceeded":true}' ELSE data END data FROM sized ORDER BY kind,identity`;
+
+// Leave room for the REST result/usage envelope. Measure the OUTER escaped row
+// JSON in SQL, not only the inner data string. The transport independently caps
+// the complete wire response at512KiB and requires served_by_primary on EVERY read.
+const PAGE_BYTES = 384 * 1024;
+const OPERATION = ['operation_id','input_sha256','run_id','catalog_revision','environment','index_name',
+  'generation','prior_epoch','next_epoch','database_time','result_json','changes_json'];
+async function ownedPages(db: CatalogD1, owner: MutationOwner, ids: string[], select: string, params: unknown[] = []) {
+  const gate = mutationFenceQuery(owner, ['freezing']); const output: Row[] = [];
+  if (ids.length > SNAPSHOT_READ_LIMITS.identities || new Set(ids).size !== ids.length) throw new Error('read_bounds');
+  let bytes = 0;
+  for (let offset = 0; offset < ids.length; offset += 80) {
+    const window = ids.slice(offset, offset + 80); let position = 0;
+    while (position < window.length) {
+      const rows = (await db.prepare(`WITH requested AS (SELECT key ordinal,value FROM json_each(?)),
+        captured AS (${select}), sized AS (SELECT *,sum(length(CAST(json_object('identity',identity,'data',data||'') AS BLOB)))
+          OVER (ORDER BY ordinal) wire_bytes FROM captured)
+        SELECT identity,data FROM sized WHERE ${gate.sql} AND wire_bytes<=? ORDER BY ordinal`)
+        .bind(JSON.stringify(window.slice(position)), ...params, ...gate.params, PAGE_BYTES).all<{ identity: string; data: string }>()).results;
+      if (!rows.length || rows.length > window.length-position || Buffer.byteLength(JSON.stringify(rows)) > PAGE_BYTES + 81)
+        throw new Error('read_bounds');
+      for (const [index,row] of rows.entries()) {
+        if (Object.keys(row).sort().join(',') !== 'data,identity' || row.identity !== window[position+index]
+          || typeof row.data !== 'string' || Buffer.byteLength(row.data) > SNAPSHOT_READ_LIMITS.rowBytes) throw new Error('invalid_capture');
+        bytes += Buffer.byteLength(row.data); if (bytes > SNAPSHOT_READ_LIMITS.resultBytes) throw new Error('read_bounds');
+        output.push(object(JSON.parse(row.data)));
+      }
+      position += rows.length;
+    }
+  }
+  return output;
+}
+async function ownedHeader(db: CatalogD1, owner: MutationOwner, revision: string, context: SnapshotReadContext) {
+  const gate = mutationFenceQuery(owner, ['freezing']);
+  const rows = (await db.prepare(`WITH ${HEADER_CTES} SELECT * FROM (${HEADER_SELECT}) WHERE ${gate.sql}`)
+    .bind(context.priorPublication?.releaseId ?? null, revision, revision, revision, ...gate.params).all<CaptureRow>()).results;
+  if (rows.length !== 1 || typeof rows[0].data !== 'string' || Buffer.byteLength(rows[0].data) > SNAPSHOT_READ_LIMITS.rowBytes)
+    throw new Error('invalid_capture');
+  return object(JSON.parse(rows[0].data));
+}
+/** Exact target/prior projection readback, including unexpected-row detection.
+ * Partial target imports are allowed only for the immutable staging check; they
+ * are never made visible by this reader or by an incomplete receipt.
+ */
+export async function readOwnedProjection(db: CatalogD1, owner: MutationOwner, revision: string, ids: string[]) {
+  owner = structuredClone(owner); ids = [...ids];
+  const gate = mutationFenceQuery(owner, ['freezing']);
+  const rows = await ownedPages(db, owner, ids, `SELECT ids.ordinal,ids.value identity,
+    ${jsonColumns('p', PROJECTION)} data FROM requested ids LEFT JOIN catalog_public_products p
+    ON p.public_id=ids.value AND p.catalog_revision=?`, [revision]);
+  const present = rows.filter(row => row.public_id !== null);
+  const count = (await db.prepare(`SELECT (SELECT count(*) FROM catalog_public_products WHERE catalog_revision=?) n WHERE ${gate.sql}`)
+    .bind(revision,...gate.params).all<{ n: number }>()).results;
+  if (count.length !== 1 || count[0].n !== present.length) throw new Error('prune_projection_changed');
+  return present;
+}
+async function captureOwned(db: CatalogD1, owner: MutationOwner, envelope: SealedSnapshotEnvelope, context: SnapshotReadContext) {
+  // Primary observations under the SAME cooperative write barrier, not a claim
+  // that separate REST requests share a database transaction/snapshot. The caller
+  // has copied this owner once; never refresh it from the live ownership row.
+  const header = await ownedHeader(db, owner, envelope.catalogRevision, context);
+  const ids = [...envelope.products,...envelope.heldProducts.map(product => product.publicId)].sort();
+  const current = await ownedPages(db, owner, ids, `SELECT ids.ordinal,ids.value identity,
+    ${jsonColumns('p', CURRENT, ARCHIVE_TIMES)} data FROM requested ids CROSS JOIN products p ON p.public_id=ids.value`);
+  const projection = await readOwnedProjection(db, owner, envelope.catalogRevision, [...envelope.products].sort());
+  await bindMaintenanceObservations(db, current, owner);
+  if (Buffer.byteLength(canonicalJson({header,current,projection})) > SNAPSHOT_READ_LIMITS.resultBytes) throw new Error('read_bounds');
+  const final = await ownedHeader(db, owner, envelope.catalogRevision, context);
+  if (canonicalJson({...header,observedAt:null}) !== canonicalJson({...final,observedAt:null})
+    || canonicalTime(final.observedAt) < canonicalTime(header.observedAt)) throw new Error('prune_source_changed');
+  return {header:final,current,projection};
+}
 
 function hold(reason: string, requiresNewRevision = false): SnapshotReadResult { return { status: 'held', reason, requiresNewRevision }; }
 function object(value: unknown): Row {
@@ -119,7 +193,7 @@ async function capture(db: CatalogD1, envelope: SealedSnapshotEnvelope, context:
  * SQL write time. Old migration-only databases do not have this table. The
  * receipt bytes are included in the final current-state CAS when present.
  */
-async function bindMaintenanceObservations(db: CatalogD1, rows: Row[]) {
+async function bindMaintenanceObservations(db: CatalogD1, rows: Row[], owner?: MutationOwner) {
   const wanted = rows.flatMap(row => {
     const proof = JSON.parse(String(row.timestamp_provenance_json));
     const field = row.availability_checked_at !== null ? 'availability_checked_at' : 'last_verified_at';
@@ -129,8 +203,10 @@ async function bindMaintenanceObservations(db: CatalogD1, rows: Row[]) {
   if (!wanted.length) return;
   const ids = [...new Set(wanted)];
   if (ids.length > SNAPSHOT_READ_LIMITS.identities) throw new Error('read_bounds');
-  const operations:Row[]=[];let bytes=0;
-  for(let offset=0;offset<ids.length;offset+=20){
+  const operations:Row[]=owner ? await ownedPages(db, owner, ids.sort(), `SELECT ids.ordinal,ids.value identity,
+    ${jsonColumns('o', OPERATION)} data FROM requested ids CROSS JOIN catalog_maintenance_operations o ON o.operation_id=ids.value`) : [];
+  let bytes=0;
+  for(let offset=0;!owner && offset<ids.length;offset+=20){
     const chunk=(await db.prepare(`SELECT o.* FROM json_each(?) ids CROSS JOIN catalog_maintenance_operations o
       ON o.operation_id=ids.value`).bind(JSON.stringify(ids.slice(offset,offset+20))).all()).results;
     if(chunk.length>20)throw new Error('read_bounds');
@@ -152,17 +228,21 @@ async function bindMaintenanceObservations(db: CatalogD1, rows: Row[]) {
  * approval source. Complete row bytes bind the maintenance operation receipt;
  * the narrow captured fields reuse the final pruning CAS and archived aliases.
  */
-export async function readApprovedCurrentRows(db: CatalogD1, ids: string[]) {
+export async function readApprovedCurrentRows(db: CatalogD1, ids: string[], owner: MutationOwner) {
+  owner = structuredClone(owner); ids = [...ids];
   if (ids.length > 20 || new Set(ids).size !== ids.length || ids.some(id => !UUID.test(id))) throw new Error('read_bounds');
-  const rows = (await db.prepare(`SELECT p.* FROM json_each(?) ids CROSS JOIN products p ON p.public_id=ids.value`)
-    .bind(JSON.stringify(ids)).all()).results;
+  const gate = mutationFenceQuery(owner, ['freezing']);
+  const columns = (await db.prepare(`SELECT name FROM pragma_table_info('products') WHERE ${gate.sql}`).bind(...gate.params).all<{name:string}>()).results.map(row=>row.name);
+  if (!columns.length || columns.length > 65 || columns.some(key=>!/^[a-z_]+$/.test(key))) throw new Error('read_bounds');
+  const rows = await ownedPages(db, owner, [...ids].sort(), `SELECT ids.ordinal,ids.value identity,${jsonColumns('p', columns)} data
+    FROM requested ids CROSS JOIN products p ON p.public_id=ids.value`);
   if (rows.length !== ids.length || rows.some(row => Buffer.byteLength(canonicalJson(row)) > SNAPSHOT_READ_LIMITS.rowBytes)) throw new Error('approved_identity_missing');
   const current:Row[] = rows.map(row => {
     const archive = JSON.parse(String(row.source_record_json));
     return { ...Object.fromEntries(CURRENT.map(key => [key, row[key]])), approved_product_json:canonicalJson(row),
       ...Object.fromEntries(['id','public_id','source','availability_checked_at','last_verified_at'].map(key => [`archived_${key}`, archive[key] ?? null])) };
   });
-  await bindMaintenanceObservations(db, current);
+  await bindMaintenanceObservations(db, current, owner);
   return { rows, current };
 }
 function verificationTime(current: Row, rights: ProductRights): number {
@@ -222,9 +302,10 @@ export function checkCurrent(product: PublicCatalogProduct, projection: Row, cur
  * approved identities/order or trust a receipt without verifying its row bytes.
  * This is a capture, NOT a write barrier; the caller must own the shared fence.
  */
-export async function readPruningSource(db: CatalogD1, snapshotInput: CatalogSnapshot, context: SnapshotReadContext) {
+export async function readPruningSource(db: CatalogD1, snapshotInput: CatalogSnapshot, context: SnapshotReadContext, owner: MutationOwner) {
+  owner = structuredClone(owner); snapshotInput = structuredClone(snapshotInput); context = structuredClone(context);
   const envelope = createSealedSnapshotEnvelope(snapshotInput); inputs(envelope, context);
-  const state = await capture(db, envelope, context); const { header, projection, current } = state;
+  const state = await captureOwned(db, owner, envelope, context); const { header, projection, current } = state;
   const snapshot = validateCatalogSnapshot(snapshotInput, new Date(envelope.generatedAt));
   const receipt = object(header.receipt); const prior = object(header.prior);
   if (header.revision !== envelope.catalogRevision || !['reconciled','published'].includes(String(header.revisionStatus))
@@ -249,8 +330,9 @@ export async function readPruningSource(db: CatalogD1, snapshotInput: CatalogSna
   return { ...state, snapshot, packet, facts, observedAt: canonicalTime(header.observedAt) };
 }
 
-/** Bounded exact current-field CAS fragments, to execute with the ownership
- * assertion in the final receipt transaction. No digest function is assumed in D1.
+/** Bounded exact current-field CAS fragments. A single-row fragment remains in
+ * vector intent transactions; full-catalog validation uses the freezing barrier
+ * below. No digest function is assumed in D1.
  */
 export function pruningCurrentQueries(rows: Row[]): Array<{ sql: string; params: unknown[]; count: number }> {
   const chunks: Row[][] = []; let bytes = 0;
@@ -262,7 +344,7 @@ export function pruningCurrentQueries(rows: Row[]): Array<{ sql: string; params:
   }
   const comparisons = [...CURRENT.map(key => `p.${key} IS json_extract(e.value,'$.${key}')`),
     ...Object.entries(ARCHIVE_TIMES).map(([key, expression]) => `${expression} IS json_extract(e.value,'$.${key}')`)];
-  return chunks.map(chunk => {
+  function query(chunk: Row[]): { sql: string; params: unknown[]; count: number } {
     const columns=[...new Set(chunk.flatMap(row=>row.approved_product_json ? Object.keys(JSON.parse(String(row.approved_product_json))) : []))];
     if(columns.length>65||columns.some(key=>!/^[a-z_]+$/.test(key)))throw new Error('read_bounds');
     const operationCas=['verification_operation_json','approval_operation_json'].map(field=>chunk.some(row=>row[field])
@@ -274,7 +356,39 @@ export function pruningCurrentQueries(rows: Row[]): Array<{ sql: string; params:
       ON p.public_id=json_extract(e.value,'$.public_id') WHERE ${comparisons.join(' AND ')}${operationCas}${columns.length
         ? ` AND (json_extract(e.value,'$.approved_product_json') IS NULL OR (${columns.map(key=>`p.${key} IS json_extract(json_extract(e.value,'$.approved_product_json'),'$.${key}')`).join(' AND ')}))` : ''}`,
     params: [JSON.stringify(chunk)], count: chunk.length };
-  });
+  }
+  const output: Array<ReturnType<typeof query>> = [];
+  function bounded(chunk: Row[]) {
+    const value = query(chunk);
+    // The JSON param is escaped AGAIN by REST. Reserve room for the ownership
+    // assertion and the CAS wrapper, rather than treating raw row bytes as wire.
+    if (Buffer.byteLength(JSON.stringify({batch:[{sql:value.sql,params:value.params}]})) > PAGE_BYTES) {
+      if (chunk.length === 1) throw new Error('read_bounds');
+      const middle = Math.floor(chunk.length/2); bounded(chunk.slice(0,middle)); bounded(chunk.slice(middle));
+    } else output.push(value);
+  }
+  chunks.forEach(bounded); return output;
+}
+
+/** Internal read validation, NOT a reusable capability/waiver. The exact frozen
+ * owner must still match in the immediately following atomic receipt transaction.
+ * Supported product/operation writers require writing; legacy writers refuse an
+ * enabled fence. Owner/generation/epoch/external_pending transitions invalidate
+ * every page. Privileged/manual bypass SQL must remain stopped separately.
+ */
+export async function assertPruningCurrent(db: CatalogD1, owner: MutationOwner, rows: Row[]) {
+  owner = structuredClone(owner); rows = structuredClone(rows);
+  const gate = mutationFenceQuery(owner, ['freezing']);
+  const guard = { sql:`SELECT json(CASE WHEN ${gate.sql} THEN 'true' ELSE 'mutation_fenced' END)`,params:gate.params };
+  let batch = [guard];
+  async function flush() { await db.batch(batch.map(query=>db.prepare(query.sql).bind(...query.params))); batch=[guard]; }
+  for (const query of pruningCurrentQueries(rows)) {
+    const assertion = {sql:`SELECT json(CASE WHEN (${query.sql})=? THEN 'true' ELSE 'prune_fenced' END)`,params:[...query.params,query.count]};
+    if (batch.length >= 50 || Buffer.byteLength(JSON.stringify({batch:[...batch,assertion]})) > 512*1024) await flush();
+    if (Buffer.byteLength(JSON.stringify({batch:[...batch,assertion]})) > 512*1024) throw new Error('read_bounds');
+    batch.push(assertion);
+  }
+  if (batch.length > 1 || !rows.length) await flush();
 }
 
 /** Reconstruction of an EXISTING seal, not a new-revision freshness freezer.

@@ -7,7 +7,7 @@ import { encodeBuildRequest } from './build-requests.ts';
 import type { CatalogBuildRequest } from './build-requests.ts';
 import { mutationAdvance, mutationAssertion, mutationFenceQuery, unabandonedImportsQuery } from './mutation-fence.ts';
 import type { MutationOwner, MutationScope } from './mutation-fence.ts';
-import { checkCurrent, pruningCurrentQueries, readPruningSource } from '../../scripts/catalog/export-d1-snapshot.ts';
+import { checkCurrent, assertPruningCurrent, readOwnedProjection, readPruningSource } from '../../scripts/catalog/export-d1-snapshot.ts';
 import type { SnapshotReadContext } from '../../scripts/catalog/export-d1-snapshot.ts';
 import { canonicalJson, sha256 } from '../../scripts/catalog/migration.ts';
 import { suppressNearDuplicateProducts } from '../db/product-scoring.ts';
@@ -53,9 +53,6 @@ function matchesOwner(owner: MutationOwner, request: PruneRequest): void {
 function assertion(db: CatalogD1, sql: string, params: unknown[] = []) {
   return db.prepare(`SELECT json(CASE WHEN (${sql}) THEN 'true' ELSE 'prune_fenced' END)`).bind(...params);
 }
-function currentAssertions(db: CatalogD1, rows: Row[]) {
-  return pruningCurrentQueries(rows).map(query => assertion(db, `(${query.sql})=?`, [...query.params, query.count]));
-}
 function priorAssertion(db: CatalogD1, request: PruneRequest, globalWatermark: number, prior: Row) {
   const columns = ['release_id','catalog_revision','code_sha','completed_at','manifest_json'];
   return assertion(db, `(SELECT coalesce(max(rowid),0) FROM publication_receipts)=?
@@ -69,9 +66,8 @@ function held(value: { id: string; publicId: string; slug: string }, reason: Saf
   return { id: value.id, publicId: value.publicId, slug: value.slug, path: `/gifts/${value.slug}`,
     title: 'Gift currently unavailable', description: 'This gift is not currently available in the curated catalog. Browse other gifts instead.', reason };
 }
-async function storedProjection(db: CatalogD1, packet: ProjectionPacket): Promise<void> {
-  const rows = (await db.prepare('SELECT * FROM catalog_public_products WHERE catalog_revision=? LIMIT 5001')
-    .bind(packet.receipt.catalog_revision).all()).results;
+async function storedProjection(db: CatalogD1, owner: MutationOwner, packet: ProjectionPacket): Promise<void> {
+  const rows = await readOwnedProjection(db,owner,packet.receipt.catalog_revision,packet.rows.map(row=>String(row.public_id)).sort());
   rows.sort((a,b) => String(a.public_id).localeCompare(String(b.public_id)));
   if (canonicalJson(rows) !== canonicalJson(packet.rows)) throw new Error('prune_projection_changed');
 }
@@ -83,9 +79,10 @@ async function storedProjection(db: CatalogD1, packet: ProjectionPacket): Promis
 async function prune(db: CatalogD1, owner: MutationOwner, request: PruneRequest): Promise<
   { state: 'unchanged'; allHeld: boolean } | { state: 'prepared' | 'all_held'; revision: PrunedRevision; owner: MutationOwner }
 > {
+  owner = structuredClone(owner); request = structuredClone(request);
   matchesOwner(owner, request);
   await db.batch([mutationAssertion(db, owner, ['freezing'])]);
-  const source = await readPruningSource(db, request.previous, request.context);
+  const source = await readPruningSource(db, request.previous, request.context, owner);
   const now = new Date(source.observedAt); const cutoff = Date.parse(request.context.cutoff);
   if (cutoff <= now.getTime() || cutoff - Date.parse(owner.capturedAt) > 26 * 3600000) throw new Error('prune_window_elapsed');
   const current = new Map(source.current.map(row => [String(row.public_id), row]));
@@ -132,9 +129,10 @@ async function prune(db: CatalogD1, owner: MutationOwner, request: PruneRequest)
  * approved-cohort caller; this helper never selects or approves product rows.
  */
 export async function sealCapturedRevision(db: CatalogD1, owner: MutationOwner, input: PrunedRevision) {
+  owner = structuredClone(owner); input = structuredClone(input);
   const { request, snapshot, packet, sourceRows, sourceDigest, globalVectorWatermark, priorRow } = input;
   if (owner.phase !== 'freezing' || owner.operationKey !== input.operationKey || owner.environment !== request.scope.environment
-    || owner.indexName !== request.scope.indexName) throw new Error('prune_owner_mismatch');
+    || owner.indexName !== request.scope.indexName || snapshot.catalogRevision === request.previous.catalogRevision) throw new Error('prune_owner_mismatch');
   const revision = snapshot.catalogRevision;
   const generatedAt = snapshot.generatedAt;
   const existing = (await db.prepare('SELECT * FROM catalog_revisions WHERE revision=?').bind(revision).all()).results[0];
@@ -142,23 +140,33 @@ export async function sealCapturedRevision(db: CatalogD1, owner: MutationOwner, 
   if (existing && (existing.source_export_sha256 !== sourceDigest || !['importing','reconciled'].includes(String(existing.status))))
     throw new Error('prune_retry_source_changed');
   const imports = await unabandonedImportsQuery(db,owner.environment,revision);
-  const start = [mutationAssertion(db, owner, ['freezing']), ...currentAssertions(db, sourceRows), priorAssertion(db, request, globalVectorWatermark, priorRow),
+  await assertPruningCurrent(db, owner, sourceRows);
+  const start = [mutationAssertion(db, owner, ['freezing']), priorAssertion(db, request, globalVectorWatermark, priorRow),
     assertion(db, imports.sql, imports.params)];
   await db.batch([...start, db.prepare(`INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status)
     VALUES(?,?,?,'importing') ON CONFLICT(revision) DO NOTHING`).bind(revision, generatedAt, sourceDigest)]);
   const receipt = (await db.prepare('SELECT * FROM catalog_projection_receipts WHERE catalog_revision=?').bind(revision).all()).results[0];
-  const partial = (await db.prepare('SELECT * FROM catalog_public_products WHERE catalog_revision=? LIMIT 5001').bind(revision).all()).results;
+  const partial = await readOwnedProjection(db,owner,revision,packet.rows.map(row=>String(row.public_id)).sort());
   const expected = new Map(packet.rows.map(row => [row.public_id, row]));
   if (partial.some(row => canonicalJson(row) !== canonicalJson(expected.get(String(row.public_id))))) throw new Error('prune_projection_changed');
   const present = new Set(partial.map(row => row.public_id)); const missing = packet.rows.filter(row => !present.has(row.public_id));
   if (receipt && missing.length) throw new Error('prune_projection_changed');
   // Chunks are restartable while visibility remains held behind the final seal.
-  for (let offset = 0; offset < missing.length; offset += 35) {
-    const queries = projectionQueries({ ...packet, rows: missing.slice(offset, offset + 35) }).slice(0,-1);
+  const gate = mutationFenceQuery(owner, ['freezing']);
+  const guard = {sql:`SELECT json(CASE WHEN ${gate.sql} THEN 'true' ELSE 'mutation_fenced' END)`,params:gate.params};
+  for (let offset = 0; offset < missing.length;) {
+    let queries: ReturnType<typeof projectionQueries> = []; let inserted = 0;
+    for (const row of missing.slice(offset,offset+35)) {
+      const next = projectionQueries({...packet,rows:[row]}).slice(0,-1);
+      if (queries.length+next.length >= 50 || Buffer.byteLength(JSON.stringify({batch:[guard,...queries,...next]})) > 512*1024) break;
+      queries = [...queries,...next]; inserted++;
+    }
+    if (!queries.length) throw new Error('prune_projection_bound');
     await db.batch([mutationAssertion(db, owner, ['freezing']), ...queries.map(query =>
       db.prepare(query.sql).bind(...query.params))]);
+    offset += inserted;
   }
-  await storedProjection(db, packet);
+  await storedProjection(db, owner, packet);
   let nextOwner = owner;
   if (receipt) {
     if (canonicalJson(receipt) !== canonicalJson(packet.receipt)) throw new Error('prune_receipt_changed');
@@ -167,7 +175,8 @@ export async function sealCapturedRevision(db: CatalogD1, owner: MutationOwner, 
     nextOwner = { ...owner, epoch: owner.epoch + 1 };
     const receiptPredicate = { sql: 'SELECT 1 FROM catalog_projection_receipts WHERE catalog_revision=? AND snapshot_sha256=? AND projection_sha256=?',
       params: [revision, packet.receipt.snapshot_sha256, packet.receipt.projection_sha256] };
-    await db.batch([mutationAssertion(db, owner, ['freezing']), ...currentAssertions(db, sourceRows), priorAssertion(db, request, globalVectorWatermark, priorRow),
+    await assertPruningCurrent(db, owner, sourceRows);
+    await db.batch([mutationAssertion(db, owner, ['freezing']), priorAssertion(db, request, globalVectorWatermark, priorRow),
       db.prepare(query.sql).bind(...query.params), mutationAdvance(db, owner, receiptPredicate), mutationAssertion(db, nextOwner, ['freezing'])]);
   }
   // An empty target has no per-revision events; global settlement is separately
@@ -217,6 +226,7 @@ async function settle(db: CatalogD1, owner: MutationOwner, revision: PrunedRevis
  */
 export async function settleCapturedRevision(db: CatalogD1, owner: MutationOwner, revision: PrunedRevision,
   readVectors: (plan: PrunedVectorPlan, signal: AbortSignal) => Promise<PrunedVectorObservation>) {
+  owner = structuredClone(owner); revision = structuredClone(revision);
   if (owner.phase !== 'freezing' || owner.operationKey !== revision.operationKey || owner.environment !== revision.request.scope.environment
     || owner.indexName !== revision.request.scope.indexName) throw new Error('prune_owner_mismatch');
   const plan = prunedVectorPlan(revision); let observed: PrunedVectorObservation;
@@ -235,14 +245,24 @@ export async function settleCapturedRevision(db: CatalogD1, owner: MutationOwner
     capturedAt: revision.snapshot.generatedAt, cutoff: revision.request.context.cutoff };
   const bytes = encodeBuildRequest(request); const requestId = sha256(bytes);
   const existingRequest = (await db.prepare('SELECT request_json FROM catalog_build_requests WHERE request_id=?').bind(requestId).all()).results[0];
+  await assertPruningCurrent(db, owner, revision.sourceRows);
+  // The barrier excludes supported source writers between streamed validation
+  // and this compact atomic transaction. Never split receipt/queue/epoch writes.
+  await storedProjection(db, owner, revision.packet);
+  const sealedReceipt = (await db.prepare('SELECT * FROM catalog_projection_receipts WHERE catalog_revision=?')
+    .bind(revision.snapshot.catalogRevision).all()).results[0];
+  if (canonicalJson(sealedReceipt) !== canonicalJson(revision.packet.receipt)) throw new Error('prune_receipt_changed');
+  const receiptColumns = ['catalog_revision','snapshot_sha256','projection_sha256','source_export_sha256','product_count','created_at'] as const;
+  const receiptAssertion = () => assertion(db, `EXISTS(SELECT 1 FROM catalog_projection_receipts WHERE ${receiptColumns.map(key=>`${key} IS ?`).join(' AND ')})`,
+    receiptColumns.map(key=>revision.packet.receipt[key]));
   if (existingRequest) {
     if (existingRequest.request_json !== bytes) throw new Error('prune_build_request_changed');
-    await db.batch([mutationAssertion(db, owner, ['freezing']), ...currentAssertions(db, revision.sourceRows),
+    await db.batch([mutationAssertion(db, owner, ['freezing']), receiptAssertion(),
       priorAssertion(db, revision.request, revision.globalVectorWatermark, revision.priorRow)]);
     return { state: 'existing' as const, requestId, owner };
   }
   const gate = mutationFenceQuery(owner, ['freezing']); const nextOwner = { ...owner, epoch: owner.epoch + 1 };
-  await db.batch([mutationAssertion(db, owner, ['freezing']), ...currentAssertions(db, revision.sourceRows),
+  await db.batch([mutationAssertion(db, owner, ['freezing']), receiptAssertion(),
     priorAssertion(db, revision.request, revision.globalVectorWatermark, revision.priorRow),
     assertion(db, `NOT EXISTS(SELECT 1 FROM catalog_public_products WHERE catalog_revision=? AND eligible_until<=${NOW})`, [revision.snapshot.catalogRevision]),
     db.prepare(`UPDATE catalog_revisions SET status='reconciled' WHERE revision=? AND source_export_sha256=?
