@@ -47,6 +47,15 @@ export function releaseBuildEnvironment(context: Pick<ReleaseBuildContext, 'sour
   return { ...env, CATALOG_SITE_MODE: context.sourceMode, NEXT_PUBLIC_STATIC_SITE_MODE: context.sourceMode };
 }
 
+/** Match release verification: nonignored untracked files count as source changes. */
+export function assertBuildSource(root: string, expectedSha?: string): string {
+  const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+  const codeSha = git('rev-parse', 'HEAD');
+  if (git('status', '--porcelain')) throw new Error('Commit the reviewed source before building a staging release');
+  if (expectedSha !== undefined && codeSha !== expectedSha) throw new Error('Source HEAD changed during the staging build');
+  return codeSha;
+}
+
 async function main() {
   const root = path.resolve(import.meta.dirname, '../..');
   const output = path.join(root, 'static-site/out');
@@ -57,7 +66,7 @@ async function main() {
   const catalogSnapshotSha256 = createHash('sha256').update(snapshotBytes).digest('hex');
   const contextPath = process.env.CATALOG_RELEASE_CONTEXT_PATH;
   if (!contextPath) throw new Error('CATALOG_RELEASE_CONTEXT_PATH must identify explicit reviewed release context');
-  const codeSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  const codeSha = assertBuildSource(root);
   const context = validateBuildContext(JSON.parse(await fs.readFile(path.resolve(contextPath), 'utf8')), snapshot, codeSha, catalogSnapshotSha256);
   const buildEnv = releaseBuildEnvironment(context, process.env);
   const priorPackage = await readPriorRelease(context, process.env.CATALOG_PRIOR_RELEASE_PATH);
@@ -78,6 +87,7 @@ async function main() {
   execFileSync(process.execPath, ['node_modules/next/dist/bin/next', 'build', 'static-site', '--webpack'], {
     cwd: root, env: { ...buildEnv, CATALOG_SNAPSHOT_PATH: input }, stdio: 'inherit',
   });
+  assertBuildSource(root, codeSha);
   const files = (await fs.readdir(output, { recursive: true, withFileTypes: true }))
     .filter((entry) => entry.isFile()).map((entry) => path.join(entry.parentPath, entry.name)).sort();
   const currentAssets = new Map<string, Uint8Array>();
@@ -103,6 +113,8 @@ async function main() {
     slugCount: snapshot.products.length + snapshot.heldProducts.length + snapshot.slugHistory.length,
     checksums, routes: assembled.routes };
   const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
+  // Asset inventory/retention can take time; do not seal if source drifted meanwhile.
+  assertBuildSource(root, codeSha);
   await fs.writeFile(path.join(generated, 'asset-manifest.json'), manifestBytes);
   await fs.writeFile(path.join(generated, 'release-identity.json'), `${JSON.stringify(createReleaseIdentity(manifestBytes))}\n`);
   console.log(JSON.stringify({ releaseId: manifest.releaseId, dataKind: snapshot.dataKind,
