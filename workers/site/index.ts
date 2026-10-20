@@ -170,6 +170,8 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         }
         const url = new URL(request.url);
         const path = url.pathname;
+        // Never let ASSETS decode separators/traversal differently from this dispatcher.
+        if (/%(?:2f|5c|25)/i.test(path)) return respond(json({ error: 'Not found' }, 404));
         if (path === '/api/search-products') return respond(search ? await search(request, env) : json({ error: 'Search unavailable' }, 503));
         if (path === '/api/catalog-feed') return respond(await feed(request));
         if (RETIRED_ROUTE.test(path) || path.startsWith('/api/')) return respond(json({ error: 'Not found' }, 404));

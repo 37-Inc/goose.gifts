@@ -20,6 +20,7 @@ function setup(overrides = {}) {
     '/catalog/feed-1.json': ready('/catalog/feed-1', { assetPath: '/catalog/feed-1.json', safeAssetPath: '/safe.json' }),
     '/random-gift': ready('/random-gift'),
     '/howie': ready('/howie', { indexable: false }),
+    '/gifts/funny%20button': ready('/gifts/fart-button'),
   };
   const digest = 'a'.repeat(64);
   const manifest = { schemaVersion: 1, releaseId: 'test', codeSha: 'test', catalogRevision: 'r1', catalogSnapshotSha256: digest, generatedAt: snapshot.generatedAt, nextExpiry: DEADLINE, productCount: 1, slugCount: 1, vectorSyncWatermark: 1, priorReleaseId: null, checksums: {}, dataKind: snapshot.dataKind, routes };
@@ -104,6 +105,28 @@ test('retired, unknown HTML/data and missing routes never fall back to the homep
     assert.equal((await fixture.request(path)).status, 404, path);
   }
   assert.equal(fixture.calls.length, 0);
+  assert.equal((await fixture.request('/_next/static/app.js')).status, 200);
+});
+
+test('encoded separators and double encoding cannot reach a decoding/normalizing asset service', async () => {
+  const fixture = setup();
+  const decoded = [];
+  fixture.env.ASSETS.fetch = async (request) => {
+    const url = new URL(request.url);
+    const path = new URL(decodeURIComponent(decodeURIComponent(url.pathname)).replaceAll('\\', '/'), url.origin).pathname;
+    decoded.push(path);
+    return new Response(path);
+  };
+  for (const path of [
+    '/_next/static/%2e%2e%2f%2e%2e%2findex.html', '/_next/static/%2Findex.html',
+    '/_next/static/%5c..%5C..%5cindex.html', '/_next/static/%252e%252e%252findex.html',
+    '/gifts/fart-button%2fextra', '/%25',
+  ]) assert.equal((await fixture.request(path)).status, 404, path);
+  assert.deepEqual(decoded, []);
+  assert.equal((await fixture.request('/_next/static/chunks/app/%5Bslug%5D.js?next=%2F&value=%255c')).status, 200);
+  assert.equal(decoded.at(-1), '/_next/static/chunks/app/[slug].js');
+  assert.equal((await fixture.request('/gifts/funny%20button?utm_content=%2F')).status, 200);
+  assert.equal(decoded.at(-1), '/gifts/fart-button.html');
   assert.equal((await fixture.request('/_next/static/app.js')).status, 200);
 });
 
