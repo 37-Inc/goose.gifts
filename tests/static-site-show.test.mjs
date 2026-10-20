@@ -14,6 +14,7 @@ import { createBrowseRelease } from "../static-site/lib/browse.ts";
 import { directoryPages, directoryPath } from "../static-site/lib/directory.ts";
 import { guides } from "../static-site/lib/guides.ts";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
+import { siteIdentity } from "../static-site/lib/site-identity.ts";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const owned = JSON.parse(fs.readFileSync(path.join(root, "static-site/fixtures/catalog.snapshot.json")));
@@ -119,7 +120,7 @@ test("episode HTML/RSC/JSON and presentation inherit first displayed expiry; pro
 test("QR is deterministic local SVG for only the stable canonical page with coarse campaign fields", () => {
   const episode = createShowRelease(catalog, fixtureEpisodes(catalog)).latest;
   const url = new URL(episode.shareUrl);
-  assert.equal(url.origin, "https://stupid.gifts");
+  assert.equal(url.origin, siteIdentity.origin);
   assert.equal(url.pathname, `/howie/${episode.key}`);
   assert.deepEqual([...url.searchParams.keys()], ["utm_source", "utm_medium", "utm_campaign"]);
   assert.equal(url.searchParams.get("utm_campaign"), "episode_2026_10_19");

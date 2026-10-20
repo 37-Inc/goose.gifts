@@ -1,7 +1,8 @@
 import { buildPageViewEvent } from "../../lib/analytics-contract";
 import type { ClickAttribution } from "../../lib/analytics-contract";
+import { isSiteInternalHostname, siteIdentity } from "./site-identity";
 
-const STORAGE_KEY = "stupid.gifts.analytics-attribution.v1";
+const STORAGE_KEY = `${siteIdentity.wordmark}.analytics-attribution.v1`;
 const FIELDS = ["traffic_source", "traffic_medium", "traffic_campaign"] as const;
 type Traffic = { traffic_source: string; traffic_medium?: string; traffic_campaign?: string };
 
@@ -46,7 +47,7 @@ export function createSessionAttribution(isAllowed: () => boolean) {
     let referrerHost: string | undefined;
     try {
       const host = new URL(document.referrer).hostname;
-      if (host !== window.location.hostname && host !== "www.stupid.gifts") referrerHost = host;
+      if (host !== window.location.hostname && !isSiteInternalHostname(host)) referrerHost = host;
     } catch {}
     // A new explicit campaign replaces context; an ordinary internal visit does not.
     const traffic = explicit ? sanitize({ ...coarse, referrerHost })

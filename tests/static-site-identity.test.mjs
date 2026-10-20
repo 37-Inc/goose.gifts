@@ -3,6 +3,12 @@ import fs from "node:fs";
 import vm from "node:vm";
 import test from "node:test";
 import ts from "typescript";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { createRequire } from "node:module";
+import { execFileSync } from "node:child_process";
+
+const require = createRequire(import.meta.url);
 
 function identity(env = {}) {
   const source = fs.readFileSync(new URL("../static-site/lib/site-identity.ts", import.meta.url), "utf8");
@@ -24,6 +30,7 @@ test("explicit Goose runtime keeps the existing canonical host; rebrand is separ
   const goose = identity({ CATALOG_SITE_MODE: "goose-production" });
   assert.equal(goose.siteIdentity.brand, "goose"); assert.equal(goose.siteIdentity.origin, "https://www.goose.gifts");
   assert.equal(goose.siteIdentity.wordmark, "goose.gifts"); assert.equal(goose.isSiteProduction, true);
+  assert.equal(goose.siteIdentity.tagline, "Absurd, useful, and deeply unnecessary.");
   const stupid = identity({ NEXT_PUBLIC_STATIC_SITE_MODE: "stupid-production" });
   assert.equal(stupid.siteIdentity.origin, "https://stupid.gifts"); assert.equal(stupid.siteIdentity.brand, "stupid");
   assert.equal(stupid.isSitePreview, false);
@@ -46,5 +53,79 @@ test("serialized identity includes explicit reviewed source mode and has no envi
     assert.deepEqual(plain(config.siteIdentityRecord), { schemaVersion: 1, sourceMode: mode, ...plain(config.siteIdentity) });
     assert.equal(Object.isFrozen(config.siteIdentityRecord), true);
     assert.equal(identity({ CATALOG_SITE_MODE: mode, NODE_ENV: "test" }).siteIdentityRecord.sourceMode, mode);
+  }
+});
+
+function component(relative, config, fixture = false) {
+  const source = fs.readFileSync(new URL(relative, import.meta.url), "utf8");
+  const { outputText } = ts.transpileModule(source, { compilerOptions: {
+    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX,
+  } });
+  const commonJs = { exports: {} };
+  const dependencies = {
+    "../lib/site-identity": config,
+    "../lib/catalog": { isFixtureRelease: fixture },
+    "../lib/metadata": { previewMetadata: () => ({}) },
+    "../lib/show-data": { show: { latest: null } },
+    "../components/StaticAnalytics": { StaticAnalytics: () => React.createElement("i", { "data-test-analytics": true }) },
+    "../lib/episode-qr": { episodeQrSvg: () => "<svg></svg>" },
+    "../lib/analytics": { captureRenderedLists() {} },
+    "../lib/episode-display": { unavailableEpisode: value => value },
+    "@/components/ProductImage": { ProductImage: () => React.createElement("img", { alt: "Controlled fixture" }) },
+    "./styles.css": {},
+  };
+  vm.runInNewContext(outputText, { module: commonJs, exports: commonJs.exports,
+    require(name) { return Object.hasOwn(dependencies, name) ? dependencies[name] : require(name); },
+    process: { env: { NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED: "true" } } });
+  return commonJs.exports;
+}
+test("layout and show wordmarks/URLs follow source mode without losing contact or preview safeguards", () => {
+  for (const mode of ["preview", "goose-production", "stupid-production"]) {
+    const config = identity({ CATALOG_SITE_MODE: mode });
+    const layout = component("../static-site/app/layout.tsx", config);
+    const html = renderToStaticMarkup(React.createElement(layout.default, null, React.createElement("main", { id: "main" })));
+    assert.match(html, new RegExp(`${config.siteIdentity.brand}<span>\\.</span>gifts`));
+    assert.ok(html.includes(config.siteIdentity.tagline));
+    assert.ok(html.includes("mailto:goosegifts@37.technology"));
+    assert.equal(html.includes("Private staging preview"), mode === "preview");
+    assert.equal(html.includes("data-test-analytics"), mode !== "preview");
+    const fixture = component("../static-site/app/layout.tsx", config, true);
+    const fixtureHtml = renderToStaticMarkup(React.createElement(fixture.default));
+    assert.match(fixtureHtml, /Private design proof/); assert.doesNotMatch(fixtureHtml, /data-test-analytics/);
+
+    const episode = { status: "published", key: "controlled-fixture", episodeDate: "2026-10-20",
+      shareUrl: `${config.siteIdentity.origin}/howie/controlled-fixture?utm_source=howie_mandel_does_stuff`, eligibleUntil: null,
+      slots: [{ primary: { id: "test", title: "Controlled fixture", slug: "controlled-product" }, alternatives: [], position: 1, exactVariant: "Controlled fixture" }] };
+    const share = component("../static-site/components/EpisodeShare.tsx", config);
+    const shareHtml = renderToStaticMarkup(React.createElement(share.EpisodeShare, { episode }));
+    assert.ok(shareHtml.includes(`${config.siteIdentity.hostname}/howie/controlled-fixture`));
+    const presentation = component("../static-site/components/Presentation.tsx", config);
+    const slides = renderToStaticMarkup(React.createElement(presentation.Presentation, { episode, qrSvg: "<svg></svg>" }));
+    assert.ok(slides.includes(`${config.siteIdentity.hostname}/gifts/controlled-product`));
+    assert.ok(slides.includes(`${config.siteIdentity.hostname}/howie/controlled-fixture`));
+  }
+});
+test("actual show and QR generation use only selected compile-time origin across all source modes", () => {
+  const script = `
+    import { episodeShareUrl } from './static-site/lib/show.ts';
+    import { episodeQrSvg } from './static-site/lib/episode-qr.ts';
+    import { siteIdentity } from './static-site/lib/site-identity.ts';
+    const episode={status:'published',key:'controlled-fixture',episodeDate:'2026-10-20'};
+    const shareUrl=episodeShareUrl(episode);
+    const svg=episodeQrSvg({...episode,shareUrl});
+    let rejected=false;
+    try { episodeQrSvg({...episode,shareUrl:shareUrl.replace(siteIdentity.origin,'https://unexpected.invalid')}); } catch { rejected=true; }
+    console.log(JSON.stringify({shareUrl,svg:svg.startsWith('<svg'),rejected}));
+  `;
+  for (const mode of ["preview", "goose-production", "stupid-production"]) {
+    const config = identity({ CATALOG_SITE_MODE: mode });
+    const result = JSON.parse(execFileSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e", script], {
+      cwd: new URL("../", import.meta.url), encoding: "utf8",
+      env: { ...process.env, CATALOG_SITE_MODE: mode, NEXT_PUBLIC_STATIC_SITE_MODE: mode },
+    }));
+    const url = new URL(result.shareUrl);
+    assert.equal(url.origin, config.siteIdentity.origin); assert.equal(url.pathname, "/howie/controlled-fixture");
+    assert.deepEqual([...url.searchParams.keys()], ["utm_source", "utm_medium", "utm_campaign"]);
+    assert.equal(result.svg, true); assert.equal(result.rejected, true);
   }
 });

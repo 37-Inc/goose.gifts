@@ -9,7 +9,7 @@ export interface SiteIdentity {
 }
 const PRESETS = Object.freeze({
   goose: Object.freeze({ brand: "goose", name: "Goose Gifts", origin: "https://www.goose.gifts", hostname: "www.goose.gifts",
-    wordmark: "goose.gifts", tagline: "Funny gag gifts. Weird presents." } satisfies SiteIdentity),
+    wordmark: "goose.gifts", tagline: "Absurd, useful, and deeply unnecessary." } satisfies SiteIdentity),
   stupid: Object.freeze({ brand: "stupid", name: "Stupid Gifts", origin: "https://stupid.gifts", hostname: "stupid.gifts",
     wordmark: "stupid.gifts", tagline: "Very bad ideas. Carefully considered." } satisfies SiteIdentity),
 });

@@ -5,11 +5,12 @@ import type { EpisodeManifest } from "../../content/show/manifest";
 import type { CatalogSnapshot, PublicCatalogProduct } from "../../lib/catalog/types";
 import { episodeProducts } from "./episode-display";
 import type { DisplayEpisode, EpisodeProduct } from "./episode-display";
+import { siteIdentity } from "./site-identity";
 
 export function episodePath(key: string) { return `/howie/${key}`; }
 export function episodeShareUrl(episode: EpisodeManifest): string | null {
   if (episode.status !== "published") return null;
-  const url = new URL(episodePath(episode.key), "https://stupid.gifts");
+  const url = new URL(episodePath(episode.key), siteIdentity.origin);
   url.searchParams.set("utm_source", "howie_mandel_does_stuff");
   url.searchParams.set("utm_medium", "podcast");
   url.searchParams.set("utm_campaign", `episode_${episode.episodeDate!.replaceAll("-", "_")}`);

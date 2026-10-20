@@ -18,7 +18,7 @@ function load(relative, globals, require) {
   return commonJs.exports;
 }
 const ATTRIBUTION_KEY = "stupid.gifts.analytics-attribution.v1";
-function environment(hostname = "stupid.gifts", enabled = "true", storage = new Map()) {
+function environment(hostname = "stupid.gifts", enabled = "true", storage = new Map(), mode = "stupid-production") {
   const calls = [], scripts = [], captures = [], listeners = new Set();
   const posthog = {
     init: (_key, options) => { posthog.options = options; },
@@ -56,6 +56,7 @@ function environment(hostname = "stupid.gifts", enabled = "true", storage = new 
   let attributionReads = 0, adapterLoads = 0;
   const globals = { window, document, navigator, Element,
     process: { env: { NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED: enabled,
+      NEXT_PUBLIC_STATIC_SITE_MODE: mode,
       NEXT_PUBLIC_POSTHOG_KEY: "existing-test-key", NEXT_PUBLIC_POSTHOG_HOST: "https://analytics.example" } } };
   const shared = load("../lib/client-analytics.ts", globals, (name) => {
     if (name === "./analytics-contract") return contract;
@@ -66,11 +67,14 @@ function environment(hostname = "stupid.gifts", enabled = "true", storage = new 
     if (name === "posthog-js") return { default: posthog };
     throw new Error(`Unexpected dependency ${name}`);
   });
+  const identity = load("../static-site/lib/site-identity.ts", globals, () => { throw new Error("Identity must stay provider-free"); });
   const attribution = load("../static-site/lib/analytics-attribution.ts", globals, (name) => {
+    if (name === "./site-identity") return identity;
     assert.equal(name, "../../lib/analytics-contract");
     return contract;
   });
   const analytics = load("../static-site/lib/analytics.ts", globals, (name) => {
+    if (name === "./site-identity") return identity;
     if (name === "./analytics-attribution") return attribution;
     assert.equal(name, "../../lib/client-analytics");
     adapterLoads++;
@@ -122,6 +126,8 @@ test("Goose legacy host policy, destinations, attribution and Ads callbacks rema
 
 test("static staging, fixtures, unknown hosts, local and browser privacy signals load no adapter/providers", async () => {
   const cases = [
+    { mode: "preview" }, { mode: "preview", host: "staging.stupid.gifts" },
+    { mode: "goose-production", host: "stupid.gifts" },
     { enabled: undefined }, { enabled: "false" }, { catalog: false },
     { host: "localhost" }, { host: "staging.stupid.gifts" }, { host: "www.stupid.gifts" },
     { host: "goose.gifts" }, { host: "stupid.gifts.evil.example" }, { protocol: "http:" },
@@ -129,7 +135,7 @@ test("static staging, fixtures, unknown hosts, local and browser privacy signals
     { windowDnt: "1" },
   ];
   for (const entry of cases) {
-    const env = environment(entry.host, Object.hasOwn(entry, "enabled") ? entry.enabled : "true");
+    const env = environment(entry.host, Object.hasOwn(entry, "enabled") ? entry.enabled : "true", new Map(), entry.mode);
     // environment's default parameter is intentionally overridden for unset builds.
     if (Object.hasOwn(entry, "enabled")) env.process.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED = entry.enabled;
     Object.assign(env.navigator, entry.navigator);
@@ -189,6 +195,25 @@ test("opt-in exact static host sends only contract payloads, once per mount/list
   assert.equal(env.listeners.size, 0);
 });
 
+test("explicit Goose static mode preserves canonical page origin, provider destinations and coarse internal attribution", async () => {
+  for (const host of ["www.goose.gifts", "goose.gifts"]) {
+    const env = environment(host, "true", new Map(), "goose-production");
+    env.window.location.search = "";
+    env.document.referrer = host === "goose.gifts" ? "https://www.goose.gifts/gifts/internal" : "https://goose.gifts/gifts/internal";
+    env.analytics.startStaticAnalytics(true); await flush(); env.click(true); await flush();
+    const page = env.calls.find(call => call[1] === "page_view");
+    assert.equal(page[2].page_location, "https://www.goose.gifts/gifts/safe-product");
+    assert.equal(page[2].traffic_source, "direct");
+    assert.deepEqual(plain(env.calls.filter(([name]) => name === "config")), [
+      ["config", "G-6RR3HPR747", { send_page_view: false }], ["config", "AW-17626116539", { send_page_view: false }],
+    ]);
+    assert.equal(env.storage.has("goose.gifts.analytics-attribution.v1"), true);
+    assert.equal(env.storage.has(ATTRIBUTION_KEY), false);
+    assert.equal(env.attributionReads(), 0, "static Goose must not read the legacy private attribution adapter");
+    assert.doesNotMatch(JSON.stringify([env.calls, ...env.storage]), /private|stupid\.gifts|sessionId|landingPage/);
+  }
+});
+
 test("privacy rechecked after deferred adapter/provider import; SSR remains off", async () => {
   const env = environment();
   env.analytics.startStaticAnalytics(true);
@@ -197,6 +222,7 @@ test("privacy rechecked after deferred adapter/provider import; SSR remains off"
   assert.equal(env.calls.length + env.scripts.length + env.captures.length, 0);
   assert.equal(env.posthog.options, undefined);
   const server = load("../static-site/lib/analytics.ts", { process: { env: {} } }, (name) => {
+    if (name === "./site-identity") return { isSiteProduction: false, isSiteAnalyticsHostname: () => false, siteIdentity: { origin: "https://staging.stupid.gifts" } };
     assert.equal(name, "./analytics-attribution");
     return { createSessionAttribution: () => () => ({}) };
   });
