@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import type { ProductRights, PublicCatalogProduct } from '../../lib/catalog/types.ts';
 import { validatePublicCatalogProduct } from '../../lib/catalog/snapshot.ts';
+import { decodePgvectorSendBase64, PGVECTOR_BINARY_ENCODING } from './pgvector-binary.ts';
 
 export const RUNTIME_TABLES = ['products', 'product_slug_history', 'catalog_runs', 'catalog_run_items',
   'catalog_editorial_events', 'search_queries'] as const;
@@ -142,11 +143,14 @@ export function convertSourceRow(table: typeof RUNTIME_TABLES[number], row: Row,
     archive_reference: row.clicked_bundle_id || row.clicked_bundle_slug ? `${options.archiveId}/gift_bundles` : null };
 }
 
-export function exportVector(row: Row, metadata: { catalogRevision: string; eligible: boolean; embeddingTextHash: string }): {
+export function exportVector(row: Row, metadata: { catalogRevision: string; eligible: boolean; embeddingTextHash: string },
+  encoding: 'postgres-text' | typeof PGVECTOR_BINARY_ENCODING = 'postgres-text'): {
   id: string; values: number[]; metadata: typeof metadata;
 } | null {
   if (row.embedding === null || row.embedding === undefined) return null;
-  const raw = typeof row.embedding === 'string' ? JSON.parse(row.embedding) : row.embedding;
+  if (!['postgres-text', PGVECTOR_BINARY_ENCODING].includes(encoding)) throw new Error('Unknown vector column encoding');
+  const raw = encoding === PGVECTOR_BINARY_ENCODING ? decodePgvectorSendBase64(row.embedding)
+    : typeof row.embedding === 'string' ? JSON.parse(row.embedding) : row.embedding;
   if (!Array.isArray(raw) || raw.length !== EMBEDDING_DIMENSIONS || raw.some((v) => typeof v !== 'number' || !Number.isFinite(v))) {
     throw new Error('Original vector is not 1536 finite dimensions');
   }

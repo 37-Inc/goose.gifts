@@ -4,8 +4,9 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { canonicalJson, destinationFor, sha256, TYPED_TIMESTAMP_COLUMNS } from './migration.ts';
+import { decodePgvectorSendBase64, PGVECTOR_BINARY_ENCODING } from './pgvector-binary.ts';
 
-interface Column { name: string; type: string; nullable: boolean; default: string | null }
+interface Column { name: string; type: string; typeOid?: string; nullable: boolean; default: string | null }
 export interface SourceTable {
   schema: string; name: string; kind: string; partition: boolean; columns: Column[];
   constraints: Array<{ name: string; definition: string }>;
@@ -25,8 +26,8 @@ type NeonHttpFactory = (connectionString: string) => {
 /** The installed nested driver may be CommonJS wrapped under ESM default. */
 export function resolveNeonFactory(driver: unknown): NeonHttpFactory {
   if (!driver || typeof driver !== 'object') throw new Error('Installed HTTPS driver module is unavailable');
-  const module = driver as { neon?: unknown; default?: { neon?: unknown } };
-  const factory = module.neon ?? module.default?.neon;
+  const driverModule = driver as { neon?: unknown; default?: { neon?: unknown } };
+  const factory = driverModule.neon ?? driverModule.default?.neon;
   if (typeof factory !== 'function') throw new Error('Installed HTTPS driver does not export neon');
   return factory as NeonHttpFactory;
 }
@@ -38,7 +39,7 @@ export async function loadNeonHttpFactory(): Promise<NeonHttpFactory> {
 
 export const INVENTORY_SQL = `SELECT COALESCE(json_agg(t ORDER BY t.schema,t.name),'[]'::json)::text AS inventory FROM (
   SELECT n.nspname AS schema,c.relname AS name,c.relkind::text AS kind,c.relispartition AS partition,
-    (SELECT json_agg(json_build_object('name',a.attname,'type',format_type(a.atttypid,a.atttypmod),
+    (SELECT json_agg(json_build_object('name',a.attname,'type',format_type(a.atttypid,a.atttypmod),'typeOid',a.atttypid::text,
       'nullable',NOT a.attnotnull,'default',pg_get_expr(d.adbin,d.adrelid)) ORDER BY a.attnum)
       FROM pg_attribute a LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum
       WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped) AS columns,
@@ -58,6 +59,40 @@ const SEQUENCES_SQL = `SELECT COALESCE(json_agg(s ORDER BY s.schemaname,s.sequen
     increment_by::text,cycle,cache_size::text,last_value::text FROM pg_sequences
     WHERE schemaname NOT LIKE 'pg_%' AND schemaname<>'information_schema') s`;
 function quote(value: string): string { return `"${value.replaceAll('"', '""')}"`; }
+export const VECTOR_SEND_METADATA_SQL = `SELECT json_build_object(
+  'extensionVersion',e.extversion,'typeOid',t.oid::text,'typeSchema',tn.nspname,'typeName',t.typname,
+  'functionSchema',pn.nspname,'functionName',p.proname,'returnType',pg_get_function_result(p.oid),
+  'canExecute',has_function_privilege(p.oid,'EXECUTE'))::text AS vector_send
+  FROM pg_type t JOIN pg_namespace tn ON tn.oid=t.typnamespace
+  JOIN pg_extension e ON e.extnamespace=t.typnamespace AND e.extname='vector'
+  JOIN pg_proc p ON p.oid=t.typsend JOIN pg_namespace pn ON pn.oid=p.pronamespace
+  WHERE t.typname='vector' AND p.proname='vector_send'`;
+interface VerifiedVectorSend {
+  extensionVersion: string; typeOid: string; typeSchema: string; typeName: 'vector';
+  functionSchema: string; functionName: 'vector_send'; returnType: 'bytea'; canExecute: true;
+  probeHex: string;
+}
+/** Read-only metadata and a constant-value protocol probe; no installs or source changes. */
+export async function verifyVectorSend(source: ReadOnlyHttpSource): Promise<VerifiedVectorSend> {
+  const rows = await source.query(VECTOR_SEND_METADATA_SQL);
+  if (rows.length !== 1) throw new Error('Exactly one installed pgvector native send function is required');
+  const info = JSON.parse(rows[0]?.vector_send || 'null');
+  if (!info || info.typeName !== 'vector' || info.functionName !== 'vector_send' || info.returnType !== 'bytea'
+    || info.canExecute !== true || !/^\d+$/.test(info.typeOid) || typeof info.extensionVersion !== 'string'
+    || typeof info.typeSchema !== 'string' || typeof info.functionSchema !== 'string') throw new Error('pgvector native send metadata is unavailable or unsupported');
+  const functionName = `${quote(info.functionSchema)}.${quote(info.functionName)}`;
+  const typeName = `${quote(info.typeSchema)}.${quote(info.typeName)}`;
+  const probe = await source.query(`SELECT encode(${functionName}('[1,-2.5]'::${typeName}),'hex') AS probe`);
+  const probeHex = '000200003f800000c0200000';
+  if (probe.length !== 1 || probe[0]?.probe !== probeHex) throw new Error('Installed pgvector binary protocol did not match reviewed float32 network format');
+  return { ...info, probeHex };
+}
+function usesVectorBinary(column: Column, vectorSend?: VerifiedVectorSend): boolean {
+  if (!vectorSend || column.name !== 'embedding') return false;
+  if (column.typeOid === vectorSend.typeOid) return true;
+  if (/(?:^|\.)vector(?:\(|$)/.test(column.type)) throw new Error('Embedding vector type does not match verified native sender');
+  return false;
+}
 function parseInventory(rows: Array<Record<string, string>>): SourceTable[] {
   const inventory = JSON.parse(rows[0]?.inventory || 'null');
   if (!Array.isArray(inventory) || inventory.some((table) => !table.schema || !table.name || !Array.isArray(table.columns))) {
@@ -65,41 +100,47 @@ function parseInventory(rows: Array<Record<string, string>>): SourceTable[] {
   }
   return inventory;
 }
-function tableRowsSql(table: SourceTable): string {
+function tableRowsSql(table: SourceTable, vectorSend?: VerifiedVectorSend): string {
   if (table.kind !== 'r' || table.partition) throw new Error('Partitioned/foreign tables need a reviewed exporter; refusing incomplete backup');
   // Values are strings in the archive (except booleans/null). This avoids JS
   // timestamp, decimal, int8, array and nested JSON parser losses. Column types
   // in inventory describe the exact casts required by a restore tool.
   const fields = table.columns.flatMap((column) => [
     `'${column.name.replaceAll("'", "''")}'`,
-    column.type === 'boolean' ? quote(column.name) : `${quote(column.name)}::text`,
+    usesVectorBinary(column, vectorSend)
+      ? `replace(encode(${quote(vectorSend!.functionSchema)}.${quote(vectorSend!.functionName)}(${quote(column.name)}),'base64'),chr(10),'')`
+      : column.type === 'boolean' ? quote(column.name) : `${quote(column.name)}::text`,
   ]).join(',');
   if (table.columns.length > 50) throw new Error('Wide table exceeds reviewed export expression; refusing incomplete backup');
   return `SELECT json_build_object(${fields})::text AS row FROM ${quote(table.schema)}.${quote(table.name)}`;
 }
-export function tableStatsSql(table: SourceTable): string {
-  return `SELECT count(*)::text AS row_count,COALESCE(sum(octet_length(to_json(row)::text)+32),0)::text AS wire_bytes FROM (${tableRowsSql(table)}) exported`;
+export function tableStatsSql(table: SourceTable, vectorSend?: VerifiedVectorSend): string {
+  return `SELECT count(*)::text AS row_count,COALESCE(sum(octet_length(to_json(row)::text)+32),0)::text AS wire_bytes FROM (${tableRowsSql(table, vectorSend)}) exported`;
 }
-export function tableExportSql(table: SourceTable, maxWireBytes?: number): string {
-  if (maxWireBytes === undefined) return `SELECT row FROM (${tableRowsSql(table)}) exported ORDER BY row COLLATE "C"`;
+export function tableExportSql(table: SourceTable, maxWireBytes?: number, vectorSend?: VerifiedVectorSend): string {
+  if (maxWireBytes === undefined) return `SELECT row FROM (${tableRowsSql(table, vectorSend)}) exported ORDER BY row COLLATE "C"`;
   if (!Number.isSafeInteger(maxWireBytes) || maxWireBytes < 0) throw new Error('Invalid export response bound');
   // Materialize once inside this snapshot. A growing table returns no payload,
   // and its separate same-snapshot stats cause the entire export to be refused.
-  return `WITH exported AS MATERIALIZED (${tableRowsSql(table)})
+  return `WITH exported AS MATERIALIZED (${tableRowsSql(table, vectorSend)})
     SELECT row FROM exported WHERE (SELECT COALESCE(sum(octet_length(to_json(row)::text)+32),0) FROM exported)<=${maxWireBytes}
     ORDER BY row COLLATE "C"`;
 }
 
 /** One HTTPS transaction, no live multi-page reads and no unsupported fallback. */
-export async function collectConsistentExport(source: ReadOnlyHttpSource, options: { maxResponseBytes?: number } = {}) {
+export async function collectConsistentExport(source: ReadOnlyHttpSource, options: {
+  maxResponseBytes?: number; embeddingEncoding?: 'postgres-text' | 'pgvector-send-base64';
+} = {}) {
   if (typeof source.transaction !== 'function') throw new Error('Repeatable-read HTTPS transactions are required');
   const planned = parseInventory(await source.query(INVENTORY_SQL));
+  const vectorSend = options.embeddingEncoding === 'pgvector-send-base64' ? await verifyVectorSend(source) : undefined;
+  if (options.embeddingEncoding && !['postgres-text', 'pgvector-send-base64'].includes(options.embeddingEncoding)) throw new Error('Unsupported embedding encoding');
   // Neon documents a 64 MB HTTPS request/response ceiling. Reserve headroom
   // for protocol/schema metadata, and refuse before transferring all rows.
   // https://neon.com/docs/serverless/serverless-driver
   const budget = options.maxResponseBytes ?? 60_000_000;
   if (!Number.isSafeInteger(budget) || budget <= 1_000_000 || budget > 60_000_000) throw new Error('Invalid one-shot response budget');
-  const preflight = await source.transaction(planned.map(tableStatsSql), { isolationLevel: 'RepeatableRead', readOnly: true });
+  const preflight = await source.transaction(planned.map((table) => tableStatsSql(table, vectorSend)), { isolationLevel: 'RepeatableRead', readOnly: true });
   if (preflight.length !== planned.length) throw new Error('Incomplete export size preflight');
   const caps = preflight.map((rows) => {
     const bytes = Number(rows[0]?.wire_bytes); const count = Number(rows[0]?.row_count);
@@ -107,8 +148,8 @@ export async function collectConsistentExport(source: ReadOnlyHttpSource, option
     return Math.ceil(bytes * 1.05) + 1024;
   });
   if (caps.reduce((sum, bytes) => sum + bytes, 1_000_000) > budget) throw new Error('Source exceeds bounded HTTPS response mode; no rows were exported');
-  const queries = [SETTINGS_SQL, INVENTORY_SQL, SEQUENCES_SQL, ...planned.map(tableStatsSql),
-    ...planned.map((table, index) => tableExportSql(table, caps[index])), INVENTORY_SQL];
+  const queries = [SETTINGS_SQL, INVENTORY_SQL, SEQUENCES_SQL, ...planned.map((table) => tableStatsSql(table, vectorSend)),
+    ...planned.map((table, index) => tableExportSql(table, caps[index], vectorSend)), INVENTORY_SQL];
   const result = await source.transaction(queries, { isolationLevel: 'RepeatableRead', readOnly: true });
   if (result.length !== queries.length) throw new Error('Incomplete transaction response');
   const settings = JSON.parse(result[0]?.[0]?.settings || 'null');
@@ -123,12 +164,16 @@ export async function collectConsistentExport(source: ReadOnlyHttpSource, option
       if (typeof value.row !== 'string') throw new Error('Export row is not lossless server JSON text');
       const row = JSON.parse(value.row);
       if (canonicalJson(Object.keys(row).sort()) !== canonicalJson(table.columns.map((column) => column.name).sort())) throw new Error('Export row column mismatch');
+      for (const column of table.columns) {
+        if (usesVectorBinary(column, vectorSend) && row[column.name] !== null) decodePgvectorSendBase64(row[column.name]);
+      }
       return value.row;
     });
     if (lines.length !== count) throw new Error('Export table count mismatch');
     return { source: table, count: lines.length, data: lines.length ? `${lines.join('\n')}\n` : '' };
   });
-  return { settings, responseBudgetBytes: budget, sequences: JSON.parse(result[2]?.[0]?.sequences || 'null'), tables };
+  return { settings, vectorSend: vectorSend || null, responseBudgetBytes: budget,
+    sequences: JSON.parse(result[2]?.[0]?.sequences || 'null'), tables };
 }
 
 export async function assertProtectedDestination(output: string, repository: string): Promise<string> {
@@ -160,6 +205,8 @@ export async function writeProtectedExport(data: Awaited<ReturnType<typeof colle
     const hash = sha256(await readFile(join(output, file), 'utf8'));
     if (hash !== sha256(table.data)) throw new Error('Export readback checksum mismatch');
     tables.push({ ...table.source, file, rowCount: table.count, sha256: hash,
+      columnEncodings: Object.fromEntries(table.source.columns.map((column) => [column.name,
+        usesVectorBinary(column, data.vectorSend || undefined) ? PGVECTOR_BINARY_ENCODING : column.type === 'boolean' ? 'json-boolean' : 'postgres-text'])),
       timestampDecisions: table.source.columns.filter((column) => /^timestamp/.test(column.type)).map((column) => ({
         column: column.name, sourceType: column.type,
         destination: table.source.schema === 'public' && TYPED_TIMESTAMP_COLUMNS[table.source.name]?.includes(column.name)
@@ -171,7 +218,8 @@ export async function writeProtectedExport(data: Awaited<ReturnType<typeof colle
   }
   const manifest = { schemaVersion: 1, exporterRevision: options.codeSha,
     createdAt: options.createdAt || new Date().toISOString(), mode: 'https-repeatable-read-single-transaction',
-    valueEncoding: 'postgres-text-except-boolean-and-null', settings: data.settings,
+    valueEncoding: data.vectorSend ? 'column-specific-v1' : 'postgres-text-except-boolean-and-null', settings: data.settings,
+    vectorSend: data.vectorSend,
     responseBudgetBytes: data.responseBudgetBytes,
     sequences: data.sequences, sequenceNote: 'Sequences are nontransactional observations; allocate D1 sequences after imported row maximum.',
     rightsRetention: 'Private recovery evidence only; every source field still requires retention/use review. No publication permission implied.',
@@ -184,10 +232,11 @@ export async function writeProtectedExport(data: Awaited<ReturnType<typeof colle
 
 async function main(argv: string[]) {
   if (argv.includes('--help')) {
-    console.log('Usage: node --experimental-strip-types scripts/catalog/export-postgres.ts --output /private/outside-git/new-export --execute-read-only\nRequires POSTGRES_URL, an existing private parent (0700), and explicit review before production execution. No dotenv/autobootstrap, TCP, source writes, or fallback paging.');
+    console.log('Usage: node --experimental-strip-types scripts/catalog/export-postgres.ts --output /private/outside-git/new-export --execute-read-only [--embedding-encoding pgvector-send-base64]\nRequires POSTGRES_URL, an existing private parent (0700), and explicit review before production execution. No dotenv/autobootstrap, TCP, source writes, or fallback paging.');
     return;
   }
-  if (argv.length !== 3 || argv[0] !== '--output' || argv[2] !== '--execute-read-only') throw new Error('Explicit --output and --execute-read-only are required');
+  if (![3, 5].includes(argv.length) || argv[0] !== '--output' || argv[2] !== '--execute-read-only'
+    || (argv.length === 5 && (argv[3] !== '--embedding-encoding' || argv[4] !== 'pgvector-send-base64'))) throw new Error('Explicit --output and --execute-read-only are required');
   const repository = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
   await assertProtectedDestination(argv[1], repository);
   const connectionString = process.env.POSTGRES_URL;
@@ -202,7 +251,7 @@ async function main(argv: string[]) {
     query: (query) => sql(query, []),
     transaction: (queries, options) => sql.transaction(queries.map((query) => sql(query, [])), options),
   };
-  const data = await collectConsistentExport(source);
+  const data = await collectConsistentExport(source, { embeddingEncoding: argv.length === 5 ? 'pgvector-send-base64' : 'postgres-text' });
   console.log(JSON.stringify(await writeProtectedExport(data, { output: resolve(argv[1]), repository,
     codeSha: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() })));
 }
