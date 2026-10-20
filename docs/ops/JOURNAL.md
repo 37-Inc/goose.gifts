@@ -51,7 +51,17 @@ queries (1,721 billed rows read, zero writes). These include value-level JSON
 rights checks; do not reuse earlier lower query-cost figures as current.
 Receipt `pr194-current-rights-live.json` SHA-256:
 `a905c6d6a139d8a8ec8de7465e00b4eee255b6a409f5be35adeed2f2377a4435`.
-Merged-source deployment remains separately verified.
+
+PR #194 merged as `3b29f16917890a4cd825973452852b652d76076f`.
+Protected Worker `e116a28c-9a97-4460-b774-590923bf680f` reports the exact source
+and manifest `50ef7c654dec572aa7680f7c5b7b151c0d927ea616c4a2bc55720bffe2948650`.
+Independent publication/vector readback passed; private
+`publication-proof-xE0NJu/receipt.json` SHA-256:
+`85dbee6367c3733dc01f2b18fbb3bf359a5bc48d8d1285db1ad7af0f7dd21cdb`.
+Twenty live route/asset/search checks and auth rejection pass.
+`pr194-live-readback.json` also confirms Vercel production
+`dpl_DFxvE44c4YuwRufERzYC258oAuRe` READY at that same commit and five healthy
+public Goose pages. No writer, schedule, DNS, paid-plan or account cutover.
 
 ## 2026-10-20 — Merged release, live search budget and real retention expiry
 

@@ -197,7 +197,7 @@ what's likely next.
 
 ### 2026-10-20 [owner+claude] — Stage the D1 writer and expiry-publication path
 
-The opt-in maintenance store (`77042f3`) preserves stable product identities and
+PR #194 (`3b29f16`) adds the opt-in maintenance store, preserving stable product identities and
 the existing runner's eleven storage operations. Shared ownership now spans
 catalog writes, pruning and activation; interrupted work cannot silently become
 a successful publication. Review fixed stale-observation freshness and revoked
@@ -208,6 +208,8 @@ An actual disposable D1 canary passed ten transaction/replay/ownership checks
 and was removed. A separate live read caught D1's long-pattern SQL limit;
 `ee59f83` replaces that check with canonical timestamp normalization, then
 reproduces the same four products with zero writes.
+The exact merged protected release and twenty route/asset checks pass; Vercel
+production is READY at the same SHA with public Goose pages healthy.
 This is implementation progress, not writer, scheduler or domain cutover.
 
 ### 2026-10-20 [owner+claude] — Review release identity and maintenance migration safety
