@@ -19,10 +19,15 @@ const snapshot = validateCatalogSnapshot(
   fixture,
   new Date("2026-10-20T00:00:00.000Z"),
 );
-const exportSnapshot = process.env.CATALOG_SNAPSHOT_PATH
-  ? validateCatalogSnapshot(
-      JSON.parse(fs.readFileSync(process.env.CATALOG_SNAPSHOT_PATH, "utf8")),
-    )
+const builtSnapshotPath = new URL(
+  "../build/stupid-gifts/catalog.snapshot.json",
+  import.meta.url,
+);
+const artifactInput = fs.existsSync(builtSnapshotPath)
+  ? builtSnapshotPath
+  : process.env.CATALOG_SNAPSHOT_PATH;
+const exportSnapshot = artifactInput
+  ? validateCatalogSnapshot(JSON.parse(fs.readFileSync(artifactInput, "utf8")))
   : snapshot;
 function files(directory, prefix = "") {
   if (directory instanceof URL) directory = fileURLToPath(directory);
