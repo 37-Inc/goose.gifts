@@ -7,6 +7,7 @@ import { loadEvents, validateAndFold } from './creative-experiments.mjs';
 import {
   assertCandidateReadyForPublication,
   assertPinterestAccount,
+  excludeDeletedProductionPins,
   findExistingPin,
   findOwnerApproval,
   hasUnresolvedPublication,
@@ -93,7 +94,8 @@ async function getPublicPinMetrics() {
     if (!uniquePins.has(pin.id)) uniquePins.set(pin.id, pin);
   }
 
-  const pins = await Promise.all([...uniquePins.values()].map(async (pin) => {
+  const activePins = excludeDeletedProductionPins([...uniquePins.values()], readPublicationReceipts());
+  const pins = await Promise.all(activePins.map(async (pin) => {
     if (!pin.id) throw new Error(`Could not resolve public Pinterest Pin id for ${pin.title}`);
     const data = await apiGet(`/pins/${pin.id}?pin_metrics=true`, { sandbox: false });
     const lifetime = data.pin_metrics?.lifetime_metrics || {};

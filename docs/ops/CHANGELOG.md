@@ -42,8 +42,8 @@ what's likely next.
   expiry-aware old-domain auto-renew decision.
   Owner-approved simplification retires bundle URLs/generation and obsolete
   admin/reporting features; GA4 is the reporting focus. Old product-share
-  URLs are a separate compatibility decision because six existing Pinterest
-  Pins still use them; recommend static redirects to normal product pages.
+  URLs and their ID maps/legacy OG endpoint are also retired from the plan.
+  The six dependent Pinterest Pins are deleted; the other 28 Pins remain.
 
 - **Pinterest — completed cohort, measurement only:** final birthday-hat poster
   makes P6/F6,twelve of twelve. Exact full-cohort review deadline is
@@ -193,6 +193,18 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-19 late evening [owner+claude] — Retire legacy shared-link Pins
+
+Deleted exactly the six owner-confirmed public Pins after preserving their
+final metrics. API inventory reconciles 34 to 28; all six read back 404, every
+other Pin remains and no remaining Pin uses the old gift-query URL. Simplified
+the migration spec and existing Beads to remove the legacy redirect map,
+share-card endpoint and parity tests; ordinary product URLs/previews remain.
+Updated deletion records and added a small tested metrics filter so historical
+creative publication events cannot cause requests for deleted Pins. The frozen
+v11 cohort, schedules, current site routes and providers are unchanged.
+PR **#188**; 16 tests, lint/build/diff checks and live 28-Pin metrics readback pass.
 
 ### 2026-10-19 late evening [owner+claude] — Narrow legacy migration scope
 

@@ -34,6 +34,15 @@ V11 is **P 6/6, F 6/6, total 12/12**. No more generation or publication,
 including after the review deadline, until Cameron explicitly authorizes a new
 experiment. The existing schedule stays ACTIVE and unchanged for metrics only.
 
+**October 19 legacy cleanup:** Cameron separately authorized deletion of the
+six pre-v11 Pins using `/random-gift?gift=...`. All six are API-verified deleted;
+the other 28 Pins, including all twelve v11 members, are preserved. Do not
+repost or fetch metrics for the deleted Pins. Historical metrics/creative
+events remain intact; the production deletion receipt excludes these IDs from
+future public metrics. See
+[retirement receipt](pinterest-creative-lab/legacy-share-retirement-2026-10-19.json).
+This does not authorize a new experiment or any further deletion.
+
 The maximum of all twelve unique durable, readback-verified successful receipt
 timestamps is **2026-10-17T16:44:52.279Z**. Adding fourteen full 24-hour days
 sets the exact full-cohort evaluation deadline to **2026-10-31T16:44:52.279Z**
