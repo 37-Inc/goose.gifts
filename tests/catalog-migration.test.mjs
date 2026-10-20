@@ -147,6 +147,53 @@ test('import retries are idempotent, modified receipts refuse, and interrupted b
   assert.equal(db.sqlite.prepare('SELECT count(*) n FROM products').get().n, 2);
 });
 
+test('a matching receipt cannot conceal deleted or modified operational row fields', async () => {
+  for (const mutation of [
+    'DELETE FROM products', "UPDATE products SET title='changed after receipt'",
+    'UPDATE products SET quality_score=0.1', "UPDATE products SET duplicate_of_product_id='other'",
+    `UPDATE products SET source_record_json='{"private":"changed source evidence"}'`,
+  ]) {
+    const db = database(); const row = converted(); const packet = batch([row]);
+    await importBatch(db, packet);
+    const receipt = db.sqlite.prepare('SELECT * FROM migration_imports').get();
+    db.sqlite.exec(mutation);
+    const afterMutation = db.sqlite.prepare('SELECT * FROM products').all();
+    const start = db.queries.length;
+    await assert.rejects(importBatch(db, packet), /target rows are missing or changed/);
+    assert.ok(db.queries.slice(start).every((sql) => sql.trimStart().startsWith('SELECT')));
+    assert.deepEqual(db.sqlite.prepare('SELECT * FROM products').all(), afterMutation);
+    assert.deepEqual(db.sqlite.prepare('SELECT * FROM migration_imports').get(), receipt);
+    assert.deepEqual(packet.rows, [row]);
+  }
+});
+
+test('receipt replay reconciles slug-history identities without a nonexistent id column', async () => {
+  const db = database(); await importBatch(db, batch([converted()]));
+  const row = { slug: 'previous-test-only-crab', product_id: source().id, created_at: now.toISOString(), source_record_json: '{"synthetic":"history"}' };
+  const packet = { ...batch([row]), table: 'product_slug_history' };
+  assert.equal(await importBatch(db, packet), 'imported');
+  assert.equal(await importBatch(db, packet), 'already_imported');
+  assert.match(db.queries.at(-1), /WHERE slug IN \(\?\)/);
+  db.sqlite.exec('DELETE FROM product_slug_history');
+  await assert.rejects(importBatch(db, packet), /missing or changed/);
+});
+
+test('replay uses one bounded indexed read and compares only each row original expected fields', async () => {
+  const db = database();
+  const rows = Array.from({ length: 40 }, (_, index) => ({ id: `run-${index}`, status: 'complete', mode: 'test', dry_run: 1,
+    started_at: now.toISOString(), source_record_json: '{}', ...(index % 2 ? { completed_at: null } : {}) }));
+  const packet = { ...batch(rows), table: 'catalog_runs' };
+  assert.equal(await importBatch(db, packet), 'imported');
+  const start = db.queries.length;
+  assert.equal(await importBatch(db, packet), 'already_imported');
+  const replayQueries = db.queries.slice(start);
+  assert.equal(replayQueries.length, 2); // Receipt + target rows, no writes.
+  assert.match(replayQueries[1], /FROM catalog_runs\s+WHERE id IN/);
+  assert.equal(replayQueries[1].match(/\?/g).length, 40);
+  assert.equal(db.sqlite.prepare('SELECT completed_at FROM catalog_runs WHERE id=?').get('run-0').completed_at, null);
+  assert.equal('completed_at' in rows[0], false);
+});
+
 test('search is FTS/index-backed, bounded and fails closed on held, expired, duplicate or corrupt public fields', async () => {
   const db = database(); const row = converted(); await importBatch(db, batch([row]));
   assert.equal((await keywordSearch(db, 'funny crab', 240, now))[0].publicId, source().public_id);

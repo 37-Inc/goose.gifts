@@ -193,6 +193,24 @@ export function exportLegacyVector(row: Row, metadata: { catalogRevision: string
 export interface ImportBatch {
   exportSha256: string; table: string; batchNumber: number; rows: Row[]; importedAt: string;
 }
+async function verifyImportedRows(db: CatalogD1, batch: ImportBatch): Promise<void> {
+  if (!batch.rows.length) return;
+  const key = batch.table === 'product_slug_history' ? 'slug' : 'id';
+  const columns = [...new Set(batch.rows.flatMap((row) => Object.keys(row)))];
+  if (!columns.length || columns.length > 100 || columns.some((column) => !/^[a-z_]+$/.test(column))) throw new Error('Invalid import columns');
+  const identities = batch.rows.map((row) => requiredString(row[key], key));
+  const expected = new Map(batch.rows.map((row, index) => [identities[index], row]));
+  if (expected.size !== batch.rows.length) throw new Error('Duplicate import identity');
+  // The batch cap permits one indexed read with at most 40 bound identities.
+  const result = await db.prepare(`SELECT ${columns.join(',')} FROM ${batch.table}
+    WHERE ${key} IN (${identities.map(() => '?').join(',')})`).bind(...identities).all<Row>();
+  const actual = result.results.map((row) => {
+    const fields = expected.get(String(row[key]));
+    // Schema defaults not present in the original payload are not imported bytes.
+    return fields ? Object.fromEntries(Object.keys(fields).map((column) => [column, row[column]])) : row;
+  });
+  if (reconcileRows(batch.rows, actual, key).length) throw new Error('Imported target rows are missing or changed');
+}
 /** Restartable atomic batches; an existing receipt must match the exact payload. */
 export async function importBatch(db: CatalogD1, batch: ImportBatch): Promise<'imported' | 'already_imported'> {
   const allowed = [...RUNTIME_TABLES.map((table) => destinationFor(table).table)];
@@ -204,6 +222,7 @@ export async function importBatch(db: CatalogD1, batch: ImportBatch): Promise<'i
     .bind(batch.exportSha256, batch.table, batch.batchNumber).all<{ batch_sha256: string; row_count: number }>();
   if (existing.results.length) {
     if (existing.results[0].batch_sha256 !== hash || existing.results[0].row_count !== batch.rows.length) throw new Error('Import receipt does not match batch');
+    await verifyImportedRows(db, batch);
     return 'already_imported';
   }
   const statements = batch.rows.map((row) => {
