@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "dataKind": "synthetic_fixture",
+  "catalogRevision": "illustrative-layout-proof-v1",
+  "generatedAt": "2026-10-19T00:00:00.000Z",
+  "products": [
+    {
+      "id": "fixture-paperweight",
+      "publicId": "00000000-0000-4000-8000-000000000001",
+      "slug": "illustrative-very-official-paperweight",
+      "title": "A very official paperweight",
+      "description": "A fictional oversized desk stamp, illustrated in-house for this design proof.",
+      "wittyDescription": "Finally. Some weight behind your decisions.",
+      "imageUrl": "/illustrations/paperweight.svg",
+      "affiliateUrl": "https://example.invalid/not-for-sale",
+      "source": "amazon",
+      "currency": "USD",
+      "price": 0,
+      "isActive": true,
+      "qualityScore": 1,
+      "eligibleUntil": "2026-11-19T00:00:00.000Z"
+    },
+    {
+      "id": "fixture-button",
+      "publicId": "00000000-0000-4000-8000-000000000002",
+      "slug": "illustrative-emergency-meeting-button",
+      "title": "The emergency meeting button",
+      "description": "A fictional silent button, illustrated in-house for this design proof.",
+      "wittyDescription": "For matters that absolutely could have been an email.",
+      "imageUrl": "/illustrations/button.svg",
+      "affiliateUrl": "https://example.invalid/not-for-sale",
+      "source": "amazon",
+      "currency": "USD",
+      "price": 0,
+      "isActive": true,
+      "qualityScore": 1,
+      "eligibleUntil": "2026-11-19T00:00:00.000Z"
+    },
+    {
+      "id": "fixture-trophy",
+      "publicId": "00000000-0000-4000-8000-000000000003",
+      "slug": "illustrative-tuesday-trophy",
+      "title": "The Tuesday trophy",
+      "description": "A fictional tiny trophy, illustrated in-house for this design proof.",
+      "wittyDescription": "An unreasonable amount of recognition for a reasonable effort.",
+      "imageUrl": "/illustrations/trophy.svg",
+      "affiliateUrl": "https://example.invalid/not-for-sale",
+      "source": "amazon",
+      "currency": "USD",
+      "price": 0,
+      "isActive": true,
+      "qualityScore": 1,
+      "eligibleUntil": "2026-11-19T00:00:00.000Z"
+    }
+  ],
+  "heldProducts": [
+    {
+      "id": "fixture-held",
+      "publicId": "00000000-0000-4000-8000-000000000004",
+      "slug": "illustrative-held-selection",
+      "path": "/gifts/illustrative-held-selection",
+      "title": "Gift currently unavailable",
+      "description": "This gift is not currently available in the curated catalog. Browse other gifts instead.",
+      "reason": "rights_unverified"
+    }
+  ],
+  "slugHistory": []
+}

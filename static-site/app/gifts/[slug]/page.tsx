@@ -1,0 +1,151 @@
+import { notFound } from "next/navigation";
+import { ProductImage } from "@/components/ProductImage";
+import { buildGiftPageSchema } from "@/lib/gift-page-schema";
+import { catalog } from "../../../lib/catalog";
+import { isIllustrative } from "../../../lib/selection";
+import { previewMetadata, PREVIEW_ORIGIN } from "../../../lib/metadata";
+import { ProductCard } from "../../../components/ProductCard";
+
+export const dynamicParams = false;
+export function generateStaticParams() {
+  return [...catalog.products, ...catalog.heldProducts].map(({ slug }) => ({
+    slug,
+  }));
+}
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const product = catalog.products.find((item) => item.slug === slug);
+  return previewMetadata(
+    product?.title || "Selection under review",
+    product?.description || "This selection is not currently published.",
+    `/gifts/${slug}`,
+  );
+}
+export default async function Gift({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const product = catalog.products.find((item) => item.slug === slug);
+  if (!product) {
+    if (!catalog.heldProducts.some((item) => item.slug === slug)) notFound();
+    return (
+      <main id="main" className="site-main empty-state">
+        <p className="eyebrow">Selection under review</p>
+        <h1>This one isn’t ready.</h1>
+        <p>
+          We are checking the product and permission to use its content. No
+          product imagery or offer is displayed.
+        </p>
+        <a className="text-action" href="/gifts">
+          Explore the collection →
+        </a>
+      </main>
+    );
+  }
+  const illustrative = isIllustrative(product);
+  const retailer = product.source === "amazon" ? "Amazon" : "Etsy";
+  const schema = buildGiftPageSchema(
+    product,
+    `${PREVIEW_ORIGIN}/gifts/${slug}`,
+    product.title,
+    product.description,
+    PREVIEW_ORIGIN,
+  );
+  return (
+    <main id="main" className="site-main">
+      {!illustrative && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
+          }}
+        />
+      )}
+      <a className="back-link" href="/gifts">
+        ← The collection
+      </a>
+      <article className="product-detail">
+        <div className="detail-art">
+          <ProductImage
+            imageUrl={product.imageUrl}
+            alt={
+              illustrative
+                ? `Original illustration of the fictional ${product.title}`
+                : product.title
+            }
+            className="object-contain"
+            sizes="(max-width: 700px) 90vw, 55vw"
+            priority
+          />
+        </div>
+        <div className="detail-copy">
+          <p className="eyebrow">
+            {illustrative
+              ? "Illustrative fixture · not for sale"
+              : "A carefully considered bad idea"}
+          </p>
+          <h1>{product.punnyTitle || product.title}</h1>
+          <p className="detail-line">
+            {product.wittyDescription || product.description}
+          </p>
+          {illustrative ? (
+            <div className="fixture-explanation">
+              <h2>A design example, not a real listing.</h2>
+              <p>
+                This original illustration and fictional object test the layout.
+                There is no retailer, price, availability or endorsement to
+                claim.
+              </p>
+              <a className="button" href="/random-gift">
+                Try another example ↗
+              </a>
+            </div>
+          ) : (
+            <div id="gift-retailer-primary">
+              <a
+                href={product.affiliateUrl}
+                target="_blank"
+                rel="sponsored noopener noreferrer"
+                className="button"
+              >
+                Check price on {retailer} ↗
+              </a>
+              <p className="quiet">
+                Price and availability are confirmed by the retailer. We may
+                earn a commission.
+              </p>
+            </div>
+          )}
+          {product.editorialWriteup && (
+            <div className="editorial">
+              <h2>The short version.</h2>
+              <p>{product.editorialWriteup}</p>
+            </div>
+          )}
+        </div>
+      </article>
+      <section className="section-block">
+        <div className="section-heading">
+          <h2>While you’re considering it.</h2>
+          <a href="/random-gift" className="text-action">
+            Surprise me ↗
+          </a>
+        </div>
+        <div className="catalog-grid">
+          {catalog.products
+            .filter((item) => item.id !== product.id)
+            .slice(0, 3)
+            .map((item) => (
+              <ProductCard key={item.id} product={item} />
+            ))}
+        </div>
+      </section>
+    </main>
+  );
+}
