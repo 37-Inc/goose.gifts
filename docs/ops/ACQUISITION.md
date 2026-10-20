@@ -86,10 +86,16 @@ Posting or sending remains approval-gated.
 
 ### 4. Native social series
 
-**Current Pinterest measurement (October19 afternoon):**34 verified public Pins,
-3,487 impressions,51 opens,eight saves and zero native outbound clicks. V11
-is complete at six Pins per arm: P1,064impressions/15opens/2saves,F279/5/1;
-bothzerooutbound. Bowling supplies97.65%ofP exposure; product/age/concentration
+**Current Pinterest measurement (October20 morning):**28 retained public Pins,
+3,302 impressions,50 opens,seven saves and two native outbound clicks. Six
+separately owner-authorized pre-v11 retirements change profile membership,
+not the unchanged twelve-member cohort; do not compare raw34-versus28 totals
+as traffic regression. V11 is complete at six Pins per arm:
+P1,150impressions/18opens/3saves/2outbound,F291/5/1/0outbound.
+Both outbound clicks are on mini bowling and independently read back twice;
+its public Pin and tracked destination200/query-preserved. This is native
+platform evidence, not corroborated human/site/retailer conversion or sales.
+Bowling supplies97.74%ofP exposure; product/age/concentration
 confounds and unknown attributable site/retailer actions preclude a format or
 acquisition winner. The final birthday-hat poster is production-published/
 readback-verified and links to its canonical gift page for snapback/reuse/adult
@@ -100,7 +106,15 @@ experiment. First regular eligible review slot:October31 16:30Pacific. Current
 GA4/PostHog reads retain unknown downstream, not historic DB/Vercel zeros.
 All twelve memberships/receipts and review-delivery state: `PINTEREST_STUDIO.md`.
 
-The PM bounded landing audit found all twelve canonical pages HTTP200 with
+October20 AM bounded GA4property507421709 Oct14–20partial:369direct+1not-set
+sessions,one engaged direct,no Pinterest/retailer row. PostHog550427:
+5page/7list/1search,no attributed row. Unknown downstream remains unknown,
+despite the new native click signal. All twelve canonical destinations200/
+retailer-linked;tenindex-follow and two existing Chia/Bowling editorial holds.
+No new creative or account/Pin/site/catalog/schedule mutation. Sheep7day is
+due later today2026-10-20T20:07:09.336Z,not closed early.
+
+The October17 PM bounded landing audit found all twelve canonical pages HTTP200 with
 retailer links. Chia, bowling and toast are noindex/follow due to stale
 editorial/source hashes, not a global crawler ban or broken direct-visit path.
 Separate catalog-workflow handoff is documented; no repair/requeue was run.

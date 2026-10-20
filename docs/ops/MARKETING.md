@@ -29,7 +29,7 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-19 afternoon):** ACTIVE, measurement-only.
+**Current scheduler state (2026-10-20 morning):** ACTIVE, measurement-only.
 The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,
 twelve of twelve. Generation and public posting are disabled for this cohort;
 no new creative or publication, even after review, without a new explicit owner
@@ -37,14 +37,18 @@ experiment. Existing two daily slots remain unchanged. The exact receipt-derived
 full-cohort review deadline is **2026-10-31T16:44:52.279Z**; first regular
 eligible slot October31 at4:30PM Pacific. All twelve membership/receipt records
 and one-time review-delivery state are linked from `PINTEREST_STUDIO.md`.
-Current profile:34 verified public Pins,3,487 impressions,51 opens,eight saves,
-zero native outbound. P1064/15/2 and F279/5/1 (impressions/opens/saves) both have
-zero outbound; concentrated exposure is not a format win. Per-Pin downstream
+Current retained profile:28 verified public Pins,3,302 impressions,50 opens,
+seven saves,two native outbound. P1150/18/3/2 and F291/5/1/0
+(impressions/opens/saves/outbound). Both outbound clicks are on mini bowling,
+independently read back twice: an encouraging product-level signal, not a
+format winner or corroborated human/site/retailer conversion. Six separately
+owner-authorized pre-v11 retirements explain changed profile membership;
+all twelve v11 Pins remain intact. Per-Pin downstream
 remains unknown under bounded GA4/PostHog coverage; retired DB/Vercel zeros
 and Sandbox/v3 are never current acquisition evidence.
 
 1. **Pinterest-native creative acquisition**: active public learning loop.
-   Thirty-four product-faithful editorial Pins are live. At the 2026-09-20
+   Twenty-eight retained product-faithful editorial Pins are live. At the 2026-09-20
    morning pull, the public profile had 494 impressions, five Pin clicks, one
    save, and no Pinterest outbound click, attributable Pinterest session, or
    downstream customer product click. That is a directional attention signal,
@@ -55,8 +59,9 @@ and Sandbox/v3 are never current acquisition evidence.
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
    versus bespoke annotated field notes. Twelve are live—six Arm F and six Arm
-   P. They have 1,343 impressions,20 opens,three saves and no outbound click at
-   the October19 afternoon check; the birthday hat remains at zero distribution/actions.
+   P. They have 1,441 impressions,23 opens,four saves and two native outbound
+   clicks at the October20 morning check; both outbound clicks are bowling.
+   The birthday hat remains at zero distribution/actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
    per arm.
@@ -73,6 +78,33 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-20 morning — first native outbound signal; cohort still frozen
+
+Assigned F; P6/F6,total12 cap means no new creative, approval or publication.
+P1150impressions/18opens/3saves/2outbound; F291/5/1/0outbound. Bowling alone
+is1124/16/3/2:97.74%of P exposure and all observed outbound clicks. Toast
+is246/3/1/0,84.54%of F exposure. Without these dominant Pins, P26/2/0/0 and
+F45/2/0/0. Do not infer format superiority from one product or unequal ages.
+Bowling public Pin and tracked Goose destination200/query-preserved; all
+twelve exact packages and receipt boards verify. Downstream remains unknown.
+
+The separate owner-authorized cleanup retired six pre-v11 legacy Pins only.
+Current28 retained profile3302/50/7/2; prior34 profile3487/51/8/0 less retired
+308/4/2/0 is3179/47/6/0. Different membership is not traffic regression.
+No retired-ID fetch or deletion here; historical observations stay immutable.
+GA4Oct14–20Pacific partial:369direct+1not-set sessions,one engaged direct;
+PostHog550427:5page/7list/1search. Neither supplies attributed Pinterest/
+retailer rows; no verified human/unique sessions or sales inferred.
+
+All12 destinations200/self-canonical/retailer-linked,tenindex-follow;
+Chia/Bowling existing holds remain with the separate catalog workflow. No
+source, catalog or page writes. Sheep7day not due until20:07:09.336UTC today;
+first eligible regular slot is this afternoon. Thirteen validated append-only
+events plus [AM receipt](pinterest-creative-lab/v34-concepts/verification/metrics-20261020-am.json)
+and destination audit preserve evidence. No early final review: exact gate
+October31T16:44:52.279Z, regular eligible slot16:30Pacific. Review not delivered;
+queue empty, no new experiment, rename held and existing ACTIVE schedule intact.
 
 ### 2026-10-19 afternoon — metric-only; transient analytics retry recorded
 
