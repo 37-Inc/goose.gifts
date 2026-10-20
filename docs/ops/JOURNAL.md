@@ -5,6 +5,46 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-19 late evening — Staged migration implementation started
+
+Owner authorized implementation and staged migration, using bounded Sol
+extra-high-effort agents with root review, fixes and simplification. Claimed
+the vertical-slice and design tasks (`roadmap-lbbz1.2`, `.5`). Separate managed
+worktrees isolate catalog contracts/migration, Worker runtime and static
+Next/React preview work from the root integration checkout. Existing live app
+is not being replaced by the staging preview; unrelated untracked files remain
+untouched. A separately tested runway patch removes the approved legacy
+gift-ID resolver (404 before any lookup) and upgrades Next.js 16.3.5 to 16.3.8.
+The current cached slug-based product preview stays until static previews ship.
+No measured compute-reduction claim is made before deployment and observation.
+
+Provider readback at approximately 05:17 UTC October 20: the 37.technology
+Cloudflare account `7f05a1dcb6e16f9c239564a0293bbe74` is on Workers **Free**.
+Created only `stupid-gifts-staging`: D1
+`cbe55b17-8916-4983-8ef3-63207d1f402d` (ENAM) and a same-named Vectorize index,
+1,536 dimensions/cosine. Re-listed both to verify. The unrelated
+`garden-care-leads` D1 database is unchanged. No plan upgrade, production
+resource, DNS change or schedule change.
+
+The ambient Cloudflare API token lacks these permissions; the existing
+Wrangler OAuth session works. Use that existing credential in-process for
+the official `cf` resource CLI, never expose it or create broader credentials
+to bypass the mismatch. Wrangler remains the build/deployment tool.
+
+Neon project `polished-king-05543291`, main branch `br-hidden-star-adm2i9u6`,
+reports **80.55/100 CU-hours**, 103.78 MB storage and 1.53 GB transfer.
+19.45 CU-hours remain. This is a delayed monthly counter, not measured
+post-fix burn; the previous exhaustion estimate remains provisional.
+
+Live source inspection found a migration trap: timezone-naive timestamps
+have mixed writer semantics. For `B0CGXSKGXL`, raw
+`availability_checked_at` is `2026-10-19 15:31:58.50259` (SQL `NOW()`, GMT),
+while raw `editorial_generated_at` is `2026-10-19 08:31:55.596` (JS Date
+parameter); the local driver adds seven hours to each. Exports must preserve
+server JSON/text, distinguish proven writer semantics, and never apply one
+timezone assumption to all fields. Unknown historical interpretation remains
+a reconciliation gate, not silently corrected data.
+
 ## 2026-10-19 late evening — Owner-confirmed legacy Pin retirement
 
 Cameron confirmed deletion of the three hippo-mug Pins, screaming goat, ceramic

@@ -7,7 +7,8 @@ requested the Stupid Gifts launch specification and domain registration.
 The current plan is [Stupid Gifts launch and infrastructure](STUPID_GIFTS_LAUNCH_SPEC.md),
 tracked by `roadmap-lbbz1`: static Next/React builds on Cloudflare Workers,
 D1/Vectorize, recoverable data migration, and a curated show-focused redesign.
-The request produces a concrete plan; production cutover has not occurred.
+The owner subsequently authorized implementation and staged migration with
+bounded Sol sub-agents and independent review. Production cutover has not occurred.
 Protect the remaining Neon compute runway first, then prove the migration
 slice. Broad editorial catch-up and new features are secondary. Existing
 bounded maintenance and Pinterest measurement-only controls remain in force.

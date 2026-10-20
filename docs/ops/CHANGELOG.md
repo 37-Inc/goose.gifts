@@ -36,7 +36,8 @@ what's likely next.
   Correct Amazon account/site-list work is deferred to the final pre-launch
   gate (`roadmap-lbbz1.8`), alongside the final-stage GA4/Search Console/
   Google Cloud and remaining-provider rebrand checklist. Research/pricing
-  integration is post-launch (`roadmap-mt1gp`). No live rebrand/migration yet.
+  integration is post-launch (`roadmap-mt1gp`). Implementation and staged
+  migration are now authorized and underway; no live rebrand/cutover yet.
   Final retirement (`roadmap-lbbz1.7`) covers Vercel/Neon removal, GitHub
   rename, the live 37.technology listing, independent redirects and an
   expiry-aware old-domain auto-renew decision.
@@ -193,6 +194,22 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-19 late evening [owner+claude] — Start staged migration and close legacy lookup path
+
+- Began the approved migration with three isolated Sol implementation agents
+  and root integration/review; created only the free-plan D1/Vectorize staging
+  resources. No domain cutover, paid upgrade or provider retirement.
+- Retired the uncached gift-ID resolver and old Random share metadata. Legacy
+  gift-query pages/previews now return 404; Random keeps its shared catalog
+  cache and canonical product-page sharing. Cached slug previews remain until
+  static previews replace them.
+- Patched Next.js and its ESLint config to 16.3.8, plus compatible transitive
+  security fixes. Targeted tests, lint and production build pass; production
+  dependency audit has no high/critical findings. Full staging migration,
+  measured Neon burn and launch acceptance remain open (`roadmap-lbbz1.2`).
+- Implementation branch: `claude/stupid-gifts-integration`; deployment receipt
+  will be recorded after the PR is merged and independently verified.
 
 ### 2026-10-19 late evening [owner+claude] — Retire legacy shared-link Pins
 

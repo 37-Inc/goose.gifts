@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { permanentRedirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { PageHero, HeroUnderline } from '@/components/ui/PageHero';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -8,8 +8,8 @@ import { ProductClickButton } from '@/components/ProductClickButton';
 import { ProductGrid } from '@/components/ProductGrid';
 import { ProductImage } from '@/components/ProductImage';
 import { RandomGiftLink } from '@/components/RandomGiftLink';
-import { getRandomGiftSelection, getProductById } from '@/lib/db/random-gift';
-import { getGiftPath, getLegacyGiftRedirectPath } from '@/lib/gift-slugs';
+import { getRandomGiftSelection } from '@/lib/db/random-gift';
+import { getGiftPath } from '@/lib/gift-slugs';
 import { getSiteUrl } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
@@ -23,78 +23,27 @@ const DEFAULT_OG_IMAGE = {
   alt: 'goose.gifts random ridiculous gift generator',
 };
 
-function firstParam(value?: string | string[]): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-// When a share link points at a specific gift (`?gift=<id>`), build a per-product
-// share card: punny title + product image in the metadata, and a dynamic OG image
-// rendered by /api/og/random-gift. `generateMetadata` (unlike `opengraph-image.tsx`)
-// receives searchParams, so the query-param share URL keeps working unchanged.
-export async function generateMetadata({
-  searchParams,
-}: {
-  searchParams?: Promise<{ gift?: string | string[]; spin?: string | string[] }>;
-}): Promise<Metadata> {
-  const params = searchParams ? await searchParams : {};
-  const giftId = firstParam(params.gift);
-
-  const product = giftId ? await getProductById(giftId).catch(() => undefined) : undefined;
-
-  if (!product || !product.isActive) {
-    return {
-      title: `${PAGE_TITLE} | goose.gifts`,
-      description: PAGE_DESCRIPTION,
-      alternates: { canonical: '/random-gift' },
-      openGraph: {
-        title: `${PAGE_TITLE} | goose.gifts`,
-        description: PAGE_DESCRIPTION,
-        url: '/random-gift',
-        siteName: 'goose.gifts',
-        type: 'website',
-        images: [DEFAULT_OG_IMAGE],
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: `${PAGE_TITLE} | goose.gifts`,
-        description: PAGE_DESCRIPTION,
-        images: [DEFAULT_OG_IMAGE.url],
-      },
-    };
-  }
-
-  const productTitle = product.punnyTitle || product.title;
-  const shareTitle = `${productTitle} · Random Ridiculous Gift | goose.gifts`;
-  const shareDescription = product.wittyDescription || PAGE_DESCRIPTION;
-  const canonicalPath = product.slug ? getGiftPath(product.slug) : '/random-gift';
-  const ogImageUrl = `${getSiteUrl()}/api/og/random-gift?gift=${encodeURIComponent(product.id)}`;
-  const ogImage = {
-    url: ogImageUrl,
-    width: 1200,
-    height: 630,
-    alt: `${productTitle} — a ridiculous gift from goose.gifts`,
-  };
-
-  return {
-    title: shareTitle,
-    description: shareDescription,
-    alternates: { canonical: canonicalPath },
-    openGraph: {
-      title: shareTitle,
-      description: shareDescription,
-      url: canonicalPath,
-      siteName: 'goose.gifts',
-      type: 'website',
-      images: [ogImage],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: shareTitle,
-      description: shareDescription,
-      images: [ogImageUrl],
-    },
-  };
-}
+// Product sharing uses the canonical product page. Random's metadata never
+// resolves a legacy gift ID or opens an uncached database connection.
+export const metadata: Metadata = {
+  title: `${PAGE_TITLE} | goose.gifts`,
+  description: PAGE_DESCRIPTION,
+  alternates: { canonical: '/random-gift' },
+  openGraph: {
+    title: `${PAGE_TITLE} | goose.gifts`,
+    description: PAGE_DESCRIPTION,
+    url: '/random-gift',
+    siteName: 'goose.gifts',
+    type: 'website',
+    images: [DEFAULT_OG_IMAGE],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${PAGE_TITLE} | goose.gifts`,
+    description: PAGE_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE.url],
+  },
+};
 
 function formatPrice(price: number, currency: string): string {
   if (price <= 0) {
@@ -117,21 +66,13 @@ export default async function RandomGiftPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = searchParams ? await searchParams : {};
-  const requestedId = Array.isArray(params.gift) ? params.gift[0] : params.gift;
-
-  if (requestedId) {
-    const requestedProduct = await getProductById(requestedId).catch(() => undefined);
-    if (requestedProduct?.slug) {
-      permanentRedirect(getLegacyGiftRedirectPath(requestedProduct.slug, params));
-    }
-  }
-
+  if ('gift' in params) notFound();
   const spin = Array.isArray(params.spin) ? params.spin[0] : params.spin;
-  const seed = spin || requestedId || new Date().toISOString().slice(0, 13);
-  const { product, alternates, poolSize } = await getRandomGiftSelection(seed, requestedId);
+  const seed = spin || new Date().toISOString().slice(0, 13);
+  const { product, alternates, poolSize } = await getRandomGiftSelection(seed);
   const baseUrl = getSiteUrl();
 
-  if (!product) {
+  if (!product?.slug) {
     return (
       <main className="min-h-screen bg-white text-zinc-950">
         <Header />
@@ -151,9 +92,7 @@ export default async function RandomGiftPage({
   }
 
   const title = displayTitle(product);
-  const sharePath = product.slug
-    ? getGiftPath(product.slug)
-    : `/random-gift?gift=${encodeURIComponent(product.id)}`;
+  const sharePath = getGiftPath(product.slug);
   const shareUrl = `${baseUrl}${sharePath}`;
   const schema = JSON.stringify({
     '@context': 'https://schema.org',
