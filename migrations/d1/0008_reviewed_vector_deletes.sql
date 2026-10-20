@@ -48,6 +48,7 @@ INSERT INTO sqlite_sequence(name,seq) SELECT 'vector_sync_outbox',sequence FROM 
   WHERE NOT EXISTS(SELECT 1 FROM sqlite_sequence WHERE name='vector_sync_outbox');
 DROP TABLE vector_sequence_v8;
 CREATE INDEX vector_sync_outbox_pending_idx ON vector_sync_outbox(status,sequence);
+CREATE INDEX vector_sync_revision_watermark ON vector_sync_outbox(source_revision,sequence,status);
 CREATE TRIGGER vector_delete_outbox_review BEFORE INSERT ON vector_sync_outbox
 WHEN NEW.delete_mutation_sha256 IS NOT NULL BEGIN
   SELECT CASE WHEN NOT EXISTS(SELECT 1 FROM vector_delete_mutations r

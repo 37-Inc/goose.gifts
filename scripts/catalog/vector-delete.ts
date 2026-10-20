@@ -40,6 +40,10 @@ export function validateReviewedVectorDelete(input: ReviewedVectorDelete, produc
 
 /** Queue only an already-held, hash-unknown historical product. No product update,
  * provider call, invented input/hash, or fall back to PostgreSQL occurs here.
+ * OFFLINE/UNACTIVATED: the product review is read before the receipt/outbox batch,
+ * not atomically fenced with it. A concurrent product change can queue permanently
+ * stale pending work; the drainer refuses it. A serialized writer barrier is
+ * required before any activation. This is not the new weekly writer transaction.
  */
 export async function queueReviewedVectorDelete(db: CatalogD1, mutation: ReviewedVectorDelete, now = new Date()): Promise<void> {
   const product = (await db.prepare('SELECT * FROM products WHERE public_id=?').bind(mutation.publicId).all()).results[0];

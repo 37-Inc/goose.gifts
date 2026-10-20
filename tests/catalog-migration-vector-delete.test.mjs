@@ -182,3 +182,58 @@ test('0008 preserves an empty outbox historical sequence and a forged preexistin
     assert.equal(conflict.row().embedding_text_hash, 'a'.repeat(64));
   } finally { conflict.close(); }
 });
+
+test('0008 preserves existing column/index semantics and revision watermark queries remain indexed', async () => {
+  const f = await fixture(false);
+  const indexes = () => f.sqlite.prepare('PRAGMA index_list(vector_sync_outbox)').all().map(index => ({
+    // SQLite owns autoindex names; explicit index names are part of the schema contract.
+    name: index.origin === 'u' ? '<unique constraint>' : index.name,
+    unique: index.unique, partial: index.partial,
+    columns: f.sqlite.prepare(`PRAGMA index_info(${JSON.stringify(index.name)})`).all().map(column => column.name),
+  })).sort((a, b) => a.name.localeCompare(b.name));
+  try {
+    const beforeIndexes = indexes();
+    assert.deepEqual(beforeIndexes.map(index => index.name), ['<unique constraint>', 'vector_sync_outbox_pending_idx', 'vector_sync_revision_watermark']);
+    const beforeColumns = f.sqlite.prepare('PRAGMA table_info(vector_sync_outbox)').all().map(column => ({ ...column }));
+    const insert = f.sqlite.prepare(`INSERT INTO vector_sync_outbox(public_id,source_revision,embedding_text_hash,operation,status,created_at)
+      VALUES(?,?,?,'upsert',?,'2026-10-20T07:00:00.000Z')`);
+    f.sqlite.exec('BEGIN');
+    for (let index = 0; index < 3000; index++) insert.run(`00000000-0000-4000-8000-${String(index).padStart(12, '0')}`, 'other-revision', 'a'.repeat(64), 'complete');
+    insert.run(UUID, 'target-revision', 'a'.repeat(64), 'pending');
+    f.sqlite.exec('COMMIT');
+    const queries = [
+      'SELECT coalesce(max(sequence),0) watermark FROM vector_sync_outbox WHERE source_revision=?',
+      "SELECT 1 pending FROM vector_sync_outbox WHERE source_revision=? AND status!='complete' LIMIT 1",
+    ];
+    const results = queries.map(sql => ({ ...f.sqlite.prepare(sql).get('target-revision') }));
+    f.sqlite.exec('BEGIN'); f.sqlite.exec(await migration('0008_reviewed_vector_deletes.sql')); f.sqlite.exec('COMMIT');
+    assert.deepEqual(indexes(), beforeIndexes);
+    const afterColumns = f.sqlite.prepare('PRAGMA table_info(vector_sync_outbox)').all().map(column => ({ ...column }));
+    assert.deepEqual(afterColumns.slice(0, beforeColumns.length), beforeColumns.map(column =>
+      column.name === 'embedding_text_hash' ? { ...column, notnull: 0 } : column));
+    assert.equal(afterColumns.at(-1).name, 'delete_mutation_sha256');
+    for (let index = 0; index < queries.length; index++) {
+      assert.deepEqual({ ...f.sqlite.prepare(queries[index]).get('target-revision') }, results[index]);
+      const plan = f.sqlite.prepare(`EXPLAIN QUERY PLAN ${queries[index]}`).all('target-revision').map(row => row.detail).join('\n');
+      assert.match(plan, /SEARCH vector_sync_outbox USING COVERING INDEX vector_sync_revision_watermark \(source_revision=\?\)/);
+      assert.doesNotMatch(plan, /SCAN vector_sync_outbox/);
+    }
+    assert.deepEqual(results, [{ watermark: 3001 }, { pending: 1 }]);
+  } finally { f.close(); }
+});
+
+test('pre-batch product drift can queue stale work but cannot authorize a deletion or autonomous completion', async () => {
+  const f = await fixture();
+  try {
+    let changed = false;
+    f.beforeRun(sql => {
+      if (!changed && sql.includes('INSERT INTO vector_delete_mutations')) {
+        changed = true; f.sqlite.exec("UPDATE products SET updated_at='2026-10-20T07:00:01.000Z'");
+      }
+    });
+    await f.queue();
+    assert.equal((await f.drain()).outcomes[0].errorCode, 'payload_invalid');
+    assert.equal(f.row().status, 'pending'); assert.equal(f.row().mutation_reference, null);
+    assert.deepEqual(f.counts(), { deletes: 0, upserts: 0 });
+  } finally { f.close(); }
+});
