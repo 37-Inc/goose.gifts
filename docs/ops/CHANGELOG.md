@@ -34,8 +34,9 @@ what's likely next.
   review adds Pinterest app/profile and scheduler cutover, affiliate ownership
   verification, content-rights/expiry gates, and the `/howie` landing experience.
   Correct Amazon account/site-list work is deferred to the final pre-launch
-  gate (`roadmap-lbbz1.8`); research/pricing integration is post-launch
-  (`roadmap-mt1gp`). No live rebrand/migration yet.
+  gate (`roadmap-lbbz1.8`), alongside the final-stage GA4/Search Console/
+  Google Cloud and remaining-provider rebrand checklist. Research/pricing
+  integration is post-launch (`roadmap-mt1gp`). No live rebrand/migration yet.
 
 - **Pinterest — completed cohort, measurement only:** final birthday-hat poster
   makes P6/F6,twelve of twelve. Exact full-cohort review deadline is
@@ -185,6 +186,16 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-19 late evening [owner+claude] — Defer complete provider rebrand checklist
+
+Expanded the launch spec and `roadmap-lbbz1.8` to include GA4 property/stream,
+Search Console migration, Google Cloud/Auth branding and credentials, Ads/
+PostHog continuity and a remaining-service inventory. All provider-facing
+changes wait until final launch; search-move notices follow working redirects.
+Preserve existing IDs, history, shared accounts and rollback paths. Planning
+only: no provider setting, verification record or schedule changed.
+Branch `claude/stupid-gifts-provider-checklist-20261019`.
 
 ### 2026-10-19 late evening [owner+claude] — Secure domain and finish launch review
 

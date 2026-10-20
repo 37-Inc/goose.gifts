@@ -15,6 +15,10 @@ bounded maintenance and Pinterest measurement-only controls remain in force.
 October 19 final review: `stupid.gifts` is registered and Active in the existing
 Cloudflare account. Provider/account migration is tracked by `roadmap-lbbz1.8`;
 the owner deferred the wife's Amazon login/site-list update to the end.
+That same final-stage checklist includes GA4, Search Console, Google
+Cloud/Auth, Ads/PostHog and a sweep of remaining brand-dependent services.
+Preserve resource IDs/history and shared account identity; no provider
+rebranding now. Search-move submissions follow working production redirects.
 `roadmap-mt1gp` tracks optional post-launch research evidence sharing and
 compliant pricing. Do not reuse an influencer-video earnings model as website
 EPC, or treat a valid affiliate URL as credited-commission evidence.
