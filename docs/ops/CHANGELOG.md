@@ -195,7 +195,7 @@ PostHog continuity and a remaining-service inventory. All provider-facing
 changes wait until final launch; search-move notices follow working redirects.
 Preserve existing IDs, history, shared accounts and rollback paths. Planning
 only: no provider setting, verification record or schedule changed.
-Branch `claude/stupid-gifts-provider-checklist-20261019`.
+PR **#185**; lint/build/diff checks pass.
 
 ### 2026-10-19 late evening [owner+claude] — Secure domain and finish launch review
 
