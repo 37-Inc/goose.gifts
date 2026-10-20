@@ -21,6 +21,8 @@ without it, the checked-in `synthetic_fixture` is used. No database, Amazon,
 OpenAI or remote font request runs during rendering. Inter's existing licensed
 Latin subset is self-hosted with its SIL license. SVG illustrations are original
 geometric design fixtures, not merchant images or photographs of actual products.
+Use the same `CATALOG_SNAPSHOT_PATH` for the build and its artifact tests; the
+tests check the exact cohort that was exported without saving that input to Git.
 
 All routes have noindex metadata and robots disallows crawling. There is no
 analytics provider, production analytics adapter, service worker, catalog browser

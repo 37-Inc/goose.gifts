@@ -12,7 +12,7 @@ export function ProductCard({
   return (
     <article className={`product-card ${lead ? "lead-card" : ""}`}>
       <a
-        className="product-art"
+        className={`product-art${isIllustrative(product) ? "" : " retailer-art"}`}
         href={`/gifts/${product.slug}`}
         aria-label={`View ${product.title}`}
       >

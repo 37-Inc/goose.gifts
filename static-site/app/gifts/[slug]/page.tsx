@@ -19,9 +19,12 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const product = catalog.products.find((item) => item.slug === slug);
+  const held = catalog.heldProducts.find((item) => item.slug === slug);
   return previewMetadata(
-    product?.title || "Selection under review",
-    product?.description || "This selection is not currently published.",
+    product?.title || held?.title || "Selection unavailable",
+    product?.description ||
+      held?.description ||
+      "This selection is not currently published.",
     `/gifts/${slug}`,
   );
 }
@@ -33,15 +36,13 @@ export default async function Gift({
   const { slug } = await params;
   const product = catalog.products.find((item) => item.slug === slug);
   if (!product) {
-    if (!catalog.heldProducts.some((item) => item.slug === slug)) notFound();
+    const held = catalog.heldProducts.find((item) => item.slug === slug);
+    if (!held) notFound();
     return (
       <main id="main" className="site-main empty-state">
-        <p className="eyebrow">Selection under review</p>
-        <h1>This one isn’t ready.</h1>
-        <p>
-          We are checking the product and permission to use its content. No
-          product imagery or offer is displayed.
-        </p>
+        <p className="eyebrow">Not currently in the collection</p>
+        <h1>{held.title}</h1>
+        <p>{held.description}</p>
         <a className="text-action" href="/gifts">
           Explore the collection →
         </a>
@@ -71,7 +72,7 @@ export default async function Gift({
         ← The collection
       </a>
       <article className="product-detail">
-        <div className="detail-art">
+        <div className={`detail-art${illustrative ? "" : " retailer-art"}`}>
           <ProductImage
             imageUrl={product.imageUrl}
             alt={
@@ -117,7 +118,7 @@ export default async function Gift({
                 Check price on {retailer} ↗
               </a>
               <p className="quiet">
-                Price and availability are confirmed by the retailer. We may
+                Check current price and availability at the retailer. We may
                 earn a commission.
               </p>
             </div>
@@ -125,7 +126,17 @@ export default async function Gift({
           {product.editorialWriteup && (
             <div className="editorial">
               <h2>The short version.</h2>
-              <p>{product.editorialWriteup}</p>
+              {product.editorialWriteup
+                .split(/\n\s*\n/)
+                .map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
+            </div>
+          )}
+          {!illustrative && product.punnyTitle && (
+            <div className="listing-identity">
+              <h2>Retailer listing name</h2>
+              <p>{product.title}</p>
             </div>
           )}
         </div>

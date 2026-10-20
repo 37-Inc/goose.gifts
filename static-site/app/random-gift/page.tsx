@@ -1,10 +1,12 @@
-import { catalog } from "../../lib/catalog";
+import { catalog, isFixtureRelease } from "../../lib/catalog";
 import { eligiblePool } from "../../lib/selection";
 import { RandomSelection } from "../../components/RandomSelection";
 import { previewMetadata } from "../../lib/metadata";
 export const metadata = previewMetadata(
   "Leave it to chance",
-  "A bounded versioned pool, no immediate repeats, and ordinary product links. Illustrative staging fixtures only.",
+  isFixtureRelease
+    ? "A bounded versioned pool, no immediate repeats, and ordinary product links. Illustrative staging fixtures only."
+    : "A bounded staging catalog pool, no immediate repeats, and ordinary product links. Not a public launch.",
   "/random-gift",
 );
 export default function Random() {

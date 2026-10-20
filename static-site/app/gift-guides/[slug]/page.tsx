@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { guides } from "../../../lib/guides";
-import { catalog } from "../../../lib/catalog";
+import { catalog, isFixtureRelease } from "../../../lib/catalog";
 import { ProductCard } from "../../../components/ProductCard";
 import { previewMetadata } from "../../../lib/metadata";
 export const dynamicParams = false;
@@ -42,15 +42,30 @@ export default async function Guide({
         <h2>{guide.heading}</h2>
         <p>{guide.body}</p>
       </div>
-      <p className="fixture-note">
-        Layout examples only. The guide’s real product cohort is pending review;
-        these fictional objects are not recommendations or listings.
-      </p>
-      <div className="catalog-grid">
-        {catalog.products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {isFixtureRelease ? (
+        <>
+          <p className="fixture-note">
+            Layout examples only. The guide’s real product cohort is pending
+            review; these fictional objects are not recommendations or listings.
+          </p>
+          <div className="catalog-grid">
+            {catalog.products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="guide-pending">
+          <h2>This guide’s selection is being reviewed.</h2>
+          <p>
+            The staging migration sample is not a guide-specific recommendation.
+            We’ll add products here after their fit for this guide is confirmed.
+          </p>
+          <a className="text-action" href="/gifts">
+            Browse the staging collection →
+          </a>
+        </div>
+      )}
     </main>
   );
 }

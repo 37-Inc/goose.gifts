@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import type { PublicCatalogProduct } from "../../lib/catalog/types";
-import { eligiblePool, nextRandomIndex } from "../lib/selection";
+import {
+  eligiblePool,
+  isIllustrative,
+  nextRandomIndex,
+} from "../lib/selection";
 import { ProductCard } from "./ProductCard";
 
 export function RandomSelection({
@@ -48,8 +52,8 @@ export function RandomSelection({
             Another questionable decision <span aria-hidden="true">↻</span>
           </button>
           <p className="quiet">
-            {pool.length} examples in this versioned pool. No repeat on the next
-            spin.
+            {pool.length} {pool.every(isIllustrative) ? "examples" : "gifts"} in
+            this versioned pool. No repeat on the next spin.
           </p>
         </>
       ) : (

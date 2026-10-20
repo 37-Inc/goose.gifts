@@ -19,6 +19,11 @@ const snapshot = validateCatalogSnapshot(
   fixture,
   new Date("2026-10-20T00:00:00.000Z"),
 );
+const exportSnapshot = process.env.CATALOG_SNAPSHOT_PATH
+  ? validateCatalogSnapshot(
+      JSON.parse(fs.readFileSync(process.env.CATALOG_SNAPSHOT_PATH, "utf8")),
+    )
+  : snapshot;
 function files(directory, prefix = "") {
   if (directory instanceof URL) directory = fileURLToPath(directory);
   return fs
@@ -67,7 +72,7 @@ test(
   { skip: !fs.existsSync(new URL("out/index.html", root)) },
   () => {
     const inventory = files(new URL("out/", root));
-    const routes = createStaticRoutes(snapshot, inventory);
+    const routes = createStaticRoutes(exportSnapshot, inventory);
     for (const asset of inventory.filter(
       (file) =>
         /\.(html|txt|json)$/.test(file) &&
@@ -84,17 +89,16 @@ test(
     }
     assert.equal(routes["/howie"].indexable, false);
     assert.equal(routes["/preview/presentation"].indexable, false);
-    assert.equal(routes["/gifts/illustrative-held-selection"].state, "held");
-    assert.equal(
-      routes["/gifts/illustrative-held-selection.txt"].state,
-      "held",
-    );
+    for (const held of exportSnapshot.heldProducts) {
+      assert.equal(routes[held.path].state, "held");
+      assert.equal(routes[`${held.path}.txt`].state, "held");
+    }
     assert.equal(
       routes["/__next.__PAGE__.txt"].eligibleUntil,
-      snapshot.products[0].eligibleUntil,
+      exportSnapshot.products.map((product) => product.eligibleUntil).sort()[0],
     );
     assert.throws(
-      () => createStaticRoutes(snapshot, [...inventory, "/orphan.txt"]),
+      () => createStaticRoutes(exportSnapshot, [...inventory, "/orphan.txt"]),
       /no freshness policy/,
     );
   },
@@ -103,15 +107,15 @@ test(
   "related product deadline protects detail HTML and RSC too",
   { skip: !fs.existsSync(new URL("out/index.html", root)) },
   () => {
-    const changed = structuredClone(snapshot);
+    const changed = structuredClone(exportSnapshot);
     changed.products[2].eligibleUntil = "2026-10-21T00:00:00.000Z";
     const routes = createStaticRoutes(changed, files(new URL("out/", root)));
     assert.equal(
-      routes["/gifts/illustrative-very-official-paperweight"].eligibleUntil,
+      routes[`/gifts/${changed.products[0].slug}`].eligibleUntil,
       changed.products[2].eligibleUntil,
     );
     assert.equal(
-      routes["/gifts/illustrative-very-official-paperweight.txt"].eligibleUntil,
+      routes[`/gifts/${changed.products[0].slug}.txt`].eligibleUntil,
       changed.products[2].eligibleUntil,
     );
   },
@@ -121,17 +125,20 @@ test(
   { skip: !fs.existsSync(new URL("out/index.html", root)) },
   () => {
     const html = fs.readFileSync(new URL("out/index.html", root), "utf8");
-    assert.match(
-      html,
-      /href="\/gifts\/illustrative-very-official-paperweight"/,
+    assert.ok(
+      html.includes(`href="/gifts/${exportSnapshot.products[0].slug}"`),
     );
     assert.match(html, /noindex/);
     assert.doesNotMatch(html, /\$0\.00|https:\/\/example\.invalid|as seen on/i);
-    const held = fs.readFileSync(
-      new URL("out/gifts/illustrative-held-selection.html", root),
-      "utf8",
-    );
-    assert.doesNotMatch(held, /paperweight\.svg|sourceFacts|Offer/);
+    for (const product of exportSnapshot.heldProducts) {
+      const held = fs.readFileSync(
+        new URL(`out${product.path}.html`, root),
+        "utf8",
+      );
+      assert.doesNotMatch(held, /sourceFacts|"@type":"Offer"/);
+      for (const ready of exportSnapshot.products)
+        assert.equal(held.includes(ready.imageUrl), false);
+    }
     const safe = fs.readFileSync(
       new URL("out/safe/catalog.html", root),
       "utf8",
@@ -142,6 +149,56 @@ test(
       "utf8",
     );
     assert.doesNotMatch(preview, /fixture-paperweight|example\.invalid/);
+    for (const product of exportSnapshot.products) {
+      for (const value of [
+        product.id,
+        product.slug,
+        product.imageUrl,
+        product.affiliateUrl,
+      ]) {
+        assert.equal(
+          safe.includes(value),
+          false,
+          "product content in safe fallback",
+        );
+        assert.equal(
+          preview.includes(value),
+          false,
+          "product content in pending presentation",
+        );
+      }
+    }
+    const readyProduct = exportSnapshot.products[0];
+    const detail = fs.readFileSync(
+      new URL(`out/gifts/${readyProduct.slug}.html`, root),
+      "utf8",
+    );
+    const random = fs.readFileSync(
+      new URL("out/random-gift.html", root),
+      "utf8",
+    );
+    if (exportSnapshot.dataKind === "catalog") {
+      assert.match(
+        detail.replace(/<[^>]*>/g, ""),
+        /Check price on Amazon|Check price on Etsy/,
+      );
+      if (readyProduct.punnyTitle)
+        assert.match(detail, /Retailer listing name/);
+      assert.doesNotMatch(detail, /"@type":"Offer"|\$0\.00/);
+      assert.ok(
+        random
+          .replace(/<[^>]*>/g, "")
+          .includes(
+            `${exportSnapshot.products.length} gifts in this versioned pool`,
+          ),
+      );
+      const guide = fs.readFileSync(
+        new URL("out/gift-guides/funny-gifts-for-coworkers.html", root),
+        "utf8",
+      );
+      assert.match(guide, /not a guide-specific recommendation/);
+      assert.equal(guide.includes(readyProduct.imageUrl), false);
+    }
     for (const file of files(new URL("out/_next/", root)).filter((file) =>
       file.endsWith(".js"),
     )) {
@@ -153,6 +210,20 @@ test(
         content,
         /G-6RR3HPR747|AW-17626116539|googletagmanager|fixture-paperweight|illustrative-very-official-paperweight|A very official paperweight|\/illustrations\/paperweight|example\.invalid\/not-for-sale|sourceFactsHash|POSTGRES_URL/,
       );
+      for (const product of exportSnapshot.products) {
+        for (const value of [
+          product.id,
+          product.slug,
+          product.title,
+          product.imageUrl,
+          product.affiliateUrl,
+        ])
+          assert.equal(
+            content.includes(value),
+            false,
+            `product data in ${file}`,
+          );
+      }
     }
   },
 );

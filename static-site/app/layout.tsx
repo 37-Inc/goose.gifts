@@ -6,7 +6,9 @@ import "./styles.css";
 export const metadata: Metadata = {
   ...previewMetadata(
     "Ridiculous gifts. Excellent taste.",
-    "An isolated, noindex Stupid Gifts design and static-export preview. Illustrative fixtures are not products for sale.",
+    isFixtureRelease
+      ? "An isolated, noindex Stupid Gifts design and static-export preview. Illustrative fixtures are not products for sale."
+      : "An isolated, noindex Stupid Gifts staging preview using a bounded catalog cohort. This is not a public launch.",
     "/",
   ),
   icons: { icon: "/favicon.svg" },

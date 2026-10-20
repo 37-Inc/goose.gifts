@@ -3,7 +3,9 @@ import { ProductCard } from "../../components/ProductCard";
 import { previewMetadata } from "../../lib/metadata";
 export const metadata = previewMetadata(
   "The collection",
-  "Rights-cleared illustrative examples for the static migration proof, not purchasable products.",
+  isFixtureRelease
+    ? "Rights-cleared illustrative examples for the static migration proof, not purchasable products."
+    : "A bounded catalog cohort for the isolated staging migration proof. Not a public launch.",
   "/gifts",
 );
 export default function Directory() {
