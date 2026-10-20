@@ -195,6 +195,50 @@ promotion, outreach, account changes, deletions, video or unrelated site changes
 
 ## October 13 recovery evidence
 
+### October 20 afternoon — sheep seven-day observation; no new outbound
+
+AssignedP, completedP6/F6,total12 cap frozen. No shortlist/concepts/generation,
+approval,create dryrun or publication. Production goosegifts BUSINESS account,
+all12 complete packages/durable receipt boards verify; no unresolved receipt
+or successful publication today.28 retained public Pins,26listed+two known
+exact-ID omissions. Six separately owner-authorized retired legacy IDs excluded
+before fetch, not reposted/deleted here. Generation/publicPosting/paidSpend false.
+
+At2026-10-20T23:34:02.495Z P1322impressions/21opens/3saves/2outbound,
+F302/5/1/0outbound. Profile3516/53/7/2. Bowling1294/19/3/2 supplies97.88%P
+exposure and all two outbound; toast257/3/1/0 supplies85.10%F. Excluding those
+dominant Pins P28/2/0/0,F45/2/0/0. No additional outbound sinceAM or demonstrated
+format winner. Preserve unequal ages/product/category differences and actual
+current observations; do not invent equal-age history or qualified conversion.
+
+Sheep7day gate2026-10-20T20:07:09.336Z, first eligible regular PM observation
+23:34:02.495Z, actual age617213159ms, late12413159ms(3h26m53.159s). Native
+impressions/opens/saves/outbound all zero; per-Pin site/retailer/revenue unknown.
+Exact Pin/package/receipt board and public HTML200 verify; canonical tracked
+destination200/UTM intact/retailer CTA. Distribution-limited, not creative/arm
+failure. Keep measuring, public and original F/quota membership. No revision,
+replacement or repost. [Seven-day receipt](pinterest-creative-lab/v34-concepts/verification/sheep-7day-20261020-pm.json).
+Its28day exact gate is2026-11-10T20:07:09.336Z; no early closure.
+
+Bounded GA4property507421709 Oct14–20Pacific/currentdaypartial509direct+
+1not-set sessions,two engaged direct,no attributed Pinterest/retailer row.
+PostHog explicit5504275page/7list/1search,no attributed row. Both respond,
+missing attribution remains unknown. No absent-host filter, Sandbox/v3,
+QA/operator campaigns or retired DB/Vercel zeros used as conversion evidence.
+All12 tracked destinations200/selfcanonical/query-preserved/retailerlinked,
+tenindex-follow/two existing Chia/Bowling holds; no source/catalog/cache/page
+mutation or requeue. Existing catalog handoff and rename hold unchanged.
+
+14 validated append-only events plus [PM receipt](pinterest-creative-lab/v34-concepts/verification/metrics-20261020-pm.json)
+and [tracked destination audit](pinterest-creative-lab/v34-concepts/verification/destinations-20261020-pm.json)
+retain evidence. No lifecycle change, publication/approval/retirement receipt or
+cohort/deadline mutation. Next spider7day exact gate2026-10-21T16:42:53.716Z;
+observe first scheduled time at/after, not early. Full review not due/delivered:
+exact gate2026-10-31T16:44:52.279Z, regular eligible slotOct31 16:30Pacific.
+Keep existing ACTIVE schedule, no new experiment/generation/publication even
+after review without Cameron's explicit decision. Routine acquisition state
+unchanged, no owner action or repeat outbound-click notification needed.
+
 ### October 20 morning — first native outbound clicks; no new creative
 
 AssignedF, P6/F6,total12 cap frozen. No shortlist, concepts, image generation,

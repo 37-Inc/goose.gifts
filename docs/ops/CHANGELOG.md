@@ -195,6 +195,22 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-20 [daily-ops] — Record Sheep seven-day checkpoint; keep measuring
+
+- PM assignedP, fullP6/F6 remains frozen: no new creative/approval/publication.
+  P1322impressions/21opens/3saves/2outbound,F302/5/1/0; no new outbound since
+  AM and no demonstrated format winner. Per-Pin downstream remains unknown.
+- Sheep first eligible7day observation23:34:02.495UTC: zero native distribution/
+  actions, late3h26m53.159s. Pin/package/destination verify; keep measuring and
+  public, no revision/repost or membership change.14 validated append-only events
+  and v34 PM receipts preserve actual, not reconstructed equal-age evidence.
+- All12 tracked destinations200/query-preserved/retailer-linked; tenindex-follow,
+  two existing holds. Next spider7day exact gateOct21T16:42:53.716Z. Existing
+  ACTIVE schedule and exact October31 full-review gate unchanged; no early
+  review, new experiment, catalog/page/account/Pin/Bead changes or spend.
+- Node22.23.1:927-event validation,6creative/10Pinterest tests,production build,
+  lint,diff check and immutable-prefix/receipt/cap/checkpoint invariants pass.
+
 ### 2026-10-20 [daily-ops] — First native Pinterest outbound clicks; keep v11 frozen
 
 - Readback-confirmed two outbound clicks on mini bowling: P1150impressions/

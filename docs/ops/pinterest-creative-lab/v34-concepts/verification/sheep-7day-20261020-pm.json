@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "exp-pinterest-editorial-mix-v11",
+  "candidateId": "cand-v11-sheep-roll-field-note",
+  "arm": "F",
+  "pinId": "1107815208391037211",
+  "publicUrl": "https://www.pinterest.com/pin/1107815208391037211/",
+  "product": {
+    "stableRetailerId": "B0CRRWZHK1",
+    "name": "VELENTI Sheep Toilet Roll Holder, Set of 3",
+    "sourceUrl": "https://www.amazon.com/dp/B0CRRWZHK1",
+    "destination": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder",
+    "trackingUrl": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm"
+  },
+  "artifact": "docs/ops/pinterest-creative-lab/v29-concepts/03-sheep-guest-bathroom-final.png",
+  "successfulPublicationAt": "2026-10-13T20:07:09.336Z",
+  "publicationReceiptId": "receipt-1791922029336-editorial-sheep-guest-bathroom-field-note-20261013-pm-publication-succeeded",
+  "checkpoint": "seven-day",
+  "exactGateUtc": "2026-10-20T20:07:09.336Z",
+  "observedAt": "2026-10-20T23:34:02.495Z",
+  "ageMs": 617213159,
+  "observedLateByMs": 12413159,
+  "observationSemantics": "First eligible regular afternoon observation after seven full days; actual current lifetime values, not reconstructed exact-age history.",
+  "publicPackageReadbackVerified": true,
+  "publicPin": {
+    "pinId": "1107815208391037211",
+    "status": 200,
+    "url": "https://www.pinterest.com/pin/1107815208391037211/",
+    "htmlContainsExactPinId": true
+  },
+  "destination": {
+    "pinId": "1107815208391037211",
+    "candidateId": "cand-v11-sheep-roll-field-note",
+    "arm": "F",
+    "destination": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder",
+    "trackingUrl": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+    "startedAt": "2026-10-20T23:34:54.802Z",
+    "verifiedAt": "2026-10-20T23:34:55.006Z",
+    "status": 200,
+    "finalUrl": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+    "trackingQueryPreserved": true,
+    "canonical": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder",
+    "robots": [
+      "index, follow"
+    ],
+    "retailerCtaVisible": true,
+    "retailerUrls": [
+      "https://www.amazon.com/dp/B0CRRWZHK1?tag=goose-gifts-37-20&linkCode=osi&th=1&psc=1"
+    ],
+    "title": "Shear-ly the Best Toilet Roll Holder | goose.gifts",
+    "xRobotsTag": null
+  },
+  "metrics": {
+    "impressions": 0,
+    "pinClicks": 0,
+    "saves": 0,
+    "outboundClicks": 0,
+    "siteSessions": null,
+    "affiliateClicks": null,
+    "revenueCents": null
+  },
+  "metricsEventId": "evt-20261020-pm-v11-metrics-1107815208391037211",
+  "learningEventId": "evt-20261020-pm-v11-sheep-7day-learning",
+  "decision": "Distribution-limited, not a failed creative or Arm F verdict. Keep measuring; preserve public Pin and original arm/quota membership. No replacement, repost, deletion or new creative.",
+  "next28dayGateUtc": "2026-11-10T20:07:09.336Z",
+  "nextCohortReviewGateUtc": "2026-10-31T16:44:52.279Z",
+  "downstreamCaveat": "Bounded GA4 507421709 and PostHog550427 have no attributed Pinterest/retailer row; unknown not zero. Merchant availability/source was not refreshed in this measurement-only run.",
+  "lifecycleBefore": "measuring",
+  "lifecycleAfter": "measuring"
+}
