@@ -1,6 +1,7 @@
 import type { CatalogSnapshot, PublicCatalogProduct } from './types.ts';
 import type { CatalogD1 } from './storage/d1.ts';
 import { validateCatalogSnapshot, validatePublicCatalogProduct } from './snapshot.ts';
+import { legacyMutationBatch } from './mutation-fence.ts';
 
 type Row = Record<string, string | number>;
 export interface ProjectionReceipt extends Row {
@@ -83,7 +84,7 @@ export async function importPublicProjection(db: CatalogD1, packet: ProjectionPa
   // Publication command chunks large catalogs separately before one final receipt;
   // this helper deliberately handles one small atomic proof packet only.
   if (queries.length > 40) throw new Error('Atomic projection proof packet exceeds 39 products');
-  await db.batch(queries.map((item) => db.prepare(item.sql).bind(...item.params)));
+  await legacyMutationBatch(db, queries.map((item) => db.prepare(item.sql).bind(...item.params)));
   await assertStoredProjection(db, packet);
   return 'imported';
 }

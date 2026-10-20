@@ -64,8 +64,9 @@ export function mutationFenceQuery(value: MutationOwner, phases: MutationOwner['
   owner(value);
   if (!phases.includes(value.phase)) throw new Error('mutation_phase_mismatch');
   return { sql: `EXISTS(SELECT 1 FROM catalog_mutation_scopes WHERE environment=? AND index_name=? AND owner_token=?
-      AND generation=? AND mutation_epoch=? AND phase=? AND owner_reference=? AND operation_key=?)`,
-    params: [value.environment, value.indexName, value.token, value.generation, value.epoch, value.phase, value.ownerReference, value.operationKey] };
+      AND generation=? AND mutation_epoch=? AND phase=? AND owner_reference=? AND operation_key=? AND external_pending=?)`,
+    params: [value.environment, value.indexName, value.token, value.generation, value.epoch, value.phase, value.ownerReference, value.operationKey,
+      value.phase === 'activating' ? 1 : 0] };
 }
 /** JSON's strict parse is a SQLite/D1 batch assertion: false aborts the entire
  * transaction, including earlier writes. The caller reports only a safe code.

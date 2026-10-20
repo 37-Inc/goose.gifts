@@ -1,4 +1,5 @@
 import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
+import { legacyMutationBatch } from '../../lib/catalog/mutation-fence.ts';
 import { getProductsByPublicIds } from '../../lib/catalog/storage/d1.ts';
 import { canonicalJson, canonicalTimestamp, sha256 } from './migration.ts';
 
@@ -52,7 +53,7 @@ export async function queueReviewedVectorDelete(db: CatalogD1, mutation: Reviewe
   if (!Number.isFinite(now.getTime()) || Date.parse(mutation.reviewedAt) > now.getTime()
     || (await getProductsByPublicIds(db, [mutation.publicId], now, mutation.catalogRevision)).length) throw new Error('invalid_vector_delete_review');
   const bytes = canonicalJson(mutation); const digest = sha256(bytes);
-  await db.batch([
+  await legacyMutationBatch(db, [
     db.prepare(`INSERT INTO vector_delete_mutations(mutation_sha256,public_id,source_revision,mutation_json)
       VALUES(?,?,?,?) ON CONFLICT(mutation_sha256) DO NOTHING`).bind(digest, mutation.publicId, mutation.catalogRevision, bytes),
     db.prepare(`INSERT INTO vector_sync_outbox(public_id,source_revision,embedding_text_hash,operation,created_at,delete_mutation_sha256)

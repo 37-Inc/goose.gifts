@@ -4,6 +4,9 @@ import type { PublicationClaim, PublicationIntent } from './publication.ts';
 import { publicationStatus } from './publication.ts';
 import { rollbackPreflight, visibleRevisionCountQuery } from './d1.ts';
 import { canonicalTime } from './snapshot.ts';
+import { legacyMutationBatch, legacyMutationGuard, mutationAssertion, mutationFenceQuery } from './mutation-fence.ts';
+import type { MutationOwner } from './mutation-fence.ts';
+import type { D1Statement } from './storage/d1.ts';
 
 /** Immutable build inputs, not a guessed future release manifest. cutoff is the
  * pruning horizon: a build may retain only products eligible strictly beyond it.
@@ -26,7 +29,7 @@ export interface DeploymentIdentity {
 export interface DeploymentObservation {
   environment: CatalogBuildRequest['environment']; settled: boolean; active: DeploymentIdentity | null;
 }
-export interface ActivationPermit { requestId: string; token: string; runReference: string; releaseId: string; versionReference: string }
+export interface ActivationPermit { requestId: string; token: string; runReference: string; releaseId: string; versionReference: string; mutationOwner?: MutationOwner }
 type BuildRow = { request_id: string; environment: string; source_revision: string; request_json: string; state: string;
   lease_token: string | null; lease_until: string | null; attempts: number; dispatch_reference: string | null;
   run_reference: string | null; release_id: string | null; version_reference: string | null };
@@ -143,12 +146,14 @@ async function priorMatches(db: CatalogD1, request: CatalogBuildRequest, active:
  * atomicity: after this CAS, unknown provider outcomes stay fenced until resolved.
  */
 export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildClaim, snapshot: CatalogSnapshot,
-  publication: PublicationClaim, versionReference: string, readDeployment: (signal: AbortSignal) => Promise<DeploymentObservation>, now = new Date()): Promise<ActivationPermit> {
+  publication: PublicationClaim, versionReference: string, readDeployment: (signal: AbortSignal) => Promise<DeploymentObservation>, now = new Date(), mutationOwner?: MutationOwner): Promise<ActivationPermit> {
   if (typeof versionReference !== 'string' || !REFERENCE.test(versionReference)) throw new Error('invalid_build_reference');
   const stored = await row(db, claim.requestId);
   if (!stored || stored.state !== 'building' || stored.lease_token !== claim.token
     || stored.request_json !== encodeBuildRequest(claim.request) || stored.run_reference !== claim.runReference) throw new Error('build_fenced');
   const request = input(stored); const intent = publication.intent;
+  if (mutationOwner && mutationOwner.environment !== request.environment) throw new Error('build_fenced');
+  const mutation = mutationOwner ? mutationFenceQuery(mutationOwner, ['freezing']) : await legacyMutationGuard(db);
   // Receipts are append-only in this protocol; reject publication completed during readback.
   const receiptEpoch = (await db.prepare('SELECT coalesce(max(rowid),0) epoch FROM publication_receipts')
     .all<{ epoch: number }>()).results[0].epoch;
@@ -159,7 +164,7 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
     || intent.nextExpiry !== earliest || snapshot.products.some(product => product.eligibleUntil <= request.cutoff)
     || !(await rollbackPreflight(db, snapshot, now)).ok) throw new Error('build_publication_unready');
   const gate = sourceGate(request); const visible = visibleRevisionCountQuery(intent.catalogRevision);
-  const result = await db.prepare(`UPDATE catalog_build_requests SET state='activating',lease_until=NULL,release_id=?,version_reference=?
+  const statement = db.prepare(`UPDATE catalog_build_requests SET state='activating',lease_until=NULL,release_id=?,version_reference=?
     WHERE request_id=? AND request_json=? AND lease_token=? AND run_reference=? AND state='building' AND lease_until>${NOW}
       AND ${gate.sql}
       AND NOT EXISTS(SELECT 1 FROM catalog_build_requests WHERE environment=? AND state='activating')
@@ -173,11 +178,22 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
       AND (${visible.sql})=?
       AND (SELECT coalesce(max(sequence),0) FROM vector_sync_outbox WHERE source_revision=?)=?
       AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE source_revision=? AND status!='complete')
-      AND (? IS NULL OR ?>${NOW})`)
+      AND (? IS NULL OR ?>${NOW}) AND ${mutation.sql}`)
     .bind(intent.releaseId, versionReference, claim.requestId, stored.request_json, claim.token, claim.runReference,
       ...gate.params, request.environment, receiptEpoch, publication.intentId, intent.releaseId, JSON.stringify(intent), publication.token,
       intent.catalogRevision, intent.catalogSnapshotSha256, snapshot.products.length, ...visible.params, snapshot.products.length,
-      intent.catalogRevision, intent.vectorSyncWatermark, intent.catalogRevision, intent.nextExpiry, intent.nextExpiry).run() as { success?: boolean; meta?: { changes?: number } };
+      intent.catalogRevision, intent.vectorSyncWatermark, intent.catalogRevision, intent.nextExpiry, intent.nextExpiry, ...mutation.params);
+  if (mutationOwner) {
+    const activeOwner: MutationOwner = { ...mutationOwner, phase: 'activating' };
+    await db.batch([mutationAssertion(db, mutationOwner, ['freezing']), statement,
+      db.prepare(`UPDATE catalog_mutation_scopes SET phase='activating',external_pending=1,activation_request_id=?
+        WHERE environment=? AND index_name=? AND ${mutation.sql} AND EXISTS(SELECT 1 FROM catalog_build_requests
+          WHERE request_id=? AND state='activating' AND lease_token=? AND run_reference=? AND version_reference=?)`)
+        .bind(claim.requestId, mutationOwner.environment, mutationOwner.indexName, ...mutation.params,
+          claim.requestId, claim.token, claim.runReference, versionReference), mutationAssertion(db, activeOwner, ['activating'])]);
+    return { requestId: claim.requestId, token: claim.token, runReference: claim.runReference, releaseId: intent.releaseId, versionReference, mutationOwner: activeOwner };
+  }
+  const result = await statement.run() as { success?: boolean; meta?: { changes?: number } };
   if (result.success !== true || result.meta?.changes !== 1) throw new Error('build_fenced_or_preflight_changed');
   return { requestId: claim.requestId, token: claim.token, runReference: claim.runReference, releaseId: intent.releaseId, versionReference };
 }
@@ -192,6 +208,24 @@ export async function resolveBuildActivation(db: CatalogD1, permit: ActivationPe
     || stored.release_id !== permit.releaseId || stored.version_reference !== permit.versionReference) throw new Error('build_fenced');
   const request = input(stored); const observed = await observe(readDeployment);
   if (observed.environment !== request.environment || observed.settled !== true) throw new Error('activation_still_uncertain');
+  const finish = async (statement: D1Statement) => {
+    if (!permit.mutationOwner) {
+      await legacyMutationBatch(db, [statement]);
+      const resolved = await row(db, permit.requestId);
+      return { success: true, meta: { changes: resolved && ['resolved','failed'].includes(resolved.state) ? 1 : 0 } };
+    }
+    const owner = permit.mutationOwner; const gate = mutationFenceQuery(owner, ['activating']);
+    if (owner.environment !== request.environment) throw new Error('build_fenced');
+    await db.batch([mutationAssertion(db, owner, ['activating']), statement,
+      db.prepare(`UPDATE catalog_mutation_scopes SET phase='idle',owner_token=NULL,owner_reference=NULL,operation_key=NULL,
+        captured_at=NULL,external_pending=0,activation_request_id=NULL WHERE environment=? AND index_name=? AND activation_request_id=?
+        AND ${gate.sql} AND EXISTS(SELECT 1 FROM catalog_build_requests WHERE request_id=? AND state IN ('resolved','failed'))`)
+        .bind(owner.environment, owner.indexName, permit.requestId, ...gate.params, permit.requestId),
+      db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM catalog_mutation_scopes WHERE environment=? AND index_name=?
+        AND phase='idle' AND generation=? AND mutation_epoch=?) THEN 'true' ELSE 'mutation_fenced' END)`)
+        .bind(owner.environment, owner.indexName, owner.generation, owner.epoch)]);
+    return { success: true, meta: { changes: 1 } };
+  };
   const outbox = (await db.prepare('SELECT intent_json FROM publication_outbox WHERE release_id=?').bind(permit.releaseId)
     .all<{ intent_json: string }>()).results[0];
   if (!outbox) throw new Error('build_publication_missing');
@@ -201,16 +235,16 @@ export async function resolveBuildActivation(db: CatalogD1, permit: ActivationPe
     if (!receipt) return 'awaiting_receipt';
     if (receipt.manifest_json !== outbox.intent_json || (await publicationStatus(db, permit.releaseId)).state !== 'published') throw new Error('build_receipt_mismatch');
     const expected = JSON.parse(outbox.intent_json) as PublicationIntent;
-    const result = await db.prepare(`UPDATE catalog_build_requests SET state='resolved' WHERE request_id=? AND lease_token=? AND state='activating'
+    const result = await finish(db.prepare(`UPDATE catalog_build_requests SET state='resolved' WHERE request_id=? AND lease_token=? AND state='activating'
       AND EXISTS(SELECT 1 FROM publication_receipts WHERE release_id=? AND manifest_json=? AND code_sha=? AND catalog_revision=?)`)
       .bind(permit.requestId, permit.token, permit.releaseId, outbox.intent_json, expected.codeSha, expected.catalogRevision)
-      .run() as { success?: boolean; meta?: { changes?: number } };
+    );
     if (result.success !== true || result.meta?.changes !== 1) throw new Error('build_fenced');
     return 'resolved';
   }
   if (!(await priorMatches(db, request, observed.active))) throw new Error('activation_resolution_mismatch');
-  const result = await db.prepare(`UPDATE catalog_build_requests SET state='failed',lease_token=NULL,error_code='activation_not_applied'
-    WHERE request_id=? AND lease_token=? AND state='activating'`).bind(permit.requestId, permit.token).run() as { success?: boolean; meta?: { changes?: number } };
+  const result = await finish(db.prepare(`UPDATE catalog_build_requests SET state='failed',lease_token=NULL,error_code='activation_not_applied'
+    WHERE request_id=? AND lease_token=? AND state='activating'`).bind(permit.requestId, permit.token));
   if (result.success !== true || result.meta?.changes !== 1) throw new Error('build_fenced');
   return 'not_activated';
 }

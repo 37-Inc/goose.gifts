@@ -2,6 +2,8 @@ import type { CatalogReleaseManifest, CatalogSnapshot } from './types.ts';
 import type { CatalogD1 } from './storage/d1.ts';
 import { canonicalTime } from './snapshot.ts';
 import { rollbackPreflight, visibleRevisionCountQuery } from './d1.ts';
+import { legacyMutationBatch, mutationAssertion } from './mutation-fence.ts';
+import type { MutationOwner } from './mutation-fence.ts';
 
 /** Compact identity of an independently verified immutable package, not another release registry. */
 export type PublicationIntent = Pick<CatalogReleaseManifest, 'releaseId' | 'codeSha' | 'catalogRevision'
@@ -124,7 +126,7 @@ export async function recordPublicationDispatch(db: CatalogD1, snapshot: Catalog
  * Real workflows must also check their lease before activation; fencing D1 cannot undo an external deploy.
  */
 export async function completePublication(db: CatalogD1, snapshot: CatalogSnapshot, releaseId: string, token: string,
-  readDeployed: (intent: PublicationIntent) => Promise<PublicationIntent>, now: () => Date = () => new Date()): Promise<void> {
+  readDeployed: (intent: PublicationIntent) => Promise<PublicationIntent>, now: () => Date = () => new Date(), mutationOwner?: MutationOwner): Promise<void> {
   const value = await row(db, releaseId);
   if (!owned(value, token, now(), 'dispatched')) throw new Error('publication_fenced');
   const intent = intentFrom(value);
@@ -135,7 +137,7 @@ export async function completePublication(db: CatalogD1, snapshot: CatalogSnapsh
   const at = now();
   await preflight(db, snapshot, intent, at);
   const check = gate(snapshot, intent);
-  await db.batch([
+  const statements = [
     db.prepare(`INSERT INTO publication_receipts(release_id,catalog_revision,code_sha,completed_at,manifest_json)
       SELECT ?,?,?,${DATABASE_NOW},? WHERE EXISTS(SELECT 1 FROM publication_outbox WHERE intent_id=? AND lease_token=?
         AND state='dispatched' AND lease_until>${DATABASE_NOW}) AND ${check.sql}`)
@@ -146,7 +148,13 @@ export async function completePublication(db: CatalogD1, snapshot: CatalogSnapsh
       WHERE intent_id=? AND lease_token=? AND state='dispatched' AND EXISTS(
         SELECT 1 FROM publication_receipts WHERE release_id=? AND manifest_json=?)`)
       .bind(token, at.toISOString(), value.intent_id, token, releaseId, value.intent_json),
-  ]);
+  ];
+  if (mutationOwner) await db.batch([mutationAssertion(db, mutationOwner, ['activating']),
+    db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM catalog_mutation_scopes s JOIN catalog_build_requests b
+      ON b.request_id=s.activation_request_id WHERE s.environment=? AND s.index_name=? AND b.environment=s.environment
+      AND b.state='activating' AND b.release_id=?) THEN 'true' ELSE 'mutation_fenced' END)`)
+      .bind(mutationOwner.environment, mutationOwner.indexName, releaseId), ...statements]);
+  else await legacyMutationBatch(db, statements);
   const completed = await db.prepare('SELECT completed_token FROM publication_outbox WHERE intent_id=?')
     .bind(value.intent_id).all<{ completed_token: string | null }>();
   if (completed.results[0]?.completed_token !== token) throw new Error('publication_fenced_or_preflight_changed');

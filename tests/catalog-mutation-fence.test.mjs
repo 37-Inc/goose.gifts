@@ -31,6 +31,7 @@ test('parallel independent owners serialize by explicit environment/index scope'
   assert.ok(first); assert.equal(second, null);
   assert.equal(await claimMutationOwnership(f.other, { ...scope, environment: 'production' }, request), null);
   assert.equal(await claimMutationOwnership(f.other, { ...scope, indexName: 'wrong-index' }, request), null);
+  assert.throws(() => f.sql.prepare('INSERT INTO catalog_mutation_scopes(environment,index_name) VALUES(?,?)').run('production','another-index'),/UNIQUE/);
   assert.deepEqual(await claimMutationOwnership(f.other, scope, request), first);
   assert.equal(await claimMutationOwnership(f.other, scope, { ...request, operationKey: 'b'.repeat(64) }), null);
 });

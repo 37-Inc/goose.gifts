@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
+import { assertLegacyMutationAllowed, legacyMutationGuard } from '../../lib/catalog/mutation-fence.ts';
 import { getProductsByPublicIds } from '../../lib/catalog/storage/d1.ts';
 import { canonicalJson, EMBEDDING_DIMENSIONS, EMBEDDING_MODEL, sha256 } from './migration.ts';
 import { encodePgvectorSendBase64 } from './pgvector-binary.ts';
@@ -117,6 +118,10 @@ export async function drainVectorOutbox(options: {
     || !Number.isInteger(maxEvents) || maxEvents < 1 || maxEvents > 10) throw new Error('invalid_vector_drain_bound');
   const timeout = Math.max(10, Math.min(Number.isFinite(options.timeoutMs) ? options.timeoutMs! : 1500, 3000));
   const now = options.now || Date.now;
+  // The enabled ownership protocol has no implicit legacy provider writer.
+  // Installing/enabling0009 requires stopping in-flight old/manual adapters first.
+  await assertLegacyMutationAllowed(db);
+  const legacy = await legacyMutationGuard(db);
   const outcomes: Array<{ sequence: number; outcome: 'complete' | 'pending' | 'skipped'; errorCode: Code | null }> = [];
   let rows: Pending[];
   try {
@@ -134,7 +139,7 @@ export async function drainVectorOutbox(options: {
       const leaseUntil = new Date(now() + LEASE_MS).toISOString();
       await db.prepare(`UPDATE vector_sync_outbox SET lease_token=?,lease_until=?,attempts=attempts+1,error_code=NULL
         WHERE sequence=? AND status='pending' AND attempts<3 AND (lease_until IS NULL OR lease_until<=${NOW})
-        AND public_id=? AND source_revision=? AND embedding_text_hash IS ? AND operation=? AND delete_mutation_sha256 IS ? AND ?>${NOW}`)
+        AND public_id=? AND source_revision=? AND embedding_text_hash IS ? AND operation=? AND delete_mutation_sha256 IS ? AND ?>${NOW} AND ${legacy.sql}`)
         .bind(token, leaseUntil, event.sequence, event.publicId, event.catalogRevision,
           event.embeddingTextHash, event.operation, event.deleteMutationSha256 || null, leaseUntil).run();
       const owner = (await db.prepare(`SELECT mutation_reference FROM vector_sync_outbox WHERE sequence=? AND lease_token=?
@@ -172,14 +177,14 @@ export async function drainVectorOutbox(options: {
         if (!owner.mutation_reference) {
           const accepted = await bounded((signal) => vector ? adapters.upsert(structuredClone(vector), signal) : adapters.delete(event.publicId, signal), timeout);
           if (!accepted || typeof accepted.reference !== 'string' || !/^[a-zA-Z0-9._:/-]{1,200}$/.test(accepted.reference)) throw new Failure('provider_failed');
-          await db.prepare(`UPDATE vector_sync_outbox SET mutation_reference=? WHERE ${ownedSql}`)
+          await db.prepare(`UPDATE vector_sync_outbox SET mutation_reference=? WHERE ${ownedSql} AND ${legacy.sql}`)
             .bind(accepted.reference, ...params).run();
           await check();
           actual = await bounded((signal) => adapters.readback(event.publicId, signal), timeout);
         }
         if (!visible(vector, actual)) throw new Failure('not_visible');
       }
-      await db.prepare(`UPDATE vector_sync_outbox SET status='complete',completed_at=${NOW},lease_until=NULL,error_code=NULL WHERE ${ownedSql}`)
+      await db.prepare(`UPDATE vector_sync_outbox SET status='complete',completed_at=${NOW},lease_until=NULL,error_code=NULL WHERE ${ownedSql} AND ${legacy.sql}`)
         .bind(...params).run();
       const complete = (await db.prepare('SELECT status,lease_token FROM vector_sync_outbox WHERE sequence=?').bind(event.sequence)
         .all<{ status: string; lease_token: string | null }>()).results[0];
@@ -189,7 +194,7 @@ export async function drainVectorOutbox(options: {
       const code: Code = error instanceof Failure ? error.code : 'provider_failed';
       if (claimed) try {
         await db.prepare(`UPDATE vector_sync_outbox SET lease_token=NULL,lease_until=?,error_code=?
-          WHERE sequence=? AND lease_token=? AND status='pending' AND lease_until>${NOW}`)
+          WHERE sequence=? AND lease_token=? AND status='pending' AND lease_until>${NOW} AND ${legacy.sql}`)
           .bind(new Date(now() + RETRY_MS).toISOString(), code, event.sequence, token).run();
       } catch { /* Remains pending/leased; expiry permits recovery. Never log provider errors. */ }
       outcomes.push({ sequence: event.sequence, outcome: code === 'fenced' ? 'skipped' : 'pending', errorCode: code });

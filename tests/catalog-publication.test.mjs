@@ -214,7 +214,7 @@ test('current-state and lease predicates are checked atomically at completion, a
     const f = await setup();
     try {
       const claim = await dispatched(f);
-      f.setBeforeBatch((statements) => { if (statements[0].sql.includes('INSERT INTO publication_receipts')) mutation(f); });
+      f.setBeforeBatch((statements) => { if (statements.some(statement => statement.sql.includes('INSERT INTO publication_receipts'))) mutation(f); });
       await assert.rejects(completePublication(f.db, f.snapshot, f.intent.releaseId, claim.token, async () => f.intent, f.date), /fenced_or_preflight_changed/);
       assert.equal(f.sqlite.prepare('SELECT count(*) n FROM publication_receipts').get().n, 0);
       assert.equal(f.sqlite.prepare('SELECT status FROM catalog_revisions').get().status, 'reconciled');

@@ -19,3 +19,6 @@ CREATE TABLE catalog_mutation_scopes (
       AND operation_key IS NOT NULL AND captured_at IS NOT NULL
       AND (phase!='activating' OR activation_request_id IS NOT NULL)))
 );
+-- products/outbox are not partitioned by scope. Each isolated D1 database has
+-- exactly one configured index/environment, never two independent writer locks.
+CREATE UNIQUE INDEX catalog_mutation_database_scope ON catalog_mutation_scopes((1));
