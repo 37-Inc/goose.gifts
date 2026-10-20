@@ -5,6 +5,44 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Protected weekly workspace and concrete publication composition
+
+Three bounded Sol extra-high workers implemented the private run workspace,
+weekly driver and concrete publication executor; root reviewed the combined
+changes and each worker independently reviewed an adjacent boundary. This
+opt-in path does not change the existing scheduled Neon job.
+
+The explicit private config pins account, environment, resources, source SHA,
+input hashes, credential references and retention deadlines. The filesystem
+workspace holds same-host resource/source locks and immutable, hash-linked
+checkpoints and evidence. D1 request reservations persist before dispatch;
+unknown usage is not refunded. Expired merchant bodies cannot be revived by a
+resume. Locks do not claim cross-host isolation, auto-expire or silently permit
+takeover. D1 writer/activation ownership remains authoritative.
+
+The driver calls the existing weekly phases, then waits for separately reviewed
+post-phase cohort approval. The publisher executes the actual static build,
+immutable Worker upload, single non-retried activation request and independent
+deployment/identity/native-vector readback before accepting a publication
+receipt. Publication and weekly telemetry finalization are distinct states.
+Wrangler may internally retry immutable uploads; duplicate matching versions
+remain an operator gate rather than an inferred success.
+
+Composed tests found two real resume faults: canonical checkpoint JSON reordered
+sealed snapshot fields, and the activation SQL compared a reconstructed intent
+with different property order. Ordered artifacts are now stored as opaque JSON
+strings; activation reuses the existing intent encoder without rewriting
+historical rows. No digest, freshness or ownership check was weakened.
+Uncertain phase execution and a corrupt partial build still stop for review;
+they are not advertised as automatically recoverable.
+
+Final integrated test totals and disposable-provider evidence are recorded
+after execution. This local composition is not full-catalog, real merchant,
+hosted scheduler, production cutover or cost/headroom acceptance. The bounded
+twenty-ID proof and private artifact size limits still require full-catalog
+capacity work. No new merchant refresh cadence, public DNS, paid plan,
+provider branding or decommissioning decision was made.
+
 ## 2026-10-20 — Bounded REST writer, catalog scans and provider evidence
 
 The next opt-in integration connects the existing maintenance interfaces to

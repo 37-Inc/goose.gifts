@@ -195,6 +195,21 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-20 [owner+claude] — Compose a protected, resumable Cloudflare weekly run
+
+The opt-in Cloudflare runner now joins the existing weekly phases to private
+evidence/checkpoints, durable D1 request accounting, reviewed cohort approval,
+and the concrete build/upload/activation/readback path. A restart never blindly
+repeats paid phases or an uncertain deployment. Independent review caught and
+fixed byte-order changes across checkpoint reopen; original sealed bytes and
+historical publication encoding remain unchanged.
+
+This is staged implementation, not the production writer or a new schedule.
+Neon, the existing weekly job, public Goose identity and Pinterest measurement
+cohort are unchanged. Provider proof and integrated checks are recorded
+separately in `JOURNAL.md`; full-catalog capacity, final delta, credential and
+schedule handoff remain open.
+
 ### 2026-10-20 [owner+claude] — Bound D1 transport and bind real provider evidence
 
 - Added an explicit primary-only D1 REST writer with finite whole-run limits,

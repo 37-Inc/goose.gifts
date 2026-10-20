@@ -3,15 +3,15 @@
 This is an additive, protected Cloudflare preview, not a production cutover.
 The launch spec and `roadmap-lbbz1` remain authoritative.
 
-### Verified checkpoint — October 20, 10:20 UTC
+### Verified checkpoint — October 20, 11:25 UTC
 
-PRs #189–195 are merged. Source `e57a996bb198109e3b189054e2abe54025acbd75`
+PRs #189–197 are merged. Source `591e2b1d8fc63a653324ce81fe3a3705ffca5894`
 is independently verified on protected Cloudflare staging and the unchanged
 Goose-branded Vercel production site. Staging has all 3,383 archived product
 identities and maintained operational history, but only four current
 rights-verified public products. Neon remains the production writer.
 
-Storage and vector-delivery adapters passed disposable-provider tests; 373
+Storage and vector-delivery adapters passed disposable-provider tests; 464
 staging and 88 existing regression tests pass. The 60,000-request local burst
 is not proof of Cloudflare Free-plan capacity. No new scheduler, public DNS
 cutover, paid plan, provider rebrand or decommissioning is active. Full
@@ -381,9 +381,9 @@ The actual staging rehearsal made four requests, 143 reads and zero writes,
 correctly reporting missing 0009–0012. It used explicitly injected Wrangler
 authentication; Keychain resolution remains separately unverified.
 
-Before selecting D1 for a real weekly run, finish real merchant/embedding
-receipt storage and replay, credential/bootstrap provisioning, protected runner/schedule
-integration and one bounded complete run with independent live publication
+The explicit weekly driver and its private receipt store are described below.
+Before selecting D1 for the scheduled job, exercise the protected credential
+bootstrap and one bounded complete provider run with independent live publication
 proof. The daily strict-subset pruner is not the weekly candidate-promotion
 path. Resolve final Neon delta handling before installing immutable-archive
 triggers. Retain the existing Neon job until these integrations and recovery
@@ -415,7 +415,70 @@ durably save/read-verify private content; a returned hash alone is not proof.
 Contradictory or missing requested evidence stops an unsafe upsert and the new
 publication, even at equal database timestamps. It does not revoke previously
 served bytes instantly or extend their original expiry. Default Neon behavior
-remains unchanged; this opt-in bridge is not an activated weekly executor.
+remains unchanged; this bridge does not activate the scheduled D1 writer.
+
+### Explicit weekly driver — not scheduled
+
+`npm run catalog:cloudflare -- --help` describes the separate
+`preflight`, `start`, `resume` and `status` commands. Every invocation requires
+an absolute private configuration file, its exact SHA-256 and the same
+canonical private workspace root:
+`~/.codex/private/goose-gifts-migration/weekly-runs`.
+Do not change `catalog:weekly`, add another job or create a second workspace
+root to bypass a pending run.
+
+The reviewed configuration pins the clean source commit, account, D1
+ID/name, Vectorize index, Worker, affiliate tag, private input hashes,
+per-kind retention deadlines and Goose-scoped Keychain references. It does
+not contain credentials. There is no Vercel, Neon, ambient-token or default
+environment fallback. Retention review is an input, not a grant supplied by
+the runner; it never extends the merchant observation's original deadline.
+`preflight` and `status` do not start provider phases or change ownership.
+
+`start` runs the existing bounded weekly phases with the D1 maintenance and
+telemetry adapters, durably records merchant/embedding evidence and stops at
+`phases_complete`. Promotion requires a **separately reviewed post-phase**
+approval envelope passed to `resume` with its SHA-256. This is a migration
+safety boundary, not an activated daily content approval workflow.
+Resume drains the exact pending vectors, freezes the approved cohort, verifies
+the native vectors, builds/seals the assets, invokes the immutable Worker
+version upload, activates it and independently reads back the deployment, protected
+release identity and native vectors. Only then can publication and final
+weekly telemetry be marked complete. The 20-ID cohort limit still applies.
+
+The workspace keeps immutable content-addressed artifacts, checkpoint CAS,
+original expiry metadata and an append-only budget journal. D1 requests are
+reserved **before** dispatch, including after restart; an uncertain request
+never refunds its allowance. These are D1 safety ceilings, not a quote or
+aggregate billing cap for every provider. The shared file locks coordinate
+only processes using this same canonical root. D1's no-takeover mutation fence
+remains authoritative; cross-host CI and out-of-band deployment exclusion
+must be established before installing a hosted publisher.
+
+- `phases_running` after interruption: stop for review; never automatically
+  repeat paid merchant/model phases.
+- `draining`, `freezing`, `publishing`: resume exact persisted work only.
+  Unknown vector/upload/activation outcomes are read back, not blindly sent
+  again. A partially built or sealed package may require explicit review.
+- Expired artifacts: no new build or publication. Minimal control identities
+  remain available to reconcile an activation already dispatched; that does
+  not renew content rights.
+- A stale lock, damaged journal or changed pinned input fails closed. Do not
+  delete locks, reset the run or take over ownership by elapsed time.
+- `published` is not `finalized`: final telemetry is separately verified.
+  `finalized` is terminal and cannot rerun provider phases.
+
+Read the structured `state` and receipt, not just the process exit code:
+an expected pause awaiting review is a successful command, not a publication.
+
+The concrete publisher uses separate `wrangler versions upload` and
+deployment activation, with staging auth already provisioned on the exact
+Worker. Wrangler may internally retry an immutable upload; duplicate matching
+version tags require review. The executor never repeats that command on resume
+and the actual activation POST is not retried.
+It creates no routes, custom domains, schedules or paid resources,
+and leaves semantic search and preview analytics disabled. A successful
+local fixture test is not evidence that the live weekly job has migrated.
 
 ## Local burst rehearsal
 

@@ -52,6 +52,21 @@ Boundaries (always in force):
 
 ## Daily run
 
+### Cloudflare migration boundary
+
+The Cloudflare catalog path is opt-in migration work, not the current scheduled
+writer. Until `roadmap-lbbz1.4` records the final source-write barrier, delta
+reconciliation, protected credentials and verified publication, keep
+`catalog:weekly -- --no-notify` on Neon with the existing Production bootstrap.
+Do not install a second weekly job or select D1 because a readiness check passes.
+
+The approved route and retirement decisions in
+[STUPID_GIFTS_LAUNCH_SPEC.md](STUPID_GIFTS_LAUNCH_SPEC.md) supersede older growth
+notes below. The Pinterest experiment is currently measurement-only; its
+completed cohort does not authorize another Pin. Rebranding, provider/account
+changes, merchant-refresh cadence and infrastructure shutdown keep their
+separate launch gates.
+
 The public `/sitemap.xml` internally serves the single ISR sitemap shard
 `/sitemap/0.xml` to avoid Next 16.3's fixed metadata-file output. Keep both
 paths in catalog invalidation. After maintenance, compare actual sitemap
@@ -348,16 +363,18 @@ tried, and exactly what is needed.
 - **SEO is the game**: favor crawlable, internally linked, query-targeted pages
   with real products, clean images, descriptive metadata, and structured data
   over clever UI that only helps already-arrived users.
-- **Recycle demand**: old indexed bundle URLs should permanently redirect to
-  relevant catalog guides or searches when there is a sensible target. Do not
-  recreate the old bundle flow, but do not leave recoverable long-tail demand
-  as avoidable 404s.
+- **Preserve maintained URLs, not retired features**: keep canonical product
+  URLs, product slug history and the eventual old-domain redirect. Cameron
+  explicitly retired bundle URLs and legacy Random gift-ID links on October19;
+  do not recreate their handlers, compatibility maps or redirects. Their six
+  dependent legacy Pinterest Pins were removed. Gift guides replace bundles.
 - **Earned distribution beats spam**: prepare useful social/newsletter assets
   and repeatable acquisition channels, but do not create accounts, post, DM, or
   run paid campaigns without Cameron's explicit approval.
 - **Measure or it didn't happen**: when shipping a growth/conversion change,
   note in the journal which metric should move and check it in later runs.
-- **Costs matter**: LLM spend should concentrate in the daily batch ingestion,
-  not per-user-request paths (see ROADMAP phase 1).
+- **Costs matter**: catalog generation stays in the bounded weekly batch,
+  not per-user-request paths. The planned publication-expiry check performs
+  no Amazon or model requests; a merchant-refresh cadence needs its own approval.
 - **The journal is memory.** Each run starts cold; write the journal so the
   next run (or a human) can pick up instantly.
