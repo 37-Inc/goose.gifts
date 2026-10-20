@@ -452,8 +452,10 @@ Simply switching DNS to stale Neon is not a valid rollback.
 After infrastructure is stable, launch the approved visual treatment on
 `stupid.gifts`. Redirect `www.stupid.gifts` to the apex and all Goose public
 paths permanently to their matching new paths, preserving safe attribution
-parameters and necessary search/share behavior. Keep at least a year of
-redirects and preferably renew the old domain indefinitely.
+parameters and necessary search/share behavior. Serve those redirects on
+Cloudflare, independently of Vercel/Neon. Keep at least a year of redirects
+from the actual brand cutover; the deferred old-domain renewal decision below
+must preserve that window.
 
 Update canonical/OG/schema URLs, sitemaps, robots, public contact presentation,
 favicons, web manifests, social/share assets, legal ownership, analytics
@@ -633,6 +635,71 @@ Only retire Vercel/Neon after the observation window, verified restoration,
 maintained consumer migration and secret-bootstrap replacement. Source data
 deletion and paid subscription changes require their own concrete action
 approval; removing an app dependency is not permission to delete its history.
+
+### Stage 6  Cleanup and decommissioning
+
+Track in `roadmap-lbbz1.7`, after the launch and at least seven healthy days.
+Planning does not authorize deleting resources, renaming the repository,
+changing domain renewal or editing the portfolio now. Complete the following
+in recoverable steps, with exact resource IDs and before/after receipts.
+
+1. **Prove independent redirects first.** Test HTTP/HTTPS and apex/www Goose
+   URLs through Cloudflare to matching Stupid Gifts pages, including product
+   slugs, guides, random/share links and safe campaign parameters. Keep real
+   404/410 behavior for retired content; do not send every missing URL to the
+   homepage. Confirm TLS, domain ownership and verification records survive
+   removal of old hosting. Keep redirect monitoring lightweight and independent
+   of Neon. [Google recommends at least one year of redirects](https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes).
+2. **Retire only this project's Vercel and Neon resources.** Inventory exact
+   projects, deployments, branches, integrations, jobs and billing items.
+   Prove restored exports and D1 delta recovery, capture protected configuration
+   and receipts, and verify every maintained consumer uses the replacement.
+   Remove obsolete deployment hooks/Git integration, required status checks,
+   Vercel env bootstrap and SDK/config references only after replacements work.
+   Revoke project-only credentials once unused; never revoke shared team tokens
+   or uninstall an organization-wide integration. Obtain exact deletion/billing
+   approval at execution, then read back retirement and check that old usage
+   stops. Re-test the site, weekly runner, publication and redirects afterward.
+   Do not delete shared Vercel/Neon accounts, analytics history or recovery data.
+3. **Rename the existing GitHub repository, not recreate it.** Planned target:
+   `37-Inc/stupid.gifts`, subject to availability and execution approval.
+   Preserve repository identity, commits, PRs, issues and protections. Before
+   renaming, inventory remotes, CI/deploy hooks, Cloudflare Git connections,
+   OIDC trust, reusable workflows/actions, badges and docs that use the old
+   path. Update and exercise them, including a build/deploy and scheduled
+   publication dispatch. GitHub redirects do not cover calls to hosted actions;
+   do not reuse the old repository name. Local checkout paths and schedule IDs
+   may remain stable unless a separate path migration is needed.
+   [GitHub rename behavior](https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository)
+4. **Update the 37.technology listing and owned links.** At brand launch,
+   follow that repository's normal review/deploy workflow to update the name,
+   approved catalog-first copy, destination and artwork. Verify the live card,
+   its link and any applicable metadata/schema; check other owned profile,
+   README, QR and documentation links. Record this receipt in the retirement
+   checklist rather than leaving the portfolio on the old identity for the
+   observation week. Preserve historical records and product-contact privacy;
+   external outreach remains separately authorized.
+5. **Defer disabling `goose.gifts` auto-renew until expiry is reconciled.**
+   Record the actual old-domain expiration, next renewal attempt, launch date
+   and minimum redirect-retention end date; do not reuse the new domain's
+   dates. Turning off auto-renew leaves only the already-paid registration
+   term, not permanent redirect ownership. If it cannot cover at least one
+   year after cutover, keep renewal unchanged and bring the exact extension
+   or shorter-retention tradeoff to Cameron. Before an approved switch-off,
+   record a dated follow-up before the renewal-attempt deadline and before
+   expiry. Recheck remaining Pin/backlink traffic, email, verification and
+   takeover risks before allowing the domain to lapse; never delete its
+   Cloudflare zone or TLS while redirects are required. Cloudflare currently
+   starts auto-renew attempts about 30 days before expiration.
+   [Registrar renewal behavior](https://developers.cloudflare.com/registrar/account-options/renew-domains/)
+
+Retirement acceptance requires a resource disposition list (removed, retained
+with reason, or blocked), recovery locations/retention, final usage/billing
+readbacks, a working renamed-repository deployment, the live portfolio receipt
+and independent redirect tests. The old redirect domain is an intentionally
+retained asset, not an orphaned hosting resource. Record its dated renewal/
+retention follow-up before closing infrastructure retirement; an unresolved
+future domain decision must not be silently marked complete.
 
 ## Visual design and show experience
 
@@ -877,7 +944,10 @@ These are targets to demonstrate in staging, not claims about current capacity.
 5. Develop the Stupid Gifts visual treatment and four episode shortlists;
    review a composed desktop/mobile/show preview before brand cutover.
 6. Launch domain/brand, coordinate affiliate and search providers, rehearse the
-   show, observe for seven days, and retire obsolete providers safely.
+   show, and update the 37.technology listing and owned links.
+7. Observe for at least seven healthy days, then complete repository rename
+   and recoverable provider decommissioning. Keep redirects and the separately
+   tracked legacy-domain renewal/retention decision beyond hosting retirement.
 
 Design/curation can progress alongside infrastructure. The critical path is
 domain ownership, data integrity, a fast reliable landing experience, affiliate
@@ -923,7 +993,7 @@ Canonical Beads, in delivery order:
 | `roadmap-lbbz1.5` | Composed visual design and four episode shortlists | Can start alongside `.2` |
 | `roadmap-lbbz1.8` | Final provider rebrand: affiliate, Pinterest, Google, analytics and remaining-service inventory | Infrastructure/design ready; account access and verified cutover timing |
 | `roadmap-lbbz1.6` | Domain/brand launch and conversion verification | `.1`, `.4`, `.5`, `.8` |
-| `roadmap-lbbz1.7` | Recoverable provider retirement | `.6` and observation window |
+| `roadmap-lbbz1.7` | Provider retirement, repository rename, portfolio receipt and legacy-domain retention | `.6`, observation window and independent redirects |
 
 Deferred follow-up `roadmap-mt1gp` depends on `.6`, not vice versa: research
 evidence sharing and optional compliant pricing cannot expand the launch's
