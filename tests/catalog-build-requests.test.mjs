@@ -30,11 +30,14 @@ async function setup() {
   const product = { id: 'B000000001', publicId: '00000000-0000-4000-8000-000000000001', slug: 'funny-button',
     title: 'Funny Red Sound Button', description: 'A funny button.', imageUrl: 'https://m.media-amazon.com/images/I/button.jpg',
     affiliateUrl: 'https://www.amazon.com/dp/B000000001?tag=test-20', source: 'amazon', currency: 'USD', price: 0,
+    editorialWriteup: 'Controlled test-only editorial.',
     isActive: true, qualityScore: .8, eligibleUntil: new Date(NOW + 26 * 3600000).toISOString() };
+  const rights = Object.fromEntries(['title','description','imageUrl','affiliateUrl','editorialWriteup'].map(field => [field,
+    { basis: 'licensed', reference: 'Controlled test-only permission', value: product[field] }]));
   sqlite.prepare(`INSERT INTO products(id,public_id,slug,source,title,currency,quality_score,is_active,editorial_status,
     availability_status,availability_checked_at,source_facts_hash,editorial_source_hash,catalog_revision,eligible_until,public_display_json,rights_json,source_record_json,updated_at)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(product.id, product.publicId, product.slug, product.source, product.title, product.currency,
-      .8, 1, 'generated_ready', 'IN_STOCK', new Date(NOW).toISOString(), FACTS, FACTS, 'source-r1', product.eligibleUntil, JSON.stringify(product), '{}', '{}', new Date(NOW).toISOString());
+      .8, 1, 'generated_ready', 'IN_STOCK', new Date(NOW).toISOString(), FACTS, FACTS, 'source-r1', product.eligibleUntil, JSON.stringify(product), JSON.stringify(rights), '{}', new Date(NOW).toISOString());
   const source = { schemaVersion: 1, dataKind: 'catalog', catalogRevision: 'source-r1', generatedAt: new Date(NOW).toISOString(), products: [product], heldProducts: [], slugHistory: [] };
   const snapshot = { ...source, catalogRevision: 'target-r2' };
   const packets = [];
@@ -148,6 +151,9 @@ test('changed prior deployment, wrong environment and unsettled observations ref
 test('activation SQL rechecks current holds, source/target receipts, vector watermark and writer barrier after readback', async () => {
   for (const change of [
     "UPDATE products SET public_display_json=NULL", "UPDATE products SET source_facts_hash='changed'",
+    "UPDATE products SET rights_json='{}'",
+    "UPDATE products SET rights_json=json_set(rights_json,'$.title.expiresAt','2026-10-20T12:01:00.000Z')",
+    "UPDATE products SET public_display_json=json_set(public_display_json,'$.description','Changed current approved copy')",
     "DELETE FROM catalog_projection_receipts WHERE catalog_revision='source-r1'",
     "UPDATE catalog_revisions SET source_export_sha256='changed' WHERE revision='target-r2'",
     "INSERT INTO catalog_revisions VALUES('writer-in-progress','2026-10-20T12:00:00.000Z','source','importing')",
