@@ -14,12 +14,12 @@ import { validateCatalogSnapshot } from '../lib/catalog/snapshot.ts';
 
 test('release context requires explicit deterministic identity, prior release, watermark and capture time', () => {
   const snapshot = { catalogRevision: 'r1', generatedAt: '2026-10-19T12:00:00.000Z' };
-  const context = { schemaVersion: 1, releaseId: 'explicit-release', codeSha: 'a'.repeat(40), catalogRevision: 'r1',
-    catalogSnapshotSha256: 'b'.repeat(64), generatedAt: snapshot.generatedAt, vectorSyncWatermark: 12, priorReleaseId: 'verified-prior' };
+  const context = { schemaVersion: 1, sourceMode: 'preview', releaseId: 'explicit-release', codeSha: 'a'.repeat(40), catalogRevision: 'r1',
+    catalogSnapshotSha256: 'b'.repeat(64), generatedAt: snapshot.generatedAt, vectorSyncWatermark: 12, priorReleaseId: 'verified-prior', retainedManifestSha256: null };
   const now = new Date('2026-10-20T12:00:00.000Z');
   assert.deepEqual(validateBuildContext(context, snapshot, context.codeSha, context.catalogSnapshotSha256, now), context);
   verifyReleaseContext(context, context, snapshot, context.codeSha);
-  for (const key of ['releaseId', 'vectorSyncWatermark', 'priorReleaseId']) {
+  for (const key of ['releaseId', 'vectorSyncWatermark', 'priorReleaseId', 'sourceMode', 'retainedManifestSha256']) {
     const missing = { ...context }; delete missing[key];
     assert.throws(() => validateBuildContext(missing, snapshot, context.codeSha, context.catalogSnapshotSha256, now), /context/);
   }
@@ -45,18 +45,23 @@ test('synthetic export consumes explicit context and cannot overwrite its sealed
     try {
       const snapshot = validateCatalogSnapshot(JSON.parse(readFileSync(new URL('../static-site/fixtures/catalog.snapshot.json', import.meta.url), 'utf8')));
       const digest = createHash('sha256').update(`${JSON.stringify(snapshot)}\n`).digest('hex');
-      const context = { schemaVersion: 1, releaseId: `synthetic-context-${path.basename(temporary)}`,
+      for (const sourceMode of ['goose-production', 'preview']) {
+      const context = { schemaVersion: 1, sourceMode, releaseId: `synthetic-context-${sourceMode}-${path.basename(temporary)}`,
         codeSha: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
         catalogRevision: snapshot.catalogRevision, catalogSnapshotSha256: digest, generatedAt: snapshot.generatedAt,
-        vectorSyncWatermark: 0, priorReleaseId: null };
+        vectorSyncWatermark: 0, priorReleaseId: null, retainedManifestSha256: null };
       const contextPath = path.join(temporary, 'release-context.json'); await writeFile(contextPath, JSON.stringify(context));
-      const env = { ...process.env, CATALOG_SNAPSHOT_PATH: '', CATALOG_RELEASE_CONTEXT_PATH: contextPath };
+      const env = { ...process.env, CATALOG_SITE_MODE: sourceMode, NEXT_PUBLIC_STATIC_SITE_MODE: sourceMode,
+        NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED: 'false', CATALOG_SNAPSHOT_PATH: '', CATALOG_RELEASE_CONTEXT_PATH: contextPath, CATALOG_PRIOR_RELEASE_PATH: undefined };
       execFileSync(process.execPath, ['--import', 'tsx', 'scripts/staging/build.mts'], { cwd: root, env, stdio: 'pipe' });
       const manifest = JSON.parse(readFileSync(path.join(root, 'build/stupid-gifts/asset-manifest.json'), 'utf8'));
       assert.equal(manifest.releaseId, context.releaseId); verifyReleaseContext(context, manifest, snapshot, context.codeSha);
       assert.deepEqual(JSON.parse(readFileSync(path.join(root, 'build/stupid-gifts/release-context.json'), 'utf8')), context);
+      assert.equal(manifest.sourceMode, sourceMode);
+      execFileSync(process.execPath, ['--import', 'tsx', 'scripts/staging/verify-release.mts'], { cwd: root, env, stdio: 'pipe' });
       const retry = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/staging/build.mts'], { cwd: root, env, encoding: 'utf8' });
       assert.equal(retry.status, 1); assert.match(retry.stderr, /already built/);
+      }
     } finally { await rm(temporary, { recursive: true, force: true }); }
   });
 

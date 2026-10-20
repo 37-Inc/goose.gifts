@@ -1,4 +1,4 @@
-import { catalog } from "../../lib/catalog";
+import { catalog, isFixtureRelease } from "../../lib/catalog";
 import { buildSnapshotIndex, snapshotIndexSchema } from "../../lib/weird-index";
 import { previewMetadata } from "../../lib/metadata";
 import { JsonLd } from "../../components/JsonLd";
@@ -8,6 +8,7 @@ export const metadata = previewMetadata(
   "The Weird Gift Index — snapshot sample",
   `Aggregate title analysis of ${index.totalProducts} ready records in a bounded snapshot sample, not the full production catalog.`,
   "/weird-gift-index",
+  { indexable: index.totalProducts > 0, fixture: isFixtureRelease },
 );
 export default function WeirdIndex() {
   return (

@@ -24,6 +24,7 @@ export async function generateMetadata({
     `The collection — page ${page}`,
     "Snapshot-only catalog browsing.",
     directoryPath(Number(page)),
+    { indexable: Number(page) > 1 && Boolean(directoryPage(catalog, Number(page))?.products.length), fixture: isFixtureRelease },
   );
 }
 export default async function CatalogPage({

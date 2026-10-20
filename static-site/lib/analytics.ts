@@ -3,6 +3,7 @@
 import type { createClientAnalytics } from "../../lib/client-analytics";
 import type { ProductAnalyticsSource } from "../../lib/analytics-contract";
 import { createSessionAttribution } from "./analytics-attribution";
+import { isSiteAnalyticsHostname, isSiteProduction, siteIdentity } from "./site-identity";
 
 type Analytics = ReturnType<typeof createClientAnalytics>;
 let catalogRelease = false;
@@ -13,11 +14,12 @@ const getAttribution = createSessionAttribution(isStaticAnalyticsAllowed);
 
 /** Gate before importing any provider code, and again before each event. */
 export function isStaticAnalyticsAllowed(): boolean {
-  return process.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED === "true"
+  return isSiteProduction
+    && process.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED === "true"
     && catalogRelease
     && typeof window !== "undefined"
     && window.location.protocol === "https:"
-    && window.location.hostname === "stupid.gifts"
+    && isSiteAnalyticsHostname(window.location.hostname)
     && navigator.doNotTrack !== "1"
     && window.doNotTrack !== "1"
     && navigator.globalPrivacyControl !== true;
@@ -30,7 +32,7 @@ function withAnalytics(send: (analytics: Analytics) => void) {
     client ||= import("../../lib/client-analytics").then(({ createClientAnalytics }) =>
       createClientAnalytics({
         isAllowed: isStaticAnalyticsAllowed,
-        pageOrigin: "https://stupid.gifts",
+        pageOrigin: siteIdentity.origin,
         getAttribution,
       }),
     ).catch(() => {

@@ -46,6 +46,18 @@ function campaignSearch(params: URLSearchParams): string {
   }
   return kept.size ? `?${kept}` : '';
 }
+function pageAliasSearch(params: URLSearchParams): string {
+  const kept = new URLSearchParams();
+  for (const key of ['utm_source', 'utm_medium', 'utm_campaign']) {
+    const value = params.get(key);
+    if (value && /^[a-zA-Z0-9._~:-]{1,200}$/.test(value)) kept.set(key, value);
+  }
+  const q = params.get('q');
+  if (q !== null && q.length <= 200 && !/[\u0000-\u001f\u007f]/.test(q)) kept.set('q', q);
+  const page = params.get('page');
+  if (page !== null && page.length <= 128 && /^\d+$/.test(page)) kept.set('page', page);
+  return kept.size ? `?${kept}` : '';
+}
 function boundedDirectoryPage(value: string, lastPage: number): number | null {
   if (value.length > 128 || !/^\d+$/.test(value)) return null;
   const normalized = value.replace(/^0+/, '');
@@ -196,6 +208,9 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         const path = url.pathname;
         // Never let ASSETS decode separators/traversal differently from this dispatcher.
         if (/%(?:2f|5c|25)/i.test(path)) return respond(json({ error: 'Not found' }, 404));
+        let decodedPath: string;
+        try { decodedPath = decodeURIComponent(path); }
+        catch { return respond(json({ error: 'Not found' }, 404)); }
         if (path === '/.well-known/catalog-release.json') {
           if (!['GET', 'HEAD'].includes(request.method)) return respond(json({ error: 'Method not allowed' }, 405, { Allow: 'GET, HEAD' }));
           if (!releaseIdentity) return respond(json({ error: 'Release identity unavailable' }, 503));
@@ -205,11 +220,22 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         if (path === '/api/catalog-feed') return respond(await feed(request));
         if (RETIRED_ROUTE.test(path) || path.startsWith('/api/')) return respond(json({ error: 'Not found' }, 404));
         if (!['GET', 'HEAD'].includes(request.method)) return respond(json({ error: 'Method not allowed' }, 405, { Allow: 'GET, HEAD' }));
+        if ((decodedPath === '/random-gift' || decodedPath === '/random-gift/') && url.searchParams.has('gift')) return respond(json({ error: 'Not found' }, 404));
+        if (path.endsWith('/') && path !== '/') {
+          const target = path.slice(0, -1);
+          // Only finite known HTML pages (plus maintained legal/search pages),
+          // never API, unknown assets, data aliases or a catch-all SPA redirect.
+          const page = routes.get(target);
+          if (target === '/privacy' || target === '/search' || !target.includes('.') && page?.assetPath === `${target}.html`) {
+            if (target === '/gifts' && url.searchParams.has('page') && boundedDirectoryPage(url.searchParams.get('page')!, lastDirectoryPage) === null)
+              return respond(json({ error: 'Not found' }, 404));
+            return respond(new Response(null, { status: 308, headers: { Location: `${target}${pageAliasSearch(url.searchParams)}`, 'Cache-Control': 'no-store' } }));
+          }
+        }
         if (path === '/search') {
           const q = url.searchParams.get('q')?.trim();
           return respond(new Response(null, { status: 308, headers: { Location: q ? `/?q=${encodeURIComponent(q)}` : '/', 'Cache-Control': 'no-store' } }));
         }
-        if (path === '/random-gift' && url.searchParams.has('gift')) return respond(json({ error: 'Not found' }, 404));
         if (path === '/gifts' && url.searchParams.has('page')) {
           const value = url.searchParams.get('page')!;
           const page = boundedDirectoryPage(value, lastDirectoryPage);
@@ -229,7 +255,9 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         const redirect = redirects.get(path);
         if (redirect && routes.has(redirect)) return respond(new Response(null, { status: 308, headers: { Location: `${redirect}${campaignSearch(url.searchParams)}`, 'Cache-Control': 'no-store' } }));
         if (path === '/sitemap.xml' || path === '/sitemap/0.xml') return respond(sitemap(request));
-        const route = routes.get(path) || directAssets.get(path);
+        // Retained chunks may arrive with encoded brackets or unreserved filename
+        // bytes. Their single-decoded equivalent must not bypass the expiry guard.
+        const route = routes.get(path) || directAssets.get(path) || routes.get(decodedPath) || directAssets.get(decodedPath);
         if (route) return respond(await asset(request, env, route));
         // Legal content is timeless and intentionally outside catalog manifests.
         if (path === '/privacy' || /^\/privacy(?:\.(?:html|txt)|\/__next\.[^/]+\.txt)$/.test(path)) {

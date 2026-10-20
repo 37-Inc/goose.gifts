@@ -7,6 +7,8 @@ import {
 import { serializeJsonLd } from "../static-site/components/JsonLd.tsx";
 import { createStaticRoutes } from "../static-site/lib/asset-routes.ts";
 import { createBrowseRelease } from "../static-site/lib/browse.ts";
+import { createOgRelease } from "../static-site/lib/og.ts";
+import { siteIdentity } from "../static-site/lib/site-identity.ts";
 import { selectGuideProducts, guideSchema } from "../static-site/lib/guides.ts";
 import {
   directoryPages,
@@ -148,7 +150,7 @@ test("guide schema lists exactly the rendered products and only explicit visible
   assert.equal(list.itemListElement.length, selected.length);
   assert.equal(
     list.itemListElement[0].url,
-    "https://staging.stupid.gifts/gifts/gift-cat",
+    `${siteIdentity.origin}/gifts/gift-cat`,
   );
   assert.doesNotMatch(
     JSON.stringify(schema),
@@ -180,7 +182,7 @@ test("Weird Index is aggregate-only and explicitly a bounded sample with unknown
   assert.equal(
     schema["@graph"].find((s) => s["@type"] === "Dataset").distribution
       .contentUrl,
-    "https://staging.stupid.gifts/weird-gift-index/data",
+    `${siteIdentity.origin}/weird-gift-index/data`,
   );
   assert.doesNotMatch(JSON.stringify(schema), /3,000|Offer|priceCurrency/);
 });
@@ -222,6 +224,7 @@ test("finite multipage routes and aggregate JSON inherit complete snapshot expir
     "/safe/index.json",
     "/safe/catalog.json",
     ...createBrowseRelease(input).shards.map((shard) => shard.path),
+    ...createOgRelease(input, siteIdentity).byPath.keys(),
     ...giftGuides.map((g) => `/gift-guides/${g.slug}.html`),
     ...input.products.map((p) => `/gifts/${p.slug}.html`),
   ];

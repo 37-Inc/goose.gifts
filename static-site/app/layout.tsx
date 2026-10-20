@@ -3,36 +3,38 @@ import { previewMetadata } from "../lib/metadata";
 import { isFixtureRelease } from "../lib/catalog";
 import { StaticAnalytics } from "../components/StaticAnalytics";
 import { show } from "../lib/show-data";
+import { isSitePreview, isSiteProduction, siteIdentity } from "../lib/site-identity";
 import "./styles.css";
 
 export const metadata: Metadata = {
   ...previewMetadata(
     "Ridiculous gifts. Excellent taste.",
     isFixtureRelease
-      ? "An isolated, noindex Stupid Gifts design and static-export preview. Illustrative fixtures are not products for sale."
-      : "An isolated, noindex Stupid Gifts staging preview using a bounded catalog cohort. This is not a public launch.",
+      ? `An isolated, noindex ${siteIdentity.name} design and static-export preview. Illustrative fixtures are not products for sale.`
+      : isSitePreview ? `An isolated, noindex ${siteIdentity.name} staging preview using a bounded catalog cohort. This is not a public launch.`
+        : `${siteIdentity.name}: ${siteIdentity.tagline}`,
     "/",
   ),
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/favicon.ico" },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        {process.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED === "true" &&
+        {isSiteProduction && process.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED === "true" &&
           !isFixtureRelease && <StaticAnalytics />}
         <a className="skip-link" href="#main">
           Skip to content
         </a>
-        <div className="preview-notice">
+        {(isSitePreview || isFixtureRelease) && <div className="preview-notice">
           {isFixtureRelease
             ? "Private design proof · illustrative examples, not purchasable products"
             : "Private staging preview · not a public launch"}
-        </div>
+        </div>}
         <header className="site-header">
-          <a className="wordmark" href="/" aria-label="Stupid Gifts home">
-            stupid<span>.</span>gifts
+          <a className="wordmark" href="/" aria-label={`${siteIdentity.name} home`}>
+            {siteIdentity.brand}<span>.</span>gifts
           </a>
           <nav aria-label="Main navigation">
             <a className="nav-secondary" href="/gifts">The collection</a>
@@ -47,13 +49,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {children}
         <footer>
           <a className="wordmark" href="/">
-            stupid<span>.</span>gifts
+            {siteIdentity.brand}<span>.</span>gifts
           </a>
-          <p>Very bad ideas. Carefully considered.</p>
+          <p>{siteIdentity.tagline}</p>
           <p className="quiet">
             {isFixtureRelease
               ? "Staging only. Original illustrative assets; no merchant photography or current-offer claims. "
-              : "Staging only. "}
+              : isSitePreview ? "Staging only. " : ""}
             We may earn a commission. As an Amazon Associate we earn from
             qualifying purchases.
           </p>

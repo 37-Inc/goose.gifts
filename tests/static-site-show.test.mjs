@@ -11,6 +11,8 @@ import { unavailableEpisode } from "../static-site/lib/episode-display.ts";
 import { episodeQrSvg } from "../static-site/lib/episode-qr.ts";
 import { createStaticRoutes } from "../static-site/lib/asset-routes.ts";
 import { createBrowseRelease } from "../static-site/lib/browse.ts";
+import { createOgRelease } from "../static-site/lib/og.ts";
+import { siteIdentity } from "../static-site/lib/site-identity.ts";
 import { directoryPages, directoryPath } from "../static-site/lib/directory.ts";
 import { guides } from "../static-site/lib/guides.ts";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
@@ -53,6 +55,7 @@ function inventory(snapshot, inputs = []) {
     ...safe.flatMap((p) => [`${p}.html`, `${p}.txt`]), "/safe/catalog.json", "/safe/index.json", "/weird-gift-index/data.json",
     ...show.episodes.flatMap((e) => [`/howie/${e.key}/data.json`, `/safe/howie/${e.key}/data.json`]),
     ...createBrowseRelease(snapshot).shards.map((s) => s.path),
+    ...createOgRelease(snapshot, siteIdentity).byPath.keys(),
   ])];
 }
 test("draft candidates can retain UUIDs but unapproved details never become display/presentation data", () => {
@@ -119,7 +122,7 @@ test("episode HTML/RSC/JSON and presentation inherit first displayed expiry; pro
 test("QR is deterministic local SVG for only the stable canonical page with coarse campaign fields", () => {
   const episode = createShowRelease(catalog, fixtureEpisodes(catalog)).latest;
   const url = new URL(episode.shareUrl);
-  assert.equal(url.origin, "https://stupid.gifts");
+  assert.equal(url.origin, siteIdentity.origin);
   assert.equal(url.pathname, `/howie/${episode.key}`);
   assert.deepEqual([...url.searchParams.keys()], ["utm_source", "utm_medium", "utm_campaign"]);
   assert.equal(url.searchParams.get("utm_campaign"), "episode_2026_10_19");
@@ -147,11 +150,11 @@ function build(project, source) {
   const snapshot = validateCatalogSnapshot(JSON.parse(fs.readFileSync(source, "utf8")));
   const context = path.join(project, "fixture-release-context.json");
   fs.writeFileSync(context, JSON.stringify({
-    schemaVersion: 1, releaseId: `controlled-show-${randomUUID()}`,
+    schemaVersion: 1, sourceMode: "preview", releaseId: `controlled-show-${randomUUID()}`,
     codeSha: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
     catalogRevision: snapshot.catalogRevision,
     catalogSnapshotSha256: createHash("sha256").update(`${JSON.stringify(snapshot)}\n`).digest("hex"),
-    generatedAt: new Date().toISOString(), vectorSyncWatermark: 0, priorReleaseId: null,
+    generatedAt: new Date().toISOString(), vectorSyncWatermark: 0, priorReleaseId: null, retainedManifestSha256: null,
   }));
   try {
     execFileSync(process.execPath, [path.join(root, "node_modules/next/dist/bin/next"), "build", "static-site", "--webpack"], {

@@ -1,12 +1,15 @@
 import { browse, isFixtureRelease } from "../../lib/catalog";
 import { RandomSelection } from "../../components/RandomSelection";
 import { previewMetadata } from "../../lib/metadata";
+import { isSitePreview } from "../../lib/site-identity";
 export const metadata = previewMetadata(
   "Leave it to chance",
   isFixtureRelease
     ? "A bounded versioned pool, no immediate repeats, and ordinary product links. Illustrative staging fixtures only."
-    : "A bounded staging catalog pool, no immediate repeats, and ordinary product links. Not a public launch.",
+    : isSitePreview ? "A bounded staging catalog pool, no immediate repeats, and ordinary product links. Not a public launch."
+      : "Choose from the curated collection, with no immediate repeats and links to each gift.",
   "/random-gift",
+  { indexable: browse.random.poolSize > 0, fixture: isFixtureRelease },
 );
 export default function Random() {
   return (

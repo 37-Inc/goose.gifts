@@ -18,9 +18,10 @@ npm run build
 
 Without `CATALOG_SNAPSHOT_PATH`, the build uses explicitly synthetic fixtures.
 Every build, including a synthetic build, requires an explicit private release
-context with exactly `schemaVersion: 1`, `releaseId`, `codeSha`,
+context with exactly `schemaVersion: 1`, `sourceMode`, `releaseId`, `codeSha`,
 `catalogRevision`, `catalogSnapshotSha256`, `generatedAt`,
-`vectorSyncWatermark` and `priorReleaseId`. The source SHA must match committed
+`vectorSyncWatermark`, `priorReleaseId` and `retainedManifestSha256`.
+The source SHA must match committed
 HEAD; the snapshot digest hashes the validated snapshot serialized with
 `JSON.stringify(snapshot) + '\n'`. Capture time must not precede the snapshot
 or be in the future. Read the watermark and prior release from independently
@@ -29,10 +30,34 @@ The verifier binds this copied context to the release manifest. An already-built
 release ID cannot be overwritten: verify/reuse that sealed package or assign a
 new reviewed ID.
 
+`sourceMode` is explicitly `preview`, `goose-production`, or
+`stupid-production`, never inferred from `NODE_ENV` or the request hostname.
+The selected origin, wordmark, canonical/OG URLs and analytics host gate share
+one allowlisted identity. The builder seals `site-identity.json`; verification
+checks its digest and the exported canonical/social origins. Preview uses the
+actual protected Workers hostname and remains noindex. A production identity
+build does not authorize deployment, DNS changes, analytics activation or
+provider rebranding.
+
+Set `retainedManifestSha256` to explicit null when no overlap is needed.
+Otherwise supply the independently verified prior manifest digest and
+`CATALOG_PRIOR_RELEASE_PATH` pointing to its private package containing
+`asset-manifest.json`, `catalog.snapshot.json` and `assets/`. The prior ID must
+match `priorReleaseId`; both build and verify require that exact package.
+Only content-addressed catalog shards and allowlisted owned JS/CSS/fonts
+may overlap, for at most fifteen minutes without renewal. Current holds,
+display changes or shorter rights deadlines remove old product bodies.
+Old HTML/RSC are never copied. Encoded aliases use the same expiry guard.
+The default overlap budget is 512 entries / 16 MiB; no implicit directory
+discovery, historical asset registry or unbounded retention is introduced.
+
 The build copies a validated public-field-only snapshot into ignored
 `build/stupid-gifts/`, renders `static-site/out/`, and records the source SHA,
 snapshot digest, every asset digest and expiry policy. Commit reviewed source,
-then rebuild before deployment. `verify-release.mts` refuses dirty/mismatched
+then rebuild before deployment. The builder refuses dirty source before output
+writes and rechecks clean, unchanged HEAD after compilation and before sealing.
+This is an observed provenance check, not an OS-level cross-process writer lock.
+`verify-release.mts` refuses dirty/mismatched
 source, changed snapshot bytes, changed assets, changed expiry routes or a
 changed prepared feed. Feed ranking and family deduplication run at build time;
 the Worker receives a revision/digest-bound index plan, not a second product
@@ -216,9 +241,8 @@ Private receipt `publication-proof-QKPwWC/receipt.json` has SHA-256
 This baseline has watermark zero; it does not prove later outbox processing.
 The browser fetched Random's JSON once across three successful spins, with no
 adjacent repeats or horizontal overflow. Production Goose routes remain healthy.
-This is not an activated scheduled publisher: reusable provider workflows,
-environment-wide deployment serialization and retained historical shards remain
-separate work.
+This is not an activated scheduled publisher: reusable provider workflows and
+environment-wide deployment serialization remain separate work.
 
 The reviewed search budget is an aggregate atomic D1 reservation, shared across
 isolates and catalog revisions for the compiled environment/index scope. The
@@ -238,9 +262,18 @@ retaining exact original text privately. See
 
 Full-catalog timestamp/reconciliation and remaining recovery gaps, the complete
 multi-revision publishing/vector-outbox loop, 30-query search parity and global
-spending controls, static preview assets, compliant recurring expiry publication,
+spending controls, compliant recurring expiry publication,
 real show curation, burst rehearsal, production analytics checks and the final
 owner/provider checklist remain open. Four staging products are not a
 launch-ready catalog. Provider cutover and decommissioning are separate gates.
 The free Vectorize allowance also cannot hold all 3,383 historical product
 vectors (5,196,288 dimensions); do not silently upgrade or discard inventory.
+
+The next writer/freezer implementation must share one environment/index fence
+across maintenance, importers, vector delivery and activation. The current
+read-only snapshot reconstruction proves an **existing** reviewed seal, not a
+new revision or a lock: two stable captures cannot exclude a later write or
+ABA change. A pruning freshness run may remove expired/held content but cannot
+refresh merchant verification, promote old holds, invent vector provenance or
+claim an all-held catalog is healthy. Keep the current Neon job until these
+transactions, telemetry, slug reservations and recovery checks are proven.

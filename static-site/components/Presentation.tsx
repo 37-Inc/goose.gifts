@@ -5,6 +5,7 @@ import { ProductImage } from "@/components/ProductImage";
 import { unavailableEpisode } from "../lib/episode-display";
 import type { DisplayEpisode } from "../lib/episode-display";
 import { captureRenderedLists } from "../lib/analytics";
+import { siteIdentity } from "../lib/site-identity";
 
 export function Presentation({
   episode,
@@ -69,7 +70,7 @@ export function Presentation({
     <div className="presentation" aria-label="Episode presentation preview">
       <div className="presentation-top">
         <span className="wordmark">
-          stupid<span>.</span>gifts
+          {siteIdentity.brand}<span>.</span>gifts
         </span>
         <span className="eyebrow">
           {episode.status === "draft"
@@ -108,7 +109,7 @@ export function Presentation({
             <>
               <p className="variant">Original exact variant: {slot.exactVariant}</p>
               <a className="text-action" data-analytics-product-link="" href={`/gifts/${product.slug}`}>
-                stupid.gifts/gifts/{product.slug} ↗
+                {siteIdentity.hostname}/gifts/{product.slug} ↗
               </a>
             </>
           ) : (
@@ -134,7 +135,7 @@ export function Presentation({
           {episode.shareUrl && qrSvg && <aside className="presentation-share">
             <a className="episode-qr" href={episode.shareUrl} aria-label="Open this episode selection"
               dangerouslySetInnerHTML={{ __html: qrSvg }} />
-            <a href={episode.shareUrl}>stupid.gifts/howie/{episode.key} ↗</a>
+            <a href={episode.shareUrl}>{siteIdentity.hostname}/howie/{episode.key} ↗</a>
           </aside>}
         </div>
       </div>

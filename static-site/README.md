@@ -26,7 +26,8 @@ Artifact tests automatically use the integration build's immutable
 builds, use the same `CATALOG_SNAPSHOT_PATH` for the build and tests. Pure fixture
 tests remain independent; no input is saved to Git.
 
-All routes have noindex metadata and robots disallows crawling. There is no
+The default protected preview and all fixtures have noindex metadata and robots
+disallows crawling. There is no
 initialized analytics provider by default, service worker, catalog browser
 storage, offer schema, fabricated availability, or enabled fixture retailer CTA.
 The shared `ProductImage` and price-free schema helper are reused; staging CTA
@@ -90,7 +91,7 @@ The original Vercel app is unaffected. The existing presentation layout and
 keyboard controls are reused. Server-only `qrcode-generator` produces a local
 deterministic SVG for the canonical episode page with the three coarse episode
 campaign fields, alongside an ordinary link; no external QR service or client
-encoder is involved. OG artwork remains a separate task.
+encoder is involved.
 
 Zero-ready snapshots render the existing safe Home, with held/noindex root,
 directory, Random and shard policies. The Worker therefore serves unavailable
@@ -137,8 +138,84 @@ retailer URLs, prices, long editorial and private source fields. Every exact JSO
 expiry and generic unavailable fallback. They are exported by Next directly;
 the normal release asset inventory/checksum hook needs no extra writer.
 Missing/old-release, mixed-revision, malformed and expired responses show a
-refresh/browse state, not a healthy empty collection. Historical shard retention
-through cache lifetime is still publishing-layer work; no expiry is extended.
+refresh/browse state, not a healthy empty collection.
+
+`retainStaticAssets` is a pure publishing seam, not an implicit prior-directory
+loader. Its caller supplies an explicit prior release ID, trusted manifest SHA,
+exact sealed manifest/snapshot bytes and asset map; the helper verifies their
+digests and coherence. It returns only files and route policies to merge before
+final checksums/sealing. The staging builder/verifier now share this integration:
+reviewed context must explicitly provide `retainedManifestSha256` (a SHA-256 or
+`null`), independently of `priorReleaseId`. Only a non-null digest permits
+`CATALOG_PRIOR_RELEASE_PATH`, pointing to an explicit sealed package containing
+`asset-manifest.json`, `catalog.snapshot.json` and `assets/`. Its exact manifest
+digest and release ID must match the context before any retained bytes are used.
+No local discovery, implicit prior package or public filesystem path is added.
+
+The final manifest seals `retention: { priorManifestSha256, currentAssetPaths }`
+or explicit `null`. Verification checks every asset checksum, reconstructs the
+current-only inventory, reruns the retention helper from the same trusted prior
+package/capture time, and compares combined files, bytes and policies. Historical
+shards cannot be relabeled as current to bypass freshness. Missing/wrong prior
+inputs, symlink escapes, byte tampering, policy extension or unexpected assets fail
+within that provenance boundary. Next deletes its output before export; the
+two-release drill verifies stale files cannot enter the fresh inventory.
+`currentAssetPaths` is sealed **builder provenance**, not independent proof of
+regeneration against someone able to rewrite and reseal the entire package:
+an old owned chunk relabeled as current cannot be distinguished without a clean
+rebuild or an externally trusted post-build digest. This verifier recomputes
+retained policy given the trusted builder inventory; it does not add that second
+trust system or claim to resist whole-package resealing.
+
+Old shard bytes survive only while their public display projection still matches
+current ready products. Deadlines are capped at original rights, current rights
+and a fixed 15-minute overlap from first retirement capture. Held, changed,
+retired or expired products get unavailable aliases without old bytes. The
+manifest-sealed `retainedUntil` is preserved across release chains, never renewed.
+Only trusted, checksum-matching owned Next JS/CSS/fonts can also carry over;
+product/private literals in code fail packaging. No old HTML/RSC is copied.
+Paths, file sizes and total packaging are bounded (default 512 routes/16 MiB).
+Current paths/policies win; immutable-name byte collisions fail. The current
+unavailable JSON and `/safe/asset.txt` remain the fallbacks. This covers a bounded
+deployment overlap, not indefinite old-tab support: long-suspended tabs must
+reload. Historical product OG retention is not added before any such assets have
+actually been deployed.
+
+The optional two-release build/verify drill uses only owned fixtures and local
+assets. It replaces the local output, so rebuild an approved snapshot afterward:
+
+```sh
+STATIC_SITE_BUILD_RETENTION_FIXTURE=1 node --import tsx --test tests/static-site-release-retention.test.mjs
+```
+
+OG cards use the explicit reviewed `siteIdentity`, never a separately hardcoded
+brand or origin. Finite `/og/<descriptor-sha256>.png` routes render 1200×630 local
+typography/shapes with the installed Next renderer and bundled font; no merchant
+image, external font, emoji service or image generation is used. Brand and guide
+cards use owned text; product titles come only from the approved snapshot and
+inherit its product deadline with an owned brand-card fallback. Unsupported
+glyphs or titles that cannot fit safely use the brand card instead of invented
+or truncated copy. Fixture cards explicitly say not for sale. `styleVersion`
+must change when the renderer changes so immutable paths never change bytes.
+Metadata includes absolute OG images and Twitter large-image cards. Preview and
+fixtures remain noindex; production mode alone does not index held/thin/private
+routes. Indexability requires explicit route eligibility and non-fixture status.
+Eligible Home/catalog/Random/report pages, the maintained guide hub and matching
+guides, confirmed published archives and reviewed privacy content can index only
+in an explicit production source mode. Empty/held/thin routes, duplicate page 1,
+unpublished show content and presentation views stay noindex; query search is
+also noindex at the Worker. Production robots permits maintained public content
+and names the selected canonical sitemap; preview/fixture robots still blocks
+everything. Retired/unknown paths remain Worker 404s. This is source capability,
+not activation or a cutover.
+
+Production static privacy reuses the existing published policy verbatim except
+for the approved identity name, preserving its date, contact and conditional
+analytics wording. The existing Vercel privacy view imports the same pure copy
+without changing its content. Preview privacy remains explicitly preview-only.
+The tiny existing owned favicon is reused across modes; no new mascot or logo
+rights are implied. Production privacy review and provider activation remain
+separate gates.
 
 The larger owned-fixture export check is intentionally opt-in because it replaces
 the local output. Rebuild with your approved snapshot afterward:

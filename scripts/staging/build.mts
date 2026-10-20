@@ -5,30 +5,55 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { canonicalTime, validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import type { CatalogSnapshot, SiteAssetManifest } from '../../lib/catalog/types.ts';
-import { createStaticRoutes } from '../../static-site/lib/asset-routes.ts';
 import { createStaticFeedPlan } from '../../workers/site/feed.ts';
 import { createReleaseIdentity } from './release-identity.mts';
+import { resolveSiteSourceMode, siteIdentityRecordFor } from '../../static-site/lib/site-identity.ts';
+import { assembleReleaseAssets, readPriorRelease } from './retention.mts';
 
 export type ReleaseBuildContext = Pick<SiteAssetManifest, 'schemaVersion' | 'releaseId' | 'codeSha' | 'catalogRevision'
-  | 'catalogSnapshotSha256' | 'generatedAt' | 'vectorSyncWatermark' | 'priorReleaseId'>;
+  | 'catalogSnapshotSha256' | 'generatedAt' | 'vectorSyncWatermark' | 'priorReleaseId' | 'sourceMode'> & { retainedManifestSha256: string | null };
 /** Explicit reviewed context; zero/null are valid only when actually supplied.
  * Build retries must reuse the sealed package, not overwrite an existing release ID.
  */
 export function validateBuildContext(value: unknown, snapshot: CatalogSnapshot, codeSha: string, snapshotDigest: string, now = new Date()): ReleaseBuildContext {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Explicit release build context is required');
   const input = value as ReleaseBuildContext;
-  if (Object.keys(input).sort().join(',') !== 'catalogRevision,catalogSnapshotSha256,codeSha,generatedAt,priorReleaseId,releaseId,schemaVersion,vectorSyncWatermark'
+  if (Object.keys(input).sort().join(',') !== 'catalogRevision,catalogSnapshotSha256,codeSha,generatedAt,priorReleaseId,releaseId,retainedManifestSha256,schemaVersion,sourceMode,vectorSyncWatermark'
     || input.schemaVersion !== 1 || typeof input.releaseId !== 'string' || !/^[a-zA-Z0-9._-]{1,200}$/.test(input.releaseId)
     || !/^[a-f0-9]{40}$/.test(input.codeSha) || input.codeSha !== codeSha || input.catalogRevision !== snapshot.catalogRevision
     || !/^[a-f0-9]{64}$/.test(input.catalogSnapshotSha256) || input.catalogSnapshotSha256 !== snapshotDigest
     || !Number.isSafeInteger(input.vectorSyncWatermark) || input.vectorSyncWatermark < 0
     || input.priorReleaseId !== null && (typeof input.priorReleaseId !== 'string' || !/^[a-zA-Z0-9._-]{1,200}$/.test(input.priorReleaseId))
-    || input.priorReleaseId === input.releaseId) throw new Error('Release build context is malformed or incompatible');
+    || input.priorReleaseId === input.releaseId
+    || input.retainedManifestSha256 !== null && (typeof input.retainedManifestSha256 !== 'string'
+      || !/^[a-f0-9]{64}$/.test(input.retainedManifestSha256) || input.priorReleaseId === null)) throw new Error('Release build context is malformed or incompatible');
   const generated = Date.parse(canonicalTime(input.generatedAt));
+  resolveSiteSourceMode(input.sourceMode);
   if (!Number.isFinite(now.getTime()) || generated < Date.parse(snapshot.generatedAt) || generated > now.getTime()) throw new Error('Release build context has an invalid capture time');
-  return { schemaVersion: 1, releaseId: input.releaseId, codeSha: input.codeSha, catalogRevision: input.catalogRevision,
+  return { schemaVersion: 1, sourceMode: input.sourceMode, releaseId: input.releaseId, codeSha: input.codeSha, catalogRevision: input.catalogRevision,
     catalogSnapshotSha256: input.catalogSnapshotSha256, generatedAt: input.generatedAt,
-    vectorSyncWatermark: input.vectorSyncWatermark, priorReleaseId: input.priorReleaseId };
+    vectorSyncWatermark: input.vectorSyncWatermark, priorReleaseId: input.priorReleaseId,
+    retainedManifestSha256: input.retainedManifestSha256 };
+}
+
+export function siteIdentityBytes(sourceMode: ReleaseBuildContext['sourceMode']): string {
+  return `${JSON.stringify(siteIdentityRecordFor(sourceMode))}\n`;
+}
+/** A caller cannot relabel the package independently of its reviewed context. */
+export function releaseBuildEnvironment(context: Pick<ReleaseBuildContext, 'sourceMode'>, env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  for (const key of ['CATALOG_SITE_MODE', 'NEXT_PUBLIC_STATIC_SITE_MODE']) {
+    if (env[key] !== undefined && env[key] !== context.sourceMode) throw new Error('Caller site source mode conflicts with reviewed release context');
+  }
+  return { ...env, CATALOG_SITE_MODE: context.sourceMode, NEXT_PUBLIC_STATIC_SITE_MODE: context.sourceMode };
+}
+
+/** Match release verification: nonignored untracked files count as source changes. */
+export function assertBuildSource(root: string, expectedSha?: string): string {
+  const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+  const codeSha = git('rev-parse', 'HEAD');
+  if (git('status', '--porcelain')) throw new Error('Commit the reviewed source before building a staging release');
+  if (expectedSha !== undefined && codeSha !== expectedSha) throw new Error('Source HEAD changed during the staging build');
+  return codeSha;
 }
 
 async function main() {
@@ -41,8 +66,11 @@ async function main() {
   const catalogSnapshotSha256 = createHash('sha256').update(snapshotBytes).digest('hex');
   const contextPath = process.env.CATALOG_RELEASE_CONTEXT_PATH;
   if (!contextPath) throw new Error('CATALOG_RELEASE_CONTEXT_PATH must identify explicit reviewed release context');
-  const codeSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  const codeSha = assertBuildSource(root);
   const context = validateBuildContext(JSON.parse(await fs.readFile(path.resolve(contextPath), 'utf8')), snapshot, codeSha, catalogSnapshotSha256);
+  const buildEnv = releaseBuildEnvironment(context, process.env);
+  const priorPackage = await readPriorRelease(context, process.env.CATALOG_PRIOR_RELEASE_PATH);
+  const identityBytes = siteIdentityBytes(context.sourceMode);
   try {
     const prior = JSON.parse(await fs.readFile(path.join(generated, 'asset-manifest.json'), 'utf8'));
     if (prior.releaseId === context.releaseId) throw new Error('Release ID already built; verify and reuse the sealed package instead');
@@ -54,27 +82,43 @@ async function main() {
   const input = path.join(generated, 'catalog.snapshot.json');
   await fs.writeFile(input, snapshotBytes);
   await fs.writeFile(path.join(generated, 'release-context.json'), `${JSON.stringify(context)}\n`);
+  await fs.writeFile(path.join(generated, 'site-identity.json'), identityBytes);
   await fs.writeFile(path.join(generated, 'feed-plan.json'), `${JSON.stringify(createStaticFeedPlan(snapshot, catalogSnapshotSha256))}\n`);
   execFileSync(process.execPath, ['node_modules/next/dist/bin/next', 'build', 'static-site', '--webpack'], {
-    cwd: root, env: { ...process.env, CATALOG_SNAPSHOT_PATH: input }, stdio: 'inherit',
+    cwd: root, env: { ...buildEnv, CATALOG_SNAPSHOT_PATH: input }, stdio: 'inherit',
   });
+  assertBuildSource(root, codeSha);
   const files = (await fs.readdir(output, { recursive: true, withFileTypes: true }))
     .filter((entry) => entry.isFile()).map((entry) => path.join(entry.parentPath, entry.name)).sort();
-  const checksums: Record<string, string> = {};
+  const currentAssets = new Map<string, Uint8Array>();
   for (const file of files) {
-    checksums[`/${path.relative(output, file).split(path.sep).join('/')}`] = createHash('sha256').update(await fs.readFile(file)).digest('hex');
+    currentAssets.set(`/${path.relative(output, file).split(path.sep).join('/')}`, await fs.readFile(file));
   }
-  const routes = createStaticRoutes(snapshot, Object.keys(checksums));
-  const manifest = { ...context, dataKind: snapshot.dataKind,
+  const assembled = assembleReleaseAssets(snapshot, currentAssets, context, priorPackage);
+  const checksums: Record<string, string> = {};
+  for (const [name, bytes] of [...assembled.assets].sort(([a], [b]) => a.localeCompare(b))) {
+    if (!currentAssets.has(name)) {
+      const file = path.join(output, name.slice(1));
+      await fs.mkdir(path.dirname(file), { recursive: true });
+      await fs.writeFile(file, bytes);
+    }
+    checksums[name] = createHash('sha256').update(bytes).digest('hex');
+  }
+  const { retainedManifestSha256, ...manifestContext } = context;
+  const manifest: SiteAssetManifest = { ...manifestContext,
+    retention: retainedManifestSha256 === null ? null : assembled.retention,
+    siteIdentitySha256: createHash('sha256').update(identityBytes).digest('hex'), dataKind: snapshot.dataKind,
     nextExpiry: snapshot.products.map((product) => product.eligibleUntil).sort()[0] || null,
     productCount: snapshot.products.length,
     slugCount: snapshot.products.length + snapshot.heldProducts.length + snapshot.slugHistory.length,
-    checksums, routes };
+    checksums, routes: assembled.routes };
   const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
+  // Asset inventory/retention can take time; do not seal if source drifted meanwhile.
+  assertBuildSource(root, codeSha);
   await fs.writeFile(path.join(generated, 'asset-manifest.json'), manifestBytes);
   await fs.writeFile(path.join(generated, 'release-identity.json'), `${JSON.stringify(createReleaseIdentity(manifestBytes))}\n`);
   console.log(JSON.stringify({ releaseId: manifest.releaseId, dataKind: snapshot.dataKind,
-    productCount: manifest.productCount, assets: files.length, guardedRoutes: Object.keys(routes).length,
+    productCount: manifest.productCount, assets: assembled.assets.size, guardedRoutes: Object.keys(assembled.routes).length,
     nextExpiry: manifest.nextExpiry }));
 }
 

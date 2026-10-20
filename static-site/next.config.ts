@@ -1,6 +1,11 @@
 import path from "node:path";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import type { NextConfig } from "next";
+
+// Next's transpiled config has no reliable relative module filename. Resolve
+// this small shared validator explicitly, without duplicating its allowlist.
+const { siteSourceMode } = createRequire(import.meta.url)(path.resolve(import.meta.dirname, "lib/site-identity.ts")) as typeof import("./lib/site-identity");
 
 const published = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, "../content/show/published.json"), "utf8")) as unknown[];
 
@@ -15,7 +20,8 @@ const config: NextConfig = {
   env: {
     // Inline false as well as true, so default builds omit provider chunks.
     NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED:
-      process.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED === "true" ? "true" : "false",
+      siteSourceMode !== "preview" && process.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED === "true" ? "true" : "false",
+    NEXT_PUBLIC_STATIC_SITE_MODE: siteSourceMode,
   },
   turbopack: { root: path.resolve(import.meta.dirname, "..") },
 };

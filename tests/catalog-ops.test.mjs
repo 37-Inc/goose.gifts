@@ -625,7 +625,7 @@ test('editorial batch omissions and short drafts receive one bounded per-item re
 
 test('product upsert has a database-level approved-copy preservation backstop', () => {
   const source = fs.readFileSync(
-    new URL('../scripts/ops/prefetch-catalog.mjs', import.meta.url),
+    new URL('../scripts/ops/catalog-maintenance-postgres.mjs', import.meta.url),
     'utf8'
   );
   assert.match(source, /WHEN products\.editorial_status IN \('generated_ready', 'stale'\)\s+THEN products\.editorial_writeup/);

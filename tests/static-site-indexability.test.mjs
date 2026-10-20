@@ -1,0 +1,124 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import test from "node:test";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { privacyPolicySections, privacyPolicyIntro, privacyPolicyUpdated } from "../lib/privacy-policy.ts";
+
+const owned = JSON.parse(fs.readFileSync(new URL("../static-site/fixtures/catalog.snapshot.json", import.meta.url)));
+function controlledSnapshot(dataKind, empty = false) {
+  // Structural policy tests only: never published, clicked or presented as real.
+  return { ...owned, dataKind, catalogRevision: "controlled-metadata-not-for-publication", slugHistory: [],
+    products: empty ? [] : Array.from({ length: 26 }, (_, i) => ({ ...owned.products[0],
+      id: `B0${String(i).padStart(8, "0")}`, publicId: `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`,
+      title: i === 0 ? "Controlled Cat Bookmark - not an actual product" : `Controlled policy object ${i} - not for sale`,
+      slug: `controlled-policy-object-${i}`, affiliateUrl: dataKind === "synthetic_fixture"
+        ? "https://example.invalid/not-for-sale" : `https://www.amazon.com/dp/B0${String(i).padStart(8, "0")}` })),
+    heldProducts: [{ ...owned.heldProducts[0], id: "B099999999", publicId: "99999999-0000-4000-8000-000000000000",
+      slug: "controlled-held", path: "/gifts/controlled-held" }],
+  };
+}
+const script = `
+  import React from 'react';
+  globalThis.React = React;
+  import {renderToStaticMarkup} from 'react-dom/server';
+  import {show} from './static-site/lib/show-data.ts';
+  if(process.env.CONTROLLED_PUBLISHED === 'true') {
+    const episode={key:'controlled-archive',title:'Controlled metadata fixture - not aired',status:'published',eligibleUntil:null};
+    show.episodes.push(episode); show.latest=episode;
+  }
+  const pages={
+    home:await import('./static-site/app/page.tsx'), catalog:await import('./static-site/app/gifts/page.tsx'),
+    hub:await import('./static-site/app/gift-guides/page.tsx'), random:await import('./static-site/app/random-gift/page.tsx'),
+    index:await import('./static-site/app/weird-gift-index/page.tsx'), howie:await import('./static-site/app/howie/page.tsx'),
+    privacy:await import('./static-site/app/privacy/page.tsx'), presentation:await import('./static-site/app/preview/presentation/page.tsx')
+  };
+  const flags=Object.fromEntries(Object.entries(pages).map(([key,value])=>[key,value.metadata.robots.index]));
+  const product=await import('./static-site/app/gifts/[slug]/page.tsx');
+  const guide=await import('./static-site/app/gift-guides/[slug]/page.tsx');
+  const directory=await import('./static-site/app/gifts/page/[page]/page.tsx');
+  const episode=await import('./static-site/app/howie/[episode]/page.episode.tsx');
+  const presentation=await import('./static-site/app/howie/[episode]/presentation/page.episode.tsx');
+  const get=async(module,params)=>(await module.generateMetadata({params:Promise.resolve(params)})).robots.index;
+  flags.ready=await get(product,{slug:'controlled-policy-object-0'});
+  flags.held=await get(product,{slug:'controlled-held'});
+  flags.matchingGuide=await get(guide,{slug:'cat-lover-gag-gifts'});
+  flags.thinGuide=await get(guide,{slug:'office-prank-gifts'});
+  flags.page1=await get(directory,{page:'1'}); flags.page2=await get(directory,{page:'2'});
+  flags.episode=await get(episode,{episode:'controlled-archive'});
+  flags.episodePresentation=await get(presentation,{episode:'controlled-archive'});
+  const {default:robots}=await import('./static-site/app/robots.ts');
+  const {siteIdentity}=await import('./static-site/lib/site-identity.ts');
+  console.log(JSON.stringify({flags,robots:robots(),origin:siteIdentity.origin,
+    descriptions:[pages.catalog.metadata.description,pages.random.metadata.description,pages.hub.metadata.description],
+    emptyGuide:renderToStaticMarkup(await guide.default({params:Promise.resolve({slug:'office-prank-gifts'})})),
+    privacy:renderToStaticMarkup(React.createElement(pages.privacy.default))}));
+`;
+function inspect(mode, input, published = false) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "goose-gifts-metadata-"));
+  try {
+    const file = path.join(directory, "snapshot.json"); fs.writeFileSync(file, JSON.stringify(input));
+    return JSON.parse(execFileSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e", script], {
+      cwd: new URL("../", import.meta.url), encoding: "utf8", env: { ...process.env, CATALOG_SNAPSHOT_PATH: file,
+        CATALOG_SITE_MODE: mode, NEXT_PUBLIC_STATIC_SITE_MODE: mode, NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED: "false",
+        CONTROLLED_PUBLISHED: String(published) },
+    }));
+  } finally { fs.rmSync(directory, { recursive: true, force: true }); }
+}
+test("eligible maintained routes index only in explicit production; held/thin/duplicate/private routes do not", () => {
+  for (const mode of ["preview", "goose-production", "stupid-production"]) {
+    const output = inspect(mode, controlledSnapshot("catalog"));
+    const publicMode = mode !== "preview";
+    for (const key of ["home", "catalog", "hub", "random", "index", "privacy", "ready", "matchingGuide", "page2"])
+      assert.equal(output.flags[key], publicMode, `${mode}/${key}`);
+    for (const key of ["held", "thinGuide", "page1", "howie", "presentation", "episode", "episodePresentation"])
+      assert.equal(output.flags[key], false, `${mode}/${key}`);
+    assert.equal(output.robots.rules.allow === "/", publicMode);
+    if (publicMode) {
+      assert.equal(output.robots.sitemap, `${output.origin}/sitemap.xml`);
+      assert.match(output.privacy, /Privacy Policy|Last updated August 21, 2026/);
+      assert.ok(output.privacy.includes(mode === "goose-production" ? "goose.gifts" : "stupid.gifts"));
+      assert.match(output.privacy, /We may use analytics tools/);
+      assert.doesNotMatch(output.privacy, /Preview privacy|does not initialize production analytics/);
+      assert.doesNotMatch(output.descriptions.join(" "), /staging|not a public launch|runtime database/i);
+    } else {
+      assert.equal(output.robots.rules.disallow, "/");
+      assert.match(output.privacy, /Preview privacy/);
+    }
+    assert.match(output.emptyGuide, /Browse the collection/);
+    assert.doesNotMatch(output.emptyGuide, /Browse the staging collection/);
+  }
+});
+test("production-mode fixtures remain entirely noindex/blocked; zero-ready catalog routes stay unavailable", () => {
+  const fixture = inspect("goose-production", controlledSnapshot("synthetic_fixture"));
+  assert.ok(Object.values(fixture.flags).every((value) => value === false));
+  assert.equal(fixture.robots.rules.disallow, "/");
+  assert.match(fixture.privacy, /Preview privacy/);
+  const empty = inspect("stupid-production", controlledSnapshot("catalog", true));
+  for (const key of ["home", "catalog", "random", "index", "ready", "matchingGuide", "page2"])
+    assert.equal(empty.flags[key], false, key);
+  assert.equal(empty.flags.privacy, true); assert.equal(empty.flags.hub, true);
+});
+test("only controlled published archives, never drafts or presentation views, gain public metadata", () => {
+  const published = inspect("goose-production", controlledSnapshot("catalog"), true);
+  assert.equal(published.flags.howie, true); assert.equal(published.flags.episode, true);
+  assert.equal(published.flags.episodePresentation, false); assert.equal(published.flags.presentation, false);
+  const fixture = inspect("stupid-production", controlledSnapshot("synthetic_fixture"), true);
+  assert.equal(fixture.flags.howie, false); assert.equal(fixture.flags.episode, false);
+});
+test("shared policy preserves reviewed copy/date; favicon reuses the existing owned signature bytes", () => {
+  assert.equal(createHash("sha256").update(JSON.stringify(privacyPolicySections)).digest("hex"), "6dbc8a09ec472bdf608515eafd12d4ee3df3e4838d553d811b04f73c279f99c6");
+  assert.equal(privacyPolicyUpdated, "August 21, 2026");
+  assert.equal(privacyPolicyIntro, "This policy explains how goose.gifts handles information for visitors using the site.");
+  assert.deepEqual(fs.readFileSync(new URL("../static-site/public/favicon.ico", import.meta.url)), fs.readFileSync(new URL("../public/favicon.ico", import.meta.url)));
+});
+test("rendered export advertises the owned favicon, never the placeholder Stupid letter icon", {
+  skip: !fs.existsSync(new URL("../static-site/out/index.html", import.meta.url)),
+}, () => {
+  const html = fs.readFileSync(new URL("../static-site/out/index.html", import.meta.url), "utf8");
+  assert.match(html, /<link[^>]*rel="icon"[^>]*href="\/favicon\.ico"/);
+  assert.doesNotMatch(html, /href="\/favicon\.svg"/);
+  assert.deepEqual(fs.readFileSync(new URL("../static-site/out/favicon.ico", import.meta.url)), fs.readFileSync(new URL("../public/favicon.ico", import.meta.url)));
+});

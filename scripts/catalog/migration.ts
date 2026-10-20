@@ -296,12 +296,16 @@ export async function upsertProductAndQueueVector(db: CatalogD1, product: Row, e
     if (existing.results.length !== 1 || existing.results[0].created_at !== null) throw new Error('Only an existing unresolved creation instant may remain NULL; new products require UTC creation');
   }
   const updates = columns.filter((key) => key !== 'id').map((key) => `${key}=excluded.${key}`).join(',');
+  // Hash-unknown reviewed DELETEs make NULL legitimate in the newer schema.
+  // Guard a nonnullable identity too, so a different-input retry still rolls back everything.
   await db.batch([
     db.prepare(`INSERT INTO products (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})
       ON CONFLICT(id) DO UPDATE SET ${updates}`).bind(...columns.map((key) => product[key])),
     db.prepare(`INSERT INTO vector_sync_outbox
       (public_id,source_revision,embedding_text_hash,operation,created_at) VALUES (?,?,?,?,?)
       ON CONFLICT(public_id,source_revision,operation) DO UPDATE SET
+        public_id=CASE WHEN vector_sync_outbox.embedding_text_hash=excluded.embedding_text_hash
+          THEN vector_sync_outbox.public_id ELSE NULL END,
         embedding_text_hash=CASE WHEN vector_sync_outbox.embedding_text_hash=excluded.embedding_text_hash
           THEN vector_sync_outbox.embedding_text_hash ELSE NULL END`)
       .bind(event.publicId, event.revision, event.embeddingTextHash, event.operation, event.createdAt),

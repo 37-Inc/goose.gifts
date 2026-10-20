@@ -177,9 +177,9 @@ what's likely next.
   archived in telemetry without deleting their public Pins; raw chicken, hippo
   desk, Butt Station, Lick'em, and Pizza Boss remain measuring. Measure before
   drawing a performance conclusion.
-  Canonical gift pages now replace product-pinned
-  random-gift URLs for future campaign packages; existing Pin destinations
-  permanently redirect without losing their UTM attribution.
+  Canonical gift pages replace product-pinned random-gift URLs. The owner
+  subsequently approved retiring legacy share URLs without redirects and
+  deleting the six dependent Pins; that cleanup is complete.
   Public posting remains exact-candidate approved. The production API transport
   and minimum publication guards are ready; interactive browser publication
   remains a fallback.
@@ -194,6 +194,24 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-20 [owner+claude] — Review release identity and maintenance migration safety
+
+PR #193 seals explicit preview, Goose and Stupid identities so
+hosting can move without accidentally rebranding production. It adds owned
+share cards, bounded prior-release asset retention, and tested known-page
+trailing-slash handling. Root review caught and fixed an encoded asset path
+that could bypass retention expiry.
+
+The existing-seal D1 reader reproduced the reviewed four-product snapshot
+byte-for-byte from actual staging reads. Eleven maintenance SQL statements
+were independently compared unchanged after extracting the Postgres adapter.
+Reviewed historical vector deletion no longer requires inventing an unknown
+embedding-input hash. Clean-source checks now run before compilation and before
+sealing; the source SHA cannot silently label a dirty build. None of these
+seams activates a D1 writer or scheduler:
+the shared writer/index fence, recurring publisher and full-catalog acceptance
+remain open. Public Goose and the existing Neon weekly job are unchanged.
 
 ### 2026-10-20 early morning [owner+claude] — Prove publication and continue the staged migration
 

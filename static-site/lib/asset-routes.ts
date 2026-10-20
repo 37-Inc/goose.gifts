@@ -6,6 +6,9 @@ import { guides, selectGuideProducts } from "./guides";
 import { directoryPages, directoryPath } from "./directory";
 import { createBrowseRelease } from "./browse";
 import { createShowRelease, episodePath } from "./show";
+import { createOgRelease, ogPath } from "./og";
+import type { OgIdentity } from "./og";
+import { siteIdentity, siteIdentityFor } from "./site-identity";
 
 type RoutePolicy = Omit<CatalogAssetRoute, "assetPath"> & {
   indexable: boolean;
@@ -23,16 +26,23 @@ export function createStaticRoutes(
   snapshot: CatalogSnapshot,
   assetPaths: string[],
   showInputs?: unknown[],
+  identity: OgIdentity = siteIdentity,
 ): Record<string, CatalogAssetRoute & { indexable: boolean }> {
   const nextExpiry = earliest(
     snapshot.products.map((product) => product.eligibleUntil),
   );
   const policies: Record<string, RoutePolicy> = {};
+  const og = createOgRelease(snapshot, identity);
+  for (const [path, card] of og.byPath) policies[path] = {
+    assetPath: path, safeAssetPath: ogPath(og.brand), eligibleUntil: card.eligibleUntil,
+    state: "ready", indexable: false,
+  };
   const catalog: RoutePolicy = {
     safeAssetPath: "/safe/catalog.html",
     eligibleUntil: nextExpiry,
     state: "ready",
-    indexable: snapshot.dataKind !== "synthetic_fixture",
+    indexable: snapshot.dataKind !== "synthetic_fixture"
+      && [siteIdentityFor("goose-production").origin, siteIdentityFor("stupid-production").origin].includes(identity.origin),
   };
   for (const pathname of ["/", "/random-gift", "/weird-gift-index"])
     policies[pathname] = { ...catalog,

@@ -1,10 +1,28 @@
 import { previewMetadata } from "../../lib/metadata";
+import { isSitePreview, siteIdentity } from "../../lib/site-identity";
+import { isFixtureRelease } from "../../lib/catalog";
+import { privacyPolicySections, privacyPolicyIntro, privacyPolicyUpdated } from "../../../lib/privacy-policy";
+const preview = isSitePreview || isFixtureRelease;
+const brand = (text: string) => text.replaceAll("goose.gifts", siteIdentity.wordmark);
 export const metadata = previewMetadata(
-  "Preview privacy",
-  "The isolated static proof does not initialize production analytics or save queries in browser storage.",
+  preview ? "Preview privacy" : "Privacy Policy",
+  preview ? "The isolated static proof does not initialize production analytics or save queries in browser storage."
+    : `Privacy policy for ${siteIdentity.wordmark}.`,
   "/privacy",
+  { indexable: !preview, fixture: isFixtureRelease },
 );
 export default function Privacy() {
+  if (!preview) return (
+    <main id="main" className="site-main prose">
+      <h1>Privacy Policy</h1>
+      <p className="quiet">Last updated {privacyPolicyUpdated}</p>
+      <p>{brand(privacyPolicyIntro)}</p>
+      {privacyPolicySections.map((section) => <section key={section.title}>
+        <h2>{section.title}</h2>
+        {section.body.map((paragraph) => <p key={paragraph}>{brand(paragraph)}</p>)}
+      </section>)}
+    </main>
+  );
   return (
     <main id="main" className="site-main prose">
       <h1>Preview privacy.</h1>

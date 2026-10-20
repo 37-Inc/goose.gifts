@@ -45,14 +45,19 @@ export interface CatalogAssetRoute {
   eligibleUntil: string | null;
   state: 'ready' | 'held';
   indexable?: boolean;
+  /** Fixed overlap deadline from first retirement capture; never renewed. */
+  retainedUntil?: string;
 }
 export interface SiteAssetManifest extends CatalogReleaseManifest {
   dataKind: CatalogSnapshot['dataKind'];
   routes: Record<string, CatalogAssetRoute>;
+  retention: { priorManifestSha256: string; currentAssetPaths: string[] } | null;
 }
 
 export interface CatalogReleaseManifest {
   schemaVersion: 1;
+  sourceMode: CatalogSiteSourceMode;
+  siteIdentitySha256: string;
   releaseId: string;
   codeSha: string;
   catalogRevision: string;
@@ -65,6 +70,7 @@ export interface CatalogReleaseManifest {
   priorReleaseId: string | null;
   checksums: Record<string, string>;
 }
+export type CatalogSiteSourceMode = 'preview' | 'goose-production' | 'stupid-production';
 
 export type DisplayField = 'title' | 'description' | 'imageUrl' | 'affiliateUrl'
   | 'punnyTitle' | 'wittyDescription' | 'editorialWriteup' | 'humorTags';
