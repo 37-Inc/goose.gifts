@@ -204,6 +204,7 @@ page types: October 19 Pinterest evidence contains six such Pins; live mug/goat
 URLs still redirect to normal product pages. Shared-link compatibility remains
 recommended, pending the owner's decision. Planning only; no live route,
 analytics provider, Pin or database was changed.
+PR **#187**; lint/build/diff checks pass.
 
 ### 2026-10-19 late evening [owner+claude] — Specify deferred retirement and cleanup
 
