@@ -23,11 +23,7 @@ const CURRENT_READY = `p.is_active=1 AND p.duplicate_of_product_id IS NULL AND p
 // final publication/activation transaction. Malformed/missing evidence is held.
 function canonicalInstant(value: string): string {
   return `(typeof(${value})='text' AND length(${value})=24
-    AND ${value} GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9]Z'
-    AND date(${value},'+0 days')=substr(${value},1,10)
-    AND substr(${value},12,2) BETWEEN '00' AND '23'
-    AND substr(${value},15,2) BETWEEN '00' AND '59'
-    AND substr(${value},18,2) BETWEEN '00' AND '59')`;
+    AND strftime('%Y-%m-%dT%H:%M:%fZ',${value},'+0 days')=${value})`;
 }
 function displayValues(column: string): string {
   return `SELECT fullkey,CASE WHEN type IN ('integer','real') THEN 'number' ELSE type END,atom

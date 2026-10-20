@@ -159,6 +159,12 @@ test('current value rights and deadlines govern IDs, FTS, visible counts and rol
     ['merchant grant over 24h', (_p, r) => { Object.assign(r.title, { basis: 'merchant', observedAt: NOW.toISOString(), expiresAt: new Date(NOW.getTime() + 86_400_001).toISOString() }); }],
     ['future merchant observation', (_p, r) => { Object.assign(r.title, { basis: 'merchant', observedAt: new Date(NOW.getTime() + 1).toISOString(), expiresAt: old.eligibleUntil }); }],
     ['merchant grant missing observation', (_p, r) => { Object.assign(r.title, { basis: 'merchant', expiresAt: old.eligibleUntil }); }],
+    ...[
+      '2027-02-29T12:00:00.000Z', '2027-04-31T12:00:00.000Z',
+      '2027-02-28T24:00:00.000Z', '2027-02-28T12:60:00.000Z', '2027-02-28T12:00:60.000Z',
+      '2027-02-28t12:00:00.000z', '2027-02-28 12:00:00.000Z', '2027-02-28T12:00:00.000',
+      '2027-02-28T12:00:00.00Z', '2027-02-28T12:00:00.0000Z', '2027-02-28T12:00:00.000+00:00',
+    ].map(value => [`noncanonical grant instant ${value}`, (_p, r) => { r.title.expiresAt = value; }]),
   ];
   for (const [label, mutate] of cases) {
     const f = await setup();
@@ -177,6 +183,22 @@ test('current value rights and deadlines govern IDs, FTS, visible counts and rol
         const expiry = publicProductRightsExpiry(old, grants, NOW);
         assert.ok(expiry === null || expiry < Date.parse(old.eligibleUntil), label);
       }
+    } finally { f.close(); }
+  }
+});
+
+test('canonical timestamp permission checks avoid D1 long-pattern limits and accept real leap dates', async () => {
+  // Actual D1 rejected the previous long GLOB pattern although native SQLite
+  // accepted it. Exercise the real predicate, not a duplicate date formatter.
+  assert.doesNotMatch(visibleRevisionCountQuery('r1', NOW).sql, /\bGLOB\b/i);
+  for (const expiresAt of ['2028-02-29T12:00:00.000Z', '2028-02-29T23:59:59.999Z']) {
+    const f = await setup();
+    try {
+      const value = snapshot('r1'); await importPublicProjection(f.db, await packet(value));
+      const grants = rights(value.products[0]); grants.title.expiresAt = expiresAt;
+      f.sqlite.prepare('UPDATE products SET rights_json=?').run(JSON.stringify(grants));
+      assert.deepEqual(await getRevisionProductsByPublicIds(f.db, [PUBLIC_ID], NOW, 'r1'), value.products);
+      assert.equal((await rollbackPreflight(f.db, value, NOW)).ok, true);
     } finally { f.close(); }
   }
 });
