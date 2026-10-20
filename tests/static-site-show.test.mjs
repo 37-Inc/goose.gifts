@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import test from "node:test";
 import { execFileSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
@@ -16,6 +17,7 @@ import { siteIdentity } from "../static-site/lib/site-identity.ts";
 import { directoryPages, directoryPath } from "../static-site/lib/directory.ts";
 import { guides } from "../static-site/lib/guides.ts";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
+import { createSiteWorker } from "../workers/site/index.ts";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const owned = JSON.parse(fs.readFileSync(path.join(root, "static-site/fixtures/catalog.snapshot.json")));
@@ -138,7 +140,7 @@ function files(directory, prefix = "") {
     ? files(path.join(directory, e.name), `${prefix}/${e.name}`) : [`${prefix}/${e.name}`]);
 }
 function isolatedProject(name) {
-  const project = path.join(root, `output/${name}/project`);
+  const project = path.join(root, `output/${name}/${randomUUID()}/project`);
   fs.mkdirSync(project, { recursive: true });
   for (const item of ["static-site", "content", "lib", "components", "package.json", "tsconfig.json", "postcss.config.mjs", "tailwind.config.ts"])
     fs.cpSync(path.join(root, item), path.join(project, item), { recursive: true,
@@ -175,6 +177,23 @@ test("real empty publication exports no episode or candidate routes", { skip: !f
   assert.doesNotMatch(html, /controlled-layout-fixture|Original exact variant|data-analytics-outbound/);
 });
 
+test("product route family exports only real ready/held snapshot identities, never an empty-catalog placeholder", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "goose-empty-routes-"));
+  try {
+    for (const snapshot of [owned, { ...owned, products: [] }, { ...owned, products: [], heldProducts: [] }]) {
+      const source = path.join(directory, "snapshot.json"); fs.writeFileSync(source, JSON.stringify(snapshot));
+      const output = JSON.parse(execFileSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e", `
+        import config from './static-site/next.config.ts';
+        import {generateStaticParams} from './static-site/app/gifts/[slug]/page.product.tsx';
+        console.log(JSON.stringify({extensions:config.pageExtensions,params:generateStaticParams()}));
+      `], { cwd: root, env: { ...process.env, CATALOG_SNAPSHOT_PATH: source }, encoding: "utf8" }));
+      const slugs = [...snapshot.products, ...snapshot.heldProducts].map(({slug}) => ({slug}));
+      assert.deepEqual(output.params, slugs);
+      assert.equal(output.extensions.includes("product.tsx"), slugs.length > 0);
+    }
+  } finally { fs.rmSync(directory, { recursive: true, force: true }); }
+});
+
 test("controlled isolated published export includes finite routes, safe companions and no product literals in JS", {
   skip: process.env.STATIC_SITE_BUILD_SHOW_FIXTURE !== "1",
 }, () => {
@@ -207,10 +226,10 @@ test("controlled isolated published export includes finite routes, safe companio
   }
 });
 
-test("controlled zero-ready export renders safe Home and marks feed/catalog entries unavailable/noindex", {
+test("controlled zero-ready/zero-held export omits product routes and keeps safe unavailable catalog/feed", {
   skip: process.env.STATIC_SITE_BUILD_EMPTY_FIXTURE !== "1",
-}, () => {
-  const empty = { ...owned, dataKind: "catalog", products: [], slugHistory: [] };
+}, async () => {
+  const empty = { ...owned, dataKind: "catalog", products: [], heldProducts: [], slugHistory: [] };
   const project = isolatedProject("empty-fixture");
   fs.writeFileSync(path.join(project, "content/show/published.json"), "[]");
   const source = path.join(project, "empty.snapshot.json");
@@ -219,7 +238,12 @@ test("controlled zero-ready export renders safe Home and marks feed/catalog entr
   const html = fs.readFileSync(path.join(out, "index.html"), "utf8");
   assert.match(html, /The collection is being checked/);
   assert.doesNotMatch(html, /More questionable decisions|class="opening-grid"/);
-  const routes = createStaticRoutes(empty, files(out));
+  const assets = files(out);
+  const productRoute = /^\/gifts\/[a-z0-9-]+(?:\.(?:html|txt))?$/;
+  assert.equal(assets.some((p) => productRoute.test(p)), false);
+  assert.ok(assets.includes("/404.html"));
+  const routes = createStaticRoutes(empty, assets);
+  assert.equal(Object.keys(routes).some((p) => productRoute.test(p)), false);
   assert.equal(routes["/"].state, "held");
   assert.equal(routes["/"].indexable, false);
   assert.equal(routes["/__next.__PAGE__.txt"].state, "held");
@@ -228,4 +252,9 @@ test("controlled zero-ready export renders safe Home and marks feed/catalog entr
   const payload = JSON.parse(fs.readFileSync(path.join(out, shard)));
   assert.equal(payload.status, "unavailable");
   assert.equal(payload.products.length, 0);
+  const worker = createSiteWorker({ snapshot: empty, manifest: { catalogRevision: empty.catalogRevision, routes } });
+  const env = { ENVIRONMENT: "production", ASSETS: { fetch: () => { throw new Error("Missing products must not request an asset"); } } };
+  assert.equal((await worker.fetch(new Request("https://example.invalid/gifts/missing"), env)).status, 404);
+  const sitemap = await worker.fetch(new Request("https://example.invalid/sitemap.xml"), env);
+  assert.doesNotMatch(await sitemap.text(), /\/gifts\/|placeholder/);
 });

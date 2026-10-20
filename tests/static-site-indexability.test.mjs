@@ -36,7 +36,7 @@ const script = `
     privacy:await import('./static-site/app/privacy/page.tsx'), presentation:await import('./static-site/app/preview/presentation/page.tsx')
   };
   const flags=Object.fromEntries(Object.entries(pages).map(([key,value])=>[key,value.metadata.robots.index]));
-  const product=await import('./static-site/app/gifts/[slug]/page.tsx');
+  const product=await import('./static-site/app/gifts/[slug]/page.product.tsx');
   const guide=await import('./static-site/app/gift-guides/[slug]/page.tsx');
   const directory=await import('./static-site/app/gifts/page/[page]/page.tsx');
   const episode=await import('./static-site/app/howie/[episode]/page.episode.tsx');

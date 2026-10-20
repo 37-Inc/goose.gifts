@@ -8,6 +8,7 @@ import { ProductCard } from "../../../components/ProductCard";
 import { og } from "../../../lib/og-data";
 
 export const dynamicParams = false;
+// next.config includes this route family only when the snapshot has identities.
 export function generateStaticParams() {
   return [...catalog.products, ...catalog.heldProducts].map(({ slug }) => ({
     slug,
