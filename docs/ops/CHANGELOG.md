@@ -195,8 +195,8 @@ verification, `/howie` readiness, and merchant-content rights/expiry gates.
 All 3,383 Amazon URLs pass the current-tag/ASIN audit; that is not commission
 attribution proof. Owner deferred wife's Amazon login/site-list/report work
 to final pre-launch (`roadmap-lbbz1.8`). Research evidence/pricing integration
-is queued after launch (`roadmap-mt1gp`); no new provider spend, schedule,
-social publication or live site cutover.
+is queued after launch (`roadmap-mt1gp`); no additional subscription, schedule,
+social publication or live site cutover. PR **#184**; lint/build/diff checks pass.
 
 ### 2026-10-19 evening [owner+claude] — Specify Stupid Gifts launch
 
