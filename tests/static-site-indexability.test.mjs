@@ -52,6 +52,8 @@ const script = `
   const {default:robots}=await import('./static-site/app/robots.ts');
   const {siteIdentity}=await import('./static-site/lib/site-identity.ts');
   console.log(JSON.stringify({flags,robots:robots(),origin:siteIdentity.origin,
+    descriptions:[pages.catalog.metadata.description,pages.random.metadata.description,pages.hub.metadata.description],
+    emptyGuide:renderToStaticMarkup(await guide.default({params:Promise.resolve({slug:'office-prank-gifts'})})),
     privacy:renderToStaticMarkup(React.createElement(pages.privacy.default))}));
 `;
 function inspect(mode, input, published = false) {
@@ -80,10 +82,13 @@ test("eligible maintained routes index only in explicit production; held/thin/du
       assert.ok(output.privacy.includes(mode === "goose-production" ? "goose.gifts" : "stupid.gifts"));
       assert.match(output.privacy, /We may use analytics tools/);
       assert.doesNotMatch(output.privacy, /Preview privacy|does not initialize production analytics/);
+      assert.doesNotMatch(output.descriptions.join(" "), /staging|not a public launch|runtime database/i);
     } else {
       assert.equal(output.robots.rules.disallow, "/");
       assert.match(output.privacy, /Preview privacy/);
     }
+    assert.match(output.emptyGuide, /Browse the collection/);
+    assert.doesNotMatch(output.emptyGuide, /Browse the staging collection/);
   }
 });
 test("production-mode fixtures remain entirely noindex/blocked; zero-ready catalog routes stay unavailable", () => {

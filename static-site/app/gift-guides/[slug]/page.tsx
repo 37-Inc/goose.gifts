@@ -81,7 +81,7 @@ export default async function Guide({
               this guide with unrelated gifts.
             </p>
             <a className="text-action" href="/gifts">
-              Browse the staging collection →
+              Browse the collection →
             </a>
           </div>
         )}

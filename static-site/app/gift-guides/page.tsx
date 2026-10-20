@@ -5,7 +5,7 @@ import { JsonLd } from "../../components/JsonLd";
 import { isFixtureRelease } from "../../lib/catalog";
 export const metadata = previewMetadata(
   "Gift guides",
-  "Every existing guide, with original editorial and snapshot-only product matches. No runtime database access.",
+  "Browse gift guides with original editorial and matching selections from the curated collection.",
   "/gift-guides",
   { indexable: true, fixture: isFixtureRelease },
 );
