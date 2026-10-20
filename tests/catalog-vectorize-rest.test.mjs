@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createVectorizeRestAdapters } from '../scripts/catalog/vectorize-rest.ts';
-import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
+import { nativeHash, visible } from '../scripts/catalog/vector-outbox.ts';
 
 const accountId='a'.repeat(32);const publicId='00000000-0000-4000-8000-000000000001';
 const mutationId='11111111-1111-4111-8111-111111111111';
@@ -38,6 +38,24 @@ test('delete absence uses exact-ID lookup; acceptance alone and different last-p
   assert.deepEqual(await api.resolve({deliveryId:delivery.deliveryId,attempt:1,reference:mutationId},signal()),{state:'pending'});
   const before=calls.length;assert.deepEqual(await api.resolve({deliveryId:delivery.deliveryId,attempt:1,reference:null},signal()),{state:'pending'});
   assert.equal(calls.length,before);assert.equal(await api.readback(publicId,signal()),null);
+});
+test('short provider JSON decimals decode to exact original float32s, preserving -0 and rejecting changed bits',async()=>{
+  for(const changed of [false,true]){
+    const decimalValues=Array(1536).fill(.1);decimalValues[0]=-0;decimalValues[1]=1e-45;
+    if(changed)decimalValues[2]=.10000001; // Adjacent float32, not another spelling of the original.
+    const response=JSON.stringify({success:true,result:[{...vector,values:decimalValues}]}).replace('"values":[0,','"values":[-0,');
+    const api=createVectorizeRestAdapters({...config,fetch:async()=>new Response(response)});
+    const actual=await api.readback(publicId,signal());
+    assert.ok(Object.is(actual.values[0],-0));assert.equal(actual.values[1],Math.fround(1e-45));
+    assert.equal(visible(vector,actual),!changed);
+    if(changed)assert.notEqual(nativeHash(actual.values),nativeHash(values));
+    else{assert.equal(nativeHash(actual.values),nativeHash(values));assert.deepEqual(actual.values,values);}
+  }
+  for(const invalid of ['0.1',1e40,null]){
+    const bad=[...values];bad[2]=invalid;
+    const api=createVectorizeRestAdapters({...config,fetch:async()=>ok([{...vector,values:bad}])});
+    await assert.rejects(api.readback(publicId,signal()),/vector_provider_invalid_vector/);
+  }
 });
 test('unknown writes never retry; HTTP/provider/malformed responses have fixed safe errors',async()=>{
   for(const response of [()=>{throw new Error('PRIVATE_TOKEN_PROVIDER_BODY');},()=>new Response('PRIVATE_SECRET',{status:503}),

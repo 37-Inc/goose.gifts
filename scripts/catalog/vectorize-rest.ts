@@ -71,7 +71,10 @@ export function createVectorizeRestAdapters(options: MutationScope & {
       if(!Array.isArray(result)||result.length>1)throw new Error('vector_provider_failed');
       if(!result.length)return null;
       const found=vector(result[0]);if(found.id!==publicId)throw new Error('vector_provider_failed');
-      return structuredClone(found);
+      // REST may encode float32s using short decimal strings (e.g.0.1). Decode
+      // those validated finite/range-bounded numbers back to their native float32
+      // representation; Math.fround preserves -0. Dispatch bytes stay untouched.
+      return {...structuredClone(found),values:found.values.map(Math.fround)};
     },
   };
   return Object.freeze(adapters);
