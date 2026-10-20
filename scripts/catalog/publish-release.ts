@@ -30,6 +30,8 @@ import type { RunWorkspace, PublicationControl } from './run-workspace.ts';
  * The workspace holds concrete shared account/environment/database + Worker
  * locks; the D1 activating fence has no timeout/takeover. Before cross-host CI,
  * install one environment concurrency group and exclude out-of-band deployers.
+ * Routine execution requires an existing verified catalog prior. First deploy
+ * is a separate protected operator operation, never a versions-upload fallback.
  * API contract: developers.cloudflare.com/api/resources/workers/subresources/scripts/
  * versions/ and deployments/. Versions are immutable uploads, NOT publication.
  */
@@ -244,6 +246,16 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   try{
     if(!HASH.test(options.requestId)||!/^[a-zA-Z0-9._:/-]{1,200}$/.test(options.runReference))throw new Error('publication_input_invalid');
     if(control&&(control.configSha256!==configSha256||control.requestId!==options.requestId||control.runReference!==options.runReference))throw new Error('publication_checkpoint_mismatch');
+    if(config.prior===null){
+      // Old first-deploy checkpoints may still need settlement. A local marker
+      // alone cannot grant that exception or permission for a new activation.
+      const historical=control&&(await db.prepare('SELECT state,lease_token,run_reference,release_id,version_reference FROM catalog_build_requests WHERE request_id=?')
+        .bind(control.requestId).all<Record<string,unknown>>()).results[0];
+      if(!control||!historical||!['activating','resolved'].includes(String(historical.state))
+        ||control.build.request.priorReleaseId!==null||historical.lease_token!==control.build.token
+        ||historical.run_reference!==control.runReference||historical.release_id!==config.releaseId
+        ||!control.versionReference||historical.version_reference!==control.versionReference)throw new Error('publication_bootstrap_required');
+    }
     await api.check();
     if(!control){
       if(!revision||owner.phase!=='freezing'||owner.environment!==config.environment||owner.indexName!==config.indexName)throw new Error('publication_revision_required');
@@ -323,6 +335,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       if(await resolveBuildActivation(db,control.permit,observed)!=='resolved')throw new Error('publication_activation_pending');
       return{state:'published',owner:null,releaseId:config.releaseId,receiptSha256:ref.sha256,receipt:proof};
     }
+    if(config.prior===null)throw new Error('publication_bootstrap_required'); // Historical reconciliation only; never a new external action.
     if(!revision||owner.phase!=='freezing')throw new Error('publication_revision_required');
     assertBuildSource(config.sourceRoot,config.codeSha);
     if(control.stage==='claimed'){
@@ -391,7 +404,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     await save({stage:'activating'});
     const readPrior=async():Promise<DeploymentObservation>=>{
       const deployed=await api.deployed();
-      if(config.prior===null){if(deployed!==null)throw new Error('publication_prior_changed');return{environment:config.environment,settled:true,active:null};}
+      if(config.prior===null)throw new Error('publication_bootstrap_required');
       if(deployed?.version!==config.prior.versionReference)throw new Error('publication_prior_changed');
       const priorBytes=await fs.readFile(path.join(config.prior.directory,'asset-manifest.json'));
       if(sha256(priorBytes)!==config.prior.manifestSha256)throw new Error('publication_prior_changed');

@@ -8,13 +8,14 @@ import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
 import { executePublication, validatePublicationConfig } from '../scripts/catalog/publish-release.ts';
 import { createProjectionPacket, importPublicProjection } from '../lib/catalog/d1.ts';
-import { enqueueBuildRequest } from '../lib/catalog/build-requests.ts';
+import { enqueueBuildRequest, claimBuildRequest, beginBuildActivation } from '../lib/catalog/build-requests.ts';
+import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication } from '../lib/catalog/publication.ts';
 import { claimMutationOwnership, readMutationOwner } from '../lib/catalog/mutation-fence.ts';
 import { prunedVectorPlan } from '../lib/catalog/prune-existing-revision.ts';
 import { canonicalJson } from '../scripts/catalog/migration.ts';
 import { createReleaseIdentity } from '../scripts/staging/release-identity.mts';
 import { siteIdentityBytes } from '../scripts/staging/build.mts';
-import { assembleReleaseAssets } from '../scripts/staging/retention.mts';
+import { assembleReleaseAssets, readPriorRelease } from '../scripts/staging/retention.mts';
 import { createStaticFeedPlan } from '../workers/site/feed.ts';
 import { encodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
 import { readActivatedCatalogVectors } from '../scripts/catalog/owned-vector-delivery.ts';
@@ -24,14 +25,36 @@ import { siteIdentityFor } from '../static-site/lib/site-identity.ts';
 import { guides } from '../static-site/lib/guides.ts';
 import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 import { openRunWorkspace } from '../scripts/catalog/run-workspace.ts';
+import safeCatalogPayload from '../static-site/public/safe/catalog.json' with {type:'json'};
 
 const AT=Date.parse('2026-10-19T12:00:00.000Z');
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const bytes=value=>Buffer.from(typeof value==='string'?value:JSON.stringify(value));
 const id='00000000-0000-4000-8000-000000000001',version='00000000-0000-4000-8000-000000000002',deployment='00000000-0000-4000-8000-000000000003';
+const priorVersion='00000000-0000-4000-8000-000000000004',priorDeployment='00000000-0000-4000-8000-000000000005';
 const scope={environment:'staging',indexName:'fixture-index'};
 async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,value);}
-async function setup(t,{real=false}={}){
+function fixtureRelease(snapshot,context,prior=null){
+  const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/weird-gift-index','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
+    ...snapshot.products.map(p=>`/gifts/${p.slug}`)];
+  const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,bytes('Owned fixture HTML')]));
+  for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/index.json','/safe/asset.txt'])assets.set(name,bytes('Owned unavailable'));
+  assets.set('/safe/catalog.json',bytes(safeCatalogPayload));assets.set('/weird-gift-index/data.json',bytes({scope:'sample'}));
+  for(const shard of createBrowseRelease(snapshot).shards)assets.set(shard.path,bytes(shard.payload));
+  for(const name of createOgRelease(snapshot,siteIdentityFor('preview')).byPath.keys())assets.set(name,bytes('owned PNG fixture'));
+  const assembled=assembleReleaseAssets(snapshot,assets,context,prior);const rest={...context};delete rest.retainedManifestSha256;
+  const manifest={...rest,dataKind:'catalog',siteIdentitySha256:sha(siteIdentityBytes('preview')),nextExpiry:snapshot.products[0]?.eligibleUntil??null,
+    productCount:snapshot.products.length,slugCount:snapshot.products.length,checksums:Object.fromEntries([...assembled.assets].map(([p,b])=>[p,sha(b)])),
+    routes:assembled.routes,retention:assembled.retention};
+  const manifestBytes=bytes(`${JSON.stringify(manifest,null,2)}\n`);
+  const outputs={'asset-manifest.json':manifestBytes,'catalog.snapshot.json':bytes(`${JSON.stringify(snapshot)}\n`),'release-context.json':bytes(`${JSON.stringify(context)}\n`),
+    'release-identity.json':bytes(createReleaseIdentity(manifestBytes)),'site-identity.json':bytes(siteIdentityBytes('preview')),
+    'feed-plan.json':bytes(createStaticFeedPlan(snapshot,context.catalogSnapshotSha256))};
+  const intent={releaseId:manifest.releaseId,codeSha:manifest.codeSha,catalogRevision:manifest.catalogRevision,catalogSnapshotSha256:manifest.catalogSnapshotSha256,
+    manifestSha256:sha(manifestBytes),vectorSyncWatermark:manifest.vectorSyncWatermark,priorReleaseId:manifest.priorReleaseId,nextExpiry:manifest.nextExpiry};
+  return{...assembled,manifest,manifestBytes,outputs,intent};
+}
+async function setup(t,{real=false,prior=true}={}){
   let actualWorkspace;
   const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-publish-')));t.after(async()=>{
     await actualWorkspace?.close();await fs.rm(directory,{recursive:true,force:true});});
@@ -54,6 +77,21 @@ async function setup(t,{real=false}={}){
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(product.id,id,product.slug,product.source,product.title,product.currency,.8,1,'generated_ready','IN_STOCK',
       new Date(AT).toISOString(),'f'.repeat(64),'f'.repeat(64),'fixture-revision',product.eligibleUntil,JSON.stringify(product),JSON.stringify(rights),'{}',new Date(AT).toISOString());
   const snapshot={schemaVersion:1,dataKind:'catalog',catalogRevision:'fixture-revision',generatedAt:new Date(AT).toISOString(),products:[product],heldProducts:[],slugHistory:[]};
+  let priorConfig=null,priorRelease;
+  if(prior){
+    const priorSnapshot={...snapshot,catalogRevision:'fixture-prior'};
+    sql.prepare('INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES(?,?,?,?)').run(priorSnapshot.catalogRevision,snapshot.generatedAt,'c'.repeat(64),'reconciled');
+    const priorPacket=await createProjectionPacket(priorSnapshot,{[id]:'f'.repeat(64)},'c'.repeat(64),new Date(AT));await importPublicProjection(db,priorPacket);
+    priorRelease=fixtureRelease(priorSnapshot,{schemaVersion:1,sourceMode:'preview',releaseId:'fixture-prior-release',codeSha,catalogRevision:priorSnapshot.catalogRevision,
+      catalogSnapshotSha256:priorPacket.receipt.snapshot_sha256,generatedAt:snapshot.generatedAt,vectorSyncWatermark:0,priorReleaseId:null,retainedManifestSha256:null});
+    const priorDirectory=path.join(directory,'prior');
+    for(const [name,b]of Object.entries(priorRelease.outputs))await put(path.join(priorDirectory,name),b);
+    for(const [name,b]of priorRelease.assets)await put(path.join(priorDirectory,'assets',name.slice(1)),b);
+    await enqueuePublication(db,priorSnapshot,priorRelease.intent,new Date(AT));const claim=await claimPublication(db,priorSnapshot,priorRelease.intent.releaseId,new Date(AT));
+    await recordPublicationDispatch(db,priorSnapshot,claim,`version:${priorVersion}`,new Date(AT));
+    await completePublication(db,priorSnapshot,priorRelease.intent.releaseId,claim.token,async()=>priorRelease.intent,()=>new Date(AT));
+    priorConfig={directory:priorDirectory,manifestSha256:sha(priorRelease.manifestBytes),releaseId:priorRelease.intent.releaseId,versionReference:priorVersion};
+  }
   sql.prepare('INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES(?,?,?,?)').run(snapshot.catalogRevision,snapshot.generatedAt,'b'.repeat(64),'reconciled');
   const packet=await createProjectionPacket(snapshot,{[id]:'f'.repeat(64)},'b'.repeat(64),new Date(AT));await importPublicProjection(db,packet);
   sql.prepare('INSERT INTO catalog_mutation_scopes(environment,index_name) VALUES(?,?)').run(scope.environment,scope.indexName);
@@ -66,10 +104,10 @@ async function setup(t,{real=false}={}){
     status,disposition,completed_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)`).run('a'.repeat(64),scope.environment,scope.indexName,owner.generation,0,JSON.stringify(owner),
       canonicalJson({kind:'prune',publicId:id,catalogRevision:snapshot.catalogRevision,projectionReceipt:packet.receipt,planSha256:sha(canonicalJson(plan)),providerIdentity:`cloudflare:${'a'.repeat(32)}:${scope.indexName}`,
         vector:{id,metadata:vector.metadata,nativeBase64:encodePgvectorSendBase64(vector.values)}}),'{}','complete','verified',snapshot.generatedAt);
-  const request={schemaVersion:1,environment:'staging',sourceRevision:snapshot.catalogRevision,sourceDigest:packet.receipt.snapshot_sha256,codeSha,priorReleaseId:null,
+  const request={schemaVersion:1,environment:'staging',sourceRevision:snapshot.catalogRevision,sourceDigest:packet.receipt.snapshot_sha256,codeSha,priorReleaseId:priorConfig?.releaseId??null,
     capturedAt:snapshot.generatedAt,cutoff:new Date(AT+25*3600000).toISOString()};const {requestId}=await enqueueBuildRequest(db,request);
   const config={schemaVersion:1,environment:'staging',accountId:'a'.repeat(32),workerName:'fixture-worker',database:{id,name:'fixture-db'},indexName:scope.indexName,codeSha,
-    sourceMode:'preview',sourceRoot,releaseId:'fixture-release',identityOrigin:'https://fixture-worker.example.invalid',compatibilityDate:'2026-10-19',prior:null};
+    sourceMode:'preview',sourceRoot,releaseId:'fixture-release',identityOrigin:'https://fixture-worker.example.invalid',compatibilityDate:'2026-10-19',prior:priorConfig};
   let checkpoint={sha256:'0'.repeat(64),phase:'freezing',owner,state:{driverState:'preserved'},pins:{phase:'b'.repeat(64)},phaseComplete:null,control:{}};
   let workspace={directory:path.join(directory,'workspace'),repository:await fs.realpath(sourceRoot),manifest:{codeSha},async assertHeld(){},assertScope(s){assert.deepEqual(s,{accountId:config.accountId,environment:'staging',databaseId:id,
     databaseName:'fixture-db',workerName:'fixture-worker',indexName:scope.indexName});},async readCheckpoint(options){const copy=structuredClone(checkpoint);if(options?.controlOnly)delete copy.state;
@@ -91,23 +129,12 @@ async function setup(t,{real=false}={}){
     const created=await actualWorkspace.writeCheckpoint(null,{...initial,pins:{}});checkpoint={...created.checkpoint,sha256:created.sha256};
     workspace=wrapActual();
   }
-  let uploaded=false,active=false;let uploadCalls=0,activateCalls=0,buildCalls=0,identityCalls=0,versionReads=0;let mode={};let manifest;
+  let uploaded=false,active=false;let uploadCalls=0,activateCalls=0,buildCalls=0,identityCalls=0,versionReads=0,httpCalls=0;let mode={};let manifest;
   const command=async command=>{
     if(command.args.includes('scripts/staging/build.mts')){
       buildCalls++;const context=JSON.parse(await fs.readFile(command.env.CATALOG_RELEASE_CONTEXT_PATH));
-      const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/weird-gift-index','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),`/gifts/${product.slug}`];
-      const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,bytes('Owned fixture HTML')]));
-      for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/index.json','/safe/asset.txt'])assets.set(name,bytes('Owned unavailable'));
-      assets.set('/safe/catalog.json',bytes({state:'unavailable',products:[]}));assets.set('/weird-gift-index/data.json',bytes({scope:'sample'}));
-      for(const shard of createBrowseRelease(snapshot).shards)assets.set(shard.path,bytes(shard.payload));
-      for(const name of createOgRelease(snapshot,siteIdentityFor('preview')).byPath.keys())assets.set(name,bytes('owned PNG fixture'));
-      const assembled=assembleReleaseAssets(snapshot,assets,context,null);const rest={...context};delete rest.retainedManifestSha256;
-      manifest={...rest,dataKind:'catalog',siteIdentitySha256:sha(siteIdentityBytes('preview')),nextExpiry:product.eligibleUntil,productCount:1,slugCount:1,
-        checksums:Object.fromEntries([...assembled.assets].map(([p,b])=>[p,sha(b)])),routes:assembled.routes,retention:null};
-      const manifestBytes=bytes(`${JSON.stringify(manifest,null,2)}\n`);
-      const outputs={'asset-manifest.json':manifestBytes,'catalog.snapshot.json':bytes(`${JSON.stringify(snapshot)}\n`),'release-context.json':bytes(`${JSON.stringify(context)}\n`),
-        'release-identity.json':bytes(createReleaseIdentity(manifestBytes)),'site-identity.json':bytes(siteIdentityBytes('preview')),'feed-plan.json':bytes(createStaticFeedPlan(snapshot,packet.receipt.snapshot_sha256))};
-      for(const [name,b]of Object.entries(outputs))await put(path.join(sourceRoot,'build/stupid-gifts',name),b);
+      const assembled=fixtureRelease(snapshot,context,await readPriorRelease(context,config.prior?.directory));manifest=assembled.manifest;
+      for(const [name,b]of Object.entries(assembled.outputs))await put(path.join(sourceRoot,'build/stupid-gifts',name),b);
       for(const [name,b]of assembled.assets)await put(path.join(sourceRoot,'static-site/out',name.slice(1)),b);
       if(mode.sourceDrift)await put(path.join(sourceRoot,'.gitignore'),'changed');
       if(mode.buildLost){delete mode.buildLost;throw new Error('PRIVATE build interrupted after output');}
@@ -120,8 +147,8 @@ async function setup(t,{real=false}={}){
   };
   const response=result=>Response.json({success:true,result});
   const fetch=async(url,init={})=>{
-    const u=new URL(url);if(u.origin===config.identityOrigin){identityCalls++;if(mode.identityFailure)return new Response('',{status:401});
-      assert.equal(init.headers.Authorization,'Basic PRIVATE');return Response.json(createReleaseIdentity(bytes(`${JSON.stringify(manifest,null,2)}\n`)));}
+    httpCalls++;const u=new URL(url);if(u.origin===config.identityOrigin){identityCalls++;if(mode.identityFailure&&active)return new Response('',{status:401});
+      assert.equal(init.headers.Authorization,'Basic PRIVATE');return Response.json(createReleaseIdentity(active?bytes(`${JSON.stringify(manifest,null,2)}\n`):priorRelease.manifestBytes));}
     if(u.pathname.endsWith(`/d1/database/${id}`))return response({uuid:id,name:'fixture-db',read_replication:{mode:'disabled'}});
     if(u.pathname.endsWith(`/indexes/${scope.indexName}`))return response({name:scope.indexName,config:{dimensions:1536,metric:'cosine'}});
     const c=checkpoint.control.publication;
@@ -142,25 +169,68 @@ async function setup(t,{real=false}={}){
         if(mode.activationNotSent)throw new Error('PRIVATE uncertain not submitted');active=true;
         if(mode.activationLost)throw new Error('PRIVATE activation secret');return response({id:deployment});}
       if(mode.readbackFailure&&active)throw new Error('PRIVATE readback secret');
-      return response({deployments:active?[{id:deployment,versions:[{version_id:version,percentage:100}],annotations:{'workers/message':c.deploymentMarker}}]:[]});
+      return response({deployments:active?[{id:deployment,versions:[{version_id:version,percentage:100}],annotations:{'workers/message':c.deploymentMarker}}]:
+        prior?[{id:priorDeployment,versions:[{version_id:priorVersion,percentage:100}],annotations:{'workers/message':'owned fixture prior'}}]:[]});
     }throw new Error(`Unexpected fixture HTTP ${url}`);
   };
   const execute=()=>executePublication({db,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
     credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock)}});
   return{db,sql,owner,revision,workspace,config,execute,mode,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
+    async historicalAccepted({lostPermit=false}={}){
+      // A pre-guard first deployment, established through the real publication
+      // and activation transactions. No new executor work is used to seed it.
+      assert.equal(config.prior,null);
+      const build=await claimBuildRequest(db,requestId,'fixture-run',new Date(AT));
+      const release=fixtureRelease(snapshot,{schemaVersion:1,sourceMode:'preview',releaseId:config.releaseId,codeSha,catalogRevision:snapshot.catalogRevision,
+        catalogSnapshotSha256:packet.receipt.snapshot_sha256,generatedAt:snapshot.generatedAt,vectorSyncWatermark:0,priorReleaseId:null,retainedManifestSha256:null});
+      manifest=release.manifest;await enqueuePublication(db,snapshot,release.intent,new Date(AT));
+      const publication=await claimPublication(db,snapshot,config.releaseId,new Date(AT));
+      await recordPublicationDispatch(db,snapshot,publication,`version:${version}`,new Date(AT));
+      const permit=await beginBuildActivation(db,build,snapshot,publication,version,async()=>({environment:'staging',settled:true,active:null}),new Date(AT),owner);
+      const c={schemaVersion:1,configSha256:sha(canonicalJson(config)),requestId,runReference:'fixture-run',stage:'activating',build,publication,intent:release.intent,
+        permit:lostPermit?null:permit,vectorPlan:{catalogRevision:plan.catalogRevision,planSha256:sha(canonicalJson(plan)),ids:[id]},packageSha256:'e'.repeat(64),
+        uploadMarker:'historical-upload',versionReference:version,deploymentMarker:'historical-deployment',deploymentId:null};
+      checkpoint={...checkpoint,owner:lostPermit?owner:permit.mutationOwner,control:{publication:c},state:{...checkpoint.state,publication:c}};
+      active=true;
+      await completePublication(db,snapshot,config.releaseId,publication.token,async()=>release.intent,()=>new Date(AT),permit.mutationOwner);
+    },
     async reopen(){const expectedManifestSha256=actualWorkspace.manifestSha256;await actualWorkspace.close();
       actualWorkspace=await openRunWorkspace({...workspaceOptions,mode:'resume',expectedManifestSha256});workspace=wrapActual();
       const saved=await actualWorkspace.readCheckpoint();checkpoint={...saved.checkpoint,sha256:saved.sha256};},
-    counts:()=>({uploadCalls,activateCalls,buildCalls,identityCalls}),vector};
+    counts:()=>({uploadCalls,activateCalls,buildCalls,identityCalls,httpCalls}),vector};
 }
 
 test('actual build/upload/activate/identity/native-proof/receipt/idle composition with preserved driver state',async t=>{
   const f=await setup(t);const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
   assert.equal(result.owner,null);assert.equal(f.counts().activateCalls,1);assert.equal(f.counts().buildCalls,1);
   assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests').get().state,'resolved');assert.equal(await readMutationOwner(f.db,scope),null);
-  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,1);
+  assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
   assert.equal(f.checkpoint().state.driverState,'preserved');assert.doesNotMatch(JSON.stringify(f.checkpoint()),/PRIVATE|example.invalid|clockwork spoon/);
   assert.equal((await f.execute()).state,'published');assert.equal(f.counts().activateCalls,1);
+});
+test('missing prior is an explicit bootstrap gate before claims, checkpoints, files or HTTP',async t=>{
+  const f=await setup(t,{prior:false});const checkpoint=structuredClone(f.checkpoint());
+  const build=f.sql.prepare('SELECT * FROM catalog_build_requests').get();const fence=f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get();
+  assert.equal((await f.execute()).errorCode,'publication_bootstrap_required');
+  assert.deepEqual(f.checkpoint(),checkpoint);assert.deepEqual(f.sql.prepare('SELECT * FROM catalog_build_requests').get(),build);
+  assert.deepEqual(f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get(),fence);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_outbox').get().n,0);
+  assert.deepEqual(f.counts(),{uploadCalls:0,activateCalls:0,buildCalls:0,identityCalls:0,httpCalls:0});
+  await assert.rejects(fs.stat(f.workspace.directory),{code:'ENOENT'});
+});
+test('historical null-prior accepted activation settles without new build, upload or activation, including lost permit',async t=>{
+  for(const lostPermit of [false,true]){
+    const f=await setup(t,{prior:false});await f.historicalAccepted({lostPermit});f.advance(2*86400000);f.mode.noRevision=true;
+    const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));assert.equal(await readMutationOwner(f.db,scope),null);
+    assert.equal(f.counts().buildCalls,0);assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
+    assert.equal((await f.execute()).state,'published');
+  }
+});
+test('a local historical activation marker cannot bypass the no-prior gate while D1 is still building',async t=>{
+  const f=await setup(t,{prior:false});await f.historicalAccepted();
+  f.sql.prepare("UPDATE catalog_build_requests SET state='building',lease_until=?").run(new Date(AT+600000).toISOString());const checkpoint=structuredClone(f.checkpoint());
+  assert.equal((await f.execute()).errorCode,'publication_bootstrap_required');assert.deepEqual(f.checkpoint(),checkpoint);
+  assert.deepEqual(f.counts(),{uploadCalls:0,activateCalls:0,buildCalls:0,identityCalls:0,httpCalls:0});
 });
 test('lost upload and committed activation responses resume exact versions without another external mutation',async t=>{
   const f=await setup(t);f.mode.uploadLost=true;f.mode.activationLost=true;
@@ -180,7 +250,7 @@ test('prior-only after unknown activation remains fenced indefinitely and is nev
 test('readback/auth/native mismatch cannot publish; exact readback recovery does not re-activate',async t=>{
   for(const key of ['readbackFailure','identityFailure','vectorFailure']){
     const f=await setup(t);f.mode[key]=true;assert.equal((await f.execute()).state,'pending',key);
-    assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,0);assert.equal(f.counts().activateCalls,1);
+    assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,0);assert.equal(f.counts().activateCalls,1);
     delete f.mode[key];assert.equal((await f.execute()).state,'published',key);assert.equal(f.counts().activateCalls,1);
   }
 });
@@ -189,7 +259,7 @@ test('expired lease/content and source/rights drift never grant new publication'
   assert.equal((await expired.execute()).errorCode,'publication_fresh_evidence_required');assert.equal(expired.counts().activateCalls,1);
   const changed=await setup(t);changed.mode.sourceDrift=true;assert.equal((await changed.execute()).state,'pending');assert.equal(changed.counts().activateCalls,0);
   const held=await setup(t);held.mode.activationLost=true;await held.execute();held.sql.prepare("UPDATE products SET rights_json='{}'").run();
-  assert.equal((await held.execute()).state,'pending');assert.equal(held.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,0);
+  assert.equal((await held.execute()).state,'pending');assert.equal(held.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,0);
 });
 test('activation proof is read-only and bound to exact stored permit; no freezing/delivery phase coercion',async t=>{
   const f=await setup(t);f.mode.activationLost=true;await f.execute();const c=f.checkpoint().control.publication;
@@ -248,5 +318,5 @@ test('configuration has no environment/production defaults or ambient backend/id
 test('wrong uploaded bindings or missing inherited staging guard never activate',async t=>{
   for(const key of ['wrongVersionDatabase','missingGuard']){const f=await setup(t);f.mode[key]=true;
     assert.equal((await f.execute()).errorCode,'publication_version_scope_mismatch');assert.equal(f.counts().activateCalls,0);
-    assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,0);}
+    assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,0);}
 });
