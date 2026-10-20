@@ -18,6 +18,24 @@ function earliest(deadlines: string[]) {
   return deadlines.length ? [...deadlines].sort()[0] : null;
 }
 
+function heldCompanions(assetPaths: string[]) {
+  const base = "/safe/product";
+  const existing = new Set(assetPaths);
+  const formats: Record<string, string> = {
+    "/__next._full.txt": "/__next._full.txt",
+    "/__next._tree.txt": "/__next._tree.txt",
+    "/__next.safe.product.__PAGE__.txt": "/__next.gifts.$d$slug.__PAGE__.txt",
+  };
+  const discovered = assetPaths.filter((path) => path.startsWith(`${base}/`));
+  if (!existing.has(`${base}.html`) || !existing.has(`${base}.txt`)
+    || Object.keys(formats).some((suffix) => !existing.has(`${base}${suffix}`)))
+    throw new Error("Shared safe product is missing HTML/RSC companions");
+  if (discovered.some((path) => !formats[path.slice(base.length)]))
+    throw new Error("Shared safe product has an unrecognized companion format");
+  return [["", `${base}.html`], [".html", `${base}.html`], [".txt", `${base}.txt`],
+    ...discovered.map((path) => [formats[path.slice(base.length)], path])];
+}
+
 /** Bind every exported HTML/RSC companion to the page's exact expiry policy.
  * Pass the actual output inventory: Next versions may add new RSC filenames.
  * Unrecognized content-bearing pages fail closed instead of leaking stale data.
@@ -110,14 +128,16 @@ export function createStaticRoutes(
       safeAssetPath: "/safe/product.html",
     };
   }
+  const companions = snapshot.heldProducts.length ? heldCompanions(assetPaths) : [];
+  const heldPaths = new Set(snapshot.heldProducts.map((held) => held.path));
+  if (assetPaths.some((path) => heldPaths.has(path.replace(/\.(?:html|txt)$/, "").split("/__next.")[0])))
+    throw new Error("Held products must use shared safe assets, not individual exports");
   for (const held of snapshot.heldProducts)
-    policies[held.path] = {
-      ...catalog,
-      eligibleUntil: null,
-      state: "held",
-      indexable: false,
-      safeAssetPath: `${held.path}.html`,
-    };
+    for (const [suffix, assetPath] of companions)
+      policies[`${held.path}${suffix}`] = {
+        eligibleUntil: null, state: "held", indexable: false,
+        assetPath, safeAssetPath: assetPath,
+      };
   const routes: Record<string, CatalogAssetRoute & { indexable: boolean }> = {};
   const existing = new Set(assetPaths);
   for (const [pathname, policy] of Object.entries(policies)) {

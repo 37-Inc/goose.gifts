@@ -136,6 +136,29 @@ test('trailing slashes cannot revive retired gift IDs, API paths, unknown pages 
   assert.equal(fixture.calls.length, 0);
 });
 
+test('shared held pages normalize only exact manifest-backed canonical snapshot paths', async () => {
+  const fixture = setup();
+  const held = { ...ready('/unused'), assetPath: '/safe/product.html', safeAssetPath: '/safe/product.html', state: 'held', indexable: false, eligibleUntil: null };
+  const snapshot = { ...fixture.snapshot, heldProducts: [{ path: '/gifts/held' }, { path: '/gifts/not-in-manifest' }] };
+  const routes = { ...fixture.manifest.routes, '/gifts/held': held, '/gifts/not-canonical': held, '/gifts/held.html': held };
+  const worker = createSiteWorker({ manifest: { ...fixture.manifest, routes }, snapshot });
+  const request = (path, method = 'GET') => worker.fetch(new Request(`https://preview.example${path}`, { method }), fixture.env);
+  for (const method of ['GET', 'HEAD']) {
+    const response = await request('/gifts/held/?utm_source=show&q=desk%20gift&token=discard', method);
+    assert.equal(response.status, 308);
+    assert.equal(response.headers.get('Location'), '/gifts/held?utm_source=show&q=desk+gift');
+    assert.equal(response.headers.get('Cache-Control'), 'no-store');
+    assert.equal(await response.text(), '');
+    for (const path of ['/gifts/not-in-manifest/', '/gifts/not-canonical/', '/gifts/held.html/', '/gifts/held.txt/'])
+      assert.equal((await request(path, method)).status, 404, path);
+  }
+  assert.equal(fixture.calls.length, 0);
+  const page = await request('/gifts/held');
+  assert.equal(await page.text(), '/safe/product.html');
+  assert.equal(page.headers.get('X-Robots-Tag'), 'noindex, follow');
+  assert.equal(page.headers.get('Cache-Control'), 'no-store');
+});
+
 test('Vercel has no retired bundle catch-all or heuristic map; canonical routes remain', () => {
   const present = (path) => existsSync(new URL(`../${path}`, import.meta.url));
   assert.equal(present('app/[slug]/page.tsx'), false);

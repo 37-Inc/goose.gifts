@@ -272,12 +272,16 @@ test(
     );
     assert.match(html, /noindex/);
     assert.doesNotMatch(html, /\$0\.00|https:\/\/example\.invalid|as seen on/i);
+    const routes = createStaticRoutes(exportSnapshot, files(new URL("out/", root)));
     for (const product of exportSnapshot.heldProducts) {
+      const route = routes[product.path];
+      assert.equal(route.state, "held");
+      assert.equal(route.assetPath, "/safe/product.html");
       const held = fs.readFileSync(
-        new URL(`out${product.path}.html`, root),
+        new URL(`out${route.assetPath}`, root),
         "utf8",
       );
-      assert.doesNotMatch(held, /sourceFacts|"@type":"Offer"/);
+      assert.doesNotMatch(held, /sourceFacts|"@type":"(?:Offer|Product)"|data-analytics-outbound|rel="canonical"/);
       for (const ready of exportSnapshot.products)
         assert.equal(held.includes(ready.imageUrl), false);
     }

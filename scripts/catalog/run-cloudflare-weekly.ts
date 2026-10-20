@@ -225,17 +225,17 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       if((await db.prepare('SELECT id FROM catalog_runs WHERE id=?').bind(config.runId).all()).results.length)throw new Error('weekly_run_exists');
       const pins:Record<string,ArtifactRef>={};
       for(const [label,ref]of Object.entries(config.inputs)){
-        if(label==='originalVectors'){
+        if(label==='originalVectors'||label==='previous'){
           // The approved digest binds the RAW file (including order/whitespace),
           // not a reconstructed JS-number vector or a canonical JSON rewrite.
           const bytes=await reviewedBytes(ref.path,ref.sha256,repo,WORKSPACE_BLOB_LIMITS.bytes);
           const value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
-          pins[label]=bytes.length>WORKSPACE_BLOB_LIMITS.artifactBytes||Buffer.byteLength(canonicalJson(value))>WORKSPACE_BLOB_LIMITS.artifactBytes
+          pins[label]=bytes.length>WORKSPACE_BLOB_LIMITS.artifactBytes||Buffer.byteLength(canonicalJson(label==='previous'?JSON.stringify(value):value))>WORKSPACE_BLOB_LIMITS.artifactBytes
             ?await ws.putBlob(bytes,{kind:'phase',observedAt:ref.observedAt})
-            :await ws.putArtifact(value,{kind:'phase',observedAt:ref.observedAt});continue;
+            :label==='previous'?await putOrdered(ws,value,ref.observedAt,'phase'):await ws.putArtifact(value,{kind:'phase',observedAt:ref.observedAt});continue;
         }
         const value=await reviewed(ref.path,ref.sha256,repo);
-        pins[label]=label==='previous'?await putOrdered(ws,value,ref.observedAt,'phase'):await ws.putArtifact(value,{kind:'phase',observedAt:ref.observedAt});
+        pins[label]=await ws.putArtifact(value,{kind:'phase',observedAt:ref.observedAt});
       }
       await write({pins});
     }

@@ -18,6 +18,7 @@ import { directoryPages, directoryPath } from "../static-site/lib/directory.ts";
 import { guides } from "../static-site/lib/guides.ts";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
 import { createSiteWorker } from "../workers/site/index.ts";
+import { createStaticFeedPlan } from "../workers/site/feed.ts";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const owned = JSON.parse(fs.readFileSync(path.join(root, "static-site/fixtures/catalog.snapshot.json")));
@@ -47,7 +48,7 @@ function inventory(snapshot, inputs = []) {
   const show = createShowRelease(snapshot, inputs);
   const pages = ["/", "/random-gift", "/gift-guides", "/weird-gift-index", "/howie", "/preview/presentation",
     ...guides.map((g) => `/gift-guides/${g.slug}`), ...directoryPages(snapshot).map((p) => directoryPath(p.page)),
-    "/gifts/page/1", ...snapshot.products.map((p) => `/gifts/${p.slug}`), ...snapshot.heldProducts.map((p) => p.path),
+    "/gifts/page/1", ...snapshot.products.map((p) => `/gifts/${p.slug}`),
     ...show.episodes.flatMap((e) => [`/howie/${e.key}`, `/howie/${e.key}/presentation`])];
   const safe = ["/safe/catalog", "/safe/product", "/safe/howie", "/safe/presentation",
     ...show.episodes.flatMap((e) => [`/safe/howie/${e.key}`, `/safe/howie/${e.key}/presentation`])];
@@ -55,6 +56,7 @@ function inventory(snapshot, inputs = []) {
     ...pages.flatMap((p) => p === "/" ? ["/index.html", "/index.txt", "/__next.__PAGE__.txt"]
       : [`${p}.html`, `${p}.txt`, `${p}/__next.__PAGE__.txt`]),
     ...safe.flatMap((p) => [`${p}.html`, `${p}.txt`]), "/safe/catalog.json", "/safe/index.json", "/weird-gift-index/data.json",
+    ...["_full", "_tree", "safe.product.__PAGE__"].map((part) => `/safe/product/__next.${part}.txt`),
     ...show.episodes.flatMap((e) => [`/howie/${e.key}/data.json`, `/safe/howie/${e.key}/data.json`]),
     ...createBrowseRelease(snapshot).shards.map((s) => s.path),
     ...createOgRelease(snapshot, siteIdentity).byPath.keys(),
@@ -177,7 +179,7 @@ test("real empty publication exports no episode or candidate routes", { skip: !f
   assert.doesNotMatch(html, /controlled-layout-fixture|Original exact variant|data-analytics-outbound/);
 });
 
-test("product route family exports only real ready/held snapshot identities, never an empty-catalog placeholder", () => {
+test("product route family exports only ready identities; held-only/empty catalogs omit it", () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "goose-empty-routes-"));
   try {
     for (const snapshot of [owned, { ...owned, products: [] }, { ...owned, products: [], heldProducts: [] }]) {
@@ -187,11 +189,49 @@ test("product route family exports only real ready/held snapshot identities, nev
         import {generateStaticParams} from './static-site/app/gifts/[slug]/page.product.tsx';
         console.log(JSON.stringify({extensions:config.pageExtensions,params:generateStaticParams()}));
       `], { cwd: root, env: { ...process.env, CATALOG_SNAPSHOT_PATH: source }, encoding: "utf8" }));
-      const slugs = [...snapshot.products, ...snapshot.heldProducts].map(({slug}) => ({slug}));
+      const slugs = snapshot.products.map(({slug}) => ({slug}));
       assert.deepEqual(output.params, slugs);
       assert.equal(output.extensions.includes("product.tsx"), slugs.length > 0);
     }
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }
+});
+
+test("held identities require the complete recognized shared HTML/RSC inventory, never individual exports", () => {
+  const assets = inventory(owned);
+  for (const companion of assets.filter((p) => p === "/safe/product.html" || p === "/safe/product.txt" || p.startsWith("/safe/product/")))
+    assert.throws(() => createStaticRoutes(owned, assets.filter((p) => p !== companion)), /missing HTML\/RSC/);
+  assert.throws(() => createStaticRoutes(owned, [...assets, "/safe/product/__next.new-format.txt"]), /unrecognized companion/);
+  assert.throws(() => createStaticRoutes(owned, [...assets, `${owned.heldProducts[0].path}.html`]), /individual exports/);
+  const routes = createStaticRoutes(owned, assets);
+  const held = owned.heldProducts[0].path;
+  assert.deepEqual(Object.keys(routes).filter((p) => p.startsWith(held)).sort(), [held, `${held}.html`, `${held}.txt`,
+    `${held}/__next._full.txt`, `${held}/__next._tree.txt`, `${held}/__next.gifts.$d$slug.__PAGE__.txt`].sort());
+  for (const [pathname, route] of Object.entries(routes).filter(([p]) => p.startsWith(held))) {
+    assert.ok(assets.includes(route.assetPath), pathname);
+    assert.equal(route.safeAssetPath, route.assetPath);
+    assert.equal(route.state, "held");
+    assert.equal(route.indexable, false);
+    assert.equal(route.eligibleUntil, null);
+  }
+});
+
+function representativeSnapshot() {
+  const products = [...owned.products, { ...owned.products[0], id: "fixture-fourth", slug: "illustrative-fourth-fixture",
+    publicId: "00000000-0000-4000-8000-000000000005" }];
+  return validateCatalogSnapshot({ ...owned, products, heldProducts: Array.from({ length: 3379 }, (_, i) => ({
+    ...owned.heldProducts[0], id: `fixture-held-${i}`, publicId: `10000000-0000-4000-8000-${String(i).padStart(12, "0")}`,
+    slug: `illustrative-held-selection-${i}`, path: `/gifts/illustrative-held-selection-${i}`,
+  })) });
+}
+test("3383 identities keep a constant ready-only inventory and exact finite held aliases", () => {
+  const snapshot = representativeSnapshot();
+  const assets = inventory(snapshot);
+  assert.deepEqual(assets, inventory({ ...snapshot, heldProducts: [] }));
+  const routes = createStaticRoutes(snapshot, assets);
+  assert.equal(snapshot.products.length + snapshot.heldProducts.length, 3383);
+  assert.equal(Object.values(routes).filter((r) => r.state === "held" && r.assetPath.startsWith("/safe/product")).length, 3379 * 6);
+  assert.ok(assets.length + 10 < 10_000);
+  assert.equal(routes["/gifts/unrecognized-held-id"], undefined);
 });
 
 test("controlled isolated published export includes finite routes, safe companions and no product literals in JS", {
@@ -226,35 +266,95 @@ test("controlled isolated published export includes finite routes, safe companio
   }
 });
 
-test("controlled zero-ready/zero-held export omits product routes and keeps safe unavailable catalog/feed", {
+test("controlled mixed/all-held/empty Next exports share neutral held HTML/RSC with bounded 3383-identity inventory", {
   skip: process.env.STATIC_SITE_BUILD_EMPTY_FIXTURE !== "1",
 }, async () => {
-  const empty = { ...owned, dataKind: "catalog", products: [], heldProducts: [], slugHistory: [] };
-  const project = isolatedProject("empty-fixture");
-  fs.writeFileSync(path.join(project, "content/show/published.json"), "[]");
-  const source = path.join(project, "empty.snapshot.json");
-  fs.writeFileSync(source, JSON.stringify(empty));
-  const out = build(project, source);
-  const html = fs.readFileSync(path.join(out, "index.html"), "utf8");
-  assert.match(html, /The collection is being checked/);
-  assert.doesNotMatch(html, /More questionable decisions|class="opening-grid"/);
-  const assets = files(out);
-  const productRoute = /^\/gifts\/[a-z0-9-]+(?:\.(?:html|txt))?$/;
-  assert.equal(assets.some((p) => productRoute.test(p)), false);
-  assert.ok(assets.includes("/404.html"));
-  const routes = createStaticRoutes(empty, assets);
-  assert.equal(Object.keys(routes).some((p) => productRoute.test(p)), false);
-  assert.equal(routes["/"].state, "held");
-  assert.equal(routes["/"].indexable, false);
-  assert.equal(routes["/__next.__PAGE__.txt"].state, "held");
-  const shard = createBrowseRelease(empty).random.poolPath;
-  assert.equal(routes[shard].state, "held");
-  const payload = JSON.parse(fs.readFileSync(path.join(out, shard)));
-  assert.equal(payload.status, "unavailable");
-  assert.equal(payload.products.length, 0);
-  const worker = createSiteWorker({ snapshot: empty, manifest: { catalogRevision: empty.catalogRevision, routes } });
-  const env = { ENVIRONMENT: "production", ASSETS: { fetch: () => { throw new Error("Missing products must not request an asset"); } } };
-  assert.equal((await worker.fetch(new Request("https://example.invalid/gifts/missing"), env)).status, 404);
-  const sitemap = await worker.fetch(new Request("https://example.invalid/sitemap.xml"), env);
-  assert.doesNotMatch(await sitemap.text(), /\/gifts\/|placeholder/);
+  const mixed = { ...owned, products: representativeSnapshot().products, slugHistory: [{
+    slug: "illustrative-old-held-selection", canonicalSlug: owned.heldProducts[0].slug, publicId: owned.heldProducts[0].publicId,
+  }] };
+  for (const [name, snapshot] of [["mixed", mixed], ["all-held", { ...mixed, products: [] }],
+    ["empty", { ...mixed, products: [], heldProducts: [], slugHistory: [] }]]) {
+    const project = isolatedProject(`held-${name}-fixture`);
+    fs.writeFileSync(path.join(project, "content/show/published.json"), "[]");
+    const source = path.join(project, "catalog.snapshot.json");
+    fs.writeFileSync(source, JSON.stringify(snapshot));
+    const out = build(project, source);
+    const assets = files(out);
+    assert.ok(assets.includes("/404.html"));
+    const heldPath = owned.heldProducts[0].path;
+    assert.equal(assets.some((p) => p.startsWith(heldPath)), false);
+    const safeHtml = fs.readFileSync(path.join(out, "safe/product.html"), "utf8");
+    assert.match(safeHtml, /Not currently in the collection/);
+    assert.doesNotMatch(safeHtml, /rel="canonical"|property="og:|name="twitter:|"@type":"Product"|data-analytics-outbound|example\.invalid\/not-for-sale/);
+    for (const product of snapshot.products) assert.equal(safeHtml.includes(product.title), false);
+    for (const asset of assets.filter((p) => p.startsWith("/_next/static/") && p.endsWith(".js"))) {
+      const js = fs.readFileSync(path.join(out, asset), "utf8");
+      for (const value of [...snapshot.products.flatMap((p) => [p.title, p.publicId, p.affiliateUrl]),
+        ...snapshot.heldProducts.flatMap((p) => [p.slug, p.publicId])])
+        assert.equal(js.includes(value), false, `${asset} contains snapshot data`);
+    }
+    const routes = createStaticRoutes(snapshot, assets);
+    const digest = createHash("sha256").update(`${JSON.stringify(snapshot)}\n`).digest("hex");
+    const feedPlan = createStaticFeedPlan(snapshot, digest);
+    const calls = [];
+    const worker = createSiteWorker({ snapshot, manifest: { catalogRevision: snapshot.catalogRevision, catalogSnapshotSha256: digest, routes }, feedPlan });
+    const env = { ENVIRONMENT: "production", ASSETS: { fetch: (request) => {
+      const asset = new URL(request.url).pathname; calls.push(asset);
+      return new Response(fs.readFileSync(path.join(out, asset)), { headers: {
+        "Content-Type": asset.endsWith(".txt") ? "text/x-component" : "text/html; charset=utf-8",
+      } });
+    } } };
+    for (const [pathname, route] of Object.entries(routes).filter(([p]) => p.startsWith(heldPath))) {
+      const response = await worker.fetch(new Request(`https://example.invalid${pathname}`, { headers: { RSC: "1" } }), env);
+      assert.equal(response.status, 200, pathname);
+      assert.equal(response.headers.get("Cache-Control"), "no-store");
+      assert.equal(response.headers.get("X-Robots-Tag"), "noindex, follow");
+      assert.equal(response.headers.get("Content-Type"), pathname.endsWith(".txt") ? "text/x-component" : "text/html; charset=utf-8");
+      assert.equal(await response.text(), fs.readFileSync(path.join(out, route.assetPath), "utf8"));
+      assert.equal(calls.at(-1), route.assetPath);
+    }
+    const before = calls.length;
+    for (const pathname of ["/gifts/missing", "/gifts/missing/", "/gifts/missing.txt", "/gifts/missing/__next._full.txt", `${heldPath}/__next.unknown.txt`, "/bundles/retired"])
+      assert.equal((await worker.fetch(new Request(`https://example.invalid${pathname}`), env)).status, 404, pathname);
+    assert.equal(calls.length, before);
+    if (snapshot.heldProducts.length) {
+      const slash = await worker.fetch(new Request(`https://example.invalid${heldPath}/?utm_source=pinterest&q=gift&unsafe=discard`), env);
+      assert.equal(slash.status, 308);
+      assert.equal(slash.headers.get("Location"), `${heldPath}?utm_source=pinterest&q=gift`);
+      assert.equal(slash.headers.get("Cache-Control"), "no-store");
+      assert.equal((await worker.fetch(new Request(`https://example.invalid${heldPath}.html/`), env)).status, 404);
+      const redirected = await worker.fetch(new Request("https://example.invalid/gifts/illustrative-old-held-selection"), env);
+      assert.equal(redirected.status, 308);
+      assert.equal(redirected.headers.get("Location"), heldPath);
+      const head = await worker.fetch(new Request(`https://example.invalid${heldPath}`, { method: "HEAD" }), env);
+      assert.equal(head.status, 200); assert.equal(await head.text(), "");
+    }
+    assert.doesNotMatch(await (await worker.fetch(new Request("https://example.invalid/sitemap.xml"), env)).text(), /illustrative-held|illustrative-old-held/);
+    const response = await worker.fetch(new Request("https://example.invalid/api/catalog-feed", { method: "POST", body: "{}" }), env);
+    assert.equal(response.status, snapshot.products.length ? 200 : 503);
+    assert.doesNotMatch(await response.text(), /fixture-held|illustrative-held/);
+    if (!snapshot.products.length) {
+      const html = fs.readFileSync(path.join(out, "index.html"), "utf8");
+      assert.match(html, /The collection is being checked/);
+      assert.doesNotMatch(html, /More questionable decisions|class="opening-grid"/);
+      assert.equal(assets.some((p) => /^\/gifts\/[^/]+\.html$/.test(p)), false);
+      assert.equal(routes["/"].state, "held");
+      assert.equal(routes["/__next.__PAGE__.txt"].state, "held");
+    } else {
+      const full = representativeSnapshot();
+      const fullRoutes = createStaticRoutes(full, assets);
+      const snapshotBytes = Buffer.byteLength(`${JSON.stringify(full)}\n`);
+      const routeBytes = Buffer.byteLength(JSON.stringify(fullRoutes, null, 2));
+      const assetBytes = assets.reduce((sum, p) => sum + fs.statSync(path.join(out, p)).size, 0);
+      // Exact measured assets + two snapshot copies + route JSON. Fixed package
+      // metadata/entry/config get a conservative 1 MiB allowance, not a cap raise.
+      const packageBound = assetBytes + snapshotBytes * 2 + routeBytes + 1024 * 1024;
+      assert.ok(assets.length + 10 < 10_000);
+      assert.ok(packageBound < 128 * 1024 * 1024);
+      console.log(JSON.stringify({ fixture: "3383-identities", ready: 4, held: 3379, out,
+        assetFiles: assets.length, assetBytes, routeAliases: Object.keys(fullRoutes).length,
+        snapshotBytes, routeBytes, packageFileBound: assets.length + 10, packageByteBound: packageBound }));
+    }
+    console.log(JSON.stringify({ fixture: name, out, assets: assets.length, aliases: Object.keys(routes).length }));
+  }
 });

@@ -37,13 +37,25 @@ const script = `
   };
   const flags=Object.fromEntries(Object.entries(pages).map(([key,value])=>[key,value.metadata.robots.index]));
   const product=await import('./static-site/app/gifts/[slug]/page.product.tsx');
+  const safeProduct=await import('./static-site/app/safe/product/page.tsx');
   const guide=await import('./static-site/app/gift-guides/[slug]/page.tsx');
   const directory=await import('./static-site/app/gifts/page/[page]/page.tsx');
   const episode=await import('./static-site/app/howie/[episode]/page.episode.tsx');
   const presentation=await import('./static-site/app/howie/[episode]/presentation/page.episode.tsx');
   const get=async(module,params)=>(await module.generateMetadata({params:Promise.resolve(params)})).robots.index;
-  flags.ready=await get(product,{slug:'controlled-policy-object-0'});
-  flags.held=await get(product,{slug:'controlled-held'});
+  const productParams=product.generateStaticParams();
+  flags.ready=productParams.length ? await get(product,productParams[0]) : false;
+  flags.held=safeProduct.metadata.robots.index;
+  const notFound=async(action)=>{
+    try {await action(); return false;}
+    catch(error) {if(error?.digest==='NEXT_HTTP_ERROR_FALLBACK;404') return true; throw error;}
+  };
+  const rejectedProducts={};
+  for(const slug of ['controlled-held','unknown-product','controlled-policy-object-0'].filter(slug=>!productParams.some(p=>p.slug===slug))) {
+    const params=()=>({params:Promise.resolve({slug})});
+    rejectedProducts[slug]={metadata:await notFound(()=>product.generateMetadata(params())),
+      renderer:await notFound(()=>product.default(params()))};
+  }
   flags.matchingGuide=await get(guide,{slug:'cat-lover-gag-gifts'});
   flags.thinGuide=await get(guide,{slug:'office-prank-gifts'});
   flags.page1=await get(directory,{page:'1'}); flags.page2=await get(directory,{page:'2'});
@@ -54,7 +66,8 @@ const script = `
   const {catalog}=await import('./static-site/lib/catalog.ts');
   const {guides,guideSchema}=await import('./static-site/lib/guides.ts');
   const {buildSnapshotIndex}=await import('./static-site/lib/weird-index.ts');
-  console.log(JSON.stringify({flags,robots:robots(),origin:siteIdentity.origin,
+  console.log(JSON.stringify({flags,productParams,rejectedProducts,safeProductMetadata:safeProduct.metadata,
+    robots:robots(),origin:siteIdentity.origin,
     guideWebsite:guideSchema(guides[0],[])['@graph'][0].isPartOf,
     indexCitation:buildSnapshotIndex(catalog).citation,
     indexHtml:renderToStaticMarkup(React.createElement(pages.index.default)),
@@ -66,11 +79,19 @@ function inspect(mode, input, published = false) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "goose-gifts-metadata-"));
   try {
     const file = path.join(directory, "snapshot.json"); fs.writeFileSync(file, JSON.stringify(input));
-    return JSON.parse(execFileSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e", script], {
+    const output = JSON.parse(execFileSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e", script], {
       cwd: new URL("../", import.meta.url), encoding: "utf8", env: { ...process.env, CATALOG_SNAPSHOT_PATH: file,
         CATALOG_SITE_MODE: mode, NEXT_PUBLIC_STATIC_SITE_MODE: mode, NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED: "false",
         CONTROLLED_PUBLISHED: String(published) },
     }));
+    assert.deepEqual(output.productParams, input.products.map(({ slug }) => ({ slug })));
+    for (const [slug, rejected] of Object.entries(output.rejectedProducts))
+      assert.deepEqual(rejected, { metadata: true, renderer: true }, `${mode}/${slug} must 404 outside the shared held route`);
+    assert.equal(output.safeProductMetadata.robots.index, false);
+    assert.equal(output.safeProductMetadata.alternates.canonical, null);
+    assert.equal(output.safeProductMetadata.openGraph, null);
+    assert.equal(output.safeProductMetadata.twitter, null);
+    return output;
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }
 }
 test("eligible maintained routes index only in explicit production; held/thin/duplicate/private routes do not", () => {

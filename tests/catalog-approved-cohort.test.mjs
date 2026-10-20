@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, mkdtemp, realpath, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { approvedCohortOperationKey, approvedCohortVectorPlan, prepareApprovedCohort, settleApprovedCohort } from '../lib/catalog/freeze-approved-cohort.ts';
 import { claimMutationOwnership, readMutationOwner, releaseMutationOwnership } from '../lib/catalog/mutation-fence.ts';
 import { createProjectionPacket, projectionQueries, getRevisionProductsByPublicIds } from '../lib/catalog/d1.ts';
@@ -15,6 +17,9 @@ import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 import { abandonExpiredPrunedRevision, deliverOwnedOutboxEvent, deliverOwnedApprovedCohortVector, readOwnedApprovedCohortVectors } from '../scripts/catalog/owned-vector-delivery.ts';
 import { claimBuildRequest, beginBuildActivation } from '../lib/catalog/build-requests.ts';
 import { enqueuePublication, claimPublication, recordPublicationDispatch } from '../lib/catalog/publication.ts';
+import { sealCapturedRevision, settleCapturedRevision } from '../lib/catalog/prune-existing-revision.ts';
+import { createCatalogD1Rest } from '../scripts/catalog/d1-write-rest.ts';
+import { openRunWorkspace } from '../scripts/catalog/run-workspace.ts';
 
 const AT = Date.parse('2026-10-20T12:00:00.000Z');
 const at = ms => new Date(AT+ms).toISOString();
@@ -41,7 +46,7 @@ async function setup(t,{initial=2}={}) {
     sql.exec(await readFile(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
   let clock=AT;let before;let after;let lost;
   sql.function('strftime',(format,instant)=>{assert.equal(format,'%Y-%m-%dT%H:%M:%fZ');assert.equal(instant,'now');return new Date(clock).toISOString();});
-  const db={prepare(query){let params=[];return{query,bind(...args){assert.ok(args.length<=100);params=args;return this;},
+  let db={prepare(query){let params=[];return{query,bind(...args){assert.ok(args.length<=100);params=args;return this;},
     async all(){const results=sql.prepare(query).all(...params).map(row=>({...row}));
       // Deliberately reverse this unordered candidate query; neither digest nor
       // approved display order may accidentally depend on provider row order.
@@ -76,16 +81,16 @@ async function setup(t,{initial=2}={}) {
   await upsert(product(initial+1,{isActive:false,embedding:null}));
   await drain();
   const rows=sql.prepare('SELECT * FROM products ORDER BY public_id').all();
-  const previous=validateCatalogSnapshot({schemaVersion:1,dataKind:'catalog',catalogRevision:'prior-revision',generatedAt:at(0),
+  const previous=structuredClone(validateCatalogSnapshot({schemaVersion:1,dataKind:'catalog',catalogRevision:'prior-revision',generatedAt:at(0),
     products:rows.filter(row=>row.public_display_json).map(row=>JSON.parse(row.public_display_json)),
     heldProducts:rows.filter(row=>!row.public_display_json).map(row=>({id:row.id,publicId:row.public_id,slug:row.slug,path:`/gifts/${row.slug}`,
       title:'Gift currently unavailable',description:'This gift is not currently available in the curated catalog. Browse other gifts instead.',reason:'inactive'})),
-    slugHistory:[{slug:'older-lobster',canonicalSlug:rows[0].slug,publicId:rows[0].public_id}]},new Date(AT));
+    slugHistory:[{slug:'older-lobster',canonicalSlug:rows[0].slug,publicId:rows[0].public_id}]},new Date(AT)));
   const packet=await createProjectionPacket(previous,Object.fromEntries(rows.map(row=>[row.public_id,row.source_facts_hash])),source,new Date(AT));
   sql.prepare('INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES(?,?,?,?)').run(previous.catalogRevision,at(0),source,'published');
   for(const q of projectionQueries(packet))sql.prepare(q.sql).run(...q.params);
   const priorIntent={releaseId:'prior-release',catalogRevision:previous.catalogRevision,codeSha:'c'.repeat(40),catalogSnapshotSha256:packet.receipt.snapshot_sha256,
-    manifestSha256:'f'.repeat(64),vectorSyncWatermark:initial,priorReleaseId:null,nextExpiry:previous.products[0].eligibleUntil};
+    manifestSha256:'f'.repeat(64),vectorSyncWatermark:initial,priorReleaseId:null,nextExpiry:previous.products[0]?.eligibleUntil??null};
   const prior={release_id:'prior-release',catalog_revision:previous.catalogRevision,code_sha:priorIntent.codeSha,completed_at:at(0),manifest_json:JSON.stringify(priorIntent)};
   sql.prepare('INSERT INTO publication_receipts VALUES(?,?,?,?,?)').run(...Object.values(prior));
   const sealed=createSealedSnapshotEnvelope(previous);
@@ -100,7 +105,8 @@ async function setup(t,{initial=2}={}) {
   clock+=1000; // A later real weekly observation/write, not the seed transaction's clock.
   cursor={current:await claimMutationOwnership(db,scope,{phase:'writing',ownerReference:'weekly-run',operationKey:'d'.repeat(64)})};
   mode={runId:'weekly-run',catalogRevision:'approved-revision'};
-  const f={sql,db,adapters,index,sent,previous,packet,context,priorIntent,originals,upsert,drain,
+  const f={sql,db,local:db,adapters,index,sent,previous,packet,context,priorIntent,originals,upsert,drain,
+    useDb(value){db=value;f.db=value;},
     owner:()=>cursor.current,now:()=>new Date(clock),advance(ms){clock+=ms;},calls:()=>calls,setIntent(fn){intentOverride=fn;},
     before(fn){before=fn;},after(fn){after=fn;},lose(fn){lost=fn;},uncertain(value){unknown=value;},
     async freeze(ids=[]){
@@ -279,5 +285,163 @@ test('delayed approved-vector settlement across expiry releases only proven work
   const abandoned=await abandonExpiredPrunedRevision(f.db,expired.owner,prepared.revision);
   assert.equal(abandoned.state,'abandoned');await releaseMutationOwnership(f.db,abandoned.owner);
   assert.equal(f.sql.prepare('SELECT status FROM catalog_revisions WHERE revision=?').get('approved-revision').status,'importing');
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,0);
+});
+
+// All rows below are owned synthetic archive identities, not merchant claims.
+async function addHeld(f,total) {
+  const template={...f.sql.prepare('SELECT * FROM products WHERE public_display_json IS NULL LIMIT 1').get()};
+  const columns=Object.keys(template),insert=f.sql.prepare(`INSERT INTO products(${columns}) VALUES(${columns.map(()=>'?')})`);
+  f.sql.exec('BEGIN');try{
+    for(let n=f.sql.prepare('SELECT count(*) n FROM products').get().n+1;n<=total;n++){
+      const row={...template,id:id(n),public_id:uuid(n),slug:`owned-held-${n}`,timestamp_provenance_json:'{}',rights_json:'{}',embedding_text_hash:null,
+        source_record_json:JSON.stringify({id:id(n),public_id:uuid(n),source:'amazon',availability_checked_at:null,last_verified_at:null})};
+      insert.run(...columns.map(key=>row[key]));f.previous.heldProducts.push({id:row.id,publicId:row.public_id,slug:row.slug,path:`/gifts/${row.slug}`,
+        title:'Gift currently unavailable',description:'This gift is not currently available in the curated catalog. Browse other gifts instead.',reason:'inactive'});
+    }f.sql.exec('COMMIT');
+  }catch(error){f.sql.exec('ROLLBACK');throw error;}
+  const packet=await createProjectionPacket(f.previous,Object.fromEntries(f.sql.prepare('SELECT public_id,source_facts_hash FROM products').all()
+    .map(row=>[row.public_id,row.source_facts_hash])),source,new Date(AT));
+  f.sql.prepare('DELETE FROM catalog_projection_receipts WHERE catalog_revision=?').run(f.previous.catalogRevision);
+  const receipt=projectionQueries(packet).at(-1);f.sql.prepare(receipt.sql).run(...receipt.params);f.packet=packet;
+  f.priorIntent.catalogSnapshotSha256=packet.receipt.snapshot_sha256;
+  f.sql.prepare('UPDATE publication_receipts SET manifest_json=?').run(JSON.stringify(f.priorIntent));
+  const prior={...f.sql.prepare('SELECT * FROM publication_receipts').get()};
+  Object.assign(f.context,{envelopeSha256:sha256(`${JSON.stringify(createSealedSnapshotEnvelope(f.previous))}\n`),
+    snapshotSha256:packet.receipt.snapshot_sha256,projectionSha256:packet.receipt.projection_sha256,
+    priorPublication:{releaseId:prior.release_id,receiptSha256:sha256(canonicalJson(prior))}});
+}
+async function boundedRest(t,f) {
+  const directory=await realpath(await mkdtemp(join(tmpdir(),'goose-capture-')));t.after(()=>rm(directory,{recursive:true,force:true}));
+  const options={directory:join(directory,'runs'),repository:await realpath(new URL('..',import.meta.url).pathname),runId:'test-capture',
+    codeSha:'e'.repeat(40),configSha256:'f'.repeat(64),scope:{...scope,accountId:'a'.repeat(32),databaseId:uuid(99999),databaseName:'test-capture',workerName:'test-capture'},
+    retention:{reviewReference:'test-only/owned-retention',rules:Object.fromEntries(['amazon-observation','embedding-response','phase','publication','checkpoint']
+      .map(kind=>[kind,{maxAgeMs:86400000,notAfter:at(86400000)}]))},budgetCaps:{httpRequests:10000,sqlStatements:25000},now:()=>f.now().toISOString()};
+  let workspace=await openRunWorkspace({...options,mode:'create'});t.after(async()=>{try{await workspace.close();}catch{}});
+  const wire={requests:0,statements:0,maxRequest:0,maxResponse:0,maxStatements:0,maxParameters:0,currentPages:0};
+  let before,after,tamper,indexChecked=false;
+  const fetch=async(_url,init)=>{
+    wire.requests++;const input=init.body?JSON.parse(init.body).batch:null;
+    if(!input)return Response.json({success:true,result:{uuid:options.scope.databaseId,name:options.scope.databaseName,read_replication:{mode:'disabled'}}});
+    wire.maxRequest=Math.max(wire.maxRequest,Buffer.byteLength(init.body));wire.maxStatements=Math.max(wire.maxStatements,input.length);
+    assert.ok(wire.maxRequest<=512*1024);assert.ok(input.length<=50);wire.statements+=input.length;await before?.(input);
+    const output=[];f.sql.exec('BEGIN');try{
+      for(const q of input){wire.maxParameters=Math.max(wire.maxParameters,q.params.length);assert.ok(q.params.length<=100);
+        if(q.sql.includes('FROM requested ids CROSS JOIN products p ON p.public_id=ids.value')){
+          wire.currentPages++;
+          if(!indexChecked){const plan=f.sql.prepare(`EXPLAIN QUERY PLAN ${q.sql}`).all(...q.params).map(row=>row.detail).join('\n');
+            assert.match(plan,/SEARCH p USING INDEX .*public_id=\?/);assert.doesNotMatch(plan,/SCAN p\b/);indexChecked=true;}
+        }
+        const old=f.sql.prepare('SELECT total_changes() n').get().n,results=f.sql.prepare(q.sql).all(...q.params).map(row=>({...row}));
+        const written=f.sql.prepare('SELECT total_changes() n').get().n-old;
+        output.push({success:true,results,meta:{served_by_primary:true,rows_read:results.length,rows_written:written,changes:written}});
+      }f.sql.exec('COMMIT');
+    }catch(error){f.sql.exec('ROLLBACK');throw error;}
+    await after?.(input);tamper?.(input,output);
+    const bytes=JSON.stringify({success:true,result:output});wire.maxResponse=Math.max(wire.maxResponse,Buffer.byteLength(bytes));
+    assert.ok(Buffer.byteLength(bytes)<=512*1024);return new Response(bytes,{headers:{'content-type':'application/json'}});
+  };
+  async function connect(){const db=await createCatalogD1Rest({accountId:options.scope.accountId,databaseId:options.scope.databaseId,databaseName:options.scope.databaseName,
+    token:'TEST_ONLY',fetch,limits:{requests:10000,statements:25000},accounting:{scope:{accountId:options.scope.accountId,databaseId:options.scope.databaseId,databaseName:options.scope.databaseName},
+      initial:await workspace.budget(),reserve:input=>workspace.reserveBudget(input),settle:(id,result)=>workspace.settleBudget(id,result)}});f.useDb(db);return db;}
+  await connect();return{wire,options,workspace:()=>workspace,before(fn){before=fn;},after(fn){after=fn;},tamper(fn){tamper=fn;},
+    async reopen(){const before=await workspace.budget();await workspace.close();workspace=await openRunWorkspace({...options,mode:'resume'});
+      assert.deepEqual(await workspace.budget(),before);await connect();return before;}};
+}
+test('3383 private identities/four ready capture → native promotion → atomic queue through bounded primary REST and durable budget',async t=>{
+  const f=await setup(t,{initial:4});await addHeld(f,3383);const rest=await boundedRest(t,f),claim=await f.freeze();
+  const rowsBefore=f.sql.prepare('SELECT id,public_id,slug,source_record_json FROM products ORDER BY id').all();
+  const prepared=await prepareApprovedCohort(f.db,claim.owner,claim.request);
+  assert.equal(prepared.revision.sourceRows.length,3383);assert.equal(prepared.revision.snapshot.products.length,4);
+  assert.equal(prepared.revision.snapshot.heldProducts.length,3379);assert.equal(prepared.revision.additionalAbsentIds.length,0);
+  assert.equal(approvedCohortVectorPlan(prepared.revision).absentIds.length,0);
+  const owner=await f.promote(prepared);assert.equal(f.index.size,4);
+  for(const v of f.index.values()){assert.ok(Object.is(v.values[0],-0));assert.equal(nativeHash(v.values),nativeHash(values));}
+  const queued=await settleApprovedCohort(f.db,owner,prepared.revision,()=>readOwnedApprovedCohortVectors(f.db,owner,prepared.revision,f.adapters));
+  assert.equal(queued.state,'build_queued');assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,1);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,1); // Queue is NOT publication.
+  assert.deepEqual(f.sql.prepare('SELECT id,public_id,slug,source_record_json FROM products ORDER BY id').all(),rowsBefore);
+  const before=await rest.reopen();
+  assert.equal((await settleApprovedCohort(f.db,queued.owner,prepared.revision,()=>readOwnedApprovedCohortVectors(f.db,queued.owner,prepared.revision,f.adapters))).state,'existing');
+  const usage=await rest.workspace().budget();assert.ok(usage.httpRequests>before.httpRequests);assert.equal(usage.unconfirmedRequests,0);
+  assert.equal(usage.httpRequests,rest.wire.requests);assert.equal(usage.sqlStatements,rest.wire.statements);
+  assert.ok(rest.wire.currentPages>=43*6);assert.ok(rest.wire.maxRequest<=512*1024);assert.ok(rest.wire.maxResponse<=512*1024);
+  t.diagnostic(JSON.stringify({scope:'fixture capture/promotion/queue/replay ONLY; not whole weekly/provider capacity',...rest.wire,...usage}));
+  const unowned=await reconstructD1Snapshot(f.db,createSealedSnapshotEnvelope(f.previous),f.context);
+  assert.equal(unowned.status,'held'); // No silent unowned paging.
+});
+test('late-page owner drift/ABA, invalid/missing/reordered rows and unknown reads cannot create a seal',async t=>{
+  for(const fault of ['epoch','aba','owner-object','delete','mutation','missing','duplicate','reordered','primary','unknown']){
+    const f=await setup(t);await addHeld(f,180);const rest=await boundedRest(t,f),claim=await f.freeze();let pages=0;
+    rest.before(async batch=>{if(!batch.some(q=>q.sql.includes('FROM requested ids CROSS JOIN products p ON p.public_id=ids.value'))||++pages!==2)return;
+      if(fault==='epoch')f.sql.exec('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1');
+      if(fault==='aba'){await releaseMutationOwnership(f.local,claim.owner);await claimMutationOwnership(f.local,scope,
+        {phase:'freezing',ownerReference:claim.owner.ownerReference,operationKey:claim.owner.operationKey});}
+      if(fault==='owner-object'){claim.owner.epoch++;f.sql.exec('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1');}
+      if(fault==='delete')f.sql.prepare('DELETE FROM products WHERE public_id=?').run(uuid(85));
+      if(fault==='mutation')f.sql.prepare('UPDATE products SET rights_json=? WHERE public_id=?').run('{"test":"changed"}',uuid(6));
+      if(fault==='unknown')throw new Error('TEST ONLY unread response');
+    });
+    rest.tamper((batch,result)=>{if(pages!==2||!batch.some(q=>q.sql.includes('FROM requested ids CROSS JOIN products p ON p.public_id=ids.value')))return;
+      const rows=result[0].results;if(fault==='missing')rows.shift();if(fault==='duplicate')rows[1]=rows[0];if(fault==='reordered')rows.reverse();
+      if(fault==='primary')result[0].meta.served_by_primary=false;});
+    await assert.rejects(prepareApprovedCohort(f.db,claim.owner,claim.request),undefined,fault);
+    assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_projection_receipts').get().n,1);
+    assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,0);
+    assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'freezing');
+    if(['primary','unknown'].includes(fault))assert.ok((await rest.workspace().budget()).unconfirmedRequests>0);
+  }
+});
+test('escaped near-row-limit capture/CAS bytes, interrupted staging, receipt tamper and held legacy writers stay fail-closed',async t=>{
+  const f=await setup(t,{initial:4});await addHeld(f,180);
+  const original={...f.sql.prepare('SELECT * FROM catalog_maintenance_operations LIMIT 1').get()},columns=Object.keys(original);
+  for(let n=6;n<=9;n++){
+    const operation={...original,operation_id:sha256(`test-only/escaped-operation-${n}`),changes_json:JSON.stringify([{ownedFixture:'"\\'.repeat(7000)}])};
+    f.sql.prepare(`INSERT INTO catalog_maintenance_operations(${columns}) VALUES(${columns.map(()=>'?')})`).run(...columns.map(key=>operation[key]));
+    f.sql.prepare('UPDATE products SET timestamp_provenance_json=? WHERE public_id=?').run(JSON.stringify({schemaVersion:1,
+      fields:{availability_checked_at:{basis:'maintenance_operation',operationId:operation.operation_id}}}),uuid(n));
+  }
+  const rest=await boundedRest(t,f),claim=await f.freeze();let interrupted=false;
+  rest.after(batch=>{if(!interrupted&&batch.some(q=>q.sql.startsWith('INSERT INTO catalog_public_products'))){interrupted=true;throw new Error('TEST ONLY staged-response loss');}});
+  await assert.rejects(prepareApprovedCohort(f.db,claim.owner,claim.request));assert.equal(interrupted,true);
+  assert.equal(f.sql.prepare('SELECT status FROM catalog_revisions WHERE revision=?').get('approved-revision').status,'importing');
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_projection_receipts').get().n,1);
+  assert.deepEqual(await getRevisionProductsByPublicIds(f.db,[uuid(1),uuid(2)],f.now(),'approved-revision'),[]);
+  rest.after(null);const prepared=await prepareApprovedCohort(f.db,claim.owner,claim.request);assert.equal(prepared.revision.sourceRows.length,180);
+  assert.ok(prepared.revision.sourceRows.some(row=>Buffer.byteLength(JSON.stringify(row))>100*1024));
+  assert.ok(prepared.revision.sourceRows.find(row=>row.public_id===uuid(6)).verification_operation_json.includes('ownedFixture'));
+  assert.ok(rest.wire.maxResponse>200*1024);assert.ok(rest.wire.maxRequest>300*1024);
+  await assert.rejects(f.upsert(product(181)));assert.equal(f.sql.prepare('SELECT count(*) n FROM products').get().n,180);
+  const owner=await f.promote(prepared);
+  f.sql.prepare('DELETE FROM catalog_projection_receipts WHERE catalog_revision=?').run(prepared.revision.snapshot.catalogRevision);
+  await assert.rejects(settleApprovedCohort(f.db,owner,prepared.revision,()=>readOwnedApprovedCohortVectors(f.db,owner,prepared.revision,f.adapters)));
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,0);
+  assert.ok((await rest.workspace().budget()).unconfirmedRequests>0); // Interrupted request never refunded.
+});
+
+test('empty capture still checks owner/header; overlapping prior target and late cutoff cannot seal/queue',async t=>{
+  const empty=await setup(t,{initial:0});empty.previous.heldProducts.length=0;empty.previous.slugHistory.length=0;await addHeld(empty,0);
+  const er=await boundedRest(t,empty),claim=await empty.freeze();
+  await assert.rejects(prepareApprovedCohort(empty.db,{...claim.owner,epoch:claim.owner.epoch+1},claim.request));
+  const prepared=await prepareApprovedCohort(empty.db,claim.owner,claim.request);
+  assert.equal(prepared.revision.sourceRows.length,0);assert.equal(er.wire.currentPages,0);assert.equal(prepared.state,'all_held');
+  await assert.rejects(sealCapturedRevision(empty.db,prepared.owner,{...prepared.revision,
+    snapshot:{...prepared.revision.snapshot,catalogRevision:empty.previous.catalogRevision}}),/owner_mismatch/);
+  const f=await setup(t);await addHeld(f,180);const rest=await boundedRest(t,f),next=await f.freeze();
+  const ready=await prepareApprovedCohort(f.db,next.owner,next.request),owner=await f.promote(ready);
+  rest.after(batch=>{if(batch.some(q=>q.sql.includes('SELECT count(*) FROM json_each(?) e CROSS JOIN products p'))){rest.after(null);f.advance(7*3600000);}});
+  await assert.rejects(settleCapturedRevision(f.db,owner,ready.revision,()=>readOwnedApprovedCohortVectors(f.db,owner,ready.revision,f.adapters)));
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,0);
+  assert.equal(f.sql.prepare('SELECT status FROM catalog_revisions WHERE revision=?').get('approved-revision').status,'importing');
+});
+
+test('unexpected partial target rows stay held rather than being ignored by fixed identity pages',async t=>{
+  const f=await setup(t),rest=await boundedRest(t,f),claim=await f.freeze();
+  rest.after(batch=>{if(!batch.some(q=>q.sql.startsWith('INSERT INTO catalog_revisions')))return;rest.after(null);
+    const row={...f.sql.prepare('SELECT * FROM catalog_public_products LIMIT 1').get(),catalog_revision:'approved-revision',
+      public_id:uuid(3),product_id:id(3),slug:'test-only-unexpected'};
+    const columns=Object.keys(row);f.sql.prepare(`INSERT INTO catalog_public_products(${columns}) VALUES(${columns.map(()=>'?')})`).run(...Object.values(row));});
+  await assert.rejects(prepareApprovedCohort(f.db,claim.owner,claim.request));
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_projection_receipts').get().n,1);
   assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,0);
 });

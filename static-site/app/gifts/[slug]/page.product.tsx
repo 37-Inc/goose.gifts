@@ -8,9 +8,9 @@ import { ProductCard } from "../../../components/ProductCard";
 import { og } from "../../../lib/og-data";
 
 export const dynamicParams = false;
-// next.config includes this route family only when the snapshot has identities.
+// Held identities use shared neutral assets, not one React export per identity.
 export function generateStaticParams() {
-  return [...catalog.products, ...catalog.heldProducts].map(({ slug }) => ({
+  return catalog.products.map(({ slug }) => ({
     slug,
   }));
 }
@@ -21,15 +21,13 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const product = catalog.products.find((item) => item.slug === slug);
-  const held = catalog.heldProducts.find((item) => item.slug === slug);
+  if (!product) notFound();
   return previewMetadata(
-    product?.title || held?.title || "Selection unavailable",
-    product?.description ||
-      held?.description ||
-      "This selection is not currently published.",
+    product.title,
+    product.description,
     `/gifts/${slug}`,
-    { indexable: Boolean(product), fixture: catalog.dataKind === "synthetic_fixture",
-      image: og.cards.find((card) => card.subjectId === product?.publicId) },
+    { indexable: true, fixture: catalog.dataKind === "synthetic_fixture",
+      image: og.cards.find((card) => card.subjectId === product.publicId) },
   );
 }
 export default async function Gift({
@@ -39,20 +37,7 @@ export default async function Gift({
 }) {
   const { slug } = await params;
   const product = catalog.products.find((item) => item.slug === slug);
-  if (!product) {
-    const held = catalog.heldProducts.find((item) => item.slug === slug);
-    if (!held) notFound();
-    return (
-      <main id="main" className="site-main empty-state">
-        <p className="eyebrow">Not currently in the collection</p>
-        <h1>{held.title}</h1>
-        <p>{held.description}</p>
-        <a className="text-action" href="/gifts">
-          Explore the collection →
-        </a>
-      </main>
-    );
-  }
+  if (!product) notFound();
   const illustrative = isIllustrative(product);
   const retailer = product.source === "amazon" ? "Amazon" : "Etsy";
   const schema = buildGiftPageSchema(

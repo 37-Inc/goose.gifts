@@ -40,6 +40,7 @@ function fixtureRelease(snapshot,context,prior=null){
   const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,bytes('Owned fixture HTML')]));
   for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/index.json','/safe/asset.txt'])assets.set(name,bytes('Owned unavailable'));
   assets.set('/safe/catalog.json',bytes(safeCatalogPayload));assets.set('/weird-gift-index/data.json',bytes({scope:'sample'}));
+  for(const suffix of ['.txt','/__next._full.txt','/__next._tree.txt','/__next.safe.product.__PAGE__.txt'])assets.set(`/safe/product${suffix}`,bytes('Owned safe RSC'));
   for(const shard of createBrowseRelease(snapshot).shards)assets.set(shard.path,bytes(shard.payload));
   for(const name of createOgRelease(snapshot,siteIdentityFor(context.sourceMode)).byPath.keys())assets.set(name,bytes('owned PNG fixture'));
   const assembled=assembleReleaseAssets(snapshot,assets,context,prior);const rest={...context};delete rest.retainedManifestSha256;

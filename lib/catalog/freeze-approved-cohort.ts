@@ -48,15 +48,16 @@ function held(value: { id: string; publicId: string; slug: string }, reason: Saf
     description:'This gift is not currently available in the curated catalog. Browse other gifts instead.',reason };
 }
 async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohortRequest) {
+  owner = structuredClone(owner);
   const request = structuredClone(input); const operationKey = approvedCohortOperationKey(request);
   if (owner.phase !== 'freezing' || owner.operationKey !== operationKey || owner.environment !== request.scope.environment
     || owner.indexName !== request.scope.indexName) throw new Error('cohort_owner_mismatch');
   await db.batch([mutationAssertion(db,owner,['freezing'])]);
-  const source = await readPruningSource(db,request.previous,request.context);
+  const source = await readPruningSource(db,request.previous,request.context,owner);
   const now = new Date(source.observedAt); const cutoff = Date.parse(request.context.cutoff);
   if (now.getTime() < Date.parse(owner.capturedAt) || cutoff <= now.getTime()
     || cutoff - Date.parse(owner.capturedAt) > 26*3600000) throw new Error('cohort_window_elapsed');
-  const extra = await readApprovedCurrentRows(db,request.approval.changes.map(value => value.publicId));
+  const extra = await readApprovedCurrentRows(db,request.approval.changes.map(value => value.publicId),owner);
   const full = new Map(extra.rows.map(row => [String(row.public_id),row]));
   const current = new Map([...source.current,...extra.current].map(row => [String(row.public_id),row]));
   const projection = new Map(source.projection.map(row => [String(row.public_id),row]));

@@ -36,8 +36,11 @@ Cloudflare staging implementation is not a completed cutover. Before launch:
 - Vercel/Neon shutdown, repository rename and old-domain renewal changes wait
   for verified production migration and the approved observation window.
 
-Engineering still owns the complete D1 weekly/publishing workflow, compliant
-catalog refresh/expiry policy, search coverage and final recovery checks.
+The local D1 weekly/publishing workflow now has an actual isolated-provider
+publication proof. Engineering still owns protected hosted persistence,
+physical body retention/purge and global execution exclusion
+(`roadmap-lbbz1.4.3`), compliant catalog refresh/expiry policy, search coverage
+and final recovery checks.
 Those are not owner authentication blockers and are not being marked done.
 See `STUPID_GIFTS_STAGING.md` and epic `roadmap-lbbz1`.
 
