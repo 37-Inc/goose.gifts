@@ -210,6 +210,7 @@ what's likely next.
   review, new experiment, catalog/page/account/Pin/Bead changes or spend.
 - Node22.23.1:927-event validation,6creative/10Pinterest tests,production build,
   lint,diff check and immutable-prefix/receipt/cap/checkpoint invariants pass.
+  Evidence/docs PR [#202](https://github.com/37-Inc/goose.gifts/pull/202).
 
 ### 2026-10-20 [daily-ops] — First native Pinterest outbound clicks; keep v11 frozen
 
