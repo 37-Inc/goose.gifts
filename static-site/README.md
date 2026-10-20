@@ -143,10 +143,20 @@ refresh/browse state, not a healthy empty collection.
 loader. Its caller supplies an explicit prior release ID, trusted manifest SHA,
 exact sealed manifest/snapshot bytes and asset map; the helper verifies their
 digests and coherence. It returns only files and route policies to merge before
-final checksums/sealing. Run `createStaticRoutes` against the current-only
-inventory first; historical shard paths deliberately are not accepted as new
-current content. Build/verify integration and independent prior-trust binding
-remain publishing-layer work, not completed by this helper alone.
+final checksums/sealing. The staging builder/verifier now share this integration:
+reviewed context must explicitly provide `retainedManifestSha256` (a SHA-256 or
+`null`), independently of `priorReleaseId`. Only a non-null digest permits
+`CATALOG_PRIOR_RELEASE_PATH`, pointing to an explicit sealed package containing
+`asset-manifest.json`, `catalog.snapshot.json` and `assets/`. Its exact manifest
+digest and release ID must match the context before any retained bytes are used.
+No local discovery, implicit prior package or public filesystem path is added.
+
+The final manifest seals `retention: { priorManifestSha256, currentAssetPaths }`
+or explicit `null`. Verification checks every asset checksum, reconstructs the
+current-only inventory, reruns the retention helper from the same trusted prior
+package/capture time, and compares combined files, bytes and policies. Historical
+shards cannot be relabeled as current to bypass freshness. Missing/wrong prior
+inputs, symlink escapes, tampering, policy extension or unexpected assets fail.
 
 Old shard bytes survive only while their public display projection still matches
 current ready products. Deadlines are capped at original rights, current rights
@@ -161,6 +171,13 @@ unavailable JSON and `/safe/asset.txt` remain the fallbacks. This covers a bound
 deployment overlap, not indefinite old-tab support: long-suspended tabs must
 reload. Historical product OG retention is not added before any such assets have
 actually been deployed.
+
+The optional two-release build/verify drill uses only owned fixtures and local
+assets. It replaces the local output, so rebuild an approved snapshot afterward:
+
+```sh
+STATIC_SITE_BUILD_RETENTION_FIXTURE=1 node --import tsx --test tests/static-site-release-retention.test.mjs
+```
 
 OG cards use the explicit reviewed `siteIdentity`, never a separately hardcoded
 brand or origin. Finite `/og/<descriptor-sha256>.png` routes render 1200×630 local

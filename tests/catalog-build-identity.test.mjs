@@ -8,7 +8,7 @@ import { siteIdentityFor } from '../static-site/lib/site-identity.ts';
 const snapshot = { catalogRevision: 'controlled-r1', generatedAt: '2026-10-20T00:00:00.000Z' };
 const context = { schemaVersion: 1, sourceMode: 'preview', releaseId: 'controlled-release', codeSha: 'a'.repeat(40),
   catalogRevision: snapshot.catalogRevision, catalogSnapshotSha256: 'b'.repeat(64), generatedAt: snapshot.generatedAt,
-  vectorSyncWatermark: 0, priorReleaseId: null };
+  vectorSyncWatermark: 0, priorReleaseId: null, retainedManifestSha256: null };
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const validate = input => validateBuildContext(input, snapshot, context.codeSha, context.catalogSnapshotSha256, new Date('2026-10-20T12:00:00.000Z'));
 

@@ -266,7 +266,7 @@ test(
       codeSha: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
       catalogRevision: snapshot.catalogRevision,
       catalogSnapshotSha256: createHash("sha256").update(`${JSON.stringify(validateCatalogSnapshot(snapshot))}\n`).digest("hex"),
-      generatedAt: snapshot.generatedAt, vectorSyncWatermark: 0, priorReleaseId: null,
+      generatedAt: snapshot.generatedAt, vectorSyncWatermark: 0, priorReleaseId: null, retainedManifestSha256: null,
     }));
     try {
       execFileSync(

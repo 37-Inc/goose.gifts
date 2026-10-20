@@ -51,6 +51,7 @@ export interface CatalogAssetRoute {
 export interface SiteAssetManifest extends CatalogReleaseManifest {
   dataKind: CatalogSnapshot['dataKind'];
   routes: Record<string, CatalogAssetRoute>;
+  retention: { priorManifestSha256: string; currentAssetPaths: string[] } | null;
 }
 
 export interface CatalogReleaseManifest {

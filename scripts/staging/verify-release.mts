@@ -5,11 +5,11 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import type { CatalogSnapshot, SiteAssetManifest } from '../../lib/catalog/types.ts';
-import { createStaticRoutes } from '../../static-site/lib/asset-routes.ts';
 import { createStaticFeedPlan } from '../../workers/site/feed.ts';
 import { verifyReleaseIdentity } from './release-identity.mts';
 import { releaseBuildEnvironment, siteIdentityBytes, validateBuildContext } from './build.mts';
 import { siteIdentityFor } from '../../static-site/lib/site-identity.ts';
+import { readPriorRelease, verifyRetainedAssets } from './retention.mts';
 
 export function verifySnapshotDigest(bytes: Uint8Array, expected: string): void {
   if (createHash('sha256').update(bytes).digest('hex') !== expected)
@@ -21,10 +21,12 @@ export function verifyFeedPlan(snapshot: CatalogSnapshot, digest: string, plan: 
     throw new Error('Prepared feed changed after the release was built');
 }
 
-export function verifyReleaseContext(value: unknown, manifest: SiteAssetManifest, snapshot: CatalogSnapshot, codeSha: string): void {
+export function verifyReleaseContext(value: unknown, manifest: SiteAssetManifest, snapshot: CatalogSnapshot, codeSha: string) {
   const context = validateBuildContext(value, snapshot, codeSha, manifest.catalogSnapshotSha256);
-  if (Object.entries(context).some(([key, field]) => manifest[key as keyof SiteAssetManifest] !== field))
+  if (Object.entries(context).some(([key, field]) => key === 'retainedManifestSha256'
+    ? (manifest.retention?.priorManifestSha256 ?? null) !== field : manifest[key as keyof SiteAssetManifest] !== field))
     throw new Error('Release context changed after the release was built');
+  return context;
 }
 
 export function verifySiteIdentity(bytes: Uint8Array, manifest: Pick<SiteAssetManifest, 'sourceMode' | 'siteIdentitySha256'>): void {
@@ -71,8 +73,9 @@ async function main() {
   const snapshotBytes = await fs.readFile(path.join(root, 'build/stupid-gifts/catalog.snapshot.json'));
   const snapshot = validateCatalogSnapshot(JSON.parse(snapshotBytes.toString('utf8')));
   verifySnapshotDigest(snapshotBytes, manifest.catalogSnapshotSha256);
-  verifyReleaseContext(JSON.parse(await fs.readFile(path.join(root, 'build/stupid-gifts/release-context.json'), 'utf8')),
+  const context = verifyReleaseContext(JSON.parse(await fs.readFile(path.join(root, 'build/stupid-gifts/release-context.json'), 'utf8')),
     manifest, snapshot, git('rev-parse', 'HEAD'));
+  const priorPackage = await readPriorRelease(context, process.env.CATALOG_PRIOR_RELEASE_PATH);
   releaseBuildEnvironment(manifest, process.env);
   verifySiteIdentity(await fs.readFile(path.join(root, 'build/stupid-gifts/site-identity.json')), manifest);
   const feedPlan = JSON.parse(await fs.readFile(path.join(root, 'build/stupid-gifts/feed-plan.json'), 'utf8'));
@@ -85,9 +88,11 @@ async function main() {
   const actualPaths = entries.map((file) => `/${path.relative(output, file).split(path.sep).join('/')}`).sort();
   if (JSON.stringify(actualPaths) !== JSON.stringify(Object.keys(manifest.checksums).sort()))
     throw new Error('Asset inventory changed after the release was built');
+  const assets = new Map<string, Uint8Array>();
   for (const file of entries) {
     const name = `/${path.relative(output, file).split(path.sep).join('/')}`;
     const bytes = await fs.readFile(file);
+    assets.set(name, bytes);
     if (createHash('sha256').update(bytes).digest('hex') !== manifest.checksums[name])
       throw new Error(`Asset checksum changed: ${name}`);
     if (name.endsWith('.html')) {
@@ -95,8 +100,7 @@ async function main() {
       if (name === '/index.html' && (!tags.canonical || !tags.openGraph)) throw new Error('Home must declare its canonical/share identity');
     }
   }
-  if (JSON.stringify(createStaticRoutes(snapshot, actualPaths, undefined, siteIdentityFor(manifest.sourceMode))) !== JSON.stringify(manifest.routes))
-    throw new Error('Asset expiry policy changed; rebuild the release');
+  verifyRetainedAssets(snapshot, assets, manifest, context, priorPackage);
   console.log(JSON.stringify({ verified: true, releaseId: manifest.releaseId, assets: entries.length, nextExpiry: manifest.nextExpiry }));
 }
 

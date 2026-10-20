@@ -21,7 +21,7 @@ export interface RetentionInput {
   limits?: { maxEntries?: number; maxBytes?: number };
 }
 const SHARD = /^\/catalog\/([a-f0-9]{64})\/(random|feed-[1-9][0-9]*)\.json$/;
-const OWNED = /^\/_next\/static\/[a-zA-Z0-9_./-]+\.(?:js|css|woff2?|ttf)$/;
+const OWNED = /^\/_next\/static\/[a-zA-Z0-9_./[\]-]+\.(?:js|css|woff2?|ttf)$/;
 const FONT = /^\/fonts\/[a-zA-Z0-9_-]+\.(?:woff2?|ttf)$/;
 const SAFE_CATALOG = "/safe/catalog.json";
 const SAFE_ASSET = "/safe/asset.txt";
@@ -46,7 +46,7 @@ function cardContent(card: ReturnType<typeof projectCard>) {
   delete content.eligibleUntil;
   return JSON.stringify(content);
 }
-function guardCode(bytes: Uint8Array, snapshots: CatalogSnapshot[]) {
+export function assertOwnedCodeSafe(bytes: Uint8Array, snapshots: CatalogSnapshot[]) {
   const code = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   if (/sourceFactsHash|sourceFacts|POSTGRES_URL|DATABASE_URL|AMAZON_SECRET|privateRights/.test(code)) fail();
   for (const snapshot of snapshots) for (const product of snapshot.products) {
@@ -55,6 +55,15 @@ function guardCode(bytes: Uint8Array, snapshots: CatalogSnapshot[]) {
       if (literal.length >= 8 && (code.includes(literal) || code.includes(JSON.stringify(literal).slice(1, -1)))) fail();
     }
   }
+}
+/** Also used by the bounded filesystem adapter; never load arbitrary manifest paths. */
+export function retentionAssetPaths(manifest: Pick<SiteAssetManifest, "checksums" | "routes">) {
+  const candidates = new Set([
+    ...Object.keys(manifest.checksums).filter((path) => SHARD.test(path) || OWNED.test(path) || FONT.test(path)),
+    ...Object.keys(manifest.routes).filter((path) => SHARD.test(path)),
+  ]);
+  if (candidates.size > 8192 || [...candidates].some((path) => !safePath(path))) fail();
+  return [...candidates].sort();
 }
 
 /** Pure packaging seam: caller copies returned files BEFORE final checksums/seal.
@@ -82,17 +91,12 @@ export function retainStaticAssets(input: RetentionInput) {
   const safeCatalog = input.current.assets.get(SAFE_CATALOG);
   if (!safeCatalog || JSON.stringify(json(safeCatalog)) !== JSON.stringify(safeCatalogPayload)
     || !input.current.assets.has(SAFE_ASSET)) fail();
-  const candidates = new Set([
-    ...Object.keys(manifest.checksums).filter((path) => SHARD.test(path) || OWNED.test(path) || FONT.test(path)),
-    ...Object.keys(manifest.routes).filter((path) => SHARD.test(path)),
-  ]);
-  if (candidates.size > 8192) fail();
+  const candidates = retentionAssetPaths(manifest);
   const files = new Map<string, Uint8Array>();
   const routes: Record<string, CatalogAssetRoute> = {};
   let bytes = 0, entries = 0;
   const byId = new Map(current.products.map((p) => [`${p.source}:${p.id}`, p]));
-  for (const path of [...candidates].sort()) {
-    if (!safePath(path)) fail();
+  for (const path of candidates) {
     const priorPolicy = manifest.routes[path];
     const previousDeadline = priorPolicy?.retainedUntil;
     const end = previousDeadline ? Date.parse(canonicalTime(previousDeadline)) : capture + RETENTION_OVERLAP_MS;
@@ -136,7 +140,7 @@ export function retainStaticAssets(input: RetentionInput) {
         eligibleUntil: new Date(deadline).toISOString(), retainedUntil, state: copy ? "ready" : "held", indexable: false };
     } else {
       if (!oldBytes || !manifest.checksums[path] || oldBytes.byteLength > 2 * 1024 * 1024) fail();
-      if (/\.(?:js|css)$/.test(path)) guardCode(oldBytes, [priorSnapshot, current]);
+      if (/\.(?:js|css)$/.test(path)) assertOwnedCodeSafe(oldBytes, [priorSnapshot, current]);
       copy = true;
       policy = { assetPath: path, safeAssetPath: SAFE_ASSET, eligibleUntil: retainedUntil,
         retainedUntil, state: "ready", indexable: false };

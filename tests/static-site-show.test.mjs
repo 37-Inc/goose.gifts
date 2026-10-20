@@ -154,7 +154,7 @@ function build(project, source) {
     codeSha: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
     catalogRevision: snapshot.catalogRevision,
     catalogSnapshotSha256: createHash("sha256").update(`${JSON.stringify(snapshot)}\n`).digest("hex"),
-    generatedAt: new Date().toISOString(), vectorSyncWatermark: 0, priorReleaseId: null,
+    generatedAt: new Date().toISOString(), vectorSyncWatermark: 0, priorReleaseId: null, retainedManifestSha256: null,
   }));
   try {
     execFileSync(process.execPath, [path.join(root, "node_modules/next/dist/bin/next"), "build", "static-site", "--webpack"], {
