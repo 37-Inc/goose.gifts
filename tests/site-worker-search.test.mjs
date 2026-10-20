@@ -95,6 +95,38 @@ test('cached results never survive product eligibility expiry', async () => {
   assert.equal(fixture.calls.embed, 2);
 });
 
+test('cache hits recheck expiry after asynchronous request hashing', async () => {
+  let clock = NOW;
+  let crossDeadline = false;
+  const fixture = setup({ storage: {
+    async byPublicIds() { return [product('one', { eligibleUntil: new Date(NOW + 100).toISOString() })]; },
+    async keyword() { return []; },
+  }, handler: { now() {
+    const captured = clock;
+    if (crossDeadline) {
+      crossDeadline = false;
+      queueMicrotask(() => { clock = NOW + 100; });
+    }
+    return captured;
+  } } });
+  assert.equal((await (await fixture.request()).json()).results.length, 1);
+  clock = NOW + 99;
+  crossDeadline = true;
+  const body = await (await fixture.request()).json();
+  assert.equal(clock, NOW + 100);
+  assert.deepEqual(body.results, []);
+});
+
+test('uncached responses recheck expiry after asynchronous diagnostics', async () => {
+  const fixture = setup({ storage: {
+    async byPublicIds() { return [product('one', { eligibleUntil: new Date(NOW + 100).toISOString() })]; },
+    async keyword() { return []; },
+  }, adapters: { async diagnostic() { fixture.advance(100); } } });
+  const body = await (await fixture.request()).json();
+  assert.equal(fixture.calls.embed, 1);
+  assert.deepEqual(body.results, []);
+});
+
 test('embedding failure, timeout and invalid dimensions fall back without logging raw errors', async () => {
   for (const embed of [async () => { throw new Error('raw query and secret must not log'); }, async () => new Promise(() => {}), async () => [1, 2]]) {
     const fixture = setup({ adapters: { embed } });
