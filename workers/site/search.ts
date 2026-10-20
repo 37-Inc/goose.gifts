@@ -1,7 +1,8 @@
 import type { PublicCatalogProduct } from '../../lib/catalog/types.ts';
 import type { ProductSearchResult } from '../../lib/types.ts';
 import { isCatalogDisplayEligibleProduct, suppressNearDuplicateProducts } from '../../lib/db/product-scoring.ts';
-import type { SearchAdapters, SiteEnv } from './bindings.ts';
+import type { SearchAdapters, SemanticBudgetScope, SiteEnv } from './bindings.ts';
+import { semanticBudgetConfig, semanticTokenUpperBound } from './semantic-budget.ts';
 
 export const EMBEDDING_MODEL = 'text-embedding-3-small';
 export const EMBEDDING_DIMENSIONS = 1536;
@@ -90,12 +91,14 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
   now?: () => number;
   providerTimeoutMs?: number;
   rateLimit?: number;
+  semanticBudgetScope?: SemanticBudgetScope;
 }) {
   const now = options.now || Date.now;
   const timeout = Math.max(10, Math.min(options.providerTimeoutMs ?? 1500, 3000));
   const cache = new Map<string, { until: number; results: SearchResult[] }>();
   const clients = new Map<string, { until: number; count: number }>();
   const maxRequests = Math.max(1, Math.min(options.rateLimit ?? 20, 60));
+  const budgetScope = options.semanticBudgetScope && Object.freeze({ ...options.semanticBudgetScope });
 
   return async (request: Request, env: Env): Promise<Response> => {
     if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405, { Allow: 'GET' });
@@ -120,8 +123,9 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
     if (++client.count > maxRequests) return json({ error: 'Too many searches' }, 429, { 'Retry-After': String(Math.ceil((client.until - startedAt) / 1000)) });
     const queryHash = await sha256(query.toLowerCase());
     // The kill switch changes the key so cached semantic responses are not reused.
-    const semantic = env.SEMANTIC_SEARCH_ENABLED === 'true' && Boolean(env.VECTORIZE);
-    const key = `${options.catalogRevision}:${EMBEDDING_MODEL}:${semantic}:${limit}:${queryHash}`;
+    const caps = semanticBudgetConfig(env, budgetScope);
+    const semantic = Boolean(caps && env.VECTORIZE && options.adapters.reserveSemantic && (options.adapters.embed || env.OPENAI_API_KEY));
+    const key = `${options.catalogRevision}:${EMBEDDING_MODEL}:${semantic}:${semantic ? `${caps!.requests}:${caps!.tokens}` : ''}:${limit}:${queryHash}`;
     const cached = cache.get(key);
     if (cached && cached.until > startedAt) return json({ searchId: null, results: cached.results });
     cache.delete(key);
@@ -133,6 +137,8 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
       let vectorCount = 0;
       if (semantic) {
         try {
+          const reserved = await bounded(() => options.adapters.reserveSemantic!(budgetScope!, semanticTokenUpperBound(query), env), timeout);
+          if (reserved !== true) throw new Error('semantic_unallocated');
           const matches = await bounded(async (signal) => {
             const vector = await (options.adapters.embed || openAIEmbedding)(query, env, signal);
             if (vector.length !== EMBEDDING_DIMENSIONS || !vector.every(Number.isFinite)) throw new Error('embedding_invalid');

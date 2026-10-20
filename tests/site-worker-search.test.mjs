@@ -13,9 +13,9 @@ function setup(options = {}) {
     async keyword(query, limit, now, revision) { assert.equal(revision, 'revision-1'); calls.keyword.push({ query, limit }); return [product('keyword')]; },
     ...options.storage,
   };
-  const env = { SEMANTIC_SEARCH_ENABLED: 'true', VECTORIZE: { async query(vector, parameters) { calls.vector.push(parameters); return { matches: [{ id: 'public-one', score: 0.9 }] }; } } };
-  const handler = createSearchHandler({ catalogRevision: 'revision-1', now: () => clock, providerTimeoutMs: 30,
-    adapters: { storage: () => storage, async embed() { calls.embed++; return Array(EMBEDDING_DIMENSIONS).fill(0.1); }, async diagnostic(record) { calls.diagnostics.push(record); }, ...options.adapters },
+  const env = { ENVIRONMENT: 'staging', SEMANTIC_SEARCH_ENABLED: 'true', SEMANTIC_SEARCH_DAILY_REQUEST_CAP: '100', SEMANTIC_SEARCH_DAILY_TOKEN_CAP: '100000', VECTORIZE: { async query(vector, parameters) { calls.vector.push(parameters); return { matches: [{ id: 'public-one', score: 0.9 }] }; } } };
+  const handler = createSearchHandler({ catalogRevision: 'revision-1', now: () => clock, providerTimeoutMs: 30, semanticBudgetScope: { environment: 'staging', index: 'synthetic-shared-index' },
+    adapters: { storage: () => storage, async reserveSemantic() { return true; }, async embed() { calls.embed++; return Array(EMBEDDING_DIMENSIONS).fill(0.1); }, async diagnostic(record) { calls.diagnostics.push(record); }, ...options.adapters },
     ...options.handler,
   });
   return { env, calls, advance(ms) { clock += ms; }, request: (query = 'funny button', extra = '') => handler(new Request(`https://example.test/api/search-products?q=${encodeURIComponent(query)}${extra}`, { headers: { 'CF-Connecting-IP': '192.0.2.1' } }), env), handler };
