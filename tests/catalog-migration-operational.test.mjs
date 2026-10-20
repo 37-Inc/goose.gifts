@@ -35,6 +35,7 @@ function product(index = 0) {
 function display(row) {
   return { id: row.id, publicId: row.public_id, slug: row.slug, source: 'amazon', currency: 'USD', price: 0,
     title: 'TEST ONLY funny button', description: 'Synthetic test copy, not a real product claim.', imageUrl: '/test.svg',
+    editorialWriteup: 'Controlled test-only editorial.',
     affiliateUrl: `https://www.amazon.com/dp/${row.id}?tag=test-only`, qualityScore: .8, isActive: true, eligibleUntil: '2026-10-21T00:00:00.000Z' };
 }
 const columns = (table) => (table === 'products' ? ['availability_checked_at', 'last_verified_at', 'created_at', 'updated_at'] : ['created_at'])
@@ -55,7 +56,10 @@ function archive(count = 43) {
 }
 function preserved(source = product()) {
   const timestamps = Object.fromEntries(columns('products').map((c) => [`products.${c.name}`, { timezone: 'UTC', evidence: 'TEST ONLY UTC fixture writer' }]));
-  const row = convertSourceRow('products', source, { timestamps, catalogRevision: 'fresh-test', archiveId: 'old-test-archive', publicDisplay: display(source), now: NOW });
+  const approved = display(source);
+  const rights = Object.fromEntries(['title','description','imageUrl','affiliateUrl','editorialWriteup'].map(field => [field,
+    { basis: 'licensed', reference: 'Controlled test-only permission', value: approved[field] }]));
+  const row = convertSourceRow('products', source, { timestamps, catalogRevision: 'fresh-test', archiveId: 'old-test-archive', publicDisplay: approved, rights, now: NOW });
   delete row.timestamp_provenance_json; // Model exact rows imported before 0005.
   return { rows: [row], rowsFileSha256: sha256('PINNED TEST ROW FILE'), evidenceSha256: sha256('PINNED TEST READBACK'), evidenceReference: '/private/test-readback.json' };
 }

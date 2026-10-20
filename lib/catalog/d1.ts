@@ -1,6 +1,7 @@
 import type { CatalogSnapshot, PublicCatalogProduct } from './types.ts';
 import type { CatalogD1 } from './storage/d1.ts';
 import { validateCatalogSnapshot, validatePublicCatalogProduct } from './snapshot.ts';
+import { legacyMutationBatch } from './mutation-fence.ts';
 
 type Row = Record<string, string | number>;
 export interface ProjectionReceipt extends Row {
@@ -17,7 +18,40 @@ const CURRENT_READY = `p.is_active=1 AND p.duplicate_of_product_id IS NULL AND p
   AND p.editorial_status IN ('generated_ready','manual_locked')
   AND p.source_facts_hash IS NOT NULL AND p.source_facts_hash=p.editorial_source_hash
   AND p.public_display_json IS NOT NULL AND p.eligible_until>?`;
-const VISIBLE = `v.eligible_until>? AND ${CURRENT_READY} AND v.source_facts_hash=p.source_facts_hash`;
+// SQL counterpart of the exact-value grant checks in publicProductRightsExpiry.
+// Keep this in the shared predicate: a JS-only result filter cannot fence the
+// final publication/activation transaction. Malformed/missing evidence is held.
+function canonicalInstant(value: string): string {
+  return `(typeof(${value})='text' AND length(${value})=24
+    AND strftime('%Y-%m-%dT%H:%M:%fZ',${value},'+0 days')=${value})`;
+}
+function displayValues(column: string): string {
+  return `SELECT fullkey,CASE WHEN type IN ('integer','real') THEN 'number' ELSE type END,atom
+    FROM json_tree(${column}) WHERE fullkey!='$.eligibleUntil'`;
+}
+const grant = (key: string) => `json_extract(p.rights_json,'$.'||field.value||'.${key}')`;
+const display = "json_extract(v.public_display_json,'$.'||field.value)";
+const reference = grant('reference'), expires = grant('expiresAt'), observed = grant('observedAt');
+// JavaScript String.trim whitespace, including tabs/newlines and Unicode spaces.
+const TRIM = 'char(9,10,11,12,13,32,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279)';
+const CURRENT_PERMISSIONS = `coalesce(json_type(p.public_display_json)='object' AND json_type(p.rights_json)='object'
+  AND v.eligible_until=json_extract(v.public_display_json,'$.eligibleUntil')
+  AND ${canonicalInstant('p.eligible_until')}
+  AND ${canonicalInstant("json_extract(p.public_display_json,'$.eligibleUntil')")}
+  AND v.eligible_until<=p.eligible_until AND v.eligible_until<=json_extract(p.public_display_json,'$.eligibleUntil')
+  AND NOT EXISTS(${displayValues('v.public_display_json')} EXCEPT ${displayValues('p.public_display_json')})
+  AND NOT EXISTS(${displayValues('p.public_display_json')} EXCEPT ${displayValues('v.public_display_json')})
+  AND NOT EXISTS(SELECT 1 FROM json_each('["title","description","imageUrl","affiliateUrl","editorialWriteup","punnyTitle","wittyDescription","humorTags"]') field
+    WHERE (field.value IN ('title','description','imageUrl','affiliateUrl','editorialWriteup')
+      OR json_type(v.public_display_json,'$.'||field.value) IS NOT NULL)
+    AND NOT coalesce(${grant('basis')} IN ('owned','licensed','merchant')
+      AND typeof(${reference})='text' AND length(trim(${reference},${TRIM}))>0
+      AND typeof(${grant('value')})='text' AND ${grant('value')}=${display}
+      AND ((${expires} IS NULL AND ${grant('basis')}!='merchant')
+        OR (${canonicalInstant(expires)} AND ${expires}>=v.eligible_until))
+      AND (${grant('basis')}!='merchant' OR (${canonicalInstant(observed)} AND ${observed}<=?
+        AND ${expires}>${observed} AND julianday(${expires})-julianday(${observed})<=1)),0)),0)`;
+const VISIBLE = `v.eligible_until>? AND ${CURRENT_READY} AND v.source_facts_hash=p.source_facts_hash AND ${CURRENT_PERMISSIONS}`;
 // Start with revision/FTS candidates, then inspect each current product by its
 // unique identity. Do not let the planner start with all active products.
 const JOIN = `CROSS JOIN products p ON p.id=v.product_id AND p.public_id=v.public_id
@@ -83,7 +117,7 @@ export async function importPublicProjection(db: CatalogD1, packet: ProjectionPa
   // Publication command chunks large catalogs separately before one final receipt;
   // this helper deliberately handles one small atomic proof packet only.
   if (queries.length > 40) throw new Error('Atomic projection proof packet exceeds 39 products');
-  await db.batch(queries.map((item) => db.prepare(item.sql).bind(...item.params)));
+  await legacyMutationBatch(db, queries.map((item) => db.prepare(item.sql).bind(...item.params)));
   await assertStoredProjection(db, packet);
   return 'imported';
 }
@@ -92,9 +126,9 @@ function publicRows(rows: { public_display_json: string }[], now: Date): PublicC
 }
 /** Reused inside fenced publication SQL; omission uses the database execution clock. */
 export function visibleRevisionCountQuery(revision: string, now?: Date): ProjectionQuery {
-  const visible = now ? VISIBLE : VISIBLE.replaceAll('>?', ">strftime('%Y-%m-%dT%H:%M:%fZ','now')");
+  const visible = now ? VISIBLE : VISIBLE.replaceAll('?', "strftime('%Y-%m-%dT%H:%M:%fZ','now')");
   return { sql: `SELECT count(*) FROM catalog_public_products v ${JOIN}
-    WHERE v.catalog_revision=? AND ${visible}`, params: [revision, ...(now ? [now.toISOString(), now.toISOString()] : [])] };
+    WHERE v.catalog_revision=? AND ${visible}`, params: [revision, ...(now ? [now.toISOString(), now.toISOString(), now.toISOString()] : [])] };
 }
 export async function getRevisionProductsByPublicIds(db: CatalogD1, ids: string[], now: Date, revision: string): Promise<PublicCatalogProduct[]> {
   if (!revision || ids.length > 240) throw new Error('Revision and bounded product IDs required');
@@ -105,7 +139,7 @@ export async function getRevisionProductsByPublicIds(db: CatalogD1, ids: string[
       SELECT v.public_display_json FROM requested
       CROSS JOIN catalog_public_products v ON v.public_id=requested.public_id AND v.catalog_revision=? ${JOIN}
       WHERE ${VISIBLE}`)
-      .bind(...chunk, revision, now.toISOString(), now.toISOString()).all<{ public_display_json: string }>();
+      .bind(...chunk, revision, now.toISOString(), now.toISOString(), now.toISOString()).all<{ public_display_json: string }>();
     for (const product of publicRows(result.results, now)) found.set(product.publicId, product);
   }
   return unique.flatMap((id) => found.has(id) ? [found.get(id)!] : []);
@@ -120,7 +154,7 @@ export async function keywordSearchRevision(db: CatalogD1, query: string, limit:
     CROSS JOIN catalog_public_products v ON v.rowid=catalog_public_products_fts.rowid ${JOIN}
     WHERE catalog_public_products_fts MATCH ? AND v.catalog_revision=? AND ${VISIBLE}
     ORDER BY bm25(catalog_public_products_fts),v.public_id LIMIT ?`)
-    .bind(words.map((word) => `"${word}"`).join(' OR '), revision, now.toISOString(), now.toISOString(), limit)
+    .bind(words.map((word) => `"${word}"`).join(' OR '), revision, now.toISOString(), now.toISOString(), now.toISOString(), limit)
     .all<{ public_display_json: string }>();
   return publicRows(result.results, now);
 }

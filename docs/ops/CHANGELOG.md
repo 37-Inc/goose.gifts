@@ -195,6 +195,21 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-20 [owner+claude] — Stage the D1 writer and expiry-publication path
+
+The opt-in maintenance store (`77042f3`) preserves stable product identities and
+the existing runner's eleven storage operations. Shared ownership now spans
+catalog writes, pruning and activation; interrupted work cannot silently become
+a successful publication. Review fixed stale-observation freshness and revoked
+display-rights gaps, plus a cached-search expiry race. The default Neon job is
+unchanged. Root verification: 329 staging tests pass (eight explicit opt-in
+skips), plus 88 existing catalog/telemetry/analytics/contact regressions.
+An actual disposable D1 canary passed ten transaction/replay/ownership checks
+and was removed. A separate live read caught D1's long-pattern SQL limit;
+`ee59f83` replaces that check with canonical timestamp normalization, then
+reproduces the same four products with zero writes.
+This is implementation progress, not writer, scheduler or domain cutover.
+
 ### 2026-10-20 [owner+claude] — Review release identity and maintenance migration safety
 
 PR #193 seals explicit preview, Goose and Stupid identities so
@@ -212,6 +227,10 @@ sealing; the source SHA cannot silently label a dirty build. None of these
 seams activates a D1 writer or scheduler:
 the shared writer/index fence, recurring publisher and full-catalog acceptance
 remain open. Public Goose and the existing Neon weekly job are unchanged.
+The merged release was then live-verified on protected Cloudflare and Vercel.
+Four bounded real searches passed shared-budget accounting before semantic
+search was disabled again. Old asset URLs switched to their safe fallback
+after the actual retention deadline; desktop/mobile previews passed.
 
 ### 2026-10-20 early morning [owner+claude] — Prove publication and continue the staged migration
 

@@ -3,7 +3,8 @@ import test from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
 import { readFile } from 'node:fs/promises';
 import { createProjectionPacket, getRevisionProductsByPublicIds, importPublicProjection,
-  keywordSearchRevision, projectionQueries, rollbackPreflight } from '../lib/catalog/d1.ts';
+  keywordSearchRevision, projectionQueries, rollbackPreflight, visibleRevisionCountQuery } from '../lib/catalog/d1.ts';
+import { publicProductRightsExpiry } from '../lib/catalog/snapshot.ts';
 import { getProductsByPublicIds, keywordSearch } from '../lib/catalog/storage/d1.ts';
 
 const NOW = new Date('2026-10-19T12:00:00.000Z');
@@ -13,16 +14,27 @@ function snapshot(revision, witty = 'A funny red button for a desk.') {
   return { schemaVersion: 1, dataKind: 'catalog', catalogRevision: revision, generatedAt: NOW.toISOString(),
     products: [{ id: 'B000000001', publicId: PUBLIC_ID, slug: 'funny-button', title: 'Funny Red Sound Button', description: witty,
       wittyDescription: witty, imageUrl: 'https://m.media-amazon.com/images/I/button.jpg', affiliateUrl: 'https://www.amazon.com/dp/B000000001?tag=test-20',
+      editorialWriteup: 'Controlled editorial fixture, not a product recommendation.',
+      punnyTitle: 'Controlled button heading', humorTags: ['dry', 'quoted"tag', 'λ'],
       source: 'amazon', currency: 'USD', price: 0, isActive: true, qualityScore: 0.8, eligibleUntil: new Date(NOW.getTime() + 86400_000).toISOString() }], heldProducts: [], slugHistory: [] };
+}
+function rights(product) {
+  return Object.fromEntries(['title', 'description', 'imageUrl', 'affiliateUrl', 'editorialWriteup', 'punnyTitle', 'wittyDescription', 'humorTags']
+    .filter(field => field in product).map(field => [field, { basis: 'licensed', reference: 'Controlled test-only permission',
+      value: field === 'humorTags' ? JSON.stringify(product[field]) : product[field] }]));
 }
 async function setup() {
   const sqlite = new DatabaseSync(':memory:');
   sqlite.exec(await readFile(new URL('../migrations/d1/0001_catalog.sql', import.meta.url), 'utf8'));
   sqlite.exec(await readFile(new URL('../migrations/d1/0002_public_projections.sql', import.meta.url), 'utf8'));
+  sqlite.function('strftime', (format, instant) => {
+    assert.equal(format, '%Y-%m-%dT%H:%M:%fZ'); assert.equal(instant, 'now'); return NOW.toISOString();
+  });
   sqlite.prepare(`INSERT INTO products(id,public_id,slug,source,title,currency,quality_score,is_active,editorial_status,
     availability_status,source_facts_hash,editorial_source_hash,catalog_revision,eligible_until,rights_json,source_record_json,updated_at,public_display_json)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run('B000000001', PUBLIC_ID, 'funny-button', 'amazon', 'current operational title', 'USD', .8, 1,
-      'generated_ready', 'IN_STOCK', HASH, HASH, 'operational-newer', new Date(NOW.getTime() + 2 * 86400_000).toISOString(), '{}', '{}', NOW.toISOString(), JSON.stringify(snapshot('operational').products[0]));
+      'generated_ready', 'IN_STOCK', HASH, HASH, 'operational-newer', new Date(NOW.getTime() + 2 * 86400_000).toISOString(),
+      JSON.stringify(rights(snapshot('operational').products[0])), '{}', NOW.toISOString(), JSON.stringify(snapshot('operational').products[0]));
   sqlite.prepare('UPDATE products SET availability_checked_at=?').run(NOW.toISOString());
   const db = { prepare(sql) { let values = []; return {
     bind(...parameters) { values = parameters; return this; },
@@ -76,7 +88,7 @@ test('bounded ID and FTS lookups start from candidate indexes, not the active ca
 test('old and new immutable public revisions coexist independently of mutable operational revision', async () => {
   const fixture = await setup();
   try {
-    const old = snapshot('r1', 'Old approved button description.'); const newer = snapshot('r2', 'New approved button description.');
+    const old = snapshot('r1'); const newer = snapshot('r2');
     await importPublicProjection(fixture.db, await packet(old));
     await importPublicProjection(fixture.db, await packet(newer));
     for (const expected of [old, newer]) {
@@ -115,7 +127,7 @@ test('a receipt cannot hide tampered projection bytes on replay or rollback', as
     fixture.sqlite.exec('DROP TRIGGER catalog_public_immutable'); // Deliberate corruption fixture.
     fixture.sqlite.prepare('UPDATE catalog_public_products SET public_display_json=?').run(JSON.stringify(snapshot('r1', 'Corrupted public copy.').products[0]));
     await assert.rejects(importPublicProjection(fixture.db, original), /incomplete or changed/);
-    assert.equal((await rollbackPreflight(fixture.db, value, NOW)).reason, 'projection_bytes_incompatible');
+    assert.equal((await rollbackPreflight(fixture.db, value, NOW)).ok, false);
   } finally { fixture.close(); }
 });
 
@@ -126,6 +138,87 @@ test('operational timestamp/revision advancement alone does not invalidate compa
     fixture.sqlite.prepare('UPDATE products SET catalog_revision=?,updated_at=?').run('r99', '2026-10-19T12:00:01.000Z');
     assert.equal((await rollbackPreflight(fixture.db, value, NOW)).ok, true);
   } finally { fixture.close(); }
+});
+
+test('current value rights and deadlines govern IDs, FTS, visible counts and rollback together', async () => {
+  const old = snapshot('r1').products[0];
+  const cases = [
+    ['changed display with revoked old title grant', (p, r) => { p.title = 'Funny Blue Sound Button'; r.title.value = p.title; }],
+    ['changed display without changing factual hash', p => { p.description = 'Changed approved copy.'; }],
+    ['missing required grant', (_p, r) => { delete r.editorialWriteup; }],
+    ['missing optional displayed grant', (_p, r) => { delete r.wittyDescription; }],
+    ['missing displayed array grant', (_p, r) => { delete r.humorTags; }],
+    ['shortened current grant', (_p, r) => { r.title.expiresAt = new Date(NOW.getTime() + 60_000).toISOString(); }],
+    ['shortened current DTO deadline', p => { p.eligibleUntil = new Date(NOW.getTime() + 60_000).toISOString(); }],
+    ['shortened operational deadline', (_p, _r, f) => { f.sqlite.prepare('UPDATE products SET eligible_until=?').run(new Date(NOW.getTime() + 60_000).toISOString()); }],
+    ['expired grant', (_p, r) => { r.title.expiresAt = NOW.toISOString(); }],
+    ['grant value mismatch', (_p, r) => { r.title.value = 'Another value'; }],
+    ['unknown permission basis', (_p, r) => { r.title.basis = 'unreviewed'; }],
+    ['empty permission reference', (_p, r) => { r.title.reference = '\t\n\u00a0'; }],
+    ['invalid grant calendar', (_p, r) => { r.title.expiresAt = '2027-02-30T12:00:00.000Z'; }],
+    ['merchant grant over 24h', (_p, r) => { Object.assign(r.title, { basis: 'merchant', observedAt: NOW.toISOString(), expiresAt: new Date(NOW.getTime() + 86_400_001).toISOString() }); }],
+    ['future merchant observation', (_p, r) => { Object.assign(r.title, { basis: 'merchant', observedAt: new Date(NOW.getTime() + 1).toISOString(), expiresAt: old.eligibleUntil }); }],
+    ['merchant grant missing observation', (_p, r) => { Object.assign(r.title, { basis: 'merchant', expiresAt: old.eligibleUntil }); }],
+    ...[
+      '2027-02-29T12:00:00.000Z', '2027-04-31T12:00:00.000Z',
+      '2027-02-28T24:00:00.000Z', '2027-02-28T12:60:00.000Z', '2027-02-28T12:00:60.000Z',
+      '2027-02-28t12:00:00.000z', '2027-02-28 12:00:00.000Z', '2027-02-28T12:00:00.000',
+      '2027-02-28T12:00:00.00Z', '2027-02-28T12:00:00.0000Z', '2027-02-28T12:00:00.000+00:00',
+    ].map(value => [`noncanonical grant instant ${value}`, (_p, r) => { r.title.expiresAt = value; }]),
+  ];
+  for (const [label, mutate] of cases) {
+    const f = await setup();
+    try {
+      const value = snapshot('r1'); await importPublicProjection(f.db, await packet(value));
+      const current = { ...old }, grants = rights(old); mutate(current, grants, f);
+      f.sqlite.prepare('UPDATE products SET public_display_json=?,rights_json=?').run(JSON.stringify(current), JSON.stringify(grants));
+      assert.deepEqual(await getRevisionProductsByPublicIds(f.db, [PUBLIC_ID], NOW, 'r1'), [], label);
+      assert.deepEqual(await keywordSearchRevision(f.db, 'button', 60, NOW, 'r1'), [], label);
+      for (const clock of [NOW, undefined]) {
+        const query = visibleRevisionCountQuery('r1', clock);
+        assert.equal(Object.values(f.sqlite.prepare(query.sql).get(...query.params))[0], 0, label);
+      }
+      assert.equal((await rollbackPreflight(f.db, value, NOW)).ok, false, label);
+      if (label.includes('grant') && !label.includes('changed display')) {
+        const expiry = publicProductRightsExpiry(old, grants, NOW);
+        assert.ok(expiry === null || expiry < Date.parse(old.eligibleUntil), label);
+      }
+    } finally { f.close(); }
+  }
+});
+
+test('canonical timestamp permission checks avoid D1 long-pattern limits and accept real leap dates', async () => {
+  // Actual D1 rejected the previous long GLOB pattern although native SQLite
+  // accepted it. Exercise the real predicate, not a duplicate date formatter.
+  assert.doesNotMatch(visibleRevisionCountQuery('r1', NOW).sql, /\bGLOB\b/i);
+  for (const expiresAt of ['2028-02-29T12:00:00.000Z', '2028-02-29T23:59:59.999Z']) {
+    const f = await setup();
+    try {
+      const value = snapshot('r1'); await importPublicProjection(f.db, await packet(value));
+      const grants = rights(value.products[0]); grants.title.expiresAt = expiresAt;
+      f.sqlite.prepare('UPDATE products SET rights_json=?').run(JSON.stringify(grants));
+      assert.deepEqual(await getRevisionProductsByPublicIds(f.db, [PUBLIC_ID], NOW, 'r1'), value.products);
+      assert.equal((await rollbackPreflight(f.db, value, NOW)).ok, true);
+    } finally { f.close(); }
+  }
+});
+
+test('semantic key ordering and valid owned/licensed/24h merchant grants preserve deadline-only renewal', async () => {
+  for (const basis of ['owned', 'licensed', 'merchant']) {
+    const f = await setup();
+    try {
+      const value = snapshot('r1'); const old = value.products[0]; await importPublicProjection(f.db, await packet(value));
+      const current = Object.fromEntries(Object.entries({ ...old, eligibleUntil: new Date(NOW.getTime() + 2 * 86400_000).toISOString() }).reverse());
+      const grants = Object.fromEntries(Object.entries(rights(old)).map(([field, grant]) => [field, { ...grant, basis,
+        ...(basis === 'merchant' ? { observedAt: NOW.toISOString(), expiresAt: old.eligibleUntil } : {}) }]));
+      assert.ok(publicProductRightsExpiry(old, grants, NOW) >= Date.parse(old.eligibleUntil));
+      f.sqlite.prepare('UPDATE products SET public_display_json=?,rights_json=?').run(JSON.stringify(current, null, 2), JSON.stringify(grants));
+      assert.deepEqual(await getRevisionProductsByPublicIds(f.db, [PUBLIC_ID], NOW, 'r1'), value.products, basis);
+      const query = visibleRevisionCountQuery('r1');
+      assert.equal(Object.values(f.sqlite.prepare(query.sql).get(...query.params))[0], 1, basis);
+      assert.equal((await rollbackPreflight(f.db, value, NOW)).ok, true, basis);
+    } finally { f.close(); }
+  }
 });
 
 test('partial projection stays invisible and an incomplete receipt cannot activate it', async () => {

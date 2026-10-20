@@ -51,7 +51,13 @@ const script = `
   flags.episodePresentation=await get(presentation,{episode:'controlled-archive'});
   const {default:robots}=await import('./static-site/app/robots.ts');
   const {siteIdentity}=await import('./static-site/lib/site-identity.ts');
+  const {catalog}=await import('./static-site/lib/catalog.ts');
+  const {guides,guideSchema}=await import('./static-site/lib/guides.ts');
+  const {buildSnapshotIndex}=await import('./static-site/lib/weird-index.ts');
   console.log(JSON.stringify({flags,robots:robots(),origin:siteIdentity.origin,
+    guideWebsite:guideSchema(guides[0],[])['@graph'][0].isPartOf,
+    indexCitation:buildSnapshotIndex(catalog).citation,
+    indexHtml:renderToStaticMarkup(React.createElement(pages.index.default)),
     descriptions:[pages.catalog.metadata.description,pages.random.metadata.description,pages.hub.metadata.description],
     emptyGuide:renderToStaticMarkup(await guide.default({params:Promise.resolve({slug:'office-prank-gifts'})})),
     privacy:renderToStaticMarkup(React.createElement(pages.privacy.default))}));
@@ -71,6 +77,11 @@ test("eligible maintained routes index only in explicit production; held/thin/du
   for (const mode of ["preview", "goose-production", "stupid-production"]) {
     const output = inspect(mode, controlledSnapshot("catalog"));
     const publicMode = mode !== "preview";
+    const name = mode === "goose-production" ? "Goose Gifts" : "Stupid Gifts";
+    assert.equal(output.guideWebsite.name, name);
+    assert.equal(output.guideWebsite.url, output.origin);
+    assert.ok(output.indexCitation.includes(` ${name}, methodology edition `));
+    assert.ok(output.indexHtml.includes(`${name} is operated by Thirty Seven Inc.`));
     for (const key of ["home", "catalog", "hub", "random", "index", "privacy", "ready", "matchingGuide", "page2"])
       assert.equal(output.flags[key], publicMode, `${mode}/${key}`);
     for (const key of ["held", "thinGuide", "page1", "howie", "presentation", "episode", "episodePresentation"])

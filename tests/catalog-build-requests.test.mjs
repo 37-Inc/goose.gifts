@@ -6,6 +6,7 @@ import { enqueueBuildRequest, encodeBuildRequest, claimBuildRequest, failBuildRe
 import { createProjectionPacket, importPublicProjection } from '../lib/catalog/d1.ts';
 import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication } from '../lib/catalog/publication.ts';
 import { createFreshnessCheck } from '../workers/site/freshness.ts';
+import { claimMutationOwnership, readMutationOwner, releaseMutationOwnership } from '../lib/catalog/mutation-fence.ts';
 
 const NOW = Date.parse('2026-10-20T12:00:00.000Z');
 const SOURCE = 'b'.repeat(64); const FACTS = 'f'.repeat(64);
@@ -29,11 +30,14 @@ async function setup() {
   const product = { id: 'B000000001', publicId: '00000000-0000-4000-8000-000000000001', slug: 'funny-button',
     title: 'Funny Red Sound Button', description: 'A funny button.', imageUrl: 'https://m.media-amazon.com/images/I/button.jpg',
     affiliateUrl: 'https://www.amazon.com/dp/B000000001?tag=test-20', source: 'amazon', currency: 'USD', price: 0,
+    editorialWriteup: 'Controlled test-only editorial.',
     isActive: true, qualityScore: .8, eligibleUntil: new Date(NOW + 26 * 3600000).toISOString() };
+  const rights = Object.fromEntries(['title','description','imageUrl','affiliateUrl','editorialWriteup'].map(field => [field,
+    { basis: 'licensed', reference: 'Controlled test-only permission', value: product[field] }]));
   sqlite.prepare(`INSERT INTO products(id,public_id,slug,source,title,currency,quality_score,is_active,editorial_status,
     availability_status,availability_checked_at,source_facts_hash,editorial_source_hash,catalog_revision,eligible_until,public_display_json,rights_json,source_record_json,updated_at)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(product.id, product.publicId, product.slug, product.source, product.title, product.currency,
-      .8, 1, 'generated_ready', 'IN_STOCK', new Date(NOW).toISOString(), FACTS, FACTS, 'source-r1', product.eligibleUntil, JSON.stringify(product), '{}', '{}', new Date(NOW).toISOString());
+      .8, 1, 'generated_ready', 'IN_STOCK', new Date(NOW).toISOString(), FACTS, FACTS, 'source-r1', product.eligibleUntil, JSON.stringify(product), JSON.stringify(rights), '{}', new Date(NOW).toISOString());
   const source = { schemaVersion: 1, dataKind: 'catalog', catalogRevision: 'source-r1', generatedAt: new Date(NOW).toISOString(), products: [product], heldProducts: [], slugHistory: [] };
   const snapshot = { ...source, catalogRevision: 'target-r2' };
   const packets = [];
@@ -147,6 +151,9 @@ test('changed prior deployment, wrong environment and unsettled observations ref
 test('activation SQL rechecks current holds, source/target receipts, vector watermark and writer barrier after readback', async () => {
   for (const change of [
     "UPDATE products SET public_display_json=NULL", "UPDATE products SET source_facts_hash='changed'",
+    "UPDATE products SET rights_json='{}'",
+    "UPDATE products SET rights_json=json_set(rights_json,'$.title.expiresAt','2026-10-20T12:01:00.000Z')",
+    "UPDATE products SET public_display_json=json_set(public_display_json,'$.description','Changed current approved copy')",
     "DELETE FROM catalog_projection_receipts WHERE catalog_revision='source-r1'",
     "UPDATE catalog_revisions SET source_export_sha256='changed' WHERE revision='target-r2'",
     "INSERT INTO catalog_revisions VALUES('writer-in-progress','2026-10-20T12:00:00.000Z','source','importing')",
@@ -232,5 +239,71 @@ test('only settled observed non-activation releases the fence; unknown deploymen
     assert.equal(await resolveBuildActivation(f.db, permit, async () => f.before), 'not_activated'); assert.equal(f.row().state, 'failed');
     const retry = await f.build('recovery-run'); assert.notEqual(retry.token, permit.token);
     await assert.rejects(resolveBuildActivation(f.db, permit, async () => f.before), /build_fenced/);
+  } finally { f.close(); }
+});
+
+async function enableOwnership(f) {
+  f.sqlite.exec(await readFile(new URL('../migrations/d1/0009_catalog_mutation_fence.sql', import.meta.url), 'utf8'));
+  const scope = { environment: 'staging', indexName: 'stupid-gifts-staging' };
+  f.sqlite.prepare('INSERT INTO catalog_mutation_scopes(environment,index_name) VALUES(?,?)').run(scope.environment,scope.indexName);
+  const owner = await claimMutationOwnership(f.db,scope,{ phase: 'freezing', ownerReference: 'protected-workflow', operationKey: 'f'.repeat(64) });
+  return { scope, owner };
+}
+test('enabled ownership and existing activation change atomically; uncertainty never releases either barrier', async () => {
+  const f = await setup();
+  try {
+    const claim = await f.build(); const publication = await f.publication(); const { scope, owner } = await enableOwnership(f);
+    await assert.rejects(f.activate(claim,publication),/fenced/);
+    assert.equal(f.row().state,'building');
+    const permit = await beginBuildActivation(f.db,claim,f.snapshot,publication,'uploaded-version',async () => f.before,f.now(),owner);
+    assert.equal(permit.mutationOwner.phase,'activating'); assert.equal(f.row().state,'activating');
+    assert.equal(f.sqlite.prepare('SELECT external_pending FROM catalog_mutation_scopes').get().external_pending,1);
+    await assert.rejects(releaseMutationOwnership(f.db,permit.mutationOwner),/requires_resolution/);
+    assert.equal(await claimMutationOwnership(f.db,scope,{ phase: 'writing', ownerReference: 'weekly-run', operationKey: 'e'.repeat(64) }),null);
+    await assert.rejects(resolveBuildActivation(f.db,permit,async () => ({ ...f.after,settled:false })),/uncertain/);
+    assert.equal(await resolveBuildActivation(f.db,permit,async () => f.after),'awaiting_receipt');
+    assert.equal(f.sqlite.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'activating');
+    assert.equal(await resolveBuildActivation(f.db,permit,async () => f.before),'not_activated');
+    assert.equal(f.sqlite.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
+    assert.equal(f.row().state,'failed');
+  } finally { f.close(); }
+});
+test('owned publication requires matching activating build, and verified completion resolves shared ownership', async () => {
+  const f = await setup();
+  try {
+    const claim = await f.build(); const publication = await f.publication(); const { owner } = await enableOwnership(f);
+    await assert.rejects(completePublication(f.db,f.snapshot,f.intent.releaseId,publication.token,async () => f.intent,f.now),/malformed JSON/);
+    const permit = await beginBuildActivation(f.db,claim,f.snapshot,publication,'uploaded-version',async () => f.before,f.now(),owner);
+    await completePublication(f.db,f.snapshot,f.intent.releaseId,publication.token,async () => f.intent,f.now,permit.mutationOwner);
+    assert.equal(await resolveBuildActivation(f.db,permit,async () => f.after),'resolved');
+    const row = f.sqlite.prepare('SELECT * FROM catalog_mutation_scopes').get();
+    assert.equal(row.phase,'idle'); assert.equal(row.external_pending,0); assert.equal(row.activation_request_id,null);
+    assert.equal(f.sqlite.prepare('SELECT catalog_revision FROM products').get().catalog_revision,'source-r1');
+  } finally { f.close(); }
+});
+test('ownership epoch drift during readback cannot partially enter activation', async () => {
+  const f = await setup();
+  try {
+    const claim = await f.build(); const publication = await f.publication(); const { owner } = await enableOwnership(f);
+    await assert.rejects(beginBuildActivation(f.db,claim,f.snapshot,publication,'uploaded-version',async () => {
+      f.sqlite.exec('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1'); return f.before;
+    },f.now(),owner));
+    assert.equal(f.row().state,'building');
+    assert.equal(f.sqlite.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'freezing');
+  } finally { f.close(); }
+});
+test('lost owned activation response is recovered from exact stored identity, never by expiry or a second permit', async () => {
+  const f = await setup();
+  try {
+    const claim = await f.build(); const publication = await f.publication(); const { scope, owner } = await enableOwnership(f);
+    const uncertainDb = { ...f.db, async batch(statements) { await f.db.batch(statements); throw new Error('unknown D1 response'); } };
+    await assert.rejects(beginBuildActivation(uncertainDb,claim,f.snapshot,publication,'uploaded-version',async () => f.before,f.now(),owner),/unknown D1/);
+    assert.equal(f.row().state,'activating');
+    await assert.rejects(beginBuildActivation(f.db,claim,f.snapshot,publication,'uploaded-version',async () => f.before,f.now(),owner),/fenced/);
+    const permit = { requestId:claim.requestId,token:claim.token,runReference:claim.runReference,
+      releaseId:f.intent.releaseId,versionReference:'uploaded-version',mutationOwner:await readMutationOwner(f.db,scope) };
+    await assert.rejects(resolveBuildActivation(f.db,permit,async () => ({ ...f.before,settled:false })),/uncertain/);
+    assert.equal(await resolveBuildActivation(f.db,permit,async () => f.before),'not_activated');
+    assert.equal(f.sqlite.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
   } finally { f.close(); }
 });

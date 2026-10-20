@@ -8,6 +8,7 @@ import type { CatalogSnapshot } from "../../lib/catalog/types";
 import { PUBLIC_CONTACT_EMAIL } from "../../lib/site";
 import { PREVIEW_ORIGIN } from "./metadata";
 import { readySnapshotProducts } from "./selection";
+import { siteIdentity } from "./site-identity";
 
 export function buildSnapshotIndex(snapshot: CatalogSnapshot) {
   const result = analyzeWeirdGiftCatalog(
@@ -45,7 +46,7 @@ export function buildSnapshotIndex(snapshot: CatalogSnapshot) {
       motifDictionaries: MOTIF_DEFINITIONS,
     },
     contact: PUBLIC_CONTACT_EMAIL,
-    citation: `Ehrlich, Cameron. “The Weird Gift Index — snapshot sample.” Stupid Gifts, methodology edition ${result.version}; snapshot ${snapshot.generatedAt}.`,
+    citation: `Ehrlich, Cameron. “The Weird Gift Index — snapshot sample.” ${siteIdentity.name}, methodology edition ${result.version}; snapshot ${snapshot.generatedAt}.`,
   };
 }
 export type SnapshotIndex = ReturnType<typeof buildSnapshotIndex>;

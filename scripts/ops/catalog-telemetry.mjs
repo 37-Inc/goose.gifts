@@ -1,6 +1,52 @@
 import { randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { sql } from '@vercel/postgres';
+
+let driver;
+async function defaultQuery(...args) {
+  const { sql } = await (driver ??= import('@vercel/postgres'));
+  return sql.query(...args);
+}
+
+/** Existing telemetry semantics, with a driver selected only on the first query.
+ * An owned alternative store can close over its run/fence; no environment-based
+ * backend selection or scheduling is introduced here.
+ */
+export function createPostgresCatalogTelemetryStore({ query = defaultQuery } = {}) {
+  if (typeof query !== 'function') throw new TypeError('Telemetry query must be a function');
+  return Object.freeze({
+    startCatalogRun: (options) => startPostgresCatalogRun(query, options),
+    finishCatalogRun: (runId, options) => finishPostgresCatalogRun(query, runId, options),
+    insertCatalogRunItems: (runId, items) => insertPostgresCatalogRunItems(query, runId, items),
+    loadCatalogRun: (runId) => loadPostgresCatalogRun(query, runId),
+    loadRecentCatalogRuns: (limit) => loadRecentPostgresCatalogRuns(query, limit),
+  });
+}
+
+/** @typedef {ReturnType<typeof createPostgresCatalogTelemetryStore>} CatalogTelemetryStore */
+let defaultStore;
+function defaultTelemetryStore() {
+  return defaultStore ??= createPostgresCatalogTelemetryStore();
+}
+
+export async function startCatalogRun(options = {}, store = defaultTelemetryStore()) {
+  return store.startCatalogRun(options);
+}
+
+export async function finishCatalogRun(runId, options = {}, store = defaultTelemetryStore()) {
+  return store.finishCatalogRun(runId, options);
+}
+
+export async function insertCatalogRunItems(runId, items, store = defaultTelemetryStore()) {
+  return store.insertCatalogRunItems(runId, items);
+}
+
+export async function loadCatalogRun(runId, store = defaultTelemetryStore()) {
+  return store.loadCatalogRun(runId);
+}
+
+export async function loadRecentCatalogRuns(limit = 10, store = defaultTelemetryStore()) {
+  return store.loadRecentCatalogRuns(limit);
+}
 
 export const CATALOG_TELEMETRY_VERSION = 'catalog-telemetry-v2';
 export const OPENAI_PRICING_VERSION = 'openai-public-2026-08-09';
@@ -290,7 +336,7 @@ export function createRunItemCollector({
   };
 }
 
-export async function startCatalogRun({
+async function startPostgresCatalogRun(query, {
   id = randomUUID(),
   mode,
   trigger = 'manual',
@@ -298,7 +344,7 @@ export async function startCatalogRun({
   config = {},
   gitSha = getGitRevision(),
 } = {}) {
-  await sql.query(
+  await query(
     `INSERT INTO catalog_runs (
        id, telemetry_version, mode, trigger, status, dry_run, git_sha, config, started_at, updated_at
      ) VALUES ($1, $2, $3, $4, 'running', $5, $6, $7::jsonb, NOW(), NOW())
@@ -308,7 +354,7 @@ export async function startCatalogRun({
   return id;
 }
 
-export async function finishCatalogRun(runId, {
+async function finishPostgresCatalogRun(query, runId, {
   status,
   counts = {},
   timingsMs = {},
@@ -317,7 +363,7 @@ export async function finishCatalogRun(runId, {
   error,
 } = {}) {
   const safeError = error ? redactTelemetryText(error instanceof Error ? error.message : error) : null;
-  const result = await sql.query(
+  const result = await query(
     `UPDATE catalog_runs
      SET status = $2,
          completed_at = NOW(),
@@ -343,7 +389,7 @@ export async function finishCatalogRun(runId, {
   if (result.rowCount !== 1) throw new Error(`Catalog run finalization updated ${result.rowCount || 0} rows.`);
 }
 
-export async function insertCatalogRunItems(runId, items) {
+async function insertPostgresCatalogRunItems(query, runId, items) {
   for (let offset = 0; offset < items.length; offset += 50) {
     const batch = items.slice(offset, offset + 50);
     const values = [];
@@ -360,7 +406,7 @@ export async function insertCatalogRunItems(runId, items) {
       placeholders[19] = `${placeholders[19]}::jsonb`;
       return `(${placeholders.join(', ')})`;
     });
-    await sql.query(
+    await query(
       `INSERT INTO catalog_run_items (
          id, run_id, phase, stage, decision, reason_code, product_id, external_id, source,
          source_query, title, image_url, affiliate_url, canonical_path, winner_product_id,
@@ -469,18 +515,18 @@ export function formatCatalogRunReport(run, items = []) {
   return lines.join('\n');
 }
 
-export async function loadCatalogRun(runId) {
-  const runResult = await sql.query('SELECT * FROM catalog_runs WHERE id = $1', [runId]);
+async function loadPostgresCatalogRun(query, runId) {
+  const runResult = await query('SELECT * FROM catalog_runs WHERE id = $1', [runId]);
   if (!runResult.rows[0]) return null;
-  const itemsResult = await sql.query(
+  const itemsResult = await query(
     'SELECT * FROM catalog_run_items WHERE run_id = $1 ORDER BY sequence',
     [runId]
   );
   return { run: runResult.rows[0], items: itemsResult.rows };
 }
 
-export async function loadRecentCatalogRuns(limit = 10) {
-  const result = await sql.query(
+async function loadRecentPostgresCatalogRuns(query, limit = 10) {
+  const result = await query(
     'SELECT * FROM catalog_runs ORDER BY started_at DESC LIMIT $1',
     [Math.max(1, Math.min(100, Number(limit) || 10))]
   );

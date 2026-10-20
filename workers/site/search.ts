@@ -127,7 +127,12 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
     const semantic = Boolean(caps && env.VECTORIZE && options.adapters.reserveSemantic && (options.adapters.embed || env.OPENAI_API_KEY));
     const key = `${options.catalogRevision}:${EMBEDDING_MODEL}:${semantic}:${semantic ? `${caps!.requests}:${caps!.tokens}` : ''}:${limit}:${queryHash}`;
     const cached = cache.get(key);
-    if (cached && cached.until > startedAt) return json({ searchId: null, results: cached.results });
+    // Hashing above can cross a product deadline. Check the current clock and
+    // reselect immediately before serialization, just as for uncached responses.
+    if (cached && cached.until > now()) {
+      const fresh = select(cached.results, limit, now());
+      if (fresh.length === cached.results.length) return json({ searchId: null, results: fresh });
+    }
     cache.delete(key);
 
     try {

@@ -5,6 +5,95 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Integrate owned D1 maintenance and strict revision pruning
+
+Three Sol extra-high-effort workers delivered bounded implementation and
+cross-review. Root integrated the shared mutation fence, explicit eleven-method
+D1 store, strict-subset expiry pruner, activation barrier, lazy telemetry seam,
+rights-aware SQL visibility and cached-search deadline recheck. The new tests
+are explicitly included in `test:staging`; 329 pass, eight separately opt-in
+fixtures skip. Existing catalog/telemetry/analytics/contact suites add 88 passes,
+including native PostgreSQL merge comparisons.
+
+Independent review caught and fixed two store freshness errors: a stale
+observation gaining a fresh deadline from database write time, and changed facts
+inheriting an old merchant observation. Actual observation time and factual
+identity now gate public eligibility separately from preserved private
+PostgreSQL update semantics. SQL read/publication gates reject revoked or
+changed value-specific permissions and shorter current deadlines; benign
+deadline renewal remains valid. This cannot retroactively recall already-issued
+cache/static bytes.
+
+Migrations 0009/0010 and the D1 store are opt-in. No current staging ownership
+row or production writer is enabled. The pruner does not refresh Amazon data,
+promote held candidates or generate embeddings. An owned vector provider
+adapter, real D1 telemetry/orchestration, replacement secret bootstrap and
+verified scheduled publication remain unfinished. Keep the existing weekly
+Neon command unchanged.
+
+Actual disposable D1 canary passed all ten ownership, atomic rollback,
+immutable payload/archive, replay, vector-supersession and integrity checks:
+57 SQL calls, 3,775 rows read and 366 written. No merchant/model/Vectorize
+calls or active-catalog writes. Independent exact-name inventory confirms the
+temporary database is deleted. Consolidated private receipt:
+`d1-maintenance-canary-iJuaru/verified-receipt.json` SHA-256
+`1743ee2c208cc1565bc047a521aa95090e79bc138748c997d182b21d8723d2ea`.
+The original receipt and separate cleanup readback remain preserved; an empty
+delete response was not mistaken for proof of deletion.
+
+Additional actual staging reads exposed D1's `LIKE or GLOB pattern too complex`
+limit, which native SQLite did not reproduce. `ee59f83` simplifies canonical
+timestamp checks to normalized `strftime` equality; invalid dates, time
+overflow, offsets and noncanonical precision still fail closed. Independent
+review and all 329 staging tests pass. Actual D1 then reproduced four exact
+products, the keyword result and indexed candidate plans in four read-only
+queries (1,721 billed rows read, zero writes). These include value-level JSON
+rights checks; do not reuse earlier lower query-cost figures as current.
+Receipt `pr194-current-rights-live.json` SHA-256:
+`a905c6d6a139d8a8ec8de7465e00b4eee255b6a409f5be35adeed2f2377a4435`.
+Merged-source deployment remains separately verified.
+
+## 2026-10-20 — Merged release, live search budget and real retention expiry
+
+PR #193 merged as `e082ba82c60ccb1e723f145119b71c7a693893ad`.
+The exact source was rebuilt and independently published to protected staging.
+`publication-proof-oJRj6E/receipt.json` SHA-256:
+`96e7a0397fc45225ae28ed56eda334710042b66223b5453cb1ccb6f7caf2a3e4`.
+Four real semantic requests used exactly four shared allocations and 174
+reserved token units. Semantic search was then disabled again, verified in
+provider settings and the unchanged live release identity; final Worker
+version `93e9546a-2596-47a8-b7d1-5fec23848d59`.
+`semantic-budget-proof-ag6tWS/receipt.json` SHA-256:
+`0b924b1064fbc68cf36247e0d2a6ccf59d2fda68e3163622e5533e7eebc6c6eb`.
+This proves the bounded four-product path, not full-catalog search relevance.
+
+Seventeen live route/asset checks passed, with authentication/noindex/no-store
+intact. Retired gift-ID routes remain 404. An old chunk and its encoded alias
+matched the retained bytes before the overlap deadline and the exact safe
+fallback after its real 08:51:52 UTC expiry; no test clock was injected into
+production. Desktop and 390px mobile screenshots were inspected, with no
+horizontal overflow or missing visible images. Evidence:
+`pr193-live-readback.json` and `pr193-retained-expiry-readback.json`.
+Vercel production `dpl_5vk7mZVR1LXCG2U1USEDu3rp852J` is READY at the same SHA;
+public Goose pages remain healthy.
+
+Migration 0008 applied atomically to staging only. Ten inventoried table counts
+remained unchanged, integrity/index checks passed, and no vector operation was
+queued or dispatched. Receipt `vector-delete-schema-xF78BC/receipt.json`
+SHA-256: `7d73015acb3601f91360fe2d0e919d5f91e362ba7a1324c2ed34834982684d97`.
+The main checkout is clean at the merged commit, with its code graph refreshed.
+Neon remains the production writer; no scheduler, domain, provider branding,
+paid-plan or retirement action occurred.
+
+Independent follow-up review reproduced a cached-search deadline race across
+asynchronous hashing, then added the narrow fix and regression coverage. It
+also corrected three guide/Weird Index identity labels that ignored explicit
+Goose production mode. Forty-eight focused tests pass on the integration branch.
+Dependency audit findings predate this migration: nine development/build
+entries and a production DOMPurify warning through PostHog. The inspected SDK
+call does not use the advisory's `IN_PLACE` mode; that is not a blanket claim
+that every dependency is vulnerability-free. No force-upgrade was performed.
+
 ## 2026-10-20 — Protected runtime release and independent snapshot readback
 
 PR #192 merged as `fd2daff4e05909a60563c2d89f0fe0e0c082e5dd`.

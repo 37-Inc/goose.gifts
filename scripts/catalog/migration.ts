@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
+import { legacyMutationBatch } from '../../lib/catalog/mutation-fence.ts';
 import type { ProductRights, PublicCatalogProduct } from '../../lib/catalog/types.ts';
 import { validatePublicCatalogProduct } from '../../lib/catalog/snapshot.ts';
 import { decodePgvectorSendBase64, encodePgvectorSendBase64, PGVECTOR_BINARY_ENCODING } from './pgvector-binary.ts';
@@ -56,9 +57,9 @@ export function moneyToMinor(value: unknown, currency: string): number | null {
   if (typeof value !== 'string' || !/^\d+(?:\.\d+)?$/.test(value)) throw new Error('Money must be an unsigned decimal string');
   const [whole, fraction = ''] = value.split('.');
   if (fraction.slice(exponent).replace(/0/g, '')) throw new Error('Money has excess precision');
-  const minor = BigInt(whole) * 10n ** BigInt(exponent) + BigInt((fraction.slice(0, exponent).padEnd(exponent, '0')) || '0');
+  const minor = BigInt(whole) * BigInt(10) ** BigInt(exponent) + BigInt((fraction.slice(0, exponent).padEnd(exponent, '0')) || '0');
   if (minor > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('Money exceeds safe integer');
-  return minor === 0n ? null : Number(minor);
+  return minor === BigInt(0) ? null : Number(minor);
 }
 export function canonicalTimestamp(value: unknown, decision?: TimestampDecision): string | null {
   if (value === null || value === undefined) return null;
@@ -256,7 +257,7 @@ export async function importBatch(db: CatalogD1, batch: ImportBatch): Promise<'i
   statements.push(db.prepare(`INSERT INTO migration_imports
     (export_sha256,table_name,batch_number,batch_sha256,row_count,imported_at) VALUES (?,?,?,?,?,?)`)
     .bind(batch.exportSha256, batch.table, batch.batchNumber, hash, batch.rows.length, batch.importedAt));
-  await db.batch(statements);
+  await legacyMutationBatch(db, statements);
   return 'imported';
 }
 
@@ -298,7 +299,7 @@ export async function upsertProductAndQueueVector(db: CatalogD1, product: Row, e
   const updates = columns.filter((key) => key !== 'id').map((key) => `${key}=excluded.${key}`).join(',');
   // Hash-unknown reviewed DELETEs make NULL legitimate in the newer schema.
   // Guard a nonnullable identity too, so a different-input retry still rolls back everything.
-  await db.batch([
+  await legacyMutationBatch(db, [
     db.prepare(`INSERT INTO products (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})
       ON CONFLICT(id) DO UPDATE SET ${updates}`).bind(...columns.map((key) => product[key])),
     db.prepare(`INSERT INTO vector_sync_outbox

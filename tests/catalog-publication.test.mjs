@@ -24,10 +24,13 @@ async function setup() {
       imageUrl: 'https://m.media-amazon.com/images/I/button.jpg', affiliateUrl: 'https://www.amazon.com/dp/B000000001?tag=test-20',
       source: 'amazon', currency: 'USD', price: 0, isActive: true, qualityScore: 0.8, eligibleUntil: new Date(NOW + 86_400_000).toISOString() }],
     heldProducts: [], slugHistory: [] };
+  snapshot.products[0].editorialWriteup = 'Controlled test-only editorial.';
+  const rights = Object.fromEntries(['title','description','imageUrl','affiliateUrl','editorialWriteup'].map(field => [field,
+    { basis: 'licensed', reference: 'Controlled test-only permission', value: snapshot.products[0][field] }]));
   sqlite.prepare(`INSERT INTO products(id,public_id,slug,source,title,currency,quality_score,is_active,editorial_status,
     availability_status,source_facts_hash,editorial_source_hash,catalog_revision,eligible_until,rights_json,source_record_json,updated_at,public_display_json)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run('B000000001', PUBLIC_ID, 'funny-button', 'amazon', 'operational title', 'USD', .8, 1,
-      'generated_ready', 'IN_STOCK', HASH, HASH, 'r1', snapshot.products[0].eligibleUntil, '{}', '{}', snapshot.generatedAt, JSON.stringify(snapshot.products[0]));
+      'generated_ready', 'IN_STOCK', HASH, HASH, 'r1', snapshot.products[0].eligibleUntil, JSON.stringify(rights), '{}', snapshot.generatedAt, JSON.stringify(snapshot.products[0]));
   sqlite.prepare('UPDATE products SET availability_checked_at=?').run(snapshot.generatedAt);
   sqlite.prepare('INSERT INTO catalog_revisions VALUES(?,?,?,?)').run('r1', snapshot.generatedAt, 'b'.repeat(64), 'reconciled');
   const fixture = { sqlite, snapshot, beforeBatch: null, advance(ms) { clock += ms; }, now: () => clock, date: () => new Date(clock), close: () => sqlite.close() };
@@ -206,6 +209,8 @@ test('dispatch recording cannot substitute different intent bytes under a valid 
 test('current-state and lease predicates are checked atomically at completion, after preflight/readback', async () => {
   for (const mutation of [
     (f) => f.sqlite.exec('UPDATE products SET public_display_json=NULL'),
+    (f) => f.sqlite.exec("UPDATE products SET rights_json='{}'"),
+    (f) => f.sqlite.exec("UPDATE products SET rights_json=json_set(rights_json,'$.title.expiresAt','2026-10-19T12:01:00.000Z')"),
     (f) => f.advance(86_400_000),
     (f) => f.sqlite.exec("UPDATE publication_outbox SET lease_token='new-owner'"),
     (f) => f.sqlite.prepare(`INSERT INTO vector_sync_outbox(public_id,source_revision,embedding_text_hash,operation,created_at)
@@ -214,7 +219,7 @@ test('current-state and lease predicates are checked atomically at completion, a
     const f = await setup();
     try {
       const claim = await dispatched(f);
-      f.setBeforeBatch((statements) => { if (statements[0].sql.includes('INSERT INTO publication_receipts')) mutation(f); });
+      f.setBeforeBatch((statements) => { if (statements.some(statement => statement.sql.includes('INSERT INTO publication_receipts'))) mutation(f); });
       await assert.rejects(completePublication(f.db, f.snapshot, f.intent.releaseId, claim.token, async () => f.intent, f.date), /fenced_or_preflight_changed/);
       assert.equal(f.sqlite.prepare('SELECT count(*) n FROM publication_receipts').get().n, 0);
       assert.equal(f.sqlite.prepare('SELECT status FROM catalog_revisions').get().status, 'reconciled');
