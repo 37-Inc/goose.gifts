@@ -5,6 +5,67 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Bounded REST writer, catalog scans and provider evidence
+
+The next opt-in integration connects the existing maintenance interfaces to
+an explicit D1 REST client and captures evidence from the existing merchant
+and embedding calls. It does not select D1 for the scheduled job. Three
+bounded Sol extra-high workers implemented and cross-reviewed the changes;
+root reviewed the combined diff.
+
+The exact REST adapter at source `5fa507f` passed a disposable D1 rehearsal:
+identity/disabled-replication/primary checks, successful atomic batch, failed
+batch rollback, and a deliberately lost successful response followed by
+independent readback of exactly one committed row. No write was retried.
+The full proof used 15 HTTP requests/10 SQL statements/nine reported writes.
+The adapter correctly retained two unconfirmed results and unknown aggregate
+usage. The scratch database was independently deleted and the starting
+inventory restored. Private receipt `d1-transport-canary-lshmdK/receipt.json`,
+SHA-256 `e7bb97a0a0228e6374be6f6916fc80881a56d04779b2face9202c5e698d4af58`.
+The subsequent ceiling-only change keeps 600/1,200 defaults and permits
+explicit finite 10,000-request/25,000-statement whole-client limits; all other
+limits are unchanged. This is not a provider-cost or complete-weekly proof.
+
+Catalog scans omit point-mutation-only native vectors/provenance, shrink only
+read-only rejected pages without advancing their cursor, and fail on an
+oversized single row. Exact point loads and mutation compare-and-swap remain
+unchanged. Tests use actual SQLite plus the bounded REST adapter; they do not
+hide uncertain read usage or retry writes.
+
+A full-size offline capacity regression uses one shared REST client and owner
+cursor for 3,383 initial rows, seven catalog views, 50 revalidations, 25
+backfills, 20 additions, 45 editorial events, 270 telemetry items and 95 owned
+mock-vector settlements. It measures 6,815 HTTP requests/12,683 statements.
+Mock returned-row reads are 31,397 and SQLite trigger-inclusive writes 3,138;
+these are not D1 scanned-row billing. The same client then reconciles a lost
+committed response without duplicate mutation; usage stays explicitly unknown.
+Finite request/statement exhaustion stops further calls. This scenario is not
+the weekly executor and excludes extra repairs/supersessions, merchant/model
+calls, target promotion, build/upload and publication; it ends `partial`.
+
+Provider evidence is optional and makes no extra merchant/model requests.
+It preserves conservative actual observation times, exact source facts and
+native float32 bytes, including negative zero. Independently reviewed rights
+are never inferred. Review found and fixed two real opt-in issues: image
+normalization disagreed with source hashing, and a later conflicting ASIN
+response could leave earlier proof usable at an equal database timestamp.
+The latter now explicitly rejects the stale write and new publication,
+preserving the old row and original expiry rather than inventing a durable
+negative observation. Default Postgres SQL/payload/call behavior is unchanged.
+
+Still incomplete: protected durable receipt storage/replay, full weekly
+checkpoint/resume and verified deployment composition, credential bootstrap,
+final source delta and writer/schedule handoff. The fixed twenty-ID publication
+proof and four-product staging cohort are not full-catalog acceptance. No
+Amazon refresh cadence, public DNS, account identity, paid plan or shutdown
+decision was changed.
+
+Integrated verification on Node22: 464 staging tests pass, nine optional
+fixture tests explicitly skip, and all 88 existing catalog/analytics/contact
+regressions pass. Both staging/Worker TypeScript checks, ESLint, production
+Next build and whitespace checks pass. Private logs use the `pr197-*` prefix;
+the actual post-merge deployment/readback receipt remains a separate check.
+
 ## 2026-10-20 — Approved-cohort freeze, exact recovery metadata and read-only preflight
 
 The bounded final integration preserves the existing Neon writer, schedules,
