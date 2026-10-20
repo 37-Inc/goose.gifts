@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "stupid-gifts-staging",
+  "account_id": "7f05a1dcb6e16f9c239564a0293bbe74",
+  "main": "workers/staging-entry.ts",
+  "compatibility_date": "2026-10-19",
+  "workers_dev": true,
+  "preview_urls": false,
+  "upload_source_maps": false,
+  "observability": { "enabled": false },
+  "assets": {
+    "directory": "./static-site/out",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "vars": {
+    "ENVIRONMENT": "staging",
+    "SEMANTIC_SEARCH_ENABLED": "false"
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "stupid-gifts-staging",
+    "database_id": "cbe55b17-8916-4983-8ef3-63207d1f402d",
+    "migrations_dir": "migrations/d1"
+  }],
+  "vectorize": [{
+    "binding": "VECTORIZE",
+    "index_name": "stupid-gifts-staging"
+  }]
+}

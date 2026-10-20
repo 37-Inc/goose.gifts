@@ -53,6 +53,9 @@
     "test:catalog-telemetry": "node --test tests/catalog-telemetry.test.mjs",
     "test:catalog-cache": "node --experimental-strip-types --test tests/catalog-cache.test.mjs",
     "test:neon-compute": "node --test tests/neon-compute-boundary.test.mjs",
+    "test:staging": "tsc -p scripts/staging/tsconfig.json && tsc -p workers/site/tsconfig.json && node --import tsx --test tests/catalog-snapshot.test.mjs tests/catalog-migration*.test.mjs tests/catalog-public-projections.test.mjs tests/catalog-recovery.test.mjs tests/site-worker*.test.mjs tests/static-site*.test.mjs tests/show-manifest.test.mjs tests/staging-*.test.mjs",
+    "build:staging": "node --import tsx scripts/staging/build.mts",
+    "deploy:staging": "node --import tsx scripts/staging/verify-release.mts && wrangler deploy --config wrangler.staging.jsonc",
     "test:structured-data": "node --experimental-strip-types --test tests/home-item-list-schema.test.mjs",
     "test:gift-guides": "node --import tsx --test tests/gift-guides.test.mjs tests/gift-guide-schema.test.mjs",
     "test:gift-pages": "node --experimental-strip-types --test tests/gift-slugs.test.mjs tests/gift-page-schema.test.mjs tests/gift-page-retailer-cta.test.mjs",
@@ -83,7 +86,8 @@
     "eslint-config-next": "16.3.8",
     "postcss": "^8.5.26",
     "tailwindcss": "^3.4.19",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "4.151.0"
   },
   "overrides": {
     "@esbuild-kit/esm-loader": "npm:tsx@4.23.12",

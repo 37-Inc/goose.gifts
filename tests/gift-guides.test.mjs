@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { getGiftGuideFaqs } from '../lib/gift-guide-editorial.ts';
 
-const giftGuidesPath = new URL('../lib/gift-guides.ts', import.meta.url);
+const giftGuidesPath = new URL('../lib/gift-guide-definitions.ts', import.meta.url);
 
 test('page-specific FAQ overrides replace the shared fallback', () => {
   const guide = {

@@ -306,10 +306,10 @@ function hasExcludedHomepageFormat(title: string): boolean {
   return !hasException && matchingTerms(title, HOMEPAGE_FORMAT_EXCLUSIONS) > 0;
 }
 
-function hasExpiredYearInTitle(title: string): boolean {
-  const currentYear = new Date().getUTCFullYear();
+function hasExpiredYearInTitle(title: string, asOf = new Date()): boolean {
+  const currentYear = asOf.getUTCFullYear();
   const years = title.match(/\b20\d{2}\b/g) || [];
-  return years.some((year) => Number(year) < currentYear);
+  return !Number.isFinite(currentYear) || years.some((year) => Number(year) < currentYear);
 }
 
 function titleBrandFitMatches(title: string): number {
@@ -320,6 +320,7 @@ function titleBrandFitMatches(title: string): number {
 interface CatalogDisplayEligibilityOptions {
   allowExcludedFormats?: boolean;
   requireTitleBrandFit?: boolean;
+  asOf?: Date;
 }
 
 export function isCatalogDisplayEligibleProduct(
@@ -327,6 +328,7 @@ export function isCatalogDisplayEligibleProduct(
   {
     allowExcludedFormats = false,
     requireTitleBrandFit = true,
+    asOf,
   }: CatalogDisplayEligibilityOptions = {}
 ): boolean {
   if (product.isActive === false || !product.imageUrl || !product.affiliateUrl) {
@@ -344,7 +346,7 @@ export function isCatalogDisplayEligibleProduct(
     return false;
   }
 
-  if (hasExpiredYearInTitle(product.title)) {
+  if (hasExpiredYearInTitle(product.title, asOf)) {
     return false;
   }
 

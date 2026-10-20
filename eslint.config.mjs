@@ -5,10 +5,15 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    files: ["static-site/**/*.tsx"],
+    // Native navigation must reach the Worker's content-expiry guard.
+    rules: { "@next/next/no-html-link-for-pages": "off" },
+  },
   globalIgnores([
-    ".next/**",
+    "**/.next/**",
     "node_modules/**",
-    "out/**",
+    "**/out/**",
     "build/**",
     "dist/**",
     "*.config.js",

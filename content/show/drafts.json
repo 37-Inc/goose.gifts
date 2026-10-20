@@ -1,0 +1,109 @@
+[
+  {
+    "schemaVersion": 1,
+    "key": "selection-draft-01",
+    "status": "draft",
+    "title": "Selection draft 01",
+    "episodeDate": null,
+    "ownerConfirmed": false,
+    "presentationAssetsApproved": false,
+    "slots": [
+      {
+        "position": 1,
+        "productPublicId": null,
+        "exactVariant": null,
+        "caption": "Opening selection pending product and image-rights review.",
+        "alternativePublicIds": []
+      },
+      {
+        "position": 2,
+        "productPublicId": null,
+        "exactVariant": null,
+        "caption": "Second selection pending exact variant and current availability.",
+        "alternativePublicIds": []
+      },
+      {
+        "position": 3,
+        "productPublicId": null,
+        "exactVariant": null,
+        "caption": "Closing selection pending owner review.",
+        "alternativePublicIds": []
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "key": "selection-draft-02",
+    "status": "draft",
+    "title": "Selection draft 02",
+    "episodeDate": null,
+    "ownerConfirmed": false,
+    "presentationAssetsApproved": false,
+    "slots": [
+      {
+        "position": 1,
+        "productPublicId": null,
+        "exactVariant": null,
+        "caption": "Reserve selection pending product and image-rights review.",
+        "alternativePublicIds": []
+      },
+      {
+        "position": 2,
+        "productPublicId": null,
+        "exactVariant": null,
+        "caption": "Reserve selection pending exact variant and current availability.",
+        "alternativePublicIds": []
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "key": "selection-draft-03",
+    "status": "draft",
+    "title": "Selection draft 03",
+    "episodeDate": null,
+    "ownerConfirmed": false,
+    "presentationAssetsApproved": false,
+    "slots": [
+      {
+        "position": 1,
+        "productPublicId": null,
+        "exactVariant": null,
+        "caption": "Reserve selection pending product and image-rights review.",
+        "alternativePublicIds": []
+      },
+      {
+        "position": 2,
+        "productPublicId": null,
+        "exactVariant": null,
+        "caption": "Reserve selection pending exact variant and current availability.",
+        "alternativePublicIds": []
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "key": "selection-draft-04",
+    "status": "draft",
+    "title": "Selection draft 04",
+    "episodeDate": null,
+    "ownerConfirmed": false,
+    "presentationAssetsApproved": false,
+    "slots": [
+      {
+        "position": 1,
+        "productPublicId": null,
+        "exactVariant": null,
+        "caption": "Reserve selection pending product and image-rights review.",
+        "alternativePublicIds": []
+      },
+      {
+        "position": 2,
+        "productPublicId": null,
+        "exactVariant": null,
+        "caption": "Reserve selection pending exact variant and current availability.",
+        "alternativePublicIds": []
+      }
+    ]
+  }
+]
