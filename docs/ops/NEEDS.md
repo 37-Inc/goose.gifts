@@ -19,6 +19,16 @@ Cloudflare staging implementation is not a completed cutover. Before launch:
 - Confirm the Workers paid-plan/traffic-test budget before a provider-scale
   burst rehearsal or upgrade; local load results do not establish Free-plan
   CPU headroom.
+- Choose the featured-content policy. Recommended proposal: one daily refresh
+  of at most 12 explicitly selected products, at most two ten-item Amazon
+  lookup batches, no discovery or model calls, and at most one verified
+  publication. Renew only from actual merchant observations; changed facts
+  without matching reviewed copy, unavailable items and failed refreshes stay
+  held or use the existing expiry fallback. Keep weekly discovery unchanged.
+  Daily scheduling cannot guarantee an uninterrupted 24-hour content window,
+  so the expiry fallback remains mandatory. Independently owned/licensed
+  content is the alternative. This new refresh lane is **not authorized or
+  scheduled**; measure its publication/D1 cost in staging before activation.
 - At the end, sign into the correct family Amazon Associates store to add
   `stupid.gifts` and verify attribution. Do not modify the unrelated Mike Ideas
   account. Provider/account rebranding and public DNS cutover remain separate

@@ -241,6 +241,16 @@ continuous API-derived content requires a small bounded refresh lane, specify
 its cohort, interval, API allowance, failure behavior and publication cost
 before implementation. Never let a once-a-week runner imply current offers.
 
+October 20 implementation follow-up, **pending owner decision**: the smallest
+proposed merchant refresh is daily, at most 12 explicitly featured products,
+two ten-item lookup batches, no discovery/generation and one verified
+publication. Missing/unavailable/changed-but-unreviewed facts remain held;
+deadlines derive from real observations, never job/write time. A delayed daily
+run may cross the 24-hour boundary, so this does not replace the expiry guard.
+Existing weekly discovery is unchanged. Compare this with independently
+owned/licensed content, and measure actual publication/D1 usage before enabling
+the new lane. No schedule or merchant refresh is authorized by this proposal.
+
 Optional price work starts with a maximum 12-product offline/controlled
 Creators API probe; both repositories already request
 `offersV2.listings.price`. Measure actual exact-variant coverage before adding

@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { canonicalJson, destinationFor, sha256, TYPED_TIMESTAMP_COLUMNS } from './migration.ts';
 import { decodePgvectorSendBase64, PGVECTOR_BINARY_ENCODING } from './pgvector-binary.ts';
+import { RECOVERY_SEQUENCE_INVENTORY_SQL, recoveryMetadataQueries, decodeRecoveryMetadata, validateRecoveryMetadata } from './recovery-metadata.ts';
 
 interface Column { name: string; type: string; typeOid?: string; nullable: boolean; default: string | null }
 export interface SourceTable {
@@ -129,10 +130,12 @@ export function tableExportSql(table: SourceTable, maxWireBytes?: number, vector
 
 /** One HTTPS transaction, no live multi-page reads and no unsupported fallback. */
 export async function collectConsistentExport(source: ReadOnlyHttpSource, options: {
-  maxResponseBytes?: number; embeddingEncoding?: 'postgres-text' | 'pgvector-send-base64';
+  maxResponseBytes?: number; embeddingEncoding?: 'postgres-text' | 'pgvector-send-base64'; captureRecoveryMetadata?: boolean;
 } = {}) {
   if (typeof source.transaction !== 'function') throw new Error('Repeatable-read HTTPS transactions are required');
   const planned = parseInventory(await source.query(INVENTORY_SQL));
+  const metadataQueries = options.captureRecoveryMetadata ? recoveryMetadataQueries(JSON.parse(
+    (await source.query(RECOVERY_SEQUENCE_INVENTORY_SQL))[0]?.sequences || 'null')) : [];
   const vectorSend = options.embeddingEncoding === 'pgvector-send-base64' ? await verifyVectorSend(source) : undefined;
   if (options.embeddingEncoding && !['postgres-text', 'pgvector-send-base64'].includes(options.embeddingEncoding)) throw new Error('Unsupported embedding encoding');
   // Neon documents a 64 MB HTTPS request/response ceiling. Reserve headroom
@@ -147,9 +150,9 @@ export async function collectConsistentExport(source: ReadOnlyHttpSource, option
     if (!Number.isSafeInteger(bytes) || bytes < 0 || !Number.isSafeInteger(count) || count < 0) throw new Error('Invalid export size preflight');
     return Math.ceil(bytes * 1.05) + 1024;
   });
-  if (caps.reduce((sum, bytes) => sum + bytes, 1_000_000) > budget) throw new Error('Source exceeds bounded HTTPS response mode; no rows were exported');
+  if (caps.reduce((sum, bytes) => sum + bytes, options.captureRecoveryMetadata ? 2_000_000 : 1_000_000) > budget) throw new Error('Source exceeds bounded HTTPS response mode; no rows were exported');
   const queries = [SETTINGS_SQL, INVENTORY_SQL, SEQUENCES_SQL, ...planned.map((table) => tableStatsSql(table, vectorSend)),
-    ...planned.map((table, index) => tableExportSql(table, caps[index], vectorSend)), INVENTORY_SQL];
+    ...planned.map((table, index) => tableExportSql(table, caps[index], vectorSend)), ...metadataQueries, INVENTORY_SQL];
   const result = await source.transaction(queries, { isolationLevel: 'RepeatableRead', readOnly: true });
   if (result.length !== queries.length) throw new Error('Incomplete transaction response');
   const settings = JSON.parse(result[0]?.[0]?.settings || 'null');
@@ -172,8 +175,11 @@ export async function collectConsistentExport(source: ReadOnlyHttpSource, option
     if (lines.length !== count) throw new Error('Export table count mismatch');
     return { source: table, count: lines.length, data: lines.length ? `${lines.join('\n')}\n` : '' };
   });
+  const recoveryMetadata = metadataQueries.length ? decodeRecoveryMetadata(result.slice(3+2*planned.length,-1),
+    {kind:'same-transaction',archiveManifestSha256:null,archiveSnapshot:settings.snapshot,archiveObservedAt:settings.observedAt}) : undefined;
+  if (recoveryMetadata) validateRecoveryMetadata(recoveryMetadata,'',settings);
   return { settings, vectorSend: vectorSend || null, responseBudgetBytes: budget,
-    sequences: JSON.parse(result[2]?.[0]?.sequences || 'null'), tables };
+    sequences: JSON.parse(result[2]?.[0]?.sequences || 'null'), tables, recoveryMetadata };
 }
 
 export async function assertProtectedDestination(output: string, repository: string): Promise<string> {
@@ -220,11 +226,13 @@ export async function writeProtectedExport(data: Awaited<ReturnType<typeof colle
     createdAt: options.createdAt || new Date().toISOString(), mode: 'https-repeatable-read-single-transaction',
     valueEncoding: data.vectorSend ? 'column-specific-v1' : 'postgres-text-except-boolean-and-null', settings: data.settings,
     vectorSend: data.vectorSend,
+    ...(data.recoveryMetadata ? {recoveryMetadata:data.recoveryMetadata} : {}),
     responseBudgetBytes: data.responseBudgetBytes,
     sequences: data.sequences, sequenceNote: 'Sequences are nontransactional observations; allocate D1 sequences after imported row maximum.',
     rightsRetention: 'Private recovery evidence only; every source field still requires retention/use review. No publication permission implied.',
     totalBytes, tables };
   const manifestText = `${canonicalJson(manifest)}\n`;
+  if (Buffer.byteLength(manifestText)>1_000_000) throw new Error('Export manifest exceeds reviewed recovery bound');
   await writeFile(join(output, 'manifest.json'), manifestText, { mode: 0o600, flag: 'wx' });
   await writeFile(join(output, 'manifest.sha256'), `${sha256(manifestText)}  manifest.json\n`, { mode: 0o600, flag: 'wx' });
   return { output, tableCount: tables.length, totalBytes, manifestSha256: sha256(manifestText) };
@@ -232,9 +240,12 @@ export async function writeProtectedExport(data: Awaited<ReturnType<typeof colle
 
 async function main(argv: string[]) {
   if (argv.includes('--help')) {
-    console.log('Usage: node --experimental-strip-types scripts/catalog/export-postgres.ts --output /private/outside-git/new-export --execute-read-only [--embedding-encoding pgvector-send-base64]\nRequires POSTGRES_URL, an existing private parent (0700), and explicit review before production execution. No dotenv/autobootstrap, TCP, source writes, or fallback paging.');
+    console.log('Usage: node --experimental-strip-types scripts/catalog/export-postgres.ts --output /private/outside-git/new-export --execute-read-only [--embedding-encoding pgvector-send-base64] [--capture-recovery-metadata]\nRequires POSTGRES_URL, an existing private parent (0700), and explicit review before production execution. No dotenv/autobootstrap, TCP, source writes, or fallback paging.');
     return;
   }
+  const captureRecoveryMetadata = argv.includes('--capture-recovery-metadata');
+  if (argv.filter(value=>value==='--capture-recovery-metadata').length>1) throw new Error('Duplicate metadata flag');
+  argv=argv.filter(value=>value!=='--capture-recovery-metadata');
   if (![3, 5].includes(argv.length) || argv[0] !== '--output' || argv[2] !== '--execute-read-only'
     || (argv.length === 5 && (argv[3] !== '--embedding-encoding' || argv[4] !== 'pgvector-send-base64'))) throw new Error('Explicit --output and --execute-read-only are required');
   const repository = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
@@ -251,7 +262,7 @@ async function main(argv: string[]) {
     query: (query) => sql(query, []),
     transaction: (queries, options) => sql.transaction(queries.map((query) => sql(query, [])), options),
   };
-  const data = await collectConsistentExport(source, { embeddingEncoding: argv.length === 5 ? 'pgvector-send-base64' : 'postgres-text' });
+  const data = await collectConsistentExport(source, { embeddingEncoding: argv.length === 5 ? 'pgvector-send-base64' : 'postgres-text', captureRecoveryMetadata });
   console.log(JSON.stringify(await writeProtectedExport(data, { output: resolve(argv[1]), repository,
     codeSha: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() })));
 }

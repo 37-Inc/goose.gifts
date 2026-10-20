@@ -5,6 +5,67 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Approved-cohort freeze, exact recovery metadata and read-only preflight
+
+The bounded final integration preserves the existing Neon writer, schedules,
+public brand and staging ownership state. Root reviewed each Sol extra-high
+agent's changes, with separate read-only reviews of the cohort and readiness
+paths. `prepareApprovedCohort` accepts a hash-pinned reviewed envelope, complete
+current-row/display hashes and immutable maintenance receipts; unchanged
+approved products retain their original bytes/deadlines. Unapproved factual
+changes, missing rights, unavailable items and family duplicates remain held.
+The original native vector payloads and exact metadata/removal readback are
+required before a real build request is queued. Queued is not published.
+
+PR #196's actual two-product D1/Vectorize rehearsal passed on reviewed source
+`109af15f1172c75b5e89f3dfe56be398ee95df22`. It used all twelve migrations,
+proved failed-batch rollback, maintained the new product with immutable
+evidence, preserved both original native vectors, reconciled the approved
+projection and queued exactly one build with zero publications. Counters:
+358 total requests, 265 D1 calls/590 statements, 4,877 rows read/479 written,
+81 Vectorize calls and three upserts. Both scratch resources were deleted
+and independently verified against the starting inventory. Receipt
+`approved-cohort-canary-ljLBBM/receipt.json`, SHA-256
+`fb8ba08fd5bf9c8a9f5aa299176ceaf5c3c9ae45718b68fe29fc6c1a18a51af9`.
+These are two owned fixtures, not real merchant evidence, a complete weekly
+budget or deployed publication. The first attempt's bounded finalization
+failure is retained; the second expired its existing OAuth session and left
+cleanup unconfirmed. After refreshing that session, exact-resource cleanup
+was independently completed; separate receipt
+`approved-cohort-canary-72mZs6/cleanup-receipt.json`, SHA-256
+`1f50e0e8774439f4a1718b41e25daa24f28997015b53df4e8b91056f69880a08`.
+No unknown mutation was blindly replayed and no publication check was weakened.
+
+`recovery-metadata-WpYBE3/receipt.json` records four read-only source SELECTs,
+SHA-256 `2056c943d3a2b5e425c851f60fbd9026392b3818e29e7ff5bc6a7099e526a192`.
+The protected supplement is explicitly later-observation evidence, pinned to
+the original archive. Native restore `recovery-native-pg17-5eHz6h/receipt.json`,
+SHA-256 `036f047ebcc68c01929f20b305e7e31868b40ed855992fa26ee3f3422319d704`,
+reconciles all 13 tables/11,921 rows/3,492 vectors and exact two sequence
+states/ownership plus two trigger modes. Independent labeled-resource reads
+confirm cleanup. PG17.11 source versus PG17.6 restore and unreplayed private
+ACL/settings remain explicit limitations; no original-snapshot or full-cluster
+recovery claim is made.
+
+Read-only runner rehearsal first timed out, then exposed the actual D1
+`sqlite_version()` prohibition (7500). The unused diagnostic was removed;
+the fake now rejects it too. `runner-readiness-SKjpgP/check/receipt.json`,
+SHA-256 `e0281fd149594588a4e27e7b6ce139521c234a02a50ff19bafbbbba56900de69`,
+verifies exact staging D1/index identity using four requests, 143 rows read and
+zero written. Its 27 missing-schema checks are expected: migrations 0009–0012
+and new ownership are intentionally not enabled. Status is blocked, execution
+is unavailable. Authentication used an explicitly injected existing Wrangler
+session; no Keychain item was created, and Keychain resolution is not an
+end-to-end proof. The staged candidate configuration is not a source-of-truth
+or credential cutover.
+
+Integrated Node22 checks: 399 staging passes/nine explicitly opt-in skips, 88
+existing regressions, both TypeScript projects, ESLint and production Next
+build pass. New native fixtures separately exercised all trigger modes and
+large exact sequence values. Still finish real merchant/embedding evidence
+capture, protected weekly publication/readback, final Neon delta, full catalog
+search and approved provider-scale capacity before any production handoff.
+
 ## 2026-10-20 — Owned vector delivery and explicit D1 weekly runner
 
 PR #195 continues the staged migration with reviewed opt-in adapters, not a
@@ -57,6 +118,17 @@ Receipt `local-burst-node22-600s.json`, SHA-256
 `d0cbbf9cf93d8b1d1db78be93dac624c39fdbb2ceda05f186b73f62cb5717891`.
 Final integrated tests: 373 staging passes/eight explicit opt-in skips,
 88 existing regressions, TypeScript, lint and production Next build pass.
+
+PR #195 merged as `e57a996bb198109e3b189054e2abe54025acbd75`; the exact source
+is published on protected Worker `e1dc4d7e-d834-495f-beae-cc7d7b4688da`.
+Independent release identity, original four-vector bytes/metadata and durable
+publication readback passed. Receipt `publication-proof-QAjm9v/receipt.json`,
+SHA-256 `68892baef7b58fa3a02855ab448d02a74948a4c15ebde3f4570f960a57560056`.
+`pr195-live-readback.json` records 20 protected checks, five healthy public
+routes, ten retired-bundle GET/HEAD 404/no-redirect checks and Vercel production
+`dpl_9Cy8ocYLRU8ekitiqPDoppQP6Gqa` READY at the same SHA. Public homepage
+title/canonical still identify Goose, not Stupid Gifts. Main is clean and its
+Graphify index refreshed. The sealed recovery package is retained privately.
 
 Current staging remains on migrations 0001–0008, with new ownership disabled.
 Keep Neon as production writer. The new-cohort publisher, concrete protected

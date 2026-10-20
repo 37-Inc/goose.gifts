@@ -112,7 +112,58 @@ async function capture(db: CatalogD1, envelope: SealedSnapshotEnvelope, context:
     groups[row.kind as keyof typeof groups].push(parsed);
   }
   if (groups.header.length !== 1) throw new Error('invalid_capture');
+  await bindMaintenanceObservations(db, groups.current);
   return { header: groups.header[0], projection: groups.projection, current: groups.current };
+}
+/** Immutable operation receipts bind an actual observation, not the maintenance
+ * SQL write time. Old migration-only databases do not have this table. The
+ * receipt bytes are included in the final current-state CAS when present.
+ */
+async function bindMaintenanceObservations(db: CatalogD1, rows: Row[]) {
+  const wanted = rows.flatMap(row => {
+    const proof = JSON.parse(String(row.timestamp_provenance_json));
+    const field = row.availability_checked_at !== null ? 'availability_checked_at' : 'last_verified_at';
+    const evidence = proof?.fields?.[field];
+    return evidence?.basis === 'maintenance_operation' && HASH.test(evidence.operationId) ? [evidence.operationId] : [];
+  });
+  if (!wanted.length) return;
+  const ids = [...new Set(wanted)];
+  if (ids.length > SNAPSHOT_READ_LIMITS.identities) throw new Error('read_bounds');
+  const operations:Row[]=[];let bytes=0;
+  for(let offset=0;offset<ids.length;offset+=20){
+    const chunk=(await db.prepare(`SELECT o.* FROM json_each(?) ids CROSS JOIN catalog_maintenance_operations o
+      ON o.operation_id=ids.value`).bind(JSON.stringify(ids.slice(offset,offset+20))).all()).results;
+    if(chunk.length>20)throw new Error('read_bounds');
+    for(const row of chunk){const size=Buffer.byteLength(canonicalJson(row));bytes+=size;
+      if(size>SNAPSHOT_READ_LIMITS.rowBytes||bytes>SNAPSHOT_READ_LIMITS.resultBytes)throw new Error('read_bounds');operations.push(row);}
+  }
+  const byId = new Map(operations.map(row => [row.operation_id, row]));
+  for (const row of rows) {
+    const proof = JSON.parse(String(row.timestamp_provenance_json));
+    const field = row.availability_checked_at !== null ? 'availability_checked_at' : 'last_verified_at';
+    const id = proof?.fields?.[field]?.operationId;
+    if (byId.has(id)) {
+      row.verification_operation_json = canonicalJson(byId.get(id)!);
+    }
+  }
+}
+
+/** Explicit reviewed candidates only. Never scan mutable "ready" rows as an
+ * approval source. Complete row bytes bind the maintenance operation receipt;
+ * the narrow captured fields reuse the final pruning CAS and archived aliases.
+ */
+export async function readApprovedCurrentRows(db: CatalogD1, ids: string[]) {
+  if (ids.length > 20 || new Set(ids).size !== ids.length || ids.some(id => !UUID.test(id))) throw new Error('read_bounds');
+  const rows = (await db.prepare(`SELECT p.* FROM json_each(?) ids CROSS JOIN products p ON p.public_id=ids.value`)
+    .bind(JSON.stringify(ids)).all()).results;
+  if (rows.length !== ids.length || rows.some(row => Buffer.byteLength(canonicalJson(row)) > SNAPSHOT_READ_LIMITS.rowBytes)) throw new Error('approved_identity_missing');
+  const current:Row[] = rows.map(row => {
+    const archive = JSON.parse(String(row.source_record_json));
+    return { ...Object.fromEntries(CURRENT.map(key => [key, row[key]])), approved_product_json:canonicalJson(row),
+      ...Object.fromEntries(['id','public_id','source','availability_checked_at','last_verified_at'].map(key => [`archived_${key}`, archive[key] ?? null])) };
+  });
+  await bindMaintenanceObservations(db, current);
+  return { rows, current };
 }
 function verificationTime(current: Row, rights: ProductRights): number {
   const column = current.availability_checked_at !== null ? 'availability_checked_at' : 'last_verified_at';
@@ -122,6 +173,16 @@ function verificationTime(current: Row, rights: ProductRights): number {
   const provenance = object(JSON.parse(String(current.timestamp_provenance_json)));
   const fields = provenance.fields ? object(provenance.fields) : undefined;
   const evidence = fields?.[column] ? object(fields[column]) : undefined;
+  if (evidence?.basis === 'maintenance_operation') {
+    const operation = current.verification_operation_json ? object(JSON.parse(String(current.verification_operation_json))) : null;
+    const changes = operation ? JSON.parse(String(operation.changes_json)) : null;
+    if (!operation || evidence.state !== 'evidenced' || operation.operation_id !== evidence.operationId
+      || !HASH.test(String(operation.input_sha256)) || canonicalTimestamp(operation.database_time) !== canonicalTimestamp(raw)
+      || !Array.isArray(changes) || !changes.some(change => change.productId === current.id && HASH.test(change.afterSha256))
+      || evidence.sourceFactsHash !== current.source_facts_hash || typeof evidence.reference !== 'string' || !evidence.reference.trim()
+      || typeof evidence.observedAt !== 'string' || !evidence.observedAt.endsWith('Z')) throw new Error('verification_utc_unproven');
+    return Date.parse(canonicalTimestamp(evidence.observedAt)!);
+  }
   let migrationEvidence = Boolean(provenance.schemaVersion === 1 && typeof provenance.sourceArchive === 'string' && provenance.sourceArchive.trim()
     && evidence && evidence.state === 'evidenced' && ['explicit_offset', 'documented_utc_writer'].includes(String(evidence.basis))
     && typeof evidence.evidence === 'string' && evidence.evidence.trim()
@@ -201,9 +262,19 @@ export function pruningCurrentQueries(rows: Row[]): Array<{ sql: string; params:
   }
   const comparisons = [...CURRENT.map(key => `p.${key} IS json_extract(e.value,'$.${key}')`),
     ...Object.entries(ARCHIVE_TIMES).map(([key, expression]) => `${expression} IS json_extract(e.value,'$.${key}')`)];
-  return chunks.map(chunk => ({ sql: `SELECT count(*) FROM json_each(?) e CROSS JOIN products p
-    ON p.public_id=json_extract(e.value,'$.public_id') WHERE ${comparisons.join(' AND ')}`,
-  params: [JSON.stringify(chunk)], count: chunk.length }));
+  return chunks.map(chunk => {
+    const columns=[...new Set(chunk.flatMap(row=>row.approved_product_json ? Object.keys(JSON.parse(String(row.approved_product_json))) : []))];
+    if(columns.length>65||columns.some(key=>!/^[a-z_]+$/.test(key)))throw new Error('read_bounds');
+    const operationCas=['verification_operation_json','approval_operation_json'].map(field=>chunk.some(row=>row[field])
+      ? ` AND (json_extract(e.value,'$.${field}') IS NULL OR EXISTS(SELECT 1 FROM catalog_maintenance_operations o
+        WHERE o.operation_id=json_extract(json_extract(e.value,'$.${field}'),'$.operation_id')
+        AND ${['input_sha256','run_id','catalog_revision','environment','index_name','generation','prior_epoch','next_epoch','database_time','result_json','changes_json']
+          .map(key => `o.${key} IS json_extract(json_extract(e.value,'$.${field}'),'$.${key}')`).join(' AND ')}))` : '').join('');
+    return { sql: `SELECT count(*) FROM json_each(?) e CROSS JOIN products p
+      ON p.public_id=json_extract(e.value,'$.public_id') WHERE ${comparisons.join(' AND ')}${operationCas}${columns.length
+        ? ` AND (json_extract(e.value,'$.approved_product_json') IS NULL OR (${columns.map(key=>`p.${key} IS json_extract(json_extract(e.value,'$.approved_product_json'),'$.${key}')`).join(' AND ')}))` : ''}`,
+    params: [JSON.stringify(chunk)], count: chunk.length };
+  });
 }
 
 /** Reconstruction of an EXISTING seal, not a new-revision freshness freezer.

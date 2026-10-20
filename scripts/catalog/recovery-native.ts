@@ -8,6 +8,8 @@ import { assertPrivateOutsideGit, canonicalRowsHash, validateRecoveryArchive } f
 import type { RecoveryTable } from './recovery-archive.ts';
 import { canonicalJson } from './migration.ts';
 import { decodePgvectorSendBase64, PGVECTOR_BINARY_ENCODING } from './pgvector-binary.ts';
+import { validateRecoveryMetadata } from './recovery-metadata.ts';
+import type { RecoveryMetadata } from './recovery-metadata.ts';
 
 // Maintainer-published 0.8.0-pg17 ARM64 manifest, independently inspected before use.
 export const NATIVE_IMAGE = 'pgvector/pgvector@sha256:09c8aaae717baf4412f6efd174f51172c0638720a72a86e804cd698197fc8ba2';
@@ -25,7 +27,7 @@ interface Audit { readOnly: boolean; isolation: string;
   triggers: Array<{ schema_name: string; relname: string; tgname: string; definition: string }>;
   extensions: Array<{ extname: string; extversion: string; schema_name: string }>; policies: unknown[] }
 function q(value: string): string {
-  if (!/^[a-z_][a-z0-9_]*$/.test(value)) throw new Error('Native restore identifier requires review');
+  if (typeof value!=='string'||!/^[a-z_][a-z0-9_]*$/.test(value)) throw new Error('Native restore identifier requires review');
   return `"${value}"`;
 }
 function literal(value: string): string { return `'${value.replaceAll("'", "''")}'`; }
@@ -75,10 +77,22 @@ function defaultSql(value: string): string {
   if (!/^(?:now\(\)|gen_random_uuid\(\)|true|false|-?\d+|'[^']*'::(?:character varying|jsonb)|nextval\('[a-z_.]+'::regclass\))$/.test(value)) throw new Error('Column default requires explicit review');
   return value;
 }
-function sequenceSql(s: Sequence): string {
-  if (!['integer', 'bigint'].includes(s.data_type) || [s.increment_by, s.min_value, s.max_value, s.start_value, s.cache_size, s.last_value ?? '0'].some((v) => !/^-?\d+$/.test(v))) throw new Error('Sequence metadata requires review');
+export function nativeSequenceSql(s: Sequence, state?: RecoveryMetadata['sequences'][number]): string {
+  if (!['integer', 'bigint'].includes(s.data_type) || typeof s.cycle!=='boolean'
+    || (s.last_value!==null&&typeof s.last_value!=='string')
+    || [s.increment_by, s.min_value, s.max_value, s.start_value, s.cache_size, s.last_value ?? '0'].some((v) => typeof v!=='string'||!/^-?\d+$/.test(v))) throw new Error('Sequence metadata requires review');
+  const configuration=Object.fromEntries(Object.entries(s).filter(([key])=>!['schemaname','sequencename','last_value'].includes(key)));
+  if (state && (state.schema!==s.schemaname || state.name!==s.sequencename || canonicalJson(state.configuration)!==canonicalJson(configuration)
+    || typeof state.lastValue!=='string' || !/^-?\d+$/.test(state.lastValue) || typeof state.isCalled!=='boolean' || BigInt(state.lastValue)<BigInt(s.min_value)
+    || BigInt(state.lastValue)>BigInt(s.max_value))) throw new Error('Sequence metadata differs from recorded configuration');
   const id = `${q(s.schemaname)}.${q(s.sequencename)}`;
-  return `CREATE SEQUENCE ${id} AS ${s.data_type} INCREMENT ${s.increment_by} MINVALUE ${s.min_value} MAXVALUE ${s.max_value} START ${s.start_value} CACHE ${s.cache_size} ${s.cycle ? '' : 'NO '}CYCLE;${s.last_value === null ? '' : ` SELECT setval(${literal(id)}::regclass,${s.last_value},true);`}`;
+  const value=state?.lastValue??s.last_value;
+  return `CREATE SEQUENCE ${id} AS ${s.data_type} INCREMENT ${s.increment_by} MINVALUE ${s.min_value} MAXVALUE ${s.max_value} START ${s.start_value} CACHE ${s.cache_size} ${s.cycle ? '' : 'NO '}CYCLE;${value === null ? '' : ` SELECT setval(${literal(id)}::regclass,${value},${state?state.isCalled:true});`}`;
+}
+export function nativeTriggerModeSql(t: RecoveryMetadata['triggers'][number]): string {
+  const mode: Record<string,string>={O:'ENABLE',D:'DISABLE',R:'ENABLE REPLICA',A:'ENABLE ALWAYS'};
+  if (!Object.hasOwn(mode,t.enabled)) throw new Error('Trigger mode requires review');
+  return `ALTER TABLE ${q(t.schema)}.${q(t.table)} ${mode[t.enabled]} TRIGGER ${q(t.name)};`;
 }
 export function validateNativeAudit(audit: Audit, tables: RecoveryTable[]): void {
   if (tables.some((t) => !['public', 'drizzle'].includes(t.schema)) || audit.readOnly !== true || !['repeatable read', 'RepeatableRead'].includes(audit.isolation) || audit.policies.length || audit.tables.length !== tables.length
@@ -111,13 +125,28 @@ function schemaSql(table: NativeTable): string {
 
 /** Fresh uniquely labeled container/volume only. No DSN or existing resource input exists. */
 export async function runNativeRecovery(options: { archive: string; expectedManifestSha256: string; audit: string;
-  expectedAuditSha256: string; workParent: string }) {
+  expectedAuditSha256: string; workParent: string; metadata?: string; expectedMetadataSha256?: string }) {
   const archive = await validateRecoveryArchive(options.archive, { expectedManifestSha256: options.expectedManifestSha256 });
-  const manifest = await pinnedJson(join(archive.directory, 'manifest.json'), options.expectedManifestSha256) as { tables: NativeTable[]; sequences: Sequence[] };
+  const manifest = await pinnedJson(join(archive.directory, 'manifest.json'), options.expectedManifestSha256) as { tables: NativeTable[]; sequences: Sequence[];
+    settings: {database:string;snapshot:string;observedAt:string;serverVersion?:string}; recoveryMetadata?: RecoveryMetadata };
   const audit = await pinnedJson(options.audit, options.expectedAuditSha256) as Audit;
   validateNativeAudit(audit, manifest.tables);
+  if (Boolean(options.metadata)!==Boolean(options.expectedMetadataSha256) || (options.metadata&&manifest.recoveryMetadata)) throw new Error('One explicitly pinned metadata source is required');
+  const metadata: RecoveryMetadata | undefined = options.metadata
+    ? await pinnedJson(options.metadata,options.expectedMetadataSha256!) : manifest.recoveryMetadata;
+  if (metadata) {
+    validateRecoveryMetadata(metadata,options.expectedManifestSha256,manifest.settings);
+    if (options.metadata&&metadata.binding.kind!=='later-observation') throw new Error('A supplement is never original-transaction evidence');
+    if (metadata.sequences.length!==manifest.sequences.length || metadata.sequences.some(s=>!manifest.sequences.some(m=>m.schemaname===s.schema&&m.sequencename===s.name))
+      || metadata.triggers.length!==audit.triggers.length || metadata.triggers.some(t=>!audit.triggers.some(a=>a.schema_name===t.schema&&a.relname===t.table&&a.tgname===t.name&&a.definition===t.definition))) throw new Error('Metadata sequence/trigger inventory or definition changed');
+    for (const s of metadata.sequences) for (const owned of s.ownedBy) {
+      if (!manifest.tables.some(t=>t.schema===owned.schema&&t.name===owned.table&&t.columns.some(c=>c.name===owned.column&&['integer','bigint'].includes(c.type)))) throw new Error('Sequence ownership target requires review');
+    }
+    metadata.triggers.forEach(nativeTriggerModeSql);
+  }
+  const sequenceState=(s:Sequence)=>metadata?.sequences.find(m=>m.schema===s.schemaname&&m.name===s.sequencename);
   manifest.tables.forEach((t, i) => { nativeTableSql(t); nativeInsertSql(t, i); primaryKey(t); t.columns.filter((c) => c.default).forEach((c) => defaultSql(c.default!)); });
-  manifest.sequences.forEach(sequenceSql);
+  manifest.sequences.forEach(s=>nativeSequenceSql(s,sequenceState(s)));
   if (manifest.sequences.some((s) => !['public', 'drizzle'].includes(s.schemaname))) throw new Error('Unexpected sequence schema');
   const parent = await assertPrivateOutsideGit(options.workParent); const work = await mkdtemp(join(parent, 'recovery-native-pg17-'));
   const token = randomUUID(); const container = `sg-recovery-${token}`; const volume = `${container}-data`; const label = `goose.catalog.recovery=${token}`;
@@ -163,7 +192,7 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
     settings = JSON.parse(sql("SELECT json_build_object('serverVersion',current_setting('server_version'),'listenAddresses',current_setting('listen_addresses'),'vectorVersion',(SELECT extversion FROM pg_extension WHERE extname='vector'))::text;").trim());
     if (!String(settings?.serverVersion).startsWith('17.') || settings?.listenAddresses !== '' || settings?.vectorVersion !== '0.8.0') throw new Error('Native server/version/isolation mismatch');
     for (const schema of new Set(manifest.tables.map((t) => t.schema))) sql(`CREATE SCHEMA IF NOT EXISTS ${q(schema)};`);
-    for (const sequence of manifest.sequences) sql(sequenceSql(sequence));
+    for (const sequence of manifest.sequences) sql(nativeSequenceSql(sequence,sequenceState(sequence)));
     for (let i = 0; i < archive.tables.length; i++) {
       const source = archive.tables[i]; const table = manifest.tables[i]; sql(nativeTableSql(table));
       sql(`CREATE TABLE _catalog_recovery.s${i} (position bigint GENERATED ALWAYS AS IDENTITY, row_json text NOT NULL); COPY _catalog_recovery.s${i} (row_json) FROM STDIN WITH (FORMAT csv, DELIMITER E'\\x02', QUOTE E'\\x01', ESCAPE E'\\x01');\n${source.raw}\\.\n`);
@@ -183,6 +212,11 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
     }
     for (const f of audit.functions) sql(f.definition);
     for (const t of audit.triggers) sql(t.definition);
+    if (metadata) {
+      for (const s of metadata.sequences) for (const owned of s.ownedBy)
+        sql(`ALTER SEQUENCE ${q(s.schema)}.${q(s.name)} OWNED BY ${q(owned.schema)}.${q(owned.table)}.${q(owned.column)};`);
+      for (const t of metadata.triggers) sql(nativeTriggerModeSql(t));
+    }
     for (let i = 0; i < manifest.tables.length; i++) {
       const table = manifest.tables[i]; const source = archive.tables[i];
       const raw = sql(`SELECT row_json FROM _catalog_recovery.s${i} ORDER BY position;`);
@@ -203,9 +237,20 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
     }
     for (const f of audit.functions) if (sql(`SELECT pg_get_functiondef(${literal(`${f.schema_name}.${f.proname}()`)}::regprocedure);`).trim() !== f.definition.trim()) throw new Error('Native function definition differs');
     for (const t of audit.triggers) if (sql(`SELECT pg_get_triggerdef(oid) FROM pg_trigger WHERE tgrelid=${literal(`${t.schema_name}.${t.relname}`)}::regclass AND tgname=${literal(t.tgname)};`).trim() !== t.definition) throw new Error('Native trigger definition differs');
+    if (metadata) for (const t of metadata.triggers)
+      if (sql(`SELECT tgenabled FROM pg_trigger WHERE tgrelid=${literal(`${t.schema}.${t.table}`)}::regclass AND tgname=${literal(t.name)};`).trim()!==t.enabled) throw new Error('Native trigger mode differs');
     for (const s of manifest.sequences) {
       const actual = JSON.parse(sql(`SELECT json_build_object('schemaname',schemaname,'sequencename',sequencename,'data_type',data_type::text,'start_value',start_value::text,'min_value',min_value::text,'max_value',max_value::text,'increment_by',increment_by::text,'cycle',cycle,'cache_size',cache_size::text,'last_value',last_value::text)::text FROM pg_sequences WHERE schemaname=${literal(s.schemaname)} AND sequencename=${literal(s.sequencename)};`).trim());
-      if (canonicalJson(actual) !== canonicalJson(s)) throw new Error('Native observed sequence configuration/high-water differs');
+      const state=sequenceState(s);
+      if (canonicalJson(actual) !== canonicalJson(state?{...s,last_value:state.isCalled?state.lastValue:null}:s)) throw new Error('Native observed sequence configuration/high-water differs');
+      if (state) {
+        const observed=JSON.parse(sql(`SELECT json_build_object('lastValue',last_value::text,'isCalled',is_called)::text FROM ${q(s.schemaname)}.${q(s.sequencename)};`).trim());
+        const ownership=JSON.parse(sql(`SELECT coalesce(json_agg(json_build_object('schema',n.nspname,'table',c.relname,'column',a.attname,'dependency',d.deptype::text)),'[]')::text
+          FROM pg_depend d JOIN pg_class c ON c.oid=d.refobjid JOIN pg_namespace n ON n.oid=c.relnamespace
+          JOIN pg_attribute a ON a.attrelid=c.oid AND a.attnum=d.refobjsubid WHERE d.classid='pg_class'::regclass
+          AND d.objid=${literal(`${q(s.schemaname)}.${q(s.sequencename)}`)}::regclass AND d.refclassid='pg_class'::regclass AND d.deptype IN('a','i');`).trim());
+        if (canonicalJson(observed)!==canonicalJson({lastValue:state.lastValue,isCalled:state.isCalled}) || canonicalJson(ownership)!==canonicalJson(state.ownedBy)) throw new Error('Native sequence state/ownership differs');
+      }
     }
   } catch (error) { failure = error; }
   finally {
@@ -227,17 +272,26 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
     } catch { failure ||= new Error('Only newly created recovery resources require manual cleanup'); }
   }
   const implementationSha256 = createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex');
-  const implementationFiles = Object.fromEntries(await Promise.all(['recovery-native.ts', 'recovery-archive.ts', 'migration.ts', 'pgvector-binary.ts'].map(async (file) => [file,
+  const implementationFiles = Object.fromEntries(await Promise.all(['recovery-native.ts', 'recovery-archive.ts', 'recovery-metadata.ts', 'migration.ts', 'pgvector-binary.ts'].map(async (file) => [file,
     createHash('sha256').update(await readFile(new URL(file, import.meta.url))).digest('hex')])));
+  const sourceVersion=manifest.settings.serverVersion??null;
+  const sourceMinor=sourceVersion?.match(/^(\d+)\.(\d+)/);const restoredMinor=String(settings?.serverVersion||'').match(/^(\d+)\.(\d+)/);
   const receipt = { schemaVersion: 1, status: failure ? 'failed' : 'passed', scope: 'native-typed-data-and-recorded-schema-not-full-cluster-recovery',
     generatedAt: new Date().toISOString(), image: NATIVE_IMAGE, implementationSha256, implementationFiles, settings, container, volume, resourceLabel: label, resourcesRemoved: cleaned, diagnosticsCollectionFailed,
     failureReason: failure instanceof Error ? failure.message : null,
     archive: archive.directory, ...archive.summary, metadataAuditSha256: options.expectedAuditSha256, reconciledTables: reconciled,
     functionsReconciled: failure ? null : audit.functions.length, triggersReconciled: failure ? null : audit.triggers.length,
     observedSequencesReconciled: failure ? null : manifest.sequences.length,
-    limitations: ['No full schema/grant dump was captured: owners, grants/default privileges, database/role settings, collations, table storage options, comments and extension ownership remain unverified.',
-      'Sequence last_value is a nontransactional observation; original is_called, sequence ownership and exact next-call state were not captured.',
-      'Trigger enabled/replica/always modes were not captured. Recorded DDL restored with normal enabled defaults; original behavior beyond that remains unverified.',
+    versionComparison: {source:sourceVersion,restored:settings?.serverVersion??null,classification:!sourceMinor||!restoredMinor?'unknown'
+      :sourceMinor[0]===restoredMinor[0]?'same-major-and-minor':sourceMinor[1]===restoredMinor[1]?'same-major-different-minor':'different-major'},
+    recoveryMetadata: metadata?{sha256:createHash('sha256').update(canonicalJson(metadata)).digest('hex'),binding:metadata.binding,source:metadata.source,
+      artifactSha256:options.expectedMetadataSha256??null,sequenceStatesReconciled:failure?null:metadata.sequences.length,
+      triggerModesReconciled:failure?null:metadata.triggers.length,aclSettingsReplayed:false,
+      aclEvidenceSha256:createHash('sha256').update(canonicalJson(metadata.aclEvidence)).digest('hex'),
+      settingsEvidenceSha256:createHash('sha256').update(canonicalJson(metadata.settingsEvidence)).digest('hex')}:null,
+    limitations: [metadata?'ACL/default-privilege and scoped settings evidence was captured, not replayed. Role attributes/ownership, permissions, collations, storage options, comments and extension ownership remain unverified.':'No full schema/grant dump was captured: owners, grants/default privileges, database/role settings, collations, table storage options, comments and extension ownership remain unverified.',
+      metadata?'Sequence state/ownership restored to the explicitly dated metadata observation, not an atomic write barrier or in-flight session-cache recovery.':'Sequence last_value is a nontransactional observation; original is_called, sequence ownership and exact next-call state were not captured.',
+      metadata?'Recorded trigger modes restored to the explicitly dated metadata observation; a later supplement is not original-snapshot evidence.':'Trigger enabled/replica/always modes were not captured. Recorded DDL restored with normal enabled defaults; original behavior beyond that remains unverified.',
       'Source PG17 minor version may differ; source column/type OIDs are database-local and not preserved. Final write-barrier deltas and D1 recovery remain separate gates.'] };
   const receiptPath = join(work, 'receipt.json'); await writeFile(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`, { mode: 0o600, flag: 'wx' });
   if (failure) throw new Error(`Native recovery failed; protected receipt: ${receiptPath}`);
@@ -245,15 +299,15 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
 }
 
 async function main(argv: string[]) {
-  if (argv.includes('--help')) { console.log('Explicit local-only native drill: --archive /private/export --manifest-sha SHA --audit /private/audit.json --audit-sha SHA --work-parent /private/parent --run-native-drill. Pull the pinned NATIVE_IMAGE first. No existing DB/container/volume input accepted.'); return; }
+  if (argv.includes('--help')) { console.log('Explicit local-only native drill: --archive /private/export --manifest-sha SHA --audit /private/audit.json --audit-sha SHA --work-parent /private/parent --run-native-drill [--metadata /private/later-observation.json --metadata-sha SHA]. Pull the pinned NATIVE_IMAGE first. No existing DB/container/volume input accepted.'); return; }
   const args: Record<string, string> = {}; const execute = argv.includes('--run-native-drill');
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--run-native-drill') continue;
-    if (!['--archive','--manifest-sha','--audit','--audit-sha','--work-parent'].includes(argv[i]) || !argv[i + 1] || args[argv[i]]) throw new Error('Invalid native recovery argument');
+    if (!['--archive','--manifest-sha','--audit','--audit-sha','--work-parent','--metadata','--metadata-sha'].includes(argv[i]) || !argv[i + 1] || args[argv[i]]) throw new Error('Invalid native recovery argument');
     args[argv[i]] = argv[++i];
   }
-  if (!execute || Object.keys(args).length !== 5) throw new Error('Explicit native drill and all protected pinned inputs are required');
-  const result = await runNativeRecovery({ archive: args['--archive'], expectedManifestSha256: args['--manifest-sha'], audit: args['--audit'], expectedAuditSha256: args['--audit-sha'], workParent: args['--work-parent'] });
+  if (!execute || ![5,7].includes(Object.keys(args).length) || ['--archive','--manifest-sha','--audit','--audit-sha','--work-parent'].some(key=>!args[key])) throw new Error('Explicit native drill and all protected pinned inputs are required');
+  const result = await runNativeRecovery({ archive: args['--archive'], expectedManifestSha256: args['--manifest-sha'], audit: args['--audit'], expectedAuditSha256: args['--audit-sha'], workParent: args['--work-parent'],metadata:args['--metadata'],expectedMetadataSha256:args['--metadata-sha'] });
   console.log(JSON.stringify({ status: result.receipt.status, receiptPath: result.receiptPath, tableCount: result.receipt.tableCount, totalRows: result.receipt.totalRows, vectorCount: result.receipt.vectorCount, resourcesRemoved: result.receipt.resourcesRemoved }));
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) main(process.argv.slice(2)).catch((error) => {
