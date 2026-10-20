@@ -19,6 +19,13 @@ recovery or permission to cut over.** No source/provider call or write occurred.
   SHA-256 `8039dac70cd787b0d43459c288d9f66d02ec4e764455cf50f44021b2b53ff44b`.
   Mode `0600` in its private `0700` run directory; implementation-file hashes
   are recorded, and the native implementation matches the committed bytes.
+- Root repeated the complete drill after integration at
+  `2026-10-20T06:33:50.483Z`, including the newer import-helper source:
+  `~/.codex/private/goose-gifts-migration/recovery-native-pg17-hsCHd4/receipt.json`,
+  SHA-256 `0a2e5608e64efcf5ca4c778dd192b030cc0d9d0cdd0c4012b1ff146608912bb4`.
+  All recorded implementation-file hashes match the integrated source; the same
+  data/schema checks passed and owned resources were removed. The four-test
+  synthetic native fixture also passed independently.
 - All **13 tables / 11,921 rows / 40,692,109 archive bytes** reconciled.
   Per-table original NDJSON and canonical field hashes matched native SQL
   readback. This includes the private/retired tables, restored locally only;

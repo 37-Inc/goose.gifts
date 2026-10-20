@@ -25,6 +25,19 @@ changed prepared feed. Feed ranking and family deduplication run at build time;
 the Worker receives a revision/digest-bound index plan, not a second product
 copy or a per-request catalog-ranking job.
 
+Home renders at most three hero cards and nine feed cards initially. Explicit
+“More gifts” requests fetch revision-bound shards of 24 cards; Random renders
+one card and fetches its pool of at most 48 only on the first spin. These
+content-addressed JSON assets have the same rights/expiry guards as HTML/RSC,
+and a ten-second abort deadline covers both fetching and response parsing.
+They do not contain retailer URLs, prices or private editorial fields.
+
+The separate `release-identity.json` binds the exact manifest bytes without a
+self-referential checksum. The protected, no-store
+`/.well-known/catalog-release.json` endpoint reports only release ID, source
+SHA, catalog revision, snapshot SHA and manifest SHA. This proves package
+identity, not Vectorize visibility or publication completion.
+
 `wrangler.staging.jsonc` targets only `stupid-gifts-staging` in the existing
 37.technology account; it has no custom domains or production routes.
 Set `STAGING_AUTH_SECRET` through the provider secret mechanism. Missing/short
@@ -57,7 +70,8 @@ They are not deployment assets.
   one read-only repeatable-read snapshot. Manifest SHA-256:
   `6ad587730009580ca55d18a4ea136222b2070b03b80efebb33838f11cfb41076`.
   All 3,492 stored vectors round-trip through native pgvector binary bytes.
-  This does not yet prove a full typed PostgreSQL restore.
+  The subsequent native restore proof is recorded below; full cluster settings
+  and privileges are still outside that proof.
 - `sample-2026-10-20/`: exactly ten source products and one fresh Amazon
   `getItems` read at `2026-10-20T05:33:27.737Z`. No source database writes.
 - `cohort-2026-10-20-first/`: four ready, six held for changed source facts.
@@ -72,6 +86,19 @@ They are not deployment assets.
 - `d1-import-receipt.json`: all ten D1 rows reconcile exactly, four public
   projections and six held; receipt replay skips writes. A `toast` FTS query
   returns one ready product.
+- `d1-operational-replay-receipt.json`: the reviewed replay implementation
+  compared all ten actual rows using two SELECTs and made zero writes. A
+  matching receipt alone is not accepted as proof of unchanged target data.
+- `history-d1-run-c3mzEy/receipt.json`: the offline checksum-pinned packet
+  imported 17 catalog runs and 3,750 run items into staging in 95 atomic
+  batches, then safely replayed all 95 (plus two canary replays). Full-field
+  readback and foreign-key checks passed; sequence high-water is 3,750.
+  Existing ten product rows were unchanged. This uses only proven
+  timezone-aware history fields, preserving every original source JSON line.
+  Receipt SHA-256:
+  `6346d2417b872b18cf86f731ea6334ca3558be2816290a958f574eaa9fa4f157`.
+  Provider counters were 34,091 rows read and 18,991 written, including
+  indexes/receipts; these are not unique imported-row counts.
 - `vectorize-readback-receipt.json`: all four original vectors are visible
   with exact float32 byte hashes and metadata. A self-query ranks its own
   vector first; the wrong-revision filter returns no matches. This proves
@@ -92,6 +119,18 @@ They are not deployment assets.
   [the recovery receipt](STUPID_GIFTS_RECOVERY_DRILL_2026-10-20.md). The fresh
   cluster was stopped and removed; protected evidence remains. This proves
   raw archival recovery, not full original-schema/native-pgvector restoration.
+- `recovery-native-pg17-T9TYHf/receipt.json`: all 13 tables, 11,921 rows and
+  3,492 native vectors restored into isolated PostgreSQL 17.6 / pgvector 0.8.0.
+  The recorded 165 columns, 21 constraints, 61 indexes, two functions, two
+  triggers and two observed sequence configurations also match. The source is
+  PostgreSQL 17.11; no identical-minor-version claim is made. Owned containers
+  and volumes were removed. See [the native recovery receipt](STUPID_GIFTS_NATIVE_RECOVERY_2026-10-20.md)
+  for hashes and remaining grants, sequence-state and cutover-delta gaps.
+- `recovery-native-pg17-hsCHd4/receipt.json`: root repeated the entire native
+  recovery against the integrated source at 06:33 UTC, with the same complete
+  row/vector/schema checks. Implementation hashes match that checkout.
+  Receipt SHA-256:
+  `0a2e5608e64efcf5ca4c778dd192b030cc0d9d0cdd0c4012b1ff146608912bb4`.
 
 The first protected release was source `2f5f21d`, Worker version
 `069b3186-cd68-4e4f-b495-588790979ed9`; the bounded semantic QA version was
@@ -101,11 +140,26 @@ passed. Desktop 1440px, mobile 390px and 720p previews were inspected; the mobil
 retailer button fits in the first viewport. Unloaded below-fold lazy images
 are not counted as first-view image failures.
 
+PR [190](https://github.com/37-Inc/goose.gifts/pull/190) merged as `7b73ab7`.
+The merged source was rebuilt and deployed to the protected Worker as version
+`2a2a39b6-8b0b-4625-af14-70677f8bf0b4`, with semantic search disabled again.
+The release contains 369 files and 368 guarded route aliases; provider startup
+was 2 ms. The normal production Vercel deployment passed, and the public Goose
+homepage, catalog, guides and ordinary Random remained available. This did not
+switch the public domain or move the production writer.
+
 Initial Cloudflare aggregate metrics over 55 mixed browser/semantic requests
 reported zero errors, CPU p50 0.985 ms and p99 16.244 ms. The live GraphQL schema
 explicitly identifies these fields as microseconds. This small mixed sample
 is not route attribution, full-catalog capacity or proof of Free-plan headroom.
 No paid plan, raw URL logging or production traffic was enabled.
+
+A subsequent 60-request static-only probe against source `b5e2fac` had zero
+HTTP errors and owner-machine TTFB p50 20.84 ms / p95 245.52 ms. Cloudflare's
+adaptive metrics returned only 21 sampled requests for the exact window, with
+zero errors and CPU p50 0.739 ms / p99 11.469 ms. Do not equate that sampled
+count to all 60 requests, or treat this as demonstrated Free-tier CPU headroom
+or the required full burst rehearsal.
 
 ## Preserved routes and failure checks
 
@@ -124,6 +178,15 @@ routes make no D1 read. This is fail-closed protection, not a completed recurrin
 publisher; expired previews are expected to become safe/empty until rebuilt
 from newly verified content.
 
+The provider-neutral publication core adds a revision-scoped lease and
+immutable intent to the existing revision/receipt model. A dispatch accepted
+by a provider is only `dispatched`; completion requires independent deployed
+identity and vector-visibility readback, then an atomic recheck of current
+facts, holds, content deadlines, watermark and lease ownership. Failed dispatch
+is retried at most three times. This is not an activated scheduled publisher:
+real adapters, environment-wide deployment serialization, retained historical
+shards and end-to-end provider proof remain separate work.
+
 Do not infer UTC for historical timezone-naive dates. The reviewed sample
 decisions preserve unresolved `created_at` as NULL in operational D1 while
 retaining exact original text privately. See
@@ -131,7 +194,7 @@ retaining exact original text privately. See
 
 ## Still required before launch
 
-Full-catalog timestamp/reconciliation and native recovery proof, the complete
+Full-catalog timestamp/reconciliation and remaining recovery gaps, the complete
 multi-revision publishing/vector-outbox loop, 30-query search parity and global
 spending controls, static preview assets, compliant recurring expiry publication,
 real show curation, burst rehearsal, production analytics checks and the final

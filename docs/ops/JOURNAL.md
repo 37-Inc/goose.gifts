@@ -5,6 +5,36 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-19 late evening — Native recovery and staging history migration
+
+PR #190 merged as `7b73ab750b4b45ffaadd4c5bfbade57941ff5fdc`; the protected
+Worker was rebuilt from that exact source (version
+`2a2a39b6-8b0b-4625-af14-70677f8bf0b4`). Its auth, public/held product paths,
+guides, Random and keyword search passed. Normal Vercel production deployed
+successfully. Closed only the bounded first-slice Bead `roadmap-lbbz1.2`.
+
+Root repeated native PostgreSQL 17.6 / pgvector 0.8.0 recovery from the
+checksum-pinned archive: all 13 tables, 11,921 rows, 3,492 vectors, 165 columns,
+21 constraints, 61 indexes, two functions/triggers and observed sequences
+matched. The private receipt is `recovery-native-pg17-hsCHd4/receipt.json`;
+temporary container/volume were removed. Identical source minor version,
+cluster privileges and final cutover deltas are not claimed.
+
+At 06:41–06:44 UTC October20, imported 17 catalog runs and 3,750 run items into
+staging D1 using 95 bounded atomic batches. All-field reconciliation and FK
+checks passed; replaying every batch plus two canaries was safe. Products
+remain ten. Private receipt `history-d1-run-c3mzEy/receipt.json` has SHA
+`6346d2417b872b18cf86f731ea6334ca3558be2816290a958f574eaa9fa4f157`.
+Only timezone-aware history was normalized; unresolved product/editorial/search
+times remain a separate conservative mapping task. Provider counters include
+index/receipt writes and must not be confused with imported record counts.
+
+Reviewed bounded browse/Random assets and publication intent/lease code; added
+manifest-bound deployment identity and a missing fetch/body timeout. The
+combined intermediate build/lint suite passed 155 tests with three explicit
+optional skips. No recurring publisher, new social posts, DNS, plan upgrade,
+source-writer cutover or decommissioning has been activated.
+
 ## 2026-10-19 late evening — Protected vertical slice and archival recovery verified
 
 PR #189 merged as `fe66b655be7528c027b1c6d76ae6eb0a2a3026f9` and production
