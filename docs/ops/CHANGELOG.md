@@ -30,7 +30,12 @@ what's likely next.
   [STUPID_GIFTS_LAUNCH_SPEC.md](STUPID_GIFTS_LAUNCH_SPEC.md) and
   `roadmap-lbbz1`. Protect Neon runway, prove one complete migration slice,
   reconcile data and move hosting, then launch the curated new identity.
-  Domain checkout is pending confirmation; no live rebrand/migration yet.
+  Domain registration is complete ($28.20/year, auto-renew enabled). Final
+  review adds Pinterest app/profile and scheduler cutover, affiliate ownership
+  verification, content-rights/expiry gates, and the `/howie` landing experience.
+  Correct Amazon account/site-list work is deferred to the final pre-launch
+  gate (`roadmap-lbbz1.8`); research/pricing integration is post-launch
+  (`roadmap-mt1gp`). No live rebrand/migration yet.
 
 - **Pinterest — completed cohort, measurement only:** final birthday-hat poster
   makes P6/F6,twelve of twelve. Exact full-cohort review deadline is
@@ -180,6 +185,18 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-19 late evening [owner+claude] — Secure domain and finish launch review
+
+Purchased `stupid.gifts` for $28.20; Cloudflare confirms Active through
+October 19, 2027 with auto-renew enabled. Expanded the existing launch spec
+with Pinterest app/profile/claim and job cutover, correct-account affiliate
+verification, `/howie` readiness, and merchant-content rights/expiry gates.
+All 3,383 Amazon URLs pass the current-tag/ASIN audit; that is not commission
+attribution proof. Owner deferred wife's Amazon login/site-list/report work
+to final pre-launch (`roadmap-lbbz1.8`). Research evidence/pricing integration
+is queued after launch (`roadmap-mt1gp`); no new provider spend, schedule,
+social publication or live site cutover.
 
 ### 2026-10-19 evening [owner+claude] — Specify Stupid Gifts launch
 

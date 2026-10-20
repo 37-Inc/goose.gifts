@@ -1,6 +1,34 @@
 # Affiliate Data Availability
 
-Last audited: 2026-08-10
+Last technically audited: 2026-10-19. Account ownership/report verification
+remains a separate gate.
+
+## October 19 launch review
+
+Fresh Vercel Production configuration supplies `goose-gifts-37-20`. A read-only
+audit of all **3,383** Amazon rows found zero invalid HTTPS Amazon hosts,
+missing/duplicate/foreign tags, or ASIN-path mismatches. Live random and three
+sitemap-listed product pages exposed the same tag. Homepage/directory link
+internally to product pages; no direct retailer anchors there were counted as
+verified clicks. No database updates or artificial test purchases occurred.
+
+The previously documented parent Store ID is `rileyehrlic0b-20`; that is
+persisted evidence, not a new account-side verification. Current Chrome 37
+shows `mikeideas-20`, and Personal is signed out. Neither establishes access to
+the intended wife's store. Cameron explicitly deferred signing into the correct
+account, verifying tracking-ID membership, adding `https://stupid.gifts` while
+retaining Goose URLs, and reviewing tag-scoped reports until the final
+pre-launch gate. See `roadmap-lbbz1.8` and
+[the launch checklist](STUPID_GIFTS_LAUNCH_SPEC.md#provider-and-automation-cutover-checklist).
+No Amazon account configuration changed.
+
+Valid URLs prove technical consistency, not recorded clicks or credited
+commissions. Do not call sales attribution verified until the relevant official
+report supports it. Public pricing is optional and must pass the launch spec's
+source/rights/expiry requirements; SerpApi is not an approved-price substitute.
+
+The following August snapshot remains historical context, not current counts
+or current browser access.
 
 ## Current production path
 

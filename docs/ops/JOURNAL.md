@@ -5,6 +5,47 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-19 late evening — Final launch review and domain purchase
+
+Owner approved the previously quoted checkout. Purchased `stupid.gifts` in
+Cloudflare account `37.technology` for **$28.20**, one year, using the saved
+payment/registrant configuration and required terms. Registrar readback shows
+**Active**, expiration **October 19, 2027**, renewal **$28.20/year**, auto-renew
+enabled for **September 19, 2027**. Provider receipt:
+`https://dash.cloudflare.com/7f05a1dcb6e16f9c239564a0293bbe74/domains/registrations/stupid.gifts`.
+No DNS cutover, new paid hosting subscription, or public rebrand.
+
+Final spec review inspected current Goose code/config, actual scheduled prompts,
+and the dirty Creator Product Research workspace at `146c3ed` without changing
+its source. Its October 19 Keepa removal and reviewed Jungle Scout/ViralVue path
+supersede old research plans. The remaining SerpApi connector normalizes videos,
+not prices; exact Creators offer parsing and provenance contracts are useful
+references. Its influencer-video earnings model and Mike Ideas campaign scope
+must not become website EPC or the wife's bonus eligibility.
+
+Added concrete Pinterest app/account/profile/claim and OAuth checks, in-place
+weekly/Pinterest/pulse job transitions, hosted expiry-check ownership, `/howie`
+launch behavior, and a separate optional pricing/research contract. Official
+Amazon content rules require a field-level retention/rights/expiry review
+before static export; the 35-day editorial gate does not cover merchant
+content. No whole-catalog hourly refresh or paid SerpApi query was authorized.
+
+Refreshed `.env.local` from Vercel Production; a read-only URL parse audit found
+all 3,383 Amazon rows match `goose-gifts-37-20`, exact ASIN path and HTTPS Amazon
+host, with one tag each. Live random and three sitemap product pages expose
+the same tag. Homepage/directory had only internal product links, and a sampled
+held product had no retailer anchor; these were not counted as proven outbound
+paths. This verifies technical links, not Amazon report attribution.
+
+Persisted wife-store parent is `rileyehrlic0b-20`; Chrome 37 instead exposes
+`mikeideas-20`, and Chrome Personal is signed out. No account setting changed.
+Owner explicitly asked to defer the correct-account login, tracking-ID
+membership/report verification and new-domain website-list addition to the end.
+`roadmap-lbbz1.8` owns that final provider gate and Pinterest identity;
+post-launch `roadmap-mt1gp` coordinates evidence reuse with `roadmap-6613`.
+Existing automations, the frozen P6/F6 cohort and source repositories remain
+unchanged. Domain/spec completion does not close the implementation epic.
+
 ## 2026-10-19 evening — Stupid Gifts infrastructure and launch specification
 
 Owner prioritized the weekly Howie Mandel Does Stuff opportunity and requested
