@@ -9,6 +9,28 @@ None currently.
 
 ## P1 — needed within the first weeks
 
+### Stupid Gifts launch — deferred owner decisions
+
+The current Goose production site remains on Vercel/Neon; the protected
+Cloudflare staging implementation is not a completed cutover. Before launch:
+
+- Confirm the show date and select a small opening product/episode set.
+  Prepared shortlists are proposals, not approved on-air products or purchases.
+- Confirm the Workers paid-plan/traffic-test budget before a provider-scale
+  burst rehearsal or upgrade; local load results do not establish Free-plan
+  CPU headroom.
+- At the end, sign into the correct family Amazon Associates store to add
+  `stupid.gifts` and verify attribution. Do not modify the unrelated Mike Ideas
+  account. Provider/account rebranding and public DNS cutover remain separate
+  final steps.
+- Vercel/Neon shutdown, repository rename and old-domain renewal changes wait
+  for verified production migration and the approved observation window.
+
+Engineering still owns the complete D1 weekly/publishing workflow, compliant
+catalog refresh/expiry policy, search coverage and final recovery checks.
+Those are not owner authentication blockers and are not being marked done.
+See `STUPID_GIFTS_STAGING.md` and epic `roadmap-lbbz1`.
+
 ### 1. Owned growth channel approval
 
 To generate leads outside search, I need explicit approval before posting from

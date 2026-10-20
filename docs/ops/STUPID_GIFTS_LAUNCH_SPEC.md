@@ -80,7 +80,7 @@ Source locations that determine compatibility:
 | Random selection | `app/random-gift/page.tsx`, `lib/db/random-gift.ts` |
 | Share cards to replace with static product assets | `app/api/og/random-gift/route.tsx` |
 | Guides and original index | `lib/gift-guides.ts`, `app/gift-guides/`, `app/weird-gift-index/` |
-| Redirects and site identity | `lib/legacy-redirects.ts`, `lib/site.ts`, `next.config.ts` |
+| Maintained redirects and site identity | `lib/gift-slugs.ts`, `lib/site.ts`, `next.config.ts` (obsolete bundle redirect map removed) |
 | Catalog maintenance and receipts | `scripts/ops/catalog-weekly.mjs`, `prefetch-catalog.mjs`, `catalog-telemetry.mjs` |
 | Events and privacy | `lib/client-analytics.ts`, `lib/analytics-contract.ts`, `lib/client-attribution.ts` |
 
