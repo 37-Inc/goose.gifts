@@ -141,8 +141,9 @@ async function priorMatches(db: CatalogD1, request: CatalogBuildRequest, active:
 }
 
 /** Returns permission to activate exactly one already-uploaded version, NOT proof
- * of activation. The real workflow must hold environment-wide GitHub concurrency;
- * all writers must honor importing/activating barriers. There is no cross-system
+ * of activation. The protected local workflow holds a cooperative same-host
+ * deployment-scope lock; cross-host CI requires one environment concurrency group
+ * before use. All writers must honor importing/activating barriers. There is no cross-system
  * atomicity: after this CAS, unknown provider outcomes stay fenced until resolved.
  */
 export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildClaim, snapshot: CatalogSnapshot,

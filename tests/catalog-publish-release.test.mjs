@@ -1,0 +1,237 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { DatabaseSync } from 'node:sqlite';
+import { createHash } from 'node:crypto';
+import { executePublication, validatePublicationConfig } from '../scripts/catalog/publish-release.ts';
+import { createProjectionPacket, importPublicProjection } from '../lib/catalog/d1.ts';
+import { enqueueBuildRequest } from '../lib/catalog/build-requests.ts';
+import { claimMutationOwnership, readMutationOwner } from '../lib/catalog/mutation-fence.ts';
+import { prunedVectorPlan } from '../lib/catalog/prune-existing-revision.ts';
+import { canonicalJson } from '../scripts/catalog/migration.ts';
+import { createReleaseIdentity } from '../scripts/staging/release-identity.mts';
+import { siteIdentityBytes } from '../scripts/staging/build.mts';
+import { assembleReleaseAssets } from '../scripts/staging/retention.mts';
+import { createStaticFeedPlan } from '../workers/site/feed.ts';
+import { encodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
+import { readActivatedCatalogVectors } from '../scripts/catalog/owned-vector-delivery.ts';
+import { createBrowseRelease } from '../static-site/lib/browse.ts';
+import { createOgRelease } from '../static-site/lib/og.ts';
+import { siteIdentityFor } from '../static-site/lib/site-identity.ts';
+import { guides } from '../static-site/lib/guides.ts';
+import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
+import { openRunWorkspace } from '../scripts/catalog/run-workspace.ts';
+
+const AT=Date.parse('2026-10-19T12:00:00.000Z');
+const sha=value=>createHash('sha256').update(value).digest('hex');
+const bytes=value=>Buffer.from(typeof value==='string'?value:JSON.stringify(value));
+const id='00000000-0000-4000-8000-000000000001',version='00000000-0000-4000-8000-000000000002',deployment='00000000-0000-4000-8000-000000000003';
+const scope={environment:'staging',indexName:'fixture-index'};
+async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,value);}
+async function setup(t,{real=false}={}){
+  let actualWorkspace;
+  const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-publish-')));t.after(async()=>{
+    await actualWorkspace?.close();await fs.rm(directory,{recursive:true,force:true});});
+  const sourceRoot=path.join(directory,'source');await fs.mkdir(sourceRoot);
+  const git=(...args)=>execFileSync('git',args,{cwd:sourceRoot,encoding:'utf8'}).trim();
+  git('init','-q');await put(path.join(sourceRoot,'.gitignore'),'build/\nstatic-site/out/\n');git('add','.gitignore');
+  git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','Owned fixture');const codeSha=git('rev-parse','HEAD');
+  const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
+  for(const name of (await fs.readdir(new URL('../migrations/d1/',import.meta.url))).filter(n=>/^\d{4}.*\.sql$/.test(n)).sort())sql.exec(await fs.readFile(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
+  let clock=AT;sql.function('strftime',(format,instant)=>{assert.equal(format,'%Y-%m-%dT%H:%M:%fZ');assert.equal(instant,'now');return new Date(clock).toISOString();});
+  let afterBatch;const db={providerIdentity:`cloudflare:${'a'.repeat(32)}:${id}`,prepare(query){let params=[];return{query,bind(...values){params=values;return this;},
+    async all(){return{results:sql.prepare(query).all(...params).map(r=>({...r}))};},async run(){const r=sql.prepare(query).run(...params);return{success:true,meta:{changes:r.changes}};},
+    execute(){sql.prepare(query).all(...params);}};},async batch(statements){sql.exec('BEGIN');try{for(const s of statements)s.execute();sql.exec('COMMIT');}catch(e){sql.exec('ROLLBACK');throw e;}afterBatch?.(statements);}};
+  const product={id:'B000000001',publicId:id,slug:'owned-clockwork-spoon',title:'Owned clockwork spoon',description:'Controlled owned fixture.',
+    imageUrl:'https://example.invalid/owned.svg',affiliateUrl:'https://www.amazon.com/dp/B000000001?tag=fixture-20',source:'amazon',currency:'USD',price:0,
+    editorialWriteup:'Controlled owned editorial.',isActive:true,qualityScore:.8,eligibleUntil:new Date(AT+26*3600000).toISOString()};
+  const rights=Object.fromEntries(['title','description','imageUrl','affiliateUrl','editorialWriteup'].map(field=>[field,{basis:'owned',reference:'test-only-owned',value:product[field]}]));
+  sql.prepare(`INSERT INTO products(id,public_id,slug,source,title,currency,quality_score,is_active,editorial_status,availability_status,
+    availability_checked_at,source_facts_hash,editorial_source_hash,catalog_revision,eligible_until,public_display_json,rights_json,source_record_json,updated_at)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(product.id,id,product.slug,product.source,product.title,product.currency,.8,1,'generated_ready','IN_STOCK',
+      new Date(AT).toISOString(),'f'.repeat(64),'f'.repeat(64),'fixture-revision',product.eligibleUntil,JSON.stringify(product),JSON.stringify(rights),'{}',new Date(AT).toISOString());
+  const snapshot={schemaVersion:1,dataKind:'catalog',catalogRevision:'fixture-revision',generatedAt:new Date(AT).toISOString(),products:[product],heldProducts:[],slugHistory:[]};
+  sql.prepare('INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES(?,?,?,?)').run(snapshot.catalogRevision,snapshot.generatedAt,'b'.repeat(64),'reconciled');
+  const packet=await createProjectionPacket(snapshot,{[id]:'f'.repeat(64)},'b'.repeat(64),new Date(AT));await importPublicProjection(db,packet);
+  sql.prepare('INSERT INTO catalog_mutation_scopes(environment,index_name) VALUES(?,?)').run(scope.environment,scope.indexName);
+  const owner=await claimMutationOwnership(db,scope,{phase:'freezing',ownerReference:'fixture-run',operationKey:'d'.repeat(64)});
+  const revision={request:{previous:snapshot,scope},snapshot,packet,sourceRows:[{public_id:id,source_facts_hash:'f'.repeat(64),embedding_text_hash:null}],
+    vectorSyncWatermark:0,globalVectorWatermark:0};const plan=prunedVectorPlan(revision);
+  const vector={id,values:Array(1536).fill(Math.fround(.1)),metadata:{catalogRevision:snapshot.catalogRevision,sourceFactsHash:'f'.repeat(64)}};vector.values[0]=-0;
+  vector.metadata.vectorBytesSha256=nativeHash(vector.values);
+  sql.prepare(`INSERT INTO catalog_vector_deliveries(delivery_id,environment,index_name,generation,prior_epoch,owner_json,request_json,product_json,
+    status,disposition,completed_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)`).run('a'.repeat(64),scope.environment,scope.indexName,owner.generation,0,JSON.stringify(owner),
+      canonicalJson({kind:'prune',publicId:id,catalogRevision:snapshot.catalogRevision,projectionReceipt:packet.receipt,planSha256:sha(canonicalJson(plan)),providerIdentity:`cloudflare:${'a'.repeat(32)}:${scope.indexName}`,
+        vector:{id,metadata:vector.metadata,nativeBase64:encodePgvectorSendBase64(vector.values)}}),'{}','complete','verified',snapshot.generatedAt);
+  const request={schemaVersion:1,environment:'staging',sourceRevision:snapshot.catalogRevision,sourceDigest:packet.receipt.snapshot_sha256,codeSha,priorReleaseId:null,
+    capturedAt:snapshot.generatedAt,cutoff:new Date(AT+25*3600000).toISOString()};const {requestId}=await enqueueBuildRequest(db,request);
+  const config={schemaVersion:1,environment:'staging',accountId:'a'.repeat(32),workerName:'fixture-worker',database:{id,name:'fixture-db'},indexName:scope.indexName,codeSha,
+    sourceMode:'preview',sourceRoot,releaseId:'fixture-release',identityOrigin:'https://fixture-worker.example.invalid',compatibilityDate:'2026-10-19',prior:null};
+  let checkpoint={sha256:'0'.repeat(64),phase:'freezing',owner,state:{driverState:'preserved'},pins:{phase:'b'.repeat(64)},phaseComplete:null,control:{}};
+  let workspace={directory:path.join(directory,'workspace'),repository:await fs.realpath(sourceRoot),manifest:{codeSha},async assertHeld(){},assertScope(s){assert.deepEqual(s,{accountId:config.accountId,environment:'staging',databaseId:id,
+    databaseName:'fixture-db',workerName:'fixture-worker',indexName:scope.indexName});},async readCheckpoint(options){const copy=structuredClone(checkpoint);if(options?.controlOnly)delete copy.state;
+      const {sha256,...value}=copy;return{sha256,checkpoint:value};},
+    async writeCheckpoint(expected,value){assert.equal(expected,checkpoint.sha256);checkpoint={...structuredClone(value),sha256:sha(canonicalJson(value))};},
+    async writeControlCheckpoint(expected,value){assert.equal(expected,checkpoint.sha256);checkpoint={...checkpoint,...structuredClone(value)};checkpoint.sha256=sha(canonicalJson(checkpoint));},
+    async putArtifact(value){return{sha256:sha(canonicalJson(value)),reference:'publication/fixture'};}};
+  if(real){
+    actualWorkspace=await openRunWorkspace({directory:path.join(directory,'protected'),repository:sourceRoot,mode:'create',runId:'fixture-run',configSha256:'f'.repeat(64),codeSha,
+      scope:{...scope,accountId:config.accountId,databaseId:id,databaseName:'fixture-db',workerName:'fixture-worker'},
+      retention:{reviewReference:'test-only/retention',rules:Object.fromEntries(['amazon-observation','embedding-response','phase','publication','checkpoint']
+        .map(kind=>[kind,{maxAgeMs:5*60000,notAfter:new Date(AT+48*3600000).toISOString()}]))},
+      budgetCaps:{httpRequests:100,sqlStatements:200},now:()=>new Date(clock).toISOString()});
+    const initial={...checkpoint};delete initial.sha256;
+    const created=await actualWorkspace.writeCheckpoint(null,{...initial,pins:{}});checkpoint={...created.checkpoint,sha256:created.sha256};
+    workspace={...actualWorkspace,async writeCheckpoint(expected,value){const result=await actualWorkspace.writeCheckpoint(expected,value);checkpoint={...result.checkpoint,sha256:result.sha256};return result;},
+      async writeControlCheckpoint(expected,value){const result=await actualWorkspace.writeControlCheckpoint(expected,value);checkpoint={...checkpoint,...result.checkpoint,sha256:result.sha256};return result;}};
+  }
+  let uploaded=false,active=false;let uploadCalls=0,activateCalls=0,buildCalls=0,identityCalls=0;let mode={};let manifest;
+  const command=async command=>{
+    if(command.args.includes('scripts/staging/build.mts')){
+      buildCalls++;const context=JSON.parse(await fs.readFile(command.env.CATALOG_RELEASE_CONTEXT_PATH));
+      const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/weird-gift-index','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),`/gifts/${product.slug}`];
+      const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,bytes('Owned fixture HTML')]));
+      for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/index.json','/safe/asset.txt'])assets.set(name,bytes('Owned unavailable'));
+      assets.set('/safe/catalog.json',bytes({state:'unavailable',products:[]}));assets.set('/weird-gift-index/data.json',bytes({scope:'sample'}));
+      for(const shard of createBrowseRelease(snapshot).shards)assets.set(shard.path,bytes(shard.payload));
+      for(const name of createOgRelease(snapshot,siteIdentityFor('preview')).byPath.keys())assets.set(name,bytes('owned PNG fixture'));
+      const assembled=assembleReleaseAssets(snapshot,assets,context,null);const rest={...context};delete rest.retainedManifestSha256;
+      manifest={...rest,dataKind:'catalog',siteIdentitySha256:sha(siteIdentityBytes('preview')),nextExpiry:product.eligibleUntil,productCount:1,slugCount:1,
+        checksums:Object.fromEntries([...assembled.assets].map(([p,b])=>[p,sha(b)])),routes:assembled.routes,retention:null};
+      const manifestBytes=bytes(`${JSON.stringify(manifest,null,2)}\n`);
+      const outputs={'asset-manifest.json':manifestBytes,'catalog.snapshot.json':bytes(`${JSON.stringify(snapshot)}\n`),'release-context.json':bytes(`${JSON.stringify(context)}\n`),
+        'release-identity.json':bytes(createReleaseIdentity(manifestBytes)),'site-identity.json':bytes(siteIdentityBytes('preview')),'feed-plan.json':bytes(createStaticFeedPlan(snapshot,packet.receipt.snapshot_sha256))};
+      for(const [name,b]of Object.entries(outputs))await put(path.join(sourceRoot,'build/stupid-gifts',name),b);
+      for(const [name,b]of assembled.assets)await put(path.join(sourceRoot,'static-site/out',name.slice(1)),b);
+      if(mode.sourceDrift)await put(path.join(sourceRoot,'.gitignore'),'changed');
+      if(mode.buildLost){delete mode.buildLost;throw new Error('PRIVATE build interrupted after output');}
+    }else if(command.args.includes('upload')){
+      uploadCalls++;const cfg=JSON.parse(await fs.readFile(command.args[command.args.indexOf('--config')+1]));assert.equal(cfg.name,config.workerName);
+      assert.equal(cfg.vars.SEMANTIC_SEARCH_ENABLED,'false');assert.equal(command.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED,'false');
+      assert.equal(cfg.routes,undefined);assert.equal(cfg.triggers,undefined);uploaded=true;
+      if(mode.uploadLost)throw new Error('PRIVATE upload secret');
+    }
+  };
+  const response=result=>Response.json({success:true,result});
+  const fetch=async(url,init={})=>{
+    const u=new URL(url);if(u.origin===config.identityOrigin){identityCalls++;if(mode.identityFailure)return new Response('',{status:401});
+      assert.equal(init.headers.Authorization,'Basic PRIVATE');return Response.json(createReleaseIdentity(bytes(`${JSON.stringify(manifest,null,2)}\n`)));}
+    if(u.pathname.endsWith(`/d1/database/${id}`))return response({uuid:id,name:'fixture-db',read_replication:{mode:'disabled'}});
+    if(u.pathname.endsWith(`/indexes/${scope.indexName}`))return response({name:scope.indexName,config:{dimensions:1536,metric:'cosine'}});
+    const c=checkpoint.control.publication;
+    if(u.pathname.endsWith('/versions'))return response({items:uploaded&&!mode.versionInvisible?[{id:version}]:[]});
+    if(u.pathname.endsWith(`/versions/${version}`))return response({id:version,annotations:{'workers/tag':c.uploadMarker,'workers/message':`package:${c.packageSha256}`},
+      resources:{script_runtime:{compatibility_date:'2026-10-19'},bindings:[{name:'DB',type:'d1',id:mode.wrongVersionDatabase?'wrong':id},
+        {name:'VECTORIZE',type:'vectorize',index_name:scope.indexName},{name:'ASSETS',type:'assets'},
+        {name:'ENVIRONMENT',type:'plain_text',text:'staging'},{name:'SEMANTIC_SEARCH_ENABLED',type:'plain_text',text:'false'},
+        ...(!mode.missingGuard?[{name:'STAGING_AUTH_SECRET',type:'secret_text'}]:[])]}});
+    if(u.pathname.endsWith('/get_by_ids')){if(mode.vectorFailure)return response([]);const expected=structuredClone(vector);
+      // Preserve signed-zero native bytes across the mock REST boundary.
+      return new Response(`{"success":true,"result":[{"id":"${id}","values":[${expected.values.map(n=>Object.is(n,-0)?'-0':n).join(',')}],"metadata":${JSON.stringify(expected.metadata)}}]}`,{headers:{'Content-Type':'application/json'}});}
+    if(u.pathname.endsWith('/deployments')){
+      if(init.method==='POST'){activateCalls++;assert.equal(checkpoint.control.publication.permit.mutationOwner.phase,'activating');
+        assert.equal(sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'activating');
+        assert.deepEqual(JSON.parse(init.body),{strategy:'percentage',versions:[{version_id:version,percentage:100}],annotations:{'workers/message':c.deploymentMarker}});
+        if(mode.activationNotSent)throw new Error('PRIVATE uncertain not submitted');active=true;
+        if(mode.activationLost)throw new Error('PRIVATE activation secret');return response({id:deployment});}
+      if(mode.readbackFailure&&active)throw new Error('PRIVATE readback secret');
+      return response({deployments:active?[{id:deployment,versions:[{version_id:version,percentage:100}],annotations:{'workers/message':c.deploymentMarker}}]:[]});
+    }throw new Error(`Unexpected fixture HTTP ${url}`);
+  };
+  const execute=()=>executePublication({db,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
+    credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock)}});
+  return{db,sql,owner,revision,workspace,config,execute,mode,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
+    counts:()=>({uploadCalls,activateCalls,buildCalls,identityCalls}),vector};
+}
+
+test('actual build/upload/activate/identity/native-proof/receipt/idle composition with preserved driver state',async t=>{
+  const f=await setup(t);const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
+  assert.equal(result.owner,null);assert.equal(f.counts().activateCalls,1);assert.equal(f.counts().buildCalls,1);
+  assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests').get().state,'resolved');assert.equal(await readMutationOwner(f.db,scope),null);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,1);
+  assert.equal(f.checkpoint().state.driverState,'preserved');assert.doesNotMatch(JSON.stringify(f.checkpoint()),/PRIVATE|example.invalid|clockwork spoon/);
+  assert.equal((await f.execute()).state,'published');assert.equal(f.counts().activateCalls,1);
+});
+test('lost upload and committed activation responses resume exact versions without another external mutation',async t=>{
+  const f=await setup(t);f.mode.uploadLost=true;f.mode.activationLost=true;
+  const first=await f.execute();assert.equal(first.state,'pending');assert.equal(first.owner.phase,'activating');assert.doesNotMatch(JSON.stringify(first),/PRIVATE/);
+  assert.equal((await f.execute()).state,'published');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);assert.equal(f.counts().buildCalls,1);
+});
+test('unconfirmed immutable upload is read-only reconciled, never rebuilt or re-uploaded',async t=>{
+  const f=await setup(t);f.mode.uploadLost=true;f.mode.versionInvisible=true;
+  assert.equal((await f.execute()).errorCode,'publication_upload_pending');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,0);
+  delete f.mode.versionInvisible;assert.equal((await f.execute()).state,'published');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().buildCalls,1);
+});
+test('prior-only after unknown activation remains fenced indefinitely and is never resent',async t=>{
+  const f=await setup(t);f.mode.activationNotSent=true;assert.equal((await f.execute()).state,'pending');
+  f.advance(2*86400000);f.mode.noRevision=true;const second=await f.execute();assert.equal(second.state,'pending');assert.equal(second.owner.phase,'activating');
+  assert.equal(f.counts().activateCalls,1);assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests').get().state,'activating');
+});
+test('readback/auth/native mismatch cannot publish; exact readback recovery does not re-activate',async t=>{
+  for(const key of ['readbackFailure','identityFailure','vectorFailure']){
+    const f=await setup(t);f.mode[key]=true;assert.equal((await f.execute()).state,'pending',key);
+    assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,0);assert.equal(f.counts().activateCalls,1);
+    delete f.mode[key];assert.equal((await f.execute()).state,'published',key);assert.equal(f.counts().activateCalls,1);
+  }
+});
+test('expired lease/content and source/rights drift never grant new publication',async t=>{
+  const expired=await setup(t);expired.mode.activationLost=true;await expired.execute();expired.advance(16*60000);
+  assert.equal((await expired.execute()).errorCode,'publication_fresh_evidence_required');assert.equal(expired.counts().activateCalls,1);
+  const changed=await setup(t);changed.mode.sourceDrift=true;assert.equal((await changed.execute()).state,'pending');assert.equal(changed.counts().activateCalls,0);
+  const held=await setup(t);held.mode.activationLost=true;await held.execute();held.sql.prepare("UPDATE products SET rights_json='{}'").run();
+  assert.equal((await held.execute()).state,'pending');assert.equal(held.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,0);
+});
+test('activation proof is read-only and bound to exact stored permit; no freezing/delivery phase coercion',async t=>{
+  const f=await setup(t);f.mode.activationLost=true;await f.execute();const c=f.checkpoint().control.publication;
+  const adapters={...scope,providerIdentity:`cloudflare:${f.config.accountId}:${scope.indexName}`,async readback(){return f.vector;}};
+  for(const patch of [{token:'wrong'},{runReference:'wrong'},{versionReference:'wrong'},{requestId:'0'.repeat(64)}])
+    await assert.rejects(readActivatedCatalogVectors(f.db,{...c.permit,...patch},c.vectorPlan,adapters));
+  await assert.rejects(readActivatedCatalogVectors(f.db,{...c.permit,mutationOwner:f.owner},c.vectorPlan,adapters));
+  for(const patch of [{ids:[]},{ids:[],planSha256:'a'.repeat(64)},{planSha256:'a'.repeat(64)}])
+    await assert.rejects(readActivatedCatalogVectors(f.db,c.permit,{...c.vectorPlan,...patch},adapters));
+  const before=f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get();
+  await readActivatedCatalogVectors(f.db,c.permit,c.vectorPlan,adapters);assert.deepEqual(f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get(),before);
+  const original=f.sql.prepare('SELECT * FROM catalog_vector_deliveries').get();const extra={...original,delivery_id:'e'.repeat(64),prior_epoch:1,
+    request_json:canonicalJson({...JSON.parse(original.request_json),publicId:version,vector:null})};const columns=Object.keys(extra);
+  f.sql.prepare(`INSERT INTO catalog_vector_deliveries(${columns.join(',')}) VALUES(${columns.map(()=>'?').join(',')})`).run(...columns.map(k=>extra[k]));
+  await assert.rejects(readActivatedCatalogVectors(f.db,c.permit,c.vectorPlan,adapters),/vector_plan_incomplete/); // subset omits an excluded UUID journal
+});
+test('real protected workspace preserves state/locks and permits exact expired-content control reconciliation',async t=>{
+  const f=await setup(t,{real:true});const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
+  assert.equal(f.checkpoint().state.driverState,'preserved');assert.equal((await f.execute()).state,'published');
+});
+test('lost completion/resolve acknowledgements recover only historical receipt after artifact expiry',async t=>{
+  for(const point of ['publication','resolve']){
+    const f=await setup(t,{real:true});let lost=false;
+    f.after(statements=>{if(!lost&&statements.some(s=>point==='publication'?s.query.startsWith('INSERT INTO publication_receipts'):s.query.includes("SET state='resolved'"))){
+      lost=true;throw new Error('PRIVATE lost D1 acknowledgement');}});
+    assert.equal((await f.execute()).state,'pending');assert.equal(lost,true);
+    f.advance(6*60000);f.mode.noRevision=true;
+    const result=await f.execute();assert.equal(result.state,'published',`${point}: ${JSON.stringify(result)}`);
+    assert.equal(f.counts().activateCalls,1);assert.equal(f.counts().buildCalls,1);assert.equal(await readMutationOwner(f.db,scope),null);
+  }
+});
+test('interrupted complete build is reused before upload; changed sealed bytes and corrupt build are explicit gates',async t=>{
+  const f=await setup(t);f.mode.buildLost=true;assert.equal((await f.execute()).state,'pending');
+  assert.equal((await f.execute()).state,'published');assert.equal(f.counts().buildCalls,1);assert.equal(f.counts().uploadCalls,1);
+  const changed=await setup(t);changed.mode.activationNotSent=true;await changed.execute();
+  const p=path.join(changed.workspace.directory,'packages',changed.config.releaseId,'assets/index.html');await fs.writeFile(p,'tampered');
+  // It is already activating: never load/rebuild/reactivate even when old
+  // package bytes are damaged. New acceptance still requires intact package.
+  assert.equal((await changed.execute()).state,'pending');assert.equal(changed.counts().activateCalls,1);
+  const corrupt=await setup(t);await put(path.join(corrupt.config.sourceRoot,'build/stupid-gifts/asset-manifest.json'),'{');
+  assert.equal((await corrupt.execute()).errorCode,'publication_build_requires_operator_review');assert.equal(corrupt.counts().uploadCalls,0);
+});
+test('configuration has no environment/production defaults or ambient backend/identity fallback',async t=>{
+  const f=await setup(t);assert.deepEqual(validatePublicationConfig(f.config),f.config);
+  for(const patch of [{environment:undefined},{accountId:''},{database:{id:'bad',name:'db'}},{sourceMode:undefined},{sourceMode:'goose-production'},
+    {identityOrigin:'https://fixture-worker.example.invalid/path'},{extra:'unsafe'}])assert.throws(()=>validatePublicationConfig({...f.config,...patch}));
+});
+test('wrong uploaded bindings or missing inherited staging guard never activate',async t=>{
+  for(const key of ['wrongVersionDatabase','missingGuard']){const f=await setup(t);f.mode[key]=true;
+    assert.equal((await f.execute()).errorCode,'publication_version_scope_mismatch');assert.equal(f.counts().activateCalls,0);
+    assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,0);}
+});

@@ -3,6 +3,7 @@ import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import { getProductsByPublicIds } from '../../lib/catalog/storage/d1.ts';
 import { mutationAdvance, mutationAssertion, mutationFenceQuery, readMutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner, MutationScope } from '../../lib/catalog/mutation-fence.ts';
+import type { ActivationPermit } from '../../lib/catalog/build-requests.ts';
 import { pruneExistingRevision, prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PrunedRevision, PrunedVectorObservation } from '../../lib/catalog/prune-existing-revision.ts';
 import { prepareApprovedCohort } from '../../lib/catalog/freeze-approved-cohort.ts';
@@ -444,6 +445,59 @@ export function readOwnedPrunedVectors(...args: Parameters<typeof readPrunedVect
 export function readOwnedApprovedCohortVectors(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision,
   adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>):Promise<PrunedVectorObservation> {
   return safe(()=>readPrunedVectors(db,owner,revision,adapters));
+}
+/** Control-only readback after activation. No delivery, expiry renewal, watermark
+ * or ownership write is permitted here. Fresh publication still requires the
+ * separate current-rights/lease predicates in completePublication. This small
+ * plan may survive content-artifact expiry for read-only reconciliation.
+ */
+export interface ActivatedVectorPlan { catalogRevision:string; planSha256:string; ids:string[] }
+export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit,plan:ActivatedVectorPlan,
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>):Promise<PrunedVectorObservation> {
+  return safe(async()=>{
+    const owner=permit.mutationOwner;
+    if(!owner||owner.phase!=='activating'||!HASH.test(plan.planSha256)||!plan.ids.every(id=>UUID.test(id))
+      ||plan.ids.length>OWNED_VECTOR_PROOF_LIMIT||new Set(plan.ids).size!==plan.ids.length)throw new Error('vector_plan_invalid');
+    adapterScope(owner,adapters);
+    const check=()=>db.batch([mutationAssertion(db,owner,['activating']),assertion(db,`EXISTS(
+      SELECT 1 FROM catalog_mutation_scopes s JOIN catalog_build_requests b ON b.request_id=s.activation_request_id
+      WHERE s.environment=? AND s.index_name=? AND b.environment=s.environment AND b.state='activating'
+      AND b.request_id=? AND b.lease_token=? AND b.run_reference=? AND b.release_id=? AND b.version_reference=?
+      AND json_extract(b.request_json,'$.sourceRevision')=?)`,[owner.environment,owner.indexName,
+      permit.requestId,permit.token,permit.runReference,permit.releaseId,permit.versionReference,plan.catalogRevision])]);
+    await check();
+    // Do not filter on caller plan hash: doing so could hide a missing/subset
+    // proof. Bind ALL of this generation's target-revision journals, and the
+    // immutable target/prior projections, before accepting any provider read.
+    const rows=(await db.prepare(`SELECT * FROM catalog_vector_deliveries WHERE environment=? AND index_name=? AND generation=?
+      AND json_extract(request_json,'$.kind')='prune' AND json_extract(request_json,'$.catalogRevision')=? LIMIT 21`)
+      .bind(owner.environment,owner.indexName,owner.generation,plan.catalogRevision).all<Journal>()).results;
+    const projections=(await db.prepare(`SELECT public_id,catalog_revision,source_facts_hash FROM catalog_public_products WHERE catalog_revision=? OR catalog_revision=(
+      SELECT p.catalog_revision FROM catalog_build_requests b JOIN publication_receipts p
+      ON p.release_id=json_extract(b.request_json,'$.priorReleaseId') WHERE b.request_id=?) LIMIT 41`)
+      .bind(plan.catalogRevision,permit.requestId).all<{public_id:string;catalog_revision:string;source_facts_hash:string}>()).results;
+    const receipt=(await db.prepare(`SELECT p.* FROM catalog_projection_receipts p JOIN catalog_build_requests b
+      ON b.source_revision=p.catalog_revision AND json_extract(b.request_json,'$.sourceDigest')=p.snapshot_sha256 WHERE b.request_id=?`)
+      .bind(permit.requestId).all<Row>()).results[0];
+    const ready=new Map(projections.filter(row=>row.catalog_revision===plan.catalogRevision).map(row=>[row.public_id,row]));
+    const requests=new Map(rows.map(row=>[decodeRequest(row.request_json).publicId,decodeRequest(row.request_json)]));
+    if(rows.length!==plan.ids.length||requests.size!==plan.ids.length||rows.some(row=>row.status!=='complete'||row.disposition!=='verified')
+      ||!receipt||projections.length>40||projections.some(row=>!plan.ids.includes(row.public_id))
+      ||plan.ids.some(id=>!requests.has(id)||requests.get(id)!.catalogRevision!==plan.catalogRevision
+        ||requests.get(id)!.planSha256!==plan.planSha256||requests.get(id)!.providerIdentity!==adapters.providerIdentity
+        ||canonicalJson(requests.get(id)!.projectionReceipt)!==canonicalJson(receipt)
+        ||(ready.has(id)?!requests.get(id)!.vector||requests.get(id)!.vector!.id!==id
+          ||requests.get(id)!.vector!.metadata.catalogRevision!==plan.catalogRevision
+          ||requests.get(id)!.vector!.metadata.sourceFactsHash!==ready.get(id)!.source_facts_hash:requests.get(id)!.vector!==null)))throw new Error('vector_plan_incomplete');
+    await bounded(async signal=>{
+      for(let offset=0;offset<plan.ids.length;offset+=10)await Promise.all(plan.ids.slice(offset,offset+10).map(async id=>{
+        if(signal.aborted||!visible(requests.get(id)!.vector,await adapters.readback(id,signal)))throw new Error('vector_not_visible');
+      }));
+    },3000);
+    await check();
+    return{environment:owner.environment,indexName:owner.indexName,settled:true,planSha256:plan.planSha256,
+      reference:`owned-vectors:${sha256(canonicalJson(rows.map(row=>row.delivery_id).sort()))}`};
+  });
 }
 /** Explicit revision, at most10 events and one uncertain external intent. A
  * pending/expired outcome stops this invocation; caller keeps the returned owner.
