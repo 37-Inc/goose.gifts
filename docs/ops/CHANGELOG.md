@@ -203,6 +203,10 @@ and the concrete build/upload/activation/readback path. A restart never blindly
 repeats paid phases or an uncertain deployment. Independent review caught and
 fixed byte-order changes across checkpoint reopen; original sealed bytes and
 historical publication encoding remain unchanged.
+PR #198 passes 522 staging tests (nine explicit optional skips), 88 existing
+regressions, lint/types/build and an actual protected two-fixture publication
+rehearsal. Empty catalogs export without invented product routes; invalid
+workers.dev names are rejected before deployment.
 
 This is staged implementation, not the production writer or a new schedule.
 Neon, the existing weekly job, public Goose identity and Pinterest measurement

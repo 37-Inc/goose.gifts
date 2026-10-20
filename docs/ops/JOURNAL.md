@@ -36,9 +36,10 @@ historical rows. No digest, freshness or ownership check was weakened.
 Uncertain phase execution and a corrupt partial build still stop for review;
 they are not advertised as automatically recoverable.
 
-At source `f5e5a63`, the integrated suite passed 515 tests with nine explicit
-optional skips; 88 existing regressions, types, lint and the production build
-also passed. The first actual disposable-provider run reached the version
+At reviewed source `a64d40e` (PR #198), the integrated suite passed 522 tests
+with nine explicit optional skips; 88 existing regressions, types, lint and
+the production build also passed. Independent final review found no blockers.
+The first actual disposable-provider run reached the version
 upload but did not publish: Cloudflare requires an initial deployment before
 `versions upload`. It made one upload command and zero activation requests.
 The scratch Worker was confirmed absent, the exact D1 database and Vectorize
@@ -47,6 +48,27 @@ index were removed, and starting inventories reconciled. Retain the failed recei
 `6ab413da49bc65541b4952ee437bdc276b720c9faca1cc4af1c0ee418ca5ef83`;
 it is not a publication success. The remedy is an independently verified,
 operator-established catalog baseline, not an automatic deploy fallback.
+
+The corrected disposable-provider rehearsal passed with an actual empty
+catalog baseline followed by two owned synthetic products. It exercised all
+twelve migrations, atomic failed-batch rollback, D1 maintenance, native
+Vectorize settlement, reviewed freezing, one immutable upload, one activation,
+independent protected identity/vector readback, an idle writer fence and exact
+workspace reopen/replay without another upload or activation. It made no
+merchant/model or production writes. Supervised usage was 537 HTTP operations,
+with 8,708 known D1 rows read/512 written; the deliberate failed batch remains one
+unconfirmed request, and CLI-internal HTTP counts are unavailable.
+Receipt `protected-publication-with-prior-KgPqlx/receipt.json`, SHA-256
+`8fd0d53ddff0c8e1d50bcf7a8ead12dca30f8b6d894b0388893ebe54a87929b9`.
+All scratch resources were deleted and before/after inventories match.
+
+Earlier attempts separately exposed a genuine zero-product Next export
+failure and an invalid 64-character workers.dev hostname; both are fixed and
+regression-tested. Vectorize also exceeded a one-minute readback window.
+Extending only the bounded read-only wait (not redispatching the mutation or
+raising global request caps) produced exact native-byte proof, including
+negative zero. Failed receipts remain preserved; they are not successes.
+An empty catalog now has no fabricated product slug or merchant schema.
 
 This local composition is not full-catalog, real merchant,
 hosted scheduler, production cutover or cost/headroom acceptance. The bounded

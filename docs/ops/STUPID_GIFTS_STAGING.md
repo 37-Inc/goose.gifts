@@ -480,6 +480,12 @@ publication receipt. Never fabricate a prior receipt or treat an unrelated
 inert Worker as a catalog release. The weekly path does not fall back to
 `wrangler deploy` when a Worker is missing.
 
+An empty baseline is a genuine zero-product export, not a sentinel product
+route. The protected two-fixture live rehearsal passed at `a64d40e` with
+exactly one routine upload/activation and verified replay/cleanup; see the
+dated receipt in `JOURNAL.md`. That is independent publication evidence, not
+an actual merchant weekly run, full-catalog capacity or scheduler migration.
+
 Wrangler may internally retry an immutable upload; duplicate matching
 version tags require review. The executor never repeats that command on resume
 and the actual activation POST is not retried.
