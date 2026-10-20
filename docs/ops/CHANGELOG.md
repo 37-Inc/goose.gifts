@@ -195,6 +195,21 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-20 [owner+claude] — Review the opt-in weekly runner and vector delivery
+
+PR #195 adds D1 run/item telemetry, explicit weekly-runner injection, owned
+Vectorize delivery and expiry recovery. It preserves the default Neon job,
+retains immutable evidence, and refuses to call an accepted upload a completed
+publication. Root review and cross-review fixed real recovery and float32
+readback issues; actual D1 proof passed in a disposable database. Local burst
+rehearsal passed 60,000 requests, without claiming Cloudflare capacity.
+The owner-retired bundle catch-all and heuristic redirect map are removed.
+
+This is implementation/staging progress, not production cutover. The full
+new-cohort publishing/secret/scheduler integration, full-catalog relevance and
+capacity proof, recurring rights policy, final delta and owner/provider gates
+remain open in `roadmap-lbbz1`.
+
 ### 2026-10-20 [owner+claude] — Stage the D1 writer and expiry-publication path
 
 PR #194 (`3b29f16`) adds the opt-in maintenance store, preserving stable product identities and

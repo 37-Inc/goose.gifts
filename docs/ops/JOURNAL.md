@@ -5,6 +5,46 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Owned vector delivery and explicit D1 weekly runner
+
+PR #195 continues the staged migration with reviewed opt-in adapters, not a
+production writer/schedule switch. Three Sol extra-high agents implemented
+bounded pieces; root and separate agents reviewed and fixed them. The
+twenty-ID vector-proof cap is explicit. The old bundle catch-all and heuristic
+redirect map are retired; canonical product/guide routes remain.
+
+Actual D1 rehearsal on source `b26bed67ef1beb8706b0640ca9cdf88e24bd4a7f`:
+all twelve migrations and fourteen storage/ownership/telemetry checks passed,
+133 calls, 4,202 rows read, 440 written. It includes immutable native float32
+payloads and owned delivery with an explicitly mocked provider; it is not a
+complete weekly publication proof. Scratch database
+`d26086ed-cbdf-45b5-a497-f503e78efd02` is independently confirmed deleted.
+Private receipt `d1-maintenance-canary-TSJElm/receipt.json`, SHA-256
+`6730d9b58048774ceabd5248cc8d1de6c27a71b206801added275f899050a7a2`.
+
+Live disposable Vectorize checks exposed two facts mocks did not prove:
+exact mutation processing can precede `get_by_ids` visibility, and REST may
+serialize float32s as shortened decimals. The bridge now decodes validated
+numbers through `Math.fround` before native-byte comparison; altered float32
+bits still fail. The initial visibility-only failure, the decimal-decoding
+failure and one unknown transport response are preserved in private receipts
+`vectorize-rest-canary-qHIHkF`, `vectorize-rest-canary-BejmEZ` and
+`vectorize-rest-canary-e05CzJ`. Each owned temporary index was independently
+deleted; active index inventory was unchanged. No uncertain mutation was
+blindly replayed into the same index.
+
+Initial full local burst receipt `local-burst-e9035f8-600s.json`, SHA-256
+`e98aded4d5b6e97362acf2f381c10efc64b421edb94e6e7c48b63dffd9a99b34`:
+60,000 requests/600 seconds/zero errors, actual Worker with owned fixtures,
+95% static and 5% mock semantic. Node26.12.0/macOS arm64, static p95 1.098 ms,
+mock-search p95 16.619 ms. No network attempts or browse-storage calls.
+This is not Cloudflare CPU/CDN, real provider/D1 cost or production capacity.
+
+Current staging remains on migrations 0001–0008, with new ownership disabled.
+Keep Neon as production writer. The new-cohort publisher, concrete protected
+runner/secret bootstrap/schedule, full-catalog proof, compliant merchant refresh,
+final source delta/recovery and owner/provider launch checklist remain open.
+
 ## 2026-10-20 — Integrate owned D1 maintenance and strict revision pruning
 
 Three Sol extra-high-effort workers delivered bounded implementation and

@@ -286,10 +286,10 @@ of a previously approved seal, with resumable projection chunks and atomic
 source/ownership checks. It never promotes held products, extends rights,
 refreshes Amazon data or generates embeddings. `settlePrunedRevision` queues a
 build only after an explicitly injected adapter independently confirms settled
-index state, exact vector bytes/metadata and removed-ID absence. That owned
-provider adapter and protected CI orchestration are **not implemented or
-activated by this module**. Unchanged, all-held, source-drift, partial-restart
-and lost-response cases have executable SQLite tests.
+index state, exact vector bytes/metadata and removed-ID absence. The owned
+adapter is implemented below; protected CI orchestration and schedules remain
+inactive. Unchanged, all-held, source-drift, partial-restart and lost-response
+cases have executable SQLite tests.
 
 The explicit D1 maintenance store preserves the existing eleven-method runner
 contract while separating immutable source archives from private current state.
@@ -299,17 +299,55 @@ Unknown source/rights/vector provenance remains held; a database write cannot
 make an old observation fresh. This does not change the runner's default Neon
 backend or its schedule.
 
-The real disposable D1 rehearsal applies migrations 0001–0010 and verifies
-failed-batch rollback, competing-owner refusal, atomic product/outbox/receipt,
-zero-write retry, immutable archive/slug, guarded hold and settled release.
-All ten checks pass; its 366 writes were confined to the now-deleted scratch
-database. Current staging still has only migrations 0001–0008 and no enabled
-writer. A separate read-only check validates the current-rights SQL on D1
-itself; canonical timestamp normalization avoids D1's long-GLOB limit.
-See the journal for receipts, cleanup evidence and measured query costs.
+The extended actual disposable D1 rehearsal applies migrations 0001–0012.
+Fourteen checks cover failed-batch rollback, competing-owner refusal, atomic
+product/outbox/receipt, zero-write retry, immutable history, guarded holds,
+native vector bytes, owned delivery with a mock provider, shared telemetry
+cursor and settled release. It made 133 SQL calls: 4,202 rows read, 440 written,
+all confined to the independently deleted scratch database. Current staging
+still has only migrations 0001–0008 and no enabled writer. A separate read-only
+check validates current-rights SQL on D1; canonical timestamp normalization
+avoids D1's long-GLOB limit. Receipts and costs are in the journal.
 
-Before selecting D1 for a real weekly run, finish the runtime/store selection,
-D1 run/item telemetry backend, owned vector delivery, new approved-cohort
-publication, replacement secret bootstrap and a bounded end-to-end run. The
-daily pruning path is not the weekly candidate-promotion path. Retain the
-current Neon job until those integrations and recovery checks are verified.
+Migration 0011 adds retained vector-delivery evidence, not another writer lock.
+The explicit REST bridge takes an account/index/token; it never loads ambient
+credentials. Acceptance is not completion: exact mutation processing and
+UUID/native-float32/metadata readback or deletion absence are separate checks.
+REST decimal numbers are decoded back to float32 before comparing original
+bytes. A lost mutation ID remains owned; no elapsed-time takeover or blind
+resend is allowed. Stable-ID rollback needs verified prior-vector restoration,
+not just an old Worker deployment.
+
+An expired, settled pruning delivery can explicitly abandon its importing
+revision while retaining all evidence. A new cutoff/operation may then prepare
+and activate a replacement; abandonment never means reconciled or publishable.
+Final vector proof is deliberately capped at **20 UUIDs**. Full-catalog
+batched proof remains an activation gate, not a claimed capability.
+
+Migration 0012 and `createD1CatalogTelemetryStore` preserve the five-method
+run/item telemetry contract. `runCatalogWithBackend` and
+`runWeeklyCatalogWithBackend` inject maintenance/telemetry, independently
+verified publication and explicit ownership-aware finalization. They preserve
+the existing weekly policy limits and never silently choose D1. Item writes
+are bounded, idempotent and retain private retry evidence on failure.
+Imported history and completed runs cannot be silently rewritten.
+
+Before selecting D1 for a real weekly run, finish concrete secret/bootstrap
+wiring, the new approved-cohort publisher, protected runner/schedule integration
+and one bounded complete run with independent live publication proof. The daily
+strict-subset pruner is not the weekly candidate-promotion path. Resolve final
+Neon delta handling before installing immutable-archive triggers. Retain the
+existing Neon job until these integrations and recovery checks are verified.
+
+## Local burst rehearsal
+
+`node --import tsx scripts/staging/local-burst.mts --seconds 600 --output /private/receipt.json`
+exercises the actual Worker and feed builders with 60 owned fictional products.
+The first full run used Node26.12.0: 60,000 requests over 600 seconds, a 95/5
+static/mock-semantic mix, zero failures or network calls; static p95 1.098 ms,
+mock-search p95 16.619 ms. Exactly 3,000 mock search-store calls occurred, none
+from browsing. The retained-asset deadline crossed during the real-clock run.
+
+This is warm in-process Node behavior, **not** HTTP/CDN/Cloudflare CPU, real D1
+query cost, provider latency, browser/LCP or distributed capacity evidence.
+Do not use it to waive the production burst and paid-plan decision.
