@@ -5,6 +5,38 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Preserve bounded large evidence and reviewed search policy
+
+The follow-on to PR #198 adds private chunked blobs for original native vectors
+and oversized ordered derived artifacts. A 3,383-vector-shaped fixture (~28 MB)
+round-trips exact bytes, including negative zero/subnormal values, through
+checkpoint/reopen. Missing, corrupt, reordered, mixed-policy and expired parts
+fail closed; partial retries retain original deadlines. Individual artifacts
+remain at most 512 KiB, chunks at most 256 KiB and the aggregate at most 32 MiB.
+Configuration, approval, rights and previous-snapshot ingress limits are not
+silently broadened. This is not full-catalog capture/publication acceptance.
+
+Optional production semantic-search policy now preserves explicitly reviewed
+enablement/request/token limits across releases and checks exact uploaded
+bindings before activation. Omitted configs remain byte/hash-compatible and
+disabled; staging enablement is rejected. Peer review found and fixed inherited
+optional properties being materialized without validation in the direct API.
+The runtime budget validator's behavior and current live settings are unchanged.
+
+Root reviewed both worker commits and the combined source `ee7e240` passed
+553 integrated staging tests with nine explicit optional skips, both typechecks,
+lint, the real four-product static export and the production build. Root also
+independently reran 47 workspace/accounting cases; both changes received peer
+review. No new provider experiment or activation was used to claim these tests.
+The actual protected publication proof remains separately recorded below.
+
+`roadmap-lbbz1.4.1` tracks the next concrete scale barrier: bounded owner-held
+capture, current-state validation and atomic freezing for all private identities
+while only a small approved cohort is public. Large single D1 responses, literal
+CAS batches and previous-snapshot ingress still prevent full-size publication.
+Do not raise limits, approve held products or infer paid-vector capacity to
+work around these gates.
+
 ## 2026-10-20 — Protected weekly workspace and concrete publication composition
 
 Three bounded Sol extra-high workers implemented the private run workspace,

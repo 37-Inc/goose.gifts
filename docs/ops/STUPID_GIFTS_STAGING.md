@@ -455,6 +455,23 @@ only processes using this same canonical root. D1's no-takeover mutation fence
 remains authoritative; cross-host CI and out-of-band deployment exclusion
 must be established before installing a hosted publisher.
 
+Private original-vector inputs and oversized ordered derived artifacts may use
+32 MiB blobs in at most 128 independently verified 256 KiB chunks. The manifest
+binds original byte length/hash/order; every chunk retains the same original
+observation, rights policy and expiry. Small artifact/checkpoint formats remain
+compatible. This does **not** increase D1 request/batch limits, the 20-ID public
+proof limit, or the current 512 KiB previous-snapshot/approval/rights input
+limits. Full-identity capture/freezing is tracked in `roadmap-lbbz1.4.1`.
+
+Publication configuration may include an explicitly reviewed `semanticSearch`
+policy (`enabled`, `dailyRequestCap`, `dailyTokenCap`). Omission preserves the
+historical off/50-request/32768-token values without changing old config hashes.
+Staging cannot enable semantic search through this publisher. Production
+policies are pinned for the run and emitted unchanged; independent version
+readback must match all three settings before activation. Changing a reviewed
+policy requires a new config/run and must also respect the existing shared
+daily-budget state. This does not authorize search enablement or new spending.
+
 - `phases_running` after interruption: stop for review; never automatically
   repeat paid merchant/model phases.
 - `draining`, `freezing`, `publishing`: resume exact persisted work only.
