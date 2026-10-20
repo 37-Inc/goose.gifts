@@ -19,9 +19,9 @@ async function setup() {
   sqlite.exec(await readFile(new URL('../migrations/d1/0001_catalog.sql', import.meta.url), 'utf8'));
   sqlite.exec(await readFile(new URL('../migrations/d1/0002_public_projections.sql', import.meta.url), 'utf8'));
   sqlite.prepare(`INSERT INTO products(id,public_id,slug,source,title,currency,quality_score,is_active,editorial_status,
-    availability_status,source_facts_hash,editorial_source_hash,catalog_revision,eligible_until,rights_json,source_record_json,updated_at)
-    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run('B000000001', PUBLIC_ID, 'funny-button', 'amazon', 'current operational title', 'USD', .8, 1,
-      'generated_ready', 'IN_STOCK', HASH, HASH, 'operational-newer', new Date(NOW.getTime() + 2 * 86400_000).toISOString(), '{}', '{}', NOW.toISOString());
+    availability_status,source_facts_hash,editorial_source_hash,catalog_revision,eligible_until,rights_json,source_record_json,updated_at,public_display_json)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run('B000000001', PUBLIC_ID, 'funny-button', 'amazon', 'current operational title', 'USD', .8, 1,
+      'generated_ready', 'IN_STOCK', HASH, HASH, 'operational-newer', new Date(NOW.getTime() + 2 * 86400_000).toISOString(), '{}', '{}', NOW.toISOString(), JSON.stringify(snapshot('operational').products[0]));
   const db = { prepare(sql) { let values = []; return {
     bind(...parameters) { values = parameters; return this; },
     async all() { return { results: sqlite.prepare(sql).all(...values).map((row) => ({ ...row })) }; },
@@ -58,8 +58,22 @@ test('identical replay succeeds and changed bytes/revision mutation are rejected
     assert.throws(() => fixture.sqlite.prepare('UPDATE catalog_public_products SET title=?').run('oops'), /immutable/);
     assert.throws(() => fixture.sqlite.prepare('UPDATE catalog_projection_receipts SET product_count=0').run(), /immutable/);
     fixture.sqlite.prepare('DELETE FROM catalog_public_products WHERE catalog_revision=?').run('r1');
+    await assert.rejects(importPublicProjection(fixture.db, original), /incomplete or changed/);
+    assert.equal((await rollbackPreflight(fixture.db, snapshot('r1'), NOW)).ok, false);
     const insert = projectionQueries(original)[0];
     assert.throws(() => fixture.sqlite.prepare(insert.sql).run(...insert.params), /sealed/);
+  } finally { fixture.close(); }
+});
+
+test('a receipt cannot hide tampered projection bytes on replay or rollback', async () => {
+  const fixture = await setup();
+  try {
+    const value = snapshot('r1'); const original = await packet(value);
+    await importPublicProjection(fixture.db, original);
+    fixture.sqlite.exec('DROP TRIGGER catalog_public_immutable'); // Deliberate corruption fixture.
+    fixture.sqlite.prepare('UPDATE catalog_public_products SET public_display_json=?').run(JSON.stringify(snapshot('r1', 'Corrupted public copy.').products[0]));
+    await assert.rejects(importPublicProjection(fixture.db, original), /incomplete or changed/);
+    assert.equal((await rollbackPreflight(fixture.db, value, NOW)).reason, 'projection_bytes_incompatible');
   } finally { fixture.close(); }
 });
 
@@ -88,7 +102,7 @@ test('partial projection stays invisible and an incomplete receipt cannot activa
 
 test('current operational holds, factual changes and deadline expiry override both revisions', async () => {
   for (const update of ["is_active=0", "duplicate_of_product_id='winner'", "availability_status='OUT_OF_STOCK'",
-    "quality_score=0.1", "editorial_status='stale'", `source_facts_hash='${'c'.repeat(64)}',editorial_source_hash='${'c'.repeat(64)}'`]) {
+    "quality_score=0.1", "editorial_status='stale'", "public_display_json=NULL", `source_facts_hash='${'c'.repeat(64)}',editorial_source_hash='${'c'.repeat(64)}'`]) {
     const fixture = await setup();
     try {
       const value = snapshot('r1'); await importPublicProjection(fixture.db, await packet(value));

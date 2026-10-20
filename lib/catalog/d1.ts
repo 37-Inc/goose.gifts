@@ -14,7 +14,8 @@ export interface ProjectionQuery { sql: string; params: unknown[] }
 const CURRENT_READY = `p.is_active=1 AND p.duplicate_of_product_id IS NULL AND p.quality_score>=0.55
   AND upper(p.availability_status) IN ('IN_STOCK','IN_STOCK_SCARCE','INSTOCKSCARCE','AVAILABLE_DATE','LEADTIME','PREORDER')
   AND p.editorial_status IN ('generated_ready','manual_locked')
-  AND p.source_facts_hash IS NOT NULL AND p.source_facts_hash=p.editorial_source_hash AND p.eligible_until>?`;
+  AND p.source_facts_hash IS NOT NULL AND p.source_facts_hash=p.editorial_source_hash
+  AND p.public_display_json IS NOT NULL AND p.eligible_until>?`;
 const VISIBLE = `v.eligible_until>? AND ${CURRENT_READY} AND v.source_facts_hash=p.source_facts_hash`;
 const JOIN = `JOIN products p ON p.id=v.product_id AND p.public_id=v.public_id
   JOIN catalog_projection_receipts r ON r.catalog_revision=v.catalog_revision`;
@@ -53,6 +54,16 @@ export function projectionQueries(packet: ProjectionPacket): ProjectionQuery[] {
 function receiptMatches(actual: ProjectionReceipt, expected: ProjectionReceipt): boolean {
   return Object.keys(expected).every((key) => actual[key] === expected[key]);
 }
+async function assertStoredProjection(db: CatalogD1, packet: ProjectionPacket): Promise<void> {
+  const result = await db.prepare('SELECT * FROM catalog_public_products WHERE catalog_revision=?')
+    .bind(packet.receipt.catalog_revision).all<Row>();
+  const stored = new Map(result.results.map((row) => [row.public_id, row]));
+  if (result.results.length !== packet.rows.length || packet.rows.some((expected) => {
+    const actual = stored.get(expected.public_id);
+    return !actual || Object.keys(actual).length !== Object.keys(expected).length
+      || Object.keys(expected).some((key) => actual[key] !== expected[key]);
+  })) throw new Error('Stored public projection is incomplete or changed');
+}
 /** All projection rows and their visibility receipt become available together. */
 export async function importPublicProjection(db: CatalogD1, packet: ProjectionPacket): Promise<'imported' | 'already_imported'> {
   if (packet.rows.length !== packet.receipt.product_count
@@ -62,6 +73,7 @@ export async function importPublicProjection(db: CatalogD1, packet: ProjectionPa
   const existing = await db.prepare(query.sql).bind(...query.params).all<ProjectionReceipt>();
   if (existing.results.length) {
     if (!receiptMatches(existing.results[0], packet.receipt)) throw new Error('Revision already exists with different projection bytes');
+    await assertStoredProjection(db, packet);
     return 'already_imported';
   }
   const queries = projectionQueries(packet);
@@ -69,6 +81,7 @@ export async function importPublicProjection(db: CatalogD1, packet: ProjectionPa
   // this helper deliberately handles one small atomic proof packet only.
   if (queries.length > 40) throw new Error('Atomic projection proof packet exceeds 39 products');
   await db.batch(queries.map((item) => db.prepare(item.sql).bind(...item.params)));
+  await assertStoredProjection(db, packet);
   return 'imported';
 }
 function publicRows(rows: { public_display_json: string }[], now: Date): PublicCatalogProduct[] {
