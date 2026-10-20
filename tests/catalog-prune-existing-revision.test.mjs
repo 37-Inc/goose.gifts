@@ -157,6 +157,15 @@ test('independent vector visibility gates the real build request; provider failu
   assert.equal(replay.state,'existing'); assert.equal(replay.owner.epoch,2);
   assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,1);
 });
+test('lost settlement response recovers the exact queued build without another epoch or duplicate operation', async t => {
+  const f = await setup(t); const prepared = await f.prune();
+  f.after(statements => { if (statements.some(s => s.query.startsWith('INSERT INTO catalog_build_requests'))) { f.after(undefined); f.loseResponse(); } });
+  await assert.rejects(settlePrunedRevision(f.db,prepared.owner,prepared.revision,f.proof),/prune_failed/);
+  const owner = await readMutationOwner(f.db,scope); assert.equal(owner.epoch,2);
+  const replay = await settlePrunedRevision(f.db,owner,prepared.revision,f.proof);
+  assert.equal(replay.state,'existing'); assert.equal(replay.owner.epoch,2);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,1);
+});
 test('tampered retry payload/current facts/prior/deadline cannot reconcile a new revision', async t => {
   const f = await setup(t); const prepared = await f.prune();
   const modified = structuredClone(prepared.revision); modified.snapshot.products[0].title = 'Changed packet';

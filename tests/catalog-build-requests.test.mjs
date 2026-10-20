@@ -6,7 +6,7 @@ import { enqueueBuildRequest, encodeBuildRequest, claimBuildRequest, failBuildRe
 import { createProjectionPacket, importPublicProjection } from '../lib/catalog/d1.ts';
 import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication } from '../lib/catalog/publication.ts';
 import { createFreshnessCheck } from '../workers/site/freshness.ts';
-import { claimMutationOwnership, releaseMutationOwnership } from '../lib/catalog/mutation-fence.ts';
+import { claimMutationOwnership, readMutationOwner, releaseMutationOwnership } from '../lib/catalog/mutation-fence.ts';
 
 const NOW = Date.parse('2026-10-20T12:00:00.000Z');
 const SOURCE = 'b'.repeat(64); const FACTS = 'f'.repeat(64);
@@ -284,5 +284,20 @@ test('ownership epoch drift during readback cannot partially enter activation', 
     },f.now(),owner));
     assert.equal(f.row().state,'building');
     assert.equal(f.sqlite.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'freezing');
+  } finally { f.close(); }
+});
+test('lost owned activation response is recovered from exact stored identity, never by expiry or a second permit', async () => {
+  const f = await setup();
+  try {
+    const claim = await f.build(); const publication = await f.publication(); const { scope, owner } = await enableOwnership(f);
+    const uncertainDb = { ...f.db, async batch(statements) { await f.db.batch(statements); throw new Error('unknown D1 response'); } };
+    await assert.rejects(beginBuildActivation(uncertainDb,claim,f.snapshot,publication,'uploaded-version',async () => f.before,f.now(),owner),/unknown D1/);
+    assert.equal(f.row().state,'activating');
+    await assert.rejects(beginBuildActivation(f.db,claim,f.snapshot,publication,'uploaded-version',async () => f.before,f.now(),owner),/fenced/);
+    const permit = { requestId:claim.requestId,token:claim.token,runReference:claim.runReference,
+      releaseId:f.intent.releaseId,versionReference:'uploaded-version',mutationOwner:await readMutationOwner(f.db,scope) };
+    await assert.rejects(resolveBuildActivation(f.db,permit,async () => ({ ...f.before,settled:false })),/uncertain/);
+    assert.equal(await resolveBuildActivation(f.db,permit,async () => f.before),'not_activated');
+    assert.equal(f.sqlite.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
   } finally { f.close(); }
 });
