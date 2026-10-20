@@ -41,6 +41,8 @@ export const TYPED_TIMESTAMP_COLUMNS: Record<string, string[]> = {
   product_slug_history: ['created_at'], catalog_runs: ['started_at', 'completed_at'],
   catalog_run_items: ['created_at'], catalog_editorial_events: ['created_at'], search_queries: ['created_at'],
 };
+const HISTORICAL_NULLABLE = new Set(['products.created_at', 'products.updated_at', 'products.last_verified_at',
+  'products.availability_checked_at', 'catalog_editorial_events.created_at', 'search_queries.created_at']);
 export function sha256(value: string): string { return createHash('sha256').update(value).digest('hex'); }
 
 /** Exact decimal arithmetic. Unsupported currency precision is an explicit review gate. */
@@ -81,12 +83,26 @@ export function canonicalTimestamp(value: unknown, decision?: TimestampDecision)
 function time(row: Row, table: string, column: string, options: ConversionOptions, required = false): string | null {
   const decision = options.timestamps[`${table}.${column}`];
   if (decision?.timezone === 'unresolved') {
-    if (table !== 'products' || column !== 'created_at' || !decision.evidence.trim()) throw new Error('Unresolved timestamp is permitted only for products.created_at with evidence');
+    if (!HISTORICAL_NULLABLE.has(`${table}.${column}`) || !decision.evidence.trim()) throw new Error('Unresolved timestamp requires an approved historical nullable column and evidence');
+    if (row[column] !== null && row[column] !== undefined && /(?:Z|[+-]\d\d(?::?\d\d)?)$/.test(String(row[column]))) throw new Error('An explicit instant cannot be discarded as unresolved');
+    // Validate the wall-time syntax/calendar without using this synthetic instant.
+    // This never supplies a normalized value or evidence about the source timezone.
+    canonicalTimestamp(row[column], { timezone: 'UTC', evidence: 'Syntax validation only; result discarded' });
     return null; // The unmodified original is retained in source_record_json.
   }
   const value = canonicalTimestamp(row[column], decision);
   if (required && value === null) throw new Error(`Missing ${table}.${column}`);
   return value;
+}
+function timestampProvenance(table: string, row: Row, options: ConversionOptions): string {
+  return canonicalJson({ schemaVersion: 1, sourceArchive: options.archiveId, fields: Object.fromEntries(
+    TYPED_TIMESTAMP_COLUMNS[table].map((column) => {
+      const value = row[column]; const decision = options.timestamps[`${table}.${column}`];
+      if (value === null || value === undefined) return [column, { state: 'source_null' }];
+      if (decision?.timezone === 'unresolved') return [column, { state: 'unresolved', evidence: decision.evidence }];
+      return [column, { state: 'evidenced', basis: /(?:Z|[+-]\d\d(?::?\d\d)?)$/.test(String(value)) ? 'explicit_offset' : 'documented_utc_writer',
+        evidence: decision?.evidence || 'Explicit offset in protected source timestamp' }];
+    })) });
 }
 function bool(value: unknown): number {
   if (value === true) return 1;
@@ -113,21 +129,26 @@ export function destinationFor(table: string): { kind: 'd1' | 'archive'; table: 
 export function convertSourceRow(table: typeof RUNTIME_TABLES[number], row: Row, options: ConversionOptions): Row {
   const sourceRecord = { ...row };
   if (table === 'products') delete sourceRecord.embedding; // Original vectors have a separate protected artifact.
-  const base: Row = { source_record_json: canonicalJson(sourceRecord) };
+  const base: Row = { source_record_json: canonicalJson(sourceRecord),
+    ...(['products', 'catalog_editorial_events', 'search_queries'].includes(table)
+      ? { timestamp_provenance_json: timestampProvenance(table, row, options) } : {}) };
   const id = table === 'product_slug_history' ? '' : requiredString(row.id, 'id');
   if (table === 'products') {
     const currency = requiredString(row.currency, 'currency');
     const publicId = requiredString(row.public_id, 'public_id');
     const display = options.publicDisplay ? validatePublicCatalogProduct(options.publicDisplay, options.now || new Date()) : undefined;
     if (display && (display.id !== id || display.publicId !== publicId || display.slug !== row.slug)) throw new Error('Display identity mismatch');
+    const availability = time(row, table, 'availability_checked_at', options);
+    const verified = time(row, table, 'last_verified_at', options);
+    if (display && !availability && !verified) throw new Error('Public display requires an evidenced verification instant');
     return { ...base, id, public_id: publicId, slug: requiredString(row.slug, 'slug'), source: row.source,
       // FTS contains approved display copy only; no stale merchant text is searchable.
       title: display?.title || '', description: display?.description || '', tags: display?.humorTags?.join(' ') || '',
       price_minor: moneyToMinor(row.price, currency), currency, quality_score: score(row.quality_score),
       is_active: bool(row.is_active), duplicate_of_product_id: row.duplicate_of_product_id ?? null,
       editorial_status: row.editorial_status, availability_status: row.availability_status ?? null,
-      availability_checked_at: time(row, table, 'availability_checked_at', options),
-      last_verified_at: time(row, table, 'last_verified_at', options),
+      availability_checked_at: availability,
+      last_verified_at: verified,
       source_facts_hash: row.source_facts_hash ?? null, editorial_source_hash: row.editorial_source_hash ?? null,
       embedding_text_hash: row.embedding_text_hash ?? null, catalog_revision: options.catalogRevision,
       eligible_until: display?.eligibleUntil || null, public_display_json: display ? canonicalJson(display) : null,
@@ -259,8 +280,21 @@ export async function upsertProductAndQueueVector(db: CatalogD1, product: Row, e
 }): Promise<void> {
   if (product.public_id !== event.publicId || product.catalog_revision !== event.revision
     || !/^[a-f0-9]{64}$/.test(event.embeddingTextHash)) throw new Error('Outbox identity/revision mismatch');
+  const utc = (value: unknown) => {
+    if (typeof value !== 'string' || !value.endsWith('Z')) throw new Error('Future writes require explicit UTC instants');
+    canonicalTimestamp(value);
+  };
+  utc(event.createdAt); utc(product.updated_at);
+  for (const column of ['created_at', 'last_verified_at', 'availability_checked_at']) {
+    if (product[column] !== null && product[column] !== undefined) utc(product[column]);
+  }
+  if (product.public_display_json && !product.availability_checked_at && !product.last_verified_at) throw new Error('Public display requires an evidenced verification instant');
   const columns = Object.keys(product);
   if (!columns.includes('id') || columns.some((key) => !/^[a-z_]+$/.test(key))) throw new Error('Invalid product columns');
+  if (product.created_at === null || product.created_at === undefined) {
+    const existing = await db.prepare('SELECT created_at FROM products WHERE id=?').bind(product.id).all<{ created_at: string | null }>();
+    if (existing.results.length !== 1 || existing.results[0].created_at !== null) throw new Error('Only an existing unresolved creation instant may remain NULL; new products require UTC creation');
+  }
   const updates = columns.filter((key) => key !== 'id').map((key) => `${key}=excluded.${key}`).join(',');
   await db.batch([
     db.prepare(`INSERT INTO products (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})

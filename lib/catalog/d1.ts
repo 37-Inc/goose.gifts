@@ -12,6 +12,7 @@ export interface ProjectionPacket {
 }
 export interface ProjectionQuery { sql: string; params: unknown[] }
 const CURRENT_READY = `p.is_active=1 AND p.duplicate_of_product_id IS NULL AND p.quality_score>=0.55
+  AND COALESCE(p.availability_checked_at,p.last_verified_at) IS NOT NULL
   AND upper(p.availability_status) IN ('IN_STOCK','IN_STOCK_SCARCE','INSTOCKSCARCE','AVAILABLE_DATE','LEADTIME','PREORDER')
   AND p.editorial_status IN ('generated_ready','manual_locked')
   AND p.source_facts_hash IS NOT NULL AND p.source_facts_hash=p.editorial_source_hash

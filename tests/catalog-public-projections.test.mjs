@@ -22,6 +22,7 @@ async function setup() {
     availability_status,source_facts_hash,editorial_source_hash,catalog_revision,eligible_until,rights_json,source_record_json,updated_at,public_display_json)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run('B000000001', PUBLIC_ID, 'funny-button', 'amazon', 'current operational title', 'USD', .8, 1,
       'generated_ready', 'IN_STOCK', HASH, HASH, 'operational-newer', new Date(NOW.getTime() + 2 * 86400_000).toISOString(), '{}', '{}', NOW.toISOString(), JSON.stringify(snapshot('operational').products[0]));
+  sqlite.prepare('UPDATE products SET availability_checked_at=?').run(NOW.toISOString());
   const db = { prepare(sql) { let values = []; return {
     bind(...parameters) { values = parameters; return this; },
     async all() { return { results: sqlite.prepare(sql).all(...values).map((row) => ({ ...row })) }; },
@@ -102,6 +103,7 @@ test('partial projection stays invisible and an incomplete receipt cannot activa
 
 test('current operational holds, factual changes and deadline expiry override both revisions', async () => {
   for (const update of ["is_active=0", "duplicate_of_product_id='winner'", "availability_status='OUT_OF_STOCK'",
+    'availability_checked_at=NULL,last_verified_at=NULL',
     "quality_score=0.1", "editorial_status='stale'", "public_display_json=NULL", `source_facts_hash='${'c'.repeat(64)}',editorial_source_hash='${'c'.repeat(64)}'`]) {
     const fixture = await setup();
     try {
