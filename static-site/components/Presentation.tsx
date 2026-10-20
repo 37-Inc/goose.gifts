@@ -20,7 +20,10 @@ export function Presentation({
         event.metaKey ||
         event.ctrlKey ||
         (event.target instanceof HTMLElement &&
-          ["INPUT", "TEXTAREA", "BUTTON", "A"].includes(event.target.tagName))
+          (["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName) ||
+            event.target.isContentEditable ||
+            (event.key === " " &&
+              ["BUTTON", "A"].includes(event.target.tagName))))
       )
         return;
       if (["ArrowRight", "PageDown", " "].includes(event.key)) {

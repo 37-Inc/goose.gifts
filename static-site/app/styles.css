@@ -628,7 +628,7 @@ body:has(.presentation-main) > .preview-notice {
 }
 @media (min-width: 1001px) {
   .opening-grid .lead-card .product-art {
-    aspect-ratio: 1.5;
+    aspect-ratio: 1.65;
   }
 }
 @media (max-width: 1000px) {
