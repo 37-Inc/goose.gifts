@@ -36,8 +36,19 @@ historical rows. No digest, freshness or ownership check was weakened.
 Uncertain phase execution and a corrupt partial build still stop for review;
 they are not advertised as automatically recoverable.
 
-Final integrated test totals and disposable-provider evidence are recorded
-after execution. This local composition is not full-catalog, real merchant,
+At source `f5e5a63`, the integrated suite passed 515 tests with nine explicit
+optional skips; 88 existing regressions, types, lint and the production build
+also passed. The first actual disposable-provider run reached the version
+upload but did not publish: Cloudflare requires an initial deployment before
+`versions upload`. It made one upload command and zero activation requests.
+The scratch Worker was confirmed absent, the exact D1 database and Vectorize
+index were removed, and starting inventories reconciled. Retain the failed receipt
+`protected-publication-canary-VD8vEn/receipt.json`, SHA-256
+`6ab413da49bc65541b4952ee437bdc276b720c9faca1cc4af1c0ee418ca5ef83`;
+it is not a publication success. The remedy is an independently verified,
+operator-established catalog baseline, not an automatic deploy fallback.
+
+This local composition is not full-catalog, real merchant,
 hosted scheduler, production cutover or cost/headroom acceptance. The bounded
 twenty-ID proof and private artifact size limits still require full-catalog
 capacity work. No new merchant refresh cadence, public DNS, paid plan,

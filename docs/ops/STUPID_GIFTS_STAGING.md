@@ -473,7 +473,14 @@ an expected pause awaiting review is a successful command, not a publication.
 
 The concrete publisher uses separate `wrangler versions upload` and
 deployment activation, with staging auth already provisioned on the exact
-Worker. Wrangler may internally retry an immutable upload; duplicate matching
+Worker and a previously verified catalog release. First deployment is an
+explicit operator step: build and deploy a protected baseline, independently
+verify its active version, package identity and vector state, then record its
+publication receipt. Never fabricate a prior receipt or treat an unrelated
+inert Worker as a catalog release. The weekly path does not fall back to
+`wrangler deploy` when a Worker is missing.
+
+Wrangler may internally retry an immutable upload; duplicate matching
 version tags require review. The executor never repeats that command on resume
 and the actual activation POST is not retried.
 It creates no routes, custom domains, schedules or paid resources,
