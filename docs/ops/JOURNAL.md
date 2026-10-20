@@ -5,6 +5,32 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 afternoon — Sheep seven-day checkpoint; cohort remains frozen
+
+AssignedP; P6/F6,total12 cap forbids new creative/approval/publication. Verified
+correct production account,28 retained public Pins,all12 exact packages and
+durable receipt boards; no unresolved receipt or new success today. Native
+P1322impressions/21opens/3saves/2outbound,F302/5/1/0; profile3516/53/7/2.
+No additional native outbound since AM. Bowling97.88%P and toast85.10%F
+exposure; no demonstrated format or qualified-site/retailer conversion winner.
+
+Sheep7day first eligible PM observation2026-10-20T23:34:02.495Z is zero native
+distribution/actions, late3h26m53.159s after exact20:07:09.336UTC gate. Actual
+lifetime values, not reconstructed exact-age history. Public Pin200, exact
+package/receipt-board and tracked canonical200/query/retailer CTA verify.
+Keep measuring/public/originalF membership; no replacement/repost/deletion.
+28day exact gateNov10T20:07:09.336Z. GA4Oct14–20partial509direct+1not-set,
+two engaged direct; PostHog5page/7list/1search. No attributed Pinterest/retailer
+row; downstream unknown. All12 tracked destinations healthy,tenindex-follow/
+two existing Chia/Bowling editorial holds; no catalog/site/requeue work.
+
+14 validated append-only events, v34 PM metrics/destinations and sheep7day
+receipts preserve evidence. Next spider7day exact gateOct21T16:42:53.716Z;
+no early closure. Existing ACTIVE schedule, twelve memberships, generation/
+posting freeze and exact October31 full-review gate unchanged; review not
+delivered. Queue empty, rename held; no new Bead/account/Pin changes or spend.
+Unchanged acquisition status/checkpoint needs no repeated owner notification.
+
 ## 2026-10-20 morning — Pinterest's first native outbound signal; cohort frozen
 
 AssignedF, completedP6/F6,total12 means no new creative/approval/publication.

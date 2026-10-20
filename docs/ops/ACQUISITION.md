@@ -86,16 +86,16 @@ Posting or sending remains approval-gated.
 
 ### 4. Native social series
 
-**Current Pinterest measurement (October20 morning):**28 retained public Pins,
-3,302 impressions,50 opens,seven saves and two native outbound clicks. Six
+**Current Pinterest measurement (October20 afternoon):**28 retained public Pins,
+3,516 impressions,53 opens,seven saves and two native outbound clicks. Six
 separately owner-authorized pre-v11 retirements change profile membership,
 not the unchanged twelve-member cohort; do not compare raw34-versus28 totals
 as traffic regression. V11 is complete at six Pins per arm:
-P1,150impressions/18opens/3saves/2outbound,F291/5/1/0outbound.
+P1,322impressions/21opens/3saves/2outbound,F302/5/1/0outbound.
 Both outbound clicks are on mini bowling and independently read back twice;
 its public Pin and tracked destination200/query-preserved. This is native
 platform evidence, not corroborated human/site/retailer conversion or sales.
-Bowling supplies97.74%ofP exposure; product/age/concentration
+Bowling supplies97.88%ofP exposure; product/age/concentration
 confounds and unknown attributable site/retailer actions preclude a format or
 acquisition winner. The final birthday-hat poster is production-published/
 readback-verified and links to its canonical gift page for snapback/reuse/adult
@@ -105,6 +105,17 @@ with no generation/publication even after review until a new owner-authorized
 experiment. First regular eligible review slot:October31 16:30Pacific. Current
 GA4/PostHog reads retain unknown downstream, not historic DB/Vercel zeros.
 All twelve memberships/receipts and review-delivery state: `PINTEREST_STUDIO.md`.
+
+October20 PM: no further native outbound since AM. Sheep's first eligible7day
+observation23:34:02.495UTC records zero native distribution/actions, actual
+late3h26m53.159s; public Pin/tracked page200/query intact/retailer CTA, stays
+measuring. Not a format or creative verdict. GA4Oct14–20partial509direct+
+1not-set sessions,two engaged direct; PostHog5page/7list/1search. No attributed
+Pinterest/retailer row; downstream unknown. All12 tracked destinations healthy,
+tenindex-follow/two existing editorial holds.14 validated events preserve
+routine measurement only. Next spider7day exact gateOct21T16:42:53.716Z;
+full review/ACTIVE schedule/freeze unchanged. No new creative, approval,
+publication, deletion, rename or catalog/site implementation.
 
 October20 AM bounded GA4property507421709 Oct14–20partial:369direct+1not-set
 sessions,one engaged direct,no Pinterest/retailer row. PostHog550427:

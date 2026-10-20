@@ -29,7 +29,7 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-20 morning):** ACTIVE, measurement-only.
+**Current scheduler state (2026-10-20 afternoon):** ACTIVE, measurement-only.
 The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,
 twelve of twelve. Generation and public posting are disabled for this cohort;
 no new creative or publication, even after review, without a new explicit owner
@@ -37,8 +37,8 @@ experiment. Existing two daily slots remain unchanged. The exact receipt-derived
 full-cohort review deadline is **2026-10-31T16:44:52.279Z**; first regular
 eligible slot October31 at4:30PM Pacific. All twelve membership/receipt records
 and one-time review-delivery state are linked from `PINTEREST_STUDIO.md`.
-Current retained profile:28 verified public Pins,3,302 impressions,50 opens,
-seven saves,two native outbound. P1150/18/3/2 and F291/5/1/0
+Current retained profile:28 verified public Pins,3,516 impressions,53 opens,
+seven saves,two native outbound. P1322/21/3/2 and F302/5/1/0
 (impressions/opens/saves/outbound). Both outbound clicks are on mini bowling,
 independently read back twice: an encouraging product-level signal, not a
 format winner or corroborated human/site/retailer conversion. Six separately
@@ -59,8 +59,8 @@ and Sandbox/v3 are never current acquisition evidence.
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
    versus bespoke annotated field notes. Twelve are live—six Arm F and six Arm
-   P. They have 1,441 impressions,23 opens,four saves and two native outbound
-   clicks at the October20 morning check; both outbound clicks are bowling.
+   P. They have 1,624 impressions,26 opens,four saves and two native outbound
+   clicks at the October20 afternoon check; both outbound clicks remain bowling.
    The birthday hat remains at zero distribution/actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
@@ -78,6 +78,35 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-20 afternoon — sheep seven-day checkpoint; no new outbound
+
+AssignedP, completedP6/F6,total12 cap stays frozen. No shortlist, creative,
+approval,dryrun or publication. Native P1322impressions/21opens/3saves/2outbound;
+F302/5/1/0outbound. Bowling1294/19/3/2 supplies97.88%P exposure; Toast257/3/1/0
+supplies85.10%F. Without them P28/2/0/0,F45/2/0/0. No additional outbound since
+AM, no format winner or corroborated site/retailer conversion.28 retained
+profile3516/53/7/2, all12 exact package/receipt-board reads verify, no unresolved
+receipt. Retired legacy IDs excluded before fetch; historical evidence intact.
+
+Sheep's first eligible7day observation2026-10-20T23:34:02.495Z is zero native
+distribution/actions, late3h26m53.159s after its exact20:07:09.336UTC gate.
+Record actual lifetime values, not invented equal-age history. Public Pin200,
+tracked canonical page200/query preserved/retailer CTA. Keep measuring with
+original F membership; distribution-limited, not creative failure or replacement
+credit. [Seven-day receipt](pinterest-creative-lab/v34-concepts/verification/sheep-7day-20261020-pm.json).
+
+GA4explicit507421709 Oct14–20Pacific partial509direct+1not-set sessions,
+two engaged direct; PostHog5504275page/7list/1search. No attributed Pinterest/
+retailer row; downstream unknown. All12 tracked destinations200/self-canonical/
+query-preserved/retailer-linked,tenindex-follow/two existing Chia/Bowling holds.
+No catalog/page/source/requeue or account/rename action.14 validated append-only
+events and v34 PM evidence retain the cap-driven no-op. Next spider7day exact
+gate2026-10-21T16:42:53.716Z; first observation at/after, never early. Exact
+October31 review gate and ACTIVE schedule unchanged; final review not delivered,
+queue empty,no new experiment or creative/publication even after review until
+Cameron explicitly authorizes one. This routine unchanged-acquisition update
+does not require a new owner notification.
 
 ### 2026-10-20 morning — first native outbound signal; cohort still frozen
 
