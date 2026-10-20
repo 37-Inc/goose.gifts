@@ -5,6 +5,47 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Merged release, live search budget and real retention expiry
+
+PR #193 merged as `e082ba82c60ccb1e723f145119b71c7a693893ad`.
+The exact source was rebuilt and independently published to protected staging.
+`publication-proof-oJRj6E/receipt.json` SHA-256:
+`96e7a0397fc45225ae28ed56eda334710042b66223b5453cb1ccb6f7caf2a3e4`.
+Four real semantic requests used exactly four shared allocations and 174
+reserved token units. Semantic search was then disabled again, verified in
+provider settings and the unchanged live release identity; final Worker
+version `93e9546a-2596-47a8-b7d1-5fec23848d59`.
+`semantic-budget-proof-ag6tWS/receipt.json` SHA-256:
+`0b924b1064fbc68cf36247e0d2a6ccf59d2fda68e3163622e5533e7eebc6c6eb`.
+This proves the bounded four-product path, not full-catalog search relevance.
+
+Seventeen live route/asset checks passed, with authentication/noindex/no-store
+intact. Retired gift-ID routes remain 404. An old chunk and its encoded alias
+matched the retained bytes before the overlap deadline and the exact safe
+fallback after its real 08:51:52 UTC expiry; no test clock was injected into
+production. Desktop and 390px mobile screenshots were inspected, with no
+horizontal overflow or missing visible images. Evidence:
+`pr193-live-readback.json` and `pr193-retained-expiry-readback.json`.
+Vercel production `dpl_5vk7mZVR1LXCG2U1USEDu3rp852J` is READY at the same SHA;
+public Goose pages remain healthy.
+
+Migration 0008 applied atomically to staging only. Ten inventoried table counts
+remained unchanged, integrity/index checks passed, and no vector operation was
+queued or dispatched. Receipt `vector-delete-schema-xF78BC/receipt.json`
+SHA-256: `7d73015acb3601f91360fe2d0e919d5f91e362ba7a1324c2ed34834982684d97`.
+The main checkout is clean at the merged commit, with its code graph refreshed.
+Neon remains the production writer; no scheduler, domain, provider branding,
+paid-plan or retirement action occurred.
+
+Independent follow-up review reproduced a cached-search deadline race across
+asynchronous hashing, then added the narrow fix and regression coverage. It
+also corrected three guide/Weird Index identity labels that ignored explicit
+Goose production mode. Forty-eight focused tests pass on the integration branch.
+Dependency audit findings predate this migration: nine development/build
+entries and a production DOMPurify warning through PostHog. The inspected SDK
+call does not use the advisory's `IN_PLACE` mode; that is not a blanket claim
+that every dependency is vulnerability-free. No force-upgrade was performed.
+
 ## 2026-10-20 — Protected runtime release and independent snapshot readback
 
 PR #192 merged as `fd2daff4e05909a60563c2d89f0fe0e0c082e5dd`.

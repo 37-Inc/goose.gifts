@@ -212,6 +212,10 @@ sealing; the source SHA cannot silently label a dirty build. None of these
 seams activates a D1 writer or scheduler:
 the shared writer/index fence, recurring publisher and full-catalog acceptance
 remain open. Public Goose and the existing Neon weekly job are unchanged.
+The merged release was then live-verified on protected Cloudflare and Vercel.
+Four bounded real searches passed shared-budget accounting before semantic
+search was disabled again. Old asset URLs switched to their safe fallback
+after the actual retention deadline; desktop/mobile previews passed.
 
 ### 2026-10-20 early morning [owner+claude] — Prove publication and continue the staged migration
 
