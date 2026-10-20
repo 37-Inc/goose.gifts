@@ -13,15 +13,15 @@ const table = { schema: 'public', name: 'products', file: '000.ndjson', rowCount
   columns: [ ['id', 'text', false], ['public_id','uuid',false], ['slug','character varying(160)',false],
     ['amount','numeric(10,2)',true], ['created_at','timestamp without time zone',true],
     ['checked_at','timestamp with time zone',true], ['tags','text[]',true], ['details','jsonb',true],
-    ['active','boolean',false], ['embedding','vector(1536)',true] ].map(([name,type,nullable]) => ({ name,type,nullable,default: null })),
+    ['active','boolean',false], ['embedding','vector(1536)',true],['sequence_id','bigint',true] ].map(([name,type,nullable]) => ({ name,type,nullable,default: null })),
   constraints: [{ name: 'products_pkey', definition: 'PRIMARY KEY (id)' }],
   indexes: [{ name: 'products_pkey', definition: 'CREATE UNIQUE INDEX products_pkey ON public.products USING btree (id)' }] };
 table.columnEncodings = Object.fromEntries(table.columns.map((c) => [c.name,c.name === 'embedding' ? 'pgvector-send-base64-v1' : c.type === 'boolean' ? 'json-boolean' : 'postgres-text']));
 const rows = [ { id: 'SYNTHETIC-TEST-1', public_id: '00000000-0000-4000-8000-000000000001', slug: 'synthetic-one', amount:'0.00',
   created_at:'2026-10-19 08:31:55.123456', checked_at:'2026-10-20 06:00:00+00', tags:'{"comma,value","quote\\\"value",NULL}',
-  details:'{"a": 1, "private": "Synthetic fixture only"}', active:false, embedding },
+  details:'{"a": 1, "private": "Synthetic fixture only"}', active:false, embedding,sequence_id:'5' },
 { id:'SYNTHETIC-TEST-2', public_id:'00000000-0000-4000-8000-000000000002', slug:'synthetic-two', amount:null,
-  created_at:null, checked_at:null, tags:null, details:null, active:true, embedding:null } ];
+  created_at:null, checked_at:null, tags:null, details:null, active:true, embedding:null,sequence_id:null } ];
 
 test('native COPY binary preserves vector header/bits, ordinal int64 and NULL without decimal conversion', () => {
   const bytes = nativeVectorCopy(rows, 'embedding');
@@ -65,7 +65,7 @@ test('native audit rejects unreviewed visibility, inheritance, extension and fun
 });
 
 test('optional fresh network-none PG17 container restores synthetic native types and byte-exact float32', {skip:process.env.CATALOG_RECOVERY_TEST_NATIVE !== '1'}, async () => {
-  const parent = await mkdtemp(join(tmpdir(),'sg-native-recovery-test-')); const directory = join(parent,'export');
+  const parent = await mkdtemp(join(process.env.CATALOG_RECOVERY_TEST_EVIDENCE_PARENT||tmpdir(),'sg-native-recovery-test-')); const directory = join(parent,'export');
   const {mkdir} = await import('node:fs/promises'); await mkdir(directory,{mode:0o700});
   const tables = [structuredClone(table), ...Array.from({length:12},(_,i)=>({schema:'public',name:`synthetic_archive_${i}`,file:`${String(i+1).padStart(3,'0')}.ndjson`,rowCount:0,sha256:sha256(''),
     columns:[{name:'id',type:'text',nullable:false,default:null}],columnEncodings:{id:'postgres-text'},
@@ -73,20 +73,50 @@ test('optional fresh network-none PG17 container restores synthetic native types
     indexes:[{name:`synthetic_archive_${i}_pkey`,definition:`CREATE UNIQUE INDEX synthetic_archive_${i}_pkey ON public.synthetic_archive_${i} USING btree (id)`}]}))];
   const text = rows.map(JSON.stringify).join('\n')+'\n'; tables[0].sha256=sha256(text);
   const sequence = {schemaname:'public',sequencename:'synthetic_sequence',data_type:'bigint',increment_by:'3',min_value:'5',max_value:'101',start_value:'5',cache_size:'1',cycle:false,last_value:'11'};
-  const manifest = {schemaVersion:1,mode:'https-repeatable-read-single-transaction',settings:{isolation:'repeatable read',readOnly:'on'},totalBytes:Buffer.byteLength(text),tables,
-    sequences:[sequence,{...sequence,sequencename:'synthetic_unstarted_sequence',last_value:null}]};
+  const settings={isolation:'repeatable read',readOnly:'on',database:'test-only',snapshot:'fixture-original',observedAt:'2026-10-20T05:00:00Z',serverVersion:'17.11 (synthetic fixture)'};
+  const manifest = {schemaVersion:1,mode:'https-repeatable-read-single-transaction',settings,totalBytes:Buffer.byteLength(text),tables,
+    sequences:[sequence,{...sequence,sequencename:'synthetic_unstarted_sequence',max_value:'9223372036854775807',last_value:null}]};
   let passed=false;
   try {
     for (let i=0;i<tables.length;i++) await writeFile(join(directory,tables[i].file),i===0?text:'',{mode:0o600});
     const raw = JSON.stringify(manifest)+'\n'; const manifestSha=sha256(raw);
     await writeFile(join(directory,'manifest.json'),raw,{mode:0o600}); await writeFile(join(directory,'manifest.sha256'),manifestSha+'  manifest.json\n',{mode:0o600});
-    const metadata=JSON.stringify(audit(tables))+'\n'; const auditPath=join(parent,'audit.json'); await writeFile(auditPath,metadata,{mode:0o600});
-    const result = await runNativeRecovery({archive:directory,expectedManifestSha256:manifestSha,audit:auditPath,expectedAuditSha256:sha256(metadata),workParent:parent});
+    const auditBytes=JSON.stringify(audit(tables))+'\n'; const auditPath=join(parent,'audit.json'); await writeFile(auditPath,auditBytes,{mode:0o600});
+    const result = await runNativeRecovery({archive:directory,expectedManifestSha256:manifestSha,audit:auditPath,expectedAuditSha256:sha256(auditBytes),workParent:parent});
     assert.equal(result.receipt.status,'passed'); assert.equal(result.receipt.resourcesRemoved,true); assert.equal(result.receipt.vectorCount,1);
     assert.equal(result.receipt.functionsReconciled,2); assert.equal(result.receipt.triggersReconciled,2);
     assert.equal(result.receipt.observedSequencesReconciled,2);
+    assert.equal(result.receipt.recoveryMetadata,null);
+    assert.equal(result.receipt.versionComparison.classification,'same-major-different-minor');
+    assert.match(result.receipt.limitations[1],/original is_called.*were not captured/);
     assert.equal(JSON.stringify(result.receipt).includes('Synthetic fixture only'),false);
     assert.equal(JSON.parse(await readFile(result.receiptPath,'utf8')).reconciledTables.length,13);
+    for (const modes of [['O','D'],['R','A']]) {
+      const metadata={schemaVersion:1,binding:{kind:'later-observation',archiveManifestSha256:manifestSha,
+        archiveSnapshot:settings.snapshot,archiveObservedAt:settings.observedAt},
+        source:{...settings,observedAt:'2026-10-20T06:00:00Z',serverVersionNum:'170011'},
+        sequences:manifest.sequences.map((s,index)=>{const {schemaname,sequencename,last_value,...configuration}=s;void last_value;
+          return{schema:schemaname,name:sequencename,configuration,lastValue:index===0?'11':'9007199254740993',isCalled:false,
+            ownedBy:index===0?[{schema:'public',table:'products',column:'sequence_id',dependency:'a'}]:[]};}),
+        triggers:audit(tables).triggers.map((t,index)=>({schema:t.schema_name,table:t.relname,name:t.tgname,definition:t.definition,enabled:modes[index]})),
+        aclEvidence:{database:{acl:'Synthetic evidence only'},schemas:[],relations:[],columns:[],functions:[],defaultPrivileges:[]},
+        settingsEvidence:{session:{TimeZone:'Synthetic value must NOT be applied'},databaseRole:[]},
+        sequenceConsistency:'nontransactional-observations-not-a-write-barrier'};
+      const bytes=JSON.stringify(metadata)+'\n';const path=join(parent,`metadata-${modes.join('')}.json`);await writeFile(path,bytes,{mode:0o600});
+      const restored=await runNativeRecovery({archive:directory,expectedManifestSha256:manifestSha,audit:auditPath,expectedAuditSha256:sha256(auditBytes),
+        workParent:parent,metadata:path,expectedMetadataSha256:sha256(bytes)});
+      assert.equal(restored.receipt.status,'passed');assert.equal(restored.receipt.resourcesRemoved,true);
+      assert.equal(restored.receipt.recoveryMetadata.sequenceStatesReconciled,2);assert.equal(restored.receipt.recoveryMetadata.triggerModesReconciled,2);
+      assert.equal(restored.receipt.recoveryMetadata.aclSettingsReplayed,false);assert.equal(restored.receipt.recoveryMetadata.binding.kind,'later-observation');
+      assert.doesNotMatch(JSON.stringify(restored.receipt),/Synthetic value must NOT be applied|Synthetic evidence only/);
+      if(modes[0]==='O'){
+        const disguised={...metadata,binding:{...metadata.binding,kind:'same-transaction',archiveManifestSha256:null}};
+        const bytes=JSON.stringify(disguised)+'\n';const disguisedPath=join(parent,'disguised-original.json');await writeFile(disguisedPath,bytes,{mode:0o600});
+        await assert.rejects(runNativeRecovery({archive:directory,expectedManifestSha256:manifestSha,audit:auditPath,expectedAuditSha256:sha256(auditBytes),
+          workParent:parent,metadata:disguisedPath,expectedMetadataSha256:sha256(bytes)}),/never original-transaction/);
+      }
+    }
     passed=true;
-  } finally { if (passed) await rm(parent,{recursive:true,force:true}); }
+  } finally { if (passed && process.env.CATALOG_RECOVERY_TEST_KEEP!=='1') await rm(parent,{recursive:true,force:true});
+    else if(process.env.CATALOG_RECOVERY_TEST_KEEP==='1')console.log(JSON.stringify({nativeFixtureEvidence:parent})); }
 });
