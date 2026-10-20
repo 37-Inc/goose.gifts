@@ -16,6 +16,25 @@ export interface ReadOnlyHttpSource {
   query(sql: string): Promise<Array<Record<string, string>>>;
   transaction(queries: string[], options: { isolationLevel: 'RepeatableRead'; readOnly: true }): Promise<Array<Array<Record<string, string>>>>;
 }
+type HttpQuery = Promise<Array<Record<string, string>>>;
+type NeonHttpFactory = (connectionString: string) => {
+  (sql: string, params: unknown[]): HttpQuery;
+  transaction(queries: HttpQuery[], options: { isolationLevel: 'RepeatableRead'; readOnly: true }): Promise<Array<Array<Record<string, string>>>>;
+};
+
+/** The installed nested driver may be CommonJS wrapped under ESM default. */
+export function resolveNeonFactory(driver: unknown): NeonHttpFactory {
+  if (!driver || typeof driver !== 'object') throw new Error('Installed HTTPS driver module is unavailable');
+  const module = driver as { neon?: unknown; default?: { neon?: unknown } };
+  const factory = module.neon ?? module.default?.neon;
+  if (typeof factory !== 'function') throw new Error('Installed HTTPS driver does not export neon');
+  return factory as NeonHttpFactory;
+}
+export async function loadNeonHttpFactory(): Promise<NeonHttpFactory> {
+  const require = createRequire(import.meta.url);
+  const driverPath = require.resolve('@neondatabase/serverless', { paths: [dirname(require.resolve('@vercel/postgres'))] });
+  return resolveNeonFactory(await import(pathToFileURL(driverPath).href));
+}
 
 export const INVENTORY_SQL = `SELECT COALESCE(json_agg(t ORDER BY t.schema,t.name),'[]'::json)::text AS inventory FROM (
   SELECT n.nspname AS schema,c.relname AS name,c.relkind::text AS kind,c.relispartition AS partition,
@@ -176,9 +195,7 @@ async function main(argv: string[]) {
   const url = new URL(connectionString);
   if (!['postgres:', 'postgresql:'].includes(url.protocol) || !url.hostname.endsWith('.neon.tech')) throw new Error('Only the reviewed Neon HTTPS endpoint is supported');
   // Reuse the installed Vercel driver's HTTPS implementation, not its TCP client.
-  const require = createRequire(import.meta.url);
-  const driverPath = require.resolve('@neondatabase/serverless', { paths: [dirname(require.resolve('@vercel/postgres'))] });
-  const { neon } = await import(pathToFileURL(driverPath).href);
+  const neon = await loadNeonHttpFactory();
   const sql = neon(connectionString);
   if (typeof sql.transaction !== 'function') throw new Error('Installed HTTPS driver lacks transaction support');
   const source: ReadOnlyHttpSource = {

@@ -4,7 +4,8 @@ import { mkdtemp, readFile, stat, rm, chmod } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { DatabaseSync } from 'node:sqlite';
-import { assertProtectedDestination, collectConsistentExport, tableExportSql, writeProtectedExport } from '../scripts/catalog/export-postgres.ts';
+import { assertProtectedDestination, collectConsistentExport, loadNeonHttpFactory, resolveNeonFactory,
+  tableExportSql, writeProtectedExport } from '../scripts/catalog/export-postgres.ts';
 import { sha256 } from '../scripts/catalog/migration.ts';
 
 const tables = [{ schema: 'public', name: 'products', kind: 'r', partition: false,
@@ -15,6 +16,19 @@ const tables = [{ schema: 'public', name: 'products', kind: 'r', partition: fals
     columns: [{ name: 'id', type: 'uuid', nullable: false, default: null }], constraints: [], indexes: [] }];
 const dataRows = [[{ row: '{"id":"TEST-ONLY","price":"19.99","created_at":"2026-10-19 15:31:58.50259"}' }],
   [{ row: '{"id":"00000000-0000-4000-8000-000000000001"}' }]];
+
+test('HTTPS factory resolves named/default module shapes and the actual installed Vercel dependency without a source read', async () => {
+  const sentinel = () => {};
+  assert.equal(resolveNeonFactory({ neon: sentinel }), sentinel);
+  assert.equal(resolveNeonFactory({ default: { neon: sentinel } }), sentinel);
+  assert.throws(() => resolveNeonFactory({ default: {} }), /does not export neon/);
+  const neon = await loadNeonHttpFactory();
+  assert.equal(typeof neon, 'function');
+  // Construction is local; no query is created/awaited and no network call occurs.
+  const sql = neon('postgresql://test:unused@fixture-test-only.neon.tech/test');
+  assert.equal(typeof sql, 'function');
+  assert.equal(typeof sql.transaction, 'function');
+});
 function source({ settings = { isolation: 'repeatable read', readOnly: 'on', snapshot: '1:2:', timezone: 'GMT' }, actual = tables } = {}) {
   const stats = dataRows.map((rows) => [{ row_count: String(rows.length),
     wire_bytes: String(rows.reduce((sum, value) => sum + Buffer.byteLength(JSON.stringify(value.row)) + 32, 0)) }]);

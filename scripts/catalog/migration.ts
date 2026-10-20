@@ -64,6 +64,8 @@ export function canonicalTimestamp(value: unknown, decision?: TimestampDecision)
   const [year, month, day] = text.slice(0, 10).split('-').map(Number);
   const calendar = new Date(Date.UTC(year, month - 1, day));
   if (calendar.getUTCFullYear() !== year || calendar.getUTCMonth() !== month - 1 || calendar.getUTCDate() !== day) throw new Error('Invalid calendar date');
+  const [hour, minute, second] = text.slice(11, 19).split(':').map(Number);
+  if (hour > 23 || minute > 59 || second > 59) throw new Error('Invalid wall-clock time; normalization is not permitted');
   if (!/(?:Z|[+-]\d\d(?::?\d\d)?)$/.test(text)) {
     if (decision?.timezone !== 'UTC' || !decision.evidence.trim()) throw new Error('Naive timestamp lacks documented UTC writer semantics');
     text = `${text.replace(' ', 'T')}Z`;

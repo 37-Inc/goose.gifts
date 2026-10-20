@@ -74,6 +74,11 @@ test('timestamps preserve microseconds and require per-column writer evidence fo
   assert.equal(canonicalTimestamp('2026-10-19T08:31:58.502590-07:00'), '2026-10-19T15:31:58.502590Z');
   assert.equal(canonicalTimestamp(null), null);
   assert.throws(() => canonicalTimestamp('2026-02-30T00:00:00Z'), /calendar date/);
+  for (const value of ['2026-10-19T24:00:00Z', '2026-10-19 24:00:00.000',
+    '2026-10-19T25:00:00Z', '2026-10-19T23:60:00Z', '2026-10-19T23:59:60Z']) {
+    assert.throws(() => canonicalTimestamp(value, { timezone: 'UTC', evidence: 'test-only explicit semantics' }), /wall-clock time/);
+  }
+  assert.equal(canonicalTimestamp('2026-10-19T23:59:59.999999Z'), '2026-10-19T23:59:59.999999Z');
   const row = converted();
   assert.equal(row.updated_at, '2026-10-19T12:00:00.502590Z');
   assert.equal(JSON.parse(row.source_record_json).editorial_generated_at, '2026-10-19 08:31:55.596');
