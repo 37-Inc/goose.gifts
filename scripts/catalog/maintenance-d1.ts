@@ -105,16 +105,30 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
   const load = async (id: string): Promise<Loaded | null> => {
     const rows = await all(`${SELECT} WHERE p.id=?`, [id]); return rows[0] ? decode(rows[0]) : null;
   };
+  // Catalog views use semantic/presence evidence, never native vector bytes or
+  // their provenance. Exact point-load/write/CAS continues to use SELECT above.
+  const CATALOG_SELECT = `SELECT p.*,s.version maintenance_version,s.semantic_json maintenance_semantic,
+    s.embedding_present maintenance_present,NULL maintenance_native,NULL maintenance_provenance
+    FROM products p LEFT JOIN catalog_maintenance_products s ON s.product_id=p.id`;
   const catalog = async () => {
-    await checkOwner(); const values: Loaded[] = []; let after = ''; let bytes = 0;
+    await checkOwner(); const values: Loaded[] = []; let after = ''; let bytes = 0; let page = 10;
     for (;;) {
-      const rows = await all(`${SELECT} WHERE p.id>? ORDER BY p.id LIMIT 100`, [after]);
+      let rows: Row[];
+      try { rows = await all(`${CATALOG_SELECT} WHERE p.id>? ORDER BY p.id LIMIT ?`, [after,page]); }
+      catch (error) {
+        // Retry ONLY this read-only keyset query, without advancing its cursor.
+        // The transport retains unknown usage; success cannot erase that gap.
+        if (error instanceof Error && error.message === 'catalog_d1_result_unknown' && page > 1) {
+          page = Math.floor(page / 2); continue;
+        }
+        throw error;
+      }
       for (const row of rows) {
         bytes += Buffer.byteLength(canonicalJson(row));
         if (values.length >= 10000 || bytes > 64 * 1024 * 1024) throw new Error('maintenance_catalog_bound');
         values.push(decode(row));
       }
-      if (rows.length < 100) break; after = String(rows.at(-1)!.id);
+      if (rows.length < page) break; after = String(rows.at(-1)!.id);
     }
     await checkOwner(); return values;
   };
