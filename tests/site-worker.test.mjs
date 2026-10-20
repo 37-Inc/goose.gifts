@@ -101,6 +101,39 @@ test('explicit compatibility redirects preserve queries and reject pagination bo
   assert.equal((await fixture.request('/gifts/page/2')).status, 200);
 });
 
+test('known HTML trailing slashes redirect for GET/HEAD with only coarse campaign and bounded functional query', async () => {
+  const fixture = setup();
+  for (const method of ['GET', 'HEAD']) {
+    for (const path of ['/gifts', '/gifts/fart-button', '/gifts/page/2', '/howie', '/privacy', '/search']) {
+      const response = await fixture.request(`${path}/?utm_source=show&utm_medium=podcast&utm_campaign=episode&q=desk%20goat&page=2&gift=private&token=private&redirect=https://evil.test&gclid=private&utm_term=private`, { method });
+      assert.equal(response.status, 308, path);
+      assert.equal(response.headers.get('Location'), `${path}?utm_source=show&utm_medium=podcast&utm_campaign=episode&q=desk+goat&page=2`);
+      assert.equal(response.headers.get('Cache-Control'), 'no-store');
+      assert.equal(await response.text(), '');
+    }
+  }
+  assert.equal(fixture.calls.length, 0);
+  for (const page of ['0', '-1', '1.5', 'junk', '1'.repeat(129)]) assert.equal((await fixture.request(`/gifts/?page=${page}`)).status, 404);
+  const redirect = await fixture.request('/gifts/fart-button/');
+  fixture.advance(2400);
+  assert.equal(await (await fixture.request(redirect.headers.get('Location'))).text(), '/safe.html');
+  const post = await fixture.request('/gifts/', { method: 'POST' });
+  assert.equal(post.status, 405); assert.equal(post.headers.get('Location'), null);
+  const overlong = await fixture.request(`/howie/?q=${'a'.repeat(201)}&page=${'1'.repeat(129)}`);
+  assert.equal(overlong.headers.get('Location'), '/howie');
+});
+
+test('trailing slashes cannot revive retired gift IDs, API paths, unknown pages or data aliases', async () => {
+  const fixture = setup();
+  for (const method of ['GET', 'HEAD']) for (const path of ['/random-gift/?gift=private', '/random-gift/?gift=',
+    '/api/search-products/', '/api/catalog-feed/', '/api/og/random-gift/', '/bundles/old/', '/unknown/',
+    '/gifts/missing/', '/gifts/fart-button.html/', '/gifts/fart-button.txt/', '/catalog/feed-1.json/', '/gifts//']) {
+    const response = await fixture.request(path, { method });
+    assert.equal(response.status, 404, path); assert.equal(response.headers.get('Location'), null);
+  }
+  assert.equal(fixture.calls.length, 0);
+});
+
 test('retired, unknown HTML/data and missing routes never fall back to the homepage', async () => {
   const fixture = setup();
   for (const path of ['/old-gift-bundle', '/bundles/foo', '/admin', '/api/og/random-gift?gift=id', '/api/admin/products', '/random-gift?gift=id', '/gifts/missing', '/rogue.html', '/secret.json', '/_next/other.txt']) {
