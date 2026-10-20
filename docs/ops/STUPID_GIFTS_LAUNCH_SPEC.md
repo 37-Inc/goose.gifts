@@ -269,6 +269,13 @@ Postgres schema:
 | pgvector embedding | Vectorize plus a protected export copy; not a public JSON artifact |
 | GIN/HNSW indexes | Purposeful D1 B-tree/FTS indexes and Vectorize cosine index |
 
+Implementation clarification: where no historical writer timezone can be proven,
+preserve the exact original wall-time text and provenance in the protected record,
+and leave the normalized historical instant NULL. Unknown verification time holds
+a product out of public projections and semantic eligibility until a genuine new
+verification. Do not rewrite old history as the import time. This is a documented
+lossless raw-data mapping, not a claim to have reconstructed missing timezone facts.
+
 Migrate active and inactive `products`, `product_slug_history`,
 `catalog_runs`, `catalog_run_items`, `catalog_editorial_events`, and maintained
 search diagnostics. Capture a complete protected export of every source table

@@ -195,6 +195,24 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-20 early morning [owner+claude] — Prove publication and continue the staged migration
+
+PR #191 merged as `f167e0764fe8eee8a19916cd6e348503d4189765`. The protected
+Cloudflare release was actually deployed, then independently checked against
+its exact manifest identity and four original vectors before recording a
+publication receipt. Production Vercel remained healthy; no domain or writer
+cutover occurred. A real-browser Random check fetched one pool for three
+spins without immediate repeats.
+
+The next reviewed slice adds retryable vector delivery, a shared fail-closed
+semantic-search budget, explicit default-off analytics with sanitized
+cross-page campaign continuity, and truthful historical timestamp mapping.
+Full operational import/reconciliation and episode UI work remain in progress.
+Twelve real candidates are organized into four unapproved drafts in
+[the show shortlist](STUPID_GIFTS_SHOW_SHORTLIST_2026-10-20.md); no episode,
+image rights, purchase or endorsement is inferred. Provider rebranding,
+production cutover, recurring publisher credentials and shutdown remain gated.
+
 ### 2026-10-19 late evening [owner+claude] — Extend protected migration and publishing proof
 
 - PR #190 merged as `7b73ab7`; rebuilt merged source is live only on the
