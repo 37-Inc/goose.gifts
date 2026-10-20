@@ -102,3 +102,14 @@ Additional screenshots outside source: `stupid-gifts-guides-desktop.png`,
 `stupid-gifts-empty-guide-mobile.png`, `stupid-gifts-index-desktop.png`, and
 `stupid-gifts-index-mobile.png`. Full-catalog coverage/analysis and public show
 content remain separate readiness gates.
+
+## Short-desktop refinement — October 20 UTC
+
+- A wide/short media query (`min-width: 1001px`, `max-height: 780px`) reduces
+  only homepage opening spacing and lead artwork height. At 1280 × 720 the
+  loaded lead image, title (bottom 579px) and View gift (bottom 642px) fit.
+- 1440 × 1000 retains the original 1.65 artwork ratio and opening margins;
+  390 × 844 retains 1.25 and its first action at 591px. Neither overflows.
+- Real-cohort export/TypeScript and all 28 focused tests passed again.
+  Screenshots: `stupid-gifts-home-short-desktop.png`,
+  `stupid-gifts-home-tall-desktop.png`, `stupid-gifts-home-mobile-unchanged.png`.
