@@ -1,7 +1,7 @@
 import { constants } from 'node:fs';
 import { lstat, realpath, mkdir, open, link, unlink, readdir, rename } from 'node:fs/promises';
 import { dirname, isAbsolute, join, normalize, parse, sep } from 'node:path';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { assertProtectedDestination } from './export-postgres.ts';
 import { canonicalJson, sha256 } from './migration.ts';
 import { explicitMaintenanceTime } from './maintenance-state.ts';
@@ -53,6 +53,17 @@ export interface WorkspaceManifest {
   retention:RetentionPolicy; budgetCaps:{httpRequests:number;sqlStatements:number}; createdAt:string;
 }
 type Stored = { schemaVersion:1; sha256:string; kind:Kind; observedAt:string; expiresAt:string; policySha256:string; value:Json };
+/** Private per-blob 32MiB cap accommodates ~28MiB of 3,383 native 1,536-vector
+ * evidence. 256KiB native chunks encode to 349528B, below the unchanged 512KiB
+ * artifact limit including metadata. NOT a public/REST/proof cap increase. */
+export const WORKSPACE_BLOB_LIMITS=Object.freeze({bytes:32*1024*1024,chunkBytes:256*1024,artifactBytes:512*1024});
+/** Manifest identity is ArtifactRef.sha256; sha256 below binds ORIGINAL opaque
+ * bytes, not parsed/re-serialized JSON. Parts are hashes, never filesystem paths. */
+export interface WorkspaceBlobManifest {
+  schemaVersion:1;type:'run-workspace-blob';sha256:string;byteLength:number;chunkBytes:number;parts:string[];
+}
+type BlobChunk={schemaVersion:1;type:'run-workspace-chunk';blobSha256:string;blobByteLength:number;
+  index:number;count:number;sha256:string;byteLength:number;base64:string};
 type CheckpointView = {sha256:string;checkpoint:CheckpointControl};
 type Event = {type:'artifact';ref:ArtifactRef} | {type:'checkpoint';ref:ArtifactRef;previous:string|null;control:CheckpointControl}
   | {type:'control';sha256:string;previous:string;control:CheckpointControl}
@@ -69,6 +80,8 @@ export interface RunWorkspace {
   assertHeld():Promise<void>;assertScope(scope:WorkspaceScope):Promise<void>;
   putArtifact(value:unknown,options:{kind:'phase'|'publication';observedAt:string}):Promise<ArtifactRef>;
   readArtifact(ref:ArtifactRef):Promise<Json>;
+  putBlob(bytes:Uint8Array,options:{kind:'phase'|'publication';observedAt:string}):Promise<ArtifactRef>;
+  readBlob(ref:ArtifactRef):Promise<Uint8Array>;
   saveReceipt(input:Readonly<{sha256:string;receipt:ProviderReceipt}>):Promise<ArtifactRef>;
   readReceipt(ref:ArtifactRef):Promise<ProviderReceipt>;
   readCheckpoint(options?:{controlOnly?:false}):Promise<{sha256:string;checkpoint:WorkspaceCheckpoint}|null>;
@@ -86,6 +99,7 @@ const MAX_JSON=512*1024, MAX_EVENTS=20_000, MAX_JOURNAL=32*1024*1024;
 function fail(code:string):never {throw new Error(`run_workspace_${code}`);}
 const same=(a:unknown,b:unknown)=>canonicalJson(a)===canonicalJson(b);
 const hash=(value:unknown)=>typeof value==='string'&&HASH.test(value);
+const byteHash=(value:Uint8Array)=>createHash('sha256').update(value).digest('hex');
 const key=(value:unknown)=>typeof value==='string'&&KEY.test(value)&&value!=='.'&&value!=='..';
 const refString=(value:unknown)=>typeof value==='string'&&REF.test(value);
 const integer=(value:unknown)=>Number.isSafeInteger(value)&&Number(value)>=0;
@@ -112,6 +126,25 @@ function options(value:RunWorkspaceOptions) {
 function artifactRef(value:ArtifactRef) {
   if(!exact(value,['sha256','reference'])||!hash(value.sha256)||value.reference!==`objects/${value.sha256}.json`)fail('reference');
 }
+const blobRef=(digest:string):ArtifactRef=>({sha256:digest,reference:`objects/${digest}.json`});
+function blobManifest(value:unknown):WorkspaceBlobManifest {
+  const v=value as WorkspaceBlobManifest;
+  if(!exact(v,['schemaVersion','type','sha256','byteLength','chunkBytes','parts'])||v.schemaVersion!==1||v.type!=='run-workspace-blob'
+    ||!hash(v.sha256)||!integer(v.byteLength)||v.byteLength>WORKSPACE_BLOB_LIMITS.bytes||v.chunkBytes!==WORKSPACE_BLOB_LIMITS.chunkBytes
+    ||!Array.isArray(v.parts)||v.parts.length!==Math.ceil(v.byteLength/v.chunkBytes)||v.parts.some(p=>!hash(p))
+    ||new Set(v.parts).size!==v.parts.length)fail('blob_manifest');
+  return v;
+}
+function blobChunk(value:unknown,manifest:WorkspaceBlobManifest,index:number):Buffer {
+  const v=value as BlobChunk;const expected=Math.min(manifest.chunkBytes,manifest.byteLength-index*manifest.chunkBytes);
+  if(!exact(v,['schemaVersion','type','blobSha256','blobByteLength','index','count','sha256','byteLength','base64'])||v.schemaVersion!==1
+    ||v.type!=='run-workspace-chunk'||v.blobSha256!==manifest.sha256||v.blobByteLength!==manifest.byteLength
+    ||v.index!==index||v.count!==manifest.parts.length||v.byteLength!==expected||!hash(v.sha256)
+    ||typeof v.base64!=='string'||v.base64.length!==4*Math.ceil(expected/3))fail('blob_chunk');
+  const bytes=Buffer.from(v.base64,'base64');
+  if(bytes.length!==expected||bytes.toString('base64')!==v.base64||byteHash(bytes)!==v.sha256)fail('blob_chunk');return bytes;
+}
+const retentionIdentity=(v:Stored)=>({kind:v.kind,observedAt:v.observedAt,expiresAt:v.expiresAt,policySha256:v.policySha256});
 function intent(value:PublicationIntent) {
   if(!exact(value,['releaseId','codeSha','catalogRevision','vectorSyncWatermark','priorReleaseId','nextExpiry','catalogSnapshotSha256','manifestSha256'])
     ||!key(value.releaseId)||!key(value.catalogRevision)||!/^[a-f0-9]{40}$/.test(value.codeSha)||!integer(value.vectorSyncWatermark)
@@ -430,10 +463,57 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       if(!state.refs.has(ref.sha256))await append({type:'artifact',ref});usableUntil=Math.min(usableUntil,Date.parse(sealed.expiresAt));usableAfter=Math.max(usableAfter,Date.parse(sealed.observedAt));return structuredClone(ref);
     }
     async function read(ref:ArtifactRef){if(!state.refs.has(ref.sha256))fail('unregistered_artifact');const v=await loadStored(directory,ref,manifest);fresh(v,now());return v;}
+    async function loadBlob(ref:ArtifactRef):Promise<Buffer> {
+      const sealed=await read(ref);if(!['phase','publication'].includes(sealed.kind))fail('kind');
+      const descriptor=blobManifest(sealed.value),bytes=Buffer.alloc(descriptor.byteLength);
+      for(let index=0;index<descriptor.parts.length;index++){
+        const part=await read(blobRef(descriptor.parts[index]));
+        if(!same(retentionIdentity(part),retentionIdentity(sealed)))fail('blob_retention');
+        blobChunk(part.value,descriptor,index).copy(bytes,index*descriptor.chunkBytes);
+      }
+      if(byteHash(bytes)!==descriptor.sha256)fail('blob_hash');return bytes;
+    }
+    async function putBlob(input:Uint8Array,o:{kind:'phase'|'publication';observedAt:string}):Promise<ArtifactRef> {
+      if(!(input instanceof Uint8Array)||input.byteLength>WORKSPACE_BLOB_LIMITS.bytes)fail('blob_bytes');
+      if(!exact(o,['kind','observedAt'])||!['phase','publication'].includes(o.kind))fail('kind');await usable();time(o.observedAt);
+      const bytes=Buffer.from(input.buffer,input.byteOffset,input.byteLength),digest=byteHash(bytes),count=Math.ceil(bytes.length/WORKSPACE_BLOB_LIMITS.chunkBytes);
+      const parts:BlobChunk[]=Array.from({length:count},(_,index)=>{
+        const part=bytes.subarray(index*WORKSPACE_BLOB_LIMITS.chunkBytes,(index+1)*WORKSPACE_BLOB_LIMITS.chunkBytes);
+        return{schemaVersion:1,type:'run-workspace-chunk',blobSha256:digest,blobByteLength:bytes.length,index,count,
+          sha256:byteHash(part),byteLength:part.length,base64:part.toString('base64')};
+      });
+      const descriptor:WorkspaceBlobManifest={schemaVersion:1,type:'run-workspace-blob',sha256:digest,byteLength:bytes.length,
+        chunkBytes:WORKSPACE_BLOB_LIMITS.chunkBytes,parts:parts.map(p=>refFor(p).sha256)};
+      const ref=refFor(descriptor);let original:Stored|undefined,complete=false;
+      try{original=await loadStored(directory,ref,manifest);complete=true;}
+      catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
+      // Partial writes may have committed only chunks. Recover their ORIGINAL
+      // retention before continuing; never refresh their age on a later retry.
+      for(const digest of descriptor.parts){let previous:Stored;
+        try{previous=await loadStored(directory,blobRef(digest),manifest);}
+        catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;if(complete)fail('blob_missing');continue;}
+        if(!original)original=previous;
+        if(!same(retentionIdentity(previous),retentionIdentity(original)))fail('blob_retention');fresh(previous,now());
+      }
+      original??=stored(descriptor,o.kind,o.observedAt,manifest);
+      if(original.kind!==o.kind)fail('kind');fresh(original,now());
+      for(const part of parts)await put(part,o.kind,original.observedAt,true);
+      await put(descriptor,o.kind,original.observedAt,true);
+      // A manifest is published LAST, after every part has durable independent
+      // readback. Re-read the aggregate before acknowledging a usable blob.
+      await loadBlob(ref);return ref;
+    }
     const api={directory,repository,manifest,manifestSha256:info.manifestSha256,assertHeld,
       assertScope:async(expected:WorkspaceScope)=>{await assertHeld();scope(expected);if(!same(manifest.scope,expected))fail('scope_mismatch');},
       putArtifact:(value:unknown,o:{kind:'phase'|'publication';observedAt:string})=>serial(async()=>{if(!o||!['phase','publication'].includes(o.kind))fail('kind');await usable();return put(json(value),o.kind,o.observedAt,true);}),
       readArtifact:(ref:ArtifactRef)=>serial(async()=>{const v=await read(ref);if(!['phase','publication'].includes(v.kind))fail('kind');return structuredClone(v.value);}),
+      putBlob:async(bytes:Uint8Array,o:{kind:'phase'|'publication';observedAt:string})=>{
+        if(!(bytes instanceof Uint8Array)||bytes.byteLength>WORKSPACE_BLOB_LIMITS.bytes)fail('blob_bytes');
+        // Snapshot before joining the queue; later caller mutation cannot alter
+        // exact ordered bytes while another durable operation is pending.
+        const captured=Buffer.from(bytes),settings={...o};return serial(()=>putBlob(captured,settings));
+      },
+      readBlob:(ref:ArtifactRef)=>serial(()=>loadBlob(ref)),
       saveReceipt:(o:Readonly<{sha256:string;receipt:ProviderReceipt}>)=>serial(async()=>{receipt(o.receipt);if(o.sha256!==refFor(o.receipt).sha256)fail('receipt_hash');
         await usable();return put(o.receipt,o.receipt.kind,o.receipt.observedAt);}),
       readReceipt:(ref:ArtifactRef)=>serial(async()=>{const v=await read(ref);if(!['amazon-observation','embedding-response'].includes(v.kind))fail('kind');
@@ -448,7 +528,9 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
         checkpoint(value);bindCheckpoint(value,manifest);await usable();const digest=refFor(value).sha256;
         if(state.checkpoint?.sha256===digest&&(state.previous===expected||expected===digest)){return{sha256:digest,checkpoint:structuredClone(value)};}
         if(expected!==(state.checkpoint?.sha256||null))fail('checkpoint_cas');
-        for(const ref of [...Object.values(value.pins),...(value.phaseComplete?[value.phaseComplete]:[])])await read(ref);
+        for(const ref of [...Object.values(value.pins),...(value.phaseComplete?[value.phaseComplete]:[])]){
+          const v=await read(ref);if(v.value&&typeof v.value==='object'&&!Array.isArray(v.value)&&v.value.type==='run-workspace-blob')await loadBlob(ref);
+        }
         const {state:unused,...view}=value;void unused;
         // First validate immutable pins/phase-complete before writing the body.
         const event:Event={type:'checkpoint',ref:refFor(value),previous:expected,control:json(view) as unknown as CheckpointControl};apply(state,event,true);
