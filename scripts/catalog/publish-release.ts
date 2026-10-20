@@ -46,12 +46,14 @@ const KEY=/^[a-zA-Z0-9._-]{1,200}$/;
 const HASH=/^[a-f0-9]{64}$/;
 const UUID=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
 const RESOURCE=/^[a-zA-Z0-9_-]{1,100}$/;
+const WORKERS_DEV_NAME=/^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
 const exact=(v:object,keys:string)=>Object.keys(v).sort().join(',')===keys;
 const sha256=(value:string|Uint8Array)=>createHash('sha256').update(value).digest('hex');
 export function validatePublicationConfig(input:PublicationConfig):Readonly<PublicationConfig> {
   if(!input||!exact(input,'accountId,codeSha,compatibilityDate,database,environment,identityOrigin,indexName,prior,releaseId,schemaVersion,sourceMode,sourceRoot,workerName')
     ||input.schemaVersion!==1||!['staging','production'].includes(input.environment)||!/^[a-f0-9]{32}$/.test(input.accountId)
-    ||!RESOURCE.test(input.workerName)||!RESOURCE.test(input.indexName)||!input.database||!exact(input.database,'id,name')
+    ||!RESOURCE.test(input.workerName)||input.environment==='staging'&&!WORKERS_DEV_NAME.test(input.workerName)
+    ||!RESOURCE.test(input.indexName)||!input.database||!exact(input.database,'id,name')
     ||!['preview','goose-production','stupid-production'].includes(input.sourceMode)
     ||!UUID.test(input.database.id)||!RESOURCE.test(input.database.name)||!/^[a-f0-9]{40}$/.test(input.codeSha)
     ||!KEY.test(input.releaseId)||!path.isAbsolute(input.sourceRoot)||!/^\d{4}-\d{2}-\d{2}$/.test(input.compatibilityDate)

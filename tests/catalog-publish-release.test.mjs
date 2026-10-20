@@ -312,6 +312,9 @@ test('interrupted complete build is reused before upload; changed sealed bytes a
 });
 test('configuration has no environment/production defaults or ambient backend/identity fallback',async t=>{
   const f=await setup(t);assert.deepEqual(validatePublicationConfig(f.config),f.config);
+  assert.equal(validatePublicationConfig({...f.config,workerName:'a'.repeat(63)}).workerName.length,63);
+  for(const workerName of ['a'.repeat(64),'-worker','worker-','worker_name'])
+    assert.throws(()=>validatePublicationConfig({...f.config,workerName}),/publication_configuration_invalid/);
   for(const patch of [{environment:undefined},{accountId:''},{database:{id:'bad',name:'db'}},{sourceMode:undefined},{sourceMode:'goose-production'},
     {identityOrigin:'https://fixture-worker.example.invalid/path'},{extra:'unsafe'}])assert.throws(()=>validatePublicationConfig({...f.config,...patch}));
 });
