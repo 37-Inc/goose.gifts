@@ -143,11 +143,13 @@ function checkCurrent(product: PublicCatalogProduct, projection: Row, current: R
     || current.source_facts_hash !== projection.source_facts_hash || current.source_facts_hash !== current.editorial_source_hash
     || typeof current.public_display_json !== 'string') throw new Error('current_hold_or_factual_drift');
   const approved = validatePublicCatalogProduct(JSON.parse(current.public_display_json), now);
-  if (approved.id !== product.id || approved.publicId !== product.publicId || approved.slug !== product.slug) throw new Error('current_hold_or_factual_drift');
+  // A grant/factual hash alone cannot make a changed manual display compatible.
+  // Only a renewed deadline may advance without changing the sealed display.
+  if (canonicalJson({ ...approved, eligibleUntil: product.eligibleUntil }) !== canonicalJson(product)) throw new Error('current_display_incompatible');
   const rights = object(JSON.parse(String(current.rights_json))) as ProductRights;
   const deadline = publicProductRightsExpiry(product, rights, now);
   const verified = verificationTime(current, rights);
-  const until = Date.parse(canonicalTime(current.eligible_until));
+  const until = Math.min(Date.parse(canonicalTime(current.eligible_until)), Date.parse(approved.eligibleUntil));
   if (deadline === null || Date.parse(product.eligibleUntil) > deadline) throw new Error('current_rights_incompatible');
   if (verified > now.getTime() || verified + EDITORIAL_MAX_AGE_MS <= now.getTime()
     || Date.parse(product.eligibleUntil) > Math.min(until, verified + EDITORIAL_MAX_AGE_MS)) throw new Error('current_deadline_incompatible');
@@ -211,8 +213,8 @@ export async function reconstructD1Snapshot(db: CatalogD1, envelopeInput: Sealed
     return snapshot.products.length ? { status: 'ready', snapshot, observedAt } : hold('all_held');
   } catch (error) {
     // Fixed codes only: provider errors can contain SQL, source content or credentials.
-    const safe = new Set(['current_hold_or_factual_drift', 'current_rights_incompatible', 'current_deadline_incompatible', 'verification_utc_unproven', 'read_bounds']);
+    const safe = new Set(['current_hold_or_factual_drift', 'current_display_incompatible', 'current_rights_incompatible', 'current_deadline_incompatible', 'verification_utc_unproven', 'read_bounds']);
     const reason = error instanceof Error && safe.has(error.message) ? error.message : 'snapshot_reconstruction_failed';
-    return hold(reason, ['current_rights_incompatible', 'current_deadline_incompatible'].includes(reason));
+    return hold(reason, ['current_display_incompatible', 'current_rights_incompatible', 'current_deadline_incompatible'].includes(reason));
   }
 }

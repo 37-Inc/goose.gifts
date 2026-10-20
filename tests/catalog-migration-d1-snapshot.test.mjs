@@ -259,6 +259,31 @@ test('compatible operational revision/timestamp advance does not block exact old
   } finally { f.close(); }
 });
 
+test('current public display drift holds even with unchanged facts, grants and identities', async () => {
+  for (const update of [{ title: 'Manual replacement title' }, { description: 'Unreviewed replacement description.' },
+    { imageUrl: 'https://m.media-amazon.com/images/I/replacement.jpg' },
+    { affiliateUrl: 'https://www.amazon.com/dp/B000000002?tag=changed-20' },
+    { editorialWriteup: 'Manual replacement editorial' }, { humorTags: ['changed'] }, { punnyTitle: 'New manual pun' },
+    { currency: 'CAD' }, { qualityScore: .9 }]) {
+    const f = await setup(); try {
+      const product = f.snapshot.products[0];
+      f.sqlite.prepare('UPDATE products SET public_display_json=? WHERE public_id=?').run(JSON.stringify({ ...product, ...update }), product.publicId);
+      assert.deepEqual(await f.read(), { status: 'held', reason: 'current_display_incompatible', requiresNewRevision: true });
+    } finally { f.close(); }
+  }
+});
+
+test('normalized key order and deadline renewal alone preserve display; tightened DTO deadline does not', async () => {
+  const f = await setup(); try {
+    const product = f.snapshot.products[0];
+    f.sqlite.prepare('UPDATE products SET public_display_json=? WHERE public_id=?')
+      .run(JSON.stringify(Object.fromEntries(Object.entries({ ...product, eligibleUntil: time(2 * 86400000) }).reverse())), product.publicId);
+    assert.equal((await f.read()).status, 'ready');
+    f.sqlite.prepare('UPDATE products SET public_display_json=? WHERE public_id=?').run(JSON.stringify({ ...product, eligibleUntil: time(2000) }), product.publicId);
+    assert.equal((await f.read()).reason, 'current_deadline_incompatible');
+  } finally { f.close(); }
+});
+
 test('bounds precede SQL, ID arrays avoid100 parameters, and candidate outer-loop uses unique identity indexes', async () => {
   const f = await setup({ ready: 85, held: 2 }); try {
     assert.equal((await f.read()).status, 'ready'); assert.ok(f.calls.every(call => call.params.length === 6));
