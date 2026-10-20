@@ -382,12 +382,40 @@ correctly reporting missing 0009–0012. It used explicitly injected Wrangler
 authentication; Keychain resolution remains separately unverified.
 
 Before selecting D1 for a real weekly run, finish real merchant/embedding
-evidence capture, credential/bootstrap provisioning, protected runner/schedule
+receipt storage and replay, credential/bootstrap provisioning, protected runner/schedule
 integration and one bounded complete run with independent live publication
 proof. The daily strict-subset pruner is not the weekly candidate-promotion
 path. Resolve final Neon delta handling before installing immutable-archive
 triggers. Retain the existing Neon job until these integrations and recovery
 checks are verified.
+
+### Explicit provider boundary
+
+`createCatalogD1Rest` supplies the maintenance store's actual REST transport.
+The caller supplies the exact account, database ID/name and token; no ambient
+credential or Neon fallback exists. Primary-only identity, atomic batches,
+immutable bindings and bounded request/response/row accounting are checked.
+Unknown writes are not retried. Default whole-client ceilings are 600 requests
+and 1,200 statements. An explicit reviewed run may choose up to 10,000/25,000;
+all other limits remain unchanged or tighter, and phases share one client.
+These ceilings are safety stops, not guarantees of worst-case weekly capacity
+or provider billing. Unknown consumption remains unknown.
+
+Catalog-wide maintenance reads omit native vectors/provenance that only point
+mutations need. A rejected read page can shrink from ten rows to five, two,
+then one without advancing its cursor; an oversized single row fails. Writes
+are never retried through this mechanism.
+
+The optional `createCatalogProviderEvidence` bridge records the existing Amazon
+observation and embedding response without making additional provider calls.
+Freshness starts before the real merchant request, not at database write time.
+Only independently reviewed rights and matching source facts, embedding input
+and original float32 bytes can be used. Its receipt-storage callback must
+durably save/read-verify private content; a returned hash alone is not proof.
+Contradictory or missing requested evidence stops an unsafe upsert and the new
+publication, even at equal database timestamps. It does not revoke previously
+served bytes instantly or extend their original expiry. Default Neon behavior
+remains unchanged; this opt-in bridge is not an activated weekly executor.
 
 ## Local burst rehearsal
 

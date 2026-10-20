@@ -195,6 +195,22 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-20 [owner+claude] — Bound D1 transport and bind real provider evidence
+
+- Added an explicit primary-only D1 REST writer with finite whole-run limits,
+  no unknown-write retries, and an actual disposable rollback/lost-response
+  rehearsal. Catalog scans now omit native-vector payloads and safely shrink
+  oversized read pages; point mutation behavior is unchanged.
+- Added opt-in evidence hooks around existing Amazon/model calls. Conflicting
+  observations stop stale writes/publication; rights are never inferred and
+  database write time cannot manufacture freshness. Default Neon operation
+  and all scheduled jobs remain unchanged.
+- This is another reviewed migration increment, not the complete weekly
+  executor or production cutover. Durable receipt/checkpoint integration,
+  full search/capacity proof and final owner/provider gates remain open.
+- Verification: 464 staging tests and 88 existing regressions pass; nine
+  optional fixtures explicitly skip. TypeScript, lint and production build pass.
+
 ### 2026-10-20 [owner+claude] — Verify approved cohorts, recovery metadata and runner preflight
 
 - Three bounded Sol extra-high workers implemented the reviewed cohort freezer,
