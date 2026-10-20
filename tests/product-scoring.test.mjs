@@ -112,6 +112,13 @@ test('expired year-specific products do not re-enter the live catalog', () => {
   assert.equal(isCatalogDisplayEligibleProduct(product({ title: `Funny Goat ${currentYear} Calendar` })), true);
 });
 
+test('an explicit asOf date keeps immutable eligibility reproducible across a year boundary', () => {
+  const calendar = product({ title: 'Funny Goat 2026 Calendar' });
+  assert.equal(isCatalogDisplayEligibleProduct(calendar, { asOf: new Date('2026-12-31T23:59:59Z') }), true);
+  assert.equal(isCatalogDisplayEligibleProduct(calendar, { asOf: new Date('2027-01-01T00:00:00Z') }), false);
+  assert.equal(isCatalogDisplayEligibleProduct(calendar, { asOf: new Date('invalid') }), false);
+});
+
 test('brand-fit scoring favors a genuine gag gift over a generic beauty item', () => {
   const gagScore = scoreProductForTrending(product({
     title: 'Bullshit Button Funny Gag Gift',

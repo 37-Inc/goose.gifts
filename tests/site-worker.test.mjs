@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createSiteWorker } from '../workers/site/index.ts';
+import { createStaticFeedPlan } from '../workers/site/feed.ts';
 
 const NOW = Date.parse('2026-10-19T12:00:00Z');
 const DEADLINE = new Date(NOW + 2400).toISOString();
@@ -20,9 +21,10 @@ function setup(overrides = {}) {
     '/random-gift': ready('/random-gift'),
     '/howie': ready('/howie', { indexable: false }),
   };
-  const manifest = { schemaVersion: 1, releaseId: 'test', codeSha: 'test', catalogRevision: 'r1', generatedAt: snapshot.generatedAt, nextExpiry: DEADLINE, productCount: 1, slugCount: 1, vectorSyncWatermark: 1, priorReleaseId: null, checksums: {}, dataKind: snapshot.dataKind, routes };
+  const digest = 'a'.repeat(64);
+  const manifest = { schemaVersion: 1, releaseId: 'test', codeSha: 'test', catalogRevision: 'r1', catalogSnapshotSha256: digest, generatedAt: snapshot.generatedAt, nextExpiry: DEADLINE, productCount: 1, slugCount: 1, vectorSyncWatermark: 1, priorReleaseId: null, checksums: {}, dataKind: snapshot.dataKind, routes };
   const env = { ENVIRONMENT: 'production', ASSETS: { async fetch(request) { calls.push(request); return new Response(new URL(request.url).pathname, { headers: { 'Cache-Control': 'public, max-age=31536000, immutable', ETag: 'asset-tag', Age: '99' } }); } } };
-  const worker = createSiteWorker({ manifest, snapshot, now: () => clock, ...overrides });
+  const worker = createSiteWorker({ manifest, snapshot, feedPlan: createStaticFeedPlan(snapshot, digest, NOW), now: () => clock, ...overrides });
   return { env, calls, worker, advance(ms) { clock += ms; }, request: (path, init) => worker.fetch(new Request(`https://preview.example${path}`, init), env) };
 }
 
@@ -125,6 +127,14 @@ test('POST feed preserves products/hasMore, bounds input, and fails clearly afte
   assert.equal((await fixture.request('/api/catalog-feed')).status, 405);
   fixture.advance(2400);
   assert.equal((await fixture.request('/api/catalog-feed', { method: 'POST', body: '{}' })).status, 503);
+});
+
+test('missing or incompatible feed plans fail closed without affecting guarded browsing', async () => {
+  for (const feedPlan of [undefined, {}, { schemaVersion: 1, catalogRevision: 'other', catalogSnapshotSha256: 'a'.repeat(64), entries: [] }]) {
+    const fixture = setup({ feedPlan });
+    assert.equal((await fixture.request('/api/catalog-feed', { method: 'POST', body: '{}' })).status, 503);
+    assert.equal((await fixture.request('/')).status, 200);
+  }
 });
 
 test('staging is fail-closed, protected, noindex and blocks production analytics transport', async () => {
