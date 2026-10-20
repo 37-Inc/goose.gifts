@@ -112,9 +112,15 @@ No retirement/deletion gate is closed by this receipt.
 
 ## Read-only metadata checks for the source owner
 
-These queries are proposed diagnostics, not executed by this audit. Keep the
-result in the protected migration receipt; do not publish role/policy contents.
-Use the source owner's existing HTTPS read-only transaction path.
+Root executed these coverage checks through one read-only repeatable-read
+HTTPS transaction on October 20 UTC. The protected
+`source-metadata-audit.json` receipt finds 13 ordinary tables, no inaccessible
+tables, active RLS, inheritance, partition/foreign/view relations, or policies.
+Two non-extension function definitions and two trigger definitions are retained
+privately. Receipt SHA-256:
+`78007cbe3a28572373e35a1652fcc6989330d7d266e0b307bba0904248c61b31`.
+This verifies source visibility, not complete grants/schema restoration.
+Do not publish role/policy contents. The queries below document the checks.
 
 ```sql
 -- Prove the exporter role can see all ordinary table rows and inventory

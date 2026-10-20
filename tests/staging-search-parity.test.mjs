@@ -143,3 +143,28 @@ test('full gate requires exact index visibility, all sources, full baselines and
     (g) => { delete g.input.results.cases.find((c) => c.mode === 'embedding_failure').keywordPublicIds; },
   ]) { const g = structuredClone(f.input); mutate({ input: g }); assert.equal(verifySearchParity(g).fullCatalogAcceptance, false); }
 });
+
+test('full source archive coverage does not require held-but-active vectors in the public index', () => {
+  const f = fixture();
+  f.input.snapshot.dataKind = 'catalog';
+  f.input.results.scope = 'full_catalog';
+  for (const p of f.input.snapshot.products) p.affiliateUrl = `https://www.amazon.com/dp/${p.id}`;
+  const held = f.input.snapshot.products.pop();
+  f.input.snapshot.heldProducts.push({
+    id: held.id, publicId: held.publicId, slug: held.slug, path: `/gifts/${held.slug}`,
+    title: 'Gift currently unavailable',
+    description: 'This gift is not currently available in the curated catalog. Browse other gifts instead.',
+    reason: 'rights_unverified',
+  });
+  f.input.results.indexInventory.publicIds = f.input.results.indexInventory.publicIds.filter(id => id !== held.publicId);
+  for (const captured of f.input.results.cases) {
+    if (captured.vectorMatches) captured.vectorMatches = captured.vectorMatches.filter(match => match.id !== held.publicId);
+  }
+  const report = f.run();
+  assert.equal(report.originalVectorCount, 12);
+  assert.equal(report.catalogCoverageComplete, true);
+  assert.equal(report.indexCoverageComplete, true);
+  assert.equal(report.fullCatalogAcceptance, true);
+  f.input.results.indexInventory.publicIds.push(held.publicId);
+  assert.equal(f.run().indexCoverageComplete, false);
+});

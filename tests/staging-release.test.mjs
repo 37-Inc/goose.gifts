@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { verifySnapshotDigest } from '../scripts/staging/verify-release.mts';
+import { verifyFeedPlan, verifySnapshotDigest } from '../scripts/staging/verify-release.mts';
+import { createStaticFeedPlan } from '../workers/site/feed.ts';
 
 test('release rejects snapshot changes even when catalog revision is unchanged', () => {
   const snapshot = { catalogRevision: 'same-revision', products: [{ title: 'Verified title' }] };
@@ -14,6 +16,17 @@ test('release rejects snapshot changes even when catalog revision is unchanged',
   verifySnapshotDigest(bytes, digest);
   snapshot.products[0].title = 'Unreviewed replacement';
   assert.throws(() => verifySnapshotDigest(Buffer.from(JSON.stringify(snapshot)), digest), /snapshot changed/);
+});
+
+test('release recomputes the prepared feed and rejects altered ordering or digest', () => {
+  const snapshot = JSON.parse(readFileSync(new URL('../static-site/fixtures/catalog.snapshot.json', import.meta.url), 'utf8'));
+  for (const product of snapshot.products) product.title = `Funny ${product.title}`;
+  const digest = '1'.repeat(64);
+  const plan = createStaticFeedPlan(snapshot, digest);
+  verifyFeedPlan(snapshot, digest, plan);
+  assert.ok(plan.entries.length > 1);
+  assert.throws(() => verifyFeedPlan(snapshot, digest, { ...plan, entries: [...plan.entries].reverse() }), /Prepared feed changed/);
+  assert.throws(() => verifyFeedPlan(snapshot, digest, { ...plan, catalogSnapshotSha256: '2'.repeat(64) }), /Prepared feed changed/);
 });
 
 test('cohort CLI does not echo credentials from malformed database URLs', async () => {

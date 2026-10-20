@@ -54,7 +54,7 @@ export async function runLocalRecoveryDrill(options: {
   // pg_ctl passes its options through a shell; these generated paths cannot
   // contain shell syntax, whitespace or quote injection.
   if (![data, socket].every((path) => /^[A-Za-z0-9_./-]+$/.test(path))) throw new Error('Unsupported recovery path syntax');
-  const env = { PATH: `${pgBin}:/usr/bin:/bin`, LANG: 'C', LC_ALL: 'C', TZ: 'UTC', PGAPPNAME: 'stupid-gifts-recovery-drill' };
+  const env: NodeJS.ProcessEnv = { NODE_ENV: 'test', PATH: `${pgBin}:/usr/bin:/bin`, LANG: 'C', LC_ALL: 'C', TZ: 'UTC', PGAPPNAME: 'stupid-gifts-recovery-drill' };
   const log = join(work, 'commands.log');
   await writeFile(log, '', { mode: 0o600, flag: 'wx' });
   await writeFile(join(work, 'postgres.log'), '', { mode: 0o600, flag: 'wx' });

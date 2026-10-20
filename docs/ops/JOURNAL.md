@@ -5,6 +5,36 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-19 late evening — Protected vertical slice and archival recovery verified
+
+PR #189 merged as `fe66b655be7528c027b1c6d76ae6eb0a2a3026f9` and production
+deployment `5Q9hxdtyMi1xQ93R5Q6BFYnn1dhe` is live. This ships only the narrowly
+scoped runway/security patch; it is not the Cloudflare/brand cutover.
+
+Three bounded implementation agents delivered data contracts/recovery,
+Worker search/expiry and static design/routes. Root reviewed and integrated
+their commits, tested actual D1 atomic rollback and all-field import replay,
+verified exact Vectorize float32 values/revision filters, and exercised the
+protected Cloudflare preview on desktop/mobile/720p. Real keyword and four
+bounded semantic queries passed. Original guide definitions, focus groups
+and featured-guide ordering compare byte-for-byte with the prior source.
+
+The source archive contains 13 tables, 11,921 rows, 40,692,109 bytes and 3,492
+native vector payloads from one read-only repeatable-read snapshot. A fresh
+Unix-socket-only PostgreSQL cluster restored all raw fields and checked exact
+hashes plus 21 key relationships; its temporary cluster was removed. Native
+typed-schema recovery and the complete operational D1 migration remain open.
+No source writes or deletions were made.
+
+Actual provider IDs, revision hashes, private receipt references, content
+deadlines and remaining gates are consolidated in `STUPID_GIFTS_STAGING.md`,
+`STUPID_GIFTS_TIMESTAMP_AUDIT.md` and the dated recovery drill. The first
+CPU sample is mixed and small (55 requests, p99 16.244 ms, no errors), not
+Free-plan launch capacity proof. Merchant-derived content expires after the
+verified 24-hour window; failed publication must show safe fallbacks rather
+than extend rights. Weekly catalog operations, Pinterest measurement, account
+branding, DNS and decommissioning remain unchanged.
+
 ## 2026-10-19 late evening — Staged migration implementation started
 
 Owner authorized implementation and staged migration, using bounded Sol

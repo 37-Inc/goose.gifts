@@ -123,7 +123,7 @@ export function verifySearchParity(input: {
   if (sources.size !== input.sourcePublicIds.length || [...originals.keys()].some((id) => !sources.has(id))) throw new Error('Original vector/source identity coverage mismatch');
   const products = new Map(snapshot.products.map((product) => [product.publicId, product]));
   if (snapshot.products.some((product) => !originals.has(product.publicId))) throw new Error('Ready product original vector missing');
-  const eligible = snapshot.products.filter((product) => originals.get(product.publicId)?.active && isCatalogDisplayEligibleProduct(product));
+  const eligible = snapshot.products.filter((product) => originals.get(product.publicId)?.active && isCatalogDisplayEligibleProduct(product, { asOf }));
   const embeddingMap = new Map<string, number[]>();
   for (const item of embeddings.embeddings) {
     const query = FIXED_QUERIES.find((q) => q.id === item.queryId);
@@ -179,7 +179,7 @@ export function verifySearchParity(input: {
         const product = products.get(id);
         if (!product) throw new Error('Keyword candidate is absent from ready snapshot');
         return product;
-      }).filter((product) => !scores.has(product.publicId) && originals.get(product.publicId)?.active && isCatalogDisplayEligibleProduct(product))
+      }).filter((product) => !scores.has(product.publicId) && originals.get(product.publicId)?.active && isCatalogDisplayEligibleProduct(product, { asOf }))
         .map((product) => ({ ...product, similarity: keywordSimilarity(product, query.text.toLowerCase()),
           rankScore: qualityRank(keywordSimilarity(product, query.text.toLowerCase()), product) }))
         .sort((a, b) => b.rankScore - a.rankScore || a.id.localeCompare(b.id));
@@ -189,7 +189,7 @@ export function verifySearchParity(input: {
     const seenResults = new Set<string>(); const displayed: PublicCatalogProduct[] = [];
     for (const item of worker) {
       const product = products.get(item.publicId);
-      if (!product || !originals.get(item.publicId)?.active || !isCatalogDisplayEligibleProduct(product)) { issues.push('held_inactive_or_ineligible_result'); continue; }
+      if (!product || !originals.get(item.publicId)?.active || !isCatalogDisplayEligibleProduct(product, { asOf })) { issues.push('held_inactive_or_ineligible_result'); continue; }
       if (seenResults.has(item.publicId)) issues.push('duplicate_result_id');
       seenResults.add(item.publicId); displayed.push(product);
       if (!['semantic','keyword'].includes(item.matchType) || !Number.isFinite(item.similarity) || Math.abs(item.similarity) > 1
@@ -216,7 +216,9 @@ export function verifySearchParity(input: {
   }
   const catalogIds = new Set([...snapshot.products, ...snapshot.heldProducts].map((product) => product.publicId));
   const catalogCoverageComplete = catalogIds.size === sources.size && [...sources].every((id) => catalogIds.has(id));
-  const expectedIndex = input.originalVectors.filter((item) => item.active).map((item) => item.id);
+  // Archive coverage includes every historical vector; the public index must
+  // contain only this release's ready, active projections, never held records.
+  const expectedIndex = snapshot.products.filter((product) => originals.get(product.publicId)?.active).map((product) => product.publicId);
   const inventory = saved.indexInventory;
   const indexed = new Set(inventory?.publicIds || []);
   const visibilityTime = inventory ? new Date(inventory.visibilityVerifiedAt) : null;
@@ -236,7 +238,7 @@ export function verifySearchParity(input: {
   return { schemaVersion: 1, querySetVersion: QUERY_SET_VERSION, model: MODEL, dimensions: DIMENSIONS,
     sourceManifestSha256: input.sourceManifestSha256, catalogRevision: snapshot.catalogRevision, asOf: saved.asOf,
     scope: saved.scope, originalVectorCount: originals.size, eligibleProductCount: eligible.length,
-    eligibilityYear: new Date().getUTCFullYear(), // Shared brand-fit policy excludes years relative to the execution year.
+    eligibilityYear: asOf.getUTCFullYear(),
     capturedQueryCount: cases.length, requiredQueryCount: FIXED_QUERIES.length, completeQuerySet,
     catalogCoverageComplete, indexCoverageComplete, checksPassed, fullCatalogAutomatedChecksPassed, fullCatalogAcceptance, manualReviewRequired,
     rankContract: 'Worker price-free: cosine*0.76 + quality*0.22; eligibility then family dedup; keywords appended',

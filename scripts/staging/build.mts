@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { createStaticRoutes } from '../../static-site/lib/asset-routes.ts';
+import { createStaticFeedPlan } from '../../workers/site/feed.ts';
 
 const root = path.resolve(import.meta.dirname, '../..');
 const output = path.join(root, 'static-site/out');
@@ -15,6 +16,8 @@ await fs.mkdir(generated, { recursive: true });
 const input = path.join(generated, 'catalog.snapshot.json');
 const snapshotBytes = `${JSON.stringify(snapshot)}\n`;
 await fs.writeFile(input, snapshotBytes);
+const catalogSnapshotSha256 = createHash('sha256').update(snapshotBytes).digest('hex');
+await fs.writeFile(path.join(generated, 'feed-plan.json'), `${JSON.stringify(createStaticFeedPlan(snapshot, catalogSnapshotSha256))}\n`);
 execFileSync(process.execPath, ['node_modules/next/dist/bin/next', 'build', 'static-site', '--webpack'], {
   cwd: root, env: { ...process.env, CATALOG_SNAPSHOT_PATH: input }, stdio: 'inherit',
 });
@@ -32,7 +35,7 @@ const codeSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding
 const manifest = {
   schemaVersion: 1, releaseId: `${snapshot.catalogRevision}-${codeSha.slice(0, 12)}`,
   codeSha, catalogRevision: snapshot.catalogRevision, generatedAt,
-  catalogSnapshotSha256: createHash('sha256').update(snapshotBytes).digest('hex'),
+  catalogSnapshotSha256,
   dataKind: snapshot.dataKind,
   nextExpiry: snapshot.products.map((product) => product.eligibleUntil).sort()[0] || null,
   productCount: snapshot.products.length,

@@ -195,6 +195,21 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-19 late evening [owner+claude] — Verify the protected Cloudflare migration slice
+
+- Exported and checksum-verified all 13 source tables and 3,492 original vectors;
+  rehearsed exact raw archival recovery in a fresh disposable PostgreSQL cluster.
+- Imported ten staging products with atomicity/replay checks; four fresh,
+  rights-cleared products passed D1 and Vectorize readback plus real keyword
+  and semantic searches. Six changed-source products stay held.
+- Added the static preview, 43 existing guides, directory pagination and a
+  clearly labeled sample index; tested expiry-safe HTML/data, mobile browsing
+  and canonical Random links. No production analytics are loaded in preview.
+- Work is on `claude/stupid-gifts-staging-slice`; full migration, publication
+  automation, show curation and launch gates remain open. Detailed evidence:
+  [STUPID_GIFTS_STAGING.md](STUPID_GIFTS_STAGING.md). No DNS cutover, paid upgrade,
+  new Pin, schedule change or provider shutdown.
+
 ### 2026-10-19 late evening [owner+claude] — Start staged migration and close legacy lookup path
 
 - Began the approved migration with three isolated Sol implementation agents
@@ -208,8 +223,9 @@ what's likely next.
   security fixes. Targeted tests, lint and production build pass; production
   dependency audit has no high/critical findings. Full staging migration,
   measured Neon burn and launch acceptance remain open (`roadmap-lbbz1.2`).
-- Implementation branch: `claude/stupid-gifts-integration`; deployment receipt
-  will be recorded after the PR is merged and independently verified.
+- PR #189 merged as `fe66b655`; Vercel deployment
+  `5Q9hxdtyMi1xQ93R5Q6BFYnn1dhe` succeeded. Live normal Random/catalog return
+  200; retired gift-ID/OG paths return 404 before the database path.
 
 ### 2026-10-19 late evening [owner+claude] — Retire legacy shared-link Pins
 
