@@ -144,6 +144,20 @@ test('expired lost activation-CAS recovery can only pin the exact same-owner act
   assert.equal(settled.checkpoint.owner,null);await assert.rejects(w.readCheckpoint(),/expired/);
 });
 
+test('control-only reconciliation cannot adopt a different owner or release an unsettled activation',async t=>{
+  const f=await fixture(t),w=await f.open();
+  const owner={environment:scope.environment,indexName:scope.indexName,token:'test-owner',generation:2,epoch:9,phase:'activating',
+    ownerReference:'test/run',operationKey:HASH,capturedAt:new Date(NOW).toISOString()};
+  const p={...publication(),permit:{...publication().permit,mutationOwner:owner}};
+  const first=await w.writeCheckpoint(null,{...cp(),phase:'publishing',owner,control:{publication:p}});f.setNow(LATER);
+  for(const changed of [{...owner,token:'other-owner'},{...owner,generation:3},{...owner,epoch:10},null])
+    await assert.rejects(w.writeControlCheckpoint(first.sha256,{phase:'attention',owner:changed,control:{publication:p}}),/control_owner/);
+  const attention=await w.writeControlCheckpoint(first.sha256,{phase:'attention',owner,control:{publication:p}});
+  assert.deepEqual(attention.checkpoint.owner,owner);
+  const published=await w.writeControlCheckpoint(attention.sha256,{phase:'published',owner:null,control:{publication:{...p,stage:'published'}}});
+  assert.equal(published.checkpoint.owner,null);
+});
+
 test('absolute reviewed deadline caps original observation age and cannot be extended by a later replay',async t=>{
   const reviewed=policy();reviewed.rules['amazon-observation'].notAfter='2026-10-20T12:10:00.000Z';
   const f=await fixture(t,{retention:reviewed}),w=await f.open(),r=observation();const ref=await w.saveReceipt({sha256:sha256(canonicalJson(r)),receipt:r});

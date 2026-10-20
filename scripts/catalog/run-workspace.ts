@@ -42,7 +42,8 @@ export interface BudgetTotals {
 export interface BudgetReservation { id:string; requestSha256:string; units:{httpRequests:number;sqlStatements:number} }
 export type BudgetSettlement = {status:'known';usage:{rowsRead:number;rowsWritten:number}} | {status:'unknown';usage:null};
 export interface RunWorkspaceOptions {
-  /** Shared PRIVATE root, not the per-run directory. No implicit default. */
+  /** One canonical shared PRIVATE root, not the per-run directory. Separate
+   * roots/hosts do NOT share filesystem locks. No implicit default. */
   directory:string; repository:string; mode:'create'|'resume'; runId:string; configSha256:string; codeSha:string;
   scope:WorkspaceScope; retention:RetentionPolicy; budgetCaps:{httpRequests:number;sqlStatements:number};
   expectedManifestSha256?:string; now?:()=>string;
@@ -273,6 +274,7 @@ function validateControlTransition(old:CheckpointControl,next:CheckpointControl)
     const a=old.owner,b=p.mutationOwner;
     if(!a||!b||a.phase!=='freezing'||b.phase!=='activating'||!same({...a,phase:'activating'},b)||!same(next.owner,b))fail('control_reconciliation');
   }
+  else if(!same(old.owner,next.owner)&&!(next.owner===null&&next.phase==='published'&&current.stage==='published'))fail('control_owner');
   if(prior.stage!=='activating'&&prior.stage!=='published'||current.stage!=='published'&&current.stage!==prior.stage
     ||!same({...prior,stage:current.stage,deploymentId:current.deploymentId,...(recoveredPermit?{permit:current.permit}:{}),...(current.receiptSha256?{receiptSha256:current.receiptSha256}:{})},current)
     ||prior.deploymentId!==null&&prior.deploymentId!==current.deploymentId)fail('control_reconciliation');
@@ -364,8 +366,9 @@ export async function readRunWorkspace(input:RunWorkspaceOptions):Promise<Worksp
   return{directory,...info,checkpoint:state.checkpoint,budget:totals(state),expired:expiredRefs};
 }
 /** Host-local resource locks (D1 + Worker + build checkout), sorted to avoid lock-order
- * deadlocks across run IDs. No PID/age takeover, heartbeat, provider credential,
- * or claim of cross-host authority: callers still need the exact D1 owner. */
+ * deadlocks across run IDs IN THE SAME CANONICAL WORKSPACE ROOT. Separate roots
+ * and hosts do not share these files. No PID/age takeover, heartbeat, provider
+ * credential, or global authority: callers still need the exact D1 owner. */
 export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWorkspace> {
   input={...input,scope:structuredClone(input.scope),retention:structuredClone(input.retention),budgetCaps:structuredClone(input.budgetCaps)};
   options(input);await pathWithoutLinks(input.directory);await assertProtectedDestination(input.directory,input.repository);
