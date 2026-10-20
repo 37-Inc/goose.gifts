@@ -9,7 +9,7 @@ import {
 } from "../content/show/manifest.ts";
 
 const drafts = JSON.parse(
-  fs.readFileSync(new URL("../content/show/drafts.json", import.meta.url)),
+  fs.readFileSync(process.env.SHOW_DRAFTS_PATH || new URL("../content/show/drafts.json", import.meta.url)),
 );
 const catalog = validateCatalogSnapshot(
   JSON.parse(
@@ -19,7 +19,7 @@ const catalog = validateCatalogSnapshot(
   ),
   new Date("2026-10-20T00:00:00.000Z"),
 );
-test("four draft weekly slots are truthful and never public episodes", () => {
+test("four draft sets remain unapproved/unpublished; a populated shortlist has 12 exact stable identities", () => {
   const episodes = drafts.map((draft) =>
     validateEpisodeManifest(draft, catalog),
   );
@@ -30,16 +30,22 @@ test("four draft weekly slots are truthful and never public episodes", () => {
       (episode) =>
         episode.episodeDate === null &&
         !episode.ownerConfirmed &&
-        episode.slots.every((slot) => slot.productPublicId === null),
+        !episode.presentationAssetsApproved,
     ),
   );
+  const selected = episodes.flatMap((episode) => episode.slots).filter((slot) => slot.productPublicId !== null);
+  if (selected.length) {
+    assert.equal(selected.length, 12);
+    assert.equal(new Set(selected.map((slot) => slot.productPublicId)).size, 12);
+    assert.ok(selected.every((slot) => /^[0-9a-f-]{36}$/i.test(slot.productPublicId) && slot.exactVariant?.trim()));
+  }
 });
 test("invalid exact identity, variant, order and invented metadata fail", () => {
   for (const patch of [
     { position: 3 },
     { productPublicId: "not-a-product", exactVariant: "red" },
-    { productPublicId: catalog.products[0].publicId },
-    { alternativePublicIds: [catalog.products[0].publicId] },
+    { productPublicId: catalog.products[0].publicId, exactVariant: null },
+    { alternativePublicIds: ["not-a-stable-public-id"] },
     { internalNotes: "must not ship" },
   ]) {
     const changed = structuredClone(drafts[0]);

@@ -4,7 +4,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Local visual review only. Deployment must use workers/site's freshness guard.
-const root = fileURLToPath(new URL("../out/", import.meta.url));
+const root = process.env.STATIC_PREVIEW_ROOT
+  ? path.resolve(process.env.STATIC_PREVIEW_ROOT)
+  : fileURLToPath(new URL("../out/", import.meta.url));
 const mime = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript",

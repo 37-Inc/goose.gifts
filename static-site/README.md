@@ -63,11 +63,46 @@ Review `/`, `/gifts/illustrative-very-official-paperweight`,
 The last route is unlinked, noindex and excluded from sitemap policies; arrow,
 PageUp/PageDown, Home/End and Space keys operate its selection slides.
 
-`content/show/drafts.json` contains four truthful pending manifests. No episode
-date, appearance, endorsement, selected product, physical sample or product-image
-permission is implied. The initial 12 real products and four real weekly sets
-remain a release gate. Published episode routes are intentionally not generated
-until a confirmed real manifest is available.
+`content/show/drafts.json` is the owner-maintained four-set shortlist. Candidate
+UUIDs/variants may be recorded before they enter the approved snapshot; none of
+that implies current eligibility, physical possession, recording permission,
+endorsement or an appearance. Unapproved draft presentation props strip candidate
+identities, copy, imagery and links to generic pending slots. `published.json`
+starts empty. Initial publication requires confirmed date/status, owner and
+presentation approvals, non-fixture catalog data and ready original products;
+`assertEpisodePublishable` remains the strict initial gate.
+
+Published manifests alone generate `/howie/<key>`, its `/presentation` view and
+display-only `/data.json`; no approval flags or unused merchant fields are sent.
+The hub shows the latest published set and stable archive links. Missing/held
+originals retain their immutable public ID and exact variant, explicitly marked
+unavailable; only eligible alternatives are separately labeled, never promoted
+into the original slot. Product-free archives remain useful stable records.
+Every episode HTML/RSC/JSON and presentation payload shares the first displayed
+product deadline, with merchant-free safe variants preserving original identity.
+Presentation also stops displaying products when its loaded deadline passes.
+Only a published set adds a From the show navigation link.
+
+Next export disallows empty dynamic parameter lists. The small `.episode.tsx` /
+`.episode.ts` route extensions are enabled only when tracked `published.json` is
+nonempty, so no dummy or draft episode is emitted to work around that limitation.
+The original Vercel app is unaffected. The existing presentation layout and
+keyboard controls are reused. Server-only `qrcode-generator` produces a local
+deterministic SVG for the canonical episode page with the three coarse episode
+campaign fields, alongside an ordinary link; no external QR service or client
+encoder is involved. OG artwork remains a separate task.
+
+Zero-ready snapshots render the existing safe Home, with held/noindex root,
+directory, Random and shard policies. The Worker therefore serves unavailable
+variants and rejects a healthy-empty compatibility feed.
+
+Optional controlled export tests copy the project under ignored `output/`, keep
+the actual drafts/publication source untouched and mark test episodes not aired.
+They use explicit local release contexts and no provider calls:
+
+```sh
+STATIC_SITE_BUILD_SHOW_FIXTURE=1 STATIC_SITE_BUILD_EMPTY_FIXTURE=1 CATALOG_SNAPSHOT_PATH=<approved-snapshot> node --import tsx --test tests/static-site-show.test.mjs
+```
 
 All 43 existing guide definitions, editorial sections, explicit FAQs and focus
 groups are shared with the live app through the pure

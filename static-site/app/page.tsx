@@ -2,8 +2,10 @@ import { browse } from "../lib/catalog";
 import { ProductCard } from "../components/ProductCard";
 import { Search } from "../components/Search";
 import { CatalogFeed } from "../components/CatalogFeed";
+import SafeCatalog from "./safe/catalog/page";
 
 export default function Home() {
+  if (!browse.opening.length) return <SafeCatalog />;
   return (
     <main id="main" className="site-main">
       <div className="opening-line">

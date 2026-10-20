@@ -2,17 +2,32 @@
 
 import { useEffect, useState } from "react";
 import { ProductImage } from "@/components/ProductImage";
-import type { EpisodeManifest } from "../../content/show/manifest";
-import type { PublicCatalogProduct } from "../../lib/catalog/types";
+import { unavailableEpisode } from "../lib/episode-display";
+import type { DisplayEpisode } from "../lib/episode-display";
+import { captureRenderedLists } from "../lib/analytics";
 
 export function Presentation({
   episode,
-  products,
+  qrSvg = null,
 }: {
-  episode: EpisodeManifest;
-  products: PublicCatalogProduct[];
+  episode: DisplayEpisode;
+  qrSvg?: string | null;
 }) {
   const [index, setIndex] = useState(0);
+  const [expired, setExpired] = useState(false);
+  useEffect(() => {
+    if (!episode.eligibleUntil) return;
+    const deadline = Date.parse(episode.eligibleUntil);
+    let timer: number;
+    const schedule = () => {
+      timer = window.setTimeout(() => {
+        if (Date.now() >= deadline) setExpired(true);
+        else schedule();
+      }, Math.max(0, Math.min(2_147_483_647, deadline - Date.now())));
+    };
+    schedule();
+    return () => window.clearTimeout(timer);
+  }, [episode.eligibleUntil]);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (
@@ -46,10 +61,10 @@ export function Presentation({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [episode.slots.length]);
-  const slot = episode.slots[index];
-  const product = products.find(
-    (item) => item.publicId === slot.productPublicId,
-  );
+  const visible = expired ? unavailableEpisode(episode) : episode;
+  const slot = visible.slots[index];
+  const product = slot.primary;
+  useEffect(() => captureRenderedLists(), [index, expired]);
   return (
     <div className="presentation" aria-label="Episode presentation preview">
       <div className="presentation-top">
@@ -74,50 +89,57 @@ export function Presentation({
             />
           ) : (
             <div className="pending-art" aria-label="Product not selected">
-              <span>?</span>
-              <small>A GOOD BAD IDEA GOES HERE.</small>
+              <span>{episode.status === "draft" ? "?" : "—"}</span>
+              <small>{episode.status === "draft" ? "A GOOD BAD IDEA GOES HERE." : "ORIGINAL SELECTION UNAVAILABLE."}</small>
             </div>
           )}
         </div>
-        <div className="presentation-copy">
+        <div className="presentation-copy"
+          data-analytics-card={product ? "" : undefined}
+          data-analytics-id={product?.id} data-analytics-source={product?.source}
+          data-analytics-context={`show_presentation:${episode.key}`}
+          data-analytics-expiry={product?.eligibleUntil}>
           <p className="eyebrow">
             Selection {String(index + 1).padStart(2, "0")}
           </p>
-          <h1>{product?.title || "Worth waiting for."}</h1>
+          <h1>{product?.punnyTitle || product?.title || (episode.status === "draft" ? "Worth waiting for." : "Original selection unavailable.")}</h1>
           <p>{slot.caption}</p>
           {product ? (
             <>
-              <p className="variant">Exact variant: {slot.exactVariant}</p>
-              <a className="text-action" href={`/gifts/${product.slug}`}>
+              <p className="variant">Original exact variant: {slot.exactVariant}</p>
+              <a className="text-action" data-analytics-product-link="" href={`/gifts/${product.slug}`}>
                 stupid.gifts/gifts/{product.slug} ↗
               </a>
             </>
           ) : (
             <p className="variant">
-              No product, variant, retailer or airing date is confirmed.
+              {episode.status === "draft" ? "No product, variant, retailer or airing date is confirmed."
+                : `Original exact variant: ${slot.exactVariant}. Original ID: ${slot.originalPublicId}.`}
             </p>
           )}
-          {slot.alternativePublicIds.length > 0 && (
+          {slot.alternatives.length > 0 && (
             <div className="presentation-alternatives">
               <h2>Clearly labeled alternatives</h2>
-              {slot.alternativePublicIds.map((id) => {
-                const alternative = products.find(
-                  (item) => item.publicId === id,
-                );
-                return alternative ? (
-                  <a key={id} href={`/gifts/${alternative.slug}`}>
-                    Alternative: {alternative.title} →
+              {slot.alternatives.map((alternative) => (
+                <span key={alternative.publicId} data-analytics-card="" data-analytics-id={alternative.id}
+                  data-analytics-source={alternative.source} data-analytics-context={`show_presentation_alternative:${episode.key}`}
+                  data-analytics-expiry={alternative.eligibleUntil}>
+                  <a data-analytics-product-link="" href={`/gifts/${alternative.slug}`} aria-label={`Alternative: ${alternative.title}`}>
+                    Alternative: {alternative.punnyTitle || alternative.title} →
                   </a>
-                ) : (
-                  <p key={id}>Alternative currently unavailable.</p>
-                );
-              })}
+                </span>
+              ))}
             </div>
           )}
+          {episode.shareUrl && qrSvg && <aside className="presentation-share">
+            <a className="episode-qr" href={episode.shareUrl} aria-label="Open this episode selection"
+              dangerouslySetInnerHTML={{ __html: qrSvg }} />
+            <a href={episode.shareUrl}>stupid.gifts/howie/{episode.key} ↗</a>
+          </aside>}
         </div>
       </div>
       <div className="presentation-bottom">
-        <a href="/howie">Visitor landing page ↗</a>
+        <a href={episode.status === "published" ? `/howie/${episode.key}` : "/howie"}>Visitor landing page ↗</a>
         <span>
           {index + 1} / {episode.slots.length}
         </span>
