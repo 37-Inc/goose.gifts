@@ -22,6 +22,13 @@ export function canonicalizeUrl(value) {
   return url.toString();
 }
 
+export function excludeDeletedProductionPins(pins, receipts) {
+  const deletedIds = new Set(receipts
+    .filter((receipt) => receipt.environment === 'production' && receipt.type === 'cleanup.pins_deleted')
+    .flatMap((receipt) => receipt.pinIds || []));
+  return pins.filter((pin) => !deletedIds.has(pin.id));
+}
+
 export function validateDraftPackage(draft, { root, requireApproval = true } = {}) {
   const required = requireApproval
     ? REQUIRED_DRAFT_FIELDS

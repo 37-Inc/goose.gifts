@@ -5,6 +5,35 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-19 late evening — Owner-confirmed legacy Pin retirement
+
+Cameron confirmed deletion of the three hippo-mug Pins, screaming goat, ceramic
+eye and alligator oven mitt, plus removal of legacy shared-link compatibility
+from the migration spec and Beads. Verified production account `goosegifts`
+(`1107815345747925810`) and each exact Pin's title/destination before deletion.
+Preserved final per-Pin metrics in
+`pinterest-creative-lab/legacy-share-retirement-2026-10-19.json`: 308 impressions,
+four opens, two saves and zero outbound clicks across the six.
+
+All six delete commands succeeded at 05:01:48–52 UTC October 20; each authenticated
+individual read returned 404. Exhaustive board inventory reconciled from 34 to
+28 Pins, with no missing retained ID and no remaining gift-query destinations.
+The 12-member v11 cohort is unchanged. Added an append-only deletion receipt,
+marked the three older draft records deleted, and excluded explicit production
+deletion receipts from public metrics; lifecycle archives alone do not suppress
+metrics for Pins that remain public.
+
+The migration now omits gift-ID resolution/maps and the old dynamic OG endpoint,
+while retaining normal product-page links and static preview assets. Removed
+stale share-compatibility acceptance requirements from existing Beads rather
+than creating replacement work. Bundle/admin/reporting retirement and GA4-first
+reporting remain. No live site route removal, infrastructure cutover, schedule
+change, new publication, further Pin deletion or source-data deletion.
+
+Verification: all 16 Pinterest/creative tests, lint, build and diff checks pass.
+Fresh public-metrics readback at 05:04:43 UTC succeeded for exactly the retained
+28 Pins, with no deleted IDs and no missing retained ID.
+
 ## 2026-10-19 late evening — Final launch review and domain purchase
 
 Owner approved the previously quoted checkout. Purchased `stupid.gifts` in

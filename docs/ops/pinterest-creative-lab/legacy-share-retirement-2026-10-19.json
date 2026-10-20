@@ -1,0 +1,75 @@
+{
+  "status": "verified_deleted",
+  "environment": "production",
+  "accountId": "1107815345747925810",
+  "username": "goosegifts",
+  "authorization": "Cameron confirmed deletion of exactly three hippo-mug Pins, the goat, the eye and the oven mitt; preserve every newer Pin and retire legacy shared-link support from the migration plan.",
+  "checkedAt": "2026-10-20T05:00:51.240Z",
+  "beforeCount": 34,
+  "deletedAt": "2026-10-20T05:01:52.047Z",
+  "verifiedAt": "2026-10-20T05:01:52.834Z",
+  "afterCount": 28,
+  "verification": {
+    "deleteCommandsSucceeded": 6,
+    "allSixIndividualReadbacks": 404,
+    "missingUntouchedPinIds": [],
+    "remainingDeletedPinIds": [],
+    "remainingLegacyLinkPinIds": []
+  },
+  "metricsVerification": {
+    "verifiedAt": "2026-10-20T05:04:43.145Z",
+    "measuredPublicPins": 28,
+    "missingRetainedPinIds": [],
+    "deletedPinsStillIncluded": []
+  },
+  "targets": [
+    {
+      "id": "1107815208385562809",
+      "title": "Patricia Is Running This Meeting",
+      "giftId": "B0F9DZMQBL",
+      "finalMetrics": { "impressions": 10, "pinClicks": 0, "outboundClicks": 0, "saves": 0 }
+    },
+    {
+      "id": "1107815208385331910",
+      "title": "Patricia Has a Lipstick Appointment",
+      "giftId": "B0F9DZMQBL",
+      "finalMetrics": { "impressions": 7, "pinClicks": 0, "outboundClicks": 0, "saves": 0 }
+    },
+    {
+      "id": "1107815208385022014",
+      "title": "The Goat Has the Floor",
+      "giftId": "0762459816",
+      "finalMetrics": { "impressions": 131, "pinClicks": 2, "outboundClicks": 0, "saves": 1 }
+    },
+    {
+      "id": "1107815208384432788",
+      "title": "The Side Table Is Looking Back",
+      "giftId": "B0D57DDDM1",
+      "finalMetrics": { "impressions": 52, "pinClicks": 0, "outboundClicks": 0, "saves": 0 }
+    },
+    {
+      "id": "1107815208384432759",
+      "title": "The Oven Mitt Is Biting Back",
+      "giftId": "B005UGWDAE",
+      "finalMetrics": { "impressions": 86, "pinClicks": 1, "outboundClicks": 0, "saves": 1 }
+    },
+    {
+      "id": "1107815208384432735",
+      "title": "A Mug Named Patricia Has Entered the Breakfast",
+      "giftId": "B0F9DZMQBL",
+      "finalMetrics": { "impressions": 22, "pinClicks": 1, "outboundClicks": 0, "saves": 0 }
+    }
+  ],
+  "untouchedPinIds": [
+    "1107815208391368990", "1107815208391305222", "1107815208391186516",
+    "1107815208391132026", "1107815208391104701", "1107815208391037211",
+    "1107815208389087383", "1107815208389027583", "1107815208389000013",
+    "1107815208388788830", "1107815208388765155", "1107815208388715714",
+    "1107815208388134634", "1107815208388077586", "1107815208388049691",
+    "1107815208387994026", "1107815208387966131", "1107815208387907452",
+    "1107815208387877454", "1107815208387817822", "1107815208387789981",
+    "1107815208387734801", "1107815208387708056", "1107815208387654951",
+    "1107815208387630624", "1107815208387553278", "1107815208387477273",
+    "1107815208387225923"
+  ]
+}

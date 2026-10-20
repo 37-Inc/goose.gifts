@@ -31,7 +31,7 @@ The final architecture is:
   brand assets, and share images.
 - **Next.js static export with existing React components** as the build tool.
   Retain the familiar codebase; eliminate request-time Next.js rendering.
-- **A small TypeScript Worker** for semantic search, legacy query redirects,
+- **A small TypeScript Worker** for semantic search, maintained URL redirects,
   and freshness guards where serving a frozen page would be incorrect.
 - **D1** as the operational catalog and maintenance-history database.
 - **Vectorize** for existing 1,536-dimensional product embeddings.
@@ -76,8 +76,8 @@ Source locations that determine compatibility:
 | Query-dependent homepage and feed | `app/page.tsx`, `components/CatalogSearchFeed.tsx`, `lib/db/operations.ts` |
 | Semantic and keyword search | `app/api/search-products/route.ts`, `lib/db/product-search.ts`, `lib/openai-embeddings.ts` |
 | Product identity and freshness | `lib/db/schema.ts`, `lib/gift-slugs.ts`, `lib/db/gift-pages.ts` |
-| Random selection and shared links | `app/random-gift/page.tsx`, `lib/db/random-gift.ts` |
-| Dynamic share cards | `app/api/og/random-gift/route.tsx` |
+| Random selection | `app/random-gift/page.tsx`, `lib/db/random-gift.ts` |
+| Share cards to replace with static product assets | `app/api/og/random-gift/route.tsx` |
 | Guides and original index | `lib/gift-guides.ts`, `app/gift-guides/`, `app/weird-gift-index/` |
 | Redirects and site identity | `lib/legacy-redirects.ts`, `lib/site.ts`, `next.config.ts` |
 | Catalog maintenance and receipts | `scripts/ops/catalog-weekly.mjs`, `prefetch-catalog.mjs`, `catalog-telemetry.mjs` |
@@ -102,16 +102,14 @@ authentication and minimal job/failure receipts remain operational necessities,
 not a visitor-reporting feature. This scope decision does not remove the
 existing PostHog adapter, Google Ads behavior or analytics privacy gates.
 
-“Legacy product-link redirects” below means the old
-`/random-gift?gift=<retailer-id>` format, not another page type or saved-share
-feature. The October 19 Pinterest readback still records six public Pins using
-it, including the hippo mug, screaming goat, eye and oven mitt. Live mug/goat
-checks returned 308 redirects to their normal `/gifts/[slug]` pages. The proposed
-compatibility is only a deployed ID-to-slug redirect map; new links use product
-slugs, with no new legacy-link generation or per-request database lookup. Evidence:
-`pinterest-creative-lab/v34-concepts/verification/metrics-20261019-pm.json`.
-This remains a compatibility recommendation pending the owner's final scope
-decision, not authorization to modify existing Pins.
+Retire `/random-gift?gift=<id>` compatibility and the query-based
+`/api/og/random-gift` endpoint. No ID-to-slug map, gift-query resolver or legacy
+share-card handler is required. Ordinary product URLs and static preview images
+remain; Random links directly to the selected product page. Obsolete bookmarks
+are not a compatibility contract. Cameron authorized removal of the six legacy
+Pinterest Pins that used this format; all six are deleted and the other 28 Pins
+are unchanged. Receipt:
+`pinterest-creative-lab/legacy-share-retirement-2026-10-19.json`.
 
 ## Serving architecture
 
@@ -149,20 +147,18 @@ Use the existing `37.technology` Cloudflare account, which also owns
 | `/gifts` and pagination | Static directory pages. Move pagination to `/gifts/page/2` etc.; redirect existing `?page=N` links with correct canonical and boundary behavior. |
 | `/gifts/[slug]` | Prebuilt product HTML, metadata, related products and share card. Thin Worker expiry guard serves the asset or a safe noindex fallback without querying D1. Existing slugs do not change for branding. |
 | `/gift-guides` and `/gift-guides/[slug]` | Prebuilt existing guides with current eligibility and internal links. |
-| `/random-gift` | Static useful initial selection plus client-side spinning over a bounded versioned eligible pool. No DB request per spin. Preserve no-immediate-repeat and share behavior. |
-| `/random-gift?gift=...` (legacy product link) | Redirect only, not a separate page: resolve through a deployed ID-to-slug map and preserve the tracking allowlist. New links use `/gifts/[slug]`. Unknown IDs get the generic random page, not a DB lookup. |
-| `/api/og/random-gift?gift=...` or `?slug=...` | Map to prebuilt share assets; return the branded fallback for unknown inputs. No remote fetch or image rendering per request. |
+| `/random-gift` | Static useful initial selection plus client-side spinning over a bounded versioned eligible pool. No DB request per spin. Preserve no-immediate-repeat; link/share the selection through its normal `/gifts/[slug]` URL. |
 | `/weird-gift-index` and `/weird-gift-index/data` | Static dated analysis and allowlisted public data generated together; preserve citation, methodology, schema, and contact identity. |
 | `/privacy`, robots, sitemap and verification files | Static artifacts. Retain `/sitemap/0.xml` compatibility while publishing `/sitemap.xml` directly. |
-| Retired top-level bundle slugs and old admin/auth/report routes | Do not port their pages, generators or redirect heuristics. Return a real 404/410; preserve only maintained product slug-history redirects, not bundle-to-guide redirects. |
+| Retired bundle, admin/auth/report and `/api/og/random-gift` paths | No handlers or feature parity required; return a real 404/410. Product slug-history redirects remain, but bundle redirects and gift-query resolution do not. |
 | `/howie` | New static weekly selection and links to the actual products; previous episodes remain reachable. |
 | `/howie/[episode]` | Stable dated episode page, exact product variants, show order, archived alternatives for unavailable items. |
 | Authenticated catalog publication endpoint | Replace Next cache invalidation with authenticated build dispatch/status. An accepted dispatch is not a completed release. |
 
 Keep Worker routing explicit: root, catalog/guide/product/episode pages,
 random, catalog data and sitemap go through a small bundled-manifest expiry
-check; API and legacy paths have their specific handlers. CSS, JavaScript,
-owned images, fonts, privacy and other timeless assets use direct asset
+check; maintained API and redirect paths have their specific handlers. CSS,
+JavaScript, owned images, fonts, privacy and other timeless assets use direct asset
 serving. A Worker execution still counts as a request even when it returns
 prebuilt HTML. This design removes database and rendering work from browsing,
 but does not promise every page view is free.
@@ -180,8 +176,8 @@ and show loading, empty, and unavailable states.
 A publication build reads one local immutable snapshot; components do not
 open a database connection during rendering. Export the directory's complete
 path list, all maintained guide pages, product pages including safe held-page
-responses, legacy maps, and episode pages. Guard against accidentally
-exporting raw source facts, embeddings, internal notes, or credentials.
+responses, product slug-history redirects, and episode pages. Guard against
+accidentally exporting raw source facts, embeddings, internal notes, or credentials.
 
 Reuse `ProductGrid`, `ProductImage`, retailer CTA and sticky mobile CTA,
 search/feed UI, analytics adapter, ranking/deduplication functions and
@@ -400,8 +396,9 @@ quota pressure to rush a destructive cutover.
 
 In an isolated branch, publish a protected/noindex Cloudflare staging build
 with the homepage, one guide, representative ready/held product pages, a
-random spin, a legacy share URL, and real search over a small copied D1/vector
-cohort. Use a staging analytics configuration that cannot pollute production.
+random spin linking to a normal product page, and real search over a small
+copied D1/vector cohort. Use a staging analytics configuration that cannot
+pollute production.
 
 Pass static export, asset routing, Worker expiry, D1 binding, Vectorize parity,
 and mobile interaction checks before converting every route. The production
@@ -475,10 +472,11 @@ Simply switching DNS to stale Neon is not a valid rollback.
 ### Stage 5  Launch the new brand
 
 After infrastructure is stable, launch the approved visual treatment on
-`stupid.gifts`. Redirect `www.stupid.gifts` to the apex and all Goose public
-paths permanently to their matching new paths, preserving safe attribution
-parameters and necessary search/share behavior. Serve those redirects on
-Cloudflare, independently of Vercel/Neon. Keep at least a year of redirects
+`stupid.gifts`. Redirect `www.stupid.gifts` to the apex and maintained Goose
+public paths permanently to their matching new paths, preserving safe
+attribution parameters and search behavior, excluding the retired features
+above. Serve those redirects on Cloudflare, independently of Vercel/Neon.
+Keep at least a year of redirects
 from the actual brand cutover; the deferred old-domain renewal decision below
 must preserve that window.
 
@@ -492,9 +490,10 @@ one stored retailer event in each provider, with QA traffic identified.
 Register the new site in the Amazon Associates approved site list and any
 active affiliate program before monetizing the new domain. Retain the
 verified tag; a rebrand is not a new affiliate account. Verify Pinterest
-claimed-site/app metadata and existing Pin destination redirects; do not
-delete old Pins. Coordinate Search Console verification, sitemap submission,
-Change of Address and Bing/IndexNow with the existing search-submission owner.
+claimed-site/app metadata and remaining Pin product-page destination redirects;
+do not delete further Pins without exact approval. Coordinate Search Console
+verification, sitemap submission, Change of Address and Bing/IndexNow with
+the existing search-submission owner.
 Track actual provider receipts separately from website code completion.
 
 ### Provider and automation cutover checklist
@@ -613,7 +612,7 @@ At the final gate:
 **Pinterest — same app and business account (`roadmap-lbbz1.8`).**
 
 - Preserve app `1588384`, business account `1107815345747925810`, existing
-  boards, approved production access, scopes, tokens and public Pin IDs.
+  boards, approved production access, scopes, tokens and remaining public Pin IDs.
   Capture before-state and recheck current account identity before edits.
 - At brand launch update developer-app name/description/icon, website and
   privacy URLs wherever those fields exist. Verify the existing application
@@ -631,7 +630,7 @@ At the final gate:
 - Update future draft destinations, canonical-host guards, asset hosts,
   UTM/link builders and the creative skill's brand inputs. Treat any changed
   package as a new digest requiring normal validation; never rewrite historical
-  approval/publication receipts. Follow existing Pin links through the Goose
+  approval/publication receipts. Follow remaining Pin product links through the Goose
   redirects to the matching new product, preserving safe campaign parameters.
 - Run production OAuth refresh, account/board reads and a create **dry run**.
   Read verification is required; a rebrand alone does not authorize a test
@@ -670,7 +669,7 @@ in recoverable steps, with exact resource IDs and before/after receipts.
 
 1. **Prove independent redirects first.** Test HTTP/HTTPS and apex/www Goose
    URLs through Cloudflare to matching Stupid Gifts pages, including product
-   slugs, guides, random/share links and safe campaign parameters. Keep real
+   slugs, guides, the random page and safe campaign parameters. Keep real
    404/410 behavior for retired content; do not send every missing URL to the
    homepage. Confirm TLS, domain ownership and verification records survive
    removal of old hosting. Keep redirect monitoring lightweight and independent

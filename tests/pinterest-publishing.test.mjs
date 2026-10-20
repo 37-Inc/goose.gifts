@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   assertPinterestAccount,
+  excludeDeletedProductionPins,
   findExistingPin,
   findOwnerApproval,
   hasUnresolvedPublication,
@@ -27,6 +28,18 @@ const draft = {
   altText: 'Circular-saw-shaped pizza cutter beside a sliced pizza.',
   disclosure: 'AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.',
 };
+
+test('public metrics exclude explicitly deleted Pins without treating archives or Sandbox cleanup as deletion', () => {
+  const pins = [{ id: 'old-draft' }, { id: 'old-creative' }, { id: 'retained' }, { id: 'sandbox-id' }];
+  const receipts = [
+    { environment: 'production', type: 'cleanup.pins_deleted', pinIds: ['old-draft', 'old-creative'] },
+    { environment: 'sandbox', type: 'cleanup.pins_deleted', pinIds: ['sandbox-id'] },
+    { environment: 'production', type: 'candidate.archived', pinIds: ['retained'] },
+  ];
+  assert.deepEqual(excludeDeletedProductionPins(pins, receipts), [pins[2], pins[3]]);
+  assert.deepEqual(excludeDeletedProductionPins(pins, []), pins);
+  assert.equal(pins.length, 4);
+});
 
 test('publishing package requires owner approval metadata, tracking, and visible disclosures', () => {
   assert.equal(validateDraftPackage(draft), draft);
