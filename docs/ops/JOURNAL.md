@@ -5,6 +5,33 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Integrate owned D1 maintenance and strict revision pruning
+
+Three Sol extra-high-effort workers delivered bounded implementation and
+cross-review. Root integrated the shared mutation fence, explicit eleven-method
+D1 store, strict-subset expiry pruner, activation barrier, lazy telemetry seam,
+rights-aware SQL visibility and cached-search deadline recheck. The new tests
+are explicitly included in `test:staging`; 328 pass, eight separately opt-in
+fixtures skip. Existing catalog/telemetry/analytics/contact suites add 88 passes,
+including native PostgreSQL merge comparisons.
+
+Independent review caught and fixed two store freshness errors: a stale
+observation gaining a fresh deadline from database write time, and changed facts
+inheriting an old merchant observation. Actual observation time and factual
+identity now gate public eligibility separately from preserved private
+PostgreSQL update semantics. SQL read/publication gates reject revoked or
+changed value-specific permissions and shorter current deadlines; benign
+deadline renewal remains valid. This cannot retroactively recall already-issued
+cache/static bytes.
+
+Migrations 0009/0010 and the D1 store are opt-in. No current staging ownership
+row or production writer is enabled. The pruner does not refresh Amazon data,
+promote held candidates or generate embeddings. An owned vector provider
+adapter, real D1 telemetry/orchestration, replacement secret bootstrap and
+verified scheduled publication remain unfinished. Keep the existing weekly
+Neon command unchanged. Real-provider canary and merged-source deployment
+receipts will be recorded separately from the local tests.
+
 ## 2026-10-20 — Merged release, live search budget and real retention expiry
 
 PR #193 merged as `e082ba82c60ccb1e723f145119b71c7a693893ad`.

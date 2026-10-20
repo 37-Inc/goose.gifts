@@ -155,7 +155,9 @@ They are not deployment assets.
   receipt reconcile exactly. Replaying a receipt verifies actual stored bytes;
   missing/corrupt rows are not accepted. Rollback preflight accepts the current
   compatible revision and refuses it after its content deadline. Mutable
-  product holds, changed facts and revoked display rights override old releases.
+  product holds, changed facts and revoked display rights override new
+  database-backed reads and publication checks. Previously served static bytes
+  and search-cache entries are not retroactively recalled by a database change.
 - `staging-semantic-receipt.json`: four bounded real embedding/Vectorize/D1
   queries through the deployed Worker return the expected toast, gothic décor
   and BS-button results; wall latency 740–1,641 ms. Semantic was temporarily
@@ -260,20 +262,45 @@ retaining exact original text privately. See
 
 ## Still required before launch
 
-Full-catalog timestamp/reconciliation and remaining recovery gaps, the complete
-multi-revision publishing/vector-outbox loop, 30-query search parity and global
-spending controls, compliant recurring expiry publication,
+Remaining timestamp/recovery evidence, the complete multi-revision
+publishing/vector-outbox loop, 30-query search parity and compliant recurring
+expiry publication,
 real show curation, burst rehearsal, production analytics checks and the final
 owner/provider checklist remain open. Four staging products are not a
 launch-ready catalog. Provider cutover and decommissioning are separate gates.
 The free Vectorize allowance also cannot hold all 3,383 historical product
 vectors (5,196,288 dimensions); do not silently upgrade or discard inventory.
 
-The next writer/freezer implementation must share one environment/index fence
-across maintenance, importers, vector delivery and activation. The current
-read-only snapshot reconstruction proves an **existing** reviewed seal, not a
-new revision or a lock: two stable captures cannot exclude a later write or
-ABA change. A pruning freshness run may remove expired/held content but cannot
-refresh merchant verification, promote old holds, invent vector provenance or
-claim an all-held catalog is healthy. Keep the current Neon job until these
-transactions, telemetry, slug reservations and recovery checks are proven.
+## Opt-in maintenance and expiry preparation
+
+Migration 0009 introduces one shared mutation owner for each isolated D1
+database/index. Its empty table is deliberately **disabled**. Enabling it
+requires stopping all old/manual writers first; this is not a provider access
+control. Enabled legacy import, projection, vector and publication paths refuse
+mutations. Ownership is never recovered by guessing that a timed-out provider
+operation has stopped. Activation and its independently resolved receipt use
+the same owner, not a second unrelated lock.
+
+`pruneExistingRevision` can create an immutable revision from a strict subset
+of a previously approved seal, with resumable projection chunks and atomic
+source/ownership checks. It never promotes held products, extends rights,
+refreshes Amazon data or generates embeddings. `settlePrunedRevision` queues a
+build only after an explicitly injected adapter independently confirms settled
+index state, exact vector bytes/metadata and removed-ID absence. That owned
+provider adapter and protected CI orchestration are **not implemented or
+activated by this module**. Unchanged, all-held, source-drift, partial-restart
+and lost-response cases have executable SQLite tests.
+
+The explicit D1 maintenance store preserves the existing eleven-method runner
+contract while separating immutable source archives from private current state.
+Product identity/slug, update, vector-outbox payload, operation receipt and owner
+epoch are checked in one transaction. Replays preserve the prior UUID and time.
+Unknown source/rights/vector provenance remains held; a database write cannot
+make an old observation fresh. This does not change the runner's default Neon
+backend or its schedule.
+
+Before selecting D1 for a real weekly run, finish the runtime/store selection,
+D1 run/item telemetry backend, owned vector delivery, new approved-cohort
+publication, replacement secret bootstrap and a bounded end-to-end run. The
+daily pruning path is not the weekly candidate-promotion path. Retain the
+current Neon job until those integrations and recovery checks are verified.

@@ -195,6 +195,17 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-20 [owner+claude] — Stage the D1 writer and expiry-publication path
+
+The opt-in maintenance store (`77042f3`) preserves stable product identities and
+the existing runner's eleven storage operations. Shared ownership now spans
+catalog writes, pruning and activation; interrupted work cannot silently become
+a successful publication. Review fixed stale-observation freshness and revoked
+display-rights gaps, plus a cached-search expiry race. The default Neon job is
+unchanged. Root verification: 328 staging tests pass (eight explicit opt-in
+skips), plus 88 existing catalog/telemetry/analytics/contact regressions.
+This is implementation progress, not writer, scheduler or domain cutover.
+
 ### 2026-10-20 [owner+claude] — Review release identity and maintenance migration safety
 
 PR #193 seals explicit preview, Goose and Stupid identities so
