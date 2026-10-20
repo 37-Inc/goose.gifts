@@ -60,6 +60,11 @@ test('optional copy with no permission is omitted, not copied from a source reco
   assert.equal('humorTags' in result.products[0], false);
 });
 
+test('normal ready publication requires permission for its substantive editorial, not only the merchant tile', () => {
+  const p = product(); const grants = rights(p); delete grants.editorialWriteup;
+  assert.equal(snapshot(p, grants).heldProducts[0].reason, 'rights_unverified');
+});
+
 test('inactive, duplicate, expired, future-verified and editorial holds are safe', () => {
   for (const [overrides, reason] of [[{ isActive: false }, 'inactive'], [{ duplicateOfProductId: 'other' }, 'duplicate'],
     [{ editorialStatus: 'pending' }, 'editorial_hold'], [{ availabilityCheckedAt: '2026-09-14T12:00:00.000Z' }, 'expired'],

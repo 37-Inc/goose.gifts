@@ -46,6 +46,15 @@ function httpsUrl(value: unknown, fixture = false, image = false): value is stri
       || /^(?:www\.)?etsy\.com$/.test(url.hostname);
   } catch { return false; }
 }
+function retailerIdentityUrl(value: string, id: string, source?: string): boolean {
+  const url = new URL(value);
+  if (url.hostname.includes('amazon.')) {
+    const productId = url.pathname.match(/\/(?:dp|gp\/product)\/([A-Z0-9]{10})(?:\/|$)/i)?.[1];
+    return source !== 'etsy' && productId?.toUpperCase() === id.toUpperCase();
+  }
+  const productId = url.pathname.match(/^\/listing\/(\d+)(?:\/|$)/)?.[1];
+  return source !== 'amazon' && productId === id;
+}
 function freeze<T>(value: T): T {
   if (value && typeof value === 'object') {
     for (const child of Object.values(value)) freeze(child);
@@ -80,6 +89,7 @@ export function validatePublicCatalogProduct(input: unknown, now: Date = new Dat
     || !httpsUrl(value.affiliateUrl, fixture) || !['amazon', 'etsy'].includes(String(value.source))
     || value.price !== 0 || value.isActive !== true || typeof value.qualityScore !== 'number'
     || !Number.isFinite(value.qualityScore) || value.qualityScore < 0.55 || value.qualityScore > 1) fail('display fields');
+  if (!fixture && !retailerIdentityUrl(String(value.affiliateUrl), String(value.id), String(value.source))) fail('retailer identity');
   if (Date.parse(canonicalTime(value.eligibleUntil)) <= now.getTime()) fail('expired public product');
   for (const field of ['punnyTitle', 'wittyDescription', 'editorialWriteup']) {
     if (field in value && !nonempty(value[field])) fail(field);
@@ -110,6 +120,7 @@ export function validateCatalogSnapshot(input: unknown, now: Date = new Date()):
     if (p.path !== getGiftPath(String(p.slug)) || p.title !== HELD_TITLE || p.description !== HELD_DESCRIPTION
       || !['inactive', 'duplicate', 'editorial_hold', 'expired', 'rights_unverified'].includes(String(p.reason))
       || ('affiliateUrl' in p && !httpsUrl(p.affiliateUrl, fixture))) fail('held product');
+    if (!fixture && 'affiliateUrl' in p && !retailerIdentityUrl(String(p.affiliateUrl), String(p.id))) fail('held retailer identity');
   }
   const all = [...validatedProducts, ...value.heldProducts] as Array<{ publicId: string; slug: string }>;
   for (const raw of value.slugHistory) {
@@ -144,7 +155,7 @@ export function createCatalogSnapshot(products: SnapshotProductInput[], rightsBy
     else if (product.duplicateOfProductId) reason = 'duplicate';
     else if (!Number.isFinite(verified) || verified > now || editorialExpiry <= now) reason = 'expired';
     else if (!hasIndexableGiftEditorial(product, options.now) || (product.qualityScore || 0) < 0.55) reason = 'editorial_hold';
-    const required: DisplayField[] = ['title', 'description', 'imageUrl', 'affiliateUrl'];
+    const required: DisplayField[] = ['title', 'description', 'imageUrl', 'affiliateUrl', 'editorialWriteup'];
     const expiries = required.map((field) => approvedRight(rights[field], values[field] || '', now));
     if (!reason && expiries.some((expiry) => expiry === null)) reason = 'rights_unverified';
     if (reason) {
