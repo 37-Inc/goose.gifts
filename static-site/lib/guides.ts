@@ -10,6 +10,7 @@ import type {
 } from "../../lib/catalog/types";
 import { PREVIEW_ORIGIN } from "./metadata";
 import { readySnapshotProducts } from "./selection";
+import { siteIdentity } from "./site-identity";
 
 export const guides = giftGuides;
 export const GUIDE_PRODUCT_LIMIT = 36;
@@ -97,7 +98,7 @@ export function guideSchema(
       url,
       isPartOf: {
         "@type": "WebSite",
-        name: "Stupid Gifts",
+        name: siteIdentity.name,
         url: PREVIEW_ORIGIN,
       },
     },

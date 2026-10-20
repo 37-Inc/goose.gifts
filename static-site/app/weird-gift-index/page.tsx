@@ -2,6 +2,7 @@ import { catalog, isFixtureRelease } from "../../lib/catalog";
 import { buildSnapshotIndex, snapshotIndexSchema } from "../../lib/weird-index";
 import { previewMetadata } from "../../lib/metadata";
 import { JsonLd } from "../../components/JsonLd";
+import { siteIdentity } from "../../lib/site-identity";
 
 const index = buildSnapshotIndex(catalog);
 export const metadata = previewMetadata(
@@ -142,7 +143,7 @@ export default function WeirdIndex() {
           <h2>Suggested citation.</h2>
           <p>{index.citation}</p>
           <p>
-            Stupid Gifts is operated by Thirty Seven Inc. The site may earn
+            {siteIdentity.name} is operated by Thirty Seven Inc. The site may earn
             commissions from qualifying purchases. This report uses catalog
             title aggregates, not sales or commission data.
           </p>
