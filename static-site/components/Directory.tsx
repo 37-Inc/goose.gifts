@@ -35,7 +35,7 @@ export function Directory({
       {page.products.length ? (
         <div className="catalog-grid">
           {page.products.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p.id} product={p} context="catalog_directory" />
           ))}
         </div>
       ) : (

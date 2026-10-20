@@ -68,7 +68,7 @@ export default async function Guide({
         {products.length ? (
           <div className="catalog-grid">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product.id} product={product} context={`gift_guide:${slug}`} />
             ))}
           </div>
         ) : (

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { previewMetadata } from "../lib/metadata";
 import { isFixtureRelease } from "../lib/catalog";
+import { StaticAnalytics } from "../components/StaticAnalytics";
+import { show } from "../lib/show-data";
 import "./styles.css";
 
 export const metadata: Metadata = {
@@ -18,6 +20,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
+        {process.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED === "true" &&
+          !isFixtureRelease && <StaticAnalytics />}
         <a className="skip-link" href="#main">
           Skip to content
         </a>
@@ -31,9 +35,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             stupid<span>.</span>gifts
           </a>
           <nav aria-label="Main navigation">
-            <a href="/gifts">The collection</a>
-            <a href="/random-gift">Surprise me</a>
-            <a href="/gift-guides">Gift guides</a>
+            <a className="nav-secondary" href="/gifts">The collection</a>
+            <a className="nav-random" href="/random-gift">Surprise me</a>
+            {show.latest && <a className="nav-show" href="/howie">From the show</a>}
+            <a className="nav-secondary" href="/gift-guides">Gift guides</a>
             <a href="/#catalog-search" className="nav-search">
               Search <span aria-hidden="true">↗</span>
             </a>

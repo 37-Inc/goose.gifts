@@ -45,6 +45,16 @@ npm run lint
 npm run build
 ```
 
+The additive Cloudflare staging build requires a public snapshot and explicit
+reviewed release context; it does not activate a publisher or replace production:
+
+```bash
+CATALOG_SNAPSHOT_PATH=/absolute/private/catalog.snapshot.json \
+CATALOG_RELEASE_CONTEXT_PATH=/absolute/private/release-context.json npm run build:staging
+```
+
+See [staging build context and verification](docs/ops/STUPID_GIFTS_STAGING.md).
+
 Catalog operations:
 
 ```bash

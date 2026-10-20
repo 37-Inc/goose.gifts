@@ -5,6 +5,78 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 early morning — Actual publication proof and runtime follow-through
+
+PR #191 merged as `f167e0764fe8eee8a19916cd6e348503d4189765`.
+At 06:51 UTC its exact source was deployed to the protected Worker as
+`657d02af-2cc0-474a-82f2-599717e87e09`. The publisher claimed a lease, recorded
+the accepted deployment, independently read all five deployed identity fields
+and the four original Vectorize byte hashes/metadata, then wrote the verified
+publication receipt. `publication-proof-QKPwWC/receipt.json` has SHA-256
+`b6201229402c5d8d2ca5ed3150c3291c7bb90cf842b1dbef7aabd40fda136bf6`.
+Watermark zero proves the baseline package, not a recurring future vector writer.
+
+Production Vercel deployment `AVidcwRzGiJdoRjSFQP9FRFYw9mo` succeeded.
+Home, gifts, guides and ordinary Random returned 200; the retired gift-ID
+query returned 404. Protected browser testing confirmed one Random pool
+request across three spins, no adjacent repetition and no horizontal overflow.
+
+Root integrated and reviewed the vector outbox delivery and shared semantic
+budget, plus default-off static analytics. Review caught lost Pinterest
+attribution on full product-page navigation; the correction retains only
+sanitized source/medium/campaign in tab storage, behind existing privacy and
+production-host gates. Before the new draft selections, the rebuilt integrated
+suite passed 191 tests with four optional skips; lint and normal production
+build also passed. Semantic calls remain disabled in checked-in configuration.
+The reviewed staging allocation is 50 semantic requests / 32,768 conservative
+token units per UTC day, enforced through D1 before provider calls; this is
+not a provider billing guarantee.
+
+Operational packet preparation and local restoration reconcile 8,091 runtime
+identities, including 3,383 products, while preserving the ten verified staging
+rows and four public projections. Unknown historical timestamps remain NULL
+in normalized columns with original source values/provenance retained; those
+3,373 newly mapped products are held, not quietly declared fresh. The actual
+protected staging import passed at 07:36 UTC: 110 new batches, 95 existing
+history replays and a full second 205-batch replay. Every expected field and
+identity, FK/quick_check/FTS and sequence high-water passed; the original
+ten/four products/projections and publication state were preserved.
+`operational-d1-run-YRU9u1/apply-receipt.json` SHA-256:
+`7297cdabec9b8e81120f97f10f11e47b9f9725768fe1426d59a125d852495fe1`.
+Apply counters: 938 calls, 101,695 rows read, 30,252 rows written including
+indexes/receipts/checks, within the explicit 40,000 additional-write ceiling.
+
+PR #192 integrates the runtime/data/episode changes. Root's current full
+staging suite passes 210 tests with seven explicit optional skips; the separate
+published/empty episode export proof passes all seven tests. Sealed real-cohort
+package verification, normal production build, lint, analytics, catalog ops,
+telemetry and cache regressions pass. The twelve drafts export no candidate
+or episode routes. These results do not close the migration epic.
+
+Independent D1 query-plan review caught the planner starting from the broad
+active/quality index even for bounded ID and FTS queries. Root fixed the
+candidate-first join order without adding an index or dropping any eligibility
+condition. The same actual four probes changed rows-read from
+2,408/2,416/2,410/2,415 to 4/12/3/5 (mutable IDs, revision IDs, mutable keyword,
+revision keyword), with identical results. A 3,000-held-row local regression
+checks the actual plans and subsequent holds. Private before/after receipts:
+`serving-plans-awEt7K/receipt.json` and `serving-plans-FChXXE/receipt.json`.
+This does not establish full 30-query relevance or burst capacity.
+
+Five bounded read-only checks examined 16 show candidates, 15 returned, and
+12 were arranged into four draft sets. Returned images were visually reviewed.
+Excluded the missing toilet mug, ambiguous multi-variant Venus image, delayed
+ring-box offer and repetitive therapist toy. The chicken-print taste decision,
+presentation rights, episode dates and any physical demonstration still need
+owner confirmation. See the dated shortlist; no listing images/raw responses
+are committed or published.
+
+GitHub readback currently exposes only the repository's `VERCEL_TOKEN` secret
+and existing Preview/Production environments, with no Cloudflare release
+workflow. A protected least-privilege deployment/dispatch credential path must
+be established before enabling unattended publication. No token was broadened,
+new schedule activated, social post sent, domain switched or provider retired.
+
 ## 2026-10-19 late evening — Native recovery and staging history migration
 
 PR #190 merged as `7b73ab750b4b45ffaadd4c5bfbade57941ff5fdc`; the protected

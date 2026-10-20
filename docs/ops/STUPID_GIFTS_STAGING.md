@@ -9,13 +9,26 @@ Use Node 22. Refresh source credentials using the runbook; never copy the
 Postgres, Amazon or personal provider keys into the public snapshot.
 
 ```sh
-CATALOG_SNAPSHOT_PATH=/absolute/private/cohort/catalog.snapshot.json npm run build:staging
+CATALOG_SNAPSHOT_PATH=/absolute/private/cohort/catalog.snapshot.json \
+CATALOG_RELEASE_CONTEXT_PATH=/absolute/private/release-context.json npm run build:staging
 npm run test:staging
 npm run lint
 npm run build
 ```
 
 Without `CATALOG_SNAPSHOT_PATH`, the build uses explicitly synthetic fixtures.
+Every build, including a synthetic build, requires an explicit private release
+context with exactly `schemaVersion: 1`, `releaseId`, `codeSha`,
+`catalogRevision`, `catalogSnapshotSha256`, `generatedAt`,
+`vectorSyncWatermark` and `priorReleaseId`. The source SHA must match committed
+HEAD; the snapshot digest hashes the validated snapshot serialized with
+`JSON.stringify(snapshot) + '\n'`. Capture time must not precede the snapshot
+or be in the future. Read the watermark and prior release from independently
+verified state; zero and null are explicit bootstrap evidence, never defaults.
+The verifier binds this copied context to the release manifest. An already-built
+release ID cannot be overwritten: verify/reuse that sealed package or assign a
+new reviewed ID.
+
 The build copies a validated public-field-only snapshot into ignored
 `build/stupid-gifts/`, renders `static-site/out/`, and records the source SHA,
 snapshot digest, every asset digest and expiry policy. Commit reviewed source,
@@ -99,6 +112,16 @@ They are not deployment assets.
   `6346d2417b872b18cf86f731ea6334ca3558be2816290a958f574eaa9fa4f157`.
   Provider counters were 34,091 rows read and 18,991 written, including
   indexes/receipts; these are not unique imported-row counts.
+- `operational-d1-run-YRU9u1/apply-receipt.json`: atomic migration 0005 and
+  complete operational packet passed at 07:36 UTC. All 8,091 identities and
+  expected fields reconciled (3,383 products, 17 runs, 3,750 items, 601 editorial
+  events, 340 searches); all 205 batches replayed safely. The ten original
+  products, four public projections and publication state were unchanged;
+  3,373 additional products remain held. FK/quick_check/FTS and sequence checks
+  passed. Apply counters: 101,695 rows read / 30,252 written, including indexes
+  and receipts. SHA-256:
+  `7297cdabec9b8e81120f97f10f11e47b9f9725768fe1426d59a125d852495fe1`.
+  See [the operational mapping](STUPID_GIFTS_OPERATIONAL_PACKET.md).
 - `vectorize-readback-receipt.json`: all four original vectors are visible
   with exact float32 byte hashes and metadata. A self-query ranks its own
   vector first; the wrong-revision filter returns no matches. This proves
@@ -183,9 +206,28 @@ immutable intent to the existing revision/receipt model. A dispatch accepted
 by a provider is only `dispatched`; completion requires independent deployed
 identity and vector-visibility readback, then an atomic recheck of current
 facts, holds, content deadlines, watermark and lease ownership. Failed dispatch
-is retried at most three times. This is not an activated scheduled publisher:
-real adapters, environment-wide deployment serialization, retained historical
-shards and end-to-end provider proof remain separate work.
+is retried at most three times. A real one-off staging proof on merged PR #191
+(`f167e0764fe8eee8a19916cd6e348503d4189765`) progressed from `claimed` to
+`dispatched` to `published`, with no completion receipt before independently
+checking all five live identity fields and all four original vector values and
+metadata. Worker version: `657d02af-2cc0-474a-82f2-599717e87e09`.
+Private receipt `publication-proof-QKPwWC/receipt.json` has SHA-256
+`b6201229402c5d8d2ca5ed3150c3291c7bb90cf842b1dbef7aabd40fda136bf6`.
+This baseline has watermark zero; it does not prove later outbox processing.
+The browser fetched Random's JSON once across three successful spins, with no
+adjacent repeats or horizontal overflow. Production Goose routes remain healthy.
+This is not an activated scheduled publisher: reusable provider workflows,
+environment-wide deployment serialization and retained historical shards remain
+separate work.
+
+The reviewed search budget is an aggregate atomic D1 reservation, shared across
+isolates and catalog revisions for the compiled environment/index scope. The
+staging configuration permits at most 50 allocated semantic calls and 32,768
+conservatively reserved input tokens per D1 UTC day, but the semantic switch
+remains **false** by default. Missing/malformed caps, uncertain receipts, database
+failure or exhaustion use keyword search before any embedding/index call.
+Allocation is never refunded after uncertain failures. This is application
+budget protection, not a provider bill cap or proof of Free-plan CPU headroom.
 
 Do not infer UTC for historical timezone-naive dates. The reviewed sample
 decisions preserve unresolved `created_at` as NULL in operational D1 while

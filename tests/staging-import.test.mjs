@@ -68,6 +68,7 @@ test('parameterized batch executes atomically locally and reconciliation include
   const db = new DatabaseSync(':memory:');
   try {
     db.exec(await readFile(new URL('../migrations/d1/0001_catalog.sql', import.meta.url), 'utf8'));
+    db.exec('BEGIN'); db.exec(await readFile(new URL('../migrations/d1/0005_historical_timestamps.sql', import.meta.url), 'utf8')); db.exec('COMMIT');
     assert.deepEqual(db.prepare(packet.preflight.sql).all(...packet.preflight.params), []);
     db.exec('BEGIN');
     for (const query of packet.queries) {
@@ -98,9 +99,10 @@ test('explicit unresolved product creation time stays NULL while original histor
   } });
   assert.ok(packet.expectedRows.every((row) => row.created_at === null));
   assert.equal(JSON.parse(packet.expectedRows[0].source_record_json).created_at, rows[0].created_at);
-  assert.throws(() => prepareImport(rows, cohort, { ...options, timestamps: { ...timestamps,
-    'products.updated_at': { timezone: 'unresolved', evidence: 'Unknown operational timezone is not permitted.' },
-  } }), /unresolved|Unresolved/);
+  const unresolved = prepareImport(rows, cohort, { ...options, timestamps: { ...timestamps,
+    'products.updated_at': { timezone: 'unresolved', evidence: 'Synthetic historical timezone deliberately unknown.' },
+  } });
+  assert.equal(JSON.parse(unresolved.expectedRows[0].timestamp_provenance_json).fields.updated_at.state, 'unresolved');
 });
 
 test('source, identity, factual hash and missing ready vectors block instead of silently importing', () => {

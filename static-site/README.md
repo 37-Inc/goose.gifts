@@ -27,11 +27,34 @@ builds, use the same `CATALOG_SNAPSHOT_PATH` for the build and tests. Pure fixtu
 tests remain independent; no input is saved to Git.
 
 All routes have noindex metadata and robots disallows crawling. There is no
-analytics provider, production analytics adapter, service worker, catalog browser
+initialized analytics provider by default, service worker, catalog browser
 storage, offer schema, fabricated availability, or enabled fixture retailer CTA.
 The shared `ProductImage` and price-free schema helper are reused; staging CTA
-anchors deliberately do not import the production tracking adapter. Production
-analytics and Worker redirect/expiry acceptance are separate integration work.
+anchors retain native navigation. Worker redirect/expiry acceptance is separate
+integration work.
+
+Analytics is opt-in implementation, not activation: only a build with
+`NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED=true`, a non-fixture catalog, and the exact
+HTTPS hostname `stupid.gifts` can load the existing shared adapter. Local,
+unknown-host, staging and synthetic-fixture pages remain off. DNT/GPC is checked
+before loading and dispatch, including deferred provider initialization. The
+adapter retains Goose's GA4/Ads destinations and existing PostHog configuration;
+it reuses the original contract sanitizer and disables broad capture. Static
+attribution uses the tab-lifetime `stupid.gifts.analytics-attribution.v1`
+sessionStorage key, only after the same build/host/catalog/DNT/GPC gates. It
+contains only the original contract's sanitized traffic source, medium and
+campaign; no URL, query, referrer path, session ID or term/content is stored.
+Ordinary internal navigation keeps the original source; a new explicit coarse
+campaign can replace it. Invalid/blocked storage never interrupts navigation.
+Goose's original attribution behavior and key are unchanged. Explicit events
+cover page views, completed current searches, rendered lists (deduplicated),
+canonical card selections, successful Random spins and chosen retailer links.
+Search text, copy, full URLs and private fields are not event properties. Native
+links are never delayed or intercepted; the Ads callback cannot open another tab.
+No consent UI/state exists in the current adapter, so none is invented here.
+Production privacy/legal review, an approved public privacy notice, hostname
+configuration and explicit activation remain separate release gates. Do not set
+the flag for current staging or fixture deployments.
 
 Review `/`, `/gifts/illustrative-very-official-paperweight`,
 `/gifts/illustrative-held-selection`, `/gift-guides`, `/weird-gift-index`,
@@ -40,11 +63,46 @@ Review `/`, `/gifts/illustrative-very-official-paperweight`,
 The last route is unlinked, noindex and excluded from sitemap policies; arrow,
 PageUp/PageDown, Home/End and Space keys operate its selection slides.
 
-`content/show/drafts.json` contains four truthful pending manifests. No episode
-date, appearance, endorsement, selected product, physical sample or product-image
-permission is implied. The initial 12 real products and four real weekly sets
-remain a release gate. Published episode routes are intentionally not generated
-until a confirmed real manifest is available.
+`content/show/drafts.json` is the owner-maintained four-set shortlist. Candidate
+UUIDs/variants may be recorded before they enter the approved snapshot; none of
+that implies current eligibility, physical possession, recording permission,
+endorsement or an appearance. Unapproved draft presentation props strip candidate
+identities, copy, imagery and links to generic pending slots. `published.json`
+starts empty. Initial publication requires confirmed date/status, owner and
+presentation approvals, non-fixture catalog data and ready original products;
+`assertEpisodePublishable` remains the strict initial gate.
+
+Published manifests alone generate `/howie/<key>`, its `/presentation` view and
+display-only `/data.json`; no approval flags or unused merchant fields are sent.
+The hub shows the latest published set and stable archive links. Missing/held
+originals retain their immutable public ID and exact variant, explicitly marked
+unavailable; only eligible alternatives are separately labeled, never promoted
+into the original slot. Product-free archives remain useful stable records.
+Every episode HTML/RSC/JSON and presentation payload shares the first displayed
+product deadline, with merchant-free safe variants preserving original identity.
+Presentation also stops displaying products when its loaded deadline passes.
+Only a published set adds a From the show navigation link.
+
+Next export disallows empty dynamic parameter lists. The small `.episode.tsx` /
+`.episode.ts` route extensions are enabled only when tracked `published.json` is
+nonempty, so no dummy or draft episode is emitted to work around that limitation.
+The original Vercel app is unaffected. The existing presentation layout and
+keyboard controls are reused. Server-only `qrcode-generator` produces a local
+deterministic SVG for the canonical episode page with the three coarse episode
+campaign fields, alongside an ordinary link; no external QR service or client
+encoder is involved. OG artwork remains a separate task.
+
+Zero-ready snapshots render the existing safe Home, with held/noindex root,
+directory, Random and shard policies. The Worker therefore serves unavailable
+variants and rejects a healthy-empty compatibility feed.
+
+Optional controlled export tests copy the project under ignored `output/`, keep
+the actual drafts/publication source untouched and mark test episodes not aired.
+They use explicit local release contexts and no provider calls:
+
+```sh
+STATIC_SITE_BUILD_SHOW_FIXTURE=1 STATIC_SITE_BUILD_EMPTY_FIXTURE=1 CATALOG_SNAPSHOT_PATH=<approved-snapshot> node --import tsx --test tests/static-site-show.test.mjs
+```
 
 All 43 existing guide definitions, editorial sections, explicit FAQs and focus
 groups are shared with the live app through the pure
@@ -74,8 +132,8 @@ payloads/static browsing; the prior hero and Random pool were already bounded.
 
 `createBrowseRelease` deterministically projects approved display-only cards
 from the same snapshot. Shards use `/catalog/<public-content-sha256>/*.json`,
-include revision/deadline identity, and omit retailer URLs, prices, long editorial,
-and private source fields. Every exact JSON route has its own earliest-content
+include revision/deadline identity and the public retailer-source enum, and omit
+retailer URLs, prices, long editorial and private source fields. Every exact JSON route has its own earliest-content
 expiry and generic unavailable fallback. They are exported by Next directly;
 the normal release asset inventory/checksum hook needs no extra writer.
 Missing/old-release, mixed-revision, malformed and expired responses show a

@@ -3,30 +3,30 @@
     "schemaVersion": 1,
     "key": "selection-draft-01",
     "status": "draft",
-    "title": "Selection draft 01",
+    "title": "Very normal things to own",
     "episodeDate": null,
     "ownerConfirmed": false,
     "presentationAssetsApproved": false,
     "slots": [
       {
         "position": 1,
-        "productPublicId": null,
-        "exactVariant": null,
-        "caption": "Opening selection pending product and image-rights review.",
+        "productPublicId": "fe21696e-a1ad-44d0-9be0-fe5e1c59f5e0",
+        "exactVariant": "Fandicto belly-print waist bag; Belly color, One Size; ASIN B075S2ZCYQ.",
+        "caption": "Extra storage. In the least discreet place imaginable.",
         "alternativePublicIds": []
       },
       {
         "position": 2,
-        "productPublicId": null,
-        "exactVariant": null,
-        "caption": "Second selection pending exact variant and current availability.",
+        "productPublicId": "3f9c0e84-8730-4bc0-88ba-5d0a2bee6299",
+        "exactVariant": "VELENTI black sheep toilet-roll holders; X3 set of three; ASIN B0CRRWZHK1.",
+        "caption": "Your bathroom has a small livestock problem.",
         "alternativePublicIds": []
       },
       {
         "position": 3,
-        "productPublicId": null,
-        "exactVariant": null,
-        "caption": "Closing selection pending owner review.",
+        "productPublicId": "5f0c8cd0-9344-4678-84fa-04dab65f45ba",
+        "exactVariant": "DR DINGUS Mystic Pickle; Yellow, 5 Inch; ASIN B0CYKK1167.",
+        "caption": "Finally, someone qualified to make your decisions.",
         "alternativePublicIds": []
       }
     ]
@@ -35,23 +35,30 @@
     "schemaVersion": 1,
     "key": "selection-draft-02",
     "status": "draft",
-    "title": "Selection draft 02",
+    "title": "The kitchen has lost supervision",
     "episodeDate": null,
     "ownerConfirmed": false,
     "presentationAssetsApproved": false,
     "slots": [
       {
         "position": 1,
-        "productPublicId": null,
-        "exactVariant": null,
-        "caption": "Reserve selection pending product and image-rights review.",
+        "productPublicId": "08966c98-d0ba-4028-8552-47de2b1605c1",
+        "exactVariant": "OTOTO Gracula twist garlic crusher; Black, One Size; ASIN B076CTTZKX.",
+        "caption": "A vampire with a deeply inconvenient day job.",
         "alternativePublicIds": []
       },
       {
         "position": 2,
-        "productPublicId": null,
-        "exactVariant": null,
-        "caption": "Reserve selection pending exact variant and current availability.",
+        "productPublicId": "d869439d-35ab-41b0-a94e-c6115a614936",
+        "exactVariant": "OTOTO Splatypus jar spatula; Blue, Splatypus; ASIN B07H7ZDBV4.",
+        "caption": "A platypus has taken responsibility for the peanut butter.",
+        "alternativePublicIds": []
+      },
+      {
+        "position": 3,
+        "productPublicId": "6aeee5a4-abae-43f3-a43e-590fbb6d9e71",
+        "exactVariant": "Prank-O My First Fire EMPTY prank gift box; First Fire, one box; no fire kit; ASIN B0757WW6KB.",
+        "caption": "An empty prank gift box. Thankfully, not an actual fire kit.",
         "alternativePublicIds": []
       }
     ]
@@ -60,23 +67,30 @@
     "schemaVersion": 1,
     "key": "selection-draft-03",
     "status": "draft",
-    "title": "Selection draft 03",
+    "title": "A difficult room to work in",
     "episodeDate": null,
     "ownerConfirmed": false,
     "presentationAssetsApproved": false,
     "slots": [
       {
         "position": 1,
-        "productPublicId": null,
-        "exactVariant": null,
-        "caption": "Reserve selection pending product and image-rights review.",
+        "productPublicId": "4239130a-752e-448b-9c24-b6a8fec1849b",
+        "exactVariant": "KYVANDO grumpy frog resin figurine; Multicolor, one piece, approximately 3.77 x 2.9 x 2.52 inches; ASIN B0FR5J39PR.",
+        "caption": "The meeting could have been a pond.",
         "alternativePublicIds": []
       },
       {
         "position": 2,
-        "productPublicId": null,
-        "exactVariant": null,
-        "caption": "Reserve selection pending exact variant and current availability.",
+        "productPublicId": "f0fd87d4-e2e7-42db-9e1b-ce4e72d9bd24",
+        "exactVariant": "KNUCKLHEAD screaming goat desk toy; Brown, Small; ASIN B0FZDRNRH4. Not a substituted brand or edition.",
+        "caption": "Somebody on this desk needed to say it.",
+        "alternativePublicIds": []
+      },
+      {
+        "position": 3,
+        "productPublicId": "e4dec59b-bc3b-4c23-ac6f-b225049b69f7",
+        "exactVariant": "FoxUncle medieval cat tapestry; 60 inches long x 40 inches wide, White variant; ASIN B0GSW1X3P4.",
+        "caption": "Management has become medieval.",
         "alternativePublicIds": []
       }
     ]
@@ -85,23 +99,30 @@
     "schemaVersion": 1,
     "key": "selection-draft-04",
     "status": "draft",
-    "title": "Selection draft 04",
+    "title": "Nature cannot be trusted",
     "episodeDate": null,
     "ownerConfirmed": false,
     "presentationAssetsApproved": false,
     "slots": [
       {
         "position": 1,
-        "productPublicId": null,
-        "exactVariant": null,
-        "caption": "Reserve selection pending product and image-rights review.",
+        "productPublicId": "efd81793-ae9e-483e-9d72-1903b5576f92",
+        "exactVariant": "Lone Star Art boy with giant chicken print; one 11 x 14 inch UNFRAMED print; ASIN B07B4PP1BB.",
+        "caption": "A family portrait that raises several questions.",
         "alternativePublicIds": []
       },
       {
         "position": 2,
-        "productPublicId": null,
-        "exactVariant": null,
-        "caption": "Reserve selection pending exact variant and current availability.",
+        "productPublicId": "b2c1e686-dc35-4de5-b8ea-ae505a677681",
+        "exactVariant": "Urneeds Nature Butts wall calendar; January-December 2027 edition, 11 x 8.5 inches closed; ASIN B0D9GBGSMZ.",
+        "caption": "Twelve months of the landscape behaving badly.",
+        "alternativePublicIds": []
+      },
+      {
+        "position": 3,
+        "productPublicId": "e9b36e45-36d5-431b-93d1-5f644ed08e3f",
+        "exactVariant": "FunFamz wooden spider prank box with gift-card compartment; Brown, Large; ASIN B07H75BJWW.",
+        "caption": "A gift card, with an unnecessarily dramatic entrance.",
         "alternativePublicIds": []
       }
     ]

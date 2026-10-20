@@ -12,4 +12,5 @@ export default createSiteWorker({
   feedPlan,
   releaseIdentity,
   searchAdapters: d1SearchAdapters,
+  semanticBudgetScope: { environment: 'staging', index: 'stupid-gifts-staging' },
 });

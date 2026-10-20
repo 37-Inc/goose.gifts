@@ -55,6 +55,7 @@ export function validateEpisodeManifest(
   if (
     value.schemaVersion !== 1 ||
     typeof value.key !== "string" ||
+    value.key.length > 80 ||
     !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.key) ||
     !["draft", "published"].includes(String(value.status)) ||
     !text(value.title) ||
@@ -75,12 +76,9 @@ export function validateEpisodeManifest(
         .slice(0, 10) !== value.episodeDate)
   )
     invalid("episode date");
-  const all = new Set(
-    [...catalog.products, ...catalog.heldProducts].map(
-      (product) => product.publicId,
-    ),
-  );
   const selected = new Set<string>();
+  const knownIdentity = (id: unknown) => typeof id === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
   value.slots.forEach((raw, index) => {
     const slot = object(raw);
     keys(slot, [
@@ -99,14 +97,14 @@ export function validateEpisodeManifest(
         slot.alternativePublicIds.length ||
       slot.alternativePublicIds.some(
         (id) =>
-          typeof id !== "string" || !all.has(id) || id === slot.productPublicId,
+          !knownIdentity(id) || id === slot.productPublicId,
       )
     )
       invalid("slot");
     if (slot.productPublicId !== null) {
       if (
         typeof slot.productPublicId !== "string" ||
-        !all.has(slot.productPublicId) ||
+        !knownIdentity(slot.productPublicId) ||
         selected.has(slot.productPublicId) ||
         !text(slot.exactVariant)
       )
@@ -128,13 +126,19 @@ export function validateEpisodeManifest(
       catalog.dataKind === "synthetic_fixture")
   )
     invalid("publication evidence");
+  (value.slots as EpisodeSlot[]).forEach((slot) => {
+    Object.freeze(slot.alternativePublicIds);
+    Object.freeze(slot);
+  });
+  Object.freeze(value.slots);
   return Object.freeze(value) as unknown as EpisodeManifest;
 }
 
 export function publishedEpisodes(episodes: EpisodeManifest[]) {
   return episodes
     .filter((episode) => episode.status === "published")
-    .sort((a, b) => (b.episodeDate || "").localeCompare(a.episodeDate || ""));
+    .sort((a, b) => (b.episodeDate || "").localeCompare(a.episodeDate || "")
+      || a.key.localeCompare(b.key));
 }
 
 /** Initial release requires current availability; later archives retain exact

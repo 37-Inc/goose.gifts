@@ -108,8 +108,13 @@ export default async function Gift({
               </a>
             </div>
           ) : (
-            <div id="gift-retailer-primary">
+            <div id="gift-retailer-primary"
+              data-analytics-id={product.id}
+              data-analytics-source={product.source}
+              data-analytics-context="gift_page_primary_cta"
+              data-analytics-expiry={product.eligibleUntil}>
               <a
+                data-analytics-outbound=""
                 href={product.affiliateUrl}
                 target="_blank"
                 rel="sponsored noopener noreferrer"
@@ -153,7 +158,7 @@ export default async function Gift({
             .filter((item) => item.id !== product.id)
             .slice(0, 3)
             .map((item) => (
-              <ProductCard key={item.id} product={item} />
+              <ProductCard key={item.id} product={item} context="gift_related" />
             ))}
         </div>
       </section>

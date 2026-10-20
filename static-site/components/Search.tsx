@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { PublicCatalogProduct } from "../../lib/catalog/types";
 import { ProductCard } from "./ProductCard";
+import { captureRenderedLists, captureStaticSearch } from "../lib/analytics";
 
 type SearchState = {
   status: "idle" | "loading" | "ready" | "unavailable";
@@ -53,8 +54,10 @@ export function Search() {
               Date.parse(product.eligibleUntil) > Date.now(),
           )
           .slice(0, 36);
-        if (active && request === sequence.current)
+        if (active && !abort.signal.aborted && request === sequence.current) {
           setState({ status: "ready", products });
+          captureStaticSearch(products.length);
+        }
       } catch {
         if (active && !abort.signal.aborted && request === sequence.current)
           setState({ status: "unavailable", products: [] });
@@ -70,6 +73,8 @@ export function Search() {
       window.removeEventListener("catalog-search", search);
     };
   }, []);
+
+  useEffect(() => captureRenderedLists(), [state.products]);
 
   useEffect(() => {
     if (!state.products.length) return;
@@ -152,7 +157,7 @@ export function Search() {
         <div className="catalog-grid">
           <h2 className="sr-only">Search results</h2>
           {state.products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} context="catalog_search" />
           ))}
         </div>
       )}

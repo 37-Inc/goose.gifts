@@ -1,9 +1,9 @@
 import type { CatalogAssetRoute, CatalogSnapshot, SiteAssetManifest } from '../../lib/catalog/types.ts';
-import type { SearchAdapters, SiteEnv } from './bindings.ts';
+import type { SearchAdapters, SemanticBudgetScope, SiteEnv } from './bindings.ts';
 import { prepareStaticFeed } from './feed.ts';
 import { createSearchHandler, json, sha256 } from './search.ts';
 
-export type { SiteEnv, SearchAdapters, SearchStorage } from './bindings.ts';
+export type { SiteEnv, SearchAdapters, SearchStorage, SemanticBudgetScope } from './bindings.ts';
 export interface SiteReleaseIdentity {
   release_id: string;
   code_sha: string;
@@ -83,6 +83,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
   manifest: SiteAssetManifest;
   snapshot: CatalogSnapshot;
   searchAdapters?: SearchAdapters<Env>;
+  semanticBudgetScope?: SemanticBudgetScope;
   feedPlan?: unknown;
   /** Supplied only after build/verification binds exact manifest bytes; never hash the full manifest here. */
   releaseIdentity?: unknown;
@@ -108,7 +109,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
   const releaseIdentity = verifiedReleaseIdentity(options.releaseIdentity, manifest, snapshotDigest);
   const preparedFeed = prepareStaticFeed(snapshot, options.feedPlan, snapshotDigest);
   const search = options.searchAdapters ? createSearchHandler({
-    catalogRevision: manifest.catalogRevision, adapters: options.searchAdapters, now,
+    catalogRevision: manifest.catalogRevision, adapters: options.searchAdapters, now, semanticBudgetScope: options.semanticBudgetScope,
   }) : undefined;
 
   function finish(response: Response, env: Env, request: Request): Response {

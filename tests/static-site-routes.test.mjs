@@ -216,6 +216,7 @@ test("finite multipage routes and aggregate JSON inherit complete snapshot expir
     "/gifts/page/2.txt",
     "/gifts/page/2/__next.__PAGE__.txt",
     "/safe/catalog.html",
+    "/safe/howie.html", "/safe/howie.txt", "/safe/presentation.html", "/safe/presentation.txt",
     "/safe/catalog.txt",
     "/safe/product.html",
     "/safe/index.json",

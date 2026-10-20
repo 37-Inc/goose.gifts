@@ -5,6 +5,7 @@ import type {
 import { guides, selectGuideProducts } from "./guides";
 import { directoryPages, directoryPath } from "./directory";
 import { createBrowseRelease } from "./browse";
+import { createShowRelease, episodePath } from "./show";
 
 type RoutePolicy = Omit<CatalogAssetRoute, "assetPath"> & {
   indexable: boolean;
@@ -21,6 +22,7 @@ function earliest(deadlines: string[]) {
 export function createStaticRoutes(
   snapshot: CatalogSnapshot,
   assetPaths: string[],
+  showInputs?: unknown[],
 ): Record<string, CatalogAssetRoute & { indexable: boolean }> {
   const nextExpiry = earliest(
     snapshot.products.map((product) => product.eligibleUntil),
@@ -33,7 +35,9 @@ export function createStaticRoutes(
     indexable: snapshot.dataKind !== "synthetic_fixture",
   };
   for (const pathname of ["/", "/random-gift", "/weird-gift-index"])
-    policies[pathname] = { ...catalog };
+    policies[pathname] = { ...catalog,
+      state: snapshot.products.length ? "ready" : "held",
+      indexable: catalog.indexable && snapshot.products.length > 0 };
   policies["/gift-guides"] = { ...catalog, eligibleUntil: null };
   for (const guide of guides) {
     const products = selectGuideProducts(snapshot, guide);
@@ -49,6 +53,7 @@ export function createStaticRoutes(
       // Counts and pagination describe the full snapshot, not just this page.
       eligibleUntil: nextExpiry,
       indexable: catalog.indexable && page.products.length > 0,
+      state: snapshot.products.length ? "ready" as const : "held" as const,
     };
     policies[directoryPath(page.page)] = policy;
     if (page.page === 1)
@@ -60,8 +65,21 @@ export function createStaticRoutes(
     safeAssetPath: "/safe/index.json",
     indexable: false,
   };
-  policies["/howie"] = { ...catalog, eligibleUntil: null, indexable: false };
-  policies["/preview/presentation"] = { ...catalog, indexable: false };
+  const show = createShowRelease(snapshot, showInputs);
+  policies["/howie"] = { ...catalog, eligibleUntil: show.latest?.eligibleUntil || null,
+    safeAssetPath: "/safe/howie.html", indexable: catalog.indexable && Boolean(show.latest) };
+  policies["/preview/presentation"] = { ...catalog,
+    eligibleUntil: show.preview?.eligibleUntil || null, safeAssetPath: "/safe/presentation.html", indexable: false };
+  for (const episode of show.episodes) {
+    const pathname = episodePath(episode.key);
+    const policy = { ...catalog, eligibleUntil: episode.eligibleUntil,
+      safeAssetPath: `/safe${pathname}.html` };
+    policies[pathname] = policy;
+    policies[`${pathname}/presentation`] = { ...policy,
+      safeAssetPath: `/safe${pathname}/presentation.html`, indexable: false };
+    policies[`${pathname}/data.json`] = { ...policy, assetPath: `${pathname}/data.json`,
+      safeAssetPath: `/safe${pathname}/data.json`, indexable: false };
+  }
   for (const shard of createBrowseRelease(snapshot).shards)
     policies[shard.path] = {
       ...catalog,

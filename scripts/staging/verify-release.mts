@@ -8,6 +8,7 @@ import type { CatalogSnapshot, SiteAssetManifest } from '../../lib/catalog/types
 import { createStaticRoutes } from '../../static-site/lib/asset-routes.ts';
 import { createStaticFeedPlan } from '../../workers/site/feed.ts';
 import { verifyReleaseIdentity } from './release-identity.mts';
+import { validateBuildContext } from './build.mts';
 
 export function verifySnapshotDigest(bytes: Uint8Array, expected: string): void {
   if (createHash('sha256').update(bytes).digest('hex') !== expected)
@@ -17,6 +18,12 @@ export function verifySnapshotDigest(bytes: Uint8Array, expected: string): void 
 export function verifyFeedPlan(snapshot: CatalogSnapshot, digest: string, plan: unknown): void {
   if (JSON.stringify(plan) !== JSON.stringify(createStaticFeedPlan(snapshot, digest)))
     throw new Error('Prepared feed changed after the release was built');
+}
+
+export function verifyReleaseContext(value: unknown, manifest: SiteAssetManifest, snapshot: CatalogSnapshot, codeSha: string): void {
+  const context = validateBuildContext(value, snapshot, codeSha, manifest.catalogSnapshotSha256);
+  if (Object.entries(context).some(([key, field]) => manifest[key as keyof SiteAssetManifest] !== field))
+    throw new Error('Release context changed after the release was built');
 }
 
 async function main() {
@@ -29,6 +36,8 @@ async function main() {
   const snapshotBytes = await fs.readFile(path.join(root, 'build/stupid-gifts/catalog.snapshot.json'));
   const snapshot = validateCatalogSnapshot(JSON.parse(snapshotBytes.toString('utf8')));
   verifySnapshotDigest(snapshotBytes, manifest.catalogSnapshotSha256);
+  verifyReleaseContext(JSON.parse(await fs.readFile(path.join(root, 'build/stupid-gifts/release-context.json'), 'utf8')),
+    manifest, snapshot, git('rev-parse', 'HEAD'));
   const feedPlan = JSON.parse(await fs.readFile(path.join(root, 'build/stupid-gifts/feed-plan.json'), 'utf8'));
   verifyFeedPlan(snapshot, manifest.catalogSnapshotSha256, feedPlan);
   if (manifest.codeSha !== git('rev-parse', 'HEAD') || manifest.catalogRevision !== snapshot.catalogRevision)

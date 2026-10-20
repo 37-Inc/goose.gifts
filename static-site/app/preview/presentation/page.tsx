@@ -1,32 +1,17 @@
-import drafts from "../../../../content/show/drafts.json";
-import { validateEpisodeManifest } from "../../../../content/show/manifest";
-import { catalog } from "../../../lib/catalog";
+import { show } from "../../../lib/show-data";
 import { Presentation } from "../../../components/Presentation";
 import { previewMetadata } from "../../../lib/metadata";
 export const metadata = previewMetadata(
   "Presentation proof — unpublished draft",
-  "A 720p keyboard-controlled presentation template. No products or show appearance confirmed.",
+  "An unpublished presentation template. Only explicitly cleared selections can be displayed; no appearance is implied.",
   "/preview/presentation",
 );
 export default function PresentationPreview() {
-  const episodes = drafts.map((draft) =>
-    validateEpisodeManifest(draft, catalog),
-  );
-  const episode = episodes[0];
-  const ids = new Set(
-    episode.slots.flatMap((slot) => [
-      slot.productPublicId,
-      ...slot.alternativePublicIds,
-    ]),
-  );
+  const episode = show.preview;
+  if (!episode) return <main id="main" className="site-main empty-state"><h1>No draft presentation.</h1></main>;
   return (
     <main id="main" className="presentation-main">
-      <Presentation
-        episode={episode}
-        products={catalog.products.filter((product) =>
-          ids.has(product.publicId),
-        )}
-      />
+      <Presentation episode={episode} />
     </main>
   );
 }

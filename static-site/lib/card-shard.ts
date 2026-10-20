@@ -5,6 +5,7 @@ import { isIllustrative } from "./selection";
 export type CatalogCard = Pick<
   PublicCatalogProduct,
   | "id"
+  | "source"
   | "slug"
   | "title"
   | "description"
@@ -16,6 +17,7 @@ export type CatalogCard = Pick<
 export function projectCard(product: PublicCatalogProduct): CatalogCard {
   return {
     id: product.id,
+    source: product.source,
     slug: product.slug,
     title: product.title,
     description: product.description,
@@ -45,6 +47,7 @@ export interface ShardExpectation {
 }
 const CARD_FIELDS = [
   "id",
+  "source",
   "slug",
   "title",
   "description",
@@ -120,6 +123,7 @@ export function validateCardShard(
       Object.keys(card).some((key) => !CARD_FIELDS.includes(key)) ||
       typeof card.id !== "string" ||
       !card.id ||
+      !["amazon", "etsy"].includes(card.source as string) ||
       ids.has(card.id) ||
       typeof card.slug !== "string" ||
       card.slug.length > 160 ||

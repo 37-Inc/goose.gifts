@@ -28,6 +28,7 @@ async function setup() {
     availability_status,source_facts_hash,editorial_source_hash,catalog_revision,eligible_until,rights_json,source_record_json,updated_at,public_display_json)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run('B000000001', PUBLIC_ID, 'funny-button', 'amazon', 'operational title', 'USD', .8, 1,
       'generated_ready', 'IN_STOCK', HASH, HASH, 'r1', snapshot.products[0].eligibleUntil, '{}', '{}', snapshot.generatedAt, JSON.stringify(snapshot.products[0]));
+  sqlite.prepare('UPDATE products SET availability_checked_at=?').run(snapshot.generatedAt);
   sqlite.prepare('INSERT INTO catalog_revisions VALUES(?,?,?,?)').run('r1', snapshot.generatedAt, 'b'.repeat(64), 'reconciled');
   const fixture = { sqlite, snapshot, beforeBatch: null, advance(ms) { clock += ms; }, now: () => clock, date: () => new Date(clock), close: () => sqlite.close() };
   const db = { prepare(sql) { let values = []; return { sql,

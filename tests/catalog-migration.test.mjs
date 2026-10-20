@@ -10,6 +10,7 @@ const migration = readFileSync(new URL('../migrations/d1/0001_catalog.sql', impo
 const now = new Date('2026-10-19T12:00:00.000Z');
 function database() {
   const sqlite = new DatabaseSync(':memory:'); sqlite.exec(migration);
+  sqlite.exec('BEGIN'); sqlite.exec(readFileSync(new URL('../migrations/d1/0005_historical_timestamps.sql', import.meta.url), 'utf8')); sqlite.exec('COMMIT');
   const queries = [];
   const db = { sqlite, queries,
     prepare(sql) { queries.push(sql); let values = []; return {
@@ -98,7 +99,7 @@ test('product conversion preserves private raw values but never embeds vectors o
   assert.throws(() => converted({ quality_score: 'NaN' }), /quality/);
 });
 
-test('only an explicit unresolved product creation decision becomes NULL; original source time remains exact', async () => {
+test('explicit unresolved historical derivatives become NULL without discarding source wall times', async () => {
   const unresolved = { timezone: 'unresolved', evidence: 'Historical session timezone not proven; retain exact source wall time' };
   const row = convertSourceRow('products', source(), { ...options,
     timestamps: { ...options.timestamps, 'products.created_at': unresolved }, publicDisplay: display() });
@@ -109,15 +110,19 @@ test('only an explicit unresolved product creation decision becomes NULL; origin
   const db = database(); await importBatch(db, batch([row]));
   assert.equal(db.sqlite.prepare('SELECT created_at FROM products').get().created_at, null);
   for (const column of ['availability_checked_at','last_verified_at','updated_at']) {
-    assert.throws(() => convertSourceRow('products', source(), { ...options,
-      timestamps: { ...options.timestamps, [`products.${column}`]: unresolved } }), /only for products.created_at/);
+    const result = convertSourceRow('products', source(), { ...options,
+      timestamps: { ...options.timestamps, [`products.${column}`]: unresolved } });
+    assert.equal(result[column], null);
+    assert.equal(JSON.parse(result.source_record_json)[column], source()[column]);
   }
-  assert.throws(() => convertSourceRow('catalog_editorial_events', { id: 'test', created_at: '2026-10-19 12:00:00' }, {
-    ...options, timestamps: { 'catalog_editorial_events.created_at': unresolved },
-  }), /only for products.created_at/);
+  const event = convertSourceRow('catalog_editorial_events', { id: 'test', run_id: 'run', product_id: 'product', event_type: 'test', status: 'ok', created_at: '2026-10-19 12:00:00' }, {
+    ...options, timestamps: { 'catalog_editorial_events.created_at': unresolved } });
+  assert.equal(event.created_at, null);
+  assert.throws(() => convertSourceRow('product_slug_history', { created_at: '2026-10-19 12:00:00' }, {
+    ...options, timestamps: { 'product_slug_history.created_at': unresolved } }), /approved historical nullable/);
   assert.throws(() => canonicalTimestamp(source().created_at, unresolved), /documented UTC/);
   assert.throws(() => convertSourceRow('products', source(), { ...options,
-    timestamps: { ...options.timestamps, 'products.created_at': { timezone: 'unresolved', evidence: '' } } }), /with evidence/);
+    timestamps: { ...options.timestamps, 'products.created_at': { timezone: 'unresolved', evidence: '' } } }), /and evidence/);
   assert.throws(() => convertSourceRow('products', source(), { ...options,
     timestamps: { ...options.timestamps, 'products.created_at': undefined } }), /documented UTC/);
 });
@@ -203,6 +208,7 @@ test('search is FTS/index-backed, bounded and fails closed on held, expired, dup
   assert.equal((await keywordSearch(db, '" OR * --', 60, now)).length, 0);
   await assert.rejects(getProductsByPublicIds(db, Array(241).fill('id'), now), /240/);
   for (const sql of ["UPDATE products SET duplicate_of_product_id='other'", "UPDATE products SET is_active=0",
+    'UPDATE products SET availability_checked_at=NULL,last_verified_at=NULL',
     "UPDATE products SET availability_status='OUT_OF_STOCK'", 'UPDATE products SET quality_score=0.1',
     "UPDATE products SET eligible_until='2000-01-01T00:00:00.000Z'", "UPDATE products SET public_display_json='{}'"]) {
     await db.prepare(sql).run();

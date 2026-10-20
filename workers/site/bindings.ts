@@ -20,12 +20,19 @@ export interface SearchStorage {
   keyword(query: string, limit: number, now: Date, catalogRevision: string): Promise<PublicCatalogProduct[]>;
 }
 
+/** Compiled deployment identity shared by all revisions/isolates using this index.
+ * Never derive either field from a request, catalog revision or client identifier.
+ */
+export interface SemanticBudgetScope { environment: 'staging' | 'production'; index: string }
+
 export interface SiteEnv {
   ASSETS: AssetBinding;
   VECTORIZE?: VectorBinding;
   OPENAI_API_KEY?: string;
   /** Semantic calls require explicit opt-in; keyword search remains available. */
   SEMANTIC_SEARCH_ENABLED?: string;
+  SEMANTIC_SEARCH_DAILY_REQUEST_CAP?: string;
+  SEMANTIC_SEARCH_DAILY_TOKEN_CAP?: string;
   ENVIRONMENT?: string;
   STAGING_AUTH_SECRET?: string;
 }
@@ -34,4 +41,5 @@ export interface SearchAdapters<Env extends SiteEnv = SiteEnv> {
   storage(env: Env): SearchStorage;
   diagnostic?(record: SearchDiagnostic, env: Env, now: Date): Promise<void>;
   embed?(query: string, env: Env, signal: AbortSignal): Promise<number[]>;
+  reserveSemantic?(scope: SemanticBudgetScope, tokenUpperBound: number, env: Env): Promise<boolean>;
 }

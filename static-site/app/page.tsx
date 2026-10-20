@@ -2,8 +2,10 @@ import { browse } from "../lib/catalog";
 import { ProductCard } from "../components/ProductCard";
 import { Search } from "../components/Search";
 import { CatalogFeed } from "../components/CatalogFeed";
+import SafeCatalog from "./safe/catalog/page";
 
 export default function Home() {
+  if (!browse.opening.length) return <SafeCatalog />;
   return (
     <main id="main" className="site-main">
       <div className="opening-line">
@@ -16,7 +18,7 @@ export default function Home() {
       </div>
       <div className="opening-grid">
         {browse.opening.map((product, index) => (
-          <ProductCard key={product.id} product={product} lead={index === 0} />
+          <ProductCard key={product.id} product={product} lead={index === 0} context="home_opening" />
         ))}
       </div>
       <Search />

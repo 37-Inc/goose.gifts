@@ -1,0 +1,236 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { DatabaseSync } from 'node:sqlite';
+import { readFile } from 'node:fs/promises';
+import { enqueueBuildRequest, encodeBuildRequest, claimBuildRequest, failBuildRequest, beginBuildActivation, resolveBuildActivation } from '../lib/catalog/build-requests.ts';
+import { createProjectionPacket, importPublicProjection } from '../lib/catalog/d1.ts';
+import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication } from '../lib/catalog/publication.ts';
+import { createFreshnessCheck } from '../workers/site/freshness.ts';
+
+const NOW = Date.parse('2026-10-20T12:00:00.000Z');
+const SOURCE = 'b'.repeat(64); const FACTS = 'f'.repeat(64);
+async function setup() {
+  const sqlite = new DatabaseSync(':memory:');
+  for (const migration of ['0001_catalog.sql', '0002_public_projections.sql', '0003_publication_outbox.sql', '0004_vector_outbox_leases.sql',
+    '0005_historical_timestamps.sql', '0006_semantic_search_budget.sql', '0007_catalog_build_requests.sql'])
+    sqlite.exec(await readFile(new URL(`../migrations/d1/${migration}`, import.meta.url), 'utf8'));
+  let clock = NOW; let beforeRun; let unknownActivationReceipt = false; const calls = [];
+  sqlite.function('strftime', (format, instant) => {
+    assert.equal(format, '%Y-%m-%dT%H:%M:%fZ'); assert.equal(instant, 'now'); return new Date(clock).toISOString();
+  });
+  const db = { prepare(sql) { let values = []; return { sql,
+    bind(...input) { values = input; return this; },
+    async all() { calls.push(sql); return { results: sqlite.prepare(sql).all(...values).map(row => ({ ...row })) }; },
+    execute() { beforeRun?.(sql, values); calls.push(sql); const result = sqlite.prepare(sql).run(...values);
+      return unknownActivationReceipt && sql.includes("SET state='activating'") ? { success: true } : { success: true, meta: { changes: result.changes } }; },
+    async run() { return this.execute(); },
+  }; }, async batch(statements) { sqlite.exec('BEGIN'); try { for (const statement of statements) statement.execute(); sqlite.exec('COMMIT'); }
+    catch (error) { sqlite.exec('ROLLBACK'); throw error; } } };
+  const product = { id: 'B000000001', publicId: '00000000-0000-4000-8000-000000000001', slug: 'funny-button',
+    title: 'Funny Red Sound Button', description: 'A funny button.', imageUrl: 'https://m.media-amazon.com/images/I/button.jpg',
+    affiliateUrl: 'https://www.amazon.com/dp/B000000001?tag=test-20', source: 'amazon', currency: 'USD', price: 0,
+    isActive: true, qualityScore: .8, eligibleUntil: new Date(NOW + 26 * 3600000).toISOString() };
+  sqlite.prepare(`INSERT INTO products(id,public_id,slug,source,title,currency,quality_score,is_active,editorial_status,
+    availability_status,availability_checked_at,source_facts_hash,editorial_source_hash,catalog_revision,eligible_until,public_display_json,rights_json,source_record_json,updated_at)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(product.id, product.publicId, product.slug, product.source, product.title, product.currency,
+      .8, 1, 'generated_ready', 'IN_STOCK', new Date(NOW).toISOString(), FACTS, FACTS, 'source-r1', product.eligibleUntil, JSON.stringify(product), '{}', '{}', new Date(NOW).toISOString());
+  const source = { schemaVersion: 1, dataKind: 'catalog', catalogRevision: 'source-r1', generatedAt: new Date(NOW).toISOString(), products: [product], heldProducts: [], slugHistory: [] };
+  const snapshot = { ...source, catalogRevision: 'target-r2' };
+  const packets = [];
+  for (const value of [source, snapshot]) {
+    sqlite.prepare('INSERT INTO catalog_revisions VALUES(?,?,?,?)').run(value.catalogRevision, value.generatedAt, SOURCE, 'reconciled');
+    const packet = await createProjectionPacket(value, { [product.publicId]: FACTS }, SOURCE, new Date(clock));
+    await importPublicProjection(db, packet); packets.push(packet);
+  }
+  const prior = { releaseId: 'prior-release', codeSha: 'a'.repeat(40), catalogRevision: source.catalogRevision,
+    catalogSnapshotSha256: packets[0].receipt.snapshot_sha256, manifestSha256: 'd'.repeat(64), vectorSyncWatermark: 0,
+    priorReleaseId: null, nextExpiry: product.eligibleUntil };
+  sqlite.prepare('INSERT INTO publication_receipts VALUES(?,?,?,?,?)').run(prior.releaseId, prior.catalogRevision, prior.codeSha, source.generatedAt, JSON.stringify(prior));
+  const intent = { ...prior, releaseId: 'next-release', codeSha: 'c'.repeat(40), catalogRevision: snapshot.catalogRevision,
+    catalogSnapshotSha256: packets[1].receipt.snapshot_sha256, manifestSha256: 'e'.repeat(64), priorReleaseId: prior.releaseId };
+  const request = { schemaVersion: 1, environment: 'staging', sourceRevision: source.catalogRevision,
+    sourceDigest: packets[0].receipt.snapshot_sha256, codeSha: intent.codeSha, priorReleaseId: prior.releaseId,
+    capturedAt: source.generatedAt, cutoff: new Date(NOW + 25 * 3600000).toISOString() };
+  const identity = (value, versionReference) => ({ releaseId: value.releaseId, codeSha: value.codeSha, catalogRevision: value.catalogRevision,
+    catalogSnapshotSha256: value.catalogSnapshotSha256, manifestSha256: value.manifestSha256, versionReference });
+  const before = { environment: 'staging', settled: true, active: identity(prior, 'prior-version') };
+  const after = { environment: 'staging', settled: true, active: identity(intent, 'uploaded-version') };
+  return { sqlite, db, source, snapshot, request, intent, before, after, calls,
+    now: () => new Date(clock), advance(ms) { clock += ms; }, setBeforeRun(fn) { beforeRun = fn; }, setUnknownActivationReceipt() { unknownActivationReceipt = true; },
+    row: () => ({ ...sqlite.prepare('SELECT * FROM catalog_build_requests').get() }), close: () => sqlite.close(),
+    async build(run = 'workflow-run-1', leaseMs) { const queued = await enqueueBuildRequest(db, request); return claimBuildRequest(db, queued.requestId, run, new Date(clock), leaseMs); },
+    async publication() {
+      await enqueuePublication(db, snapshot, intent, new Date(clock));
+      const claim = await claimPublication(db, snapshot, intent.releaseId, new Date(clock));
+      await recordPublicationDispatch(db, snapshot, claim, 'workflow-run-1', new Date(clock)); return claim;
+    },
+    async activate(claim, publication, observer = async () => before) { return beginBuildActivation(db, claim, snapshot, publication, 'uploaded-version', observer, new Date(clock)); },
+  };
+}
+
+test('canonical immutable requests are idempotent and cannot invent unknown source digests', async () => {
+  const f = await setup();
+  try {
+    const first = await enqueueBuildRequest(f.db, f.request);
+    const second = await enqueueBuildRequest(f.db, Object.fromEntries(Object.entries(f.request).reverse()));
+    assert.deepEqual(second, { requestId: first.requestId, created: false }); assert.equal(first.created, true); assert.match(first.requestId, /^[a-f0-9]{64}$/);
+    assert.equal(f.row().attempts, 0); assert.equal(f.row().lease_token, null); assert.equal(f.row().state, 'pending');
+    assert.throws(() => f.sqlite.exec("UPDATE catalog_build_requests SET request_json='{}'"), /immutable/);
+    await assert.rejects(enqueueBuildRequest(f.db, { ...f.request, sourceDigest: '0'.repeat(64) }), /source_unavailable/);
+    for (const changed of [{ private: 'not permitted' }, { schemaVersion: 2 }, { cutoff: f.request.capturedAt }, { cutoff: new Date(NOW + 27 * 3600000).toISOString() }])
+      assert.throws(() => encodeBuildRequest({ ...f.request, ...changed }));
+  } finally { f.close(); }
+});
+
+test('unchanged check does no D1 work; duplicate due checks dispatch one request but never publish', async () => {
+  const f = await setup(); let dispatched = 0;
+  try {
+    const options = { db: f.db, environment: 'staging', sourceRevision: f.request.sourceRevision, sourceDigest: f.request.sourceDigest,
+      codeSha: f.request.codeSha, priorReleaseId: f.request.priorReleaseId, nextExpiry: f.intent.nextExpiry,
+      async dispatch(id) { assert.match(id, /^[a-f0-9]{64}$/); dispatched++; return { reference: 'accepted-workflow-run' }; } };
+    f.calls.length = 0;
+    assert.deepEqual(await createFreshnessCheck(options)(f.now()), { state: 'unchanged' }); assert.equal(f.calls.length, 0);
+    const check = createFreshnessCheck({ ...options, horizonMs: 26 * 3600000 });
+    const result = await Promise.all([check(f.now()), check(f.now())]);
+    assert.deepEqual(result.map(item => item.state).sort(), ['dispatched', 'existing']); assert.equal(dispatched, 1);
+    assert.equal(f.row().dispatch_reference, 'accepted-workflow-run'); assert.equal(f.row().lease_token, null);
+    assert.equal(f.sqlite.prepare('SELECT count(*) n FROM publication_outbox').get().n, 0);
+    assert.equal(f.sqlite.prepare('SELECT count(*) n FROM publication_receipts').get().n, 1);
+  } finally { f.close(); }
+});
+
+test('unconfirmed dispatch is sanitized and not blindly repeated by a duplicate check', async () => {
+  const f = await setup(); let calls = 0;
+  try {
+    const check = createFreshnessCheck({ db: f.db, ...f.request, nextExpiry: f.intent.nextExpiry, horizonMs: 26 * 3600000,
+      async dispatch() { calls++; throw new Error('PRIVATE_PROVIDER_CREDENTIAL'); } });
+    assert.equal((await check(f.now())).state, 'dispatch_unconfirmed');
+    assert.equal((await check(f.now())).state, 'existing'); assert.equal(calls, 1);
+    assert.equal(f.row().error_code, 'dispatch_unconfirmed'); assert.doesNotMatch(JSON.stringify(f.row()), /PRIVATE/);
+  } finally { f.close(); }
+});
+
+test('queue delay consumes no lease and the workflow claims at its actual start', async () => {
+  const f = await setup();
+  try {
+    const { requestId } = await enqueueBuildRequest(f.db, f.request);
+    f.advance(2 * 3600000); assert.equal(f.row().lease_until, null);
+    const claim = await claimBuildRequest(f.db, requestId, 'delayed-run', f.now(), 600000);
+    assert.equal(claim.leaseUntil, new Date(f.now().getTime() + 600000).toISOString()); assert.equal(f.row().attempts, 1);
+    assert.equal(await claimBuildRequest(f.db, requestId, 'overlapping-run', f.now()), null);
+  } finally { f.close(); }
+});
+
+test('expired build leases retry with a new token; old owners cannot fail or activate the replacement', async () => {
+  const f = await setup();
+  try {
+    const old = await f.build('old-run', 1000); f.advance(1000);
+    const current = await f.build('replacement-run'); assert.notEqual(current.token, old.token);
+    await failBuildRequest(f.db, old); assert.equal(f.row().lease_token, current.token);
+    await assert.rejects(f.activate(old, await f.publication()), /build_fenced/);
+    await failBuildRequest(f.db, current); const last = await f.build('last-run'); await failBuildRequest(f.db, last);
+    assert.equal(await f.build('exhausted-run'), null); assert.equal(f.row().attempts, 3);
+  } finally { f.close(); }
+});
+
+test('changed prior deployment, wrong environment and unsettled observations refuse activation', async () => {
+  for (const change of [before => { before.active.releaseId = 'newer-release'; }, before => { before.environment = 'production'; },
+    before => { before.settled = false; }, before => { before.active.manifestSha256 = '0'.repeat(64); }]) {
+    const f = await setup();
+    try {
+      const claim = await f.build(); const publication = await f.publication(); const before = structuredClone(f.before); change(before);
+      await assert.rejects(f.activate(claim, publication, async () => before), /prior_deployment_changed/); assert.equal(f.row().state, 'building');
+    } finally { f.close(); }
+  }
+});
+
+test('activation SQL rechecks current holds, source/target receipts, vector watermark and writer barrier after readback', async () => {
+  for (const change of [
+    "UPDATE products SET public_display_json=NULL", "UPDATE products SET source_facts_hash='changed'",
+    "DELETE FROM catalog_projection_receipts WHERE catalog_revision='source-r1'",
+    "UPDATE catalog_revisions SET source_export_sha256='changed' WHERE revision='target-r2'",
+    "INSERT INTO catalog_revisions VALUES('writer-in-progress','2026-10-20T12:00:00.000Z','source','importing')",
+    "INSERT INTO publication_receipts SELECT 'parallel-release',catalog_revision,code_sha,completed_at,manifest_json FROM publication_receipts WHERE release_id='prior-release'",
+    "INSERT INTO vector_sync_outbox(public_id,source_revision,embedding_text_hash,operation,created_at) VALUES('id','target-r2','hash','upsert','now')",
+  ]) {
+    const f = await setup();
+    try {
+      const claim = await f.build(); const publication = await f.publication();
+      f.setBeforeRun(sql => { if (sql.includes("SET state='activating'")) f.sqlite.exec(change); });
+      await assert.rejects(f.activate(claim, publication), /fenced_or_preflight_changed/); assert.equal(f.row().state, 'building');
+    } finally { f.close(); }
+  }
+});
+
+test('database-clock lease/cutoff deadlines and products at the pruning horizon fail closed', async () => {
+  for (const advance of [600000, 25 * 3600000]) {
+    const f = await setup();
+    try {
+      const claim = await f.build(); const publication = await f.publication();
+      await assert.rejects(f.activate(claim, publication, async () => { f.advance(advance); return f.before; }), /fenced_or_preflight_changed/);
+      assert.equal(f.row().state, 'building');
+    } finally { f.close(); }
+  }
+  const f = await setup();
+  try {
+    f.request.cutoff = f.snapshot.products[0].eligibleUntil;
+    const claim = await f.build(); const publication = await f.publication();
+    await assert.rejects(f.activate(claim, publication), /publication_unready/);
+    f.advance(26 * 3600000); assert.equal(await f.build('too-late'), null);
+  } finally { f.close(); }
+});
+
+test('uncertain activating state never expires or reclaims; visible target without publication receipt is insufficient', async () => {
+  const f = await setup();
+  try {
+    const claim = await f.build(); const publication = await f.publication(); const permit = await f.activate(claim, publication);
+    assert.equal(f.row().state, 'activating'); assert.equal(f.row().lease_until, null);
+    assert.equal(await resolveBuildActivation(f.db, permit, async () => f.after), 'awaiting_receipt');
+    f.advance(2 * 86400000); assert.equal(await f.build('cannot-takeover'), null); await failBuildRequest(f.db, claim);
+    await assert.rejects(resolveBuildActivation(f.db, permit, async () => ({ ...f.after, settled: false })), /still_uncertain/);
+    await assert.rejects(resolveBuildActivation(f.db, permit, async () => { throw new Error('PRIVATE'); }), /observation_failed/);
+    assert.equal(f.row().state, 'activating'); assert.equal(f.row().lease_token, claim.token);
+  } finally { f.close(); }
+});
+
+test('concurrent activation calls issue one permit and neither replay nor unknown write receipt grants another', async () => {
+  const f = await setup();
+  try {
+    const claim = await f.build(); const publication = await f.publication();
+    const results = await Promise.allSettled([f.activate(claim, publication), f.activate(claim, publication)]);
+    assert.equal(results.filter(result => result.status === 'fulfilled').length, 1);
+    assert.equal(f.row().state, 'activating');
+    await assert.rejects(f.activate(claim, publication), /build_fenced/);
+  } finally { f.close(); }
+  const unknown = await setup();
+  try {
+    const claim = await unknown.build(); const publication = await unknown.publication(); unknown.setUnknownActivationReceipt();
+    await assert.rejects(unknown.activate(claim, publication), /fenced_or_preflight_changed/);
+    assert.equal(unknown.row().state, 'activating');
+    await assert.rejects(unknown.activate(claim, publication), /build_fenced/);
+  } finally { unknown.close(); }
+});
+
+test('settled exact deployment plus the existing verified publication receipt resolves the activation', async () => {
+  const f = await setup();
+  try {
+    const claim = await f.build(); const publication = await f.publication(); const permit = await f.activate(claim, publication);
+    await completePublication(f.db, f.snapshot, f.intent.releaseId, publication.token, async () => f.intent, f.now);
+    assert.equal(await resolveBuildActivation(f.db, permit, async () => f.after), 'resolved'); assert.equal(f.row().state, 'resolved');
+    assert.equal(f.sqlite.prepare('SELECT count(*) n FROM publication_receipts').get().n, 2);
+    await assert.rejects(resolveBuildActivation(f.db, permit, async () => f.after), /build_fenced/);
+  } finally { f.close(); }
+});
+
+test('only settled observed non-activation releases the fence; unknown deployments and old tokens cannot resolve it', async () => {
+  const f = await setup();
+  try {
+    const claim = await f.build(); const publication = await f.publication(); const permit = await f.activate(claim, publication);
+    await assert.rejects(resolveBuildActivation(f.db, { ...permit, token: 'old' }, async () => f.before), /build_fenced/);
+    await assert.rejects(resolveBuildActivation(f.db, permit, async () => ({ ...f.after, active: { ...f.after.active, versionReference: 'unknown-version' } })), /resolution_mismatch/);
+    assert.equal(f.row().state, 'activating');
+    assert.equal(await resolveBuildActivation(f.db, permit, async () => f.before), 'not_activated'); assert.equal(f.row().state, 'failed');
+    const retry = await f.build('recovery-run'); assert.notEqual(retry.token, permit.token);
+    await assert.rejects(resolveBuildActivation(f.db, permit, async () => f.before), /build_fenced/);
+  } finally { f.close(); }
+});

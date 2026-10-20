@@ -3,7 +3,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import test from "node:test";
+import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
 import { createBrowseRelease } from "../static-site/lib/browse.ts";
 import {
   validateCardShard,
@@ -86,6 +88,7 @@ test("card projection is explicit, price/retailer/editorial/private fields never
     Object.keys(card).sort(),
     [
       "id",
+      "source",
       "slug",
       "title",
       "description",
@@ -133,6 +136,7 @@ test("client rejects fallback, mixed release, extra fields, duplicate identities
     { ...shard.payload, catalogRevision: "another-release" },
     { ...shard.payload, version: "a".repeat(64) },
     { ...shard.payload, sourceFacts: "private" },
+    { ...shard.payload, products: [{ ...shard.payload.products[0], source: "unknown-retailer" }] },
     {
       ...shard.payload,
       products: [...shard.payload.products, shard.payload.products[0]],
@@ -256,6 +260,14 @@ test(
     const input = path.join(directory, "catalog.snapshot.json");
     const snapshot = largeFixture();
     fs.writeFileSync(input, JSON.stringify(snapshot));
+    const contextPath = path.join(directory, "release-context.json");
+    fs.writeFileSync(contextPath, JSON.stringify({
+      schemaVersion: 1, releaseId: `owned-shard-fixture-${process.pid}`,
+      codeSha: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
+      catalogRevision: snapshot.catalogRevision,
+      catalogSnapshotSha256: createHash("sha256").update(`${JSON.stringify(validateCatalogSnapshot(snapshot))}\n`).digest("hex"),
+      generatedAt: snapshot.generatedAt, vectorSyncWatermark: 0, priorReleaseId: null,
+    }));
     try {
       execFileSync(
         process.execPath,
@@ -267,7 +279,7 @@ test(
         ],
         {
           cwd: root,
-          env: { ...process.env, CATALOG_SNAPSHOT_PATH: input },
+          env: { ...process.env, CATALOG_SNAPSHOT_PATH: input, CATALOG_RELEASE_CONTEXT_PATH: contextPath },
           stdio: "pipe",
         },
       );
