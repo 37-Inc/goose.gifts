@@ -40,6 +40,10 @@ what's likely next.
   Final retirement (`roadmap-lbbz1.7`) covers Vercel/Neon removal, GitHub
   rename, the live 37.technology listing, independent redirects and an
   expiry-aware old-domain auto-renew decision.
+  Owner-approved simplification retires bundle URLs/generation and obsolete
+  admin/reporting features; GA4 is the reporting focus. Old product-share
+  URLs are a separate compatibility decision because six existing Pinterest
+  Pins still use them; recommend static redirects to normal product pages.
 
 - **Pinterest — completed cohort, measurement only:** final birthday-hat poster
   makes P6/F6,twelve of twelve. Exact full-cohort review deadline is
@@ -189,6 +193,17 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-19 late evening [owner+claude] — Narrow legacy migration scope
+
+Updated the launch spec to retire bundle URLs, generation and redirect
+heuristics, exclude obsolete admin/auth/reporting from the new runtime, and
+use GA4 for reporting investment. Retired-feature history stays in a protected
+archive, not the runtime D1 schema. Distinguished old product-link redirects from real
+page types: October 19 Pinterest evidence contains six such Pins; live mug/goat
+URLs still redirect to normal product pages. Shared-link compatibility remains
+recommended, pending the owner's decision. Planning only; no live route,
+analytics provider, Pin or database was changed.
 
 ### 2026-10-19 late evening [owner+claude] — Specify deferred retirement and cleanup
 
