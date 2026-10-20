@@ -2,8 +2,8 @@
 
 Date: October 19, 2026. Owner: Cameron. Canonical implementation epic:
 `roadmap-lbbz1`. Baseline: `1a7ccb301f25dc129965fb71b32e0a682a86d604`.
-Status: implementation specification; production migration and redesign have
-not shipped.
+Status: final operational review complete; domain registered. Production
+migration, account cutover and redesign have not shipped.
 
 ## Purpose and decisions
 
@@ -18,6 +18,12 @@ as the canonical destination. The owner authorized securing that exact domain.
 The existing Goose site remains the production source until the staged
 transition passes its gates. Keep the useful-absurdity editorial discipline:
 outrageous objects, restrained presentation, accurate product facts.
+
+**Domain receipt:** Cloudflare Registrar in the existing `37.technology`
+account confirms `stupid.gifts` **Active**, purchased October 19 for $28.20.
+Expiration: October 19, 2027. Auto-renew is enabled, currently quoted at
+$28.20/year and scheduled for September 19, 2027. Domain ownership is complete;
+no production DNS/application cutover was made.
 
 The final architecture is:
 
@@ -176,6 +182,53 @@ or redesign that prototype as part of this website migration.
 
 ## Catalog data and search
 
+### Content rights and price boundaries
+
+Launch with **“Check price on Amazon”** wherever a compliant current offer is
+unavailable. A zero/unknown database price must not become a free-product
+claim, a budget-category assertion, or a schema `Offer`.
+
+Amazon's current policies permit displayed prices/availability from Amazon's
+linking tools or Creators/PA API, subject to the license. They limit cached
+non-image Program Content and image links to 24 hours, prohibit caching the
+images themselves, and require timestamp/disclaimer treatment for offers
+refreshed less often than hourly. SerpApi output is not that permission.
+See the [Amazon policies](https://affiliate-program.amazon.com/help/operating/policies).
+
+Therefore separate **editorial eligibility** (the existing 35-day gate) from
+**merchant-content permission/expiry**. Inventory provenance for titles,
+images, descriptions, source payloads, generated derivatives, embeddings and
+archived snapshots before exporting them. A generic database backup policy
+must not silently grant indefinite retention or reuse rights. Record affected
+fields and a compliant migration/retention decision; do not mass-delete
+existing evidence under this planning request.
+
+The baseline static release uses independently owned/licensed editorial and
+assets, factual product identity and retailer links. Where a route still uses
+API content, refresh it within its permitted window or serve the safe version
+without that content. Merely hiding the visible price is insufficient if stale
+merchant content remains in HTML, JSON-LD, feed shards, share cards or cached
+responses. No service-worker/localStorage cache of merchant Program Content.
+Do not bake API images into long-lived OG, Pinterest or show assets without
+separate rights.
+
+The daily no-Amazon publication check below is **not** a merchant-data refresh.
+Do not add an hourly whole-catalog job to make the design work. First prove a
+rights-cleared opening cohort and safe fallback in the vertical slice. If
+continuous API-derived content requires a small bounded refresh lane, specify
+its cohort, interval, API allowance, failure behavior and publication cost
+before implementation. Never let a once-a-week runner imply current offers.
+
+Optional price work starts with a maximum 12-product offline/controlled
+Creators API probe; both repositories already request
+`offersV2.listings.price`. Measure actual exact-variant coverage before adding
+a provider. Preserve amount in minor units, currency, condition, offer/variant
+identity, source, observed time and expiry independently of editorial dates.
+Do not substitute list price, a range minimum, coupon/member pricing or another
+seller/variation for the selected offer. Expired/absent offers disappear from
+every public surface; the retailer CTA remains. This enhancement must not block
+launch of a useful price-free experience.
+
 ### D1 data model
 
 Preserve catalog semantics explicitly rather than mechanically importing a
@@ -200,7 +253,8 @@ search diagnostics. Capture a complete protected export of every source table
 including legacy bundles, relationships, clicks, admin actions and error logs.
 Retired history may remain in a separately verified offline archive instead
 of runtime D1, but every source table must have a recorded destination and
-restoration test. No source data deletion is implied.
+restoration test, subject to the content-rights retention review above. No
+source data deletion is implied.
 
 Where retained search history refers to archived bundles, preserve the old
 reference values as historical fields with an archive mapping; do not create
@@ -267,11 +321,17 @@ caps, deduplication, factual checks and `--no-notify`. Replace invalidation
 with a verified publication receipt. A provider HTTP 200 does not prove the
 new catalog reached users.
 
-Run one daily **publication freshness check**, separate from weekly discovery.
-It reads the existing D1 snapshot only if needed and rebuilds when a known
+Run one daily **publication freshness check** through a Cloudflare Cron Trigger
+on the site's Worker, separate from weekly discovery. It reads the existing
+D1 snapshot only if needed and rebuilds when a known
 eligibility/content expiry is approaching. It performs no paid generation or
 Amazon requests. Maintain a single scheduled owner; do not duplicate existing
-catalog or Pinterest jobs.
+catalog or Pinterest jobs. Use the protected release workflow for build
+dispatch, a revision-scoped D1 lease to suppress overlap, and a least-privilege
+dispatch credential in Worker secrets. The release workflow verifies the
+published revision and records completion; dispatch acceptance is not success.
+Choose and record the UTC trigger time during staging, leaving room before the
+next known expiry. Provider/build failure still uses the bundled expiry guard.
 
 Preserve the 35-day indexability gate and stricter merchant-specific content
 expiry rules. At build time compute each page's `eligibleUntil`. Bundle this
@@ -410,6 +470,92 @@ delete old Pins. Coordinate Search Console verification, sitemap submission,
 Change of Address and Bing/IndexNow with the existing search-submission owner.
 Track actual provider receipts separately from website code completion.
 
+### Provider and automation cutover checklist
+
+Code completion does not close these provider steps. Complete them against the
+existing accounts, preserving continuity rather than creating replacement apps
+or changing the affiliate tag to match the new brand.
+
+**Amazon — final pre-launch gate (`roadmap-lbbz1.8`).** October 19 technical
+readback: Vercel Production supplies `goose-gifts-37-20`; all 3,383 stored Amazon
+URLs have exactly one matching tag, HTTPS Amazon host and matching ASIN path.
+The live random page and three sitemap product pages expose that same tag.
+Homepage/directory link to site product pages, so an absence of direct retailer
+anchors there is not a tagging failure.
+
+Persisted account evidence identifies parent Store ID `rileyehrlic0b-20`.
+This session could not independently verify that ownership: Chrome 37 is
+signed into `mikeideas-20`, and Chrome Personal requires sign-in. The owner
+explicitly deferred the correct-account login and website-list update to the
+end. Do not change the Mike Ideas account or copy its tag/campaign entitlement.
+
+At the final gate:
+
+1. In the wife's correct Associates account, verify the dedicated tag appears
+   in Manage Tracking IDs and preserve a redacted receipt. Inspect applicable
+   account eligibility/payment warnings without changing tax or payout details.
+2. Once the new domain serves useful public content, add `https://stupid.gifts`
+   to that account's website list and read back the saved list; retain Goose
+   URLs and other existing properties. A saved entry is not a claim of separate
+   Amazon approval. If necessary stage the new public site without monetized
+   links, complete the account gate, then enable the final launch.
+3. Test the ordinary user path: Pinterest/episode link → intended product page
+   → explicit retailer CTA → exact Amazon product/tag. Analytics blocked or
+   opted out must not alter navigation. No auto-redirect to Amazon, self-buy,
+   manufactured orders, or repeated clicks to inflate reports.
+4. Use an official link checker if available and tag-filtered Associates
+   clicks/orders/earnings reports with their actual date range and reporting
+   delay. Separate **tag ownership**, **valid navigation**, **reported clicks**
+   and **credited commissions**. With no qualifying purchases, commission
+   attribution remains unproven; do not hold launch hostage to a test purchase
+   or present correct URL syntax as revenue proof.
+
+**Pinterest — same app and business account (`roadmap-lbbz1.8`).**
+
+- Preserve app `1588384`, business account `1107815345747925810`, existing
+  boards, approved production access, scopes, tokens and public Pin IDs.
+  Capture before-state and recheck current account identity before edits.
+- At brand launch update developer-app name/description/icon, website and
+  privacy URLs wherever those fields exist. Verify the existing application
+  stays approved; if Pinterest requires re-review, record that gate and
+  keep the last working integration until resolved. Do not create a new app.
+- Audit callback URLs against the actual OAuth client. The present CLI uses
+  `http://localhost:3737/oauth/pinterest/callback`; a site rebrand is not a
+  reason to replace that working callback. Any future hosted callback needs
+  its own implementation and exact allowlist validation.
+- Update the public profile display name, bio, avatar and website together
+  when the destination works. Keep `goosegifts` as the handle initially; a new
+  handle requires availability and old-profile-link review, not an assumption.
+  Claim the new domain with Pinterest's supplied DNS/HTML verification and
+  confirm the provider shows it claimed. Retain the old claim where supported.
+- Update future draft destinations, canonical-host guards, asset hosts,
+  UTM/link builders and the creative skill's brand inputs. Treat any changed
+  package as a new digest requiring normal validation; never rewrite historical
+  approval/publication receipts. Follow existing Pin links through the Goose
+  redirects to the matching new product, preserving safe campaign parameters.
+- Run production OAuth refresh, account/board reads and a create **dry run**.
+  Read verification is required; a rebrand alone does not authorize a test
+  post, deletion/reposting, Sandbox publication or a new experiment.
+
+**Scheduled work — update in place, not by creating duplicate jobs
+(`roadmap-lbbz1.4`).** Snapshot each current prompt, target, cadence, timezone
+and status before editing through its owning scheduler. Do not rename the local
+checkout or credential namespaces simply to match the public brand.
+
+| Existing owner | Current behavior | Required migration and acceptance |
+| --- | --- | --- |
+| `goose-gifts-daily-ops` | Weekly Catalog Quality; Monday 08:30 Pacific; `catalog:weekly -- --no-notify` | Preserve ID/cadence/bounds; replace Vercel bootstrap only after protected replacement works; target D1 and verified publication; prove one bounded run with durable receipt and no Slack report. |
+| `goose-gifts-pinterest-growth-studio` | Daily 09:30/16:30 Pacific; now measurement-only after P6/F6 | Preserve target thread, completed cohort and exact October 31 16:44:52.279 UTC review gate; update name, brand/destination config and cross-domain analytics at cutover. Verify one measurement-only run. No restart of posting without a new experiment authorization. |
+| Daily portfolio pulse | Consolidated owner metrics | Locate its actual owning schedule/config, update display/domain filters and receipt sources; preserve analytics property IDs and historical Goose data. Verify one report without double-counting redirects or creating a separate report job. |
+| Publication freshness check | New Cloudflare Worker Cron Trigger, not yet provisioned | One daily trigger with overlap lease, revision/deadline checks and idempotent protected build dispatch. No Amazon/model calls. Dry-run unchanged/expiring/failure cases and prove one deployed-revision receipt; no parallel local duplicate. |
+
+Keep scheduled captions and names consistent with the new brand, but immutable
+experiment IDs and historical results remain Goose-era facts. Local scheduled
+jobs depend on their host being available; independent Worker expiry guards
+must protect public output if that host or the publication scheduler is down.
+Record the deployed Cron Trigger and release-workflow identity during the
+vertical slice, including build-minute costs and missed-run alert ownership.
+
 Only retire Vercel/Neon after the observation window, verified restoration,
 maintained consumer migration and secret-bootstrap replacement. Source data
 deletion and paid subscription changes require their own concrete action
@@ -456,6 +602,15 @@ the order discussed, one factual sentence each, a visible retailer action,
 and previous weeks. Draft episodes are absent from public routes. Each
 `/howie/[episode]` URL remains stable; if an item becomes unavailable, say so
 and offer a clearly labeled substitute rather than silently rewriting history.
+
+Include the small `/howie` landing experience in the launch scope; defer an
+elaborate show microsite. Before a confirmed episode is released, keep drafts
+out of the sitemap and public navigation and use a truthful neutral empty state
+if the route is visited. The release checklist requires owner-confirmed episode
+date/status, accurate affiliate disclosure, exact variants, and a mobile test of
+the QR/description link through to the retailer CTA. The presentation/QR points
+to our useful landing page, never an automatic affiliate redirect. Use only
+rights-cleared visuals in recorded show presentation.
 
 Provide an optional presentation view driven by the same episode manifest:
 large image, concise name, one dry line, previous/next keyboard controls and
@@ -509,6 +664,56 @@ sessions, click-through rate with its denominator, and affiliate earnings at
 the granularity the merchant actually provides. A click is not a purchase.
 Distinguish internal QA and likely automation, and label provider gaps rather
 than treating missing PostHog data as zero people.
+
+## Deferred creator research integration
+
+Track after launch in `roadmap-mt1gp`, coordinated with Creator Product
+Research's `roadmap-6613`. Do not block the broadcast-ready catalog on a new
+recommendation platform.
+
+October 19 inspection of `/Users/cameronehrlich/creator-product-research`
+(HEAD `146c3ed`, substantial owner/other-session changes preserved) found:
+
+- Current Creators API exact-ASIN/category/offer parsing is reusable as a
+  reference, as are validated evidence contracts and freshness handling in
+  `src/application/import-reviewed-product-evidence.ts` and
+  `import-visible-product-evidence.ts`.
+- Jungle Scout supplies timestamped **estimated family demand**, and ViralVue
+  supplies influencer-video competition through reviewed visible-UI capture.
+  Neither is observed website conversion. Keepa was cancelled and removed;
+  do not revive its old connector or stale command recipes.
+- `src/connectors/serpapi.ts` has bounded, cached Amazon-product requests but
+  currently normalizes **videos**, not price/demand fields. SerpApi's official
+  product API documents prices; a price adapter, source rights and live
+  acceptance would be new work, not an already-working public-price solution.
+  Existing research schedules have zero paid-query allowance.
+- The Claire/`opportunity-earnings-v1` calculator models influencer-video
+  placement and purchase recovery. Do not port its assumed traffic share,
+  video dilution or onsite commission schedule into site-product ranking.
+  Current research account evidence is Mike Ideas, not proof of the wife's
+  campaign eligibility.
+
+Start with a small versioned export of **saved, permitted evidence**, imported
+read-only into a staging shortlist. Include exact ASIN/marketplace, family
+scope, source, observed/provider-update times, expiry, currency, provenance and
+confidence. No runtime dependency on the research checkout/SQLite, private
+campaign-data publication, credential copying or reverse write into its pool.
+Rebuild affiliate URLs from the site's canonical tag, never an imported URL.
+The research owner must confirm the current contract and source rights before
+implementation; the current dirty integration is not a released shared SDK.
+
+Apply humor, product truth, availability, family diversity and show fit first.
+Then compare qualified candidates using actual website retailer CTR and
+merchant-reported earnings per outbound click where measurable. Until enough
+data exists, show labeled price/rate scenarios rather than invented EPC or
+claimed optimum revenue. A higher commission may break a genuine editorial tie,
+not fill the homepage with unrelated commodities.
+
+Creator Connections bonuses require separately verified correct-account,
+exact-product, accepted-campaign, allowed-channel and earning-window evidence;
+an open campaign card is not earned eligibility. Do not assume onsite and
+offsite rates stack. Campaign acceptance, samples, paid providers and outreach
+remain separately authorized.
 
 ## Cost and capacity model
 
@@ -579,6 +784,14 @@ These are targets to demonstrate in staging, not claims about current capacity.
 10. **Show readiness:** first episode manifest plus three reserve drafts, exact
     product links, availability refresh, large-screen walkthrough, and the
     release date coordinated with the owner. Do not invent an airing date.
+11. **Provider/operations continuity:** account and job checklist above has
+    individual readback/run receipts; no duplicate schedules, wrong-account
+    changes or fresh posting authority inferred from the rebrand.
+12. **Content/price provenance:** field-level rights and expiry inventory
+    passes; expired merchant content is absent from HTML, schema, feeds and
+    assets; the initial curated experience remains useful without live prices.
+    Unknown commission attribution and optional price coverage are explicitly
+    separate from launch correctness.
 
 ## Delivery order and boundaries
 
@@ -614,6 +827,10 @@ applicable provider/approval requirements at execution.
 - [D1 limits](https://developers.cloudflare.com/d1/platform/limits/)
 - [Vectorize pricing](https://developers.cloudflare.com/vectorize/platform/pricing/)
 - [Google domain moves](https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes)
+- [Amazon Associates policies and content license](https://affiliate-program.amazon.com/help/operating/policies)
+- [SerpApi Amazon product response fields](https://serpapi.com/amazon-product-api)
+- [Pinterest website claim requirements](https://help.pinterest.com/en/business/article/claim-your-website)
+- [Scheduled task host requirements](https://learn.chatgpt.com/docs/automations?surface=app)
 - Existing approved brand foundations: `~/roadmap/marketing/goose-gifts/BRAND.md`
   and `STRATEGY.md`. This launch brief changes the name/priority, not factual
   product standards or privacy boundaries.
@@ -624,13 +841,18 @@ Canonical Beads, in delivery order:
 
 | Bead | Deliverable | Depends on |
 | --- | --- | --- |
-| `roadmap-lbbz1.1` | Specification and verified domain registration | Checkout completion |
+| `roadmap-lbbz1.1` | Specification and verified domain registration | Registration verified October 19; final review versioned |
 | `roadmap-lbbz1.2` | Neon runway protection and Cloudflare vertical slice | Current provider evidence |
 | `roadmap-lbbz1.3` | D1/vector migration and reconciliation | `.2` |
 | `roadmap-lbbz1.4` | Complete static routes, publishing and hosting migration | `.3` |
 | `roadmap-lbbz1.5` | Composed visual design and four episode shortlists | Can start alongside `.2` |
-| `roadmap-lbbz1.6` | Domain/brand launch and conversion verification | `.1`, `.4`, `.5` |
+| `roadmap-lbbz1.8` | Correct affiliate account/site registration and Pinterest app/profile/claim cutover | Correct account access at final pre-launch gate |
+| `roadmap-lbbz1.6` | Domain/brand launch and conversion verification | `.1`, `.4`, `.5`, `.8` |
 | `roadmap-lbbz1.7` | Recoverable provider retirement | `.6` and observation window |
+
+Deferred follow-up `roadmap-mt1gp` depends on `.6`, not vice versa: research
+evidence sharing and optional compliant pricing cannot expand the launch's
+critical path.
 
 Implementation and domain ownership are separate evidence gates. Keep the
 epic open until the launch acceptance criteria are actually satisfied.

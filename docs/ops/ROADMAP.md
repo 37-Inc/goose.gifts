@@ -12,6 +12,16 @@ Protect the remaining Neon compute runway first, then prove the migration
 slice. Broad editorial catch-up and new features are secondary. Existing
 bounded maintenance and Pinterest measurement-only controls remain in force.
 
+October 19 final review: `stupid.gifts` is registered and Active in the existing
+Cloudflare account. Provider/account migration is tracked by `roadmap-lbbz1.8`;
+the owner deferred the wife's Amazon login/site-list update to the end.
+`roadmap-mt1gp` tracks optional post-launch research evidence sharing and
+compliant pricing. Do not reuse an influencer-video earnings model as website
+EPC, or treat a valid affiliate URL as credited-commission evidence.
+Content provenance/merchant expiry and verified scheduler transitions are
+explicit migration acceptance gates; `/howie` is a small launch landing page,
+not a separate microsite project.
+
 The historical phases below explain the catalog foundations; the new spec
 governs the next architecture and launch sequence where they differ.
 
