@@ -36,6 +36,8 @@ async function fixture(t,{last='0012',enabled=true}={}) {
     const body=JSON.parse(init.body);assert.deepEqual(Object.keys(body),['batch']);assert.ok(body.batch.length<=32);
     return ok(body.batch.map(({sql,params})=>{
       assert.match(sql,/^(SELECT|PRAGMA table_info\()/);assert.deepEqual(params,[]);
+      // D1 forbids this native SQLite diagnostic; readiness does not need it.
+      assert.doesNotMatch(sql,/sqlite_version\s*\(/i);
       const results=db.prepare(sql).all();return {success:true,results,meta:{rows_read:results.length,rows_written:0,changed_db:false}};
     }));
   };

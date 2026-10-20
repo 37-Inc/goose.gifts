@@ -23,7 +23,7 @@ export const RUNNER_COLUMNS: Readonly<Record<string, readonly string[]>> = Objec
   publication_outbox: ['release_id','intent_json','state'], publication_receipts: ['release_id','catalog_revision','manifest_json'],
 });
 const QUERIES: Readonly<Record<string, string>> = Object.freeze({
-  capabilities: `SELECT sqlite_version() sqlite_version,json_valid('{}') valid_json,
+  capabilities: `SELECT json_valid('{}') valid_json,
     strftime('%Y-%m-%dT%H:%M:%fZ','2024-02-30T00:00:00.000Z','+0 days') normalized_date`,
   schema: `SELECT type,name,tbl_name,sql FROM sqlite_schema WHERE type IN('table','index','trigger')
     AND name NOT LIKE 'sqlite_%' ORDER BY name LIMIT 201`,
