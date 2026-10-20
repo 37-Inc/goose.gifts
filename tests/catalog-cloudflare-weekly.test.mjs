@@ -5,8 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { DatabaseSync } from 'node:sqlite';
-import { runCloudflareWeekly, validateCloudflareWeeklyConfig, weeklyCommandSummary, WEEKLY_RESUME_STATES } from '../scripts/catalog/run-cloudflare-weekly.ts';
-import { openRunWorkspace, readRunWorkspace } from '../scripts/catalog/run-workspace.ts';
+import { runCloudflareWeekly, validateCloudflareWeeklyConfig, weeklyCommandSummary, WEEKLY_RESUME_STATES, putOrdered, readOrdered } from '../scripts/catalog/run-cloudflare-weekly.ts';
+import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS } from '../scripts/catalog/run-workspace.ts';
 import { getOpenAIClient, runCatalogWithBackend } from '../scripts/ops/prefetch-catalog.mjs';
 import amazonCreators from '../lib/amazon-creators.js';
 import { createD1CatalogMaintenanceStore } from '../scripts/catalog/maintenance-d1.ts';
@@ -26,6 +26,7 @@ import { createOgRelease } from '../static-site/lib/og.ts';
 import { siteIdentityFor } from '../static-site/lib/site-identity.ts';
 import { guides } from '../static-site/lib/guides.ts';
 import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
+import { encodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
 
 // Real composed stores/fence/evidence/driver/publisher/workspace over SQLite.
 // Only external Amazon/OpenAI/CF and Next compilation are mocked. Real package
@@ -189,6 +190,7 @@ async function setup(t,{noPrior=false}={}){
       resources:{script_runtime:{compatibility_date:config.publication.compatibilityDate},bindings:[{name:'DB',type:'d1',id:UUID},
         {name:'VECTORIZE',type:'vectorize',index_name:scope.indexName},{name:'ASSETS',type:'assets'},
         {name:'ENVIRONMENT',type:'plain_text',text:'staging'},{name:'SEMANTIC_SEARCH_ENABLED',type:'plain_text',text:'false'},
+        {name:'SEMANTIC_SEARCH_DAILY_REQUEST_CAP',type:'plain_text',text:'50'},{name:'SEMANTIC_SEARCH_DAILY_TOKEN_CAP',type:'plain_text',text:'32768'},
         {name:'STAGING_AUTH_SECRET',type:'secret_text'}]}});}
     if(url.pathname.endsWith('/deployments')){
       if(init.method==='POST'){calls.activate++;active=JSON.parse(init.body);if(mode.activationLost)throw new Error('TEST ONLY consumed activation response');return response({id:DEPLOY});}
@@ -385,4 +387,52 @@ test('CLI summary exposes coarse waiting/publication identity, never private own
     receiptSha256:'a'.repeat(64),owner:{token:'PRIVATE'},control:{candidate:'PRIVATE'},error:'raw provider body'}),
   {state:'pending',reason:'awaiting_reviewed_approval',errorCode:'mutation_unknown',releaseId:'test-release',receiptSha256:'a'.repeat(64)});
   assert.deepEqual(weeklyCommandSummary({state:'attention',reason:'not a coarse reason: PRIVATE'}),{state:'attention'});
+});
+
+test('ordered derived freeze artifacts switch to bounded blobs without canonicalizing JSON bytes or changing small refs',async t=>{
+  const f=await setup(t),w=await openRunWorkspace({...f.workspaceOptions,mode:'create'});t.after(async()=>{try{await w.close();}catch{}});
+  const small={z:'first property',a:'second property'},smallRef=await putOrdered(w,small,NOW,'phase');
+  assert.equal(await w.readArtifact(smallRef),JSON.stringify(small));assert.deepEqual(await readOrdered(w,smallRef),small);
+  const nativeBase64=encodePgvectorSendBase64(values.map(Math.fround)),large={sourceRows:Array.from({length:80},(_,index)=>({z:index,nativeBase64,a:'last'})),label:'🎁'.repeat(70_000)};
+  const ordered=Buffer.from(JSON.stringify(large)),ref=await putOrdered(w,large,NOW);
+  assert.ok(ordered.length>WORKSPACE_BLOB_LIMITS.artifactBytes);assert.equal((await w.readArtifact(ref)).type,'run-workspace-blob');
+  assert.deepEqual(await w.readBlob(ref),ordered);assert.deepEqual(await readOrdered(w,ref),large);
+  await w.writeCheckpoint(null,{phase:'freezing',owner:null,state:{vectorOffset:0},pins:{preparedRevision:ref,legacy:smallRef},phaseComplete:smallRef});
+  await w.close();const resumed=await openRunWorkspace(f.workspaceOptions);t.after(async()=>{try{await resumed.close();}catch{}});
+  assert.deepEqual(await readOrdered(resumed,(await resumed.readCheckpoint()).checkpoint.pins.preparedRevision),large);
+  f.advance(86400000);await assert.rejects(readOrdered(resumed,ref),/expired/);
+  assert.equal((await resumed.readCheckpoint({controlOnly:true})).checkpoint.phase,'freezing');
+});
+
+test('actual driver pins reviewed oversized original-vector RAW file and resumes without paid replay or D1 budget reset',async t=>{
+  const f=await setup(t),nativeBase64=encodePgvectorSendBase64(values.map(Math.fround));
+  const originals=Object.fromEntries(Array.from({length:80},(_,index)=>[`00000000-0000-4000-8000-${String(index+10).padStart(12,'0')}`,{nativeBase64}]));
+  const bytes=Buffer.from(` {\n${JSON.stringify(originals).slice(1,-1)}\n}\n`);assert.ok(bytes.length>512*1024);
+  const file=path.join(path.dirname(f.options.configPath),'reviewed-original-vectors.json');await put(file,bytes);
+  f.config.inputs.originalVectors={path:file,sha256:sha256(bytes),observedAt:NOW};await put(f.options.configPath,f.config);
+  f.options.configSha256=sha256(await fs.readFile(f.options.configPath));f.workspaceOptions.configSha256=f.options.configSha256;
+  assert.equal((await f.run('start')).reason,'awaiting_reviewed_approval');const paid={getItems:f.calls.getItems,chat:f.calls.chat,embedding:f.calls.embedding,search:f.calls.search};
+  const w=await openRunWorkspace(f.workspaceOptions),saved=await w.readCheckpoint(),ref=saved.checkpoint.pins.originalVectors;
+  assert.equal((await w.readArtifact(ref)).type,'run-workspace-blob');assert.deepEqual(await w.readBlob(ref),bytes);
+  const before=await w.budget();await w.close();
+  const oversized=path.join(path.dirname(f.options.configPath),'oversized-approval.json');await put(oversized,`{}${' '.repeat(512*1024)}`);
+  await assert.rejects(f.run('resume',{path:oversized,sha256:sha256(await fs.readFile(oversized))}),/weekly_private_input/);
+  assert.deepEqual({getItems:f.calls.getItems,chat:f.calls.chat,embedding:f.calls.embedding,search:f.calls.search},paid);
+  const result=await f.run('resume',await f.approve());assert.equal(result.state,'finalized');assert.ok(result.budget.httpRequests>before.httpRequests);
+  assert.deepEqual({getItems:f.calls.getItems,chat:f.calls.chat,embedding:f.calls.embedding,search:f.calls.search},paid);
+  const reopened=await openRunWorkspace(f.workspaceOptions);try{assert.deepEqual(await reopened.readBlob(ref),bytes);
+    assert.equal((await reopened.readCheckpoint()).checkpoint.phase,'finalized');assert.deepEqual(await reopened.budget(),result.budget);}finally{await reopened.close();}
+  assert.equal(f.calls.activate,1);assert.equal(f.calls.upload,1);
+});
+
+test('oversized original input still binds reviewed RAW hash; config limit cannot be broadened by blob support',async t=>{
+  const f=await setup(t),bytes=Buffer.from(`{"nativeBase64":"${'A'.repeat(520*1024)}"}\n`);
+  const file=path.join(path.dirname(f.options.configPath),'unconfirmed-originals.json');await put(file,bytes);
+  f.config.inputs.originalVectors={path:file,sha256:sha256(bytes),observedAt:NOW};await put(f.options.configPath,f.config);
+  f.options.configSha256=sha256(await fs.readFile(f.options.configPath));f.workspaceOptions.configSha256=f.options.configSha256;
+  await fs.appendFile(file,' ');await assert.rejects(f.run('start'),/weekly_input_digest/);
+  assert.equal(f.calls.getItems+f.calls.search+f.calls.chat+f.calls.embedding+f.calls.upsert+f.calls.upload+f.calls.activate,0);
+  const http=f.calls.http;await put(f.options.configPath,`${JSON.stringify(f.config)}${' '.repeat(32768)}`);
+  f.options.configSha256=sha256(await fs.readFile(f.options.configPath));await assert.rejects(f.run('preflight'),/weekly_private_input/);
+  assert.equal(f.calls.http,http);
 });

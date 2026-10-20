@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { lstat, readFile, realpath } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { lstat, open, realpath } from 'node:fs/promises';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createCatalogD1Rest } from './d1-write-rest.ts';
@@ -12,7 +13,7 @@ import { createVectorizeRestAdapters } from './vectorize-rest.ts';
 import { deliverOwnedOutboxEvent, deliverOwnedApprovedCohortVector, readOwnedApprovedCohortVectors } from './owned-vector-delivery.ts';
 import { canonicalJson, sha256 } from './migration.ts';
 import { decodePgvectorSendBase64 } from './pgvector-binary.ts';
-import { openRunWorkspace, readRunWorkspace } from './run-workspace.ts';
+import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS } from './run-workspace.ts';
 import type { ArtifactRef, RetentionPolicy, RunWorkspace, RunWorkspaceOptions, WorkspaceCheckpoint } from './run-workspace.ts';
 import { executePublication, validatePublicationConfig } from './publish-release.ts';
 import type { PublicationConfig } from './publish-release.ts';
@@ -78,13 +79,25 @@ export function validateCloudflareWeeklyConfig(input:unknown):CloudflareWeeklyCo
   }
   return structuredClone(c);
 }
-async function reviewed(path:string,digest:string,repo:string,max=512*1024) {
+async function reviewedBytes(path:string,digest:string,repo:string,max=512*1024) {
   if(!isAbsolute(path)||!HASH.test(digest))throw new Error('weekly_private_input');
   const stat=await lstat(path);const actual=await realpath(path);const rel=relative(await realpath(repo),actual);
   if(stat.isSymbolicLink()||!stat.isFile()||stat.uid!==process.getuid?.()||stat.mode&0o077||stat.size>max
     ||rel===''||!rel.startsWith('..')&&!isAbsolute(rel))throw new Error('weekly_private_input');
-  const bytes=await readFile(path);if(bytes.length>max||createHash('sha256').update(bytes).digest('hex')!==digest)throw new Error('weekly_input_digest');
-  return JSON.parse(bytes.toString('utf8'));
+  const handle=await open(path,constants.O_RDONLY|constants.O_NOFOLLOW);
+  try{
+    const opened=await handle.stat();if(opened.ino!==stat.ino||opened.dev!==stat.dev)throw new Error('weekly_private_input');
+    const chunks:Buffer[]=[];let length=0;const hasher=createHash('sha256');
+    for(;;){const chunk=Buffer.alloc(Math.min(WORKSPACE_BLOB_LIMITS.chunkBytes,max+1-length)),part=await handle.read(chunk);
+      if(!part.bytesRead)break;length+=part.bytesRead;if(length>max)throw new Error('weekly_private_input');
+      const bytes=chunk.subarray(0,part.bytesRead);chunks.push(bytes);hasher.update(bytes);}
+    const after=await handle.stat();
+    if(after.size!==stat.size||after.mtimeMs!==stat.mtimeMs||after.ctimeMs!==stat.ctimeMs||hasher.digest('hex')!==digest)throw new Error('weekly_input_digest');
+    return Buffer.concat(chunks);
+  }finally{await handle.close();}
+}
+async function reviewed(path:string,digest:string,repo:string,max=512*1024) {
+  return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(await reviewedBytes(path,digest,repo,max)));
 }
 // Strip product/candidate bodies and search-theme strings from phase counts.
 // Token/cost usage remains exact private operational evidence, not analytics.
@@ -101,12 +114,19 @@ function finalization(input:Record<string,unknown>) {
 }
 // Snapshot/projection receipts bind JSON.stringify order, not canonicalJson.
 // Preserve that reviewed byte order through the workspace's canonical store.
-async function putOrdered(ws:RunWorkspace,value:unknown,observedAt:string){
-  return ws.putArtifact(JSON.stringify(value),{kind:'publication',observedAt});
+export async function putOrdered(ws:RunWorkspace,value:unknown,observedAt:string,kind:'phase'|'publication'='publication'){
+  const bytes=JSON.stringify(value);
+  return Buffer.byteLength(canonicalJson(bytes))<=WORKSPACE_BLOB_LIMITS.artifactBytes
+    ?ws.putArtifact(bytes,{kind,observedAt}):ws.putBlob(Buffer.from(bytes,'utf8'),{kind,observedAt});
 }
-async function readOrdered<T>(ws:RunWorkspace,ref:ArtifactRef):Promise<T>{
-  const value=await ws.readArtifact(ref);if(typeof value!=='string')throw new Error('weekly_sealed_artifact');
-  return JSON.parse(value) as T;
+export async function readOrdered<T>(ws:RunWorkspace,ref:ArtifactRef):Promise<T>{
+  const value=await ws.readArtifact(ref);
+  return JSON.parse(typeof value==='string'?value:new TextDecoder('utf-8',{fatal:true}).decode(await ws.readBlob(ref))) as T;
+}
+async function readOriginalVectors(ws:RunWorkspace,ref:ArtifactRef):Promise<Record<string,unknown>> {
+  const value=await ws.readArtifact(ref);
+  return(value&&typeof value==='object'&&!Array.isArray(value)&&value.type==='run-workspace-blob'
+    ?JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(await ws.readBlob(ref))):value) as Record<string,unknown>;
 }
 async function scopedProviders<T>(config:CloudflareWeeklyConfig,resolveToken:(ref:KeychainRef)=>Promise<string>,action:()=>Promise<T>) {
   const names=Object.keys(process.env).filter(key=>/^(CATALOG_|AMAZON_|OPENAI_|GOOGLE_SEARCH_|POSTGRES_|VERCEL_)/.test(key));
@@ -205,8 +225,17 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       if((await db.prepare('SELECT id FROM catalog_runs WHERE id=?').bind(config.runId).all()).results.length)throw new Error('weekly_run_exists');
       const pins:Record<string,ArtifactRef>={};
       for(const [label,ref]of Object.entries(config.inputs)){
+        if(label==='originalVectors'){
+          // The approved digest binds the RAW file (including order/whitespace),
+          // not a reconstructed JS-number vector or a canonical JSON rewrite.
+          const bytes=await reviewedBytes(ref.path,ref.sha256,repo,WORKSPACE_BLOB_LIMITS.bytes);
+          const value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+          pins[label]=bytes.length>WORKSPACE_BLOB_LIMITS.artifactBytes||Buffer.byteLength(canonicalJson(value))>WORKSPACE_BLOB_LIMITS.artifactBytes
+            ?await ws.putBlob(bytes,{kind:'phase',observedAt:ref.observedAt})
+            :await ws.putArtifact(value,{kind:'phase',observedAt:ref.observedAt});continue;
+        }
         const value=await reviewed(ref.path,ref.sha256,repo);
-        pins[label]=await ws.putArtifact(label==='previous'?JSON.stringify(value):value,{kind:'phase',observedAt:ref.observedAt});
+        pins[label]=label==='previous'?await putOrdered(ws,value,ref.observedAt,'phase'):await ws.putArtifact(value,{kind:'phase',observedAt:ref.observedAt});
       }
       await write({pins});
     }
@@ -282,7 +311,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
         await write({owner:prepared.owner,pins:{...cp.pins,preparedRevision:pin},state:{...state(),vectorOffset:0}});
       }
       const plan=approvedCohortVectorPlan(revision);
-      const originals=cp.pins.originalVectors?await ws.readArtifact(cp.pins.originalVectors) as Record<string,unknown>:{};
+      const originals=cp.pins.originalVectors?await readOriginalVectors(ws,cp.pins.originalVectors):{};
       const vectorIds=[...plan.products.map(p=>p.publicId),...plan.absentIds];
       for(let index=Number(state().vectorOffset)||0;index<vectorIds.length;index++){
         const publicId=vectorIds[index];

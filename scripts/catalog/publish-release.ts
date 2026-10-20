@@ -25,6 +25,7 @@ import { canonicalJson } from './migration.ts';
 import { readActivatedCatalogVectors } from './owned-vector-delivery.ts';
 import { createVectorizeRestAdapters } from './vectorize-rest.ts';
 import type { RunWorkspace, PublicationControl } from './run-workspace.ts';
+import { semanticBudgetConfig } from '../../workers/site/semantic-budget.ts';
 
 /** Explicit protected local operator path, NOT a scheduler or a cross-host lock.
  * The workspace holds concrete shared account/environment/database + Worker
@@ -41,6 +42,8 @@ export interface PublicationConfig {
   sourceMode:SiteAssetManifest['sourceMode']; sourceRoot:string; releaseId:string;
   identityOrigin:string; compatibilityDate:string;
   prior:{directory:string;manifestSha256:string;releaseId:string;versionReference:string}|null;
+  /** Omission preserves historical config hashes and off/50/32768 behavior. */
+  semanticSearch?:{enabled:boolean;dailyRequestCap:number;dailyTokenCap:number};
 }
 const KEY=/^[a-zA-Z0-9._-]{1,200}$/;
 const HASH=/^[a-f0-9]{64}$/;
@@ -50,7 +53,7 @@ const WORKERS_DEV_NAME=/^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
 const exact=(v:object,keys:string)=>Object.keys(v).sort().join(',')===keys;
 const sha256=(value:string|Uint8Array)=>createHash('sha256').update(value).digest('hex');
 export function validatePublicationConfig(input:PublicationConfig):Readonly<PublicationConfig> {
-  if(!input||!exact(input,'accountId,codeSha,compatibilityDate,database,environment,identityOrigin,indexName,prior,releaseId,schemaVersion,sourceMode,sourceRoot,workerName')
+  if(!input||!exact(input,`accountId,codeSha,compatibilityDate,database,environment,identityOrigin,indexName,prior,releaseId,schemaVersion,${Object.hasOwn(input,'semanticSearch')?'semanticSearch,':''}sourceMode,sourceRoot,workerName`)
     ||input.schemaVersion!==1||!['staging','production'].includes(input.environment)||!/^[a-f0-9]{32}$/.test(input.accountId)
     ||!RESOURCE.test(input.workerName)||input.environment==='staging'&&!WORKERS_DEV_NAME.test(input.workerName)
     ||!RESOURCE.test(input.indexName)||!input.database||!exact(input.database,'id,name')
@@ -66,7 +69,23 @@ export function validatePublicationConfig(input:PublicationConfig):Readonly<Publ
     ||input.prior!==null&&(!exact(input.prior,'directory,manifestSha256,releaseId,versionReference')
       ||!path.isAbsolute(input.prior.directory)||!HASH.test(input.prior.manifestSha256)||!KEY.test(input.prior.releaseId)
       ||!UUID.test(input.prior.versionReference)||input.prior.releaseId===input.releaseId))throw new Error('publication_configuration_invalid');
-  return Object.freeze({...input,database:Object.freeze({...input.database}),prior:input.prior&&Object.freeze({...input.prior})});
+  if(Object.hasOwn(input,'semanticSearch')){
+    const policy=input.semanticSearch;
+    if(!policy||!exact(policy,'dailyRequestCap,dailyTokenCap,enabled')||typeof policy.enabled!=='boolean'
+      ||!Number.isInteger(policy.dailyRequestCap)||!Number.isInteger(policy.dailyTokenCap)
+      ||input.environment==='staging'&&policy.enabled
+      // Reuse the runtime's exact positive-integer bounds, even when disabled.
+      ||!semanticBudgetConfig({ENVIRONMENT:input.environment,SEMANTIC_SEARCH_ENABLED:'true',
+        SEMANTIC_SEARCH_DAILY_REQUEST_CAP:String(policy.dailyRequestCap),SEMANTIC_SEARCH_DAILY_TOKEN_CAP:String(policy.dailyTokenCap)},
+      {environment:input.environment,index:input.indexName}))throw new Error('publication_configuration_invalid');
+  }
+  return Object.freeze({...input,database:Object.freeze({...input.database}),prior:input.prior&&Object.freeze({...input.prior}),
+    ...(Object.hasOwn(input,'semanticSearch')?{semanticSearch:Object.freeze({...input.semanticSearch!})}:{})});
+}
+function searchVars(config:PublicationConfig){
+  const policy=Object.hasOwn(config,'semanticSearch')?config.semanticSearch!:{enabled:false,dailyRequestCap:50,dailyTokenCap:32768};
+  return{SEMANTIC_SEARCH_ENABLED:String(policy.enabled),SEMANTIC_SEARCH_DAILY_REQUEST_CAP:String(policy.dailyRequestCap),
+    SEMANTIC_SEARCH_DAILY_TOKEN_CAP:String(policy.dailyTokenCap)};
 }
 export type PublicationWorkspace=RunWorkspace;
 export type { PublicationControl } from './run-workspace.ts';
@@ -185,10 +204,11 @@ function verifyUploadedVersion(value:Record<string,unknown>,config:PublicationCo
     ||(value.annotations as Record<string,unknown>)?.['workers/tag']!==control.uploadMarker
     ||(value.annotations as Record<string,unknown>)?.['workers/message']!==`package:${control.packageSha256}`)throw new Error('publication_version_mismatch');
   const named=new Map(bindings.map(binding=>[binding.name,binding]));
+  const expectedSearch=searchVars(config);
   if(named.size!==bindings.length||named.get('DB')?.type!=='d1'||named.get('DB')?.id!==config.database.id
     ||named.get('VECTORIZE')?.type!=='vectorize'||named.get('VECTORIZE')?.index_name!==config.indexName||named.get('ASSETS')?.type!=='assets'
     ||named.get('ENVIRONMENT')?.type!=='plain_text'||named.get('ENVIRONMENT')?.text!==config.environment
-    ||named.get('SEMANTIC_SEARCH_ENABLED')?.type!=='plain_text'||named.get('SEMANTIC_SEARCH_ENABLED')?.text!=='false'
+    ||Object.entries(expectedSearch).some(([name,text])=>named.get(name)?.type!=='plain_text'||named.get(name)?.text!==text)
     ||config.environment==='staging'&&named.get('STAGING_AUTH_SECRET')?.type!=='secret_text')throw new Error('publication_version_scope_mismatch');
 }
 
@@ -370,7 +390,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       await write(path.join(directory,'wrangler.json'),JSON.stringify({name:config.workerName,account_id:config.accountId,main:entry,
         compatibility_date:config.compatibilityDate,workers_dev:config.environment==='staging',preview_urls:false,upload_source_maps:false,
         observability:{enabled:false},assets:{directory:path.join(directory,'assets'),binding:'ASSETS',run_worker_first:true,html_handling:'none',not_found_handling:'none'},
-        vars:{ENVIRONMENT:config.environment,SEMANTIC_SEARCH_ENABLED:'false',SEMANTIC_SEARCH_DAILY_REQUEST_CAP:'50',SEMANTIC_SEARCH_DAILY_TOKEN_CAP:'32768'},
+        vars:{ENVIRONMENT:config.environment,...searchVars(config)},
         d1_databases:[{binding:'DB',database_name:config.database.name,database_id:config.database.id}],
         vectorize:[{binding:'VECTORIZE',index_name:config.indexName}]}));
       const packageSha256=sha256(canonicalJson(await inventory(directory)));

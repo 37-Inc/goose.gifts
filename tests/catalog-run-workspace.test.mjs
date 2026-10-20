@@ -4,10 +4,10 @@ import { mkdtemp, realpath, chmod, mkdir, readFile, writeFile, readdir, lstat, s
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
-import { openRunWorkspace, readRunWorkspace } from '../scripts/catalog/run-workspace.ts';
+import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS } from '../scripts/catalog/run-workspace.ts';
 import { canonicalJson, sha256 } from '../scripts/catalog/migration.ts';
 import { createCatalogProviderEvidence } from '../scripts/catalog/provider-evidence.ts';
-import { encodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
+import { encodePgvectorSendBase64, decodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
 
 // Isolated local fixtures only. No providers, credentials, real merchant content,
 // automatic deletion policy, database writes or public artifacts.
@@ -259,4 +259,100 @@ test('unreviewed policy, malformed/unknown receipts, oversized bytes and forged 
   await assert.rejects(w.putArtifact({body:'x'.repeat(512*1024)},{kind:'phase',observedAt:NOW}),/bytes/);
   await assert.rejects(w.readArtifact({sha256:HASH,reference:'../outside.json'}),/unregistered_artifact|reference/);
   await assert.rejects(w.writeCheckpoint(null,{...cp(),control:{unknown:{rawBody:'private'}}}),/control/);
+});
+
+test('3383 native-vector blobs preserve exact ordered bytes, private chunk bounds, checkpoint/reopen and original expiry',async t=>{
+  const f=await fixture(t),w=await f.open();const values=Array(1536).fill(Math.fround(.1));values[0]=-0;values[1]=Math.fround(1e-45);
+  const nativeBase64=encodePgvectorSendBase64(values),vectorBytesSha256=sha256(Buffer.from(nativeBase64,'base64'));
+  const rows=Object.fromEntries(Array.from({length:3383},(_,i)=>[`00000000-0000-4000-8000-${String(i).padStart(12,'0')}`,{nativeBase64,vectorBytesSha256}]));
+  const bytes=Buffer.from(` {\n${JSON.stringify(rows).slice(1,-1)}\n}\n`);assert.ok(bytes.length>28_000_000&&bytes.length<WORKSPACE_BLOB_LIMITS.bytes);
+  const ref=await w.putBlob(bytes,{kind:'phase',observedAt:NOW}),descriptor=await w.readArtifact(ref);
+  assert.equal(descriptor.type,'run-workspace-blob');assert.equal(descriptor.sha256,sha256(bytes));assert.equal(descriptor.byteLength,bytes.length);
+  assert.notEqual(ref.sha256,descriptor.sha256);assert.equal(descriptor.parts.length,Math.ceil(bytes.length/WORKSPACE_BLOB_LIMITS.chunkBytes));
+  assert.deepEqual(await w.readBlob(ref),bytes);
+  const original=await readFile(join(w.directory,ref.reference));
+  const envelopes=await Promise.all((await readdir(join(w.directory,'objects'))).map(async name=>{
+    const file=join(w.directory,'objects',name);assert.ok((await lstat(file)).size<=512*1024);assert.equal((await lstat(file)).mode&0o777,0o600);
+    const v=JSON.parse(await readFile(file,'utf8'));assert.equal(v.observedAt,NOW);assert.equal(v.expiresAt,'2026-10-20T13:00:00.000Z');return v;
+  }));assert.equal(envelopes.length,descriptor.parts.length+1);
+  const small=await w.putArtifact({legacy:'small format unchanged'},{kind:'phase',observedAt:NOW});
+  await w.reserveBudget(reservation('pending-before-close',0));
+  await w.writeCheckpoint(null,{...cp({vectorCount:3383}),phase:'phases_complete',pins:{originalVectors:ref,small},phaseComplete:ref});
+  await w.close();f.setNow('2026-10-20T12:30:00.000Z');const resumed=await f.open({mode:'resume'});
+  assert.deepEqual((await resumed.readCheckpoint()).checkpoint.pins.originalVectors,ref);
+  assert.deepEqual(await resumed.readArtifact(small),{legacy:'small format unchanged'});
+  assert.equal((await resumed.budget()).unconfirmedRequests,1);
+  const restored=await resumed.readBlob(ref);assert.deepEqual(restored,bytes);
+  const decoded=decodePgvectorSendBase64(JSON.parse(Buffer.from(restored).toString('utf8'))[Object.keys(rows)[0]].nativeBase64);
+  assert.ok(Object.is(decoded[0],-0));assert.equal(decoded[1],Math.fround(1e-45));assert.equal(encodePgvectorSendBase64(decoded),nativeBase64);
+  assert.deepEqual(await resumed.putBlob(bytes,{kind:'phase',observedAt:'2026-10-20T12:30:00.000Z'}),ref);
+  assert.deepEqual(await readFile(join(w.directory,ref.reference)),original);
+  f.setNow('2026-10-20T13:00:00.000Z');await assert.rejects(resumed.readBlob(ref),/expired/);
+  await assert.rejects(resumed.putBlob(bytes,{kind:'phase',observedAt:LATER}),/expired/);
+  assert.equal((await resumed.readCheckpoint({controlOnly:true})).checkpoint.phase,'phases_complete');
+  await resumed.close();const expired=await f.open({mode:'resume'});await assert.rejects(expired.readBlob(ref),/expired/);
+});
+
+test('partial blob retry recovers original chunk retention without renewal or overwriting committed bytes',async t=>{
+  const source=await fixture(t),writer=await source.open(),bytes=Buffer.alloc(WORKSPACE_BLOB_LIMITS.chunkBytes+17,0x31);
+  const ref=await writer.putBlob(bytes,{kind:'publication',observedAt:NOW}),descriptor=await writer.readArtifact(ref);
+  const first=await readFile(join(writer.directory,'objects',`${descriptor.parts[0]}.json`));
+  const partial=await fixture(t),w=await partial.open();
+  // Exact crash boundary: first durable chunk exists, its journal registration
+  // and later chunks/manifest were not acknowledged. No automatic lock takeover.
+  await writeFile(join(w.directory,'objects',`${descriptor.parts[0]}.json`),first,{mode:0o600,flag:'wx'});
+  partial.setNow('2026-10-20T12:30:00.000Z');
+  assert.deepEqual(await w.putBlob(bytes,{kind:'publication',observedAt:'2026-10-20T12:30:00.000Z'}),ref);
+  assert.deepEqual(await readFile(join(w.directory,'objects',`${descriptor.parts[0]}.json`)),first);
+  for(const name of await readdir(join(w.directory,'objects'))){const v=JSON.parse(await readFile(join(w.directory,'objects',name),'utf8'));
+    assert.equal(v.observedAt,NOW);assert.equal(v.expiresAt,'2026-10-20T13:00:00.000Z');}
+  assert.deepEqual(await w.readBlob(ref),bytes);await assert.rejects(w.putBlob(bytes,{kind:'phase',observedAt:NOW}),/kind/);
+});
+
+test('blob manifests and chunks reject missing, duplicated, reordered, tampered, truncated and mixed evidence',async t=>{
+  const cases={
+    missing:async({first})=>unlink(first),
+    truncated:async({first})=>writeFile(first,'{"partial":',{mode:0o600}),
+    tampered:async({first,part})=>tamper(first,{...part,value:{...part.value,base64:'A'.repeat(part.value.base64.length)}}),
+    hardlinked:async({first,w})=>link(first,join(w.directory,'alias')),
+    kind:async({first,part})=>tamper(first,{...part,kind:'publication'}),
+    observation:async({first,part})=>tamper(first,{...part,observedAt:'2026-10-20T12:01:00.000000Z',expiresAt:'2026-10-20T13:01:00.000Z'}),
+    deadline:async({first,part})=>tamper(first,{...part,expiresAt:'2026-10-20T13:01:00.000Z'}),
+    policy:async({first,part})=>tamper(first,{...part,policySha256:'e'.repeat(64)}),
+    duplicate:async({descriptor})=>({...descriptor,parts:[descriptor.parts[0],descriptor.parts[0]]}),
+    paths:async({descriptor})=>({...descriptor,parts:['../untrusted',descriptor.parts[1]]}),
+    reordered:async({descriptor})=>({...descriptor,parts:[...descriptor.parts].reverse()}),
+    length:async({descriptor})=>({...descriptor,byteLength:descriptor.byteLength-1}),
+    excess:async({descriptor})=>({...descriptor,path:'../not-permitted'}),
+    version:async({descriptor})=>({...descriptor,schemaVersion:2}),
+    bound:async({descriptor})=>({...descriptor,byteLength:WORKSPACE_BLOB_LIMITS.bytes+1}),
+    ordinal:async({w,descriptor,part})=>{const changed=await w.putArtifact({...part.value,index:1},{kind:'phase',observedAt:NOW});
+      return{...descriptor,parts:[changed.sha256,descriptor.parts[1]]};},
+    chunkExcess:async({w,descriptor,part})=>{const changed=await w.putArtifact({...part.value,path:'untrusted'},{kind:'phase',observedAt:NOW});
+      return{...descriptor,parts:[changed.sha256,descriptor.parts[1]]};},
+    blobIdentity:async({w,descriptor,part})=>{const changed=await w.putArtifact({...part.value,blobSha256:'f'.repeat(64)},{kind:'phase',observedAt:NOW});
+      return{...descriptor,parts:[changed.sha256,descriptor.parts[1]]};},
+    base64:async({w,descriptor,part})=>{const changed=await w.putArtifact({...part.value,base64:'!'.repeat(part.value.base64.length)},{kind:'phase',observedAt:NOW});
+      return{...descriptor,parts:[changed.sha256,descriptor.parts[1]]};},
+  };
+  for(const [name,corrupt]of Object.entries(cases))await t.test(name,async sub=>{
+    const f=await fixture(sub),w=await f.open(),bytes=Buffer.alloc(WORKSPACE_BLOB_LIMITS.chunkBytes+17,0x32);
+    let ref=await w.putBlob(bytes,{kind:'phase',observedAt:NOW});const descriptor=await w.readArtifact(ref);
+    const first=join(w.directory,'objects',`${descriptor.parts[0]}.json`),part=JSON.parse(await readFile(first,'utf8'));
+    const changed=await corrupt({w,descriptor,first,part});if(changed)ref=await w.putArtifact(changed,{kind:'phase',observedAt:NOW});
+    f.setNow('2026-10-20T12:30:00.000Z');
+    await assert.rejects(w.readBlob(ref));await assert.rejects(w.writeCheckpoint(null,{...cp(),pins:{broken:ref}}));
+    if(name==='missing')await assert.rejects(w.putBlob(bytes,{kind:'phase',observedAt:NOW}),/blob_missing/);
+  });
+});
+
+test('blob inputs are copied before queued writes; zero/exact-chunk bounds and existing small codecs stay strict',async t=>{
+  const f=await fixture(t),w=await f.open(),bytes=Buffer.alloc(WORKSPACE_BLOB_LIMITS.chunkBytes,0x41);
+  const saved=w.putBlob(bytes,{kind:'phase',observedAt:NOW});bytes.fill(0x42);
+  const ref=await saved;assert.deepEqual(await w.readBlob(ref),Buffer.alloc(bytes.length,0x41));
+  assert.equal((await w.readArtifact(ref)).parts.length,1);
+  const empty=await w.putBlob(Buffer.alloc(0),{kind:'phase',observedAt:NOW});assert.equal((await w.readBlob(empty)).length,0);
+  await assert.rejects(w.putBlob(new Uint8Array(WORKSPACE_BLOB_LIMITS.bytes+1),{kind:'phase',observedAt:NOW}),/blob_bytes/);
+  await assert.rejects(w.putBlob(Buffer.from('x'),{kind:'phase',observedAt:NOW,expiresAt:LATER}),/kind/);
+  const legacy=await w.putArtifact('ordered JSON bytes',{kind:'phase',observedAt:NOW});await assert.rejects(w.readBlob(legacy),/blob_manifest/);
 });

@@ -195,6 +195,16 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-20 [owner+claude] — Keep large publication evidence and search policy exact
+
+Added bounded private chunks for native-vector evidence without changing
+original bytes, retention or small checkpoint formats. Production publication
+can preserve explicitly reviewed search settings; staging stays disabled and
+uploaded settings must match before activation. Root/peer review, 553 staging
+tests (nine explicit optional skips), lint/types and both builds pass. Current
+public site, schedules, provider settings and spending remain unchanged.
+Full-identity capture/freezing remains tracked in `roadmap-lbbz1.4.1`.
+
 ### 2026-10-20 [owner+claude] — Compose a protected, resumable Cloudflare weekly run
 
 The opt-in Cloudflare runner now joins the existing weekly phases to private
