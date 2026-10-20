@@ -54,8 +54,8 @@ evidence supports that row, not a blanket rule for naive columns.
 | `catalog_runs.started_at` | Actual type is `timestamp with time zone`. Writer SQL `NOW()` (`scripts/ops/catalog-telemetry.mjs:304`). Migration `0008` explicitly converted prior naive values `AT TIME ZONE 'UTC'`. | Aware: preserve/normalize exported absolute instant without local reinterpretation. |
 | `catalog_runs.completed_at` | Actual type aware; completion writer SQL `NOW()` (`catalog-telemetry.mjs:320`); same `0008` conversion. | Aware, nullable: null stays null. |
 | `catalog_run_items.created_at` | Actual type aware; batch writer omits time, database default `NOW()` (`catalog-telemetry.mjs:362`). Migration `0008` converted old naive values explicitly using UTC. | Aware: preserve/normalize exported instant. Preserve original sequence ordering. |
-| `catalog_editorial_events.created_at` | Actual type naive/default `now()` in migration `0006_add_catalog_editorial_pipeline.sql:45`; `recordEditorialEvent` omits the time (`prefetch-catalog.mjs:1878`). | SQL default, but historical timezone not globally proved. Match known run evidence before canonical conversion. |
-| `search_queries.created_at` | Actual type naive/default `now()` in migration `0002_add_search_queries.sql:12`. Current `app/api/search-products/route.ts:35` insert omits timestamp; original `f5a61dd` route used the same default pattern. | SQL default, historical timezone not globally proved. Keep raw history and archive references; do not infer UTC merely from current GMT. |
+| `catalog_editorial_events.created_at` | Actual type naive/default `now()` in migration `0006_add_catalog_editorial_pipeline.sql:41`; `recordEditorialEvent` omits the time (`prefetch-catalog.mjs:1878`). | SQL default, but historical timezone not globally proved. Match known run evidence before canonical conversion. |
+| `search_queries.created_at` | Actual type naive/default `now()` in migration `0002_add_search_queries.sql:12`. Current `app/api/search-products/route.ts:35` insert omits timestamp; original `f5a61dd:app/api/search-bundles/route.ts:31` used the same default pattern. | SQL default, historical timezone not globally proved. Keep raw history and archive references; do not infer UTC merely from current GMT. |
 
 Additional aware receipt columns `catalog_runs.created_at` and `updated_at`
 remain in the private lossless source record; their actual exported types are
@@ -67,7 +67,7 @@ documented existing transformation history, not a new migration correction.
 Do not canonicalize these raw-only fields as part of readiness:
 
 - `products.editorial_generated_at`: generated/seeded JS `Date` is bound as
-  `$27` (`prefetch-catalog.mjs:1315`; generation/seed paths assign `new Date()`).
+  `$27` (`prefetch-catalog.mjs:1316`; generation/seed paths assign `new Date()`).
   Migration `0006` also backfilled it from `updated_at`, which itself has mixed
   history. The root's October 19 sample has editorial local wall time near
   `08:31` while SQL availability is near `15:31`. Keep raw; no blanket UTC or
