@@ -17,6 +17,25 @@ changes, missing rights, unavailable items and family duplicates remain held.
 The original native vector payloads and exact metadata/removal readback are
 required before a real build request is queued. Queued is not published.
 
+PR #196's actual two-product D1/Vectorize rehearsal passed on reviewed source
+`109af15f1172c75b5e89f3dfe56be398ee95df22`. It used all twelve migrations,
+proved failed-batch rollback, maintained the new product with immutable
+evidence, preserved both original native vectors, reconciled the approved
+projection and queued exactly one build with zero publications. Counters:
+358 total requests, 265 D1 calls/590 statements, 4,877 rows read/479 written,
+81 Vectorize calls and three upserts. Both scratch resources were deleted
+and independently verified against the starting inventory. Receipt
+`approved-cohort-canary-ljLBBM/receipt.json`, SHA-256
+`fb8ba08fd5bf9c8a9f5aa299176ceaf5c3c9ae45718b68fe29fc6c1a18a51af9`.
+These are two owned fixtures, not real merchant evidence, a complete weekly
+budget or deployed publication. The first attempt's bounded finalization
+failure is retained; the second expired its existing OAuth session and left
+cleanup unconfirmed. After refreshing that session, exact-resource cleanup
+was independently completed; separate receipt
+`approved-cohort-canary-72mZs6/cleanup-receipt.json`, SHA-256
+`1f50e0e8774439f4a1718b41e25daa24f28997015b53df4e8b91056f69880a08`.
+No unknown mutation was blindly replayed and no publication check was weakened.
+
 `recovery-metadata-WpYBE3/receipt.json` records four read-only source SELECTs,
 SHA-256 `2056c943d3a2b5e425c851f60fbd9026392b3818e29e7ff5bc6a7099e526a192`.
 The protected supplement is explicitly later-observation evidence, pinned to

@@ -210,6 +210,10 @@ what's likely next.
   The unused call was removed and regression-tested. The corrected check made
   four requests/143 rows read/zero written; it correctly reports blocked because
   active staging has not enabled migrations 0009–0012 or the new writer.
+- PR #196's real two-product D1/Vectorize rehearsal passed: original native
+  vectors and reviewed projection verified, one build queued, zero publications;
+  both temporary resources independently removed. Prior failed attempts and
+  OAuth-expiry cleanup are retained in the journal, not hidden as successes.
 - Integrated checks: 399 staging passes/nine opt-in skips, 88 existing
   regression passes, TypeScript, lint and production build pass. Full weekly
   publication/credential handoff, search/traffic acceptance and final launch
