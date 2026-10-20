@@ -1,5 +1,20 @@
 # goose.gifts — Strategy & Roadmap
 
+## Current priority as of October 19 2026
+
+Cameron has prioritized the weekly Howie Mandel Does Stuff opportunity and
+requested the Stupid Gifts launch specification and domain registration.
+The current plan is [Stupid Gifts launch and infrastructure](STUPID_GIFTS_LAUNCH_SPEC.md),
+tracked by `roadmap-lbbz1`: static Next/React builds on Cloudflare Workers,
+D1/Vectorize, recoverable data migration, and a curated show-focused redesign.
+The request produces a concrete plan; production cutover has not occurred.
+Protect the remaining Neon compute runway first, then prove the migration
+slice. Broad editorial catch-up and new features are secondary. Existing
+bounded maintenance and Pinterest measurement-only controls remain in force.
+
+The historical phases below explain the catalog foundations; the new spec
+governs the next architecture and launch sequence where they differ.
+
 Owner-approved direction (Cameron, 2026-07-01): pivot from generate-on-demand
 to a **pre-indexed catalog** model, in the style of thisiswhyimbroke.com.
 

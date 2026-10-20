@@ -5,6 +5,32 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-19 evening — Stupid Gifts infrastructure and launch specification
+
+Owner prioritized the weekly Howie Mandel Does Stuff opportunity and requested
+the migration/refactoring/static/visual launch spec plus domain reservation.
+Created `STUPID_GIFTS_LAUNCH_SPEC.md` against main `1a7ccb3`, using the current
+Graphify map and direct inspection of route, storage, eligibility, search,
+analytics and catalog-job code. Chose existing Next/React static export with
+a small Worker, D1 and Vectorize; do not introduce a second framework or
+runtime SSR adapter merely to host a mostly static catalog.
+
+The spec includes all maintained routes, product/slug/history preservation,
+protected full exports and legacy archives, typed SQL conversion, retryable
+vector sync, single-writer cutover, expiry enforcement, rollback after D1
+writes, credential bootstrap replacement and private prototype dependency
+coordination. It distinguishes $5 account baseline from metered routes/search,
+and the migration from later domain/visual launch. Show curation prioritizes
+real, funny, distinct products; no publication or physical samples purchased.
+
+Central `roadmap-lbbz1` owns seven staged implementation tasks. Broad catch-up
+is explicitly secondary; no scheduled job changed. The pre-existing
+`.playwright-cli/` and `output/` remain untouched. Cloudflare account
+`37.technology` visibly owns `goose.gifts`; `stupid.gifts` checkout quoted
+$28.20/one year with auto-renew $28.20/year. Saved registrant details were
+already populated. Exact checkout/terms confirmation requested; do not call
+the domain reserved until the provider confirms registration.
+
 ## 2026-10-19 afternoon — Pinterest quota no-op; bounded analytics recovery
 
 Heartbeat23:29:32.644UTC, canonical main/origine0b5d42 at start. Read studio/

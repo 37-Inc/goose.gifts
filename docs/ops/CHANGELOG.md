@@ -24,6 +24,14 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **Stupid Gifts launch — primary project priority:** October19 owner asked
+  for a concrete Cloudflare/static/data-migration and show-focused design spec,
+  plus registration of `stupid.gifts`. See
+  [STUPID_GIFTS_LAUNCH_SPEC.md](STUPID_GIFTS_LAUNCH_SPEC.md) and
+  `roadmap-lbbz1`. Protect Neon runway, prove one complete migration slice,
+  reconcile data and move hosting, then launch the curated new identity.
+  Domain checkout is pending confirmation; no live rebrand/migration yet.
+
 - **Pinterest — completed cohort, measurement only:** final birthday-hat poster
   makes P6/F6,twelve of twelve. Exact full-cohort review deadline is
   2026-10-31T16:44:52.279Z; first regular eligible scheduled review October31
@@ -51,15 +59,11 @@ what's likely next.
   hero/guide block and a factual curated opening cohort; visual work awaits the
   owner choice in `CONVERSION_REVIEW_2026-10-02.md`.
 
-- **Neon compute — measure the deployed cache changes.** Passive
-  product views move to GA/PostHog, crawler-facing catalog reads use a shared
-  24-hour cache with explicit catalog invalidation, and meaningful searches,
-  server search diagnostics and catalog maintenance remain database-backed.
-  Detailed click writes/admin reports are retired in the approved cleanup. Neon had
-  used about 52.8 CU-hours through 2026-09-14. After deployment, confirm
-  scale-to-zero remains enabled and measure 3–7 days of usage before deciding
-  whether the Free plan's 100 CU-hour allowance is sufficient (Beads
-  `roadmap-2pxe`).
+- **Neon compute — new runway incident:** October19 provider readback was
+  80.14/100 CU-hours with five-minute scale-to-zero enabled and suspension
+  observed. Remeasure burn and investigate remaining uncached share/product
+  paths under `roadmap-lbbz1.2`. The earlier `roadmap-2pxe` cache work remains
+  closed/shipped; its expected reduction is not a current usage measurement.
 - **Indexation — guide baseline healthy; product cohort monitoring.** The seven
   priority guide surfaces are submitted and indexed, and 58 factual product
   pages are live in the current 106-URL sitemap. At the 2026-08-21 14-day check,
@@ -176,6 +180,17 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-19 evening [owner+claude] — Specify Stupid Gifts launch
+
+Added a route-by-route static Cloudflare architecture, D1/vector data mapping,
+reconciliation and rollback plan, credential/job transition, bounded cost
+model, and a show-focused visual/curation brief. Retain Next/React for static
+builds and existing feature/analytics/affiliate contracts. Created the
+dependency-ordered launch epic `roadmap-lbbz1`. Checked the domain in the
+correct Cloudflare account and prepared its one-year checkout; registration
+is not complete until provider confirmation. Documentation only; no runtime,
+catalog, automation, hosting or public brand change.
 
 ### 2026-10-19 afternoon [daily-ops] — Record quota no-op and analytics recovery
 
