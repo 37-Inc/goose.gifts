@@ -4,6 +4,14 @@ import { prepareStaticFeed } from './feed.ts';
 import { createSearchHandler, json, sha256 } from './search.ts';
 
 export type { SiteEnv, SearchAdapters, SearchStorage } from './bindings.ts';
+export interface SiteReleaseIdentity {
+  release_id: string;
+  code_sha: string;
+  catalog_revision: string;
+  catalog_snapshot_sha256: string;
+  /** Build-derived hash of exact asset-manifest.json bytes; not a Vectorize visibility proof. */
+  manifest_sha256: string;
+}
 
 const MAX_FEED_BODY = 64_000;
 const TIMED_ROUTE = /^(?:\/$|\/gifts(?:\/|$)|\/gift-guides(?:\/|$)|\/howie(?:\/|$)|\/random-gift(?:[/.]|$)|\/weird-gift-index(?:[/.]|$)|\/catalog(?:[/.]|$)|\/data(?:\/|$)|\/sitemap(?:[/.]|$))/;
@@ -16,6 +24,18 @@ function expiry(route: CatalogAssetRoute): number {
 
 function escapeXml(value: string): string {
   return value.replace(/[<>&"']/g, (character) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;' })[character]!);
+}
+function verifiedReleaseIdentity(input: unknown, manifest: SiteAssetManifest, snapshotDigest: string | undefined): SiteReleaseIdentity | undefined {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return;
+  const value = input as Partial<SiteReleaseIdentity>;
+  if (Object.keys(value).sort().join(',') !== 'catalog_revision,catalog_snapshot_sha256,code_sha,manifest_sha256,release_id'
+    || typeof value.release_id !== 'string' || value.release_id !== manifest.releaseId
+    || typeof value.catalog_revision !== 'string' || value.catalog_revision !== manifest.catalogRevision
+    || typeof value.code_sha !== 'string' || !/^[a-f0-9]{40}$/.test(value.code_sha) || value.code_sha !== manifest.codeSha
+    || typeof value.catalog_snapshot_sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(value.catalog_snapshot_sha256) || value.catalog_snapshot_sha256 !== snapshotDigest
+    || typeof value.manifest_sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(value.manifest_sha256)) return;
+  return Object.freeze({ release_id: value.release_id, code_sha: value.code_sha, catalog_revision: value.catalog_revision,
+    catalog_snapshot_sha256: value.catalog_snapshot_sha256, manifest_sha256: value.manifest_sha256 });
 }
 
 function campaignSearch(params: URLSearchParams): string {
@@ -64,6 +84,8 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
   snapshot: CatalogSnapshot;
   searchAdapters?: SearchAdapters<Env>;
   feedPlan?: unknown;
+  /** Supplied only after build/verification binds exact manifest bytes; never hash the full manifest here. */
+  releaseIdentity?: unknown;
   canonicalOrigin?: string;
   now?: () => number;
 }) {
@@ -83,6 +105,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
   }
   const redirects = new Map(snapshot.slugHistory.map((entry) => [`/gifts/${entry.slug}`, `/gifts/${entry.canonicalSlug}`]));
   const snapshotDigest = 'catalogSnapshotSha256' in manifest && typeof manifest.catalogSnapshotSha256 === 'string' ? manifest.catalogSnapshotSha256 : undefined;
+  const releaseIdentity = verifiedReleaseIdentity(options.releaseIdentity, manifest, snapshotDigest);
   const preparedFeed = prepareStaticFeed(snapshot, options.feedPlan, snapshotDigest);
   const search = options.searchAdapters ? createSearchHandler({
     catalogRevision: manifest.catalogRevision, adapters: options.searchAdapters, now,
@@ -172,6 +195,11 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         const path = url.pathname;
         // Never let ASSETS decode separators/traversal differently from this dispatcher.
         if (/%(?:2f|5c|25)/i.test(path)) return respond(json({ error: 'Not found' }, 404));
+        if (path === '/.well-known/catalog-release.json') {
+          if (!['GET', 'HEAD'].includes(request.method)) return respond(json({ error: 'Method not allowed' }, 405, { Allow: 'GET, HEAD' }));
+          if (!releaseIdentity) return respond(json({ error: 'Release identity unavailable' }, 503));
+          return respond(json(releaseIdentity));
+        }
         if (path === '/api/search-products') return respond(search ? await search(request, env) : json({ error: 'Search unavailable' }, 503));
         if (path === '/api/catalog-feed') return respond(await feed(request));
         if (RETIRED_ROUTE.test(path) || path.startsWith('/api/')) return respond(json({ error: 'Not found' }, 404));
