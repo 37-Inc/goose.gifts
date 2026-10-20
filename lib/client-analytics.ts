@@ -74,8 +74,8 @@ export function isClientAnalyticsAllowed(): boolean {
     && !isDoNotTrackEnabled();
 }
 
-function initializeGoogle() {
-  if (googleInitialized || !isClientAnalyticsAllowed()) {
+function initializeGoogle(isAllowed: () => boolean) {
+  if (googleInitialized || !isAllowed()) {
     return;
   }
 
@@ -100,9 +100,9 @@ function initializeGoogle() {
   googleInitialized = true;
 }
 
-function initializePostHog(): Promise<typeof import('posthog-js').default | undefined> {
+function initializePostHog(isAllowed: () => boolean): Promise<typeof import('posthog-js').default | undefined> {
   if (
-    !isClientAnalyticsAllowed()
+    !isAllowed()
     || !POSTHOG_KEY
     || !POSTHOG_HOST?.startsWith('https://')
   ) {
@@ -114,6 +114,10 @@ function initializePostHog(): Promise<typeof import('posthog-js').default | unde
   }
 
   posthogInitialization ||= import('posthog-js').then(({ default: posthog }) => {
+    if (!isAllowed()) {
+      posthogInitialization = undefined;
+      return undefined;
+    }
     posthog.init(POSTHOG_KEY, {
       api_host: POSTHOG_HOST,
       defaults: '2026-05-30',
@@ -150,6 +154,7 @@ function initializePostHog(): Promise<typeof import('posthog-js').default | unde
         'utm_term',
       ],
       before_send: (event) => {
+        if (!isAllowed()) return null;
         if (!event || !EXPLICIT_EVENT_NAMES.has(event.event as ExplicitAnalyticsEvent['name'])) {
           return null;
         }
@@ -170,31 +175,40 @@ function initializePostHog(): Promise<typeof import('posthog-js').default | unde
     });
     posthogClient = posthog;
     return posthog;
+  }).catch(() => {
+    posthogInitialization = undefined;
+    return undefined;
   });
 
   return posthogInitialization;
 }
 
-function getSanitizedPageLocation(pathname: string): string {
-  return `https://www.goose.gifts${sanitizePathname(pathname)}`;
+export interface ClientAnalyticsPolicy {
+  /** Additional gate, never a replacement for DNT/GPC. */
+  isAllowed: () => boolean;
+  pageOrigin: string;
+  getAttribution: () => Partial<ClickAttribution>;
 }
 
 function dispatchEvent(
   event: ExplicitAnalyticsEvent,
+  policy: ClientAnalyticsPolicy,
   googleOptions: { callback?: () => void } = {}
 ): boolean {
-  if (!isClientAnalyticsAllowed()) {
+  const isAllowed = () => typeof window !== 'undefined'
+    && policy.isAllowed() && !isDoNotTrackEnabled();
+  if (!isAllowed()) {
     return false;
   }
 
-  initializeGoogle();
-  void initializePostHog().then((client) => {
-    client?.capture(event.name, event.properties);
+  initializeGoogle(isAllowed);
+  void initializePostHog(isAllowed).then((client) => {
+    if (isAllowed()) client?.capture(event.name, event.properties);
   });
 
   const properties = {
     ...event.properties,
-    page_location: getSanitizedPageLocation(event.properties.pathname),
+    page_location: `${policy.pageOrigin}${sanitizePathname(event.properties.pathname)}`,
     page_referrer: '',
   };
 
@@ -212,70 +226,93 @@ function dispatchEvent(
   return true;
 }
 
-export function capturePageView(pathname: string) {
-  if (!isClientAnalyticsAllowed()) {
-    return;
+/** Reuse the same destinations and sanitizers with an explicit host/build policy. */
+export function createClientAnalytics(policy: ClientAnalyticsPolicy) {
+  const allowed = () => typeof window !== 'undefined'
+    && policy.isAllowed() && !isDoNotTrackEnabled();
+
+  function capturePageView(pathname: string) {
+    if (!allowed()) return;
+    dispatchEvent(buildPageViewEvent({
+      pathname,
+      attribution: policy.getAttribution(),
+    }), policy);
   }
 
-  dispatchEvent(buildPageViewEvent({
-    pathname,
-    attribution: getClickAttribution(),
-  }));
-}
-
-export function captureSearch(resultCount: number) {
-  if (!isClientAnalyticsAllowed()) {
-    return;
+  function captureSearch(resultCount: number) {
+    if (!allowed()) return;
+    dispatchEvent(buildSearchEvent({
+      pathname: window.location.pathname,
+      resultCount,
+      attribution: policy.getAttribution(),
+    }), policy);
   }
 
-  dispatchEvent(buildSearchEvent({
-    pathname: window.location.pathname,
-    resultCount,
-    attribution: getClickAttribution(),
-  }));
+  function captureViewItemList(input: {
+    clickSource: string;
+    contextSlug?: string;
+    products: Array<{ id: string; source: ProductAnalyticsSource }>;
+  }) {
+    if (!allowed()) return;
+    dispatchEvent(buildViewItemListEvent({
+      pathname: window.location.pathname,
+      ...input,
+    }), policy);
+  }
+
+  function captureSelectItem(input: {
+    clickSource: string;
+    contextSlug?: string;
+    productId: string;
+    productSource: ProductAnalyticsSource;
+    index: number;
+  }) {
+    if (!allowed()) return;
+    dispatchEvent(buildSelectItemEvent({
+      pathname: window.location.pathname,
+      ...input,
+    }), policy);
+  }
+
+  function captureOutboundProductClick(input: {
+    clickSource: string;
+    contextSlug?: string;
+    productId: string;
+    productSource: ProductAnalyticsSource;
+    affiliateUrl: string;
+    attribution?: Partial<ClickAttribution>;
+    callback?: () => void;
+  }): boolean {
+    if (!allowed()) return false;
+    const event = buildOutboundClickEvent({
+      pathname: window.location.pathname,
+      ...input,
+      attribution: input.attribution || policy.getAttribution(),
+    });
+
+    return dispatchEvent(event, policy, { callback: input.callback });
+  }
+
+  function captureRandomGiftSpin() {
+    if (!allowed()) return;
+    dispatchEvent(buildRandomGiftSpinEvent(window.location.pathname), policy);
+  }
+  return {
+    capturePageView,
+    captureSearch,
+    captureViewItemList,
+    captureSelectItem,
+    captureOutboundProductClick,
+    captureRandomGiftSpin,
+  };
 }
 
-export function captureViewItemList(input: {
-  clickSource: string;
-  contextSlug?: string;
-  products: Array<{ id: string; source: ProductAnalyticsSource }>;
-}) {
-  dispatchEvent(buildViewItemListEvent({
-    pathname: window.location.pathname,
-    ...input,
-  }));
-}
-
-export function captureSelectItem(input: {
-  clickSource: string;
-  contextSlug?: string;
-  productId: string;
-  productSource: ProductAnalyticsSource;
-  index: number;
-}) {
-  dispatchEvent(buildSelectItemEvent({
-    pathname: window.location.pathname,
-    ...input,
-  }));
-}
-
-export function captureOutboundProductClick(input: {
-  clickSource: string;
-  contextSlug?: string;
-  productId: string;
-  productSource: ProductAnalyticsSource;
-  affiliateUrl: string;
-  attribution: ClickAttribution;
-  callback?: () => void;
-}): boolean {
-  const event = buildOutboundClickEvent({
-    pathname: window.location.pathname,
-    ...input,
-  });
-
-  return dispatchEvent(event, { callback: input.callback });
-}
-
-export function captureRandomGiftSpin() {
-  dispatchEvent(buildRandomGiftSpinEvent(window.location.pathname));
-}
+// Existing Goose callers retain their original host policy, attribution and origin.
+export const {
+  capturePageView, captureSearch, captureViewItemList, captureSelectItem,
+  captureOutboundProductClick, captureRandomGiftSpin,
+} = createClientAnalytics({
+  isAllowed: isClientAnalyticsAllowed,
+  pageOrigin: 'https://www.goose.gifts',
+  getAttribution: getClickAttribution,
+});

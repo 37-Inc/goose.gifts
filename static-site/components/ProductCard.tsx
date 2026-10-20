@@ -6,15 +6,23 @@ import { isIllustrative } from "../lib/selection";
 export function ProductCard({
   product,
   lead = false,
+  context = "catalog",
 }: {
   product: PublicCatalogProduct | CatalogCard;
   lead?: boolean;
+  context?: string;
 }) {
   const illustrative =
     "illustrative" in product ? product.illustrative : isIllustrative(product);
   return (
-    <article className={`product-card ${lead ? "lead-card" : ""}`}>
+    <article className={`product-card ${lead ? "lead-card" : ""}`}
+      data-analytics-card={illustrative ? undefined : ""}
+      data-analytics-id={illustrative ? undefined : product.id}
+      data-analytics-source={illustrative ? undefined : product.source}
+      data-analytics-context={context}
+      data-analytics-expiry={product.eligibleUntil}>
       <a
+        data-analytics-product-link=""
         className={`product-art${illustrative ? "" : " retailer-art"}`}
         href={`/gifts/${product.slug}`}
         aria-label={`View ${product.title}`}
@@ -42,12 +50,12 @@ export function ProductCard({
             : "The collection"}
         </p>
         <h2>
-          <a href={`/gifts/${product.slug}`}>
+          <a data-analytics-product-link="" href={`/gifts/${product.slug}`}>
             {product.punnyTitle || product.title}
           </a>
         </h2>
         <p>{product.wittyDescription || product.description}</p>
-        <a className="text-action" href={`/gifts/${product.slug}`}>
+        <a data-analytics-product-link="" className="text-action" href={`/gifts/${product.slug}`}>
           {illustrative ? "Explore the example" : "View gift"}{" "}
           <span aria-hidden="true">↗</span>
         </a>

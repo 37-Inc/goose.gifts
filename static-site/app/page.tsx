@@ -16,7 +16,7 @@ export default function Home() {
       </div>
       <div className="opening-grid">
         {browse.opening.map((product, index) => (
-          <ProductCard key={product.id} product={product} lead={index === 0} />
+          <ProductCard key={product.id} product={product} lead={index === 0} context="home_opening" />
         ))}
       </div>
       <Search />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { previewMetadata } from "../lib/metadata";
 import { isFixtureRelease } from "../lib/catalog";
+import { StaticAnalytics } from "../components/StaticAnalytics";
 import "./styles.css";
 
 export const metadata: Metadata = {
@@ -18,6 +19,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
+        {process.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED === "true" &&
+          !isFixtureRelease && <StaticAnalytics />}
         <a className="skip-link" href="#main">
           Skip to content
         </a>

@@ -27,11 +27,28 @@ builds, use the same `CATALOG_SNAPSHOT_PATH` for the build and tests. Pure fixtu
 tests remain independent; no input is saved to Git.
 
 All routes have noindex metadata and robots disallows crawling. There is no
-analytics provider, production analytics adapter, service worker, catalog browser
+initialized analytics provider by default, service worker, catalog browser
 storage, offer schema, fabricated availability, or enabled fixture retailer CTA.
 The shared `ProductImage` and price-free schema helper are reused; staging CTA
-anchors deliberately do not import the production tracking adapter. Production
-analytics and Worker redirect/expiry acceptance are separate integration work.
+anchors retain native navigation. Worker redirect/expiry acceptance is separate
+integration work.
+
+Analytics is opt-in implementation, not activation: only a build with
+`NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED=true`, a non-fixture catalog, and the exact
+HTTPS hostname `stupid.gifts` can load the existing shared adapter. Local,
+unknown-host, staging and synthetic-fixture pages remain off. DNT/GPC is checked
+before loading and dispatch, including deferred provider initialization. The
+adapter retains Goose's GA4/Ads destinations and existing PostHog configuration;
+it reuses the original contract sanitizer and disables broad capture. Static
+attribution is ephemeral, without Goose's storage/session key. Explicit events
+cover page views, completed current searches, rendered lists (deduplicated),
+canonical card selections, successful Random spins and chosen retailer links.
+Search text, copy, full URLs and private fields are not event properties. Native
+links are never delayed or intercepted; the Ads callback cannot open another tab.
+No consent UI/state exists in the current adapter, so none is invented here.
+Production privacy/legal review, an approved public privacy notice, hostname
+configuration and explicit activation remain separate release gates. Do not set
+the flag for current staging or fixture deployments.
 
 Review `/`, `/gifts/illustrative-very-official-paperweight`,
 `/gifts/illustrative-held-selection`, `/gift-guides`, `/weird-gift-index`,
@@ -74,8 +91,8 @@ payloads/static browsing; the prior hero and Random pool were already bounded.
 
 `createBrowseRelease` deterministically projects approved display-only cards
 from the same snapshot. Shards use `/catalog/<public-content-sha256>/*.json`,
-include revision/deadline identity, and omit retailer URLs, prices, long editorial,
-and private source fields. Every exact JSON route has its own earliest-content
+include revision/deadline identity and the public retailer-source enum, and omit
+retailer URLs, prices, long editorial and private source fields. Every exact JSON route has its own earliest-content
 expiry and generic unavailable fallback. They are exported by Next directly;
 the normal release asset inventory/checksum hook needs no extra writer.
 Missing/old-release, mixed-revision, malformed and expired responses show a

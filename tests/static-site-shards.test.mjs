@@ -86,6 +86,7 @@ test("card projection is explicit, price/retailer/editorial/private fields never
     Object.keys(card).sort(),
     [
       "id",
+      "source",
       "slug",
       "title",
       "description",
@@ -133,6 +134,7 @@ test("client rejects fallback, mixed release, extra fields, duplicate identities
     { ...shard.payload, catalogRevision: "another-release" },
     { ...shard.payload, version: "a".repeat(64) },
     { ...shard.payload, sourceFacts: "private" },
+    { ...shard.payload, products: [{ ...shard.payload.products[0], source: "unknown-retailer" }] },
     {
       ...shard.payload,
       products: [...shard.payload.products, shard.payload.products[0]],

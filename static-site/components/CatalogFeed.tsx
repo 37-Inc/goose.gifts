@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CatalogCard } from "../lib/card-shard";
 import { fetchCardShard } from "../lib/card-shard";
 import { ProductCard } from "./ProductCard";
+import { captureRenderedLists } from "../lib/analytics";
 
 export function CatalogFeed({
   initial,
@@ -21,6 +22,7 @@ export function CatalogFeed({
     status: "ready" as "ready" | "loading" | "unavailable",
   });
   const pending = useRef<AbortController | null>(null);
+  useEffect(() => captureRenderedLists(), [state.products]);
   useEffect(
     () => () => {
       pending.current?.abort();
@@ -98,7 +100,7 @@ export function CatalogFeed({
       {state.products.length > 0 && (
         <div className="catalog-grid">
           {state.products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} context="home_browse" />
           ))}
         </div>
       )}

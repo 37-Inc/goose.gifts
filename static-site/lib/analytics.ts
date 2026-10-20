@@ -1,0 +1,130 @@
+"use client";
+
+import type { createClientAnalytics } from "../../lib/client-analytics";
+import type { ProductAnalyticsSource } from "../../lib/analytics-contract";
+
+type Analytics = ReturnType<typeof createClientAnalytics>;
+let catalogRelease = false;
+let client: Promise<Analytics> | undefined;
+let pageViewed = false;
+const impressions = new Set<string>();
+
+/** Gate before importing any provider code, and again before each event. */
+export function isStaticAnalyticsAllowed(): boolean {
+  return process.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED === "true"
+    && catalogRelease
+    && typeof window !== "undefined"
+    && window.location.protocol === "https:"
+    && window.location.hostname === "stupid.gifts"
+    && navigator.doNotTrack !== "1"
+    && window.doNotTrack !== "1"
+    && navigator.globalPrivacyControl !== true;
+}
+
+function withAnalytics(send: (analytics: Analytics) => void) {
+  if (!isStaticAnalyticsAllowed()) return;
+  // The compile-time branch also keeps provider chunks out of default builds.
+  if (process.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED === "true") {
+    client ||= import("../../lib/client-analytics").then(({ createClientAnalytics }) =>
+      createClientAnalytics({
+        isAllowed: isStaticAnalyticsAllowed,
+        pageOrigin: "https://stupid.gifts",
+        // No local/session storage, session identifiers, landing URLs or q value.
+        // The original contract is the only property sanitizer.
+        getAttribution: () => {
+          const params = new URLSearchParams(window.location.search);
+          let referrerHost: string | undefined;
+          try { referrerHost = new URL(document.referrer).hostname; } catch {}
+          return {
+            utmSource: params.get("utm_source") || undefined,
+            utmMedium: params.get("utm_medium") || undefined,
+            utmCampaign: params.get("utm_campaign") || undefined,
+            referrerHost,
+          };
+        },
+      }),
+    ).catch(() => {
+      client = undefined;
+      throw new Error("Analytics unavailable");
+    });
+    void client.then((analytics) => {
+      if (isStaticAnalyticsAllowed()) send(analytics);
+    }).catch(() => { /* Analytics never blocks native navigation or browsing. */ });
+  }
+}
+
+function productData(element: HTMLElement) {
+  const { analyticsId: id, analyticsSource: source,
+    analyticsContext: context, analyticsExpiry: expiry } = element.dataset;
+  if (!id || !context || !["amazon", "etsy"].includes(source || "")
+    || !(Date.parse(expiry || "") > Date.now())) return;
+  return { id, source: source as ProductAnalyticsSource, context };
+}
+
+/** Only explicitly marked product cards, called after actual UI updates. */
+export function captureRenderedLists() {
+  withAnalytics((analytics) => {
+    const lists = new Map<string, Array<{ id: string; source: ProductAnalyticsSource }>>();
+    for (const element of document.querySelectorAll<HTMLElement>("[data-analytics-card]")) {
+      const item = productData(element);
+      if (!item) continue;
+      const key = `${item.context}:${item.id}`;
+      if (impressions.has(key)) continue;
+      impressions.add(key);
+      const items = lists.get(item.context) || [];
+      items.push({ id: item.id, source: item.source });
+      lists.set(item.context, items);
+    }
+    for (const [clickSource, products] of lists) {
+      // Keep each explicit event within the contract's 36-item bound.
+      for (let index = 0; index < products.length; index += 36)
+        analytics.captureViewItemList({ clickSource, products: products.slice(index, index + 36) });
+    }
+  });
+}
+
+export function captureStaticSearch(resultCount: number) {
+  withAnalytics((analytics) => analytics.captureSearch(resultCount));
+}
+export function captureStaticRandomSpin() {
+  withAnalytics((analytics) => analytics.captureRandomGiftSpin());
+}
+
+export function startStaticAnalytics(isCatalogRelease: boolean): () => void {
+  catalogRelease = isCatalogRelease;
+  if (!isStaticAnalyticsAllowed()) return () => {};
+  withAnalytics((analytics) => {
+    if (pageViewed) return;
+    pageViewed = true;
+    analytics.capturePageView(window.location.pathname);
+  });
+  captureRenderedLists();
+  const onClick = (event: MouseEvent) => {
+    if (event.defaultPrevented || event.button !== 0 || !(event.target instanceof Element)) return;
+    const link = event.target.closest<HTMLAnchorElement>("a[data-analytics-product-link],a[data-analytics-outbound]");
+    const element = link?.closest<HTMLElement>("[data-analytics-id]");
+    const item = element && productData(element);
+    if (!link || !item) return;
+    withAnalytics((analytics) => {
+      if (!productData(element!)) return;
+      if (link.hasAttribute("data-analytics-outbound")) {
+        analytics.captureOutboundProductClick({
+          clickSource: item.context, productId: item.id,
+          productSource: item.source, affiliateUrl: link.href,
+          // Native target=_blank navigation proceeds immediately. Ads still gets
+          // its callback/timeout without a callback opening a duplicate tab.
+          callback: () => {},
+        });
+      } else {
+        const cards = [...document.querySelectorAll<HTMLElement>("[data-analytics-card]")]
+          .filter((card) => card.dataset.analyticsContext === item.context);
+        analytics.captureSelectItem({
+          clickSource: item.context, productId: item.id,
+          productSource: item.source, index: Math.max(0, cards.indexOf(element!)),
+        });
+      }
+    });
+  };
+  document.addEventListener("click", onClick);
+  return () => document.removeEventListener("click", onClick);
+}

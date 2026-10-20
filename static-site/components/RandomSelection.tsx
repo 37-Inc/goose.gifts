@@ -5,6 +5,7 @@ import type { CatalogCard } from "../lib/card-shard";
 import { fetchCardShard } from "../lib/card-shard";
 import { eligiblePool, nextRandomIndex } from "../lib/selection";
 import { ProductCard } from "./ProductCard";
+import { captureRenderedLists, captureStaticRandomSpin } from "../lib/analytics";
 
 export function RandomSelection({
   initial,
@@ -24,6 +25,7 @@ export function RandomSelection({
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const pending = useRef<AbortController | null>(null);
+  useEffect(() => captureRenderedLists(), [pool, index]);
   useEffect(
     () => () => {
       pending.current?.abort();
@@ -76,6 +78,7 @@ export function RandomSelection({
       setIndex(current < 0 ? 0 : nextRandomIndex(choices.length, current));
       setPool(choices);
       setLoaded(true);
+      captureStaticRandomSpin();
     } catch {
       if (!abort.signal.aborted) setPool([]);
     } finally {
@@ -90,7 +93,7 @@ export function RandomSelection({
     <section className="random-selection">
       {product ? (
         <>
-          <ProductCard product={product} lead />
+          <ProductCard product={product} lead context="random_gift" />
           <button
             type="button"
             className="button"
