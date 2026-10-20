@@ -1,6 +1,7 @@
-import { catalog } from "../lib/catalog";
+import { browse } from "../lib/catalog";
 import { ProductCard } from "../components/ProductCard";
 import { Search } from "../components/Search";
+import { CatalogFeed } from "../components/CatalogFeed";
 
 export default function Home() {
   return (
@@ -14,11 +15,17 @@ export default function Home() {
         </span>
       </div>
       <div className="opening-grid">
-        {catalog.products.slice(0, 3).map((product, index) => (
+        {browse.opening.map((product, index) => (
           <ProductCard key={product.id} product={product} lead={index === 0} />
         ))}
       </div>
       <Search />
+      <CatalogFeed
+        initial={browse.feed.initial}
+        next={browse.feed.next}
+        catalogRevision={browse.catalogRevision}
+        version={browse.version}
+      />
       <section className="section-block">
         <div className="section-heading">
           <h2>For a particular kind of person.</h2>

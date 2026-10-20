@@ -65,3 +65,26 @@ snapshot sample, not the complete catalog, sales, popularity, or demand. Source
 price coverage is not measured and no price conclusions are made. Both assets
 expire with the first ready record, including the direct `.json` alias.
 Full-catalog analysis remains a release-readiness gate.
+
+Homepage browsing keeps the three opening cards and renders at most nine more
+below search. An explicit More gifts button loads 24 cards at a time; it does
+not auto-fetch or use infinite scrolling. Random renders one initial card and
+loads its bounded 48-card pool only on the first spin. This completes lazy
+payloads/static browsing; the prior hero and Random pool were already bounded.
+
+`createBrowseRelease` deterministically projects approved display-only cards
+from the same snapshot. Shards use `/catalog/<public-content-sha256>/*.json`,
+include revision/deadline identity, and omit retailer URLs, prices, long editorial,
+and private source fields. Every exact JSON route has its own earliest-content
+expiry and generic unavailable fallback. They are exported by Next directly;
+the normal release asset inventory/checksum hook needs no extra writer.
+Missing/old-release, mixed-revision, malformed and expired responses show a
+refresh/browse state, not a healthy empty collection. Historical shard retention
+through cache lifetime is still publishing-layer work; no expiry is extended.
+
+The larger owned-fixture export check is intentionally opt-in because it replaces
+the local output. Rebuild with your approved snapshot afterward:
+
+```sh
+STATIC_SITE_BUILD_SHARD_FIXTURE=1 node --import tsx --test tests/static-site-shards.test.mjs
+```

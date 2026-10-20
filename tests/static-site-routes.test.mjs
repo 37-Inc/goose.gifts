@@ -6,6 +6,7 @@ import {
 } from "../lib/gift-guide-definitions.ts";
 import { serializeJsonLd } from "../static-site/components/JsonLd.tsx";
 import { createStaticRoutes } from "../static-site/lib/asset-routes.ts";
+import { createBrowseRelease } from "../static-site/lib/browse.ts";
 import { selectGuideProducts, guideSchema } from "../static-site/lib/guides.ts";
 import {
   directoryPages,
@@ -218,6 +219,8 @@ test("finite multipage routes and aggregate JSON inherit complete snapshot expir
     "/safe/catalog.txt",
     "/safe/product.html",
     "/safe/index.json",
+    "/safe/catalog.json",
+    ...createBrowseRelease(input).shards.map((shard) => shard.path),
     ...giftGuides.map((g) => `/gift-guides/${g.slug}.html`),
     ...input.products.map((p) => `/gifts/${p.slug}.html`),
   ];

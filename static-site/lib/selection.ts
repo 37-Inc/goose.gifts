@@ -19,10 +19,9 @@ export function readySnapshotProducts(
   );
 }
 
-export function eligiblePool(
-  products: readonly PublicCatalogProduct[],
-  now = Date.now(),
-) {
+export function eligiblePool<
+  T extends Pick<PublicCatalogProduct, "eligibleUntil">,
+>(products: readonly T[], now = Date.now()) {
   return products
     .filter((product) => Date.parse(product.eligibleUntil) > now)
     .slice(0, RANDOM_POOL_LIMIT);

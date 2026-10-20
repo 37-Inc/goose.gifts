@@ -1,5 +1,4 @@
-import { catalog, isFixtureRelease } from "../../lib/catalog";
-import { eligiblePool } from "../../lib/selection";
+import { browse, isFixtureRelease } from "../../lib/catalog";
 import { RandomSelection } from "../../components/RandomSelection";
 import { previewMetadata } from "../../lib/metadata";
 export const metadata = previewMetadata(
@@ -17,7 +16,11 @@ export default function Random() {
         <h1>Leave it to chance.</h1>
         <p>No quiz. No explanation required.</p>
       </div>
-      <RandomSelection products={eligiblePool(catalog.products)} />
+      <RandomSelection
+        {...browse.random}
+        catalogRevision={browse.catalogRevision}
+        version={browse.version}
+      />
     </main>
   );
 }
