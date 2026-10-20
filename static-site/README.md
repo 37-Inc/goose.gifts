@@ -31,11 +31,12 @@ analytics provider, production analytics adapter, service worker, catalog browse
 storage, offer schema, fabricated availability, or enabled fixture retailer CTA.
 The shared `ProductImage` and price-free schema helper are reused; staging CTA
 anchors deliberately do not import the production tracking adapter. Production
-analytics and full route parity are separate integration/acceptance work.
+analytics and Worker redirect/expiry acceptance are separate integration work.
 
 Review `/`, `/gifts/illustrative-very-official-paperweight`,
-`/gifts/illustrative-held-selection`, `/gift-guides/white-elephant-gifts`,
-`/random-gift`, `/howie`, `/safe/catalog`, and `/preview/presentation`.
+`/gifts/illustrative-held-selection`, `/gift-guides`, `/weird-gift-index`,
+`/weird-gift-index/data`, `/random-gift`, `/howie`, `/safe/catalog`, and
+`/preview/presentation`.
 The last route is unlinked, noindex and excluded from sitemap policies; arrow,
 PageUp/PageDown, Home/End and Space keys operate its selection slides.
 
@@ -43,5 +44,24 @@ PageUp/PageDown, Home/End and Space keys operate its selection slides.
 date, appearance, endorsement, selected product, physical sample or product-image
 permission is implied. The initial 12 real products and four real weekly sets
 remain a release gate. Published episode routes are intentionally not generated
-until a confirmed real manifest is available. This proof covers two existing
-guide URLs, not the complete production route inventory.
+until a confirmed real manifest is available.
+
+All 43 existing guide definitions, editorial sections, explicit FAQs and focus
+groups are shared with the live app through the pure
+`lib/gift-guide-definitions.ts`. The live app's selection behavior is unchanged.
+Static membership requires every original title-focus group and uses existing
+conservative family deduplication, without the live app's broad fallback. Thin
+guides remain empty/non-indexable rather than borrowing unrelated products.
+Runtime fallback FAQs that claim a live catalog are not copied into this sample.
+
+The directory exports 24 ready products per finite page in quality/id order.
+`/gifts/page/1` is a non-indexable duplicate asset whose ordinary URL the Worker
+redirects to `/gifts`. Query, invalid and overflow redirects are Worker-owned.
+Page counts and links use the complete snapshot's earliest expiry.
+
+The Weird Gift Index and its aggregate-only JSON are generated together with
+the original dictionaries and algorithm. They explicitly describe a bounded
+snapshot sample, not the complete catalog, sales, popularity, or demand. Source
+price coverage is not measured and no price conclusions are made. Both assets
+expire with the first ready record, including the direct `.json` alias.
+Full-catalog analysis remains a release-readiness gate.

@@ -60,3 +60,45 @@ Additional local screenshots: `stupid-gifts-real-desktop.png`,
 `stupid-gifts-real-mobile.png`, `stupid-gifts-real-product-desktop.png`,
 `stupid-gifts-real-product-mobile.png`, and `stupid-gifts-real-toast-mobile.png`.
 These are private QA evidence, not durable merchant assets or public creative.
+
+## Retained content routes — October 20 UTC
+
+- Both illustrative and private real-cohort exports passed TypeScript. The final
+  real export has 66 HTML assets, including all 43 canonical guides. All 368
+  content-bearing route/HTML/RSC/JSON mappings have safe fallbacks. No shared
+  catalog contract or production `app/` files changed.
+- The canonical guide content, title-focus groups and featured slugs were checked
+  against `37cc671`: exact unchanged initializers. Existing guide/editorial/schema
+  and Neon-boundary tests pass. The live DB-selection implementation is unchanged.
+- The four-ready-product sample supports eight guides, with no more than two
+  matches each; 35 remain visibly empty and non-indexable. Only ready original
+  merchant titles establish focus membership. Generated copy cannot invent it.
+- Directory tests cover 49 owned synthetic records across 24/24/1 products,
+  deterministic ordering, finite route boundaries, ordinary links, page-1 alias,
+  and HTML/nested-RSC guards. The actual cohort exports one page; deployed
+  query/invalid/overflow redirects remain Worker acceptance checks.
+- The sample Weird Gift Index reuses the canonical dictionaries/algorithm. Its
+  visible tables, Article/Dataset schema and aggregate-only JSON agree. The page
+  identifies the small sample, original method date, current snapshot date,
+  price/source-data limitations, disclosure, citation and verified contact alias.
+  JSON and its direct `.json` alias share snapshot expiry and a generic fallback.
+- 28 focused tests passed against each actual export (fixture then real input).
+  Scoped ESLint and `git diff --check` passed. All 32 emitted JS files were scanned
+  for current product IDs/slugs/titles/images/retailer URLs, fixture literals,
+  production analytics IDs and private field names; none were present.
+- Playwright: 1440 × 900 guide hub contains all 43 ordinary links. The populated
+  coworker guide, empty cat guide, sample index and its tables fit 390 × 844 with
+  scroll width 390; a visible ready product image loaded. The index tables fit
+  the 346px content width, JSON-LD parsed, and the HTML pages had no console errors.
+  Internal aggregate-JSON navigation returned 200/application-json locally; its
+  browser viewer requested a missing `/favicon.ico` (404), while HTML pages use
+  the owned SVG favicon. No retailer was opened.
+- SEO skill guidance was limited to truthful visible-content/schema alignment,
+  internal links, explicit report methodology and metadata. Preview noindex and
+  crawler blocking remain intact; no indexing or external validation submitted.
+
+Additional screenshots outside source: `stupid-gifts-guides-desktop.png`,
+`stupid-gifts-guide-desktop.png`, `stupid-gifts-guide-mobile.png`,
+`stupid-gifts-empty-guide-mobile.png`, `stupid-gifts-index-desktop.png`, and
+`stupid-gifts-index-mobile.png`. Full-catalog coverage/analysis and public show
+content remain separate readiness gates.

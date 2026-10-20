@@ -1,6 +1,23 @@
-import type { PublicCatalogProduct } from "../../lib/catalog/types";
+import type {
+  CatalogSnapshot,
+  PublicCatalogProduct,
+} from "../../lib/catalog/types";
 
 export const RANDOM_POOL_LIMIT = 48;
+
+export function readySnapshotProducts(
+  snapshot: CatalogSnapshot,
+  now = Date.parse(snapshot.generatedAt),
+) {
+  return snapshot.products.filter(
+    (product) =>
+      product.isActive &&
+      product.qualityScore >= 0.55 &&
+      product.imageUrl &&
+      product.affiliateUrl &&
+      Date.parse(product.eligibleUntil) > now,
+  );
+}
 
 export function eligiblePool(
   products: readonly PublicCatalogProduct[],

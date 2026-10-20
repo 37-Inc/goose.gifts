@@ -49,11 +49,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {isFixtureRelease
               ? "Staging only. Original illustrative assets; no merchant photography or current-offer claims. "
               : "Staging only. "}
-            When retailer links are enabled, we may earn a commission. As an
-            Amazon Associate we earn from qualifying purchases.
+            We may earn a commission. As an Amazon Associate we earn from
+            qualifying purchases.
           </p>
           <div className="footer-bottom">
             <span>© Thirty Seven Inc.</span>
+            <a href="/weird-gift-index">Weird Gift Index</a>
             <a href="mailto:goosegifts@37.technology">Contact</a>
             <a href="/privacy">Privacy</a>
           </div>

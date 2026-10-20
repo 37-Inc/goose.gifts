@@ -5,6 +5,16 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
 import { createStaticRoutes } from "../static-site/lib/asset-routes.ts";
+import { guides, selectGuideProducts } from "../static-site/lib/guides.ts";
+import {
+  directoryPages,
+  directoryPath,
+  directorySchema,
+} from "../static-site/lib/directory.ts";
+import {
+  buildSnapshotIndex,
+  snapshotIndexSchema,
+} from "../static-site/lib/weird-index.ts";
 import {
   eligiblePool,
   isIllustrative,
@@ -38,6 +48,11 @@ function files(directory, prefix = "") {
         ? files(path.join(directory, entry.name), `${prefix}/${entry.name}`)
         : [`${prefix}/${entry.name}`],
     );
+}
+function schemas(html) {
+  return [
+    ...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs),
+  ].map((match) => JSON.parse(match[1]));
 }
 
 test("synthetic snapshot is immutable and never points to a real retailer", () => {
@@ -113,16 +128,93 @@ test(
   { skip: !fs.existsSync(new URL("out/index.html", root)) },
   () => {
     const changed = structuredClone(exportSnapshot);
-    changed.products[2].eligibleUntil = "2026-10-21T00:00:00.000Z";
+    const related = changed.products[Math.min(2, changed.products.length - 1)];
+    related.eligibleUntil = "2026-10-21T00:00:00.000Z";
     const routes = createStaticRoutes(changed, files(new URL("out/", root)));
     assert.equal(
       routes[`/gifts/${changed.products[0].slug}`].eligibleUntil,
-      changed.products[2].eligibleUntil,
+      related.eligibleUntil,
     );
     assert.equal(
       routes[`/gifts/${changed.products[0].slug}.txt`].eligibleUntil,
-      changed.products[2].eligibleUntil,
+      related.eligibleUntil,
     );
+  },
+);
+test(
+  "retained hub, directory, guide and sample-report artifacts match their one build snapshot",
+  { skip: !fs.existsSync(new URL("out/index.html", root)) },
+  () => {
+    const hub = fs.readFileSync(new URL("out/gift-guides.html", root), "utf8");
+    assert.equal(schemas(hub)[0].mainEntity.numberOfItems, 43);
+    for (const guide of guides) {
+      assert.ok(hub.includes(`href="/gift-guides/${guide.slug}"`));
+      const html = fs.readFileSync(
+        new URL(`out/gift-guides/${guide.slug}.html`, root),
+        "utf8",
+      );
+      const selected = selectGuideProducts(exportSnapshot, guide);
+      const graph = schemas(html)[0]["@graph"];
+      const list = graph.find((item) => item["@type"] === "ItemList");
+      assert.equal(list.numberOfItems, selected.length);
+      assert.deepEqual(
+        list.itemListElement.map((item) => new URL(item.url).pathname),
+        selected.map((p) => `/gifts/${p.slug}`),
+      );
+      assert.equal(
+        graph.some((item) => item["@type"] === "FAQPage"),
+        Boolean(guide.faqs?.length),
+      );
+      if (!selected.length) assert.match(html, /No matching ready products/);
+      for (const product of exportSnapshot.products)
+        assert.equal(
+          html.includes(`href="/gifts/${product.slug}"`),
+          selected.some((p) => p.id === product.id),
+        );
+    }
+    for (const page of directoryPages(exportSnapshot)) {
+      const html = fs.readFileSync(
+        new URL(`out${directoryPath(page.page)}.html`, root),
+        "utf8",
+      );
+      assert.deepEqual(schemas(html)[0], directorySchema(page));
+      for (const product of exportSnapshot.products)
+        assert.equal(
+          html.includes(`href="/gifts/${product.slug}"`),
+          page.products.some((p) => p.id === product.id),
+        );
+    }
+    const firstAlias = fs.readFileSync(
+      new URL("out/gifts/page/1.html", root),
+      "utf8",
+    );
+    assert.match(
+      firstAlias,
+      /rel="canonical" href="https:\/\/staging\.stupid\.gifts\/gifts"/,
+    );
+    const report = fs.readFileSync(
+      new URL("out/weird-gift-index.html", root),
+      "utf8",
+    );
+    const data = JSON.parse(
+      fs.readFileSync(new URL("out/weird-gift-index/data.json", root), "utf8"),
+    );
+    assert.deepEqual(data, buildSnapshotIndex(exportSnapshot));
+    assert.deepEqual(schemas(report)[0], snapshotIndexSchema(data));
+    assert.match(
+      report,
+      /not the complete production catalog|not a market trend/,
+    );
+    assert.match(report, /No price conclusions are reported/);
+    for (const product of exportSnapshot.products) {
+      for (const value of [
+        product.title,
+        product.slug,
+        product.imageUrl,
+        product.affiliateUrl,
+      ])
+        assert.equal(JSON.stringify(data).includes(value), false);
+    }
   },
 );
 test(
@@ -197,12 +289,22 @@ test(
             `${exportSnapshot.products.length} gifts in this versioned pool`,
           ),
       );
-      const guide = fs.readFileSync(
-        new URL("out/gift-guides/funny-gifts-for-coworkers.html", root),
-        "utf8",
-      );
-      assert.match(guide, /not a guide-specific recommendation/);
-      assert.equal(guide.includes(readyProduct.imageUrl), false);
+      for (const guide of guides) {
+        const html = fs.readFileSync(
+          new URL(`out/gift-guides/${guide.slug}.html`, root),
+          "utf8",
+        );
+        const selected = new Set(
+          selectGuideProducts(exportSnapshot, guide).map((p) => p.id),
+        );
+        for (const product of exportSnapshot.products) {
+          assert.equal(
+            html.includes(`href="/gifts/${product.slug}"`),
+            selected.has(product.id),
+            `incorrect membership in ${guide.slug}`,
+          );
+        }
+      }
     }
     for (const file of files(new URL("out/_next/", root)).filter((file) =>
       file.endsWith(".js"),

@@ -140,7 +140,7 @@ export function Search() {
         {state.status === "ready" && (
           <p className="search-status">
             {state.products.length
-              ? `${state.products.length} gifts to consider.`
+              ? `${state.products.length} ${state.products.length === 1 ? "gift" : "gifts"} to consider.`
               : "Nothing quite right yet. Try a different description, or browse the collection."}
           </p>
         )}

@@ -1,5 +1,6 @@
 import { catalog, isFixtureRelease } from "../../lib/catalog";
-import { ProductCard } from "../../components/ProductCard";
+import { Directory as CatalogDirectory } from "../../components/Directory";
+import { directoryPage } from "../../lib/directory";
 import { previewMetadata } from "../../lib/metadata";
 export const metadata = previewMetadata(
   "The collection",
@@ -10,21 +11,9 @@ export const metadata = previewMetadata(
 );
 export default function Directory() {
   return (
-    <main id="main" className="site-main">
-      <div className="page-heading">
-        <p className="eyebrow">Consider your options</p>
-        <h1>The collection.</h1>
-        <p>
-          {isFixtureRelease
-            ? "Three fictional examples prove the browsing experience. The real opening selection is pending product and image-rights review."
-            : "Useful, absurd, and worth a closer look."}
-        </p>
-      </div>
-      <div className="catalog-grid">
-        {catalog.products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
-    </main>
+    <CatalogDirectory
+      page={directoryPage(catalog, 1)!}
+      illustrative={isFixtureRelease}
+    />
   );
 }
