@@ -8,6 +8,7 @@ import { canonicalJson, canonicalTimestamp, convertSourceRow, exportLegacyVector
 import type { ImportBatch, TimestampDecision } from '../catalog/migration.ts';
 import { assertProtectedDestination } from '../catalog/export-postgres.ts';
 import { editorialSourceHash } from '../ops/catalog-editorial-core.mjs';
+import { createProjectionPacket, projectionPreflight, projectionQueries } from '../../lib/catalog/d1.ts';
 
 type Row = Record<string, unknown>;
 type Encoding = 'postgres-text' | 'pgvector-send-base64-v1';
@@ -123,11 +124,13 @@ async function protectedRead(path: string, repository: string, maxBytes = 60_000
 }
 async function main(argv: string[]) {
   if (argv.includes('--help')) {
-    console.log('Usage: node --experimental-strip-types scripts/staging/prepare-import.mts --products /private/products.ndjson --cohort /private/cohort --timestamps /private/reviewed-decisions.json --archive-id source-receipt --embedding-encoding postgres-text --output /private/new-packet\nTimestamp file is a map of products.column -> {timezone:"UTC",evidence:"reviewed writer receipt"}. Offline packet only; no provider calls or source writes.');
+    console.log('Usage: node --experimental-strip-types scripts/staging/prepare-import.mts --products /private/products.ndjson --cohort /private/cohort --timestamps /private/reviewed-decisions.json --archive-id source-receipt --embedding-encoding postgres-text --output /private/new-packet [--projection-only]\nTimestamp file is a map of products.column -> {timezone:"UTC",evidence:"reviewed writer receipt"}. Projection-only mode never emits operational product INSERTs. Offline packet only; no provider calls or source writes.');
     return;
   }
   const allowed = ['--products', '--cohort', '--timestamps', '--archive-id', '--embedding-encoding', '--output'];
   const flags = new Map<string, string>();
+  const projectionOnly = argv.includes('--projection-only');
+  if (projectionOnly) argv = argv.filter((argument) => argument !== '--projection-only');
   if (argv.length !== allowed.length * 2) block('explicit_options_required');
   for (let index = 0; index < argv.length; index += 2) {
     if (!allowed.includes(argv[index]) || flags.has(argv[index])) block('unknown_or_duplicate_option');
@@ -138,14 +141,28 @@ async function main(argv: string[]) {
   const sourceText = await protectedRead(flags.get('--products')!, repository);
   const rows = sourceText.trim().split('\n').filter(Boolean).map((line) => record(JSON.parse(line)));
   const cohort = flags.get('--cohort')!;
+  const snapshot = JSON.parse(await protectedRead(resolve(cohort, 'catalog.snapshot.json'), repository, 1_000_000));
   const result = prepareImport(rows, {
-    snapshot: JSON.parse(await protectedRead(resolve(cohort, 'catalog.snapshot.json'), repository, 1_000_000)),
+    snapshot,
     rights: JSON.parse(await protectedRead(resolve(cohort, 'rights.json'), repository, 1_000_000)),
     inputs: JSON.parse(await protectedRead(resolve(cohort, 'inputs.json'), repository, 1_000_000)),
   }, { sourceSha256: sha256(sourceText), archiveId: flags.get('--archive-id')!,
     embeddingEncoding: flags.get('--embedding-encoding') as Encoding,
     timestamps: JSON.parse(await protectedRead(flags.get('--timestamps')!, repository, 100_000)) });
+  const projection = await createProjectionPacket(snapshot,
+    Object.fromEntries(result.expectedRows.map((row) => [String(row.public_id), String(row.source_facts_hash)])), sha256(sourceText));
   await mkdir(output, { mode: 0o700 });
+  for (const [file, value] of [['projection-batch.json', projectionQueries(projection)], ['projection-preflight.json', [projectionPreflight(projection)]],
+    ['projection-packet.json', projection], ['expected-public-products.json', projection.rows]] as const) {
+    await writeFile(resolve(output, file), `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600, flag: 'wx' });
+  }
+  if (projectionOnly) {
+    const summary = { mode: 'projection-only', noOperationalReimport: true, imported: false, published: false,
+      ...projection.receipt, pendingGates: result.summary.pendingGates };
+    await writeFile(resolve(output, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`, { mode: 0o600, flag: 'wx' });
+    console.log(JSON.stringify({ output, mode: summary.mode, products: projection.rows.length, statements: projectionQueries(projection).length, imported: false }));
+    return;
+  }
   for (const [file, value] of [['d1-batch.json', result.queries], ['d1-preflight.json', [result.preflight]],
     ['import-batch.json', result.batch], ['expected-products.json', result.expectedRows], ['summary.json', result.summary]] as const) {
     await writeFile(resolve(output, file), `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600, flag: 'wx' });

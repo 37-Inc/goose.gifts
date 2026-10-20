@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+import { execFileSync } from 'node:child_process';
 import { prepareCohort } from '../scripts/staging/prepare-cohort.mts';
 import { prepareImport, vectorNdjson } from '../scripts/staging/prepare-import.mts';
 import { editorialSourceHash } from '../scripts/ops/catalog-editorial-core.mjs';
@@ -125,4 +128,27 @@ test('legacy vector NDJSON preserves float32 values and negative zero, with no f
   const restored = exportLegacyVector({ ...row, embedding: encodePgvectorSendBase64(reparsed.values) }, { catalogRevision: 'r1', eligible: true }, 'pgvector-send-base64-v1');
   assert.equal(restored.metadata.vectorBytesSha256, vector.metadata.vectorBytesSha256);
   assert.ok(!('embeddingTextHash' in reparsed.metadata));
+});
+
+test('projection-only CLI emits no operational product reimport or vector upload packet', async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'stupid-gifts-projection-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const { rows, cohort } = setup(); const now = new Date();
+  const refreshed = prepareCohort(rows, { observedAt: now.toISOString(), reference: 'Synthetic current receipt', items: cohort.inputs.products.map((product) => ({
+    ...product, source: 'amazon', remotelyVerified: true, availabilityStatus: 'IN_STOCK',
+  })) }, { ids: rows.map((row) => row.id), catalogRevision: 'projection-cli-r1', affiliateTag: 'test-20', now });
+  for (const [name, value] of [['catalog.snapshot.json', refreshed.snapshot], ['rights.json', refreshed.rightsById],
+    ['inputs.json', { products: refreshed.inputs, sourceRowSha256ById: refreshed.sourceRowSha256ById }], ['timestamps.json', timestamps]]) {
+    await writeFile(join(directory, name), JSON.stringify(value), { mode: 0o600 });
+  }
+  const source = join(directory, 'products.ndjson');
+  await writeFile(source, `${rows.map(JSON.stringify).join('\n')}\n`, { mode: 0o600 });
+  const output = join(directory, 'packet');
+  const result = JSON.parse(execFileSync(process.execPath, ['--experimental-strip-types', resolve('scripts/staging/prepare-import.mts'),
+    '--products', source, '--cohort', directory, '--timestamps', join(directory, 'timestamps.json'), '--archive-id', 'synthetic-test',
+    '--embedding-encoding', 'postgres-text', '--output', output, '--projection-only'], { encoding: 'utf8' }));
+  assert.equal(result.mode, 'projection-only');
+  assert.deepEqual((await readdir(output)).sort(), ['expected-public-products.json', 'projection-batch.json', 'projection-packet.json', 'projection-preflight.json', 'summary.json']);
+  const queries = JSON.parse(await readFile(join(output, 'projection-batch.json'), 'utf8'));
+  assert.ok(queries.every((query) => !/^INSERT INTO products\b/.test(query.sql)));
 });
