@@ -37,6 +37,14 @@ editorial state, atomic mutation/vector receipts, slug reservation, telemetry,
 runtime verification provenance and new-revision publication still need
 coordinated implementation before changing the scheduled runner.
 
+The separate pure upsert merge is now compared directly with the unchanged
+Postgres adapter SQL in a disposable, network-none PostgreSQL 17 / pgvector
+container. Twenty-four native cases cover manual editorial locks, failed
+generation, stale facts, NULL/default precedence, exact decimal rounding,
+arrays and original float32 vectors. This preparation does not route any live
+write through the new function; its explicit database timestamp never assigns
+a timezone to historical source values.
+
 ## 2026-10-20 early morning — Actual publication proof and runtime follow-through
 
 PR #191 merged as `f167e0764fe8eee8a19916cd6e348503d4189765`.
