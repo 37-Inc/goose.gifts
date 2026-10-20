@@ -67,11 +67,30 @@ test('wrong/missing database identity, replication and primary evidence refuse b
 });
 test('invalid configuration has no ambient credential/env fallback or provider calls; defaults are finite',async()=>{
   for(const changed of [{accountId:'../evil'},{databaseId:'bad'},{databaseName:'../other'},{databaseName:undefined},{token:undefined},
-    {token:'bad\r\nheader'},{limits:{timeoutMs:0}},{limits:{requests:601}},{limits:{unknown:1}},{limits:{statements:NaN}}]){
+    {token:'bad\r\nheader'},{limits:{timeoutMs:0}},{limits:{requests:10001}},{limits:{statements:25001}},
+    {limits:{unknown:1}},{limits:{statements:NaN}}]){
     let count=0;await assert.rejects(createCatalogD1Rest({...config,...changed,fetch:async()=>{count++;throw new Error('must not call');}}),/configuration_invalid/);assert.equal(count,0);
   }
   assert.deepEqual(CATALOG_D1_REST_LIMITS,{requests:600,statements:1200,batchStatements:50,parameters:100,
     requestBytes:524288,responseBytes:524288,timeoutMs:10000,reportedRowsRead:1000000,reportedRowsWritten:10000});
+  for(const [key,value] of Object.entries(CATALOG_D1_REST_LIMITS).filter(([key])=>!['requests','statements'].includes(key))){
+    let count=0;await assert.rejects(createCatalogD1Rest({...config,limits:{[key]:value+1},fetch:async()=>{count++;throw new Error('must not call');}}),/configuration_invalid/);
+    assert.equal(count,0);
+  }
+});
+test('only explicit finite request/statement ceilings can exceed defaults; counters span one client without reset',async t=>{
+  const maximum=await fixture(t,{requests:10000,statements:25000});assert.equal(maximum.db.metrics().requests,2);
+  const requests=await fixture(t,{requests:601});
+  for(let i=0;i<599;i++)await requests.db.prepare('SELECT 1').all();
+  assert.equal(requests.db.metrics().requests,601);const before=requests.calls.length;
+  await assert.rejects(requests.db.prepare('SELECT 1').all(),/budget_exhausted/);assert.equal(requests.calls.length,before);
+  const statements=await fixture(t,{statements:1201});
+  for(let i=0;i<24;i++)await statements.db.batch(Array(50).fill(statements.db.prepare('SELECT 1')));
+  assert.equal(statements.db.metrics().statements,1201);const sent=statements.calls.length;
+  await assert.rejects(statements.db.prepare('SELECT 1').all(),/budget_exhausted/);assert.equal(statements.calls.length,sent);
+  const limits={requests:3};const fixed=await fixture(t,limits);limits.requests=10000;
+  await fixed.db.prepare('SELECT 1').all();await assert.rejects(fixed.db.prepare('SELECT 1').all(),/budget_exhausted/);
+  assert.equal(fixed.db.metrics().requests,3);
 });
 test('batch failure stays rejected/uncertain with no partial result or automatic retry; mock SQLite rolls back',async t=>{
   const f=await fixture(t);const start=f.calls.length;

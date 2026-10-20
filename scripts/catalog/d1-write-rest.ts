@@ -8,6 +8,8 @@ import type { CatalogD1, D1Statement } from '../../lib/catalog/storage/d1.ts';
  */
 export const CATALOG_D1_REST_LIMITS = Object.freeze({ requests:600,statements:1200,batchStatements:50,parameters:100,
   requestBytes:512*1024,responseBytes:512*1024,timeoutMs:10_000,reportedRowsRead:1_000_000,reportedRowsWritten:10_000 });
+// Explicit whole-client allowance only; defaults never grow automatically.
+const HARD_LIMITS=Object.freeze({...CATALOG_D1_REST_LIMITS,requests:10_000,statements:25_000});
 type Limits = { [K in keyof typeof CATALOG_D1_REST_LIMITS]:number };
 type Param = string | number | null;
 type Query = { sql:string;params:readonly Param[] };
@@ -47,7 +49,7 @@ export async function createCatalogD1Rest(options: {
     ||typeof databaseName!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(databaseName)
     ||typeof token!=='string'||!token||token.length>4096||/[^\x21-\x7e]/.test(token)
     ||Object.keys(limits).some(key=>!Object.hasOwn(CATALOG_D1_REST_LIMITS,key))
-    ||Object.entries(limits).some(([key,value])=>!integer(value)||value<1||value>CATALOG_D1_REST_LIMITS[key as keyof Limits])
+    ||Object.entries(limits).some(([key,value])=>!integer(value)||value<1||value>HARD_LIMITS[key as keyof Limits])
     ||limits.timeoutMs<10)throw new Error('catalog_d1_configuration_invalid');
   const send=options.fetch??fetch;
   const base=`https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}`;
