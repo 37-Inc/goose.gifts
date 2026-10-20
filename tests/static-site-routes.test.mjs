@@ -150,7 +150,7 @@ test("guide schema lists exactly the rendered products and only explicit visible
   assert.equal(list.itemListElement.length, selected.length);
   assert.equal(
     list.itemListElement[0].url,
-    "https://staging.stupid.gifts/gifts/gift-cat",
+    `${siteIdentity.origin}/gifts/gift-cat`,
   );
   assert.doesNotMatch(
     JSON.stringify(schema),
@@ -182,7 +182,7 @@ test("Weird Index is aggregate-only and explicitly a bounded sample with unknown
   assert.equal(
     schema["@graph"].find((s) => s["@type"] === "Dataset").distribution
       .contentUrl,
-    "https://staging.stupid.gifts/weird-gift-index/data",
+    `${siteIdentity.origin}/weird-gift-index/data`,
   );
   assert.doesNotMatch(JSON.stringify(schema), /3,000|Offer|priceCurrency/);
 });

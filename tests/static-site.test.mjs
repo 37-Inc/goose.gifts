@@ -201,10 +201,7 @@ test(
       new URL("out/gifts/page/1.html", root),
       "utf8",
     );
-    assert.match(
-      firstAlias,
-      /rel="canonical" href="https:\/\/staging\.stupid\.gifts\/gifts"/,
-    );
+    assert.ok(firstAlias.includes(`rel="canonical" href="${siteIdentity.origin}/gifts"`));
     const report = fs.readFileSync(
       new URL("out/weird-gift-index.html", root),
       "utf8",
