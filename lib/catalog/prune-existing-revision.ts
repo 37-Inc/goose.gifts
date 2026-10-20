@@ -23,6 +23,8 @@ export interface PruneRequest {
 export interface PrunedRevision {
   request: PruneRequest; snapshot: CatalogSnapshot; packet: ProjectionPacket; sourceRows: Row[];
   priorRow: Row; sourceDigest: string; globalVectorWatermark: number; vectorSyncWatermark: number; operationKey: string;
+  /** Explicit approved-cohort candidates excluded by current policy/dedup. */
+  additionalAbsentIds?: string[];
 }
 export interface PrunedVectorPlan extends MutationScope {
   catalogRevision: string; snapshotSha256: string; globalWatermark: number;
@@ -122,11 +124,25 @@ async function prune(db: CatalogD1, owner: MutationOwner, request: PruneRequest)
   const sourceDigest = sha256(canonicalJson({ operationKey: owner.operationKey, generatedAt,
     globalVectorWatermark, current: source.current, prior: source.header.prior }));
   const packet = await createProjectionPacket(snapshot, source.facts, sourceDigest, now);
+  const sealed = await sealCapturedRevision(db, owner, { request, snapshot, packet, sourceRows: source.current,
+    priorRow: source.header.prior as Row, sourceDigest, globalVectorWatermark, vectorSyncWatermark: 0, operationKey: owner.operationKey });
+  return { state: ready.length ? 'prepared' : 'all_held', ...sealed };
+}
+/** Shared seal transaction only. Policy stays in the subset pruner or explicit
+ * approved-cohort caller; this helper never selects or approves product rows.
+ */
+export async function sealCapturedRevision(db: CatalogD1, owner: MutationOwner, input: PrunedRevision) {
+  const { request, snapshot, packet, sourceRows, sourceDigest, globalVectorWatermark, priorRow } = input;
+  if (owner.phase !== 'freezing' || owner.operationKey !== input.operationKey || owner.environment !== request.scope.environment
+    || owner.indexName !== request.scope.indexName) throw new Error('prune_owner_mismatch');
+  const revision = snapshot.catalogRevision;
+  const generatedAt = snapshot.generatedAt;
+  const existing = (await db.prepare('SELECT * FROM catalog_revisions WHERE revision=?').bind(revision).all()).results[0];
+  if (existing?.abandonment_delivery_id) throw new Error('prune_revision_abandoned');
   if (existing && (existing.source_export_sha256 !== sourceDigest || !['importing','reconciled'].includes(String(existing.status))))
     throw new Error('prune_retry_source_changed');
-  const priorRow = source.header.prior as Row;
   const imports = await unabandonedImportsQuery(db,owner.environment,revision);
-  const start = [mutationAssertion(db, owner, ['freezing']), ...currentAssertions(db, source.current), priorAssertion(db, request, globalVectorWatermark, priorRow),
+  const start = [mutationAssertion(db, owner, ['freezing']), ...currentAssertions(db, sourceRows), priorAssertion(db, request, globalVectorWatermark, priorRow),
     assertion(db, imports.sql, imports.params)];
   await db.batch([...start, db.prepare(`INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status)
     VALUES(?,?,?,'importing') ON CONFLICT(revision) DO NOTHING`).bind(revision, generatedAt, sourceDigest)]);
@@ -151,15 +167,14 @@ async function prune(db: CatalogD1, owner: MutationOwner, request: PruneRequest)
     nextOwner = { ...owner, epoch: owner.epoch + 1 };
     const receiptPredicate = { sql: 'SELECT 1 FROM catalog_projection_receipts WHERE catalog_revision=? AND snapshot_sha256=? AND projection_sha256=?',
       params: [revision, packet.receipt.snapshot_sha256, packet.receipt.projection_sha256] };
-    await db.batch([mutationAssertion(db, owner, ['freezing']), ...currentAssertions(db, source.current), priorAssertion(db, request, globalVectorWatermark, priorRow),
+    await db.batch([mutationAssertion(db, owner, ['freezing']), ...currentAssertions(db, sourceRows), priorAssertion(db, request, globalVectorWatermark, priorRow),
       db.prepare(query.sql).bind(...query.params), mutationAdvance(db, owner, receiptPredicate), mutationAssertion(db, nextOwner, ['freezing'])]);
   }
   // An empty target has no per-revision events; global settlement is separately
   // bound above. Neither zero nor a projection receipt proves index promotion.
   const vectorSyncWatermark = (await db.prepare('SELECT coalesce(max(sequence),0) n FROM vector_sync_outbox WHERE source_revision=?')
     .bind(revision).all<{ n: number }>()).results[0].n;
-  return { state: ready.length ? 'prepared' : 'all_held', owner: nextOwner,
-    revision: { request, snapshot, packet, sourceRows: source.current, priorRow, sourceDigest, globalVectorWatermark, vectorSyncWatermark, operationKey: owner.operationKey } };
+  return { owner: nextOwner, revision: { ...input, vectorSyncWatermark } };
 }
 function safeFailure(error: unknown): Error {
   const message = error instanceof Error && /^prune_[a-z_]+$/.test(error.message) ? error.message : 'prune_failed';
@@ -171,6 +186,7 @@ export async function pruneExistingRevision(db: CatalogD1, owner: MutationOwner,
 export function prunedVectorPlan(revision: PrunedRevision): PrunedVectorPlan {
   const rows = new Map(revision.sourceRows.map(row => [row.public_id, row]));
   const ready = new Set(revision.snapshot.products.map(product => product.publicId));
+  const absent = revision.request.previous.products.filter(product => !ready.has(product.publicId)).map(product => product.publicId);
   if (revision.snapshot.products.some(product => {
     const value = rows.get(product.publicId)?.embedding_text_hash;
     return value !== null && (typeof value !== 'string' || !/^[a-f0-9]{64}$/.test(value));
@@ -180,7 +196,7 @@ export function prunedVectorPlan(revision: PrunedRevision): PrunedVectorPlan {
     products: revision.snapshot.products.map(product => ({ publicId: product.publicId,
       sourceFactsHash: String(rows.get(product.publicId)!.source_facts_hash),
       embeddingTextHash: typeof rows.get(product.publicId)!.embedding_text_hash === 'string' ? String(rows.get(product.publicId)!.embedding_text_hash) : null })),
-    absentIds: revision.request.previous.products.filter(product => !ready.has(product.publicId)).map(product => product.publicId) };
+    absentIds: [...absent, ...(revision.additionalAbsentIds || []).filter(id => !absent.includes(id))] };
 }
 /** Only independent settled index readback permits reconciling the new revision
  * and queuing its real build request. Stable-UUID promotion can temporarily force
@@ -194,6 +210,15 @@ async function settle(db: CatalogD1, owner: MutationOwner, revision: PrunedRevis
   // or sneak a newly approved/held product into a serialized retry payload.
   const rebuilt = await pruneExistingRevision(db, owner, revision.request);
   if (rebuilt.state === 'unchanged' || canonicalJson(rebuilt.revision) !== canonicalJson(revision)) throw new Error('prune_packet_changed');
+  return settleCapturedRevision(db, owner, revision, readVectors);
+}
+/** Queue an already independently rebuilt exact seal. The policy-specific
+ * entrypoints MUST reconstruct and compare it before calling this transaction.
+ */
+export async function settleCapturedRevision(db: CatalogD1, owner: MutationOwner, revision: PrunedRevision,
+  readVectors: (plan: PrunedVectorPlan, signal: AbortSignal) => Promise<PrunedVectorObservation>) {
+  if (owner.phase !== 'freezing' || owner.operationKey !== revision.operationKey || owner.environment !== revision.request.scope.environment
+    || owner.indexName !== revision.request.scope.indexName) throw new Error('prune_owner_mismatch');
   const plan = prunedVectorPlan(revision); let observed: PrunedVectorObservation;
   const controller = new AbortController(); let timer: ReturnType<typeof setTimeout> | undefined;
   try {

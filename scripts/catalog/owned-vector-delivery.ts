@@ -5,6 +5,9 @@ import { mutationAdvance, mutationAssertion, mutationFenceQuery, readMutationOwn
 import type { MutationOwner, MutationScope } from '../../lib/catalog/mutation-fence.ts';
 import { pruneExistingRevision, prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PrunedRevision, PrunedVectorObservation } from '../../lib/catalog/prune-existing-revision.ts';
+import { prepareApprovedCohort } from '../../lib/catalog/freeze-approved-cohort.ts';
+import type { ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
+import { loadMaintenanceVectorPayload } from './maintenance-d1.ts';
 import { canonicalJson, sha256 } from './migration.ts';
 import { decodePgvectorSendBase64, encodePgvectorSendBase64 } from './pgvector-binary.ts';
 import { pruningCurrentQueries } from './export-d1-snapshot.ts';
@@ -323,15 +326,17 @@ async function outboxDelivery(options: { db: CatalogD1; owner: MutationOwner; se
  * Upserts replace ONLY metadata while preserving reviewed original float32s.
  */
 async function pruneDelivery(options: { db: CatalogD1; owner: MutationOwner; revision: PrunedRevision;
-  publicId: string; original?: OriginalVectorSource; adapters: OwnedVectorAdapters; timeoutMs?: number }): Promise<DeliveryResult> {
+  publicId: string; original?: OriginalVectorSource; adapters: OwnedVectorAdapters; timeoutMs?: number }, approved = false): Promise<DeliveryResult> {
   const { db,owner,revision,publicId } = options; const timeout = timeoutOf(options.timeoutMs);
   const plan = prunedVectorPlan(revision); const planHash = sha256(canonicalJson(plan));
   const member = plan.products.find(product => product.publicId === publicId); const absent = plan.absentIds.includes(publicId);
+  if (plan.products.length + plan.absentIds.length > OWNED_VECTOR_PROOF_LIMIT) throw new Error('vector_plan_invalid');
   if (owner.phase !== 'freezing' || !UUID.test(publicId) || (!member && !absent) || (member && !HASH.test(options.original?.sha256 ?? ''))
     || (absent && options.original)) throw new Error('invalid_owned_prune_vector');
   const id = idFor(owner,{ kind:'prune',planHash,publicId });
   return execute({ ...options,id,timeout,expectedPayloadSha256:options.original?.sha256 ?? null, async prepare() {
-    const rebuilt = await pruneExistingRevision(db,owner,revision.request);
+    const rebuilt = approved ? await prepareApprovedCohort(db,owner,(revision as ApprovedCohortRevision).request)
+      : await pruneExistingRevision(db,owner,revision.request);
     if (rebuilt.state === 'unchanged' || canonicalJson(rebuilt.revision) !== canonicalJson(revision)) throw new Error('vector_prune_changed');
     const captured = revision.sourceRows.find(row => row.public_id === publicId)!;
     // Captured rows also have archived_* JSON aliases, not physical columns.
@@ -343,7 +348,8 @@ async function pruneDelivery(options: { db: CatalogD1; owner: MutationOwner; rev
     if (member) {
       const original = await bounded(signal => options.original!.load(signal),timeout);
       if (sha256(canonicalJson(original)) !== options.original!.sha256 || original.publicId !== publicId
-        || original.catalogRevision !== revision.request.previous.catalogRevision
+        || original.catalogRevision !== (approved && (revision as ApprovedCohortRevision).request.approval.changes.some(change=>change.publicId===publicId)
+          ? revision.snapshot.catalogRevision : revision.request.previous.catalogRevision)
         || original.sourceFactsHash !== member.sourceFactsHash || original.embeddingTextHash !== member.embeddingTextHash
         || !Array.isArray(original.values) || original.values.length !== 1536
         || !Array.from(original.values).every(value => typeof value === 'number' && Number.isFinite(value))
@@ -402,8 +408,42 @@ export function deliverOwnedOutboxEvent(options: Parameters<typeof outboxDeliver
 export function deliverOwnedPrunedVector(options: Parameters<typeof pruneDelivery>[0]): Promise<DeliveryResult> {
   return safe(() => pruneDelivery(options));
 }
+/** Same sealed-plan journal/expiry recovery as pruning (the persisted kind stays
+ * "prune" for compatibility). Changed products MUST use their immutable owned
+ * maintenance payload, never a caller-supplied replacement or regenerated vector.
+ * Unchanged legacy products still require independently pinned original bytes.
+ */
+export function deliverOwnedApprovedCohortVector(options: Omit<Parameters<typeof pruneDelivery>[0],'revision'> & { revision:ApprovedCohortRevision }): Promise<DeliveryResult> {
+  return safe(async()=>{
+    const change=options.revision.request.approval.changes.find(value=>value.publicId===options.publicId);
+    const plan=prunedVectorPlan(options.revision);
+    if(plan.products.length+plan.absentIds.length>OWNED_VECTOR_PROOF_LIMIT)throw new Error('vector_plan_invalid');
+    if(!change || !plan.products.some(value=>value.publicId===options.publicId)) return pruneDelivery(options,true);
+    if(options.original)throw new Error('vector_original_unproven');
+    const rows=(await options.db.prepare(`SELECT o.* FROM catalog_maintenance_vector_payloads p CROSS JOIN vector_sync_outbox o
+      ON o.sequence=p.sequence WHERE p.operation_id=? AND o.public_id=? AND o.source_revision=? AND o.status='complete' AND o.operation='upsert' LIMIT 2`)
+      .bind(change.operationId,options.publicId,options.revision.snapshot.catalogRevision).all()).results;
+    if(rows.length!==1)throw new Error('vector_original_unproven');
+    const row=rows[0];const event:VectorEvent={sequence:Number(row.sequence),publicId:String(row.public_id),catalogRevision:String(row.source_revision),
+      embeddingTextHash:String(row.embedding_text_hash),operation:'upsert'};
+    const payload=await loadMaintenanceVectorPayload(options.db,event);
+    const product=(await options.db.prepare('SELECT * FROM products WHERE public_id=?').bind(options.publicId).all()).results[0];
+    if(!product||sha256(canonicalJson(product))!==change.productSha256)throw new Error('vector_product_changed');
+    // Decoding an existing immutable payload is not an embedding/model call.
+    const vector=payloadVector(event,payload,product,undefined,Date.parse(options.revision.snapshot.generatedAt));
+    if(!vector)throw new Error('vector_original_unproven');
+    const original:OriginalVector={publicId:options.publicId,catalogRevision:event.catalogRevision,
+      sourceFactsHash:String(product.source_facts_hash),embeddingTextHash:event.embeddingTextHash,values:vector.values,
+      vectorBytesSha256:nativeHash(vector.values)};
+    return pruneDelivery({...options,original:{sha256:sha256(canonicalJson(original)),async load(){return original;}}},true);
+  });
+}
 export function readOwnedPrunedVectors(...args: Parameters<typeof readPrunedVectors>): Promise<PrunedVectorObservation> {
   return safe(() => readPrunedVectors(...args));
+}
+export function readOwnedApprovedCohortVectors(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision,
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>):Promise<PrunedVectorObservation> {
+  return safe(()=>readPrunedVectors(db,owner,revision,adapters));
 }
 /** Explicit revision, at most10 events and one uncertain external intent. A
  * pending/expired outcome stops this invocation; caller keeps the returned owner.
