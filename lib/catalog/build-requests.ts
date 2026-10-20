@@ -4,7 +4,7 @@ import type { PublicationClaim, PublicationIntent } from './publication.ts';
 import { publicationStatus } from './publication.ts';
 import { rollbackPreflight, visibleRevisionCountQuery } from './d1.ts';
 import { canonicalTime } from './snapshot.ts';
-import { legacyMutationBatch, legacyMutationGuard, mutationAssertion, mutationFenceQuery } from './mutation-fence.ts';
+import { legacyMutationBatch, legacyMutationGuard, mutationAssertion, mutationFenceQuery, unabandonedImportsQuery } from './mutation-fence.ts';
 import type { MutationOwner } from './mutation-fence.ts';
 import type { D1Statement } from './storage/d1.ts';
 
@@ -164,12 +164,13 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
     || intent.nextExpiry !== earliest || snapshot.products.some(product => product.eligibleUntil <= request.cutoff)
     || !(await rollbackPreflight(db, snapshot, now)).ok) throw new Error('build_publication_unready');
   const gate = sourceGate(request); const visible = visibleRevisionCountQuery(intent.catalogRevision);
+  const imports = await unabandonedImportsQuery(db,request.environment);
   const statement = db.prepare(`UPDATE catalog_build_requests SET state='activating',lease_until=NULL,release_id=?,version_reference=?
     WHERE request_id=? AND request_json=? AND lease_token=? AND run_reference=? AND state='building' AND lease_until>${NOW}
       AND ${gate.sql}
       AND NOT EXISTS(SELECT 1 FROM catalog_build_requests WHERE environment=? AND state='activating')
       AND (SELECT coalesce(max(rowid),0) FROM publication_receipts)=?
-      AND NOT EXISTS(SELECT 1 FROM catalog_revisions WHERE status='importing')
+      AND ${imports.sql}
       AND EXISTS(SELECT 1 FROM publication_outbox WHERE intent_id=? AND release_id=? AND intent_json=? AND lease_token=?
         AND state='dispatched' AND lease_until>${NOW})
       AND EXISTS(SELECT 1 FROM catalog_projection_receipts p JOIN catalog_revisions c ON c.revision=p.catalog_revision
@@ -180,7 +181,7 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
       AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE source_revision=? AND status!='complete')
       AND (? IS NULL OR ?>${NOW}) AND ${mutation.sql}`)
     .bind(intent.releaseId, versionReference, claim.requestId, stored.request_json, claim.token, claim.runReference,
-      ...gate.params, request.environment, receiptEpoch, publication.intentId, intent.releaseId, JSON.stringify(intent), publication.token,
+      ...gate.params, request.environment, receiptEpoch, ...imports.params, publication.intentId, intent.releaseId, JSON.stringify(intent), publication.token,
       intent.catalogRevision, intent.catalogSnapshotSha256, snapshot.products.length, ...visible.params, snapshot.products.length,
       intent.catalogRevision, intent.vectorSyncWatermark, intent.catalogRevision, intent.nextExpiry, intent.nextExpiry, ...mutation.params);
   if (mutationOwner) {

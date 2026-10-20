@@ -5,7 +5,7 @@ import { createProjectionPacket, projectionQueries } from './d1.ts';
 import { canonicalTime, validateCatalogSnapshot } from './snapshot.ts';
 import { encodeBuildRequest } from './build-requests.ts';
 import type { CatalogBuildRequest } from './build-requests.ts';
-import { mutationAdvance, mutationAssertion, mutationFenceQuery } from './mutation-fence.ts';
+import { mutationAdvance, mutationAssertion, mutationFenceQuery, unabandonedImportsQuery } from './mutation-fence.ts';
 import type { MutationOwner, MutationScope } from './mutation-fence.ts';
 import { checkCurrent, pruningCurrentQueries, readPruningSource } from '../../scripts/catalog/export-d1-snapshot.ts';
 import type { SnapshotReadContext } from '../../scripts/catalog/export-d1-snapshot.ts';
@@ -114,6 +114,7 @@ async function prune(db: CatalogD1, owner: MutationOwner, request: PruneRequest)
     return { state: 'unchanged', allHeld: !ready.length };
   const revision = `p-${owner.operationKey.slice(0,62)}`;
   const existing = (await db.prepare('SELECT * FROM catalog_revisions WHERE revision=?').bind(revision).all()).results[0];
+  if (existing?.abandonment_delivery_id) throw new Error('prune_revision_abandoned');
   const generatedAt = existing ? canonicalTime(existing.created_at) : owner.capturedAt;
   const snapshot = validateCatalogSnapshot({ ...source.snapshot, catalogRevision: revision, generatedAt,
     products: ready, heldProducts: [...safeHeld, ...removed] }, now);
@@ -124,8 +125,9 @@ async function prune(db: CatalogD1, owner: MutationOwner, request: PruneRequest)
   if (existing && (existing.source_export_sha256 !== sourceDigest || !['importing','reconciled'].includes(String(existing.status))))
     throw new Error('prune_retry_source_changed');
   const priorRow = source.header.prior as Row;
+  const imports = await unabandonedImportsQuery(db,owner.environment,revision);
   const start = [mutationAssertion(db, owner, ['freezing']), ...currentAssertions(db, source.current), priorAssertion(db, request, globalVectorWatermark, priorRow),
-    assertion(db, "NOT EXISTS(SELECT 1 FROM catalog_revisions WHERE status='importing' AND revision!=?)", [revision])];
+    assertion(db, imports.sql, imports.params)];
   await db.batch([...start, db.prepare(`INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status)
     VALUES(?,?,?,'importing') ON CONFLICT(revision) DO NOTHING`).bind(revision, generatedAt, sourceDigest)]);
   const receipt = (await db.prepare('SELECT * FROM catalog_projection_receipts WHERE catalog_revision=?').bind(revision).all()).results[0];

@@ -50,7 +50,7 @@ async function bounded<T>(operation: (signal: AbortSignal) => Promise<T>, timeou
     })]);
   } finally { clearTimeout(timer); }
 }
-function nativeHash(values: number[]): string {
+export function nativeHash(values: number[]): string {
   return createHash('sha256').update(Buffer.from(encodePgvectorSendBase64(values), 'base64')).digest('hex');
 }
 function validValues(values: unknown): values is number[] {
@@ -58,7 +58,7 @@ function validValues(values: unknown): values is number[] {
     && Array.from(values).every((value) => typeof value === 'number' && Number.isFinite(value));
 }
 
-function payloadVector(event: VectorEvent, input: ImmutableVectorPayload, product: Record<string, unknown>, reviewBytes: string | undefined, now: number): SyncVector | null {
+export function payloadVector(event: VectorEvent, input: ImmutableVectorPayload, product: Record<string, unknown>, reviewBytes: string | undefined, now: number): SyncVector | null {
   if (event.embeddingTextHash === null) {
     if (!input || input.embeddingTextHash !== null || input.operation !== 'delete' || input.sequence !== event.sequence
       || input.publicId !== event.publicId || input.catalogRevision !== event.catalogRevision
@@ -86,7 +86,7 @@ function payloadVector(event: VectorEvent, input: ImmutableVectorPayload, produc
     embeddingTextHash: event.embeddingTextHash, embeddingModel: EMBEDDING_MODEL, sourceFactsHash: input.sourceFactsHash,
     vectorBytesSha256: input.vectorBytesSha256 } };
 }
-function visible(expected: SyncVector | null, actual: SyncVector | null): boolean {
+export function visible(expected: SyncVector | null, actual: SyncVector | null): boolean {
   if (expected === null) return actual === null;
   try {
     return Boolean(actual && actual.id === expected.id && !actual.namespace && validValues(actual.values)
