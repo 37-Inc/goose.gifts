@@ -87,6 +87,12 @@ export async function importPublicProjection(db: CatalogD1, packet: ProjectionPa
 function publicRows(rows: { public_display_json: string }[], now: Date): PublicCatalogProduct[] {
   return rows.flatMap((row) => { try { return [validatePublicCatalogProduct(JSON.parse(row.public_display_json), now)]; } catch { return []; } });
 }
+/** Reused inside fenced publication SQL; omission uses the database execution clock. */
+export function visibleRevisionCountQuery(revision: string, now?: Date): ProjectionQuery {
+  const visible = now ? VISIBLE : VISIBLE.replaceAll('>?', ">strftime('%Y-%m-%dT%H:%M:%fZ','now')");
+  return { sql: `SELECT count(*) FROM catalog_public_products v ${JOIN}
+    WHERE v.catalog_revision=? AND ${visible}`, params: [revision, ...(now ? [now.toISOString(), now.toISOString()] : [])] };
+}
 export async function getRevisionProductsByPublicIds(db: CatalogD1, ids: string[], now: Date, revision: string): Promise<PublicCatalogProduct[]> {
   if (!revision || ids.length > 240) throw new Error('Revision and bounded product IDs required');
   const unique = [...new Set(ids)]; const found = new Map<string, PublicCatalogProduct>();

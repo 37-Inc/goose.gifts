@@ -23,10 +23,12 @@ function setup(overrides = {}) {
     '/gifts/funny%20button': ready('/gifts/fart-button'),
   };
   const digest = 'a'.repeat(64);
-  const manifest = { schemaVersion: 1, releaseId: 'test', codeSha: 'test', catalogRevision: 'r1', catalogSnapshotSha256: digest, generatedAt: snapshot.generatedAt, nextExpiry: DEADLINE, productCount: 1, slugCount: 1, vectorSyncWatermark: 1, priorReleaseId: null, checksums: {}, dataKind: snapshot.dataKind, routes };
+  const manifest = { schemaVersion: 1, releaseId: 'test', codeSha: 'b'.repeat(40), catalogRevision: 'r1', catalogSnapshotSha256: digest, generatedAt: snapshot.generatedAt, nextExpiry: DEADLINE, productCount: 1, slugCount: 1, vectorSyncWatermark: 1, priorReleaseId: null, checksums: {}, dataKind: snapshot.dataKind, routes };
+  const releaseIdentity = { release_id: manifest.releaseId, code_sha: manifest.codeSha, catalog_revision: manifest.catalogRevision,
+    catalog_snapshot_sha256: digest, manifest_sha256: 'c'.repeat(64) };
   const env = { ENVIRONMENT: 'production', ASSETS: { async fetch(request) { calls.push(request); return new Response(new URL(request.url).pathname, { headers: { 'Cache-Control': 'public, max-age=31536000, immutable', ETag: 'asset-tag', Age: '99' } }); } } };
-  const worker = createSiteWorker({ manifest, snapshot, feedPlan: createStaticFeedPlan(snapshot, digest, NOW), now: () => clock, ...overrides });
-  return { env, calls, worker, advance(ms) { clock += ms; }, request: (path, init) => worker.fetch(new Request(`https://preview.example${path}`, init), env) };
+  const worker = createSiteWorker({ manifest, snapshot, releaseIdentity, feedPlan: createStaticFeedPlan(snapshot, digest, NOW), now: () => clock, ...overrides });
+  return { env, calls, worker, manifest, snapshot, releaseIdentity, advance(ms) { clock += ms; }, request: (path, init) => worker.fetch(new Request(`https://preview.example${path}`, init), env) };
 }
 
 test('ready assets, aliases and cache lifetimes are guarded without database access', async () => {
@@ -172,4 +174,49 @@ test('staging is fail-closed, protected, noindex and blocks production analytics
   assert.equal(response.headers.get('X-Robots-Tag'), 'noindex, nofollow');
   assert.match(response.headers.get('Content-Security-Policy'), /connect-src 'self'/);
   assert.doesNotMatch(response.headers.get('Content-Security-Policy'), /google-analytics|posthog/);
+});
+
+test('deployed release identity is an exact no-store compiled allowlist without assets or DB', async () => {
+  const fixture = setup();
+  let reads = 0;
+  Object.defineProperty(fixture.env, 'DB', { get() { reads++; throw new Error('Identity must not read D1'); } });
+  fixture.env.OPENAI_API_KEY = 'FAKE_SECRET_NOT_FOR_RESPONSE';
+  const response = await fixture.request('/.well-known/catalog-release.json?release_id=untrusted&catalog_revision=wrong');
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+  assert.deepEqual(await response.json(), fixture.releaseIdentity);
+  assert.equal(reads, 0); assert.equal(fixture.calls.length, 0);
+  const head = await fixture.request('/.well-known/catalog-release.json', { method: 'HEAD' });
+  assert.equal(head.status, 200); assert.equal(await head.text(), '');
+  for (const method of ['POST', 'PUT', 'DELETE']) {
+    const invalid = await fixture.request('/.well-known/catalog-release.json', { method });
+    assert.equal(invalid.status, 405); assert.equal(invalid.headers.get('Allow'), 'GET, HEAD');
+  }
+  fixture.advance(2400); // Identity remains a historical bundle identity, not a freshness claim.
+  assert.equal((await fixture.request('/.well-known/catalog-release.json')).status, 200);
+});
+
+test('release identity retains staging authentication/noindex and fails closed for a missing digest', async () => {
+  const fixture = setup(); fixture.env.ENVIRONMENT = 'staging';
+  assert.equal((await fixture.request('/.well-known/catalog-release.json')).status, 503);
+  fixture.env.STAGING_AUTH_SECRET = 'synthetic-at-least-sixteen';
+  assert.equal((await fixture.request('/.well-known/catalog-release.json')).status, 401);
+  const response = await fixture.request('/.well-known/catalog-release.json', { headers: { Authorization: `Basic ${btoa('staging:synthetic-at-least-sixteen')}` } });
+  assert.equal(response.status, 200); assert.equal(response.headers.get('X-Robots-Tag'), 'noindex, nofollow');
+  assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+  const source = setup();
+  const worker = createSiteWorker({ manifest: { ...source.manifest, catalogSnapshotSha256: undefined }, snapshot: source.snapshot, releaseIdentity: source.releaseIdentity });
+  assert.equal((await worker.fetch(new Request('https://preview.example/.well-known/catalog-release.json'), source.env)).status, 503);
+});
+
+test('missing, malformed or incompatible build-derived identities refuse without runtime hashing', async () => {
+  const source = setup();
+  for (const releaseIdentity of [undefined, {}, { ...source.releaseIdentity, release_id: 'different' },
+    { ...source.releaseIdentity, code_sha: 'd'.repeat(40) }, { ...source.releaseIdentity, catalog_revision: 'other' },
+    { ...source.releaseIdentity, catalog_snapshot_sha256: 'd'.repeat(64) }, { ...source.releaseIdentity, manifest_sha256: 'invalid' },
+    { ...source.releaseIdentity, secret: 'must-not-export' }]) {
+    const fixture = setup({ releaseIdentity });
+    assert.equal((await fixture.request('/.well-known/catalog-release.json')).status, 503);
+    assert.equal(fixture.calls.length, 0);
+  }
 });

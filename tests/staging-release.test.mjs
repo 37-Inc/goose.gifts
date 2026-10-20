@@ -8,6 +8,21 @@ import path from 'node:path';
 import test from 'node:test';
 import { verifyFeedPlan, verifySnapshotDigest } from '../scripts/staging/verify-release.mts';
 import { createStaticFeedPlan } from '../workers/site/feed.ts';
+import { createReleaseIdentity, verifyReleaseIdentity } from '../scripts/staging/release-identity.mts';
+
+test('deployed identity binds the exact manifest bytes without a self-referential checksum', () => {
+  const manifest = { releaseId: 'r1-code', codeSha: 'a'.repeat(40), catalogRevision: 'r1',
+    catalogSnapshotSha256: 'b'.repeat(64), checksums: { '/index.html': 'c'.repeat(64) } };
+  const bytes = Buffer.from(JSON.stringify(manifest) + '\n');
+  const identity = createReleaseIdentity(bytes);
+  assert.deepEqual(Object.keys(identity), ['release_id', 'code_sha', 'catalog_revision', 'catalog_snapshot_sha256', 'manifest_sha256']);
+  verifyReleaseIdentity(bytes, identity);
+  assert.throws(() => verifyReleaseIdentity(bytes, { ...identity, code_sha: 'd'.repeat(40) }), /exact manifest bytes/);
+  assert.throws(() => verifyReleaseIdentity(bytes, { ...identity, private_field: 'not public' }), /exact manifest bytes/);
+  assert.throws(() => verifyReleaseIdentity(Buffer.from(JSON.stringify(manifest)), identity), /exact manifest bytes/);
+  manifest.checksums['/index.html'] = 'e'.repeat(64);
+  assert.throws(() => verifyReleaseIdentity(Buffer.from(JSON.stringify(manifest) + '\n'), identity), /exact manifest bytes/);
+});
 
 test('release rejects snapshot changes even when catalog revision is unchanged', () => {
   const snapshot = { catalogRevision: 'same-revision', products: [{ title: 'Verified title' }] };

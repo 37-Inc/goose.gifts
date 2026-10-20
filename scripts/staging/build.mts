@@ -5,6 +5,7 @@ import path from 'node:path';
 import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { createStaticRoutes } from '../../static-site/lib/asset-routes.ts';
 import { createStaticFeedPlan } from '../../workers/site/feed.ts';
+import { createReleaseIdentity } from './release-identity.mts';
 
 const root = path.resolve(import.meta.dirname, '../..');
 const output = path.join(root, 'static-site/out');
@@ -43,7 +44,9 @@ const manifest = {
   vectorSyncWatermark: 0, priorReleaseId: null,
   checksums, routes,
 };
-await fs.writeFile(path.join(generated, 'asset-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
+await fs.writeFile(path.join(generated, 'asset-manifest.json'), manifestBytes);
+await fs.writeFile(path.join(generated, 'release-identity.json'), `${JSON.stringify(createReleaseIdentity(manifestBytes))}\n`);
 console.log(JSON.stringify({ releaseId: manifest.releaseId, dataKind: snapshot.dataKind,
   productCount: manifest.productCount, assets: files.length, guardedRoutes: Object.keys(routes).length,
   nextExpiry: manifest.nextExpiry }));

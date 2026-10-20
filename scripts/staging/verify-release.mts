@@ -7,6 +7,7 @@ import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import type { CatalogSnapshot, SiteAssetManifest } from '../../lib/catalog/types.ts';
 import { createStaticRoutes } from '../../static-site/lib/asset-routes.ts';
 import { createStaticFeedPlan } from '../../workers/site/feed.ts';
+import { verifyReleaseIdentity } from './release-identity.mts';
 
 export function verifySnapshotDigest(bytes: Uint8Array, expected: string): void {
   if (createHash('sha256').update(bytes).digest('hex') !== expected)
@@ -22,7 +23,9 @@ async function main() {
   const root = path.resolve(import.meta.dirname, '../..');
   const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
   if (git('status', '--porcelain')) throw new Error('Commit the reviewed source before deploying a staging release');
-  const manifest: SiteAssetManifest = JSON.parse(await fs.readFile(path.join(root, 'build/stupid-gifts/asset-manifest.json'), 'utf8'));
+  const manifestBytes = await fs.readFile(path.join(root, 'build/stupid-gifts/asset-manifest.json'));
+  const manifest: SiteAssetManifest = JSON.parse(manifestBytes.toString('utf8'));
+  verifyReleaseIdentity(manifestBytes, JSON.parse(await fs.readFile(path.join(root, 'build/stupid-gifts/release-identity.json'), 'utf8')));
   const snapshotBytes = await fs.readFile(path.join(root, 'build/stupid-gifts/catalog.snapshot.json'));
   const snapshot = validateCatalogSnapshot(JSON.parse(snapshotBytes.toString('utf8')));
   verifySnapshotDigest(snapshotBytes, manifest.catalogSnapshotSha256);

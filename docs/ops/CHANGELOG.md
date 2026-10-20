@@ -195,6 +195,19 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-19 late evening [owner+claude] — Extend protected migration and publishing proof
+
+- PR #190 merged as `7b73ab7`; rebuilt merged source is live only on the
+  authenticated Cloudflare staging hostname. Normal Goose production remained
+  healthy. The bounded vertical-slice Bead is closed; full migration stays open.
+- Proved native PG17/pgvector recovery of all 11,921 rows and 3,492 vectors,
+  and imported/reconciled 3,767 maintenance-history records into staging.
+  Repeat imports are safe; no source database writes or public cutover.
+- Added fenced publication intent/completion, exact manifest identity
+  readback, bounded browse shards and a lazy Random pool. Real recurring
+  publishing, the remaining timestamp mapping, full catalog/search parity,
+  show curation and final provider gates remain open.
+
 ### 2026-10-19 late evening [owner+claude] — Verify the protected Cloudflare migration slice
 
 - Exported and checksum-verified all 13 source tables and 3,492 original vectors;

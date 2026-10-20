@@ -1,25 +1,28 @@
 import { ProductImage } from "@/components/ProductImage";
 import type { PublicCatalogProduct } from "../../lib/catalog/types";
+import type { CatalogCard } from "../lib/card-shard";
 import { isIllustrative } from "../lib/selection";
 
 export function ProductCard({
   product,
   lead = false,
 }: {
-  product: PublicCatalogProduct;
+  product: PublicCatalogProduct | CatalogCard;
   lead?: boolean;
 }) {
+  const illustrative =
+    "illustrative" in product ? product.illustrative : isIllustrative(product);
   return (
     <article className={`product-card ${lead ? "lead-card" : ""}`}>
       <a
-        className={`product-art${isIllustrative(product) ? "" : " retailer-art"}`}
+        className={`product-art${illustrative ? "" : " retailer-art"}`}
         href={`/gifts/${product.slug}`}
         aria-label={`View ${product.title}`}
       >
         <ProductImage
           imageUrl={product.imageUrl}
           alt={
-            isIllustrative(product)
+            illustrative
               ? `Original illustration for a fictional ${product.title}`
               : product.title
           }
@@ -34,7 +37,7 @@ export function ProductCard({
       </a>
       <div className="card-copy">
         <p className="eyebrow">
-          {isIllustrative(product)
+          {illustrative
             ? "Illustrative fixture · not for sale"
             : "The collection"}
         </p>
@@ -45,7 +48,7 @@ export function ProductCard({
         </h2>
         <p>{product.wittyDescription || product.description}</p>
         <a className="text-action" href={`/gifts/${product.slug}`}>
-          {isIllustrative(product) ? "Explore the example" : "View gift"}{" "}
+          {illustrative ? "Explore the example" : "View gift"}{" "}
           <span aria-hidden="true">↗</span>
         </a>
       </div>

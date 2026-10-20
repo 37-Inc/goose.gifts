@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
 import { createStaticRoutes } from "../static-site/lib/asset-routes.ts";
+import { createBrowseRelease } from "../static-site/lib/browse.ts";
 import { guides, selectGuideProducts } from "../static-site/lib/guides.ts";
 import {
   directoryPages,
@@ -130,7 +131,14 @@ test(
     const changed = structuredClone(exportSnapshot);
     const related = changed.products[Math.min(2, changed.products.length - 1)];
     related.eligibleUntil = "2026-10-21T00:00:00.000Z";
-    const routes = createStaticRoutes(changed, files(new URL("out/", root)));
+    const oldVersion = createBrowseRelease(exportSnapshot).version;
+    const version = createBrowseRelease(changed).version;
+    const routes = createStaticRoutes(
+      changed,
+      files(new URL("out/", root)).map((file) =>
+        file.replace(`/catalog/${oldVersion}/`, `/catalog/${version}/`),
+      ),
+    );
     assert.equal(
       routes[`/gifts/${changed.products[0].slug}`].eligibleUntil,
       related.eligibleUntil,
@@ -218,6 +226,41 @@ test(
   },
 );
 test(
+  "initial browse/Random payloads stay small and their public JSON matches the release",
+  { skip: !fs.existsSync(new URL("out/index.html", root)) },
+  () => {
+    const release = createBrowseRelease(exportSnapshot);
+    const home = fs.readFileSync(new URL("out/index.html", root), "utf8");
+    const random = fs.readFileSync(
+      new URL("out/random-gift.html", root),
+      "utf8",
+    );
+    const initial = new Set(
+      [...release.opening, ...release.feed.initial].map((p) => p.slug),
+    );
+    for (const product of exportSnapshot.products) {
+      assert.equal(
+        home.includes(`href="/gifts/${product.slug}"`),
+        initial.has(product.slug),
+      );
+      assert.equal(
+        random.includes(product.slug),
+        product.slug === release.random.initial?.slug,
+      );
+      assert.equal((home + random).includes(product.affiliateUrl), false);
+    }
+    assert.doesNotMatch(
+      home + random,
+      /affiliateUrl|editorialWriteup|sourceFacts|qualityScore/,
+    );
+    for (const shard of release.shards)
+      assert.deepEqual(
+        JSON.parse(fs.readFileSync(new URL(`out${shard.path}`, root), "utf8")),
+        shard.payload,
+      );
+  },
+);
+test(
   "export has crawlable ordinary links, no analytics or product data in immutable JS",
   { skip: !fs.existsSync(new URL("out/index.html", root)) },
   () => {
@@ -286,7 +329,7 @@ test(
         random
           .replace(/<[^>]*>/g, "")
           .includes(
-            `${exportSnapshot.products.length} gifts in this versioned pool`,
+            `${Math.min(48, exportSnapshot.products.length)} gifts in this versioned pool`,
           ),
       );
       for (const guide of guides) {

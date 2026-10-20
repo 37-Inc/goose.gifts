@@ -113,3 +113,38 @@ content remain separate readiness gates.
 - Real-cohort export/TypeScript and all 28 focused tests passed again.
   Screenshots: `stupid-gifts-home-short-desktop.png`,
   `stupid-gifts-home-tall-desktop.png`, `stupid-gifts-home-mobile-unchanged.png`.
+
+## Lazy static browse shards — October 20 UTC
+
+- Kept the already-bounded three-card opening; added at most nine SSR browse
+  cards below search and an explicit 24-card More button. Random now sends one
+  initial card and lazily fetches its existing bounded 48-card pool on first spin.
+  No automatic shard fetch, infinite-scroll system or browser storage was added.
+- Card-only JSON is deterministically content-addressed from the public display
+  projection and format/bounds. It excludes retailer URLs, prices, long editorial,
+  private facts and internal catalog fields. Finite Next route handlers export it
+  directly; every exact JSON route is manifest-guarded at its own earliest expiry.
+- The opt-in 73-record owned-fixture export test passed 8/8: initial Home HTML/RSC
+  stops at 12 records, Random at one, all emitted JSON matches the source projection,
+  each shard has a safe fallback, and fixture values are absent from immutable JS.
+  The temporary input is removed; no real content is turned into synthetic fixtures.
+- Playwright large-fixture browsing: initial 3 hero + 9 feed cards, zero shard
+  requests. Manual loads produced 33/57/70 feed cards, three requests total,
+  70 unique ordinary product links, and no More button at the end. Random began
+  with one card/zero requests, spun 0 → 29 → 20, and fetched its pool only once.
+- Mocked safe-unavailable JSON removed the feed/Random cards and displayed an
+  explicit fresh-look/browse state, not healthy empty results. Unit tests also
+  cover cancellation transport, response-parsing across expiry, malformed/mixed
+  revisions, extra fields, duplicate identities and empty source snapshots.
+- Restored the private four-ready-row cohort. Its Home has three hero + one lower
+  card; Random begins with one card, then one four-card pool fetch. Canonical links
+  changed together with the selection, without opening a retailer. At 390px there
+  is no overflow and the hero action is unchanged at 591px; 1280 × 720 remains
+  unchanged. Both new feed compositions were visually inspected; no console errors.
+- Real-cohort export/TypeScript, 36 focused checks and scoped ESLint passed. The
+  opt-in build check is skipped in the normal suite and run separately above.
+  Historical shard retention through cache lifetime is pending publishing work;
+  unavailable old-release URLs fail explicitly, and no content expiry is extended.
+
+Screenshots outside source: `stupid-gifts-shards-real-{desktop,mobile}.png` and
+`stupid-gifts-shards-feed-{desktop,mobile}.png`.

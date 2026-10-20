@@ -4,6 +4,7 @@ import type {
 } from "../../lib/catalog/types";
 import { guides, selectGuideProducts } from "./guides";
 import { directoryPages, directoryPath } from "./directory";
+import { createBrowseRelease } from "./browse";
 
 type RoutePolicy = Omit<CatalogAssetRoute, "assetPath"> & {
   indexable: boolean;
@@ -61,6 +62,15 @@ export function createStaticRoutes(
   };
   policies["/howie"] = { ...catalog, eligibleUntil: null, indexable: false };
   policies["/preview/presentation"] = { ...catalog, indexable: false };
+  for (const shard of createBrowseRelease(snapshot).shards)
+    policies[shard.path] = {
+      ...catalog,
+      assetPath: shard.path,
+      safeAssetPath: "/safe/catalog.json",
+      eligibleUntil: shard.eligibleUntil,
+      state: shard.payload.status === "ready" ? "ready" : "held",
+      indexable: false,
+    };
   for (const product of snapshot.products) {
     const displayed = [
       product,
@@ -99,7 +109,8 @@ export function createStaticRoutes(
     )
       continue;
     let pathname: string;
-    if (/^\/(?:index\.(?:html|txt)|__next\.[^/]+\.txt)$/.test(assetPath))
+    if (policies[assetPath]) pathname = assetPath;
+    else if (/^\/(?:index\.(?:html|txt)|__next\.[^/]+\.txt)$/.test(assetPath))
       pathname = "/";
     else if (assetPath.includes("/__next."))
       pathname = assetPath.slice(0, assetPath.indexOf("/__next."));
