@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import {
   catalogRunItem,
+  createPostgresCatalogTelemetryStore,
   createRunItemCollector,
   createUsageLedger,
   finalizeUsageLedger,
@@ -16,9 +19,115 @@ import {
   redactTelemetryText,
   safeCatalogConfig,
   sanitizeTelemetryValue,
+  startCatalogRun,
+  finishCatalogRun,
+  insertCatalogRunItems,
+  loadCatalogRun,
+  loadRecentCatalogRuns,
 } from '../scripts/ops/catalog-telemetry.mjs';
 import { splitMigrationStatements } from '../scripts/ops/apply-catalog-telemetry-migration.mjs';
 import { parseArgs as parseReportArgs } from '../scripts/ops/catalog-report.mjs';
+
+// Exact query bytes captured before the storage extraction at e082ba82.
+const TELEMETRY_SQL = {
+  start: '1483ff006c96d0bd53520c42e83e973496b45c2a8a9afa030f2354c132bd0a0a',
+  finish: '502fd1b2d69d6d0fc40eff798ef191c12775d81fd823267ae45fc221c193ea13',
+  appendOne: 'bb5b4f0bb01d9e8cedff22063c8956f0802ab0f8083059d21134b8a43ee28ac8',
+  appendFifty: '0c3a9f881b7403c4e3f761cded1c9393bae0fa7f1d0b136a2232016932a34d97',
+  loadRun: '15fc0f9df13e8affb7a2207bb4d0daa6a4d8d01f9513daad09ef63b5c83cdcd4',
+  loadItems: '207160d91427a2897571036e9cfc3daa8f18043ca4918756bbf3939a147a3974',
+  recent: 'a6e78f578601a2725debe3638d23f8077c5753abfc5e0fffa591f823b2dc16e5',
+};
+
+test('Postgres telemetry store preserves every SQL byte, parameter order and read result', async () => {
+  const calls = [];
+  let rows = [{ id: 'fixture-run' }];
+  const store = createPostgresCatalogTelemetryStore({ query: async (text, values) => {
+    calls.push({ text, values }); return { rows, rowCount: 1 };
+  } });
+  assert.ok(Object.isFrozen(store)); assert.equal(calls.length, 0);
+  const check = (name, values, call = calls.at(-1)) => {
+    assert.equal(createHash('sha256').update(call.text).digest('hex'), TELEMETRY_SQL[name], name);
+    assert.deepEqual(call.values, values, name);
+  };
+  assert.equal(await store.startCatalogRun({ id: 'fixture-run', mode: 'weekly', trigger: 'scheduled', dryRun: true,
+    gitSha: 'fixture-sha', config: { maxNew: 5, apiKey: 'not-persisted' } }), 'fixture-run');
+  check('start', ['fixture-run', 'catalog-telemetry-v2', 'weekly', 'scheduled', true, 'fixture-sha', '{"maxNew":5}']);
+  await store.startCatalogRun({ id: 'fixture-run', gitSha: 'fixture-sha' });
+  check('start', ['fixture-run', 'catalog-telemetry-v2', 'catalog', 'manual', false, 'fixture-sha', '{}']);
+  await store.finishCatalogRun('fixture-run', { status: 'partial', counts: { selected: 1, token: 'secret' },
+    timingsMs: { provider: 7 }, usage: { estimatedCostUsd: .125, inputTokens: 12 },
+    warnings: [{ message: 'authorization=private' }], error: new Error('password=private') });
+  check('finish', ['fixture-run', 'partial', '{"selected":1,"token":"[REDACTED]"}', '{"provider":7}',
+    '{"estimatedCostUsd":0.125,"inputTokens":12}', .125, '[{"message":"authorization=[REDACTED]"}]', 'password=[REDACTED]']);
+  await store.finishCatalogRun('fixture-run');
+  check('finish', ['fixture-run', 'completed', '{}', '{}', '{}', null, '[]', null]);
+  const item = { id: 'item-1', phase: 'revalidation', stage: 'selection', decision: 'selected', reasonCode: null,
+    productId: 'product-1', externalId: 'external-1', source: 'amazon', sourceQuery: 'fixture', title: 'Fixture title',
+    imageUrl: 'https://example.invalid/image', affiliateUrl: 'https://example.invalid/link', canonicalPath: '/gifts/fixture',
+    winnerProductId: null, sourceFactsHash: 'facts', editorialSourceHash: 'editorial', requiresManualReview: false,
+    nextAction: null, details: { token: 'secret', inputTokens: 12 } };
+  const values = id => [id, 'fixture-run', item.phase, item.stage, item.decision, null, item.productId,
+    item.externalId, item.source, item.sourceQuery, item.title, item.imageUrl, item.affiliateUrl, item.canonicalPath,
+    null, 'facts', 'editorial', false, null, '{"token":"[REDACTED]","inputTokens":12}'];
+  await store.insertCatalogRunItems('fixture-run', [item]); check('appendOne', values('item-1'));
+  const before = calls.length;
+  await store.insertCatalogRunItems('fixture-run', []); assert.equal(calls.length, before);
+  await store.insertCatalogRunItems('fixture-run', Array.from({ length: 51 }, (_, i) => ({ ...item, id: `batch-${i}` })));
+  check('appendFifty', Array.from({ length: 50 }, (_, i) => values(`batch-${i}`)).flat(), calls.at(-2));
+  check('appendOne', values('batch-50'));
+  assert.deepEqual(await store.loadCatalogRun('fixture-run'), { run: rows[0], items: rows });
+  check('loadRun', ['fixture-run'], calls.at(-2)); check('loadItems', ['fixture-run']);
+  assert.equal(await store.loadRecentCatalogRuns(4), rows); check('recent', [4]);
+  for (const [limit, expected] of [[undefined, 10], [0, 10], [-1, 1], [101, 100], ['5', 5]]) {
+    await store.loadRecentCatalogRuns(limit); check('recent', [expected]);
+  }
+  rows = [];
+  assert.equal(await store.loadCatalogRun('missing'), null); check('loadRun', ['missing']);
+});
+
+test('telemetry finalization guards and driver errors retain their original behavior', async () => {
+  const store = createPostgresCatalogTelemetryStore({ query: async () => ({ rows: [], rowCount: 0 }) });
+  await assert.rejects(store.finishCatalogRun('missing'), /finalization updated 0 rows/);
+  const failure = new Error('Synthetic query failure');
+  const broken = createPostgresCatalogTelemetryStore({ query: async () => { throw failure; } });
+  await assert.rejects(broken.loadRecentCatalogRuns(), error => error === failure);
+  assert.throws(() => createPostgresCatalogTelemetryStore({ query: null }), /function/);
+});
+
+test('public telemetry API supports an explicit run-owned store without selecting a driver', async () => {
+  const calls = [];
+  const store = Object.fromEntries(['startCatalogRun', 'finishCatalogRun', 'insertCatalogRunItems', 'loadCatalogRun', 'loadRecentCatalogRuns']
+    .map(name => [name, async (...args) => { calls.push([name, ...args]); return name; }]));
+  const options = { id: 'owned-run', mode: 'weekly' }, items = [{ id: 'owned-item' }];
+  assert.equal(await startCatalogRun(options, store), 'startCatalogRun');
+  assert.equal(await finishCatalogRun('owned-run', options, store), 'finishCatalogRun');
+  assert.equal(await insertCatalogRunItems('owned-run', items, store), 'insertCatalogRunItems');
+  assert.equal(await loadCatalogRun('owned-run', store), 'loadCatalogRun');
+  assert.equal(await loadRecentCatalogRuns(5, store), 'loadRecentCatalogRuns');
+  assert.deepEqual(calls, [['startCatalogRun', options], ['finishCatalogRun', 'owned-run', options],
+    ['insertCatalogRunItems', 'owned-run', items], ['loadCatalogRun', 'owned-run'], ['loadRecentCatalogRuns', 5]]);
+});
+
+test('pure telemetry helpers and store construction never import the Postgres driver', () => {
+  const script = `
+    import assert from 'node:assert/strict';
+    import {register} from 'node:module';
+    register('data:text/javascript,'+encodeURIComponent(
+      "export async function resolve(specifier,context,next){if(specifier==='@vercel/postgres')throw new Error('driver deliberately blocked');return next(specifier,context);}"
+    ),import.meta.url);
+    const api=await import('./scripts/ops/catalog-telemetry.mjs');
+    api.safeCatalogConfig({maxNew:1}); api.catalogRunItem({id:'fixture'});
+    const ledger=api.createUsageLedger(); api.finalizeUsageLedger(ledger);
+    const store=api.createPostgresCatalogTelemetryStore();
+    const spy=api.createPostgresCatalogTelemetryStore({query:async()=>({rows:[]})});
+    assert.deepEqual(await api.loadRecentCatalogRuns(1,spy),[]);
+    await assert.rejects(store.loadRecentCatalogRuns(1),/driver deliberately blocked/);
+  `;
+  execFileSync(process.execPath, ['--input-type=module', '-e', script], {
+    cwd: new URL('../', import.meta.url), stdio: 'pipe',
+  });
+});
 
 test('provider usage aggregates exact tokens and dated public price estimates', () => {
   const ledger = createUsageLedger();
