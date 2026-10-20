@@ -2,12 +2,14 @@
 
 import type { createClientAnalytics } from "../../lib/client-analytics";
 import type { ProductAnalyticsSource } from "../../lib/analytics-contract";
+import { createSessionAttribution } from "./analytics-attribution";
 
 type Analytics = ReturnType<typeof createClientAnalytics>;
 let catalogRelease = false;
 let client: Promise<Analytics> | undefined;
 let pageViewed = false;
 const impressions = new Set<string>();
+const getAttribution = createSessionAttribution(isStaticAnalyticsAllowed);
 
 /** Gate before importing any provider code, and again before each event. */
 export function isStaticAnalyticsAllowed(): boolean {
@@ -29,19 +31,7 @@ function withAnalytics(send: (analytics: Analytics) => void) {
       createClientAnalytics({
         isAllowed: isStaticAnalyticsAllowed,
         pageOrigin: "https://stupid.gifts",
-        // No local/session storage, session identifiers, landing URLs or q value.
-        // The original contract is the only property sanitizer.
-        getAttribution: () => {
-          const params = new URLSearchParams(window.location.search);
-          let referrerHost: string | undefined;
-          try { referrerHost = new URL(document.referrer).hostname; } catch {}
-          return {
-            utmSource: params.get("utm_source") || undefined,
-            utmMedium: params.get("utm_medium") || undefined,
-            utmCampaign: params.get("utm_campaign") || undefined,
-            referrerHost,
-          };
-        },
+        getAttribution,
       }),
     ).catch(() => {
       client = undefined;

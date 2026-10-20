@@ -40,7 +40,13 @@ unknown-host, staging and synthetic-fixture pages remain off. DNT/GPC is checked
 before loading and dispatch, including deferred provider initialization. The
 adapter retains Goose's GA4/Ads destinations and existing PostHog configuration;
 it reuses the original contract sanitizer and disables broad capture. Static
-attribution is ephemeral, without Goose's storage/session key. Explicit events
+attribution uses the tab-lifetime `stupid.gifts.analytics-attribution.v1`
+sessionStorage key, only after the same build/host/catalog/DNT/GPC gates. It
+contains only the original contract's sanitized traffic source, medium and
+campaign; no URL, query, referrer path, session ID or term/content is stored.
+Ordinary internal navigation keeps the original source; a new explicit coarse
+campaign can replace it. Invalid/blocked storage never interrupts navigation.
+Goose's original attribution behavior and key are unchanged. Explicit events
 cover page views, completed current searches, rendered lists (deduplicated),
 canonical card selections, successful Random spins and chosen retailer links.
 Search text, copy, full URLs and private fields are not event properties. Native

@@ -17,18 +17,27 @@ function load(relative, globals, require) {
     URL, URLSearchParams, console, ...globals });
   return commonJs.exports;
 }
-function environment(hostname = "stupid.gifts", enabled = "true") {
+const ATTRIBUTION_KEY = "stupid.gifts.analytics-attribution.v1";
+function environment(hostname = "stupid.gifts", enabled = "true", storage = new Map()) {
   const calls = [], scripts = [], captures = [], listeners = new Set();
   const posthog = {
     init: (_key, options) => { posthog.options = options; },
     capture: (...args) => captures.push(args),
   };
+  const storageCalls = { access: 0, read: 0, write: 0 };
   const window = {
     location: { hostname, protocol: "https:", pathname: "/gifts/safe-product",
       search: "?q=private+search&utm_source=Pinterest&utm_medium=social&utm_campaign=fall&utm_term=private-term" },
     gtag: (...args) => calls.push(args),
     get localStorage() { throw new Error("Must not read storage"); },
-    get sessionStorage() { throw new Error("Must not read storage"); },
+    get sessionStorage() {
+      storageCalls.access++;
+      if (!storage) throw new Error("Storage blocked");
+      return {
+        getItem: (key) => { storageCalls.read++; return storage.get(key) || null; },
+        setItem: (key, value) => { storageCalls.write++; storage.set(key, value); },
+      };
+    },
   };
   const navigator = {};
   class Element {}
@@ -57,12 +66,17 @@ function environment(hostname = "stupid.gifts", enabled = "true") {
     if (name === "posthog-js") return { default: posthog };
     throw new Error(`Unexpected dependency ${name}`);
   });
+  const attribution = load("../static-site/lib/analytics-attribution.ts", globals, (name) => {
+    assert.equal(name, "../../lib/analytics-contract");
+    return contract;
+  });
   const analytics = load("../static-site/lib/analytics.ts", globals, (name) => {
+    if (name === "./analytics-attribution") return attribution;
     assert.equal(name, "../../lib/client-analytics");
     adapterLoads++;
     return shared;
   });
-  return { ...globals, card, calls, captures, scripts, listeners, posthog, shared, analytics,
+  return { ...globals, card, calls, captures, scripts, listeners, posthog, shared, analytics, storage, storageCalls,
     attributionReads: () => attributionReads, adapterLoads: () => adapterLoads,
     click(outbound = false) {
       const link = new Element();
@@ -129,6 +143,7 @@ test("static staging, fixtures, unknown hosts, local and browser privacy signals
     assert.equal(env.calls.length + env.scripts.length + env.captures.length, 0);
     assert.equal(env.listeners.size, 0);
     assert.equal(env.attributionReads(), 0);
+    assert.equal(env.storageCalls.access, 0, "gated pages must not access tab storage");
   }
 });
 
@@ -181,7 +196,10 @@ test("privacy rechecked after deferred adapter/provider import; SSR remains off"
   await flush();
   assert.equal(env.calls.length + env.scripts.length + env.captures.length, 0);
   assert.equal(env.posthog.options, undefined);
-  const server = load("../static-site/lib/analytics.ts", { process: { env: {} } }, () => { throw new Error("No server import"); });
+  const server = load("../static-site/lib/analytics.ts", { process: { env: {} } }, (name) => {
+    assert.equal(name, "./analytics-attribution");
+    return { createSessionAttribution: () => () => ({}) };
+  });
   assert.equal(server.isStaticAnalyticsAllowed(), false);
   const deferred = environment("goose.gifts");
   deferred.shared.capturePageView("/"); // Google is synchronous; PostHog import is deferred.
@@ -189,4 +207,91 @@ test("privacy rechecked after deferred adapter/provider import; SSR remains off"
   await flush();
   assert.equal(deferred.posthog.options, undefined);
   assert.equal(deferred.captures.length, 0);
+});
+
+test("tab-scoped sanitized campaign survives ordinary navigation through the retailer event", async () => {
+  const storage = new Map();
+  const landing = environment("stupid.gifts", "true", storage);
+  landing.window.location.pathname = "/";
+  landing.window.location.search = "?utm_source=Pinterest%20%3Cscript%3E&utm_medium=social&utm_campaign=show%20episode&q=private&utm_term=private-term&utm_content=private-copy";
+  landing.analytics.startStaticAnalytics(true);
+  await flush();
+  const expected = { traffic_source: "Pinterest_script", traffic_medium: "social", traffic_campaign: "show_episode" };
+  assert.deepEqual(JSON.parse(storage.get(ATTRIBUTION_KEY)), expected);
+  assert.equal(storage.size, 1);
+
+  // A fresh module/document, sharing only the browser tab's sessionStorage.
+  const product = environment("stupid.gifts", "true", storage);
+  product.window.location.search = "";
+  product.document.referrer = "https://stupid.gifts/?q=private&email=private";
+  product.analytics.startStaticAnalytics(true);
+  await flush();
+  product.click(true);
+  await flush();
+  for (const name of ["page_view", "conversion_event_outbound_click"]) {
+    const properties = product.calls.find((call) => call[1] === name)[2];
+    assert.deepEqual(Object.fromEntries(Object.entries(properties).filter(([key]) => key.startsWith("traffic_"))), expected);
+  }
+  assert.doesNotMatch(JSON.stringify([...storage, product.calls, product.captures]), /private|stupid\.gifts\/?\?|utm_term|utm_content|sessionId|landingPage/);
+
+  const newCampaign = environment("stupid.gifts", "true", storage);
+  newCampaign.window.location.search = "?utm_source=howie_mandel_does_stuff&utm_medium=podcast&utm_campaign=episode_2026_10_20";
+  newCampaign.document.referrer = "https://stupid.gifts/gifts/safe-product";
+  newCampaign.analytics.startStaticAnalytics(true);
+  await flush();
+  assert.deepEqual(JSON.parse(storage.get(ATTRIBUTION_KEY)), { traffic_source: "howie_mandel_does_stuff",
+    traffic_medium: "podcast", traffic_campaign: "episode_2026_10_20" });
+
+  const externalStorage = new Map();
+  const external = environment("stupid.gifts", "true", externalStorage);
+  external.window.location.search = "";
+  external.document.referrer = "https://pinterest.com/private-pin?email=private";
+  external.analytics.startStaticAnalytics(true);
+  await flush();
+  const internal = environment("stupid.gifts", "true", externalStorage);
+  internal.window.location.search = "";
+  internal.document.referrer = "https://stupid.gifts/random-gift";
+  internal.analytics.startStaticAnalytics(true);
+  await flush();
+  assert.equal(internal.calls.find((call) => call[1] === "page_view")[2].traffic_source, "pinterest.com");
+  assert.deepEqual(JSON.parse(externalStorage.get(ATTRIBUTION_KEY)), { traffic_source: "pinterest.com" });
+});
+
+test("internal referrers are not acquisition sources; junk and blocked storage stay safe", async () => {
+  const junk = ["{", "null", "[]", JSON.stringify({ traffic_source: "Pinterest", q: "private" }),
+    JSON.stringify({ traffic_source: "Unclean <script>" }), JSON.stringify({ traffic_source: 123 }),
+    JSON.stringify({ traffic_source: "x".repeat(101) })];
+  for (const value of junk) {
+    const storage = new Map([[ATTRIBUTION_KEY, value]]);
+    const env = environment("stupid.gifts", "true", storage);
+    env.window.location.search = "?q=private&utm_term=private";
+    env.document.referrer = "https://www.stupid.gifts/private?email=private";
+    env.analytics.startStaticAnalytics(true);
+    await flush();
+    assert.equal(env.calls.find((call) => call[1] === "page_view")[2].traffic_source, "direct");
+    assert.deepEqual(JSON.parse(storage.get(ATTRIBUTION_KEY)), { traffic_source: "direct" });
+  }
+  const blocked = environment("stupid.gifts", "true", null);
+  blocked.analytics.startStaticAnalytics(true);
+  await flush();
+  blocked.window.location.search = "";
+  blocked.document.referrer = "https://stupid.gifts/";
+  blocked.click(true);
+  await flush();
+  assert.equal(blocked.calls.find((call) => call[1] === "conversion_event_outbound_click")[2].traffic_source, "Pinterest");
+  assert.equal(blocked.listeners.size, 1, "blocked storage must not disable ordinary native links");
+  const before = blocked.storageCalls.access;
+  blocked.navigator.globalPrivacyControl = true;
+  blocked.analytics.captureStaticSearch(1);
+  blocked.click(true);
+  await flush();
+  assert.equal(blocked.storageCalls.access, before, "privacy opt-out must prevent further storage access");
+  const readOnly = environment("stupid.gifts", "true", {
+    get: () => null, set: () => { throw new Error("Storage quota unavailable"); },
+  });
+  readOnly.analytics.startStaticAnalytics(true);
+  await flush();
+  readOnly.click(true);
+  await flush();
+  assert.equal(readOnly.calls.find((call) => call[1] === "conversion_event_outbound_click")[2].traffic_source, "Pinterest");
 });
