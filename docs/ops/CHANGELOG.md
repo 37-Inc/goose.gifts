@@ -204,6 +204,7 @@ share-card endpoint and parity tests; ordinary product URLs/previews remain.
 Updated deletion records and added a small tested metrics filter so historical
 creative publication events cannot cause requests for deleted Pins. The frozen
 v11 cohort, schedules, current site routes and providers are unchanged.
+PR **#188**; 16 tests, lint/build/diff checks and live 28-Pin metrics readback pass.
 
 ### 2026-10-19 late evening [owner+claude] — Narrow legacy migration scope
 
