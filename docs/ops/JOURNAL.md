@@ -5,6 +5,57 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Bound full-catalog freezing and share neutral held assets
+
+Reviewed implementations `c8b88cf` (data) and `bd7f6aa` (static), integrated as
+`40c9205` / `d7b3dda`, remove two concrete scale barriers without approving more
+products or raising provider limits. Exact owner-held primary captures are paged,
+CAS writes are packed by actual encoded bytes, and final cohort sealing/queueing
+remains atomic. Previous raw snapshots use the existing expiring 32 MiB blob
+format. Partial writes remain hidden and retries must reconcile exact bytes,
+owner, generation, epoch, cutoff and target counts.
+
+The 3,383-identity/four-ready fixture exercises capture through native promotion,
+queue and replay: 619 mock HTTP requests / 1,229 SQL statements, maximum 509,860
+encoded request bytes, 165,065 response bytes, ten statements and 28 parameters.
+These are test measurements, not provider costs or whole-weekly capacity.
+Only ready products now generate Next pages; held canonical/HTML/RSC aliases
+share neutral safe assets. Actual mixed/all-held/empty builds and browser
+history/mobile hydration pass. A representative four-ready/3,379-held package
+fits 415 files / 14,957,413 bytes. Unknown routes remain 404; no canonical,
+Product schema or retailer CTA leaks into the shared held page.
+
+Root and adjacent workers reviewed both changes. Root's first combined run
+found obsolete held-renderer tests and stale/concurrently rebuilt export
+artifacts. Test-only corrections `14cafa2` / `cceb215` assert the new neutral
+contract while preserving ready-product assertions; the strict route inventory
+guard was not weakened. A fresh, serial Node 22 validation is required before
+merge. The earlier combined/build runs used the ambient Node 26 and are not
+being represented as supported-runtime acceptance.
+
+The integrated `d7b3dda` passed another actual disposable Cloudflare rehearsal:
+empty baseline, two owned synthetic products, paged D1 capture/atomic freezing,
+native Vectorize readback, one routine upload/activation, independent live
+publication proof and reopen/replay. Operator runtime was Node 26; Cloudflare
+executed the actual Worker. Receipt
+`protected-publication-with-prior-osY93g/receipt.json` SHA-256
+`2ffe1369c112a3627ebc90e59aa26fd7afcef4447dc94f95363a5e421bce0499`.
+Supervised usage: 561 HTTP operations, 9,098 known D1 rows read / 510 written,
+three vector upserts and 137 vector requests. The deliberate failing batch
+remains one unconfirmed D1 request; CLI-internal HTTP counts are unavailable.
+All three disposable resources were deleted and full inventories reconcile.
+No merchant/model calls, production writes or scheduler changes occurred.
+
+The current long-lived staging checkpoint remains PR #199 / `c82ea01`, Worker
+`9750291a-7ad0-4964-ae66-b109591b65ad`, with four current public products and
+3,383 archived private identities. Its independent publication receipt
+`publication-proof-Vpw7Vz/receipt.json` has SHA-256
+`41a1fddd340afa2b725feda308a6356ea5be2a883100f9d3d8d1eb93c81063cc`;
+`pr199-live-readback.json` separately verifies protected/public routes and exact
+Vercel production source. PR #199 did not install writer migrations or enable
+schedules. Full launch remains open; new `roadmap-lbbz1.4.3` explicitly tracks
+protected hosted persistence, physical retention/purge and global exclusion.
+
 ## 2026-10-20 — Preserve bounded large evidence and reviewed search policy
 
 The follow-on to PR #198 adds private chunked blobs for original native vectors

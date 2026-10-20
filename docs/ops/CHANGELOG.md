@@ -195,6 +195,18 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-20 — Full-catalog bounds and shared held assets [owner+claude]
+
+- Bound exact-owner D1 capture/freezing for the existing private catalog and
+  preserve large previous snapshots with their original hashes/expiry.
+- Export only ready product pages; known held routes share a neutral safe
+  page, keeping the representative 3,383-identity package within existing
+  limits. No new public products or permissions are inferred.
+- Independent two-product Cloudflare publication/replay/cleanup passed at
+  `d7b3dda`; supported-runtime final validation and protected staging follow.
+  Beads `roadmap-lbbz1.4.1` / `.4.2`; hosted persistence/retention remains `.4.3`.
+  Public Goose hosting, schedules and provider accounts remain unchanged.
+
 ### 2026-10-20 [owner+claude] — Keep large publication evidence and search policy exact
 
 Added bounded private chunks for native-vector evidence without changing

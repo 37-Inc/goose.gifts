@@ -3,19 +3,20 @@
 This is an additive, protected Cloudflare preview, not a production cutover.
 The launch spec and `roadmap-lbbz1` remain authoritative.
 
-### Verified checkpoint — October 20, 11:25 UTC
+### Verified checkpoint — October 20, 13:50 UTC
 
-PRs #189–197 are merged. Source `591e2b1d8fc63a653324ce81fe3a3705ffca5894`
+PRs #189–199 are merged. Source `c82ea01e00373a403877be2968f623c503d9b591`
 is independently verified on protected Cloudflare staging and the unchanged
 Goose-branded Vercel production site. Staging has all 3,383 archived product
 identities and maintained operational history, but only four current
 rights-verified public products. Neon remains the production writer.
 
-Storage and vector-delivery adapters passed disposable-provider tests; 464
+Storage, vector delivery and the complete protected publication path passed
+disposable-provider tests; 553
 staging and 88 existing regression tests pass. The 60,000-request local burst
 is not proof of Cloudflare Free-plan capacity. No new scheduler, public DNS
 cutover, paid plan, provider rebrand or decommissioning is active. Full
-publication/runner handoff, search coverage, final delta/recovery and owner
+hosted-runner handoff, search coverage, final delta/recovery and owner
 launch checks remain open; see the sections below and canonical Beads.
 
 ## Build and deployment
@@ -459,9 +460,39 @@ Private original-vector inputs and oversized ordered derived artifacts may use
 32 MiB blobs in at most 128 independently verified 256 KiB chunks. The manifest
 binds original byte length/hash/order; every chunk retains the same original
 observation, rights policy and expiry. Small artifact/checkpoint formats remain
-compatible. This does **not** increase D1 request/batch limits, the 20-ID public
-proof limit, or the current 512 KiB previous-snapshot/approval/rights input
-limits. Full-identity capture/freezing is tracked in `roadmap-lbbz1.4.1`.
+compatible. A reviewed previous snapshot can use the same 32 MiB path, preserving
+its original raw-byte hash and expiry. Approval/rights inputs remain 512 KiB;
+configuration limits, D1 request/batch limits and the 20-ID public proof limit
+are unchanged.
+
+Full private identity capture is paged only under the exact freezing owner,
+generation, epoch and phase, with no pending mutations and primary-only reads.
+Encoded responses and requests are bounded; the final receipt, build queue and
+epoch transition remain one atomic transaction. The unowned reconstruction
+path remains a single fail-closed capture. A representative 3,383-identity /
+four-ready fixture passes capture, freeze, native promotion, queue and replay
+using the actual REST serializer, SQLite transactions and durable accounting.
+Its 619 HTTP / 1,229 SQL operations are mock transport measurements, not provider
+billing or complete weekly throughput acceptance (`roadmap-lbbz1.4.1`).
+
+Only ready product pages are exported. Known held identities and their finite
+HTML/RSC aliases resolve to shared, neutral safe assets: no inherited canonical,
+Product schema, retailer CTA or merchant body. Unknown products still return
+404. Mixed, all-held and empty exports are tested. The representative
+four-ready / 3,379-held package is bounded at 415 files / 14,957,413 bytes,
+without raising the 10,000-file or 128 MiB ceilings. This is an asset-size
+proof, not Cloudflare CPU/load acceptance (`roadmap-lbbz1.4.2`).
+
+Hosted operation remains `roadmap-lbbz1.4.3`, not an authentication-only gate.
+This repository is public; private catalogs, evidence and workspaces must never
+be uploaded as public Actions artifacts/logs. Standard
+[GitHub-hosted runners start on fresh machines](https://docs.github.com/en/actions/concepts/runners/github-hosted-runners),
+so this local durable workspace cannot simply become an unattended hosted job.
+Choose protected persistent storage and a globally serialized execution path;
+implement and test physical body expiry/purge while retaining only the minimal
+control evidence needed to reconcile an already-dispatched activation.
+Current expiry checks block use but do not physically purge stored bodies.
+No new storage service, paid plan, workflow or scheduler is enabled.
 
 Publication configuration may include an explicitly reviewed `semanticSearch`
 policy (`enabled`, `dailyRequestCap`, `dailyTokenCap`). Omission preserves the
