@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtemp, writeFile, readFile, stat, rm } from 'node:fs/promises';
+import { chmod, mkdtemp, writeFile, readFile, stat, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { decodeTextArray, prepareCohort } from '../scripts/staging/prepare-cohort.mts';
@@ -152,6 +152,7 @@ test('CLI writes only a new protected offline package, preserving input bytes an
   assert.notEqual(spawnSync(process.execPath, args, { env: { ...process.env, AMAZON_ASSOCIATE_TAG: TAG } }).status, 0, 'must not overwrite an existing package');
   const unsafe = join(directory, 'unsafe.json');
   await writeFile(unsafe, await readFile(freshPath), { mode: 0o644 });
+  await chmod(unsafe, 0o644); // The unsafe-input test must also work under umask 077.
   const unsafeArgs = args.map((value) => value === freshPath ? unsafe : value === output ? join(directory, 'unsafe-output') : value);
   assert.notEqual(spawnSync(process.execPath, unsafeArgs, { env: { ...process.env, AMAZON_ASSOCIATE_TAG: TAG } }).status, 0);
 });

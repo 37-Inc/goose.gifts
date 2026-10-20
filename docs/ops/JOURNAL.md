@@ -5,6 +5,77 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Protected weekly workspace and concrete publication composition
+
+Three bounded Sol extra-high workers implemented the private run workspace,
+weekly driver and concrete publication executor; root reviewed the combined
+changes and each worker independently reviewed an adjacent boundary. This
+opt-in path does not change the existing scheduled Neon job.
+
+The explicit private config pins account, environment, resources, source SHA,
+input hashes, credential references and retention deadlines. The filesystem
+workspace holds same-host resource/source locks and immutable, hash-linked
+checkpoints and evidence. D1 request reservations persist before dispatch;
+unknown usage is not refunded. Expired merchant bodies cannot be revived by a
+resume. Locks do not claim cross-host isolation, auto-expire or silently permit
+takeover. D1 writer/activation ownership remains authoritative.
+
+The driver calls the existing weekly phases, then waits for separately reviewed
+post-phase cohort approval. The publisher executes the actual static build,
+immutable Worker upload, single non-retried activation request and independent
+deployment/identity/native-vector readback before accepting a publication
+receipt. Publication and weekly telemetry finalization are distinct states.
+Wrangler may internally retry immutable uploads; duplicate matching versions
+remain an operator gate rather than an inferred success.
+
+Composed tests found two real resume faults: canonical checkpoint JSON reordered
+sealed snapshot fields, and the activation SQL compared a reconstructed intent
+with different property order. Ordered artifacts are now stored as opaque JSON
+strings; activation reuses the existing intent encoder without rewriting
+historical rows. No digest, freshness or ownership check was weakened.
+Uncertain phase execution and a corrupt partial build still stop for review;
+they are not advertised as automatically recoverable.
+
+At reviewed source `a64d40e` (PR #198), the integrated suite passed 522 tests
+with nine explicit optional skips; 88 existing regressions, types, lint and
+the production build also passed. Independent final review found no blockers.
+The first actual disposable-provider run reached the version
+upload but did not publish: Cloudflare requires an initial deployment before
+`versions upload`. It made one upload command and zero activation requests.
+The scratch Worker was confirmed absent, the exact D1 database and Vectorize
+index were removed, and starting inventories reconciled. Retain the failed receipt
+`protected-publication-canary-VD8vEn/receipt.json`, SHA-256
+`6ab413da49bc65541b4952ee437bdc276b720c9faca1cc4af1c0ee418ca5ef83`;
+it is not a publication success. The remedy is an independently verified,
+operator-established catalog baseline, not an automatic deploy fallback.
+
+The corrected disposable-provider rehearsal passed with an actual empty
+catalog baseline followed by two owned synthetic products. It exercised all
+twelve migrations, atomic failed-batch rollback, D1 maintenance, native
+Vectorize settlement, reviewed freezing, one immutable upload, one activation,
+independent protected identity/vector readback, an idle writer fence and exact
+workspace reopen/replay without another upload or activation. It made no
+merchant/model or production writes. Supervised usage was 537 HTTP operations,
+with 8,708 known D1 rows read/512 written; the deliberate failed batch remains one
+unconfirmed request, and CLI-internal HTTP counts are unavailable.
+Receipt `protected-publication-with-prior-KgPqlx/receipt.json`, SHA-256
+`8fd0d53ddff0c8e1d50bcf7a8ead12dca30f8b6d894b0388893ebe54a87929b9`.
+All scratch resources were deleted and before/after inventories match.
+
+Earlier attempts separately exposed a genuine zero-product Next export
+failure and an invalid 64-character workers.dev hostname; both are fixed and
+regression-tested. Vectorize also exceeded a one-minute readback window.
+Extending only the bounded read-only wait (not redispatching the mutation or
+raising global request caps) produced exact native-byte proof, including
+negative zero. Failed receipts remain preserved; they are not successes.
+An empty catalog now has no fabricated product slug or merchant schema.
+
+This local composition is not full-catalog, real merchant,
+hosted scheduler, production cutover or cost/headroom acceptance. The bounded
+twenty-ID proof and private artifact size limits still require full-catalog
+capacity work. No new merchant refresh cadence, public DNS, paid plan,
+provider branding or decommissioning decision was made.
+
 ## 2026-10-20 — Bounded REST writer, catalog scans and provider evidence
 
 The next opt-in integration connects the existing maintenance interfaces to

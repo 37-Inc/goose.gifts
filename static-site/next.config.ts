@@ -8,15 +8,19 @@ import type { NextConfig } from "next";
 const { siteSourceMode } = createRequire(import.meta.url)(path.resolve(import.meta.dirname, "lib/site-identity.ts")) as typeof import("./lib/site-identity");
 
 const published = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, "../content/show/published.json"), "utf8")) as unknown[];
+const snapshot = JSON.parse(fs.readFileSync(path.resolve(process.env.CATALOG_SNAPSHOT_PATH
+  || path.resolve(import.meta.dirname, "fixtures/catalog.snapshot.json")), "utf8")) as { products: unknown[]; heldProducts: unknown[] };
+const hasProductRoutes = snapshot.products.length + snapshot.heldProducts.length > 0;
 
 // Deliberately separate from the still-live Vercel app and its build settings.
 const config: NextConfig = {
   output: "export",
   images: { unoptimized: true },
   poweredByHeader: false,
-  // Empty dynamic params are invalid in Next export. No placeholder/draft route
-  // is emitted merely to satisfy it: these files participate only after publish.
-  pageExtensions: ["tsx", "ts", "jsx", "js", ...(published.length ? ["episode.tsx", "episode.ts"] : [])],
+  // Empty dynamic params are invalid in Next export. Omit empty route families
+  // instead of inventing product placeholders or publishing draft episodes.
+  pageExtensions: ["tsx", "ts", "jsx", "js", ...(hasProductRoutes ? ["product.tsx"] : []),
+    ...(published.length ? ["episode.tsx", "episode.ts"] : [])],
   env: {
     // Inline false as well as true, so default builds omit provider chunks.
     NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED:

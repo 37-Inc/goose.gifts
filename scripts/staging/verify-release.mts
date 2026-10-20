@@ -21,8 +21,8 @@ export function verifyFeedPlan(snapshot: CatalogSnapshot, digest: string, plan: 
     throw new Error('Prepared feed changed after the release was built');
 }
 
-export function verifyReleaseContext(value: unknown, manifest: SiteAssetManifest, snapshot: CatalogSnapshot, codeSha: string) {
-  const context = validateBuildContext(value, snapshot, codeSha, manifest.catalogSnapshotSha256);
+export function verifyReleaseContext(value: unknown, manifest: SiteAssetManifest, snapshot: CatalogSnapshot, codeSha: string, now = new Date()) {
+  const context = validateBuildContext(value, snapshot, codeSha, manifest.catalogSnapshotSha256, now);
   if (Object.entries(context).some(([key, field]) => key === 'retainedManifestSha256'
     ? (manifest.retention?.priorManifestSha256 ?? null) !== field : manifest[key as keyof SiteAssetManifest] !== field))
     throw new Error('Release context changed after the release was built');
