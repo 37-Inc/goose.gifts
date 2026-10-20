@@ -177,7 +177,7 @@ test("fetch forwards cancellation and checks expiry after response parsing", asy
   try {
     Date.now = () => clock;
     globalThis.fetch = async (_url, init) => {
-      assert.equal(init.signal, controller.signal);
+      assert.ok(init.signal instanceof AbortSignal);
       return {
         ok: true,
         json: async () => {
@@ -202,6 +202,46 @@ test("fetch forwards cancellation and checks expiry after response parsing", asy
   } finally {
     globalThis.fetch = originalFetch;
     Date.now = originalNow;
+  }
+});
+test("a stalled response body times out promptly and releases caller listeners", async () => {
+  const release = createBrowseRelease(largeFixture());
+  const shard = release.shards[0];
+  const options = expected(release, shard);
+  const originalFetch = globalThis.fetch;
+  const controller = new AbortController();
+  const add = controller.signal.addEventListener.bind(controller.signal);
+  const remove = controller.signal.removeEventListener.bind(controller.signal);
+  let listeners = 0,
+    linked;
+  controller.signal.addEventListener = (...args) => {
+    listeners++;
+    return add(...args);
+  };
+  controller.signal.removeEventListener = (...args) => {
+    listeners--;
+    return remove(...args);
+  };
+  try {
+    globalThis.fetch = async (_url, { signal }) => {
+      linked = signal;
+      return { ok: true, json: () => new Promise(() => {}) };
+    };
+    await assert.rejects(
+      fetchCardShard(shard.path, options, controller.signal, 5),
+      /unavailable/,
+    );
+    assert.equal(linked.aborted, true);
+    assert.equal(listeners, 0);
+    assert.equal(controller.signal.aborted, false);
+    const canceled = fetchCardShard(shard.path, options, controller.signal);
+    await Promise.resolve();
+    controller.abort();
+    await assert.rejects(canceled, { name: "AbortError" });
+    assert.equal(linked.aborted, true);
+    assert.equal(listeners, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 });
 

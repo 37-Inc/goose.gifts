@@ -163,11 +163,39 @@ export async function fetchCardShard(
   path: string,
   expected: ShardExpectation,
   signal: AbortSignal,
+  timeoutMs = 10_000,
 ): Promise<CardShard> {
-  const response = await fetch(path, { signal });
-  if (!response.ok) unavailable();
-  return validateCardShard(await response.json(), {
-    ...expected,
-    now: Date.now(),
+  if (signal.aborted) throw signal.reason;
+  const abort = new AbortController();
+  const cancel = () => abort.abort(signal.reason);
+  signal.addEventListener("abort", cancel, { once: true });
+  const timer = setTimeout(
+    () => abort.abort(new Error("Catalog shard unavailable")),
+    Math.max(
+      1,
+      Math.min(10_000, Number.isFinite(timeoutMs) ? timeoutMs : 10_000),
+    ),
+  );
+  let rejectAbort: () => void = () => {};
+  const aborted = new Promise<never>((_, reject) => {
+    rejectAbort = () => reject(abort.signal.reason);
+    abort.signal.addEventListener("abort", rejectAbort, { once: true });
   });
+  try {
+    return await Promise.race([
+      aborted,
+      (async () => {
+        const response = await fetch(path, { signal: abort.signal });
+        if (!response.ok) unavailable();
+        return validateCardShard(await response.json(), {
+          ...expected,
+          now: Date.now(),
+        });
+      })(),
+    ]);
+  } finally {
+    clearTimeout(timer);
+    signal.removeEventListener("abort", cancel);
+    abort.signal.removeEventListener("abort", rejectAbort);
+  }
 }
