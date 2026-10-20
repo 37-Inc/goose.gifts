@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { sql } from '@vercel/postgres';
+import { createPostgresCatalogMaintenanceStore } from './catalog-maintenance-postgres.mjs';
 import OpenAI from 'openai';
 import amazonCreators from '../../lib/amazon-creators.js';
 import { hydrateLocalAmazonCreatorsEnv } from './amazon-creators-env.mjs';
@@ -35,6 +35,11 @@ import {
 dotenv.config({ path: '.env.local', quiet: true });
 dotenv.config({ quiet: true });
 hydrateLocalAmazonCreatorsEnv();
+
+let defaultStore;
+function defaultMaintenanceStore() {
+  return defaultStore ??= createPostgresCatalogMaintenanceStore();
+}
 
 const DEFAULT_THEMES = [
   'funny white elephant gifts',
@@ -1014,20 +1019,6 @@ function sleep(ms) {
   });
 }
 
-function toPostgresTextArray(values) {
-  return `{${values
-    .map((value) => `"${String(value).replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"`)
-    .join(',')}}`;
-}
-
-function toPostgresVector(value) {
-  if (!Array.isArray(value) || value.length === 0) {
-    return null;
-  }
-
-  return `[${value.join(',')}]`;
-}
-
 async function searchAmazonCandidates(theme, options) {
   let creatorCandidates = [];
   try {
@@ -1152,218 +1143,28 @@ function finalizeProducts(products, theme, options) {
     }));
 }
 
-async function upsertProduct(product) {
+async function upsertProduct(product, store = defaultMaintenanceStore()) {
   const currentSourceHash = product.sourceFactsHash || editorialSourceHash(product);
-  const result = await sql.query(
-    `
-      INSERT INTO products (
-        id,
-        title,
-        price,
-        currency,
-        image_url,
-        affiliate_url,
-        source,
-        source_query,
-        humor_tags,
-        punny_title,
-        witty_description,
-        quality_score,
-        rating,
-        review_count,
-        is_active,
-        embedding,
-        editorial_writeup,
-        source_facts,
-        source_facts_hash,
-        editorial_source_hash,
-        availability_status,
-        availability_checked_at,
-        editorial_status,
-        editorial_quality_score,
-        editorial_model,
-        editorial_prompt_version,
-        editorial_generated_at,
-        editorial_block_reason,
-        duplicate_of_product_id,
-        content_updated_at,
-        last_verified_at,
-        updated_at
-      )
-      VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9::text[], $10, $11, $12, $13, $14, $15, $16::vector,
-        $18, $19::jsonb, $20, $21, $22, CASE WHEN $17 THEN NOW() ELSE NULL END, $23::text, $24, $25, $26, $27, $28, $29,
-        CASE WHEN $23::text IN ('generated_ready', 'manual_locked') THEN NOW() ELSE NULL END,
-        CASE WHEN $17 THEN NOW() ELSE NULL END,
-        NOW()
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        title = EXCLUDED.title,
-        price = EXCLUDED.price,
-        currency = EXCLUDED.currency,
-        image_url = EXCLUDED.image_url,
-        affiliate_url = EXCLUDED.affiliate_url,
-        source = EXCLUDED.source,
-        source_query = EXCLUDED.source_query,
-        humor_tags = EXCLUDED.humor_tags,
-        punny_title = COALESCE(EXCLUDED.punny_title, products.punny_title),
-        witty_description = COALESCE(EXCLUDED.witty_description, products.witty_description),
-        quality_score = EXCLUDED.quality_score,
-        rating = EXCLUDED.rating,
-        review_count = EXCLUDED.review_count,
-        is_active = EXCLUDED.is_active,
-        embedding = COALESCE(EXCLUDED.embedding, products.embedding),
-        source_facts = COALESCE(EXCLUDED.source_facts, products.source_facts),
-        source_facts_hash = COALESCE(EXCLUDED.source_facts_hash, products.source_facts_hash),
-        availability_status = COALESCE(EXCLUDED.availability_status, products.availability_status),
-        availability_checked_at = COALESCE(EXCLUDED.availability_checked_at, products.availability_checked_at),
-        editorial_writeup = CASE
-          WHEN products.editorial_status = 'manual_locked' THEN products.editorial_writeup
-          WHEN EXCLUDED.editorial_status = 'generated_ready'
-            AND EXCLUDED.editorial_writeup IS NOT NULL THEN EXCLUDED.editorial_writeup
-          WHEN products.editorial_status IN ('generated_ready', 'stale')
-            THEN products.editorial_writeup
-          WHEN EXCLUDED.editorial_status IN ('pending', 'needs_review')
-            AND EXCLUDED.editorial_writeup IS NOT NULL THEN EXCLUDED.editorial_writeup
-          ELSE products.editorial_writeup
-        END,
-        editorial_source_hash = CASE
-          WHEN products.editorial_status = 'manual_locked'
-            THEN COALESCE(products.editorial_source_hash, EXCLUDED.editorial_source_hash)
-          WHEN EXCLUDED.editorial_status = 'generated_ready'
-            THEN EXCLUDED.editorial_source_hash
-          WHEN products.editorial_status IN ('generated_ready', 'stale')
-            THEN products.editorial_source_hash
-          WHEN EXCLUDED.editorial_status IN ('pending', 'needs_review')
-            THEN EXCLUDED.editorial_source_hash
-          ELSE products.editorial_source_hash
-        END,
-        editorial_status = CASE
-          WHEN products.editorial_status = 'manual_locked' THEN products.editorial_status
-          WHEN EXCLUDED.editorial_status = 'generated_ready'
-            THEN EXCLUDED.editorial_status
-          WHEN products.editorial_status = 'generated_ready'
-            AND products.editorial_source_hash IS DISTINCT FROM EXCLUDED.source_facts_hash THEN 'stale'
-          WHEN products.editorial_status = 'generated_ready' THEN 'generated_ready'
-          WHEN products.editorial_status = 'stale'
-            AND EXCLUDED.editorial_status IN ('pending', 'needs_review') THEN 'stale'
-          WHEN EXCLUDED.editorial_status IN ('pending', 'needs_review', 'blocked', 'duplicate', 'stale')
-            THEN EXCLUDED.editorial_status
-          ELSE products.editorial_status
-        END,
-        editorial_quality_score = CASE
-          WHEN products.editorial_status IN ('manual_locked', 'generated_ready', 'stale')
-            AND EXCLUDED.editorial_status <> 'generated_ready' THEN products.editorial_quality_score
-          ELSE COALESCE(EXCLUDED.editorial_quality_score, products.editorial_quality_score)
-        END,
-        editorial_model = CASE
-          WHEN products.editorial_status IN ('manual_locked', 'generated_ready', 'stale')
-            AND EXCLUDED.editorial_status <> 'generated_ready' THEN products.editorial_model
-          ELSE COALESCE(EXCLUDED.editorial_model, products.editorial_model)
-        END,
-        editorial_prompt_version = CASE
-          WHEN products.editorial_status IN ('manual_locked', 'generated_ready', 'stale')
-            AND EXCLUDED.editorial_status <> 'generated_ready' THEN products.editorial_prompt_version
-          ELSE COALESCE(EXCLUDED.editorial_prompt_version, products.editorial_prompt_version)
-        END,
-        editorial_generated_at = CASE
-          WHEN products.editorial_status IN ('manual_locked', 'generated_ready', 'stale')
-            AND EXCLUDED.editorial_status <> 'generated_ready' THEN products.editorial_generated_at
-          ELSE COALESCE(EXCLUDED.editorial_generated_at, products.editorial_generated_at)
-        END,
-        editorial_block_reason = CASE
-          WHEN products.editorial_status = 'manual_locked' THEN products.editorial_block_reason
-          WHEN EXCLUDED.editorial_status = 'generated_ready' THEN NULL
-          ELSE COALESCE(EXCLUDED.editorial_block_reason, products.editorial_block_reason)
-        END,
-        duplicate_of_product_id = COALESCE(EXCLUDED.duplicate_of_product_id, products.duplicate_of_product_id),
-        content_updated_at = CASE
-          WHEN EXCLUDED.editorial_status = 'generated_ready'
-            AND EXCLUDED.editorial_writeup IS DISTINCT FROM products.editorial_writeup THEN NOW()
-          ELSE products.content_updated_at
-        END,
-        last_verified_at = CASE WHEN $17 THEN NOW() ELSE products.last_verified_at END,
-        updated_at = NOW()
-      RETURNING (xmax = 0) AS inserted, slug
-    `,
-    [
-      product.id,
-      product.title,
-      product.price,
-      product.currency,
-      product.imageUrl,
-      product.affiliateUrl,
-      product.source || 'amazon',
-      product.sourceQuery,
-      toPostgresTextArray(product.humorTags),
-      product.punnyTitle || null,
-      product.wittyDescription || null,
-      product.qualityScore,
-      product.rating || null,
-      product.reviewCount || null,
-      product.isActive,
-      toPostgresVector(product.embedding),
-      product.remotelyVerified !== false,
-      product.editorialWriteup || null,
-      JSON.stringify(product.sourceFacts || {}),
-      currentSourceHash,
-      product.editorialSourceHash || (product.editorialStatus === 'manual_locked' ? currentSourceHash : null),
-      product.availabilityStatus || null,
-      product.editorialStatus || 'pending',
-      product.editorialQualityScore || null,
-      product.editorialModel || null,
-      product.editorialPromptVersion || null,
-      product.editorialGeneratedAt || null,
-      product.editorialBlockReason || null,
-      product.duplicateOfProductId || null,
-    ]
-  );
-
-  return {
-    inserted: Boolean(result.rows[0]?.inserted),
-    slug: result.rows[0]?.slug || product.slug || null,
-  };
+  return store.upsertProduct(product, currentSourceHash);
 }
 
-async function getActiveCatalogIdentities() {
-  const result = await sql.query(
-    `SELECT id, slug, title, image_url AS "imageUrl", affiliate_url AS "affiliateUrl",
-            quality_score AS "qualityScore", availability_status AS "availabilityStatus",
-            availability_checked_at AS "availabilityCheckedAt", last_verified_at AS "lastVerifiedAt",
-            editorial_status AS "editorialStatus", review_count AS "reviewCount",
-            NULL::jsonb AS "sourceFacts"
-     FROM products WHERE is_active = true AND title <> ''`
-  );
-  return result.rows;
+async function getActiveCatalogIdentities(store = defaultMaintenanceStore()) {
+  return store.getActiveCatalogIdentities();
 }
 
-async function getExistingEditorialWriteups(excludedIds = []) {
-  const result = await sql.query(
-    `SELECT editorial_writeup
-     FROM products
-     WHERE editorial_status IN ('generated_ready', 'manual_locked')
-       AND editorial_writeup IS NOT NULL
-       AND NOT (id = ANY($1::text[]))`,
-    [excludedIds]
-  );
-  return result.rows.map((row) => row.editorial_writeup).filter(Boolean);
+async function getExistingEditorialWriteups(excludedIds = [], store = defaultMaintenanceStore()) {
+  return store.getExistingEditorialWriteups(excludedIds);
 }
 
-async function auditAndRepairAmazonAffiliateUrls({ dryRun }) {
+async function auditAndRepairAmazonAffiliateUrls({ dryRun }, store = defaultMaintenanceStore()) {
   const tag = process.env.AMAZON_ASSOCIATE_TAG;
-  const audit = await sql.query(
-    `SELECT id, affiliate_url FROM products
-     WHERE source = 'amazon'
-       AND id ~ '^[A-Z0-9]{10}$'
-       AND (affiliate_url NOT LIKE '%' || id || '%' OR affiliate_url NOT LIKE '%tag=' || $1 || '%')`,
-    [tag]
-  );
-  const mismatched = audit.rows.length;
+  const audit = await store.getAffiliateUrlMismatches(tag);
+  const mismatched = audit.length;
 
   if (dryRun || mismatched === 0) return { mismatched, repaired: 0 };
 
   let repaired = 0;
-  for (const row of audit.rows) {
+  for (const row of audit) {
     let affiliateUrl = amazonAffiliateUrl(row.id, tag);
     try {
       const current = new URL(row.affiliate_url);
@@ -1374,70 +1175,26 @@ async function auditAndRepairAmazonAffiliateUrls({ dryRun }) {
     } catch {
       // Invalid stored URLs are replaced with a minimal canonical fallback.
     }
-    const result = await sql.query(
-      `UPDATE products SET affiliate_url = $2, updated_at = NOW() WHERE id = $1`,
-      [row.id, affiliateUrl]
-    );
-    repaired += result.rowCount || 0;
+    const result = await store.updateAmazonAffiliateUrl(row.id, affiliateUrl);
+    repaired += result;
   }
   return { mismatched, repaired };
 }
 
-async function getProductsForRevalidation(limit, staleDays, query = (...args) => sql.query(...args)) {
-  // Leave a full weekly cycle before the 35-day page gate, and reserve 20%
-  // for legacy work. Empty lanes give their slots back to the other lane.
+async function getProductsForRevalidation(limit, staleDays, storeOrQuery) {
+  // Preserve the existing query-injection test seam as well as explicit stores.
+  const store = typeof storeOrQuery === 'function'
+    ? createPostgresCatalogMaintenanceStore({ query: storeOrQuery })
+    : storeOrQuery || defaultMaintenanceStore();
+  // Leave a full weekly cycle before the 35-day gate; reserve 20% for legacy.
   const legacySlots = limit > 1 ? Math.max(1, Math.floor(limit / 5)) : 0;
-  const result = await query(
-    `
-      WITH candidates AS (
-        SELECT id, last_verified_at, updated_at,
-               COALESCE(availability_checked_at, last_verified_at) AS verified_at,
-               COALESCE(
-                 slug <> '' AND image_url <> ''
-                 AND editorial_status IN ('generated_ready', 'manual_locked')
-                 AND editorial_quality_score >= 0.8
-                 AND duplicate_of_product_id IS NULL
-                 AND UPPER(availability_status) IN ('IN_STOCK', 'IN_STOCK_SCARCE', 'INSTOCKSCARCE', 'AVAILABLE_DATE', 'LEADTIME', 'PREORDER')
-                 AND source_facts_hash <> '' AND source_facts_hash = editorial_source_hash
-                 AND CHAR_LENGTH(BTRIM(editorial_writeup, E' \\t\\n\\r')) >= 500
-                 AND CARDINALITY(REGEXP_SPLIT_TO_ARRAY(BTRIM(editorial_writeup, E' \\t\\n\\r'), '\\s+')) >= 90
-                 AND BTRIM(editorial_writeup, E' \\t\\n\\r') ~ '\\n\\s*\\n',
-                 false
-               ) AS published
-        FROM products
-        WHERE source = 'amazon' AND is_active = true AND id ~ '^[A-Z0-9]{10}$'
-      ), ranked AS (
-        SELECT id, published,
-               ROW_NUMBER() OVER (
-                 PARTITION BY published
-                 ORDER BY CASE WHEN published THEN verified_at ELSE last_verified_at END ASC NULLS FIRST,
-                          updated_at ASC, id ASC
-               ) AS position
-        FROM candidates
-        WHERE (published AND (verified_at IS NULL OR verified_at <= NOW() - ($3 * INTERVAL '1 day')))
-           OR (NOT published AND (last_verified_at IS NULL OR last_verified_at <= NOW() - ($2 * INTERVAL '1 day')))
-      ), selected AS (
-        SELECT id,
-               CASE WHEN published AND position <= $4 THEN 0
-                    WHEN NOT published AND position <= $5 THEN 1
-                    WHEN published THEN 2 ELSE 3 END AS lane,
-               position
-        FROM ranked
-        ORDER BY lane, position
-        LIMIT $1
-      )
-      SELECT p.id, p.slug, p.title, p.price, p.currency, p.image_url, p.affiliate_url, p.source, p.source_query,
-             p.humor_tags, p.punny_title, p.witty_description, p.quality_score, p.rating, p.review_count,
-             p.is_active, p.last_verified_at, p.editorial_writeup, p.source_facts, p.source_facts_hash,
-             p.editorial_source_hash, p.availability_status, p.availability_checked_at, p.editorial_status,
-             p.editorial_quality_score, p.editorial_model, p.editorial_prompt_version,
-             p.editorial_generated_at, p.editorial_block_reason, p.duplicate_of_product_id
-      FROM selected JOIN products p USING (id)
-      ORDER BY selected.lane, selected.position
-    `,
-    [limit, staleDays, Math.min(staleDays, 21), limit - legacySlots, legacySlots]
-  );
-  return result.rows;
+  return store.getProductsForRevalidation({
+    limit,
+    staleDays,
+    publishedStaleDays: Math.min(staleDays, 21),
+    publishedSlots: limit - legacySlots,
+    legacySlots,
+  });
 }
 
 function revalidatedProduct(existing, remote, options) {
@@ -1498,31 +1255,14 @@ function revalidatedProduct(existing, remote, options) {
   return { ...product, isActive: isActiveCatalogCandidate(product, options) };
 }
 
-async function deactivateConfirmedMissing(ids, deactivateAfterDays, dryRun) {
+async function deactivateConfirmedMissing(ids, days, dryRun, store = defaultMaintenanceStore()) {
   if (ids.length === 0 || dryRun) return [];
-  const result = await sql.query(
-    `
-      UPDATE products
-      SET is_active = false, updated_at = NOW()
-      WHERE id = ANY($1::text[])
-        AND COALESCE(last_verified_at, created_at) <= NOW() - ($2 * INTERVAL '1 day')
-      RETURNING id
-    `,
-    [ids, deactivateAfterDays]
-  );
-  return result.rows.map((row) => row.id);
+  return store.deactivateConfirmedMissing(ids, days);
 }
 
-async function markConfirmedMissingUnavailable(ids, dryRun) {
+async function markConfirmedMissingUnavailable(ids, dryRun, store = defaultMaintenanceStore()) {
   if (ids.length === 0 || dryRun) return [];
-  const result = await sql.query(
-    `UPDATE products
-     SET availability_status = 'UNAVAILABLE', availability_checked_at = NOW(), updated_at = NOW()
-     WHERE id = ANY($1::text[])
-     RETURNING id`,
-    [ids]
-  );
-  return result.rows.map((row) => row.id);
+  return store.markConfirmedMissingUnavailable(ids);
 }
 
 function recordExistingSelection(telemetry, product, phase) {
@@ -1536,10 +1276,10 @@ function recordExistingSelection(telemetry, product, phase) {
   });
 }
 
-async function revalidateCatalog(options, telemetry) {
+async function revalidateCatalog(options, telemetry, store) {
   const phaseStartedAt = Date.now();
-  const affiliateAudit = await auditAndRepairAmazonAffiliateUrls(options);
-  const existing = await getProductsForRevalidation(options.revalidateLimit, options.staleDays);
+  const affiliateAudit = await auditAndRepairAmazonAffiliateUrls(options, store);
+  const existing = await getProductsForRevalidation(options.revalidateLimit, options.staleDays, store);
   existing.forEach((product) => recordExistingSelection(telemetry, product, 'revalidation'));
   await telemetry.items.flush();
   let refreshed = 0;
@@ -1597,7 +1337,7 @@ async function revalidateCatalog(options, telemetry) {
       if (!remote) continue;
       const refreshedProduct = revalidatedProduct(product, remote, options);
       let persistence = { slug: product.slug };
-      if (!options.dryRun) persistence = await upsertProduct(refreshedProduct);
+      if (!options.dryRun) persistence = await upsertProduct(refreshedProduct, store);
       refreshedProduct.slug = persistence.slug || refreshedProduct.slug;
       terminalIds.add(product.id);
       telemetry.items.record(refreshedProduct, {
@@ -1611,11 +1351,11 @@ async function revalidateCatalog(options, telemetry) {
     }
 
     confirmedMissing += confirmedIds.length;
-    const unavailableIds = await markConfirmedMissingUnavailable(confirmedIds, options.dryRun);
+    const unavailableIds = await markConfirmedMissingUnavailable(confirmedIds, options.dryRun, store);
     markedUnavailable += options.dryRun ? confirmedIds.length : unavailableIds.length;
     let deactivatedIds = [];
     if (options.deactivateMissing) {
-      deactivatedIds = await deactivateConfirmedMissing(confirmedIds, options.deactivateAfterDays, options.dryRun);
+      deactivatedIds = await deactivateConfirmedMissing(confirmedIds, options.deactivateAfterDays, options.dryRun, store);
       deactivated += deactivatedIds.length;
     }
     const deactivatedSet = new Set(deactivatedIds);
@@ -1653,79 +1393,14 @@ async function revalidateCatalog(options, telemetry) {
   return { selected: existing.length, refreshed, confirmedMissing, markedUnavailable, deactivated, throttled, affiliateAudit };
 }
 
-async function getProductsNeedingEnrichment(limit, ids) {
+async function getProductsNeedingEnrichment(limit, ids, store = defaultMaintenanceStore()) {
   if (limit <= 0) {
     return [];
   }
 
-  const result = await sql.query(
-    `
-      SELECT
-        id,
-        slug,
-        title,
-        price,
-        currency,
-        image_url,
-        affiliate_url,
-        source,
-        source_query,
-        humor_tags,
-        punny_title,
-        witty_description,
-        quality_score,
-        rating,
-        review_count,
-        is_active,
-        last_verified_at,
-        editorial_writeup,
-        source_facts,
-        source_facts_hash,
-        editorial_source_hash,
-        availability_status,
-        availability_checked_at,
-        editorial_status,
-        editorial_quality_score,
-        editorial_model,
-        editorial_prompt_version,
-        editorial_generated_at,
-        editorial_block_reason,
-        duplicate_of_product_id
-      FROM products
-      WHERE (is_active = true OR $2::text[] IS NOT NULL)
-        AND image_url IS NOT NULL
-        AND affiliate_url IS NOT NULL
-        AND title <> ''
-        AND duplicate_of_product_id IS NULL
-        AND ($2::text[] IS NULL OR id = ANY($2::text[]))
-        AND (
-          $2::text[] IS NOT NULL
-          OR (
-            editorial_status IN ('pending', 'stale', 'needs_review')
-            OR source_facts_hash IS DISTINCT FROM editorial_source_hash
-            OR (
-              editorial_status NOT IN ('blocked', 'duplicate')
-              AND (
-                embedding IS NULL
-                OR punny_title IS NULL
-                OR witty_description IS NULL
-                OR humor_tags IS NULL
-                OR quality_score IS NULL
-              )
-            )
-          )
-        )
-      ORDER BY
-        CASE WHEN $2::text[] IS NULL THEN NULL ELSE array_position($2::text[], id) END,
-        quality_score DESC NULLS LAST,
-        updated_at DESC,
-        id ASC
-      LIMIT $1
-    `,
-    [limit, ids?.length ? ids : null]
-  );
+  const rows = await store.getProductsNeedingEnrichment(limit, ids);
 
-  return result.rows.map((row) => ({
+  return rows.map((row) => ({
     id: row.id,
     slug: row.slug,
     title: row.title,
@@ -1766,7 +1441,7 @@ async function getProductsNeedingEnrichment(limit, ids) {
   }));
 }
 
-async function refreshProductsForEditorial(products, options, telemetry) {
+async function refreshProductsForEditorial(products, options, telemetry, store) {
   const phaseStartedAt = Date.now();
   const refreshed = [];
   const confirmedMissingIds = [];
@@ -1821,7 +1496,7 @@ async function refreshProductsForEditorial(products, options, telemetry) {
     await sleep(1100);
   }
 
-  const markedUnavailableIds = await markConfirmedMissingUnavailable(confirmedMissingIds, options.dryRun);
+  const markedUnavailableIds = await markConfirmedMissingUnavailable(confirmedMissingIds, options.dryRun, store);
   for (const id of confirmedMissingIds) {
     const product = products.find((candidate) => candidate.id === id) || { id };
     telemetry.items.record(product, {
@@ -1873,47 +1548,33 @@ function partitionDuplicateCandidates(products) {
   return { winners, losers };
 }
 
-async function recordEditorialEvent(runId, product, eventType) {
-  await sql.query(
-    `INSERT INTO catalog_editorial_events (run_id, product_id, event_type, status, details)
-     VALUES ($1, $2, $3, $4, $5::jsonb)`,
-    [
-      runId,
-      product.id,
-      eventType,
-      product.editorialStatus || 'pending',
-      JSON.stringify({
-        sourceFactsHash: product.sourceFactsHash || editorialSourceHash(product),
-        editorialSourceHash: product.editorialSourceHash || null,
-        model: product.editorialModel || null,
-        promptVersion: product.editorialPromptVersion || null,
-        reason: product.editorialBlockReason || null,
-        duplicateOfProductId: product.duplicateOfProductId || null,
-        attemptedWordCount: editorialWordCount(product.attemptedEditorialWriteup),
-        finalWordCount: editorialWordCount(product.editorialWriteup),
-        requiresManualReview: product.requiresManualReview === true,
-        attemptDiagnostics: product.editorialAttemptDiagnostics || null,
-      }),
-    ]
-  );
+async function recordEditorialEvent(runId, product, eventType, store = defaultMaintenanceStore()) {
+  await store.recordEditorialEvent({
+    runId, productId: product.id, eventType,
+    status: product.editorialStatus || 'pending',
+    details: {
+      sourceFactsHash: product.sourceFactsHash || editorialSourceHash(product),
+      editorialSourceHash: product.editorialSourceHash || null,
+      model: product.editorialModel || null,
+      promptVersion: product.editorialPromptVersion || null,
+      reason: product.editorialBlockReason || null,
+      duplicateOfProductId: product.duplicateOfProductId || null,
+      attemptedWordCount: editorialWordCount(product.attemptedEditorialWriteup),
+      finalWordCount: editorialWordCount(product.editorialWriteup),
+      requiresManualReview: product.requiresManualReview === true,
+      attemptDiagnostics: product.editorialAttemptDiagnostics || null,
+    },
+  });
 }
 
-async function markCatalogDuplicate(runId, productId, winnerId) {
-  await sql.query(
-    `UPDATE products
-     SET editorial_status = 'duplicate',
-         editorial_block_reason = $3,
-         duplicate_of_product_id = $2,
-         updated_at = NOW()
-     WHERE id = $1 AND editorial_status <> 'manual_locked'`,
-    [productId, winnerId, `duplicate_of:${winnerId}`]
-  );
+async function markCatalogDuplicate(runId, productId, winnerId, store = defaultMaintenanceStore()) {
+  await store.markCatalogDuplicate(productId, winnerId, `duplicate_of:${winnerId}`);
   await recordEditorialEvent(runId, {
     id: productId,
     editorialStatus: 'duplicate',
     editorialBlockReason: `duplicate_of:${winnerId}`,
     duplicateOfProductId: winnerId,
-  }, 'deduplicated');
+  }, 'deduplicated', store);
 }
 
 function loadEditorialSeed(filePath) {
@@ -2014,14 +1675,15 @@ function persistenceOutcome(product, options, readyStatuses = ['generated_ready'
   };
 }
 
-async function executeCatalog(options, editorialSeedProducts, telemetry) {
+/** @param {import('./catalog-maintenance-postgres.mjs').CatalogMaintenanceStore} [store] */
+async function executeCatalog(options, editorialSeedProducts, telemetry, store = defaultMaintenanceStore()) {
   if (options.repairAffiliateUrlsOnly) {
-    const affiliateAudit = await auditAndRepairAmazonAffiliateUrls(options);
+    const affiliateAudit = await auditAndRepairAmazonAffiliateUrls(options, store);
     return { dryRun: options.dryRun, repairAffiliateUrlsOnly: true, affiliateAudit };
   }
 
   if (options.revalidate) {
-    const result = await revalidateCatalog(options, telemetry);
+    const result = await revalidateCatalog(options, telemetry, store);
     return { dryRun: options.dryRun, revalidate: true, ...result };
   }
 
@@ -2059,14 +1721,14 @@ async function executeCatalog(options, editorialSeedProducts, telemetry) {
   }
 
   if (options.backfillLimit > 0 && (!options.dryRun || process.env.POSTGRES_URL)) {
-    const backfillProducts = await getProductsNeedingEnrichment(options.backfillLimit, options.ids);
+    const backfillProducts = await getProductsNeedingEnrichment(options.backfillLimit, options.ids, store);
     backfillStats.selected = backfillProducts.length;
     backfillProducts.forEach((product) => recordExistingSelection(telemetry, product, 'backfill'));
     await telemetry.items.flush();
 
     if (!options.dryRun && backfillProducts.length > 0) {
       console.log(`Refreshing ${backfillProducts.length} editorial candidates from Amazon before generation`);
-      const refresh = await refreshProductsForEditorial(backfillProducts, options, telemetry);
+      const refresh = await refreshProductsForEditorial(backfillProducts, options, telemetry, store);
       backfillStats = {
         ...backfillStats,
         refreshed: refresh.products.length,
@@ -2090,7 +1752,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry) {
         }
       }
 
-      const readyCatalog = (await getActiveCatalogIdentities())
+      const readyCatalog = (await getActiveCatalogIdentities(store))
         .filter((product) => ['generated_ready', 'manual_locked'].includes(product.editorialStatus));
       const catalogPartition = deduplicateAgainstCatalog(qualityCandidates, readyCatalog);
       const duplicatePartition = partitionDuplicateCandidates(catalogPartition.products);
@@ -2101,9 +1763,9 @@ async function executeCatalog(options, editorialSeedProducts, telemetry) {
       }));
 
       for (const product of [...blockedCandidates, ...duplicateCandidates]) {
-        const persistence = await upsertProduct(product);
+        const persistence = await upsertProduct(product, store);
         product.slug = persistence.slug || product.slug;
-        await recordEditorialEvent(telemetry.runId, product, product.editorialStatus === 'duplicate' ? 'deduplicated' : 'blocked');
+        await recordEditorialEvent(telemetry.runId, product, product.editorialStatus === 'duplicate' ? 'deduplicated' : 'blocked', store);
         telemetry.items.record(product, {
           phase: 'backfill',
           stage: 'quality_gate',
@@ -2114,7 +1776,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry) {
         });
       }
       for (const duplicate of catalogPartition.superseded) {
-        await markCatalogDuplicate(telemetry.runId, duplicate.id, duplicate.winnerId);
+        await markCatalogDuplicate(telemetry.runId, duplicate.id, duplicate.winnerId, store);
         telemetry.items.record(duplicate, {
           phase: 'backfill',
           stage: 'deduplication',
@@ -2126,7 +1788,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry) {
       }
 
       const existingWriteups = await getExistingEditorialWriteups(
-        duplicatePartition.winners.map((product) => product.id)
+        duplicatePartition.winners.map((product) => product.id), store
       );
       const enrichmentStartedAt = Date.now();
       const enrichedBackfill = editorialSeedProducts
@@ -2134,9 +1796,9 @@ async function executeCatalog(options, editorialSeedProducts, telemetry) {
         : await enrichProducts(duplicatePartition.winners, options, existingWriteups, telemetry);
       addTiming(telemetry.timingsMs, 'backfill_enrichment', Date.now() - enrichmentStartedAt);
       for (const product of enrichedBackfill) {
-        const persistence = await upsertProduct(product);
+        const persistence = await upsertProduct(product, store);
         product.slug = persistence.slug || product.slug;
-        await recordEditorialEvent(telemetry.runId, product, 'enriched');
+        await recordEditorialEvent(telemetry.runId, product, 'enriched', store);
         const outcome = persistenceOutcome(product, options, ['generated_ready', 'manual_locked']);
         telemetry.items.record(product, {
           phase: 'backfill',
@@ -2250,7 +1912,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry) {
   let catalogSuperseded = [];
   if (candidates.length > 0 && (!options.dryRun || process.env.POSTGRES_URL)) {
     try {
-      const catalog = await getActiveCatalogIdentities();
+      const catalog = await getActiveCatalogIdentities(store);
       const catalogDeduplicated = deduplicateAgainstCatalog(candidates, catalog);
       candidates.splice(0, candidates.length, ...catalogDeduplicated.products);
       catalogDuplicates = catalogDeduplicated.duplicates;
@@ -2304,7 +1966,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry) {
 
   let inserted = 0;
   let updated = 0;
-  const existingWriteups = await getExistingEditorialWriteups(candidates.map((product) => product.id));
+  const existingWriteups = await getExistingEditorialWriteups(candidates.map((product) => product.id), store);
   const enrichedCandidates = await enrichProducts(candidates, options, existingWriteups, telemetry);
   let persistenceStopped = false;
 
@@ -2319,9 +1981,9 @@ async function executeCatalog(options, editorialSeedProducts, telemetry) {
       });
       continue;
     }
-    const persistence = await upsertProduct(product);
+    const persistence = await upsertProduct(product, store);
     product.slug = persistence.slug || product.slug;
-    await recordEditorialEvent(telemetry.runId, product, 'discovered');
+    await recordEditorialEvent(telemetry.runId, product, 'discovered', store);
     if (persistence.inserted) inserted += 1;
     else updated += 1;
     const outcome = persistenceOutcome(product, options);
@@ -2342,7 +2004,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry) {
   }
 
   for (const duplicate of catalogSuperseded) {
-    await markCatalogDuplicate(telemetry.runId, duplicate.id, duplicate.winnerId);
+    await markCatalogDuplicate(telemetry.runId, duplicate.id, duplicate.winnerId, store);
     telemetry.items.record(duplicate, {
       phase: 'discovery',
       stage: 'deduplication',
@@ -2510,6 +2172,7 @@ if (isDirectRun) {
 }
 
 export {
+  executeCatalog,
   areNearDuplicateTitles,
   amazonAffiliateUrl,
   deduplicateAgainstCatalog,
