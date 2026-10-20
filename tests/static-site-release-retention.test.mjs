@@ -41,6 +41,8 @@ function assets(input) {
     files.set(p, encode("owned safe variant"));
   files.set("/safe/catalog.json", new Uint8Array(readFileSync(new URL("../static-site/public/safe/catalog.json", import.meta.url))));
   files.set("/safe/asset.txt", encode("Reload to use the current release."));
+  for (const suffix of [".txt", "/__next._full.txt", "/__next._tree.txt", "/__next.safe.product.__PAGE__.txt"])
+    files.set(`/safe/product${suffix}`, encode("owned safe RSC"));
   files.set("/weird-gift-index/data.json", encode({ scope: "sample" }));
   for (const shard of createBrowseRelease(input).shards) files.set(shard.path, encode(shard.payload));
   for (const ogPath of createOgRelease(input, siteIdentityFor("preview")).byPath.keys()) files.set(ogPath, encode("owned PNG proof"));

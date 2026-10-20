@@ -10,7 +10,7 @@ const { siteSourceMode } = createRequire(import.meta.url)(path.resolve(import.me
 const published = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, "../content/show/published.json"), "utf8")) as unknown[];
 const snapshot = JSON.parse(fs.readFileSync(path.resolve(process.env.CATALOG_SNAPSHOT_PATH
   || path.resolve(import.meta.dirname, "fixtures/catalog.snapshot.json")), "utf8")) as { products: unknown[]; heldProducts: unknown[] };
-const hasProductRoutes = snapshot.products.length + snapshot.heldProducts.length > 0;
+const hasProductRoutes = snapshot.products.length > 0;
 
 // Deliberately separate from the still-live Vercel app and its build settings.
 const config: NextConfig = {

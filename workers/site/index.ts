@@ -117,6 +117,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
     safeAssets.add(route.safeAssetPath);
   }
   const redirects = new Map(snapshot.slugHistory.map((entry) => [`/gifts/${entry.slug}`, `/gifts/${entry.canonicalSlug}`]));
+  const heldProductPaths = new Set(snapshot.heldProducts.map((product) => product.path));
   const snapshotDigest = 'catalogSnapshotSha256' in manifest && typeof manifest.catalogSnapshotSha256 === 'string' ? manifest.catalogSnapshotSha256 : undefined;
   const releaseIdentity = verifiedReleaseIdentity(options.releaseIdentity, manifest, snapshotDigest);
   const preparedFeed = prepareStaticFeed(snapshot, options.feedPlan, snapshotDigest);
@@ -226,7 +227,8 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
           // Only finite known HTML pages (plus maintained legal/search pages),
           // never API, unknown assets, data aliases or a catch-all SPA redirect.
           const page = routes.get(target);
-          if (target === '/privacy' || target === '/search' || !target.includes('.') && page?.assetPath === `${target}.html`) {
+          if (target === '/privacy' || target === '/search' || !target.includes('.') && (page?.assetPath === `${target}.html`
+            || page?.state === 'held' && heldProductPaths.has(target))) {
             if (target === '/gifts' && url.searchParams.has('page') && boundedDirectoryPage(url.searchParams.get('page')!, lastDirectoryPage) === null)
               return respond(json({ error: 'Not found' }, 404));
             return respond(new Response(null, { status: 308, headers: { Location: `${target}${pageAliasSearch(url.searchParams)}`, 'Cache-Control': 'no-store' } }));
