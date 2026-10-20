@@ -80,6 +80,20 @@ function approvedRight(right: ContentRight | undefined, value: string, now: numb
   return expiry;
 }
 
+/** Recheck the exact fields of an existing sealed DTO against current grants.
+ * This does not create rights or extend the DTO's previously sealed deadline.
+ */
+export function publicProductRightsExpiry(product: PublicCatalogProduct, rights: ProductRights, now: Date): number | null {
+  if (!Number.isFinite(now.getTime())) return null;
+  const fields: DisplayField[] = ['title', 'description', 'imageUrl', 'affiliateUrl', 'editorialWriteup'];
+  for (const field of OPTIONAL_FIELDS) if (field in product && !fields.includes(field)) fields.push(field);
+  const expiries = fields.map((field) => {
+    const value = field === 'humorTags' ? JSON.stringify(product.humorTags) : product[field];
+    return typeof value === 'string' && value.length ? approvedRight(rights[field], value, now.getTime()) : null;
+  });
+  return expiries.some((value) => value === null) ? null : Math.min(...expiries as number[]);
+}
+
 export function validatePublicCatalogProduct(input: unknown, now: Date = new Date(), fixture = false): PublicCatalogProduct {
   const value = record(input);
   exactKeys(value, PUBLIC_FIELDS);
