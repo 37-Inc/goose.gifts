@@ -5,6 +5,64 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Owned vector delivery and explicit D1 weekly runner
+
+PR #195 continues the staged migration with reviewed opt-in adapters, not a
+production writer/schedule switch. Three Sol extra-high agents implemented
+bounded pieces; root and separate agents reviewed and fixed them. The
+twenty-ID vector-proof cap is explicit. The old bundle catch-all and heuristic
+redirect map are retired; canonical product/guide routes remain.
+
+Actual D1 rehearsal on source `b26bed67ef1beb8706b0640ca9cdf88e24bd4a7f`:
+all twelve migrations and fourteen storage/ownership/telemetry checks passed,
+133 calls, 4,202 rows read, 440 written. It includes immutable native float32
+payloads and owned delivery with an explicitly mocked provider; it is not a
+complete weekly publication proof. Scratch database
+`d26086ed-cbdf-45b5-a497-f503e78efd02` is independently confirmed deleted.
+Private receipt `d1-maintenance-canary-TSJElm/receipt.json`, SHA-256
+`6730d9b58048774ceabd5248cc8d1de6c27a71b206801added275f899050a7a2`.
+
+Live disposable Vectorize checks exposed two facts mocks did not prove:
+exact mutation processing can precede `get_by_ids` visibility, and REST may
+serialize float32s as shortened decimals. The bridge now decodes validated
+numbers through `Math.fround` before native-byte comparison; altered float32
+bits still fail. The initial visibility-only failure, the decimal-decoding
+failure and one unknown transport response are preserved in private receipts
+`vectorize-rest-canary-qHIHkF`, `vectorize-rest-canary-BejmEZ` and
+`vectorize-rest-canary-e05CzJ`. Each owned temporary index was independently
+deleted; active index inventory was unchanged. No uncertain mutation was
+blindly replayed into the same index.
+
+The final actual REST rehearsal on source `48db2fc52c95c9fb0219017eaef8ae6af236a98a`
+passed: one upsert, exact processing and native float32/metadata readback,
+then one delete, exact processing and absent UUID readback. It made 51
+bounded requests and exactly two writes. The temporary index is independently
+confirmed deleted with the prior index inventory unchanged. Private receipt
+`vectorize-rest-canary-2zJXZF/receipt.json`, SHA-256
+`c9c9026bb3004b110d64180f37ddc32b2d85e9a7e0ab66c8b61a80a7b84d6d14`.
+This is a single-vector compatibility proof, not a full-catalog throughput test.
+
+Initial full local burst receipt `local-burst-e9035f8-600s.json`, SHA-256
+`e98aded4d5b6e97362acf2f381c10efc64b421edb94e6e7c48b63dffd9a99b34`:
+60,000 requests/600 seconds/zero errors, actual Worker with owned fixtures,
+95% static and 5% mock semantic. Node26.12.0/macOS arm64, static p95 1.098 ms,
+mock-search p95 16.619 ms. No network attempts or browse-storage calls.
+This is not Cloudflare CPU/CDN, real provider/D1 cost or production capacity.
+
+The intended Node22.23.1 runtime repeated the complete rehearsal at source
+`0d030502d574f3f56589b0ea68b8ba1ee7a8d392`: 60,000 requests/600 seconds,
+zero errors/network attempts, static p95 1.245 ms and mock-search p95
+16.250 ms. Exactly 57,000 asset and 3,000 mock search calls were observed.
+Receipt `local-burst-node22-600s.json`, SHA-256
+`d0cbbf9cf93d8b1d1db78be93dac624c39fdbb2ceda05f186b73f62cb5717891`.
+Final integrated tests: 373 staging passes/eight explicit opt-in skips,
+88 existing regressions, TypeScript, lint and production Next build pass.
+
+Current staging remains on migrations 0001–0008, with new ownership disabled.
+Keep Neon as production writer. The new-cohort publisher, concrete protected
+runner/secret bootstrap/schedule, full-catalog proof, compliant merchant refresh,
+final source delta/recovery and owner/provider launch checklist remain open.
+
 ## 2026-10-20 — Integrate owned D1 maintenance and strict revision pruning
 
 Three Sol extra-high-effort workers delivered bounded implementation and
@@ -51,7 +109,17 @@ queries (1,721 billed rows read, zero writes). These include value-level JSON
 rights checks; do not reuse earlier lower query-cost figures as current.
 Receipt `pr194-current-rights-live.json` SHA-256:
 `a905c6d6a139d8a8ec8de7465e00b4eee255b6a409f5be35adeed2f2377a4435`.
-Merged-source deployment remains separately verified.
+
+PR #194 merged as `3b29f16917890a4cd825973452852b652d76076f`.
+Protected Worker `e116a28c-9a97-4460-b774-590923bf680f` reports the exact source
+and manifest `50ef7c654dec572aa7680f7c5b7b151c0d927ea616c4a2bc55720bffe2948650`.
+Independent publication/vector readback passed; private
+`publication-proof-xE0NJu/receipt.json` SHA-256:
+`85dbee6367c3733dc01f2b18fbb3bf359a5bc48d8d1285db1ad7af0f7dd21cdb`.
+Twenty live route/asset/search checks and auth rejection pass.
+`pr194-live-readback.json` also confirms Vercel production
+`dpl_DFxvE44c4YuwRufERzYC258oAuRe` READY at that same commit and five healthy
+public Goose pages. No writer, schedule, DNS, paid-plan or account cutover.
 
 ## 2026-10-20 — Merged release, live search budget and real retention expiry
 

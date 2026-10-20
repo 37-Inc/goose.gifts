@@ -24,6 +24,8 @@ export interface MaintenanceIntent {
 }
 export interface MaintenanceD1Options {
   db: CatalogD1; owner: MutationOwner; runId: string; catalogRevision: string;
+  /** Caller serializes shared catalog/telemetry operations. No DB auto-refresh. */
+  ownerCursor?: { current: MutationOwner };
   /** Pure supplied evidence: no provider work is performed by this store. */
   intent?: (method: string, args: unknown[]) => MaintenanceIntent | Promise<MaintenanceIntent>;
   historical?: { archiveSha256: string; embeddingPresence: Record<string, { present: boolean; sourceRecordSha256: string }>;
@@ -32,7 +34,7 @@ export interface MaintenanceD1Options {
 }
 type Loaded = { row: Row; product: SemanticProduct; version: number; present: boolean | null; native: string | null; provenance: Row;
   privateState: unknown[] };
-type Receipt = { input_sha256: string; result_json: string; environment: string; index_name: string; generation: number; next_epoch: number };
+type Receipt = { input_sha256: string; result_json: string; environment: string; index_name: string; generation: number; prior_epoch: number; next_epoch: number };
 const HASH = /^[a-f0-9]{64}$/;
 const UUID = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 const KEY = /^[a-zA-Z0-9._:/-]{1,200}$/;
@@ -121,8 +123,11 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
     if (!receipt) return null;
     if (receipt.input_sha256 !== inputHash || receipt.environment !== owner.environment || receipt.index_name !== owner.indexName) throw new Error('maintenance_receipt_mismatch');
     const current = await readMutationOwner(db, owner);
-    if (!sameOwner(current, owner) || current!.epoch < receipt.next_epoch) throw new Error('maintenance_fenced');
-    owner = Object.freeze(current!); return { result: JSON.parse(receipt.result_json) };
+    const ownCommit=receipt.generation===owner.generation && receipt.prior_epoch===owner.epoch && current?.epoch===receipt.next_epoch;
+    if (!sameOwner(current, owner) || current!.epoch < receipt.next_epoch || (!ownCommit && current!.epoch!==owner.epoch)) throw new Error('maintenance_fenced');
+    owner = Object.freeze(current!);
+    if (options.ownerCursor) options.ownerCursor.current=owner;
+    return { result: JSON.parse(receipt.result_json) };
   };
   async function write<T>(method: string, rawArgs: unknown[], build: (args: unknown[], intent: MaintenanceIntent, now: string,
     statements: D1Statement[], operationId: string, changes: Row[]) => Promise<T>): Promise<T> {
@@ -154,7 +159,13 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
     return saved.result as T;
   }
   const serialize = <T>(operation: () => Promise<T>): Promise<T> => {
-    const work = tail.then(operation); tail = work.catch(() => {}); return work;
+    const work = tail.then(() => {
+      if (options.ownerCursor) {
+        if (!sameOwner(options.ownerCursor.current,options.owner)) throw new Error('maintenance_fenced');
+        owner=Object.freeze({...options.ownerCursor.current});
+      }
+      return operation();
+    }); tail = work.catch(() => {}); return work;
   };
   function cas(old: Loaded | null, id: string, statements: D1Statement[]) {
     if (!old) { statements.push(assertion(db,'NOT EXISTS(SELECT 1 FROM products WHERE id=?)',[id])); return; }
@@ -264,7 +275,9 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
           embeddingText:text,sourceFactsHash:product.sourceFactsHash };
         if (operation === 'upsert') {
           const bytes = Buffer.from(native!,'base64');
-          payload.values = decodePgvectorSendBase64(native);
+          // Canonical JSON numbers lose signed zero. Persist immutable native
+          // bytes, not a second lossy numeric serialization of the same vector.
+          payload.nativeBase64 = native;
           // Native bytes, not UTF-8 serialization of arbitrary binary data.
           payload.vectorBytesSha256 = createHash('sha256').update(bytes).digest('hex');
         }
@@ -303,12 +316,22 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
       if (!Array.isArray(tags) || Array.from(tags).some((_,index) => !(index in tags))) throw new Error('maintenance_tag_array');
       const input = copy(Object.fromEntries(UPSERT_INPUT.filter(key => values[key] !== undefined).map(key => [key,
         key === 'humorTags' ? tags.map(String) : values[key]])));
-      return serialize(() => write('upsertProduct',[input,sourceFactsHash],
+      // Existing JSON/PG coercions normalize -0. Bind its ORIGINAL native bytes
+      // separately when present, so neither retry hashing nor the merge's text
+      // conversion silently changes a newly supplied vector's float32 identity.
+      let originalNative: string | undefined;
+      if (Array.isArray(values.embedding) && values.embedding.some(value => Object.is(value,-0))) {
+        if (values.embedding.length !== 1536 || !Array.from(values.embedding).every(value => typeof value === 'number' && Number.isFinite(value)))
+          throw new Error('maintenance_vector_input_invalid');
+        originalNative = encodePgvectorSendBase64(values.embedding.map(value => Math.fround(value)));
+      }
+      return serialize(() => write('upsertProduct',[input,sourceFactsHash,...(originalNative ? [originalNative] : [])],
       async (args,intent,now,statements,operationId,changes) => {
         const p = args[0] as SemanticProduct; const old = await load(p.id);
         if (p.remotelyVerified === false && intent.verificationById?.[p.id]) throw new Error('maintenance_verification_proof');
         const merged = mergeCatalogMaintenanceUpsert(old?.product || null,p,{sourceFactsHash:args[1],databaseTime:now});
         const product = merged.product;
+        if (args[2]) product.embedding = decodePgvectorSendBase64(args[2]);
         if (!old) {
           product.publicId = (options.newPublicId || randomUUID)().toLowerCase(); if (!UUID.test(product.publicId)) throw new Error('maintenance_public_id');
           const candidates = maintenanceSlugs(product,product.publicId);
@@ -406,5 +429,15 @@ export async function loadMaintenanceVectorPayload(db: CatalogD1,event: Readonly
   const row = (await db.prepare('SELECT payload_json FROM catalog_maintenance_vector_payloads WHERE sequence=?')
     .bind(event.sequence).all<{payload_json:string}>()).results[0];
   if (!row) throw new Error('maintenance_vector_payload_missing');
-  return JSON.parse(row.payload_json) as ImmutableVectorPayload;
+  const payload = JSON.parse(row.payload_json);
+  if (payload.operation === 'upsert' && Object.hasOwn(payload,'nativeBase64')) {
+    if (Object.hasOwn(payload,'values') || typeof payload.nativeBase64 !== 'string'
+      || createHash('sha256').update(Buffer.from(payload.nativeBase64,'base64')).digest('hex') !== payload.vectorBytesSha256)
+      throw new Error('maintenance_vector_payload_invalid');
+    payload.values = decodePgvectorSendBase64(payload.nativeBase64);
+    delete payload.nativeBase64;
+  }
+  // Existing numeric payloads are not silently repaired from mutable state.
+  // The drainer independently validates identity/input/native checksum as usual.
+  return payload as ImmutableVectorPayload;
 }

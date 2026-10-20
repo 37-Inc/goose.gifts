@@ -15,8 +15,11 @@ import {
   startCatalogRun,
 } from './catalog-telemetry.mjs';
 
-dotenv.config({ path: '.env.local', quiet: true });
-dotenv.config({ quiet: true });
+const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isDirectRun) {
+  dotenv.config({ path: '.env.local', quiet: true });
+  dotenv.config({ quiet: true });
+}
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const prefetchScript = path.join(scriptDirectory, 'prefetch-catalog.mjs');
@@ -57,6 +60,22 @@ function runCatalog(argsForScript) {
     throw new Error(`Catalog command failed with status ${result.status ?? 'unknown'}.`);
   }
   return parseFinalJson(result.stdout);
+}
+
+/** Opt-in in-process orchestration, never selected by the existing CLI. Fixed
+ * weekly caps and no notification/invalidation path; the caller owns secrets,
+ * stores, single-writer barrier and independently verified publication callback.
+ */
+export async function runWeeklyCatalogWithBackend({backfillLimit=25,dryRun=false,...backend}={}) {
+  if (!Number.isInteger(backfillLimit) || backfillLimit < 0 || backfillLimit > 25) throw new Error('Invalid bounded weekly backfill');
+  const {parseArgs,runCatalogWithBackend}=await import('./prefetch-catalog.mjs');
+  const dry=dryRun?['--dry-run']:[];
+  const revalidation=parseArgs(['--revalidate','--revalidate-limit',String(WEEKLY_REVALIDATION.revalidateLimit),
+    '--stale-days',String(WEEKLY_REVALIDATION.staleDays),'--deactivate-after-days',String(WEEKLY_REVALIDATION.deactivateAfterDays),...dry]);
+  const discovery=parseArgs(['--theme-limit',String(WEEKLY_DISCOVERY.themeLimit),'--per-theme',String(WEEKLY_DISCOVERY.perTheme),
+    '--max-new',String(WEEKLY_DISCOVERY.maxNew),'--min-quality-score',String(WEEKLY_DISCOVERY.minQualityScore),
+    '--backfill-limit',String(backfillLimit),...dry]);
+  return runCatalogWithBackend([revalidation,discovery],{...backend,mode:'weekly',trigger:backend.trigger||'scheduled'});
 }
 
 function phaseCounts(result, fields) {
@@ -278,7 +297,6 @@ async function main() {
   }
 }
 
-const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isDirectRun) {
   main().catch((error) => {
     console.error(redactTelemetryText(error.message));

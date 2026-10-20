@@ -148,6 +148,23 @@ test('proven current embeddings and exact owned rights alone can produce a ready
   } finally {f.close();}
 });
 
+test('immutable native payload preserves signed zero and refuses ambiguous or mismatched bytes',async()=>{
+  const original=[...vectors];original[0]=-0;
+  const p=input(1,{embedding:original});const hash=editorialSourceHash(p);p.editorialSourceHash=hash;
+  const evidence={rightsById:{[p.id]:rights(p)},verificationById:{[p.id]:{reference:'test/fresh-observation',observedAt:NOW,sourceFactsHash:hash}},
+    embeddingById:{[p.id]:{reference:'test/original-embedding',model:'text-embedding-3-small',text:maintenanceEmbeddingText(p),sourceFactsHash:hash}}};
+  const f=await setup({intent:()=>evidence});try{
+    await f.store.upsertProduct(p,hash);const event=f.events()[0];
+    const stored=JSON.parse(f.sqlite.prepare('SELECT payload_json FROM catalog_maintenance_vector_payloads WHERE sequence=?').get(event.sequence).payload_json);
+    assert.equal(typeof stored.nativeBase64,'string');assert.equal('values'in stored,false);
+    const payload=await loadMaintenanceVectorPayload(f.db,event);assert.deepEqual(payload.values,original);assert.ok(Object.is(payload.values[0],-0));
+    for(const bad of [{...stored,values:original},{...stored,vectorBytesSha256:'0'.repeat(64)},{...stored,nativeBase64:'invalid'}]){
+      const malformed={prepare(){return{bind(){return this;},async all(){return{results:[{payload_json:JSON.stringify(bad)}]};}};}};
+      await assert.rejects(loadMaintenanceVectorPayload(malformed,event));
+    }
+  }finally{f.close();}
+});
+
 test('unknown rights/facts/hash/observation remain held, no deadline or hash invented and no blanket legacy regeneration',async () => {
   const p=input(1,{embedding:vectors,editorialSourceHash:'a'.repeat(64)});const f=await setup();
   try {

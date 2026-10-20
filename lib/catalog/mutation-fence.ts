@@ -112,3 +112,20 @@ export async function assertLegacyMutationAllowed(db: CatalogD1): Promise<void> 
   const gate = await legacyMutationGuard(db);
   if (!(await db.prepare(`SELECT 1 WHERE ${gate.sql}`).all()).results.length) throw new Error('mutation_ownership_required');
 }
+/** Schema-compatible importing barrier. Only retained, terminal expiry evidence
+ * for THIS revision/environment may exclude an explicitly abandoned importer.
+ * No 0011 column/table is referenced on the old unowned schema. Installation
+ * still requires the stopped-writers migration barrier, not this capability read.
+ */
+export async function unabandonedImportsQuery(db:CatalogD1,environment:MutationScope['environment'],exceptRevision?:string):Promise<MutationQuery> {
+  const supported=(await db.prepare('PRAGMA table_info(catalog_revisions)').all<{name:string}>()).results
+    .some(column=>column.name==='abandonment_delivery_id');
+  return{sql:`NOT EXISTS(SELECT 1 FROM catalog_revisions c WHERE c.status='importing'
+    ${exceptRevision ? 'AND c.revision!=?' : ''} ${supported ? `AND NOT EXISTS(SELECT 1 FROM catalog_vector_deliveries d
+      WHERE d.delivery_id=c.abandonment_delivery_id AND d.environment=? AND d.status='complete'
+      AND c.abandonment_epoch IS NOT NULL
+      AND d.disposition IN('expired','expired_unsubmitted') AND json_extract(d.request_json,'$.kind')='prune'
+      AND json_extract(d.request_json,'$.catalogRevision')=c.revision
+      AND json_extract(d.request_json,'$.projectionReceipt.source_export_sha256')=c.source_export_sha256)` : ''})`,
+  params:[...(exceptRevision?[exceptRevision]:[]),...(supported?[environment]:[])]};
+}

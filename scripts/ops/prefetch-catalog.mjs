@@ -29,12 +29,16 @@ import {
   recordOpenAIUsage,
   redactTelemetryText,
   safeCatalogConfig,
+  sanitizeTelemetryValue,
   startCatalogRun,
 } from './catalog-telemetry.mjs';
 
-dotenv.config({ path: '.env.local', quiet: true });
-dotenv.config({ quiet: true });
-hydrateLocalAmazonCreatorsEnv();
+const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isDirectRun) {
+  dotenv.config({ path: '.env.local', quiet: true });
+  dotenv.config({ quiet: true });
+  hydrateLocalAmazonCreatorsEnv();
+}
 
 let defaultStore;
 function defaultMaintenanceStore() {
@@ -1677,6 +1681,9 @@ function persistenceOutcome(product, options, readyStatuses = ['generated_ready'
 
 /** @param {import('./catalog-maintenance-postgres.mjs').CatalogMaintenanceStore} [store] */
 async function executeCatalog(options, editorialSeedProducts, telemetry, store = defaultMaintenanceStore()) {
+  // An explicit backend is a catalog read capability even without POSTGRES_URL.
+  // Preserve the original environment guard only for the unchanged default CLI.
+  const catalogReadsAvailable = arguments[3] !== undefined || Boolean(process.env.POSTGRES_URL);
   if (options.repairAffiliateUrlsOnly) {
     const affiliateAudit = await auditAndRepairAmazonAffiliateUrls(options, store);
     return { dryRun: options.dryRun, repairAffiliateUrlsOnly: true, affiliateAudit };
@@ -1720,7 +1727,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
     console.log(`Catalog prefetch: ${themes.length} themes, max ${options.maxNew} net-new products`);
   }
 
-  if (options.backfillLimit > 0 && (!options.dryRun || process.env.POSTGRES_URL)) {
+  if (options.backfillLimit > 0 && (!options.dryRun || catalogReadsAvailable)) {
     const backfillProducts = await getProductsNeedingEnrichment(options.backfillLimit, options.ids, store);
     backfillStats.selected = backfillProducts.length;
     backfillProducts.forEach((product) => recordExistingSelection(telemetry, product, 'backfill'));
@@ -1910,7 +1917,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
   candidates.splice(0, candidates.length, ...deduplicated.products);
   let catalogDuplicates = 0;
   let catalogSuperseded = [];
-  if (candidates.length > 0 && (!options.dryRun || process.env.POSTGRES_URL)) {
+  if (candidates.length > 0 && (!options.dryRun || catalogReadsAvailable)) {
     try {
       const catalog = await getActiveCatalogIdentities(store);
       const catalogDeduplicated = deduplicateAgainstCatalog(candidates, catalog);
@@ -2054,6 +2061,91 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
   };
 }
 
+/** @typedef {{runId:string,pendingItems:object[]}} CatalogRunRecovery
+ * @typedef {Error & {catalogRunRecovery?:CatalogRunRecovery}} CatalogBackendError
+ */
+
+/** Explicit alternative to the default CLI, for one catalog phase or the two
+ * bounded weekly phases. No backend/environment detection, Vercel invalidation,
+ * notifications, credential bootstrap or ownership takeover. A real publication
+ * adapter must independently verify success and preserve explicit finalization
+ * ownership; accepted dispatch alone is not a completion receipt.
+ */
+async function runCatalogWithBackend(phaseOptions, {
+  maintenanceStore, telemetryStore, publish, finalizeRun, runId, gitSha = null, mode = 'catalog', trigger = 'manual',
+  execute = executeCatalog, editorialSeedProducts,
+} = {}) {
+  const phases = Array.isArray(phaseOptions) ? phaseOptions : [phaseOptions];
+  const methods = ['startCatalogRun','finishCatalogRun','insertCatalogRunItems','loadCatalogRun','loadRecentCatalogRuns'];
+  if (!maintenanceStore || methods.some(method => typeof telemetryStore?.[method] !== 'function')
+    || typeof publish !== 'function' || typeof finalizeRun !== 'function' || typeof execute !== 'function' || typeof runId !== 'string'
+    || !/^[a-zA-Z0-9._:/-]{1,200}$/.test(runId) || phases.length < 1 || phases.length > 2
+    || phases.some(options => !options || typeof options !== 'object')
+    || phases.some(options => Boolean(options.dryRun) !== Boolean(phases[0].dryRun))) throw new Error('Invalid explicit catalog backend');
+  const dryRun = Boolean(phases[0].dryRun);
+  if (!dryRun && await telemetryStore.loadCatalogRun(runId)) throw new Error('Catalog run already exists; reconcile before replaying provider work');
+  const warnings = []; const results = []; const startedAt = Date.now(); let started = false; let publication = null; let publicationOutcome;
+  let pendingItems = [];
+  const telemetry = {runId,usage:createUsageLedger(),timingsMs:{},warnings,
+    items:createRunItemCollector({runId,enabled:!dryRun,warnings,writeItems:async(id,items) => {
+      pendingItems=items.map(item=>sanitizeTelemetryValue(item));
+      await telemetryStore.insertCatalogRunItems(id,pendingItems);pendingItems=[];
+    }})};
+  const counts = () => phases.length === 2
+    ? {revalidation:results[0] ? catalogResultCounts(results[0]) : null,discovery:results[1] ? catalogResultCounts(results[1]) : null,publication}
+    : {...catalogResultCounts(results[0]),publication};
+  const finish = async (status,error) => {
+    // Explicit finalizer owns any release/reacquisition after publication. Never
+    // silently adopt another owner's token/epoch from a database read here.
+    const saved=await finalizeRun(runId,{status,counts:counts(),timingsMs:telemetry.timingsMs,
+      usage:finalizeUsageLedger(telemetry.usage),warnings,error},publicationOutcome);
+    if(saved?.run?.id!==runId || saved.run.status!==status) throw new Error('Run finalization lacks exact readback');
+  };
+  try {
+    if (!dryRun) {
+      await telemetryStore.startCatalogRun({id:runId,mode,trigger,dryRun:false,gitSha,
+        config:phases.length === 2 ? {...safeCatalogConfig(phases[1]),revalidateLimit:phases[0].revalidateLimit,
+          staleDays:phases[0].staleDays,deactivateAfterDays:phases[0].deactivateAfterDays} : safeCatalogConfig(phases[0])});
+      started = true;
+    }
+    for (const options of phases) {
+      results.push(await execute({...options,runId,managedRun:true},editorialSeedProducts,telemetry,maintenanceStore));
+      await telemetry.items.flush();
+      if (telemetry.items.size) throw new Error('Catalog item accounting remains unpersisted');
+    }
+    if (!dryRun) {
+      publicationOutcome = await publish({runId,results,telemetry:{timingsMs:telemetry.timingsMs,usage:finalizeUsageLedger(telemetry.usage),warnings}});
+      if (!publicationOutcome || publicationOutcome.status !== 'published' || typeof publicationOutcome.releaseId !== 'string'
+        || !/^[a-zA-Z0-9._-]{1,200}$/.test(publicationOutcome.releaseId)
+        || !/^[a-f0-9]{64}$/.test(publicationOutcome.receiptSha256 || '')) throw new Error('Publication is not independently verified');
+      publication={status:'published',releaseId:publicationOutcome.releaseId,receiptSha256:publicationOutcome.receiptSha256};
+    }
+    addTiming(telemetry.timingsMs,'total',Date.now()-startedAt);
+    if (started) await finish('completed');
+    return {runId,dryRun,results,publication,telemetry:{timingsMs:telemetry.timingsMs,usage:finalizeUsageLedger(telemetry.usage),warnings}};
+  } catch (error) {
+    await telemetry.items.flush();
+    const recovery=pendingItems.length ? {runId,pendingItems} : null;
+    if(recovery) warnings.push({phase:'telemetry',reasonCode:'unpersisted_run_items',pendingCount:pendingItems.length});
+    /** @type {CatalogBackendError} */
+    const failure=error instanceof Error&&Object.isExtensible(error)?error:new Error(String(error),{cause:error});
+    // Private retry evidence is deliberately nonenumerable: never automatically
+    // log/serialize raw item payloads. The caller must protect it explicitly.
+    if(recovery) Object.defineProperty(failure,'catalogRunRecovery',{value:recovery});
+    addTiming(telemetry.timingsMs,'total',Date.now()-startedAt);
+    if (started) {
+      try {
+        await finish(results.length ? 'partial' : 'failed',failure);
+      } catch (finalizationError) {
+        const combined=new AggregateError([failure,finalizationError],'Catalog failure and accounting finalization require reconciliation');
+        if(recovery) Object.defineProperty(combined,'catalogRunRecovery',{value:recovery});
+        throw combined;
+      }
+    }
+    throw failure;
+  }
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) {
@@ -2163,7 +2255,6 @@ async function main() {
   }
 }
 
-const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isDirectRun) {
   main().catch((error) => {
     console.error(redactTelemetryText(error instanceof Error ? error.message : error));
@@ -2173,6 +2264,7 @@ if (isDirectRun) {
 
 export {
   executeCatalog,
+  runCatalogWithBackend,
   areNearDuplicateTitles,
   amazonAffiliateUrl,
   deduplicateAgainstCatalog,

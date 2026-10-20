@@ -195,9 +195,24 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-20 [owner+claude] — Review the opt-in weekly runner and vector delivery
+
+PR #195 adds D1 run/item telemetry, explicit weekly-runner injection, owned
+Vectorize delivery and expiry recovery. It preserves the default Neon job,
+retains immutable evidence, and refuses to call an accepted upload a completed
+publication. Root review and cross-review fixed real recovery and float32
+readback issues; actual D1 proof passed in a disposable database. Local burst
+rehearsal passed 60,000 requests, without claiming Cloudflare capacity.
+The owner-retired bundle catch-all and heuristic redirect map are removed.
+
+This is implementation/staging progress, not production cutover. The full
+new-cohort publishing/secret/scheduler integration, full-catalog relevance and
+capacity proof, recurring rights policy, final delta and owner/provider gates
+remain open in `roadmap-lbbz1`.
+
 ### 2026-10-20 [owner+claude] — Stage the D1 writer and expiry-publication path
 
-The opt-in maintenance store (`77042f3`) preserves stable product identities and
+PR #194 (`3b29f16`) adds the opt-in maintenance store, preserving stable product identities and
 the existing runner's eleven storage operations. Shared ownership now spans
 catalog writes, pruning and activation; interrupted work cannot silently become
 a successful publication. Review fixed stale-observation freshness and revoked
@@ -208,6 +223,8 @@ An actual disposable D1 canary passed ten transaction/replay/ownership checks
 and was removed. A separate live read caught D1's long-pattern SQL limit;
 `ee59f83` replaces that check with canonical timestamp normalization, then
 reproduces the same four products with zero writes.
+The exact merged protected release and twenty route/asset checks pass; Vercel
+production is READY at the same SHA with public Goose pages healthy.
 This is implementation progress, not writer, scheduler or domain cutover.
 
 ### 2026-10-20 [owner+claude] — Review release identity and maintenance migration safety
