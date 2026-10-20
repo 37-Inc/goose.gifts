@@ -12,12 +12,14 @@ import amazonCreators from '../lib/amazon-creators.js';
 import { createD1CatalogMaintenanceStore } from '../scripts/catalog/maintenance-d1.ts';
 import { claimMutationOwnership, readMutationOwner, releaseMutationOwnership } from '../lib/catalog/mutation-fence.ts';
 import { createProjectionPacket, projectionQueries } from '../lib/catalog/d1.ts';
+import { enqueueBuildRequest, claimBuildRequest, beginBuildActivation, resolveBuildActivation } from '../lib/catalog/build-requests.ts';
+import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication } from '../lib/catalog/publication.ts';
 import { createSealedSnapshotEnvelope } from '../scripts/catalog/export-d1-snapshot.ts';
 import { canonicalJson, sha256 } from '../scripts/catalog/migration.ts';
 import { editorialSourceHash } from '../scripts/ops/catalog-editorial-core.mjs';
 import { createReleaseIdentity } from '../scripts/staging/release-identity.mts';
 import { siteIdentityBytes } from '../scripts/staging/build.mts';
-import { assembleReleaseAssets } from '../scripts/staging/retention.mts';
+import { assembleReleaseAssets, readPriorRelease } from '../scripts/staging/retention.mts';
 import { createStaticFeedPlan } from '../workers/site/feed.ts';
 import { createBrowseRelease } from '../static-site/lib/browse.ts';
 import { createOgRelease } from '../static-site/lib/og.ts';
@@ -32,6 +34,7 @@ import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 const NOW='2026-10-20T12:00:00.123Z',OLD='2026-07-01T00:00:00.000Z';
 const ID='B000000001',UUID='00000000-0000-4000-8000-000000000001';
 const VERSION='00000000-0000-4000-8000-000000000002',DEPLOY='00000000-0000-4000-8000-000000000003';
+const PRIOR_VERSION='00000000-0000-4000-8000-000000000004';
 const values=Array(1536).fill(.1);values[0]=-0;values[1]=1e-45;
 const writeup=Array(2).fill(Array(15).fill('Synthetic brass lobster desk bell fixture editorial.').join(' ')).join('\n\n');
 const p={id:ID,title:'TEST ONLY novelty brass lobster desk bell',price:19.99,currency:'USD',imageUrl:'https://example.invalid/lobster.jpg',
@@ -43,11 +46,28 @@ const rights=Object.fromEntries(Object.entries({title:p.title,description:p.witt
   punnyTitle:p.punnyTitle,wittyDescription:p.wittyDescription,editorialWriteup:p.editorialWriteup,humorTags:JSON.stringify(p.humorTags)})
   .map(([field,value])=>[field,{basis:'owned',reference:`test-only-owned/${field}`,value}]));
 const original={fetch:globalThis.fetch,getItems:amazonCreators.getItems,searchItems:amazonCreators.searchItems};
+const safeCatalogPayload=await fs.readFile(new URL('../static-site/public/safe/catalog.json',import.meta.url));
 let route;globalThis.fetch=(...args)=>{if(!route)throw new Error('Live network forbidden');return route(...args);};
 test.after(()=>{globalThis.fetch=original.fetch;amazonCreators.getItems=original.getItems;amazonCreators.searchItems=original.searchItems;});
 async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true,mode:0o700});await fs.writeFile(file,
   typeof value==='string'||value instanceof Uint8Array?value:`${JSON.stringify(value)}\n`,{mode:0o600});}
-async function setup(t){
+function sealedFixture(snapshot,context,prior=null){
+  const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/weird-gift-index','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
+    ...[...snapshot.products,...snapshot.heldProducts].map(p=>`/gifts/${p.slug}`)];
+  const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,Buffer.from('Owned fixture HTML')]));
+  for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/index.json','/safe/asset.txt'])assets.set(name,Buffer.from('Owned unavailable'));
+  assets.set('/safe/catalog.json',safeCatalogPayload);assets.set('/weird-gift-index/data.json',Buffer.from('{"scope":"sample"}'));
+  for(const shard of createBrowseRelease(snapshot).shards)assets.set(shard.path,Buffer.from(JSON.stringify(shard.payload)));
+  for(const name of createOgRelease(snapshot,siteIdentityFor('preview')).byPath.keys())assets.set(name,Buffer.from('Owned PNG fixture'));
+  const assembled=assembleReleaseAssets(snapshot,assets,context,prior);const {retainedManifestSha256,...rest}=context;void retainedManifestSha256;
+  const manifest={...rest,dataKind:'catalog',siteIdentitySha256:sha256(siteIdentityBytes('preview')),nextExpiry:snapshot.products.map(p=>p.eligibleUntil).sort()[0]||null,
+    productCount:snapshot.products.length,slugCount:snapshot.products.length+snapshot.heldProducts.length,checksums:Object.fromEntries([...assembled.assets].map(([p,b])=>[p,sha256(b)])),routes:assembled.routes,retention:assembled.retention};
+  const manifestBytes=Buffer.from(`${JSON.stringify(manifest,null,2)}\n`);
+  return{manifest,assets:assembled.assets,files:{'asset-manifest.json':manifestBytes,'catalog.snapshot.json':`${JSON.stringify(snapshot)}\n`,
+    'release-context.json':`${JSON.stringify(context)}\n`,'release-identity.json':JSON.stringify(createReleaseIdentity(manifestBytes)),
+    'site-identity.json':siteIdentityBytes('preview'),'feed-plan.json':JSON.stringify(createStaticFeedPlan(snapshot,sha256(`${JSON.stringify(snapshot)}\n`)))}};
+}
+async function setup(t,{noPrior=false}={}){
   const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-weekly-')));t.after(()=>fs.rm(directory,{recursive:true,force:true}));
   const repo=path.join(directory,'source');await fs.mkdir(repo,{mode:0o700});await put(path.join(repo,'.gitignore'),'build/\nstatic-site/out/\n');
   const git=(...args)=>execFileSync('git',args,{cwd:repo,encoding:'utf8'}).trim();git('init','-q');git('add','.gitignore');
@@ -71,9 +91,36 @@ async function setup(t){
   const packet=await createProjectionPacket(previous,{[UUID]:row.source_facts_hash},'b'.repeat(64),new Date(NOW));
   sql.prepare('INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES(?,?,?,?)').run('prior-r',NOW,'b'.repeat(64),'reconciled');
   for(const q of projectionQueries(packet))sql.prepare(q.sql).run(...q.params);
+  // Explicit owned already-deployed catalog fixture, not an automatic first
+  // Worker deployment. Its bytes, D1 receipt and provider identity agree.
+  const priorContext={schemaVersion:1,sourceMode:'preview',releaseId:'prior-release',codeSha,catalogRevision:previous.catalogRevision,
+    catalogSnapshotSha256:packet.receipt.snapshot_sha256,generatedAt:NOW,vectorSyncWatermark:0,priorReleaseId:null,retainedManifestSha256:null};
+  const priorPackage=sealedFixture(previous,priorContext);const priorDirectory=path.join(directory,'verified-prior');
+  for(const [name,value]of Object.entries(priorPackage.files))await put(path.join(priorDirectory,name),value);
+  for(const [name,value]of priorPackage.assets)await put(path.join(priorDirectory,'assets',name.slice(1)),value);
+  const priorManifestSha256=sha256(priorPackage.files['asset-manifest.json']);
+  const priorIntent={releaseId:'prior-release',codeSha,catalogRevision:previous.catalogRevision,catalogSnapshotSha256:packet.receipt.snapshot_sha256,
+    manifestSha256:priorManifestSha256,vectorSyncWatermark:0,priorReleaseId:null,nextExpiry:null};
+  let priorReceipt;
+  if(!noPrior){
+    // Separate synthetic operator bootstrap through the real publication/CAS
+    // APIs; the weekly executor must never perform this initial deployment.
+    const priorOwner=await claimMutationOwnership(local,scope,{phase:'freezing',ownerReference:'test-only-operator-bootstrap',operationKey:'f'.repeat(64)});
+    const {requestId}=await enqueueBuildRequest(local,{schemaVersion:1,environment:scope.environment,sourceRevision:previous.catalogRevision,
+      sourceDigest:packet.receipt.snapshot_sha256,codeSha,priorReleaseId:null,capturedAt:NOW,cutoff:new Date(Date.parse(NOW)+3600000).toISOString()});
+    const build=await claimBuildRequest(local,requestId,'test-only-operator-bootstrap',new Date(NOW));
+    await enqueuePublication(local,previous,priorIntent,new Date(NOW));const publication=await claimPublication(local,previous,priorIntent.releaseId,new Date(NOW));
+    await recordPublicationDispatch(local,previous,publication,`version:${PRIOR_VERSION}`,new Date(NOW));
+    const permit=await beginBuildActivation(local,build,previous,publication,PRIOR_VERSION,
+      async()=>({environment:scope.environment,settled:true,active:null}),new Date(NOW),priorOwner);
+    await completePublication(local,previous,priorIntent.releaseId,publication.token,async()=>priorIntent,()=>new Date(NOW),permit.mutationOwner);
+    await resolveBuildActivation(local,permit,async()=>({environment:scope.environment,settled:true,active:{releaseId:priorIntent.releaseId,codeSha,
+      catalogRevision:previous.catalogRevision,catalogSnapshotSha256:packet.receipt.snapshot_sha256,manifestSha256:priorManifestSha256,versionReference:PRIOR_VERSION}}));
+    priorReceipt={...sql.prepare('SELECT * FROM publication_receipts WHERE release_id=?').get(priorIntent.releaseId)};
+  }
   const context={envelopeSha256:sha256(`${JSON.stringify(createSealedSnapshotEnvelope(previous))}\n`),snapshotSha256:packet.receipt.snapshot_sha256,
-    projectionSha256:packet.receipt.projection_sha256,sourceExportSha256:'b'.repeat(64),vectorSyncWatermark:0,publicationReceiptWatermark:0,
-    priorPublication:null,cutoff:new Date(Date.parse(NOW)+3600000).toISOString()};
+    projectionSha256:packet.receipt.projection_sha256,sourceExportSha256:'b'.repeat(64),vectorSyncWatermark:0,publicationReceiptWatermark:noPrior?0:1,
+    priorPublication:noPrior?null:{releaseId:priorReceipt.release_id,receiptSha256:sha256(canonicalJson(priorReceipt))},cutoff:new Date(Date.parse(NOW)+3600000).toISOString()};
   const inputs={};for(const [name,value]of Object.entries({previous,context,rights:{rightsById:{[ID]:rights},reviewedDeleteReference:'test-only/delete'}})){
     const file=path.join(directory,`${name}.json`);await put(file,value);inputs[name]={path:file,sha256:sha256(await fs.readFile(file)),observedAt:NOW};}
   const ref=name=>({service:`goose.gifts.test.${name}`,account:'fixture'});
@@ -84,12 +131,14 @@ async function setup(t){
     retention:{reviewReference:'test-only/owned-retention',rules:Object.fromEntries(['amazon-observation','embedding-response','phase','publication','checkpoint']
       .map(kind=>[kind,{maxAgeMs:86400000,notAfter:new Date(Date.parse(NOW)+86400000).toISOString()}]))},
     publication:{schemaVersion:1,environment:scope.environment,accountId:'a'.repeat(32),workerName:'test-weekly-worker',database:{id:UUID,name:'test-weekly-db'},indexName:scope.indexName,
-      codeSha,sourceMode:'preview',sourceRoot:repo,releaseId:'test-release',identityOrigin:'https://test-weekly-worker.example.invalid',compatibilityDate:'2026-10-20',prior:null}};
+      codeSha,sourceMode:'preview',sourceRoot:repo,releaseId:'test-release',identityOrigin:'https://test-weekly-worker.example.invalid',compatibilityDate:'2026-10-20',
+      prior:noPrior?null:{directory:priorDirectory,manifestSha256:priorManifestSha256,releaseId:'prior-release',versionReference:PRIOR_VERSION}}};
   const configPath=path.join(directory,'config.json');await put(configPath,config);const configSha256=sha256(await fs.readFile(configPath));
   const workspace=path.join(directory,'runs');const workspaceOptions={directory:workspace,repository:repo,mode:'resume',runId:config.runId,configSha256,codeSha,
     scope:{...scope,accountId:config.accountId,databaseId:UUID,databaseName:config.database.name,workerName:config.publication.workerName},retention:config.retention,
     budgetCaps:{httpRequests:config.limits.requests,sqlStatements:config.limits.statements},now:()=>clock};
-  const calls={getItems:0,search:0,chat:0,embedding:0,http:0,upsert:0,activate:0,upload:0,build:0,finish:0};const index=new Map();let mutation,upload,active=false,manifest;
+  const calls={getItems:0,search:0,chat:0,embedding:0,http:0,upsert:0,activate:0,upload:0,build:0,finish:0};const index=new Map();let mutation,upload,manifest;
+  let active=noPrior?false:{versions:[{version_id:PRIOR_VERSION,percentage:100}],annotations:{'workers/message':'verified-operator-prior'}};
   const mode={};let dropWrite=false;let queryTamper;let lostReleaseReadbacks=0,versionReads=0;
   amazonCreators.getItems=async()=>{calls.getItems++;assert.equal(process.env.AMAZON_ASSOCIATE_TAG,'fixture-20');assert.equal(process.env.POSTGRES_URL,undefined);
     assert.equal(process.env.CATALOG_DISCOVERY_THEMES,undefined);return[structuredClone(p)];};
@@ -106,8 +155,9 @@ async function setup(t){
       calls.chat++;return Response.json({choices:[{message:{content:JSON.stringify({products:[{id:ID,approved:true,qualityScore:.95,reasons:[],correctedEditorial:null}]})},finish_reason:'stop'}],usage:{prompt_tokens:10,completion_tokens:10,total_tokens:20}});
     }
     calls.http++;
-    if(url.origin===config.publication.identityOrigin){if(mode.identityFailure)return new Response('',{status:401});
-      assert.equal(init.headers.Authorization,`Basic ${Buffer.from('staging:TEST_ONLY_staging').toString('base64')}`);return Response.json(createReleaseIdentity(Buffer.from(`${JSON.stringify(manifest,null,2)}\n`)));}
+    if(url.origin===config.publication.identityOrigin){const isTarget=active?.versions[0].version_id===VERSION;if(mode.identityFailure&&isTarget)return new Response('',{status:401});
+      assert.equal(init.headers.Authorization,`Basic ${Buffer.from('staging:TEST_ONLY_staging').toString('base64')}`);
+      return Response.json(createReleaseIdentity(isTarget?Buffer.from(`${JSON.stringify(manifest,null,2)}\n`):priorPackage.files['asset-manifest.json']));}
     assert.equal(url.origin,'https://api.cloudflare.com');
     if(url.pathname.endsWith(`/d1/database/${UUID}`))return response({uuid:UUID,name:config.database.name,read_replication:{mode:'disabled'}});
     if(url.pathname.endsWith('/query')){
@@ -150,25 +200,13 @@ async function setup(t){
     if(c.args.includes('upload')){calls.upload++;upload={tag:c.args[c.args.indexOf('--tag')+1],message:c.args[c.args.indexOf('--message')+1]};return;}
     if(!c.args.includes('scripts/staging/build.mts'))return;
     calls.build++;const context=JSON.parse(await fs.readFile(c.env.CATALOG_RELEASE_CONTEXT_PATH));const snapshot=JSON.parse(await fs.readFile(c.env.CATALOG_SNAPSHOT_PATH));
-    const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/weird-gift-index','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
-      ...[...snapshot.products,...snapshot.heldProducts].map(p=>`/gifts/${p.slug}`)];
-    const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,Buffer.from('Owned fixture HTML')]));
-    for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/index.json','/safe/asset.txt'])assets.set(name,Buffer.from('Owned unavailable'));
-    assets.set('/safe/catalog.json',Buffer.from('{"state":"unavailable","products":[]}'));assets.set('/weird-gift-index/data.json',Buffer.from('{"scope":"sample"}'));
-    for(const shard of createBrowseRelease(snapshot).shards)assets.set(shard.path,Buffer.from(JSON.stringify(shard.payload)));
-    for(const name of createOgRelease(snapshot,siteIdentityFor('preview')).byPath.keys())assets.set(name,Buffer.from('Owned PNG fixture'));
-    const assembled=assembleReleaseAssets(snapshot,assets,context,null);const {retainedManifestSha256,...rest}=context;void retainedManifestSha256;
-    manifest={...rest,dataKind:'catalog',siteIdentitySha256:sha256(siteIdentityBytes('preview')),nextExpiry:snapshot.products.map(p=>p.eligibleUntil).sort()[0]||null,
-      productCount:snapshot.products.length,slugCount:snapshot.products.length+snapshot.heldProducts.length,checksums:Object.fromEntries([...assembled.assets].map(([p,b])=>[p,sha256(b)])),routes:assembled.routes,retention:null};
-    const manifestBytes=Buffer.from(`${JSON.stringify(manifest,null,2)}\n`);
-    for(const [name,value]of Object.entries({'asset-manifest.json':manifestBytes,'catalog.snapshot.json':`${JSON.stringify(snapshot)}\n`,
-      'release-context.json':`${JSON.stringify(context)}\n`,'release-identity.json':JSON.stringify(createReleaseIdentity(manifestBytes)),
-      'site-identity.json':siteIdentityBytes('preview'),'feed-plan.json':JSON.stringify(createStaticFeedPlan(snapshot,sha256(`${JSON.stringify(snapshot)}\n`)))}))await put(path.join(repo,'build/stupid-gifts',name),value);
-    for(const [name,value]of assembled.assets)await put(path.join(repo,'static-site/out',name.slice(1)),value);
+    const sealed=sealedFixture(snapshot,context,await readPriorRelease(context,config.publication.prior?.directory));manifest=sealed.manifest;
+    for(const [name,value]of Object.entries(sealed.files))await put(path.join(repo,'build/stupid-gifts',name),value);
+    for(const [name,value]of sealed.assets)await put(path.join(repo,'static-site/out',name.slice(1)),value);
   };
   const dependencies={repository:repo,fetch,resolveToken:async ref=>`TEST_ONLY_${ref.service.split('.').at(-1)}`,now:()=>clock,publication:{fetch,command,now:()=>new Date(clock)}};
   const options={configPath,configSha256,workspace};
-  return{sql,config,options,dependencies,mode,calls,index,workspaceOptions,now:()=>clock,advance(ms){clock=new Date(Date.parse(clock)+ms).toISOString();},
+  return{sql,local,previous,packet,config,options,dependencies,mode,calls,index,workspaceOptions,now:()=>clock,advance(ms){clock=new Date(Date.parse(clock)+ms).toISOString();},
     loseWrite(){dropWrite=true;},tamper(fn){queryTamper=fn;},
     async run(command,approval){route=fetch;return runCloudflareWeekly({...options,command,...(approval?{approval}:{})},dependencies);},
     async approve(){
@@ -179,6 +217,59 @@ async function setup(t){
     }};
 }
 
+test('no-prior start/preflight and undispatched resume refuse before provider or workspace writes; status stays readable',async t=>{
+  const f=await setup(t,{noPrior:true});const before={...f.calls};const writes=f.sql.prepare('SELECT total_changes() n').get().n;
+  const dependencies={...f.dependencies,async resolveToken(){assert.fail('Bootstrap guard must precede credentials');}};
+  const run=command=>runCloudflareWeekly({...f.options,command},dependencies);
+  for(const command of ['start','preflight','resume'])await assert.rejects(run(command),/^Error: weekly_bootstrap_required$/);
+  await assert.rejects(fs.stat(f.options.workspace),{code:'ENOENT'});
+  for(const phase of ['created','phases_complete']){
+    const w=await openRunWorkspace({...f.workspaceOptions,mode:phase==='created'?'create':'resume'});const current=await w.readCheckpoint();
+    await w.writeCheckpoint(current?.sha256||null,{phase,owner:null,state:{},pins:{},phaseComplete:null});await w.close();
+    const checkpoint=await readRunWorkspace(f.workspaceOptions);
+    await assert.rejects(run('resume'),/^Error: weekly_bootstrap_required$/);
+    assert.deepEqual(await readRunWorkspace(f.workspaceOptions),checkpoint);
+  }
+  const status=await run('status');assert.equal(weeklyCommandSummary(status).phase,'phases_complete');
+  assert.deepEqual(f.calls,before);assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,writes);
+  assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
+});
+test('null-prior historical activation remains reconcilable after expiry, including lost local permit checkpoint',async t=>{
+  for(const savedPermit of [true,false]){
+    const f=await setup(t,{noPrior:true});const at=new Date(f.now());const scope={environment:f.config.environment,indexName:f.config.vectorIndex.name};
+    const owner=await claimMutationOwnership(f.local,scope,{phase:'freezing',ownerReference:f.config.runId,operationKey:'d'.repeat(64)});
+    const request={schemaVersion:1,environment:scope.environment,sourceRevision:f.previous.catalogRevision,sourceDigest:f.packet.receipt.snapshot_sha256,
+      codeSha:f.config.codeSha,priorReleaseId:null,capturedAt:f.now(),cutoff:new Date(at.getTime()+3600000).toISOString()};
+    const {requestId}=await enqueueBuildRequest(f.local,request);const build=await claimBuildRequest(f.local,requestId,f.config.runId,at);
+    const intent={releaseId:f.config.publication.releaseId,codeSha:f.config.codeSha,catalogRevision:f.previous.catalogRevision,
+      catalogSnapshotSha256:f.packet.receipt.snapshot_sha256,manifestSha256:'c'.repeat(64),vectorSyncWatermark:0,priorReleaseId:null,nextExpiry:null};
+    await enqueuePublication(f.local,f.previous,intent,at);const publication=await claimPublication(f.local,f.previous,intent.releaseId,at);
+    await recordPublicationDispatch(f.local,f.previous,publication,`version:${VERSION}`,at);
+    const permit=await beginBuildActivation(f.local,build,f.previous,publication,VERSION,
+      async()=>({environment:scope.environment,settled:true,active:null}),at,owner);
+    const control={publication:{schemaVersion:1,configSha256:sha256(canonicalJson(f.config.publication)),requestId,runReference:f.config.runId,
+      stage:'activating',build,publication,intent,permit:savedPermit?permit:null,
+      vectorPlan:{catalogRevision:f.previous.catalogRevision,planSha256:'e'.repeat(64),ids:[]},packageSha256:null,
+      uploadMarker:'historical-upload',versionReference:VERSION,deploymentMarker:'historical-dispatch',deploymentId:null}};
+    const w=await openRunWorkspace({...f.workspaceOptions,mode:'create'});let checkpoint;
+    for(const phase of ['created','freezing','attention']){
+      checkpoint=await w.writeCheckpoint(checkpoint?.sha256||null,{phase,owner:savedPermit?permit.mutationOwner:owner,state:{},pins:{},phaseComplete:null,control});
+      if(phase!=='attention'){const calls={...f.calls};await assert.rejects(f.run('resume'),/^Error: weekly_bootstrap_required$/);assert.deepEqual(f.calls,calls);}
+    }
+    await w.close();
+    f.advance(2*86400000);const result=await f.run('resume');assert.equal(result.state,'pending');
+    assert.equal(result.errorCode,'publication_fresh_evidence_required');
+    assert.equal(f.calls.getItems+f.calls.search+f.calls.chat+f.calls.embedding+f.calls.upsert+f.calls.activate+f.calls.upload+f.calls.build,0);
+    assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'activating');
+    assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,0);
+  }
+});
+test('staging requires an explicit identity-auth reference; production auth optionality is unchanged',async t=>{
+  const f=await setup(t);const {stagingAuthSecret,...credentials}=f.config.credentials;assert.ok(stagingAuthSecret);
+  assert.throws(()=>validateCloudflareWeeklyConfig({...f.config,credentials}),/^Error: weekly_configuration_invalid$/);
+  assert.doesNotThrow(()=>validateCloudflareWeeklyConfig({...f.config,environment:'production',credentials,
+    publication:{...f.config.publication,environment:'production',sourceMode:'goose-production',identityOrigin:'https://www.goose.gifts'}}));
+});
 test('preflight reads exact schema/scope without workspace writes or merchant/model credentials',async t=>{
   const f=await setup(t);const refs=[];const before=f.sql.prepare('SELECT total_changes() n').get().n;
   const result=await runCloudflareWeekly({...f.options,command:'preflight'},{...f.dependencies,async resolveToken(ref){refs.push(ref.service);return f.dependencies.resolveToken(ref);}});
@@ -197,7 +288,8 @@ test('actual weekly phases defer for post-phase review, then compose owned deliv
   assert.equal(f.sql.prepare('SELECT status FROM catalog_runs').get().status,'completed');assert.equal(f.calls.activate,1);assert.equal(f.calls.build,1);
   assert.deepEqual(Object.fromEntries(Object.keys(providerCounts).map(k=>[k,f.calls[k]])),providerCounts);
   assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
-  assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests').get().state,'resolved');assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,1);
+  assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests WHERE release_id=?').get(f.config.publication.releaseId).state,'resolved');
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,2);
   assert.equal(nativeHash([...f.index.values()][0].values),nativeHash(values.map(Math.fround)));
   assert.equal((await f.run('resume')).state,'finalized');assert.equal(f.calls.activate,1);
 });

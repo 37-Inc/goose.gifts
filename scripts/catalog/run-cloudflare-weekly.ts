@@ -62,6 +62,7 @@ export function validateCloudflareWeeklyConfig(input:unknown):CloudflareWeeklyCo
     ||c.schemaVersion!==1||!KEY.test(c.runId)||!KEY.test(c.catalogRevision)||c.catalogRevision.length>64||!/^[a-f0-9]{40}$/.test(c.codeSha)
     ||!Number.isInteger(c.backfillLimit)||c.backfillLimit<0||c.backfillLimit>25
     ||!exact(c.credentials,c.credentials?.stagingAuthSecret?'amazonId,amazonSecret,amazonVersion,cloudflare,openai,stagingAuthSecret':'amazonId,amazonSecret,amazonVersion,cloudflare,openai')
+    ||c.environment==='staging'&&!c.credentials.stagingAuthSecret
     ||![c.credentials.cloudflare,c.credentials.amazonId,c.credentials.amazonSecret,c.credentials.openai,...(c.credentials.stagingAuthSecret?[c.credentials.stagingAuthSecret]:[])].every(keychain)
     ||!['2.1','2.2','2.3','3.1','3.2','3.3'].includes(c.credentials.amazonVersion)
     ||!exact(c.limits,'requests,statements')||!Number.isInteger(c.limits.requests)||c.limits.requests<2||c.limits.requests>10000
@@ -152,6 +153,15 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     const report=await readRunWorkspace(workspaceOptions);
     return{state:'status',runId:config.runId,phase:report.checkpoint?.checkpoint.phase??'created',
       resumeStates:WEEKLY_RESUME_STATES,...report};
+  }
+  // Creating the first verified Worker/catalog prior is a separate audited
+  // operator step, never an implicit side effect of a routine weekly run.
+  if(config.publication.prior===null){
+    let prior;
+    try{prior=options.command==='resume'?(await readRunWorkspace(workspaceOptions)).checkpoint?.checkpoint:null;}
+    catch{throw new Error('weekly_bootstrap_required');}
+    if(!prior||!(['publishing','attention'].includes(prior.phase)&&resolving(prior))
+      &&!['published','finalized'].includes(prior.phase))throw new Error('weekly_bootstrap_required');
   }
   if(options.command==='preflight')return checkCloudflareRunner({schemaVersion:1,environment:config.environment,accountId:config.accountId,
     database:config.database,vectorIndex:config.vectorIndex,catalog:config.catalog,cloudflareReadToken:config.credentials.cloudflare},
