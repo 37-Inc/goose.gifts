@@ -26,7 +26,9 @@ CREATE TABLE IF NOT EXISTS products (
   public_display_json TEXT CHECK (public_display_json IS NULL OR json_valid(public_display_json)),
   rights_json TEXT NOT NULL CHECK (json_valid(rights_json)),
   source_record_json TEXT NOT NULL CHECK (json_valid(source_record_json)),
-  created_at TEXT NOT NULL,
+  -- Historical creation wall times may have unresolved writer/session timezone.
+  -- NULL is truthful; the exact original remains in private source_record_json.
+  created_at TEXT,
   updated_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS products_active_quality_idx ON products(is_active, quality_score);

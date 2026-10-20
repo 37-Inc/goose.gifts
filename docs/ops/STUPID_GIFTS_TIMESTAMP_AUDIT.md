@@ -23,9 +23,15 @@ historical session's timezone. `B0DCNB17CD` was created during the same October
 creation times predate that run and retain **historical timezone unproven**
 status until a historical configuration/receipt establishes it. Do not silently
 upgrade a default or plausible schedule match into confirmed UTC provenance.
-Preserve these exact raw values; do not invent a new creation instant to get
-an import through a NOT NULL constraint. An operator-approved provisional
-interpretation must be labeled separately from verified reconciliation.
+Preserve these exact raw values; do not invent a new creation instant. The
+root-approved staging representation is a nullable typed `products.created_at`:
+an explicit per-column `{timezone: 'unresolved', evidence: '...'}` maps only
+that column to `NULL`, retaining its original text in `source_record_json`.
+No other typed timestamp accepts this exception. All ten staging creation
+values may be marked unresolved conservatively; a per-row known UTC decision
+can retain the one verified creation instant. Full historical reconciliation
+remains open. An operator-approved provisional interpretation must be labeled
+separately from verified reconciliation.
 
 Selected cohort IDs: `B000L70MQO`, `B07B4PP1BB`, `B09HT6ZC7K`, `B0BL16BRNH`,
 `B0C7J5SMPK`, `B0CGXSKGXL`, `B0CYKK1167`, `B0DCNB17CD`, `B0F88FJ56K`,

@@ -98,6 +98,30 @@ test('product conversion preserves private raw values but never embeds vectors o
   assert.throws(() => converted({ quality_score: 'NaN' }), /quality/);
 });
 
+test('only an explicit unresolved product creation decision becomes NULL; original source time remains exact', async () => {
+  const unresolved = { timezone: 'unresolved', evidence: 'Historical session timezone not proven; retain exact source wall time' };
+  const row = convertSourceRow('products', source(), { ...options,
+    timestamps: { ...options.timestamps, 'products.created_at': unresolved }, publicDisplay: display() });
+  assert.equal(row.created_at, null);
+  assert.equal(JSON.parse(row.source_record_json).created_at, source().created_at);
+  assert.equal(row.updated_at, '2026-10-19T12:00:00.502590Z');
+  assert.equal(row.availability_checked_at, '2026-10-18T12:00:00.000001Z');
+  const db = database(); await importBatch(db, batch([row]));
+  assert.equal(db.sqlite.prepare('SELECT created_at FROM products').get().created_at, null);
+  for (const column of ['availability_checked_at','last_verified_at','updated_at']) {
+    assert.throws(() => convertSourceRow('products', source(), { ...options,
+      timestamps: { ...options.timestamps, [`products.${column}`]: unresolved } }), /only for products.created_at/);
+  }
+  assert.throws(() => convertSourceRow('catalog_editorial_events', { id: 'test', created_at: '2026-10-19 12:00:00' }, {
+    ...options, timestamps: { 'catalog_editorial_events.created_at': unresolved },
+  }), /only for products.created_at/);
+  assert.throws(() => canonicalTimestamp(source().created_at, unresolved), /documented UTC/);
+  assert.throws(() => convertSourceRow('products', source(), { ...options,
+    timestamps: { ...options.timestamps, 'products.created_at': { timezone: 'unresolved', evidence: '' } } }), /with evidence/);
+  assert.throws(() => convertSourceRow('products', source(), { ...options,
+    timestamps: { ...options.timestamps, 'products.created_at': undefined } }), /documented UTC/);
+});
+
 test('original vectors retain values/dimension and use exact public-ID mapping/metadata', () => {
   const metadata = { catalogRevision: 'test-only', eligible: false, embeddingTextHash: sha256('test-only-embedding-text') };
   const vector = exportVector(source(), metadata);

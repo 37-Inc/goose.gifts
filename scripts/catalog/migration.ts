@@ -9,7 +9,7 @@ export const RUNTIME_TABLES = ['products', 'product_slug_history', 'catalog_runs
 export const EMBEDDING_DIMENSIONS = 1536;
 export const EMBEDDING_MODEL = 'text-embedding-3-small';
 type Row = Record<string, unknown>;
-export interface TimestampDecision { timezone: 'UTC'; evidence: string }
+export interface TimestampDecision { timezone: 'UTC' | 'unresolved'; evidence: string }
 export interface ConversionOptions {
   catalogRevision: string;
   /** Required per historical naive column; do not infer UTC from the operator's clock. */
@@ -79,7 +79,12 @@ export function canonicalTimestamp(value: unknown, decision?: TimestampDecision)
   return parsed.toISOString().replace(/\.(\d{3})Z$/, (_, ms: string) => `.${ms}${fraction.slice(3, 6).padEnd(3, '0')}Z`);
 }
 function time(row: Row, table: string, column: string, options: ConversionOptions, required = false): string | null {
-  const value = canonicalTimestamp(row[column], options.timestamps[`${table}.${column}`]);
+  const decision = options.timestamps[`${table}.${column}`];
+  if (decision?.timezone === 'unresolved') {
+    if (table !== 'products' || column !== 'created_at' || !decision.evidence.trim()) throw new Error('Unresolved timestamp is permitted only for products.created_at with evidence');
+    return null; // The unmodified original is retained in source_record_json.
+  }
+  const value = canonicalTimestamp(row[column], decision);
   if (required && value === null) throw new Error(`Missing ${table}.${column}`);
   return value;
 }
