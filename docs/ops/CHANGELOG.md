@@ -203,7 +203,8 @@ what's likely next.
   page, keeping the representative 3,383-identity package within existing
   limits. No new public products or permissions are inferred.
 - Independent two-product Cloudflare publication/replay/cleanup passed at
-  `d7b3dda`; supported-runtime final validation and protected staging follow.
+  `d7b3dda`; Node 22 regression/build checks pass. Final full-suite,
+  merge and protected staging evidence are tracked on PR #200.
   Beads `roadmap-lbbz1.4.1` / `.4.2`; hosted persistence/retention remains `.4.3`.
   Public Goose hosting, schedules and provider accounts remain unchanged.
 

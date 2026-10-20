@@ -29,8 +29,13 @@ Root and adjacent workers reviewed both changes. Root's first combined run
 found obsolete held-renderer tests and stale/concurrently rebuilt export
 artifacts. Test-only corrections `14cafa2` / `cceb215` assert the new neutral
 contract while preserving ready-product assertions; the strict route inventory
-guard was not weakened. A fresh, serial Node 22 validation is required before
-merge. The earlier combined/build runs used the ambient Node 26 and are not
+guard was not weakened. A fresh Node 22 run found one remaining per-held-file
+assertion; root corrected it in `2ca369f`, preserving ordinary-link/immutable-JS
+checks and strengthening neutral-page assertions. All 18 focused static tests,
+88 existing regressions, lint and the production build pass on Node 22.
+The final full-suite and merge/deployment evidence are recorded on PR #200 and
+the canonical Beads; full-suite acceptance is required before merge.
+The earlier combined/build runs used the ambient Node 26 and are not
 being represented as supported-runtime acceptance.
 
 The integrated `d7b3dda` passed another actual disposable Cloudflare rehearsal:
