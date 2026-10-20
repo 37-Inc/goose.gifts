@@ -1,7 +1,6 @@
 import { ImageResponse } from 'next/og';
 import type { NextRequest } from 'next/server';
 import { getGiftPageBySlug } from '@/lib/db/gift-pages';
-import { getProductById } from '@/lib/db/random-gift';
 import type { Product } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -103,18 +102,20 @@ function Fallback() {
 }
 
 export async function GET(request: NextRequest) {
+  // The six dependent legacy Pins are retired. Product-page previews still
+  // use their cached slug lookup until the static preview migration ships.
+  if (request.nextUrl.searchParams.has('gift')) {
+    return new Response('Not found', { status: 404 });
+  }
   const slug = request.nextUrl.searchParams.get('slug');
-  const id = request.nextUrl.searchParams.get('gift');
 
-  if (!slug && !id) {
+  if (!slug) {
     return Fallback();
   }
 
   let product: Product | undefined;
   try {
-    product = slug
-      ? (await getGiftPageBySlug(slug))?.product
-      : await getProductById(id || '');
+    product = (await getGiftPageBySlug(slug))?.product;
   } catch {
     return Fallback();
   }

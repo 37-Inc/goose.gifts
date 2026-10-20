@@ -49,40 +49,6 @@ function toProduct(row: {
   };
 }
 
-export async function getProductById(id: string): Promise<Product | undefined> {
-  if (!id) {
-    return undefined;
-  }
-
-  const rows = await db
-    .select({
-      id: products.id,
-      publicId: products.publicId,
-      slug: products.slug,
-      title: products.title,
-      punnyTitle: products.punnyTitle,
-      wittyDescription: products.wittyDescription,
-      editorialWriteup: products.editorialWriteup,
-      humorTags: products.humorTags,
-      qualityScore: products.qualityScore,
-      sourceQuery: products.sourceQuery,
-      isActive: products.isActive,
-      price: products.price,
-      currency: products.currency,
-      imageUrl: products.imageUrl,
-      affiliateUrl: products.affiliateUrl,
-      source: products.source,
-      rating: products.rating,
-      reviewCount: products.reviewCount,
-    })
-    .from(products)
-    .where(sql`${products.id} = ${id}`)
-    .limit(1);
-
-  const row = rows[0];
-  return row ? toProduct(row) : undefined;
-}
-
 function hashSeed(value: string): number {
   let hash = 2166136261;
 
@@ -126,15 +92,14 @@ async function loadEligibleRandomGiftPool(): Promise<Product[]> {
 
   return rows
     .map(toProduct)
-    .filter((product) => isCatalogDisplayEligibleProduct(product))
+    .filter((product) => Boolean(product.slug) && isCatalogDisplayEligibleProduct(product))
     .sort((a, b) => scoreProductForTrending(b) - scoreProductForTrending(a));
 }
 
 // This page is intentionally dynamic because each spin has its own seed, but
 // the eligible catalog pool is shared by every request. Keep the pool in the
 // Vercel Data Cache so crawlers cannot download the same catalog rows from Neon
-// on every request. Catalog changes may be up to one hour old here, which is
-// acceptable for a gift picker and matches the homepage catalog cache cadence.
+// on every request. Catalog writes invalidate this shared one-day cache.
 const getEligibleRandomGiftPool = unstable_cache(
   loadEligibleRandomGiftPool,
   ['random-gift-eligible-pool-v1'],
@@ -144,7 +109,7 @@ const getEligibleRandomGiftPool = unstable_cache(
   }
 );
 
-export async function getRandomGiftSelection(seed: string, requestedId?: string) {
+export async function getRandomGiftSelection(seed: string) {
   const pool = await getEligibleRandomGiftPool();
 
   if (pool.length === 0) {
@@ -155,13 +120,7 @@ export async function getRandomGiftSelection(seed: string, requestedId?: string)
     };
   }
 
-  const requestedProduct = requestedId
-    ? pool.find((product) => product.id === requestedId)
-    : undefined;
-  const selectedIndex = requestedProduct
-    ? pool.findIndex((product) => product.id === requestedProduct.id)
-    : hashSeed(seed) % pool.length;
-  const product = requestedProduct || pool[selectedIndex];
+  const product = pool[hashSeed(seed) % pool.length];
   const offset = hashSeed(`${seed}:${product.id}`) % pool.length;
   const alternates = pool
     .filter((candidate) => candidate.id !== product.id)

@@ -62,3 +62,21 @@ test('obsolete admin reports are retired while the bearer-authenticated catalog 
   }
   assert.match(await readSource('../app/api/admin/catalog-cache/route.ts'), /hasValidCatalogCacheSecret/);
 });
+
+test('retired gift-ID shares cannot bypass the cached random pool', async () => {
+  const [page, storage, preview] = await Promise.all([
+    readSource('../app/random-gift/page.tsx'),
+    readSource('../lib/db/random-gift.ts'),
+    readSource('../app/api/og/random-gift/route.tsx'),
+  ]);
+  for (const source of [page, storage, preview]) {
+    assert.doesNotMatch(source, /getProductById/);
+  }
+  assert.match(page, /export const metadata: Metadata/);
+  assert.doesNotMatch(page, /params\.gift|random-gift\?gift=/);
+  assert.match(page, /if \('gift' in params\) notFound\(\)/);
+  assert.match(page, /const sharePath = getGiftPath\(product\.slug\)/);
+  assert.match(storage, /Boolean\(product\.slug\) && isCatalogDisplayEligibleProduct/);
+  assert.match(preview, /searchParams\.has\('gift'\)[\s\S]*status: 404/);
+  assert.match(preview, /await getGiftPageBySlug\(slug\)/);
+});

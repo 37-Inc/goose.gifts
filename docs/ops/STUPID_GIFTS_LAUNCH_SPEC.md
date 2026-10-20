@@ -2,8 +2,9 @@
 
 Date: October 19, 2026. Owner: Cameron. Canonical implementation epic:
 `roadmap-lbbz1`. Baseline: `1a7ccb301f25dc129965fb71b32e0a682a86d604`.
-Status: final operational review complete; domain registered. Production
-migration, account cutover and redesign have not shipped.
+Status: implementation authorized and underway; domain registered. Isolated
+staging resources exist. Production migration, account cutover and redesign
+have not shipped.
 
 ## Purpose and decisions
 
@@ -980,11 +981,11 @@ new feature work and expanding Pinterest creative are secondary. Existing
 weekly maintenance and the frozen Pinterest measurement cohort continue;
 this plan does not silently change their schedules.
 
-Current approval is to produce the concrete spec and secure the domain.
-Implementation tasks below are queued for execution; this document is not a
-receipt that infrastructure was provisioned or traffic moved. Exact paid-plan,
-registration-term and destructive retirement actions must satisfy the
-applicable provider/approval requirements at execution.
+On October 19, Cameron authorized bounded parallel implementation, testing and
+staged data migration, with independent review and simplification before
+integration. Critical cutover, authentication, paid-plan and destructive
+retirement gates remain separate; do not infer their completion from code.
+Production remains on Vercel/Neon until the acceptance gates pass.
 
 ## Sources
 
