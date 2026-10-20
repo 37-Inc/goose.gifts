@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
 import { createStaticRoutes } from "../static-site/lib/asset-routes.ts";
 import { createBrowseRelease } from "../static-site/lib/browse.ts";
+import { createOgRelease, ogPath } from "../static-site/lib/og.ts";
+import { siteIdentity } from "../static-site/lib/site-identity.ts";
 import { guides, selectGuideProducts } from "../static-site/lib/guides.ts";
 import {
   directoryPages,
@@ -133,10 +135,13 @@ test(
     related.eligibleUntil = "2026-10-21T00:00:00.000Z";
     const oldVersion = createBrowseRelease(exportSnapshot).version;
     const version = createBrowseRelease(changed).version;
+    const previousOg = createOgRelease(exportSnapshot, siteIdentity);
+    const nextOg = createOgRelease(changed, siteIdentity);
+    const renamedOg = new Map(previousOg.cards.map((card) => [ogPath(card), ogPath(nextOg.cards.find((next) => next.subjectId === card.subjectId && next.kind === card.kind))]));
     const routes = createStaticRoutes(
       changed,
       files(new URL("out/", root)).map((file) =>
-        file.replace(`/catalog/${oldVersion}/`, `/catalog/${version}/`),
+        renamedOg.get(file) || file.replace(`/catalog/${oldVersion}/`, `/catalog/${version}/`),
       ),
     );
     assert.equal(

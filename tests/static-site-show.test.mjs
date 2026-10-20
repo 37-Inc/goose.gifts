@@ -11,6 +11,8 @@ import { unavailableEpisode } from "../static-site/lib/episode-display.ts";
 import { episodeQrSvg } from "../static-site/lib/episode-qr.ts";
 import { createStaticRoutes } from "../static-site/lib/asset-routes.ts";
 import { createBrowseRelease } from "../static-site/lib/browse.ts";
+import { createOgRelease } from "../static-site/lib/og.ts";
+import { siteIdentity } from "../static-site/lib/site-identity.ts";
 import { directoryPages, directoryPath } from "../static-site/lib/directory.ts";
 import { guides } from "../static-site/lib/guides.ts";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
@@ -54,6 +56,7 @@ function inventory(snapshot, inputs = []) {
     ...safe.flatMap((p) => [`${p}.html`, `${p}.txt`]), "/safe/catalog.json", "/safe/index.json", "/weird-gift-index/data.json",
     ...show.episodes.flatMap((e) => [`/howie/${e.key}/data.json`, `/safe/howie/${e.key}/data.json`]),
     ...createBrowseRelease(snapshot).shards.map((s) => s.path),
+    ...createOgRelease(snapshot, siteIdentity).byPath.keys(),
   ])];
 }
 test("draft candidates can retain UUIDs but unapproved details never become display/presentation data", () => {

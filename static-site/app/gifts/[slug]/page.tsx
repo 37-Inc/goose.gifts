@@ -5,6 +5,7 @@ import { catalog } from "../../../lib/catalog";
 import { isIllustrative } from "../../../lib/selection";
 import { previewMetadata, PREVIEW_ORIGIN } from "../../../lib/metadata";
 import { ProductCard } from "../../../components/ProductCard";
+import { og } from "../../../lib/og-data";
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -26,6 +27,8 @@ export async function generateMetadata({
       held?.description ||
       "This selection is not currently published.",
     `/gifts/${slug}`,
+    { indexable: Boolean(product), fixture: catalog.dataKind === "synthetic_fixture",
+      image: og.cards.find((card) => card.subjectId === product?.publicId) },
   );
 }
 export default async function Gift({

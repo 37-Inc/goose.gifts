@@ -90,7 +90,7 @@ The original Vercel app is unaffected. The existing presentation layout and
 keyboard controls are reused. Server-only `qrcode-generator` produces a local
 deterministic SVG for the canonical episode page with the three coarse episode
 campaign fields, alongside an ordinary link; no external QR service or client
-encoder is involved. OG artwork remains a separate task.
+encoder is involved.
 
 Zero-ready snapshots render the existing safe Home, with held/noindex root,
 directory, Random and shard policies. The Worker therefore serves unavailable
@@ -137,8 +137,45 @@ retailer URLs, prices, long editorial and private source fields. Every exact JSO
 expiry and generic unavailable fallback. They are exported by Next directly;
 the normal release asset inventory/checksum hook needs no extra writer.
 Missing/old-release, mixed-revision, malformed and expired responses show a
-refresh/browse state, not a healthy empty collection. Historical shard retention
-through cache lifetime is still publishing-layer work; no expiry is extended.
+refresh/browse state, not a healthy empty collection.
+
+`retainStaticAssets` is a pure publishing seam, not an implicit prior-directory
+loader. Its caller supplies an explicit prior release ID, trusted manifest SHA,
+exact sealed manifest/snapshot bytes and asset map; the helper verifies their
+digests and coherence. It returns only files and route policies to merge before
+final checksums/sealing. Run `createStaticRoutes` against the current-only
+inventory first; historical shard paths deliberately are not accepted as new
+current content. Build/verify integration and independent prior-trust binding
+remain publishing-layer work, not completed by this helper alone.
+
+Old shard bytes survive only while their public display projection still matches
+current ready products. Deadlines are capped at original rights, current rights
+and a fixed 15-minute overlap from first retirement capture. Held, changed,
+retired or expired products get unavailable aliases without old bytes. The
+manifest-sealed `retainedUntil` is preserved across release chains, never renewed.
+Only trusted, checksum-matching owned Next JS/CSS/fonts can also carry over;
+product/private literals in code fail packaging. No old HTML/RSC is copied.
+Paths, file sizes and total packaging are bounded (default 512 routes/16 MiB).
+Current paths/policies win; immutable-name byte collisions fail. The current
+unavailable JSON and `/safe/asset.txt` remain the fallbacks. This covers a bounded
+deployment overlap, not indefinite old-tab support: long-suspended tabs must
+reload. Historical product OG retention is not added before any such assets have
+actually been deployed.
+
+OG cards use the explicit reviewed `siteIdentity`, never a separately hardcoded
+brand or origin. Finite `/og/<descriptor-sha256>.png` routes render 1200×630 local
+typography/shapes with the installed Next renderer and bundled font; no merchant
+image, external font, emoji service or image generation is used. Brand and guide
+cards use owned text; product titles come only from the approved snapshot and
+inherit its product deadline with an owned brand-card fallback. Unsupported
+glyphs or titles that cannot fit safely use the brand card instead of invented
+or truncated copy. Fixture cards explicitly say not for sale. `styleVersion`
+must change when the renderer changes so immutable paths never change bytes.
+Metadata includes absolute OG images and Twitter large-image cards. Preview and
+fixtures remain noindex; production mode alone does not index held/thin/private
+routes. Indexability requires explicit route eligibility and non-fixture status.
+Default noindex for the other routes remains conservative until their separate
+production identity/readiness review; this protected proof is not a cutover.
 
 The larger owned-fixture export check is intentionally opt-in because it replaces
 the local output. Rebuild with your approved snapshot afterward:

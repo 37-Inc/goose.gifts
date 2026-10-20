@@ -7,6 +7,8 @@ import {
 import { serializeJsonLd } from "../static-site/components/JsonLd.tsx";
 import { createStaticRoutes } from "../static-site/lib/asset-routes.ts";
 import { createBrowseRelease } from "../static-site/lib/browse.ts";
+import { createOgRelease } from "../static-site/lib/og.ts";
+import { siteIdentity } from "../static-site/lib/site-identity.ts";
 import { selectGuideProducts, guideSchema } from "../static-site/lib/guides.ts";
 import {
   directoryPages,
@@ -222,6 +224,7 @@ test("finite multipage routes and aggregate JSON inherit complete snapshot expir
     "/safe/index.json",
     "/safe/catalog.json",
     ...createBrowseRelease(input).shards.map((shard) => shard.path),
+    ...createOgRelease(input, siteIdentity).byPath.keys(),
     ...giftGuides.map((g) => `/gift-guides/${g.slug}.html`),
     ...input.products.map((p) => `/gifts/${p.slug}.html`),
   ];

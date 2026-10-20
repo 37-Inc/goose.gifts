@@ -9,6 +9,7 @@ import { catalog, isFixtureRelease } from "../../../lib/catalog";
 import { ProductCard } from "../../../components/ProductCard";
 import { previewMetadata } from "../../../lib/metadata";
 import { JsonLd } from "../../../components/JsonLd";
+import { og } from "../../../lib/og-data";
 export const dynamicParams = false;
 export function generateStaticParams() {
   return guides.map(({ slug }) => ({ slug }));
@@ -24,6 +25,8 @@ export async function generateMetadata({
     guide?.metadataTitle || guide?.title || "Gift guide",
     guide?.intro || "Selection under review.",
     `/gift-guides/${slug}`,
+    { indexable: Boolean(guide && selectGuideProducts(catalog, guide).length), fixture: isFixtureRelease,
+      image: og.cards.find((card) => card.kind === "guide" && card.subjectId === slug) },
   );
 }
 export default async function Guide({

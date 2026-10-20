@@ -45,6 +45,8 @@ export interface CatalogAssetRoute {
   eligibleUntil: string | null;
   state: 'ready' | 'held';
   indexable?: boolean;
+  /** Fixed overlap deadline from first retirement capture; never renewed. */
+  retainedUntil?: string;
 }
 export interface SiteAssetManifest extends CatalogReleaseManifest {
   dataKind: CatalogSnapshot['dataKind'];
