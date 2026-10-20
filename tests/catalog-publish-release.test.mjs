@@ -41,20 +41,21 @@ function fixtureRelease(snapshot,context,prior=null){
   for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/index.json','/safe/asset.txt'])assets.set(name,bytes('Owned unavailable'));
   assets.set('/safe/catalog.json',bytes(safeCatalogPayload));assets.set('/weird-gift-index/data.json',bytes({scope:'sample'}));
   for(const shard of createBrowseRelease(snapshot).shards)assets.set(shard.path,bytes(shard.payload));
-  for(const name of createOgRelease(snapshot,siteIdentityFor('preview')).byPath.keys())assets.set(name,bytes('owned PNG fixture'));
+  for(const name of createOgRelease(snapshot,siteIdentityFor(context.sourceMode)).byPath.keys())assets.set(name,bytes('owned PNG fixture'));
   const assembled=assembleReleaseAssets(snapshot,assets,context,prior);const rest={...context};delete rest.retainedManifestSha256;
-  const manifest={...rest,dataKind:'catalog',siteIdentitySha256:sha(siteIdentityBytes('preview')),nextExpiry:snapshot.products[0]?.eligibleUntil??null,
+  const manifest={...rest,dataKind:'catalog',siteIdentitySha256:sha(siteIdentityBytes(context.sourceMode)),nextExpiry:snapshot.products[0]?.eligibleUntil??null,
     productCount:snapshot.products.length,slugCount:snapshot.products.length,checksums:Object.fromEntries([...assembled.assets].map(([p,b])=>[p,sha(b)])),
     routes:assembled.routes,retention:assembled.retention};
   const manifestBytes=bytes(`${JSON.stringify(manifest,null,2)}\n`);
   const outputs={'asset-manifest.json':manifestBytes,'catalog.snapshot.json':bytes(`${JSON.stringify(snapshot)}\n`),'release-context.json':bytes(`${JSON.stringify(context)}\n`),
-    'release-identity.json':bytes(createReleaseIdentity(manifestBytes)),'site-identity.json':bytes(siteIdentityBytes('preview')),
+    'release-identity.json':bytes(createReleaseIdentity(manifestBytes)),'site-identity.json':bytes(siteIdentityBytes(context.sourceMode)),
     'feed-plan.json':bytes(createStaticFeedPlan(snapshot,context.catalogSnapshotSha256))};
   const intent={releaseId:manifest.releaseId,codeSha:manifest.codeSha,catalogRevision:manifest.catalogRevision,catalogSnapshotSha256:manifest.catalogSnapshotSha256,
     manifestSha256:sha(manifestBytes),vectorSyncWatermark:manifest.vectorSyncWatermark,priorReleaseId:manifest.priorReleaseId,nextExpiry:manifest.nextExpiry};
   return{...assembled,manifest,manifestBytes,outputs,intent};
 }
-async function setup(t,{real=false,prior=true}={}){
+async function setup(t,{real=false,prior=true,environment='staging',semanticSearch}={}){
+  const scope={environment,indexName:'fixture-index'},sourceMode=environment==='staging'?'preview':'goose-production';
   let actualWorkspace;
   const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-publish-')));t.after(async()=>{
     await actualWorkspace?.close();await fs.rm(directory,{recursive:true,force:true});});
@@ -82,7 +83,7 @@ async function setup(t,{real=false,prior=true}={}){
     const priorSnapshot={...snapshot,catalogRevision:'fixture-prior'};
     sql.prepare('INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES(?,?,?,?)').run(priorSnapshot.catalogRevision,snapshot.generatedAt,'c'.repeat(64),'reconciled');
     const priorPacket=await createProjectionPacket(priorSnapshot,{[id]:'f'.repeat(64)},'c'.repeat(64),new Date(AT));await importPublicProjection(db,priorPacket);
-    priorRelease=fixtureRelease(priorSnapshot,{schemaVersion:1,sourceMode:'preview',releaseId:'fixture-prior-release',codeSha,catalogRevision:priorSnapshot.catalogRevision,
+    priorRelease=fixtureRelease(priorSnapshot,{schemaVersion:1,sourceMode,releaseId:'fixture-prior-release',codeSha,catalogRevision:priorSnapshot.catalogRevision,
       catalogSnapshotSha256:priorPacket.receipt.snapshot_sha256,generatedAt:snapshot.generatedAt,vectorSyncWatermark:0,priorReleaseId:null,retainedManifestSha256:null});
     const priorDirectory=path.join(directory,'prior');
     for(const [name,b]of Object.entries(priorRelease.outputs))await put(path.join(priorDirectory,name),b);
@@ -104,12 +105,13 @@ async function setup(t,{real=false,prior=true}={}){
     status,disposition,completed_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)`).run('a'.repeat(64),scope.environment,scope.indexName,owner.generation,0,JSON.stringify(owner),
       canonicalJson({kind:'prune',publicId:id,catalogRevision:snapshot.catalogRevision,projectionReceipt:packet.receipt,planSha256:sha(canonicalJson(plan)),providerIdentity:`cloudflare:${'a'.repeat(32)}:${scope.indexName}`,
         vector:{id,metadata:vector.metadata,nativeBase64:encodePgvectorSendBase64(vector.values)}}),'{}','complete','verified',snapshot.generatedAt);
-  const request={schemaVersion:1,environment:'staging',sourceRevision:snapshot.catalogRevision,sourceDigest:packet.receipt.snapshot_sha256,codeSha,priorReleaseId:priorConfig?.releaseId??null,
-    capturedAt:snapshot.generatedAt,cutoff:new Date(AT+25*3600000).toISOString()};const {requestId}=await enqueueBuildRequest(db,request);
-  const config={schemaVersion:1,environment:'staging',accountId:'a'.repeat(32),workerName:'fixture-worker',database:{id,name:'fixture-db'},indexName:scope.indexName,codeSha,
-    sourceMode:'preview',sourceRoot,releaseId:'fixture-release',identityOrigin:'https://fixture-worker.example.invalid',compatibilityDate:'2026-10-19',prior:priorConfig};
+  const request={schemaVersion:1,environment,sourceRevision:snapshot.catalogRevision,sourceDigest:packet.receipt.snapshot_sha256,codeSha,priorReleaseId:priorConfig?.releaseId??null,
+    capturedAt:snapshot.generatedAt,cutoff:new Date(AT+25*3600000).toISOString()};let {requestId}=await enqueueBuildRequest(db,request);
+  const config={schemaVersion:1,environment,accountId:'a'.repeat(32),workerName:'fixture-worker',database:{id,name:'fixture-db'},indexName:scope.indexName,codeSha,
+    sourceMode,sourceRoot,releaseId:'fixture-release',identityOrigin:environment==='staging'?'https://fixture-worker.example.invalid':siteIdentityFor(sourceMode).origin,
+    compatibilityDate:'2026-10-19',prior:priorConfig,...(semanticSearch===undefined?{}:{semanticSearch})};
   let checkpoint={sha256:'0'.repeat(64),phase:'freezing',owner,state:{driverState:'preserved'},pins:{phase:'b'.repeat(64)},phaseComplete:null,control:{}};
-  let workspace={directory:path.join(directory,'workspace'),repository:await fs.realpath(sourceRoot),manifest:{codeSha},async assertHeld(){},assertScope(s){assert.deepEqual(s,{accountId:config.accountId,environment:'staging',databaseId:id,
+  let workspace={directory:path.join(directory,'workspace'),repository:await fs.realpath(sourceRoot),manifest:{codeSha},async assertHeld(){},assertScope(s){assert.deepEqual(s,{accountId:config.accountId,environment,databaseId:id,
     databaseName:'fixture-db',workerName:'fixture-worker',indexName:scope.indexName});},async readCheckpoint(options){const copy=structuredClone(checkpoint);if(options?.controlOnly)delete copy.state;
       const {sha256,...value}=copy;return{sha256,checkpoint:value};},
     async writeCheckpoint(expected,value){assert.equal(expected,checkpoint.sha256);checkpoint={...structuredClone(value),sha256:sha(canonicalJson(value))};},
@@ -130,6 +132,7 @@ async function setup(t,{real=false,prior=true}={}){
     workspace=wrapActual();
   }
   let uploaded=false,active=false;let uploadCalls=0,activateCalls=0,buildCalls=0,identityCalls=0,versionReads=0,httpCalls=0;let mode={};let manifest;
+  let targetVersion=version,activePriorVersion=priorVersion;const uploadedConfigs=[];
   const command=async command=>{
     if(command.args.includes('scripts/staging/build.mts')){
       buildCalls++;const context=JSON.parse(await fs.readFile(command.env.CATALOG_RELEASE_CONTEXT_PATH));
@@ -140,7 +143,7 @@ async function setup(t,{real=false,prior=true}={}){
       if(mode.buildLost){delete mode.buildLost;throw new Error('PRIVATE build interrupted after output');}
     }else if(command.args.includes('upload')){
       uploadCalls++;const cfg=JSON.parse(await fs.readFile(command.args[command.args.indexOf('--config')+1]));assert.equal(cfg.name,config.workerName);
-      assert.equal(cfg.vars.SEMANTIC_SEARCH_ENABLED,'false');assert.equal(command.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED,'false');
+      uploadedConfigs.push(cfg);assert.equal(command.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED,'false');
       assert.equal(cfg.routes,undefined);assert.equal(cfg.triggers,undefined);uploaded=true;
       if(mode.uploadLost)throw new Error('PRIVATE upload secret');
     }
@@ -152,12 +155,14 @@ async function setup(t,{real=false,prior=true}={}){
     if(u.pathname.endsWith(`/d1/database/${id}`))return response({uuid:id,name:'fixture-db',read_replication:{mode:'disabled'}});
     if(u.pathname.endsWith(`/indexes/${scope.indexName}`))return response({name:scope.indexName,config:{dimensions:1536,metric:'cosine'}});
     const c=checkpoint.control.publication;
-    if(u.pathname.endsWith('/versions'))return response({items:uploaded&&!mode.versionInvisible?[{id:version}]:[]});
-    if(u.pathname.endsWith(`/versions/${version}`)){if(++versionReads===3&&mode.stopBeforeActivation)throw new Error('PRIVATE preactivation read interrupted');
-      return response({id:version,annotations:{'workers/tag':c.uploadMarker,'workers/message':`package:${c.packageSha256}`},
+    if(u.pathname.endsWith('/versions'))return response({items:uploaded&&!mode.versionInvisible?[{id:targetVersion}]:[]});
+    if(u.pathname.endsWith(`/versions/${targetVersion}`)){if(++versionReads===3&&mode.stopBeforeActivation)throw new Error('PRIVATE preactivation read interrupted');
+      return response({id:targetVersion,annotations:{'workers/tag':c.uploadMarker,'workers/message':`package:${c.packageSha256}`},
       resources:{script_runtime:{compatibility_date:'2026-10-19'},bindings:[{name:'DB',type:'d1',id:mode.wrongVersionDatabase?'wrong':id},
         {name:'VECTORIZE',type:'vectorize',index_name:scope.indexName},{name:'ASSETS',type:'assets'},
-        {name:'ENVIRONMENT',type:'plain_text',text:'staging'},{name:'SEMANTIC_SEARCH_ENABLED',type:'plain_text',text:'false'},
+        {name:'ENVIRONMENT',type:'plain_text',text:environment},
+        ...Object.entries(uploadedConfigs.at(-1)?.vars??{}).filter(([name])=>name.startsWith('SEMANTIC_SEARCH_')&&name!==mode.missingSearchBinding)
+          .map(([name,text])=>({name,type:'plain_text',text:mode.searchBinding?.name===name?mode.searchBinding.text:text})),
         ...(!mode.missingGuard?[{name:'STAGING_AUTH_SECRET',type:'secret_text'}]:[])]}});}
     if(u.pathname.endsWith('/get_by_ids')){if(mode.vectorFailure)return response([]);const expected=structuredClone(vector);
       // Preserve signed-zero native bytes across the mock REST boundary.
@@ -165,17 +170,32 @@ async function setup(t,{real=false,prior=true}={}){
     if(u.pathname.endsWith('/deployments')){
       if(init.method==='POST'){activateCalls++;assert.equal(checkpoint.control.publication.permit.mutationOwner.phase,'activating');
         assert.equal(sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'activating');
-        assert.deepEqual(JSON.parse(init.body),{strategy:'percentage',versions:[{version_id:version,percentage:100}],annotations:{'workers/message':c.deploymentMarker}});
+        assert.deepEqual(JSON.parse(init.body),{strategy:'percentage',versions:[{version_id:targetVersion,percentage:100}],annotations:{'workers/message':c.deploymentMarker}});
         if(mode.activationNotSent)throw new Error('PRIVATE uncertain not submitted');active=true;
         if(mode.activationLost)throw new Error('PRIVATE activation secret');return response({id:deployment});}
       if(mode.readbackFailure&&active)throw new Error('PRIVATE readback secret');
-      return response({deployments:active?[{id:deployment,versions:[{version_id:version,percentage:100}],annotations:{'workers/message':c.deploymentMarker}}]:
-        prior?[{id:priorDeployment,versions:[{version_id:priorVersion,percentage:100}],annotations:{'workers/message':'owned fixture prior'}}]:[]});
+      return response({deployments:active?[{id:deployment,versions:[{version_id:targetVersion,percentage:100}],annotations:{'workers/message':c.deploymentMarker}}]:
+        prior?[{id:priorDeployment,versions:[{version_id:activePriorVersion,percentage:100}],annotations:{'workers/message':'owned fixture prior'}}]:[]});
     }throw new Error(`Unexpected fixture HTTP ${url}`);
   };
   const execute=()=>executePublication({db,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
     credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock)}});
-  return{db,sql,owner,revision,workspace,config,execute,mode,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
+  return{db,sql,owner,revision,workspace,config,execute,mode,uploadedConfigs,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
+    async nextRelease(){
+      assert.equal(real,false);assert.equal((await readMutationOwner(db,scope)),null);
+      const packageDirectory=path.join(workspace.directory,'packages',config.releaseId);
+      priorRelease={manifestBytes:await fs.readFile(path.join(packageDirectory,'asset-manifest.json'))};
+      config.prior={directory:packageDirectory,manifestSha256:sha(priorRelease.manifestBytes),releaseId:config.releaseId,versionReference:targetVersion};
+      activePriorVersion=targetVersion;targetVersion='00000000-0000-4000-8000-000000000006';config.releaseId='fixture-next-release';
+      ({requestId}=await enqueueBuildRequest(db,{...request,priorReleaseId:config.prior.releaseId}));
+      const nextOwner=await claimMutationOwnership(db,scope,{phase:'freezing',ownerReference:'fixture-next-run',operationKey:'e'.repeat(64)});
+      const original=sql.prepare('SELECT * FROM catalog_vector_deliveries').get();
+      const delivery={...original,delivery_id:'b'.repeat(64),generation:nextOwner.generation,owner_json:JSON.stringify(nextOwner)};
+      const columns=Object.keys(delivery);sql.prepare(`INSERT INTO catalog_vector_deliveries(${columns.join(',')}) VALUES(${columns.map(()=>'?').join(',')})`)
+        .run(...columns.map(name=>delivery[name]));
+      checkpoint={...checkpoint,sha256:'0'.repeat(64),phase:'freezing',owner:nextOwner,state:{driverState:'preserved'},control:{}};
+      uploaded=false;active=false;versionReads=0;
+    },
     async historicalAccepted({lostPermit=false}={}){
       // A pre-guard first deployment, established through the real publication
       // and activation transactions. No new executor work is used to seed it.
@@ -322,4 +342,74 @@ test('wrong uploaded bindings or missing inherited staging guard never activate'
   for(const key of ['wrongVersionDatabase','missingGuard']){const f=await setup(t);f.mode[key]=true;
     assert.equal((await f.execute()).errorCode,'publication_version_scope_mismatch');assert.equal(f.counts().activateCalls,0);
     assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,0);}
+});
+test('reviewed semantic policy rejects staging enablement, coercion, unsafe bounds and unknown fields',async t=>{
+  const f=await setup(t);const policy={enabled:false,dailyRequestCap:50,dailyTokenCap:32768};
+  const production={...f.config,environment:'production',sourceMode:'goose-production',identityOrigin:siteIdentityFor('goose-production').origin};
+  const valid=validatePublicationConfig({...f.config,semanticSearch:policy});assert.deepEqual(valid.semanticSearch,policy);
+  assert.equal(Object.isFrozen(valid.semanticSearch),true);
+  const inherited=Object.assign(Object.create({semanticSearch:{...policy,enabled:true}}),f.config);
+  assert.equal(Object.hasOwn(validatePublicationConfig(inherited),'semanticSearch'),false);
+  assert.equal(canonicalJson(validatePublicationConfig(inherited)),canonicalJson(f.config));
+  assert.throws(()=>validatePublicationConfig({...f.config,semanticSearch:{...policy,enabled:true}}),/publication_configuration_invalid/);
+  assert.deepEqual(validatePublicationConfig({...production,semanticSearch:{enabled:true,dailyRequestCap:100000,dailyTokenCap:100000000}}).semanticSearch,
+    {enabled:true,dailyRequestCap:100000,dailyTokenCap:100000000});
+  for(const semanticSearch of [undefined,null,{},[],{...policy,extra:1},{...policy,enabled:'true'},
+    ...[0,-0,-1,1.5,NaN,Infinity,'50',undefined,100001].map(dailyRequestCap=>({...policy,dailyRequestCap})),
+    ...[0,-1,1.5,NaN,Infinity,'32768',undefined,100000001].map(dailyTokenCap=>({...policy,dailyTokenCap}))])
+    assert.throws(()=>validatePublicationConfig({...production,semanticSearch}),/publication_configuration_invalid/);
+  f.config.semanticSearch={...policy,enabled:true};const checkpoint=structuredClone(f.checkpoint());
+  await assert.rejects(f.execute(),/publication_configuration_invalid/);assert.deepEqual(f.checkpoint(),checkpoint);
+  assert.deepEqual(f.counts(),{uploadCalls:0,activateCalls:0,buildCalls:0,identityCalls:0,httpCalls:0});
+});
+test('omitted semantic policy keeps historical config hashes and exact off caps across real checkpoint resume',async t=>{
+  const f=await setup(t,{real:true});const before=canonicalJson(f.config);
+  Object.setPrototypeOf(f.config,{semanticSearch:{enabled:true,dailyRequestCap:1000,dailyTokenCap:100000}});
+  assert.equal(Object.hasOwn(validatePublicationConfig(f.config),'semanticSearch'),false);
+  assert.equal(canonicalJson(validatePublicationConfig(f.config)),before);
+  f.mode.stopBeforeActivation=true;assert.equal((await f.execute()).state,'pending');
+  assert.equal(f.checkpoint().control.publication.configSha256,sha(before));
+  await f.reopen();delete f.mode.stopBeforeActivation;
+  assert.equal((await f.execute()).state,'published');assert.equal(canonicalJson(validatePublicationConfig(f.config)),before);
+  assert.deepEqual(f.uploadedConfigs[0].vars,{ENVIRONMENT:'staging',SEMANTIC_SEARCH_ENABLED:'false',
+    SEMANTIC_SEARCH_DAILY_REQUEST_CAP:'50',SEMANTIC_SEARCH_DAILY_TOKEN_CAP:'32768'});
+});
+test('consecutive production publications preserve exact reviewed search policy and refuse in-flight policy changes',async t=>{
+  const policy={enabled:true,dailyRequestCap:123,dailyTokenCap:45678};
+  const f=await setup(t,{environment:'production',semanticSearch:policy});f.mode.versionInvisible=true;
+  assert.equal((await f.execute()).errorCode,'publication_upload_pending');
+  const before=f.counts();f.config.semanticSearch={...policy,dailyRequestCap:124};
+  assert.equal((await f.execute()).errorCode,'publication_checkpoint_mismatch');assert.deepEqual(f.counts(),before);
+  f.config.semanticSearch=policy;delete f.mode.versionInvisible;assert.equal((await f.execute()).state,'published');
+  const firstHash=f.checkpoint().control.publication.configSha256;
+  await f.nextRelease();assert.equal((await f.execute()).state,'published');
+  assert.notEqual(f.checkpoint().control.publication.configSha256,firstHash);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,3);
+  assert.equal(f.counts().activateCalls,2);assert.equal(f.counts().uploadCalls,2);
+  assert.equal(f.uploadedConfigs[1].name,f.uploadedConfigs[0].name);
+  for(const uploaded of f.uploadedConfigs){
+    assert.equal(uploaded.workers_dev,false);
+    assert.deepEqual(uploaded.vars,{ENVIRONMENT:'production',SEMANTIC_SEARCH_ENABLED:'true',
+      SEMANTIC_SEARCH_DAILY_REQUEST_CAP:'123',SEMANTIC_SEARCH_DAILY_TOKEN_CAP:'45678'});
+  }
+});
+test('old production configs remain off; explicit disabled production/staging policies preserve lower caps',async t=>{
+  const lower={enabled:false,dailyRequestCap:7,dailyTokenCap:256};
+  for(const [environment,semanticSearch]of [['production',undefined],['production',lower],['staging',lower]]){
+    const f=await setup(t,{environment,semanticSearch});assert.equal((await f.execute()).state,'published');
+    assert.deepEqual(f.uploadedConfigs[0].vars,{ENVIRONMENT:environment,SEMANTIC_SEARCH_ENABLED:'false',
+      SEMANTIC_SEARCH_DAILY_REQUEST_CAP:String(semanticSearch?.dailyRequestCap??50),SEMANTIC_SEARCH_DAILY_TOKEN_CAP:String(semanticSearch?.dailyTokenCap??32768)});
+  }
+});
+test('independent uploaded enabled/request/token binding mismatches or missing caps cannot activate',async t=>{
+  const bindings={SEMANTIC_SEARCH_ENABLED:'false',SEMANTIC_SEARCH_DAILY_REQUEST_CAP:'124',SEMANTIC_SEARCH_DAILY_TOKEN_CAP:'45679'};
+  for(const [name,text]of [...Object.entries(bindings),['SEMANTIC_SEARCH_DAILY_REQUEST_CAP',null],['SEMANTIC_SEARCH_DAILY_TOKEN_CAP',null]]){
+    const f=await setup(t,{environment:'production',semanticSearch:{enabled:true,dailyRequestCap:123,dailyTokenCap:45678}});
+    if(text===null)f.mode.missingSearchBinding=name;else f.mode.searchBinding={name,text};
+    assert.equal((await f.execute()).errorCode,'publication_version_scope_mismatch',name);
+    assert.equal(f.counts().activateCalls,0);assert.equal(f.checkpoint().owner.phase,'freezing');
+    assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,0);
+    delete f.mode.missingSearchBinding;delete f.mode.searchBinding;
+    assert.equal((await f.execute()).state,'published');assert.equal(f.counts().uploadCalls,1);
+  }
 });

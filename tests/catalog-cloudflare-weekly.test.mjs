@@ -190,6 +190,7 @@ async function setup(t,{noPrior=false}={}){
       resources:{script_runtime:{compatibility_date:config.publication.compatibilityDate},bindings:[{name:'DB',type:'d1',id:UUID},
         {name:'VECTORIZE',type:'vectorize',index_name:scope.indexName},{name:'ASSETS',type:'assets'},
         {name:'ENVIRONMENT',type:'plain_text',text:'staging'},{name:'SEMANTIC_SEARCH_ENABLED',type:'plain_text',text:'false'},
+        {name:'SEMANTIC_SEARCH_DAILY_REQUEST_CAP',type:'plain_text',text:'50'},{name:'SEMANTIC_SEARCH_DAILY_TOKEN_CAP',type:'plain_text',text:'32768'},
         {name:'STAGING_AUTH_SECRET',type:'secret_text'}]}});}
     if(url.pathname.endsWith('/deployments')){
       if(init.method==='POST'){calls.activate++;active=JSON.parse(init.body);if(mode.activationLost)throw new Error('TEST ONLY consumed activation response');return response({id:DEPLOY});}

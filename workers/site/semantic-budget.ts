@@ -11,7 +11,8 @@ function positiveInteger(value: unknown, maximum: number): number | undefined {
   return parsed <= maximum ? parsed : undefined;
 }
 
-export function semanticBudgetConfig(env: SiteEnv, scope: SemanticBudgetScope | undefined) {
+export function semanticBudgetConfig(env: Pick<SiteEnv, 'ENVIRONMENT' | 'SEMANTIC_SEARCH_ENABLED'
+  | 'SEMANTIC_SEARCH_DAILY_REQUEST_CAP' | 'SEMANTIC_SEARCH_DAILY_TOKEN_CAP'>, scope: SemanticBudgetScope | undefined) {
   if (!scope || !['staging', 'production'].includes(scope.environment) || env.ENVIRONMENT !== scope.environment
     || typeof scope.index !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,63}$/.test(scope.index)
     || env.SEMANTIC_SEARCH_ENABLED !== 'true') return;
