@@ -37,6 +37,9 @@ what's likely next.
   gate (`roadmap-lbbz1.8`), alongside the final-stage GA4/Search Console/
   Google Cloud and remaining-provider rebrand checklist. Research/pricing
   integration is post-launch (`roadmap-mt1gp`). No live rebrand/migration yet.
+  Final retirement (`roadmap-lbbz1.7`) covers Vercel/Neon removal, GitHub
+  rename, the live 37.technology listing, independent redirects and an
+  expiry-aware old-domain auto-renew decision.
 
 - **Pinterest — completed cohort, measurement only:** final birthday-hat poster
   makes P6/F6,twelve of twelve. Exact full-cohort review deadline is
@@ -186,6 +189,16 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-19 late evening [owner+claude] — Specify deferred retirement and cleanup
+
+Added a recoverable final phase for project-only Vercel/Neon decommissioning,
+GitHub repo rename and integration checks, live portfolio/link updates, and
+Cloudflare-hosted redirects. Old-domain auto-renew changes wait for verified
+expiry and redirect-retention dates; domain loss cannot be mistaken for
+hosting cleanup. Expanded the existing retirement Bead, `roadmap-lbbz1.7`.
+Planning only; no resource deletion, rename, portfolio or renewal change.
+PR **#186**; lint/build/diff checks pass.
 
 ### 2026-10-19 late evening [owner+claude] — Defer complete provider rebrand checklist
 

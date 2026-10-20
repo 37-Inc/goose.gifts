@@ -26,6 +26,13 @@ Content provenance/merchant expiry and verified scheduler transitions are
 explicit migration acceptance gates; `/howie` is a small launch landing page,
 not a separate microsite project.
 
+Final cleanup is tracked by `roadmap-lbbz1.7`: remove project-scoped Vercel/
+Neon resources after recovery and observation gates, rename the GitHub repo,
+verify the updated 37.technology listing, and retain Cloudflare redirects.
+Disabling old-domain auto-renew is deferred and must account for the actual
+expiry and at least one year of redirects after launch. No decommissioning
+or renewal settings change during planning.
+
 The historical phases below explain the catalog foundations; the new spec
 governs the next architecture and launch sequence where they differ.
 
