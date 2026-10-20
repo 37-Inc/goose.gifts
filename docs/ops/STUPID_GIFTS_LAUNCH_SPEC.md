@@ -476,6 +476,79 @@ Code completion does not close these provider steps. Complete them against the
 existing accounts, preserving continuity rather than creating replacement apps
 or changing the affiliate tag to match the new brand.
 
+**Timing:** all provider-facing rebranding below is deferred to the final
+launch stage, after infrastructure and design are ready (`roadmap-lbbz1.8`).
+Do not change accounts, Google settings or public identities during spec work.
+In that final stage, complete required ownership/domain allowlists before
+traffic or monetization moves; submit search-move notices only after the new
+site and redirects work. This is a coordinated launch checklist, not a reason
+to postpone functional prerequisites until after launch.
+
+**Google and analytics — final-stage continuity checklist.**
+
+- **GA4:** identify the existing property and web stream by the live
+  `G-6RR3HPR747` measurement ID. Update property/stream display names and
+  website URL to Stupid Gifts / `https://stupid.gifts`; retain IDs, historical
+  data, events, conversions, privacy controls and access. Review linked
+  Search Console/Ads properties, hostname filters and referral/cross-domain
+  settings for the actual transition; do not enable additional collection.
+  Verify stored QA page and retailer events on the new host without duplicate
+  redirect pageviews. [Google's editing guidance](https://support.google.com/analytics/answer/9304776?hl=en)
+- **Search Console:** retain the Goose properties and history; add and verify
+  `stupid.gifts` under the correct owner with operator/service-account access.
+  Once canonical URLs, robots, sitemap and permanent path-preserving redirects
+  are live, submit the new sitemap and use Change of Address from the eligible
+  old property. Coordinate with the existing search-submission task, record
+  submission receipts, and compare both properties at 7/14/28 days. Verification
+  or a submitted request is not proof of indexing or recovered rankings.
+  [Google's move checklist](https://support.google.com/webmasters/answer/9370220)
+- **Google Cloud / Google Auth Platform:** inventory the exact project(s),
+  OAuth clients, service accounts, API-key restrictions and discovery/search
+  tooling actually used by Goose. Update Goose-specific display/consent
+  branding, homepage/privacy/terms URLs, verified authorized domains and
+  required origins/callbacks; leave shared Thirty Seven projects unchanged.
+  Preserve project/client IDs, scopes, IAM, billing and working credentials.
+  Keep loopback callbacks unless their implementation changes. Where brand
+  verification is required, finish verification/publication and prove the
+  affected auth/API flow; do not assume saving draft branding publishes it.
+  Do not revive retired Google login merely to rebrand it.
+  [Google's brand-verification guidance](https://developers.google.com/identity/protocols/oauth2/production-readiness/brand-verification)
+- **Google Ads and PostHog:** retain `AW-17626116539`, the existing Goose
+  PostHog project and measurement history. Review project names, site URLs,
+  domain filters, conversion destinations, dashboards and portfolio reports.
+  Inventory any Ads final URLs/assets and linked accounts; keep paused
+  campaigns paused and obtain separate campaign-change authority where needed.
+  This checklist does not authorize ad spend or add a tracking provider.
+
+**Other services — inventory before final cutover, not a blind rename.**
+Check repository configuration, secret **names** and consumers, CI workflows,
+scheduled prompts and provider account inventories for `Goose`, `goose.gifts`
+and brand-dependent URLs. Record each service's exact account/resource,
+current setting, intended change, timing, rollback and verification receipt;
+mark unused services not applicable with evidence. Never record secret values.
+Include:
+
+- Bing Webmaster Tools / IndexNow, domain-verification files and DNS TXT
+  records; preserve old-domain verification and redirect ownership.
+- Cloudflare domain/TLS/security settings, GitHub deployment environments and
+  callbacks, remaining Vercel/Neon integrations and monitoring/usage alerts.
+  Keep the old-provider rollback path until its separate retirement gate.
+- Google Workspace/contact aliases, support/reply-to links and mail DNS.
+  Keep `goosegifts@37.technology` working; use a new alias only after creation
+  and delivery verification, without exposing a personal address.
+- Amazon/Pinterest steps below, OpenAI and other API-provider project labels
+  or domain restrictions where applicable, and the private ChatGPT app's
+  metadata/allowed domains through its owning task.
+- Existing social/profile/directory links, the 37.technology portfolio card,
+  QR/show links, legal/affiliate copy, status/report labels and automation
+  inputs. Preserve historical receipts; outreach, app submissions, handle
+  changes and changes to another product retain their own approval boundaries.
+
+Close this checklist only when each applicable entry has a provider readback
+and a working-flow receipt. Record owner-visible blockers and keep unresolved
+launch requirements open. Renaming a dashboard alone does not prove that
+authentication, attribution or links work.
+
 **Amazon — final pre-launch gate (`roadmap-lbbz1.8`).** October 19 technical
 readback: Vercel Production supplies `goose-gifts-37-20`; all 3,383 stored Amazon
 URLs have exactly one matching tag, HTTPS Amazon host and matching ASIN path.
@@ -786,7 +859,9 @@ These are targets to demonstrate in staging, not claims about current capacity.
     release date coordinated with the owner. Do not invent an airing date.
 11. **Provider/operations continuity:** account and job checklist above has
     individual readback/run receipts; no duplicate schedules, wrong-account
-    changes or fresh posting authority inferred from the rebrand.
+    changes or fresh posting authority inferred from the rebrand. The final
+    stage includes GA4, Search Console, Google Cloud/Auth, Ads/PostHog and
+    the remaining-service inventory; existing IDs/history/access are preserved.
 12. **Content/price provenance:** field-level rights and expiry inventory
     passes; expired merchant content is absent from HTML, schema, feeds and
     assets; the initial curated experience remains useful without live prices.
@@ -846,7 +921,7 @@ Canonical Beads, in delivery order:
 | `roadmap-lbbz1.3` | D1/vector migration and reconciliation | `.2` |
 | `roadmap-lbbz1.4` | Complete static routes, publishing and hosting migration | `.3` |
 | `roadmap-lbbz1.5` | Composed visual design and four episode shortlists | Can start alongside `.2` |
-| `roadmap-lbbz1.8` | Correct affiliate account/site registration and Pinterest app/profile/claim cutover | Correct account access at final pre-launch gate |
+| `roadmap-lbbz1.8` | Final provider rebrand: affiliate, Pinterest, Google, analytics and remaining-service inventory | Infrastructure/design ready; account access and verified cutover timing |
 | `roadmap-lbbz1.6` | Domain/brand launch and conversion verification | `.1`, `.4`, `.5`, `.8` |
 | `roadmap-lbbz1.7` | Recoverable provider retirement | `.6` and observation window |
 
