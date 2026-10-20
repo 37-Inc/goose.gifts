@@ -18,7 +18,9 @@ const CURRENT_READY = `p.is_active=1 AND p.duplicate_of_product_id IS NULL AND p
   AND p.source_facts_hash IS NOT NULL AND p.source_facts_hash=p.editorial_source_hash
   AND p.public_display_json IS NOT NULL AND p.eligible_until>?`;
 const VISIBLE = `v.eligible_until>? AND ${CURRENT_READY} AND v.source_facts_hash=p.source_facts_hash`;
-const JOIN = `JOIN products p ON p.id=v.product_id AND p.public_id=v.public_id
+// Start with revision/FTS candidates, then inspect each current product by its
+// unique identity. Do not let the planner start with all active products.
+const JOIN = `CROSS JOIN products p ON p.id=v.product_id AND p.public_id=v.public_id
   JOIN catalog_projection_receipts r ON r.catalog_revision=v.catalog_revision`;
 
 async function hash(value: string): Promise<string> {
@@ -99,9 +101,11 @@ export async function getRevisionProductsByPublicIds(db: CatalogD1, ids: string[
   const unique = [...new Set(ids)]; const found = new Map<string, PublicCatalogProduct>();
   for (let offset = 0; offset < unique.length; offset += 80) {
     const chunk = unique.slice(offset, offset + 80);
-    const result = await db.prepare(`SELECT v.public_display_json FROM catalog_public_products v ${JOIN}
-      WHERE v.catalog_revision=? AND v.public_id IN (${chunk.map(() => '?').join(',')}) AND ${VISIBLE}`)
-      .bind(revision, ...chunk, now.toISOString(), now.toISOString()).all<{ public_display_json: string }>();
+    const result = await db.prepare(`WITH requested(public_id) AS (VALUES ${chunk.map(() => '(?)').join(',')})
+      SELECT v.public_display_json FROM requested
+      CROSS JOIN catalog_public_products v ON v.public_id=requested.public_id AND v.catalog_revision=? ${JOIN}
+      WHERE ${VISIBLE}`)
+      .bind(...chunk, revision, now.toISOString(), now.toISOString()).all<{ public_display_json: string }>();
     for (const product of publicRows(result.results, now)) found.set(product.publicId, product);
   }
   return unique.flatMap((id) => found.has(id) ? [found.get(id)!] : []);
@@ -113,7 +117,7 @@ export async function keywordSearchRevision(db: CatalogD1, query: string, limit:
   const words = normalized.match(/[\p{L}\p{N}]+/gu)?.slice(0, 20) || [];
   if (!words.length) return [];
   const result = await db.prepare(`SELECT v.public_display_json FROM catalog_public_products_fts
-    JOIN catalog_public_products v ON v.rowid=catalog_public_products_fts.rowid ${JOIN}
+    CROSS JOIN catalog_public_products v ON v.rowid=catalog_public_products_fts.rowid ${JOIN}
     WHERE catalog_public_products_fts MATCH ? AND v.catalog_revision=? AND ${VISIBLE}
     ORDER BY bm25(catalog_public_products_fts),v.public_id LIMIT ?`)
     .bind(words.map((word) => `"${word}"`).join(' OR '), revision, now.toISOString(), now.toISOString(), limit)

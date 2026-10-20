@@ -53,6 +53,16 @@ package verification, normal production build, lint, analytics, catalog ops,
 telemetry and cache regressions pass. The twelve drafts export no candidate
 or episode routes. These results do not close the migration epic.
 
+Independent D1 query-plan review caught the planner starting from the broad
+active/quality index even for bounded ID and FTS queries. Root fixed the
+candidate-first join order without adding an index or dropping any eligibility
+condition. The same actual four probes changed rows-read from
+2,408/2,416/2,410/2,415 to 4/12/3/5 (mutable IDs, revision IDs, mutable keyword,
+revision keyword), with identical results. A 3,000-held-row local regression
+checks the actual plans and subsequent holds. Private before/after receipts:
+`serving-plans-awEt7K/receipt.json` and `serving-plans-FChXXE/receipt.json`.
+This does not establish full 30-query relevance or burst capacity.
+
 Five bounded read-only checks examined 16 show candidates, 15 returned, and
 12 were arranged into four draft sets. Returned images were visually reviewed.
 Excluded the missing toilet mug, ambiguous multi-variant Venus image, delayed

@@ -204,10 +204,15 @@ publication receipt. Production Vercel remained healthy; no domain or writer
 cutover occurred. A real-browser Random check fetched one pool for three
 spins without immediate repeats.
 
-The next reviewed slice adds retryable vector delivery, a shared fail-closed
+PR #192 adds retryable vector delivery, a shared fail-closed
 semantic-search budget, explicit default-off analytics with sanitized
 cross-page campaign continuity, and truthful historical timestamp mapping.
-Full operational import/reconciliation and episode UI work remain in progress.
+The complete staging operational import now reconciles all 8,091 identities
+with safe replay. Episode/QR/empty-catalog safeguards pass composed and export
+checks. Full-data review also caught and fixed a query-planner cost issue:
+the same sample lookups now read 4–12 rows, rather than about 2,400, with
+unchanged eligibility results. This is measured query-level evidence, not a
+production cost forecast or completed migration.
 Twelve real candidates are organized into four unapproved drafts in
 [the show shortlist](STUPID_GIFTS_SHOW_SHORTLIST_2026-10-20.md); no episode,
 image rights, purchase or endorsement is inferred. Provider rebranding,

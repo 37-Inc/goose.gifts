@@ -33,8 +33,12 @@ export async function getProductsByPublicIds(db: CatalogD1, ids: string[], now =
   const found = new Map<string, PublicCatalogProduct>();
   for (let offset = 0; offset < unique.length; offset += 80) {
     const batch = unique.slice(offset, offset + 80);
-    const result = await db.prepare(`SELECT p.public_display_json FROM products p
-      WHERE p.public_id IN (${batch.map(() => '?').join(',')}) AND ${READY}${revision ? ' AND p.catalog_revision=?' : ''}`)
+    // CROSS JOIN fixes the bounded ID set as the outer loop. Without it SQLite
+    // can prefer the broad active/quality index and scan thousands of held rows.
+    const result = await db.prepare(`WITH requested(public_id) AS (VALUES ${batch.map(() => '(?)').join(',')})
+      SELECT p.public_display_json FROM requested
+      CROSS JOIN products p ON p.public_id=requested.public_id
+      WHERE ${READY}${revision ? ' AND p.catalog_revision=?' : ''}`)
       .bind(...batch, now.toISOString(), ...(revision ? [revision] : [])).all<{ public_display_json: string }>();
     for (const product of publicRows(result.results, now)) found.set(product.publicId, product);
   }
@@ -50,7 +54,7 @@ export async function keywordSearch(db: CatalogD1, query: string, limit = 60, no
   if (!words.length) return [];
   const match = words.map((word) => `"${word}"`).join(' OR ');
   const result = await db.prepare(`SELECT p.public_display_json FROM products_fts
-    JOIN products p ON p.rowid=products_fts.rowid
+    CROSS JOIN products p ON p.rowid=products_fts.rowid
     WHERE products_fts MATCH ? AND ${READY}${revision ? ' AND p.catalog_revision=?' : ''}
     ORDER BY bm25(products_fts),p.public_id LIMIT ?`)
     .bind(match, now.toISOString(), ...(revision ? [revision] : []), limit).all<{ public_display_json: string }>();

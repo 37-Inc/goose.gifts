@@ -4,6 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { readFile } from 'node:fs/promises';
 import { createProjectionPacket, getRevisionProductsByPublicIds, importPublicProjection,
   keywordSearchRevision, projectionQueries, rollbackPreflight } from '../lib/catalog/d1.ts';
+import { getProductsByPublicIds, keywordSearch } from '../lib/catalog/storage/d1.ts';
 
 const NOW = new Date('2026-10-19T12:00:00.000Z');
 const HASH = 'a'.repeat(64);
@@ -31,6 +32,46 @@ async function setup() {
   return { sqlite, db, close: () => sqlite.close() };
 }
 const packet = (value) => createProjectionPacket(value, { [PUBLIC_ID]: HASH }, 'b'.repeat(64), NOW);
+
+test('bounded ID and FTS lookups start from candidate indexes, not the active catalog', async () => {
+  const fixture = await setup();
+  try {
+    const value = snapshot('r1');
+    await importPublicProjection(fixture.db, await packet(value));
+    const insert = fixture.sqlite.prepare(`INSERT INTO products
+      (id,public_id,slug,source,title,currency,quality_score,is_active,editorial_status,catalog_revision,rights_json,source_record_json,updated_at)
+      VALUES(?,?,?,'amazon','Unrelated held object','USD',0.8,1,'stale','legacy','{}','{}',?)`);
+    fixture.sqlite.exec('BEGIN');
+    for (let index = 0; index < 3000; index++)
+      insert.run(`held-${index}`, `held-public-${index}`, `held-slug-${index}`, NOW.toISOString());
+    fixture.sqlite.exec('COMMIT');
+    const plans = [];
+    const db = { prepare(sql) { return { bind(...values) { return { async all() {
+      assert.ok(values.length <= 100);
+      plans.push(fixture.sqlite.prepare(`EXPLAIN QUERY PLAN ${sql}`).all(...values).map(row => row.detail).join('\n'));
+      return { results: fixture.sqlite.prepare(sql).all(...values) };
+    }}; }}; }};
+    const ids = [PUBLIC_ID, ...Array.from({ length: 79 }, (_, index) => `held-public-${index}`)];
+    assert.equal((await getProductsByPublicIds(db, ids, NOW)).length, 1);
+    assert.deepEqual(await getRevisionProductsByPublicIds(db, ids, NOW, 'r1'), value.products);
+    assert.equal((await keywordSearch(db, 'operational', 60, NOW)).length, 1);
+    assert.deepEqual(await keywordSearchRevision(db, 'button', 60, NOW, 'r1'), value.products);
+    for (const plan of plans) {
+      assert.doesNotMatch(plan, /products_active_quality_idx|SCAN p\b/);
+      assert.match(plan, /SEARCH p USING (?:INTEGER PRIMARY KEY|INDEX)/);
+    }
+    assert.match(plans[0], /public_id=\?/);
+    assert.match(plans[1], /catalog_revision=\? AND public_id=\?/);
+    assert.match(plans[2], /products_fts VIRTUAL TABLE INDEX .*M/);
+    assert.match(plans[3], /catalog_public_products_fts VIRTUAL TABLE INDEX .*M/);
+    // A later hold must still win over both ID and keyword candidate sets.
+    fixture.sqlite.prepare('UPDATE products SET is_active=0 WHERE public_id=?').run(PUBLIC_ID);
+    assert.deepEqual(await getProductsByPublicIds(db, ids, NOW), []);
+    assert.deepEqual(await getRevisionProductsByPublicIds(db, ids, NOW, 'r1'), []);
+    assert.deepEqual(await keywordSearch(db, 'operational', 60, NOW), []);
+    assert.deepEqual(await keywordSearchRevision(db, 'button', 60, NOW, 'r1'), []);
+  } finally { fixture.close(); }
+});
 
 test('old and new immutable public revisions coexist independently of mutable operational revision', async () => {
   const fixture = await setup();
