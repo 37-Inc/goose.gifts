@@ -27,6 +27,9 @@ function encode(intent: PublicationIntent): string {
     catalogSnapshotSha256: intent.catalogSnapshotSha256, manifestSha256: intent.manifestSha256,
     vectorSyncWatermark: intent.vectorSyncWatermark, priorReleaseId: intent.priorReleaseId, nextExpiry: intent.nextExpiry });
 }
+// Preserve the original persisted wire order across private checkpoint codecs.
+// Do not substitute canonicalJson or rewrite historical outbox/receipt bytes.
+export { encode as encodePublicationIntent };
 async function digest(value: string): Promise<string> {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return [...new Uint8Array(bytes)].map((byte) => byte.toString(16).padStart(2, '0')).join('');

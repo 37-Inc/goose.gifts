@@ -1,7 +1,7 @@
 import type { CatalogSnapshot } from './types.ts';
 import type { CatalogD1 } from './storage/d1.ts';
 import type { PublicationClaim, PublicationIntent } from './publication.ts';
-import { publicationStatus } from './publication.ts';
+import { encodePublicationIntent, publicationStatus } from './publication.ts';
 import { rollbackPreflight, visibleRevisionCountQuery } from './d1.ts';
 import { canonicalTime } from './snapshot.ts';
 import { legacyMutationBatch, legacyMutationGuard, mutationAssertion, mutationFenceQuery, unabandonedImportsQuery } from './mutation-fence.ts';
@@ -182,7 +182,7 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
       AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE source_revision=? AND status!='complete')
       AND (? IS NULL OR ?>${NOW}) AND ${mutation.sql}`)
     .bind(intent.releaseId, versionReference, claim.requestId, stored.request_json, claim.token, claim.runReference,
-      ...gate.params, request.environment, receiptEpoch, ...imports.params, publication.intentId, intent.releaseId, JSON.stringify(intent), publication.token,
+      ...gate.params, request.environment, receiptEpoch, ...imports.params, publication.intentId, intent.releaseId, encodePublicationIntent(intent), publication.token,
       intent.catalogRevision, intent.catalogSnapshotSha256, snapshot.products.length, ...visible.params, snapshot.products.length,
       intent.catalogRevision, intent.vectorSyncWatermark, intent.catalogRevision, intent.nextExpiry, intent.nextExpiry, ...mutation.params);
   if (mutationOwner) {

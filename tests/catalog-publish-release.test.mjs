@@ -77,18 +77,21 @@ async function setup(t,{real=false}={}){
     async writeCheckpoint(expected,value){assert.equal(expected,checkpoint.sha256);checkpoint={...structuredClone(value),sha256:sha(canonicalJson(value))};},
     async writeControlCheckpoint(expected,value){assert.equal(expected,checkpoint.sha256);checkpoint={...checkpoint,...structuredClone(value)};checkpoint.sha256=sha(canonicalJson(checkpoint));},
     async putArtifact(value){return{sha256:sha(canonicalJson(value)),reference:'publication/fixture'};}};
+  let workspaceOptions;
+  const wrapActual=()=>({...actualWorkspace,async writeCheckpoint(expected,value){const result=await actualWorkspace.writeCheckpoint(expected,value);checkpoint={...result.checkpoint,sha256:result.sha256};return result;},
+    async writeControlCheckpoint(expected,value){const result=await actualWorkspace.writeControlCheckpoint(expected,value);checkpoint={...checkpoint,...result.checkpoint,sha256:result.sha256};return result;}});
   if(real){
-    actualWorkspace=await openRunWorkspace({directory:path.join(directory,'protected'),repository:sourceRoot,mode:'create',runId:'fixture-run',configSha256:'f'.repeat(64),codeSha,
+    workspaceOptions={directory:path.join(directory,'protected'),repository:sourceRoot,mode:'create',runId:'fixture-run',configSha256:'f'.repeat(64),codeSha,
       scope:{...scope,accountId:config.accountId,databaseId:id,databaseName:'fixture-db',workerName:'fixture-worker'},
       retention:{reviewReference:'test-only/retention',rules:Object.fromEntries(['amazon-observation','embedding-response','phase','publication','checkpoint']
         .map(kind=>[kind,{maxAgeMs:5*60000,notAfter:new Date(AT+48*3600000).toISOString()}]))},
-      budgetCaps:{httpRequests:100,sqlStatements:200},now:()=>new Date(clock).toISOString()});
+      budgetCaps:{httpRequests:100,sqlStatements:200},now:()=>new Date(clock).toISOString()};
+    actualWorkspace=await openRunWorkspace(workspaceOptions);
     const initial={...checkpoint};delete initial.sha256;
     const created=await actualWorkspace.writeCheckpoint(null,{...initial,pins:{}});checkpoint={...created.checkpoint,sha256:created.sha256};
-    workspace={...actualWorkspace,async writeCheckpoint(expected,value){const result=await actualWorkspace.writeCheckpoint(expected,value);checkpoint={...result.checkpoint,sha256:result.sha256};return result;},
-      async writeControlCheckpoint(expected,value){const result=await actualWorkspace.writeControlCheckpoint(expected,value);checkpoint={...checkpoint,...result.checkpoint,sha256:result.sha256};return result;}};
+    workspace=wrapActual();
   }
-  let uploaded=false,active=false;let uploadCalls=0,activateCalls=0,buildCalls=0,identityCalls=0;let mode={};let manifest;
+  let uploaded=false,active=false;let uploadCalls=0,activateCalls=0,buildCalls=0,identityCalls=0,versionReads=0;let mode={};let manifest;
   const command=async command=>{
     if(command.args.includes('scripts/staging/build.mts')){
       buildCalls++;const context=JSON.parse(await fs.readFile(command.env.CATALOG_RELEASE_CONTEXT_PATH));
@@ -123,11 +126,12 @@ async function setup(t,{real=false}={}){
     if(u.pathname.endsWith(`/indexes/${scope.indexName}`))return response({name:scope.indexName,config:{dimensions:1536,metric:'cosine'}});
     const c=checkpoint.control.publication;
     if(u.pathname.endsWith('/versions'))return response({items:uploaded&&!mode.versionInvisible?[{id:version}]:[]});
-    if(u.pathname.endsWith(`/versions/${version}`))return response({id:version,annotations:{'workers/tag':c.uploadMarker,'workers/message':`package:${c.packageSha256}`},
+    if(u.pathname.endsWith(`/versions/${version}`)){if(++versionReads===3&&mode.stopBeforeActivation)throw new Error('PRIVATE preactivation read interrupted');
+      return response({id:version,annotations:{'workers/tag':c.uploadMarker,'workers/message':`package:${c.packageSha256}`},
       resources:{script_runtime:{compatibility_date:'2026-10-19'},bindings:[{name:'DB',type:'d1',id:mode.wrongVersionDatabase?'wrong':id},
         {name:'VECTORIZE',type:'vectorize',index_name:scope.indexName},{name:'ASSETS',type:'assets'},
         {name:'ENVIRONMENT',type:'plain_text',text:'staging'},{name:'SEMANTIC_SEARCH_ENABLED',type:'plain_text',text:'false'},
-        ...(!mode.missingGuard?[{name:'STAGING_AUTH_SECRET',type:'secret_text'}]:[])]}});
+        ...(!mode.missingGuard?[{name:'STAGING_AUTH_SECRET',type:'secret_text'}]:[])]}});}
     if(u.pathname.endsWith('/get_by_ids')){if(mode.vectorFailure)return response([]);const expected=structuredClone(vector);
       // Preserve signed-zero native bytes across the mock REST boundary.
       return new Response(`{"success":true,"result":[{"id":"${id}","values":[${expected.values.map(n=>Object.is(n,-0)?'-0':n).join(',')}],"metadata":${JSON.stringify(expected.metadata)}}]}`,{headers:{'Content-Type':'application/json'}});}
@@ -144,6 +148,9 @@ async function setup(t,{real=false}={}){
   const execute=()=>executePublication({db,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
     credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock)}});
   return{db,sql,owner,revision,workspace,config,execute,mode,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
+    async reopen(){const expectedManifestSha256=actualWorkspace.manifestSha256;await actualWorkspace.close();
+      actualWorkspace=await openRunWorkspace({...workspaceOptions,mode:'resume',expectedManifestSha256});workspace=wrapActual();
+      const saved=await actualWorkspace.readCheckpoint();checkpoint={...saved.checkpoint,sha256:saved.sha256};},
     counts:()=>({uploadCalls,activateCalls,buildCalls,identityCalls}),vector};
 }
 
@@ -202,6 +209,14 @@ test('activation proof is read-only and bound to exact stored permit; no freezin
 test('real protected workspace preserves state/locks and permits exact expired-content control reconciliation',async t=>{
   const f=await setup(t,{real:true});const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
   assert.equal(f.checkpoint().state.driverState,'preserved');assert.equal((await f.execute()).state,'published');
+});
+test('uploaded preactivation resume survives canonical control reordering after actual workspace close/reopen',async t=>{
+  const f=await setup(t,{real:true});f.mode.stopBeforeActivation=true;
+  assert.equal((await f.execute()).state,'pending');assert.equal(f.checkpoint().control.publication.stage,'uploaded');assert.equal(f.counts().activateCalls,0);
+  await f.reopen();delete f.mode.stopBeforeActivation;
+  assert.deepEqual(Object.keys(f.checkpoint().control.publication.publication.intent),Object.keys(f.checkpoint().control.publication.publication.intent).sort());
+  const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));assert.equal(f.counts().buildCalls,1);
+  assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
 });
 test('lost completion/resolve acknowledgements recover only historical receipt after artifact expiry',async t=>{
   for(const point of ['publication','resolve']){
