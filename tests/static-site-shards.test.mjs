@@ -262,7 +262,7 @@ test(
     fs.writeFileSync(input, JSON.stringify(snapshot));
     const contextPath = path.join(directory, "release-context.json");
     fs.writeFileSync(contextPath, JSON.stringify({
-      schemaVersion: 1, releaseId: `owned-shard-fixture-${process.pid}`,
+      schemaVersion: 1, sourceMode: "preview", releaseId: `owned-shard-fixture-${process.pid}`,
       codeSha: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
       catalogRevision: snapshot.catalogRevision,
       catalogSnapshotSha256: createHash("sha256").update(`${JSON.stringify(validateCatalogSnapshot(snapshot))}\n`).digest("hex"),

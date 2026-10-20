@@ -21,9 +21,9 @@ const plain = value => JSON.parse(JSON.stringify(value));
 test("default stays protected Stupid preview, even under NODE_ENV=production", () => {
   const config = identity({ NODE_ENV: "production" });
   assert.equal(config.siteSourceMode, "preview"); assert.equal(config.isSitePreview, true); assert.equal(config.isSiteProduction, false);
-  assert.deepEqual(plain(config.siteIdentity), { brand: "stupid", name: "Stupid Gifts", origin: "https://staging.stupid.gifts",
-    hostname: "staging.stupid.gifts", wordmark: "stupid.gifts", tagline: "Very bad ideas. Carefully considered." });
-  for (const host of ["staging.stupid.gifts", "stupid.gifts", "www.goose.gifts"]) assert.equal(config.isSiteAnalyticsHostname(host), false);
+  assert.deepEqual(plain(config.siteIdentity), { brand: "stupid", name: "Stupid Gifts", origin: "https://stupid-gifts-staging.thirty-seven-inc.workers.dev",
+    hostname: "stupid-gifts-staging.thirty-seven-inc.workers.dev", wordmark: "stupid.gifts", tagline: "Very bad ideas. Carefully considered." });
+  for (const host of [config.siteIdentity.hostname, "staging.stupid.gifts", "stupid.gifts", "www.goose.gifts"]) assert.equal(config.isSiteAnalyticsHostname(host), false);
   assert.equal(Object.isFrozen(config.siteIdentity), true);
 });
 test("explicit Goose runtime keeps the existing canonical host; rebrand is separate opt-in", () => {
@@ -45,7 +45,7 @@ test("unknown/empty/arbitrary origins and disagreement are rejected rather than 
   assert.throws(() => identity({ CATALOG_SITE_MODE: "goose-production", NEXT_PUBLIC_STATIC_SITE_MODE: "stupid-production" }), /mismatch/);
   const config = identity();
   assert.throws(() => config.siteIdentityFor("https://example.com"), /source mode/);
-  assert.equal(config.siteIdentity.origin, "https://staging.stupid.gifts");
+  assert.equal(config.siteIdentity.origin, "https://stupid-gifts-staging.thirty-seven-inc.workers.dev");
 });
 test("serialized identity includes explicit reviewed source mode and has no environment-dependent extras", () => {
   for (const mode of ["preview", "goose-production", "stupid-production"]) {

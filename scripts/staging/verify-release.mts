@@ -8,7 +8,8 @@ import type { CatalogSnapshot, SiteAssetManifest } from '../../lib/catalog/types
 import { createStaticRoutes } from '../../static-site/lib/asset-routes.ts';
 import { createStaticFeedPlan } from '../../workers/site/feed.ts';
 import { verifyReleaseIdentity } from './release-identity.mts';
-import { validateBuildContext } from './build.mts';
+import { releaseBuildEnvironment, siteIdentityBytes, validateBuildContext } from './build.mts';
+import { siteIdentityFor } from '../../static-site/lib/site-identity.ts';
 
 export function verifySnapshotDigest(bytes: Uint8Array, expected: string): void {
   if (createHash('sha256').update(bytes).digest('hex') !== expected)
@@ -26,6 +27,40 @@ export function verifyReleaseContext(value: unknown, manifest: SiteAssetManifest
     throw new Error('Release context changed after the release was built');
 }
 
+export function verifySiteIdentity(bytes: Uint8Array, manifest: Pick<SiteAssetManifest, 'sourceMode' | 'siteIdentitySha256'>): void {
+  if (Buffer.from(bytes).toString('utf8') !== siteIdentityBytes(manifest.sourceMode)
+    || createHash('sha256').update(bytes).digest('hex') !== manifest.siteIdentitySha256)
+    throw new Error('Site identity changed or disagrees with the reviewed source mode');
+}
+/** Inspect only URL-bearing metadata, not merchant links or embedded product copy.
+ * Next emits quoted attributes. Malformed/relative identity URLs fail closed.
+ */
+export function verifySiteOutputOrigins(html: string, sourceMode: SiteAssetManifest['sourceMode'], noindex = sourceMode === 'preview') {
+  const origin = siteIdentityFor(sourceMode).origin;
+  let canonical = 0, openGraph = 0, robots = 0;
+  for (const match of html.matchAll(/<(link|meta)\b[^>]*>/gi)) {
+    const attrs = Object.fromEntries([...match[0].matchAll(/\s([a-zA-Z:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)]
+      .map((attr) => [attr[1].toLowerCase(), attr[2] ?? attr[3]]));
+    const isCanonical = match[1].toLowerCase() === 'link' && attrs.rel?.split(/\s+/).includes('canonical');
+    const property = attrs.property?.toLowerCase();
+    const isOg = ['og:url', 'og:image', 'og:image:url'].includes(property);
+    if (isCanonical || isOg || attrs.name?.toLowerCase() === 'twitter:image') {
+      let url: URL;
+      try { url = new URL(String(isCanonical ? attrs.href : attrs.content).replaceAll('&amp;', '&')); }
+      catch { throw new Error('Invalid canonical/share identity URL'); }
+      if (url.origin !== origin || url.username || url.password) throw new Error('Canonical/share origin disagrees with reviewed source mode');
+      if (isCanonical) canonical++;
+      if (property === 'og:url') openGraph++;
+    }
+    if (attrs.name?.toLowerCase() === 'robots') {
+      robots++;
+      if (noindex && !attrs.content?.toLowerCase().split(/[\s,]+/).includes('noindex')) throw new Error('Preview/fixture metadata must remain noindex');
+    }
+  }
+  if (noindex && !robots) throw new Error('Preview/fixture metadata must remain noindex');
+  return { canonical, openGraph };
+}
+
 async function main() {
   const root = path.resolve(import.meta.dirname, '../..');
   const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
@@ -38,6 +73,8 @@ async function main() {
   verifySnapshotDigest(snapshotBytes, manifest.catalogSnapshotSha256);
   verifyReleaseContext(JSON.parse(await fs.readFile(path.join(root, 'build/stupid-gifts/release-context.json'), 'utf8')),
     manifest, snapshot, git('rev-parse', 'HEAD'));
+  releaseBuildEnvironment(manifest, process.env);
+  verifySiteIdentity(await fs.readFile(path.join(root, 'build/stupid-gifts/site-identity.json')), manifest);
   const feedPlan = JSON.parse(await fs.readFile(path.join(root, 'build/stupid-gifts/feed-plan.json'), 'utf8'));
   verifyFeedPlan(snapshot, manifest.catalogSnapshotSha256, feedPlan);
   if (manifest.codeSha !== git('rev-parse', 'HEAD') || manifest.catalogRevision !== snapshot.catalogRevision)
@@ -50,10 +87,15 @@ async function main() {
     throw new Error('Asset inventory changed after the release was built');
   for (const file of entries) {
     const name = `/${path.relative(output, file).split(path.sep).join('/')}`;
-    if (createHash('sha256').update(await fs.readFile(file)).digest('hex') !== manifest.checksums[name])
+    const bytes = await fs.readFile(file);
+    if (createHash('sha256').update(bytes).digest('hex') !== manifest.checksums[name])
       throw new Error(`Asset checksum changed: ${name}`);
+    if (name.endsWith('.html')) {
+      const tags = verifySiteOutputOrigins(bytes.toString('utf8'), manifest.sourceMode, manifest.sourceMode === 'preview' || snapshot.dataKind === 'synthetic_fixture');
+      if (name === '/index.html' && (!tags.canonical || !tags.openGraph)) throw new Error('Home must declare its canonical/share identity');
+    }
   }
-  if (JSON.stringify(createStaticRoutes(snapshot, actualPaths)) !== JSON.stringify(manifest.routes))
+  if (JSON.stringify(createStaticRoutes(snapshot, actualPaths, undefined, siteIdentityFor(manifest.sourceMode))) !== JSON.stringify(manifest.routes))
     throw new Error('Asset expiry policy changed; rebuild the release');
   console.log(JSON.stringify({ verified: true, releaseId: manifest.releaseId, assets: entries.length, nextExpiry: manifest.nextExpiry }));
 }

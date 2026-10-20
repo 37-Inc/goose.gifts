@@ -150,7 +150,7 @@ function build(project, source) {
   const snapshot = validateCatalogSnapshot(JSON.parse(fs.readFileSync(source, "utf8")));
   const context = path.join(project, "fixture-release-context.json");
   fs.writeFileSync(context, JSON.stringify({
-    schemaVersion: 1, releaseId: `controlled-show-${randomUUID()}`,
+    schemaVersion: 1, sourceMode: "preview", releaseId: `controlled-show-${randomUUID()}`,
     codeSha: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
     catalogRevision: snapshot.catalogRevision,
     catalogSnapshotSha256: createHash("sha256").update(`${JSON.stringify(snapshot)}\n`).digest("hex"),

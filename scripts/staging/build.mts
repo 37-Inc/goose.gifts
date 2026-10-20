@@ -8,16 +8,17 @@ import type { CatalogSnapshot, SiteAssetManifest } from '../../lib/catalog/types
 import { createStaticRoutes } from '../../static-site/lib/asset-routes.ts';
 import { createStaticFeedPlan } from '../../workers/site/feed.ts';
 import { createReleaseIdentity } from './release-identity.mts';
+import { resolveSiteSourceMode, siteIdentityFor, siteIdentityRecordFor } from '../../static-site/lib/site-identity.ts';
 
 export type ReleaseBuildContext = Pick<SiteAssetManifest, 'schemaVersion' | 'releaseId' | 'codeSha' | 'catalogRevision'
-  | 'catalogSnapshotSha256' | 'generatedAt' | 'vectorSyncWatermark' | 'priorReleaseId'>;
+  | 'catalogSnapshotSha256' | 'generatedAt' | 'vectorSyncWatermark' | 'priorReleaseId' | 'sourceMode'>;
 /** Explicit reviewed context; zero/null are valid only when actually supplied.
  * Build retries must reuse the sealed package, not overwrite an existing release ID.
  */
 export function validateBuildContext(value: unknown, snapshot: CatalogSnapshot, codeSha: string, snapshotDigest: string, now = new Date()): ReleaseBuildContext {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Explicit release build context is required');
   const input = value as ReleaseBuildContext;
-  if (Object.keys(input).sort().join(',') !== 'catalogRevision,catalogSnapshotSha256,codeSha,generatedAt,priorReleaseId,releaseId,schemaVersion,vectorSyncWatermark'
+  if (Object.keys(input).sort().join(',') !== 'catalogRevision,catalogSnapshotSha256,codeSha,generatedAt,priorReleaseId,releaseId,schemaVersion,sourceMode,vectorSyncWatermark'
     || input.schemaVersion !== 1 || typeof input.releaseId !== 'string' || !/^[a-zA-Z0-9._-]{1,200}$/.test(input.releaseId)
     || !/^[a-f0-9]{40}$/.test(input.codeSha) || input.codeSha !== codeSha || input.catalogRevision !== snapshot.catalogRevision
     || !/^[a-f0-9]{64}$/.test(input.catalogSnapshotSha256) || input.catalogSnapshotSha256 !== snapshotDigest
@@ -25,10 +26,22 @@ export function validateBuildContext(value: unknown, snapshot: CatalogSnapshot, 
     || input.priorReleaseId !== null && (typeof input.priorReleaseId !== 'string' || !/^[a-zA-Z0-9._-]{1,200}$/.test(input.priorReleaseId))
     || input.priorReleaseId === input.releaseId) throw new Error('Release build context is malformed or incompatible');
   const generated = Date.parse(canonicalTime(input.generatedAt));
+  resolveSiteSourceMode(input.sourceMode);
   if (!Number.isFinite(now.getTime()) || generated < Date.parse(snapshot.generatedAt) || generated > now.getTime()) throw new Error('Release build context has an invalid capture time');
-  return { schemaVersion: 1, releaseId: input.releaseId, codeSha: input.codeSha, catalogRevision: input.catalogRevision,
+  return { schemaVersion: 1, sourceMode: input.sourceMode, releaseId: input.releaseId, codeSha: input.codeSha, catalogRevision: input.catalogRevision,
     catalogSnapshotSha256: input.catalogSnapshotSha256, generatedAt: input.generatedAt,
     vectorSyncWatermark: input.vectorSyncWatermark, priorReleaseId: input.priorReleaseId };
+}
+
+export function siteIdentityBytes(sourceMode: ReleaseBuildContext['sourceMode']): string {
+  return `${JSON.stringify(siteIdentityRecordFor(sourceMode))}\n`;
+}
+/** A caller cannot relabel the package independently of its reviewed context. */
+export function releaseBuildEnvironment(context: ReleaseBuildContext, env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  for (const key of ['CATALOG_SITE_MODE', 'NEXT_PUBLIC_STATIC_SITE_MODE']) {
+    if (env[key] !== undefined && env[key] !== context.sourceMode) throw new Error('Caller site source mode conflicts with reviewed release context');
+  }
+  return { ...env, CATALOG_SITE_MODE: context.sourceMode, NEXT_PUBLIC_STATIC_SITE_MODE: context.sourceMode };
 }
 
 async function main() {
@@ -43,6 +56,8 @@ async function main() {
   if (!contextPath) throw new Error('CATALOG_RELEASE_CONTEXT_PATH must identify explicit reviewed release context');
   const codeSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   const context = validateBuildContext(JSON.parse(await fs.readFile(path.resolve(contextPath), 'utf8')), snapshot, codeSha, catalogSnapshotSha256);
+  const buildEnv = releaseBuildEnvironment(context, process.env);
+  const identityBytes = siteIdentityBytes(context.sourceMode);
   try {
     const prior = JSON.parse(await fs.readFile(path.join(generated, 'asset-manifest.json'), 'utf8'));
     if (prior.releaseId === context.releaseId) throw new Error('Release ID already built; verify and reuse the sealed package instead');
@@ -54,9 +69,10 @@ async function main() {
   const input = path.join(generated, 'catalog.snapshot.json');
   await fs.writeFile(input, snapshotBytes);
   await fs.writeFile(path.join(generated, 'release-context.json'), `${JSON.stringify(context)}\n`);
+  await fs.writeFile(path.join(generated, 'site-identity.json'), identityBytes);
   await fs.writeFile(path.join(generated, 'feed-plan.json'), `${JSON.stringify(createStaticFeedPlan(snapshot, catalogSnapshotSha256))}\n`);
   execFileSync(process.execPath, ['node_modules/next/dist/bin/next', 'build', 'static-site', '--webpack'], {
-    cwd: root, env: { ...process.env, CATALOG_SNAPSHOT_PATH: input }, stdio: 'inherit',
+    cwd: root, env: { ...buildEnv, CATALOG_SNAPSHOT_PATH: input }, stdio: 'inherit',
   });
   const files = (await fs.readdir(output, { recursive: true, withFileTypes: true }))
     .filter((entry) => entry.isFile()).map((entry) => path.join(entry.parentPath, entry.name)).sort();
@@ -64,8 +80,8 @@ async function main() {
   for (const file of files) {
     checksums[`/${path.relative(output, file).split(path.sep).join('/')}`] = createHash('sha256').update(await fs.readFile(file)).digest('hex');
   }
-  const routes = createStaticRoutes(snapshot, Object.keys(checksums));
-  const manifest = { ...context, dataKind: snapshot.dataKind,
+  const routes = createStaticRoutes(snapshot, Object.keys(checksums), undefined, siteIdentityFor(context.sourceMode));
+  const manifest: SiteAssetManifest = { ...context, siteIdentitySha256: createHash('sha256').update(identityBytes).digest('hex'), dataKind: snapshot.dataKind,
     nextExpiry: snapshot.products.map((product) => product.eligibleUntil).sort()[0] || null,
     productCount: snapshot.products.length,
     slugCount: snapshot.products.length + snapshot.heldProducts.length + snapshot.slugHistory.length,
