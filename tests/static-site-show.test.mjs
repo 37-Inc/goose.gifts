@@ -16,7 +16,6 @@ import { siteIdentity } from "../static-site/lib/site-identity.ts";
 import { directoryPages, directoryPath } from "../static-site/lib/directory.ts";
 import { guides } from "../static-site/lib/guides.ts";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
-import { siteIdentity } from "../static-site/lib/site-identity.ts";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const owned = JSON.parse(fs.readFileSync(path.join(root, "static-site/fixtures/catalog.snapshot.json")));

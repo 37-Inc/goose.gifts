@@ -5,6 +5,38 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 — Protected runtime release and independent snapshot readback
+
+PR #192 merged as `fd2daff4e05909a60563c2d89f0fe0e0c082e5dd`.
+Protected Cloudflare version `63c343bc-39e7-4fd8-902a-b4113935016e`
+passed the publication lease/dispatch/independent identity and vector readback.
+The prior deployed release was verified before dispatch, rather than inferred
+from the newest database receipt. Private receipt
+`publication-proof-RSnxud/receipt.json` SHA-256:
+`f242f6932a9a302bbc8094b6e311fbbb944e41ca30bce19d4189d338074ce9ba`.
+Home, gifts, Random, guides, Howie, privacy and keyword search returned 200;
+unauthenticated access returned 401. Desktop composition was inspected.
+Vercel production `G389z5G3FaEd58HkpsTRYkmzdBcB` reports the same merged SHA;
+the public Goose home/catalog/guides/Random remain healthy.
+
+The next implementation slice reconstructs an **existing reviewed seal**
+from two bounded, read-only D1 captures. Root review added a hold for manual
+display changes even when source facts hashes remain equal. All 18 SQL tests
+pass, and actual staging reconstructed the four-product snapshot byte-for-byte.
+`snapshot-readback-L9T32W/receipt.json` SHA-256:
+`0c7627701de147db6c16c3315b3e4b8580eae6a801eb737999af794cb8b37fdf`.
+This is not a new-revision freezer, writer barrier, or proof of later index
+visibility.
+
+The weekly maintenance runner now has an explicit injectable Postgres store.
+Eleven existing SQL statements and their parameter behavior are unchanged;
+the default driver remains lazy Neon. Root independently ran 55 maintenance,
+telemetry/cache and local-Postgres revalidation checks successfully. This is
+an implementation seam, **not** a D1 weekly-writer switch. Mutable private
+editorial state, atomic mutation/vector receipts, slug reservation, telemetry,
+runtime verification provenance and new-revision publication still need
+coordinated implementation before changing the scheduled runner.
+
 ## 2026-10-20 early morning — Actual publication proof and runtime follow-through
 
 PR #191 merged as `f167e0764fe8eee8a19916cd6e348503d4189765`.
