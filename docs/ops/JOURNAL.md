@@ -5,6 +5,33 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-20 morning — Pinterest's first native outbound signal; cohort frozen
+
+AssignedF, completedP6/F6,total12 means no new creative/approval/publication.
+Correct production account/all12 package and durable receipt-board reads verify.
+P1150impressions/18opens/3saves/2outbound; F291/5/1/0. Both clicks are the
+mini-bowling poster1124/16/3/2, confirmed twice with public Pin200 and Goose
+UTM destination200/query intact. Bowling97.74%P and toast84.54%F exposure;
+no demonstrated format winner or corroborated human/site/retailer conversion.
+Final six-versus-six review remains receipt-derived October31T16:44:52.279Z,
+first regular eligible slot16:30Pacific, delivered=false/null.
+
+The separate owner-authorized cleanup retired exactly six pre-v11 legacy Pins;
+28 retained profile3302/50/7/2, all12 cohort members intact. Prior34 history is
+preserved and adjusted comparison subtracts retired308/4/2/0; no fake traffic
+regression, retired-ID fetch, deletion or repost. Account/app rename stays held.
+GA4explicit507421709 Oct14–20partial369direct+1not-set sessions,one engaged
+direct; PostHog5504275page/7list/1search. No attributed Pinterest/retailer row;
+per-Pin downstream unknown. All12 destinations200/canonical/retailer-linked,
+tenindex-follow/two existing Chia/Bowling holds. No catalog/site implementation.
+
+No new checkpoint due at AM snapshot; sheep7day later today20:07:09.336UTC,
+first eligible regular slot this afternoon. Thirteen validated append-only
+events and v34 metrics/destination receipts preserve evidence. Queue empty;
+publication/approval/retirement receipts and membership/deadline unchanged.
+Existing ACTIVE schedule unchanged; no new experiment, Bead mutation or spend.
+Verification and focused PR evidence recorded in the changelog/PR.
+
 ## 2026-10-20 — Bound full-catalog freezing and share neutral held assets
 
 Reviewed implementations `c8b88cf` (data) and `bd7f6aa` (static), integrated as

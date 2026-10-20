@@ -195,6 +195,23 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-20 [daily-ops] — First native Pinterest outbound clicks; keep v11 frozen
+
+- Readback-confirmed two outbound clicks on mini bowling: P1150impressions/
+  18opens/3saves/2outbound, F291/5/1/0. Encouraging one-product signal, not a
+  format winner or independently attributed site/retailer conversion.
+- Reconciled28 retained public Pins after the separately authorized six-Pin
+  legacy cleanup; all12 v11 members preserved. Retired IDs excluded before
+  metrics fetch; dated history/receipts untouched. No deletion or rename here.
+- Recorded13 validated append-only events and v34 AM metrics/twelve-destination
+  receipts. Queue empty; no new creative/approval/publication. Sheep7day due
+  later today20:07UTC; exact October31 full-review gate and ACTIVE slots intact.
+- Current GA4/PostHog downstream unknown, all12 destinations200/retailer-linked;
+  two existing editorial holds remain with the separate catalog workflow.
+  No product-page, catalog, account, scheduler, Bead or spend changes.
+- Node22.23.1: creative validation913events,6creative/10Pinterest tests,
+  production build, lint, diff check and immutable-history/cap invariants pass.
+
 ### 2026-10-20 — Full-catalog bounds and shared held assets [owner+claude]
 
 - Bound exact-owner D1 capture/freezing for the existing private catalog and

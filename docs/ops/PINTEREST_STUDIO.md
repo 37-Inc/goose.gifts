@@ -195,6 +195,50 @@ promotion, outreach, account changes, deletions, video or unrelated site changes
 
 ## October 13 recovery evidence
 
+### October 20 morning — first native outbound clicks; no new creative
+
+AssignedF, P6/F6,total12 cap frozen. No shortlist, concepts, image generation,
+approval, dry-run or publication. Correct goosegifts BUSINESS account and all
+twelve exact package/receipt-board readbacks verify; no unresolved receipt or
+successful publication today. Generation/publicPosting/paidSpend remain false.
+
+At2026-10-20T16:39:08.583Z P1150impressions/18opens/3saves/2outbound;
+F291/5/1/0outbound. Bowling1124/16/3/2 supplies97.74%ofP impressions and
+both clicks; Toast246/3/1/0 supplies84.54%ofF. Without the dominant Pins,
+P26/2/0/0 versus F45/2/0/0. A second exact-ID read at16:40:24.142UTC confirms
+bowling's two native outbound clicks; public Pin200 and Goose tracking link200
+with UTM query intact and visible retailer CTA. No operator/retailer click.
+This is encouraging product-level action, not a demonstrated format winner,
+verified unique/human sessions, retailer conversion or sales. Earlier dated
+zero-outbound observations remain intact. Final cohort review is not due.
+
+28 retained public Pins (26listed+two known exact-ID omissions),3302impressions/
+50opens/7saves/2outbound. Six separately owner-authorized legacy retirements
+were excluded before fetch; all12 v11 Pins remain. Prior34 aggregate3487/51/8/0
+minus retired308/4/2/0 gives comparable retained baseline3179/47/6/0. Do not
+report raw34-to28 inventory or aggregate changes as lost distribution. No
+retired-ID fetch, deletion, repost, account mutation or rename here.
+
+Bounded GA4property507421709 Oct14–20Pacific/currentdaypartial:
+369direct+1not-set sessions,one engaged direct,no attributed Pinterest/retailer
+row. PostHog550427:5page/7list/1search,no attributed row. Both sources respond;
+no ongoing-outage claim, absent-host filter or inference from retired DB/Vercel
+zeros. Sandbox/v3 and QA/operator campaigns excluded; downstream unknown.
+
+All12 destinations200/selfcanonical/retailerlinked,tenindex-follow/two existing
+Chia/Bowling holds; existing separate catalog handoff unchanged. No catalog,
+cache, page or source mutation. No new checkpoint due at AM snapshot; sheep
+7day exact gate2026-10-20T20:07:09.336Z, first eligible regular slot this
+afternoon. Preserve actual late checkpoints rather than invent equal-age data.
+
+Thirteen validated append-only events and [AM receipt](pinterest-creative-lab/v34-concepts/verification/metrics-20261020-am.json)
+plus [twelve-page audit](pinterest-creative-lab/v34-concepts/verification/destinations-20261020-am.json)
+retain this cap-driven no-op. Publication receipts, approval manifest, cohort
+ledger/deadline and retirement evidence unchanged; finalReviewDelivered=false/null.
+Existing ACTIVE slots intact; exact full-cohort gate October31T16:44:52.279Z,
+regular eligible slot16:30Pacific. No new experiment or format adoption, no
+further generation/publication even after review without Cameron's new decision.
+
 ### October 19 afternoon — quota no-op; analytics recovered on bounded retry
 
 Assigned F, but full P6/F6,total12 remains frozen. No selection,shortlist,
