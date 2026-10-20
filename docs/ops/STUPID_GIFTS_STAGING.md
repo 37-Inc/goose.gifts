@@ -299,6 +299,15 @@ Unknown source/rights/vector provenance remains held; a database write cannot
 make an old observation fresh. This does not change the runner's default Neon
 backend or its schedule.
 
+The real disposable D1 rehearsal applies migrations 0001–0010 and verifies
+failed-batch rollback, competing-owner refusal, atomic product/outbox/receipt,
+zero-write retry, immutable archive/slug, guarded hold and settled release.
+All ten checks pass; its 366 writes were confined to the now-deleted scratch
+database. Current staging still has only migrations 0001–0008 and no enabled
+writer. A separate read-only check validates the current-rights SQL on D1
+itself; canonical timestamp normalization avoids D1's long-GLOB limit.
+See the journal for receipts, cleanup evidence and measured query costs.
+
 Before selecting D1 for a real weekly run, finish the runtime/store selection,
 D1 run/item telemetry backend, owned vector delivery, new approved-cohort
 publication, replacement secret bootstrap and a bounded end-to-end run. The

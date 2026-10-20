@@ -202,8 +202,12 @@ the existing runner's eleven storage operations. Shared ownership now spans
 catalog writes, pruning and activation; interrupted work cannot silently become
 a successful publication. Review fixed stale-observation freshness and revoked
 display-rights gaps, plus a cached-search expiry race. The default Neon job is
-unchanged. Root verification: 328 staging tests pass (eight explicit opt-in
+unchanged. Root verification: 329 staging tests pass (eight explicit opt-in
 skips), plus 88 existing catalog/telemetry/analytics/contact regressions.
+An actual disposable D1 canary passed ten transaction/replay/ownership checks
+and was removed. A separate live read caught D1's long-pattern SQL limit;
+`ee59f83` replaces that check with canonical timestamp normalization, then
+reproduces the same four products with zero writes.
 This is implementation progress, not writer, scheduler or domain cutover.
 
 ### 2026-10-20 [owner+claude] — Review release identity and maintenance migration safety

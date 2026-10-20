@@ -11,7 +11,7 @@ Three Sol extra-high-effort workers delivered bounded implementation and
 cross-review. Root integrated the shared mutation fence, explicit eleven-method
 D1 store, strict-subset expiry pruner, activation barrier, lazy telemetry seam,
 rights-aware SQL visibility and cached-search deadline recheck. The new tests
-are explicitly included in `test:staging`; 328 pass, eight separately opt-in
+are explicitly included in `test:staging`; 329 pass, eight separately opt-in
 fixtures skip. Existing catalog/telemetry/analytics/contact suites add 88 passes,
 including native PostgreSQL merge comparisons.
 
@@ -29,8 +29,29 @@ row or production writer is enabled. The pruner does not refresh Amazon data,
 promote held candidates or generate embeddings. An owned vector provider
 adapter, real D1 telemetry/orchestration, replacement secret bootstrap and
 verified scheduled publication remain unfinished. Keep the existing weekly
-Neon command unchanged. Real-provider canary and merged-source deployment
-receipts will be recorded separately from the local tests.
+Neon command unchanged.
+
+Actual disposable D1 canary passed all ten ownership, atomic rollback,
+immutable payload/archive, replay, vector-supersession and integrity checks:
+57 SQL calls, 3,775 rows read and 366 written. No merchant/model/Vectorize
+calls or active-catalog writes. Independent exact-name inventory confirms the
+temporary database is deleted. Consolidated private receipt:
+`d1-maintenance-canary-iJuaru/verified-receipt.json` SHA-256
+`1743ee2c208cc1565bc047a521aa95090e79bc138748c997d182b21d8723d2ea`.
+The original receipt and separate cleanup readback remain preserved; an empty
+delete response was not mistaken for proof of deletion.
+
+Additional actual staging reads exposed D1's `LIKE or GLOB pattern too complex`
+limit, which native SQLite did not reproduce. `ee59f83` simplifies canonical
+timestamp checks to normalized `strftime` equality; invalid dates, time
+overflow, offsets and noncanonical precision still fail closed. Independent
+review and all 329 staging tests pass. Actual D1 then reproduced four exact
+products, the keyword result and indexed candidate plans in four read-only
+queries (1,721 billed rows read, zero writes). These include value-level JSON
+rights checks; do not reuse earlier lower query-cost figures as current.
+Receipt `pr194-current-rights-live.json` SHA-256:
+`a905c6d6a139d8a8ec8de7465e00b4eee255b6a409f5be35adeed2f2377a4435`.
+Merged-source deployment remains separately verified.
 
 ## 2026-10-20 — Merged release, live search budget and real retention expiry
 
