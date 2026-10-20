@@ -15,7 +15,7 @@ export const metadata: Metadata = {
         : `${siteIdentity.name}: ${siteIdentity.tagline}`,
     "/",
   ),
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/favicon.ico" },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

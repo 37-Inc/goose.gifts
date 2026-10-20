@@ -26,7 +26,8 @@ Artifact tests automatically use the integration build's immutable
 builds, use the same `CATALOG_SNAPSHOT_PATH` for the build and tests. Pure fixture
 tests remain independent; no input is saved to Git.
 
-All routes have noindex metadata and robots disallows crawling. There is no
+The default protected preview and all fixtures have noindex metadata and robots
+disallows crawling. There is no
 initialized analytics provider by default, service worker, catalog browser
 storage, offer schema, fabricated availability, or enabled fixture retailer CTA.
 The shared `ProductImage` and price-free schema helper are reused; staging CTA
@@ -199,8 +200,22 @@ must change when the renderer changes so immutable paths never change bytes.
 Metadata includes absolute OG images and Twitter large-image cards. Preview and
 fixtures remain noindex; production mode alone does not index held/thin/private
 routes. Indexability requires explicit route eligibility and non-fixture status.
-Default noindex for the other routes remains conservative until their separate
-production identity/readiness review; this protected proof is not a cutover.
+Eligible Home/catalog/Random/report pages, the maintained guide hub and matching
+guides, confirmed published archives and reviewed privacy content can index only
+in an explicit production source mode. Empty/held/thin routes, duplicate page 1,
+unpublished show content and presentation views stay noindex; query search is
+also noindex at the Worker. Production robots permits maintained public content
+and names the selected canonical sitemap; preview/fixture robots still blocks
+everything. Retired/unknown paths remain Worker 404s. This is source capability,
+not activation or a cutover.
+
+Production static privacy reuses the existing published policy verbatim except
+for the approved identity name, preserving its date, contact and conditional
+analytics wording. The existing Vercel privacy view imports the same pure copy
+without changing its content. Preview privacy remains explicitly preview-only.
+The tiny existing owned favicon is reused across modes; no new mascot or logo
+rights are implied. Production privacy review and provider activation remain
+separate gates.
 
 The larger owned-fixture export check is intentionally opt-in because it replaces
 the local output. Rebuild with your approved snapshot afterward:

@@ -8,7 +8,7 @@ import { createBrowseRelease } from "./browse";
 import { createShowRelease, episodePath } from "./show";
 import { createOgRelease, ogPath } from "./og";
 import type { OgIdentity } from "./og";
-import { siteIdentity } from "./site-identity";
+import { siteIdentity, siteIdentityFor } from "./site-identity";
 
 type RoutePolicy = Omit<CatalogAssetRoute, "assetPath"> & {
   indexable: boolean;
@@ -41,7 +41,8 @@ export function createStaticRoutes(
     safeAssetPath: "/safe/catalog.html",
     eligibleUntil: nextExpiry,
     state: "ready",
-    indexable: snapshot.dataKind !== "synthetic_fixture",
+    indexable: snapshot.dataKind !== "synthetic_fixture"
+      && [siteIdentityFor("goose-production").origin, siteIdentityFor("stupid-production").origin].includes(identity.origin),
   };
   for (const pathname of ["/", "/random-gift", "/weird-gift-index"])
     policies[pathname] = { ...catalog,

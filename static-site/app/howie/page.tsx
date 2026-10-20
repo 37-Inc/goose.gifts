@@ -2,11 +2,13 @@ import { previewMetadata } from "../../lib/metadata";
 import { show } from "../../lib/show-data";
 import { EpisodeArchive, EpisodeContent } from "../../components/EpisodeContent";
 import { episodePath } from "../../lib/show";
+import { isFixtureRelease } from "../../lib/catalog";
 export const metadata = previewMetadata(
   "From the show",
   show.latest ? "The current confirmed episode selection and stable previous selections."
     : "No episode selection has been published. Confirmed products will appear here when ready.",
   "/howie",
+  { indexable: Boolean(show.latest), fixture: isFixtureRelease },
 );
 export default function Howie() {
   if (show.latest) return (

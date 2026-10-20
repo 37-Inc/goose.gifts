@@ -83,6 +83,7 @@ test("layout and show wordmarks/URLs follow source mode without losing contact o
   for (const mode of ["preview", "goose-production", "stupid-production"]) {
     const config = identity({ CATALOG_SITE_MODE: mode });
     const layout = component("../static-site/app/layout.tsx", config);
+    assert.equal(layout.metadata.icons.icon, "/favicon.ico");
     const html = renderToStaticMarkup(React.createElement(layout.default, null, React.createElement("main", { id: "main" })));
     assert.match(html, new RegExp(`${config.siteIdentity.brand}<span>\\.</span>gifts`));
     assert.ok(html.includes(config.siteIdentity.tagline));

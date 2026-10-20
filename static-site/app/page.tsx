@@ -1,8 +1,15 @@
-import { browse } from "../lib/catalog";
+import { browse, isFixtureRelease } from "../lib/catalog";
+import { previewMetadata } from "../lib/metadata";
+import { isSitePreview, siteIdentity } from "../lib/site-identity";
 import { ProductCard } from "../components/ProductCard";
 import { Search } from "../components/Search";
 import { CatalogFeed } from "../components/CatalogFeed";
 import SafeCatalog from "./safe/catalog/page";
+
+export const metadata = previewMetadata("Ridiculous gifts. Excellent taste.",
+  isSitePreview || isFixtureRelease ? "An isolated static preview, not a public launch."
+    : `${siteIdentity.name}: ${siteIdentity.tagline}`, "/",
+  { indexable: browse.opening.length > 0, fixture: isFixtureRelease });
 
 export default function Home() {
   if (!browse.opening.length) return <SafeCatalog />;
