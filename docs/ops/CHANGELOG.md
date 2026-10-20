@@ -211,6 +211,7 @@ what's likely next.
   No product-page, catalog, account, scheduler, Bead or spend changes.
 - Node22.23.1: creative validation913events,6creative/10Pinterest tests,
   production build, lint, diff check and immutable-history/cap invariants pass.
+  Evidence/docs PR [#201](https://github.com/37-Inc/goose.gifts/pull/201).
 
 ### 2026-10-20 — Full-catalog bounds and shared held assets [owner+claude]
 
