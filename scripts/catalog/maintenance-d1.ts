@@ -24,6 +24,8 @@ export interface MaintenanceIntent {
 }
 export interface MaintenanceD1Options {
   db: CatalogD1; owner: MutationOwner; runId: string; catalogRevision: string;
+  /** Caller serializes shared catalog/telemetry operations. No DB auto-refresh. */
+  ownerCursor?: { current: MutationOwner };
   /** Pure supplied evidence: no provider work is performed by this store. */
   intent?: (method: string, args: unknown[]) => MaintenanceIntent | Promise<MaintenanceIntent>;
   historical?: { archiveSha256: string; embeddingPresence: Record<string, { present: boolean; sourceRecordSha256: string }>;
@@ -32,7 +34,7 @@ export interface MaintenanceD1Options {
 }
 type Loaded = { row: Row; product: SemanticProduct; version: number; present: boolean | null; native: string | null; provenance: Row;
   privateState: unknown[] };
-type Receipt = { input_sha256: string; result_json: string; environment: string; index_name: string; generation: number; next_epoch: number };
+type Receipt = { input_sha256: string; result_json: string; environment: string; index_name: string; generation: number; prior_epoch: number; next_epoch: number };
 const HASH = /^[a-f0-9]{64}$/;
 const UUID = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 const KEY = /^[a-zA-Z0-9._:/-]{1,200}$/;
@@ -121,8 +123,11 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
     if (!receipt) return null;
     if (receipt.input_sha256 !== inputHash || receipt.environment !== owner.environment || receipt.index_name !== owner.indexName) throw new Error('maintenance_receipt_mismatch');
     const current = await readMutationOwner(db, owner);
-    if (!sameOwner(current, owner) || current!.epoch < receipt.next_epoch) throw new Error('maintenance_fenced');
-    owner = Object.freeze(current!); return { result: JSON.parse(receipt.result_json) };
+    const ownCommit=receipt.generation===owner.generation && receipt.prior_epoch===owner.epoch && current?.epoch===receipt.next_epoch;
+    if (!sameOwner(current, owner) || current!.epoch < receipt.next_epoch || (!ownCommit && current!.epoch!==owner.epoch)) throw new Error('maintenance_fenced');
+    owner = Object.freeze(current!);
+    if (options.ownerCursor) options.ownerCursor.current=owner;
+    return { result: JSON.parse(receipt.result_json) };
   };
   async function write<T>(method: string, rawArgs: unknown[], build: (args: unknown[], intent: MaintenanceIntent, now: string,
     statements: D1Statement[], operationId: string, changes: Row[]) => Promise<T>): Promise<T> {
@@ -154,7 +159,13 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
     return saved.result as T;
   }
   const serialize = <T>(operation: () => Promise<T>): Promise<T> => {
-    const work = tail.then(operation); tail = work.catch(() => {}); return work;
+    const work = tail.then(() => {
+      if (options.ownerCursor) {
+        if (!sameOwner(options.ownerCursor.current,options.owner)) throw new Error('maintenance_fenced');
+        owner=Object.freeze({...options.ownerCursor.current});
+      }
+      return operation();
+    }); tail = work.catch(() => {}); return work;
   };
   function cas(old: Loaded | null, id: string, statements: D1Statement[]) {
     if (!old) { statements.push(assertion(db,'NOT EXISTS(SELECT 1 FROM products WHERE id=?)',[id])); return; }
