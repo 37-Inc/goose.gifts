@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import type { ProductRights, PublicCatalogProduct } from '../../lib/catalog/types.ts';
 import { validatePublicCatalogProduct } from '../../lib/catalog/snapshot.ts';
-import { decodePgvectorSendBase64, PGVECTOR_BINARY_ENCODING } from './pgvector-binary.ts';
+import { decodePgvectorSendBase64, encodePgvectorSendBase64, PGVECTOR_BINARY_ENCODING } from './pgvector-binary.ts';
 
 export const RUNTIME_TABLES = ['products', 'product_slug_history', 'catalog_runs', 'catalog_run_items',
   'catalog_editorial_events', 'search_queries'] as const;
@@ -156,6 +156,33 @@ export function exportVector(row: Row, metadata: { catalogRevision: string; elig
   }
   if (!metadata.catalogRevision || !/^[a-f0-9]{64}$/.test(metadata.embeddingTextHash) || typeof metadata.eligible !== 'boolean') throw new Error('Vector metadata requires reviewed revision, eligibility and embedding-text hash');
   return { id: requiredString(row.public_id, 'vector public_id'), values: [...raw], metadata: { ...metadata } };
+}
+
+/** Existing vectors with unknown historical input text are not verified-hash records. */
+export function exportLegacyVector(row: Row, metadata: { catalogRevision: string; eligible: boolean },
+  encoding: 'postgres-text' | typeof PGVECTOR_BINARY_ENCODING): {
+    id: string; values: number[]; metadata: {
+      catalogRevision: string; eligible: boolean; legacyInputProvenance: 'unverified'; vectorBytesSha256: string;
+    };
+  } | null {
+  if (!['postgres-text', PGVECTOR_BINARY_ENCODING].includes(encoding)) throw new Error('Unknown vector column encoding');
+  if (row.embedding === null || row.embedding === undefined) return null;
+  let values: number[];
+  if (encoding === PGVECTOR_BINARY_ENCODING) values = decodePgvectorSendBase64(row.embedding);
+  else {
+    if (typeof row.embedding !== 'string') throw new Error('Legacy Postgres vector text must be explicit server text');
+    const parsed = JSON.parse(row.embedding);
+    if (!Array.isArray(parsed) || parsed.length !== EMBEDDING_DIMENSIONS
+      || parsed.some((value) => typeof value !== 'number' || !Number.isFinite(value))) throw new Error('Original vector is not 1536 finite dimensions');
+    // vector_out emits shortest round-trippable float4 decimals. Restore those
+    // native float32 values, not new embeddings or an invented input-text hash.
+    values = parsed.map((value) => Math.fround(value));
+  }
+  const nativeBytes = Buffer.from(encodePgvectorSendBase64(values), 'base64');
+  if (!metadata.catalogRevision || typeof metadata.eligible !== 'boolean') throw new Error('Legacy vector requires explicit revision and eligibility');
+  return { id: requiredString(row.public_id, 'vector public_id'), values,
+    metadata: { catalogRevision: metadata.catalogRevision, eligible: metadata.eligible,
+      legacyInputProvenance: 'unverified', vectorBytesSha256: createHash('sha256').update(nativeBytes).digest('hex') } };
 }
 
 export interface ImportBatch {
