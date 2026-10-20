@@ -208,6 +208,9 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         const path = url.pathname;
         // Never let ASSETS decode separators/traversal differently from this dispatcher.
         if (/%(?:2f|5c|25)/i.test(path)) return respond(json({ error: 'Not found' }, 404));
+        let decodedPath: string;
+        try { decodedPath = decodeURIComponent(path); }
+        catch { return respond(json({ error: 'Not found' }, 404)); }
         if (path === '/.well-known/catalog-release.json') {
           if (!['GET', 'HEAD'].includes(request.method)) return respond(json({ error: 'Method not allowed' }, 405, { Allow: 'GET, HEAD' }));
           if (!releaseIdentity) return respond(json({ error: 'Release identity unavailable' }, 503));
@@ -217,7 +220,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         if (path === '/api/catalog-feed') return respond(await feed(request));
         if (RETIRED_ROUTE.test(path) || path.startsWith('/api/')) return respond(json({ error: 'Not found' }, 404));
         if (!['GET', 'HEAD'].includes(request.method)) return respond(json({ error: 'Method not allowed' }, 405, { Allow: 'GET, HEAD' }));
-        if ((path === '/random-gift' || path === '/random-gift/') && url.searchParams.has('gift')) return respond(json({ error: 'Not found' }, 404));
+        if ((decodedPath === '/random-gift' || decodedPath === '/random-gift/') && url.searchParams.has('gift')) return respond(json({ error: 'Not found' }, 404));
         if (path.endsWith('/') && path !== '/') {
           const target = path.slice(0, -1);
           // Only finite known HTML pages (plus maintained legal/search pages),
@@ -252,7 +255,9 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         const redirect = redirects.get(path);
         if (redirect && routes.has(redirect)) return respond(new Response(null, { status: 308, headers: { Location: `${redirect}${campaignSearch(url.searchParams)}`, 'Cache-Control': 'no-store' } }));
         if (path === '/sitemap.xml' || path === '/sitemap/0.xml') return respond(sitemap(request));
-        const route = routes.get(path) || directAssets.get(path);
+        // Retained chunks may arrive with encoded brackets or unreserved filename
+        // bytes. Their single-decoded equivalent must not bypass the expiry guard.
+        const route = routes.get(path) || directAssets.get(path) || routes.get(decodedPath) || directAssets.get(decodedPath);
         if (route) return respond(await asset(request, env, route));
         // Legal content is timeless and intentionally outside catalog manifests.
         if (path === '/privacy' || /^\/privacy(?:\.(?:html|txt)|\/__next\.[^/]+\.txt)$/.test(path)) {

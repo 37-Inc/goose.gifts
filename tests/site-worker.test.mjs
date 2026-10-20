@@ -21,6 +21,7 @@ function setup(overrides = {}) {
     '/random-gift': ready('/random-gift'),
     '/howie': ready('/howie', { indexable: false }),
     '/gifts/funny%20button': ready('/gifts/fart-button'),
+    '/_next/static/chunks/app/gifts/[slug]/page-old.js': ready('/retained', { assetPath: '/_next/static/chunks/app/gifts/[slug]/page-old.js', safeAssetPath: '/safe.js', indexable: false }),
   };
   const digest = 'a'.repeat(64);
   const manifest = { schemaVersion: 1, releaseId: 'test', codeSha: 'b'.repeat(40), catalogRevision: 'r1', catalogSnapshotSha256: digest, generatedAt: snapshot.generatedAt, nextExpiry: DEADLINE, productCount: 1, slugCount: 1, vectorSyncWatermark: 1, priorReleaseId: null, checksums: {}, dataKind: snapshot.dataKind, routes };
@@ -163,6 +164,28 @@ test('encoded separators and double encoding cannot reach a decoding/normalizing
   assert.equal((await fixture.request('/gifts/funny%20button?utm_content=%2F')).status, 200);
   assert.equal(decoded.at(-1), '/gifts/fart-button.html');
   assert.equal((await fixture.request('/_next/static/app.js')).status, 200);
+});
+
+test('single-encoded equivalents of retained chunk paths share the exact expiry guard', async () => {
+  const fixture = setup();
+  const raw = '/_next/static/chunks/app/gifts/[slug]/page-old.js';
+  const aliases = [raw, raw.replace('[slug]', '%5Bslug%5D'), raw.replace('[slug]', '%5bslug%5d'),
+    raw.replace('[slug]', '%5bslug%5D').replace('page-old', '%70age-%6fld')];
+  for (const path of aliases) {
+    const response = await fixture.request(path);
+    assert.equal(response.status, 200); assert.equal(await response.text(), raw);
+    assert.match(response.headers.get('Cache-Control'), /max-age=2/);
+  }
+  fixture.advance(2400);
+  for (const path of aliases) {
+    const response = await fixture.request(path);
+    assert.equal(await response.text(), '/safe.js'); assert.equal(response.headers.get('Cache-Control'), 'no-store');
+  }
+  const count = fixture.calls.length;
+  for (const path of ['/_next/static/%zz.js', '/_next/static/%C0%AF.js', raw.replace('page', '%2570age'), '/rando%6d-gift/?gift=retired']) {
+    assert.equal((await fixture.request(path)).status, 404, path);
+  }
+  assert.equal(fixture.calls.length, count);
 });
 
 test('timeless privacy companions and owned illustrations remain available', async () => {
