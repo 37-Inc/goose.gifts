@@ -205,6 +205,14 @@ test('a dispatch timeout stays owned/unknown after abort, with no blind second a
   const first=await f.deliver(f.owner,{timeoutMs:10});assert.equal(first.errorCode,'mutation_unknown');
   f.resolution('pending');assert.equal((await f.deliver(first.owner)).state,'pending');assert.equal(calls,1);assert.equal(f.scope().external_pending,1);
 });
+test('background delivery defaults to10s, permits explicit30s and rejects unsafe timeout bounds',async t=>{
+  const scheduled=[];const timer=globalThis.setTimeout;
+  t.mock.method(globalThis,'setTimeout',(callback,delay,...args)=>{scheduled.push(delay);return timer(callback,delay,...args);});
+  const defaultRun=await setup(t);await defaultRun.deliver();assert.deepEqual(scheduled,[10_000,10_000,10_000]);
+  scheduled.length=0;const explicit=await setup(t);await explicit.deliver(explicit.owner,{timeoutMs:30_000});
+  assert.deepEqual(scheduled,[30_000,30_000,30_000]);
+  for(const timeoutMs of [0,9,-1,30_001,10.5,NaN])await assert.rejects(explicit.deliver(explicit.owner,{timeoutMs}),/invalid_vector_timeout/);
+});
 test('wrong environment/index/account binding refuses before provider calls and remains bound across restart',async t=>{
   const f=await setup(t);
   for(const wrong of [{environment:'production'},{indexName:'other'}])await assert.rejects(f.deliver(f.owner,{adapters:{...f.adapters,...wrong}}),/scope_mismatch/);
@@ -229,7 +237,7 @@ test('malformed/stale payloads and unsafe legacy attempts fail before any provid
     const f=await setup(t);mutate(f);await assert.rejects(f.deliver());assert.equal(f.counts().dispatches,0);assert.equal(f.counts().reads,0);
   }
   const f=await setup(t);await assert.rejects(f.deliver(f.owner,{catalogRevision:'wrong'}),/event_changed/);
-  await assert.rejects(f.deliver(f.owner,{timeoutMs:3001}),/invalid_vector_timeout/);
+  await assert.rejects(f.deliver(f.owner,{timeoutMs:30_001}),/invalid_vector_timeout/);
 });
 test('reviewed unknown-hash delete preserves provenance and requires settled verified absence',async t=>{
   const f=await setup(t,{operation:'delete',legacy:true});f.vectors.set(uuid(1),{id:uuid(1),values,metadata:{catalogRevision:'r1'}});

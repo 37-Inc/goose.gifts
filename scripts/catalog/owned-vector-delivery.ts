@@ -84,8 +84,9 @@ async function bounded<T>(operation: (signal: AbortSignal) => Promise<T>, timeou
   })]); } finally { clearTimeout(timer); }
 }
 function timeoutOf(value?: number): number {
-  if (value !== undefined && (!Number.isInteger(value) || value < 10 || value > 3000)) throw new Error('invalid_vector_timeout');
-  return value ?? 1500;
+  // Explicit background maintenance only; request-time search has its own caps.
+  if (value !== undefined && (!Number.isInteger(value) || value < 10 || value > 30_000)) throw new Error('invalid_vector_timeout');
+  return value ?? 10_000;
 }
 function adapterScope(owner: MutationOwner, adapters: Pick<OwnedVectorAdapters,'environment'|'indexName'|'providerIdentity'>) {
   if (adapters.environment !== owner.environment || adapters.indexName !== owner.indexName

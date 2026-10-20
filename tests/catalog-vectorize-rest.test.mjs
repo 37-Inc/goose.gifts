@@ -72,6 +72,19 @@ test('bounded timeout/abort and streamed oversized body fail without retry or un
     pull(controller){controller.enqueue(new Uint8Array(64*1024));},cancel(){cancelled=true;}}))});
   await assert.rejects(oversized.readback(publicId,signal()),/vector_provider_failed/);assert.equal(cancelled,true);
 });
+test('background REST defaults to10s, accepts30s and preserves caller abort with no retry',async t=>{
+  const scheduled=[];const timer=globalThis.setTimeout;
+  t.mock.method(globalThis,'setTimeout',(callback,delay,...args)=>{scheduled.push(delay);return timer(callback,delay,...args);});
+  const fetch=async()=>ok([]);
+  await createVectorizeRestAdapters({...config,fetch}).readback(publicId,signal());
+  await createVectorizeRestAdapters({...config,fetch,timeoutMs:30_000}).readback(publicId,signal());
+  assert.deepEqual(scheduled,[10_000,30_000]);
+  let calls=0;const aborter=new AbortController();
+  const api=createVectorizeRestAdapters({...config,fetch:async(_url,init)=>{calls++;
+    return new Promise((_,reject)=>init.signal.addEventListener('abort',()=>reject(new Error('PRIVATE abort')),{once:true}));}});
+  const pending=api.dispatch(delivery,aborter.signal);aborter.abort();
+  await assert.rejects(pending,/vector_provider_failed/);assert.equal(calls,1);
+});
 test('wrong IDs/namespaces/dimensions and malformed explicit configuration are rejected',async()=>{
   for(const result of [[{...vector,id:'00000000-0000-4000-8000-000000000002'}],[{...vector,namespace:'other'}],
     [{...vector,values:[1,2]}],[vector,vector],{matches:[]},[{...vector,metadata:null}]]){
@@ -79,6 +92,7 @@ test('wrong IDs/namespaces/dimensions and malformed explicit configuration are r
   }
   const api=createVectorizeRestAdapters({...config,fetch:async()=>ok({dimensions:768,processedUpToMutation:mutationId})});
   await assert.rejects(api.resolve({reference:mutationId},signal()));
-  for(const override of [{token:''},{accountId:'wrong'},{indexName:'../other'},{environment:'preview'},{timeoutMs:3001}])
+  for(const override of [{token:''},{accountId:'wrong'},{indexName:'../other'},{environment:'preview'},
+    ...[0,9,-1,30_001,10.5,NaN].map(timeoutMs=>({timeoutMs}))])
     assert.throws(()=>createVectorizeRestAdapters({...config,...override}),/invalid_vectorize_configuration/);
 });

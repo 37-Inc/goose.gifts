@@ -10,10 +10,11 @@ const UUID = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 export function createVectorizeRestAdapters(options: MutationScope & {
   accountId: string; token: string; fetch?: typeof fetch; timeoutMs?: number;
 }): OwnedVectorAdapters {
-  const { accountId,indexName,environment,token } = options; const timeout = options.timeoutMs ?? 2500;
+  // Background delivery latency budget, not a request-time search timeout.
+  const { accountId,indexName,environment,token } = options; const timeout = options.timeoutMs ?? 10_000;
   if (!/^[a-f0-9]{32}$/.test(accountId) || !/^[a-zA-Z0-9_-]{1,100}$/.test(indexName)
     || !['staging','production'].includes(environment) || typeof token !== 'string' || !token.trim()
-    || token.length > 4096 || /\s/.test(token) || !Number.isInteger(timeout) || timeout < 10 || timeout > 3000)
+    || token.length > 4096 || /\s/.test(token) || !Number.isInteger(timeout) || timeout < 10 || timeout > 30_000)
     throw new Error('invalid_vectorize_configuration');
   const send = options.fetch ?? fetch;
   const base = `https://api.cloudflare.com/client/v4/accounts/${accountId}/vectorize/v2/indexes/${indexName}`;
