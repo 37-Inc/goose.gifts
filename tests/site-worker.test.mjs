@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import test from 'node:test';
 import { createSiteWorker } from '../workers/site/index.ts';
 import { createStaticFeedPlan } from '../workers/site/feed.ts';
@@ -135,10 +136,26 @@ test('trailing slashes cannot revive retired gift IDs, API paths, unknown pages 
   assert.equal(fixture.calls.length, 0);
 });
 
-test('retired, unknown HTML/data and missing routes never fall back to the homepage', async () => {
+test('Vercel has no retired bundle catch-all or heuristic map; canonical routes remain', () => {
+  const present = (path) => existsSync(new URL(`../${path}`, import.meta.url));
+  assert.equal(present('app/[slug]/page.tsx'), false);
+  assert.equal(present('lib/legacy-redirects.ts'), false);
+  for (const path of ['app/not-found.tsx', 'app/gifts/[slug]/page.tsx', 'app/gift-guides/[slug]/page.tsx', 'app/gifts/page.tsx', 'app/gift-guides/page.tsx']) {
+    assert.equal(present(path), true, path);
+  }
+});
+
+test('retired, unknown HTML/data and missing routes never redirect or fall back to the homepage', async () => {
   const fixture = setup();
-  for (const path of ['/old-gift-bundle', '/bundles/foo', '/admin', '/api/og/random-gift?gift=id', '/api/admin/products', '/random-gift?gift=id', '/gifts/missing', '/rogue.html', '/secret.json', '/_next/other.txt']) {
-    assert.equal((await fixture.request(path)).status, 404, path);
+  for (const path of ['/old-gift-bundle', '/bundles/foo', '/admin', '/api/og/random-gift?gift=id', '/api/admin/products', '/random-gift?gift=id', '/gifts/missing', '/rogue.html', '/secret.json', '/_next/other.txt',
+    '/purrfect-gifts-for-cat-loving-bookworms-n6y7', '/hilarious-gift-bundles-for-a-new-bathroom-remodel-522n',
+    '/hilarious-gift-bundles-for-property-managers-fy9y', '/quirky-optical-illusion-statues-for-unique-decor-lovers-ey78',
+    '/hilarious-dirty-santa-gift-bundles-for-holiday-fun-kwsf', '/funny-office-gift-ideas-abcd?utm_source=pinterest', '/gifts-for-moon-dwellers-abcd']) {
+    for (const method of ['GET', 'HEAD']) {
+      const response = await fixture.request(path, { method });
+      assert.equal(response.status, 404, path);
+      assert.equal(response.headers.get('Location'), null, path);
+    }
   }
   assert.equal(fixture.calls.length, 0);
   assert.equal((await fixture.request('/_next/static/app.js')).status, 200);
