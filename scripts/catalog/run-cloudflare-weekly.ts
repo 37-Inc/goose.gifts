@@ -148,7 +148,11 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     runId:config.runId,configSha256:options.configSha256,codeSha:config.codeSha,
     scope:{...scope,accountId:config.accountId,databaseId:config.database.id,databaseName:config.database.name,workerName:config.publication.workerName},
     retention:config.retention,budgetCaps:{httpRequests:config.limits.requests,sqlStatements:config.limits.statements},now};
-  if(options.command==='status')return{state:'status',resumeStates:WEEKLY_RESUME_STATES,...await readRunWorkspace(workspaceOptions)};
+  if(options.command==='status'){
+    const report=await readRunWorkspace(workspaceOptions);
+    return{state:'status',runId:config.runId,phase:report.checkpoint?.checkpoint.phase??'created',
+      resumeStates:WEEKLY_RESUME_STATES,...report};
+  }
   if(options.command==='preflight')return checkCloudflareRunner({schemaVersion:1,environment:config.environment,accountId:config.accountId,
     database:config.database,vectorIndex:config.vectorIndex,catalog:config.catalog,cloudflareReadToken:config.credentials.cloudflare},
   {resolveToken,fetch:dependencies.fetch});

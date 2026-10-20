@@ -232,6 +232,8 @@ test('ambiguous in-phase checkpoint stops without keys/network; status is read-o
   await w.writeCheckpoint(current.sha256,{...current.checkpoint,phase:'phases_running'});await w.close();const before={...f.calls};
   const result=await f.run('resume');assert.equal(result.state,'attention');assert.deepEqual(f.calls,before);
   const status=await f.run('status');assert.equal(status.checkpoint.checkpoint.phase,'phases_running');assert.deepEqual(f.calls,before);
+  const summary=weeklyCommandSummary(status);assert.equal(summary.phase,'phases_running');assert.equal(summary.runId,f.config.runId);
+  assert.equal(summary.checkpoint,undefined);assert.equal(summary.owner,undefined);
   assert.doesNotMatch(JSON.stringify(status),/lobster|example.invalid\/lobster|TEST_ONLY|editorialWriteup/);assert.ok(WEEKLY_RESUME_STATES.phases_running);
 });
 test('lost activation-fence response remains reconcilable after receipt expiry without any new activation',async t=>{
