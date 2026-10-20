@@ -54,7 +54,10 @@ discovery, historical asset registry or unbounded retention is introduced.
 The build copies a validated public-field-only snapshot into ignored
 `build/stupid-gifts/`, renders `static-site/out/`, and records the source SHA,
 snapshot digest, every asset digest and expiry policy. Commit reviewed source,
-then rebuild before deployment. `verify-release.mts` refuses dirty/mismatched
+then rebuild before deployment. The builder refuses dirty source before output
+writes and rechecks clean, unchanged HEAD after compilation and before sealing.
+This is an observed provenance check, not an OS-level cross-process writer lock.
+`verify-release.mts` refuses dirty/mismatched
 source, changed snapshot bytes, changed assets, changed expiry routes or a
 changed prepared feed. Feed ranking and family deduplication run at build time;
 the Worker receives a revision/digest-bound index plan, not a second product

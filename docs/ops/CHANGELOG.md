@@ -197,7 +197,7 @@ what's likely next.
 
 ### 2026-10-20 [owner+claude] — Review release identity and maintenance migration safety
 
-The next integration seals explicit preview, Goose and Stupid identities so
+PR #193 seals explicit preview, Goose and Stupid identities so
 hosting can move without accidentally rebranding production. It adds owned
 share cards, bounded prior-release asset retention, and tested known-page
 trailing-slash handling. Root review caught and fixed an encoded asset path
@@ -207,7 +207,9 @@ The existing-seal D1 reader reproduced the reviewed four-product snapshot
 byte-for-byte from actual staging reads. Eleven maintenance SQL statements
 were independently compared unchanged after extracting the Postgres adapter.
 Reviewed historical vector deletion no longer requires inventing an unknown
-embedding-input hash. None of these seams activates a D1 writer or scheduler:
+embedding-input hash. Clean-source checks now run before compilation and before
+sealing; the source SHA cannot silently label a dirty build. None of these
+seams activates a D1 writer or scheduler:
 the shared writer/index fence, recurring publisher and full-catalog acceptance
 remain open. Public Goose and the existing Neon weekly job are unchanged.
 
