@@ -33,7 +33,7 @@ const PROJECTION = ['catalog_revision', 'public_id', 'product_id', 'slug', 'titl
   'source_facts_hash', 'eligible_until', 'public_display_json', 'display_sha256'];
 const CURRENT = ['id', 'public_id', 'slug', 'source', 'quality_score', 'is_active', 'duplicate_of_product_id',
   'editorial_status', 'availability_status', 'availability_checked_at', 'last_verified_at', 'source_facts_hash',
-  'editorial_source_hash', 'eligible_until', 'public_display_json', 'rights_json', 'timestamp_provenance_json'];
+  'editorial_source_hash', 'embedding_text_hash', 'eligible_until', 'public_display_json', 'rights_json', 'timestamp_provenance_json'];
 const jsonColumns = (alias: string, columns: string[], extra: Record<string, string> = {}) =>
   `json_object(${[...columns.map((key) => `'${key}',${alias}.${key}`), ...Object.entries(extra).map(([key, expression]) => `'${key}',${expression}`)].join(',')})`;
 const ARCHIVE_TIMES = Object.fromEntries(['id', 'public_id', 'source', 'availability_checked_at', 'last_verified_at']
@@ -54,6 +54,8 @@ const CAPTURE_SQL = `WITH ids AS (SELECT value FROM json_each(?)),
     'receipt',${jsonColumns('r', ['catalog_revision', 'snapshot_sha256', 'projection_sha256', 'source_export_sha256', 'product_count', 'created_at'])},
     'watermark',(SELECT coalesce(max(sequence),0) FROM vectors WHERE source_revision=?),
     'pending',(SELECT count(*) FROM vectors WHERE source_revision=? AND status!='complete'),
+    'globalWatermark',(SELECT coalesce(max(sequence),0) FROM vectors),
+    'globalPending',(SELECT count(*) FROM vectors WHERE status!='complete'),
     'outboxOverflow',EXISTS(SELECT 1 FROM vector_sync_outbox WHERE sequence>${SNAPSHOT_READ_LIMITS.outboxSequence} LIMIT 1),
     'publicationWatermark',(SELECT coalesce(max(rowid),0) FROM publication_receipts),
     'prior',${jsonColumns('prior', ['release_id', 'catalog_revision', 'code_sha', 'completed_at', 'manifest_json'])}) data
@@ -136,7 +138,7 @@ function verificationTime(current: Row, rights: ProductRights): number {
   if (!migrationEvidence && !freshEvidence || evidence && evidence.state !== 'evidenced') throw new Error('verification_utc_unproven');
   return Date.parse(raw);
 }
-function checkCurrent(product: PublicCatalogProduct, projection: Row, current: Row, now: Date): void {
+export function checkCurrent(product: PublicCatalogProduct, projection: Row, current: Row, now: Date): void {
   if (!current || current.id !== product.id || current.public_id !== product.publicId || current.slug !== product.slug || current.source !== product.source
     || current.is_active !== 1 || current.duplicate_of_product_id !== null || typeof current.quality_score !== 'number' || current.quality_score < .55
     || !isPurchasableAvailability(String(current.availability_status)) || !['generated_ready', 'manual_locked'].includes(String(current.editorial_status))
@@ -153,6 +155,55 @@ function checkCurrent(product: PublicCatalogProduct, projection: Row, current: R
   if (deadline === null || Date.parse(product.eligibleUntil) > deadline) throw new Error('current_rights_incompatible');
   if (verified > now.getTime() || verified + EDITORIAL_MAX_AGE_MS <= now.getTime()
     || Date.parse(product.eligibleUntil) > Math.min(until, verified + EDITORIAL_MAX_AGE_MS)) throw new Error('current_deadline_incompatible');
+}
+
+/** The daily pruner may read an expired seal, but never silently change its
+ * approved identities/order or trust a receipt without verifying its row bytes.
+ * This is a capture, NOT a write barrier; the caller must own the shared fence.
+ */
+export async function readPruningSource(db: CatalogD1, snapshotInput: CatalogSnapshot, context: SnapshotReadContext) {
+  const envelope = createSealedSnapshotEnvelope(snapshotInput); inputs(envelope, context);
+  const state = await capture(db, envelope, context); const { header, projection, current } = state;
+  const snapshot = validateCatalogSnapshot(snapshotInput, new Date(envelope.generatedAt));
+  const receipt = object(header.receipt); const prior = object(header.prior);
+  if (header.revision !== envelope.catalogRevision || !['reconciled','published'].includes(String(header.revisionStatus))
+    || header.sourceDigest !== context.sourceExportSha256 || receipt.snapshot_sha256 !== context.snapshotSha256
+    || receipt.projection_sha256 !== context.projectionSha256 || receipt.source_export_sha256 !== context.sourceExportSha256
+    || receipt.product_count !== snapshot.products.length || projection.length !== snapshot.products.length
+    || sha256(`${JSON.stringify(snapshot)}\n`) !== context.snapshotSha256) throw new Error('prune_source_unreconciled');
+  if (header.outboxOverflow || header.globalPending !== 0 || header.watermark !== context.vectorSyncWatermark
+    || header.publicationWatermark !== context.publicationReceiptWatermark
+    || (context.priorPublication === null ? prior.release_id !== null
+      : prior.release_id !== context.priorPublication.releaseId || sha256(canonicalJson(prior)) !== context.priorPublication.receiptSha256))
+    throw new Error('prune_source_unsettled');
+  const facts = Object.fromEntries(projection.map(row => [String(row.public_id), String(row.source_facts_hash)]));
+  const packet = await createProjectionPacket(snapshot, facts, context.sourceExportSha256, new Date(envelope.generatedAt));
+  if (canonicalJson(packet.rows) !== canonicalJson([...projection].sort((a,b) => String(a.public_id).localeCompare(String(b.public_id))))
+    || canonicalJson(packet.receipt) !== canonicalJson(receipt)) throw new Error('prune_projection_changed');
+  const identities = [...snapshot.products, ...snapshot.heldProducts];
+  const byId = new Map(current.map(row => [row.public_id,row]));
+  if (current.length !== identities.length || byId.size !== identities.length
+    || identities.some(value => byId.get(value.publicId)?.id !== value.id || byId.get(value.publicId)?.slug !== value.slug))
+    throw new Error('prune_identity_changed');
+  return { ...state, snapshot, packet, facts, observedAt: canonicalTime(header.observedAt) };
+}
+
+/** Bounded exact current-field CAS fragments, to execute with the ownership
+ * assertion in the final receipt transaction. No digest function is assumed in D1.
+ */
+export function pruningCurrentQueries(rows: Row[]): Array<{ sql: string; params: unknown[]; count: number }> {
+  const chunks: Row[][] = []; let bytes = 0;
+  for (const row of rows) {
+    const size = Buffer.byteLength(JSON.stringify(row));
+    if (size > SNAPSHOT_READ_LIMITS.rowBytes) throw new Error('read_bounds');
+    if (!chunks.length || chunks.at(-1)!.length >= 80 || bytes + size > 256 * 1024) { chunks.push([]); bytes = 0; }
+    chunks.at(-1)!.push(row); bytes += size;
+  }
+  const comparisons = [...CURRENT.map(key => `p.${key} IS json_extract(e.value,'$.${key}')`),
+    ...Object.entries(ARCHIVE_TIMES).map(([key, expression]) => `${expression} IS json_extract(e.value,'$.${key}')`)];
+  return chunks.map(chunk => ({ sql: `SELECT count(*) FROM json_each(?) e CROSS JOIN products p
+    ON p.public_id=json_extract(e.value,'$.public_id') WHERE ${comparisons.join(' AND ')}`,
+  params: [JSON.stringify(chunk)], count: chunk.length }));
 }
 
 /** Reconstruction of an EXISTING seal, not a new-revision freshness freezer.
