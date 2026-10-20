@@ -275,7 +275,9 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
           embeddingText:text,sourceFactsHash:product.sourceFactsHash };
         if (operation === 'upsert') {
           const bytes = Buffer.from(native!,'base64');
-          payload.values = decodePgvectorSendBase64(native);
+          // Canonical JSON numbers lose signed zero. Persist immutable native
+          // bytes, not a second lossy numeric serialization of the same vector.
+          payload.nativeBase64 = native;
           // Native bytes, not UTF-8 serialization of arbitrary binary data.
           payload.vectorBytesSha256 = createHash('sha256').update(bytes).digest('hex');
         }
@@ -314,12 +316,22 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
       if (!Array.isArray(tags) || Array.from(tags).some((_,index) => !(index in tags))) throw new Error('maintenance_tag_array');
       const input = copy(Object.fromEntries(UPSERT_INPUT.filter(key => values[key] !== undefined).map(key => [key,
         key === 'humorTags' ? tags.map(String) : values[key]])));
-      return serialize(() => write('upsertProduct',[input,sourceFactsHash],
+      // Existing JSON/PG coercions normalize -0. Bind its ORIGINAL native bytes
+      // separately when present, so neither retry hashing nor the merge's text
+      // conversion silently changes a newly supplied vector's float32 identity.
+      let originalNative: string | undefined;
+      if (Array.isArray(values.embedding) && values.embedding.some(value => Object.is(value,-0))) {
+        if (values.embedding.length !== 1536 || !Array.from(values.embedding).every(value => typeof value === 'number' && Number.isFinite(value)))
+          throw new Error('maintenance_vector_input_invalid');
+        originalNative = encodePgvectorSendBase64(values.embedding.map(value => Math.fround(value)));
+      }
+      return serialize(() => write('upsertProduct',[input,sourceFactsHash,...(originalNative ? [originalNative] : [])],
       async (args,intent,now,statements,operationId,changes) => {
         const p = args[0] as SemanticProduct; const old = await load(p.id);
         if (p.remotelyVerified === false && intent.verificationById?.[p.id]) throw new Error('maintenance_verification_proof');
         const merged = mergeCatalogMaintenanceUpsert(old?.product || null,p,{sourceFactsHash:args[1],databaseTime:now});
         const product = merged.product;
+        if (args[2]) product.embedding = decodePgvectorSendBase64(args[2]);
         if (!old) {
           product.publicId = (options.newPublicId || randomUUID)().toLowerCase(); if (!UUID.test(product.publicId)) throw new Error('maintenance_public_id');
           const candidates = maintenanceSlugs(product,product.publicId);
@@ -417,5 +429,15 @@ export async function loadMaintenanceVectorPayload(db: CatalogD1,event: Readonly
   const row = (await db.prepare('SELECT payload_json FROM catalog_maintenance_vector_payloads WHERE sequence=?')
     .bind(event.sequence).all<{payload_json:string}>()).results[0];
   if (!row) throw new Error('maintenance_vector_payload_missing');
-  return JSON.parse(row.payload_json) as ImmutableVectorPayload;
+  const payload = JSON.parse(row.payload_json);
+  if (payload.operation === 'upsert' && Object.hasOwn(payload,'nativeBase64')) {
+    if (Object.hasOwn(payload,'values') || typeof payload.nativeBase64 !== 'string'
+      || createHash('sha256').update(Buffer.from(payload.nativeBase64,'base64')).digest('hex') !== payload.vectorBytesSha256)
+      throw new Error('maintenance_vector_payload_invalid');
+    payload.values = decodePgvectorSendBase64(payload.nativeBase64);
+    delete payload.nativeBase64;
+  }
+  // Existing numeric payloads are not silently repaired from mutable state.
+  // The drainer independently validates identity/input/native checksum as usual.
+  return payload as ImmutableVectorPayload;
 }
