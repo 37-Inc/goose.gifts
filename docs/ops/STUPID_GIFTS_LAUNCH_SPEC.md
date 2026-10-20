@@ -202,6 +202,11 @@ Retired history may remain in a separately verified offline archive instead
 of runtime D1, but every source table must have a recorded destination and
 restoration test. No source data deletion is implied.
 
+Where retained search history refers to archived bundles, preserve the old
+reference values as historical fields with an archive mapping; do not create
+broken D1 foreign keys, discard the references, or rebuild the retired bundle
+tables solely to satisfy an unused relationship.
+
 Add narrowly scoped `episodes` and `episode_products` data (or validated
 version-controlled manifests) with episode key/date/status, product public ID,
 display position, factual caption, approved asset, and replacement ID.
@@ -282,6 +287,11 @@ prebuilt fallback when publication stalls. No browser-only timer can enforce
 crawler-visible freshness. If a whole feed expires, show the safe browsing
 message and maintained navigation; never replace an expired feed with empty
 200 responses that look like a healthy catalog.
+
+Cap HTTP/browser/shared-cache lifetimes at the applicable expiry timestamp.
+Do not let a cached successful response bypass the guard after expiry.
+Reserve long immutable caching for content-addressed owned assets; search
+cache lifetime must also respect the returned products' eligibility deadline.
 
 Generate an immutable release package and deploy its HTML, manifests, Worker
 and owned assets as one version. Keep historical asset paths through the
