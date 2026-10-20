@@ -112,6 +112,16 @@ They are not deployment assets.
   `6346d2417b872b18cf86f731ea6334ca3558be2816290a958f574eaa9fa4f157`.
   Provider counters were 34,091 rows read and 18,991 written, including
   indexes/receipts; these are not unique imported-row counts.
+- `operational-d1-run-YRU9u1/apply-receipt.json`: atomic migration 0005 and
+  complete operational packet passed at 07:36 UTC. All 8,091 identities and
+  expected fields reconciled (3,383 products, 17 runs, 3,750 items, 601 editorial
+  events, 340 searches); all 205 batches replayed safely. The ten original
+  products, four public projections and publication state were unchanged;
+  3,373 additional products remain held. FK/quick_check/FTS and sequence checks
+  passed. Apply counters: 101,695 rows read / 30,252 written, including indexes
+  and receipts. SHA-256:
+  `7297cdabec9b8e81120f97f10f11e47b9f9725768fe1426d59a125d852495fe1`.
+  See [the operational mapping](STUPID_GIFTS_OPERATIONAL_PACKET.md).
 - `vectorize-readback-receipt.json`: all four original vectors are visible
   with exact float32 byte hashes and metadata. A self-query ranks its own
   vector first; the wrong-revision filter returns no matches. This proves

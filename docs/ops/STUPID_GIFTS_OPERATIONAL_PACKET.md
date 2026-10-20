@@ -1,7 +1,8 @@
 # Historical operational mapping and offline packet
 
-October 20, 2026. Local-only preparation; no provider execution, source writes,
-embedding generation, publication or cutover. This approved mapping supersedes
+October 20, 2026. Offline preparation followed by verified protected staging
+execution; no source writes, embedding generation, publication or cutover.
+This approved mapping supersedes
 the creation-only NULL exception in the initial timestamp audit. It does **not**
 assert that historical naive wall times have been reconstructed as UTC.
 
@@ -113,6 +114,28 @@ Final reviewed implementation proof:
 `local-verification-e35fb05c-78cd-4861-a0ae-ad1f016f4161.json`, SHA-256
 `059a7842e95bd27ca17f988a73b37b43ccc2606ce76a5eefdab700bcf10c8c56`.
 
+## Actual protected staging execution
+
+At 07:28–07:36 UTC, root authorized the checksum-pinned packet against only
+`stupid-gifts-staging` D1. Migration 0005 ran as one atomic 23-statement batch.
+Independent pre/post snapshots, every expected field and table identity count,
+foreign keys, SQLite `quick_check`, FTS integrity and sequence high-water
+3,750 all passed. D1 does not expose `integrity_check`; the broader SQLite
+integrity test remains the separate local proof above.
+
+The first pass imported 110 new batches and exactly replayed 95 history
+batches; the second pass exactly replayed all 205. All 8,091 identities
+reconciled. The existing ten products, four immutable public projections and
+publication state stayed unchanged. All 3,373 additional products remain held.
+The apply phase used 938 provider calls, 101,695 rows read and 30,252 rows
+written, including indexes, receipts, schema and FTS checks—not 30,252 new
+products. The explicit additional-write ceiling was 40,000; no paid upgrade.
+
+Private receipt: `operational-d1-run-YRU9u1/apply-receipt.json`, SHA-256
+`7297cdabec9b8e81120f97f10f11e47b9f9725768fe1426d59a125d852495fe1`.
+This proves the staging operational mapping, not live writer migration,
+complete search parity, general publication eligibility or a production cutover.
+
 ## Remaining consumer and cutover gates
 
 Do not port the old live runner by coalescing unknown timestamps. A future D1
@@ -127,8 +150,8 @@ drop unknown historical searches/events or infer their date from import time.
 New hash-only search diagnostics keep their existing UTC/30-day retention
 contract. No legacy runner, analytics report or scheduler was modified here.
 
-Root review and actual atomic D1 migration/readback remain required. Final
-writer barrier/delta reconciliation, D1 recovery, provider search/index parity,
+Root review and the actual atomic D1 migration/readback passed as recorded above.
+Final writer barrier/delta reconciliation, D1 recovery, provider search/index parity,
 rights/freshness/public-asset acceptance and cutover are independent gates.
 Normalized historical UTC reconstruction remains unproven where explicitly
 unresolved; source losslessness and identity reconciliation are separately

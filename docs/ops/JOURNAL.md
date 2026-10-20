@@ -36,8 +36,22 @@ Operational packet preparation and local restoration reconcile 8,091 runtime
 identities, including 3,383 products, while preserving the ten verified staging
 rows and four public projections. Unknown historical timestamps remain NULL
 in normalized columns with original source values/provenance retained; those
-3,373 newly mapped products are held, not quietly declared fresh. Remote
-staging import is a separate pending receipt at this entry.
+3,373 newly mapped products are held, not quietly declared fresh. The actual
+protected staging import passed at 07:36 UTC: 110 new batches, 95 existing
+history replays and a full second 205-batch replay. Every expected field and
+identity, FK/quick_check/FTS and sequence high-water passed; the original
+ten/four products/projections and publication state were preserved.
+`operational-d1-run-YRU9u1/apply-receipt.json` SHA-256:
+`7297cdabec9b8e81120f97f10f11e47b9f9725768fe1426d59a125d852495fe1`.
+Apply counters: 938 calls, 101,695 rows read, 30,252 rows written including
+indexes/receipts/checks, within the explicit 40,000 additional-write ceiling.
+
+PR #192 integrates the runtime/data/episode changes. Root's current full
+staging suite passes 210 tests with seven explicit optional skips; the separate
+published/empty episode export proof passes all seven tests. Sealed real-cohort
+package verification, normal production build, lint, analytics, catalog ops,
+telemetry and cache regressions pass. The twelve drafts export no candidate
+or episode routes. These results do not close the migration epic.
 
 Five bounded read-only checks examined 16 show candidates, 15 returned, and
 12 were arranged into four draft sets. Returned images were visually reviewed.
