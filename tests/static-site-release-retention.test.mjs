@@ -97,6 +97,18 @@ test("sealed current inventory recomputes exact two-release files/policy and can
   const extra = new Map(next.assets); extra.set("/unknown.json", encode("unexpected"));
   assert.throws(() => verifyRetainedAssets(second, extra, next.manifest, ctx, prior));
 });
+test("owned current-path classification trusts clean builder provenance, not an attacker-resealed inventory", () => {
+  const { second, prior, ctx, next } = twoReleases();
+  const relabeled = structuredClone(next.manifest);
+  const oldOwnedPath = "/_next/static/chunks/first.js";
+  relabeled.retention.currentAssetPaths.push(oldOwnedPath);
+  relabeled.retention.currentAssetPaths.sort();
+  delete relabeled.routes[oldOwnedPath];
+  // Explicit trust boundary, not an anti-tamper assertion: without rebuilding
+  // source or an externally trusted post-build digest, owned regenerated and
+  // merely relabeled byte-identical assets cannot be distinguished here.
+  assert.doesNotThrow(() => verifyRetainedAssets(second, next.assets, relabeled, ctx, prior));
+});
 test("old clients can navigate shards/owned chunks, but Worker expiry/cache/noindex guards survive the overlap", async () => {
   const { first, second, prior, ctx, next } = twoReleases();
   let clock = Date.parse(at);
@@ -189,10 +201,14 @@ test("actual two-release builder/verifier retains guarded bytes and rejects rese
     const directory = path.join(temporary, "sealed-prior"); await fs.mkdir(directory);
     for (const name of ["asset-manifest.json", "catalog.snapshot.json"]) await fs.copyFile(path.join(generated, name), path.join(directory, name));
     await fs.cp(path.join(root, "static-site/out"), path.join(directory, "assets"), { recursive: true });
+    const marker = "/_next/static/stale-not-in-prior.js";
+    await fs.writeFile(path.join(root, "static-site/out", marker), "stale build marker");
     const secondSnapshot = snapshot("actual-second");
     const heldCard = createBrowseRelease(firstSnapshot).shards[0].payload.products[0];
     secondSnapshot.products = secondSnapshot.products.filter((p) => p.id !== heldCard.id);
     const next = await build(secondSnapshot, { ...first, directory });
+    assert.equal(next.manifest.retention.currentAssetPaths.includes(marker), false);
+    await assert.rejects(fs.access(path.join(root, "static-site/out", marker)));
     const oldShards = createBrowseRelease(firstSnapshot).shards;
     const ready = oldShards.find((s) => next.manifest.routes[s.path].state === "ready");
     const held = oldShards.find((s) => next.manifest.routes[s.path].state === "held");

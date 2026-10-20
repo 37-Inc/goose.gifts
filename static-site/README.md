@@ -156,7 +156,15 @@ or explicit `null`. Verification checks every asset checksum, reconstructs the
 current-only inventory, reruns the retention helper from the same trusted prior
 package/capture time, and compares combined files, bytes and policies. Historical
 shards cannot be relabeled as current to bypass freshness. Missing/wrong prior
-inputs, symlink escapes, tampering, policy extension or unexpected assets fail.
+inputs, symlink escapes, byte tampering, policy extension or unexpected assets fail
+within that provenance boundary. Next deletes its output before export; the
+two-release drill verifies stale files cannot enter the fresh inventory.
+`currentAssetPaths` is sealed **builder provenance**, not independent proof of
+regeneration against someone able to rewrite and reseal the entire package:
+an old owned chunk relabeled as current cannot be distinguished without a clean
+rebuild or an externally trusted post-build digest. This verifier recomputes
+retained policy given the trusted builder inventory; it does not add that second
+trust system or claim to resist whole-package resealing.
 
 Old shard bytes survive only while their public display projection still matches
 current ready products. Deadlines are capped at original rights, current rights
