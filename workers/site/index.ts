@@ -26,6 +26,14 @@ function campaignSearch(params: URLSearchParams): string {
   }
   return kept.size ? `?${kept}` : '';
 }
+function boundedDirectoryPage(value: string, lastPage: number): number | null {
+  if (value.length > 128 || !/^\d+$/.test(value)) return null;
+  const normalized = value.replace(/^0+/, '');
+  if (!normalized) return null;
+  const maximum = String(lastPage);
+  if (normalized.length > maximum.length || normalized.length === maximum.length && normalized > maximum) return lastPage;
+  return Number(normalized); // At most the generated directory's digit count.
+}
 
 async function boundedJson(request: Request): Promise<unknown> {
   if (Number(request.headers.get('content-length')) > MAX_FEED_BODY) throw new Error('too_large');
@@ -62,6 +70,10 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
   const { manifest, snapshot } = options;
   if (manifest.catalogRevision !== snapshot.catalogRevision) throw new Error('release_revision_mismatch');
   const routes = new Map(Object.entries(manifest.routes));
+  const lastDirectoryPage = Math.max(1, ...[...routes.keys()].flatMap((path) => {
+    const match = path.match(/^\/gifts\/page\/([1-9]\d{0,8})$/);
+    return match ? [Number(match[1])] : [];
+  }));
   const directAssets = new Map<string, CatalogAssetRoute>();
   const safeAssets = new Set<string>();
   for (const route of routes.values()) {
@@ -170,11 +182,19 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         if (path === '/random-gift' && url.searchParams.has('gift')) return respond(json({ error: 'Not found' }, 404));
         if (path === '/gifts' && url.searchParams.has('page')) {
           const value = url.searchParams.get('page')!;
-          if (!/^\d+$/.test(value) || Number(value) < 1) return respond(json({ error: 'Not found' }, 404));
-          const target = Number(value) === 1 ? '/gifts' : `/gifts/page/${Number(value)}`;
+          const page = boundedDirectoryPage(value, lastDirectoryPage);
+          if (page === null) return respond(json({ error: 'Not found' }, 404));
+          const target = page === 1 ? '/gifts' : `/gifts/page/${page}`;
           if (!routes.has(target)) return respond(json({ error: 'Not found' }, 404));
           url.pathname = target;
           return respond(new Response(null, { status: 308, headers: { Location: `${url.pathname}${campaignSearch(url.searchParams)}`, 'Cache-Control': 'no-store' } }));
+        }
+        const directory = path.match(/^\/gifts\/page\/([1-9]\d*)$/);
+        if (directory) {
+          const page = boundedDirectoryPage(directory[1], lastDirectoryPage);
+          if (page === null) return respond(json({ error: 'Not found' }, 404));
+          const target = page === 1 ? '/gifts' : `/gifts/page/${page}`;
+          if (target !== path) return respond(new Response(null, { status: 308, headers: { Location: `${target}${campaignSearch(url.searchParams)}`, 'Cache-Control': 'no-store' } }));
         }
         const redirect = redirects.get(path);
         if (redirect && routes.has(redirect)) return respond(new Response(null, { status: 308, headers: { Location: `${redirect}${campaignSearch(url.searchParams)}`, 'Cache-Control': 'no-store' } }));

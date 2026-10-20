@@ -87,7 +87,13 @@ test('explicit compatibility redirects preserve queries and reject pagination bo
   assert.equal((await fixture.request('/gifts/old-button?utm_campaign=episode_2026_10_19&token=private&redirect=https://evil.test')).headers.get('Location'), '/gifts/fart-button?utm_campaign=episode_2026_10_19');
   assert.equal((await fixture.request('/gifts?page=2&utm_source=show')).headers.get('Location'), '/gifts/page/2?utm_source=show');
   assert.equal((await fixture.request('/gifts?page=1')).headers.get('Location'), '/gifts');
-  for (const page of ['0', '3', '-1', 'junk']) assert.equal((await fixture.request(`/gifts?page=${page}`)).status, 404);
+  for (const page of ['0', '-1', 'junk', '1.5', '1e2', 'Infinity', '1'.repeat(129)]) assert.equal((await fixture.request(`/gifts?page=${page}`)).status, 404);
+  for (const page of ['3', '999999999999999999999999999999']) {
+    assert.equal((await fixture.request(`/gifts?page=${page}`)).headers.get('Location'), '/gifts/page/2');
+    assert.equal((await fixture.request(`/gifts/page/${page}`)).headers.get('Location'), '/gifts/page/2');
+  }
+  assert.equal((await fixture.request('/gifts/page/1?utm_source=show')).headers.get('Location'), '/gifts?utm_source=show');
+  assert.equal((await fixture.request('/gifts/page/2')).status, 200);
 });
 
 test('retired, unknown HTML/data and missing routes never fall back to the homepage', async () => {
