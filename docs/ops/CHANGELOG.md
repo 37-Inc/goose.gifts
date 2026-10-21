@@ -218,6 +218,18 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-21 [owner+claude] — Bind prospective launch copy review to original evidence
+
+- Added an optional offline, checksum-pinned prospective copy review to cohort
+  preparation/import for at most ten exact identities. Import independently
+  reconstructs reviewed products, rights and snapshot; original source/history,
+  generation/status/quality and the original merchant expiry remain unchanged.
+- Preserved unresolved historical timestamps while projecting validated fresh
+  verification instants. Focused regressions cover ten-item reuse, tampering,
+  strict default behavior, changed images, timing, CLI privacy and original bytes.
+  No actual product review, provider call, source write, deployment or cutover
+  is implied; the owner/operator reviews the real cohort separately.
+
 ### 2026-10-21 [owner+claude] — Preserve Free-plan boundary and inventory old reporting consumer
 
 - Persist Cameron's explicit Free-only constraint in the existing daily task,

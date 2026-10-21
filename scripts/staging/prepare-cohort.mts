@@ -9,6 +9,8 @@ import { cleanAmazonImageUrl } from '../../lib/image-utils.ts';
 import { isCatalogDisplayEligibleProduct, suppressNearDuplicateProducts } from '../../lib/db/product-scoring.ts';
 import { editorialSourceHash, isPurchasableAvailability, sourceFactCount } from '../ops/catalog-editorial-core.mjs';
 import { assertProtectedDestination } from '../catalog/export-postgres.ts';
+import { applyCopyReview, CopyReviewError, readCopyReview, reviewedFreshReceipt, validateCopyReview } from './copy-review.mts';
+import type { CopyReviewInput } from './copy-review.mts';
 
 type Row = Record<string, unknown>;
 type Decision = { id: string; status: 'ready' | 'held'; reason: string };
@@ -83,7 +85,7 @@ function affiliate(value: unknown, id: string, tag: string, marketplace: string)
 /** Pure, bounded transformation. No dotenv, credentials, provider or source writes. */
 export function prepareCohort(rawRows: Row[], freshInput: unknown, options: {
   ids: string[]; catalogRevision: string; affiliateTag: string; marketplace?: string;
-  now?: Date; slugHistory?: CatalogSlugHistory[];
+  now?: Date; slugHistory?: CatalogSlugHistory[]; copyReview?: CopyReviewInput;
 }) {
   const now = options.now || new Date();
   if (!Number.isFinite(now.getTime()) || !options.catalogRevision.trim()
@@ -112,6 +114,7 @@ export function prepareCohort(rawRows: Row[], freshInput: unknown, options: {
     selected.set(text(row.id), row);
   }
   if (ids.some((id) => !selected.has(id))) throw new Error('Selected ASIN is absent from the protected source export');
+  const copyReview = options.copyReview ? validateCopyReview(options.copyReview, rawRows, ids, freshInput, now) : undefined;
   const expiresAt = new Date(Date.parse(observedAt) + MERCHANT_TTL).toISOString();
   const inputs: SnapshotProductInput[] = [];
   const rightsById: Record<string, ProductRights> = {};
@@ -153,9 +156,14 @@ export function prepareCohort(rawRows: Row[], freshInput: unknown, options: {
         product.lastVerifiedAt = observedAt;
         const currentHash = editorialSourceHash(product);
         product.sourceFactsHash = currentHash;
+        if (copyReview) {
+          applyCopyReview(product, row, copyReview);
+          if (typeof row.editorial_model === 'string') product.editorialModel = row.editorial_model;
+          if (typeof row.editorial_prompt_version === 'string') product.editorialPromptVersion = row.editorial_prompt_version;
+        }
         if (!isPurchasableAvailability(product.availabilityStatus)) reason = 'unavailable';
         else if (sourceFactCount(product) < 2) reason = 'insufficient_fresh_facts';
-        else if (!product.editorialSourceHash || row.source_facts_hash !== product.editorialSourceHash
+        else if (!product.editorialSourceHash || !copyReview && row.source_facts_hash !== product.editorialSourceHash
           || product.editorialSourceHash !== currentHash) reason = 'source_facts_changed';
         else if (!['generated_ready', 'manual_locked'].includes(product.editorialStatus || '')
           || !Number.isFinite(product.editorialQualityScore) || product.editorialQualityScore! < 0.8) reason = 'editorial_hold';
@@ -165,14 +173,17 @@ export function prepareCohort(rawRows: Row[], freshInput: unknown, options: {
         // inherited copy smuggle an old displayed price into a price-free release.
         if (!reason && [product.title, product.punnyTitle, product.description, product.editorialWriteup]
           .some((copy) => PRICE_CLAIM.test(copy || ''))) reason = 'price_claim_in_copy';
-      } catch { reason = 'incomplete_fresh_content'; }
+      } catch (error) {
+        if (error instanceof CopyReviewError) throw error;
+        reason = 'incomplete_fresh_content';
+      }
     }
     if (reason) {
       product.isActive = false;
       rightsById[id] = {};
     } else {
       const grant = (value: string) => ({ basis: 'merchant' as const, value, observedAt, expiresAt,
-        reference: `${reference}; unchanged source ${product.sourceFactsHash}` });
+        reference: `${reference}; ${copyReview ? `prospective copy review ${copyReview.reviewSha256}; current source` : 'unchanged source'} ${product.sourceFactsHash}` });
       rightsById[id] = Object.fromEntries([
         ['title', product.title], ['description', product.description], ['imageUrl', product.imageUrl],
         ['affiliateUrl', product.affiliateUrl], ['punnyTitle', product.punnyTitle],
@@ -181,7 +192,7 @@ export function prepareCohort(rawRows: Row[], freshInput: unknown, options: {
       ].filter((entry): entry is [string, string] => Boolean(entry[1])).map(([field, value]) => [field, grant(value)]));
     }
     inputs.push(product);
-    decisions.push({ id, status: reason ? 'held' : 'ready', reason: reason || 'fresh_unchanged_source' });
+    decisions.push({ id, status: reason ? 'held' : 'ready', reason: reason || (copyReview ? 'fresh_prospectively_reviewed_copy' : 'fresh_unchanged_source') });
   }
   const candidates = inputs.filter((product) => product.isActive)
     .sort((a, b) => (b.qualityScore || 0) - (a.qualityScore || 0) || a.id.localeCompare(b.id));
@@ -198,7 +209,7 @@ export function prepareCohort(rawRows: Row[], freshInput: unknown, options: {
   for (const decision of decisions) if (decision.status === 'ready' && !ready.has(decision.id)) Object.assign(decision, { status: 'held', reason: 'snapshot_validation_hold' });
   const reasonCounts: Record<string, number> = {};
   for (const decision of decisions) reasonCounts[decision.reason] = (reasonCounts[decision.reason] || 0) + 1;
-  return { snapshot, rightsById, inputs, sourceRowSha256ById,
+  return { snapshot, rightsById, inputs, sourceRowSha256ById, ...(copyReview ? { copyReview } : {}),
     report: { selected: ids.length, ready: snapshot.products.length, held: snapshot.heldProducts.length, observedAt, expiresAt, decisions, reasonCounts } };
 }
 
@@ -211,24 +222,27 @@ async function protectedRead(path: string, repository: string, maxBytes: number)
 }
 async function main(argv: string[]) {
   if (argv.includes('--help')) {
-    console.log('Usage: node --experimental-strip-types scripts/staging/prepare-cohort.mts --products /private/products.ndjson --fresh /private/get-items.json --ids ASIN,ASIN --revision staging-revision --output /private/new-cohort\nRequires canonical AMAZON_ASSOCIATE_TAG (optional AMAZON_MARKETPLACE). Offline only; new private output outside Git.');
+    console.log('Usage: node --experimental-strip-types scripts/staging/prepare-cohort.mts --products /private/products.ndjson --fresh /private/get-items.json --ids ASIN,ASIN --revision staging-revision --output /private/new-cohort [--review /private/review.json --review-sha256 SHA256]\nRequires canonical AMAZON_ASSOCIATE_TAG (optional AMAZON_MARKETPLACE). Optional prospective review pins original UTF-8 review/receipt bytes and exact copy; never renews rights. Offline only; new private output outside Git.');
     return;
   }
   const flags = new Map<string, string>();
-  if (argv.length !== 10) throw new Error('Five explicit input/output options are required');
+  if (![10, 14].includes(argv.length)) throw new Error('Five explicit options and an optional paired review path/checksum are required');
   for (let index = 0; index < argv.length; index += 2) {
-    if (!['--products', '--fresh', '--ids', '--revision', '--output'].includes(argv[index]) || flags.has(argv[index])) throw new Error('Unknown/duplicate option');
+    if (!['--products', '--fresh', '--ids', '--revision', '--output', '--review', '--review-sha256'].includes(argv[index]) || flags.has(argv[index])) throw new Error('Unknown/duplicate option');
     flags.set(argv[index], argv[index + 1]);
   }
+  if (['--products', '--fresh', '--ids', '--revision', '--output'].some(key => !flags.has(key))
+    || flags.has('--review') !== flags.has('--review-sha256')) throw new Error('Missing explicit option');
   const repository = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
   const output = await assertProtectedDestination(flags.get('--output')!, repository);
   const rows = (await protectedRead(flags.get('--products')!, repository, 60_000_000)).trim().split('\n').filter(Boolean).map((line) => record(JSON.parse(line)));
-  const fresh = JSON.parse(await protectedRead(flags.get('--fresh')!, repository, 1_000_000));
+  const copyReview = flags.has('--review') ? await readCopyReview(flags.get('--review')!, flags.get('--review-sha256')!, flags.get('--fresh')!, repository) : undefined;
+  const fresh = copyReview ? reviewedFreshReceipt(copyReview) : JSON.parse(await protectedRead(flags.get('--fresh')!, repository, 1_000_000));
   const result = prepareCohort(rows, fresh, { ids: flags.get('--ids')!.split(','), catalogRevision: flags.get('--revision')!,
-    affiliateTag: process.env.AMAZON_ASSOCIATE_TAG || '', marketplace: process.env.AMAZON_MARKETPLACE });
+    affiliateTag: process.env.AMAZON_ASSOCIATE_TAG || '', marketplace: process.env.AMAZON_MARKETPLACE, copyReview });
   await mkdir(output, { mode: 0o700 });
   for (const [file, value] of [['catalog.snapshot.json', result.snapshot], ['rights.json', result.rightsById], ['inputs.json', {
-    products: result.inputs, sourceRowSha256ById: result.sourceRowSha256ById,
+    products: result.inputs, sourceRowSha256ById: result.sourceRowSha256ById, ...(result.copyReview ? { copyReview: result.copyReview } : {}),
   }], ['report.json', result.report]] as const) await writeFile(resolve(output, file), `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600, flag: 'wx' });
   console.log(JSON.stringify({ output, catalogRevision: result.snapshot.catalogRevision, selected: result.report.selected,
     ready: result.report.ready, held: result.report.held, reasonCounts: result.report.reasonCounts }));

@@ -184,6 +184,52 @@ guard. Public JavaScript must not contain merchant/product snapshot literals.
 
 ## Actual data evidence — October 19 local / October 20 UTC
 
+### Optional prospective copy review (offline, bounded)
+
+`prepare-cohort.mts` still holds changed source hashes by default. An explicit
+review of at most ten exact selected identities can instead reuse or edit the
+existing copy against the original fresh receipt without a new model/provider
+call. This is a new factual/copy review, not a claim that the old source was
+unchanged, a model approval, an owner `manual_locked` decision, or a rights grant.
+The existing source status, quality, model and generation timestamp remain intact.
+
+Both preparation CLIs accept `--review /private/review.json --review-sha256 SHA256`;
+`prepare-import.mts` additionally requires `--fresh /private/fresh.json` and the
+same canonical `AMAZON_ASSOCIATE_TAG`/optional `AMAZON_MARKETPLACE` as preparation.
+The review SHA pins original UTF-8 bytes. Its exact schema is:
+
+```text
+{schemaVersion:1, kind:"prospective-copy-review", freshReceiptSha256,
+ reviewedAt, reference, entries:[{id, sourceRowSha256, sourceFactsHash,
+ originalCopySha256, copy:{punnyTitle:string|null, wittyDescription:string|null,
+ editorialWriteup:string}, copySha256, reason,
+ imageReview:"unchanged"|"reviewed_fresh_image"}]}
+```
+
+`sourceRowSha256` hashes `JSON.stringify` of the original exported row, including
+its separately preserved vector representation; receipt/review hashes pin their
+original file bytes. Copy hashes use `reviewedCopyHash` (canonical JSON of exactly
+the three copy keys); `originalReviewCopy` supplies the original field mapping.
+`sourceFactsHash` uses the unchanged `editorialSourceHash` algorithm over current
+title, approved fresh image URL and parsed fresh facts. Review must occur strictly
+after the observation, no later than preparation, and before the original 24-hour
+deadline. An image change requires explicit `reviewed_fresh_image` evidence;
+the program does not inspect pixels or authenticate a human reviewer itself.
+
+Original rows, hashes and `source_record_json` are never rewritten. The private
+`inputs.json` records the complete review and its pinned SHA. Import independently
+reconstructs every prepared input, right and public DTO from original rows,
+receipt and review, refusing missing/tampered provenance or field transformations.
+Its private `copy-review-provenance.json` preserves the prospective association.
+Current editorial validation, eligibility, quality, duplicate, price and rights
+gates still apply; review cannot extend the original observation/expiry or prove
+fresh historical embedding input. Nothing is published by these offline tools.
+
+Historical naive timestamps may remain explicitly unresolved: import converts
+the historical baseline without a display, then installs the validated current
+display and fresh explicit verification instants. Historical timestamp provenance
+continues to describe the original source; it is not fabricated UTC evidence.
+
 Protected artifacts are under
 `~/.codex/private/goose-gifts-migration/` (0700 directories, 0600 files).
 They are not deployment assets.
