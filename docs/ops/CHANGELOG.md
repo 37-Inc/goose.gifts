@@ -212,10 +212,11 @@ what's likely next.
 - Began account/app rename preparation on the existing approved identities;
   both browser surfaces require sign-in. No name, handle, domain, credential,
   Pin or app approval changed. Preserve the twelve-Pin cap and record rebrand/
-  redirect intervention in the eventual review. PR reference follows below.
+  redirect intervention in the eventual review.
 - Production API still verifies the same BUSINESS account,28 Pins/five boards.
   Node22 validation,6creative/10Pinterest tests,build,lint and diff check pass;
   creative events, receipts, approvals and publishing code are unchanged.
+  Operating-docs PR [#204](https://github.com/37-Inc/goose.gifts/pull/204).
 
 ### 2026-10-21 [daily-ops] — Measure frozen Pinterest cohort; no early checkpoints
 
