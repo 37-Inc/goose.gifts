@@ -249,6 +249,7 @@ what's likely next.
   PAUSED studio are unchanged. No new content, spend or review resubmission.
 - Live production identity passes the updated guard. Node22 creative validation,
   six creative/ten Pinterest tests, production build, lint and diff check pass.
+  Rename/identity handoff PR [#206](https://github.com/37-Inc/goose.gifts/pull/206).
 
 ### 2026-10-21 [owner+claude] — Pause Pinterest for Stupid.gifts cutover
 
