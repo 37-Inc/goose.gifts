@@ -27,9 +27,10 @@ Cloudflare staging implementation is not a completed cutover. Before launch:
 
 - Confirm the show date and select a small opening product/episode set.
   Prepared shortlists are proposals, not approved on-air products or purchases.
-- Confirm the Workers paid-plan/traffic-test budget before a provider-scale
-  burst rehearsal or upgrade; local load results do not establish Free-plan
-  CPU headroom.
+- Stay on Cloudflare Free. Only if a measured usage/feature limit cannot be
+  addressed with a bounded Free-plan alternative, request explicit approval
+  before any paid upgrade. Local load results do not establish Free-plan CPU
+  headroom; do not spend the shared daily quota on a burst rehearsal.
 - At the end, sign into the correct family Amazon Associates store to add
   `stupid.gifts` and verify attribution. Do not modify the unrelated Mike Ideas
   account. Provider/account rebranding and public DNS cutover remain separate
@@ -50,6 +51,21 @@ checks. The expired preview is deliberately zero-ready/ten-held, not a current
 opening catalog. New hosted CI or Cloudflare Cron is not a prerequisite for
 this Codex setup. These remaining checks are not owner authentication blockers
 and are not being marked done.
+
+The explicit existing-Wrangler OAuth adapter passed a bounded read-only check
+against the correct staging D1/index: five HTTP 200s, 223 reported rows read,
+zero reported rows written. An earlier read failed and is retained separately;
+neither check audits all write permissions or authorizes cutover. No new token,
+login or paid plan is required for this observed read path.
+
+The four project Keychain items were created from refreshed authorized sources,
+but `/usr/bin/security` value readback timed out with no output. They are not
+verified usable. Preserve them: no reseeding, deletion, unlock or automated
+ACL/partition edits. A separate owner-attended, item-specific access approval
+may be needed; confirm the exact request before accepting it, then verify in a
+new reader process. Keep the existing Vercel/env/CSV bootstrap and live writer
+unchanged until this and the remaining migration gates pass. See
+`roadmap-lbbz1.4.4`; it remains open.
 See `STUPID_GIFTS_STAGING.md` and epic `roadmap-lbbz1`.
 
 ### 1. Owned growth channel approval

@@ -5,7 +5,8 @@ import { lstat, open, realpath } from 'node:fs/promises';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createCatalogD1Rest } from './d1-write-rest.ts';
-import { checkCloudflareRunner, resolveReadToken, validateRunnerCheckConfig } from './check-cloudflare-runner.ts';
+import { checkCloudflareRunner, resolveReadToken, resolveCloudflareCredential, validateRunnerCheckConfig } from './check-cloudflare-runner.ts';
+import type { CloudflareCredentialReference } from './check-cloudflare-runner.ts';
 import { createD1CatalogMaintenanceStore, loadMaintenanceVectorPayload } from './maintenance-d1.ts';
 import { createD1CatalogTelemetryStore } from './telemetry-d1.ts';
 import { createCatalogProviderEvidence } from './provider-evidence.ts';
@@ -33,7 +34,7 @@ export interface CloudflareWeeklyConfig {
   database:{id:string;name:string};vectorIndex:{name:string;dimensions:1536;metric:'cosine'};
   catalog:{associateTag:string;marketplace:'www.amazon.com'};backfillLimit:number;
   cadence?:{day:string;featuredIds:string[]};
-  credentials:{cloudflare:KeychainRef;amazonId:KeychainRef;amazonSecret:KeychainRef;amazonVersion:string;openai?:KeychainRef;stagingAuthSecret?:KeychainRef};
+  credentials:{cloudflare:CloudflareCredentialReference;amazonId:KeychainRef;amazonSecret:KeychainRef;amazonVersion:string;openai?:KeychainRef;stagingAuthSecret?:KeychainRef};
   limits:{requests:number;statements:number};retention:RetentionPolicy;
   inputs:{previous:InputRef;context:InputRef;rights:InputRef;originalVectors?:InputRef};publication:PublicationConfig;
 }
@@ -67,7 +68,7 @@ export function validateCloudflareWeeklyConfig(input:unknown):CloudflareWeeklyCo
     ||!Number.isInteger(c.backfillLimit)||c.backfillLimit<0||c.backfillLimit>25
     ||!exact(c.credentials,credentialKeys)||!c.cadence&&!c.credentials.openai
     ||c.environment==='staging'&&!c.credentials.stagingAuthSecret
-    ||![c.credentials.cloudflare,c.credentials.amazonId,c.credentials.amazonSecret,...(c.credentials.openai?[c.credentials.openai]:[]),...(c.credentials.stagingAuthSecret?[c.credentials.stagingAuthSecret]:[])].every(keychain)
+    ||![c.credentials.amazonId,c.credentials.amazonSecret,...(c.credentials.openai?[c.credentials.openai]:[]),...(c.credentials.stagingAuthSecret?[c.credentials.stagingAuthSecret]:[])].every(keychain)
     ||!['2.1','2.2','2.3','3.1','3.2','3.3'].includes(c.credentials.amazonVersion)
     ||!exact(c.limits,'requests,statements')||!Number.isInteger(c.limits.requests)||c.limits.requests<2||c.limits.requests>10000
     ||!Number.isInteger(c.limits.statements)||c.limits.statements<1||c.limits.statements>25000
@@ -162,7 +163,7 @@ export interface WeeklyDriverOptions {
   approval?:{path:string;sha256:string};
   cadenceOnly?:boolean;
 }
-type Dependencies={repository?:string;fetch?:typeof fetch;resolveToken?:(ref:KeychainRef)=>Promise<string>;now?:()=>string;
+type Dependencies={repository?:string;fetch?:typeof fetch;resolveToken?:(ref:KeychainRef)=>Promise<string>;resolveWranglerOAuth?:()=>Promise<string>;now?:()=>string;
   publication?:Parameters<typeof executePublication>[0]['dependencies'];cadence?:Parameters<typeof dailyCatalogPhases>[0]};
 
 /** Concrete opt-in local command; no scheduling, schema enablement or ambient
@@ -197,7 +198,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
   }
   if(options.command==='preflight')return checkCloudflareRunner({schemaVersion:1,environment:config.environment,accountId:config.accountId,
     database:config.database,vectorIndex:config.vectorIndex,catalog:config.catalog,cloudflareReadToken:config.credentials.cloudflare},
-  {resolveToken,fetch:dependencies.fetch});
+  {resolveToken,resolveWranglerOAuth:dependencies.resolveWranglerOAuth,fetch:dependencies.fetch});
   if(!['start','resume'].includes(options.command))throw new Error('weekly_command');
   if(executing)throw new Error('weekly_process_busy');executing=true;
   let workspace:RunWorkspace|undefined;
@@ -211,7 +212,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     if(saved&&['phases_running','phase_failed','attention','finalized'].includes(saved.checkpoint.phase)
       &&!(saved.checkpoint.phase==='attention'&&resolving(saved.checkpoint)))
       return{state:saved.checkpoint.phase==='finalized'?'finalized':'attention',phase:saved.checkpoint.phase,budget:await ws.budget()};
-    const token=await resolveToken(config.credentials.cloudflare);
+    const token=await resolveCloudflareCredential(config.credentials.cloudflare,resolveToken,dependencies.resolveWranglerOAuth);
     const identityAuthorization=async()=>config.credentials.stagingAuthSecret
       ?`Basic ${Buffer.from(`staging:${await resolveToken(config.credentials.stagingAuthSecret)}`).toString('base64')}`:undefined;
     const db=await createCatalogD1Rest({accountId:config.accountId,databaseId:config.database.id,databaseName:config.database.name,

@@ -42,6 +42,8 @@ what's likely next.
   existing-product refreshes and weekly discovery. Finish private restart/
   cleanup and publication verification; hosted CI/Cloudflare Cron is deferred.
   Cloudflare account remains Free; $15 was an estimate, not a subscription.
+  Owner explicitly requires a measured need and renewed approval before any
+  paid upgrade; preserve shared-account quotas during validation.
   Final retirement (`roadmap-lbbz1.7`) covers Vercel/Neon removal, GitHub
   rename, the live 37.technology listing, independent redirects and an
   expiry-aware old-domain auto-renew decision.
@@ -207,7 +209,37 @@ what's likely next.
 
 ## Changelog
 
-### 2026-10-21 [owner+codex] — Verify protected expiry publication and exact restart recovery
+### 2026-10-21 [owner+claude] — Preserve Free-plan boundary and inventory old reporting consumer
+
+- Persist Cameron's explicit Free-only constraint in the existing daily task,
+  runbook and launch spec: prove an actual need and request approval before any
+  paid activation. No duplicate schedule, quota-scale test or plan change.
+- Record the local portfolio adapter's historical database metrics as a
+  remaining consumer migration gate. Its unrelated dirty work is untouched;
+  reporting should use existing GA4/PostHog, not new detailed D1 event writes.
+
+### 2026-10-21 [owner+claude] — Prepare add-only local catalog Keychain bootstrap
+
+Prepared `npm run catalog:keychain` (read-only plan by default), explicit `-- seed`
+and separate `-- verify` for only the four project-scoped Amazon/OpenAI/staging
+items. Protected existing source files supply the same affiliate tag; no duplicate
+tag constant or unverified deployment configuration is generated. A small native
+helper receives values only through stdin, adds absent items only and trusts
+`/usr/bin/security`; existing-value mismatches, ACL/access problems, races or
+partial creation remain review gates. Root's reviewed real preparation created
+the four exact items, but the intended reader timed out; access remains an
+owner-attended verification gate. Do not reseed or edit their ACLs automatically.
+The runner accepts an explicit Cloudflare-only `{type:"wrangler_oauth"}` reference
+as an alternative to its existing Keychain reference, with no fallback. Pinned
+Wrangler owns refresh in an isolated empty cwd with minimal environment and no
+disk logs; the access token stays captured in memory, never copied into Keychain.
+The real OAuth read diagnostic passed five fixed staging requests (223 reported
+rows read / zero written); an earlier failed read remains recorded separately.
+This is not a write-permission audit or migration acceptance. Vercel bootstrap,
+Neon writer and Free plan remain unchanged.
+Tracked in `roadmap-lbbz1.4.4`; implementation branch `codex/catalog-keychain-bootstrap`.
+
+### 2026-10-21 [owner+claude] — Verify protected expiry publication and exact restart recovery
 
 - Add a narrow resume-only path for existing accepted body-free prune DELETEs.
   Reuse exact pending ownership, current/archive/maintenance observations and

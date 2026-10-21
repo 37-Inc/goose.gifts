@@ -64,6 +64,12 @@ with six-theme discovery on Mondays only. Do not run the old weekly command
 as well: its 50 refreshes and editorial backfill exceed this approved policy.
 Do not select D1 because a readiness check passes.
 
+Stay on Cloudflare Free. Demonstrate an actual usage or required-feature limit
+and assess a bounded Free-plan alternative before asking Cameron for explicit
+approval to upgrade. Neither anticipated podcast traffic nor a launch rehearsal
+authorizes a paid plan or a shared-account-quota-consuming load test. Preserve
+the existing request, SQL, catalog and model limits.
+
 The sole persistent operator source checkout is
 `/Users/cameronehrlich/.codex/worktrees/goose-migration-integration/goose.gifts`.
 Keep it attached; do not archive this worktree or run publication from the shared
@@ -81,6 +87,12 @@ Review unsafe, legacy or interrupted-run reports; never delete a lock, reset a
 reservation, adopt another checkout's output, or erase history to force progress.
 The daily command reserves its allowance before dispatch; failures and retries
 do not buy another batch that day. A skipped repeat is expected, not a failure.
+While the fresh migration canary in `roadmap-lbbz1.4.3` remains open, the saved
+task uses its separately SHA-pinned private `run-daily-canary.mts` helper as
+the **sole** Neon maintenance entry, after the same env refresh and purge.
+It captures the original response without a second fetch; never also run the
+regular daily command. Missing/changed helper bytes require review. Capture
+does not prove rights or publication; retain the original observation/expiry.
 Tuesday–Sunday refreshes make no model calls. On Monday, changed/missing
 editorial or vectors may be enriched only within the same reserved ten-product
 selection and original merchant response; unchanged approved content/vectors

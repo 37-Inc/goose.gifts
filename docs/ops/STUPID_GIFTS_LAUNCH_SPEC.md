@@ -49,6 +49,11 @@ on **Free ($0)**. No Workers Paid subscription has been purchased. Paid is an
 explicit upgrade with a $5/month account minimum from activation, plus
 overages; it does not activate automatically at a traffic threshold. Use
 measured CPU/quota evidence to decide whether the launch needs that upgrade.
+**Owner constraint: stay on Free.** First demonstrate an actual usage or
+required-feature limit and assess a bounded Free-plan alternative; ask Cameron
+for explicit approval before activating any paid plan. Expected podcast traffic
+or a rehearsal is not purchase authorization. Do not exhaust the shared
+account's daily quota with a provider-scale load test.
 The suggested $15/month was planning headroom, not a required fee, subscription,
 or hard billing cap. Other applications share the account's allowances. D1
 removes Neon's awake-compute billing model, but inefficient queries still cost.
@@ -669,9 +674,9 @@ checkout or credential namespaces simply to match the public brand.
 
 | Existing owner | Current behavior | Required migration and acceptance |
 | --- | --- | --- |
-| `goose-gifts-daily-ops` | Before migration: Weekly Catalog Quality; Monday 08:30 Pacific | Owner approved one daily 08:30 Pacific task, up to ten existing-product refreshes per day and Monday-only discovery. Preserve ID/thread, use the tested daily command with explicit backend, replace Vercel bootstrap only after protected replacement works, and verify real publication receipts. No separate Slack report. |
+| `goose-gifts-daily-ops` | Daily Catalog Care; daily 08:30 Pacific, Monday-only discovery; Neon until cutover | Preserve ID/thread and the ten-product daily reservation, use the tested daily command with explicit backend, replace Vercel bootstrap only after protected replacement works, and verify real publication receipts. Keep Free-only/renewed-approval guard. No separate Slack report. |
 | `goose-gifts-pinterest-growth-studio` | Daily 09:30/16:30 Pacific; now measurement-only after P6/F6 | Preserve target thread, completed cohort and exact October 31 16:44:52.279 UTC review gate; update name, brand/destination config and cross-domain analytics at cutover. Verify one measurement-only run. No restart of posting without a new experiment authorization. |
-| Daily portfolio pulse | Consolidated owner metrics | Locate its actual owning schedule/config, update display/domain filters and receipt sources; preserve analytics property IDs and historical Goose data. Verify one report without double-counting redirects or creating a separate report job. |
+| Daily portfolio pulse | Consolidated owner metrics; local `37cli` Goose adapter still reads historical database events | Replace the retired database click/search source with existing GA4/PostHog receipts, update display/domain filters and preserve property IDs/historical Goose data. Coordinate with its owner; the inspected `37cli` files are unrelated dirty work. Verify one report without waking Neon, double-counting redirects or creating a separate report job. |
 | Publication freshness check | Part of the same Codex catalog task | Reuse its workspace/lock; test unchanged, expiring, failed and interrupted publication and prove the deployed revision. Cloudflare Cron/Builds remains an optional later migration, not another job. |
 
 Keep scheduled captions and names consistent with the new brand, but immutable
