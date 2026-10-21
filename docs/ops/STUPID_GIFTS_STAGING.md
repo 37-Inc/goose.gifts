@@ -1,9 +1,43 @@
 # Stupid Gifts — staging implementation
 
-This is an additive, protected Cloudflare preview, not a production cutover.
-The launch spec and `roadmap-lbbz1` remain authoritative.
+This document retains protected-staging history and the separate production
+checkpoint below. The launch spec and `roadmap-lbbz1` remain authoritative.
 
-### October 21 operator checkpoint
+### Public production checkpoint — October 21, 23:06 UTC
+
+- `https://stupid.gifts/` is live on **Cloudflare Free**, not behind staging
+  authentication. The old Goose domain remains on Vercel/Neon; all-data,
+  source-writer, redirect and provider migration gates remain open.
+- Source `2c32e82920873a80fb374d2b926a00d4dc711fe9`, release
+  `stupid-launch-20261021-2c32e8292087`, manifest SHA-256
+  `99c42b9e6ca27699556a7b5e2be88caa1ddf223057977a945d544213af74fa6f`.
+  Worker version `78278d59-a380-43fa-8227-228028e1fd53`, deployment
+  `4d32fdae-d749-4ea4-a3a0-f20b5abeb32c`. Exact provider/live release identity
+  and eight native vectors were independently verified.
+- One separately authorized same-ten merchant response at 22:18:10.044Z
+  admitted eight factually reviewed launch products; Gracula and Splatypus
+  remain held. Original display deadline: **October 22, 22:18:10.044Z**.
+  The separately approved one-time embedding batch used 636 tokens, estimated
+  $0.00001272, below its $0.01 cap. Neither daily reservations nor model policy
+  changed. No second merchant fetch or paid Cloudflare plan was used.
+- Desktop and 390px mobile browsing, search, random-gift rotation, gift guides,
+  canonical www redirect and a real Amazon navigation with
+  `tag=goose-gifts-37-20` passed. Amazon's saved site list and tracking settings
+  confirm stupid.gifts and that tag under Riley's parent store
+  `rileyehrlic0b-20`; no qualifying-order attribution is claimed.
+- GA4 property `507421709` / tag `G-6RR3HPR747` and PostHog project `550427`
+  stored new-brand launch QA page/outbound events. Google Ads
+  `AW-17626116539` is retained; Vercel Web Analytics remains absent. These
+  operator-generated events are **not organic traffic or revenue evidence**.
+- Eight genuine maintenance operations/native payloads are seeded under the
+  protected production owner, with 95 HTTP / 190 SQL charged, zero unknown
+  effects and the original expiry. **They have not yet proved a daily public
+  publication.** Full local composition reached the existing 600-request cap
+  before completion; it stopped without provider effects, new fetches or quota
+  resets. Keep `roadmap-lbbz1.4.3` and the daily-publication gate open until the
+  bounded complete path and an actual scheduled run succeed.
+
+### Earlier October 21 protected-staging/operator checkpoint
 
 - The signed-in account is still Workers Free ($0); no $5 subscription or $15
   minimum was purchased. Codex runs the existing local task, not hosted CI.
