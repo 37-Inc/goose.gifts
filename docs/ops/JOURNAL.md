@@ -5,6 +5,47 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-21 owner session — Stupid Gifts public launch
+
+`https://stupid.gifts/` is live on Cloudflare Free. Initial release
+`stupid-launch-20261021-2c32e8292087` uses merged source `2c32e829`; Worker version
+`78278d59-a380-43fa-8227-228028e1fd53`, deployment
+`4d32fdae-d749-4ea4-a3a0-f20b5abeb32c`. The actual publication receipt, exact
+live release identity, eight native vectors and D1 keyword projection match.
+HTTPS, safe-attribution-preserving www canonical redirect, desktop/390px phone
+layout, product-to-tagged-Amazon navigation, search, gift guides and a changing
+random-gift pool were checked in the browser. This launches eight current
+products, not the full historical 3,383-product catalog or all source writers.
+
+Cameron separately approved one initial embedding request for those eight,
+capped at $0.01. One batch used 636 tokens, estimated $0.00001272; no copy was
+regenerated. Original archived vectors remain separate. Authentic maintained
+state/native provenance was then seeded for future model-free reuse: 95 D1 HTTP
+requests/190 SQL statements, 381 reported rows read/137 written, zero unknown
+outcomes. Two catalog-fit holds were untouched. The original merchant expiry
+remains `2026-10-22T22:18:10.044Z`, not the embedding/build/deployment time.
+
+PostHog project550427 stores the tagged launch-QA page/search/outbound events.
+GA4 property507421709 realtime independently shows the new Stupid Gifts page
+titles and the product page's two key events, alongside two explicit outbound
+events. These are **QA, not human acquisition**. Measurement IDs
+`G-6RR3HPR747`/`AW-17626116539` and the explicit privacy adapter are preserved.
+PR #213 (`b3c8961`) pins public analytics in subsequent publication configs so a
+routine static rebuild cannot silently default it off.
+
+Correct Riley Associates site-list and tag membership are verified below. No
+Cloudflare upgrade, extra merchant fetch, daily allowance reset, social/Slack
+post, Pinterest resume or destructive retirement was performed. Source Neon
+maintenance and old Vercel serving remain recoverable. The daily public-replica
+publication proof is being completed separately; do not close full migration
+or the failed actual daily canary from this launch alone.
+
+Private body-free receipts in `~/.codex/private/goose-gifts-migration/`:
+`launch-production-publication-2026-10-21.json`,
+`launch-maintenance-seed-receipt-2026-10-21.json`, and
+`launch-analytics-verification-2026-10-21.json`. Merchant bodies, retained build
+and browser QA images belong to registered workspaces with original deadlines.
+
 ## 2026-10-21 owner session — Launch fetch and family affiliate identity verified
 
 Cameron approved one additional read of the exact ten selected launch products,

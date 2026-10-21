@@ -131,6 +131,23 @@ async function setup(t,{initial=2}={}) {
       }return owner;
     }};return f;
 }
+test('multiple approved changes use one bounded receipt read without weakening per-change checks',async t=>{
+  const f=await setup(t,{initial:3});
+  for(let n=1;n<=3;n++)await f.upsert(product(n,{sourceFacts:{fixture:n,revision:'fresh'}}));
+  await f.drain();
+  const {owner,request}=await f.freeze([uuid(1),uuid(2),uuid(3)]);
+  let receiptReads=0;const original=f.local.prepare.bind(f.local);
+  f.useDb({...f.local,prepare(query){if(query.includes('SELECT * FROM catalog_maintenance_operations'))receiptReads++;return original(query);}});
+  const prepared=await prepareApprovedCohort(f.db,owner,request);
+  assert.equal(prepared.state,'prepared');assert.equal(prepared.revision.snapshot.products.length,3);
+  assert.equal(receiptReads,1);
+  const wrong=structuredClone(request);wrong.approval.changes[1].inputSha256='0'.repeat(64);
+  wrong.approvalSha256=sha256(canonicalJson(wrong.approval));
+  await releaseMutationOwnership(f.db,prepared.owner);
+  const wrongOwner=await claimMutationOwnership(f.db,scope,{phase:'freezing',ownerReference:'wrong-input-proof',operationKey:approvedCohortOperationKey(wrong)});
+  // Even a matching owner/checksum cannot substitute the second receipt's input.
+  await assert.rejects(()=>prepareApprovedCohort(f.db,wrongOwner,wrong),/cohort_approval_changed/);
+});
 test('actual maintenance → drain → approved addition/update → exact originals → proof → build/activation permission',async t=>{
   const f=await setup(t);const old=f.previous.products[1];
   await f.upsert(product(1,{title:'Bronze lobster desktop bell',sourceFacts:{fixture:1,material:'bronze'}}));

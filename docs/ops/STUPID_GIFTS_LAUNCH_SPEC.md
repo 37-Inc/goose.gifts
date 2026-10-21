@@ -2,9 +2,10 @@
 
 Date: October 19, 2026. Owner: Cameron. Canonical implementation epic:
 `roadmap-lbbz1`. Baseline: `1a7ccb301f25dc129965fb71b32e0a682a86d604`.
-Status: implementation authorized and underway; domain registered. Isolated
-staging resources exist. Production migration, account cutover and redesign
-have not shipped.
+Status: `https://stupid.gifts` launched on Cloudflare Free on October 21 with
+eight freshly verified products and the new static design. Full source-data,
+old-domain redirects, writer and remaining provider migration are still open;
+the original Vercel/Neon service remains available for rollback.
 
 **October 21 launch authorization:** Cameron explicitly wants `stupid.gifts`
 live as soon as essential checks pass. Do not wait for tomorrow, a broadcast
@@ -36,7 +37,8 @@ outrageous objects, restrained presentation, accurate product facts.
 account confirms `stupid.gifts` **Active**, purchased October 19 for $28.20.
 Expiration: October 19, 2027. Auto-renew is enabled, currently quoted at
 $28.20/year and scheduled for September 19, 2027. Domain ownership is complete;
-no production DNS/application cutover was made.
+the new domain's production HTTPS serving launched October 21. The old Goose
+domain has not yet been redirected or decommissioned.
 
 The final architecture is:
 

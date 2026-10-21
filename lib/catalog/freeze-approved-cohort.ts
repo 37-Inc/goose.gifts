@@ -63,9 +63,15 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   const projection = new Map(source.projection.map(row => [String(row.public_id),row]));
   const approved = new Map<string,PublicCatalogProduct>();
   const changed = new Map(request.approval.changes.map(value => [value.publicId,value]));
+  // At most20 independently pinned operation IDs. Vector proof rebuilds this
+  // seal repeatedly; one bounded read avoids an N+1 provider request per change.
+  const operationIds = [...new Set(request.approval.changes.map(value => value.operationId))];
+  const receipts = new Map((operationIds.length ? (await db.prepare(`SELECT * FROM catalog_maintenance_operations
+    WHERE operation_id IN (SELECT value FROM json_each(?))`).bind(JSON.stringify(operationIds)).all()).results : [])
+    .map(row => [String(row.operation_id), row]));
   for (const change of request.approval.changes) {
     const row = full.get(change.publicId)!;
-    const receipt = (await db.prepare('SELECT * FROM catalog_maintenance_operations WHERE operation_id=?').bind(change.operationId).all()).results[0];
+    const receipt = receipts.get(change.operationId);
     if (row.catalog_revision !== request.approval.catalogRevision || sha256(canonicalJson(row)) !== change.productSha256
       || row.public_display_json !== null && typeof row.public_display_json !== 'string'
       || sha256(row.public_display_json === null ? 'null' : String(row.public_display_json)) !== change.displaySha256
