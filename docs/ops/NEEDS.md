@@ -11,13 +11,14 @@ None currently.
 
 ### Stupid Gifts launch — deferred owner decisions
 
-**Pinterest handoff, October21:** Cameron authorized pausing the daily studio
-and beginning an in-place account/app rename. Scheduler PAUSED is verified;
-the separate catalog job is unchanged. Please sign into the existing Pinterest
-BUSINESS account (`goosegifts@37.technology`) in the prepared browser tab so the
-profile/app names can be edited; no password reset or new account is needed.
-Neither name has changed yet. New-domain claim, destinations, enrichment source
-and analytics verification wait for the production cutover. The receipt-derived
+**Pinterest handoff, October21:** the account/app rename is complete, not an
+authentication blocker. Both are **Stupid.gifts**, owner-selected handle
+**stupid_gifts**; production API/portal verify the same BUSINESS account/app
+IDs,28 Pins/five boards and Standard access active. Scheduler PAUSED remains
+verified; the separate catalog job is unchanged. New-domain claim,
+destinations, enrichment source and analytics verification still wait for the
+production cutover. Rename receipt: `pinterest-rebrand-2026-10-21/receipt.json`.
+The receipt-derived
 October31 v11 review remains pending and will not run automatically while the
 studio is paused. See `PINTEREST_STUDIO.md` for the restart contract.
 

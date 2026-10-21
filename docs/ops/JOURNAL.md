@@ -5,6 +5,43 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-21 owner session — Pinterest rename completed; same approval retained
+
+After Cameron's “Go ahead with the rename,” the signed-in browser showed the
+existing Goose BUSINESS account. Saving Stupid.gifts/name/bio with stupidgifts
+failed “Username already taken.” Restored goosegifts and saved the display
+name/bio. Cameron asked about stupid.gifts; official help confirms handles may
+contain letters/numbers/underscores, not punctuation. Cameron then explicitly
+selected “Try stupid_gifts”; it saved successfully. A transient reCAPTCHA
+service-connectivity message appeared, but no challenge was solved or bypassed;
+the resulting handle was independently verified by API and public profile.
+
+Production user_account readback at the rename verification confirms
+1107815345747925810, BUSINESS, stupid_gifts, Stupid.gifts,28 Pins/five boards;
+website remains http://www.goose.gifts. Transitional bio says Goose.gifts is
+becoming Stupid.gifts. App1588384 Details updated name/company to Stupid.gifts
+and purpose to the same first-party-only publishing/reporting behavior.
+Save returned “Updated!” and My apps confirms Stupid.gifts / same ID /
+Standard access active. No new app, scope change, review submission or OAuth
+rotation. Browser/production receipt verified2026-10-21T20:11:24Z; full result
+and screenshots: `pinterest-rebrand-2026-10-21/receipt.json`.
+
+Account guard now requires the original stable ID, new handle and BUSINESS;
+wrong/missing IDs, old/wrong handles and personal accounts must fail. Existing
+Goose destination-only guard intentionally rejects new Stupid.gifts packages
+until separately tested cutover. Avatar/icon, domain claim, website/privacy,
+redirect, credentials, Pins/boards, UTMs, approvals, creative log and all v11
+receipts are preserved. Scheduler remains PAUSED, P6/F6 frozen and final review
+pending. No generation, posting, deletion, catalog maintenance, DNS or spend.
+The site migration thread still owns destinations, catalog and analytics;
+do not resume publishing or treat the account rename as a live site cutover.
+Node22.23.1: live production identity passes the updated guard;940-event
+creative validation, six creative tests, ten Pinterest tests, production build,
+lint and diff check pass. New identity regressions reject the old handle,
+wrong/missing stable ID and personal accounts; a destination regression keeps
+Stupid.gifts blocked until cutover. Concurrent main update #205 was preserved;
+no catalog/source changes from that work are included in this rename diff.
+
 ## 2026-10-21 owner session — Pause studio; prepare Stupid.gifts rename
 
 Cameron asked to pause the daily task until the new site, destinations,

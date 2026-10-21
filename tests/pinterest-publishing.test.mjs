@@ -63,6 +63,14 @@ test('publishing package requires owner approval metadata, tracking, and visible
     }),
     /preserve targetPage query parameter gift/,
   );
+  assert.throws(
+    () => validateDraftPackage({
+      ...draft,
+      targetPage: 'https://stupid.gifts/gifts/funny-pizza-saw',
+      trackingUrl: draft.trackingUrl.replace('www.goose.gifts', 'stupid.gifts'),
+    }),
+    /targetPage must be on goose.gifts/,
+  );
 });
 
 test('approval guard accepts only Cameron approval for the exact candidate', () => {
@@ -95,8 +103,18 @@ test('duplicate preflight and readback compare the exact tracked destination', (
 });
 
 test('production account guard fails closed', () => {
-  assert.doesNotThrow(() => assertPinterestAccount({ username: 'goosegifts', account_type: 'BUSINESS' }));
-  assert.throws(() => assertPinterestAccount({ username: 'someone-else', account_type: 'BUSINESS' }), /Refusing/);
+  const account = { id: '1107815345747925810', username: 'stupid_gifts', account_type: 'BUSINESS' };
+  assert.doesNotThrow(() => assertPinterestAccount(account));
+  for (const changed of [
+    { id: 'other-account' },
+    { id: undefined },
+    { username: 'someone-else' },
+    { username: 'goosegifts' },
+    { account_type: 'PERSONAL' },
+  ]) {
+    assert.throws(() => assertPinterestAccount({ ...account, ...changed }), /Refusing/);
+  }
+  assert.throws(() => assertPinterestAccount(null), /Refusing/);
 });
 
 test('an unterminated publication receipt blocks a blind retry', () => {

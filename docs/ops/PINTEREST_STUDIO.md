@@ -20,22 +20,28 @@ review or intervening checkpoints. Review remains pending, not delivered; do not
 invent missed exact-age observations. Record any account rebrand or destination
 redirect as an intervention when eventually reviewing pre/post-cutover results.
 
-Cameron also authorized beginning the Pinterest account/app rename. Both browser
-settings and the developer portal require a fresh sign-in. **No account or app
-rename has occurred.** Continue on the existing BUSINESS account
-`1107815345747925810` / `goosegifts` and Standard-approved app `1588384`;
-do not create replacements, rotate credentials, delete Pins or resubmit access
-merely to rebrand. See `pinterest-standard-access.md` for the staged checklist.
+Cameron subsequently said “Go ahead with the rename” and signed in. The
+existing BUSINESS account **1107815345747925810** is now **Stupid.gifts**, handle
+**stupid_gifts**, public profile [Stupid.gifts](https://www.pinterest.com/stupid_gifts/).
+`stupidgifts` was rejected as taken; Cameron explicitly selected `stupid_gifts`.
+Production API readback confirms the same ID,28 Pins and five boards. Existing
+app **1588384** is also **Stupid.gifts**, with **Standard access active** in the
+portal readback. Names/company/purpose and a truthful transitional bio changed;
+website/privacy/claim, credentials, scopes, redirect, avatar/icon, Pins and
+historical packages did not. No new app/account or approval resubmission.
+The scheduler remains PAUSED. See the [rename receipt and screenshots](pinterest-rebrand-2026-10-21/receipt.json)
+and `pinterest-standard-access.md` for verified state and remaining cutover gates.
 
 Before an explicit owner-authorized restart:
 
 1. Verify Stupid.gifts production, privacy page and exact product destinations;
    existing retained Pin links must redirect to the corresponding product,
    retaining UTM parameters, not a generic homepage.
-2. Complete/verify the same account/app branding, new-domain claim and approved
-   configuration; update publisher account/domain guards with focused tests
-   only after the intended values are verified. Never loosen them to get a post
-   through or rewrite historical package approvals.
+2. Verify the renamed account/app and finish new-domain claim/configuration.
+   The account guard now requires the same stable ID, new handle and BUSINESS
+   type; the destination guard intentionally still allows only Goose domains.
+   Change destination guards only with tested site cutover. Never loosen them
+   to get a post through or rewrite historical package approvals.
 3. Prove shortlist sourcing from the new site's verified, enriched catalog and
    latest completed enrichment receipt. Do not run or independently reschedule
    the weekly catalog workflow as part of Pinterest cutover.
