@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { previewMetadata } from "../lib/metadata";
 import { isFixtureRelease } from "../lib/catalog";
 import { StaticAnalytics } from "../components/StaticAnalytics";
+import { StaticContentExpiry } from "../components/StaticContentExpiry";
+import SafeCatalog from "./safe/catalog/page";
 import { show } from "../lib/show-data";
 import { isSitePreview, isSiteProduction, siteIdentity } from "../lib/site-identity";
 import "./styles.css";
@@ -46,7 +48,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </a>
           </nav>
         </header>
-        {children}
+        <StaticContentExpiry fallback={<SafeCatalog />}>{children}</StaticContentExpiry>
         <footer>
           <a className="wordmark" href="/">
             {siteIdentity.brand}<span>.</span>gifts

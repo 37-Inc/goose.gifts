@@ -68,6 +68,8 @@ function component(relative, config, fixture = false) {
     "../lib/metadata": { previewMetadata: () => ({}) },
     "../lib/show-data": { show: { latest: null } },
     "../components/StaticAnalytics": { StaticAnalytics: () => React.createElement("i", { "data-test-analytics": true }) },
+    "../components/StaticContentExpiry": { StaticContentExpiry: ({ children }) => children },
+    "./safe/catalog/page": { default: () => null },
     "../lib/episode-qr": { episodeQrSvg: () => "<svg></svg>" },
     "../lib/analytics": { captureRenderedLists() {} },
     "../lib/episode-display": { unavailableEpisode: value => value },

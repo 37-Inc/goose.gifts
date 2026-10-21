@@ -32,6 +32,9 @@ export function Search() {
         setState({ status: "idle", products: [] });
         return;
       }
+      // Bookmarked queries and history navigation should reveal the search,
+      // not leave mobile visitors above the complete curated opening set.
+      document.getElementById("catalog-search")?.scrollIntoView({ behavior: "instant", block: "start" });
       const abort = new AbortController();
       controller.current = abort;
       setState({ status: "loading", products: [] });
@@ -109,6 +112,9 @@ export function Search() {
           event.preventDefault();
           const q = query.trim().slice(0, 200);
           const url = new URL(window.location.href);
+          // Safe content can also be served at an expired product/guide URL.
+          // Search bookmarks always belong to the maintained root route.
+          url.pathname = "/";
           if (q) url.searchParams.set("q", q);
           else url.searchParams.delete("q");
           window.history.pushState(null, "", `${url.pathname}${url.search}`);
@@ -138,7 +144,7 @@ export function Search() {
         )}
         {state.status === "unavailable" && (
           <p className="search-status">
-            Search is taking a break. The collection below still works.{" "}
+            Search is taking a break. Try again later, or browse the collection.{" "}
             <a href="/gifts">Browse all gifts →</a>
           </p>
         )}

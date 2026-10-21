@@ -148,3 +148,36 @@ content remain separate readiness gates.
 
 Screenshots outside source: `stupid-gifts-shards-real-{desktop,mobile}.png` and
 `stupid-gifts-shards-feed-{desktop,mobile}.png`.
+
+## Remake route follow-up — October 21 UTC
+
+- Reviewed the maintained static routes against `roadmap-lbbz1.3/.4/.5` and the
+  launch spec. No broad redesign or retired-feature restoration was warranted.
+  The expired four-product merchant sample was not reused as fresh visual proof.
+- Fixed a missing Search form/anchor in the safe collection shell. Its native
+  GET action and enhanced submissions both use root query URLs, even when the
+  shell is displayed at an expired product/guide path. Unavailable search copy
+  no longer claims that a collection exists below the empty state.
+- A saved mobile query previously left search at 1,054px, below the 844px
+  viewport. Initial/history queries now reveal the search section; blank/short
+  queries retain the product-first home composition.
+- Added one shared client boundary for already-open static product bodies.
+  It reads existing rendered deadline attributes and clears the page body at
+  the earliest one, also checking visibility/pageshow restoration. Worker
+  request guards remain authoritative; already-received bytes cannot be recalled.
+- New clock/interaction tests cover deadline boundaries, restored tabs, long
+  timer clamping, no-timer safe/legal pages, query history/cancellation and
+  root-only submission. Export checks still scan safe assets and immutable JS
+  for product/private content.
+- Local owned fixtures only: 1440×900 home, 390×844 home/search, and 1280×720
+  unpublished presentation reviewed. Three opening illustrations loaded; mobile
+  width is 390px and first action bottom is 591px. Browser clock advancement
+  removed the open product image and displayed the safe collection heading.
+  No real retailer was opened; the loopback search's intentional 503 is not a
+  provider/search acceptance result.
+
+Private local artifacts: `output/playwright/remake-home-desktop.png`,
+`remake-home-mobile.png`, `remake-search-mobile.png`,
+`remake-expired-mobile.png`, and `remake-show-720.png`. These are synthetic layout
+and behavior evidence, not real-cohort, imagery-rights, episode, owner-taste,
+performance or public-launch acceptance.

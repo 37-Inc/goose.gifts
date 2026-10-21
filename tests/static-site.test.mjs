@@ -289,6 +289,9 @@ test(
       new URL("out/safe/catalog.html", root),
       "utf8",
     );
+    assert.match(safe, /id="catalog-search"/);
+    assert.match(safe, /name="q"/);
+    assert.match(safe, /action="\/" method="get"/);
     assert.doesNotMatch(safe, /paperweight|example\.invalid|\/illustrations\//);
     const preview = fs.readFileSync(
       new URL("out/preview/presentation.html", root),

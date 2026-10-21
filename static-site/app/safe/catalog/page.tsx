@@ -1,3 +1,5 @@
+import { Search } from "../../../components/Search";
+
 export default function SafeCatalog() {
   return (
     <main id="main" className="site-main empty-state">
@@ -11,6 +13,7 @@ export default function SafeCatalog() {
         Read the gift guides →
       </a>
       <p className="quiet">Please check back later.</p>
+      <Search />
     </main>
   );
 }
