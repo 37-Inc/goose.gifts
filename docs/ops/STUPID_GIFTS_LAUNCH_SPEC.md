@@ -6,6 +6,18 @@ Status: implementation authorized and underway; domain registered. Isolated
 staging resources exist. Production migration, account cutover and redesign
 have not shipped.
 
+**October 21 launch authorization:** Cameron explicitly wants `stupid.gifts`
+live as soon as essential checks pass. Do not wait for tomorrow, a broadcast
+date, another visual approval, or an arbitrary prelaunch observation period.
+Hosting and brand launch may happen together; keep the old service available
+for rollback. The seven-day observation below is **after launch** and gates
+destructive retirement, not launch. A valid nonempty catalog, content rights,
+functional routing/search, HTTPS and recoverability remain real prerequisites.
+Keep Cloudflare Free and the existing catalog limits. Optional provider
+renames, creator research and physical show preparation must not delay serving
+the new site. Record any exact account/access prerequisite rather than calling
+all deferred work a launch blocker.
+
 ## Purpose and decisions
 
 Prepare the existing gift catalog for a recurring weekly segment on **Howie
@@ -486,13 +498,17 @@ bootstrap has been exercised. Keep the Pinterest cohort measurement-only
 until separately authorized; update URL/credential configuration without
 publishing new Pins.
 
-### Stage 4  Move hosting with the existing brand and domain
+### Stage 4  Move hosting, optionally together with the new brand
 
 Serve the complete compatible site on Cloudflare staging first. Record the
 current DNS, TLS, security, Vercel deployment and Neon recovery references.
-Move `www.goose.gifts`/apex routing only after staging parity and restore
-rehearsal pass. Preserve MX/TXT/email, verification records and unrelated
-Cloudflare settings. Verify HTTPS, redirects and production browser events.
+Move the ready public site directly to `stupid.gifts` when that is the fastest
+safe path; an intervening Goose-branded hosting launch is not required. Use
+separate production resources and preserve protected staging. Move existing
+Goose routing only when maintained paths have matching destinations; do not
+redirect functioning product links into an empty or unrelated catalog.
+Preserve MX/TXT/email, verification records and unrelated Cloudflare settings.
+Verify HTTPS, redirects and production browser events.
 
 Hold the old deployment and a known-good data export for a seven-day
 observation window. Leave Neon suspended where possible; repeated health
@@ -502,8 +518,10 @@ Simply switching DNS to stale Neon is not a valid rollback.
 
 ### Stage 5  Launch the new brand
 
-After infrastructure is stable, launch the approved visual treatment on
-`stupid.gifts`. Redirect `www.stupid.gifts` to the apex and maintained Goose
+Launch the approved visual treatment on `stupid.gifts` as soon as essential
+release checks pass; the owner has authorized the public cutover. Do not wait
+for another day, an airing date or a second launch approval. Redirect
+`www.stupid.gifts` to the apex and maintained Goose
 public paths permanently to their matching new paths, preserving safe
 attribution parameters and search behavior, excluding the retired features
 above. Serve those redirects on Cloudflare, independently of Vercel/Neon.
@@ -1012,26 +1030,31 @@ These are targets to demonstrate in staging, not claims about current capacity.
 1. Secure the domain; publish this specification and tracked work.
 2. Protect current Neon runway and prove the static/D1/vector vertical slice.
 3. Build the data adapters/export/import reconciliation and release machinery.
-4. Complete route parity and move operations/hosting under the Goose domain.
-5. Develop the Stupid Gifts visual treatment and four episode shortlists;
-   review a composed desktop/mobile/show preview before brand cutover.
-6. Launch domain/brand, coordinate affiliate and search providers, rehearse the
-   show, and update the 37.technology listing and owned links.
+4. Complete essential route/content/recovery checks and launch the new brand
+   directly on Cloudflare. The Neon writer may remain authoritative during
+   this reversible serving transition; record that boundary honestly and
+   finish its separate single-writer transition before retiring it.
+5. Complete affiliate/account prerequisites where required; verify production
+   measurement and redirects. Coordinate remaining search/provider updates
+   and the 37.technology listing without delaying a safe serving launch.
+6. Prepare/rehearse the first actual show selection and reserve shortlists
+   with the owner when its timing is known; do not invent episodes or dates.
 7. Observe for at least seven healthy days, then complete repository rename
    and recoverable provider decommissioning. Keep redirects and the separately
    tracked legacy-domain renewal/retention decision beyond hosting retirement.
 
 Design/curation can progress alongside infrastructure. The critical path is
 domain ownership, data integrity, a fast reliable landing experience, affiliate
-eligibility and the first episode's real products. Broad catalog catch-up,
+eligibility and a useful real product catalog. Broad catalog catch-up,
 new feature work and expanding Pinterest creative are secondary. Existing
 weekly maintenance and the frozen Pinterest measurement cohort continue;
 this plan does not silently change their schedules.
 
 On October 19, Cameron authorized bounded parallel implementation, testing and
 staged data migration, with independent review and simplification before
-integration. Critical cutover, authentication, paid-plan and destructive
-retirement gates remain separate; do not infer their completion from code.
+integration. October 21 authorizes the public cutover once essential checks
+pass. Authentication, paid-plan and destructive retirement gates remain
+separate; do not infer their completion from code.
 Production remains on Vercel/Neon until the acceptance gates pass.
 
 ## Sources
