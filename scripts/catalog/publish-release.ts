@@ -20,7 +20,7 @@ import { verifyReleaseIdentity } from '../staging/release-identity.mts';
 import { verifyFeedPlan, verifyReleaseContext, verifySiteIdentity } from '../staging/verify-release.mts';
 import { readPriorRelease, verifyRetainedAssets } from '../staging/retention.mts';
 import { siteIdentityFor } from '../../static-site/lib/site-identity.ts';
-import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
+import { canonicalTime, validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { canonicalJson } from './migration.ts';
 import { readActivatedCatalogVectors } from './owned-vector-delivery.ts';
 import { createVectorizeRestAdapters } from './vectorize-rest.ts';
@@ -372,8 +372,21 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         generatedAt:revision.snapshot.generatedAt,vectorSyncWatermark:revision.vectorSyncWatermark,priorReleaseId:config.prior?.releaseId??null,
         retainedManifestSha256:config.prior?.directory?config.prior.manifestSha256:null};
       validateBuildContext(context,revision.snapshot,config.codeSha,context.catalogSnapshotSha256,now());
-      await workspace.preparePublicationDirectories(config.releaseId,revision.snapshot.generatedAt,
-        revision.snapshot.products.map(p=>p.eligibleUntil).sort()[0]??null);
+      let observedAt=revision.snapshot.generatedAt;
+      const deadlines=revision.snapshot.products.map(p=>p.eligibleUntil);
+      if(config.prior?.directory){
+        // Repackaging a permitted historical shard must not renew its original
+        // observation/expiry. Identity-only prior mode reads/copies no old body.
+        const bytes=await privateBytes(path.join(config.prior.directory,'asset-manifest.json'));
+        if(sha256(bytes)!==config.prior.manifestSha256)throw new Error('publication_prior_changed');
+        const prior=JSON.parse(bytes.toString()) as SiteAssetManifest;
+        if(prior.releaseId!==config.prior.releaseId)throw new Error('publication_prior_changed');
+        const original=canonicalTime(prior.generatedAt);if(original<observedAt)observedAt=original;
+        if(prior.nextExpiry!==null)deadlines.push(canonicalTime(prior.nextExpiry));
+        for(const route of Object.values(prior.routes))if(route.state==='ready'&&route.eligibleUntil
+          &&/^\/catalog\/[a-f0-9]{64}\/(?:random|feed-[1-9][0-9]*)\.json$/.test(route.assetPath))deadlines.push(canonicalTime(route.eligibleUntil));
+      }
+      await workspace.preparePublicationDirectories(config.releaseId,observedAt,deadlines.sort()[0]??null);
       await write(path.join(directory,'input.snapshot.json'),`${JSON.stringify(revision.snapshot)}\n`);
       await write(path.join(directory,'input.context.json'),`${JSON.stringify(context)}\n`);
       const env={...childEnv(),TMPDIR:path.join(runtime,'tmp'),CATALOG_SITE_MODE:config.sourceMode,CATALOG_SNAPSHOT_PATH:path.join(directory,'input.snapshot.json'),

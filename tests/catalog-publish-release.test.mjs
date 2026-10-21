@@ -33,7 +33,7 @@ const bytes=value=>Buffer.from(typeof value==='string'?value:JSON.stringify(valu
 const id='00000000-0000-4000-8000-000000000001',version='00000000-0000-4000-8000-000000000002',deployment='00000000-0000-4000-8000-000000000003';
 const priorVersion='00000000-0000-4000-8000-000000000004',priorDeployment='00000000-0000-4000-8000-000000000005';
 const scope={environment:'staging',indexName:'fixture-index'};
-async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,value);}
+async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,value,{mode:0o600});}
 function fixtureRelease(snapshot,context,prior=null){
   const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/weird-gift-index','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
     ...snapshot.products.map(p=>`/gifts/${p.slug}`)];
@@ -255,6 +255,13 @@ test('identity-only prior cannot bypass exact stored manifest identity or histor
     if(changed==='receipt')assert.equal(result.errorCode,'publication_build_not_claimed');
     else assert.match(result.errorCode,/^publication_(prior_changed|pending)$/); // activation adapter sanitizes failed prior observations
   });
+});
+
+test('optional prior asset reuse cannot renew an expired prior merchant package',async t=>{
+  const f=await setup(t,{real:true,priorExpiryMs:60000});f.advance(2*60000);
+  const result=await f.execute();assert.equal(result.state,'pending');
+  assert.equal(f.counts().buildCalls,0);assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
+  await assert.rejects(fs.lstat(path.join(f.workspace.directory,'packages',f.config.releaseId)),{code:'ENOENT'});
 });
 test('missing prior is an explicit bootstrap gate before claims, checkpoints, files or HTTP',async t=>{
   const f=await setup(t,{prior:false});const checkpoint=structuredClone(f.checkpoint());
