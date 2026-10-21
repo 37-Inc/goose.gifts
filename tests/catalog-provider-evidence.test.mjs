@@ -132,6 +132,29 @@ async function fixture(t,{observedAt=NOW,reviewedRights=rights(product),loseResp
     }};
 }
 
+test('real Amazon mapper optional undefined ratings survive exact image-only normalization without entering JSON receipts',async()=>{
+  const mapped=amazonCreators.mapItem({asin:ID,itemInfo:{title:{displayValue:'TEST ONLY lobster bell'},
+    features:{displayValues:['Owned synthetic brass bell fixture']}},images:{primary:{large:{url:'https://example.invalid/original.jpg'}}},
+    detailPageURL:`https://www.amazon.com/dp/${ID}?tag=fixture-20`,offersV2:{listings:[{availability:{type:'IN_STOCK'},price:{money:{amount:12,currency:'USD'}}}]}});
+  assert.ok(Object.hasOwn(mapped,'rating'));assert.equal(mapped.rating,undefined);assert.equal(mapped.reviewCount,undefined);
+  const before=structuredClone(mapped),receipts=[];let loads=0;
+  const evidence=createCatalogProviderEvidence({now:()=>NOW,async saveReceipt(input){
+    assert.equal(sha256(canonicalJson(input.receipt)),input.sha256);receipts.push(input.receipt);
+    return{sha256:input.sha256,reference:'test-only/optional-rating'};
+  }});
+  const returned=await evidence.amazon('getItems',async()=>{loads++;return[mapped];},p=>({...p,imageUrl:'https://example.invalid/normalized.jpg'}),[ID]);
+  assert.equal(loads,1);assert.equal(returned[0],mapped);assert.deepEqual(mapped,before);
+  assert.equal(Object.hasOwn(returned[0],'rating'),true);assert.equal(returned[0].rating,undefined);
+  assert.equal(receipts.length,1);assert.deepEqual(receipts[0].products.map(p=>p.snapshot.imageUrl),
+    ['https://example.invalid/original.jpg','https://example.invalid/normalized.jpg']);
+  assert.deepEqual(JSON.parse(canonicalJson(receipts[0])),receipts[0]);
+  for(const change of [p=>({...p,rating:null}),p=>{delete p.rating;return p;},p=>({...p,title:'Changed unobserved title'})]){
+    await assert.rejects(evidence.amazon('getItems',async()=>[mapped],change,[ID]),{message:'provider_evidence_normalization'});
+  }
+  assert.equal(receipts.length,1);
+  assert.throws(()=>canonicalJson(mapped),/Non-JSON source value/); // JSON boundary stays strict.
+});
+
 test('real phase → exact private provider evidence → atomic D1 replay → owned vector → approved cohort',async t=>{
   const observedAt='2026-10-19T12:00:00.123Z';const f=await fixture(t,{observedAt,loseResponse:true});const mock=providerMocks();const usage=telemetry();
   const raw=f.row().source_record_json;const result=await executeCatalog(phase(),undefined,usage,f.store,f.evidence);
