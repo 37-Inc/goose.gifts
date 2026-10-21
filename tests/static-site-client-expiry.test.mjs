@@ -4,7 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 
-function boundary(deadlines, now = 1000) {
+function boundary(deadlines, now = 1000, presentation = false) {
   let expired = false;
   let clock = now;
   let timerId = 0;
@@ -27,6 +27,7 @@ function boundary(deadlines, now = 1000) {
     },
     Date: class extends Date { static now() { return clock; } },
     document: {
+      querySelector: () => presentation ? {} : null,
       querySelectorAll: () => deadlines.map((deadline) => ({ getAttribute: () => deadline })),
       addEventListener: listen, removeEventListener: unlisten,
     },
@@ -79,4 +80,11 @@ test("distant deadlines recheck without overflowing the browser timer", () => {
   assert.equal(guard.render(), "merchant body");
   assert.equal([...guard.timers.values()][0].delay, 4_000_000_000 - 2_147_484_647);
   guard.cleanup();
+});
+
+test("presentation retains its own expiry guard and immutable unavailable-episode record", () => {
+  const guard = boundary([new Date(999).toISOString()], 1000, true);
+  assert.equal(guard.render(), "merchant body");
+  assert.equal(guard.timers.size, 0);
+  assert.equal(guard.events.size, 0);
 });

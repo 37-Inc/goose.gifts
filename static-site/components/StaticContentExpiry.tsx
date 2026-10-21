@@ -13,6 +13,9 @@ export function StaticContentExpiry({ children, fallback }: {
 }) {
   const [expired, setExpired] = useState(false);
   useEffect(() => {
+    // Presentation has its own timer and preserves the episode's original
+    // identity/variant in its unavailable state. Do not replace that archive.
+    if (document.querySelector("#main .presentation")) return;
     const deadlines = Array.from(document.querySelectorAll("#main [data-analytics-expiry]"))
       .map((element) => Date.parse(element.getAttribute("data-analytics-expiry") || ""))
       .filter(Number.isFinite);
