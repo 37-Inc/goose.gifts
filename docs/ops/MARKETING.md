@@ -29,13 +29,22 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-21 morning):** ACTIVE, measurement-only.
+**Current scheduler state (2026-10-21 owner instruction): PAUSED for the
+Stupid.gifts migration.** The scheduler confirmed PAUSED at19:53:16.023UTC;
+saved cadence/chat are preserved, with no duplicate task or catalog-job change.
+No automatic checkpoints or October31 review will run while paused. Review
+remains pending; restart gates and rebrand-intervention handling are in
+`PINTEREST_STUDIO.md`. Account/app rename is authorized to begin but blocked on
+browser sign-in; neither has changed. The following metrics are the dated
+October21 morning baseline, not a new migration measurement.
+
 The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,
 twelve of twelve. Generation and public posting are disabled for this cohort;
 no new creative or publication, even after review, without a new explicit owner
-experiment. Existing two daily slots remain unchanged. The exact receipt-derived
+experiment. The two saved daily slots remain unchanged but inactive. The exact receipt-derived
 full-cohort review deadline is **2026-10-31T16:44:52.279Z**; first regular
-eligible slot October31 at4:30PM Pacific. All twelve membership/receipt records
+eligible slot would be October31 at4:30PM Pacific if resumed; it is not currently
+scheduled to execute while PAUSED. All twelve membership/receipt records
 and one-time review-delivery state are linked from `PINTEREST_STUDIO.md`.
 Current retained profile:28 verified public Pins,3,651 impressions,56 opens,
 eight saves,two native outbound. P1395/22/3/2 and F310/5/1/0
