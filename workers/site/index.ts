@@ -58,6 +58,16 @@ function pageAliasSearch(params: URLSearchParams): string {
   if (page !== null && page.length <= 128 && /^\d+$/.test(page)) kept.set('page', page);
   return kept.size ? `?${kept}` : '';
 }
+function canonicalHostSearch(params: URLSearchParams): string {
+  // Preserve the existing bounded URL attribution contract, not raw event data.
+  const kept = new URLSearchParams(campaignSearch(params));
+  const functional = new URLSearchParams(pageAliasSearch(params));
+  for (const key of ['q', 'page']) {
+    const value = functional.get(key);
+    if (value !== null) kept.set(key, value);
+  }
+  return kept.size ? `?${kept}` : '';
+}
 function boundedDirectoryPage(value: string, lastPage: number): number | null {
   if (value.length > 128 || !/^\d+$/.test(value)) return null;
   const normalized = value.replace(/^0+/, '');
@@ -121,6 +131,12 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
   const snapshotDigest = 'catalogSnapshotSha256' in manifest && typeof manifest.catalogSnapshotSha256 === 'string' ? manifest.catalogSnapshotSha256 : undefined;
   const releaseIdentity = verifiedReleaseIdentity(options.releaseIdentity, manifest, snapshotDigest);
   const preparedFeed = prepareStaticFeed(snapshot, options.feedPlan, snapshotDigest);
+  // Shared by checked-in and generated publication entries. A request may not
+  // choose the canonical origin or turn a preview hostname into a public alias.
+  const productionOrigin = options.canonicalOrigin === 'https://stupid.gifts'
+    || options.canonicalOrigin === 'https://www.goose.gifts' ? options.canonicalOrigin : undefined;
+  const productionHost = productionOrigin ? new URL(productionOrigin).hostname : undefined;
+  const productionAlias = productionHost?.startsWith('www.') ? productionHost.slice(4) : productionHost ? `www.${productionHost}` : undefined;
   const search = options.searchAdapters ? createSearchHandler({
     catalogRevision: manifest.catalogRevision, adapters: options.searchAdapters, now, semanticBudgetScope: options.semanticBudgetScope,
   }) : undefined;
@@ -212,6 +228,32 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         let decodedPath: string;
         try { decodedPath = decodeURIComponent(path); }
         catch { return respond(json({ error: 'Not found' }, 404)); }
+        if (env.ENVIRONMENT === 'production' && productionHost) {
+          if (![productionHost, productionAlias].includes(url.host)) return respond(json({ error: 'Not found' }, 404));
+          if (url.origin !== productionOrigin) {
+            // Reject retired/unknown paths before normalizing the host. Never
+            // turn a historical bundle URL or unsafe asset alias into a redirect.
+            if (RETIRED_ROUTE.test(path)
+              || (decodedPath === '/random-gift' || decodedPath === '/random-gift/') && url.searchParams.has('gift'))
+              return respond(json({ error: 'Not found' }, 404));
+            if (!['GET', 'HEAD'].includes(request.method)) return respond(json({ error: 'Method not allowed' }, 405, { Allow: 'GET, HEAD' }));
+            const pagePath = path.endsWith('/') && path !== '/' ? path.slice(0, -1) : path;
+            const page = routes.get(pagePath);
+            const knownPage = pagePath === '/privacy' || pagePath === '/search'
+              || page?.assetPath === `${pagePath === '/' ? '/index' : pagePath}.html`
+              || page?.state === 'held' && heldProductPaths.has(pagePath);
+            const knownPath = knownPage || routes.has(path) || directAssets.has(path) || safeAssets.has(path)
+              || routes.has(decodedPath) || directAssets.has(decodedPath) || redirects.has(path)
+              || ['/sitemap.xml', '/sitemap/0.xml', '/.well-known/catalog-release.json', '/api/search-products'].includes(path)
+              || PUBLIC_ASSET.test(path);
+            if (!knownPath || pagePath === '/gifts' && url.searchParams.has('page')
+              && boundedDirectoryPage(url.searchParams.get('page')!, lastDirectoryPage) === null)
+              return respond(json({ error: 'Not found' }, 404));
+            return respond(new Response(null, { status: 308, headers: {
+              Location: `${productionOrigin}${path}${canonicalHostSearch(url.searchParams)}`, 'Cache-Control': 'no-store',
+            } }));
+          }
+        }
         if (path === '/.well-known/catalog-release.json') {
           if (!['GET', 'HEAD'].includes(request.method)) return respond(json({ error: 'Method not allowed' }, 405, { Allow: 'GET, HEAD' }));
           if (!releaseIdentity) return respond(json({ error: 'Release identity unavailable' }, 503));

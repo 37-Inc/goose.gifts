@@ -62,6 +62,72 @@ test('held assets are safe and query roots are noindex', async () => {
   assert.equal(await (await fixture.request('/', { method: 'HEAD' })).text(), '');
 });
 
+test('production canonical hosts preserve bounded campaign/click attribution and functional queries', async () => {
+  const fixture = setup({ canonicalOrigin: 'https://stupid.gifts' });
+  const request = (url, init) => fixture.worker.fetch(new Request(url, init), fixture.env);
+  for (const method of ['GET', 'HEAD']) {
+    const response = await request('https://www.stupid.gifts/gifts/fart-button?utm_source=show&utm_medium=podcast&utm_campaign=episode&utm_content=hero&utm_term=desk-gifts&gclid=click-123&gbraid=braid-123&wbraid=web-123&q=desk%20goat&page=2&token=private&redirect=https://evil.test', { method });
+    assert.equal(response.status, 308);
+    assert.equal(response.headers.get('Location'), 'https://stupid.gifts/gifts/fart-button?utm_source=show&utm_medium=podcast&utm_campaign=episode&utm_content=hero&utm_term=desk-gifts&gclid=click-123&gbraid=braid-123&wbraid=web-123&q=desk+goat&page=2');
+    assert.equal(response.headers.get('Cache-Control'), 'no-store');
+    assert.equal(await response.text(), '');
+  }
+  assert.equal(fixture.calls.length, 0);
+  assert.equal((await request('http://stupid.gifts/?q=desk%20goat')).headers.get('Location'), 'https://stupid.gifts/?q=desk+goat');
+  assert.equal((await request('https://www.stupid.gifts/?q=desk%0Agoat&utm_source=bad%2Fvalue&redirect=https://evil.test')).headers.get('Location'), 'https://stupid.gifts/');
+  assert.equal((await request(`https://www.stupid.gifts/?q=${'a'.repeat(201)}&page=${'1'.repeat(129)}`)).headers.get('Location'), 'https://stupid.gifts/');
+  for (const host of ['stupid.gifts.evil.test', 'staging.stupid.gifts', 'stupid.gifts:444']) {
+    const response = await request(`https://${host}/`);
+    assert.equal(response.status, 404); assert.equal(response.headers.get('Location'), null);
+  }
+  const home = await request('https://stupid.gifts/');
+  assert.equal(home.status, 200); assert.equal(home.headers.get('Location'), null); assert.equal(home.headers.get('X-Robots-Tag'), null);
+  assert.equal((await request('https://stupid.gifts/?q=goat')).headers.get('X-Robots-Tag'), 'noindex, follow');
+  assert.equal((await request('https://stupid.gifts/gifts/held')).headers.get('X-Robots-Tag'), 'noindex, follow');
+});
+
+test('canonical host attribution uses existing character/length bounds and drops unknown or invalid values', async () => {
+  const fixture = setup({ canonicalOrigin: 'https://stupid.gifts' });
+  const keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'gclid', 'gbraid', 'wbraid'];
+  const redirect = async params => new URL((await fixture.worker.fetch(
+    new Request(`https://www.stupid.gifts/gifts/fart-button?${params}`), fixture.env,
+  )).headers.get('Location'));
+  const boundary = new URLSearchParams(keys.map(key => [key, 'a'.repeat(200)]));
+  boundary.set('q', 'q'.repeat(200)); boundary.set('page', '1'.repeat(128));
+  assert.deepEqual([...(await redirect(boundary)).searchParams], [...boundary]);
+  for (const key of keys) for (const value of ['', 'a'.repeat(201), 'bad/value', 'bad\nvalue', 'https://evil.test']) {
+    const params = new URLSearchParams({ [key]: value, q: 'desk goat', page: '2', token: 'private', redirect: 'https://evil.test' });
+    assert.deepEqual([...(await redirect(params)).searchParams], [['q', 'desk goat'], ['page', '2']]);
+  }
+  assert.equal(fixture.calls.length, 0);
+});
+
+test('production host redirects cannot revive retired, unknown or unsafe routes or redirect writes', async () => {
+  const fixture = setup({ canonicalOrigin: 'https://stupid.gifts' });
+  for (const path of ['/admin', '/bundles/old', '/api/admin/products', '/api/og/random-gift?gift=id', '/random-gift?gift=id',
+    '/random-gift/?gift=', '/gifts/missing', '/unknown', '/gifts/fart-button.html/', '/gifts?page=0',
+    '/gifts%2ffart-button', '/gifts/%252fbutton', '/api/search-products/']) {
+    const response = await fixture.worker.fetch(new Request(`https://www.stupid.gifts${path}`), fixture.env);
+    assert.equal(response.status, 404, path); assert.equal(response.headers.get('Location'), null, path);
+  }
+  const post = await fixture.worker.fetch(new Request('https://www.stupid.gifts/api/catalog-feed', { method: 'POST', body: '{}' }), fixture.env);
+  assert.equal(post.status, 405); assert.equal(post.headers.get('Location'), null);
+  assert.equal(fixture.calls.length, 0);
+});
+
+test('canonical production identity never bypasses preview authentication or noindex policy', async () => {
+  const fixture = setup({ canonicalOrigin: 'https://stupid.gifts' }); fixture.env.ENVIRONMENT = 'staging';
+  const request = (headers) => fixture.worker.fetch(new Request('https://stupid-gifts-staging.thirty-seven-inc.workers.dev/', { headers }), fixture.env);
+  assert.equal((await request()).status, 503);
+  fixture.env.STAGING_AUTH_SECRET = 'synthetic-at-least-sixteen';
+  assert.equal((await request()).status, 401);
+  const response = await request({ Authorization: `Basic ${btoa('staging:synthetic-at-least-sixteen')}` });
+  assert.equal(response.status, 200); assert.equal(response.headers.get('Location'), null);
+  assert.equal(response.headers.get('X-Robots-Tag'), 'noindex, nofollow');
+  assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+  assert.match(response.headers.get('Content-Security-Policy'), /connect-src 'self'/);
+});
+
 test('expiry during an asset lookup replaces the body before responding', async () => {
   const fixture = setup();
   fixture.env.ASSETS.fetch = async (request) => {

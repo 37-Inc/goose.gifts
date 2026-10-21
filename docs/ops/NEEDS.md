@@ -23,18 +23,24 @@ October31 v11 review remains pending and will not run automatically while the
 studio is paused. See `PINTEREST_STUDIO.md` for the restart contract.
 
 The current Goose production site remains on Vercel/Neon; the protected
-Cloudflare staging implementation is not a completed cutover. Before launch:
+Cloudflare staging implementation is not a completed cutover. October 21:
+Cameron explicitly authorizes immediate launch when essential checks pass;
+do not wait for tomorrow, a show date, another visual approval or a prelaunch
+seven-day observation. The observation gates destructive retirement afterward.
+Before launch:
 
-- Confirm the show date and select a small opening product/episode set.
-  Prepared shortlists are proposals, not approved on-air products or purchases.
+- Verify a useful, current product selection. An actual episode/show date and
+  physical demonstration remain owner-coordinated follow-ups, not prerequisites
+  for the public website. Prepared shortlists are not claimed endorsements.
 - Stay on Cloudflare Free. Only if a measured usage/feature limit cannot be
   addressed with a bounded Free-plan alternative, request explicit approval
   before any paid upgrade. Local load results do not establish Free-plan CPU
   headroom; do not spend the shared daily quota on a burst rehearsal.
 - At the end, sign into the correct family Amazon Associates store to add
   `stupid.gifts` and verify attribution. Do not modify the unrelated Mike Ideas
-  account. Provider/account rebranding and public DNS cutover remain separate
-  final steps.
+  account. This saved new-domain identification is an actual affiliate/content
+  prerequisite; cosmetic provider renames are not. Public DNS cutover is now
+  authorized once the essential technical/content checks pass.
 - Vercel/Neon shutdown, repository rename and old-domain renewal changes wait
   for verified production migration and the approved observation window.
 
