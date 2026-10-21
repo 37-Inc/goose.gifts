@@ -156,8 +156,12 @@ click/search windows as current owner metrics. Those writes are retired; this
 also wakes Neon. Move that consumer to the existing GA4/PostHog event source
 with its owner before decommissioning. Do not recreate detailed database
 reporting in D1. The inspected adapter is unrelated untracked/dirty work and
-was not modified. The separately owned private ChatGPT prototype also remains
-an explicit consumer migration gate, not an assumed completed website change.
+was not modified. The separately owned private ChatGPT prototype
+(`roadmap-o9ff5.1`) uses a bounded Neon HTTPS adapter and a five-minute search
+cache; renders revalidate current catalog data. Preserve its query-only
+`search_gifts` / ID-only `render_gifts` contract and its owner-private tunnel.
+Move its data adapter before Neon retirement; do not assume that changing the
+website also migrates that running prototype or authorizes public submission.
 
 Root review and the actual atomic D1 migration/readback passed as recorded above.
 Final writer barrier/delta reconciliation, D1 recovery, provider search/index parity,
