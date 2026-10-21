@@ -185,9 +185,9 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
   };
   const execute=()=>executePublication({db,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
     credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock)}});
-  return{db,sql,owner,revision,workspace,config,execute,mode,uploadedConfigs,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
+  return{db,sql,owner,revision,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
     async nextRelease(){
-      assert.equal(real,false);assert.equal((await readMutationOwner(db,scope)),null);
+      assert.equal((await readMutationOwner(db,scope)),null);
       const packageDirectory=path.join(workspace.directory,'packages',config.releaseId);
       priorRelease={manifestBytes:await fs.readFile(path.join(packageDirectory,'asset-manifest.json'))};
       config.prior={directory:packageDirectory,manifestSha256:sha(priorRelease.manifestBytes),releaseId:config.releaseId,versionReference:targetVersion};
@@ -199,6 +199,13 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
       const columns=Object.keys(delivery);sql.prepare(`INSERT INTO catalog_vector_deliveries(${columns.join(',')}) VALUES(${columns.map(()=>'?').join(',')})`)
         .run(...columns.map(name=>delivery[name]));
       checkpoint={...checkpoint,sha256:'0'.repeat(64),phase:'freezing',owner:nextOwner,state:{driverState:'preserved'},control:{}};
+      if(real){
+        await actualWorkspace.close();workspaceOptions={...workspaceOptions,runId:'fixture-next-run'};
+        actualWorkspace=await openRunWorkspace(workspaceOptions);
+        const {sha256:unused,...initial}=checkpoint;void unused;
+        const saved=await actualWorkspace.writeCheckpoint(null,{...initial,pins:{}});checkpoint={...saved.checkpoint,sha256:saved.sha256};
+        workspace=wrapActual();
+      }
       uploaded=false;active=false;versionReads=0;
     },
     async historicalAccepted({lostPermit=false}={}){
@@ -334,6 +341,15 @@ test('activation proof is read-only and bound to exact stored permit; no freezin
 test('real protected workspace preserves state/locks and permits exact expired-content control reconciliation',async t=>{
   const f=await setup(t,{real:true});const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
   assert.equal(f.checkpoint().state.driverState,'preserved');assert.equal((await f.execute()).state,'published');
+});
+test('two complete real-workspace publications reuse one checkout without retaining source build intermediates',async t=>{
+  const f=await setup(t,{real:true});assert.equal((await f.execute()).state,'published');
+  const firstDirectory=f.workspace.directory;
+  for(const name of ['build/stupid-gifts','static-site/out','static-site/.next'])await assert.rejects(fs.lstat(path.join(f.config.sourceRoot,name)),{code:'ENOENT'});
+  await f.nextRelease();assert.notEqual(f.workspace.directory,firstDirectory);
+  const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
+  assert.equal(f.counts().buildCalls,2);assert.equal(f.counts().uploadCalls,2);assert.equal(f.counts().activateCalls,2);
+  for(const name of ['build/stupid-gifts','static-site/out','static-site/.next'])await assert.rejects(fs.lstat(path.join(f.config.sourceRoot,name)),{code:'ENOENT'});
 });
 test('uploaded preactivation resume survives canonical control reordering after actual workspace close/reopen',async t=>{
   const f=await setup(t,{real:true});f.mode.stopBeforeActivation=true;
