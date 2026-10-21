@@ -206,6 +206,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     if(head!==config.codeSha||resolve(config.publication.sourceRoot)!==resolve(repo)
       ||execFileSync('git',['status','--porcelain','--untracked-files=all'],{cwd:repo,encoding:'utf8'}).trim())throw new Error('weekly_source_mismatch');
     workspace=await openRunWorkspace(workspaceOptions);const ws=workspace;
+    await ws.purgeExpired();
     let saved=await ws.readCheckpoint({controlOnly:true});
     if(saved&&['phases_running','phase_failed','attention','finalized'].includes(saved.checkpoint.phase)
       &&!(saved.checkpoint.phase==='attention'&&resolving(saved.checkpoint)))
