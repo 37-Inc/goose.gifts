@@ -42,12 +42,14 @@ existing products daily and discover weekly. Creator Product Research stays
 deferred. There is no $15 subscription; the signed-in Cloudflare account is
 still Free. A Paid upgrade would start a $5/month account minimum on activation.
 
-The local D1 weekly/publishing workflow has an isolated-provider publication
-proof. Engineering owns private workspace expiry cleanup/restart recovery
-and single-operator publication (`roadmap-lbbz1.4.3`), the approved daily/weekly
-command and task handoff, search coverage and final recovery checks. New
-hosted CI or Cloudflare Cron is not a prerequisite for this Codex setup.
-Those are not owner authentication blockers and are not being marked done.
+The Codex task is installed in place, and private expiry cleanup plus protected
+publication/restart recovery have passed actual provider checks. Engineering
+still owns the fresh daily canary (`roadmap-lbbz1.4.3`, next allowance October
+22), search/provider-capacity coverage and final source-delta/recovery/writer
+checks. The expired preview is deliberately zero-ready/ten-held, not a current
+opening catalog. New hosted CI or Cloudflare Cron is not a prerequisite for
+this Codex setup. These remaining checks are not owner authentication blockers
+and are not being marked done.
 See `STUPID_GIFTS_STAGING.md` and epic `roadmap-lbbz1`.
 
 ### 1. Owned growth channel approval

@@ -44,6 +44,32 @@ The launch spec and `roadmap-lbbz1` remain authoritative.
   keeps its existing unavailable-episode archive. Synthetic visual/browser QA
   is not owner approval of a real opening cohort. The earlier four-product
   merchant observation has expired; never relabel it as current.
+- PR #207 (`62fc900ecb04266f6b899f184ece1410c03418d9`) is production READY
+  at Vercel deployment `dpl_Cj5WKi5XMTos2ZFofABFUjTXxxd5`; all six checked
+  public routes returned 200. Monday enrichment stays inside the same reserved
+  ten-product response; new prune-delete journals retain hashes/IDs, not bodies.
+- The protected **expiry-only** publication passed at that source, with the
+  separately reviewed recovery library `de2379a3a28b52be57899b657d681cd32dae082b`.
+  Worker version `72a30266-66f3-445b-ad7a-8e54e5735ad5`, deployment
+  `4f196d60-cdc8-473b-a6b9-32e1e9acbc8c`, manifest SHA-256
+  `f6ec33d428baa17e68da60e164b41cbbc4927857ff45729d9c1d473ce2fb2219`.
+  Fifteen safe HTML/RSC/feed checks and four native vector absences passed;
+  all 3,383 private identities and history counts were preserved. The public
+  sample is now **zero ready / ten held**, with 3,373 migration-only identities.
+  This is not a fresh opening cohort or full search/load acceptance.
+- Real Vectorize processing exceeded the bounded polling window. Resume-only
+  recovery confirmed the existing accepted references under the same owner,
+  source hashes and full atomic SQL CAS; it cannot dispatch a new mutation.
+  All four delete journals are verified with **one attempt each**. The original
+  checkpoint is finalized, build resolved and scope idle/released with no
+  external pending work. Final ledger: 652 HTTP / 891 SQL, zero unconfirmed;
+  zero Amazon/model calls. Original limits and October 21 freshness reservation
+  were not reset. Private final receipt `expiry-only-62fc900-final-receipt.json`
+  SHA-256 `dc71780fd3bebf0c7d7b5d999a586f4d97054d447c6571ef65a63721d395ceb4`;
+  publication receipt `3b95b2032be99af8c5f16bedbac7b1927ac120dd1018c3779ee86802d0cbb18f`;
+  body-free proof `f698045dec9719611e56d884fe0df6f4a69ed77de6c65816e23d17acd635958f`.
+  Keep `roadmap-lbbz1.4.3` open for the fresh daily canary on October 22;
+  parent relevance/capacity, final delta/recovery and launch gates remain open.
 
 ### Verified checkpoint — October 20, 13:50 UTC
 

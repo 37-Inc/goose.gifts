@@ -207,6 +207,25 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-21 [owner+codex] — Verify protected expiry publication and exact restart recovery
+
+- Add a narrow resume-only path for existing accepted body-free prune DELETEs.
+  Reuse exact pending ownership, current/archive/maintenance observations and
+  the original full-row SQL CAS. No new dispatch, journal, inferred
+  non-submission, weakened fence or expired-body persistence.
+- Actual protected publication passed at source `62fc900`, recovery library
+  `de2379a`: fifteen route checks, four native absences, all four deletes with
+  one attempt each, preserved 3,383 identities/history, finalized checkpoint and
+  idle/released scope. Final original ledger: 652 HTTP / 891 SQL, zero
+  unconfirmed, Amazon or model calls. Preview is zero ready / ten held;
+  this does not establish a fresh catalog, full search/load or public cutover.
+- Root independently passed 34 delivery tests; peer review passed 67 combined
+  tests and implementation regressions passed 80. Staging types, lint and the
+  Node 22 production build pass.
+  Keep the fresh daily canary open for October 22 without resetting today's
+  consumed allowance. Detailed deployment and private receipt hashes are in
+  `STUPID_GIFTS_STAGING.md`.
+
 ### 2026-10-21 [owner+claude] — Close bounded enrichment and deletion-journal gaps
 
 - Monday can re-enrich changed/missing copy and embeddings only within the
