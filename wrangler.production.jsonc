@@ -1,0 +1,38 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "stupid-gifts-production",
+  "account_id": "7f05a1dcb6e16f9c239564a0293bbe74",
+  "main": "workers/production-entry.ts",
+  "compatibility_date": "2026-10-19",
+  "workers_dev": false,
+  "preview_urls": false,
+  "upload_source_maps": false,
+  "observability": { "enabled": false },
+  "routes": [
+    { "pattern": "stupid.gifts", "custom_domain": true },
+    { "pattern": "www.stupid.gifts", "custom_domain": true }
+  ],
+  "assets": {
+    "directory": "./static-site/out",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "SEMANTIC_SEARCH_ENABLED": "false",
+    "SEMANTIC_SEARCH_DAILY_REQUEST_CAP": "50",
+    "SEMANTIC_SEARCH_DAILY_TOKEN_CAP": "32768"
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "stupid-gifts-production",
+    "database_id": "77b30f85-c57c-4acb-a0df-53368806c2a6",
+    "migrations_dir": "migrations/d1"
+  }],
+  "vectorize": [{
+    "binding": "VECTORIZE",
+    "index_name": "stupid-gifts-production"
+  }]
+}
