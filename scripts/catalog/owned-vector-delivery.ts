@@ -7,7 +7,7 @@ import type { ActivationPermit } from '../../lib/catalog/build-requests.ts';
 import { pruneExistingRevision, prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import { prepareApprovedCohort } from '../../lib/catalog/freeze-approved-cohort.ts';
-import type { ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
+import type { ApprovedCohortEnvelope, ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
 import { loadMaintenanceVectorPayload } from './maintenance-d1.ts';
 import { canonicalJson, sha256 } from './migration.ts';
 import { decodePgvectorSendBase64, encodePgvectorSendBase64 } from './pgvector-binary.ts';
@@ -526,12 +526,224 @@ export function deliverOwnedApprovedCohortVector(options: Omit<Parameters<typeof
     return pruneDelivery({...options,original:{sha256:sha256(canonicalJson(original)),async load(){return original;}}},true);
   });
 }
+
+interface ReusedSource { publicId:string; operationId:string; sequence:number; deliveryId:string; reference:string|null; sha256:string }
+interface ReuseRequest {
+  schemaVersion:1; kind:'approved-cohort-reuse'; catalogRevision:string; providerIdentity:string;
+  plan:PrunedVectorPlan; planSha256:string; projectionReceipt:Row; approval:ApprovedCohortEnvelope; approvalSha256:string;
+  revisionSha256:string; sourceRowsSha256:string; sources:ReusedSource[];
+}
+const REUSE_KIND='approved-cohort-reuse';
+function reuseIds(plan:PrunedVectorPlan) { return [...plan.products.map(p=>p.publicId),...plan.absentIds]; }
+/** Read the actual immutable source receipts in ONE bounded query. In particular,
+ * neither a present vector nor a caller-supplied mutation reference is settlement.
+ * The maintenance run remains approval.runId, independently of the publisher run.
+ */
+async function reuseSources(db:CatalogD1,approval:ApprovedCohortEnvelope) {
+  return (await db.prepare(`SELECT o.*,p.operation_id,p.payload_json,m.input_sha256,m.run_id,m.catalog_revision maintenance_revision,
+    m.environment maintenance_environment,m.index_name maintenance_index,m.changes_json,
+    d.delivery_id,d.environment delivery_environment,d.index_name delivery_index,d.generation delivery_generation,d.prior_epoch,
+    d.owner_json,d.request_json,d.product_json,d.status delivery_status,d.disposition,d.attempts delivery_attempts,
+    d.dispatch_token,d.mutation_reference delivery_reference,d.evidence_json,d.completed_at delivery_completed_at,
+    v.mutation_json review_json FROM json_each(?) a CROSS JOIN catalog_maintenance_vector_payloads p
+    ON p.operation_id=json_extract(a.value,'$.operationId') CROSS JOIN vector_sync_outbox o ON o.sequence=p.sequence
+    AND o.public_id=json_extract(a.value,'$.publicId')
+    JOIN catalog_maintenance_operations m ON m.operation_id=p.operation_id
+    LEFT JOIN catalog_vector_deliveries d ON d.delivery_id=o.lease_token
+    LEFT JOIN vector_delete_mutations v ON v.mutation_sha256=o.delete_mutation_sha256
+    AND v.public_id=o.public_id AND v.source_revision=o.source_revision LIMIT 21`)
+    .bind(JSON.stringify(approval.changes)).all<Row>()).results;
+}
+function reuseVectors(owner:MutationOwner,request:ReuseRequest,rows:Row[],allowUnsupported=false):Map<string,SyncVector|null> {
+  const ids=reuseIds(request.plan),vectors=new Map<string,SyncVector|null>();
+  let unsupported=false;
+  if(rows.length!==ids.length||request.sources.length!==ids.length)throw new Error('vector_reuse_source_changed');
+  for(const publicId of ids){
+    const change=request.approval.changes.find(c=>c.publicId===publicId),link=request.sources.find(s=>s.publicId===publicId);
+    const matches=rows.filter(r=>r.public_id===publicId),row=matches[0];
+    if(!change||!link||matches.length!==1||link.operationId!==change.operationId||row.operation_id!==change.operationId
+      ||row.sequence!==link.sequence||row.delivery_id!==link.deliveryId||row.delivery_reference!==link.reference
+      ||sha256(canonicalJson(row))!==link.sha256||row.input_sha256!==change.inputSha256
+      ||row.run_id!==request.approval.runId||row.maintenance_revision!==request.catalogRevision
+      ||row.maintenance_environment!==owner.environment||row.maintenance_index!==owner.indexName
+      ||row.source_revision!==request.catalogRevision||row.status!=='complete'||row.delivery_status!=='complete'||row.disposition!=='verified'
+      ||row.delivery_environment!==owner.environment||row.delivery_index!==owner.indexName
+      ||!Number.isSafeInteger(row.delivery_attempts)||Number(row.delivery_attempts)<0||Number(row.delivery_attempts)>3
+      ||row.attempts!==row.delivery_attempts||row.mutation_reference!==row.delivery_reference
+      ||row.lease_token!==row.delivery_id||!Number.isFinite(Date.parse(String(row.delivery_completed_at)))
+      ||!Number.isFinite(Date.parse(String(row.completed_at))))throw new Error('vector_reuse_source_changed');
+    const product=JSON.parse(String(row.product_json)) as Row,source=decodeRequest(String(row.request_json));
+    const base=JSON.parse(String(row.owner_json)) as MutationOwner,evidence=JSON.parse(String(row.evidence_json));
+    const last=Array.isArray(evidence)&&evidence.at(-1),event=source.event;
+    const processed=Number(row.delivery_attempts)>0&&typeof row.dispatch_token==='string'&&REF.test(row.dispatch_token)
+      &&typeof row.delivery_reference==='string'&&REF.test(row.delivery_reference)&&last?.state==='settled_visible';
+    const alreadyVisible=row.delivery_attempts===0&&row.dispatch_token===null&&row.delivery_reference===null&&last?.state==='already_visible';
+    if(base.phase!=='writing'||base.environment!==owner.environment||base.indexName!==owner.indexName
+      ||base.generation!==row.delivery_generation||base.epoch!==row.prior_epoch||base.generation>=owner.generation
+      ||idFor(base,{kind:'outbox',sequence:row.sequence,catalogRevision:request.catalogRevision})!==row.delivery_id
+      ||!last||!processed&&!alreadyVisible||last.attempt!==row.delivery_attempts||last.reference!==row.delivery_reference
+      ||sha256(canonicalJson(product))!==change.productSha256||product.public_id!==publicId
+      ||product.catalog_revision!==request.catalogRevision||sha256(String(product.public_display_json??'null'))!==change.displaySha256
+      ||!JSON.parse(String(row.changes_json)).some((c:Row)=>c.productId===product.id&&c.afterSha256===change.productSha256)
+      ||source.kind!=='outbox'||source.providerIdentity!==request.providerIdentity||source.publicId!==publicId
+      ||source.catalogRevision!==request.catalogRevision||!event||event.sequence!==row.sequence||event.publicId!==publicId
+      ||event.catalogRevision!==request.catalogRevision||event.operation!==row.operation||event.embeddingTextHash!==row.embedding_text_hash
+      ||(event.deleteMutationSha256??null)!==row.delete_mutation_sha256)throw new Error('vector_reuse_source_changed');
+    const payload=JSON.parse(String(row.payload_json));
+    if(payload.operation==='upsert'&&Object.hasOwn(payload,'nativeBase64')){
+      if(Object.hasOwn(payload,'values')||typeof payload.nativeBase64!=='string')throw new Error('vector_reuse_source_changed');
+      payload.values=decodePgvectorSendBase64(payload.nativeBase64);delete payload.nativeBase64;
+    }
+    const vector=payloadVector(event,payload,product,row.review_json===null?undefined:String(row.review_json),Date.parse(String(row.delivery_completed_at)));
+    const member=request.plan.products.find(p=>p.publicId===publicId);
+    if(sha256(canonicalJson(payload))!==source.payloadSha256||!visible(vector,source.vector)
+      ||vector&&(source.eligibleUntil!==product.eligible_until||source.eligibleUntil!==JSON.parse(String(product.public_display_json)).eligibleUntil
+        ||vector.metadata.catalogRevision!==request.plan.catalogRevision||vector.metadata.embeddingModel!=='text-embedding-3-small'
+        ||source.eligibleUntil===null||!Number.isFinite(Date.parse(source.eligibleUntil))
+        ||Date.parse(source.eligibleUntil)<=Date.parse(String(row.delivery_completed_at)))
+      ||member&&vector&&(member.sourceFactsHash!==vector.metadata.sourceFactsHash||member.embeddingTextHash!==vector.metadata.embeddingTextHash))
+      throw new Error('vector_reuse_source_changed');
+    if(!processed||(member?!vector:vector!==null||!request.plan.absentIds.includes(publicId)))unsupported=true;
+    vectors.set(publicId,vector);
+  }
+  if(unsupported)throw new Error(allowUnsupported?'vector_reuse_unsupported':'vector_reuse_source_changed');
+  return vectors;
+}
+function reuseControl(request:ReuseRequest){return canonicalJson({schemaVersion:1,kind:'approved-cohort-reuse-control',revisionSha256:request.revisionSha256});}
+function reuseEvidence(request:ReuseRequest){return canonicalJson([{state:'verification_only',sources:request.sources.map(s=>({deliveryId:s.deliveryId,reference:s.reference}))}]);}
+function validateReuse(row:Journal,owner:MutationOwner,plan:PrunedVectorPlan|ActivatedVectorPlan,providerIdentity:string):ReuseRequest {
+  const request=JSON.parse(row.request_json) as ReuseRequest,base=JSON.parse(row.owner_json) as MutationOwner;
+  const planHash='planSha256' in plan?plan.planSha256:sha256(canonicalJson(plan));
+  const ids='ids' in plan?plan.ids:reuseIds(plan);
+  if(request.schemaVersion!==1||request.kind!==REUSE_KIND||request.catalogRevision!==plan.catalogRevision
+    ||request.planSha256!==planHash||sha256(canonicalJson(request.plan))!==planHash||request.providerIdentity!==providerIdentity
+    ||request.plan.environment!==owner.environment||request.plan.indexName!==owner.indexName
+    ||ids.length<1||ids.length>10||new Set(ids).size!==ids.length||canonicalJson([...ids].sort())!==canonicalJson(reuseIds(request.plan).sort())
+    ||request.approval.catalogRevision!==plan.catalogRevision||request.approval.schemaVersion!==1
+    ||sha256(canonicalJson(request.approval))!==request.approvalSha256||!HASH.test(request.revisionSha256)||!HASH.test(request.sourceRowsSha256)
+    ||request.sources.length!==ids.length||new Set(request.sources.map(s=>s.publicId)).size!==ids.length
+    ||request.sources.some(s=>!ids.includes(s.publicId)||!HASH.test(s.sha256)||!HASH.test(s.deliveryId)||typeof s.reference!=='string'||!REF.test(s.reference))
+    ||base.phase!=='freezing'||canonicalJson({...owner,phase:'freezing',epoch:base.epoch})!==canonicalJson(base)
+    ||owner.epoch<base.epoch+1||row.generation!==base.generation||row.prior_epoch!==base.epoch
+    ||row.delivery_id!==idFor(base,{kind:REUSE_KIND,planHash})||row.status!=='complete'||row.disposition!=='verified'
+    ||row.attempts!==0||row.dispatch_token!==null||row.mutation_reference!==null
+    ||row.product_json!==reuseControl(request)||row.evidence_json!==reuseEvidence(request))throw new Error('vector_reuse_invalid');
+  return request;
+}
+function reuseSourceAssertions(db:CatalogD1,rows:Row[]) {
+  // Completed journals and payload/operation identities are immutable. Bind the
+  // remaining mutable outbox fields, rather than trusting their earlier hash.
+  const columns=['sequence','public_id','source_revision','embedding_text_hash','operation','delete_mutation_sha256',
+    'status','attempts','lease_token','lease_until','mutation_reference','error_code','created_at','completed_at'];
+  return assertion(db,`(SELECT count(*) FROM json_each(?) e JOIN vector_sync_outbox o
+    ON o.sequence=json_extract(e.value,'$.sequence') WHERE ${columns.map(k=>`o.${k} IS json_extract(e.value,'$.${k}')`).join(' AND ')})=?`,
+  [JSON.stringify(rows.map(row=>Object.fromEntries(columns.map(k=>[k,row[k]])))),rows.length]);
+}
+async function reuseReadback(adapters:Pick<OwnedVectorAdapters,'readback'>,vectors:Map<string,SyncVector|null>,timeout=3000){
+  await bounded(signal=>Promise.all([...vectors].map(async([id,vector])=>{
+    if(signal.aborted||!visible(vector,await adapters.readback(id,signal)))throw new Error('vector_not_visible');
+  })).then(()=>undefined),timeout);
+}
+/** Optional whole-cohort optimization, never a substitute for an uncertain
+ * source dispatch. Every ID must have an explicitly approved SAME-revision
+ * genuine settled source operation. Unsupported shapes keep the ordinary path.
+ * The receipt truthfully records verification only: zero attempts, no dispatch
+ * token/reference, no external_pending transition, and one fenced epoch advance.
+ */
+export function reuseOwnedApprovedCohortVectorProof(options:{db:CatalogD1;owner:MutationOwner;revision:ApprovedCohortRevision;
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>;timeoutMs?:number}):Promise<
+  {state:'unsupported';owner:MutationOwner}|{state:'complete';owner:MutationOwner;deliveryId:string}> {
+  return safe(async()=>{
+    const {db,adapters}=options,revision=structuredClone(options.revision);let owner=structuredClone(options.owner);
+    adapterScope(owner,adapters);if(owner.phase!=='freezing')throw new Error('vector_plan_invalid');
+    const plan=prunedVectorPlan(revision),ids=reuseIds(plan),planHash=sha256(canonicalJson(plan));
+    if(!ids.length||ids.length>10||ids.some(id=>!revision.request.approval.changes.some(c=>c.publicId===id))){
+      await db.batch([mutationAssertion(db,owner,['freezing'])]);return{state:'unsupported',owner};}
+    const id=idFor(owner,{kind:REUSE_KIND,planHash});let saved=await journal(db,id);
+    if(saved){
+      const base=JSON.parse(saved.owner_json) as MutationOwner,actual=await readMutationOwner(db,owner);
+      if(!actual||canonicalJson({...owner,epoch:base.epoch})!==canonicalJson(base)
+        ||owner.epoch!==base.epoch&&owner.epoch!==actual.epoch||actual.epoch!==base.epoch+1)throw new Error('vector_owner_changed');
+      owner=actual;const request=validateReuse(saved,owner,plan,adapters.providerIdentity);
+      if(request.revisionSha256!==sha256(canonicalJson(revision)))throw new Error('vector_reuse_source_changed');
+      await readReuseVectors(db,owner,saved,plan,adapters,revision);return{state:'complete',owner,deliveryId:id};
+    }
+    await db.batch([mutationAssertion(db,owner,['freezing'])]);
+    const rebuilt=await prepareApprovedCohort(db,owner,revision.request);
+    if(canonicalJson(rebuilt.revision)!==canonicalJson(revision)||canonicalJson(rebuilt.owner)!==canonicalJson(owner))throw new Error('vector_prune_changed');
+    const rows=await reuseSources(db,{...revision.request.approval,changes:revision.request.approval.changes.filter(c=>ids.includes(c.publicId))});
+    const request:ReuseRequest={schemaVersion:1,kind:REUSE_KIND,catalogRevision:plan.catalogRevision,providerIdentity:adapters.providerIdentity,
+      plan,planSha256:planHash,projectionReceipt:revision.packet.receipt,approval:revision.request.approval,
+      approvalSha256:revision.request.approvalSha256,revisionSha256:sha256(canonicalJson(revision)),sourceRowsSha256:sha256(canonicalJson(revision.sourceRows)),
+      sources:rows.map(r=>({publicId:String(r.public_id),operationId:String(r.operation_id),sequence:Number(r.sequence),
+        deliveryId:String(r.delivery_id),reference:r.delivery_reference===null?null:String(r.delivery_reference),sha256:sha256(canonicalJson(r))}))};
+    let vectors:Map<string,SyncVector|null>;
+    try{vectors=reuseVectors(owner,request,rows,true);}catch(error){
+      // A policy-held upsert needs a real DELETE. A truthful already-visible
+      // completion has no processed dispatch to reuse. Only these fully checked
+      // source classes fall back; malformed/unknown partial matches fail closed.
+      if(error instanceof Error&&error.message==='vector_reuse_unsupported')return{state:'unsupported',owner};throw error;}
+    const receiptColumns=['catalog_revision','snapshot_sha256','projection_sha256','source_export_sha256','product_count','created_at'];
+    const priorColumns=['release_id','catalog_revision','code_sha','completed_at','manifest_json'];
+    const projectionColumns=Object.keys(revision.packet.rows[0]??{});
+    const checks=()=>[mutationAssertion(db,owner,['freezing']),
+      ...pruningCurrentQueries(revision.sourceRows).map(q=>assertion(db,`(${q.sql})=?`,[...q.params,q.count])),
+      reuseSourceAssertions(db,rows),assertion(db,`(SELECT coalesce(max(rowid),0) FROM publication_receipts)=?
+        AND (SELECT coalesce(max(sequence),0) FROM vector_sync_outbox)=? AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE status!='complete')
+        AND (? IS NULL OR EXISTS(SELECT 1 FROM publication_receipts WHERE ${priorColumns.map(k=>`${k} IS ?`).join(' AND ')}))
+        AND EXISTS(SELECT 1 FROM catalog_projection_receipts WHERE ${receiptColumns.map(k=>`${k} IS ?`).join(' AND ')})
+        AND EXISTS(SELECT 1 FROM catalog_revisions WHERE revision=? AND source_export_sha256=? AND status IN('importing','reconciled')
+          AND abandonment_delivery_id IS NULL)
+        AND (SELECT count(*) FROM catalog_public_products WHERE catalog_revision=?)=?
+        ${projectionColumns.length?`AND (SELECT count(*) FROM json_each(?) e JOIN catalog_public_products p
+          ON p.public_id=json_extract(e.value,'$.public_id') AND p.catalog_revision=?
+          WHERE ${projectionColumns.map(k=>`p.${k} IS json_extract(e.value,'$.${k}')`).join(' AND ')})=?`:''}
+        AND ?>${NOW} AND NOT EXISTS(SELECT 1 FROM catalog_vector_deliveries WHERE environment=? AND index_name=? AND generation=?
+          AND json_extract(request_json,'$.catalogRevision')=?)`,[revision.request.context.publicationReceiptWatermark,plan.globalWatermark,
+      revision.request.context.priorPublication?.releaseId??null,...priorColumns.map(k=>revision.priorRow[k]),
+      ...receiptColumns.map(k=>revision.packet.receipt[k]),plan.catalogRevision,revision.sourceDigest,plan.catalogRevision,revision.packet.rows.length,
+      ...(projectionColumns.length?[JSON.stringify(revision.packet.rows),plan.catalogRevision,revision.packet.rows.length]:[]),revision.request.context.cutoff,
+      owner.environment,owner.indexName,owner.generation,plan.catalogRevision])];
+    await db.batch(checks());await reuseReadback(adapters,vectors,timeoutOf(options.timeoutMs));
+    const next={...owner,epoch:owner.epoch+1},bytes=canonicalJson(request),receipt={sql:`SELECT 1 FROM catalog_vector_deliveries
+      WHERE delivery_id=? AND request_json=? AND status='complete' AND disposition='verified'`,params:[id,bytes]};
+    try{await db.batch([...checks(),db.prepare(`INSERT INTO catalog_vector_deliveries(delivery_id,environment,index_name,generation,prior_epoch,
+      owner_json,request_json,product_json,status,disposition,evidence_json,completed_at) VALUES(?,?,?,?,?,?,?,?,'complete','verified',?,${NOW})`)
+      .bind(id,owner.environment,owner.indexName,owner.generation,owner.epoch,canonicalJson(owner),bytes,reuseControl(request),reuseEvidence(request)),
+      mutationAdvance(db,owner,receipt),mutationAssertion(db,next,['freezing'])]);}catch{/* Exact immutable receipt + owner readback, never resend. */}
+    saved=await journal(db,id);const actual=await readMutationOwner(db,owner);
+    if(!saved||saved.request_json!==bytes||!actual||canonicalJson(actual)!==canonicalJson(next))throw new Error('vector_reuse_unconfirmed');
+    validateReuse(saved,actual,plan,adapters.providerIdentity);return{state:'complete',owner:actual,deliveryId:id};
+  });
+}
+async function readReuseVectors(db:CatalogD1,owner:MutationOwner,row:Journal,plan:PrunedVectorPlan|ActivatedVectorPlan,
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>,revision?:ApprovedCohortRevision) {
+  const request=validateReuse(row,owner,plan,adapters.providerIdentity),rows=await reuseSources(db,
+    {...request.approval,changes:request.approval.changes.filter(c=>reuseIds(request.plan).includes(c.publicId))});
+  if(revision&&(request.revisionSha256!==sha256(canonicalJson(revision))||request.sourceRowsSha256!==sha256(canonicalJson(revision.sourceRows))))
+    throw new Error('vector_reuse_source_changed');
+  const vectors=reuseVectors(owner,request,rows);
+  const checks=()=>[mutationAssertion(db,owner,[owner.phase]),reuseSourceAssertions(db,rows),
+    ...(revision?pruningCurrentQueries(revision.sourceRows).map(q=>assertion(db,`(${q.sql})=?`,[...q.params,q.count])):[])];
+  await db.batch(checks());await reuseReadback(adapters,vectors);await db.batch(checks());
+  return{environment:owner.environment,indexName:owner.indexName,settled:true as const,planSha256:request.planSha256,
+    reference:`owned-vectors:${sha256(canonicalJson([row.delivery_id]))}`};
+}
 export function readOwnedPrunedVectors(...args: Parameters<typeof readPrunedVectors>): Promise<PrunedVectorObservation> {
   return safe(() => readPrunedVectors(...args));
 }
 export function readOwnedApprovedCohortVectors(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision,
   adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>):Promise<PrunedVectorObservation> {
-  return safe(()=>readPrunedVectors(db,owner,revision,adapters));
+  return safe(async()=>{
+    adapterScope(owner,adapters);await db.batch([mutationAssertion(db,owner,['freezing'])]);
+    const rows=(await db.prepare(`SELECT * FROM catalog_vector_deliveries WHERE environment=? AND index_name=? AND generation=?
+      AND json_extract(request_json,'$.catalogRevision')=? AND json_extract(request_json,'$.kind') IN('prune','approved-cohort-reuse') LIMIT 21`)
+      .bind(owner.environment,owner.indexName,owner.generation,revision.snapshot.catalogRevision).all<Journal>()).results;
+    const reused=rows.filter(r=>JSON.parse(r.request_json).kind===REUSE_KIND);
+    if(!reused.length)return readPrunedVectors(db,owner,revision,adapters);
+    if(rows.length!==1)throw new Error('vector_plan_incomplete');
+    return readReuseVectors(db,owner,reused[0],prunedVectorPlan(revision),adapters,revision);
+  });
 }
 /** Control-only readback after activation. No delivery, expiry renewal, watermark
  * or ownership write is permitted here. Fresh publication still requires the
@@ -557,7 +769,7 @@ export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit
     // proof. Bind ALL of this generation's target-revision journals, and the
     // immutable target/prior projections, before accepting any provider read.
     const rows=(await db.prepare(`SELECT * FROM catalog_vector_deliveries WHERE environment=? AND index_name=? AND generation=?
-      AND json_extract(request_json,'$.kind')='prune' AND json_extract(request_json,'$.catalogRevision')=? LIMIT 21`)
+      AND json_extract(request_json,'$.kind') IN('prune','approved-cohort-reuse') AND json_extract(request_json,'$.catalogRevision')=? LIMIT 21`)
       .bind(owner.environment,owner.indexName,owner.generation,plan.catalogRevision).all<Journal>()).results;
     const projections=(await db.prepare(`SELECT public_id,catalog_revision,source_facts_hash FROM catalog_public_products WHERE catalog_revision=? OR catalog_revision=(
       SELECT p.catalog_revision FROM catalog_build_requests b JOIN publication_receipts p
@@ -567,6 +779,15 @@ export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit
       ON b.source_revision=p.catalog_revision AND json_extract(b.request_json,'$.sourceDigest')=p.snapshot_sha256 WHERE b.request_id=?`)
       .bind(permit.requestId).all<Row>()).results[0];
     const ready=new Map(projections.filter(row=>row.catalog_revision===plan.catalogRevision).map(row=>[row.public_id,row]));
+    const reused=rows.filter(row=>JSON.parse(row.request_json).kind===REUSE_KIND);
+    if(reused.length){
+      if(rows.length!==1||!receipt||projections.length>40||projections.some(row=>!plan.ids.includes(row.public_id)))throw new Error('vector_plan_incomplete');
+      const request=validateReuse(reused[0],owner,plan,adapters.providerIdentity);
+      if(canonicalJson(request.projectionReceipt)!==canonicalJson(receipt)||request.plan.products.length!==ready.size
+        ||request.plan.products.some(p=>!ready.has(p.publicId)||ready.get(p.publicId)!.source_facts_hash!==p.sourceFactsHash)
+        ||request.plan.absentIds.some(id=>ready.has(id)))throw new Error('vector_plan_incomplete');
+      const observation=await readReuseVectors(db,owner,reused[0],plan,adapters);await check();return observation;
+    }
     const requests=new Map(rows.map(row=>[decodeRequest(row.request_json).publicId,decodeRequest(row.request_json)]));
     if(rows.length!==plan.ids.length||requests.size!==plan.ids.length||rows.some(row=>row.status!=='complete'||row.disposition!=='verified')
       ||!receipt||projections.length>40||projections.some(row=>!plan.ids.includes(row.public_id))

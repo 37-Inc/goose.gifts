@@ -54,8 +54,16 @@ Boundaries (always in force):
 
 ### Cloudflare migration boundary
 
-The Cloudflare catalog path is opt-in migration work, not the current scheduled
-writer. Until `roadmap-lbbz1.4` records the final source-write barrier, delta
+As of October 21, `https://stupid.gifts/` is public on Cloudflare Free with an
+eight-product reviewed launch cohort. The old Goose site remains on
+Vercel/Neon; the sole merchant/discovery runner is still Neon-backed. Public
+D1 serving is a replica, not permission for a second merchant fetch or source
+writer. Full migration and old-domain redirects remain separate open gates.
+The bounded same-response daily publisher is still being validated; never
+equate a maintenance receipt with a refreshed public release. See the current
+production checkpoint in `STUPID_GIFTS_STAGING.md`.
+
+Until `roadmap-lbbz1.4` records the final source-write barrier, delta
 reconciliation, protected credentials and verified publication, use
 `npm run catalog:daily -- --backend neon --no-notify` with the existing
 Production bootstrap. The existing `goose-gifts-daily-ops` task is the sole
@@ -143,7 +151,12 @@ alone is not proof that public caches refreshed. The 24-hour fallback remains.
 1. **Orient.** Read `docs/ops/JOURNAL.md` (last few entries), `docs/ops/NEEDS.md`,
    and `docs/ops/ROADMAP.md`. Check for open PRs/issues and any comments from
    Cameron (treat his comments as direction).
-2. **Health check.** Verify https://www.goose.gifts/ (200, correct title),
+2. **Health check.** Verify https://stupid.gifts/ and the still-retained
+   https://www.goose.gifts/ (200, correct titles). On Stupid Gifts, check the
+   live release identity and original merchant expiry, a current product's
+   tagged retailer link, search, random gifts and guides. Do not confuse the
+   protected staging catalog with this public cohort. For the old Goose site,
+   check
    `/sitemap.xml`, `/search` redirect behavior, and a semantic catalog search
    such as `/?q=dad%20with%20no%20spare%20time`. If the site is
    down or broken: fixing it is the entire day's work; escalate (see below) if

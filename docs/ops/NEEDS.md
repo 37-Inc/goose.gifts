@@ -22,12 +22,23 @@ The receipt-derived
 October31 v11 review remains pending and will not run automatically while the
 studio is paused. See `PINTEREST_STUDIO.md` for the restart contract.
 
-The current Goose production site remains on Vercel/Neon; the protected
-Cloudflare staging implementation is not a completed cutover. October 21:
-Cameron explicitly authorizes immediate launch when essential checks pass;
-do not wait for tomorrow, a show date, another visual approval or a prelaunch
-seven-day observation. The observation gates destructive retirement afterward.
-Before launch:
+**Public launch, October 21:** `https://stupid.gifts/` now serves eight reviewed,
+fresh products from Cloudflare Free. Production Worker version
+`78278d59-a380-43fa-8227-228028e1fd53` and deployment
+`4d32fdae-d749-4ea4-a3a0-f20b5abeb32c` match the sealed launch receipt.
+Desktop/mobile browsing, search, random gifts, guides and an actual tagged
+Amazon navigation passed. GA4 and PostHog stored launch QA events; these are
+not evidence of acquired human traffic. The old Goose site remains on
+Vercel/Neon. This is **not** the full-catalog/writer/provider migration.
+
+Engineering still owns the bounded daily same-response publication proof:
+the first full rehearsal reached its existing request cap and stopped safely;
+no extra merchant/model request or quota reset was made. The original launch
+display deadline is October 22 at 22:18:10.044Z. The live page must not be
+called continuously refreshed until a real daily publication is verified.
+Immediate launch was authorized; a show date, another visual approval or a
+prelaunch seven-day wait is not required. Observation gates destructive
+retirement afterward. Remaining launch/migration follow-ups:
 
 - Verify a useful, current product selection. An actual episode/show date and
   physical demonstration remain owner-coordinated follow-ups, not prerequisites
@@ -64,8 +75,10 @@ Cameron separately authorized one additional fetch of the same ten launch
 products on October 21, without resetting the failed daily reservation. That
 single response was captured at 22:18:10.044Z. Explicit prospective factual/copy
 review admits eight products; Gracula and Splatypus remain held by the existing
-catalog-fit filter. No extra fetch, model call, lowered score or fictitious
-historical approval was used. All merchant display deadlines remain October 22
+catalog-fit filter. No lowered score or fictitious historical approval was used.
+Cameron then separately approved one initial embedding batch, capped at $0.01:
+eight products used 636 tokens (estimated $0.00001272), with no copy generation
+or second merchant fetch. All merchant display deadlines remain October 22
 22:18:10.044Z. This is a launch cohort, not a successful daily writer/publication
 canary or complete migration.
 

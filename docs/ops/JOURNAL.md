@@ -33,6 +33,19 @@ events. These are **QA, not human acquisition**. Measurement IDs
 PR #213 (`b3c8961`) pins public analytics in subsequent publication configs so a
 routine static rebuild cannot silently default it off.
 
+The first complete local publisher rehearsal stopped at its unchanged
+600-HTTP/1,200-SQL budget before publication. No live dispatch or extra
+merchant/model call was made by that rehearsal. Bounded receipt reads and a
+verification-only reuse path are being reviewed: they must link actual settled
+maintenance deliveries and independently read back exact native vectors, never
+invent another dispatch or raise the budget. The original daily job was updated
+in place to its reviewed same-response helper SHA
+`277eb9617e97e55822ad077d4644682610bac3f94dd8e2768632d8db09c52e5a`.
+Its existing ID, 08:30 Pacific cadence, daily/weekly limits, no-Slack policy,
+Cloudflare Free restriction and Pinterest pause are unchanged. Keep that helper
+as the sole source runner while its captured response feeds the public replica;
+a completed canary alone is not permission to switch to a capture-free command.
+
 Correct Riley Associates site-list and tag membership are verified below. No
 Cloudflare upgrade, extra merchant fetch, daily allowance reset, social/Slack
 post, Pinterest resume or destructive retirement was performed. Source Neon
