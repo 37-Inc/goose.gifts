@@ -64,6 +64,15 @@ with six-theme discovery on Mondays only. Do not run the old weekly command
 as well: its 50 refreshes and editorial backfill exceed this approved policy.
 Do not select D1 because a readiness check passes.
 
+The sole persistent operator source checkout is
+`/Users/cameronehrlich/.codex/worktrees/goose-migration-integration/goose.gifts`.
+Keep it attached; do not archive this worktree or run publication from the shared
+`/Users/cameronehrlich/goose.gifts` checkout, which other authorized chats use.
+Require the operator checkout clean and fast-forward its dedicated branch from
+`origin/main` before running. Never switch/clean another chat's branch or adopt
+its ignored build output. Pin each publication to that exact clean commit and
+this same source path. An unsafe/dirty operator checkout is a review gate.
+
 Before maintenance, run
 `npm run catalog:purge -- --workspace "$HOME/.codex/private/goose-gifts-migration/weekly-runs" --repository "$PWD"`
 from the stable canonical checkout. It physically expires registered older-run
@@ -72,8 +81,11 @@ Review unsafe, legacy or interrupted-run reports; never delete a lock, reset a
 reservation, adopt another checkout's output, or erase history to force progress.
 The daily command reserves its allowance before dispatch; failures and retries
 do not buy another batch that day. A skipped repeat is expected, not a failure.
-Daily refresh makes no model calls, does no discovery/backfill and does not
-globally rewrite affiliate URLs. Monday discovery deduplicates all existing
+Tuesday–Sunday refreshes make no model calls. On Monday, changed/missing
+editorial or vectors may be enriched only within the same reserved ten-product
+selection and original merchant response; unchanged approved content/vectors
+are reused. There is no global existing-product backfill or affiliate rewrite.
+Monday discovery deduplicates all existing
 identities, including inactive rows, before enrichment and admits at most twenty
 new products. Selected refreshes use the canonical affiliate tag.
 
@@ -203,9 +215,10 @@ alone is not proof that public caches refreshed. The 24-hour fallback remains.
    Use `npm run catalog:audit-guides` for a read-only audit of the product
    counts currently rendered by every canonical gift guide.
    The command uses `@vercel/postgres` over HTTPS, enriches product copy/tags,
-   substantive editorial, and embeddings, upserts discovered products, and
-   backfills a bounded set of existing active products missing or carrying
-   stale editorial. Amazon Creators API is the primary source for product
+   substantive editorial, and embeddings, and upserts discovered products.
+   Monday's selected-only enrichment handles changed/missing existing content
+   within that day's same ten products, without another merchant refresh.
+   Amazon Creators API is the primary source for product
    discovery, enrichment, and revalidation. It must supply a full current title,
    explicit offer availability, image, vended affiliate URL, and enough listing
    facts before editorial can become `generated_ready`; Google CSE is only a
@@ -217,8 +230,10 @@ alone is not proof that public caches refreshed. The 24-hour fallback remains.
    collapsed before enrichment. Dry runs perform the same existing-catalog
    deduplication whenever `POSTGRES_URL` is available. Known prices still gate the
    configured min/max range; unknown-price products should link through to
-   Amazon for the current price. Use `npm run catalog:editorial` (or the legacy
-   `catalog:enrich` alias) to backfill existing products. By default it processes
+   Amazon for the current price. Legacy manual `catalog:editorial` (or
+   `catalog:enrich`) remains available for separately authorized repair; do not
+   run it from the scheduled task or on top of its consumed daily allowance.
+   Its historical default processes
    at most 25, re-fetches Amazon in batches of ten, holds unavailable/generic/
    ambiguous/duplicate items, and writes append-only decision events. Use
    `--ids ASIN,ASIN` for an exact cohort or `--editorial-seed <repo-json>` to
