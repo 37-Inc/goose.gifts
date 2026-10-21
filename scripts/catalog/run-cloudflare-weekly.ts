@@ -24,6 +24,7 @@ import type { ApprovedCohortRequest, ApprovedCohortRevision } from '../../lib/ca
 import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import { canonicalTime } from '../../lib/catalog/snapshot.ts';
 import amazonCreators from '../../lib/amazon-creators.js';
+import { dailyCatalogPhases, pacificCatalogCalendar, runDailyCatalogWithBackend, withCatalogCadence } from '../ops/catalog-daily.mjs';
 
 type KeychainRef={service:string;account:string};
 type InputRef={path:string;sha256:string;observedAt:string};
@@ -31,7 +32,8 @@ export interface CloudflareWeeklyConfig {
   schemaVersion:1;runId:string;catalogRevision:string;codeSha:string;environment:'staging'|'production';accountId:string;
   database:{id:string;name:string};vectorIndex:{name:string;dimensions:1536;metric:'cosine'};
   catalog:{associateTag:string;marketplace:'www.amazon.com'};backfillLimit:number;
-  credentials:{cloudflare:KeychainRef;amazonId:KeychainRef;amazonSecret:KeychainRef;amazonVersion:string;openai:KeychainRef;stagingAuthSecret?:KeychainRef};
+  cadence?:{day:string;featuredIds:string[]};
+  credentials:{cloudflare:KeychainRef;amazonId:KeychainRef;amazonSecret:KeychainRef;amazonVersion:string;openai?:KeychainRef;stagingAuthSecret?:KeychainRef};
   limits:{requests:number;statements:number};retention:RetentionPolicy;
   inputs:{previous:InputRef;context:InputRef;rights:InputRef;originalVectors?:InputRef};publication:PublicationConfig;
 }
@@ -59,16 +61,21 @@ let executing=false; // Environment isolation across differing DB/workspace scop
 
 export function validateCloudflareWeeklyConfig(input:unknown):CloudflareWeeklyConfig {
   const c=input as CloudflareWeeklyConfig;
-  if(!exact(c,'accountId,backfillLimit,catalog,catalogRevision,codeSha,credentials,database,environment,inputs,limits,publication,retention,runId,schemaVersion,vectorIndex')
+  const credentialKeys=['amazonId','amazonSecret','amazonVersion','cloudflare',...(c?.credentials?.openai?['openai']:[]),...(c?.credentials?.stagingAuthSecret?['stagingAuthSecret']:[])].sort().join(',');
+  if(!exact(c,['accountId','backfillLimit','catalog','catalogRevision','codeSha','credentials','database','environment','inputs','limits','publication','retention','runId','schemaVersion','vectorIndex',...(c?.cadence?['cadence']:[])].sort().join(','))
     ||c.schemaVersion!==1||!KEY.test(c.runId)||!KEY.test(c.catalogRevision)||c.catalogRevision.length>64||!/^[a-f0-9]{40}$/.test(c.codeSha)
     ||!Number.isInteger(c.backfillLimit)||c.backfillLimit<0||c.backfillLimit>25
-    ||!exact(c.credentials,c.credentials?.stagingAuthSecret?'amazonId,amazonSecret,amazonVersion,cloudflare,openai,stagingAuthSecret':'amazonId,amazonSecret,amazonVersion,cloudflare,openai')
+    ||!exact(c.credentials,credentialKeys)||!c.cadence&&!c.credentials.openai
     ||c.environment==='staging'&&!c.credentials.stagingAuthSecret
-    ||![c.credentials.cloudflare,c.credentials.amazonId,c.credentials.amazonSecret,c.credentials.openai,...(c.credentials.stagingAuthSecret?[c.credentials.stagingAuthSecret]:[])].every(keychain)
+    ||![c.credentials.cloudflare,c.credentials.amazonId,c.credentials.amazonSecret,...(c.credentials.openai?[c.credentials.openai]:[]),...(c.credentials.stagingAuthSecret?[c.credentials.stagingAuthSecret]:[])].every(keychain)
     ||!['2.1','2.2','2.3','3.1','3.2','3.3'].includes(c.credentials.amazonVersion)
     ||!exact(c.limits,'requests,statements')||!Number.isInteger(c.limits.requests)||c.limits.requests<2||c.limits.requests>10000
     ||!Number.isInteger(c.limits.statements)||c.limits.statements<1||c.limits.statements>25000
     ||!exact(c.inputs,c.inputs?.originalVectors?'context,originalVectors,previous,rights':'context,previous,rights'))throw new Error('weekly_configuration_invalid');
+  if(c.cadence&&(!exact(c.cadence,'day,featuredIds')||!/^\d{4}-\d{2}-\d{2}$/.test(c.cadence.day)
+    ||pacificCatalogCalendar(`${c.cadence.day}T12:00:00Z`).day!==c.cadence.day||c.backfillLimit!==0
+    ||!Array.isArray(c.cadence.featuredIds)||c.cadence.featuredIds.length>100||new Set(c.cadence.featuredIds).size!==c.cadence.featuredIds.length
+    ||c.cadence.featuredIds.some(id=>!/^[A-Z0-9]{10}$/.test(id))))throw new Error('weekly_cadence_invalid');
   validateRunnerCheckConfig({schemaVersion:1,environment:c.environment,accountId:c.accountId,database:c.database,vectorIndex:c.vectorIndex,
     catalog:c.catalog,cloudflareReadToken:c.credentials.cloudflare});
   const p=validatePublicationConfig(c.publication);
@@ -128,12 +135,13 @@ async function readOriginalVectors(ws:RunWorkspace,ref:ArtifactRef):Promise<Reco
   return(value&&typeof value==='object'&&!Array.isArray(value)&&value.type==='run-workspace-blob'
     ?JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(await ws.readBlob(ref))):value) as Record<string,unknown>;
 }
-async function scopedProviders<T>(config:CloudflareWeeklyConfig,resolveToken:(ref:KeychainRef)=>Promise<string>,action:()=>Promise<T>) {
+async function scopedProviders<T>(config:CloudflareWeeklyConfig,resolveToken:(ref:KeychainRef)=>Promise<string>,action:()=>Promise<T>,needsModel=true) {
+  if(needsModel&&!config.credentials.openai)throw new Error('weekly_model_credentials_missing');
   const names=Object.keys(process.env).filter(key=>/^(CATALOG_|AMAZON_|OPENAI_|GOOGLE_SEARCH_|POSTGRES_|VERCEL_)/.test(key));
   const values={...Object.fromEntries(names.map(key=>[key,undefined])),AMAZON_ASSOCIATE_TAG:config.catalog.associateTag,
     AMAZON_MARKETPLACE:config.catalog.marketplace,AMAZON_CREATORS_CREDENTIAL_VERSION:config.credentials.amazonVersion,
     AMAZON_CREATORS_CREDENTIAL_ID:await resolveToken(config.credentials.amazonId),AMAZON_CREATORS_CREDENTIAL_SECRET:await resolveToken(config.credentials.amazonSecret),
-    OPENAI_API_KEY:await resolveToken(config.credentials.openai)};
+    OPENAI_API_KEY:needsModel?await resolveToken(config.credentials.openai!):undefined};
   const old=Object.fromEntries(Object.keys(values).map(key=>[key,process.env[key]]));
   try{for(const [key,value]of Object.entries(values)){if(value===undefined)delete process.env[key];else process.env[key]=value;}amazonCreators.clearToken();return await action();}
   finally{amazonCreators.clearToken();for(const [key,value]of Object.entries(old)){if(value===undefined)delete process.env[key];else process.env[key]=value;}}
@@ -152,9 +160,10 @@ async function mutationKnown(db:CatalogD1,deliveryId:string){
 export interface WeeklyDriverOptions {
   command:'preflight'|'start'|'resume'|'status';configPath:string;configSha256:string;workspace:string;
   approval?:{path:string;sha256:string};
+  cadenceOnly?:boolean;
 }
 type Dependencies={repository?:string;fetch?:typeof fetch;resolveToken?:(ref:KeychainRef)=>Promise<string>;now?:()=>string;
-  publication?:Parameters<typeof executePublication>[0]['dependencies']};
+  publication?:Parameters<typeof executePublication>[0]['dependencies'];cadence?:Parameters<typeof dailyCatalogPhases>[0]};
 
 /** Concrete opt-in local command; no scheduling, schema enablement or ambient
  * credential fallback. A post-phase approval is independently reviewed/pinned.
@@ -163,6 +172,9 @@ type Dependencies={repository?:string;fetch?:typeof fetch;resolveToken?:(ref:Key
 export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependencies:Dependencies={}) {
   const repo=dependencies.repository||repository;const now=dependencies.now||(()=>new Date().toISOString());
   const config=validateCloudflareWeeklyConfig(await reviewed(options.configPath,options.configSha256,repo,32768));
+  if(options.cadenceOnly&&!config.cadence)throw new Error('weekly_daily_cadence_required');
+  if(config.cadence&&['start','resume'].includes(options.command)&&!dependencies.cadence)
+    return withCatalogCadence({workspace:options.workspace,repository:repo,now},(cadence:Dependencies['cadence'])=>runCloudflareWeekly(options,{...dependencies,cadence}));
   if(options.approval&&options.command!=='resume')throw new Error('weekly_approval_requires_phase_resume');
   const scope={environment:config.environment,indexName:config.vectorIndex.name};const resolveToken=dependencies.resolveToken||resolveReadToken;
   const workspaceOptions:RunWorkspaceOptions={directory:options.workspace,repository:repo,mode:options.command==='start'?'create':'resume',
@@ -194,6 +206,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     if(head!==config.codeSha||resolve(config.publication.sourceRoot)!==resolve(repo)
       ||execFileSync('git',['status','--porcelain','--untracked-files=all'],{cwd:repo,encoding:'utf8'}).trim())throw new Error('weekly_source_mismatch');
     workspace=await openRunWorkspace(workspaceOptions);const ws=workspace;
+    await ws.purgeExpired();
     let saved=await ws.readCheckpoint({controlOnly:true});
     if(saved&&['phases_running','phase_failed','attention','finalized'].includes(saved.checkpoint.phase)
       &&!(saved.checkpoint.phase==='attention'&&resolving(saved.checkpoint)))
@@ -240,6 +253,12 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       await write({pins});
     }
     if(cp.phase==='created'){
+      if(config.cadence){
+        if(pacificCatalogCalendar(now()).day!==config.cadence.day)throw new Error('weekly_cadence_day_changed');
+        const phases=await dailyCatalogPhases(dependencies.cadence!,config.cadence.featuredIds);
+        if(!phases.length)return{state:'skipped',reason:'cadence_already_reserved'};
+        if(phases.some(p=>p.discoveryNewOnly)&&!config.credentials.openai)throw new Error('weekly_model_credentials_missing');
+      }
       const owner=await claimMutationOwnership(db,scope,{phase:'writing',ownerReference:config.runId,operationKey:sha256(`weekly:${options.configSha256}`)});
       if(!owner)throw new Error('weekly_owner_busy');const cursor={current:owner};await write({phase:'phases_running',owner});
       const intent=await ws.readArtifact(cp.pins.rights) as unknown as {rightsById:Record<string,never>;reviewedDeleteReference?:string};
@@ -254,8 +273,9 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
             const phaseComplete=await ws.putArtifact(finalization(input.finalization),{kind:'publication',observedAt:now()});
             await write({phase:'phases_complete',owner:cursor.current,phaseComplete});return{status:'pending'};
           },async finalizeRun(id:string,input:Record<string,unknown>){await telemetry.finishCatalogRun(id,input);return telemetry.loadCatalogRun(id);}};
-        await runWeeklyCatalogWithBackend(backend);
-      });}catch(error){
+        if(config.cadence)await runDailyCatalogWithBackend({...backend,cadence:dependencies.cadence!,featuredIds:config.cadence.featuredIds});
+        else await runWeeklyCatalogWithBackend(backend);
+      },!config.cadence||(await dailyCatalogPhases(dependencies.cadence!,config.cadence.featuredIds)).some(p=>p.discoveryNewOnly));}catch(error){
         const durable=await ws.readCheckpoint();if(durable){saved=durable;cp=durable.checkpoint;}
         if(cp.phase==='phases_running'){
           const row=await telemetry.loadCatalogRun(config.runId);

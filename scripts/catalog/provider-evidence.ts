@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { isDeepStrictEqual } from 'node:util';
 import type { ProductRights } from '../../lib/catalog/types.ts';
 import { editorialSourceHash, normalizedSourceSnapshot, sourceFactCount } from '../ops/catalog-editorial-core.mjs';
 import { canonicalJson, EMBEDDING_MODEL, sha256 } from './migration.ts';
@@ -92,9 +93,11 @@ export function createCatalogProviderEvidence(options: {
           || typeof original.sourceFacts!=='object' || Array.isArray(original.sourceFacts) || sourceFactCount(original)<1) continue;
         const variants=[structuredClone(original)];
         if (normalize) {
-          const normalized=normalize(structuredClone(original));
+          const normalized=normalize(structuredClone(variants[0]));
           // Only the runner's existing deterministic image cleanup is allowed.
-          if (canonicalJson({...normalized,imageUrl:original.imageUrl})!==canonicalJson(original)) throw new Error('provider_evidence_normalization');
+          // Provider JS objects can legitimately carry explicit undefined
+          // optional ratings. Compare them exactly; only receipts are JSON.
+          if (!isDeepStrictEqual({...normalized,imageUrl:variants[0].imageUrl},variants[0])) throw new Error('provider_evidence_normalization');
           variants.push(normalized);
         }
         for (const p of variants) {

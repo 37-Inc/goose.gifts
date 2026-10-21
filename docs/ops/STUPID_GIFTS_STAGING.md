@@ -3,6 +3,39 @@
 This is an additive, protected Cloudflare preview, not a production cutover.
 The launch spec and `roadmap-lbbz1` remain authoritative.
 
+### October 21 operator checkpoint
+
+- The signed-in account is still Workers Free ($0); no $5 subscription or $15
+  minimum was purchased. Codex runs the existing local task, not hosted CI.
+- A fresh repeatable-read export (`export-2026-10-21-before-daily/`) contains
+  all thirteen tables / 11,921 rows. Every table's row count and byte hash
+  matches the October 20 export. New manifest SHA-256:
+  `7e0ef540f25ef41f8dca0ffa8c7360f8741790951feb8a95cf8097dd2be2be02`.
+  Recovery metadata is captured in the same transaction; final writer-barrier
+  reconciliation remains required before production changes.
+- Migrations 0009–0012 are installed in isolated staging. All 3,383 products
+  and prior publication counts are preserved. Only staging's mutation fence
+  is enabled, idle with no pending vectors, deliveries, builds or runs.
+  `operator-readiness-jBhZTA/receipt.json` SHA-256:
+  `84a8a68f1e080bd670f4ccfc8d83c8a51fd9c5215506fa6a14ff6b8ca90dfd24`.
+  Five read-only readiness requests read 220 rows and wrote zero. This is
+  structural readiness, not execution, search coverage or a public cutover.
+- Daily canary `57fc2e81-6eb9-4357-a17d-777435352b12` selected ten distinct
+  products but failed in the private verification adapter after one merchant
+  response, before product writes. Exact telemetry and product timestamps
+  confirm zero refreshed products and zero OpenAI calls. The repeated installed
+  command correctly skipped the consumed allowance. The optional-field evidence
+  comparison and private adapter serialization are fixed; a fresh successful
+  merchant/publication canary is **still pending**, not falsely marked passed.
+  Preserve the October 21 reservation; the next daily allowance is October 22.
+  Sanitized receipt `daily-canary-2026-10-21-receipt.json` SHA-256:
+  `c753e946a0bd7c8c7bf8e36fe74aeaa051080c76005931562dfc60a14232afe2`.
+- Search is visible in safe states and bookmarked mobile queries scroll into
+  view. Open-tab product bodies expire without requiring a reload. Presentation
+  keeps its existing unavailable-episode archive. Synthetic visual/browser QA
+  is not owner approval of a real opening cohort. The earlier four-product
+  merchant observation has expired; never relabel it as current.
+
 ### Verified checkpoint — October 20, 13:50 UTC
 
 PRs #189–199 are merged. Source `c82ea01e00373a403877be2968f623c503d9b591`
@@ -418,15 +451,20 @@ publication, even at equal database timestamps. It does not revoke previously
 served bytes instantly or extend their original expiry. Default Neon behavior
 remains unchanged; this bridge does not activate the scheduled D1 writer.
 
-### Explicit weekly driver — not scheduled
+### Explicit Cloudflare driver and approved Codex operator
 
 `npm run catalog:cloudflare -- --help` describes the separate
 `preflight`, `start`, `resume` and `status` commands. Every invocation requires
 an absolute private configuration file, its exact SHA-256 and the same
 canonical private workspace root:
 `~/.codex/private/goose-gifts-migration/weekly-runs`.
-Do not change `catalog:weekly`, add another job or create a second workspace
-root to bypass a pending run.
+The October 21 owner decision uses one existing Codex task, not new hosted CI
+or a Cloudflare Cron. Pre-cutover, `catalog:daily -- --backend neon --no-notify`
+refreshes up to ten existing products per Pacific day and discovers new products
+on Mondays. A pinned D1 daily configuration uses the same protected driver via
+`catalog:daily -- --backend d1`; no implicit backend fallback or writer cutover.
+Do not also run the old weekly command or create another workspace to bypass a
+reservation or pending run.
 
 The reviewed configuration pins the clean source commit, account, D1
 ID/name, Vectorize index, Worker, affiliate tag, private input hashes,
@@ -436,7 +474,7 @@ environment fallback. Retention review is an input, not a grant supplied by
 the runner; it never extends the merchant observation's original deadline.
 `preflight` and `status` do not start provider phases or change ownership.
 
-`start` runs the existing bounded weekly phases with the D1 maintenance and
+`start` runs the configured bounded phases with the D1 maintenance and
 telemetry adapters, durably records merchant/embedding evidence and stops at
 `phases_complete`. Promotion requires a **separately reviewed post-phase**
 approval envelope passed to `resume` with its SHA-256. This is a migration
@@ -445,7 +483,8 @@ Resume drains the exact pending vectors, freezes the approved cohort, verifies
 the native vectors, builds/seals the assets, invokes the immutable Worker
 version upload, activates it and independently reads back the deployment, protected
 release identity and native vectors. Only then can publication and final
-weekly telemetry be marked complete. The 20-ID cohort limit still applies.
+telemetry be marked complete. The 20-ID promotion bound still applies; it is
+not permission to refresh more than ten existing products that day.
 
 The workspace keeps immutable content-addressed artifacts, checkpoint CAS,
 original expiry metadata and an append-only budget journal. D1 requests are
@@ -483,16 +522,23 @@ four-ready / 3,379-held package is bounded at 415 files / 14,957,413 bytes,
 without raising the 10,000-file or 128 MiB ceilings. This is an asset-size
 proof, not Cloudflare CPU/load acceptance (`roadmap-lbbz1.4.2`).
 
-Hosted operation remains `roadmap-lbbz1.4.3`, not an authentication-only gate.
-This repository is public; private catalogs, evidence and workspaces must never
-be uploaded as public Actions artifacts/logs. Standard
-[GitHub-hosted runners start on fresh machines](https://docs.github.com/en/actions/concepts/runners/github-hosted-runners),
-so this local durable workspace cannot simply become an unattended hosted job.
-Choose protected persistent storage and a globally serialized execution path;
-implement and test physical body expiry/purge while retaining only the minimal
-control evidence needed to reconcile an already-dispatched activation.
-Current expiry checks block use but do not physically purge stored bodies.
-No new storage service, paid plan, workflow or scheduler is enabled.
+`roadmap-lbbz1.4.3` now uses Codex's existing local persistent private workspace.
+This public repository must never contain private catalogs, evidence, credentials
+or Actions artifacts. A future hosted operator remains deferred, not a launch
+prerequisite. The workspace physically purges expired registered bodies after
+journaling tombstones; minimal activation controls and budget reservations
+survive. The driver purges on open, and `catalog:purge` also sweeps older runs
+before daily maintenance, including interrupted runs without altering their
+phase, ownership or unresolved activation. Unsafe or unowned legacy files are reported
+for review, never adopted or swept. Exact source build intermediates are removed
+after independent package verification so subsequent runs can share the stable
+checkout. No new storage subscription, paid plan or second scheduler is needed.
+
+When prior merchant bodies have expired, `publication.prior.directory: null`
+uses only the exact prior release/manifest/version identity. It verifies the D1
+publication receipt plus actual deployed version and live identity without
+copying old content. Supplying a private prior directory is an optional short
+asset-overlap mode and retains its original observation/expiry bounds.
 
 Publication configuration may include an explicitly reviewed `semanticSearch`
 policy (`enabled`, `dailyRequestCap`, `dailyTokenCap`). Omission preserves the

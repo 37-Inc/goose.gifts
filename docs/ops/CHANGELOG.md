@@ -38,6 +38,10 @@ what's likely next.
   Google Cloud and remaining-provider rebrand checklist. Research/pricing
   integration is post-launch (`roadmap-mt1gp`). Implementation and staged
   migration are now authorized and underway; no live rebrand/cutover yet.
+  October21 owner approved using the existing Codex task for up to ten daily
+  existing-product refreshes and weekly discovery. Finish private restart/
+  cleanup and publication verification; hosted CI/Cloudflare Cron is deferred.
+  Cloudflare account remains Free; $15 was an estimate, not a subscription.
   Final retirement (`roadmap-lbbz1.7`) covers Vercel/Neon removal, GitHub
   rename, the live 37.technology listing, independent redirects and an
   expiry-aware old-domain auto-renew decision.
@@ -202,6 +206,35 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-21 [owner+claude] — Bounded Codex catalog care and migration recovery
+
+- Implement the approved ten-existing-products/Pacific-day cap, one Monday
+  discovery pass, no daily model calls or old backfill, and one shared private
+  reservation/lock across retries. Retain explicit Neon versus pinned D1 modes.
+- Physically purge expired registered bodies while preserving interrupted
+  activation controls/budgets. Remove exact owned build intermediates after
+  verification; support identity-only prior releases after old assets expire.
+  The real sweep removed 36 expired artifacts; unregistered canary files remain
+  flagged for review rather than deleted. Independent safety reviews pass.
+- Improve safe-state/mobile search and open-tab expiry without replacing the
+  show presentation's unavailable-original archive. Synthetic browser/export
+  checks pass; real opening-cohort owner acceptance remains pending.
+- Fresh thirteen-table / 11,921-row export exactly matches the prior source
+  data. Install staging migrations 0009–0012 and its idle ownership scope;
+  five-request readiness proof reads 220 rows and writes zero. Production
+  remains Goose on Vercel/Neon; no public cutover or provider rebrand.
+- Live daily verification failed before product writes on optional response
+  serialization; fix the private adapter and the related provider-normalization
+  edge case with regression coverage. Ten selected, zero refreshed/model calls;
+  repeat correctly skips. Do not reset today's allowance or claim publication.
+- Verify Workers is Free, with no $5 commitment or $15 minimum. Historical
+  weekly text/embedding estimates are under one cent/run, separate from Codex
+  or Claude subscriptions. Creator Product Research stays post-launch.
+- Node22 clean-source staging rerun: 584 pass / 17 explicit optional skips;
+  broader catalog/regression selection: 629 pass / 17 skips. Lint, production
+  build and independent publisher/sweep reviews pass. Implementation PR
+  [#205](https://github.com/37-Inc/goose.gifts/pull/205).
 
 ### 2026-10-21 [owner+claude] — Pause Pinterest for Stupid.gifts cutover
 

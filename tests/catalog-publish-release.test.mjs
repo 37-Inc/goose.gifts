@@ -33,7 +33,7 @@ const bytes=value=>Buffer.from(typeof value==='string'?value:JSON.stringify(valu
 const id='00000000-0000-4000-8000-000000000001',version='00000000-0000-4000-8000-000000000002',deployment='00000000-0000-4000-8000-000000000003';
 const priorVersion='00000000-0000-4000-8000-000000000004',priorDeployment='00000000-0000-4000-8000-000000000005';
 const scope={environment:'staging',indexName:'fixture-index'};
-async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,value);}
+async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,value,{mode:0o600});}
 function fixtureRelease(snapshot,context,prior=null){
   const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/weird-gift-index','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
     ...snapshot.products.map(p=>`/gifts/${p.slug}`)];
@@ -55,7 +55,7 @@ function fixtureRelease(snapshot,context,prior=null){
     manifestSha256:sha(manifestBytes),vectorSyncWatermark:manifest.vectorSyncWatermark,priorReleaseId:manifest.priorReleaseId,nextExpiry:manifest.nextExpiry};
   return{...assembled,manifest,manifestBytes,outputs,intent};
 }
-async function setup(t,{real=false,prior=true,environment='staging',semanticSearch}={}){
+async function setup(t,{real=false,prior=true,environment='staging',semanticSearch,priorExpiryMs=26*3600000}={}){
   const scope={environment,indexName:'fixture-index'},sourceMode=environment==='staging'?'preview':'goose-production';
   let actualWorkspace;
   const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-publish-')));t.after(async()=>{
@@ -81,7 +81,7 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
   const snapshot={schemaVersion:1,dataKind:'catalog',catalogRevision:'fixture-revision',generatedAt:new Date(AT).toISOString(),products:[product],heldProducts:[],slugHistory:[]};
   let priorConfig=null,priorRelease;
   if(prior){
-    const priorSnapshot={...snapshot,catalogRevision:'fixture-prior'};
+    const priorSnapshot={...snapshot,catalogRevision:'fixture-prior',products:snapshot.products.map(p=>({...p,eligibleUntil:new Date(AT+priorExpiryMs).toISOString()}))};
     sql.prepare('INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES(?,?,?,?)').run(priorSnapshot.catalogRevision,snapshot.generatedAt,'c'.repeat(64),'reconciled');
     const priorPacket=await createProjectionPacket(priorSnapshot,{[id]:'f'.repeat(64)},'c'.repeat(64),new Date(AT));await importPublicProjection(db,priorPacket);
     priorRelease=fixtureRelease(priorSnapshot,{schemaVersion:1,sourceMode,releaseId:'fixture-prior-release',codeSha,catalogRevision:priorSnapshot.catalogRevision,
@@ -117,7 +117,8 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
       const {sha256,...value}=copy;return{sha256,checkpoint:value};},
     async writeCheckpoint(expected,value){assert.equal(expected,checkpoint.sha256);checkpoint={...structuredClone(value),sha256:sha(canonicalJson(value))};},
     async writeControlCheckpoint(expected,value){assert.equal(expected,checkpoint.sha256);checkpoint={...checkpoint,...structuredClone(value)};checkpoint.sha256=sha(canonicalJson(checkpoint));},
-    async putArtifact(value){return{sha256:sha(canonicalJson(value)),reference:'publication/fixture'};}};
+    async putArtifact(value){return{sha256:sha(canonicalJson(value)),reference:'publication/fixture'};},
+    async preparePublicationDirectories(){},async cleanPublicationBuild(){}};
   let workspaceOptions;
   const wrapActual=()=>({...actualWorkspace,async writeCheckpoint(expected,value){const result=await actualWorkspace.writeCheckpoint(expected,value);checkpoint={...result.checkpoint,sha256:result.sha256};return result;},
     async writeControlCheckpoint(expected,value){const result=await actualWorkspace.writeControlCheckpoint(expected,value);checkpoint={...checkpoint,...result.checkpoint,sha256:result.sha256};return result;}});
@@ -137,13 +138,16 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
   const command=async command=>{
     if(command.args.includes('scripts/staging/build.mts')){
       buildCalls++;const context=JSON.parse(await fs.readFile(command.env.CATALOG_RELEASE_CONTEXT_PATH));
-      const assembled=fixtureRelease(snapshot,context,await readPriorRelease(context,config.prior?.directory));manifest=assembled.manifest;
+      const assembled=fixtureRelease(snapshot,context,await readPriorRelease(context,command.env.CATALOG_PRIOR_RELEASE_PATH));manifest=assembled.manifest;
       for(const [name,b]of Object.entries(assembled.outputs))await put(path.join(sourceRoot,'build/stupid-gifts',name),b);
       for(const [name,b]of assembled.assets)await put(path.join(sourceRoot,'static-site/out',name.slice(1)),b);
       if(mode.sourceDrift)await put(path.join(sourceRoot,'.gitignore'),'changed');
       if(mode.buildLost){delete mode.buildLost;throw new Error('PRIVATE build interrupted after output');}
     }else if(command.args.includes('upload')){
       uploadCalls++;const cfg=JSON.parse(await fs.readFile(command.args[command.args.indexOf('--config')+1]));assert.equal(cfg.name,config.workerName);
+      const runtime=path.join(workspace.directory,'publication-runtime',config.releaseId);
+      assert.equal(command.args[command.args.indexOf('--outdir')+1],path.join(runtime,'bundle'));
+      assert.equal(command.env.TMPDIR,path.join(runtime,'tmp'));assert.equal(command.env.WRANGLER_LOG_PATH,path.join(runtime,'logs'));
       uploadedConfigs.push(cfg);assert.equal(command.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED,'false');
       assert.equal(cfg.routes,undefined);assert.equal(cfg.triggers,undefined);uploaded=true;
       if(mode.uploadLost)throw new Error('PRIVATE upload secret');
@@ -181,9 +185,9 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
   };
   const execute=()=>executePublication({db,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
     credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock)}});
-  return{db,sql,owner,revision,workspace,config,execute,mode,uploadedConfigs,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
+  return{db,sql,owner,revision,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
     async nextRelease(){
-      assert.equal(real,false);assert.equal((await readMutationOwner(db,scope)),null);
+      assert.equal((await readMutationOwner(db,scope)),null);
       const packageDirectory=path.join(workspace.directory,'packages',config.releaseId);
       priorRelease={manifestBytes:await fs.readFile(path.join(packageDirectory,'asset-manifest.json'))};
       config.prior={directory:packageDirectory,manifestSha256:sha(priorRelease.manifestBytes),releaseId:config.releaseId,versionReference:targetVersion};
@@ -195,6 +199,13 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
       const columns=Object.keys(delivery);sql.prepare(`INSERT INTO catalog_vector_deliveries(${columns.join(',')}) VALUES(${columns.map(()=>'?').join(',')})`)
         .run(...columns.map(name=>delivery[name]));
       checkpoint={...checkpoint,sha256:'0'.repeat(64),phase:'freezing',owner:nextOwner,state:{driverState:'preserved'},control:{}};
+      if(real){
+        await actualWorkspace.close();workspaceOptions={...workspaceOptions,runId:'fixture-next-run'};
+        actualWorkspace=await openRunWorkspace(workspaceOptions);
+        const {sha256:unused,...initial}=checkpoint;void unused;
+        const saved=await actualWorkspace.writeCheckpoint(null,{...initial,pins:{}});checkpoint={...saved.checkpoint,sha256:saved.sha256};
+        workspace=wrapActual();
+      }
       uploaded=false;active=false;versionReads=0;
     },
     async historicalAccepted({lostPermit=false}={}){
@@ -228,6 +239,36 @@ test('actual build/upload/activate/identity/native-proof/receipt/idle compositio
   assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
   assert.equal(f.checkpoint().state.driverState,'preserved');assert.doesNotMatch(JSON.stringify(f.checkpoint()),/PRIVATE|example.invalid|clockwork spoon/);
   assert.equal((await f.execute()).state,'published');assert.equal(f.counts().activateCalls,1);
+});
+
+test('identity-only prior permits a fresh publication after a missed day/purged prior, without old asset reuse',async t=>{
+  const f=await setup(t,{priorExpiryMs:5*60000});
+  const priorDirectory=f.config.prior.directory;await fs.rm(priorDirectory,{recursive:true});
+  f.config.prior.directory=null;f.advance(6*60000);
+  const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
+  assert.equal(f.counts().activateCalls,1);assert.equal(f.counts().buildCalls,1);
+  const context=JSON.parse(await fs.readFile(path.join(f.workspace.directory,'packages',f.config.releaseId,'release-context.json')));
+  assert.equal(context.priorReleaseId,f.config.prior.releaseId);assert.equal(context.retainedManifestSha256,null);
+  const manifest=JSON.parse(await fs.readFile(path.join(f.workspace.directory,'packages',f.config.releaseId,'asset-manifest.json')));
+  assert.equal(manifest.retention,null);await assert.rejects(fs.lstat(priorDirectory),{code:'ENOENT'});
+});
+
+test('identity-only prior cannot bypass exact stored manifest identity or historical published receipt',async t=>{
+  for(const changed of ['manifest','receipt'])await t.test(changed,async sub=>{
+    const f=await setup(sub);await fs.rm(f.config.prior.directory,{recursive:true});f.config.prior.directory=null;
+    if(changed==='manifest')f.config.prior.manifestSha256='e'.repeat(64);
+    else f.sql.prepare('DELETE FROM publication_receipts WHERE release_id=?').run(f.config.prior.releaseId);
+    const result=await f.execute();assert.equal(result.state,'pending');assert.equal(f.counts().activateCalls,0);
+    if(changed==='receipt')assert.equal(result.errorCode,'publication_build_not_claimed');
+    else assert.match(result.errorCode,/^publication_(prior_changed|pending)$/); // activation adapter sanitizes failed prior observations
+  });
+});
+
+test('optional prior asset reuse cannot renew an expired prior merchant package',async t=>{
+  const f=await setup(t,{real:true,priorExpiryMs:60000});f.advance(2*60000);
+  const result=await f.execute();assert.equal(result.state,'pending');
+  assert.equal(f.counts().buildCalls,0);assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
+  await assert.rejects(fs.lstat(path.join(f.workspace.directory,'packages',f.config.releaseId)),{code:'ENOENT'});
 });
 test('missing prior is an explicit bootstrap gate before claims, checkpoints, files or HTTP',async t=>{
   const f=await setup(t,{prior:false});const checkpoint=structuredClone(f.checkpoint());
@@ -301,6 +342,15 @@ test('real protected workspace preserves state/locks and permits exact expired-c
   const f=await setup(t,{real:true});const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
   assert.equal(f.checkpoint().state.driverState,'preserved');assert.equal((await f.execute()).state,'published');
 });
+test('two complete real-workspace publications reuse one checkout without retaining source build intermediates',async t=>{
+  const f=await setup(t,{real:true});assert.equal((await f.execute()).state,'published');
+  const firstDirectory=f.workspace.directory;
+  for(const name of ['build/stupid-gifts','static-site/out','static-site/.next'])await assert.rejects(fs.lstat(path.join(f.config.sourceRoot,name)),{code:'ENOENT'});
+  await f.nextRelease();assert.notEqual(f.workspace.directory,firstDirectory);
+  const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
+  assert.equal(f.counts().buildCalls,2);assert.equal(f.counts().uploadCalls,2);assert.equal(f.counts().activateCalls,2);
+  for(const name of ['build/stupid-gifts','static-site/out','static-site/.next'])await assert.rejects(fs.lstat(path.join(f.config.sourceRoot,name)),{code:'ENOENT'});
+});
 test('uploaded preactivation resume survives canonical control reordering after actual workspace close/reopen',async t=>{
   const f=await setup(t,{real:true});f.mode.stopBeforeActivation=true;
   assert.equal((await f.execute()).state,'pending');assert.equal(f.checkpoint().control.publication.stage,'uploaded');assert.equal(f.counts().activateCalls,0);
@@ -316,6 +366,10 @@ test('lost completion/resolve acknowledgements recover only historical receipt a
       lost=true;throw new Error('PRIVATE lost D1 acknowledgement');}});
     assert.equal((await f.execute()).state,'pending');assert.equal(lost,true);
     f.advance(6*60000);f.mode.noRevision=true;
+    const purged=await f.workspace.purgeExpired();assert.ok(purged.some(p=>p.reference===`packages/${f.config.releaseId}`));
+    await assert.rejects(fs.lstat(path.join(f.workspace.directory,'packages',f.config.releaseId)),{code:'ENOENT'});
+    for(const name of ['build/stupid-gifts','static-site/out','static-site/.next'])
+      await assert.rejects(fs.lstat(path.join(f.config.sourceRoot,name)),{code:'ENOENT'});
     const result=await f.execute();assert.equal(result.state,'published',`${point}: ${JSON.stringify(result)}`);
     assert.equal(f.counts().activateCalls,1);assert.equal(f.counts().buildCalls,1);assert.equal(await readMutationOwner(f.db,scope),null);
   }

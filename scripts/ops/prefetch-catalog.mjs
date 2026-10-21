@@ -455,15 +455,23 @@ function deduplicateCandidates(products, threshold = 0.8) {
   return { products: kept, duplicates, rejected };
 }
 
-function deduplicateAgainstCatalog(products, catalogProducts, threshold = 0.8) {
+function deduplicateAgainstCatalog(products, catalogProducts, threshold = 0.8, newOnly = false) {
   let duplicates = 0;
   const superseded = [];
   const rejected = [];
   const filtered = products.filter((product) => {
     const matches = catalogProducts.filter((existing) => (
-      existing.id !== product.id && areNearDuplicateTitles(existing.title, product.title, threshold)
+      (newOnly && existing.id === product.id)
+      || (existing.id !== product.id && areNearDuplicateTitles(existing.title, product.title, threshold))
     ));
     if (matches.length === 0) return true;
+
+    // Daily-cadence discovery must never refresh or supersede an existing ID.
+    if (newOnly) {
+      duplicates += 1;
+      rejected.push({ ...product, duplicateOfProductId: matches[0].id });
+      return false;
+    }
 
     const winner = selectDuplicateWinner([product, ...matches]);
     duplicates += matches.length;
@@ -1030,8 +1038,8 @@ function sleep(ms) {
 // the same bounded ASIN selection the existing client actually requests.
 // The existing image normalization is an explicit, reproducible derivation;
 // capture both original and normalized facts without changing provider values.
-function observedAmazon(operation, request, evidence) {
-  const load = () => amazonCreators[operation](request);
+function observedAmazon(operation, request, evidence, beforeRequest) {
+  const load = () => amazonCreators[operation](request, beforeRequest ? { beforeRequest } : undefined);
   return evidence ? evidence.amazon(operation, load, product => ({
     ...product, imageUrl: cleanAmazonImageUrl(product.imageUrl),
   }), operation === 'getItems' ? [...new Set(request.filter(id => /^[A-Z0-9]{10}$/.test(id)))].slice(0, 10) : undefined) : load();
@@ -1302,8 +1310,12 @@ function recordExistingSelection(telemetry, product, phase) {
 
 async function revalidateCatalog(options, telemetry, store, evidence) {
   const phaseStartedAt = Date.now();
-  const affiliateAudit = await auditAndRepairAmazonAffiliateUrls(options, store);
-  const existing = await getProductsForRevalidation(options.revalidateLimit, options.staleDays, store);
+  const affiliateAudit = options.dailyRefresh
+    ? { mismatched: 0, repaired: 0, skipped: true }
+    : await auditAndRepairAmazonAffiliateUrls(options, store);
+  const existing = options.dailyRefresh
+    ? await store.getProductsForRevalidation({ daily: true, limit: options.revalidateLimit, featuredIds: options.featuredIds || [] })
+    : await getProductsForRevalidation(options.revalidateLimit, options.staleDays, store);
   existing.forEach((product) => recordExistingSelection(telemetry, product, 'revalidation'));
   await telemetry.items.flush();
   let refreshed = 0;
@@ -1314,9 +1326,10 @@ async function revalidateCatalog(options, telemetry, store, evidence) {
   const terminalIds = new Set();
 
   for (const batch of chunkArray(existing, 10)) {
+    options.assertRefreshDay?.();
     let remoteProducts;
     try {
-      remoteProducts = await observedAmazon('getItems', batch.map((product) => product.id), evidence);
+      remoteProducts = await observedAmazon('getItems', batch.map((product) => product.id), evidence, options.assertRefreshDay);
     } catch (error) {
       if (isAmazonThrottleError(error)) {
         throttled = true;
@@ -1334,7 +1347,8 @@ async function revalidateCatalog(options, telemetry, store, evidence) {
     if (missing.length > 0) {
       await sleep(2000);
       try {
-        const confirmation = await observedAmazon('getItems', missing.map((product) => product.id), evidence);
+        options.assertRefreshDay?.();
+        const confirmation = await observedAmazon('getItems', missing.map((product) => product.id), evidence, options.assertRefreshDay);
         const confirmedPresent = new Map(confirmation.map((product) => [product.id, product]));
         confirmedPresent.forEach((product, id) => remoteById.set(id, product));
         confirmedIds = missing.filter((product) => !confirmedPresent.has(product.id)).map((product) => product.id);
@@ -1359,6 +1373,7 @@ async function revalidateCatalog(options, telemetry, store, evidence) {
     for (const product of batch) {
       const remote = remoteById.get(product.id);
       if (!remote) continue;
+      options.assertRefreshDay?.();
       const refreshedProduct = revalidatedProduct(product, remote, options, evidence);
       let persistence = { slug: product.slug };
       if (!options.dryRun) persistence = await upsertProduct(refreshedProduct, store);
@@ -1942,8 +1957,8 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
   let catalogSuperseded = [];
   if (candidates.length > 0 && (!options.dryRun || catalogReadsAvailable)) {
     try {
-      const catalog = await getActiveCatalogIdentities(store);
-      const catalogDeduplicated = deduplicateAgainstCatalog(candidates, catalog);
+      const catalog = await store.getActiveCatalogIdentities({ includeInactive: options.discoveryNewOnly === true });
+      const catalogDeduplicated = deduplicateAgainstCatalog(candidates, catalog, 0.8, options.discoveryNewOnly === true);
       candidates.splice(0, candidates.length, ...catalogDeduplicated.products);
       catalogDuplicates = catalogDeduplicated.duplicates;
       catalogSuperseded = catalogDeduplicated.superseded || [];

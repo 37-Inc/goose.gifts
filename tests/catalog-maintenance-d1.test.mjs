@@ -272,6 +272,23 @@ test('published/legacy revalidation retains40/10 lanes, overdue published pages,
   } finally {f.close();}
 });
 
+test('daily selection prioritizes explicit featured then current published ahead of arbitrarily old legacy; no writes',async () => {
+  const products=[...Array.from({length:15},(_,n)=>rawProduct(n+1)),...Array.from({length:15},(_,n)=>rawProduct(n+100,{editorialStatus:'pending'}))];
+  products[0].availability_checked_at=NOW;
+  products[20].availability_checked_at=NOW;
+  const inactive=rawProduct(999,{isActive:false});products.push(inactive);
+  const f=await setup({products,presence:Object.fromEntries(products.map(p=>[p.public_id,true]))});
+  try{
+    const before=f.epoch();
+    const rows=await f.store.getProductsForRevalidation({daily:true,limit:10,featuredIds:[products[20].id]});
+    assert.equal(rows.length,10);assert.equal(rows[0].id,products[20].id);
+    assert.deepEqual(rows.slice(1).map(r=>r.id),Array.from({length:9},(_,n)=>id(n+2)));
+    assert.equal(f.epoch(),before);
+    assert.equal((await f.store.getActiveCatalogIdentities()).some(p=>p.id===inactive.id),false);
+    assert.equal((await f.store.getActiveCatalogIdentities({includeInactive:true})).some(p=>p.id===inactive.id),true);
+  }finally{f.close();}
+});
+
 test('manual_locked, stale, numeric defaults and nullable fields retain the native-PG-reviewed pure merge semantics',async () => {
   const cases=[
     [{editorialStatus:'manual_locked'}, {editorialStatus:'generated_ready',editorialWriteup:'Replacement rejected by manual lock',editorialSourceHash:'b'.repeat(64)}],

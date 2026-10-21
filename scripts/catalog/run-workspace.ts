@@ -1,5 +1,5 @@
 import { constants } from 'node:fs';
-import { lstat, realpath, mkdir, open, link, unlink, readdir, rename } from 'node:fs/promises';
+import { lstat, realpath, mkdir, open, link, unlink, readdir, rename, rmdir } from 'node:fs/promises';
 import { dirname, isAbsolute, join, normalize, parse, sep } from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
 import { assertProtectedDestination } from './export-postgres.ts';
@@ -53,6 +53,8 @@ export interface WorkspaceManifest {
   retention:RetentionPolicy; budgetCaps:{httpRequests:number;sqlStatements:number}; createdAt:string;
 }
 type Stored = { schemaVersion:1; sha256:string; kind:Kind; observedAt:string; expiresAt:string; policySha256:string; value:Json };
+type PurgedArtifact = {ref:ArtifactRef;kind:Kind;observedAt:string;expiresAt:string;policySha256:string;storedSha256:string};
+type PublicationDirectories={releaseId:string;sourceRoot:string;observedAt:string;nextExpiry:string|null;expiresAt:string;policySha256:string};
 /** Private per-blob 32MiB cap accommodates ~28MiB of 3,383 native 1,536-vector
  * evidence. 256KiB native chunks encode to 349528B, below the unchanged 512KiB
  * artifact limit including metadata. NOT a public/REST/proof cap increase. */
@@ -67,10 +69,16 @@ type BlobChunk={schemaVersion:1;type:'run-workspace-chunk';blobSha256:string;blo
 type CheckpointView = {sha256:string;checkpoint:CheckpointControl};
 type Event = {type:'artifact';ref:ArtifactRef} | {type:'checkpoint';ref:ArtifactRef;previous:string|null;control:CheckpointControl}
   | {type:'control';sha256:string;previous:string;control:CheckpointControl}
+  | {type:'purge';artifact:PurgedArtifact;purgedAt:string}
+  | {type:'publication-directories';retention:PublicationDirectories}
+  | {type:'publication-build-cleaned';releaseId:string}
+  | {type:'publication-purged';releaseId:string;purgedAt:string}
   | {type:'reserve';reservation:BudgetReservation} | {type:'settle';id:string;settlement:BudgetSettlement};
 type RecordFile = {schemaVersion:1;sequence:number;parent:string|null;event:Event};
 type State = {head:string|null;count:number;bytes:number;checkpoint:CheckpointView|null;body:ArtifactRef|null;previous:string|null;totals:BudgetTotals;
-  refs:Map<string,ArtifactRef>;reservations:Map<string,{reservation:BudgetReservation;settlement?:BudgetSettlement}>};
+  refs:Map<string,ArtifactRef>;purged:Map<string,PurgedArtifact>;
+  publications:Map<string,{retention:PublicationDirectories;buildCleaned:boolean;purged:boolean}>;
+  reservations:Map<string,{reservation:BudgetReservation;settlement?:BudgetSettlement}>};
 export interface WorkspaceStatus {
   directory:string;manifest:WorkspaceManifest;manifestSha256:string;checkpoint:CheckpointView|null;budget:BudgetTotals;
   expired:{reference:string;kind:Kind;expiresAt:string}[];
@@ -92,6 +100,13 @@ export interface RunWorkspace {
   writeControlCheckpoint(expectedSha256:string,input:{phase:'attention'|'published';owner:MutationOwner|null;control:WorkspaceControl}):Promise<CheckpointView>;
   reserveBudget(input:BudgetReservation):Promise<void>;settleBudget(id:string,input:BudgetSettlement):Promise<void>;
   budget():Promise<BudgetTotals>;close():Promise<void>;
+  /** Claims only absent exact package/build-output paths before generation. */
+  preparePublicationDirectories(releaseId:string,observedAt:string,nextExpiry:string|null):Promise<void>;
+  /** Called only after the package has been sealed and independently verified. */
+  cleanPublicationBuild(releaseId:string):Promise<void>;
+  /** Journal retention metadata BEFORE unlinking verified object bodies and
+   * explicitly owned publication outputs; never imported history/other runs. */
+  purgeExpired():Promise<WorkspaceStatus['expired']>;
 }
 const HASH=/^[a-f0-9]{64}$/;const KEY=/^[A-Za-z0-9._-]{1,100}$/;const REF=/^[A-Za-z0-9._:/-]{1,200}$/;
 const KINDS:Kind[]=['amazon-observation','embedding-response','phase','publication','checkpoint'];
@@ -144,7 +159,17 @@ function blobChunk(value:unknown,manifest:WorkspaceBlobManifest,index:number):Bu
   const bytes=Buffer.from(v.base64,'base64');
   if(bytes.length!==expected||bytes.toString('base64')!==v.base64||byteHash(bytes)!==v.sha256)fail('blob_chunk');return bytes;
 }
-const retentionIdentity=(v:Stored)=>({kind:v.kind,observedAt:v.observedAt,expiresAt:v.expiresAt,policySha256:v.policySha256});
+const retentionIdentity=(v:Pick<Stored,'kind'|'observedAt'|'expiresAt'|'policySha256'>)=>({kind:v.kind,observedAt:v.observedAt,expiresAt:v.expiresAt,policySha256:v.policySha256});
+function purgeIdentity(value:PurgedArtifact,manifest:WorkspaceManifest) {
+  if(!exact(value,['ref','kind','observedAt','expiresAt','policySha256','storedSha256'])||!KINDS.includes(value.kind)||!hash(value.storedSha256))fail('purge');
+  artifactRef(value.ref);
+  if(!same(retentionIdentity(value),retentionIdentity(stored(null,value.kind,value.observedAt,manifest))))fail('purge');
+}
+function publicationDirectories(releaseId:string,sourceRoot:string,observedAt:string,nextExpiry:string|null,manifest:WorkspaceManifest):PublicationDirectories {
+  if(!key(releaseId)||!isAbsolute(sourceRoot))fail('publication_directories');
+  const v=stored(null,'publication',observedAt,manifest);if(nextExpiry!==null)time(nextExpiry);
+  return{releaseId,sourceRoot,observedAt:v.observedAt,nextExpiry,expiresAt:new Date(Math.min(Date.parse(v.expiresAt),nextExpiry===null?Infinity:Date.parse(nextExpiry))).toISOString(),policySha256:v.policySha256};
+}
 function intent(value:PublicationIntent) {
   if(!exact(value,['releaseId','codeSha','catalogRevision','vectorSyncWatermark','priorReleaseId','nextExpiry','catalogSnapshotSha256','manifestSha256'])
     ||!key(value.releaseId)||!key(value.catalogRevision)||!/^[a-f0-9]{40}$/.test(value.codeSha)||!integer(value.vectorSyncWatermark)
@@ -257,17 +282,32 @@ function stored(value:unknown,kind:Kind,observedAt:string,manifest:WorkspaceMani
   if(!Number.isFinite(Date.parse(expiresAt)))fail('retention_policy');
   return{schemaVersion:1,sha256:refFor(value).sha256,kind,observedAt:original,expiresAt,policySha256:sha256(canonicalJson(manifest.retention)),value:json(value)};
 }
-async function loadStored(directory:string,ref:ArtifactRef,manifest:WorkspaceManifest):Promise<Stored> {
-  artifactRef(ref);const value=await readJson(join(directory,ref.reference)) as Stored;
+async function loadStored(directory:string,ref:ArtifactRef,manifest:WorkspaceManifest,reference=ref.reference):Promise<Stored> {
+  artifactRef(ref);const value=await readJson(join(directory,reference)) as Stored;
   if(!exact(value,['schemaVersion','sha256','kind','observedAt','expiresAt','policySha256','value'])||value.schemaVersion!==1
     ||!KINDS.includes(value.kind)||!same(value,stored(value.value,value.kind,value.observedAt,manifest))||value.sha256!==ref.sha256)fail('artifact_hash');
   return value;
 }
 function fresh(value:Stored,now:string) {if(Date.parse(value.observedAt)>Date.parse(now)||Date.parse(value.expiresAt)<=Date.parse(now))fail('expired');}
 const empty=():State=>({head:null,count:0,bytes:0,checkpoint:null,body:null,previous:null,
-  totals:{httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0},refs:new Map(),reservations:new Map()});
+  totals:{httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0},refs:new Map(),purged:new Map(),publications:new Map(),reservations:new Map()});
 function apply(state:State,event:Event,dry=false) {
   if(event.type==='artifact'){if(!exact(event,['type','ref']))fail('event');artifactRef(event.ref);if(!dry)state.refs.set(event.ref.sha256,event.ref);}
+  else if(event.type==='purge'){
+    if(!exact(event,['type','artifact','purgedAt'])||Date.parse(time(event.purgedAt))<Date.parse(event.artifact.expiresAt)
+      ||state.purged.has(event.artifact.ref.sha256))fail('purge');
+    if(!dry){state.purged.set(event.artifact.ref.sha256,event.artifact);state.refs.set(event.artifact.ref.sha256,event.artifact.ref);}
+  }
+  else if(event.type==='publication-directories'){
+    if(!exact(event,['type','retention'])||state.publications.has(event.retention.releaseId))fail('publication_directories');
+    if(!dry)state.publications.set(event.retention.releaseId,{retention:event.retention,buildCleaned:false,purged:false});
+  }else if(event.type==='publication-build-cleaned'||event.type==='publication-purged'){
+    const p=state.publications.get(event.releaseId);
+    if(!p||!exact(event,event.type==='publication-build-cleaned'?['type','releaseId']:['type','releaseId','purgedAt'])
+      ||event.type==='publication-build-cleaned'&&p.buildCleaned
+      ||event.type==='publication-purged'&&(p.purged||Date.parse(time(event.purgedAt))<Date.parse(p.retention.expiresAt)))fail('publication_directories');
+    if(!dry){if(event.type==='publication-build-cleaned')p.buildCleaned=true;else p.purged=true;}
+  }
   else if(event.type==='checkpoint'){
     if(!exact(event,['type','ref','previous','control'])||event.previous!==(state.checkpoint?.sha256||null))fail('checkpoint_cas');
     artifactRef(event.ref);checkpoint({...event.control,state:null});const old=state.checkpoint?.checkpoint;
@@ -326,11 +366,12 @@ function bindCheckpoint(value:CheckpointControl,manifest:WorkspaceManifest) {
   const p=value.control?.publication;if(p&&(p.build.request.environment!==manifest.scope.environment
     ||p.build.request.codeSha!==manifest.codeSha||p.intent&&p.intent.codeSha!==manifest.codeSha))fail('control_scope');
 }
-async function loadState(directory:string,manifest:WorkspaceManifest):Promise<State> {
+async function loadState(directory:string,manifest:WorkspaceManifest,repairHead=false):Promise<State> {
   const entries=await readdir(join(directory,'events'));if(entries.length>MAX_EVENTS+32)fail('entries');
   if((await readdir(join(directory,'objects'))).length>MAX_EVENTS)fail('entries');
   const files=entries.filter(name=>!name.startsWith('.pending-')).sort();
-  if(files.length>MAX_EVENTS)fail('entries');const state=empty();
+  if(files.length>MAX_EVENTS)fail('entries');const state=empty(),checkpoints:Extract<Event,{type:'checkpoint'}>[]=[];
+  let previousHead={sequence:0,sha256:null as string|null};
   for(const filename of files){
     if(!/^\d{6}\.[a-f0-9]{64}\.json$/.test(filename))fail('journal_name');
     state.bytes+=(await protectedStat(join(directory,'events',filename),false)).size;if(state.bytes>MAX_JOURNAL)fail('journal_bytes');
@@ -338,15 +379,30 @@ async function loadState(directory:string,manifest:WorkspaceManifest):Promise<St
     if(!exact(record,['schemaVersion','sequence','parent','event'])||record.schemaVersion!==1||record.sequence!==state.count+1||record.parent!==state.head
       ||filename!==`${String(record.sequence).padStart(6,'0')}.${digest}.json`)fail('journal_chain');
     if(record.event.type==='checkpoint'||record.event.type==='control')bindCheckpoint(record.event.control,manifest);
-    if(record.event.type==='checkpoint'){
-      const sealed=await loadStored(directory,record.event.ref,manifest);if(sealed.kind!=='checkpoint')fail('checkpoint_body');
-      checkpoint(sealed.value as unknown as WorkspaceCheckpoint);
-      const {state:unused,...view}=sealed.value as unknown as WorkspaceCheckpoint;void unused;
-      if(!same(view,record.event.control))fail('checkpoint_body');
+    if(record.event.type==='purge')purgeIdentity(record.event.artifact,manifest);
+    if(record.event.type==='publication-directories'){
+      const p=record.event.retention;
+      if(!same(p,publicationDirectories(p.releaseId,p.sourceRoot,p.observedAt,p.nextExpiry,manifest)))fail('publication_directories');
     }
+    if(record.event.type==='checkpoint')checkpoints.push(record.event);
+    previousHead={sequence:state.count,sha256:state.head};
     apply(state,record.event);state.count++;state.head=digest;
   }
-  if(!same(await readJson(join(directory,'head.json')),{sequence:state.count,sha256:state.head}))fail('journal_head');
+  for(const event of checkpoints){
+    if(!state.purged.has(event.ref.sha256)){
+      const sealed=await loadStored(directory,event.ref,manifest);if(sealed.kind!=='checkpoint')fail('checkpoint_body');
+      checkpoint(sealed.value as unknown as WorkspaceCheckpoint);
+      const {state:unused,...view}=sealed.value as unknown as WorkspaceCheckpoint;void unused;
+      if(!same(view,event.control))fail('checkpoint_body');
+    }
+  }
+  const head=await readJson(join(directory,'head.json')),next={sequence:state.count,sha256:state.head};
+  if(!same(head,next)){
+    // A fully fsynced trailing record is authoritative after lost head/ack.
+    // Only one append can be in flight; gaps, forks or older heads still fail.
+    if(!state.count||!same(head,previousHead))fail('journal_head');
+    if(repairHead)await replaceHead(directory,previousHead,next);
+  }
   const usage=totals(state);if(usage.httpRequests>manifest.budgetCaps.httpRequests||usage.sqlStatements>manifest.budgetCaps.sqlStatements)fail('budget_exceeded');
   return state;
 }
@@ -383,8 +439,9 @@ async function readManifest(directory:string,input:RunWorkspaceOptions) {
 }
 async function expired(directory:string,state:State,manifest:WorkspaceManifest,now:string) {
   const result:WorkspaceStatus['expired']=[];
-  for(const ref of state.refs.values()){const v=await loadStored(directory,ref,manifest);
-    if(Date.parse(v.observedAt)>Date.parse(now)||Date.parse(v.expiresAt)<=Date.parse(now))result.push({reference:ref.reference,kind:v.kind,expiresAt:v.expiresAt});}
+  for(const ref of state.refs.values()){const v=state.purged.get(ref.sha256)||await loadStored(directory,ref,manifest);
+    if(state.purged.has(ref.sha256)||Date.parse(v.observedAt)>Date.parse(now)||Date.parse(v.expiresAt)<=Date.parse(now))result.push({reference:ref.reference,kind:v.kind,expiresAt:v.expiresAt});}
+  for(const p of state.publications.values())if(p.purged||Date.parse(p.retention.expiresAt)<=Date.parse(now))result.push({reference:`packages/${p.retention.releaseId}`,kind:'publication',expiresAt:p.retention.expiresAt});
   return result;
 }
 /** Read-only metadata/status. Never acquires/removes a lock or returns artifact
@@ -429,11 +486,13 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
     const info=await readManifest(directory,input);const manifest=JSON.parse(canonicalJson(info.manifest)) as WorkspaceManifest;
     // Runtime freeze prevents accidental caller scope/policy mutation.
     const freeze=(v:unknown):void=>{if(v&&typeof v==='object'){Object.values(v).forEach(freeze);Object.freeze(v);}};freeze(manifest);
-    const state=await loadState(directory,manifest);let closed=false,poisoned=false;let queue:Promise<unknown>=Promise.resolve();
+    const state=await loadState(directory,manifest,true);let closed=false,poisoned=false;let queue:Promise<unknown>=Promise.resolve();
+    for(const p of state.publications.values())if(p.retention.sourceRoot!==repository)fail('publication_scope');
     let usableUntil=Infinity,usableAfter=-Infinity;
     // Verify every registered body once on open; held-lock operations retain
     // immutable deadline metadata, not O(receipts × HTTP requests) body rescans.
-    for(const ref of state.refs.values()){const v=await loadStored(directory,ref,manifest);usableUntil=Math.min(usableUntil,Date.parse(v.expiresAt));usableAfter=Math.max(usableAfter,Date.parse(v.observedAt));}
+    for(const ref of state.refs.values()){const v=state.purged.get(ref.sha256)||await loadStored(directory,ref,manifest);usableUntil=Math.min(usableUntil,Date.parse(v.expiresAt));usableAfter=Math.max(usableAfter,Date.parse(v.observedAt));}
+    for(const p of state.publications.values()){usableUntil=Math.min(usableUntil,Date.parse(p.retention.expiresAt));usableAfter=Math.max(usableAfter,Date.parse(p.retention.observedAt));}
     const guards=await Promise.all([input.directory,join(input.directory,'runs'),join(input.directory,'locks'),directory,join(directory,'objects'),join(directory,'events')]
       .map(async path=>({path,stat:await protectedStat(path,true)})));
     async function assertHeld(){if(closed)fail('closed');await pathWithoutLinks(input.directory);
@@ -441,7 +500,7 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       for(const l of locks){const s=await protectedStat(l.path,false);if(s.ino!==l.ino||s.dev!==l.dev||!same(await readJson(l.path),l.body))fail('lock_lost');}}
     const serial=<T>(action:()=>Promise<T>):Promise<T>=>{const result=queue.then(async()=>{await assertHeld();if(poisoned)fail('journal_uncertain');return action();});queue=result.catch(()=>{});return result;};
     const now=()=>time((input.now||(()=>new Date().toISOString()))());
-    async function usable(){const instant=Date.parse(now());if(usableUntil<=instant||usableAfter>instant)fail('expired');}
+    async function usable(){const instant=Date.parse(now());if(state.purged.size||[...state.publications.values()].some(p=>p.purged)||usableUntil<=instant||usableAfter>instant)fail('expired');}
     async function append(event:Event){
       event=json(event) as unknown as Event;
       if(state.count>=MAX_EVENTS)fail('entries');const next={schemaVersion:1 as const,sequence:state.count+1,parent:state.head,event};
@@ -462,7 +521,87 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       const readback=await loadStored(directory,ref,manifest);fresh(readback,now());
       if(!state.refs.has(ref.sha256))await append({type:'artifact',ref});usableUntil=Math.min(usableUntil,Date.parse(sealed.expiresAt));usableAfter=Math.max(usableAfter,Date.parse(sealed.observedAt));return structuredClone(ref);
     }
-    async function read(ref:ArtifactRef){if(!state.refs.has(ref.sha256))fail('unregistered_artifact');const v=await loadStored(directory,ref,manifest);fresh(v,now());return v;}
+    async function read(ref:ArtifactRef){artifactRef(ref);if(!state.refs.has(ref.sha256))fail('unregistered_artifact');if(state.purged.has(ref.sha256))fail('expired');const v=await loadStored(directory,ref,manifest);fresh(v,now());return v;}
+    const buildPaths=()=>['build/stupid-gifts','static-site/out','static-site/.next'].map(name=>join(repository,name));
+    const packagePath=(releaseId:string)=>join(directory,'packages',releaseId);
+    const runtimePath=(releaseId:string)=>join(directory,'publication-runtime',releaseId);
+    async function absent(path:string){try{await lstat(path);fail('publication_path_exists');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}}
+    async function preparePublicationDirectories(releaseId:string,observedAt:string,nextExpiry:string|null){
+      await usable();const retention=publicationDirectories(releaseId,repository,observedAt,nextExpiry,manifest),prior=state.publications.get(releaseId);
+      if(prior){if(!same(prior.retention,retention)||prior.purged)fail('publication_directories');}
+      if(Date.parse(retention.expiresAt)<=Date.parse(now())||Date.parse(retention.observedAt)>Date.parse(now()))fail('expired');
+      if(!prior){
+        for(const path of [packagePath(releaseId),runtimePath(releaseId),...buildPaths()]){await pathWithoutLinks(path);await absent(path);}
+        await privateDirectory(join(directory,'packages'),true);await privateDirectory(join(directory,'publication-runtime'),true);
+        await append({type:'publication-directories',retention});
+      }
+      await privateDirectory(runtimePath(releaseId),true);await privateDirectory(join(runtimePath(releaseId),'tmp'),true);
+      usableUntil=Math.min(usableUntil,Date.parse(retention.expiresAt));usableAfter=Math.max(usableAfter,Date.parse(retention.observedAt));
+    }
+    async function tree(paths:string[]){
+      const entries:{path:string;directory:boolean;ino:number;dev:number;size:number;mtimeMs:number;ctimeMs:number}[]=[];
+      async function visit(path:string){
+        let stat;try{stat=await lstat(path);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return;throw error;}
+        if(entries.length>=MAX_EVENTS||stat.isSymbolicLink()||stat.uid!==process.getuid?.()||!stat.isFile()&&!stat.isDirectory()
+          ||!stat.isDirectory()&&stat.nlink!==1)fail('publication_tree');
+        const directory=stat.isDirectory();entries.push({path,directory,ino:stat.ino,dev:stat.dev,size:stat.size,mtimeMs:stat.mtimeMs,ctimeMs:stat.ctimeMs});
+        if(directory)for(const name of (await readdir(path)).sort())await visit(join(path,name));
+      }
+      for(const path of paths){await pathWithoutLinks(path);await visit(path);}return entries;
+    }
+    async function removeTree(entries:Awaited<ReturnType<typeof tree>>){
+      for(const entry of [...entries].reverse()){
+        await assertHeld();const stat=await lstat(entry.path);
+        if(stat.ino!==entry.ino||stat.dev!==entry.dev||stat.isSymbolicLink()||stat.isDirectory()!==entry.directory
+          ||!entry.directory&&(stat.nlink!==1||stat.size!==entry.size||stat.mtimeMs!==entry.mtimeMs||stat.ctimeMs!==entry.ctimeMs))fail('publication_tree_changed');
+        if(entry.directory)await rmdir(entry.path);else await unlink(entry.path);
+        await syncDirectory(dirname(entry.path));
+      }
+    }
+    async function cleanPublicationBuild(releaseId:string){
+      const p=state.publications.get(releaseId);if(!p||p.purged)fail('publication_directories');if(p.buildCleaned)return;
+      const entries=await tree(buildPaths());
+      try{await removeTree(entries);
+        // Keep the source lock until this durable relinquishment. Interrupted
+        // deletion/append leaves the existing no-takeover lock blocking.
+        await append({type:'publication-build-cleaned',releaseId});
+      }catch(error){poisoned=true;throw error;}
+    }
+    async function purgeExpired():Promise<WorkspaceStatus['expired']>{
+      const instant=now(),plan:{artifact:PurgedArtifact;reference:string}[]=[];
+      // Validate the complete bounded inventory before deleting anything. Only
+      // exact object envelopes are classified; partial/temp/unrelated files stay.
+      for(const name of (await readdir(join(directory,'objects'))).sort()){
+        const pending=/^\.pending-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(name);
+        if(!pending&&!/^[a-f0-9]{64}\.json$/.test(name))continue;
+        const reference=`objects/${name}`;
+        // Complete interrupted temporary envelopes carry the same explicit
+        // policy/deadline. Partial/unclassifiable bytes require operator review;
+        // they are never assigned an invented retention or swept by age.
+        const digest=pending?(await readJson(join(directory,reference)) as Stored).sha256:name.slice(0,-5);
+        const ref=blobRef(digest),v=await loadStored(directory,ref,manifest,reference);
+        const prior=state.purged.get(ref.sha256);
+        if(prior&&prior.storedSha256!==sha256(canonicalJson(v)))fail('purge_body');
+        if(prior||Date.parse(v.expiresAt)<=Date.parse(instant))plan.push({reference,artifact:prior||{ref,...retentionIdentity(v),storedSha256:sha256(canonicalJson(v))}});
+      }
+      const publications=[];
+      for(const p of state.publications.values())if(Date.parse(p.retention.expiresAt)<=Date.parse(instant)){
+        const paths=[packagePath(p.retention.releaseId),runtimePath(p.retention.releaseId),...(!p.buildCleaned?buildPaths():[])];
+        publications.push({p,entries:await tree(paths)});
+      }
+      for(const {artifact}of plan)if(!state.purged.has(artifact.ref.sha256))await append({type:'purge',artifact,purgedAt:instant});
+      for(const {p}of publications)if(!p.purged)await append({type:'publication-purged',releaseId:p.retention.releaseId,purgedAt:instant});
+      try{
+        for(const {artifact:v,reference}of plan){await assertHeld();const path=join(directory,reference);
+          if(sha256(canonicalJson(await loadStored(directory,v.ref,manifest,reference)))!==v.storedSha256)fail('purge_body');
+          await unlink(path);await syncDirectory(join(directory,'objects'));
+        }
+        for(const {p,entries}of publications){await removeTree(entries);
+          if(!p.buildCleaned)await append({type:'publication-build-cleaned',releaseId:p.retention.releaseId});}
+      }catch(error){poisoned=true;throw error;}
+      return[...plan.map(({artifact:v,reference})=>({reference,kind:v.kind,expiresAt:v.expiresAt})),
+        ...publications.filter(v=>v.entries.length).map(({p})=>({reference:`packages/${p.retention.releaseId}`,kind:'publication' as const,expiresAt:p.retention.expiresAt}))];
+    }
     async function loadBlob(ref:ArtifactRef):Promise<Buffer> {
       const sealed=await read(ref);if(!['phase','publication'].includes(sealed.kind))fail('kind');
       const descriptor=blobManifest(sealed.value),bytes=Buffer.alloc(descriptor.byteLength);
@@ -551,6 +690,9 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       settleBudget:(id:string,value:BudgetSettlement)=>serial(async()=>{settlement(value);const old=state.reservations.get(id);if(!old)fail('budget_reservation_missing');
         if(old.settlement){if(!same(old.settlement,value))fail('budget_settlement_replay');return;}await append({type:'settle',id,settlement:json(value) as unknown as BudgetSettlement});}),
       budget:()=>serial(async()=>totals(state)),
+      preparePublicationDirectories:(releaseId:string,observedAt:string,nextExpiry:string|null)=>serial(()=>preparePublicationDirectories(releaseId,observedAt,nextExpiry)),
+      cleanPublicationBuild:(releaseId:string)=>serial(()=>cleanPublicationBuild(releaseId)),
+      purgeExpired:()=>serial(purgeExpired),
       close:()=>serial(async()=>{for(const lock of [...locks].reverse()){await unlink(lock.path);await syncDirectory(dirname(lock.path));}closed=true;}),
     };
     return Object.freeze(api) as RunWorkspace;

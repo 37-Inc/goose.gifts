@@ -357,7 +357,7 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         return {inserted:merged.inserted,slug:product.slug};
       }));
     },
-    getActiveCatalogIdentities: () => serialize(async () => (await catalog()).map(value => value.product).filter(p => p.isActive && p.title !== '')
+    getActiveCatalogIdentities: ({includeInactive=false}: {includeInactive?:boolean} = {}) => serialize(async () => (await catalog()).map(value => value.product).filter(p => includeInactive || p.isActive && p.title !== '')
       .map(p => Object.fromEntries(['id','slug','title','imageUrl','affiliateUrl','qualityScore','availabilityStatus','availabilityCheckedAt',
         'lastVerifiedAt','editorialStatus','reviewCount'].map(key => [key,p[key]]))).map(p => ({...p,sourceFacts:null}))),
     getExistingEditorialWriteups: (excludedIds: string[] = []) => serialize(async () => (await catalog()).map(value => value.product)
@@ -370,7 +370,16 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
     updateAmazonAffiliateUrl: (id: string,url: string) => serialize(async () => (await change('updateAmazonAffiliateUrl',[[id],url],(p,now) => {
       p.affiliateUrl=url; p.updatedAt=now; return true;
     }) as string[]).length),
-    getProductsForRevalidation: (selection: {limit:number;staleDays:number;publishedStaleDays:number;publishedSlots:number;legacySlots:number}) => serialize(async () => {
+    getProductsForRevalidation: (selection: {limit:number;daily:true;featuredIds?:string[]}
+      | {limit:number;staleDays:number;publishedStaleDays:number;publishedSlots:number;legacySlots:number;daily?:never}) => serialize(async () => {
+      if(selection.daily){
+        const {limit,featuredIds=[]}=selection;
+        if(!Number.isInteger(limit)||limit<1||limit>10||featuredIds.length>100||featuredIds.some(id=>!(/^[A-Z0-9]{10}$/).test(id)))throw new Error('daily_selection_invalid');
+        const lane=(p:SemanticProduct)=>featuredIds.includes(p.id)?0:publishedMaintenanceProduct(p)?1:2;
+        return(await catalog()).map(value=>value.product).filter(p=>p.source==='amazon'&&p.isActive&&(/^[A-Z0-9]{10}$/).test(p.id))
+          .sort((a,b)=>lane(a)-lane(b)||maintenanceTimeOrder(a.availabilityCheckedAt||a.lastVerifiedAt,b.availabilityCheckedAt||b.lastVerifiedAt,true)
+            ||maintenanceTimeOrder(a.updatedAt,b.updatedAt,false)||compare(a.id,b.id)).slice(0,limit).map(maintenanceRow);
+      }
       const {limit,staleDays,publishedStaleDays,publishedSlots,legacySlots} = selection;
       if (!Object.values(selection).every(Number.isInteger) || limit < 1 || limit > 100 || staleDays < 1 || publishedStaleDays < 1
         || publishedSlots < 0 || legacySlots < 0 || publishedSlots+legacySlots !== limit) throw new Error('maintenance_revalidation_bound');

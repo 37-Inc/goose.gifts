@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { getProductsForRevalidation } from '../scripts/ops/prefetch-catalog.mjs';
+import { createPostgresCatalogMaintenanceStore } from '../scripts/ops/catalog-maintenance-postgres.mjs';
 
 test('revalidation uses one bounded query without embeddings or catalog writes', async () => {
   let calls = 0;
@@ -69,8 +70,8 @@ function product(number, overrides = {}) {
     ...overrides,
   };
 }
-async function select(products, limit = 50, staleDays = 30) {
-  return getProductsForRevalidation(limit, staleDays, async (text, values) => {
+async function select(products, limit = 50, staleDays = 30, featuredIds) {
+  const runQuery = async (text, values) => {
     const fixture = `products AS (
       SELECT * FROM JSONB_TO_RECORDSET($fixture$${JSON.stringify(products)}$fixture$::jsonb) AS fixture(
         id text, slug text, title text, price numeric, currency text, image_url text,
@@ -82,16 +83,30 @@ async function select(products, limit = 50, staleDays = 30) {
         editorial_quality_score numeric, editorial_model text, editorial_prompt_version text,
         editorial_generated_at timestamp, editorial_block_reason text, duplicate_of_product_id text
       ))`;
-    const query = text.replace(/WITH/, `WITH ${fixture},`)
+    const query = (featuredIds ? `WITH ${fixture} ${text}` : text.replace(/WITH/, `WITH ${fixture},`))
       .replace(/NOW\(\)/g, `'${now.toISOString()}'::timestamp`)
-      .replace(/\$(\d+)/g, (_match, index) => String(values[Number(index) - 1]));
+      .replace(/\$(\d+)/g, (_match, index) => Array.isArray(values[Number(index)-1])
+        ? `ARRAY[${values[Number(index)-1].map(id=>`'${id}'`).join(',')}]::text[]` : String(values[Number(index) - 1]));
     const output = execFileSync(path.join(pgBin, 'psql'), [
       '-h', directory, '-p', '54883', '-U', 'postgres', '-d', 'postgres',
       '-XAt', '-v', 'ON_ERROR_STOP=1',
     ], { input: `SELECT COALESCE(JSONB_AGG(row), '[]') FROM (${query}) row;`, encoding: 'utf8' });
     return { rows: JSON.parse(output) };
-  });
+  };
+  return featuredIds ? createPostgresCatalogMaintenanceStore({query:runQuery}).getProductsForRevalidation({daily:true,limit,featuredIds})
+    : getProductsForRevalidation(limit, staleDays, runQuery);
 }
+
+test('daily SQL prioritizes explicit featured and current published products over thousands of ancient legacy rows',sqlTest,async()=>{
+  const featured=product(9000,{editorial_status:'pending',availability_checked_at:daysAgo(0),last_verified_at:daysAgo(0)});
+  const fresh=product(1,{availability_checked_at:daysAgo(0),last_verified_at:daysAgo(0)});
+  const published=Array.from({length:20},(_,n)=>product(n+2));
+  const legacy=Array.from({length:3150},(_,n)=>product(n+100,{editorial_status:'pending',last_verified_at:null}));
+  const rows=await select([...legacy,fresh,...published,featured],10,30,[featured.id]);
+  assert.equal(rows.length,10);assert.equal(rows[0].id,featured.id);
+  assert.deepEqual(rows.slice(1).map(p=>p.id),published.slice(0,9).map(p=>p.id));
+  assert.deepEqual((await select([fresh,...legacy],10,30,[]))[0].id,fresh.id);
+});
 
 test('published pages beat thousands of older legacy rows without exceeding 50 or starving legacy', sqlTest, async () => {
   const published = Array.from({ length: 45 }, (_, index) => product(index + 1));
