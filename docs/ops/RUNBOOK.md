@@ -96,6 +96,15 @@ never announce success from an exit code or cache invalidation alone. Do not
 publish social posts or send Slack reports from this catalog task. Creator
 Product Research remains deferred until after launch.
 
+If a known accepted subset-prune DELETE outlives its polling window, retain its
+exact owner, delivery ID, independently pinned sealed plan and original budget.
+`resumeOwnedPrunedDelete` can verify that existing journal's processed reference
+and native absence using fenced source/hash/full-row CAS checks, without a new
+dispatch or a new revision. An unknown reference, source drift or unsupported
+captured approval stays held; never clear the fence or resend manually. Only
+after verified completion may normal pruning/publication resume. October 21's
+expiry-only live proof and its limits are recorded in `STUPID_GIFTS_STAGING.md`.
+
 The approved route and retirement decisions in
 [STUPID_GIFTS_LAUNCH_SPEC.md](STUPID_GIFTS_LAUNCH_SPEC.md) supersede older growth
 notes below. Pinterest is owner-paused for migration; preserve that pause and

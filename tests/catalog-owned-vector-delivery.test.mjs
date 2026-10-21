@@ -2,11 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
 import { readFile, readdir } from 'node:fs/promises';
-import { abandonExpiredPrunedRevision, deliverOwnedOutboxEvent, drainOwnedVectorOutbox, deliverOwnedPrunedVector, readOwnedPrunedVectors } from '../scripts/catalog/owned-vector-delivery.ts';
+import { abandonExpiredPrunedRevision, deliverOwnedOutboxEvent, drainOwnedVectorOutbox, deliverOwnedPrunedVector, readOwnedPrunedVectors, resumeOwnedPrunedDelete } from '../scripts/catalog/owned-vector-delivery.ts';
 import { claimMutationOwnership, mutationAdvance, mutationAssertion, readMutationOwner, releaseMutationOwnership } from '../lib/catalog/mutation-fence.ts';
 import { createCatalogSnapshot } from '../lib/catalog/snapshot.ts';
 import { createProjectionPacket, projectionQueries } from '../lib/catalog/d1.ts';
-import { pruneExistingRevision, pruneOperationKey, settlePrunedRevision } from '../lib/catalog/prune-existing-revision.ts';
+import { pruneExistingRevision, pruneOperationKey, prunedVectorPlan, settlePrunedRevision } from '../lib/catalog/prune-existing-revision.ts';
 import { createSealedSnapshotEnvelope } from '../scripts/catalog/export-d1-snapshot.ts';
 import { canonicalJson, sha256 } from '../scripts/catalog/migration.ts';
 import { createReviewedVectorDelete } from '../scripts/catalog/vector-delete.ts';
@@ -280,8 +280,16 @@ test('actual MaintenanceStore immutable native payload feeds owned delivery with
   await store.upsertProduct(p,facts);assert.equal(cursor.current.epoch,complete.owner.epoch);
 });
 const MERCHANT_MARKER='EXPIRED_PRIVATE_MERCHANT_BODY_"quoted"\\slash\nline';
-async function pruneDeleteFixture(t){
-  const f=await setup(t,{prune:true,merchantMarker:MERCHANT_MARKER});f.advance(3*3600000);
+async function pruneDeleteFixture(t,maintenance=false){
+  const f=await setup(t,{prune:true,merchantMarker:MERCHANT_MARKER});
+  if(maintenance){
+    const id='9'.repeat(64);
+    f.sql.prepare('INSERT INTO catalog_maintenance_operations VALUES(?,?,?,?,?,?,?,?,?,?,?,?)')
+      .run(id,'8'.repeat(64),'original-maintenance','r1','staging','test-index',1,0,1,at(0),'{}','[]');
+    f.sql.prepare('UPDATE products SET timestamp_provenance_json=? WHERE public_id=?')
+      .run(canonicalJson({fields:{availability_checked_at:{basis:'maintenance_operation',operationId:id}}}),uuid(1));
+  }
+  f.advance(3*3600000);
   const prepared=await pruneExistingRevision(f.db,f.owner,f.request),revision=prepared.revision;
   f.vectors.set(uuid(1),{id:uuid(1),values:[...values],metadata:{catalogRevision:'r1'}});
   return{...f,revision,owner:prepared.owner,deliverDelete:(owner=prepared.owner,rev=revision)=>deliverOwnedPrunedVector({
@@ -297,6 +305,89 @@ function assertBodyFree(row){
   assert.match(request.pruneDeleteControl.productSha256,/^[a-f0-9]{64}$/);assert.match(request.pruneDeleteControl.sourceSha256,/^[a-f0-9]{64}$/);
   assert.deepEqual(Object.keys(product).sort(),['kind','publicId','schemaVersion','sha256']);assert.equal(product.kind,'prune-delete-product-control');
 }
+async function pendingDelete(t,maintenance=false){
+  const f=await pruneDeleteFixture(t,maintenance),first=await f.deliverDelete();
+  const options={db:f.db,owner:first.owner,deliveryId:first.deliveryId,plan:prunedVectorPlan(f.revision),adapters:f.adapters};
+  return{f,first,options,resume:extra=>resumeOwnedPrunedDelete({...options,...extra})};
+}
+test('resume-only accepted prune DELETE settles late with exact source/receipt/CAS and zero new dispatch',async t=>{
+  const {f,first,options,resume}=await pendingDelete(t,true),before=f.counts(),product={...f.sql.prepare('SELECT * FROM products WHERE public_id=?').get(uuid(1))};
+  assert.ok(f.revision.sourceRows.find(row=>row.public_id===uuid(1)).verification_operation_json);
+  f.advance(2*86400000);f.resolution('pending');const pending=await resume();
+  assert.equal(pending.state,'pending');assert.equal(pending.owner.epoch,first.owner.epoch);assert.equal(f.scope().external_pending,1);
+  f.resolution('settled');f.before(query=>{if(query.includes('INSERT INTO catalog_revisions'))throw new Error('Must not reprune');});
+  const complete=await resume();assert.equal(complete.state,'complete');assert.equal(complete.owner.epoch,first.owner.epoch+1);
+  assert.equal(f.scope().external_pending,0);assert.equal(f.counts().dispatches,before.dispatches);assert.equal(f.vectors.has(uuid(1)),false);
+  assert.deepEqual({...f.sql.prepare('SELECT * FROM products WHERE public_id=?').get(uuid(1))},product);assertBodyFree(f.journals()[0]);
+  const counts=f.counts(),journal=f.journals()[0];
+  assert.deepEqual(await resumeOwnedPrunedDelete({...options,owner:complete.owner}),complete);
+  assert.deepEqual(f.counts(),counts);assert.deepEqual(f.journals()[0],journal); // original completion reconciliation only
+  await assert.rejects(resumeOwnedPrunedDelete({...options,owner:{...complete.owner,epoch:complete.owner.epoch+1}}));
+});
+test('resume-only refuses owner, plan, source, full-product, receipt and maintenance-observation drift before provider reads',async t=>{
+  const cases=[
+    {extra:o=>({owner:{...o.owner,epoch:o.owner.epoch-1}})},
+    {extra:o=>({owner:{...o.owner,token:'wrong-token'}})},
+    {change:f=>f.sql.exec('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1')},
+    {extra:o=>({plan:{...o.plan,absentIds:[uuid(2)]}})},
+    {extra:o=>({plan:{...o.plan,globalWatermark:1}})},
+    {extra:o=>({adapters:{...o.adapters,providerIdentity:'test:wrong-account'}})},
+    {change:f=>f.sql.exec("UPDATE products SET title='changed non-captured full row'")},
+    {change:f=>{f.sql.exec('DROP TRIGGER products_archive_immutable');f.sql.exec("UPDATE products SET source_record_json=json_set(source_record_json,'$.last_verified_at','changed')");}},
+    {change:f=>{f.sql.exec('DROP TRIGGER catalog_projection_receipt_immutable');f.sql.prepare('UPDATE catalog_projection_receipts SET source_export_sha256=? WHERE catalog_revision=?').run('f'.repeat(64),f.revision.snapshot.catalogRevision);}},
+    {maintenance:true,change:f=>{f.sql.exec('DROP TRIGGER catalog_maintenance_operations_immutable');f.sql.exec("UPDATE catalog_maintenance_operations SET result_json='{\"changed\":true}'");}},
+  ];
+  for(const scenario of cases){
+    const {f,options,resume}=await pendingDelete(t,scenario.maintenance);scenario.change?.(f);const before=f.counts();
+    await assert.rejects(resume(scenario.extra?.(options)));assert.deepEqual(f.counts(),before);
+    assert.equal(f.journals()[0].status,'pending');assert.equal(f.scope().external_pending,1);assertBodyFree(f.journals()[0]);
+  }
+});
+test('resume-only rejects new, unknown-reference, legacy, unsupported captured-source and changed control journals',async t=>{
+  const empty=await pruneDeleteFixture(t);
+  await assert.rejects(resumeOwnedPrunedDelete({db:empty.db,owner:empty.owner,deliveryId:'f'.repeat(64),plan:prunedVectorPlan(empty.revision),adapters:empty.adapters}));
+  assert.equal(empty.journals().length,0);assert.deepEqual(empty.counts(),{reads:0,dispatches:0,resolves:0});assert.equal(empty.scope().external_pending,0);
+  for(const kind of ['new','missing-reference','missing-dispatch','legacy','source-hash','product-hash','unsupported-approval']){
+    const {f,options,resume}=await pendingDelete(t);
+    if(kind!=='new'){
+      f.sql.exec('DROP TRIGGER catalog_vector_delivery_identity_immutable');const row=f.journals()[0],request=JSON.parse(row.request_json);
+      if(kind==='missing-reference')f.sql.exec('UPDATE catalog_vector_deliveries SET mutation_reference=NULL');
+      if(kind==='missing-dispatch')f.sql.exec('UPDATE catalog_vector_deliveries SET dispatch_token=NULL,mutation_reference=NULL');
+      if(kind==='legacy')delete request.pruneDeleteControl;
+      if(kind==='source-hash')request.pruneDeleteControl.sourceSha256='f'.repeat(64);
+      if(kind==='product-hash')request.pruneDeleteControl.productSha256='f'.repeat(64);
+      if(kind==='unsupported-approval')request.pruneDeleteControl.sourceSha256=sha256(canonicalJson({...f.revision.sourceRows.find(r=>r.public_id===uuid(1)),approved_product_json:'{}'}));
+      if(!['missing-reference','missing-dispatch'].includes(kind))f.sql.prepare('UPDATE catalog_vector_deliveries SET request_json=?').run(canonicalJson(request));
+    }
+    const before=f.counts();await assert.rejects(resume(kind==='new'?{deliveryId:'f'.repeat(64)}:undefined));
+    assert.deepEqual(f.counts(),before);assert.equal(f.scope().external_pending,1);assert.equal(f.journals().length,1);
+    if(kind==='new')assertBodyFree(f.journals()[0]);assert.equal(options.owner.epoch,f.scope().mutation_epoch);
+  }
+});
+test('resume-only provider pending/errors/wrong reference/present vector never clear ownership or infer non-submission',async t=>{
+  for(const kind of ['pending','error','not_submitted','wrong-reference','still-present','read-error']){
+    const {f,resume}=await pendingDelete(t),before=f.counts().dispatches;
+    if(kind==='pending')f.resolution('pending');
+    if(kind==='not_submitted')f.resolution('not_submitted');
+    if(kind==='error')f.adapters.resolve=async()=>{throw new Error('PRIVATE provider failure');};
+    if(kind==='wrong-reference')f.adapters.resolve=async()=>({state:'settled',reference:'wrong-reference'});
+    if(kind==='still-present')f.vectors.set(uuid(1),{id:uuid(1),values:[...values],metadata:{catalogRevision:'r1'}});
+    if(kind==='read-error')f.adapters.readback=async()=>{throw new Error('PRIVATE native read failure');};
+    if(['not_submitted','wrong-reference'].includes(kind))await assert.rejects(resume(),/resolution_invalid/);
+    else{const result=await resume();assert.equal(result.state,'pending');assert.doesNotMatch(JSON.stringify(result),/PRIVATE/);}
+    assert.equal(f.counts().dispatches,before);assert.equal(f.scope().external_pending,1);assert.equal(f.journals()[0].status,'pending');
+    assert.equal(f.journals()[0].attempts,1);assert.ok(f.journals()[0].dispatch_token);assertBodyFree(f.journals()[0]);
+  }
+});
+test('resume-only retains full row CAS across native readback and lost committed completion responses',async t=>{
+  const race=await pendingDelete(t);race.f.adapters.readback=async()=>{race.f.sql.exec("UPDATE products SET title='changed during readback'");return null;};
+  assert.equal((await race.resume()).state,'pending');assert.equal(race.f.scope().external_pending,1);assert.equal(race.f.journals()[0].status,'pending');
+  const lost=await pendingDelete(t);lost.f.lose(statements=>statements.some(s=>s.query.includes("SET status='complete'")));
+  const result=await lost.resume();assert.equal(result.state,'complete');assert.equal(result.owner.epoch,lost.first.owner.epoch+1);
+  assert.equal(lost.f.scope().external_pending,0);assert.equal(lost.f.counts().dispatches,1);assertBodyFree(lost.f.journals()[0]);
+  const before=lost.f.counts();lost.f.sql.exec("UPDATE products SET title='changed after completion'");
+  await assert.rejects(lost.resume({owner:result.owner}));assert.deepEqual(lost.f.counts(),before);
+});
 test('new prune DELETE journals contain only versioned hashes/IDs/receipts, including escaped expired merchant bodies',async t=>{
   const f=await pruneDeleteFixture(t),before=f.sql.prepare('SELECT * FROM products WHERE public_id=?').get(uuid(1));
   for(const field of ['source_record_json','public_display_json','rights_json'])assert.match(before[field],/EXPIRED_PRIVATE_MERCHANT_BODY/);
