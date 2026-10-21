@@ -137,9 +137,13 @@ export function findExistingPin(pins, draft) {
 }
 
 export function assertPinterestAccount(account) {
-  if (account?.username !== 'goosegifts' || account?.account_type !== 'BUSINESS') {
+  if (
+    account?.id !== '1107815345747925810'
+    || account?.username !== 'stupid_gifts'
+    || account?.account_type !== 'BUSINESS'
+  ) {
     throw new Error(
-      `Refusing production publish: expected goosegifts BUSINESS, received ${account?.username || '(unknown)'} ${account?.account_type || '(unknown)'}.`,
+      `Refusing production publish: expected stupid_gifts BUSINESS (1107815345747925810), received ${account?.username || '(unknown)'} ${account?.account_type || '(unknown)'} (${account?.id || 'unknown ID'}).`,
     );
   }
 }
