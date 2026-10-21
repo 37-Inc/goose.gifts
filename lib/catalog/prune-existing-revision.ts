@@ -222,7 +222,10 @@ async function settle(db: CatalogD1, owner: MutationOwner, revision: PrunedRevis
   return settleCapturedRevision(db, owner, revision, readVectors);
 }
 /** Queue an already independently rebuilt exact seal. The policy-specific
- * entrypoints MUST reconstruct and compare it before calling this transaction.
+ * entrypoints MUST reconstruct and compare it, or independently validate a
+ * genuine immutable owned policy-rebuild receipt binding the FULL revision.
+ * A caller assertion/checksum alone is never that receipt. This transaction's
+ * current/projection/prior/watermark/cutoff/owner predicates remain mandatory.
  */
 export async function settleCapturedRevision(db: CatalogD1, owner: MutationOwner, revision: PrunedRevision,
   readVectors: (plan: PrunedVectorPlan, signal: AbortSignal) => Promise<PrunedVectorObservation>) {

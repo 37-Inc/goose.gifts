@@ -4,7 +4,7 @@ import { getProductsByPublicIds } from '../../lib/catalog/storage/d1.ts';
 import { mutationAdvance, mutationAssertion, mutationFenceQuery, readMutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner, MutationScope } from '../../lib/catalog/mutation-fence.ts';
 import type { ActivationPermit } from '../../lib/catalog/build-requests.ts';
-import { pruneExistingRevision, prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
+import { pruneExistingRevision, prunedVectorPlan, settleCapturedRevision } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import { prepareApprovedCohort } from '../../lib/catalog/freeze-approved-cohort.ts';
 import type { ApprovedCohortEnvelope, ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
@@ -728,6 +728,24 @@ async function readReuseVectors(db:CatalogD1,owner:MutationOwner,row:Journal,pla
   await db.batch(checks());await reuseReadback(adapters,vectors);await db.batch(checks());
   return{environment:owner.environment,indexName:owner.indexName,settled:true as const,planSha256:request.planSha256,
     reference:`owned-vectors:${sha256(canonicalJson([row.delivery_id]))}`};
+}
+/** Only the genuine immutable verification receipt attests the independently
+ * rebuilt EXACT policy revision. This is not a caller boolean, alternate policy,
+ * or generic settlement shortcut: independently reload all source proofs/native
+ * values, then retain the unchanged full source/projection/prior/time/owner CAS.
+ * Ordinary approved cohorts still reconstruct through settleApprovedCohort.
+ */
+export function settleOwnedApprovedCohortVectorProof(options:{db:CatalogD1;owner:MutationOwner;revision:ApprovedCohortRevision;
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>}) {
+  return safe(async()=>{
+    const {db,adapters}=options,owner=structuredClone(options.owner),revision=structuredClone(options.revision);
+    adapterScope(owner,adapters);await db.batch([mutationAssertion(db,owner,['freezing'])]);
+    const rows=(await db.prepare(`SELECT * FROM catalog_vector_deliveries WHERE environment=? AND index_name=? AND generation=?
+      AND json_extract(request_json,'$.catalogRevision')=? AND json_extract(request_json,'$.kind') IN('prune','approved-cohort-reuse') LIMIT 21`)
+      .bind(owner.environment,owner.indexName,owner.generation,revision.snapshot.catalogRevision).all<Journal>()).results;
+    if(rows.length!==1||JSON.parse(rows[0].request_json).kind!==REUSE_KIND)throw new Error('vector_reuse_invalid');
+    return settleCapturedRevision(db,owner,revision,()=>readReuseVectors(db,owner,rows[0],prunedVectorPlan(revision),adapters,revision));
+  });
 }
 export function readOwnedPrunedVectors(...args: Parameters<typeof readPrunedVectors>): Promise<PrunedVectorObservation> {
   return safe(() => readPrunedVectors(...args));
