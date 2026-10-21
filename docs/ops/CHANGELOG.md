@@ -38,6 +38,10 @@ what's likely next.
   Google Cloud and remaining-provider rebrand checklist. Research/pricing
   integration is post-launch (`roadmap-mt1gp`). Implementation and staged
   migration are now authorized and underway; no live rebrand/cutover yet.
+  October21 owner approved using the existing Codex task for up to ten daily
+  existing-product refreshes and weekly discovery. Finish private restart/
+  cleanup and publication verification; hosted CI/Cloudflare Cron is deferred.
+  Cloudflare account remains Free; $15 was an estimate, not a subscription.
   Final retirement (`roadmap-lbbz1.7`) covers Vercel/Neon removal, GitHub
   rename, the live 37.technology listing, independent redirects and an
   expiry-aware old-domain auto-renew decision.

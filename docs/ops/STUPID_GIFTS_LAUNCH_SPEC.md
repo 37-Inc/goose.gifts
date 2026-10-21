@@ -36,17 +36,22 @@ The final architecture is:
   and freshness guards where serving a frozen page would be incorrect.
 - **D1** as the operational catalog and maintenance-history database.
 - **Vectorize** for existing 1,536-dimensional product embeddings.
-- **The existing bounded weekly catalog runner**, adapted to D1 and a release
-  pipeline. A separate daily publication check handles time-based expiry; it
-  does not discover, enrich, or revalidate products through Amazon.
+- **One existing Codex catalog task**, adapted to D1 and a release pipeline.
+  Cameron approved daily refreshes of at most ten existing products and weekly
+  discovery on October 21. The same task checks publication expiry and verifies
+  deployments; it does not need a separate Cloudflare Cron or hosted build job.
 - **GA4 and PostHog** through the current explicit event adapter. No Vercel
   Analytics, new tracking vendor, per-view database writes, or new account
   system.
 
-Budget for Workers Paid at $5/month account minimum plus measured overages,
-embedding usage, and domain renewal. Check the existing account subscription
-before buying anything: other apps share its allowances. D1 removes Neon's
-awake-compute billing model, but inefficient queries still cost money.
+The October 21 signed-in Workers plans page confirms the existing account is
+on **Free ($0)**. No Workers Paid subscription has been purchased. Paid is an
+explicit upgrade with a $5/month account minimum from activation, plus
+overages; it does not activate automatically at a traffic threshold. Use
+measured CPU/quota evidence to decide whether the launch needs that upgrade.
+The suggested $15/month was planning headroom, not a required fee, subscription,
+or hard billing cap. Other applications share the account's allowances. D1
+removes Neon's awake-compute billing model, but inefficient queries still cost.
 
 This spec does not depend on a new SSR adapter, an Astro rewrite, a CMS,
 Durable Objects, Queues, R2, recipient accounts, reminders, wishlists, or a
@@ -122,7 +127,7 @@ flowchart LR
     W --> X[Vectorize candidates]
     W --> D[(D1 catalog)]
     W --> A
-    J[Weekly catalog runner] --> D
+    J[Codex daily refresh and weekly discovery] --> D
     J --> X
     D --> S[Validated release snapshot]
     S --> B[Next static build]
@@ -234,22 +239,24 @@ responses. No service-worker/localStorage cache of merchant Program Content.
 Do not bake API images into long-lived OG, Pinterest or show assets without
 separate rights.
 
-The daily no-Amazon publication check below is **not** a merchant-data refresh.
-Do not add an hourly whole-catalog job to make the design work. First prove a
-rights-cleared opening cohort and safe fallback in the vertical slice. If
-continuous API-derived content requires a small bounded refresh lane, specify
-its cohort, interval, API allowance, failure behavior and publication cost
-before implementation. Never let a once-a-week runner imply current offers.
+**October 21 owner-approved operation:** reuse `goose-gifts-daily-ops` as one
+daily Codex task. Refresh at most ten existing products per Pacific calendar
+day, prioritizing explicit featured products and published pages. Reserve the
+allowance before dispatch so an interrupted run cannot repeat unbounded work.
+Daily refresh performs no discovery or model enrichment. Run discovery once
+in the weekly Monday lane with existing quality, family deduplication and
+net-new limits; do not also run the old 50-item revalidation or 25-item existing
+backfill outside the daily allowance. Rebuild the site at most once after the
+accepted changes, or when a publication deadline requires it. Updating existing
+product and guide listings does not require generating new guide copy daily.
 
-October 20 implementation follow-up, **pending owner decision**: the smallest
-proposed merchant refresh is daily, at most 12 explicitly featured products,
-two ten-item lookup batches, no discovery/generation and one verified
-publication. Missing/unavailable/changed-but-unreviewed facts remain held;
-deadlines derive from real observations, never job/write time. A delayed daily
-run may cross the 24-hour boundary, so this does not replace the expiry guard.
-Existing weekly discovery is unchanged. Compare this with independently
-owned/licensed content, and measure actual publication/D1 usage before enabling
-the new lane. No schedule or merchant refresh is authorized by this proposal.
+Missing/unavailable/changed-but-unreviewed facts remain held; deadlines derive
+from real observations, never job/write time. Ten refreshes do not confer
+freshness on the rest of the catalog. A delayed daily run may cross the
+24-hour boundary, so the independent expiry guard remains mandatory. The
+existing private local workspace supplies durable progress for this operating
+model. Validate the command before changing the existing task in place; do
+not create another catalog automation.
 
 Optional price work starts with a maximum 12-product offline/controlled
 Creators API probe; both repositories already request
@@ -354,23 +361,21 @@ display fields. Shard feeds so a first visit does not download the whole
 catalog.
 
 Build and publish after an approved catalog/episode change, coalescing work
-into one release. Retain the weekly catalog limits: 50 revalidations with the
-published/legacy lanes, six rotating themes, existing new-item and editorial
-caps, deduplication, factual checks and `--no-notify`. Replace invalidation
-with a verified publication receipt. A provider HTTP 200 does not prove the
-new catalog reached users.
+into one release. The daily existing-product allowance is ten, including
+Monday; weekly discovery retains six rotating themes, existing net-new limits,
+deduplication, factual checks and `--no-notify`. Replace invalidation with a
+verified publication receipt. A provider HTTP 200 does not prove the new
+catalog reached users.
 
-Run one daily **publication freshness check** through a Cloudflare Cron Trigger
-on the site's Worker, separate from weekly discovery. It reads the existing
-D1 snapshot only if needed and rebuilds when a known
-eligibility/content expiry is approaching. It performs no paid generation or
-Amazon requests. Maintain a single scheduled owner; do not duplicate existing
-catalog or Pinterest jobs. Use the protected release workflow for build
-dispatch, a revision-scoped D1 lease to suppress overlap, and a least-privilege
-dispatch credential in Worker secrets. The release workflow verifies the
-published revision and records completion; dispatch acceptance is not success.
-Choose and record the UTC trigger time during staging, leaving room before the
-next known expiry. Provider/build failure still uses the bundled expiry guard.
+The same Codex task performs the daily **publication freshness check**. It
+reads the current revision/deadlines and rebuilds only after accepted changes
+or when eligibility/content expiry requires it. Use the canonical private
+workspace and D1 mutation fence to prevent overlapping publication; verify the
+actual published revision and record completion. Dispatch acceptance is not
+success. The local computer and desktop app must be available for the task;
+the deployed site and bundled expiry guard continue operating independently.
+Cloudflare Cron plus Workers Builds is a possible later replacement, not a
+second scheduled owner or a launch prerequisite.
 
 Preserve the 35-day indexability gate and stricter merchant-specific content
 expiry rules. At build time compute each page's `eligibleUntil`. Bundle this
@@ -458,7 +463,7 @@ the new target and one bounded write/run produces durable receipts.
 
 Cloudflare cannot export Worker secret values back to the local runner.
 Therefore replace Vercel env-pull with an explicit protected operator
-configuration in macOS Keychain (and protected CI secrets for release), and
+configuration in macOS Keychain on the Codex operator host, and
 deploy the required subset to Worker secrets. Keep `AMAZON_ASSOCIATE_TAG` in
 one canonical non-secret catalog configuration consumed by runner, publisher
 and tests; do not hardcode a second tag. Seed from the currently verified
@@ -468,7 +473,7 @@ Inventory Amazon, OpenAI, analytics public keys/hosts, Pinterest OAuth
 refresh, publication auth, and provider credentials by name and consumer.
 Never put personal API tokens, exports or secrets in build output or Git.
 Use project-scoped runtime credentials and isolate preview from production.
-Replace the weekly heartbeat's `pull-env.sh` dependency only when the new
+Replace the catalog heartbeat's `pull-env.sh` dependency only when the new
 bootstrap has been exercised. Keep the Pinterest cohort measurement-only
 until separately authorized; update URL/credential configuration without
 publishing new Pins.
@@ -661,17 +666,18 @@ checkout or credential namespaces simply to match the public brand.
 
 | Existing owner | Current behavior | Required migration and acceptance |
 | --- | --- | --- |
-| `goose-gifts-daily-ops` | Weekly Catalog Quality; Monday 08:30 Pacific; `catalog:weekly -- --no-notify` | Preserve ID/cadence/bounds; replace Vercel bootstrap only after protected replacement works; target D1 and verified publication; prove one bounded run with durable receipt and no Slack report. |
+| `goose-gifts-daily-ops` | Before migration: Weekly Catalog Quality; Monday 08:30 Pacific | Owner approved one daily 08:30 Pacific task, up to ten existing-product refreshes per day and Monday-only discovery. Preserve ID/thread, use the tested daily command with explicit backend, replace Vercel bootstrap only after protected replacement works, and verify real publication receipts. No separate Slack report. |
 | `goose-gifts-pinterest-growth-studio` | Daily 09:30/16:30 Pacific; now measurement-only after P6/F6 | Preserve target thread, completed cohort and exact October 31 16:44:52.279 UTC review gate; update name, brand/destination config and cross-domain analytics at cutover. Verify one measurement-only run. No restart of posting without a new experiment authorization. |
 | Daily portfolio pulse | Consolidated owner metrics | Locate its actual owning schedule/config, update display/domain filters and receipt sources; preserve analytics property IDs and historical Goose data. Verify one report without double-counting redirects or creating a separate report job. |
-| Publication freshness check | New Cloudflare Worker Cron Trigger, not yet provisioned | One daily trigger with overlap lease, revision/deadline checks and idempotent protected build dispatch. No Amazon/model calls. Dry-run unchanged/expiring/failure cases and prove one deployed-revision receipt; no parallel local duplicate. |
+| Publication freshness check | Part of the same Codex catalog task | Reuse its workspace/lock; test unchanged, expiring, failed and interrupted publication and prove the deployed revision. Cloudflare Cron/Builds remains an optional later migration, not another job. |
 
 Keep scheduled captions and names consistent with the new brand, but immutable
 experiment IDs and historical results remain Goose-era facts. Local scheduled
 jobs depend on their host being available; independent Worker expiry guards
 must protect public output if that host or the publication scheduler is down.
-Record the deployed Cron Trigger and release-workflow identity during the
-vertical slice, including build-minute costs and missed-run alert ownership.
+Record the existing automation ID, operator checkout/workspace, command and
+explicit backend during the verified handoff. Keep failed/missed-run evidence
+in the task and existing consolidated portfolio metrics.
 
 Only retire Vercel/Neon after the observation window, verified restoration,
 maintained consumer migration and secret-bootstrap replacement. Source data
@@ -899,7 +905,9 @@ remain separately authorized.
 
 ## Cost and capacity model
 
-Official pricing checked October 19, 2026; allowances are account-wide.
+Official pricing rechecked October 21, 2026; allowances are account-wide.
+The signed-in Workers plan is still Free, with no $5 commitment. The following
+table describes the optional Paid upgrade, not the current subscription.
 
 | Resource | Paid included allowance | Overage |
 | --- | --- | --- |
@@ -920,6 +928,16 @@ CPU. Estimate D1 row reads from measured query plans, not visitor counts.
 Use actual account usage to decide whether shared included allowances cover
 the launch. Build minutes, image transformations, logs, backups and any new
 service are separate line items if enabled.
+
+The existing `prefetch-catalog.mjs` script uses `OPENAI_API_KEY` for editorial
+draft/review calls (default `gpt-4o-mini`) and embeddings (default
+`text-embedding-3-small`). These are API charges even when Codex or Claude Code
+launches the script locally. Codex's own subscribed usage is separate. Daily
+refresh makes no model calls; weekly new/changed content and visitor semantic
+queries may use the API. Reuse unchanged embeddings. A $1–5 monthly allowance
+for bounded text/embedding work is an estimate, not a minimum or subscription;
+images are separate. Verify provider-reported tokens/model and actual account
+usage rather than assuming the allowance was spent.
 
 D1 Paid has a 10GB limit per database and each database executes queries
 serially. The current catalog is small; indexed reads and short writes matter

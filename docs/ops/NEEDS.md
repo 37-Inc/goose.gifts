@@ -19,16 +19,6 @@ Cloudflare staging implementation is not a completed cutover. Before launch:
 - Confirm the Workers paid-plan/traffic-test budget before a provider-scale
   burst rehearsal or upgrade; local load results do not establish Free-plan
   CPU headroom.
-- Choose the featured-content policy. Recommended proposal: one daily refresh
-  of at most 12 explicitly selected products, at most two ten-item Amazon
-  lookup batches, no discovery or model calls, and at most one verified
-  publication. Renew only from actual merchant observations; changed facts
-  without matching reviewed copy, unavailable items and failed refreshes stay
-  held or use the existing expiry fallback. Keep weekly discovery unchanged.
-  Daily scheduling cannot guarantee an uninterrupted 24-hour content window,
-  so the expiry fallback remains mandatory. Independently owned/licensed
-  content is the alternative. This new refresh lane is **not authorized or
-  scheduled**; measure its publication/D1 cost in staging before activation.
 - At the end, sign into the correct family Amazon Associates store to add
   `stupid.gifts` and verify attribution. Do not modify the unrelated Mike Ideas
   account. Provider/account rebranding and public DNS cutover remain separate
@@ -36,11 +26,16 @@ Cloudflare staging implementation is not a completed cutover. Before launch:
 - Vercel/Neon shutdown, repository rename and old-domain renewal changes wait
   for verified production migration and the approved observation window.
 
-The local D1 weekly/publishing workflow now has an actual isolated-provider
-publication proof. Engineering still owns protected hosted persistence,
-physical body retention/purge and global execution exclusion
-(`roadmap-lbbz1.4.3`), compliant catalog refresh/expiry policy, search coverage
-and final recovery checks.
+October 21 approval received: use the existing Codex task, refresh up to ten
+existing products daily and discover weekly. Creator Product Research stays
+deferred. There is no $15 subscription; the signed-in Cloudflare account is
+still Free. A Paid upgrade would start a $5/month account minimum on activation.
+
+The local D1 weekly/publishing workflow has an isolated-provider publication
+proof. Engineering owns private workspace expiry cleanup/restart recovery
+and single-operator publication (`roadmap-lbbz1.4.3`), the approved daily/weekly
+command and task handoff, search coverage and final recovery checks. New
+hosted CI or Cloudflare Cron is not a prerequisite for this Codex setup.
 Those are not owner authentication blockers and are not being marked done.
 See `STUPID_GIFTS_STAGING.md` and epic `roadmap-lbbz1`.
 
