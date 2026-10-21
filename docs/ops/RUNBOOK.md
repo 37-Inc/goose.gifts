@@ -87,6 +87,12 @@ Review unsafe, legacy or interrupted-run reports; never delete a lock, reset a
 reservation, adopt another checkout's output, or erase history to force progress.
 The daily command reserves its allowance before dispatch; failures and retries
 do not buy another batch that day. A skipped repeat is expected, not a failure.
+While the fresh migration canary in `roadmap-lbbz1.4.3` remains open, the saved
+task uses its separately SHA-pinned private `run-daily-canary.mts` helper as
+the **sole** Neon maintenance entry, after the same env refresh and purge.
+It captures the original response without a second fetch; never also run the
+regular daily command. Missing/changed helper bytes require review. Capture
+does not prove rights or publication; retain the original observation/expiry.
 Tuesday–Sunday refreshes make no model calls. On Monday, changed/missing
 editorial or vectors may be enriched only within the same reserved ten-product
 selection and original merchant response; unchanged approved content/vectors

@@ -52,12 +52,13 @@ opening catalog. New hosted CI or Cloudflare Cron is not a prerequisite for
 this Codex setup. These remaining checks are not owner authentication blockers
 and are not being marked done.
 
-The D1 runner separately needs a durable scoped Cloudflare credential in its
-project-specific Keychain entry. The existing Wrangler OAuth session supports
-interactive diagnostics, not a permanent unattended credential. Prepare and
-verify the existing Amazon/model/staging entries first; keep Vercel bootstrap
-and the live writer unchanged. Ask for the exact missing credential only after
-the safe preparation is complete; do not mint or broaden account tokens.
+The current D1 runner expects a scoped Cloudflare credential in its
+project-specific Keychain entry, which is absent. The existing Wrangler OAuth
+session refreshes successfully but is not integrated with that runner; do not
+copy an expiring access token into a purported permanent item. Check whether
+the existing refresh mechanism can be reused before calling this an owner-only
+blocker. Prepare the Amazon/model/staging entries first; keep Vercel bootstrap
+and the live writer unchanged. Do not mint or broaden account tokens.
 See `STUPID_GIFTS_STAGING.md` and epic `roadmap-lbbz1`.
 
 ### 1. Owned growth channel approval
