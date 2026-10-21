@@ -5,6 +5,46 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-21 owner session — Launch fetch and family affiliate identity verified
+
+Cameron approved one additional read of the exact ten selected launch products,
+with no reset of the failed daily allowance. The original Amazon response was
+captured at `2026-10-21T22:18:10.044Z`: one getItems call, zero source writes and
+zero model calls. Its display deadline remains October 22 at that exact time.
+The strict unchanged-source path initially held eight because factual hashes
+changed; none of those historical hashes or approvals were rewritten.
+
+Added an opt-in checksum-bound prospective copy review to the offline cohort
+and import tools. It independently pins original row/copy/response bytes, exact
+current facts, final copy, image decision and review time. Import reconstructs
+the entire cohort and retains original source JSON, model/status/quality and
+generation history. Unknown historical naive timestamps stay unresolved; only
+the real explicit-offset fresh observation sets current verification. Defaults,
+quality/availability/duplicate gates and the original 24-hour deadline remain.
+Independent and root Node22 review/cohort/import tests pass 24/24. Root reviewed
+all ten against their captured facts and visually checked Gracula/Splatypus;
+eight are ready and those two remain catalog-ineligible. No quality override.
+Private review SHA-256:
+`239ac7d68a1a582e6651d26fc970af71c117e3f0e3c1a6a2e0cf05cf09e4cbbe`.
+
+Using the owner-selected **37** Chrome profile, selected Riley's verified parent
+store `rileyehrlic0b-20`, added `https://stupid.gifts` and preserved
+`https://www.goose.gifts`. Amazon confirmed the update; an independent return
+to the saved website list shows both. Tracking-ID settings independently list
+`goose-gifts-37-20` under that same parent. Creator Connections' separate profile,
+Mike Ideas, credentials, payout and tax settings were untouched. This is account
+and tag verification, not evidence of a qualifying order or commission.
+Private receipt: `amazon-account-verification-2026-10-21.json`, with screenshots.
+
+Production hosting/canonical guards merged as PR #211 at
+`f88cdd5e70138672c69c4bfaea5617f4570eacf4`; baseline staging tests passed
+621 with 18 explicit optional skips and zero failures, followed by 51 focused
+attribution checks and full production build/lint. These are preparation
+receipts, not a claim that the new domain is serving. Isolated production
+resources/schema exist; sealed current-content import, safe daily publication,
+public deployment/TLS and live verification remain before serving cutover.
+Keep Cloudflare Free and the existing service/writer available for rollback.
+
 ## 2026-10-21 owner session — Pinterest rename completed; same approval retained
 
 After Cameron's “Go ahead with the rename,” the signed-in browser showed the

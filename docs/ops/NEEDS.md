@@ -36,11 +36,13 @@ Before launch:
   addressed with a bounded Free-plan alternative, request explicit approval
   before any paid upgrade. Local load results do not establish Free-plan CPU
   headroom; do not spend the shared daily quota on a burst rehearsal.
-- At the end, sign into the correct family Amazon Associates store to add
-  `stupid.gifts` and verify attribution. Do not modify the unrelated Mike Ideas
-  account. This saved new-domain identification is an actual affiliate/content
-  prerequisite; cosmetic provider renames are not. Public DNS cutover is now
-  authorized once the essential technical/content checks pass.
+- Amazon account step completed October 21: `https://stupid.gifts` is saved
+  alongside the existing Goose website under parent store `rileyehrlic0b-20`.
+  Independent tracking-ID settings list the canonical `goose-gifts-37-20` in
+  that same store. The owner-authorized Chrome 37 profile was used; the separate
+  Creator Connections profile and Mike Ideas account were untouched. This
+  proves saved site identification and tag ownership, not an attributed sale.
+  Public DNS cutover is authorized once essential technical/content checks pass.
 - Vercel/Neon shutdown, repository rename and old-domain renewal changes wait
   for verified production migration and the approved observation window.
 
@@ -57,6 +59,15 @@ checks. The expired preview is deliberately zero-ready/ten-held, not a current
 opening catalog. New hosted CI or Cloudflare Cron is not a prerequisite for
 this Codex setup. These remaining checks are not owner authentication blockers
 and are not being marked done.
+
+Cameron separately authorized one additional fetch of the same ten launch
+products on October 21, without resetting the failed daily reservation. That
+single response was captured at 22:18:10.044Z. Explicit prospective factual/copy
+review admits eight products; Gracula and Splatypus remain held by the existing
+catalog-fit filter. No extra fetch, model call, lowered score or fictitious
+historical approval was used. All merchant display deadlines remain October 22
+22:18:10.044Z. This is a launch cohort, not a successful daily writer/publication
+canary or complete migration.
 
 The explicit existing-Wrangler OAuth adapter passed a bounded read-only check
 against the correct staging D1/index: five HTTP 200s, 223 reported rows read,
