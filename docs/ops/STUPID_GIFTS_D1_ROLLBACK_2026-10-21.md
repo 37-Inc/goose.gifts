@@ -6,6 +6,18 @@ writer barrier, real post-cutover recovery, or permission to restart Neon.**
 The old archive-only recovery did not reconstruct current maintenance state or
 finalized D1 telemetry. `source_record_json` intentionally remains historical.
 
+Root repeated the complete five-change native fixture after integrating both
+review fixes at `4f1a762`. All five tests passed; all eight recorded implementation
+hashes match the integrated source. Receipt:
+`~/.codex/private/goose-gifts-migration/sg-delta-fixture-gBtNSK/recovery-native-pg17-LiOUea/receipt.json`,
+SHA-256 `dfa69ac34be497c3a80a489e0675022770d210dafe8b5b15b80b39b2b8735fdb`.
+Full thirteen-table readback, native bytes, late-failure data/allocator rollback,
+identical replay and next sequence passed. Independent exact-label Docker
+inventory found no remaining owned container or volume. The additional seven-file
+regression run passed 53 tests with four explicit optional skips; staging types,
+lint and the Node 22 production build pass. This is still synthetic mechanism
+evidence, not a provider-barrier capture or production recovery.
+
 ## Input and packet contract
 
 `scripts/catalog/recovery-delta.ts` accepts the pinned native PostgreSQL archive

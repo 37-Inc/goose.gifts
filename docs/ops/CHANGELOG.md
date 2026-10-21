@@ -260,7 +260,11 @@ identity coverage: duplicate rows cannot conceal a missing baseline identity,
 even with a rebuilt input inventory; new editorial timestamps must also match
 their recorded operation clock.31targeted tests/3native tests/types/lint pass. Real
 complete provider-barrier capture and production recovery remain open; root
-review/combined build pending. No live data/writer/provider/schedule changes.
+and independent review fixed duplicate search identity and editorial operation
+clock gaps. Root's final integrated native repeat passes all five tests; the
+additional regression run passes53/four optional skips, types/lint/Node22 build
+pass, and owned Docker resources are independently absent. No live data/writer/
+provider/schedule changes.
 See `STUPID_GIFTS_D1_ROLLBACK_2026-10-21.md`, `roadmap-lbbz1.3.1`.
 
 ### 2026-10-21 [owner+claude] — Verify protected expiry publication and exact restart recovery
