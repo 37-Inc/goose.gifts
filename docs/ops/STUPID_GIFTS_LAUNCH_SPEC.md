@@ -934,10 +934,13 @@ draft/review calls (default `gpt-4o-mini`) and embeddings (default
 `text-embedding-3-small`). These are API charges even when Codex or Claude Code
 launches the script locally. Codex's own subscribed usage is separate. Daily
 refresh makes no model calls; weekly new/changed content and visitor semantic
-queries may use the API. Reuse unchanged embeddings. A $1–5 monthly allowance
-for bounded text/embedding work is an estimate, not a minimum or subscription;
-images are separate. Verify provider-reported tokens/model and actual account
-usage rather than assuming the allowance was spent.
+queries may use the API. Reuse unchanged embeddings. The last three actual
+weekly runs (October 5, 12 and 19) recorded estimated OpenAI costs of $0.008853,
+$0.009627 and $0.008789: under one cent per run, or roughly four to five cents
+per month at that workload. These are recorded token-based estimates, not a
+provider invoice, and exclude visitor searches and image generation. A $1–5
+allowance is optional headroom, not a minimum or subscription. Verify actual
+account usage rather than assuming an allowance was spent.
 
 D1 Paid has a 10GB limit per database and each database executes queries
 serially. The current catalog is small; indexed reads and short writes matter

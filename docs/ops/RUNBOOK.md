@@ -1,6 +1,6 @@
 # goose.gifts — Autonomous Operator Runbook
 
-This runbook is executed by Claude on every scheduled run. It is the standing
+This runbook is executed by the scheduled Codex operator. It is the standing
 instruction set for operating goose.gifts autonomously.
 
 ## Mandate
@@ -56,16 +56,40 @@ Boundaries (always in force):
 
 The Cloudflare catalog path is opt-in migration work, not the current scheduled
 writer. Until `roadmap-lbbz1.4` records the final source-write barrier, delta
-reconciliation, protected credentials and verified publication, keep
-`catalog:weekly -- --no-notify` on Neon with the existing Production bootstrap.
-Do not install a second weekly job or select D1 because a readiness check passes.
+reconciliation, protected credentials and verified publication, use
+`npm run catalog:daily -- --backend neon --no-notify` with the existing
+Production bootstrap. The existing `goose-gifts-daily-ops` task is the sole
+operator: daily at 08:30 Pacific, up to ten existing products per Pacific day,
+with six-theme discovery on Mondays only. Do not run the old weekly command
+as well: its 50 refreshes and editorial backfill exceed this approved policy.
+Do not select D1 because a readiness check passes.
+
+Before maintenance, run
+`npm run catalog:purge -- --workspace "$HOME/.codex/private/goose-gifts-migration/weekly-runs" --repository "$PWD"`
+from the stable canonical checkout. It physically expires registered older-run
+bodies in the same private workspace while retaining minimal recovery control.
+Review unsafe, legacy or interrupted-run reports; never delete a lock, reset a
+reservation, adopt another checkout's output, or erase history to force progress.
+The daily command reserves its allowance before dispatch; failures and retries
+do not buy another batch that day. A skipped repeat is expected, not a failure.
+Daily refresh makes no model calls, does no discovery/backfill and does not
+globally rewrite affiliate URLs. Monday discovery deduplicates all existing
+identities, including inactive rows, before enrichment and admits at most twenty
+new products. Selected refreshes use the canonical affiliate tag.
+
+`maintenance_complete` means database maintenance only, not verified publication.
+Keep the old and new writers separate until the migration gates pass. Static
+Cloudflare publication must verify its immutable deployment and catalog receipt;
+never announce success from an exit code or cache invalidation alone. Do not
+publish social posts or send Slack reports from this catalog task. Creator
+Product Research remains deferred until after launch.
 
 The approved route and retirement decisions in
 [STUPID_GIFTS_LAUNCH_SPEC.md](STUPID_GIFTS_LAUNCH_SPEC.md) supersede older growth
 notes below. The Pinterest experiment is currently measurement-only; its
 completed cohort does not authorize another Pin. Rebranding, provider/account
-changes, merchant-refresh cadence and infrastructure shutdown keep their
-separate launch gates.
+changes and infrastructure shutdown keep their separate launch gates. The
+October 21 daily-ten/weekly-discovery cadence above is approved.
 
 The public `/sitemap.xml` internally serves the single ISR sitemap shard
 `/sitemap/0.xml` to avoid Next 16.3's fixed metadata-file output. Keep both
@@ -147,22 +171,13 @@ alone is not proof that public caches refreshed. The 24-hour fallback remains.
    The journal entry must explicitly say which lever was chosen, which plausible
    alternatives were skipped, and why the selected work was the highest-leverage
    reversible move for the business today.
-   Catalog discovery and stale-product revalidation run weekly rather than
-   daily; the catalog changes too slowly to justify daily API and enrichment
-   work. The scheduled command is `npm run catalog:weekly`. It revalidates at
-   most 50 due products, searches six rotating themes (covering the full
-   12-theme pool every two weeks), admits at most 20 net-new products, and
-   reports run statistics plus at most five title/image/product-link
-   candidates for visual spot-checking to the OpenClaw Slack marketing channel.
-   Revalidation gives reviewed, otherwise publishable pages priority at 21
-   days since availability verification (falling back to `last_verified_at`).
-   At the normal 50-item limit, 40 slots serve these pages and 10 preserve the
-   oldest-first legacy lane, whose existing 30-day threshold stays unchanged.
-   Empty lanes return their unused slots; the total stays bounded at 50.
-   This does not change the 35-day indexability gate, holds, factual-copy
-   checks, discovery volume, embeddings, or the weekly schedule.
-   Every non-dry run now has one UUID shared across revalidation, discovery,
-   and editorial backfill. `catalog_runs` stores the sanitized configuration,
+   Use the bounded daily command above. Existing-product selection prioritizes
+   explicitly featured IDs, then reviewed publishable products, then old legacy
+   products; age orders each lane. The ten-product cap is shared across retries
+   and Monday's discovery, with no old 50-item pass or 25-item backfill added.
+   Holds, factual-copy checks, indexability and affiliate rules still apply.
+   Every non-dry run has one UUID shared across its enabled phases.
+   `catalog_runs` stores the sanitized configuration,
    Git revision, completion state, phase timings, warnings, provider-reported
    OpenAI token usage, and a dated cost estimate. Append-only
    `catalog_run_items` records each selection and terminal decision—including
@@ -173,7 +188,7 @@ alone is not proof that public caches refreshed. The 24-hour fallback remains.
    `inputTokens`, `cachedInputTokens`, `outputTokens`, and `totalTokens` are
    evidence and must remain visible; only credential-shaped singular token,
    key, password, and secret fields are redacted.
-   For a read-only rehearsal use `npm run catalog:weekly -- --dry-run`.
+   For a no-call/no-write rehearsal use `npm run catalog:daily -- --dry-run`.
    Use `npm run catalog:report -- --latest` to reconstruct the newest run,
    `npm run catalog:report -- --run <uuid>` for an exact historical receipt,
    and `npm run catalog:review-queue` for the exact owner-intervention queue.
