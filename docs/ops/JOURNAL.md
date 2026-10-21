@@ -5,6 +5,29 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-21 morning — Routine Pinterest measurement; no early checkpoint
+
+AssignedP, completedP6/F6,total12 stays frozen. No new creative/approval/publication.
+Correct production account,28 retained public Pins,all12 exact packages/durable
+receipt boards verify; zero successes today,no unresolved receipt. Native
+P1395impressions/22opens/3saves/2outbound,F310/5/1/0;profile3651/56/8/2.
+Both outbound remain bowling,97.92%P exposure;toast84.19%F. No format or
+corroborated qualified-site/retailer conversion winner. Retired IDs excluded;
+all public cohort members retained,no deletion/repost/rename.
+
+Bounded GA4Oct15–21Pacific partial639direct+1not-set sessions,three engaged
+direct; PostHog5504279page/10list/1search/1select_item,no attributed Pinterest/
+retailer row. Unassigned activity is not conversion/customer proof; downstream
+unknown. All12 tracked destinations200/canonical/query-preserved/retailerlinked,
+tenindex-follow/two existing Chia/Bowling holds; no catalog/site/requeue work.
+
+AM snapshot16:29:47.252UTC precedes spider7day16:42:53.716UTC by786464ms;
+belly7day23:40:30.593UTC also not due. No early checkpoint,prior sheep7day
+retained.13 validated append-only events and v34 AM metrics/destination receipts
+preserve evidence. Existing ACTIVE schedule,twelve memberships,authorization
+freeze and receipt-derived October31 review gate unchanged; review not delivered.
+No new experiment,Bead/account/Pin changes or spend; no routine owner notification.
+
 ## 2026-10-20 afternoon — Sheep seven-day checkpoint; cohort remains frozen
 
 AssignedP; P6/F6,total12 cap forbids new creative/approval/publication. Verified

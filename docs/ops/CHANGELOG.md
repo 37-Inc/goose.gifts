@@ -195,6 +195,21 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-21 [daily-ops] — Measure frozen Pinterest cohort; no early checkpoints
+
+- AssignedP, completedP6/F6 metric-only: P1395impressions/22opens/3saves/
+  2outbound,F310/5/1/0. No additional outbound,format adoption or new creative/
+  approval/publication. Per-Pin site/retailer attribution remains unknown.
+- Verified28 retained public Pins,all12 packages/receipt boards and tracked
+  canonical retailer destinations; tenindex-follow/two existing editorial holds.
+  13 validated append-only events and v34 AM receipts preserve evidence.
+- Spider7day16:42:53.716UTC and belly23:40:30.593UTC are not due at AM snapshot;
+  no early closure. Existing ACTIVE schedule,October31 final-review gate,
+  publication freeze and catalog handoff unchanged. No catalog/page/account/
+  Pin/Bead changes or spend; routine acquisition state needs no owner action.
+- Node22.23.1:940-event validation,6creative/10Pinterest tests,production build,
+  lint,diff check and immutable-prefix/cap/receipt/future-gate invariants pass.
+
 ### 2026-10-20 [daily-ops] — Record Sheep seven-day checkpoint; keep measuring
 
 - PM assignedP, fullP6/F6 remains frozen: no new creative/approval/publication.
