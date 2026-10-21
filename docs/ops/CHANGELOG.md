@@ -226,13 +226,17 @@ items. Protected existing source files supply the same affiliate tag; no duplica
 tag constant or unverified deployment configuration is generated. A small native
 helper receives values only through stdin, adds absent items only and trusts
 `/usr/bin/security`; existing-value mismatches, ACL/access problems, races or
-partial creation remain review gates. No real Keychain write has been performed.
+partial creation remain review gates. Root's reviewed real preparation created
+the four exact items, but the intended reader timed out; access remains an
+owner-attended verification gate. Do not reseed or edit their ACLs automatically.
 The runner accepts an explicit Cloudflare-only `{type:"wrangler_oauth"}` reference
 as an alternative to its existing Keychain reference, with no fallback. Pinned
 Wrangler owns refresh in an isolated empty cwd with minimal environment and no
 disk logs; the access token stays captured in memory, never copied into Keychain.
-No real auth-token/refresh command has been executed for this change. Vercel bootstrap,
-Neon writer, scheduler, provider state and Free plan remain unchanged.
+The real OAuth read diagnostic passed five fixed staging requests (223 reported
+rows read / zero written); an earlier failed read remains recorded separately.
+This is not a write-permission audit or migration acceptance. Vercel bootstrap,
+Neon writer and Free plan remain unchanged.
 Tracked in `roadmap-lbbz1.4.4`; implementation branch `codex/catalog-keychain-bootstrap`.
 
 ### 2026-10-21 [owner+claude] — Verify protected expiry publication and exact restart recovery

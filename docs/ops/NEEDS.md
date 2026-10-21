@@ -52,13 +52,20 @@ opening catalog. New hosted CI or Cloudflare Cron is not a prerequisite for
 this Codex setup. These remaining checks are not owner authentication blockers
 and are not being marked done.
 
-The current D1 runner expects a scoped Cloudflare credential in its
-project-specific Keychain entry, which is absent. The existing Wrangler OAuth
-session refreshes successfully but is not integrated with that runner; do not
-copy an expiring access token into a purported permanent item. Check whether
-the existing refresh mechanism can be reused before calling this an owner-only
-blocker. Prepare the Amazon/model/staging entries first; keep Vercel bootstrap
-and the live writer unchanged. Do not mint or broaden account tokens.
+The explicit existing-Wrangler OAuth adapter passed a bounded read-only check
+against the correct staging D1/index: five HTTP 200s, 223 reported rows read,
+zero reported rows written. An earlier read failed and is retained separately;
+neither check audits all write permissions or authorizes cutover. No new token,
+login or paid plan is required for this observed read path.
+
+The four project Keychain items were created from refreshed authorized sources,
+but `/usr/bin/security` value readback timed out with no output. They are not
+verified usable. Preserve them: no reseeding, deletion, unlock or automated
+ACL/partition edits. A separate owner-attended, item-specific access approval
+may be needed; confirm the exact request before accepting it, then verify in a
+new reader process. Keep the existing Vercel/env/CSV bootstrap and live writer
+unchanged until this and the remaining migration gates pass. See
+`roadmap-lbbz1.4.4`; it remains open.
 See `STUPID_GIFTS_STAGING.md` and epic `roadmap-lbbz1`.
 
 ### 1. Owned growth channel approval
