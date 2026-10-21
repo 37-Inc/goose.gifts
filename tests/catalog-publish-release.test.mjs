@@ -55,7 +55,7 @@ function fixtureRelease(snapshot,context,prior=null){
     manifestSha256:sha(manifestBytes),vectorSyncWatermark:manifest.vectorSyncWatermark,priorReleaseId:manifest.priorReleaseId,nextExpiry:manifest.nextExpiry};
   return{...assembled,manifest,manifestBytes,outputs,intent};
 }
-async function setup(t,{real=false,prior=true,environment='staging',semanticSearch,priorExpiryMs=26*3600000}={}){
+async function setup(t,{real=false,prior=true,environment='staging',semanticSearch,publicAnalytics,priorExpiryMs=26*3600000}={}){
   const scope={environment,indexName:'fixture-index'},sourceMode=environment==='staging'?'preview':'goose-production';
   let actualWorkspace;
   const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-publish-')));t.after(async()=>{
@@ -110,7 +110,7 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
     capturedAt:snapshot.generatedAt,cutoff:new Date(AT+25*3600000).toISOString()};let {requestId}=await enqueueBuildRequest(db,request);
   const config={schemaVersion:1,environment,accountId:'a'.repeat(32),workerName:'fixture-worker',database:{id,name:'fixture-db'},indexName:scope.indexName,codeSha,
     sourceMode,sourceRoot,releaseId:'fixture-release',identityOrigin:environment==='staging'?'https://fixture-worker.example.invalid':siteIdentityFor(sourceMode).origin,
-    compatibilityDate:'2026-10-19',prior:priorConfig,...(semanticSearch===undefined?{}:{semanticSearch})};
+    compatibilityDate:'2026-10-19',prior:priorConfig,...(semanticSearch===undefined?{}:{semanticSearch}),...(publicAnalytics===undefined?{}:{publicAnalytics})};
   let checkpoint={sha256:'0'.repeat(64),phase:'freezing',owner,state:{driverState:'preserved'},pins:{phase:'b'.repeat(64)},phaseComplete:null,control:{}};
   let workspace={directory:path.join(directory,'workspace'),repository:await fs.realpath(sourceRoot),manifest:{codeSha},async assertHeld(){},assertScope(s){assert.deepEqual(s,{accountId:config.accountId,environment,databaseId:id,
     databaseName:'fixture-db',workerName:'fixture-worker',indexName:scope.indexName});},async readCheckpoint(options){const copy=structuredClone(checkpoint);if(options?.controlOnly)delete copy.state;
@@ -134,8 +134,9 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
     workspace=wrapActual();
   }
   let uploaded=false,active=false;let uploadCalls=0,activateCalls=0,buildCalls=0,identityCalls=0,versionReads=0,httpCalls=0;let mode={};let manifest;
-  let targetVersion=version,activePriorVersion=priorVersion;const uploadedConfigs=[];
+  let targetVersion=version,activePriorVersion=priorVersion;const uploadedConfigs=[],commandEnvironments=[];
   const command=async command=>{
+    commandEnvironments.push({args:[...command.args],env:{...command.env}});
     if(command.args.includes('scripts/staging/build.mts')){
       buildCalls++;const context=JSON.parse(await fs.readFile(command.env.CATALOG_RELEASE_CONTEXT_PATH));
       const assembled=fixtureRelease(snapshot,context,await readPriorRelease(context,command.env.CATALOG_PRIOR_RELEASE_PATH));manifest=assembled.manifest;
@@ -149,6 +150,7 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
       assert.equal(command.args[command.args.indexOf('--outdir')+1],path.join(runtime,'bundle'));
       assert.equal(command.env.TMPDIR,path.join(runtime,'tmp'));assert.equal(command.env.WRANGLER_LOG_PATH,path.join(runtime,'logs'));
       uploadedConfigs.push(cfg);assert.equal(command.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED,'false');
+      assert.equal(command.env.NEXT_PUBLIC_POSTHOG_KEY,undefined);assert.equal(command.env.NEXT_PUBLIC_POSTHOG_HOST,undefined);
       assert.equal(cfg.routes,undefined);assert.equal(cfg.triggers,undefined);uploaded=true;
       if(mode.uploadLost)throw new Error('PRIVATE upload secret');
     }
@@ -185,7 +187,7 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
   };
   const execute=()=>executePublication({db,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
     credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock)}});
-  return{db,sql,owner,revision,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
+  return{db,sql,owner,revision,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,commandEnvironments,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
     async nextRelease(){
       assert.equal((await readMutationOwner(db,scope)),null);
       const packageDirectory=path.join(workspace.directory,'packages',config.releaseId);
@@ -417,10 +419,12 @@ test('reviewed semantic policy rejects staging enablement, coercion, unsafe boun
   await assert.rejects(f.execute(),/publication_configuration_invalid/);assert.deepEqual(f.checkpoint(),checkpoint);
   assert.deepEqual(f.counts(),{uploadCalls:0,activateCalls:0,buildCalls:0,identityCalls:0,httpCalls:0});
 });
-test('omitted semantic policy keeps historical config hashes and exact off caps across real checkpoint resume',async t=>{
+test('omitted optional policies keep historical config hashes and exact off defaults across real checkpoint resume',async t=>{
   const f=await setup(t,{real:true});const before=canonicalJson(f.config);
-  Object.setPrototypeOf(f.config,{semanticSearch:{enabled:true,dailyRequestCap:1000,dailyTokenCap:100000}});
+  Object.setPrototypeOf(f.config,{semanticSearch:{enabled:true,dailyRequestCap:1000,dailyTokenCap:100000},
+    publicAnalytics:{enabled:true,posthogKey:'phc_ignored_inherited_key',posthogHost:'https://ignored.example.invalid'}});
   assert.equal(Object.hasOwn(validatePublicationConfig(f.config),'semanticSearch'),false);
+  assert.equal(Object.hasOwn(validatePublicationConfig(f.config),'publicAnalytics'),false);
   assert.equal(canonicalJson(validatePublicationConfig(f.config)),before);
   f.mode.stopBeforeActivation=true;assert.equal((await f.execute()).state,'pending');
   assert.equal(f.checkpoint().control.publication.configSha256,sha(before));
@@ -428,6 +432,63 @@ test('omitted semantic policy keeps historical config hashes and exact off caps 
   assert.equal((await f.execute()).state,'published');assert.equal(canonicalJson(validatePublicationConfig(f.config)),before);
   assert.deepEqual(f.uploadedConfigs[0].vars,{ENVIRONMENT:'staging',SEMANTIC_SEARCH_ENABLED:'false',
     SEMANTIC_SEARCH_DAILY_REQUEST_CAP:'50',SEMANTIC_SEARCH_DAILY_TOKEN_CAP:'32768'});
+  for(const command of f.commandEnvironments){assert.equal(command.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED,'false');
+    assert.equal(command.env.NEXT_PUBLIC_POSTHOG_KEY,undefined);assert.equal(command.env.NEXT_PUBLIC_POSTHOG_HOST,undefined);}
+});
+test('public analytics validates exact public inputs and rejects staging enablement, credentials and unsafe origins',async t=>{
+  const f=await setup(t);const policy={enabled:true,posthogKey:'phc_existing_public_project',posthogHost:'https://us.i.posthog.com'};
+  const production={...f.config,environment:'production',sourceMode:'goose-production',identityOrigin:siteIdentityFor('goose-production').origin};
+  const valid=validatePublicationConfig({...production,publicAnalytics:policy});assert.deepEqual(valid.publicAnalytics,policy);
+  assert.equal(Object.isFrozen(valid.publicAnalytics),true);
+  assert.deepEqual(validatePublicationConfig({...production,sourceMode:'stupid-production',identityOrigin:siteIdentityFor('stupid-production').origin,
+    publicAnalytics:policy}).publicAnalytics,policy);
+  assert.deepEqual(validatePublicationConfig({...f.config,publicAnalytics:{...policy,enabled:false}}).publicAnalytics,{...policy,enabled:false});
+  assert.throws(()=>validatePublicationConfig({...f.config,publicAnalytics:policy}),/publication_configuration_invalid/);
+  for(const publicAnalytics of [undefined,null,{},[],{...policy,extra:'secret'},{...policy,enabled:'true'},
+    ...[undefined,null,'','phx_private_api_key','phc_','phc_bad key','phc_'+'a'.repeat(197)].map(posthogKey=>({...policy,posthogKey})),
+    ...[undefined,null,'','http://us.i.posthog.com','https://user:password@us.i.posthog.com','https://us.i.posthog.com/',
+      'https://us.i.posthog.com/path','https://us.i.posthog.com?secret=value','https://us.i.posthog.com#fragment',
+      'https://us.i.posthog.com:8443',' https://us.i.posthog.com','https://'+'a'.repeat(256)].map(posthogHost=>({...policy,posthogHost}))])
+    assert.throws(()=>validatePublicationConfig({...production,publicAnalytics}),/publication_configuration_invalid/);
+  f.config.publicAnalytics=policy;const checkpoint=structuredClone(f.checkpoint());
+  await assert.rejects(f.execute(),/publication_configuration_invalid/);assert.deepEqual(f.checkpoint(),checkpoint);
+  assert.deepEqual(f.counts(),{uploadCalls:0,activateCalls:0,buildCalls:0,identityCalls:0,httpCalls:0});
+});
+test('consecutive production publications forward only pinned public analytics to build/verify and reject in-flight changes',async t=>{
+  const policy={enabled:true,posthogKey:'phc_existing_public_project',posthogHost:'https://us.i.posthog.com'};
+  const f=await setup(t,{real:true,environment:'production',publicAnalytics:policy,
+    semanticSearch:{enabled:false,dailyRequestCap:50,dailyTokenCap:32768}});f.mode.versionInvisible=true;
+  assert.equal((await f.execute()).errorCode,'publication_upload_pending');
+  assert.equal(f.checkpoint().control.publication.configSha256,sha(canonicalJson(f.config)));
+  const before=f.counts();
+  for(const patch of [{enabled:false},{posthogKey:'phc_other_public_project'},{posthogHost:'https://eu.i.posthog.com'}]){
+    f.config.publicAnalytics={...policy,...patch};assert.equal((await f.execute()).errorCode,'publication_checkpoint_mismatch');
+    assert.deepEqual(f.counts(),before);
+  }
+  f.config.publicAnalytics=policy;await f.reopen();delete f.mode.versionInvisible;
+  assert.equal((await f.execute()).state,'published');await f.nextRelease();assert.equal((await f.execute()).state,'published');
+  const buildCommands=f.commandEnvironments.filter(command=>command.args.some(arg=>/^scripts\/staging\/(build|verify-release)\.mts$/.test(arg)));
+  assert.equal(buildCommands.length,4);
+  for(const command of buildCommands){
+    assert.deepEqual(Object.fromEntries(Object.entries(command.env).filter(([key])=>key.startsWith('NEXT_PUBLIC_'))),{
+      NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED:'true',NEXT_PUBLIC_POSTHOG_KEY:policy.posthogKey,NEXT_PUBLIC_POSTHOG_HOST:policy.posthogHost});
+    for(const key of ['CLOUDFLARE_API_TOKEN','OPENAI_API_KEY','POSTGRES_URL','STAGING_AUTH_SECRET'])assert.equal(command.env[key],undefined);
+    assert.ok(!JSON.stringify(command.env).includes('PRIVATE'));
+  }
+  assert.equal(f.counts().uploadCalls,2);assert.equal(f.counts().activateCalls,2);
+  for(const uploaded of f.uploadedConfigs)assert.equal(Object.keys(uploaded.vars).some(key=>/ANALYTICS|POSTHOG/.test(key)),false);
+});
+test('omitted and disabled analytics never inherit ambient public values; staging always receives none',async t=>{
+  const ambient={NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED:'true',NEXT_PUBLIC_POSTHOG_KEY:'phc_ambient_project',
+    NEXT_PUBLIC_POSTHOG_HOST:'https://ambient.example.invalid',NEXT_PUBLIC_ANALYTICS_TEST_SECRET:'not-forwarded'};
+  const previous=Object.fromEntries(Object.keys(ambient).map(key=>[key,process.env[key]]));Object.assign(process.env,ambient);
+  t.after(()=>{for(const [key,value]of Object.entries(previous)){if(value===undefined)delete process.env[key];else process.env[key]=value;}});
+  const disabled={enabled:false,posthogKey:'phc_reviewed_public_project',posthogHost:'https://us.i.posthog.com'};
+  for(const [environment,publicAnalytics]of [['production',undefined],['production',disabled],['staging',disabled]]){
+    const f=await setup(t,{environment,publicAnalytics});assert.equal((await f.execute()).state,'published');
+    for(const command of f.commandEnvironments)assert.deepEqual(
+      Object.fromEntries(Object.entries(command.env).filter(([key])=>key.startsWith('NEXT_PUBLIC_'))),{NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED:'false'});
+  }
 });
 test('consecutive production publications preserve exact reviewed search policy and refuse in-flight policy changes',async t=>{
   const policy={enabled:true,dailyRequestCap:123,dailyTokenCap:45678};

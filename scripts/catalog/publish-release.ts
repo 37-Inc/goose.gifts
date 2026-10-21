@@ -46,6 +46,8 @@ export interface PublicationConfig {
   prior:{directory:string|null;manifestSha256:string;releaseId:string;versionReference:string}|null;
   /** Omission preserves historical config hashes and off/50/32768 behavior. */
   semanticSearch?:{enabled:boolean;dailyRequestCap:number;dailyTokenCap:number};
+  /** Public build inputs only; omission preserves historical hashes/default-off. */
+  publicAnalytics?:{enabled:boolean;posthogKey:string;posthogHost:string};
 }
 const KEY=/^[a-zA-Z0-9._-]{1,200}$/;
 const HASH=/^[a-f0-9]{64}$/;
@@ -55,7 +57,7 @@ const WORKERS_DEV_NAME=/^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
 const exact=(v:object,keys:string)=>Object.keys(v).sort().join(',')===keys;
 const sha256=(value:string|Uint8Array)=>createHash('sha256').update(value).digest('hex');
 export function validatePublicationConfig(input:PublicationConfig):Readonly<PublicationConfig> {
-  if(!input||!exact(input,`accountId,codeSha,compatibilityDate,database,environment,identityOrigin,indexName,prior,releaseId,schemaVersion,${Object.hasOwn(input,'semanticSearch')?'semanticSearch,':''}sourceMode,sourceRoot,workerName`)
+  if(!input||!exact(input,`accountId,codeSha,compatibilityDate,database,environment,identityOrigin,indexName,prior,${Object.hasOwn(input,'publicAnalytics')?'publicAnalytics,':''}releaseId,schemaVersion,${Object.hasOwn(input,'semanticSearch')?'semanticSearch,':''}sourceMode,sourceRoot,workerName`)
     ||input.schemaVersion!==1||!['staging','production'].includes(input.environment)||!/^[a-f0-9]{32}$/.test(input.accountId)
     ||!RESOURCE.test(input.workerName)||input.environment==='staging'&&!WORKERS_DEV_NAME.test(input.workerName)
     ||!RESOURCE.test(input.indexName)||!input.database||!exact(input.database,'id,name')
@@ -81,8 +83,17 @@ export function validatePublicationConfig(input:PublicationConfig):Readonly<Publ
         SEMANTIC_SEARCH_DAILY_REQUEST_CAP:String(policy.dailyRequestCap),SEMANTIC_SEARCH_DAILY_TOKEN_CAP:String(policy.dailyTokenCap)},
       {environment:input.environment,index:input.indexName}))throw new Error('publication_configuration_invalid');
   }
+  if(Object.hasOwn(input,'publicAnalytics')){
+    const policy=input.publicAnalytics;let host:URL|undefined;
+    try{if(typeof policy?.posthogHost==='string'&&policy.posthogHost.length<=255)host=new URL(policy.posthogHost);}catch{/* Invalid is not an ingest origin. */}
+    if(!policy||!exact(policy,'enabled,posthogHost,posthogKey')||typeof policy.enabled!=='boolean'
+      ||input.environment!=='production'&&policy.enabled||typeof policy.posthogKey!=='string'||!/^phc_[a-zA-Z0-9_-]{1,196}$/.test(policy.posthogKey)
+      ||!host||host.protocol!=='https:'||host.origin!==policy.posthogHost||host.username||host.password||host.port)
+      throw new Error('publication_configuration_invalid');
+  }
   return Object.freeze({...input,database:Object.freeze({...input.database}),prior:input.prior&&Object.freeze({...input.prior}),
-    ...(Object.hasOwn(input,'semanticSearch')?{semanticSearch:Object.freeze({...input.semanticSearch!})}:{})});
+    ...(Object.hasOwn(input,'semanticSearch')?{semanticSearch:Object.freeze({...input.semanticSearch!})}:{}),
+    ...(Object.hasOwn(input,'publicAnalytics')?{publicAnalytics:Object.freeze({...input.publicAnalytics!})}:{})});
 }
 function searchVars(config:PublicationConfig){
   const policy=Object.hasOwn(config,'semanticSearch')?config.semanticSearch!:{enabled:false,dailyRequestCap:50,dailyTokenCap:32768};
@@ -139,6 +150,11 @@ async function inventory(directory:string){const names=await files(directory);le
 const safePath=(name:string)=>name.startsWith('/')&&!name.includes('\\')&&!name.split('/').some(part=>part==='.'||part==='..')&&!name.includes('\0');
 function childEnv():NodeJS.ProcessEnv{return{PATH:process.env.PATH,HOME:process.env.HOME,TMPDIR:process.env.TMPDIR,
   CI:'true',NODE_ENV:'production',NEXT_TELEMETRY_DISABLED:'1',NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED:'false',WRANGLER_SEND_METRICS:'false'};}
+function publicAnalyticsEnv(config:PublicationConfig):Record<string,string>{
+  const policy=Object.hasOwn(config,'publicAnalytics')?config.publicAnalytics:undefined;
+  return config.environment==='production'&&policy?.enabled?{NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED:'true',
+    NEXT_PUBLIC_POSTHOG_KEY:policy.posthogKey,NEXT_PUBLIC_POSTHOG_HOST:policy.posthogHost}:{};
+}
 async function commandDefault(command:PublicationCommand){
   // Build/cache/package copies are private from their first byte, including
   // subprocess-created Next/Wrangler files. Positional args never enter shell source.
@@ -389,7 +405,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       await workspace.preparePublicationDirectories(config.releaseId,observedAt,deadlines.sort()[0]??null);
       await write(path.join(directory,'input.snapshot.json'),`${JSON.stringify(revision.snapshot)}\n`);
       await write(path.join(directory,'input.context.json'),`${JSON.stringify(context)}\n`);
-      const env={...childEnv(),TMPDIR:path.join(runtime,'tmp'),CATALOG_SITE_MODE:config.sourceMode,CATALOG_SNAPSHOT_PATH:path.join(directory,'input.snapshot.json'),
+      const env={...childEnv(),...publicAnalyticsEnv(config),TMPDIR:path.join(runtime,'tmp'),CATALOG_SITE_MODE:config.sourceMode,CATALOG_SNAPSHOT_PATH:path.join(directory,'input.snapshot.json'),
         CATALOG_RELEASE_CONTEXT_PATH:path.join(directory,'input.context.json'),...(config.prior?.directory?{CATALOG_PRIOR_RELEASE_PATH:config.prior.directory}:{})};
       let built=false;
       try{const previous=JSON.parse(await fs.readFile(path.join(config.sourceRoot,'build/stupid-gifts/asset-manifest.json'),'utf8'));built=previous.releaseId===config.releaseId;}

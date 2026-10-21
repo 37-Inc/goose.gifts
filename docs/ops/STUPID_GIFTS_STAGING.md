@@ -630,6 +630,15 @@ readback must match all three settings before activation. Changing a reviewed
 policy requires a new config/run and must also respect the existing shared
 daily-budget state. This does not authorize search enablement or new spending.
 
+Optional `publication.publicAnalytics` has exactly `enabled` (boolean),
+`posthogKey` (the existing public `phc_` project key, never a personal API key),
+and `posthogHost` (canonical HTTPS ingest origin, no path/query/credentials/port).
+Only production may enable it. The checksum-bound values reach build and verify
+only; omission preserves historical hashes/default-off, and disabled/staging
+builds receive no PostHog values. There is no ambient analytics-env fallback or
+new vendor/project; the adapter's fixed GA4/Ads IDs and privacy rules stay intact.
+Changing any value during a run requires a new reviewed config/run.
+
 - `phases_running` after interruption: stop for review; never automatically
   repeat paid merchant/model phases.
 - `draining`, `freezing`, `publishing`: resume exact persisted work only.
