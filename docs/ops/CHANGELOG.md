@@ -209,6 +209,7 @@ what's likely next.
   Pin/Bead changes or spend; routine acquisition state needs no owner action.
 - Node22.23.1:940-event validation,6creative/10Pinterest tests,production build,
   lint,diff check and immutable-prefix/cap/receipt/future-gate invariants pass.
+  Evidence/docs PR [#203](https://github.com/37-Inc/goose.gifts/pull/203).
 
 ### 2026-10-20 [daily-ops] — Record Sheep seven-day checkpoint; keep measuring
 
