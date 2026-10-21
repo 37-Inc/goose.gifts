@@ -15,7 +15,7 @@ import { maintenanceEmbeddingText } from '../scripts/catalog/maintenance-state.t
 import { editorialSourceHash } from '../scripts/ops/catalog-editorial-core.mjs';
 import { nativeHash, payloadVector } from '../scripts/catalog/vector-outbox.ts';
 import { abandonExpiredPrunedRevision, deliverOwnedOutboxEvent, deliverOwnedApprovedCohortVector, readOwnedApprovedCohortVectors,
-  reuseOwnedApprovedCohortVectorProof, readActivatedCatalogVectors } from '../scripts/catalog/owned-vector-delivery.ts';
+  reuseOwnedApprovedCohortVectorProof, readActivatedCatalogVectors, settleOwnedApprovedCohortVectorProof } from '../scripts/catalog/owned-vector-delivery.ts';
 import { claimBuildRequest, beginBuildActivation } from '../lib/catalog/build-requests.ts';
 import { enqueuePublication, claimPublication, recordPublicationDispatch } from '../lib/catalog/publication.ts';
 import { sealCapturedRevision, settleCapturedRevision } from '../lib/catalog/prune-existing-revision.ts';
@@ -172,7 +172,12 @@ test('settled proof reuse verifies whole approved cohort without provider mutati
   assert.deepEqual(await reuseOwnedApprovedCohortVectorProof(options),result);assert.equal(rebuilds,1);
   assert.deepEqual(await reuseOwnedApprovedCohortVectorProof({...options,owner:result.owner}),result);assert.equal(f.calls(),sent);
   const observation=await readOwnedApprovedCohortVectors(f.db,result.owner,revision,f.adapters);assert.equal(observation.settled,true);
-  const queued=await settleApprovedCohort(f.db,result.owner,revision,()=>readOwnedApprovedCohortVectors(f.db,result.owner,revision,f.adapters));
+  f.lose(statements=>statements.some(s=>s.query.includes('INSERT INTO catalog_build_requests')));
+  const settlement={db:options.db,owner:result.owner,revision,adapters:f.adapters};
+  await assert.rejects(settleOwnedApprovedCohortVectorProof(settlement));
+  const current=await readMutationOwner(f.db,scope);
+  const queued=await settleOwnedApprovedCohortVectorProof({...settlement,owner:current});
+  assert.equal(queued.state,'existing');assert.equal(rebuilds,1); // NO second full policy rebuild.
   const build=await claimBuildRequest(f.db,queued.requestId,'test-only/reused-workflow',f.now());
   const intent={releaseId:'reused-release',catalogRevision:revision.snapshot.catalogRevision,codeSha:revision.request.codeSha,
     catalogSnapshotSha256:revision.packet.receipt.snapshot_sha256,manifestSha256:'a'.repeat(64),vectorSyncWatermark:revision.vectorSyncWatermark,
@@ -250,6 +255,29 @@ test('settled proof reuse keeps already-visible/absent completions truthful and 
   await assert.rejects(reuseOwnedApprovedCohortVectorProof({...options,db:malformed}),/vector_reuse_source_changed/);
   const tooLarge=structuredClone(prepared.revision);tooLarge.additionalAbsentIds=Array.from({length:10},(_,i)=>uuid(i+20));
   assert.equal((await reuseOwnedApprovedCohortVectorProof({...options,revision:tooLarge})).state,'unsupported');
+});
+test('receipt-only cohort settlement refuses absent/mixed/tampered proofs, full revision drift, native/source/ABA/expiry changes',async t=>{
+  for(const fault of ['absent','mixed','proof','revision','native','source','aba','expiry']){
+    const {f,options,revision}=await reusable(t);let owner=options.owner;
+    if(fault!=='absent')owner=(await reuseOwnedApprovedCohortVectorProof(options)).owner;
+    const proposed=structuredClone(revision);let db=f.db;
+    if(fault==='revision')proposed.sourceDigest='0'.repeat(64);
+    if(fault==='native')f.index.get(uuid(1)).values[3]=.9;
+    if(fault==='source')f.sql.prepare("UPDATE products SET rights_json='{}' WHERE public_id=?").run(uuid(1));
+    if(fault==='expiry')f.advance(7*3600000);
+    if(fault==='aba'){await releaseMutationOwnership(f.db,owner);await claimMutationOwnership(f.db,scope,
+      {phase:'freezing',ownerReference:owner.ownerReference,operationKey:owner.operationKey});}
+    if(['mixed','proof'].includes(fault)){
+      const prepare=f.local.prepare.bind(f.local);db={...f.local,prepare(query){const statement=prepare(query);
+        if(!query.includes("IN('prune','approved-cohort-reuse')"))return statement;
+        return{...statement,bind(...args){statement.bind(...args);return this;},async all(){const value=await statement.all();
+          if(fault==='mixed')value.results.push({...value.results[0],delivery_id:'0'.repeat(64)});
+          else {const request=JSON.parse(value.results[0].request_json);request.revisionSha256='0'.repeat(64);value.results[0].request_json=canonicalJson(request);}
+          return value;}};}};
+    }
+    const sent=f.calls();await assert.rejects(settleOwnedApprovedCohortVectorProof({db,owner,revision:proposed,adapters:f.adapters}),undefined,fault);
+    assert.equal(f.calls(),sent,fault);assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,0,fault);
+  }
 });
 test('actual maintenance → drain → approved addition/update → exact originals → proof → build/activation permission',async t=>{
   const f=await setup(t);const old=f.previous.products[1];
