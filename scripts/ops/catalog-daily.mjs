@@ -103,9 +103,10 @@ export async function dailyCatalogPhases(cadence, featuredIds = []) {
     throw new Error('daily_featured_ids_invalid');
   const plan = await cadence.plan(), phases = [];
   if (plan.daily) phases.push({ ...parseArgs(['--revalidate', '--revalidate-limit', '10', '--backfill-limit', '0', '--skip-enrichment']),
-    dailyRefresh: true, discoveryNewOnly: false, featuredIds, assertRefreshDay: cadence.assertDay });
+    dailyRefresh: true, enrichSelectedExisting: cadence.calendar.monday,
+    discoveryNewOnly: false, featuredIds, assertRefreshDay: cadence.assertDay });
   if (plan.discovery) phases.push({ ...parseArgs(['--theme-limit', '6', '--per-theme', '10', '--max-new', '20', '--min-quality-score', '0.65', '--backfill-limit', '0']),
-    discoveryNewOnly: true });
+    discoveryNewOnly: true, enrichSelectedExisting: false });
   return phases;
 }
 
@@ -116,6 +117,7 @@ export async function dailyCatalogPhases(cadence, featuredIds = []) {
 export function dailyCatalogExecutor(cadence, execute = executeCatalog) {
   return async (options, seed, telemetry, store, evidence) => {
     const daily = options.dailyRefresh === true;
+    if (options.enrichSelectedExisting && (!daily || !cadence.calendar.monday)) throw new Error('daily_enrichment_monday_only');
     await cadence.reserve(daily ? 'daily' : 'discovery', telemetry.runId);
     cadence.assertDay();
     const selected = new Set(), existing = daily ? null : new Set((await store.getActiveCatalogIdentities({ includeInactive: true })).map(p => p.id));
@@ -221,7 +223,7 @@ async function main() {
     if (!process.env[key]) throw new Error('daily_neon_credentials_missing');
   const result = await withCatalogCadence({ workspace: CATALOG_CADENCE_ROOT, repository: process.cwd() }, async cadence => {
     const phases = await dailyCatalogPhases(cadence);
-    if (phases.some(p => p.discoveryNewOnly) && !process.env.OPENAI_API_KEY) throw new Error('daily_discovery_credentials_missing');
+    if (phases.some(p => p.discoveryNewOnly || p.enrichSelectedExisting) && !process.env.OPENAI_API_KEY) throw new Error('daily_model_credentials_missing');
     return runNeonDailyCatalog({ cadence, featuredIds: flags.get('--featured-ids')?.split(',') || [] });
   });
   console.log(JSON.stringify(result));

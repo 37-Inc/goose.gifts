@@ -776,7 +776,7 @@ function retryableReview(item) {
   return Boolean(corrected) && !hasRetryableEditorialStructure(corrected);
 }
 
-async function requestEditorialWithRetries(products, requestBatch, shouldRetry, telemetry, phase) {
+async function requestEditorialWithRetries(products, requestBatch, shouldRetry, telemetry, phase, beforeRequest) {
   const byId = new Map();
   const diagnosticsById = new Map(products.map((product) => [product.id, {
     attempts: [],
@@ -784,6 +784,7 @@ async function requestEditorialWithRetries(products, requestBatch, shouldRetry, 
   }]));
 
   async function attempt(batch, operation, retry = false) {
+    beforeRequest?.();
     try {
       const response = await requestBatch(batch, telemetry, operation);
       for (const product of batch) {
@@ -885,7 +886,8 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
       enrichCopyBatch,
       retryableDraft,
       telemetry,
-      'draft'
+      'draft',
+      options.assertRefreshDay
     );
 
     const copyEnriched = batch.map((product) => {
@@ -930,7 +932,8 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
         reviewEditorialBatch,
         retryableReview,
         telemetry,
-        'review'
+        'review',
+        options.assertRefreshDay
       )
       : { byId: new Map(), diagnosticsById: new Map() };
 
@@ -990,7 +993,7 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
     let embeddingsById = new Map();
 
     try {
-      embeddingsById = await generateProductEmbeddings(reviewedProducts, telemetry, evidence);
+      if (!options.skipEmbeddings) embeddingsById = await generateProductEmbeddings(reviewedProducts, telemetry, evidence);
     } catch (error) {
       telemetry?.warnings.push({ phase: 'embedding', reasonCode: 'embedding_failed', message: redactTelemetryText(error.message) });
       console.warn(`OpenAI embedding enrichment failed for ${batch.length} products.`);
@@ -1233,9 +1236,10 @@ function revalidatedProduct(existing, remote, options, evidence) {
   const existingPrice = Number(existing.price || 0);
   const price = remotePrice > 0 ? remotePrice : existingPrice;
   const sourceFactsHash = remote.sourceFacts
-    // The opt-in evidence path binds the exact existing image cleanup used in
-    // the payload BEFORE factual/stale checks. Keep legacy PG hashing unchanged.
-    ? editorialSourceHash(evidence ? { ...remote, imageUrl: cleanAmazonImageUrl(remote.imageUrl) } : remote)
+    // Evidence and daily refreshes bind the image cleanup actually persisted,
+    // so Monday copy cannot stale again on Tuesday from URL transforms alone.
+    // Keep the separate legacy non-daily PG hashing unchanged.
+    ? editorialSourceHash(evidence || options.dailyRefresh ? { ...remote, imageUrl: cleanAmazonImageUrl(remote.imageUrl) } : remote)
     : stored('sourceFactsHash', 'source_facts_hash');
   const storedEditorialStatus = stored('editorialStatus', 'editorial_status') || 'pending';
   const editorialStatus = storedEditorialStatus === 'generated_ready'
@@ -1308,6 +1312,42 @@ function recordExistingSelection(telemetry, product, phase) {
   });
 }
 
+// Monday-only caller, using the SAME reserved/fetched <=10 products. This is
+// not the legacy backfill selector or another merchant refresh. In particular,
+// manual locks never enter drafting, and unchanged approved inputs reuse vectors.
+async function enrichRevalidatedSelection(products, rows, options, telemetry, store, evidence) {
+  const currentCopy = product => ['generated_ready', 'manual_locked'].includes(product.editorialStatus)
+    && product.sourceFactsHash && product.editorialSourceHash === product.sourceFactsHash
+    && Number(product.editorialQualityScore) >= 0.8 && String(product.editorialWriteup || '').length >= 500
+    && editorialWordCount(product.editorialWriteup) >= 90 && /\n\s*\n/.test(product.editorialWriteup);
+  const eligible = product => !product.duplicateOfProductId && !['blocked', 'duplicate'].includes(product.editorialStatus)
+    && !editorialCandidateBlock(product);
+  const copies = products.filter(product => eligible(product) && product.editorialStatus !== 'manual_locked' && !currentCopy(product));
+  options.assertRefreshDay?.();
+  const generated = copies.length ? await enrichProducts(copies, { ...options, skipEnrichment: false, skipEmbeddings: true },
+    await getExistingEditorialWriteups(copies.map(product => product.id), store), telemetry, evidence) : [];
+  const byId = new Map(generated.map(product => [product.id, product]));
+  const original = new Map(products.map(product => [product.id, product]));
+  const previous = new Map(rows.map(row => [row.id, row]));
+  const refreshed = products.map(product => byId.get(product.id) || product);
+  const needsVector = refreshed.filter(product => eligible(product) && currentCopy(product)
+    && (byId.has(product.id) || previous.get(product.id)?.has_embedding !== true));
+  let vectors = new Map();
+  if (needsVector.length) {
+    options.assertRefreshDay?.();
+    try { vectors = await generateProductEmbeddings(needsVector, telemetry, evidence); }
+    catch (error) { telemetry.warnings.push({ phase: 'embedding', reasonCode: 'embedding_failed', message: redactTelemetryText(error.message) }); }
+  }
+  const attempted = new Set(needsVector.map(product => product.id));
+  return { attemptedIds: new Set(copies.map(product => product.id)), embedded: vectors.size, products: refreshed.map(product => {
+    if (!attempted.has(product.id)) return product;
+    if (vectors.has(product.id)) return { ...product, embedding: vectors.get(product.id) };
+    // Do not publish freshly rewritten copy against an old/unproven vector after
+    // failure. Retain the original held copy/hash; absence grants no new proof.
+    return original.get(product.id);
+  }) };
+}
+
 async function revalidateCatalog(options, telemetry, store, evidence) {
   const phaseStartedAt = Date.now();
   const affiliateAudit = options.dailyRefresh
@@ -1323,6 +1363,7 @@ async function revalidateCatalog(options, telemetry, store, evidence) {
   let markedUnavailable = 0;
   let deactivated = 0;
   let throttled = false;
+  let selectedEditorialAttempts = 0, selectedEditorialReady = 0, selectedEmbeddings = 0;
   const terminalIds = new Set();
 
   for (const batch of chunkArray(existing, 10)) {
@@ -1370,15 +1411,27 @@ async function revalidateCatalog(options, telemetry, store, evidence) {
       }
     }
 
-    for (const product of batch) {
-      const remote = remoteById.get(product.id);
-      if (!remote) continue;
+    let refreshedProducts = batch.filter(product => remoteById.has(product.id))
+      .map(product => revalidatedProduct(product, remoteById.get(product.id), options, evidence));
+    let editorial;
+    if (options.dailyRefresh && options.enrichSelectedExisting && !options.dryRun) {
+      editorial = await enrichRevalidatedSelection(refreshedProducts.filter(product => remoteById.get(product.id).remotelyVerified === true),
+        batch, options, telemetry, store, evidence);
+      const enrichedById = new Map(editorial.products.map(product => [product.id, product]));
+      refreshedProducts = refreshedProducts.map(product => enrichedById.get(product.id) || product);
+      selectedEditorialAttempts += editorial.attemptedIds.size;
+      selectedEmbeddings += editorial.embedded;
+    }
+    for (const refreshedProduct of refreshedProducts) {
       options.assertRefreshDay?.();
-      const refreshedProduct = revalidatedProduct(product, remote, options, evidence);
-      let persistence = { slug: product.slug };
+      let persistence = { slug: refreshedProduct.slug };
       if (!options.dryRun) persistence = await upsertProduct(refreshedProduct, store);
       refreshedProduct.slug = persistence.slug || refreshedProduct.slug;
-      terminalIds.add(product.id);
+      if (editorial?.attemptedIds.has(refreshedProduct.id)) {
+        await recordEditorialEvent(telemetry.runId, refreshedProduct, 'enriched', store);
+        if (refreshedProduct.editorialStatus === 'generated_ready' && Array.isArray(refreshedProduct.embedding)) selectedEditorialReady++;
+      }
+      terminalIds.add(refreshedProduct.id);
       telemetry.items.record(refreshedProduct, {
         phase: 'revalidation',
         stage: 'persistence',
@@ -1429,7 +1482,8 @@ async function revalidateCatalog(options, telemetry, store, evidence) {
   await telemetry.items.flush();
   addTiming(telemetry.timingsMs, 'revalidation', Date.now() - phaseStartedAt);
 
-  return { selected: existing.length, refreshed, confirmedMissing, markedUnavailable, deactivated, throttled, affiliateAudit };
+  return { selected: existing.length, refreshed, confirmedMissing, markedUnavailable, deactivated, throttled, affiliateAudit,
+    ...(options.enrichSelectedExisting ? { selectedEditorialAttempts, selectedEditorialReady, selectedEmbeddings } : {}) };
 }
 
 async function getProductsNeedingEnrichment(limit, ids, store = defaultMaintenanceStore()) {

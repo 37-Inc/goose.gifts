@@ -376,9 +376,10 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         const {limit,featuredIds=[]}=selection;
         if(!Number.isInteger(limit)||limit<1||limit>10||featuredIds.length>100||featuredIds.some(id=>!(/^[A-Z0-9]{10}$/).test(id)))throw new Error('daily_selection_invalid');
         const lane=(p:SemanticProduct)=>featuredIds.includes(p.id)?0:publishedMaintenanceProduct(p)?1:2;
-        return(await catalog()).map(value=>value.product).filter(p=>p.source==='amazon'&&p.isActive&&(/^[A-Z0-9]{10}$/).test(p.id))
-          .sort((a,b)=>lane(a)-lane(b)||maintenanceTimeOrder(a.availabilityCheckedAt||a.lastVerifiedAt,b.availabilityCheckedAt||b.lastVerifiedAt,true)
-            ||maintenanceTimeOrder(a.updatedAt,b.updatedAt,false)||compare(a.id,b.id)).slice(0,limit).map(maintenanceRow);
+        return(await catalog()).filter(({product:p})=>p.source==='amazon'&&p.isActive&&(/^[A-Z0-9]{10}$/).test(p.id))
+          .sort(({product:a},{product:b})=>lane(a)-lane(b)||maintenanceTimeOrder(a.availabilityCheckedAt||a.lastVerifiedAt,b.availabilityCheckedAt||b.lastVerifiedAt,true)
+            ||maintenanceTimeOrder(a.updatedAt,b.updatedAt,false)||compare(a.id,b.id)).slice(0,limit)
+          .map(value=>({...maintenanceRow(value.product),has_embedding:value.present}));
       }
       const {limit,staleDays,publishedStaleDays,publishedSlots,legacySlots} = selection;
       if (!Object.values(selection).every(Number.isInteger) || limit < 1 || limit > 100 || staleDays < 1 || publishedStaleDays < 1

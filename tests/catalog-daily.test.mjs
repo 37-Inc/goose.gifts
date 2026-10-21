@@ -52,6 +52,7 @@ test('same-day Monday repeats never add 50 refreshes or 25 backfills; each Monda
     assert.equal(phases.length, 2);
     assert.deepEqual(phases.map(p => p.backfillLimit), [0, 0]);
     assert.equal(phases[0].revalidateLimit, 10); assert.equal(phases[0].skipEnrichment, true);
+    assert.equal(phases[0].enrichSelectedExisting, true);
     assert.equal(phases[1].discoveryNewOnly, true);
     assert.equal(phases[1].themeLimit, 6); assert.equal(phases[1].perTheme, 10); assert.equal(phases[1].maxNew, 20); assert.equal(phases[1].minQualityScore, .65);
     await cadence.reserve('daily', 'monday'); await cadence.reserve('discovery', 'monday');
@@ -210,6 +211,7 @@ test('daily Postgres selection is bounded and prioritizes featured then publishe
   const store = createPostgresCatalogMaintenanceStore({ query: async (...args) => { calls.push(args); return { rows: [] }; } });
   await store.getProductsForRevalidation({ daily: true, limit: 10, featuredIds: [id(9)] });
   assert.deepEqual(calls[0][1], [10, [id(9)]]); assert.match(calls[0][0], /CASE WHEN id = ANY\(\$2::text\[\]\) THEN 0/);
-  assert.match(calls[0][0], /THEN 1 ELSE 2 END/); assert.match(calls[0][0], /LIMIT \$1/); assert.doesNotMatch(calls[0][0], /embedding/);
+  assert.match(calls[0][0], /THEN 1 ELSE 2 END/); assert.match(calls[0][0], /LIMIT \$1/);
+  assert.match(calls[0][0], /\(embedding IS NOT NULL\) AS has_embedding/);
   await store.getActiveCatalogIdentities({ includeInactive: true }); assert.equal(calls[1][0], 'SELECT id, title FROM products');
 });

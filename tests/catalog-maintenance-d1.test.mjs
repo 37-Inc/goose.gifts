@@ -282,6 +282,8 @@ test('daily selection prioritizes explicit featured then current published ahead
     const before=f.epoch();
     const rows=await f.store.getProductsForRevalidation({daily:true,limit:10,featuredIds:[products[20].id]});
     assert.equal(rows.length,10);assert.equal(rows[0].id,products[20].id);
+    assert.ok(rows.every(row=>row.has_embedding===true));
+    assert.ok(rows.every(row=>!Object.hasOwn(row,'embedding')));
     assert.deepEqual(rows.slice(1).map(r=>r.id),Array.from({length:9},(_,n)=>id(n+2)));
     assert.equal(f.epoch(),before);
     assert.equal((await f.store.getActiveCatalogIdentities()).some(p=>p.id===inactive.id),false);
