@@ -24,6 +24,15 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **D1-write rollback mechanism prepared** [owner+claude]: bounded offline
+  reconstruction now binds frozen logical D1 rows to a native PG baseline,
+  preserves current product/vector and finalized telemetry state, and retains
+  D1-only data privately. Owned synthetic native proof covers atomic failure,
+  allocator rollback and identical replay. Real complete provider-barrier
+  capture/final delta and production recovery remain open. See
+  [D1 rollback mechanism](STUPID_GIFTS_D1_ROLLBACK_2026-10-21.md),
+  `roadmap-lbbz1.3.1`; no live DB/provider/schedule/cutover changes.
+
 - **Stupid Gifts launch — primary project priority:** October19 owner asked
   for a concrete Cloudflare/static/data-migration and show-focused design spec,
   plus registration of `stupid.gifts`. See
@@ -238,6 +247,18 @@ rows read / zero written); an earlier failed read remains recorded separately.
 This is not a write-permission audit or migration acceptance. Vercel bootstrap,
 Neon writer and Free plan remain unchanged.
 Tracked in `roadmap-lbbz1.4.4`; implementation branch `codex/catalog-keychain-bootstrap`.
+
+### 2026-10-21 [owner+claude] — Prepare offline D1-write rollback mechanism
+
+Added a private checksum-bound rollback packet that uses current maintenance
+semantics/native vectors and finalized telemetry instead of stale source JSON,
+plus actual-writer editorial append mapping and a preserved D1-only sidecar.
+Five-change isolated PG17 proof passes full13table readback, late-failure
+data/allocator rollback, identical replay and next sequence; source hashes match,
+owned resources removed.31targeted tests/3native tests/types/lint pass. Real
+complete provider-barrier capture and production recovery remain open; root
+review/combined build pending. No live data/writer/provider/schedule changes.
+See `STUPID_GIFTS_D1_ROLLBACK_2026-10-21.md`, `roadmap-lbbz1.3.1`.
 
 ### 2026-10-21 [owner+claude] — Verify protected expiry publication and exact restart recovery
 
