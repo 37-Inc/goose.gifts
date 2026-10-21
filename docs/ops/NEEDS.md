@@ -11,6 +11,16 @@ None currently.
 
 ### Stupid Gifts launch — deferred owner decisions
 
+**Pinterest handoff, October21:** Cameron authorized pausing the daily studio
+and beginning an in-place account/app rename. Scheduler PAUSED is verified;
+the separate catalog job is unchanged. Please sign into the existing Pinterest
+BUSINESS account (`goosegifts@37.technology`) in the prepared browser tab so the
+profile/app names can be edited; no password reset or new account is needed.
+Neither name has changed yet. New-domain claim, destinations, enrichment source
+and analytics verification wait for the production cutover. The receipt-derived
+October31 v11 review remains pending and will not run automatically while the
+studio is paused. See `PINTEREST_STUDIO.md` for the restart contract.
+
 The current Goose production site remains on Vercel/Neon; the protected
 Cloudflare staging implementation is not a completed cutover. Before launch:
 

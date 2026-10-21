@@ -86,8 +86,9 @@ Product Research remains deferred until after launch.
 
 The approved route and retirement decisions in
 [STUPID_GIFTS_LAUNCH_SPEC.md](STUPID_GIFTS_LAUNCH_SPEC.md) supersede older growth
-notes below. The Pinterest experiment is currently measurement-only; its
-completed cohort does not authorize another Pin. Rebranding, provider/account
+notes below. Pinterest is owner-paused for migration; preserve that pause and
+the completed measurement-only cohort, which does not authorize another Pin.
+Rebranding, provider/account
 changes and infrastructure shutdown keep their separate launch gates. The
 October 21 daily-ten/weekly-discovery cadence above is approved.
 
