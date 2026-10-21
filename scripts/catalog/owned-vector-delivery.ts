@@ -59,7 +59,11 @@ interface Request {
   event: VectorEvent | null; payloadSha256: string | null; planSha256: string | null;
   globalWatermark: number | null; projectionReceipt: Row | null; eligibleUntil: string | null; pruneCurrent: Row | null;
   providerIdentity: string;
+  /** New prune DELETEs retain hashes, never expired merchant bodies. Legacy
+   * journals without this field keep their original exact-row replay format. */
+  pruneDeleteControl?: { schemaVersion:1; productSha256:string; sourceSha256:string };
 }
+interface PruneDeleteSource { planSha256:string; current:Row; projectionReceipt:Row }
 interface Journal extends Row {
   delivery_id: string; owner_json: string; request_json: string; product_json: string;
   status: 'pending' | 'complete'; attempts: number; dispatch_token: string | null;
@@ -153,8 +157,37 @@ async function recoveredOwner(db: CatalogD1, input: MutationOwner, row: Journal)
 async function pendingResult(db: CatalogD1, input: MutationOwner, row: Journal, errorCode: Code): Promise<DeliveryResult> {
   return { deliveryId: row.delivery_id, owner: await recoveredOwner(db, input, row), state: 'pending', errorCode };
 }
+/** Read under the SAME held journal owner, then bind the independently matched
+ * full values into the original atomic SQL CAS. D1 has no SHA SQL function:
+ * a hash check alone, a subset predicate or an unverified reread is insufficient.
+ * Only transient SQL parameters contain bodies; immutable control stays small.
+ */
+async function hydratePruneDelete(db:CatalogD1,owner:MutationOwner,row:Journal,request:Request,source?:PruneDeleteSource) {
+  source=source&&structuredClone(source);
+  const control=request.pruneDeleteControl;
+  const productControl=JSON.parse(row.product_json);
+  if(!control||Object.keys(control).sort().join(',')!=='productSha256,schemaVersion,sourceSha256'||control.schemaVersion!==1
+    ||!HASH.test(control.productSha256)||!HASH.test(control.sourceSha256)||request.kind!=='prune'||request.vector!==null||request.event!==null
+    ||request.pruneCurrent!==null||!source||source.planSha256!==request.planSha256
+    ||source.current.public_id!==request.publicId||sha256(canonicalJson(source.current))!==control.sourceSha256
+    ||canonicalJson(source.projectionReceipt)!==canonicalJson(request.projectionReceipt)
+    ||canonicalJson(productControl)!==canonicalJson({schemaVersion:1,kind:'prune-delete-product-control',publicId:request.publicId,
+      sha256:control.productSha256}))throw new Error('vector_prune_control_changed');
+  const pending=row.status==='pending';const fence=gate(owner,pending);
+  await db.batch([owned(db,owner,pending)]);
+  const products=(await db.prepare(`SELECT p.* FROM products p WHERE p.public_id=? AND ${fence.sql}`)
+    .bind(request.publicId,...fence.params).all<Row>()).results;
+  if(products.length!==1||sha256(canonicalJson(products[0]))!==control.productSha256)throw new Error('vector_product_changed');
+  const receipt=(await db.prepare(`SELECT r.* FROM catalog_projection_receipts r WHERE r.catalog_revision=? AND ${fence.sql}`)
+    .bind(request.catalogRevision,...fence.params).all<Row>()).results;
+  if(receipt.length!==1||canonicalJson(receipt[0])!==canonicalJson(request.projectionReceipt))throw new Error('vector_prune_control_changed');
+  const hydrated={...request,pruneCurrent:structuredClone(source.current)};const product=products[0];
+  await db.batch([owned(db,owner,pending),productAssertion(db,product,hydrated,false),...requestAssertions(db,hydrated),owned(db,owner,pending)]);
+  return{request:hydrated,product};
+}
 async function execute(options: { db: CatalogD1; owner: MutationOwner; id: string; adapters: OwnedVectorAdapters; timeout: number;
   expectedPayloadSha256?: string | null;
+  pruneDeleteSource?:PruneDeleteSource;
   prepare(): Promise<{ request: Omit<Request,'providerIdentity'>; product: Row }> }): Promise<DeliveryResult> {
   const { db, owner: input, id, adapters, timeout } = options;
   adapterScope(input,adapters);
@@ -163,7 +196,12 @@ async function execute(options: { db: CatalogD1; owner: MutationOwner; id: strin
     await db.batch([mutationAssertion(db, input, ['writing','freezing'])]);
     const prepared = await options.prepare(); const product = prepared.product;
     const request: Request = { ...prepared.request,providerIdentity:adapters.providerIdentity };
-    const requestBytes = encodeRequest(request); const productBytes = canonicalJson(product);
+    const bodyFree=request.kind==='prune'&&request.vector===null;
+    const productSha256=bodyFree?sha256(canonicalJson(product)):null;
+    const persisted:Request=bodyFree?{...request,pruneCurrent:null,pruneDeleteControl:{schemaVersion:1,
+      productSha256:productSha256!,sourceSha256:sha256(canonicalJson(request.pruneCurrent))}}:request;
+    const requestBytes = encodeRequest(persisted);
+    const productBytes = canonicalJson(bodyFree?{schemaVersion:1,kind:'prune-delete-product-control',publicId:request.publicId,sha256:productSha256}:product);
     if (Buffer.byteLength(requestBytes) > 200_000 || Buffer.byteLength(productBytes) > 768_000) throw new Error('vector_payload_bound');
     const owner = { ...input, epoch: input.epoch + 1 }; const query = gate(input, false);
     try {
@@ -187,8 +225,9 @@ async function execute(options: { db: CatalogD1; owner: MutationOwner; id: strin
   if (saved.providerIdentity !== adapters.providerIdentity) throw new Error('vector_provider_scope_mismatch');
   if (options.expectedPayloadSha256 !== undefined && saved.payloadSha256 !== options.expectedPayloadSha256)
     throw new Error('vector_original_changed');
+  const hydrated=saved.pruneDeleteControl!==undefined?await hydratePruneDelete(db,owner,row,saved,options.pruneDeleteSource):null;
   if (row.status === 'complete') return { deliveryId: id, owner, state: row.disposition === 'verified' ? 'complete' : 'expired', errorCode: null };
-  const request = decodeRequest(row.request_json); const product = JSON.parse(row.product_json) as Row;
+  const request = hydrated?.request??saved; const product = hydrated?.product??JSON.parse(row.product_json) as Row;
   // A clock crossing alone must never prevent observing an already-dispatched
   // mutation. Freshness is checked separately immediately BEFORE dispatch.
   const checks = () => [owned(db, owner, true), productAssertion(db, product, request, false), ...requestAssertions(db, request),
@@ -335,11 +374,12 @@ async function pruneDelivery(options: { db: CatalogD1; owner: MutationOwner; rev
   if (owner.phase !== 'freezing' || !UUID.test(publicId) || (!member && !absent) || (member && !HASH.test(options.original?.sha256 ?? ''))
     || (absent && options.original)) throw new Error('invalid_owned_prune_vector');
   const id = idFor(owner,{ kind:'prune',planHash,publicId });
-  return execute({ ...options,id,timeout,expectedPayloadSha256:options.original?.sha256 ?? null, async prepare() {
+  const captured=revision.sourceRows.find(row=>row.public_id===publicId);
+  return execute({ ...options,id,timeout,expectedPayloadSha256:options.original?.sha256 ?? null,
+    ...(absent&&captured?{pruneDeleteSource:{planSha256:planHash,current:structuredClone(captured),projectionReceipt:revision.packet.receipt}}:{}),async prepare() {
     const rebuilt = approved ? await prepareApprovedCohort(db,owner,(revision as ApprovedCohortRevision).request)
       : await pruneExistingRevision(db,owner,revision.request);
     if (rebuilt.state === 'unchanged' || canonicalJson(rebuilt.revision) !== canonicalJson(revision)) throw new Error('vector_prune_changed');
-    const captured = revision.sourceRows.find(row => row.public_id === publicId)!;
     // Captured rows also have archived_* JSON aliases, not physical columns.
     // Bind those through the canonical pruning predicate and separately capture
     // the complete operational row for the delivery's final exact-row CAS.

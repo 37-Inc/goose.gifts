@@ -81,7 +81,7 @@ async function select(products, limit = 50, staleDays = 30, featuredIds) {
         source_facts jsonb, source_facts_hash text, editorial_source_hash text,
         availability_status text, availability_checked_at timestamp, editorial_status text,
         editorial_quality_score numeric, editorial_model text, editorial_prompt_version text,
-        editorial_generated_at timestamp, editorial_block_reason text, duplicate_of_product_id text
+        editorial_generated_at timestamp, editorial_block_reason text, duplicate_of_product_id text, embedding text
       ))`;
     const query = (featuredIds ? `WITH ${fixture} ${text}` : text.replace(/WITH/, `WITH ${fixture},`))
       .replace(/NOW\(\)/g, `'${now.toISOString()}'::timestamp`)
@@ -100,11 +100,13 @@ async function select(products, limit = 50, staleDays = 30, featuredIds) {
 test('daily SQL prioritizes explicit featured and current published products over thousands of ancient legacy rows',sqlTest,async()=>{
   const featured=product(9000,{editorial_status:'pending',availability_checked_at:daysAgo(0),last_verified_at:daysAgo(0)});
   const fresh=product(1,{availability_checked_at:daysAgo(0),last_verified_at:daysAgo(0)});
-  const published=Array.from({length:20},(_,n)=>product(n+2));
+  const published=Array.from({length:20},(_,n)=>product(n+2,n===0?{embedding:'TEST_ONLY_PRESENT'}:{}));
   const legacy=Array.from({length:3150},(_,n)=>product(n+100,{editorial_status:'pending',last_verified_at:null}));
   const rows=await select([...legacy,fresh,...published,featured],10,30,[featured.id]);
   assert.equal(rows.length,10);assert.equal(rows[0].id,featured.id);
   assert.deepEqual(rows.slice(1).map(p=>p.id),published.slice(0,9).map(p=>p.id));
+  assert.equal(rows[0].has_embedding,false);assert.equal(rows[1].has_embedding,true);
+  assert.ok(rows.every(row=>!Object.hasOwn(row,'embedding')));
   assert.deepEqual((await select([fresh,...legacy],10,30,[]))[0].id,fresh.id);
 });
 

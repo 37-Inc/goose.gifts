@@ -257,7 +257,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
         if(pacificCatalogCalendar(now()).day!==config.cadence.day)throw new Error('weekly_cadence_day_changed');
         const phases=await dailyCatalogPhases(dependencies.cadence!,config.cadence.featuredIds);
         if(!phases.length)return{state:'skipped',reason:'cadence_already_reserved'};
-        if(phases.some(p=>p.discoveryNewOnly)&&!config.credentials.openai)throw new Error('weekly_model_credentials_missing');
+        if(phases.some(p=>p.discoveryNewOnly||p.enrichSelectedExisting)&&!config.credentials.openai)throw new Error('weekly_model_credentials_missing');
       }
       const owner=await claimMutationOwnership(db,scope,{phase:'writing',ownerReference:config.runId,operationKey:sha256(`weekly:${options.configSha256}`)});
       if(!owner)throw new Error('weekly_owner_busy');const cursor={current:owner};await write({phase:'phases_running',owner});
@@ -275,7 +275,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
           },async finalizeRun(id:string,input:Record<string,unknown>){await telemetry.finishCatalogRun(id,input);return telemetry.loadCatalogRun(id);}};
         if(config.cadence)await runDailyCatalogWithBackend({...backend,cadence:dependencies.cadence!,featuredIds:config.cadence.featuredIds});
         else await runWeeklyCatalogWithBackend(backend);
-      },!config.cadence||(await dailyCatalogPhases(dependencies.cadence!,config.cadence.featuredIds)).some(p=>p.discoveryNewOnly));}catch(error){
+      },!config.cadence||(await dailyCatalogPhases(dependencies.cadence!,config.cadence.featuredIds)).some(p=>p.discoveryNewOnly||p.enrichSelectedExisting));}catch(error){
         const durable=await ws.readCheckpoint();if(durable){saved=durable;cp=durable.checkpoint;}
         if(cp.phase==='phases_running'){
           const row=await telemetry.loadCatalogRun(config.runId);

@@ -7,6 +7,15 @@ The launch spec and `roadmap-lbbz1` remain authoritative.
 
 - The signed-in account is still Workers Free ($0); no $5 subscription or $15
   minimum was purchased. Codex runs the existing local task, not hosted CI.
+- PR #205 is merged at `a3f11f687a107da85ed74faa3e8796f8d38c7e3d`;
+  Vercel reports success for that source. The existing automation
+  `goose-gifts-daily-ops` is updated in place to **Daily Catalog Care**, ACTIVE
+  daily at 08:30 Pacific, retaining its ID/chat/creation time. Monday discovery
+  is implemented inside the command; no second job exists. Its next allowance
+  is October 22. The operator checkout is the retained managed worktree
+  `~/.codex/worktrees/goose-migration-integration/goose.gifts`; do not archive it
+  or use the shared checkout, now used by the separate Pinterest rebrand chat.
+  Pinterest remains owner-PAUSED; this task does not resume or rename it.
 - A fresh repeatable-read export (`export-2026-10-21-before-daily/`) contains
   all thirteen tables / 11,921 rows. Every table's row count and byte hash
   matches the October 20 export. New manifest SHA-256:

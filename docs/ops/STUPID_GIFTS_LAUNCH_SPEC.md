@@ -243,8 +243,11 @@ separate rights.
 daily Codex task. Refresh at most ten existing products per Pacific calendar
 day, prioritizing explicit featured products and published pages. Reserve the
 allowance before dispatch so an interrupted run cannot repeat unbounded work.
-Daily refresh performs no discovery or model enrichment. Run discovery once
-in the weekly Monday lane with existing quality, family deduplication and
+Tuesday–Sunday refreshes perform no discovery or model enrichment. Monday
+may re-enrich changed/missing copy or vectors only within the same reserved
+ten-product selection, reusing its original merchant response; approved unchanged
+copy/vectors are reused. Run discovery once in that weekly lane with existing
+quality, family deduplication and
 net-new limits; do not also run the old 50-item revalidation or 25-item existing
 backfill outside the daily allowance. Rebuild the site at most once after the
 accepted changes, or when a publication deadline requires it. Updating existing
@@ -933,7 +936,8 @@ The existing `prefetch-catalog.mjs` script uses `OPENAI_API_KEY` for editorial
 draft/review calls (default `gpt-4o-mini`) and embeddings (default
 `text-embedding-3-small`). These are API charges even when Codex or Claude Code
 launches the script locally. Codex's own subscribed usage is separate. Daily
-refresh makes no model calls; weekly new/changed content and visitor semantic
+refreshes Tuesday–Sunday make no model calls; Monday's bounded selected/new
+content enrichment and visitor semantic
 queries may use the API. Reuse unchanged embeddings. The last three actual
 weekly runs (October 5, 12 and 19) recorded estimated OpenAI costs of $0.008853,
 $0.009627 and $0.008789: under one cent per run, or roughly four to five cents

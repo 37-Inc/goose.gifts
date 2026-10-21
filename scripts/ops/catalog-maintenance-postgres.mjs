@@ -237,7 +237,8 @@ async function getDailyRefreshProducts(query, { limit, featuredIds }) {
            is_active, last_verified_at, editorial_writeup, source_facts, source_facts_hash,
            editorial_source_hash, availability_status, availability_checked_at, editorial_status,
            editorial_quality_score, editorial_model, editorial_prompt_version,
-           editorial_generated_at, editorial_block_reason, duplicate_of_product_id
+           editorial_generated_at, editorial_block_reason, duplicate_of_product_id,
+           (embedding IS NOT NULL) AS has_embedding
     FROM products
     WHERE source = 'amazon' AND is_active = true AND id ~ '^[A-Z0-9]{10}$'
     ORDER BY CASE WHEN id = ANY($2::text[]) THEN 0

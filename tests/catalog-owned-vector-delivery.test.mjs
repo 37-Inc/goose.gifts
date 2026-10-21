@@ -36,7 +36,7 @@ test('0011 is additive on an existing revision and does not enable ownership or 
   assert.equal(sql.prepare('SELECT count(*) n FROM catalog_vector_deliveries').get().n,0);
   assert.deepEqual(sql.prepare('PRAGMA foreign_key_check').all(),[]);
 });
-async function setup(t,{prune=false,operation='upsert',legacy=false}={}) {
+async function setup(t,{prune=false,operation='upsert',legacy=false,merchantMarker=null}={}) {
   const sql=new DatabaseSync(':memory:');t.after(() => sql.close());sql.exec('PRAGMA foreign_keys=ON');
   for(const name of (await readdir(new URL('../migrations/d1/',import.meta.url))).filter(name => /^\d{4}.*\.sql$/.test(name)).sort())
     sql.exec(await readFile(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
@@ -52,7 +52,8 @@ async function setup(t,{prune=false,operation='upsert',legacy=false}={}) {
     title:`Funny Fixture${i} Example${i}`,description:`A factual owned object ${i}.`,imageUrl:`https://example.invalid/image-${i}.jpg`,
     affiliateUrl:`https://www.amazon.com/dp/B${String(i+1).padStart(9,'0')}?tag=test-20`,source:'amazon',currency:'USD',qualityScore:.8,
     isActive:true,availabilityStatus:'IN_STOCK',availabilityCheckedAt:at(0),editorialStatus:'generated_ready',editorialQualityScore:.9,
-    sourceFactsHash:FACTS,editorialSourceHash:FACTS,editorialWriteup:Array(2).fill(Array(55).fill(`Specific useful editorial ${i}`).join(' ')).join('\n\n')}));
+    sourceFactsHash:FACTS,editorialSourceHash:FACTS,editorialWriteup:Array(2).fill(Array(55).fill(`Specific useful editorial ${i}`).join(' ')).join('\n\n')
+      +(merchantMarker?`\n\n${merchantMarker}`:'')}));
   const rights=Object.fromEntries(products.map((p,i)=>[p.id,Object.fromEntries(['title','description','imageUrl','affiliateUrl','editorialWriteup'].map(field=>[field,
     field==='imageUrl'?{basis:'merchant',reference:`test-receipt/${p.id}`,value:p[field],observedAt:at(0),expiresAt:at(86400000)}
       :{basis:'owned',reference:`test-owned/${p.id}/${field}`,value:p[field],...(prune&&i===0?{expiresAt:at(2*3600000)}:{})}]))]));
@@ -63,7 +64,8 @@ async function setup(t,{prune=false,operation='upsert',legacy=false}={}) {
       eligible_until,public_display_json,rights_json,source_record_json,created_at,updated_at,timestamp_provenance_json)
       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(p.id,p.publicId,p.slug,p.source,p.title,p.currency,.8,operation==='upsert'?1:0,
       'generated_ready','IN_STOCK',at(0),FACTS,FACTS,legacy?null:INPUT,'r1',dto.eligibleUntil,operation==='upsert'?JSON.stringify(dto):null,
-      JSON.stringify(rights[p.id]),JSON.stringify({id:p.id,public_id:p.publicId,source:p.source,availability_checked_at:at(0),last_verified_at:null}),null,at(0),'{}');
+      JSON.stringify(rights[p.id]),JSON.stringify({id:p.id,public_id:p.publicId,source:p.source,availability_checked_at:at(0),last_verified_at:null,
+        ...(merchantMarker?{merchantBody:merchantMarker}:{})}),null,at(0),'{}');
   }
   let request;let owner;let priorIntent;
   if(prune){
@@ -276,6 +278,100 @@ test('actual MaintenanceStore immutable native payload feeds owned delivery with
   assert.equal(complete.state,'complete');assert.equal(nativeHash(f.vectors.get(uuid(99)).values),nativeHash(values));
   await assert.rejects(store.upsertProduct(p,facts),/fenced/);cursor.current=complete.owner;
   await store.upsertProduct(p,facts);assert.equal(cursor.current.epoch,complete.owner.epoch);
+});
+const MERCHANT_MARKER='EXPIRED_PRIVATE_MERCHANT_BODY_"quoted"\\slash\nline';
+async function pruneDeleteFixture(t){
+  const f=await setup(t,{prune:true,merchantMarker:MERCHANT_MARKER});f.advance(3*3600000);
+  const prepared=await pruneExistingRevision(f.db,f.owner,f.request),revision=prepared.revision;
+  f.vectors.set(uuid(1),{id:uuid(1),values:[...values],metadata:{catalogRevision:'r1'}});
+  return{...f,revision,owner:prepared.owner,deliverDelete:(owner=prepared.owner,rev=revision)=>deliverOwnedPrunedVector({
+    db:f.db,owner,revision:rev,publicId:uuid(1),adapters:f.adapters})};
+}
+function assertBodyFree(row){
+  for(const key of ['owner_json','request_json','product_json','evidence_json']){
+    assert.doesNotMatch(row[key],/EXPIRED_PRIVATE_MERCHANT_BODY|source_record_json|public_display_json|rights_json/);
+    assert.doesNotMatch(JSON.stringify(JSON.parse(row[key])),/EXPIRED_PRIVATE_MERCHANT_BODY/);
+  }
+  const request=JSON.parse(row.request_json),product=JSON.parse(row.product_json);
+  assert.equal(request.pruneDeleteControl.schemaVersion,1);assert.equal(request.pruneCurrent,null);
+  assert.match(request.pruneDeleteControl.productSha256,/^[a-f0-9]{64}$/);assert.match(request.pruneDeleteControl.sourceSha256,/^[a-f0-9]{64}$/);
+  assert.deepEqual(Object.keys(product).sort(),['kind','publicId','schemaVersion','sha256']);assert.equal(product.kind,'prune-delete-product-control');
+}
+test('new prune DELETE journals contain only versioned hashes/IDs/receipts, including escaped expired merchant bodies',async t=>{
+  const f=await pruneDeleteFixture(t),before=f.sql.prepare('SELECT * FROM products WHERE public_id=?').get(uuid(1));
+  for(const field of ['source_record_json','public_display_json','rights_json'])assert.match(before[field],/EXPIRED_PRIVATE_MERCHANT_BODY/);
+  const first=await f.deliverDelete();assert.equal(first.state,'pending');assertBodyFree(f.journals()[0]);
+  const request=JSON.parse(f.journals()[0].request_json);
+  assert.equal(request.pruneDeleteControl.productSha256,sha256(canonicalJson({...before})));
+  assert.equal(request.pruneDeleteControl.sourceSha256,sha256(canonicalJson(f.revision.sourceRows.find(p=>p.public_id===uuid(1)))));
+  const complete=await f.deliverDelete(first.owner,structuredClone(f.revision));assert.equal(complete.state,'complete');
+  assert.equal(f.counts().dispatches,1);assertBodyFree(f.journals()[0]);assert.equal(f.vectors.has(uuid(1)),false);
+  assert.deepEqual(f.sql.prepare('SELECT * FROM products WHERE public_id=?').get(uuid(1)),before);
+});
+test('body-free prune DELETE verifies raw full-row, captured source, plan/receipt, owner and epoch before provider recovery',async t=>{
+  const cases=[
+    {change:f=>f.sql.prepare('UPDATE products SET public_display_json=json_set(public_display_json,\'$.description\',?) WHERE public_id=?').run('CHANGED EXPIRED BODY',uuid(1))},
+    {change:f=>f.sql.exec("DROP TRIGGER products_archive_immutable; UPDATE products SET source_record_json=json_set(source_record_json,'$.merchantBody','changed archive')")},
+    {change:f=>f.sql.exec('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1')},
+    {change:f=>f.sql.exec("UPDATE catalog_mutation_scopes SET owner_token='other-owner'")},
+    {rev:r=>{r.sourceRows.find(p=>p.public_id===uuid(1)).archived_last_verified_at=at(1);return r;}},
+    {rev:r=>{r.packet.receipt.source_export_sha256='f'.repeat(64);return r;}},
+    {rev:r=>{r.packet.receipt.snapshot_sha256='f'.repeat(64);return r;}},
+  ];
+  for(const scenario of cases){
+    const f=await pruneDeleteFixture(t),first=await f.deliverDelete();scenario.change?.(f);
+    const before=f.counts();await assert.rejects(f.deliverDelete(first.owner,scenario.rev?.(structuredClone(f.revision))||f.revision));
+    assert.deepEqual(f.counts(),before);assert.equal(f.journals()[0].status,'pending');assert.equal(f.scope().external_pending,1);
+    assertBodyFree(f.journals()[0]);
+  }
+});
+test('body-free digest/control tampering refuses before resolving or resending a pending delete',async t=>{
+  for(const kind of ['product','source','product-json','version']){
+    const f=await pruneDeleteFixture(t),first=await f.deliverDelete();f.sql.exec('DROP TRIGGER catalog_vector_delivery_identity_immutable');
+    const row=f.journals()[0],request=JSON.parse(row.request_json),product=JSON.parse(row.product_json);
+    if(kind==='product')request.pruneDeleteControl.productSha256='f'.repeat(64);
+    if(kind==='source')request.pruneDeleteControl.sourceSha256='f'.repeat(64);
+    if(kind==='version')request.pruneDeleteControl.schemaVersion=2;
+    if(kind==='product-json')product.sha256='f'.repeat(64);
+    f.sql.prepare('UPDATE catalog_vector_deliveries SET request_json=?,product_json=?').run(canonicalJson(request),canonicalJson(product));
+    const before=f.counts();await assert.rejects(f.deliverDelete(first.owner),/control_changed|product_changed/);
+    assert.deepEqual(f.counts(),before);assert.equal(f.scope().external_pending,1);
+  }
+});
+test('body-free reread is not a weaker subset CAS: source changes after read roll back dispatch marker',async t=>{
+  const f=await pruneDeleteFixture(t);let changed=false;
+  f.adapters.readback=async()=>{
+    f.sql.prepare("UPDATE products SET rights_json=json_set(rights_json,'$.imageUrl.value','changed after verified read') WHERE public_id=?").run(uuid(1));
+    changed=true;return{id:uuid(1),values:[...values],metadata:{catalogRevision:'r1'}};
+  };
+  await assert.rejects(f.deliverDelete());assert.equal(changed,true);assert.equal(f.counts().dispatches,0);
+  assert.equal(f.journals()[0].dispatch_token,null);assert.equal(f.journals()[0].attempts,0);assert.equal(f.scope().external_pending,1);
+});
+test('body-free prune delete survives lost intent/acceptance/completion and provider responses exactly once',async t=>{
+  for(const stage of ['intent','acceptance','completion','provider']){
+    const f=await pruneDeleteFixture(t);let active=true;
+    f.lose(statements=>active&&statements.some(s=>stage==='intent'?s.query.includes('INSERT INTO catalog_vector_deliveries')
+      :stage==='acceptance'?s.query.includes('SET mutation_reference=?')&&s.query.includes('mutation_reference IS NULL')
+        :stage==='completion'?s.query.includes("SET status='complete'"):false)&&(active=false,true));
+    if(stage==='provider'){const send=f.adapters.dispatch;f.adapters.dispatch=async input=>{await send(input);throw new Error('UNKNOWN transport outcome');};}
+    const first=await f.deliverDelete();assert.equal(first.state,'pending');assertBodyFree(f.journals()[0]);
+    f.resolution('pending');assert.equal((await f.deliverDelete(await readMutationOwner(f.db,scope),structuredClone(f.revision))).state,'pending');
+    assert.equal(f.counts().dispatches,1);
+    f.resolution('settled');const complete=await f.deliverDelete(first.owner,structuredClone(f.revision));assert.equal(complete.state,'complete');
+    assert.equal(f.counts().dispatches,1);assert.equal(f.journals().length,1);assertBodyFree(f.journals()[0]);
+    assert.equal((await f.deliverDelete(complete.owner)).state,'complete');assert.equal(f.counts().dispatches,1);
+  }
+});
+test('historical full-row prune DELETE journals remain readable without rewriting their immutable payload',async t=>{
+  const f=await pruneDeleteFixture(t),first=await f.deliverDelete();const row=f.journals()[0],request=JSON.parse(row.request_json);
+  delete request.pruneDeleteControl;request.pruneCurrent=f.revision.sourceRows.find(p=>p.public_id===uuid(1));
+  const product={...f.sql.prepare('SELECT * FROM products WHERE public_id=?').get(uuid(1))};
+  // Install an isolated historical-format fixture, not a production migration.
+  f.sql.exec('DROP TRIGGER catalog_vector_delivery_identity_immutable');
+  f.sql.prepare('UPDATE catalog_vector_deliveries SET request_json=?,product_json=?').run(canonicalJson(request),canonicalJson(product));
+  const saved=f.journals()[0];assert.match(saved.product_json,/EXPIRED_PRIVATE_MERCHANT_BODY/);
+  const complete=await f.deliverDelete(first.owner);assert.equal(complete.state,'complete');assert.equal(f.counts().dispatches,1);
+  assert.equal(f.journals()[0].request_json,saved.request_json);assert.equal(f.journals()[0].product_json,saved.product_json);
 });
 test('prune promotion/deletion uses exact original bytes, keeps unknown input unknown, then concretely settles the build',async t=>{
   const f=await setup(t,{prune:true,legacy:true});const prepared=await pruneExistingRevision(f.db,f.owner,f.request);let owner=prepared.owner;

@@ -27,6 +27,7 @@ import { siteIdentityFor } from '../static-site/lib/site-identity.ts';
 import { guides } from '../static-site/lib/guides.ts';
 import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 import { encodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
+import { withCatalogCadence } from '../scripts/ops/catalog-daily.mjs';
 
 // Real composed stores/fence/evidence/driver/publisher/workspace over SQLite.
 // Only external Amazon/OpenAI/CF and Next compilation are mocked. Real package
@@ -69,7 +70,8 @@ function sealedFixture(snapshot,context,prior=null){
     'release-context.json':`${JSON.stringify(context)}\n`,'release-identity.json':JSON.stringify(createReleaseIdentity(manifestBytes)),
     'site-identity.json':siteIdentityBytes('preview'),'feed-plan.json':JSON.stringify(createStaticFeedPlan(snapshot,sha256(`${JSON.stringify(snapshot)}\n`)))}};
 }
-async function setup(t,{noPrior=false}={}){
+async function setup(t,{noPrior=false,at=NOW}={}){
+  const NOW=at;
   const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-weekly-')));t.after(()=>fs.rm(directory,{recursive:true,force:true}));
   const repo=path.join(directory,'source');await fs.mkdir(repo,{mode:0o700});await put(path.join(repo,'.gitignore'),'build/\nstatic-site/out/\n');
   const git=(...args)=>execFileSync('git',args,{cwd:repo,encoding:'utf8'}).trim();git('init','-q');git('add','.gitignore');
@@ -243,6 +245,21 @@ test('daily entry point rejects a legacy weekly config before paid calls or work
   const f=await setup(t);
   await assert.rejects(runCloudflareWeekly({...f.options,command:'start',cadenceOnly:true},f.dependencies),/weekly_daily_cadence_required/);
   await assert.rejects(fs.stat(f.options.workspace),{code:'ENOENT'});assert.equal(f.calls.getItems,0);assert.equal(f.calls.search,0);
+});
+
+test('Monday selected enrichment requires a pinned model credential before owner claim even after discovery is reserved',async t=>{
+  const f=await setup(t,{at:'2026-10-19T12:00:00.123Z'});
+  f.config.cadence={day:'2026-10-19',featuredIds:[ID]};f.config.backfillLimit=0;delete f.config.credentials.openai;
+  await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+  await withCatalogCadence({workspace:f.options.workspace,repository:f.dependencies.repository,now:f.dependencies.now},
+    cadence=>cadence.reserve('discovery','already-discovered'));
+  const before=f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get();
+  await assert.rejects(runCloudflareWeekly({...f.options,command:'start',cadenceOnly:true},f.dependencies),/weekly_model_credentials_missing/);
+  assert.deepEqual(f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get(),before);
+  assert.equal(f.calls.getItems,0);assert.equal(f.calls.search,0);assert.equal(f.calls.chat,0);assert.equal(f.calls.embedding,0);
+  await withCatalogCadence({workspace:f.options.workspace,repository:f.dependencies.repository,now:f.dependencies.now},async cadence=>{
+    assert.deepEqual(await cadence.plan(),{daily:true,discovery:false});
+  });
 });
 
 test('no-prior start/preflight and undispatched resume refuse before provider or workspace writes; status stays readable',async t=>{
