@@ -1,7 +1,8 @@
 import { execFile, execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { lstat, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readFile, writeFile, mkdtemp, chmod, rm } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import { assertProtectedDestination } from './export-postgres.ts';
@@ -9,16 +10,22 @@ import { createCloudflareReadClient, RUNNER_COLUMNS } from './d1-rest.ts';
 import type { ReadRow } from './d1-rest.ts';
 
 interface KeychainReference { service:string; account:string }
+export type CloudflareCredentialReference = KeychainReference | {type:'wrangler_oauth'};
 export interface RunnerCheckConfig {
   schemaVersion:1; environment:'staging'|'production'; accountId:string;
   database:{id:string;name:string}; vectorIndex:{name:string;dimensions:1536;metric:'cosine'};
   catalog:{associateTag:string;marketplace:'www.amazon.com'};
-  cloudflareReadToken:KeychainReference;
+  cloudflareReadToken:CloudflareCredentialReference;
 }
 const digest=(value:string|Uint8Array) => createHash('sha256').update(value).digest('hex');
 const keys=(value:unknown,expected:string) => Boolean(value && typeof value==='object' && !Array.isArray(value)
   && Object.keys(value).sort().join(',')===expected);
 const text=(value:unknown,pattern:RegExp) => typeof value==='string' && pattern.test(value);
+const keychainReference=(ref:unknown):ref is KeychainReference => keys(ref,'account,service')
+  && text((ref as KeychainReference).service,/^goose\.gifts\.[a-zA-Z0-9._:/-]{1,150}$/)
+  && text((ref as KeychainReference).account,/^[a-zA-Z0-9][a-zA-Z0-9._@:/-]{0,199}$/);
+const oauthReference=(ref:unknown):ref is {type:'wrangler_oauth'} => keys(ref,'type')
+  && (ref as {type:string}).type==='wrangler_oauth';
 export function validateRunnerCheckConfig(input:unknown):RunnerCheckConfig {
   const c=input as RunnerCheckConfig;
   if (!keys(c,'accountId,catalog,cloudflareReadToken,database,environment,schemaVersion,vectorIndex') || c.schemaVersion!==1
@@ -28,9 +35,8 @@ export function validateRunnerCheckConfig(input:unknown):RunnerCheckConfig {
     || !text(c.vectorIndex.name,/^[a-zA-Z0-9_-]{1,100}$/) || c.vectorIndex.dimensions!==1536
     || c.vectorIndex.metric!=='cosine' || !keys(c.catalog,'associateTag,marketplace')
     || typeof c.catalog.associateTag!=='string' || !/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/.test(c.catalog.associateTag)
-    || c.catalog.marketplace!=='www.amazon.com' || !keys(c.cloudflareReadToken,'account,service')
-    || !text(c.cloudflareReadToken.service,/^goose\.gifts\.[a-zA-Z0-9._:/-]{1,150}$/)
-    || !text(c.cloudflareReadToken.account,/^[a-zA-Z0-9][a-zA-Z0-9._@:/-]{0,199}$/)) throw new Error('runner_check_config_invalid');
+    || c.catalog.marketplace!=='www.amazon.com'
+    || !keychainReference(c.cloudflareReadToken)&&!oauthReference(c.cloudflareReadToken)) throw new Error('runner_check_config_invalid');
   return JSON.parse(JSON.stringify(c));
 }
 /** Explicit existing item only: never searches other services, env, files or Vercel.
@@ -48,6 +54,40 @@ export async function resolveReadToken(ref:KeychainReference, run=promisify(exec
   } catch { throw new Error('runner_check_keychain_unavailable'); }
 }
 
+/** Explicit existing Wrangler OAuth only. Its documented `auth token --json`
+ * refreshes through Wrangler's own cache; no copied refresh-token logic, login,
+ * fallback, npx download or token persistence is introduced here.
+ * https://developers.cloudflare.com/workers/wrangler/commands/general/#auth-token
+ */
+export async function resolveWranglerOAuth(run=promisify(execFile)):Promise<string> {
+  let directory:string|undefined;
+  try {
+    const root=new URL('../../',import.meta.url);
+    const manifest=JSON.parse(await readFile(new URL('package.json',root),'utf8'));
+    const installed=JSON.parse(await readFile(new URL('node_modules/wrangler/package.json',root),'utf8'));
+    if(!/^\d+\.\d+\.\d+$/.test(manifest.devDependencies?.wrangler)||installed.version!==manifest.devDependencies.wrangler)throw new Error();
+    directory=await mkdtemp(join(tmpdir(),'goose-catalog-oauth-'));await chmod(directory,0o700);
+    const result=await run(process.execPath,[fileURLToPath(new URL('node_modules/wrangler/bin/wrangler.js',root)),'auth','token','--json'],{
+      cwd:directory,encoding:'utf8',timeout:10000,maxBuffer:8192,
+      env:{HOME:homedir(),PATH:'/usr/bin:/bin',NODE_ENV:'production',CI:'true',BROWSER:'false',WRANGLER_SEND_METRICS:'false',WRANGLER_SEND_ERROR_REPORTS:'false',
+        WRANGLER_WRITE_LOGS:'false',WRANGLER_LOG_SANITIZE:'true',WRANGLER_LOG:'log'},
+    });
+    const stdout=String(result.stdout);
+    if(Buffer.byteLength(stdout)>8192||String(result.stderr).trim())throw new Error();
+    const value=JSON.parse(stdout);
+    if(!keys(value,'token,type')||value.type!=='oauth'||typeof value.token!=='string'
+      ||!value.token||value.token.length>4096||/[^\x21-\x7e]/.test(value.token))throw new Error();
+    return value.token;
+  } catch { throw new Error('runner_check_oauth_unavailable'); }
+  finally { if(directory)await rm(directory,{recursive:true,force:true}); }
+}
+export async function resolveCloudflareCredential(ref:CloudflareCredentialReference,
+  readKeychain=resolveReadToken,readOAuth=resolveWranglerOAuth):Promise<string> {
+  if(keychainReference(ref))return readKeychain(ref);
+  if(oauthReference(ref))return readOAuth();
+  throw new Error('runner_check_cloudflare_reference');
+}
+
 const NOT_ACCEPTED = [
   'Weekly execution is unavailable; no owner was claimed or writer selected.',
   'Structural schema inspection is not migration, rollback or REST write-atomicity acceptance.',
@@ -56,10 +96,10 @@ const NOT_ACCEPTED = [
   'No scheduler, daily merchant-refresh policy, final Neon delta or production cutover was changed.',
 ];
 export async function checkCloudflareRunner(input:unknown, options:{
-  resolveToken?:(reference:KeychainReference)=>Promise<string>; fetch?:typeof fetch; timeoutMs?:number;
+  resolveToken?:(reference:KeychainReference)=>Promise<string>; resolveWranglerOAuth?:()=>Promise<string>;fetch?:typeof fetch; timeoutMs?:number;
 }={}) {
   const config=validateRunnerCheckConfig(input);
-  const token=await (options.resolveToken ?? resolveReadToken)(config.cloudflareReadToken);
+  const token=await resolveCloudflareCredential(config.cloudflareReadToken,options.resolveToken,options.resolveWranglerOAuth);
   const client=createCloudflareReadClient({accountId:config.accountId,databaseId:config.database.id,indexName:config.vectorIndex.name,
     token,fetch:options.fetch,timeoutMs:options.timeoutMs});
   const issues:string[]=[];
@@ -116,7 +156,7 @@ export async function writeRunnerCheck(options:{configPath:string;configSha256:s
   let result;
   try { result=await checkCloudflareRunner(config,dependencies); }
   catch (error) {
-    const codes=['runner_check_keychain_unavailable','runner_check_database_mismatch','runner_check_index_mismatch','runner_check_schema_bound',
+    const codes=['runner_check_keychain_unavailable','runner_check_oauth_unavailable','runner_check_database_mismatch','runner_check_index_mismatch','runner_check_schema_bound',
       'cloudflare_read_unavailable','cloudflare_read_result_invalid','cloudflare_read_configuration'];
     result={schemaVersion:1,kind:'cloudflare-runner-readiness',status:'failed',executionAvailable:false,
       checkedAt:new Date().toISOString(),errorCode:error instanceof Error && codes.includes(error.message)?error.message:'runner_check_failed',limitations:NOT_ACCEPTED};
@@ -131,7 +171,7 @@ async function main() {
   const args=process.argv.slice(2);
   if (args.includes('--execute')) throw new Error('runner_check_execution_unavailable');
   if (args.length===1 && args[0]==='--help') {
-    console.log('Read-only readiness only: --config /private/reviewed.json --config-sha256 SHA256 --output /private/new-check\nConfig: schemaVersion, environment, accountId, database:{id,name}, vectorIndex:{name,dimensions:1536,metric}, catalog:{associateTag,marketplace}, cloudflareReadToken:{service,account}. No execution or provisioning.');return;
+    console.log('Read-only readiness only: --config /private/reviewed.json --config-sha256 SHA256 --output /private/new-check\nConfig: schemaVersion, environment, accountId, database:{id,name}, vectorIndex:{name,dimensions:1536,metric}, catalog:{associateTag,marketplace}, cloudflareReadToken:{service,account} OR {type:"wrangler_oauth"}. Explicit existing auth only; no fallback, execution or provisioning.');return;
   }
   if (args.length!==6 || args[0]!=='--config' || args[2]!=='--config-sha256' || args[4]!=='--output') throw new Error('runner_check_arguments');
   const repository=resolve(fileURLToPath(new URL('../..',import.meta.url)));

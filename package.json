@@ -48,6 +48,8 @@
     "catalog:daily": "node --import tsx scripts/ops/catalog-daily.mjs",
     "catalog:purge": "node --import tsx scripts/catalog/purge-workspaces.ts",
     "catalog:cloudflare": "node --import tsx scripts/catalog/run-cloudflare-weekly.ts",
+    "catalog:keychain": "node --import tsx scripts/ops/bootstrap-catalog-keychain.mjs",
+    "test:catalog-keychain": "node --import tsx --test tests/catalog-keychain-bootstrap.test.mjs",
     "catalog:report": "node scripts/ops/catalog-report.mjs",
     "catalog:review-queue": "node scripts/ops/catalog-report.mjs --latest --manual-review",
     "catalog:audit-guides": "node --experimental-strip-types scripts/ops/audit-gift-guides.mjs",

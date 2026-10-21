@@ -322,6 +322,34 @@ test('preflight reads exact schema/scope without workspace writes or merchant/mo
   assert.deepEqual(refs,[f.config.credentials.cloudflare.service]);assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,before);
   await assert.rejects(fs.stat(f.options.workspace),{code:'ENOENT'});assert.equal(f.calls.search+f.calls.embedding+f.calls.activate,0);
 });
+test('weekly OAuth is Cloudflare-only and preflight preserves no-owner/no-workspace/no-provider-phase behavior',async t=>{
+  const f=await setup(t);f.config.credentials.cloudflare={type:'wrangler_oauth'};
+  assert.doesNotThrow(()=>validateCloudflareWeeklyConfig(f.config));
+  for(const name of ['amazonId','amazonSecret','openai','stagingAuthSecret'])assert.throws(()=>validateCloudflareWeeklyConfig({
+    ...f.config,credentials:{...f.config.credentials,[name]:{type:'wrangler_oauth'}},
+  }),/weekly_configuration_invalid/);
+  await fs.writeFile(f.options.configPath,JSON.stringify(f.config),{mode:0o600});
+  f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+  const before=f.sql.prepare('SELECT total_changes() n').get().n;let oauth=0;
+  const result=await runCloudflareWeekly({...f.options,command:'preflight'},{...f.dependencies,
+    resolveToken:async()=>assert.fail('No merchant/model/staging Keychain lookup during OAuth preflight'),
+    resolveWranglerOAuth:async()=>{oauth++;return'TEST_TOKEN';}});
+  assert.equal(oauth,1);assert.equal(result.status,'checks_passed_execution_unavailable');assert.equal(result.executionAvailable,false);
+  assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,before);
+  await assert.rejects(fs.stat(f.options.workspace),{code:'ENOENT'});assert.equal(f.calls.search+f.calls.embedding+f.calls.activate,0);
+});
+test('weekly OAuth start keeps merchant/model credentials on their exact Keychain refs and awaits approval before publication',async t=>{
+  const f=await setup(t);f.config.credentials.cloudflare={type:'wrangler_oauth'};
+  await fs.writeFile(f.options.configPath,JSON.stringify(f.config),{mode:0o600});
+  f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+  const refs=[];let oauth=0;
+  const result=await runCloudflareWeekly({...f.options,command:'start'},{...f.dependencies,
+    resolveToken:async ref=>{refs.push(ref);return f.dependencies.resolveToken(ref);},
+    resolveWranglerOAuth:async()=>{oauth++;return'TEST_ONLY_cloudflare';}});
+  assert.equal(oauth,1);assert.equal(result.reason,'awaiting_reviewed_approval');assert.equal(f.calls.activate,0);
+  assert.deepEqual(refs,[f.config.credentials.amazonId,f.config.credentials.amazonSecret,f.config.credentials.openai]);
+  assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'writing');
+});
 test('actual weekly phases defer for post-phase review, then compose owned delivery/build/activation/readback/exact finalization',async t=>{
   const f=await setup(t);const old=process.env.CATALOG_DISCOVERY_THEMES;process.env.CATALOG_DISCOVERY_THEMES='MUST_NOT_RUN';
   t.after(()=>{if(old===undefined)delete process.env.CATALOG_DISCOVERY_THEMES;else process.env.CATALOG_DISCOVERY_THEMES=old;});

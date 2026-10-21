@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createCloudflareReadClient } from '../scripts/catalog/d1-rest.ts';
-import { checkCloudflareRunner, validateRunnerCheckConfig, resolveReadToken, writeRunnerCheck } from '../scripts/catalog/check-cloudflare-runner.ts';
+import { checkCloudflareRunner, validateRunnerCheckConfig, resolveReadToken, resolveWranglerOAuth, resolveCloudflareCredential, writeRunnerCheck } from '../scripts/catalog/check-cloudflare-runner.ts';
 
 const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
 const config={schemaVersion:1,environment:'staging',accountId:'a'.repeat(32),database:{id:'00000000-0000-4000-8000-000000000001',name:'test-only-db'},
@@ -21,6 +21,74 @@ test.after(()=>{globalThis.fetch=originalFetch;});
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const ok=result=>new Response(JSON.stringify({success:true,result}));
 const client=fetch=>createCloudflareReadClient({accountId:config.accountId,databaseId:config.database.id,indexName:config.vectorIndex.name,token,fetch});
+
+test('Cloudflare OAuth reference is explicit/exact and cannot enter another credential shape or fallback',async()=>{
+  const ref={type:'wrangler_oauth'};
+  assert.deepEqual(validateRunnerCheckConfig({...config,cloudflareReadToken:ref}).cloudflareReadToken,ref);
+  for(const bad of [{type:'oauth'},{type:'wrangler_oauth',service:'goose.gifts.other'},
+    {type:'wrangler_oauth',profile:'other'},{type:'wrangler_oauth',command:'other'},[],'wrangler_oauth']){
+    assert.throws(()=>validateRunnerCheckConfig({...config,cloudflareReadToken:bad}),/config_invalid/);
+    await assert.rejects(resolveCloudflareCredential(bad,async()=>assert.fail('keychain fallback'),async()=>assert.fail('OAuth fallback')),
+      /^Error: runner_check_cloudflare_reference$/);
+  }
+  assert.equal(await resolveCloudflareCredential(ref,async()=>assert.fail('OAuth must not read Keychain'),async()=>token),token);
+  assert.equal(await resolveCloudflareCredential(config.cloudflareReadToken,async r=>{
+    assert.deepEqual(r,config.cloudflareReadToken);return token;
+  },async()=>assert.fail('Keychain must not fall back to OAuth')),token);
+  await assert.rejects(resolveCloudflareCredential(ref,async()=>assert.fail('No fallback'),async()=>{throw new Error('rejected');}),/rejected/);
+});
+test('pinned OAuth subprocess is captured in an empty private cwd without ambient auth, logs, downloads or login',async()=>{
+  const prior={...process.env};let directory;
+  try{
+    for(const key of ['CLOUDFLARE_API_TOKEN','CF_API_TOKEN','CLOUDFLARE_API_KEY','CLOUDFLARE_EMAIL','CLOUDFLARE_API_BASE_URL',
+      'WRANGLER_OUTPUT_FILE_PATH','WRANGLER_LOG_PATH','NODE_OPTIONS'])process.env[key]='PRIVATE_AMBIENT_FIXTURE';
+    assert.equal(await resolveWranglerOAuth(async(command,args,options)=>{
+      assert.equal(command,process.execPath);assert.equal(args.length,4);
+      assert.ok(args[0].endsWith('/node_modules/wrangler/bin/wrangler.js'));assert.deepEqual(args.slice(1),['auth','token','--json']);
+      directory=options.cwd;const info=await stat(directory);assert.equal(info.mode&0o777,0o700);assert.equal(info.uid,process.getuid());
+      assert.deepEqual(await readdir(directory),[]);assert.ok(!directory.startsWith(root));
+      assert.equal(options.timeout,10000);assert.equal(options.maxBuffer,8192);assert.equal(options.encoding,'utf8');
+      assert.deepEqual(Object.keys(options.env).sort(),['BROWSER','CI','HOME','NODE_ENV','PATH','WRANGLER_LOG','WRANGLER_LOG_SANITIZE',
+        'WRANGLER_SEND_ERROR_REPORTS','WRANGLER_SEND_METRICS','WRANGLER_WRITE_LOGS'].sort());
+      assert.equal(options.env.CI,'true');assert.equal(options.env.BROWSER,'false');assert.equal(options.env.WRANGLER_WRITE_LOGS,'false');
+      assert.equal(options.env.WRANGLER_SEND_METRICS,'false');assert.equal(options.env.WRANGLER_SEND_ERROR_REPORTS,'false');
+      assert.ok(!JSON.stringify(options.env).includes('PRIVATE_AMBIENT_FIXTURE'));
+      return{stdout:JSON.stringify({type:'oauth',token}),stderr:''};
+    }),token);
+    await assert.rejects(stat(directory),{code:'ENOENT'});
+  }finally{for(const key of Object.keys(process.env))if(!(key in prior))delete process.env[key];Object.assign(process.env,prior);}
+});
+test('absent/rejected/nonOAuth/malformed/oversized/timed-out auth never emits private diagnostics or falls back',async()=>{
+  for(const result of [
+    {stdout:'',stderr:''}, {stdout:'PRIVATE_INVALID_JSON',stderr:''},
+    {stdout:JSON.stringify({type:'api_token',token}),stderr:''},
+    {stdout:JSON.stringify({type:'api_key',key:token,email:'fixture@example.test'}),stderr:''},
+    {stdout:JSON.stringify({type:'oauth',token,extra:'PRIVATE'}),stderr:''},
+    {stdout:JSON.stringify({type:'oauth',token:''}),stderr:''},
+    {stdout:JSON.stringify({type:'oauth',token:'x'.repeat(4097)}),stderr:''},
+    {stdout:JSON.stringify({type:'oauth',token:'PRIVATE\nVALUE'}),stderr:''},
+    {stdout:' '.repeat(8193),stderr:''},
+    {stdout:JSON.stringify({type:'oauth',token}),stderr:'PRIVATE_STDERR'},
+    Object.assign(new Error('PRIVATE_REJECTED'),{code:1}),
+    Object.assign(new Error('PRIVATE_TIMEOUT'),{code:'ETIMEDOUT',killed:true}),
+  ]){
+    let directory,calls=0;
+    await assert.rejects(resolveWranglerOAuth(async(_command,_args,options)=>{
+      calls++;directory=options.cwd;if(result instanceof Error)throw result;return result;
+    }),/^Error: runner_check_oauth_unavailable$/);
+    assert.equal(calls,1);await assert.rejects(stat(directory),{code:'ENOENT'});
+  }
+});
+test('OAuth readiness uses only the exact pinned account/database/index with read-only requests',async t=>{
+  const f=await fixture(t);let oauthCalls=0;
+  const result=await checkCloudflareRunner({...config,cloudflareReadToken:{type:'wrangler_oauth'}},{fetch:f.fetch,
+    resolveToken:async()=>assert.fail('OAuth readiness must not resolve merchant/Keychain credentials'),
+    resolveWranglerOAuth:async()=>{oauthCalls++;return token;}});
+  assert.equal(oauthCalls,1);assert.equal(result.status,'checks_passed_execution_unavailable');assert.equal(result.executionAvailable,false);
+  assert.equal(result.metrics.reportedRowsWritten,0);assert.deepEqual(result.resources,{accountId:config.accountId,databaseId:config.database.id,
+    databaseName:config.database.name,indexName:config.vectorIndex.name});
+  assert.ok(f.calls.every(call=>call.url.startsWith(`https://api.cloudflare.com/client/v4/accounts/${config.accountId}/`)));
+});
 async function fixture(t,{last='0012',enabled=true}={}) {
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
   for(const file of (await readdir(join(root,'migrations/d1'))).filter(name=>/^\d{4}.*\.sql$/.test(name)&&name.slice(0,4)<=last).sort())
@@ -143,7 +211,7 @@ test('reviewed-config hash and private output are required; receipts are0600 and
 test('public output parents, Git destinations and symlinked config refuse before Keychain/network',async t=>{
   const directory=await mkdtemp(join(tmpdir(),'goose-runner-boundary-'));t.after(()=>rm(directory,{recursive:true,force:true}));
   const configPath=join(directory,'config.json'),body=JSON.stringify(config);await writeFile(configPath,body,{mode:0o600});
-  const options={configPath,configSha256:hash(body),repository:root,output:join(root,'output','forbidden-runner-check')};
+  const options={configPath,configSha256:hash(body),repository:root,output:join(root,'forbidden-runner-check')};
   const dependencies={resolveToken:async()=>{throw new Error('Keychain must not be touched');}};
   await assert.rejects(writeRunnerCheck(options,dependencies),/inside the repository/);
   const publicParent=join(directory,'public');await mkdir(publicParent);await chmod(publicParent,0o755);
