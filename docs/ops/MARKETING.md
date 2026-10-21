@@ -34,8 +34,10 @@ Stupid.gifts migration.** The scheduler confirmed PAUSED at19:53:16.023UTC;
 saved cadence/chat are preserved, with no duplicate task or catalog-job change.
 No automatic checkpoints or October31 review will run while paused. Review
 remains pending; restart gates and rebrand-intervention handling are in
-`PINTEREST_STUDIO.md`. Account/app rename is authorized to begin but blocked on
-browser sign-in; neither has changed. The following metrics are the dated
+`PINTEREST_STUDIO.md`. The existing account/app are now **Stupid.gifts**;
+owner-selected handle **stupid_gifts**, same account/app IDs and Standard access.
+28 Pins/five boards are retained; website/domain switch remains held. See
+`pinterest-rebrand-2026-10-21/receipt.json`. The following metrics are the dated
 October21 morning baseline, not a new migration measurement.
 
 The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,

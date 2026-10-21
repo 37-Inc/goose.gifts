@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "type": "account_and_app.branding_updated",
+  "verifiedAt": "2026-10-21T20:11:24Z",
+  "environment": "production",
+  "authorization": "Cameron: Go ahead with the rename; after stupidgifts was rejected as taken, Cameron explicitly selected: Try stupid_gifts.",
+  "account": {
+    "id": "1107815345747925810",
+    "accountType": "BUSINESS",
+    "previousUsername": "goosegifts",
+    "username": "stupid_gifts",
+    "previousBusinessName": "goose.gifts",
+    "businessName": "Stupid.gifts",
+    "publicProfileUrl": "https://www.pinterest.com/stupid_gifts/",
+    "about": "Funny gift ideas, white elephant picks, and weird finds. Goose.gifts is becoming Stupid.gifts.",
+    "pinCount": 28,
+    "boardCount": 5,
+    "websiteUrlUnchanged": "http://www.goose.gifts"
+  },
+  "app": {
+    "id": "1588384",
+    "previousName": "Goose.gifts",
+    "name": "Stupid.gifts",
+    "companyName": "Stupid.gifts",
+    "accessStatusReadback": "Standard access active",
+    "purpose": "First-party publishing tool for our Stupid.gifts business account (formerly Goose.gifts). It publishes approved editorial gift Pins linking to our catalog, organizes our boards, and reads metrics on our own Pins. We do not act for other users or collect their data; OAuth tokens are stored in macOS Keychain.",
+    "websiteUrlUnchanged": "https://www.goose.gifts/",
+    "privacyPolicyUrlUnchanged": "https://www.goose.gifts/privacy",
+    "oauthRedirectUnchanged": "http://localhost:3737/oauth/pinterest/callback"
+  },
+  "verification": {
+    "profile": "Saved profile and new handle verified via production user_account API and public profile UI.",
+    "app": "Save returned Updated; My apps readback shows Stupid.gifts, same app ID, Standard access active.",
+    "handleRejection": "stupidgifts: Username already taken. The original handle was restored before saving the display name; the separately approved stupid_gifts handle then succeeded.",
+    "profileScreenshot": "profile.png",
+    "appScreenshot": "app-standard-access.png"
+  },
+  "unchanged": {
+    "existingAccountAndAppIds": true,
+    "existingPinsAndBoards": true,
+    "existingPinDestinationsAndUtmPackages": true,
+    "oauthCredentialsAndScopes": true,
+    "websiteAndClaimedDomain": true,
+    "avatarAndAppIcon": true,
+    "creativeEventLogAndPublicationReceipts": true,
+    "schedulerStatus": "PAUSED",
+    "v11Cohort": "P6/F6, 12/12; generation and public posting disabled"
+  },
+  "heldForSiteCutover": [
+    "Stupid.gifts website/privacy URLs and domain claim",
+    "Product-specific redirects with UTM preservation",
+    "New-site verified enriched catalog source",
+    "New-site acquisition and retailer-action measurement",
+    "Owner-authorized restart and any new experiment"
+  ]
+}

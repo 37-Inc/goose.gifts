@@ -1,9 +1,9 @@
 # Pinterest API — Standard Access application package
 
-Everything needed to submit the `Goose.gifts` app for Pinterest API v5 **Standard
-access** (the upgrade from Trial that unlocks *public* automated Pins). This doc is
-the durable, paste-ready source; the live submission happens in Pinterest's
-developer portal and needs Cameron's logged-in session (see "Submission steps").
+Original submission package for the `Goose.gifts` app, now renamed in place to
+**Stupid.gifts** on October21. App ID `1588384` and Standard access are retained.
+Current facts and migration gates are below; submission-era descriptions and
+the approved demo remain historical evidence, not a new submission request.
 
 Prepared 2026-07-17 against the current Pinterest process
 (`developers.pinterest.com/docs/key-concepts/access-tiers/`).
@@ -19,9 +19,9 @@ gate is a one-time **video-demo review**, not money.
 
 | Field | Value |
 |---|---|
-| App name | `Goose.gifts` |
+| App name | `Stupid.gifts` (formerly `Goose.gifts`; verified 2026-10-21) |
 | App ID | `1588384` |
-| Account | `goosegifts` — **BUSINESS** account (verified via `pinterest:whoami`) |
+| Account | `stupid_gifts` — **BUSINESS**, same ID `1107815345747925810` (verified via production `pinterest:whoami`) |
 | Claimed website | `www.goose.gifts` (shows as claimed on the profile) |
 | Privacy policy | https://www.goose.gifts/privacy (live, 200) |
 | Scopes | `boards:read boards:write pins:read pins:write user_accounts:read` |
@@ -177,32 +177,27 @@ frame that shows a raw token.**
 
 ## Production operating state
 
-**October21 owner-authorized migration override:** the existing studio is now
-PAUSED (scheduler readback19:53:16.023UTC), not ACTIVE. Cameron authorized
-beginning the Stupid.gifts account/app rename; the browser session has expired
-and both profile settings and My apps require sign-in. No rename, domain claim,
-website switch, OAuth/configuration change or access resubmission has occurred.
-All twelve v11 Pins and historical packages remain unchanged; the final review
-is pending and will not execute automatically while paused.
+**October21 owner-authorized rename completed:** profile/business name and app
+name/company are now **Stupid.gifts**. `stupidgifts` was taken; after Pinterest's
+no-dot rule was explained, Cameron explicitly selected **stupid_gifts**.
+[Public profile](https://www.pinterest.com/stupid_gifts/) and production API
+confirm the new handle/name, same BUSINESS ID `1107815345747925810`,28 Pins and
+five boards. App details saved with “Updated!”; My apps readback shows
+**Stupid.gifts**, same app ID **1588384**, **Standard access active**. Purpose
+retains first-party-only behavior and token-storage handling. No new app,
+review resubmission, OAuth rotation or scope change was needed/performed.
 
-Rename in place after sign-in:
-
-- Verify account ID `1107815345747925810`, BUSINESS, and app ID `1588384` before
-  editing. Target business display name and app name: **Stupid.gifts**. Try
-  `stupidgifts` for the handle; if unavailable, ask Cameron rather than inventing
-  an alternate username. Pinterest usernames cannot contain the dot.
-- Inspect the app's edit form for review/access consequences before saving;
-  retain the existing Standard approval, app ID, scopes, OAuth redirect and
-  Keychain credentials. If renaming would require new review or replacement,
-  stop and surface that consequence rather than silently resubmitting.
-- Read back the saved profile/app names and same IDs/access. Update any
-  transitional bio truthfully; do not claim Stupid.gifts is already live.
-- Hold new website/privacy URLs and the Stupid.gifts claim until production and
-  product-specific redirects are verified. Preserve old claimed-domain coverage
-  and every retained Pin's destination/UTM during the transition.
-- Publisher account and destination guards still target Goose. Keep them
-  fail-closed until tested new-site cutover; rename authorization is not posting
-  authorization. Full restart gates are in `PINTEREST_STUDIO.md`.
+The transitional bio truthfully says Goose.gifts is becoming Stupid.gifts.
+Website/privacy URLs, old domain claim, redirect URI, avatar/app icon and every
+retained Pin/package/UTM are unchanged. Do not interpret renamed branding as
+proof the new site is live. The account guard now requires the original stable
+ID, `stupid_gifts` and BUSINESS; tests reject wrong/missing ID, old/wrong handle
+and personal accounts. Destination guards still reject Stupid.gifts until
+tested production cutover. The studio remains **PAUSED**, v11 remains frozen
+P6/F6 with generation/posting disabled, and the final review remains pending.
+The [durable receipt](pinterest-rebrand-2026-10-21/receipt.json) links visible
+profile and Standard-access screenshots. Full restart gates, including catalog
+source and analytics verification, remain in `PINTEREST_STUDIO.md`.
 
 Official references: [profile/name/username editing](https://help.pinterest.com/en/article/edit-your-profile)
 and [managing the existing app](https://developers.pinterest.com/docs/getting-started/connect-app/).
@@ -241,8 +236,8 @@ This studio did not mutate products, pages, Pins, account or schedule.
 Current bounded GA4/PostHog queries succeeded, without an attributed Pinterest/
 retailer row. Historical provider gaps and retired DB/Vercel zeros remain
 excluded; access, a native click or a measurement run never creates new quota.
-At the morning observation the app/account rename was held; the later owner
-instruction authorizes beginning it, subject to the sign-in and access gates above.
+At the morning observation the app/account rename was held; the later completed
+rename above supersedes those names, not the dated measurement evidence.
 
 - Standard access and the production OAuth read/dry-run path are verified.
 - Public posting still needs an exact candidate/package approval event (per

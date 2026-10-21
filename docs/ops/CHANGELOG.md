@@ -52,8 +52,8 @@ what's likely next.
 
 - **Pinterest — owner-paused for Stupid.gifts migration:** October21 scheduler
   PAUSED/readback verified; cadence/chat and all v11 evidence retained. The
-  separate catalog job is untouched. Account/app rename is authorized to begin,
-  but the expired browser session needs sign-in; no rename has occurred. Verify
+  separate catalog job is untouched. Account/app rename is now complete:
+  Stupid.gifts / stupid_gifts, same IDs and Standard access retained. Verify
   new-site redirects, catalog sourcing/enrichment, analytics and Pinterest
   configuration before owner-authorized restart. The October31 review remains
   pending and will not execute automatically while paused. A new experiment is
@@ -235,6 +235,21 @@ what's likely next.
   broader catalog/regression selection: 629 pass / 17 skips. Lint, production
   build and independent publisher/sweep reviews pass. Implementation PR
   [#205](https://github.com/37-Inc/goose.gifts/pull/205).
+
+### 2026-10-21 [owner+claude] — Rename Pinterest account and approved app in place
+
+- Profile and existing app are now Stupid.gifts. The requested stupidgifts
+  handle was taken; Cameron explicitly selected stupid_gifts. Public profile,
+  production API and portal verify the same BUSINESS account/app IDs,28 Pins,
+  five boards and Standard access active. Receipt/screenshots are in
+  `pinterest-rebrand-2026-10-21/`.
+- Updated the identity guard for the new handle and original stable account ID,
+  with fail-closed regressions. New-site destination URLs are still rejected;
+  website/privacy/claim, OAuth, historical Pins/packages, catalog work and the
+  PAUSED studio are unchanged. No new content, spend or review resubmission.
+- Live production identity passes the updated guard. Node22 creative validation,
+  six creative/ten Pinterest tests, production build, lint and diff check pass.
+  Rename/identity handoff PR [#206](https://github.com/37-Inc/goose.gifts/pull/206).
 
 ### 2026-10-21 [owner+claude] — Pause Pinterest for Stupid.gifts cutover
 

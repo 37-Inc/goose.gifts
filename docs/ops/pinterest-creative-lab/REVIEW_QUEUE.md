@@ -12,8 +12,9 @@ None.
 **October21 owner override: studio PAUSED for Stupid.gifts migration.** No
 generation, publication or automatic metric/review run while paused. The exact
 October31 review deadline remains pending; preserve all cohort evidence and
-label the rebrand/redirect intervention. Account/app rename is authorized to
-begin but browser sign-in is required; no rename has occurred. Saved cadence is
+label the rebrand/redirect intervention. Account/app rename completed in place:
+Stupid.gifts, owner-selected handle stupid_gifts, same IDs/Standard access,
+28 Pins/five boards. Website/domain switch remains held. Saved cadence is
 unchanged/inactive; the weekly catalog task is untouched. Resume only through
 the verified new-site gates in `../PINTEREST_STUDIO.md` and an explicit owner
 decision; a new experiment is still required before more creative/publication.
