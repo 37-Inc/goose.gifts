@@ -16,7 +16,8 @@ function same(a:MutationOwner|null,b:MutationOwner):boolean {
   return Boolean(a&&a.token===b.token&&a.generation===b.generation&&a.phase==='writing'&&a.environment===b.environment
     &&a.indexName===b.indexName&&a.ownerReference===b.ownerReference&&a.operationKey===b.operationKey);
 }
-function decode(row:Row):Row {
+/** Shared full-current read semantics; immutable source JSON alone is not a finished run. */
+export function decodeD1CatalogTelemetryRow(row:Row):Row {
   const raw=JSON.parse(String(row.source_record_json));
   const value={...raw,...(row.start_json?JSON.parse(String(row.start_json)):{}),...(row.finish_json?JSON.parse(String(row.finish_json)):{}),...row};
   for(const key of ['config','counts','timings_ms','usage','warnings','details'])if(typeof value[key]==='string')value[key]=JSON.parse(value[key]);
@@ -128,9 +129,9 @@ export function createD1CatalogTelemetryStore(options:{db:CatalogD1;owner:Mutati
       const current=(await rows(`${runQuery} WHERE r.id=?`,[id]))[0];if(!current)return null;
       const items=await rows('SELECT * FROM catalog_run_items WHERE run_id=? ORDER BY sequence LIMIT 10001',[id]);
       if(items.length>10000)throw new Error('telemetry_read_bound');
-      return {run:decode(current),items:items.map(decode)};
+      return {run:decodeD1CatalogTelemetryRow(current),items:items.map(decodeD1CatalogTelemetryRow)};
     }),
     loadRecentCatalogRuns:(limit=10)=>serialize(async()=> (await rows(`${runQuery} ORDER BY r.started_at DESC LIMIT ?`,
-      [Math.max(1,Math.min(100,Number(limit)||10))])).map(decode)),
+      [Math.max(1,Math.min(100,Number(limit)||10))])).map(decodeD1CatalogTelemetryRow)),
   });
 }

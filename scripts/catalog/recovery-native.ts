@@ -10,6 +10,7 @@ import { canonicalJson } from './migration.ts';
 import { decodePgvectorSendBase64, PGVECTOR_BINARY_ENCODING } from './pgvector-binary.ts';
 import { validateRecoveryMetadata } from './recovery-metadata.ts';
 import type { RecoveryMetadata } from './recovery-metadata.ts';
+import { readRollbackFixture, rollbackLogicalRow, rollbackRowsHash } from './recovery-delta.ts';
 
 // Maintainer-published 0.8.0-pg17 ARM64 manifest, independently inspected before use.
 export const NATIVE_IMAGE = 'pgvector/pgvector@sha256:09c8aaae717baf4412f6efd174f51172c0638720a72a86e804cd698197fc8ba2';
@@ -125,7 +126,9 @@ function schemaSql(table: NativeTable): string {
 
 /** Fresh uniquely labeled container/volume only. No DSN or existing resource input exists. */
 export async function runNativeRecovery(options: { archive: string; expectedManifestSha256: string; audit: string;
-  expectedAuditSha256: string; workParent: string; metadata?: string; expectedMetadataSha256?: string }) {
+  expectedAuditSha256: string; workParent: string; metadata?: string; expectedMetadataSha256?: string;
+  /** Test-only: recomputed synthetic packet, fresh owned container only. No CLI/provider apply path. */
+  rollbackFixture?: {directory:string;expectedPacketSha256:string} }) {
   const archive = await validateRecoveryArchive(options.archive, { expectedManifestSha256: options.expectedManifestSha256 });
   const manifest = await pinnedJson(join(archive.directory, 'manifest.json'), options.expectedManifestSha256) as { tables: NativeTable[]; sequences: Sequence[];
     settings: {database:string;snapshot:string;observedAt:string;serverVersion?:string}; recoveryMetadata?: RecoveryMetadata };
@@ -148,6 +151,8 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
   manifest.tables.forEach((t, i) => { nativeTableSql(t); nativeInsertSql(t, i); primaryKey(t); t.columns.filter((c) => c.default).forEach((c) => defaultSql(c.default!)); });
   manifest.sequences.forEach(s=>nativeSequenceSql(s,sequenceState(s)));
   if (manifest.sequences.some((s) => !['public', 'drizzle'].includes(s.schemaname))) throw new Error('Unexpected sequence schema');
+  const rollback = options.rollbackFixture ? await readRollbackFixture(options.rollbackFixture.directory,
+    options.rollbackFixture.expectedPacketSha256,archive,manifest) : null;
   const parent = await assertPrivateOutsideGit(options.workParent); const work = await mkdtemp(join(parent, 'recovery-native-pg17-'));
   const token = randomUUID(); const container = `sg-recovery-${token}`; const volume = `${container}-data`; const label = `goose.catalog.recovery=${token}`;
   const log = join(work, 'commands.log'); await writeFile(log, '', { mode: 0o600, flag: 'wx' });
@@ -155,12 +160,15 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
     DOCKER_CONTEXT: process.env.DOCKER_CONTEXT, LANG: 'C', TZ: 'UTC', NODE_ENV: 'test' };
   function command(args: string[], input?: string | Buffer): Buffer {
     try { return execFileSync('docker', args, { env, input, timeout: 60_000, maxBuffer: 96 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] }); }
-    catch (error) { const e = error as { stdout?: Buffer; stderr?: Buffer }; appendFileSync(log, Buffer.concat([e.stdout || Buffer.alloc(0), e.stderr || Buffer.alloc(0)])); throw new Error('Native recovery command failed; protected diagnostics retained'); }
+    catch (error) { const e = error as { stdout?: Buffer; stderr?: Buffer }; appendFileSync(log, Buffer.concat([e.stdout || Buffer.alloc(0), e.stderr || Buffer.alloc(0)]));
+      throw new Error(/(^|\n)ERROR:\s+SYNTHETIC_ROLLBACK_LATE_FAILURE(?:\r?\n|$)/.test(e.stderr?.toString()||'')
+        ?'Synthetic rollback late failure':'Native recovery command failed; protected diagnostics retained'); }
   }
   const psql = ['exec', '--user', 'postgres', '-i', container, 'psql', '-X', '-qAt', '--no-password', '-h', '/var/run/postgresql', '-U', 'postgres', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1'];
   const sql = (value: string) => command(psql, `SET timezone='GMT'; SET datestyle='ISO, YMD'; SET extra_float_digits=3; SET statement_timeout='55s';\n${value}`).toString('utf8');
   let volumeCreated = false; let containerCreated = false; let cleaned = false; let diagnosticsCollectionFailed = false; let failure: unknown;
   let settings: Record<string, unknown> | null = null; const reconciled: Array<Record<string, unknown>> = [];
+  let rollbackReceipt:Record<string,unknown>|null=null;
   try {
     if (env.DOCKER_HOST && env.DOCKER_CONTEXT) throw new Error('Ambiguous Docker endpoint refused');
     const endpoint = env.DOCKER_HOST || JSON.parse(command(['context', 'inspect', '--format', '{{json .Endpoints.docker.Host}}']).toString());
@@ -252,6 +260,67 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
         if (canonicalJson(observed)!==canonicalJson({lastValue:state.lastValue,isCalled:state.isCalled}) || canonicalJson(ownership)!==canonicalJson(state.ownedBy)) throw new Error('Native sequence state/ownership differs');
       }
     }
+    if(rollback){
+      // Reuse native COPY staging; never decimalize vector payloads. This branch
+      // is unreachable with unverified real captures and never accepts a DSN.
+      const expression=(t:NativeTable)=>`jsonb_build_object(${t.columns.flatMap(c=>[literal(c.name),
+        t.columnEncodings[c.name]===PGVECTOR_BINARY_ENCODING?`replace(encode(vector_send(t.${q(c.name)}),'base64'),chr(10),'')`
+          :['boolean','jsonb','text[]'].includes(c.type)?`t.${q(c.name)}`:`t.${q(c.name)}::text`]).join(',')})`;
+      const fullRows=(t:NativeTable)=>sql(`SELECT ${expression(t)}::text FROM ${name(t)} t;`).trimEnd().split('\n').filter(Boolean).map(line=>{
+        const value=JSON.parse(line);return Object.fromEntries(t.columns.map(c=>[c.name,value[c.name]===null?null:
+          c.type==='jsonb'?JSON.stringify(value[c.name]):value[c.name]])) as Row;
+      });
+      const fingerprint=()=>manifest.tables.map(t=>({schema:t.schema,table:t.name,rows:Number(sql(`SELECT count(*) FROM ${name(t)};`).trim()),sha256:rollbackRowsHash(t,fullRows(t))}));
+      const sequenceState=()=>rollback.sequence?sql(`SELECT json_build_object('value',last_value::text,'called',is_called)::text FROM ${q(rollback.sequence.schema)}.${q(rollback.sequence.name)};`).trim():null;
+      const before=fingerprint(),beforeSequence=sequenceState();
+      const groups=['products','catalog_runs','catalog_run_items','catalog_editorial_events'].filter(table=>rollback.changes.some(c=>c.table===table));
+      const staged=new Map<string,string>();
+      for(const [index,tableName] of groups.entries()){
+        const t=manifest.tables.find(t=>t.schema==='public'&&t.name===tableName)!;const ordinal=manifest.tables.length+index;
+        const rows=rollback.changes.filter(c=>c.table===tableName).map(c=>c.after);const target={...t,schema:'_catalog_recovery',name:`delta_${index}`};
+        sql(nativeTableSql(target));
+        sql(`CREATE TABLE _catalog_recovery.s${ordinal}(position bigint GENERATED ALWAYS AS IDENTITY,row_json text NOT NULL); COPY _catalog_recovery.s${ordinal}(row_json) FROM STDIN WITH (FORMAT csv,DELIMITER E'\\x02',QUOTE E'\\x01',ESCAPE E'\\x01');\n${rows.map(r=>JSON.stringify(r)).join('\n')}\n\\.\n`);
+        if(t.columns.some(c=>t.columnEncodings[c.name]===PGVECTOR_BINARY_ENCODING)){
+          sql(`CREATE TABLE _catalog_recovery.v${ordinal}(position bigint,embedding vector(1536));`);
+          command([...psql,'-c',`COPY _catalog_recovery.v${ordinal} FROM STDIN WITH(FORMAT binary)`],nativeVectorCopy(rows,'embedding'));
+        }
+        sql(nativeInsertSql(target,ordinal));staged.set(tableName,name(target));
+      }
+      sql('CREATE TABLE _catalog_recovery.rollback_ledger(packet_sha256 text PRIMARY KEY);');
+      const rowCondition=(tableName:string,row:Row|null,id:string)=>{
+        const t=manifest.tables.find(t=>t.schema==='public'&&t.name===tableName)!;
+        return row?`EXISTS(SELECT 1 FROM ${name(t)} t WHERE t.id=${literal(id)} AND ${expression(t)}=${literal(canonicalJson(rollbackLogicalRow(t,row)))}::jsonb)`
+          :`NOT EXISTS(SELECT 1 FROM ${name(t)} WHERE id=${literal(id)})`;
+      };
+      const assertion=(condition:string)=>`IF NOT(${condition}) THEN RAISE EXCEPTION 'Rollback state mismatch'; END IF;`;
+      const packetSha=options.rollbackFixture!.expectedPacketSha256;
+      const transaction=(lateFailure:boolean)=>{
+        let body=`BEGIN IF NOT EXISTS(SELECT 1 FROM _catalog_recovery.rollback_ledger WHERE packet_sha256=${literal(packetSha)}) THEN\n`
+          +assertion('NOT EXISTS(SELECT 1 FROM _catalog_recovery.rollback_ledger)');
+        for(const c of rollback.changes)body+=assertion(rowCondition(c.table,c.before,c.key));
+        for(const tableName of groups){const t=manifest.tables.find(t=>t.schema==='public'&&t.name===tableName)!;
+          body+=`INSERT INTO ${name(t)}(${t.columns.map(c=>q(c.name)).join(',')}) SELECT ${t.columns.map(c=>q(c.name)).join(',')} FROM ${staged.get(tableName)} ON CONFLICT(id) DO UPDATE SET ${t.columns.filter(c=>c.name!=='id').map(c=>`${q(c.name)}=excluded.${q(c.name)}`).join(',')};\n`;
+        }
+        // RESTART is transactional, unlike setval. Late failure must restore the allocator too.
+        if(rollback.sequence)body+=`ALTER SEQUENCE ${q(rollback.sequence.schema)}.${q(rollback.sequence.name)} RESTART WITH ${rollback.sequence.nextValue};`;
+        for(const c of rollback.changes)body+=assertion(rowCondition(c.table,c.after,c.key));
+        if(lateFailure)body+="RAISE EXCEPTION 'SYNTHETIC_ROLLBACK_LATE_FAILURE';";
+        body+=`INSERT INTO _catalog_recovery.rollback_ledger VALUES(${literal(packetSha)}); END IF;`;
+        for(const c of rollback.changes)body+=assertion(rowCondition(c.table,c.after,c.key));
+        body+='END;';const delimiter=`$rollback_${randomUUID().replaceAll('-','')}$`;
+        if(body.includes(delimiter))throw new Error('Rollback SQL delimiter collision');return `BEGIN;DO ${delimiter}${body}${delimiter};COMMIT;`;
+      };
+      let failed=false;try{sql(transaction(true));}catch(error){if(!(error instanceof Error)||error.message!=='Synthetic rollback late failure')throw error;failed=true;}
+      if(!failed||canonicalJson(before)!==canonicalJson(fingerprint())||beforeSequence!==sequenceState())throw new Error('Rollback fixture late failure was not atomic');
+      sql(transaction(false));const after=fingerprint();
+      if(canonicalJson(after)!==canonicalJson(rollback.expectedTables))throw new Error('Rollback fixture full-field readback differs');
+      const committedSequence=sequenceState();sql(transaction(false));
+      if(canonicalJson(after)!==canonicalJson(fingerprint())||committedSequence!==sequenceState())throw new Error('Rollback fixture identical replay changed state');
+      const next=rollback.sequence?sql(`SELECT nextval(${literal(`${q(rollback.sequence.schema)}.${q(rollback.sequence.name)}`)}::regclass)::text;`).trim():null;
+      if(rollback.sequence&&next!==rollback.sequence.nextValue)throw new Error('Rollback fixture next sequence differs');
+      rollbackReceipt={packetSha256:packetSha,inputSha256:rollback.inputSha256,barrierVerified:false,provenance:rollback.provenance,
+        changes:rollback.changes.length,fullFieldTables:after,lateFailureAtomic:true,identicalReplay:true,nextSequenceVerified:next!==null};
+    }
   } catch (error) { failure = error; }
   finally {
     try {
@@ -272,7 +341,7 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
     } catch { failure ||= new Error('Only newly created recovery resources require manual cleanup'); }
   }
   const implementationSha256 = createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex');
-  const implementationFiles = Object.fromEntries(await Promise.all(['recovery-native.ts', 'recovery-archive.ts', 'recovery-metadata.ts', 'migration.ts', 'pgvector-binary.ts'].map(async (file) => [file,
+  const implementationFiles = Object.fromEntries(await Promise.all(['recovery-native.ts', 'recovery-archive.ts', 'recovery-metadata.ts', 'recovery-delta.ts', 'maintenance-state.ts', 'telemetry-d1.ts', 'migration.ts', 'pgvector-binary.ts'].map(async (file) => [file,
     createHash('sha256').update(await readFile(new URL(file, import.meta.url))).digest('hex')])));
   const sourceVersion=manifest.settings.serverVersion??null;
   const sourceMinor=sourceVersion?.match(/^(\d+)\.(\d+)/);const restoredMinor=String(settings?.serverVersion||'').match(/^(\d+)\.(\d+)/);
@@ -289,6 +358,7 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
       triggerModesReconciled:failure?null:metadata.triggers.length,aclSettingsReplayed:false,
       aclEvidenceSha256:createHash('sha256').update(canonicalJson(metadata.aclEvidence)).digest('hex'),
       settingsEvidenceSha256:createHash('sha256').update(canonicalJson(metadata.settingsEvidence)).digest('hex')}:null,
+    rollbackFixture:rollbackReceipt,
     limitations: [metadata?'ACL/default-privilege and scoped settings evidence was captured, not replayed. Role attributes/ownership, permissions, collations, storage options, comments and extension ownership remain unverified.':'No full schema/grant dump was captured: owners, grants/default privileges, database/role settings, collations, table storage options, comments and extension ownership remain unverified.',
       metadata?'Sequence state/ownership restored to the explicitly dated metadata observation, not an atomic write barrier or in-flight session-cache recovery.':'Sequence last_value is a nontransactional observation; original is_called, sequence ownership and exact next-call state were not captured.',
       metadata?'Recorded trigger modes restored to the explicitly dated metadata observation; a later supplement is not original-snapshot evidence.':'Trigger enabled/replica/always modes were not captured. Recorded DDL restored with normal enabled defaults; original behavior beyond that remains unverified.',
