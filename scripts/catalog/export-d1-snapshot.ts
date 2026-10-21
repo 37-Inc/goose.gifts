@@ -7,7 +7,7 @@ import { isPurchasableAvailability } from '../../lib/gift-slugs.ts';
 import { suppressNearDuplicateProducts } from '../../lib/db/product-scoring.ts';
 import { canonicalJson, canonicalTimestamp, sha256 } from './migration.ts';
 import { mutationFenceQuery } from '../../lib/catalog/mutation-fence.ts';
-import type { MutationOwner } from '../../lib/catalog/mutation-fence.ts';
+import type { MutationOwner, MutationQuery } from '../../lib/catalog/mutation-fence.ts';
 
 /** The sealed header/held/history/order are not versioned in D1. Supply these
  * from an independently reviewed, hash-pinned artifact, not mutable current rows.
@@ -76,8 +76,8 @@ const CAPTURE_SQL = `WITH ids AS (SELECT value FROM json_each(?)),
 const PAGE_BYTES = 384 * 1024;
 const OPERATION = ['operation_id','input_sha256','run_id','catalog_revision','environment','index_name',
   'generation','prior_epoch','next_epoch','database_time','result_json','changes_json'];
-async function ownedPages(db: CatalogD1, owner: MutationOwner, ids: string[], select: string, params: unknown[] = []) {
-  const gate = mutationFenceQuery(owner, ['freezing']); const output: Row[] = [];
+async function ownedPages(db: CatalogD1, owner: MutationOwner, ids: string[], select: string, params: unknown[] = [], fence?:MutationQuery) {
+  const gate = fence??mutationFenceQuery(owner, ['freezing']); const output: Row[] = [];
   if (ids.length > SNAPSHOT_READ_LIMITS.identities || new Set(ids).size !== ids.length) throw new Error('read_bounds');
   let bytes = 0;
   for (let offset = 0; offset < ids.length; offset += 80) {
@@ -131,10 +131,8 @@ async function captureOwned(db: CatalogD1, owner: MutationOwner, envelope: Seale
   // has copied this owner once; never refresh it from the live ownership row.
   const header = await ownedHeader(db, owner, envelope.catalogRevision, context);
   const ids = [...envelope.products,...envelope.heldProducts.map(product => product.publicId)].sort();
-  const current = await ownedPages(db, owner, ids, `SELECT ids.ordinal,ids.value identity,
-    ${jsonColumns('p', CURRENT, ARCHIVE_TIMES)} data FROM requested ids CROSS JOIN products p ON p.public_id=ids.value`);
+  const current = await captureCurrentRows(db,owner,ids);
   const projection = await readOwnedProjection(db, owner, envelope.catalogRevision, [...envelope.products].sort());
-  await bindMaintenanceObservations(db, current, owner);
   if (Buffer.byteLength(canonicalJson({header,current,projection})) > SNAPSHOT_READ_LIMITS.resultBytes) throw new Error('read_bounds');
   const final = await ownedHeader(db, owner, envelope.catalogRevision, context);
   if (canonicalJson({...header,observedAt:null}) !== canonicalJson({...final,observedAt:null})
@@ -193,7 +191,7 @@ async function capture(db: CatalogD1, envelope: SealedSnapshotEnvelope, context:
  * SQL write time. Old migration-only databases do not have this table. The
  * receipt bytes are included in the final current-state CAS when present.
  */
-async function bindMaintenanceObservations(db: CatalogD1, rows: Row[], owner?: MutationOwner) {
+async function bindMaintenanceObservations(db: CatalogD1, rows: Row[], owner?: MutationOwner, fence?:MutationQuery) {
   const wanted = rows.flatMap(row => {
     const proof = JSON.parse(String(row.timestamp_provenance_json));
     const field = row.availability_checked_at !== null ? 'availability_checked_at' : 'last_verified_at';
@@ -204,7 +202,7 @@ async function bindMaintenanceObservations(db: CatalogD1, rows: Row[], owner?: M
   const ids = [...new Set(wanted)];
   if (ids.length > SNAPSHOT_READ_LIMITS.identities) throw new Error('read_bounds');
   const operations:Row[]=owner ? await ownedPages(db, owner, ids.sort(), `SELECT ids.ordinal,ids.value identity,
-    ${jsonColumns('o', OPERATION)} data FROM requested ids CROSS JOIN catalog_maintenance_operations o ON o.operation_id=ids.value`) : [];
+    ${jsonColumns('o', OPERATION)} data FROM requested ids CROSS JOIN catalog_maintenance_operations o ON o.operation_id=ids.value`,[],fence) : [];
   let bytes=0;
   for(let offset=0;!owner && offset<ids.length;offset+=20){
     const chunk=(await db.prepare(`SELECT o.* FROM json_each(?) ids CROSS JOIN catalog_maintenance_operations o
@@ -222,6 +220,29 @@ async function bindMaintenanceObservations(db: CatalogD1, rows: Row[], owner?: M
       row.verification_operation_json = canonicalJson(byId.get(id)!);
     }
   }
+}
+async function captureCurrentRows(db:CatalogD1,owner:MutationOwner,ids:string[],fence?:MutationQuery) {
+  const rows=await ownedPages(db,owner,ids,`SELECT ids.ordinal,ids.value identity,
+    ${jsonColumns('p',CURRENT,ARCHIVE_TIMES)} data FROM requested ids CROSS JOIN products p ON p.public_id=ids.value`,[],fence);
+  await bindMaintenanceObservations(db,rows,owner,fence);return rows;
+}
+/** Read-only recovery of ONE already-journaled body-free prune DELETE. This is
+ * not permission to prune/reseal while pending. Its caller must match the
+ * immutable source hash before the original full-row completion CAS is used.
+ */
+export async function readJournaledPruneDeleteSource(db:CatalogD1,owner:MutationOwner,deliveryId:string,publicId:string,completed=false) {
+  owner=structuredClone(owner);
+  if(!HASH.test(deliveryId)||!UUID.test(publicId)||owner.epoch<1)throw new Error('vector_resume_invalid');
+  const base=mutationFenceQuery(owner,['freezing']);
+  const fence={sql:`${base.sql} AND EXISTS(SELECT 1 FROM catalog_vector_deliveries WHERE delivery_id=? AND owner_json=?
+    AND status=? ${completed?"AND disposition='verified'":''} AND dispatch_token IS NOT NULL AND mutation_reference IS NOT NULL
+    AND json_extract(request_json,'$.kind')='prune' AND json_extract(request_json,'$.vector') IS NULL
+    AND json_extract(request_json,'$.pruneCurrent') IS NULL AND json_extract(request_json,'$.pruneDeleteControl.schemaVersion')=1
+    AND json_extract(request_json,'$.publicId')=?)`,
+  params:[...base.params.slice(0,-1),completed?0:1,deliveryId,canonicalJson({...owner,epoch:owner.epoch-(completed?2:1)}),completed?'complete':'pending',publicId]};
+  const rows=await captureCurrentRows(db,owner,[publicId],fence);
+  const held=(await db.prepare(`SELECT 1 held WHERE ${fence.sql}`).bind(...fence.params).all()).results;
+  if(rows.length!==1||held.length!==1)throw new Error('vector_owner_changed');return rows[0];
 }
 
 /** Explicit reviewed candidates only. Never scan mutable "ready" rows as an

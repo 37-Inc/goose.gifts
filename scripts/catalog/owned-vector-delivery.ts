@@ -5,13 +5,13 @@ import { mutationAdvance, mutationAssertion, mutationFenceQuery, readMutationOwn
 import type { MutationOwner, MutationScope } from '../../lib/catalog/mutation-fence.ts';
 import type { ActivationPermit } from '../../lib/catalog/build-requests.ts';
 import { pruneExistingRevision, prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
-import type { PrunedRevision, PrunedVectorObservation } from '../../lib/catalog/prune-existing-revision.ts';
+import type { PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import { prepareApprovedCohort } from '../../lib/catalog/freeze-approved-cohort.ts';
 import type { ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
 import { loadMaintenanceVectorPayload } from './maintenance-d1.ts';
 import { canonicalJson, sha256 } from './migration.ts';
 import { decodePgvectorSendBase64, encodePgvectorSendBase64 } from './pgvector-binary.ts';
-import { pruningCurrentQueries } from './export-d1-snapshot.ts';
+import { pruningCurrentQueries, readJournaledPruneDeleteSource } from './export-d1-snapshot.ts';
 import { nativeHash, payloadVector, visible } from './vector-outbox.ts';
 import type { ImmutableVectorPayload, SyncVector, VectorEvent } from './vector-outbox.ts';
 
@@ -188,11 +188,13 @@ async function hydratePruneDelete(db:CatalogD1,owner:MutationOwner,row:Journal,r
 async function execute(options: { db: CatalogD1; owner: MutationOwner; id: string; adapters: OwnedVectorAdapters; timeout: number;
   expectedPayloadSha256?: string | null;
   pruneDeleteSource?:PruneDeleteSource;
+  resumeOnly?:boolean;
   prepare(): Promise<{ request: Omit<Request,'providerIdentity'>; product: Row }> }): Promise<DeliveryResult> {
   const { db, owner: input, id, adapters, timeout } = options;
   adapterScope(input,adapters);
   let row = await journal(db, id);
   if (!row) {
+    if(options.resumeOnly)throw new Error('vector_resume_invalid');
     await db.batch([mutationAssertion(db, input, ['writing','freezing'])]);
     const prepared = await options.prepare(); const product = prepared.product;
     const request: Request = { ...prepared.request,providerIdentity:adapters.providerIdentity };
@@ -244,6 +246,7 @@ async function execute(options: { db: CatalogD1; owner: MutationOwner; id: strin
     if (!REF.test(observation.reference) || (observation.state === 'settled' && row.mutation_reference
       && observation.reference !== row.mutation_reference)) throw new Error('vector_resolution_invalid');
     if (observation.state === 'not_submitted') {
+      if(options.resumeOnly)throw new Error('vector_resolution_invalid');
       if (row.mutation_reference) throw new Error('vector_resolution_invalid');
       // This is independent conclusive evidence, NOT an HTTP exception/timeout.
       // Retain all bounded attempt evidence and retry only on a subsequent call.
@@ -268,6 +271,7 @@ async function execute(options: { db: CatalogD1; owner: MutationOwner; id: strin
   const isVisible = visible(request.vector, actual);
   const fresh = !request.vector || (await db.prepare(`SELECT ?>${NOW} fresh`).bind(request.eligibleUntil).all<{ fresh:number }>()).results[0].fresh === 1;
   if (!isVisible && !row.dispatch_token && fresh) {
+    if(options.resumeOnly)throw new Error('vector_resume_dispatch_forbidden');
     if (row.attempts >= 3) return pendingResult(db, input, row, 'attempts_exhausted');
     const token = randomUUID();
     // Persist the unique dispatch marker BEFORE external code. Only its winning
@@ -448,6 +452,49 @@ export function deliverOwnedOutboxEvent(options: Parameters<typeof outboxDeliver
 }
 export function deliverOwnedPrunedVector(options: Parameters<typeof pruneDelivery>[0]): Promise<DeliveryResult> {
   return safe(() => pruneDelivery(options));
+}
+/** Settle an existing accepted body-free DELETE only. The independently pinned
+ * sealed plan is control data, not an invented/partial PrunedRevision. No new
+ * journal, prune, non-submission inference, dispatch or source-body persistence.
+ */
+export function resumeOwnedPrunedDelete(options:{db:CatalogD1;owner:MutationOwner;deliveryId:string;plan:PrunedVectorPlan;
+  adapters:Omit<OwnedVectorAdapters,'dispatch'>;timeoutMs?:number}):Promise<DeliveryResult> {
+  return safe(async()=>{
+    const {db,adapters,deliveryId}=options,owner=structuredClone(options.owner),plan=structuredClone(options.plan);
+    adapterScope(owner,adapters);const timeout=timeoutOf(options.timeoutMs);
+    if(owner.phase!=='freezing'||!HASH.test(deliveryId)||plan.environment!==owner.environment||plan.indexName!==owner.indexName
+      ||!Array.isArray(plan.products)||!Array.isArray(plan.absentIds)||!HASH.test(plan.snapshotSha256)
+      ||!Number.isSafeInteger(plan.globalWatermark)||plan.globalWatermark<0
+      ||plan.products.length+plan.absentIds.length>OWNED_VECTOR_PROOF_LIMIT)throw new Error('vector_resume_invalid');
+    const ids=[...plan.products.map(p=>p.publicId),...plan.absentIds];
+    if(ids.some(id=>!UUID.test(id))||new Set(ids).size!==ids.length)throw new Error('vector_resume_invalid');
+    const row=await journal(db,deliveryId);if(!row)throw new Error('vector_resume_invalid');
+    const request=decodeRequest(row.request_json),base=JSON.parse(row.owner_json),planHash=sha256(canonicalJson(plan));
+    if(request.kind!=='prune'||request.vector!==null||request.event!==null||request.payloadSha256!==null
+      ||request.pruneCurrent!==null||!request.pruneDeleteControl||!row.dispatch_token||!REF.test(row.mutation_reference??'')
+      ||!Number.isSafeInteger(row.attempts)||row.attempts<1||row.attempts>3
+      ||request.providerIdentity!==adapters.providerIdentity||request.planSha256!==planHash
+      ||request.catalogRevision!==plan.catalogRevision||request.globalWatermark!==plan.globalWatermark
+      ||request.projectionReceipt?.snapshot_sha256!==plan.snapshotSha256||!plan.absentIds.includes(request.publicId)
+      ||idFor(owner,{kind:'prune',planHash,publicId:request.publicId})!==deliveryId
+      ||canonicalJson({...owner,epoch:base.epoch})!==canonicalJson(base))throw new Error('vector_resume_invalid');
+    if(row.status==='complete'){
+      if(owner.epoch!==base.epoch+2||row.disposition!=='verified')throw new Error('vector_owner_changed');
+      const evidence=JSON.parse(row.evidence_json),last=Array.isArray(evidence)&&evidence.at(-1);
+      if(!last||last.state!=='settled_visible'||last.attempt!==row.attempts||last.reference!==row.mutation_reference)
+        throw new Error('vector_resume_invalid');
+      const current=await readJournaledPruneDeleteSource(db,owner,deliveryId,request.publicId,true);
+      await hydratePruneDelete(db,owner,row,request,{planSha256:planHash,current,projectionReceipt:request.projectionReceipt!});
+      // Original completion reconciliation only, not a fresh native vector proof.
+      return{deliveryId,owner,state:'complete',errorCode:null};
+    }
+    if(row.status!=='pending'||owner.epoch!==base.epoch+1)throw new Error('vector_owner_changed');
+    const current=await readJournaledPruneDeleteSource(db,owner,deliveryId,request.publicId);
+    return execute({db,owner,id:deliveryId,timeout,resumeOnly:true,expectedPayloadSha256:null,
+      pruneDeleteSource:{planSha256:planHash,current,projectionReceipt:request.projectionReceipt!},
+      adapters:{...adapters,dispatch:async()=>{throw new Error('vector_resume_dispatch_forbidden');}},
+      prepare:async()=>{throw new Error('vector_resume_invalid');}});
+  });
 }
 /** Same sealed-plan journal/expiry recovery as pruning (the persisted kind stays
  * "prune" for compatibility). Changed products MUST use their immutable owned
