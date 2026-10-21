@@ -35,7 +35,7 @@ function definition(table,index){
 }
 function empty(def){return Object.fromEntries(def.columns.map(c=>[c.name,c.nullable?null:c.type==='boolean'?false:c.type==='jsonb'?'{}':c.type.startsWith('timestamp')?'2026-10-20 10:00:00'+(c.type.endsWith('with time zone')?'+00':''):'TEST']));}
 function inventory(input){input.inventory=D1_RECOVERY_TABLES.map(table=>({table,rows:input.tables[table].length,sha256:sha256(canonicalJson(input.tables[table]))}));return input;}
-async function fixture(){
+async function fixture({searches=0}={}){
   const parent=await mkdtemp(join(process.env.CATALOG_RECOVERY_TEST_EVIDENCE_PARENT||tmpdir(),'sg-delta-fixture-'));
   const directory=join(parent,'baseline');await mkdir(directory,{mode:0o700});
   const tables=[products,catalogRuns,catalogRunItems,productSlugHistory,catalogEditorialEvents,searchQueries].map(definition);
@@ -47,7 +47,8 @@ async function fixture(){
     affiliate_url:'https://example.test/fixture',quality_score:'0.8000',is_active:true,editorial_status:'pending',embedding:native,click_count:'7',impression_count:'11'});
   const run={...empty(tables[1]),id:uuid(20),telemetry_version:'test-v1',mode:'daily',trigger:'fixture',status:'completed',dry_run:false,config:'{}',counts:'{}',timings_ms:'{}',usage:'{}',warnings:'[]'};
   const item={...empty(tables[2]),id:uuid(30),sequence:'3',run_id:run.id,phase:'refresh',stage:'selection',decision:'selected',external_id:'TEST-1',requires_manual_review:false,details:'{}'};
-  const data=[[p(1),p(2)],[run],[item],[],[],[],...tables.slice(6).map((_,i)=>[{id:`OLD-${i}`,detail:'SYNTHETIC PRIVATE RETIRED HISTORY'}])];
+  const data=[[p(1),p(2)],[run],[item],[],[],Array.from({length:searches},(_,i)=>({...empty(tables[5]),id:uuid(40+i),query:`TEST SEARCH ${i}`,result_count:'1',clicked:'0'})),
+    ...tables.slice(6).map((_,i)=>[{id:`OLD-${i}`,detail:'SYNTHETIC PRIVATE RETIRED HISTORY'}])];
   let totalBytes=0;
   for(const [i,t]of tables.entries()){const raw=data[i].map(JSON.stringify).join('\n')+(data[i].length?'\n':'');t.rowCount=data[i].length;t.sha256=sha256(raw);totalBytes+=Buffer.byteLength(raw);await writeFile(join(directory,t.file),raw,{mode:0o600});}
   const functions=['assign_product_public_identity','preserve_product_slug_history'].map(proname=>({schema_name:'public',proname,arguments:'',
@@ -161,6 +162,33 @@ test('incomplete input, stale typed drift, unknown vectors, unproven time, unsup
     await assert.rejects(writeRollbackPacket({archive:f.directory,baselineSha256:f.baselineSha256,input:invalidPath,inputSha256:createHash('sha256').update(invalid).digest('hex'),output:join(f.parent,'refused-utf8')}));
     await writeFile(join(written.directory,'rollback.json'),bytes+' ',{mode:0o600});
     await assert.rejects(readRollbackFixture(written.directory,written.packetSha256,f.archive,f.manifest));
+  }finally{await rm(f.parent,{recursive:true,force:true});}
+});
+
+test('unchanged search history requires every baseline identity exactly once even with a correctly rebuilt inventory',async()=>{
+  const f=await fixture({searches:2});try{
+    const expected=f.plan();
+    const reordered=structuredClone(f.input);reordered.tables.search_history.reverse();
+    assert.deepEqual(f.plan(reordered).expectedTables,expected.expectedTables);
+    const duplicate=structuredClone(f.input);duplicate.tables.search_history[1]=structuredClone(duplicate.tables.search_history[0]);
+    assert.throws(()=>f.plan(duplicate),/incomplete, drifted or unsupported/);
+    const missing=structuredClone(f.input);missing.tables.search_history.pop();
+    assert.throws(()=>f.plan(missing),/incomplete, drifted or unsupported/);
+  }finally{await rm(f.parent,{recursive:true,force:true});}
+});
+
+test('new editorial timestamps must match the same recorded operation clock',async()=>{
+  const f=await fixture();try{
+    assert.ok(f.plan().changes.some(c=>c.table==='catalog_editorial_events'));
+    for(const change of [
+      (event,raw)=>{event.created_at=raw.created_at='2026-10-21T20:00:00Z';event.source_record_json=canonicalJson(raw);},
+      (_event,_raw,operation)=>{delete operation.database_time;},
+      (_event,_raw,operation)=>{operation.database_time='not-a-timestamp';},
+    ]){
+      const input=structuredClone(f.input),event=input.tables.catalog_editorial_events[0],raw=JSON.parse(event.source_record_json);
+      const operation=input.tables.catalog_maintenance_operations.find(o=>o.operation_id===raw._maintenance.operationId);
+      change(event,raw,operation);assert.throws(()=>f.plan(input));
+    }
   }finally{await rm(f.parent,{recursive:true,force:true});}
 });
 

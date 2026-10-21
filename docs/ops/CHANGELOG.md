@@ -255,7 +255,10 @@ semantics/native vectors and finalized telemetry instead of stale source JSON,
 plus actual-writer editorial append mapping and a preserved D1-only sidecar.
 Five-change isolated PG17 proof passes full13table readback, late-failure
 data/allocator rollback, identical replay and next sequence; source hashes match,
-owned resources removed.31targeted tests/3native tests/types/lint pass. Real
+owned resources removed. Independent review added exact unchanged search-history
+identity coverage: duplicate rows cannot conceal a missing baseline identity,
+even with a rebuilt input inventory; new editorial timestamps must also match
+their recorded operation clock.31targeted tests/3native tests/types/lint pass. Real
 complete provider-barrier capture and production recovery remain open; root
 review/combined build pending. No live data/writer/provider/schedule changes.
 See `STUPID_GIFTS_D1_ROLLBACK_2026-10-21.md`, `roadmap-lbbz1.3.1`.

@@ -119,7 +119,10 @@ artifacts/receipt, never the disposable Docker resources.
   Two products, one finalized run, one item and one editorial event; full13table
   readback, native vector bytes, late-failure data/allocator rollback, identical
   replay and next item sequence5 passed. Recorded implementation hashes match
-  the reviewed source. Cleanup and independent label-filtered inventory verify
+  the original proof commit913ca44. Subsequent pure-validation guards require
+  exact search-history identities and editorial/operation timestamp equality;
+  those regression tests do not constitute another native execution. Cleanup
+  and independent label-filtered inventory verify
   no owned containers/volumes remain. An earlier attempt timed out at container
   readiness while a parallel Next build ran; its failure/cleanup receipt is
   retained, not counted as acceptance.

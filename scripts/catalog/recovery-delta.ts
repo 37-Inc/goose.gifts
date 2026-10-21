@@ -185,9 +185,10 @@ export function prepareRollbackPacket(archive:Archive,manifest:Manifest,input:Fr
           typedCheck(row,raw,['id','run_id','product_id','event_type','status','created_at']);
           const provenance=parse(row.timestamp_provenance_json);const proof=(provenance.fields as Row)?.created_at as Row|undefined;
           const operation=(raw._maintenance as Row)?.operationId;
+          const operationRow=input.tables.catalog_maintenance_operations.find(o=>o.operation_id===operation);
           if(typeof operation!=='string'||! /^[a-f0-9]{64}$/.test(operation)||proof?.state!=='evidenced'
             ||proof.basis!=='maintenance_operation'||proof.operationId!==operation
-            ||!input.tables.catalog_maintenance_operations.some(o=>o.operation_id===operation&&o.run_id===raw.run_id)
+            ||!operationRow||operationRow.run_id!==raw.run_id||canonicalTimestamp(raw.created_at)!==canonicalTimestamp(operationRow.database_time)
             ||!input.tables.products.some(p=>p.id===raw.product_id)||!input.tables.catalog_runs.some(r=>r.id===raw.run_id))refuse();
           after=Object.fromEntries(def.columns.map(c=>[c.name,scalar(c,c.type==='jsonb'?canonicalJson(raw[c.name]??null):raw[c.name]??null)]));
         }else{
@@ -211,8 +212,10 @@ export function prepareRollbackPacket(archive:Archive,manifest:Manifest,input:Fr
     ||telemetry.size!==input.tables.catalog_runs.filter(r=>telemetry.has(String(r.id))).length)refuse();
   // Search history is unchanged-only in v1. Never pretend to map new hashed diagnostics to old raw queries.
   const searches=archive.tables.find(t=>t.definition.schema==='public'&&t.definition.name==='search_queries');
-  if(!searches||input.tables.search_history.length!==searches.rows.length)refuse();
-  for(const r of input.tables.search_history){const old=searches.rows.find(v=>v.id===r.id);if(!old)refuse();sourceMatch(parse(r.source_record_json),old);
+  if(!searches)refuse();
+  const currentSearches=indexed(input.tables.search_history,'id'),originalSearches=indexed(searches.rows,'id');
+  if(currentSearches.size!==originalSearches.size||[...originalSearches.keys()].some(id=>!currentSearches.has(id)))refuse();
+  for(const [id,r] of currentSearches){const old=originalSearches.get(id) as SourceRow;sourceMatch(parse(r.source_record_json),old);
     if(r.legacy_bundle_id!==(old.clicked_bundle_id??null)||r.legacy_bundle_slug!==(old.clicked_bundle_slug??null))refuse();
     unchangedHistoricalTimes(r,old,['created_at']);}
   validateArchiveRelations(finalTables);
