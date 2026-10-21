@@ -19,14 +19,14 @@ async function fixture(t){
   let clock=NOW;const handles=[];
   const input={directory,repository,now:()=>clock};
   const options=runId=>({...input,mode:'create',runId,codeSha:'a'.repeat(40),configSha256:'b'.repeat(64),scope,retention,budgetCaps:{httpRequests:20,sqlStatements:40}});
-  async function run(runId='old-run',{phase='finalized',publication=false,close=true}={}){
+  async function run(runId='old-run',{phase='finalized',publication=false,close=true,owner=null,control}={}){
     const w=await openRunWorkspace(options(runId));handles.push(w);
     const artifact=await w.putArtifact({private:'TEST ONLY EXPIRED MERCHANT BODY'},{kind:'phase',observedAt:NOW});
     if(publication){await w.preparePublicationDirectories('fixture-release',NOW,null);
       await mkdir(join(w.directory,'packages/fixture-release'),{mode:0o700});
       await writeFile(join(w.directory,'packages/fixture-release/body.json'),'TEST ONLY PACKAGE BODY',{mode:0o600});}
     await w.reserveBudget({id:'uncertain',requestSha256:'c'.repeat(64),units:{httpRequests:1,sqlStatements:0}});
-    await w.writeCheckpoint(null,{phase,owner:null,state:{private:'TEST ONLY CHECKPOINT BODY'},pins:{artifact},phaseComplete:null});
+    await w.writeCheckpoint(null,{phase,owner,state:{private:'TEST ONLY CHECKPOINT BODY'},pins:{artifact},phaseComplete:null,...(control?{control}:{})});
     if(close)await w.close();return{w,artifact};
   }
   t.after(async()=>{for(const w of handles)try{await w.close();}catch{}});
@@ -48,15 +48,44 @@ test('completed-run sweep purges yesterday under its exact manifest and retains 
   await assert.rejects(resumed.readArtifact(artifact),/expired/);await resumed.close();
 });
 
-test('fresh finalized runs are retained; unfinished runs are skipped; held locks stay busy without takeover',async t=>{
+test('fresh finalized runs are retained; unfinished runs need review; held locks stay busy without takeover',async t=>{
   const f=await fixture(t);await f.run('fresh');await f.run('unfinished',{phase:'attention'});
   const fresh=await purgeCompletedWorkspaces(f.input);
-  assert.deepEqual(fresh.runs.map(r=>[r.runId,r.state]),[['fresh','retained'],['unfinished','skipped']]);
+  assert.deepEqual(fresh.runs.map(r=>[r.runId,r.state]),[['fresh','retained'],['unfinished','review']]);
+  assert.equal(fresh.runs[1].reasonCode,'unfinished_run');assert.equal(fresh.reviewRequired,true);
   const held=await f.run('locked',{close:false});f.setNow(EXPIRED);
   const busy=await purgeCompletedWorkspaces(f.input);assert.equal(busy.busy,true);assert.equal(busy.reviewRequired,false);
-  assert.equal(busy.runs.find(r=>r.runId==='locked').state,'busy');assert.equal(busy.runs.find(r=>r.runId==='unfinished').state,'skipped');
+  assert.equal(busy.runs.find(r=>r.runId==='locked').state,'busy');assert.equal(busy.runs.find(r=>r.runId==='unfinished').state,'busy');
   assert.equal((await readdir(join(held.w.directory,'objects'))).length,2);
   assert.equal((await readdir(join(f.input.directory,'locks'))).length,3);
+});
+
+test('interrupted activation purges expired bodies while preserving exact checkpoint owner/control and uncertain budget',async t=>{
+  const f=await fixture(t),hash='b'.repeat(64);
+  const owner={environment:scope.environment,indexName:scope.indexName,token:'fixture-owner',generation:1,epoch:7,phase:'activating',
+    ownerReference:'fixture/run',operationKey:hash,capturedAt:NOW};
+  const request={schemaVersion:1,environment:scope.environment,sourceRevision:'fixture-revision',sourceDigest:hash,codeSha:'a'.repeat(40),
+    priorReleaseId:null,capturedAt:NOW,cutoff:EXPIRED};
+  const intent={releaseId:'fixture-release',codeSha:request.codeSha,catalogRevision:request.sourceRevision,vectorSyncWatermark:0,
+    priorReleaseId:null,nextExpiry:EXPIRED,catalogSnapshotSha256:hash,manifestSha256:hash};
+  const publication={schemaVersion:1,configSha256:hash,requestId:'fixture-request',runReference:'fixture/run',stage:'activating',
+    build:{requestId:'fixture-request',token:'fixture-build',runReference:'fixture/run',leaseUntil:EXPIRED,request},
+    publication:{intentId:'fixture-intent',token:'fixture-publication',leaseUntil:EXPIRED,intent},intent,
+    permit:{requestId:'fixture-request',token:'fixture-build',runReference:'fixture/run',releaseId:'fixture-release',versionReference:'fixture-version',mutationOwner:owner},
+    vectorPlan:{catalogRevision:request.sourceRevision,planSha256:hash,ids:[]},packageSha256:hash,uploadMarker:'fixture-upload',
+    versionReference:'fixture-version',deploymentMarker:'fixture-activation',deploymentId:null};
+  const {w,artifact}=await f.run('interrupted',{phase:'attention',publication:true,owner,control:{publication}});
+  const before=await readRunWorkspace({...f.options('interrupted'),mode:'resume'});f.setNow(EXPIRED);
+  const report=await purgeCompletedWorkspaces(f.input);
+  assert.deepEqual(report.runs,[{runId:'interrupted',state:'review',purged:3,reasonCode:'unfinished_run'}]);
+  assert.equal(report.reviewRequired,true);assert.deepEqual(await readdir(join(w.directory,'objects')),[]);
+  await assert.rejects(lstat(join(w.directory,'packages/fixture-release')),{code:'ENOENT'});
+  const after=await readRunWorkspace({...f.options('interrupted'),mode:'resume'});
+  assert.deepEqual(after.checkpoint,before.checkpoint);assert.deepEqual(after.budget,before.budget);
+  assert.equal(after.checkpoint.checkpoint.owner.phase,'activating');assert.equal(after.checkpoint.checkpoint.control.publication.deploymentId,null);
+  const resumed=await openRunWorkspace({...f.options('interrupted'),mode:'resume'});
+  await assert.rejects(resumed.readArtifact(artifact),/expired/);assert.equal((await resumed.budget()).unconfirmedRequests,1);await resumed.close();
+  assert.equal((await purgeCompletedWorkspaces(f.input)).runs[0].purged,0);
 });
 
 test('unregistered legacy output/history is reported, never adopted or deleted',async t=>{

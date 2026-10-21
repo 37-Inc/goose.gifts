@@ -102,18 +102,17 @@ export async function purgeCompletedWorkspaces(input:{directory:string;repositor
     let workspace:Awaited<ReturnType<typeof openRunWorkspace>>|undefined;
     const result:WorkspaceSweepEntry={runId,state:'review',purged:0};
     try{
-      const options=await resumeOptions(directory,repository,runId,now),status=await readRunWorkspace(options);
-      if(!completed(status.checkpoint)){result.state='skipped';result.reasonCode='not_finalized';}
-      else{
-        workspace=await openRunWorkspace(options);
-        if(!completed(await workspace.readCheckpoint({controlOnly:true}))){result.state='skipped';result.reasonCode='not_finalized';}
-        else{
-          const unregistered=await unregisteredOutputs(workspace.directory);
-          result.purged=(await workspace.purgeExpired()).length;
-          result.state=unregistered?'review':result.purged?'cleaned':'retained';
-          if(unregistered)result.reasonCode='unregistered_outputs';
-        }
-      }
+      const options=await resumeOptions(directory,repository,runId,now);workspace=await openRunWorkspace(options);
+      const checkpoint=await workspace.readCheckpoint({controlOnly:true});
+      const hasWork=checkpoint!==null||(await workspace.budget()).httpRequests>0||(await names(join(workspace.directory,'objects'))).length>0;
+      const unregistered=await unregisteredOutputs(workspace.directory);
+      // Retention applies during interruption too. The existing purge journal
+      // preserves checkpoint phase/owner/control and every budget reservation;
+      // cleanup never settles a deployment or declares an unfinished run done.
+      result.purged=(await workspace.purgeExpired()).length;
+      const unfinished=!completed(checkpoint)&&hasWork;
+      result.state=unregistered||unfinished?'review':result.purged?'cleaned':'retained';
+      if(unregistered)result.reasonCode='unregistered_outputs';else if(unfinished)result.reasonCode='unfinished_run';
     }catch(error){
       const code=safeCode(error);result.state=code==='run_workspace_locked'?'busy':'review';
       result.reasonCode=code==='run_workspace_publication_scope'?'source_checkout_review':code;
@@ -127,7 +126,7 @@ export async function purgeCompletedWorkspaces(input:{directory:string;repositor
 
 async function main(){
   const args=process.argv.slice(2);
-  if(args.length===1&&args[0]==='--help'){console.log('Usage: node --experimental-strip-types scripts/catalog/purge-workspaces.ts --workspace /private/canonical/root --repository /canonical/checkout\nPurges only finalized runs under their original reviewed retention. Review/busy results exit nonzero; no provider calls.');return;}
+  if(args.length===1&&args[0]==='--help'){console.log('Usage: node --experimental-strip-types scripts/catalog/purge-workspaces.ts --workspace /private/canonical/root --repository /canonical/checkout\nPurges verified expired bodies under their original retention, including interrupted runs. Unfinished state is preserved for review; no provider calls or lock takeover.');return;}
   if(args.length!==4||args[0]!=='--workspace'||args[2]!=='--repository')fail('arguments');
   const report=await purgeCompletedWorkspaces({directory:args[1],repository:args[3]});console.log(JSON.stringify(report));
   if(report.reviewRequired)process.exitCode=2;else if(report.busy)process.exitCode=3;
