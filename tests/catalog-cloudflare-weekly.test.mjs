@@ -220,6 +220,31 @@ async function setup(t,{noPrior=false}={}){
     }};
 }
 
+test('pinned daily D1 uses one existing refresh with no model credential, then waits for real publication and does not repeat',async t=>{
+  const f=await setup(t);
+  f.config.cadence={day:'2026-10-20',featuredIds:[ID]};f.config.backfillLimit=0;delete f.config.credentials.openai;
+  await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+  f.workspaceOptions.configSha256=f.options.configSha256;
+  const resolves=[];const dependencies={...f.dependencies,async resolveToken(ref){resolves.push(ref.service);return f.dependencies.resolveToken(ref);}};
+  const result=await runCloudflareWeekly({...f.options,command:'start',cadenceOnly:true},dependencies);
+  assert.equal(result.state,'pending');assert.equal(result.phase,'phases_complete');
+  assert.equal(f.calls.getItems,1);assert.equal(f.calls.search,0);assert.equal(f.calls.chat,0);assert.equal(f.calls.embedding,0);
+  assert.equal(resolves.some(s=>s.endsWith('openai')),false);assert.equal(f.calls.upload,0);assert.equal(f.calls.activate,0);
+  assert.equal(f.sql.prepare('SELECT status FROM catalog_runs WHERE id=?').get(f.config.runId).status,'running');
+  const before={...f.calls};
+  assert.equal((await runCloudflareWeekly({...f.options,command:'resume',cadenceOnly:true},dependencies)).state,'pending');
+  assert.deepEqual(f.calls.getItems,before.getItems);assert.equal(f.calls.chat,0);
+  f.config.runId='same-day-other-run';await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+  assert.equal((await runCloudflareWeekly({...f.options,command:'start',cadenceOnly:true},dependencies)).state,'skipped');
+  assert.equal(f.calls.getItems,1);
+});
+
+test('daily entry point rejects a legacy weekly config before paid calls or workspace creation',async t=>{
+  const f=await setup(t);
+  await assert.rejects(runCloudflareWeekly({...f.options,command:'start',cadenceOnly:true},f.dependencies),/weekly_daily_cadence_required/);
+  await assert.rejects(fs.stat(f.options.workspace),{code:'ENOENT'});assert.equal(f.calls.getItems,0);assert.equal(f.calls.search,0);
+});
+
 test('no-prior start/preflight and undispatched resume refuse before provider or workspace writes; status stays readable',async t=>{
   const f=await setup(t,{noPrior:true});const before={...f.calls};const writes=f.sql.prepare('SELECT total_changes() n').get().n;
   const dependencies={...f.dependencies,async resolveToken(){assert.fail('Bootstrap guard must precede credentials');}};

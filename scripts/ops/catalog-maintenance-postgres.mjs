@@ -13,11 +13,12 @@ export function createPostgresCatalogMaintenanceStore({ query = defaultQuery } =
   if (typeof query !== 'function') throw new TypeError('Maintenance query must be a function');
   return Object.freeze({
     upsertProduct: (product, sourceHash) => upsertProduct(query, product, sourceHash),
-    getActiveCatalogIdentities: () => getActiveCatalogIdentities(query),
+    getActiveCatalogIdentities: (options) => getActiveCatalogIdentities(query, options),
     getExistingEditorialWriteups: (excludedIds) => getExistingEditorialWriteups(query, excludedIds),
     getAffiliateUrlMismatches: (tag) => getAffiliateUrlMismatches(query, tag),
     updateAmazonAffiliateUrl: (id, url) => updateAmazonAffiliateUrl(query, id, url),
-    getProductsForRevalidation: (selection) => getProductsForRevalidation(query, selection),
+    getProductsForRevalidation: (selection) => selection.daily
+      ? getDailyRefreshProducts(query, selection) : getProductsForRevalidation(query, selection),
     deactivateConfirmedMissing: (ids, days) => deactivateConfirmedMissing(query, ids, days),
     markConfirmedMissingUnavailable: (ids) => markConfirmedMissingUnavailable(query, ids),
     getProductsNeedingEnrichment: (limit, ids) => getProductsNeedingEnrichment(query, limit, ids),
@@ -214,7 +215,8 @@ async function upsertProduct(query, product, currentSourceHash) {
   };
 }
 
-async function getActiveCatalogIdentities(query) {
+async function getActiveCatalogIdentities(query, { includeInactive = false } = {}) {
+  if (includeInactive) return (await query('SELECT id, title FROM products')).rows;
   const result = await query(
     `SELECT id, slug, title, image_url AS "imageUrl", affiliate_url AS "affiliateUrl",
             quality_score AS "qualityScore", availability_status AS "availabilityStatus",
@@ -223,6 +225,33 @@ async function getActiveCatalogIdentities(query) {
             NULL::jsonb AS "sourceFacts"
      FROM products WHERE is_active = true AND title <> ''`
   );
+  return result.rows;
+}
+
+async function getDailyRefreshProducts(query, { limit, featuredIds }) {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 10 || !Array.isArray(featuredIds)
+    || featuredIds.length > 100 || featuredIds.some(id => !/^[A-Z0-9]{10}$/.test(id))) throw new Error('daily_selection_invalid');
+  const result = await query(`
+    SELECT id, slug, title, price, currency, image_url, affiliate_url, source, source_query,
+           humor_tags, punny_title, witty_description, quality_score, rating, review_count,
+           is_active, last_verified_at, editorial_writeup, source_facts, source_facts_hash,
+           editorial_source_hash, availability_status, availability_checked_at, editorial_status,
+           editorial_quality_score, editorial_model, editorial_prompt_version,
+           editorial_generated_at, editorial_block_reason, duplicate_of_product_id
+    FROM products
+    WHERE source = 'amazon' AND is_active = true AND id ~ '^[A-Z0-9]{10}$'
+    ORDER BY CASE WHEN id = ANY($2::text[]) THEN 0
+      WHEN COALESCE(slug <> '' AND image_url <> ''
+        AND editorial_status IN ('generated_ready', 'manual_locked') AND editorial_quality_score >= 0.8
+        AND duplicate_of_product_id IS NULL
+        AND UPPER(availability_status) IN ('IN_STOCK', 'IN_STOCK_SCARCE', 'INSTOCKSCARCE', 'AVAILABLE_DATE', 'LEADTIME', 'PREORDER')
+        AND source_facts_hash <> '' AND source_facts_hash = editorial_source_hash
+        AND CHAR_LENGTH(BTRIM(editorial_writeup, E' \\t\\n\\r')) >= 500
+        AND CARDINALITY(REGEXP_SPLIT_TO_ARRAY(BTRIM(editorial_writeup, E' \\t\\n\\r'), '\\s+')) >= 90
+        AND BTRIM(editorial_writeup, E' \\t\\n\\r') ~ '\\n\\s*\\n', false) THEN 1 ELSE 2 END,
+      COALESCE(availability_checked_at, last_verified_at) ASC NULLS FIRST, updated_at ASC, id ASC
+    LIMIT $1
+  `, [limit, featuredIds]);
   return result.rows;
 }
 
