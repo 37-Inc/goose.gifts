@@ -58,6 +58,16 @@ function pageAliasSearch(params: URLSearchParams): string {
   if (page !== null && page.length <= 128 && /^\d+$/.test(page)) kept.set('page', page);
   return kept.size ? `?${kept}` : '';
 }
+function canonicalHostSearch(params: URLSearchParams): string {
+  // Preserve the existing bounded URL attribution contract, not raw event data.
+  const kept = new URLSearchParams(campaignSearch(params));
+  const functional = new URLSearchParams(pageAliasSearch(params));
+  for (const key of ['q', 'page']) {
+    const value = functional.get(key);
+    if (value !== null) kept.set(key, value);
+  }
+  return kept.size ? `?${kept}` : '';
+}
 function boundedDirectoryPage(value: string, lastPage: number): number | null {
   if (value.length > 128 || !/^\d+$/.test(value)) return null;
   const normalized = value.replace(/^0+/, '');
@@ -240,7 +250,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
               && boundedDirectoryPage(url.searchParams.get('page')!, lastDirectoryPage) === null)
               return respond(json({ error: 'Not found' }, 404));
             return respond(new Response(null, { status: 308, headers: {
-              Location: `${productionOrigin}${path}${pageAliasSearch(url.searchParams)}`, 'Cache-Control': 'no-store',
+              Location: `${productionOrigin}${path}${canonicalHostSearch(url.searchParams)}`, 'Cache-Control': 'no-store',
             } }));
           }
         }
