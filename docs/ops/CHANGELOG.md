@@ -42,6 +42,8 @@ what's likely next.
   existing-product refreshes and weekly discovery. Finish private restart/
   cleanup and publication verification; hosted CI/Cloudflare Cron is deferred.
   Cloudflare account remains Free; $15 was an estimate, not a subscription.
+  Owner explicitly requires a measured need and renewed approval before any
+  paid upgrade; preserve shared-account quotas during validation.
   Final retirement (`roadmap-lbbz1.7`) covers Vercel/Neon removal, GitHub
   rename, the live 37.technology listing, independent redirects and an
   expiry-aware old-domain auto-renew decision.
@@ -207,7 +209,16 @@ what's likely next.
 
 ## Changelog
 
-### 2026-10-21 [owner+codex] — Verify protected expiry publication and exact restart recovery
+### 2026-10-21 [owner+claude] — Preserve Free-plan boundary and inventory old reporting consumer
+
+- Persist Cameron's explicit Free-only constraint in the existing daily task,
+  runbook and launch spec: prove an actual need and request approval before any
+  paid activation. No duplicate schedule, quota-scale test or plan change.
+- Record the local portfolio adapter's historical database metrics as a
+  remaining consumer migration gate. Its unrelated dirty work is untouched;
+  reporting should use existing GA4/PostHog, not new detailed D1 event writes.
+
+### 2026-10-21 [owner+claude] — Verify protected expiry publication and exact restart recovery
 
 - Add a narrow resume-only path for existing accepted body-free prune DELETEs.
   Reuse exact pending ownership, current/archive/maintenance observations and

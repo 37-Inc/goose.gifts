@@ -150,6 +150,15 @@ drop unknown historical searches/events or infer their date from import time.
 New hash-only search diagnostics keep their existing UTC/30-day retention
 contract. No legacy runner, analytics report or scheduler was modified here.
 
+October 21 consumer audit: `37cli/src/thirtyseven/sources/goose.py` still invokes
+`scripts/ops/analytics-snapshot.mjs --json` and interprets historical database
+click/search windows as current owner metrics. Those writes are retired; this
+also wakes Neon. Move that consumer to the existing GA4/PostHog event source
+with its owner before decommissioning. Do not recreate detailed database
+reporting in D1. The inspected adapter is unrelated untracked/dirty work and
+was not modified. The separately owned private ChatGPT prototype also remains
+an explicit consumer migration gate, not an assumed completed website change.
+
 Root review and the actual atomic D1 migration/readback passed as recorded above.
 Final writer barrier/delta reconciliation, D1 recovery, provider search/index parity,
 rights/freshness/public-asset acceptance and cutover are independent gates.

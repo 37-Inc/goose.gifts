@@ -27,9 +27,10 @@ Cloudflare staging implementation is not a completed cutover. Before launch:
 
 - Confirm the show date and select a small opening product/episode set.
   Prepared shortlists are proposals, not approved on-air products or purchases.
-- Confirm the Workers paid-plan/traffic-test budget before a provider-scale
-  burst rehearsal or upgrade; local load results do not establish Free-plan
-  CPU headroom.
+- Stay on Cloudflare Free. Only if a measured usage/feature limit cannot be
+  addressed with a bounded Free-plan alternative, request explicit approval
+  before any paid upgrade. Local load results do not establish Free-plan CPU
+  headroom; do not spend the shared daily quota on a burst rehearsal.
 - At the end, sign into the correct family Amazon Associates store to add
   `stupid.gifts` and verify attribution. Do not modify the unrelated Mike Ideas
   account. Provider/account rebranding and public DNS cutover remain separate
@@ -50,6 +51,13 @@ checks. The expired preview is deliberately zero-ready/ten-held, not a current
 opening catalog. New hosted CI or Cloudflare Cron is not a prerequisite for
 this Codex setup. These remaining checks are not owner authentication blockers
 and are not being marked done.
+
+The D1 runner separately needs a durable scoped Cloudflare credential in its
+project-specific Keychain entry. The existing Wrangler OAuth session supports
+interactive diagnostics, not a permanent unattended credential. Prepare and
+verify the existing Amazon/model/staging entries first; keep Vercel bootstrap
+and the live writer unchanged. Ask for the exact missing credential only after
+the safe preparation is complete; do not mint or broaden account tokens.
 See `STUPID_GIFTS_STAGING.md` and epic `roadmap-lbbz1`.
 
 ### 1. Owned growth channel approval

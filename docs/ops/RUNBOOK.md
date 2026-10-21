@@ -64,6 +64,12 @@ with six-theme discovery on Mondays only. Do not run the old weekly command
 as well: its 50 refreshes and editorial backfill exceed this approved policy.
 Do not select D1 because a readiness check passes.
 
+Stay on Cloudflare Free. Demonstrate an actual usage or required-feature limit
+and assess a bounded Free-plan alternative before asking Cameron for explicit
+approval to upgrade. Neither anticipated podcast traffic nor a launch rehearsal
+authorizes a paid plan or a shared-account-quota-consuming load test. Preserve
+the existing request, SQL, catalog and model limits.
+
 The sole persistent operator source checkout is
 `/Users/cameronehrlich/.codex/worktrees/goose-migration-integration/goose.gifts`.
 Keep it attached; do not archive this worktree or run publication from the shared
