@@ -12,7 +12,7 @@ import { prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { DeploymentIdentity, DeploymentObservation } from '../../lib/catalog/build-requests.ts';
 import { beginBuildActivation, claimBuildRequest, resolveBuildActivation } from '../../lib/catalog/build-requests.ts';
 import type { PublicationIntent } from '../../lib/catalog/publication.ts';
-import { claimPublication, completePublication, enqueuePublication, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
+import { claimPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
 import type { SiteAssetManifest } from '../../lib/catalog/types.ts';
 import type { ReleaseBuildContext } from '../staging/build.mts';
 import { assertBuildSource, validateBuildContext } from '../staging/build.mts';
@@ -41,7 +41,9 @@ export interface PublicationConfig {
   database:{id:string;name:string}; indexName:string; codeSha:string;
   sourceMode:SiteAssetManifest['sourceMode']; sourceRoot:string; releaseId:string;
   identityOrigin:string; compatibilityDate:string;
-  prior:{directory:string;manifestSha256:string;releaseId:string;versionReference:string}|null;
+  /** null directory verifies the prior identity only, without retaining old
+   * snapshot/assets. A purged/expired prior is never needed to build anew. */
+  prior:{directory:string|null;manifestSha256:string;releaseId:string;versionReference:string}|null;
   /** Omission preserves historical config hashes and off/50/32768 behavior. */
   semanticSearch?:{enabled:boolean;dailyRequestCap:number;dailyTokenCap:number};
 }
@@ -67,7 +69,7 @@ export function validatePublicationConfig(input:PublicationConfig):Readonly<Publ
     ||input.environment==='staging'&&input.sourceMode!=='preview'
     ||input.environment==='production'&&(input.sourceMode==='preview'||origin.origin!==identity.origin)
     ||input.prior!==null&&(!exact(input.prior,'directory,manifestSha256,releaseId,versionReference')
-      ||!path.isAbsolute(input.prior.directory)||!HASH.test(input.prior.manifestSha256)||!KEY.test(input.prior.releaseId)
+      ||input.prior.directory!==null&&!path.isAbsolute(input.prior.directory)||!HASH.test(input.prior.manifestSha256)||!KEY.test(input.prior.releaseId)
       ||!UUID.test(input.prior.versionReference)||input.prior.releaseId===input.releaseId))throw new Error('publication_configuration_invalid');
   if(Object.hasOwn(input,'semanticSearch')){
     const policy=input.semanticSearch;
@@ -138,7 +140,10 @@ const safePath=(name:string)=>name.startsWith('/')&&!name.includes('\\')&&!name.
 function childEnv():NodeJS.ProcessEnv{return{PATH:process.env.PATH,HOME:process.env.HOME,TMPDIR:process.env.TMPDIR,
   CI:'true',NODE_ENV:'production',NEXT_TELEMETRY_DISABLED:'1',NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED:'false',WRANGLER_SEND_METRICS:'false'};}
 async function commandDefault(command:PublicationCommand){
-  try{await promisify(execFile)(command.file,command.args,{cwd:command.cwd,env:command.env,timeout:command.timeoutMs,maxBuffer:1024*1024});}
+  // Build/cache/package copies are private from their first byte, including
+  // subprocess-created Next/Wrangler files. Positional args never enter shell source.
+  try{await promisify(execFile)('/bin/sh',['-c','umask 077; exec "$@"','publication',command.file,...command.args],
+    {cwd:command.cwd,env:command.env,timeout:command.timeoutMs,maxBuffer:1024*1024});}
   catch{throw new Error('publication_command_unknown');} // Never log stdout/stderr/provider errors.
 }
 
@@ -226,7 +231,7 @@ async function loadPackage(directory:string,config:PublicationConfig,expectedHas
   for(const [name,hash] of Object.entries(manifest.checksums)){
     if(!safePath(name)||hashes[`assets${name}`]!==hash)throw new Error('publication_package_changed');assets.set(name,await privateBytes(path.join(directory,'assets',name.slice(1))));}
   if(Object.keys(hashes).filter(name=>name.startsWith('assets/')).length!==assets.size)throw new Error('publication_package_changed');
-  const prior=await readPriorRelease(context,config.prior?.directory);verifyRetainedAssets(snapshot,assets,manifest,context,prior);
+  const prior=await readPriorRelease(context,config.prior?.directory??undefined);verifyRetainedAssets(snapshot,assets,manifest,context,prior);
   return{manifest,snapshot,context,bytes};
 }
 function intentFrom(manifest:SiteAssetManifest,bytes:Uint8Array):PublicationIntent{return{releaseId:manifest.releaseId,codeSha:manifest.codeSha,catalogRevision:manifest.catalogRevision,
@@ -249,6 +254,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   const command=options.dependencies?.command??commandDefault;const configSha256=sha256(canonicalJson(config));
   let checkpoint=await workspace.readCheckpoint({controlOnly:true});let control=checkpoint?.checkpoint.control?.publication;
   let owner=options.owner;const directory=path.join(workspace.directory,'packages',config.releaseId);
+  const runtime=path.join(workspace.directory,'publication-runtime',config.releaseId);
   const save=async(patch:Partial<PublicationControl>,nextOwner=owner)=>{
     await workspace.assertHeld();control={...control!,...patch};owner=nextOwner;
     // Read normal state only before activation; control-only settlement must not
@@ -364,12 +370,14 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       const context:ReleaseBuildContext={schemaVersion:1,sourceMode:config.sourceMode,releaseId:config.releaseId,codeSha:config.codeSha,
         catalogRevision:revision.snapshot.catalogRevision,catalogSnapshotSha256:sha256(`${JSON.stringify(revision.snapshot)}\n`),
         generatedAt:revision.snapshot.generatedAt,vectorSyncWatermark:revision.vectorSyncWatermark,priorReleaseId:config.prior?.releaseId??null,
-        retainedManifestSha256:config.prior?.manifestSha256??null};
+        retainedManifestSha256:config.prior?.directory?config.prior.manifestSha256:null};
       validateBuildContext(context,revision.snapshot,config.codeSha,context.catalogSnapshotSha256,now());
+      await workspace.preparePublicationDirectories(config.releaseId,revision.snapshot.generatedAt,
+        revision.snapshot.products.map(p=>p.eligibleUntil).sort()[0]??null);
       await write(path.join(directory,'input.snapshot.json'),`${JSON.stringify(revision.snapshot)}\n`);
       await write(path.join(directory,'input.context.json'),`${JSON.stringify(context)}\n`);
-      const env={...childEnv(),CATALOG_SITE_MODE:config.sourceMode,CATALOG_SNAPSHOT_PATH:path.join(directory,'input.snapshot.json'),
-        CATALOG_RELEASE_CONTEXT_PATH:path.join(directory,'input.context.json'),...(config.prior?{CATALOG_PRIOR_RELEASE_PATH:config.prior.directory}:{})};
+      const env={...childEnv(),TMPDIR:path.join(runtime,'tmp'),CATALOG_SITE_MODE:config.sourceMode,CATALOG_SNAPSHOT_PATH:path.join(directory,'input.snapshot.json'),
+        CATALOG_RELEASE_CONTEXT_PATH:path.join(directory,'input.context.json'),...(config.prior?.directory?{CATALOG_PRIOR_RELEASE_PATH:config.prior.directory}:{})};
       let built=false;
       try{const previous=JSON.parse(await fs.readFile(path.join(config.sourceRoot,'build/stupid-gifts/asset-manifest.json'),'utf8'));built=previous.releaseId===config.releaseId;}
       catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw new Error('publication_build_requires_operator_review');}
@@ -396,7 +404,11 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       const packageSha256=sha256(canonicalJson(await inventory(directory)));
       await save({stage:'built',packageSha256});
     }
-    const sealed=await loadPackage(directory,config,control.packageSha256!,now());const intent=intentFrom(sealed.manifest,sealed.bytes);
+    const sealed=await loadPackage(directory,config,control.packageSha256!,now());
+    // The independently verified private package is sufficient for upload and
+    // restart. Drop owned source intermediates now so tomorrow's run can build.
+    await workspace.cleanPublicationBuild(config.releaseId);
+    const intent=intentFrom(sealed.manifest,sealed.bytes);
     if(control.intent&&canonicalJson(control.intent)!==canonicalJson(intent))throw new Error('publication_package_changed');
     if(control.stage==='built'){
       await enqueuePublication(db,sealed.snapshot,intent,now());
@@ -406,9 +418,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       // Intent is durable before the only upload CLI invocation (Wrangler may
       // internally retry immutable version POST). Duplicate tags stay pending.
       try{await command({file:process.execPath,args:['node_modules/wrangler/bin/wrangler.js','versions','upload','--config',path.join(directory,'wrangler.json'),
-        '--tag',control.uploadMarker,'--message',`package:${control.packageSha256}`],cwd:config.sourceRoot,env:{...childEnv(),
+        '--outdir',path.join(runtime,'bundle'),'--tag',control.uploadMarker,'--message',`package:${control.packageSha256}`],cwd:config.sourceRoot,env:{...childEnv(),TMPDIR:path.join(runtime,'tmp'),
         CLOUDFLARE_ACCOUNT_ID:config.accountId,CLOUDFLARE_API_TOKEN:options.credentials.cloudflareToken,
-        WRANGLER_OUTPUT_FILE_PATH:path.join(workspace.directory,`upload-${config.releaseId}.ndjson`)},timeoutMs:300_000});}catch{/* Unknown upload: read-only reconciliation below. */}
+        WRANGLER_LOG_PATH:path.join(runtime,'logs'),WRANGLER_OUTPUT_FILE_PATH:path.join(runtime,'upload.ndjson')},timeoutMs:300_000});}catch{/* Unknown upload: read-only reconciliation below. */}
     }
     if(control.stage==='uploading'){
       const version=await api.findVersion(control.uploadMarker);if(!version)throw new Error('publication_upload_pending');
@@ -428,9 +440,22 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       const deployed=await api.deployed();
       if(config.prior===null)throw new Error('publication_bootstrap_required');
       if(deployed?.version!==config.prior.versionReference)throw new Error('publication_prior_changed');
-      const priorBytes=await fs.readFile(path.join(config.prior.directory,'asset-manifest.json'));
-      if(sha256(priorBytes)!==config.prior.manifestSha256)throw new Error('publication_prior_changed');
-      const prior=intentFrom(JSON.parse(priorBytes.toString()),priorBytes);
+      let prior:PublicationIntent;
+      if(config.prior.directory!==null){
+        const priorBytes=await fs.readFile(path.join(config.prior.directory,'asset-manifest.json'));
+        if(sha256(priorBytes)!==config.prior.manifestSha256)throw new Error('publication_prior_changed');
+        prior=intentFrom(JSON.parse(priorBytes.toString()),priorBytes);
+      }else{
+        // Prior receipts are non-content historical identities, not permission
+        // to retain/reuse expired assets. Verify both the D1 journal and the
+        // provider's exact active version/identity before granting activation.
+        if((await publicationStatus(db,config.prior.releaseId)).state!=='published')throw new Error('publication_prior_changed');
+        const row=(await db.prepare('SELECT manifest_json FROM publication_receipts WHERE release_id=?')
+          .bind(config.prior.releaseId).all<{manifest_json:string}>()).results[0];
+        if(!row)throw new Error('publication_prior_changed');
+        prior=JSON.parse(row.manifest_json);
+        if(encodePublicationIntent(prior)!==row.manifest_json||prior.manifestSha256!==config.prior.manifestSha256)throw new Error('publication_prior_changed');
+      }
       if(prior.releaseId!==config.prior.releaseId||!matchesIdentity(await api.identity(),prior))throw new Error('publication_prior_changed');
       return{environment:config.environment,settled:true,active:identity(prior,config.prior.versionReference)};
     };

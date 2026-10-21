@@ -143,6 +143,123 @@ test('expired control-only reconciliation preserves hidden state and all claims 
   const stored=JSON.parse(await readFile(join(w.directory,'objects',objects[0]),'utf8'));assert.equal(stored.value.state.private,'OLD SEALED STATE');assert.equal(stored.observedAt,NOW);
 });
 
+test('purge removes expired classified bodies and checkpoints, retains activation control/budgets and is restart-idempotent',async t=>{
+  const f=await fixture(t),w=await f.open(),r=observation();
+  const receipt=await w.saveReceipt({sha256:sha256(canonicalJson(r)),receipt:r});
+  const blob=await w.putBlob(Buffer.alloc(WORKSPACE_BLOB_LIMITS.chunkBytes+1,0x31),{kind:'publication',observedAt:NOW});
+  const first=await w.writeCheckpoint(null,{...cp({secret:'DELETE EXPIRED TEST CONTENT'}),phase:'publishing',pins:{receipt,blob},control:{publication:publication()}});
+  await w.reserveBudget(reservation('uncertain',0));
+  await writeFile(join(w.directory,'objects','unrelated.txt'),'private imported history',{mode:0o600});
+  await writeFile(join(w.directory,'objects','.pending-unknown'),'partial private history',{mode:0o600});
+  const checkpointBytes=await readFile(join(w.directory,'objects',`${first.sha256}.json`));f.setNow(LATER);
+  const purged=await w.purgeExpired();assert.equal(purged.length,5);
+  assert.deepEqual((await readdir(join(w.directory,'objects'))).sort(),['.pending-unknown','unrelated.txt']);
+  await assert.rejects(w.readReceipt(receipt),/expired/);await assert.rejects(w.readCheckpoint(),/expired/);
+  assert.equal((await w.readCheckpoint({controlOnly:true})).checkpoint.control.publication.stage,'activating');
+  assert.equal((await w.budget()).unconfirmedRequests,1);assert.deepEqual(await w.purgeExpired(),[]);
+  // Crash after a durable purge record but before unlink: exact body readback
+  // completes deletion without a second tombstone or any provider replay.
+  await writeFile(join(w.directory,'objects',`${first.sha256}.json`),checkpointBytes,{mode:0o600});
+  await w.close();const resumed=await f.open({mode:'resume'});const events=await readdir(join(w.directory,'events'));
+  assert.equal((await resumed.purgeExpired()).length,1);assert.deepEqual(await readdir(join(w.directory,'events')),events);
+  const view=await resumed.readCheckpoint({controlOnly:true});
+  await resumed.writeControlCheckpoint(view.sha256,{phase:'published',owner:null,control:{publication:{...publication(),stage:'published',deploymentId:'test-result'}}});
+  const status=await readRunWorkspace({...f.input,mode:'resume'});assert.equal(status.checkpoint.checkpoint.phase,'published');
+  assert.equal(status.expired.length,5);assert.ok(!JSON.stringify(status).includes('DELETE EXPIRED'));
+  f.setNow(NOW);await assert.rejects(resumed.putArtifact({renew:true},{kind:'phase',observedAt:NOW}),/expired/);
+});
+
+test('purge prevalidates corruption, symlink and hardlink boundaries without touching outside/private history',async t=>{
+  for(const corruption of ['hash','symlink','hardlink'])await t.test(corruption,async sub=>{
+    const f=await fixture(sub),w=await f.open();
+    const first=await w.putArtifact({fixture:'first'},{kind:'phase',observedAt:NOW});
+    const last=await w.putArtifact({fixture:'last'},{kind:'phase',observedAt:NOW});
+    const file=join(w.directory,last.reference),outside=join(f.parent,'imported.json');
+    if(corruption==='hash'){const body=JSON.parse(await readFile(file));body.value.fixture='changed';await tamper(file,body);}
+    else if(corruption==='symlink'){await writeFile(outside,'KEEP PRIVATE HISTORY',{mode:0o600});await unlink(file);await symlink(outside,file);}
+    else await link(file,outside);
+    f.setNow(LATER);await assert.rejects(w.purgeExpired(),/artifact_hash|permissions/);
+    assert.ok((await readFile(join(w.directory,first.reference))).length);
+    if(corruption==='symlink')assert.equal(await readFile(outside,'utf8'),'KEEP PRIVATE HISTORY');
+  });
+});
+
+test('purge covers complete interrupted object temp envelopes and unregistered bodies, never guesses partial retention',async t=>{
+  const f=await fixture(t),w=await f.open();const ref=await w.putArtifact({fixture:'complete temp'},{kind:'phase',observedAt:NOW});
+  const temp=join(w.directory,'objects','.pending-00000000-0000-4000-8000-000000000001');
+  await writeFile(temp,await readFile(join(w.directory,ref.reference)),{mode:0o600});
+  f.setNow(LATER);assert.equal((await w.purgeExpired()).length,2);assert.deepEqual(await readdir(join(w.directory,'objects')),[]);
+  await w.close();const resumed=await f.open({mode:'resume'});assert.deepEqual(await resumed.purgeExpired(),[]);
+});
+
+test('lost reserve/checkpoint head commits recover the durable trailing record, never refund or replay',async t=>{
+  for(const kind of ['reserve','checkpoint'])await t.test(kind,async sub=>{
+    const f=await fixture(sub),w=await f.open();
+    if(kind==='reserve')await w.reserveBudget(reservation('lost-ack',0));
+    else await w.writeCheckpoint(null,cp({fixture:'durable checkpoint'}));
+    await w.close();const eventNames=(await readdir(join(w.directory,'events'))).sort(),last=JSON.parse(await readFile(join(w.directory,'events',eventNames.at(-1))));
+    const previous={sequence:last.sequence-1,sha256:last.parent};await tamper(join(w.directory,'head.json'),previous);
+    const status=await readRunWorkspace({...f.input,mode:'resume'});
+    assert.deepEqual(JSON.parse(await readFile(join(w.directory,'head.json'))),previous); // status never repairs
+    const resumed=await f.open({mode:'resume'});
+    if(kind==='reserve'){assert.equal(status.budget.unconfirmedRequests,1);await resumed.reserveBudget(reservation('lost-ack',0));assert.equal((await resumed.budget()).httpRequests,1);}
+    else {const checkpoint=await resumed.readCheckpoint();assert.equal(checkpoint.checkpoint.state.fixture,'durable checkpoint');assert.equal((await resumed.writeCheckpoint(null,cp({fixture:'durable checkpoint'}))).sha256,checkpoint.sha256);}
+    assert.deepEqual(await readdir(join(w.directory,'events')),eventNames);
+    assert.equal(JSON.parse(await readFile(join(w.directory,'head.json'))).sequence,last.sequence);
+  });
+});
+
+async function publicationFixture(t){
+  const f=await fixture(t);f.input.repository=join(f.parent,'source');
+  await mkdir(join(f.input.repository,'static-site'),{recursive:true,mode:0o700});
+  await mkdir(join(f.input.repository,'build'),{mode:0o700});
+  const outputPaths=['build/stupid-gifts','static-site/out','static-site/.next'].map(name=>join(f.input.repository,name));
+  async function outputs(w,releaseId){
+    for(const path of [...outputPaths,join(w.directory,'packages',releaseId)]){
+      await mkdir(join(path,'nested'),{recursive:true,mode:0o700});await writeFile(join(path,'nested','merchant.json'),'TEST ONLY EXPIRED MERCHANT COPY',{mode:0o600});
+    }
+  }
+  return{...f,outputPaths,outputs};
+}
+
+test('publication ownership covers interrupted/expired package+Next copies without deleting preexisting manual outputs',async t=>{
+  const f=await publicationFixture(t),w=await f.open();
+  await mkdir(f.outputPaths[0],{mode:0o700});await writeFile(join(f.outputPaths[0],'history'),'KEEP MANUAL HISTORY',{mode:0o600});
+  await assert.rejects(w.preparePublicationDirectories('release-1',NOW,null),/publication_path_exists/);
+  f.setNow(LATER);assert.deepEqual(await w.purgeExpired(),[]);assert.equal(await readFile(join(f.outputPaths[0],'history'),'utf8'),'KEEP MANUAL HISTORY');
+  f.setNow(NOW);await rm(f.outputPaths[0],{recursive:true});
+  await w.preparePublicationDirectories('release-1',NOW,'2026-10-20T12:20:00.000Z');await f.outputs(w,'release-1');
+  await w.close();f.setNow('2026-10-20T12:10:00.000Z');const resumed=await f.open({mode:'resume'});
+  await resumed.preparePublicationDirectories('release-1',NOW,'2026-10-20T12:20:00.000Z');
+  assert.deepEqual(await resumed.purgeExpired(),[]);f.setNow('2026-10-20T12:20:00.000Z');
+  assert.equal((await resumed.purgeExpired())[0].reference,'packages/release-1');
+  for(const path of [...f.outputPaths,join(w.directory,'packages/release-1')])await assert.rejects(lstat(path),{code:'ENOENT'});
+  assert.deepEqual(await resumed.purgeExpired(),[]);await resumed.close();const expired=await f.open({mode:'resume'});
+  await assert.rejects(expired.preparePublicationDirectories('renew',LATER,null),/expired/);
+  assert.equal((await readRunWorkspace({...f.input,mode:'resume'})).expired.length,1);
+});
+
+test('verified package cleanup frees the same checkout for a second run; old expiry never deletes the next run outputs',async t=>{
+  const f=await publicationFixture(t),first=await f.open();await first.preparePublicationDirectories('release-1',NOW,null);await f.outputs(first,'release-1');
+  await first.cleanPublicationBuild('release-1');await first.cleanPublicationBuild('release-1');await first.close();
+  const second=await f.open({runId:'second-run'});await second.preparePublicationDirectories('release-2',NOW,null);await f.outputs(second,'release-2');await second.close();
+  f.setNow(LATER);const old=await f.open({mode:'resume'});await old.purgeExpired();await old.close();
+  for(const path of f.outputPaths)assert.equal(await readFile(join(path,'nested/merchant.json'),'utf8'),'TEST ONLY EXPIRED MERCHANT COPY');
+  const pending=await f.open({mode:'resume',runId:'second-run'});await pending.purgeExpired();
+  for(const path of f.outputPaths)await assert.rejects(lstat(path),{code:'ENOENT'});
+});
+
+test('registered publication cleanup rejects symlinks/hardlinks and retains unrelated source paths',async t=>{
+  for(const kind of ['symlink','hardlink'])await t.test(kind,async sub=>{
+    const f=await publicationFixture(sub),w=await f.open();await w.preparePublicationDirectories('release',NOW,null);await f.outputs(w,'release');
+    const outside=join(f.input.repository,'unrelated.json');await writeFile(outside,'KEEP IMPORTED HISTORY',{mode:0o600});
+    const target=join(w.directory,'packages/release/escape');if(kind==='symlink')await symlink(outside,target);else await link(outside,target);
+    f.setNow(LATER);await assert.rejects(w.purgeExpired(),/publication_tree/);
+    assert.equal(await readFile(outside,'utf8'),'KEEP IMPORTED HISTORY');
+    assert.equal(await readFile(join(f.outputPaths[0],'nested/merchant.json'),'utf8'),'TEST ONLY EXPIRED MERCHANT COPY');
+  });
+});
+
 test('expired lost activation-CAS recovery can only pin the exact same-owner activation permit',async t=>{
   const f=await fixture(t),w=await f.open();
   const owner={environment:scope.environment,indexName:scope.indexName,token:'test-owner-token',generation:1,epoch:7,phase:'freezing',
