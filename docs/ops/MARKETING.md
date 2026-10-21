@@ -29,7 +29,7 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-20 afternoon):** ACTIVE, measurement-only.
+**Current scheduler state (2026-10-21 morning):** ACTIVE, measurement-only.
 The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,
 twelve of twelve. Generation and public posting are disabled for this cohort;
 no new creative or publication, even after review, without a new explicit owner
@@ -37,8 +37,8 @@ experiment. Existing two daily slots remain unchanged. The exact receipt-derived
 full-cohort review deadline is **2026-10-31T16:44:52.279Z**; first regular
 eligible slot October31 at4:30PM Pacific. All twelve membership/receipt records
 and one-time review-delivery state are linked from `PINTEREST_STUDIO.md`.
-Current retained profile:28 verified public Pins,3,516 impressions,53 opens,
-seven saves,two native outbound. P1322/21/3/2 and F302/5/1/0
+Current retained profile:28 verified public Pins,3,651 impressions,56 opens,
+eight saves,two native outbound. P1395/22/3/2 and F310/5/1/0
 (impressions/opens/saves/outbound). Both outbound clicks are on mini bowling,
 independently read back twice: an encouraging product-level signal, not a
 format winner or corroborated human/site/retailer conversion. Six separately
@@ -59,8 +59,8 @@ and Sandbox/v3 are never current acquisition evidence.
    distribution-limited and inconclusive rather than a format win. Cameron has
    authorized a new 12-Pin editorial-text mix: playful product-specific posters
    versus bespoke annotated field notes. Twelve are live—six Arm F and six Arm
-   P. They have 1,624 impressions,26 opens,four saves and two native outbound
-   clicks at the October20 afternoon check; both outbound clicks remain bowling.
+   P. They have 1,705 impressions,27 opens,four saves and two native outbound
+   clicks at the October21 morning check; both outbound clicks remain bowling.
    The birthday hat remains at zero distribution/actions.
    Attention/delivery is not a conversion winner. The mix stays capped at one Pin
    per scheduled slot and two per local day, with no winner below 50 impressions
@@ -78,6 +78,31 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-21 morning — routine measurement; seven-day gates not yet due
+
+AssignedP, completedP6/F6,total12 frozen. No new creative/approval/publication.
+P1395impressions/22opens/3saves/2outbound,F310/5/1/0;28 retained profile
+3651/56/8/2. No additional outbound since priorPM; bowling1366/20/3/2 supplies
+97.92%P exposure,toast261/3/1/0 supplies84.19%F. Without them P29/2/0/0,
+F49/2/0/0. No format or corroborated qualified-site/retailer conversion winner.
+All12 exact packages/receipt boards and tracked destinations verify; ten pages
+index-follow,two existing Chia/Bowling holds remain with catalog quality.
+
+GA4explicit507421709 Oct15–21Pacific partial639direct+1not-set sessions,
+three engaged direct; PostHog5504279page/10list/1search/1select_item. No
+attributed Pinterest/retailer row; unassigned activity is not conversion proof
+or confirmed customer behavior. Per-Pin downstream unknown. Preserve window
+differences, QA/operator exclusions and no absent-host filter. No catalog work.
+
+Snapshot2026-10-21T16:29:47.252Z precedes spider7day16:42:53.716Z by786464ms;
+belly7day23:40:30.593Z also not due. Do not close early or wait to fill a slot.
+Prior sheep7day receipt/lifecycle retained.13 validated append-only events and
+[AM receipt](pinterest-creative-lab/v34-concepts/verification/metrics-20261021-am.json)
+plus tracked-destination audit preserve this routine cap no-op. Queue empty;
+rename held, all authorization/receipt/membership/deadline guards unchanged.
+Existing ACTIVE metric-only slots and exact October31 full-review gate remain;
+no new experiment or generation/publication even after review without Cameron.
 
 ### 2026-10-20 afternoon — sheep seven-day checkpoint; no new outbound
 

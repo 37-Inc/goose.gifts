@@ -16,6 +16,14 @@ eligible review slot October31 16:30Pacific. All later runs are metrics-only,
 even after that deadline, until Cameron explicitly authorizes a new experiment.
 Generation/publication are disabled for v11; existing schedule remains ACTIVE.
 
+October21 AM: assignedP, cap-driven metric-only; no new creative or publication.
+P1395/22/3/2,F310/5/1/0(impressions/opens/saves/outbound),no new outbound;
+both remain bowling,no format winner or attributed site/retailer conversion.
+All12 exact packages/receipt boards/tracked retailer destinations verify.
+Spider7day16:42:53.716UTC and belly23:40:30.593UTC are not due at16:29:47.252
+snapshot; prior sheep7day retained. Queue empty,28 retained Pins,no deletion/
+rename/catalog work; ACTIVE schedule and exact October31 review gate unchanged.
+
 October20 PM: assignedP, completed-cap measurement-only. No selection,
 creative,approval,dryrun or publication; queue remains empty. Native P1322/
 21/3/2,F302/5/1/0(impressions/opens/saves/outbound), no new outbound sinceAM.

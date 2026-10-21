@@ -177,7 +177,7 @@ frame that shows a raw token.**
 
 ## Production operating state
 
-**Current verified state, October20 afternoon:** Standard production account
+**Current verified state, October21 morning:** Standard production account
 `goosegifts` BUSINESS remains correct. Final birthday-hat poster
 `1107815208391368990` was created once/readback-verified;28 retained public Pins in the
 verified union. V11 is **P6/F6,total12**, with experiment generation and public
@@ -187,22 +187,24 @@ Exact receipt-derived review deadline:2026-10-31T16:44:52.279Z; first regular
 eligible review slot October31 16:30Pacific. Current contract, all12 members,
 receipts and one-time review-delivery state: `PINTEREST_STUDIO.md` and v34.
 This supersedes historical counts below; Standard access never creates quota.
-The PM slot performed no generation or publication. All twelve exact package/
+The AM slot performed no generation or publication. All twelve exact package/
 receipt-board reads verify, with no unresolved receipt; account inventory
 is28 (26 enumerated plus two exact-ID omissions). Six separately owner-authorized
 pre-v11 legacy Pins were retired; the deletion receipt excludes them before
 metrics fetch. This run deleted nothing and preserves all12 v11 memberships.
-Native P1322impressions/21opens/3saves/2outbound,F302/5/1/0outbound.
-Both outbound clicks are on mini bowling, read back twice; public Pin and
-tracked destination200/query-preserved. This is not corroborated human/site/
-retailer conversion or a format winner; per-Pin downstream stays unknown.
+Native P1395impressions/22opens/3saves/2outbound,F310/5/1/0outbound.
+Both clicks remain on mini bowling; original double readback is preserved in
+October20 AM evidence. Current tracked destination200/query-preserved.
+This is not corroborated human/site/retailer conversion or a format winner;
+per-Pin downstream stays unknown.
 Toast's AM and therapist's PM eligible28day observations archived their
 lifecycles only. Public Pins and original F quota/membership are retained;
 no post deletion or replacement. Hat24h is recorded and remains measuring.
-Sheep7day now records zero native distribution/actions at23:34:02.495UTC,
+October20 Sheep7day records zero native distribution/actions at23:34:02.495UTC,
 late3h26m53.159s after its exact20:07:09.336UTC gate; lifetime observation,
 not reconstructed exact-age data. Keep measuring/public/F membership intact.
-Next spider7day gate2026-10-21T16:42:53.716Z; never close early.
+Spider7day gate2026-10-21T16:42:53.716Z and belly23:40:30.593Z are not due
+at this morning's16:29:47.252UTC snapshot; neither is closed early.
 All twelve destinations remain200/canonical/retailer-linked. Birthday Toast is
 now index/follow after separate catalog maintenance; two editorial holds remain.
 This studio did not mutate products, pages, Pins, account or schedule.
