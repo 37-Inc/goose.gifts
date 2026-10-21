@@ -207,6 +207,26 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-21 [owner+claude] — Close bounded enrichment and deletion-journal gaps
+
+- Monday can re-enrich changed/missing copy and embeddings only within the
+  same reserved ten-product response; unchanged approved content/vectors are
+  reused. No extra merchant refresh, global backfill or Tuesday–Sunday models.
+  Preserve manual/duplicate/unverified holds and day-boundary checks. Normalize
+  daily image hashing consistently so transformed URLs do not falsely stale copy.
+- Prune-delete recovery journals now contain versioned hashes and IDs, not
+  expired merchant bodies. Fenced rereads and the original full atomic SQL CAS
+  remain; legacy journals and upserts stay compatible. Independent review and
+  targeted safety/restart tests pass; no schema or production-writer change.
+- The existing catalog task is ACTIVE daily at 08:30 Pacific, with Monday
+  discovery inside the command. Retain the dedicated private operator worktree;
+  do not disturb the shared checkout or the separately owner-paused Pinterest
+  task. PR #205 is production READY with six live routes verified.
+- Historical unregistered canary packages were independently classified as
+  owned synthetic fixtures with exact asset/snapshot hashes and confirmed
+  disposable-resource cleanup receipts. Preserve forensic controls and unknown
+  charges; do not auto-adopt them or treat those obsolete scopes as live work.
+
 ### 2026-10-21 [owner+claude] — Bounded Codex catalog care and migration recovery
 
 - Implement the approved ten-existing-products/Pacific-day cap, one Monday
