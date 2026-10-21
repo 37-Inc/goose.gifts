@@ -2,6 +2,51 @@
 
 ## Scheduler
 
+### Owner-authorized migration pause — October 21
+
+Cameron asked to pause this daily studio while the separate site-migration
+workstream brings Stupid.gifts live. The existing heartbeat
+`goose-gifts-pinterest-growth-studio` is **PAUSED**, confirmed by the scheduler
+update and saved-state readback at **2026-10-21T19:53:16.023Z**. Its name,
+target chat and two daily slots are preserved. This explicit owner instruction
+supersedes older ACTIVE/no-self-pause wording below and in historical evidence.
+No replacement task was created; the separate weekly catalog job is unchanged.
+
+The completed v11 cohort remains P6/F6, twelve of twelve, with generation and
+publication disabled. All original Pins, packages, receipts, UTMs and historical
+measurements stay intact. The receipt-derived review deadline remains
+**2026-10-31T16:44:52.279Z**, but the paused scheduler will not deliver that
+review or intervening checkpoints. Review remains pending, not delivered; do not
+invent missed exact-age observations. Record any account rebrand or destination
+redirect as an intervention when eventually reviewing pre/post-cutover results.
+
+Cameron also authorized beginning the Pinterest account/app rename. Both browser
+settings and the developer portal require a fresh sign-in. **No account or app
+rename has occurred.** Continue on the existing BUSINESS account
+`1107815345747925810` / `goosegifts` and Standard-approved app `1588384`;
+do not create replacements, rotate credentials, delete Pins or resubmit access
+merely to rebrand. See `pinterest-standard-access.md` for the staged checklist.
+
+Before an explicit owner-authorized restart:
+
+1. Verify Stupid.gifts production, privacy page and exact product destinations;
+   existing retained Pin links must redirect to the corresponding product,
+   retaining UTM parameters, not a generic homepage.
+2. Complete/verify the same account/app branding, new-domain claim and approved
+   configuration; update publisher account/domain guards with focused tests
+   only after the intended values are verified. Never loosen them to get a post
+   through or rewrite historical package approvals.
+3. Prove shortlist sourcing from the new site's verified, enriched catalog and
+   latest completed enrichment receipt. Do not run or independently reschedule
+   the weekly catalog workflow as part of Pinterest cutover.
+4. Prove a tagged new-site visit and retailer-click event in the intended
+   production analytics, excluding the QA/operator test from acquisition.
+   GA4 property507421709/PostHog550427 remain historical IDs, not assumed
+   new-site readiness. Record any intentional property change and data gap.
+5. Resolve the pending v11 review and obtain explicit approval for a new
+   experiment before generating or posting. Re-enabling a schedule alone never
+   authorizes a thirteenth v11 Pin. Resume the same task; never backfill slots.
+
 The existing Codex heartbeat is `goose-gifts-pinterest-growth-studio`, named
 **Goose Gifts — Daily Pinterest Growth Studio**, targeting chat
 `019fdd0f-a56b-7450-bb56-340333ef2ed2`. Its two existing slots are 9:30 AM and
@@ -32,7 +77,8 @@ at **2026-10-17T16:44:52.279Z**, durable receipt
 `receipt-1792255492279-editorial-birthday-hat-formal-attire-poster-20261017-am-publication-succeeded`.
 V11 is **P 6/6, F 6/6, total 12/12**. No more generation or publication,
 including after the review deadline, until Cameron explicitly authorizes a new
-experiment. The existing schedule stays ACTIVE and unchanged for metrics only.
+experiment. At completion the schedule stayed ACTIVE for metrics only; the
+October21 owner-authorized migration pause above is now controlling.
 
 **October 19 legacy cleanup:** Cameron separately authorized deletion of the
 six pre-v11 Pins using `/random-gift?gift=...`. All six are API-verified deleted;

@@ -5,6 +5,41 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-21 owner session — Pause studio; prepare Stupid.gifts rename
+
+Cameron asked to pause the daily task until the new site, destinations,
+enrichment and measurement are ready, and to begin the Pinterest account/app
+rename. Updated the existing heartbeat `goose-gifts-pinterest-growth-studio`
+through the app tool; PAUSED result and saved-state readback are confirmed at
+2026-10-21T19:53:16.023Z. Name, target chat and9:30/16:30Pacific cadence are
+preserved; appended the owner pause/restart scope to the saved prompt. No new
+task or review schedule was created; no catalog automation was changed/run.
+
+Opened profile settings in the37 Chrome profile: redirected to a welcome-back
+login for the existing Goose account. My apps also redirects to account setup
+with a required business sign-in. No saved-password completion was available
+in the inspected password field. Kept the existing-account login tab ready and
+requested sign-in; do not create a developer account or reset credentials.
+No profile/app rename has occurred. Existing account1107815345747925810 and
+Standard-approved app1588384 must be preserved. Targets are display/app name
+Stupid.gifts and handle stupidgifts if available; an unavailable handle or
+review/access consequence needs an owner decision, not an invented alternative.
+Production `pinterest:whoami` still succeeds independently of the expired
+browser session: same BUSINESS ID/username, business name goose.gifts,28 Pins
+and five boards. This is not an API-authentication failure or a need to reapply.
+
+No generation, posting, deletion, domain claim, website/privacy switch, OAuth
+change or spend. Historical v11 P6/F6 and all original packages/UTMs/receipts
+remain untouched. Exact review deadline2026-10-31T16:44:52.279Z is preserved,
+but paused scheduling will not perform checkpoints/review. Delivery remains
+false; no exact-age observations reconstructed. Mark account rebrand/redirect
+as an intervention in eventual review. Resume requires verified live product
+redirects/UTMs, new catalog/enrichment source, production analytics QA/retailer
+receipt and explicit owner release; more content still needs a new experiment.
+Node22.23.1:940-event validation, six creative tests, ten Pinterest tests,
+production build, lint and diff check pass. Only operating documentation changed;
+the creative ledger, receipt/approval files and publisher code are untouched.
+
 ## 2026-10-21 morning — Routine Pinterest measurement; no early checkpoint
 
 AssignedP, completedP6/F6,total12 stays frozen. No new creative/approval/publication.

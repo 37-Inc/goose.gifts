@@ -177,6 +177,36 @@ frame that shows a raw token.**
 
 ## Production operating state
 
+**October21 owner-authorized migration override:** the existing studio is now
+PAUSED (scheduler readback19:53:16.023UTC), not ACTIVE. Cameron authorized
+beginning the Stupid.gifts account/app rename; the browser session has expired
+and both profile settings and My apps require sign-in. No rename, domain claim,
+website switch, OAuth/configuration change or access resubmission has occurred.
+All twelve v11 Pins and historical packages remain unchanged; the final review
+is pending and will not execute automatically while paused.
+
+Rename in place after sign-in:
+
+- Verify account ID `1107815345747925810`, BUSINESS, and app ID `1588384` before
+  editing. Target business display name and app name: **Stupid.gifts**. Try
+  `stupidgifts` for the handle; if unavailable, ask Cameron rather than inventing
+  an alternate username. Pinterest usernames cannot contain the dot.
+- Inspect the app's edit form for review/access consequences before saving;
+  retain the existing Standard approval, app ID, scopes, OAuth redirect and
+  Keychain credentials. If renaming would require new review or replacement,
+  stop and surface that consequence rather than silently resubmitting.
+- Read back the saved profile/app names and same IDs/access. Update any
+  transitional bio truthfully; do not claim Stupid.gifts is already live.
+- Hold new website/privacy URLs and the Stupid.gifts claim until production and
+  product-specific redirects are verified. Preserve old claimed-domain coverage
+  and every retained Pin's destination/UTM during the transition.
+- Publisher account and destination guards still target Goose. Keep them
+  fail-closed until tested new-site cutover; rename authorization is not posting
+  authorization. Full restart gates are in `PINTEREST_STUDIO.md`.
+
+Official references: [profile/name/username editing](https://help.pinterest.com/en/article/edit-your-profile)
+and [managing the existing app](https://developers.pinterest.com/docs/getting-started/connect-app/).
+
 **Current verified state, October21 morning:** Standard production account
 `goosegifts` BUSINESS remains correct. Final birthday-hat poster
 `1107815208391368990` was created once/readback-verified;28 retained public Pins in the
@@ -211,7 +241,8 @@ This studio did not mutate products, pages, Pins, account or schedule.
 Current bounded GA4/PostHog queries succeeded, without an attributed Pinterest/
 retailer row. Historical provider gaps and retired DB/Vercel zeros remain
 excluded; access, a native click or a measurement run never creates new quota.
-Pinterest app/account rename remains held pending a separate owner instruction.
+At the morning observation the app/account rename was held; the later owner
+instruction authorizes beginning it, subject to the sign-in and access gates above.
 
 - Standard access and the production OAuth read/dry-run path are verified.
 - Public posting still needs an exact candidate/package approval event (per

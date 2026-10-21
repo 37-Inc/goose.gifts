@@ -9,12 +9,21 @@ candidate and publishing package.
 
 None.
 
+**October21 owner override: studio PAUSED for Stupid.gifts migration.** No
+generation, publication or automatic metric/review run while paused. The exact
+October31 review deadline remains pending; preserve all cohort evidence and
+label the rebrand/redirect intervention. Account/app rename is authorized to
+begin but browser sign-in is required; no rename has occurred. Saved cadence is
+unchanged/inactive; the weekly catalog task is untouched. Resume only through
+the verified new-site gates in `../PINTEREST_STUDIO.md` and an explicit owner
+decision; a new experiment is still required before more creative/publication.
+
 V11 is complete: P6/F6,twelve of twelve. The October17 morning birthday-hat
 poster is public/readback-verified, with no pending owner-ready package.
 Exact full-cohort review deadline:2026-10-31T16:44:52.279Z; first regular
 eligible review slot October31 16:30Pacific. All later runs are metrics-only,
 even after that deadline, until Cameron explicitly authorizes a new experiment.
-Generation/publication are disabled for v11; existing schedule remains ACTIVE.
+Generation/publication are disabled for v11; the saved schedule is now PAUSED.
 
 October21 AM: assignedP, cap-driven metric-only; no new creative or publication.
 P1395/22/3/2,F310/5/1/0(impressions/opens/saves/outbound),no new outbound;

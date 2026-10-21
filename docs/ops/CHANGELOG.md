@@ -46,12 +46,20 @@ what's likely next.
   URLs and their ID maps/legacy OG endpoint are also retired from the plan.
   The six dependent Pinterest Pins are deleted; the other 28 Pins remain.
 
-- **Pinterest — completed cohort, measurement only:** final birthday-hat poster
+- **Pinterest — owner-paused for Stupid.gifts migration:** October21 scheduler
+  PAUSED/readback verified; cadence/chat and all v11 evidence retained. The
+  separate catalog job is untouched. Account/app rename is authorized to begin,
+  but the expired browser session needs sign-in; no rename has occurred. Verify
+  new-site redirects, catalog sourcing/enrichment, analytics and Pinterest
+  configuration before owner-authorized restart. The October31 review remains
+  pending and will not execute automatically while paused. A new experiment is
+  still required before more creative/publication. See PINTEREST_STUDIO.md.
+  Final birthday-hat poster
   makes P6/F6,twelve of twelve. Exact full-cohort review deadline is
   2026-10-31T16:44:52.279Z; first regular eligible scheduled review October31
   at4:30PM Pacific. All twelve memberships/receipts and review-delivery state
-  are in PINTEREST_STUDIO.md/v34. Keep the existing schedule ACTIVE unchanged
-  for checkpoints, but generate/publish nothing further, even after review,
+  are in PINTEREST_STUDIO.md/v34. Keep the saved schedule/cap history intact,
+  but generate/publish nothing further, even after review,
   until a new explicit owner experiment. Generation/publication ceilings are
   disabled; a regression-tested validator fix permits already-public metrics.
   Bowling/toast/therapist28day are recorded/lifecycle-archived; retain public
@@ -194,6 +202,21 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-21 [owner+claude] — Pause Pinterest for Stupid.gifts cutover
+
+- Updated the existing studio through the scheduler to PAUSED, verified the
+  saved status, and preserved its cadence/chat/history. Added explicit new-site
+  destination, catalog and analytics restart gates; the weekly catalog job was
+  not changed. The October31 review remains pending, not promised while paused.
+- Began account/app rename preparation on the existing approved identities;
+  both browser surfaces require sign-in. No name, handle, domain, credential,
+  Pin or app approval changed. Preserve the twelve-Pin cap and record rebrand/
+  redirect intervention in the eventual review.
+- Production API still verifies the same BUSINESS account,28 Pins/five boards.
+  Node22 validation,6creative/10Pinterest tests,build,lint and diff check pass;
+  creative events, receipts, approvals and publishing code are unchanged.
+  Operating-docs PR [#204](https://github.com/37-Inc/goose.gifts/pull/204).
 
 ### 2026-10-21 [daily-ops] — Measure frozen Pinterest cohort; no early checkpoints
 
