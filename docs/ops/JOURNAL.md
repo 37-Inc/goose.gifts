@@ -5,6 +5,38 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 owner session — Fail before writer claim; finish bounded observation reads
+
+The next isolated integration resolves the exact required merchant/model
+credentials once, before database ownership, telemetry or daily reservation.
+Failure retains a resumable `created` checkpoint with an idle owner and no
+merchant/model work. Tuesday–Sunday do not resolve a model credential. There is
+no environment execution fallback, Keychain reseed, ACL change or unattended
+credential retry. Regression diagnostics compare environment invariants without
+formatting values; test children use a minimal environment.
+
+Pre-activation observation now propagates abort through provider and D1 reads,
+checks cancellation after each await, and drains the selected concrete owned
+transport before returning. Its three-second proof deadline and activation CAS
+predicates are unchanged. Resolve-only observation retains its separate
+thirty-second deadline. The driver supplies its own workspace ledger to the
+read-only transport and refuses an already-accounted caller sender. This fixes
+read-lifetime accounting, not all ordinary Vectorize/publication HTTP accounting
+and not the complete Monday workload budget.
+
+The old Next `/api/search-products` handler no longer inserts raw search text
+or user agents into Neon. Search behavior, response `searchId: null`, explicit
+GA4/PostHog events and historical stored diagnostics are preserved. Actual
+handler tests execute with no database-import capability. This patch must be
+deployed before treating the old HTTP search writer as retired; it is not a
+complete Neon/D1 capture barrier or migration acceptance.
+
+Root build/lint and focused credential-denial/resume, handler and observation
+checks pass. A prior full staging run reported three failures, so the complete
+suite is being rerun with captured failure diagnostics; isolated timeout tests
+alone are not full-suite acceptance. No new provider publication, merchant/model
+request, scheduler activation, quota increase or paid plan was performed.
+
 ## 2026-10-22 02:24 UTC — Original release finalized; compact maintenance reads verified
 
 PR #221 merged `39720bdaf3ac5023794780b22379f54b5e277f93` after the final
