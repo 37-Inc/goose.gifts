@@ -82,9 +82,24 @@ deployment, domains, configuration and Neon data; this reversible release freeze
 is not provider retirement. A Vercel deployment/status is not evidence that
 Cloudflare changed. Verify the Cloudflare immutable deployment, actual
 `/.well-known/catalog-release.json`, catalog receipt and idle owner separately.
-At this checkpoint Cloudflare still serves source `9943718`; source merged
-after that is not yet published there. See `roadmap-lbbz1.4.6` for the freeze
-receipt and `roadmap-lbbz1.4` for the unfinished publication/migration gates.
+October22 verified Cloudflare release `homepage-code-82efb2100d66` serves source
+`82efb2100d6682cc0774bb1955d7ab7d333fbe52`, not the older `9943718` release.
+Version `0f08460b-3f19-4bfe-bf35-c6db880ede9b` / deployment
+`8d8388d8-5f0c-4338-a2fa-0611bc96187c` and the matching receipt were verified;
+the final publisher wrapper verified a resolved build and idle owner. Its new
+ledger is 148 HTTP / 186 SQL, zero unknowns and zero merchant/model/product/
+native writes. The eight-ready/two-held catalog and original October22
+22:18:10.044Z supplier deadline are unchanged. Do not rerun this completed
+publication. See the newest `STUPID_GIFTS_STAGING.md` checkpoint and
+`roadmap-lbbz1.4.3.2`; full catalog `.3.2` and daily writer `.4` remain open.
+
+Weird Gift Index now returns 404 on both public domains, including its data,
+share-image and encoded aliases. Two fail-closed legacy Cloudflare routes
+target only the retired Index family. Only the existing `www` CNAME proxy flag
+changed; its Vercel origin target is unchanged and the apex remains DNS-only.
+One exact-host/path Single Redirect sends the old `www` sitemap to the clean
+new sitemap (301, no query forwarding). Preserve these privacy controls until
+the broader old-domain redirect is verified. Do not restore Index or bylines.
 
 As of October 21, `https://stupid.gifts/` is public on Cloudflare Free with an
 eight-product reviewed launch cohort. The old Goose site remains on
@@ -106,10 +121,14 @@ approval to upgrade. Neither anticipated podcast traffic nor a launch rehearsal
 authorizes a paid plan or a shared-account-quota-consuming load test. Preserve
 the existing request, SQL, catalog and model limits.
 
-The sole persistent operator source checkout is
-`/Users/cameronehrlich/.codex/worktrees/goose-migration-integration/goose.gifts`.
-Keep it attached; do not archive this worktree or run publication from the shared
+The current persistent operator source checkout is
+`/Users/cameronehrlich/.codex/worktrees/goose-production-cutover/goose.gifts`.
+Keep it attached; do not run publication from the shared
 `/Users/cameronehrlich/goose.gifts` checkout, which other authorized chats use.
+Also retain the original
+`/Users/cameronehrlich/.codex/worktrees/goose-migration-integration/goose.gifts`
+at `9943718`, bound to the original completed workspace and rollback evidence;
+it is not the source for new publication or maintenance.
 Require the operator checkout clean and fast-forward its dedicated branch from
 `origin/main` before running, **unless an exact earlier publication is still
 unresolved**. October21 run `launch-publish-994371816d46` must remain on clean
@@ -132,8 +151,9 @@ is still October22 22:18:10.044Z. Future reviewed ordinary guard is 800 HTTP /
 
 The same daily task now records finalization, but **new D1 maintenance remains
 gated** on the actual writer/data/delta, protected credentials and same-response
-publication contract. The older pre-activation observation path is a separate
-acceptance item. Do not interpret idle, a compact-read fixture, an ACTIVE timer
+publication contract. Pre-activation cancellation/draining fixes are merged;
+they do not establish complete daily-writer/canary acceptance. Do not interpret
+idle, a compact-read fixture, an ACTIVE timer
 or a changed backend flag as a successful daily canary. Preserve old Goose as
 rollback, never as a second scheduled writer.
 
@@ -424,15 +444,11 @@ pass in step 6. In addition:
   inspection for desktop and mobile. Check first viewport, scrolling grid/card
   layout, search dropdown, forms, images, and footer disclosure. Fix visual
   defects found in the same PR.
-- **Weekly product review**: first run
-  `npm run catalog:revalidate -- --revalidate-limit 50 --stale-days 30 --deactivate-after-days 90`.
-  This repairs mismatched Amazon associate URLs catalog-wide, then rechecks at
-  most 50 due active Amazon items using the published/legacy lanes above.
-  A product is deactivated only when it was
-  last successfully verified at least 90 days ago and is absent from two
-  consecutive Creators API responses in the same run. Throttling or a failed
-  confirmation leaves the product unchanged. Use `--dry-run --no-deactivate`
-  for a read-only audit. Then spend one focused
+- **Weekly product review**: the old Neon revalidation/deactivation command is
+  retired from scheduled operation. Do not run it, including its former
+  50-item allowance. The new D1 writer remains gated above; once verified, use
+  only its shared ten-per-Pacific-day reservation. Never deactivate a gift or
+  delete its index entry solely on elapsed freshness. Then spend one focused
   pass on overall site quality: stale/broken links, broken images, awkward copy,
   weak catalog ranking, mobile polish, and any user-visible dead ends. Capture
   findings in the weekly issue and fix the highest-impact reversible items.

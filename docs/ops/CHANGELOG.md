@@ -31,17 +31,15 @@ what's likely next.
   Live pruning/deactivation/index deletion is paused; the existing daily task
   now records that prohibition. Preserve all IDs, slugs, native vectors and
   history. Bulk migration is separate from the ten/day refresh allowance.
-- **Homepage/privacy cleanup in implementation:** `roadmap-lbbz1.5.1/.5.2`
-  cover the approved “Stupid gifts. Excellent taste.” heading, removal of
-  repeated Collection labels/tab, static 24+24 browse batches, SVG guide glyphs,
-  complete Weird Gift Index retirement and no public personal-name bylines.
-  Submit-based search stays until a cost-bounded alternative is justified.
-  Code integration and Cloudflare publication are separate evidence gates.
+- **Homepage/privacy cleanup shipped:** `roadmap-lbbz1.5.1/.5.2` are closed on
+  actual Cloudflare source `82efb21` and live browser/HTTP evidence. Exact
+  headline, fewer labels, 24+24 static browse, guide glyphs and Index retirement
+  are live; submit-based search avoids per-keystroke model calls. Eight public
+  gifts still reflect the incomplete catalog migration above.
 
-- **Cloudflare release path:** Vercel Git deployment is frozen and its existing
-  Goose deployment retained only as rollback. Cloudflare still serves source
-  `9943718`; publish the current reviewed code there through the normal receipt/
-  expiry contract before calling later merged fixes deployed. The daily D1
+- **Cloudflare release path:** the new code-only release is finalized on
+  source `82efb21`; do not replay it or the original `9943718` recovery. Vercel
+  remains frozen, retaining the old origin/Neon as rollback. The daily D1
   writer remains gated; final Vercel/Neon retirement is separate.
 
 - **Stupid Gifts daily writer:** the eight-product maintained release is now
@@ -264,6 +262,20 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-22 [owner+claude] — Publish the simpler homepage and remove public bylines
+
+PR #225 (`f233c4c`) and #226 (`82efb21`) now actually serve from Cloudflare,
+verified by immutable release identity, matching receipt, resolved build/idle
+owner and a real browser reload. The exact headline, quieter copy/navigation,
+progressive static browse and meaningful guide glyphs are live. Index page,
+data and image routes return 404 on both domains; the old sitemap now redirects
+to the clean new sitemap, without another Vercel deploy. New publication used
+148 HTTP / 186 SQL, no merchant/model/product/native writes and no expiry renewal.
+Full staging passed 741 tests with 20 optional skips. UI/privacy/code-publication
+Beads closed; full catalog/persistent fallbacks and daily writer remain open.
+Updated the same existing daily task with actual serving identity and unchanged
+cadence, limits and writer gate. See `STUPID_GIFTS_STAGING.md` and `JOURNAL.md`.
 
 ### 2026-10-22 [owner+claude] — Prepare the real homepage publication
 

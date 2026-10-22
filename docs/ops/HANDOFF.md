@@ -7,6 +7,14 @@ target; legacy Vercel Git deployment is frozen. Do not create another schedule
 or execute the old setup/bootstrap below. The existing `goose-gifts-daily-ops`
 task and its current writer/access gates remain authoritative.
 
+October22 live checkpoint: Cloudflare now serves `82efb21` /
+`homepage-code-82efb2100d66`; UI/privacy cleanup is deployed and both completed
+publication runs must not be replayed. Full catalog migration and persistent
+product/supplier-field separation remain open, and the daily D1 writer is still
+gated. Use the current operator in `goose-production-cutover`, preserving the
+original `9943718` checkout/workspace as historical evidence. See the current
+production checkpoint in `STUPID_GIFTS_STAGING.md`.
+
 The remainder records the July2026 setup; it is retained as history only.
 
 ---

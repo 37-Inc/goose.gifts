@@ -13,6 +13,17 @@ remove redundant Collection labels/navigation and use meaningful guide glyphs
 attribution (`roadmap-lbbz1.5.2`). Full data reconciliation and broad useful
 catalog availability take priority over more discovery or new features.
 
+October22 deployment receipt: `.5.1/.5.2` and code-only publication `.4.3.2`
+are complete on actual Cloudflare source `82efb21`, not merely merged source.
+Both domains' Index routes return 404; no public byline exception remains.
+The bulk migration/persistent-field separation in `.3.2` is the next priority:
+preserve the existing full archive, reconcile the final source and target-native
+delta, then make the broad catalog browseable independently of supplier refresh
+clocks. Do not try to repopulate thousands of products through ten daily lookups.
+Semantic-index capacity may limit the indexed subset, never catalog identity,
+keyword coverage or the private original-vector archive. Daily writer remains
+gated; no paid plan, extra model batch or new discovery is required to plan this.
+
 Cameron has prioritized the weekly Howie Mandel Does Stuff opportunity and
 requested the Stupid Gifts launch specification and domain registration.
 The current plan is [Stupid Gifts launch and infrastructure](STUPID_GIFTS_LAUNCH_SPEC.md),

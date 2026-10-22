@@ -47,7 +47,7 @@ Amazon navigation passed. GA4 and PostHog stored launch QA events; these are
 not evidence of acquired human traffic. The old Goose site remains on
 Vercel/Neon. This is **not** the full-catalog/writer/provider migration.
 
-The maintained `9943718` release is active and **finalized** after PR #221:
+The original maintained `9943718` release was **finalized** after PR #221:
 original receipt verified, build resolved, owner idle generation3 / epoch27,
 external_pending0. Final retained accounting is 702 HTTP / 1,116 SQL with both
 unknown reads preserved. The approved one-time recovery did not repeat upload,
@@ -58,6 +58,14 @@ The same existing task is updated, old Neon entry disabled, but new D1 daily
 maintenance/publication remains gated. Do not call the site continuously
 refreshed until a genuine daily publication is verified. Local registered-body
 expiry cleanup continues; neither finalization nor cleanup renews content rights.
+It has now been superseded by the actual code-only homepage/privacy release
+`homepage-code-82efb2100d66`, source `82efb2100d6682cc0774bb1955d7ab7d333fbe52`.
+Matching receipt, resolved build and idle owner were verified with 148 HTTP /
+186 SQL and zero unknowns; no merchant/model/product/native writes or deadline
+renewal. Both completed publications must not be rerun. UI/privacy tasks are
+closed, including old-domain Index retirement and clean sitemap redirection.
+Full catalog `.3.2`, persistent product/supplier-field separation and the
+gated daily D1 writer are still engineering work, not another owner login ask.
 The separate existing dependency-audit issue is `roadmap-lbbz1.4.5`. Cameron
 approved integrating the publisher fix independently and authorized straightforward
 dependency/toolchain remediation; no further security exception is being requested
@@ -98,8 +106,9 @@ The Codex task is installed in place, and private expiry cleanup plus protected
 publication/restart recovery have passed actual provider checks. Engineering
 still owns the fresh daily canary (`roadmap-lbbz1.4.3`, next allowance October
 22), search/provider-capacity coverage and final source-delta/recovery/writer
-checks. The expired preview is deliberately zero-ready/ten-held, not a current
-opening catalog. New hosted CI or Cloudflare Cron is not a prerequisite for
+checks. Earlier zero-ready/ten-held staging previews are historical; current
+production is eight-ready/two-held, still not the complete catalog. New hosted
+CI or Cloudflare Cron is not a prerequisite for
 this Codex setup. These remaining checks are not owner authentication blockers
 and are not being marked done.
 
