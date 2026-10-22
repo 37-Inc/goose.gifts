@@ -292,6 +292,15 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-22 [owner+claude] — Select the cooperative rollback packet in native replay
+
+- Fix the local native drill's rollback ledger to use the selected cooperative
+  packet checksum, rather than dereferencing the absent synthetic-only input.
+  Both-input refusal, original native/full-field validation, isolated resources
+  and cleanup are unchanged. The fresh network-none cooperative native fixture
+  passed, including its exact acknowledged packet checksum; actual source
+  recovery remains an operator step.
+
 ### 2026-10-22 [owner+claude] — Preserve cleared catalog fields during maintenance
 
 Prepared daily D1 projection carry for an existing exact permanent base and its

@@ -227,6 +227,7 @@ test('optional cooperative local drill uses the same fresh network-none native r
       assert.equal(result.receipt.status,'passed');assert.equal(result.receipt.resourcesRemoved,true);
       assert.equal(result.receipt.vectorCount,2);assert.match(result.receipt.resourceLabel,/^goose\.catalog\.recovery=[a-f0-9-]{36}$/);
       assert.equal(result.receipt.cooperativeRollbackProofSha256,sha256(canonicalJson(f.proof)));
+      assert.equal(result.receipt.rollbackFixture.packetSha256,written.packetSha256);
       assert.equal(result.receipt.rollbackFixture.provenance.kind,'unverified-capture');assert.equal(result.receipt.rollbackFixture.barrierVerified,false);
       for(const k of ['lateFailureAtomic','identicalReplay','nextSequenceVerified'])assert.equal(result.receipt.rollbackFixture[k],true);
       assert.ok(result.receipt.limitations.some(s=>s.includes('not a universal provider/ACL barrier')));passed=true;
