@@ -41,6 +41,8 @@ Keep old Pins/packages/receipts intact until corresponding-product handling
 and UTMs are verified. New-catalog receipt sourcing, tested guard/config,
 analytics attribution, exact-deadline pending v11 review and explicit new
 experiment/restart approval remain open. Avatar/icon cleanup is cosmetic.
+Closeout documentation: PR #220. Build, lint and diff checks pass; central
+Beads Dolt push and subsequent pull/readback verify the affected issue states.
 
 ## 2026-10-21 owner session — Compatible dependency security updates
 

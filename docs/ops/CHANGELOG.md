@@ -85,10 +85,9 @@ what's likely next.
   configuration before owner-authorized restart. Central tracking is reconciled:
   the creative skill-forward-test Bead is closed on existing v5/v6/planning
   evidence; `roadmap-lbbz1.8.1` is the single remaining Pinterest cutover child
-  under the existing provider task. Bowling's new-domain path404 means retained
+  under the existing provider task. Bowling's new-domain path returning 404 means retained
   Pins must not be blindly repointed; sheep works on both domains. The October31
-  review remains
-  pending and will not execute automatically while paused. A new experiment is
+  review remains pending and will not execute automatically while paused. A new experiment is
   still required before more creative/publication. See PINTEREST_STUDIO.md.
   Final birthday-hat poster
   makes P6/F6,twelve of twelve. Exact full-cohort review deadline is
@@ -250,7 +249,7 @@ inspection and two live tracked paths prove the old shortlist/domain guard
 and incomplete product redirects still need integration. Documented the exact
 gates, kept the studio PAUSED and v11 frozen, and preserved every Pin/package.
 No new generation, posting, catalog run, account mutation or spend.
-PR: Pinterest cutover closeout (linked after creation).
+PR: [#220](https://github.com/37-Inc/goose.gifts/pull/220).
 
 ### 2026-10-21 [owner+claude] — Patch compatible security dependencies
 
