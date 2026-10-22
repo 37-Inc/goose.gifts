@@ -46,14 +46,19 @@ acceptance; this fix does not claim every publication path is now quiescent.
 The first full regression run exposed two changed native-error labels; those
 were corrected and the entire 21-test approved-cohort file passed independently.
 Focused transport/timeout/guard checks, staging types, lint and production build
-pass. A fresh complete staging run is in progress before integration.
+pass. Root's fresh complete staging run passed **704 tests, 18 explicit optional
+skips, zero failures**. Independent transport/core, cohort/helper and
+publication/delivery runs also passed, without summing overlapping cases.
 
 Updated the same existing catalog task in place; it now forbids the old Neon
 entry while the verified new-D1 writer/credentials/source-delta contract is
 unfinished. ACTIVE 08:30 Pacific is a timer state, **not** proof the new writer
 is enabled. Read-only inventory found no second catalog Codex/OpenClaw/local
-cron/LaunchAgent/GitHub job; the portfolio pulse is reporting-only. Hosted
-provider schedules still need independent verification. Pinterest stays PAUSED.
+cron/LaunchAgent/GitHub job; the portfolio pulse is reporting-only. A separate
+read-only production Worker schedules API read returned HTTP200/empty schedules;
+it is not a second Cron writer. The configured08:30 time is on the
+America/Los_Angeles host; native readback exposed no next-run/timezone field.
+Vercel-hosted schedule state remains unverified. Pinterest stays PAUSED.
 
 Separately completed the authorized GA4 property/stream rebrand through the
 signed-in account, with persisted reload readback: property 507421709 and
