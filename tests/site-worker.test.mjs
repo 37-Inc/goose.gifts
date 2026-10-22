@@ -33,6 +33,36 @@ function setup(overrides = {}) {
   return { env, calls, worker, manifest, snapshot, releaseIdentity, advance(ms) { clock += ms; }, request: (path, init) => worker.fetch(new Request(`https://preview.example${path}`, init), env) };
 }
 
+test('explicit persistent safe routes remain useful and indexable while legacy/photo fallbacks stay noindex',async()=>{
+  const f=setup();f.manifest.routes['/gifts/fart-button'].persistentIndexable=true;
+  f.manifest.routes['/gifts/fart-button.txt'].persistentIndexable=false;
+  f.manifest.routes['/gifts/held'].persistentIndexable=true;
+  f.advance(2400);
+  const page=await f.request('/gifts/fart-button');assert.equal(await page.text(),'/safe.html');assert.equal(page.headers.get('X-Robots-Tag'),null);
+  assert.equal((await f.request('/gifts/fart-button?q=test')).headers.get('X-Robots-Tag'),'noindex, follow');
+  for(const path of ['/gifts/fart-button.txt','/catalog/feed-1.json','/','/gifts/held'])assert.equal((await f.request(path)).headers.get('X-Robots-Tag'),'noindex, follow');
+  const map=await(await f.request('/sitemap.xml')).text();assert.match(map,/<loc>https:\/\/preview\.example\/gifts\/fart-button<\/loc>/);
+  assert.doesNotMatch(map,/<loc>https:\/\/preview\.example\/gifts<\/loc>/);
+});
+test('sitemap cache cannot treat a legacy deadline crossed during rendering as permanent',async()=>{
+  const f=setup();let reads=0;
+  const worker=createSiteWorker({manifest:f.manifest,snapshot:f.snapshot,now:()=>++reads===1?NOW:NOW+2400});
+  const response=await worker.fetch(new Request('https://preview.example/sitemap.xml'),f.env);
+  assert.match(response.headers.get('Cache-Control'),/max-age=0, s-maxage=0/);
+});
+test('public feed uses a permanent base before/after expiry without an aggregate supplier deadline',async()=>{
+  const f=setup(),base=product({title:'Independent desk object',eligibleUntil:null,indexable:false});
+  f.snapshot.products=[product({title:'SUPPLIER ONLY TITLE',imageUrl:'https://example.invalid/supplier.jpg',persistent:base})];
+  f.manifest.routes['/'].persistentIndexable=false;
+  let clock=NOW;const worker=createSiteWorker({manifest:f.manifest,snapshot:f.snapshot,
+    feedPlan:createStaticFeedPlan(f.snapshot,f.manifest.catalogSnapshotSha256,NOW),now:()=>clock});
+  for(const instant of [NOW,NOW+2400,NOW+40*86400_000]){clock=instant;
+    const response=await worker.fetch(new Request('https://preview.example/api/catalog-feed',{method:'POST',body:'{}'}),f.env);
+    assert.equal(response.status,200);const body=await response.json();assert.deepEqual(body.products,[base]);
+    assert.doesNotMatch(JSON.stringify(body),/SUPPLIER|supplier\.jpg|persistent/);
+  }
+});
+
 test('ready assets, aliases and cache lifetimes are guarded without database access', async () => {
   const fixture = setup();
   for (const path of ['/', '/gifts/fart-button', '/gifts/fart-button.html', '/gifts/fart-button.txt', '/catalog/feed-1.json']) {

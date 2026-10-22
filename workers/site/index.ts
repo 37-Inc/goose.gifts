@@ -1,4 +1,5 @@
 import type { CatalogAssetRoute, CatalogSnapshot, SiteAssetManifest } from '../../lib/catalog/types.ts';
+import { catalogDeadline, resolvePublicProduct } from '../../lib/catalog/display.ts';
 import type { SearchAdapters, SemanticBudgetScope, SiteEnv } from './bindings.ts';
 import { prepareStaticFeed } from './feed.ts';
 import { createSearchHandler, json, sha256 } from './search.ts';
@@ -19,7 +20,14 @@ const RETIRED_ROUTE = /^\/(?:admin|auth|login|report|reports|bundles)(?:\/|$)|^\
 const PUBLIC_ASSET = /^(?:\/_next\/static\/|\/fonts\/|\/brand\/|\/illustrations\/)|^\/(?:favicon\.ico|robots\.txt|[a-zA-Z0-9_-]+\.(?:png|webp|svg|jpg|jpeg|woff2?|ttf)|google[a-z0-9]+\.html|BingSiteAuth\.xml)$/;
 
 function expiry(route: CatalogAssetRoute): number {
-  return route.eligibleUntil === null ? Infinity : Date.parse(route.eligibleUntil);
+  return catalogDeadline(route.eligibleUntil);
+}
+
+// Presence is an explicit build-bound persistent variant; false still permits
+// useful browsing, but never grants crawler indexability. Legacy safe pages
+// have no flag and retain their existing unavailable/noindex behavior.
+function hasPersistentVariant(route: CatalogAssetRoute): boolean {
+  return typeof route.persistentIndexable === 'boolean';
 }
 
 function escapeXml(value: string): string {
@@ -175,18 +183,20 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
     headers.set('Cloudflare-CDN-Cache-Control', cache);
     headers.set('CDN-Cache-Control', cache);
     headers.delete('Age');
-    if (safe || route.indexable === false || new URL(request.url).searchParams.has('q')) headers.set('X-Robots-Tag', 'noindex, follow');
+    if (route.state === 'held' || (safe ? route.persistentIndexable !== true : route.indexable === false)
+      || new URL(request.url).searchParams.has('q')) headers.set('X-Robots-Tag', 'noindex, follow');
     return new Response(response.body, { status: response.status, headers });
   }
 
   function sitemap(request: Request): Response {
     const origin = options.canonicalOrigin || new URL(request.url).origin;
+    const at = now();
     const entries = [...routes.entries()].filter(([path, route]) => (
-      route.state === 'ready' && route.indexable !== false && expiry(route) > now()
+      route.state === 'ready' && (expiry(route) > at ? route.indexable !== false : route.persistentIndexable === true)
       && !path.includes('.') && !path.startsWith('/data/') && !RETIRED_ROUTE.test(path)
       && !path.startsWith('/catalog/') && !path.startsWith('/_') && (path === '/' || !path.endsWith('/'))
     ));
-    const deadlines = entries.map(([, route]) => expiry(route));
+    const deadlines = entries.map(([, route]) => expiry(route) > at ? expiry(route) : Infinity);
     const seconds = Math.max(0, Math.min(300, Math.floor((Math.min(...deadlines) - now()) / 1000)));
     const body = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${entries.map(([path]) => `<url><loc>${escapeXml(new URL(path, origin).href)}</loc></url>`).join('')}</urlset>`;
     return new Response(body, { headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': `public, max-age=${seconds}, s-maxage=${seconds}, must-revalidate` } });
@@ -200,13 +210,18 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
       body = parsed && typeof parsed === 'object' ? parsed : {};
     } catch { return json({ error: 'Request too large' }, 413); }
     const guard = routes.get('/');
-    if (!preparedFeed || !guard || guard.state === 'held' || !(expiry(guard) > now())) return json({ error: 'Catalog temporarily unavailable' }, 503);
+    const available = () => guard && guard.state !== 'held' && (expiry(guard) > now() || hasPersistentVariant(guard));
+    if (!preparedFeed || !available()) return json({ error: 'Catalog temporarily unavailable' }, 503);
     const seed = (typeof body.seed === 'string' ? body.seed : 'goose-gifts').slice(0, 80);
     const limit = typeof body.limit === 'number' && Number.isFinite(body.limit) ? Math.max(1, Math.min(36, Math.floor(body.limit))) : 24;
     const excluded = new Set((Array.isArray(body.excludeIds) ? body.excludeIds : []).filter((id): id is string => typeof id === 'string' && id.length > 0 && id.length <= 100).slice(0, 1200));
     const selection = preparedFeed.select(seed, limit, excluded, now());
-    if (!selection || !(Math.min(expiry(guard), preparedFeed.expiresAt) > now())) return json({ error: 'Catalog temporarily unavailable' }, 503);
-    return json({ products: selection.products, hasMore: selection.hasMore });
+    if (!selection || !available()) return json({ error: 'Catalog temporarily unavailable' }, 503);
+    const products = selection.products.flatMap(product => {
+      const resolved = resolvePublicProduct(product, now());return resolved ? [resolved] : [];
+    });
+    if (selection.products.length&&!products.length) return json({ error: 'Catalog temporarily unavailable' }, 503);
+    return json({ products, hasMore: selection.hasMore });
   }
 
   return {

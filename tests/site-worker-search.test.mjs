@@ -21,6 +21,26 @@ function setup(options = {}) {
   return { env, calls, advance(ms) { clock += ms; }, request: (query = 'funny button', extra = '') => handler(new Request(`https://example.test/api/search-products?q=${encodeURIComponent(query)}${extra}`, { headers: { 'CF-Connecting-IP': '192.0.2.1' } }), env), handler };
 }
 
+test('permanent keyword results/cache preserve identities without supplier bytes or provider calls',async()=>{
+  const base=product('cleared',{title:'Independent desk object',eligibleUntil:null,indexable:false});
+  const outer={...base,title:'SUPPLIER ONLY TITLE',imageUrl:'https://example.invalid/supplier.jpg',eligibleUntil:new Date(NOW+1).toISOString(),persistent:base};
+  let reads=0;
+  const f=setup({storage:{async keyword(){reads++;return[outer];}}});f.env.SEMANTIC_SEARCH_ENABLED='false';
+  const before=await(await f.request('desk object')).json();f.advance(60_000);
+  const after=await(await f.request('desk object')).json();
+  assert.equal(reads,1);assert.equal(f.calls.embed,0);assert.equal(f.calls.vector.length,0);
+  assert.equal(after.searchId,null);assert.deepEqual(after.results,before.results);assert.equal(after.results[0].id,base.id);
+  assert.doesNotMatch(JSON.stringify(after),/SUPPLIER|supplier\.jpg|persistent/);
+});
+test('a persistent listing never extends cached semantic proof beyond original native eligibility',async()=>{
+  const base=product('one',{title:'Independent desk object',eligibleUntil:null,indexable:false});
+  const outer={...base,eligibleUntil:new Date(NOW+5).toISOString(),persistent:base};
+  const f=setup({storage:{async byPublicIds(){return[outer];},async keyword(){return[base];}}});
+  assert.equal((await(await f.request('desk object')).json()).results[0].matchType,'semantic');f.advance(6);
+  const after=await(await f.request('desk object')).json();assert.equal(after.results[0].matchType,'keyword');
+  assert.equal(f.calls.embed,2);assert.equal(after.results[0].eligibleUntil,null);
+});
+
 test('semantic response retains contract, rank score, provider and candidate bounds', async () => {
   const fixture = setup();
   const response = await fixture.request('funny button', '&limit=999');

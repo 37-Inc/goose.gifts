@@ -13,6 +13,19 @@ function prepared(products) {
 }
 const select = (feed, seed = 'daily', limit = 24, excluded = []) => feed.select(seed, limit, new Set(excluded), NOW);
 
+test('persistent feed keeps exact identities and cleared bytes before/after supplier expiry',()=>{
+  const base=product('base','gizmo',{title:'Independent desk object',eligibleUntil:null,indexable:false});
+  const outer={...base,title:'SUPPLIER ONLY PHOTO TITLE',imageUrl:'https://example.invalid/supplier.jpg',eligibleUntil:new Date(DEADLINE).toISOString(),persistent:base};
+  const feed=prepared([outer,product('legacy')]);
+  for(const clock of [NOW,DEADLINE,DEADLINE+40*86400_000]){
+    const result=feed.select('daily',24,new Set(),clock);
+    assert.ok(result.products.some(p=>p.id==='base'));assert.deepEqual(result.products.find(p=>p.id==='base'),base);
+    assert.doesNotMatch(JSON.stringify(result),/SUPPLIER|supplier\.jpg|persistent/);
+    if(clock>=DEADLINE)assert.deepEqual(result.products,[base]);
+  }
+  assert.deepEqual(feed.select('daily',24,new Set(['base','legacy']),DEADLINE).products,[]);
+});
+
 test('prepared feed keeps quality/eligibility and one stable representative per family', () => {
   const good = product('good');
   const feed = prepared([

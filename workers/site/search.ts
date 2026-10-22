@@ -1,4 +1,5 @@
 import type { PublicCatalogProduct } from '../../lib/catalog/types.ts';
+import { catalogDeadline, persistentPublicProduct, resolvePublicProduct } from '../../lib/catalog/display.ts';
 import type { ProductSearchResult } from '../../lib/types.ts';
 import { isCatalogDisplayEligibleProduct, suppressNearDuplicateProducts } from '../../lib/db/product-scoring.ts';
 import type { SearchAdapters, SemanticBudgetScope, SiteEnv } from './bindings.ts';
@@ -73,12 +74,18 @@ function keywordSimilarity(product: PublicCatalogProduct, query: string): number
   return 0.48;
 }
 
-function select(candidates: SearchResult[], limit: number, now: number): SearchResult[] {
+function select(candidates: SearchResult[], limit: number, now: number,semanticDeadlines?:ReadonlyMap<string,number>): SearchResult[] {
   const ids = new Set<string>();
-  return suppressNearDuplicateProducts(candidates.filter((product) => {
-    const expiry = Date.parse(product.eligibleUntil);
-    if (ids.has(product.id) || !Number.isFinite(expiry) || expiry <= now
-      || !isCatalogDisplayEligibleProduct(product)) return false;
+  return suppressNearDuplicateProducts(candidates.flatMap(candidate=>{
+    const product=persistentPublicProduct(candidate)??resolvePublicProduct(candidate,now);
+    if(!product)return[];
+    // A permanent listing is not a renewed semantic/native freshness proof.
+    if(candidate.matchType==='semantic'&&(semanticDeadlines?.get(candidate.publicId)??catalogDeadline(candidate.eligibleUntil))<=now)return[];
+    return[result(product,candidate.similarity,candidate.matchType)];
+  }).filter((product) => {
+    if (ids.has(product.id) || !(product.eligibleUntil===null
+      ? product.isActive&&product.qualityScore>=.55&&product.imageUrl&&product.affiliateUrl
+      : isCatalogDisplayEligibleProduct(product))) return false;
     ids.add(product.id);
     return true;
   }), limit);
@@ -95,7 +102,7 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
 }) {
   const now = options.now || Date.now;
   const timeout = Math.max(10, Math.min(options.providerTimeoutMs ?? 1500, 3000));
-  const cache = new Map<string, { until: number; results: SearchResult[] }>();
+  const cache = new Map<string, { until: number; results: SearchResult[];semanticDeadlines:ReadonlyMap<string,number> }>();
   const clients = new Map<string, { until: number; count: number }>();
   const maxRequests = Math.max(1, Math.min(options.rateLimit ?? 20, 60));
   const budgetScope = options.semanticBudgetScope && Object.freeze({ ...options.semanticBudgetScope });
@@ -130,7 +137,7 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
     // Hashing above can cross a product deadline. Check the current clock and
     // reselect immediately before serialization, just as for uncached responses.
     if (cached && cached.until > now()) {
-      const fresh = select(cached.results, limit, now());
+      const fresh = select(cached.results, limit, now(),cached.semanticDeadlines);
       if (fresh.length === cached.results.length) return json({ searchId: null, results: fresh });
     }
     cache.delete(key);
@@ -168,22 +175,25 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
           // A provider failure only changes search mode. No raw error/query logs.
         }
       }
-      let results = select(candidates, limit, now());
+      const semanticDeadlines=new Map(candidates.map(product=>[product.publicId,catalogDeadline(product.eligibleUntil)]));
+      let results = select(candidates, limit, now(),semanticDeadlines);
       if (results.length < limit && vectorCount < candidateLimit) {
         const products = await bounded(() => storage.keyword(query, candidateLimit - vectorCount, new Date(now()), options.catalogRevision), timeout);
-        const semanticIds = new Set(candidates.map((product) => product.id));
+        const semanticIds = new Set(results.map((product) => product.id));
         const keywords = products.slice(0, candidateLimit - vectorCount)
           .filter((product) => !semanticIds.has(product.id))
           .map((product) => result(product, keywordSimilarity(product, query), 'keyword'))
           .sort((a, b) => b.rankScore - a.rankScore || a.id.localeCompare(b.id));
-        results = select([...results, ...keywords], limit, now());
+        results = select([...results, ...keywords], limit, now(),semanticDeadlines);
       }
       // Recheck deadlines after all I/O, and cap cache at the earliest result expiry.
-      results = select(results, limit, now());
-      const until = Math.min(startedAt + CACHE_MS, ...results.map((product) => Date.parse(product.eligibleUntil)));
+      results = select(results, limit, now(),semanticDeadlines);
+      const until = Math.min(startedAt + CACHE_MS,
+        ...candidates.filter(product=>product.matchType==='semantic').map(product=>catalogDeadline(product.eligibleUntil)),
+        ...results.map(product=>catalogDeadline(product.eligibleUntil)));
       if (until > now()) {
         if (cache.size >= MAX_STATE_ENTRIES) cache.delete(cache.keys().next().value!);
-        cache.set(key, { results, until });
+        cache.set(key, { results, until,semanticDeadlines });
       }
       let searchId: string | null = null;
       if (options.adapters.diagnostic) {
@@ -197,7 +207,7 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
           searchId = id;
         } catch { /* Diagnostic failure cannot fail usable results. */ }
       }
-      const fresh = select(results, limit, now());
+      const fresh = select(results, limit, now(),semanticDeadlines);
       if (fresh.length !== results.length) cache.delete(key);
       results = fresh;
       return json({ searchId, results });
