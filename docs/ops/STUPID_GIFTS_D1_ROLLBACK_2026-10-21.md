@@ -105,6 +105,15 @@ then uses precisely the same fresh network-none container/owned-cleanup path.
 Provenance remains `unverified-capture` and `barrierVerified:false`: checksums
 and known-writer stops do not establish a universal provider/ACL barrier.
 
+Already-held target products without a maintenance semantic/native row have a
+narrow mapping only when the complete current row equals the exact owned-import
+baseline. They must remain inactive with blank public copy, no display/expiry
+or grants, and valid source/editorial hash controls. Those controls and existing
+explicit UTC verification instants are retained. Archived merchant bodies and
+native bytes, plus unresolved original creation/update wall times, stay intact;
+no replacement facts, observation or historical timezone is invented. Other
+scalar/identity/price/time drift and unowned inputs continue to refuse.
+
 The pinned metadata audit's observation date is recorded separately from
 same-transaction source metadata. Matching table inventory, recorded schema,
 trigger definitions and native payloads permit a dated recorded-DDL rehearsal,

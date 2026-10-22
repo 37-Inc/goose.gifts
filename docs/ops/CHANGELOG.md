@@ -24,6 +24,14 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **October22 actual rollback mapping correction** [owner+claude]: actual
+  post-union preparation exposed two retained held products without maintenance
+  semantics. Exact owned-baseline proof now preserves their inactive/hash
+  controls and genuine current UTC verification fields; archived facts/native
+  bytes and unknown historical creation/update wall times are not rewritten.
+  Arbitrary drift and unowned inputs still refuse. Actual13-table packet maps
+  in memory; native execution remains a separate operator gate.
+
 - **October22 local full-union rollback opt-in** [owner+claude]: separate
   function-only native drill input binds both cooperative captures, the exact
   completed owned union/all24 tables and inverse sequence proof. Default

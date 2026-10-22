@@ -150,6 +150,7 @@ export function prepareRollbackPacket(archive:Archive,manifest:Manifest,input:Fr
   if(total>100000||Buffer.byteLength(canonicalJson(input))>128*1024*1024)refuse();
   const maintenance=indexed(input.tables.catalog_maintenance_products,'product_id');
   const telemetry=indexed(input.tables.catalog_run_telemetry,'run_id');const changes:RollbackPacket['changes']=[];
+  const preserved=ownedImport?indexed(ownedImport.plan.baseline.products,'id'):null;let heldControls=0;
   const expectedTables:RollbackPacket['expectedTables']=[];const finalTables=[];let maximumItem=0n;let addedItems=false;
   for(const table of archive.tables){
     const def=table.definition;let final=table.rows;
@@ -163,9 +164,26 @@ export function prepareRollbackPacket(archive:Archive,manifest:Manifest,input:Fr
           if(old)sourceMatch(raw,old,true);else if(raw.kind!=='maintenance_creation'||raw.id!==id||raw.public_id!==row.public_id||raw.slug!==row.slug)refuse();
           const maintained=maintenance.get(id);
           if(!maintained){
-            if(!old)refuse();typedCheck(row,old,['id','public_id','slug','source','is_active','editorial_status','availability_status','source_facts_hash','editorial_source_hash','duplicate_of_product_id']);
-            unchangedHistoricalTimes(row,old,['created_at','updated_at','availability_checked_at','last_verified_at']);productAmounts(row,old);
+            if(!old)refuse();
+            // Already-held CURRENT target rows may have no maintenance semantic
+            // or native record. Preserve their explicit inactive/hash controls
+            // only against the exact owned-import baseline, not arbitrary drift.
+            const held=preserved?.get(id);
+            const retainHeld=held&&canonicalJson(held)===canonicalJson(row)&&row.is_active===0
+              &&row.public_display_json===null&&row.eligible_until===null&&row.rights_json==='{}'
+              &&row.title===''&&row.description===''&&row.tags===''
+              &&[row.source_facts_hash,row.editorial_source_hash].every(h=>typeof h==='string'&&/^[a-f0-9]{64}$/.test(h));
+            typedCheck(row,old,['id','public_id','slug','source','editorial_status','availability_status','duplicate_of_product_id',
+              ...(retainHeld?[]:['is_active','source_facts_hash','editorial_source_hash'])]);
+            unchangedHistoricalTimes(row,old,retainHeld?['created_at','updated_at']:['created_at','updated_at','availability_checked_at','last_verified_at']);productAmounts(row,old);
             if((row.quality_score===null?null:Number(row.quality_score))!==(old.quality_score===null?null:Number(old.quality_score)))refuse();after={...old};
+            if(retainHeld){after={...after,is_active:false,source_facts_hash:row.source_facts_hash as string,editorial_source_hash:row.editorial_source_hash as string};
+              for(const key of ['availability_checked_at','last_verified_at']){
+                if(row[key]===null){unchangedHistoricalTimes(row,old,[key]);continue;}
+                const column=def.columns.find(c=>c.name===key);if(!column||typeof row[key]!=='string'||!row[key].endsWith('Z'))refuse();
+                after[key]=scalar(column,row[key],old[key]);
+              }
+              if(canonicalJson(after)!==canonicalJson(old))heldControls++;}
           }else{
             if(!Number.isSafeInteger(maintained.version)||Number(maintained.version)<1)refuse();
             const semantic=maintenanceState({...row,maintenance_semantic:maintained.semantic_json});
@@ -256,6 +274,7 @@ export function prepareRollbackPacket(archive:Archive,manifest:Manifest,input:Fr
         'For D1-native runs, PG-only created_at maps to recorded started_at; no distinct D1 creation timestamp is claimed.',
         'New explicit UTC instants map to UTC wall times in legacy naive PG columns; original historical wall times remain unchanged.',
         'New PG-only product counters initialize to zero; existing counters/category/last-click state remain unchanged.',
+        ...(heldControls?[`${heldControls} exact owned-import baseline held products retain inactive/source-hash controls and explicit current D1 verification instants. Source-only fields/native bytes and original creation/update wall times remain archived values; no replacement merchant facts, old-source timezone or new observation is inferred.`]:[]),
         ...(sequenceProof?['Checksum/receipt-proven imported legacy item sequences return to their original PG values; colliding D1-native additions receive explicit unused PG sequences. Exact D1 sequence values remain in the original sidecar.']:[])]};
 }
 async function privateJson(path:string,expected:string,maxBytes=128*1024*1024):Promise<{bytes:Buffer;data:unknown}>{
