@@ -21,6 +21,13 @@ context: **what we've done, and where we're going.**
 
 ## Upcoming / planned
 
+- [owner+codex] Restore the existing catalog's images and descriptions faithfully.
+  Owner permission is confirmed; all 2,359 public image URLs and blurbs are now
+  prepared locally from the preserved dataset. No regenerated copy, product
+  deletion, supplier refetch or paid upgrade. Rendering/guarded-install tests,
+  Free-capacity admission and a verified Cloudflare publication remain before
+  calling this shipped. Daily publishing remains separate and gated.
+
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 

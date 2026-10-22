@@ -266,7 +266,7 @@ test('body-free full revision hydrates exact pending vector journal only; wrong 
   assert.equal(f.calls(),sent);assert.equal(f.sql.prepare('SELECT external_pending FROM catalog_mutation_scopes').get().external_pending,1);
 });
 test('only explicit nonmerchant exact persistent grants admit new D1 bases; supplier and malformed grants stay held',async t=>{
-  for(const fault of ['merchant','missing','image','expires','weak']){
+  for(const fault of ['merchant','missing','unsafe-image','expires','weak']){
     const f=await setup(t,{initial:0,permanent:1,preservePermanentListings:true});
     const p=product(5000,{embedding:null,...(fault==='weak'?{qualityScore:.3,isActive:false}:{})});
     f.setIntent(p=>{
@@ -274,7 +274,7 @@ test('only explicit nonmerchant exact persistent grants admit new D1 bases; supp
       const persistent=Object.fromEntries(Object.entries(fields).map(([key,value])=>[key,{basis:'owned',reference:'explicit exact grant',value}]));
       if(fault==='merchant')persistent.title.basis='merchant';
       if(fault==='missing')delete persistent.description;
-      if(fault==='image')persistent.imageUrl.value=p.imageUrl;
+      if(fault==='unsafe-image')persistent.imageUrl.value='http://supplier.invalid/unsafe-photo.jpg';
       if(fault==='expires')persistent.title.expiresAt=at(24*3600000);
       return{rightsById:{[p.id]:{...rights(p),persistent}},reviewedDeleteReference:'test-only/delete'};
     });

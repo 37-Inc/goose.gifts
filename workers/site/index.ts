@@ -1,5 +1,5 @@
 import type { CatalogAssetRoute, CatalogSnapshot, SiteAssetManifest } from '../../lib/catalog/types.ts';
-import { catalogDeadline, resolvePublicProduct } from '../../lib/catalog/display.ts';
+import { catalogDeadline, persistentPublicProduct, resolvePublicProduct } from '../../lib/catalog/display.ts';
 import type { SearchAdapters, SemanticBudgetScope, SiteEnv } from './bindings.ts';
 import { prepareStaticFeed } from './feed.ts';
 import { createSearchHandler, json, sha256 } from './search.ts';
@@ -122,6 +122,10 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
 }) {
   const now = options.now || Date.now;
   const { manifest, snapshot } = options;
+  const clearedImages = new Set(snapshot.products.flatMap(product => {
+    const base = persistentPublicProduct(product);
+    return base?.imageUrl.startsWith('/') && Object.hasOwn(manifest.checksums ?? {}, base.imageUrl) ? [base.imageUrl] : [];
+  }));
   if (manifest.catalogRevision !== snapshot.catalogRevision) throw new Error('release_revision_mismatch');
   const routes = new Map(Object.entries(manifest.routes));
   const lastDirectoryPage = Math.max(1, ...[...routes.keys()].flatMap((path) => {
@@ -261,7 +265,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
             const knownPath = knownPage || routes.has(path) || directAssets.has(path) || safeAssets.has(path)
               || routes.has(decodedPath) || directAssets.has(decodedPath) || redirects.has(path)
               || ['/sitemap.xml', '/sitemap/0.xml', '/.well-known/catalog-release.json', '/api/search-products'].includes(path)
-              || PUBLIC_ASSET.test(path);
+              || PUBLIC_ASSET.test(path) || clearedImages.has(decodedPath);
             if (!knownPath || pagePath === '/gifts' && url.searchParams.has('page')
               && boundedDirectoryPage(url.searchParams.get('page')!, lastDirectoryPage) === null)
               return respond(json({ error: 'Not found' }, 404));
@@ -329,7 +333,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
           return respond(await asset(request, env, safeRoute, true));
         }
         // Unknown freshness-sensitive paths are real 404s, never asset/SPA fallback.
-        if (TIMED_ROUTE.test(path) || !PUBLIC_ASSET.test(path)) return respond(json({ error: 'Not found' }, 404));
+        if (TIMED_ROUTE.test(path) || !PUBLIC_ASSET.test(path) && !clearedImages.has(decodedPath)) return respond(json({ error: 'Not found' }, 404));
         const response = await env.ASSETS.fetch(request);
         return respond(response.status === 404 ? json({ error: 'Not found' }, 404) : response);
       } catch {

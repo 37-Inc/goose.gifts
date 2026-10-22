@@ -97,10 +97,10 @@ test('only substantive reviewed exact copy makes a persistent page indexable, no
   assert.equal(createPersistentCatalogProduct(base({ editorialStatus: 'manual_locked', editorialWriteup: editorial, editorialSourceHash: 'mismatch' }), now, true).indexable, false);
 });
 
-test('fallbacks reject altered identity, nested grants, remote images and sentinel dates', () => {
+test('fallbacks reject altered identity, nested grants, unsafe images and sentinel dates', () => {
   const { snapshot } = fresh(), p = JSON.parse(JSON.stringify(snapshot.products[0]));
   for (const patch of [{ id: 'wrong' }, { source: 'etsy' }, { slug: 'wrong' }, { currency: 'EUR' },
-    { eligibleUntil: '2999-01-01T00:00:00.000Z' }, { imageUrl: 'https://example.invalid/photo.svg' },
+    { eligibleUntil: '2999-01-01T00:00:00.000Z' }, { imageUrl: 'http://example.invalid/photo.svg' },
     { imageUrl: '/../private.svg' }, { persistent: {} }]) {
     assert.throws(() => validatePublicCatalogProduct({ ...p, persistent: { ...p.persistent, ...patch } }, now, true));
   }

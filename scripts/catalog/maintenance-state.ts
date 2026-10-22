@@ -179,12 +179,12 @@ export function maintenanceProjection(p: SemanticProduct, rights: ProductRights,
   let base=retainedBase(previous,p,rights,new Date(now));
   // D1-only positive approval. Root merchant grants/title are NEVER a fallback
   // authority. Every presented value is independently checked by the canonical
-  // persistent constructor; the only image allowed here is our existing SVG.
+  // persistent constructor, including owner-cleared existing imagery.
   if(!base&&allowApprovedBase&&rights.persistent){
     const permission=rights.persistent;
     try{
       const product={...input,title:permission.title?.value,description:permission.description?.value,
-        imageUrl:'/images/gift-placeholder.svg',affiliateUrl:permission.affiliateUrl?.value} as SnapshotProductInput;
+        imageUrl:permission.imageUrl?.value,affiliateUrl:permission.affiliateUrl?.value} as SnapshotProductInput;
       const display=createPersistentCatalogProduct({product,rights:permission},new Date(now));
       if(display)base={saved:display,display,rights:permission};
     }catch{ /* Supplied but invalid clearance remains held, never synthesized. */ }

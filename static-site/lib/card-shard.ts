@@ -1,6 +1,7 @@
 import type { PublicCatalogProduct } from "../../lib/catalog/types";
 import { isIllustrative } from "./selection";
 import { earliestCatalogExpiry } from "../../lib/catalog/display";
+import { isPersistentImagePath } from "../../lib/catalog/persistent-image";
 
 /** Rendering projection, not a second catalog/storage contract. */
 export type CatalogCard = Pick<
@@ -136,8 +137,7 @@ export function validateCardShard(
       typeof card.description !== "string" ||
       !card.description.trim() ||
       !imageUrl(card.imageUrl) ||
-      (card.eligibleUntil === null && (typeof card.imageUrl !== "string" || !/^\/(?!\/)[a-zA-Z0-9/_\-.]+\.svg$/.test(card.imageUrl)
-        || card.imageUrl.split("/").some(part => part === "." || part === ".."))) ||
+      (card.eligibleUntil === null && !isPersistentImagePath(card.imageUrl)) ||
       typeof card.illustrative !== "boolean" ||
       !(instant(card.eligibleUntil) > expected.now) ||
       ["punnyTitle", "wittyDescription"].some(

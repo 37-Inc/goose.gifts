@@ -52,6 +52,9 @@ function originalEditorialMatches(origin: AuthoredCopyProduct, current: Snapshot
 export function assemblePermanentBaseline(evidence: Evidence, current: SnapshotProductInput[], options: {
   expectedEvidenceSha256: string;
   approvedRightsById: Record<string, DisplayRights>;
+  /** Owner-authorized restoration of the existing dataset. Exact per-field
+   * grants must cite this reference; original supplier clocks stay unchanged. */
+  existingDisplayReference?: string;
   /** Optional exact archived NDJSON lines, needed only for long-copy proof. */
   editorialSourceRowsById?: Record<string, string>;
   placeholder: { path: string; bytes: Uint8Array; expectedSha256: string };
@@ -60,6 +63,8 @@ export function assemblePermanentBaseline(evidence: Evidence, current: SnapshotP
   if (!Number.isFinite(options.now.getTime()) || !HASH.test(options.expectedEvidenceSha256)
     || hash(canonicalJson(evidence)) !== options.expectedEvidenceSha256 || evidence.schemaVersion !== 1
     || evidence.counts.identities !== evidence.products.length) throw new Error('permanent_evidence_binding');
+  if (options.existingDisplayReference !== undefined && (!options.existingDisplayReference.trim()
+    || options.existingDisplayReference.length > 500)) throw new Error('permanent_restoration_reference');
   const asset = options.placeholder;
   if (!/^\/(?!\/)[a-zA-Z0-9/_\-.]+\.svg$/.test(asset.path) || asset.path.split('/').some(part => part === '.' || part === '..')
     || !HASH.test(asset.expectedSha256) || asset.bytes.byteLength > 64 * 1024 || hash(asset.bytes) !== asset.expectedSha256)
@@ -96,7 +101,22 @@ export function assemblePermanentBaseline(evidence: Evidence, current: SnapshotP
       title: title.value, description: title.value, imageUrl: asset.path, affiliateUrl: link.value, price: 0,
       isActive: row.isActive, qualityScore: row.qualityScore, editorialStatus: row.editorialStatus };
     const skipped: string[] = [];
-    for (const [target, candidate, actual] of [
+    if (options.existingDisplayReference) {
+      for (const [field, value] of Object.entries({ title: row.title, description: row.description || row.wittyDescription || row.title,
+        imageUrl: row.imageUrl, punnyTitle: row.punnyTitle, wittyDescription: row.wittyDescription })) {
+        if (typeof value !== 'string' || !value.trim()) continue;
+        const right = approved[field as keyof DisplayRights];
+        if (!right || right.value !== value || right.basis === 'merchant' || right.expiresAt
+          || !right.reference.includes(options.existingDisplayReference)) throw new Error('permanent_restoration_field');
+        Object.assign(product, { [field]: value });
+      }
+      if (row.humorTags?.length) {
+        const right = approved.humorTags;
+        if (!right || right.value !== JSON.stringify(row.humorTags) || right.basis === 'merchant' || right.expiresAt
+          || !right.reference.includes(options.existingDisplayReference)) throw new Error('permanent_restoration_field');
+        product.humorTags = [...row.humorTags];
+      }
+    } else for (const [target, candidate, actual] of [
       ['description', fields.description, row.description ?? row.wittyDescription],
       ['punnyTitle', fields.punnyTitle, row.punnyTitle],
       ['wittyDescription', fields.description, row.wittyDescription],
@@ -108,12 +128,16 @@ export function assemblePermanentBaseline(evidence: Evidence, current: SnapshotP
       else if (value) skipped.push(`${target}_not_selected_or_current`);
     }
     const article = checked(fields.editorialWriteup);
-    if (article?.kind === 'recorded_generation' && row.editorialWriteup === article.value
+    const restoredArticle = options.existingDisplayReference && row.editorialWriteup
+      && approved.editorialWriteup?.value === row.editorialWriteup && approved.editorialWriteup.basis !== 'merchant'
+      && !approved.editorialWriteup.expiresAt && approved.editorialWriteup.reference.includes(options.existingDisplayReference);
+    if ((restoredArticle || article?.kind === 'recorded_generation' && row.editorialWriteup === article.value
       && row.editorialModel === origin!.authoring.model && row.editorialPromptVersion === origin!.authoring.promptVersion
-      && originalEditorialMatches(origin!, row, options.editorialSourceRowsById?.[id])
+      && originalEditorialMatches(origin!, row, options.editorialSourceRowsById?.[id]))
       && hasReviewedGiftEditorial(row) && row.sourceFacts && row.sourceFactsHash === editorialSourceHash(row)
-      && validateEditorialDraft(row, article.value).approved && approved.editorialWriteup?.value === article.value) {
-      product.editorialWriteup = article.value;
+      && row.editorialWriteup && validateEditorialDraft(row, row.editorialWriteup).approved
+      && approved.editorialWriteup?.value === row.editorialWriteup) {
+      product.editorialWriteup = row.editorialWriteup;
       product.editorialQualityScore = row.editorialQualityScore;
       product.sourceFactsHash = row.sourceFactsHash; product.editorialSourceHash = row.editorialSourceHash;
     } else if (article) skipped.push('editorial_not_selected_or_current_factual_review_failed');
@@ -123,6 +147,7 @@ export function assemblePermanentBaseline(evidence: Evidence, current: SnapshotP
     for (const field of ['title', 'description', 'imageUrl', 'affiliateUrl', ...OPTIONAL] as const) {
       if (field in display) rights[field] = structuredClone(approved[field]!);
     }
+    if (display.humorTags) rights.humorTags = structuredClone(approved.humorTags!);
     for (const field of OPTIONAL) if (!(field in display)) delete product[field];
     if (publicProductRightsExpiry(display, rights, options.now) !== Infinity) throw new Error('permanent_grants_not_exact');
     if (!display.editorialWriteup) {

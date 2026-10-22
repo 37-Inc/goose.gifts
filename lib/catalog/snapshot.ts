@@ -1,4 +1,5 @@
 import { getGiftPath, hasIndexableGiftEditorial, hasReviewedGiftEditorial, hasSubstantiveGiftEditorial } from '../gift-slugs.ts';
+import { isPersistentImagePath } from './persistent-image.ts';
 import type { CatalogSnapshot, ContentRight, DisplayField, DisplayRights, HeldReason, ProductRights,
   PersistentCatalogProduct, PersistentProductInput, PublicCatalogProduct,
   SafeHeldProduct, SnapshotProductInput } from './types.ts';
@@ -115,8 +116,7 @@ export function validatePublicCatalogProduct(input: unknown, now: Date = new Dat
   if (!fixture && !retailerIdentityUrl(String(value.affiliateUrl), String(value.id), String(value.source))) fail('retailer identity');
   if ('indexable' in value && typeof value.indexable !== 'boolean') fail('indexability');
   if (value.eligibleUntil === null) {
-    if (typeof value.indexable !== 'boolean' || !/^\/(?!\/)[a-zA-Z0-9/_\-.]+\.svg$/.test(String(value.imageUrl))
-      || String(value.imageUrl).split('/').some(part => part === '..' || part === '.')
+    if (typeof value.indexable !== 'boolean' || !isPersistentImagePath(value.imageUrl)
       || 'persistent' in value) fail('persistent display');
     if (value.indexable && !hasSubstantiveGiftEditorial(value.editorialWriteup as string | undefined)) fail('persistent editorial');
   } else canonicalTime(value.eligibleUntil);

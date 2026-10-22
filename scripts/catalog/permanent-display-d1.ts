@@ -83,7 +83,20 @@ export function validatePermanentRuntimeTransition(before:Record<string,Row[]>,a
   }
 }
 function verifyUnion(input:StoredInput){
-  const {capture,owner,union}=input,expected=expectedOwnedOperationalImportRows(union.plan,union.sha256);
+  const {capture,owner,union}=input;
+  // A follow-up display restoration starts from a fresh cooperative capture
+  // of the already published catalog, not a replay of its consumed import.
+  if(input.priorPublication){
+    const p=input.priorPublication,receipts=capture.tables.publication_receipts,
+      rows=receipts.filter(row=>row.release_id===p.releaseId),latest=[...receipts].sort((a,b)=>String(b.completed_at).localeCompare(String(a.completed_at)))[0];
+    if(union||input.controlMigration||!input.assembler.existingDisplayReference
+      ||!same(Object.keys(p).sort(),['receiptSha256','releaseId'])||!HASH.test(p.receiptSha256)
+      ||rows.length!==1||latest?.release_id!==p.releaseId||sha256(canonicalJson(rows[0]))!==p.receiptSha256
+      ||owner.phase!=='writing'||String(rows[0].completed_at)>owner.capturedAt)refuse('prior_publication');
+    return;
+  }
+  if(!union)refuse('union');
+  const expected=expectedOwnedOperationalImportRows(union.plan,union.sha256);
   if(input.controlMigration){
     const m=input.controlMigration,old=expected.sqlite_sequence.filter(r=>r.name==='d1_migrations'),
       current=capture.tables.sqlite_sequence.filter(r=>r.name==='d1_migrations');
@@ -111,7 +124,9 @@ function verifyUnion(input:StoredInput){
 }
 interface StoredInput {
   capture:FrozenD1RecoveryInput;captureSha256:string;owner:MutationOwner;
-  union:{plan:OwnedOperationalImportPlan;sha256:string};
+  union?:{plan:OwnedOperationalImportPlan;sha256:string};
+  /** Exact latest receipt-row digest from the fresh owned capture. */
+  priorPublication?:{releaseId:string;receiptSha256:string};
   controlMigration?:PermanentControlMigration;
   evidence:Parameters<typeof assemblePermanentBaseline>[0];
   assembler:Omit<AssemblerOptions,'now'|'placeholder'>&{now:string;placeholder:{path:string;bytesBase64:string;expectedSha256:string}};
@@ -233,7 +248,7 @@ export async function applyPermanentDisplayPlan(options:{db:CatalogD1;plan:Perma
   const final=await inspect(db,plan,planSha256,ownerCursor.current);await validate(final.owner);
   if((await db.prepare('PRAGMA foreign_key_check').all()).results.length)refuse('foreign_key');
   return{state:'reconciled' as const,owner:final.owner,planSha256,approvedProposalSha256:plan.input.approvedProposal.sha256,
-    cooperativeReceiptSha256:proof.sha256,sourceManifestSha256:plan.input.union.plan.sourceManifestSha256,
+    cooperativeReceiptSha256:proof.sha256,sourceManifestSha256:plan.input.evidence.manifestSha256,
     changedProducts:plan.batches.reduce((n,b)=>n+b.length,0),tables:D1_RECOVERY_TABLES.map(table=>({table,rows:final.rows[table].length,sha256:digest(final.rows[table])})),
     barrierVerified:false as const,publicationEmitted:false as const,vectorWorkEmitted:0};
 }
