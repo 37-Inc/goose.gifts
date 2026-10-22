@@ -81,7 +81,7 @@ export default async function Guide({
               this guide with unrelated gifts.
             </p>
             <a className="text-action" href="/gifts">
-              Browse the collection →
+              Browse the collection
             </a>
           </div>
         )}
@@ -109,7 +109,7 @@ export default async function Guide({
                     key={link.slug}
                     href={`/gift-guides/${link.slug}`}
                   >
-                    {link.label} →
+                    {link.label}
                   </a>
                 ))}
               </article>
@@ -133,7 +133,7 @@ export default async function Guide({
         <div className="related-guide-links">
           {relatedGuides(guide).map((item) => (
             <a key={item.slug} href={`/gift-guides/${item.slug}`}>
-              {item.title} →
+              {item.title}
             </a>
           ))}
         </div>

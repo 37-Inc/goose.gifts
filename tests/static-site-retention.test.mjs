@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-import { createBrowseRelease } from "../static-site/lib/browse.ts";
+import { createBrowseRelease, INITIAL_BROWSE_COUNT } from "../static-site/lib/browse.ts";
 import { validateCardShard } from "../static-site/lib/card-shard.ts";
 import { assetSha256, retainStaticAssets, RETENTION_OVERLAP_MS } from "../static-site/lib/retention.ts";
 
@@ -76,7 +76,7 @@ test("two releases retain exact old-client shard chains and only sealed owned bu
     count += shard.products.length;
     next = shard.next;
   }
-  assert.equal(count, 48);
+  assert.equal(count, snapshot().products.length - INITIAL_BROWSE_COUNT);
   for (const path of ["/_next/static/chunks/old-a1b2.js", "/_next/static/css/old-c3d4.css", "/_next/static/media/font-a1b2.woff2"])
     assert.deepEqual(retained.files.get(path), prior.assets.get(path));
   assert.equal(retained.files.has("/index.html"), false);
@@ -102,9 +102,9 @@ test("retention deadline survives release chains and drops at the original bound
 test("held, changed or retired products never survive in historical shard bytes", () => {
   const prior = release(snapshot());
   for (const mutate of [
-    (s) => s.products.splice(15, 1),
-    (s) => { s.products[15].title = "New approved display copy"; },
-    (s) => { const p = s.products.splice(15, 1)[0]; s.heldProducts.push({ id: p.id, publicId: p.publicId,
+    (s) => s.products.splice(INITIAL_BROWSE_COUNT + 3, 1),
+    (s) => { s.products[INITIAL_BROWSE_COUNT + 3].title = "New approved display copy"; },
+    (s) => { const p = s.products.splice(INITIAL_BROWSE_COUNT + 3, 1)[0]; s.heldProducts.push({ id: p.id, publicId: p.publicId,
       slug: p.slug, path: `/gifts/${p.slug}`, title: "Gift currently unavailable",
       description: "This gift is not currently available in the curated catalog. Browse other gifts instead.", reason: "editorial_hold" }); },
   ]) {
@@ -120,11 +120,11 @@ test("held, changed or retired products never survive in historical shard bytes"
   }
 });
 test("original and current rights cap overlap; expiry never copies stale merchant bytes", () => {
-  const old = snapshot(); old.products[15].eligibleUntil = iso(3);
+  const old = snapshot(); old.products[INITIAL_BROWSE_COUNT + 3].eligibleUntil = iso(3);
   const prior = release(old);
   const renewed = run(prior);
   assert.equal(renewed.routes[prior.browse.shards[0].path].eligibleUntil, iso(3));
-  const shortened = snapshot("two"); shortened.products[15].eligibleUntil = iso(1);
+  const shortened = snapshot("two"); shortened.products[INITIAL_BROWSE_COUNT + 3].eligibleUntil = iso(1);
   assert.equal(run(prior, shortened).routes[prior.browse.shards[0].path].eligibleUntil, iso(1));
   const expired = run(prior, snapshot("two", iso(4)), iso(5));
   assert.equal(expired.files.has(prior.browse.shards[0].path), false);

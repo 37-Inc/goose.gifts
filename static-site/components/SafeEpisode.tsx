@@ -9,6 +9,6 @@ export function SafeEpisode({ episode }: { episode: DisplayEpisode }) {
       <p>The original selection record is preserved. Product content is being checked; no expired offers or images are displayed.</p>
     </div>
     <EpisodeContent episode={unavailableEpisode(episode)} />
-    <a className="text-action" href="/howie">Latest episode selections →</a>
+    <a className="text-action" href="/howie">Latest episode selections</a>
   </main>;
 }

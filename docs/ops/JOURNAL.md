@@ -5,6 +5,56 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 — Preserve the full catalog; simplify home and retire Index
+
+Owner objects to “expired gifts” removal and confirms the eight-product site is
+not the completed migration. Read-only persisted-evidence audit (not a fresh DB
+recount) found staging retained all3,383 identities/history, while the production
+launch import contains only10private products/8visible/2held. Four expiry-driven
+Vectorize deletions were **staging only**, with private identities preserved.
+The earlier27local removals reconcile as26registered supplier-response objects
+plus one publication package from the expired staging run, not catalog rows.
+Do not run further live pruning/deactivation/index deletion by elapsed time.
+The existing daily task was updated in place with this correction; same ID,
+cadence, status and target chat read back unchanged. Writer still gated.
+
+New canonical child `roadmap-lbbz1.3.2` requires complete production baseline/
+delta import, count/hash/history reconciliation and real recovery. It explicitly
+separates persistent cleared editorial/identity/retailer links from time-limited
+supplier photos/text/offers. Unknown availability should invite a retailer
+check, not erase a gift. The existing35day/field-minimum `eligibleUntil` coupling
+remains an implementation gap; these UI changes do not bypass supplier rights,
+renew timestamps, refetch/regenerate thousands of products or raise a plan.
+
+Homepage/UI child `.5.1`: exact “Stupid gifts. Excellent taste.” heading, fewer
+decorative phrases, no repeated Collection card labels or duplicate nav tab,
+24initial gifts followed by24item static shards, and meaningful consistent SVG
+glyphs for all43guides. Unicode action arrows are removed, with quiet SVG guide
+chevrons. A failed Load more retains already loaded cards and allows retry.
+Submit-based search remains because existing semantic queries can create paid
+embedding calls; no automatic per-keystroke requests added.
+
+Privacy child `.5.2`: both Index implementations/data/schema/citation code and
+links removed, sitemap/cache fixtures updated, Worker/preview return real404
+for the retired family even with stale manifest files. Public source/asset tests
+have no personal-name byline exception. Independent review caught an old-chunk
+retention leak; final package assembly/verification now rejects personal identity
+in current or retained bytes. An explicit no-retention release is supported.
+Review also corrected text-sized presentation controls. Desktop and390px
+loopback previews have no horizontal overflow. Illustrative fixtures are labeled
+and not public catalog evidence.
+
+Static109route export, static/Worker/staging types and lint passed. The initial
+legacy build refused missing DB configuration; its later scoped local-only build
+using the retained protected Postgres configuration passed. No Vercel deployment
+was requested; deployment7243048336 remains the last recorded legacy release.
+Full staging checks and larger export verification are recorded with the PR.
+Source integration is not Cloudflare publication. The live994release and frozen
+old Goose Index still require actual serving-layer removal/readback; do not
+close either UI/privacy child on local source tests alone. Full catalog `.3.2`
+and writer `.4` remain unfinished. Earlier unmerged publishing/retention/plan
+patches are preserved in their isolated leaves, not mixed into this cleanup.
+
 ## 2026-10-22 04:06 UTC — Owner-attended Keychain verification passed
 
 Cameron explicitly asked to prompt again and approved the existing catalog

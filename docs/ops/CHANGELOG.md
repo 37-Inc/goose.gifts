@@ -24,6 +24,20 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **Owner correction — finish the full catalog, preserve products:** eight
+  visible gifts is only the launch slice. `roadmap-lbbz1.3.2` requires actual
+  source/production reconciliation, persistent original catalog fields and
+  compliant supplier-field fallbacks rather than expiry-driven product removal.
+  Live pruning/deactivation/index deletion is paused; the existing daily task
+  now records that prohibition. Preserve all IDs, slugs, native vectors and
+  history. Bulk migration is separate from the ten/day refresh allowance.
+- **Homepage/privacy cleanup in implementation:** `roadmap-lbbz1.5.1/.5.2`
+  cover the approved “Stupid gifts. Excellent taste.” heading, removal of
+  repeated Collection labels/tab, static 24+24 browse batches, SVG guide glyphs,
+  complete Weird Gift Index retirement and no public personal-name bylines.
+  Submit-based search stays until a cost-bounded alternative is justified.
+  Code integration and Cloudflare publication are separate evidence gates.
+
 - **Cloudflare release path:** Vercel Git deployment is frozen and its existing
   Goose deployment retained only as rollback. Cloudflare still serves source
   `9943718`; publish the current reviewed code there through the normal receipt/

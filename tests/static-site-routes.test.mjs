@@ -15,10 +15,6 @@ import {
   directoryPath,
   directoryPage,
 } from "../static-site/lib/directory.ts";
-import {
-  buildSnapshotIndex,
-  snapshotIndexSchema,
-} from "../static-site/lib/weird-index.ts";
 
 const generatedAt = "2026-10-20T00:00:00.000Z";
 const until = "2026-10-21T00:00:00.000Z";
@@ -161,38 +157,13 @@ test("guide schema lists exactly the rendered products and only explicit visible
     Boolean(guide.faqs?.length),
   );
 });
-test("Weird Index is aggregate-only and explicitly a bounded sample with unknown prices", () => {
-  const input = snapshot([
-    product("cat", "Funny Cat Coffee Mug"),
-    product("office", "Office Prank Button"),
-  ]);
-  const index = buildSnapshotIndex(input);
-  assert.equal(index.totalProducts, 2);
-  assert.equal(index.knownPriceCount, 0);
-  assert.equal(index.motifs.find((m) => m.id === "animals").count, 1);
-  assert.equal(index.scope, "snapshot_sample");
-  assert.equal(index.generatedAt, generatedAt);
-  assert.match(index.methodology.inclusion, /snapshot/);
-  assert.match(index.methodology.priceLimitation, /not measured/);
-  assert.doesNotMatch(
-    JSON.stringify(index),
-    /Funny Cat Coffee Mug|\/owned.svg|example.invalid|held-secret|affiliateUrl|sourceFacts/,
-  );
-  const schema = snapshotIndexSchema(index);
-  assert.equal(
-    schema["@graph"].find((s) => s["@type"] === "Dataset").distribution
-      .contentUrl,
-    `${siteIdentity.origin}/weird-gift-index/data`,
-  );
-  assert.doesNotMatch(JSON.stringify(schema), /3,000|Offer|priceCurrency/);
-});
 test("JSON-LD escapes script delimiters without changing its parsed values", () => {
   const data = { title: '</script><img src=x onerror="bad()">', text: "a < b" };
   const encoded = serializeJsonLd(data);
   assert.equal(encoded.includes("<"), false);
   assert.deepEqual(JSON.parse(encoded), data);
 });
-test("finite multipage routes and aggregate JSON inherit complete snapshot expiry", () => {
+test("finite multipage routes and browse JSON inherit complete snapshot expiry", () => {
   const input = snapshot(
     Array.from({ length: 49 }, (_, i) =>
       product(
@@ -206,8 +177,6 @@ test("finite multipage routes and aggregate JSON inherit complete snapshot expir
   const paths = [
     "/index.html",
     "/random-gift.html",
-    "/weird-gift-index.html",
-    "/weird-gift-index/data.json",
     "/gift-guides.html",
     "/howie.html",
     "/preview/presentation.html",
@@ -221,7 +190,6 @@ test("finite multipage routes and aggregate JSON inherit complete snapshot expir
     "/safe/howie.html", "/safe/howie.txt", "/safe/presentation.html", "/safe/presentation.txt",
     "/safe/catalog.txt",
     "/safe/product.html",
-    "/safe/index.json",
     "/safe/catalog.json",
     ...createBrowseRelease(input).shards.map((shard) => shard.path),
     ...createOgRelease(input, siteIdentity).byPath.keys(),
@@ -238,17 +206,9 @@ test("finite multipage routes and aggregate JSON inherit complete snapshot expir
     routes["/gifts/page/2/__next.__PAGE__.txt"].safeAssetPath,
     "/safe/catalog.txt",
   );
-  assert.equal(
-    routes["/weird-gift-index/data"].assetPath,
-    "/weird-gift-index/data.json",
-  );
-  assert.equal(
-    routes["/weird-gift-index/data.json"].safeAssetPath,
-    "/safe/index.json",
-  );
-  assert.equal(
-    routes["/weird-gift-index/data"].eligibleUntil,
-    "2026-10-20T12:00:00.000Z",
-  );
+  assert.equal(routes["/random-gift"].eligibleUntil,
+    "2026-10-20T12:00:00.000Z");
+  assert.equal(routes["/weird-gift-index"], undefined);
+  assert.throws(() => createStaticRoutes(input, [...paths, "/weird-gift-index.html"]), /no freshness policy/);
   assert.equal(routes["/gifts/page/4"], undefined);
 });

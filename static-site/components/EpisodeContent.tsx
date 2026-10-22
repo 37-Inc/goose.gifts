@@ -23,7 +23,7 @@ function Product({ product, context, caption, position }: {
         <p>{caption}</p>
         <a className="button" data-analytics-outbound="" href={product.affiliateUrl}
           target="_blank" rel="sponsored noopener noreferrer">
-          Check price on {product.source === "amazon" ? "Amazon" : "Etsy"} ↗
+          Check price on {product.source === "amazon" ? "Amazon" : "Etsy"}
         </a>
       </div>
     </article>
@@ -80,7 +80,7 @@ export function EpisodeArchive({ episodes, current }: { episodes: DisplayEpisode
       <h2>{current === episodes[0]?.key ? "Previous selections." : "Other episode selections."}</h2>
       <ul>{previous.map((episode) => (
         <li key={episode.key}><a href={episodePath(episode.key)}>
-          <time dateTime={episode.episodeDate!}>{episode.episodeDate}</time> {episode.title} ↗
+          <time dateTime={episode.episodeDate!}>{episode.episodeDate}</time> {episode.title}
         </a></li>
       ))}</ul>
     </section>

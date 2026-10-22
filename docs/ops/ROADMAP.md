@@ -2,6 +2,17 @@
 
 ## Current priority as of October 19 2026
 
+October22 owner correction: complete the full catalog migration, preserving
+all identities/editorial/history independently of supplier refresh clocks.
+Eight public launch gifts is not a finished migration. Pause expiry-driven
+catalog pruning; implement field-level supplier-data fallbacks instead of
+deleting/deactivating products (`roadmap-lbbz1.3.2`). Simplify the homepage to
+“Stupid gifts. Excellent taste.” with full-catalog static Load more browsing,
+remove redundant Collection labels/navigation and use meaningful guide glyphs
+(`roadmap-lbbz1.5.1`). Retire Weird Gift Index and remove all public personal-name
+attribution (`roadmap-lbbz1.5.2`). Full data reconciliation and broad useful
+catalog availability take priority over more discovery or new features.
+
 Cameron has prioritized the weekly Howie Mandel Does Stuff opportunity and
 requested the Stupid Gifts launch specification and domain registration.
 The current plan is [Stupid Gifts launch and infrastructure](STUPID_GIFTS_LAUNCH_SPEC.md),

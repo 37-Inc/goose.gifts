@@ -113,7 +113,7 @@ export function RandomSelection({
           <h2>The selection needs a fresh look.</h2>
           <p>
             Choices are unavailable or need a freshness review.{" "}
-            <a href="/gifts">Browse the latest collection →</a>
+            <a href="/">Browse gifts</a>
           </p>
         </div>
       )}

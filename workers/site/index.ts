@@ -14,8 +14,8 @@ export interface SiteReleaseIdentity {
 }
 
 const MAX_FEED_BODY = 64_000;
-const TIMED_ROUTE = /^(?:\/$|\/gifts(?:\/|$)|\/gift-guides(?:\/|$)|\/howie(?:\/|$)|\/random-gift(?:[/.]|$)|\/weird-gift-index(?:[/.]|$)|\/catalog(?:[/.]|$)|\/data(?:\/|$)|\/sitemap(?:[/.]|$))/;
-const RETIRED_ROUTE = /^\/(?:admin|auth|login|report|reports|bundles)(?:\/|$)|^\/api\/(?:admin|auth|og|generate-bundle)(?:\/|$)/;
+const TIMED_ROUTE = /^(?:\/$|\/gifts(?:\/|$)|\/gift-guides(?:\/|$)|\/howie(?:\/|$)|\/random-gift(?:[/.]|$)|\/catalog(?:[/.]|$)|\/data(?:\/|$)|\/sitemap(?:[/.]|$))/;
+const RETIRED_ROUTE = /^\/(?:admin|auth|login|report|reports|bundles)(?:\/|$)|^\/weird-gift-index(?:[/.]|$)|^\/safe\/index\.json$|^\/api\/(?:admin|auth|og|generate-bundle)(?:\/|$)/;
 const PUBLIC_ASSET = /^(?:\/_next\/static\/|\/fonts\/|\/brand\/|\/illustrations\/)|^\/(?:favicon\.ico|robots\.txt|[a-zA-Z0-9_-]+\.(?:png|webp|svg|jpg|jpeg|woff2?|ttf)|google[a-z0-9]+\.html|BingSiteAuth\.xml)$/;
 
 function expiry(route: CatalogAssetRoute): number {
@@ -183,7 +183,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
     const origin = options.canonicalOrigin || new URL(request.url).origin;
     const entries = [...routes.entries()].filter(([path, route]) => (
       route.state === 'ready' && route.indexable !== false && expiry(route) > now()
-      && !path.includes('.') && !path.startsWith('/data/') && path !== '/weird-gift-index/data'
+      && !path.includes('.') && !path.startsWith('/data/') && !RETIRED_ROUTE.test(path)
       && !path.startsWith('/catalog/') && !path.startsWith('/_') && (path === '/' || !path.endsWith('/'))
     ));
     const deadlines = entries.map(([, route]) => expiry(route));
@@ -228,6 +228,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         let decodedPath: string;
         try { decodedPath = decodeURIComponent(path); }
         catch { return respond(json({ error: 'Not found' }, 404)); }
+        if (RETIRED_ROUTE.test(decodedPath)) return respond(json({ error: 'Not found' }, 404));
         if (env.ENVIRONMENT === 'production' && productionHost) {
           if (![productionHost, productionAlias].includes(url.host)) return respond(json({ error: 'Not found' }, 404));
           if (url.origin !== productionOrigin) {

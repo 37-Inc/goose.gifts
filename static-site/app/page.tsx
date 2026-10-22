@@ -4,9 +4,11 @@ import { isSitePreview, siteIdentity } from "../lib/site-identity";
 import { ProductCard } from "../components/ProductCard";
 import { Search } from "../components/Search";
 import { CatalogFeed } from "../components/CatalogFeed";
+import { GuideIcon } from "../components/GuideIcon";
+import { Icon } from "../components/Icon";
 import SafeCatalog from "./safe/catalog/page";
 
-export const metadata = previewMetadata("Ridiculous gifts. Excellent taste.",
+export const metadata = previewMetadata("Stupid gifts. Excellent taste.",
   isSitePreview || isFixtureRelease ? "An isolated static preview, not a public launch."
     : `${siteIdentity.name}: ${siteIdentity.tagline}`, "/",
   { indexable: browse.opening.length > 0, fixture: isFixtureRelease });
@@ -17,11 +19,8 @@ export default function Home() {
     <main id="main" className="site-main">
       <div className="opening-line">
         <h1>
-          Ridiculous gifts. <span>Excellent taste.</span>
+          Stupid gifts. <span>Excellent taste.</span>
         </h1>
-        <span className="quiet desktop-note">
-          A well-considered collection of bad ideas.
-        </span>
       </div>
       <div className="opening-grid">
         {browse.opening.map((product, index) => (
@@ -37,20 +36,20 @@ export default function Home() {
       />
       <section className="section-block">
         <div className="section-heading">
-          <h2>For a particular kind of person.</h2>
+          <h2>Gift guides</h2>
           <a className="text-action" href="/gift-guides">
-            All gift guides ↗
+            All guides
           </a>
         </div>
         <div className="guide-links">
           <a href="/gift-guides/white-elephant-gifts">
-            <span>01</span> The gift exchange <span>↗</span>
+            <GuideIcon slug="white-elephant-gifts" /> The gift exchange <Icon name="chevron" />
           </a>
           <a href="/gift-guides/funny-gifts-for-coworkers">
-            <span>02</span> The office <span>↗</span>
+            <GuideIcon slug="funny-gifts-for-coworkers" /> The office <Icon name="chevron" />
           </a>
           <a href="/random-gift">
-            <span>03</span> Leave it to chance <span>↗</span>
+            <Icon name="dice" className="guide-icon" /> Surprise me <Icon name="chevron" />
           </a>
         </div>
       </section>

@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { PUBLIC_CONTACT_EMAIL } from '../lib/site.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const publicSourceRoots = ['app', 'components', 'lib', 'public'];
-const textExtensions = new Set(['.cjs', '.html', '.js', '.json', '.jsx', '.mjs', '.ts', '.tsx', '.txt']);
+const publicSourceRoots = ['app', 'components', 'lib', 'public', 'static-site/app', 'static-site/components', 'static-site/lib', 'static-site/public', 'workers'];
+const textExtensions = new Set(['.cjs', '.css', '.html', '.js', '.json', '.jsx', '.mjs', '.svg', '.ts', '.tsx', '.txt']);
 
 function textFiles(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -18,7 +18,7 @@ function textFiles(directory) {
   });
 }
 
-test('Goose public surfaces use the product contact instead of a personal address', () => {
+test('public surfaces use the product contact instead of a personal address', () => {
   assert.equal(PUBLIC_CONTACT_EMAIL, 'goosegifts@37.technology');
 
   const forbiddenAddresses = /\b(?:cam|cameron)@37\.technology\b/gi;
@@ -32,21 +32,21 @@ test('Goose public surfaces use the product contact instead of a personal addres
   assert.deepEqual(leaks, []);
 });
 
-test('named authorship is limited to intentional Weird Gift Index attribution', () => {
+test('public source surfaces contain no personal owner name or byline exceptions', () => {
   const filesWithOwnerName = publicSourceRoots.flatMap((sourceRoot) =>
     textFiles(path.join(root, sourceRoot)).filter((file) =>
-      fs.readFileSync(file, 'utf8').includes('Cameron Ehrlich'),
+      /\b(?:cameron|ehrlich|cameronehrlich)\b/i.test(fs.readFileSync(file, 'utf8')),
     ),
   );
 
-  assert.deepEqual(
-    filesWithOwnerName.map((file) => path.relative(root, file)),
-    ['app/weird-gift-index/page.tsx'],
-  );
+  assert.deepEqual(filesWithOwnerName.map((file) => path.relative(root, file)), []);
+});
 
-  const indexPage = fs.readFileSync(path.join(root, 'app/weird-gift-index/page.tsx'), 'utf8');
-  assert.match(indexPage, /author:\s*\{\s*'@type': 'Person',\s*name: 'Cameron Ehrlich'/);
-  assert.match(indexPage, /<span>By Cameron Ehrlich<\/span>/);
-  assert.match(indexPage, /Ehrlich, Cameron\. “The Weird Gift Index/);
-  assert.match(indexPage, /goose\.gifts is owned and operated by Thirty Seven, Inc\./);
+test('built public assets contain no personal owner identity, including retained chunks', {
+  skip: !fs.existsSync(path.join(root, 'static-site/out/index.html')),
+}, () => {
+  const leaks = textFiles(path.join(root, 'static-site/out')).filter((file) =>
+    /\b(?:cameron|ehrlich|cameronehrlich)\b|\b(?:cam|cameron)@37\.technology\b/i.test(fs.readFileSync(file, 'utf8')),
+  );
+  assert.deepEqual(leaks.map((file) => path.relative(root, file)), []);
 });

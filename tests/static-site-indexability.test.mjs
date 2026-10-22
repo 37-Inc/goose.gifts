@@ -32,7 +32,7 @@ const script = `
   const pages={
     home:await import('./static-site/app/page.tsx'), catalog:await import('./static-site/app/gifts/page.tsx'),
     hub:await import('./static-site/app/gift-guides/page.tsx'), random:await import('./static-site/app/random-gift/page.tsx'),
-    index:await import('./static-site/app/weird-gift-index/page.tsx'), howie:await import('./static-site/app/howie/page.tsx'),
+    howie:await import('./static-site/app/howie/page.tsx'),
     privacy:await import('./static-site/app/privacy/page.tsx'), presentation:await import('./static-site/app/preview/presentation/page.tsx')
   };
   const flags=Object.fromEntries(Object.entries(pages).map(([key,value])=>[key,value.metadata.robots.index]));
@@ -63,14 +63,10 @@ const script = `
   flags.episodePresentation=await get(presentation,{episode:'controlled-archive'});
   const {default:robots}=await import('./static-site/app/robots.ts');
   const {siteIdentity}=await import('./static-site/lib/site-identity.ts');
-  const {catalog}=await import('./static-site/lib/catalog.ts');
   const {guides,guideSchema}=await import('./static-site/lib/guides.ts');
-  const {buildSnapshotIndex}=await import('./static-site/lib/weird-index.ts');
   console.log(JSON.stringify({flags,productParams,rejectedProducts,safeProductMetadata:safeProduct.metadata,
     robots:robots(),origin:siteIdentity.origin,
     guideWebsite:guideSchema(guides[0],[])['@graph'][0].isPartOf,
-    indexCitation:buildSnapshotIndex(catalog).citation,
-    indexHtml:renderToStaticMarkup(React.createElement(pages.index.default)),
     descriptions:[pages.catalog.metadata.description,pages.random.metadata.description,pages.hub.metadata.description],
     emptyGuide:renderToStaticMarkup(await guide.default({params:Promise.resolve({slug:'office-prank-gifts'})})),
     privacy:renderToStaticMarkup(React.createElement(pages.privacy.default))}));
@@ -101,9 +97,7 @@ test("eligible maintained routes index only in explicit production; held/thin/du
     const name = mode === "goose-production" ? "Goose Gifts" : "Stupid Gifts";
     assert.equal(output.guideWebsite.name, name);
     assert.equal(output.guideWebsite.url, output.origin);
-    assert.ok(output.indexCitation.includes(` ${name}, methodology edition `));
-    assert.ok(output.indexHtml.includes(`${name} is operated by Thirty Seven Inc.`));
-    for (const key of ["home", "catalog", "hub", "random", "index", "privacy", "ready", "matchingGuide", "page2"])
+    for (const key of ["home", "catalog", "hub", "random", "privacy", "ready", "matchingGuide", "page2"])
       assert.equal(output.flags[key], publicMode, `${mode}/${key}`);
     for (const key of ["held", "thinGuide", "page1", "howie", "presentation", "episode", "episodePresentation"])
       assert.equal(output.flags[key], false, `${mode}/${key}`);
@@ -129,7 +123,7 @@ test("production-mode fixtures remain entirely noindex/blocked; zero-ready catal
   assert.equal(fixture.robots.rules.disallow, "/");
   assert.match(fixture.privacy, /Preview privacy/);
   const empty = inspect("stupid-production", controlledSnapshot("catalog", true));
-  for (const key of ["home", "catalog", "random", "index", "ready", "matchingGuide", "page2"])
+  for (const key of ["home", "catalog", "random", "ready", "matchingGuide", "page2"])
     assert.equal(empty.flags[key], false, key);
   assert.equal(empty.flags.privacy, true); assert.equal(empty.flags.hub, true);
 });

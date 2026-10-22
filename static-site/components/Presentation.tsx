@@ -109,7 +109,7 @@ export function Presentation({
             <>
               <p className="variant">Original exact variant: {slot.exactVariant}</p>
               <a className="text-action" data-analytics-product-link="" href={`/gifts/${product.slug}`}>
-                {siteIdentity.hostname}/gifts/{product.slug} ↗
+                {siteIdentity.hostname}/gifts/{product.slug}
               </a>
             </>
           ) : (
@@ -126,7 +126,7 @@ export function Presentation({
                   data-analytics-source={alternative.source} data-analytics-context={`show_presentation_alternative:${episode.key}`}
                   data-analytics-expiry={alternative.eligibleUntil}>
                   <a data-analytics-product-link="" href={`/gifts/${alternative.slug}`} aria-label={`Alternative: ${alternative.title}`}>
-                    Alternative: {alternative.punnyTitle || alternative.title} →
+                    Alternative: {alternative.punnyTitle || alternative.title}
                   </a>
                 </span>
               ))}
@@ -135,12 +135,12 @@ export function Presentation({
           {episode.shareUrl && qrSvg && <aside className="presentation-share">
             <a className="episode-qr" href={episode.shareUrl} aria-label="Open this episode selection"
               dangerouslySetInnerHTML={{ __html: qrSvg }} />
-            <a href={episode.shareUrl}>{siteIdentity.hostname}/howie/{episode.key} ↗</a>
+            <a href={episode.shareUrl}>{siteIdentity.hostname}/howie/{episode.key}</a>
           </aside>}
         </div>
       </div>
       <div className="presentation-bottom">
-        <a href={episode.status === "published" ? `/howie/${episode.key}` : "/howie"}>Visitor landing page ↗</a>
+        <a href={episode.status === "published" ? `/howie/${episode.key}` : "/howie"}>Visitor landing page</a>
         <span>
           {index + 1} / {episode.slots.length}
         </span>
@@ -150,17 +150,17 @@ export function Presentation({
             disabled={index === 0}
             onClick={() => setIndex((current) => current - 1)}
           >
-            ←
+            Previous
           </button>
           <button
             aria-label="Next selection"
             disabled={index === episode.slots.length - 1}
             onClick={() => setIndex((current) => current + 1)}
           >
-            →
+            Next
           </button>
         </div>
-        <span className="quiet">← → keys · Home / End</span>
+        <span className="quiet">Arrow keys · Home / End</span>
       </div>
     </div>
   );

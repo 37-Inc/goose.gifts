@@ -25,7 +25,7 @@ export default async function Episode({ params }: { params: Promise<{ episode: s
         <a className="back-link" href="/howie">← All episode selections</a>
         <p className="eyebrow">Episode selection · {episode.episodeDate}</p>
         <h1>{episode.title}</h1>
-        <a className="text-action" href={`${episodePath(key)}/presentation`}>Presentation view ↗</a>
+        <a className="text-action" href={`${episodePath(key)}/presentation`}>Presentation view</a>
       </div>
       <EpisodeContent episode={episode} />
       <EpisodeShare episode={episode} />

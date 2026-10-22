@@ -37,11 +37,11 @@ const priorVersion='00000000-0000-4000-8000-000000000004',priorDeployment='00000
 const scope={environment:'staging',indexName:'fixture-index'};
 async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,value,{mode:0o600});}
 function fixtureRelease(snapshot,context,prior=null){
-  const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/weird-gift-index','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
+  const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
     ...snapshot.products.map(p=>`/gifts/${p.slug}`)];
   const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,bytes('Owned fixture HTML')]));
-  for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/index.json','/safe/asset.txt'])assets.set(name,bytes('Owned unavailable'));
-  assets.set('/safe/catalog.json',bytes(safeCatalogPayload));assets.set('/weird-gift-index/data.json',bytes({scope:'sample'}));
+  for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/asset.txt'])assets.set(name,bytes('Owned unavailable'));
+  assets.set('/safe/catalog.json',bytes(safeCatalogPayload));
   for(const suffix of ['.txt','/__next._full.txt','/__next._tree.txt','/__next.safe.product.__PAGE__.txt'])assets.set(`/safe/product${suffix}`,bytes('Owned safe RSC'));
   for(const shard of createBrowseRelease(snapshot).shards)assets.set(shard.path,bytes(shard.payload));
   for(const name of createOgRelease(snapshot,siteIdentityFor(context.sourceMode)).byPath.keys())assets.set(name,bytes('owned PNG fixture'));

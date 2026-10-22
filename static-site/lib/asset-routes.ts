@@ -62,7 +62,7 @@ export function createStaticRoutes(
     indexable: snapshot.dataKind !== "synthetic_fixture"
       && [siteIdentityFor("goose-production").origin, siteIdentityFor("stupid-production").origin].includes(identity.origin),
   };
-  for (const pathname of ["/", "/random-gift", "/weird-gift-index"])
+  for (const pathname of ["/", "/random-gift"])
     policies[pathname] = { ...catalog,
       state: snapshot.products.length ? "ready" : "held",
       indexable: catalog.indexable && snapshot.products.length > 0 };
@@ -87,12 +87,6 @@ export function createStaticRoutes(
     if (page.page === 1)
       policies["/gifts/page/1"] = { ...policy, indexable: false };
   }
-  policies["/weird-gift-index/data"] = {
-    ...catalog,
-    assetPath: "/weird-gift-index/data.json",
-    safeAssetPath: "/safe/index.json",
-    indexable: false,
-  };
   const show = createShowRelease(snapshot, showInputs);
   policies["/howie"] = { ...catalog, eligibleUntil: show.latest?.eligibleUntil || null,
     safeAssetPath: "/safe/howie.html", indexable: catalog.indexable && Boolean(show.latest) };

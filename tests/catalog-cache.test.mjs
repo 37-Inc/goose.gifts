@@ -75,8 +75,7 @@ test('cache invalidation covers every crawler-facing catalog surface', () => {
   assert.match(route, /revalidatePath\('\/gifts\/\[slug\]', 'page'\)/);
   assert.match(route, /revalidatePath\('\/gift-guides'\)/);
   assert.match(route, /revalidatePath\('\/gift-guides\/\[slug\]', 'page'\)/);
-  assert.match(route, /revalidatePath\('\/weird-gift-index'\)/);
-  assert.match(route, /revalidatePath\('\/weird-gift-index\/data'\)/);
+  assert.doesNotMatch(route, /weird-gift-index/);
   assert.match(route, /revalidatePath\('\/sitemap\.xml'\)/);
   assert.match(route, /revalidatePath\('\/sitemap\/0\.xml'\)/);
 });

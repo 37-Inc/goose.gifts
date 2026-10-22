@@ -33,17 +33,16 @@ function context(input, prior = null) {
     vectorSyncWatermark: 0, priorReleaseId: prior?.releaseId ?? null, retainedManifestSha256: prior?.manifestSha256 ?? null };
 }
 function assets(input) {
-  const pages = ["/", "/random-gift", "/gift-guides", "/weird-gift-index", "/howie", "/preview/presentation", "/gifts/page/1",
+  const pages = ["/", "/random-gift", "/gift-guides", "/howie", "/preview/presentation", "/gifts/page/1",
     ...guides.map((g) => `/gift-guides/${g.slug}`), ...directoryPages(input).map((p) => directoryPath(p.page)),
     ...input.products.map((p) => `/gifts/${p.slug}`)];
   const files = new Map(pages.map((p) => [p === "/" ? "/index.html" : `${p}.html`, encode("owned page")]));
-  for (const p of ["/safe/catalog.html", "/safe/product.html", "/safe/howie.html", "/safe/presentation.html", "/safe/index.json"])
+  for (const p of ["/safe/catalog.html", "/safe/product.html", "/safe/howie.html", "/safe/presentation.html"])
     files.set(p, encode("owned safe variant"));
   files.set("/safe/catalog.json", new Uint8Array(readFileSync(new URL("../static-site/public/safe/catalog.json", import.meta.url))));
   files.set("/safe/asset.txt", encode("Reload to use the current release."));
   for (const suffix of [".txt", "/__next._full.txt", "/__next._tree.txt", "/__next.safe.product.__PAGE__.txt"])
     files.set(`/safe/product${suffix}`, encode("owned safe RSC"));
-  files.set("/weird-gift-index/data.json", encode({ scope: "sample" }));
   for (const shard of createBrowseRelease(input).shards) files.set(shard.path, encode(shard.payload));
   for (const ogPath of createOgRelease(input, siteIdentityFor("preview")).byPath.keys()) files.set(ogPath, encode("owned PNG proof"));
   files.set(`/_next/static/chunks/${input.catalogRevision}.js`, encode('console.log("owned UI")'));
@@ -74,6 +73,25 @@ test("retention requires an explicit independent prior digest, not just a prior 
   assert.throws(() => validateBuildContext(missing, input, ctx.codeSha, ctx.catalogSnapshotSha256, now));
   assert.throws(() => validateBuildContext({ ...ctx, retainedManifestSha256: "b".repeat(64) }, input, ctx.codeSha, ctx.catalogSnapshotSha256, now));
   assert.equal(validateBuildContext({ ...ctx, priorReleaseId: "prior-but-not-retained" }, input, ctx.codeSha, ctx.catalogSnapshotSha256, now).retainedManifestSha256, null);
+});
+test("final packaging rejects personal identity in current assets and retained old chunks", () => {
+  const first = snapshot("identity-first"), second = snapshot("identity-second");
+  const oldPath = "/_next/static/chunks/identity-first.js";
+  for (const identity of ["By Cameron Ehrlich", "Ehrlich, Cameron", "cam@37.technology", "cameron@37.technology"]) {
+    const current = assets(second);
+    current.set("/old-page.txt", encode(identity));
+    assert.throws(() => seal(second, context(second), current), /personal owner identity/);
+    const prior = seal(first, context(first), assets(first));
+    prior.assets.set(oldPath, encode(identity));
+    prior.manifest.checksums[oldPath] = assetSha256(encode(identity));
+    prior.manifestBytes = encode(prior.manifest);
+    prior.manifestSha256 = assetSha256(prior.manifestBytes);
+    assert.throws(() => seal(second, context(second, prior), assets(second), prior), /personal owner identity/);
+    // Explicit no-retention release remains possible, without republishing any old bytes.
+    const cleared = seal(second, { ...context(second), priorReleaseId: prior.releaseId }, assets(second));
+    assert.equal(cleared.retention, null);
+    assert.equal(cleared.assets.has(oldPath), false);
+  }
 });
 test("sealed current inventory recomputes exact two-release files/policy and cannot relabel old shards as current", () => {
   const { second, prior, ctx, next } = twoReleases();
@@ -129,7 +147,7 @@ test("old clients can navigate shards/owned chunks, but Worker expiry/cache/noin
     assert.equal(body.catalogRevision, first.catalogRevision);
     count += body.products.length; cursor = body.next;
   }
-  assert.equal(count, 48);
+  assert.equal(count, first.products.length - createBrowseRelease(first).opening.length - createBrowseRelease(first).feed.initial.length);
   const oldPath = createBrowseRelease(first).random.poolPath;
   clock += 15 * 60000 - 1000;
   assert.match((await request(oldPath)).headers.get("Cache-Control"), /max-age=1,/);

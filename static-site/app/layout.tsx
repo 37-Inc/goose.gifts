@@ -10,7 +10,7 @@ import "./styles.css";
 
 export const metadata: Metadata = {
   ...previewMetadata(
-    "Ridiculous gifts. Excellent taste.",
+    "Stupid gifts. Excellent taste.",
     isFixtureRelease
       ? `An isolated, noindex ${siteIdentity.name} design and static-export preview. Illustrative fixtures are not products for sale.`
       : isSitePreview ? `An isolated, noindex ${siteIdentity.name} staging preview using a bounded catalog cohort. This is not a public launch.`
@@ -39,12 +39,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {siteIdentity.brand}<span>.</span>gifts
           </a>
           <nav aria-label="Main navigation">
-            <a className="nav-secondary" href="/gifts">The collection</a>
             <a className="nav-random" href="/random-gift">Surprise me</a>
             {show.latest && <a className="nav-show" href="/howie">From the show</a>}
             <a className="nav-secondary" href="/gift-guides">Gift guides</a>
             <a href="/#catalog-search" className="nav-search">
-              Search <span aria-hidden="true">↗</span>
+              Search
             </a>
           </nav>
         </header>
@@ -53,7 +52,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <a className="wordmark" href="/">
             {siteIdentity.brand}<span>.</span>gifts
           </a>
-          <p>{siteIdentity.tagline}</p>
           <p className="quiet">
             {isFixtureRelease
               ? "Staging only. Original illustrative assets; no merchant photography or current-offer claims. "
@@ -63,7 +61,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </p>
           <div className="footer-bottom">
             <span>© Thirty Seven Inc.</span>
-            <a href="/weird-gift-index">Weird Gift Index</a>
             <a href="mailto:goosegifts@37.technology">Contact</a>
             <a href="/privacy">Privacy</a>
           </div>

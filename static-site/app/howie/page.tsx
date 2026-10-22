@@ -17,7 +17,7 @@ export default function Howie() {
         <p className="eyebrow">From the show · {show.latest.episodeDate}</p>
         <h1>The latest questionable decisions.</h1>
         <a className="text-action" href={episodePath(show.latest.key)}>
-          {show.latest.title} · Stable episode page ↗
+          {show.latest.title}
         </a>
       </div>
       <EpisodeContent episode={show.latest} />
@@ -33,7 +33,7 @@ export default function Howie() {
         selection, you’ll find the exact products here.
       </p>
       <a className="button" href="/gifts">
-        Explore the collection ↗
+        Browse gifts
       </a>
     </main>
   );

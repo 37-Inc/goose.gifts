@@ -10,7 +10,7 @@ export default function SafeCatalog() {
         fresh review. No stale products or offers are displayed.
       </p>
       <a className="button" href="/gift-guides">
-        Read the gift guides →
+        Read the gift guides
       </a>
       <p className="quiet">Please check back later.</p>
       <Search />

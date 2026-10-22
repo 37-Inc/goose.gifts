@@ -93,7 +93,7 @@ export default async function Gift({
                 claim.
               </p>
               <a className="button" href="/random-gift">
-                Try another example ↗
+                Try another example
               </a>
             </div>
           ) : (
@@ -109,7 +109,7 @@ export default async function Gift({
                 rel="sponsored noopener noreferrer"
                 className="button"
               >
-                Check price on {retailer} ↗
+                Check price on {retailer}
               </a>
               <p className="quiet">
                 Check current price and availability at the retailer. We may
@@ -139,7 +139,7 @@ export default async function Gift({
         <div className="section-heading">
           <h2>While you’re considering it.</h2>
           <a href="/random-gift" className="text-action">
-            Surprise me ↗
+            Surprise me
           </a>
         </div>
         <div className="catalog-grid">

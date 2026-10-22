@@ -15,10 +15,6 @@ import {
   directorySchema,
 } from "../static-site/lib/directory.ts";
 import {
-  buildSnapshotIndex,
-  snapshotIndexSchema,
-} from "../static-site/lib/weird-index.ts";
-import {
   eligiblePool,
   isIllustrative,
   nextRandomIndex,
@@ -155,7 +151,7 @@ test(
   },
 );
 test(
-  "retained hub, directory, guide and sample-report artifacts match their one build snapshot",
+  "retained hub, directory and guide artifacts match their one build snapshot",
   { skip: !fs.existsSync(new URL("out/index.html", root)) },
   () => {
     const hub = fs.readFileSync(new URL("out/gift-guides.html", root), "utf8");
@@ -202,29 +198,9 @@ test(
       "utf8",
     );
     assert.ok(firstAlias.includes(`rel="canonical" href="${siteIdentity.origin}/gifts"`));
-    const report = fs.readFileSync(
-      new URL("out/weird-gift-index.html", root),
-      "utf8",
-    );
-    const data = JSON.parse(
-      fs.readFileSync(new URL("out/weird-gift-index/data.json", root), "utf8"),
-    );
-    assert.deepEqual(data, buildSnapshotIndex(exportSnapshot));
-    assert.deepEqual(schemas(report)[0], snapshotIndexSchema(data));
-    assert.match(
-      report,
-      /not the complete production catalog|not a market trend/,
-    );
-    assert.match(report, /No price conclusions are reported/);
-    for (const product of exportSnapshot.products) {
-      for (const value of [
-        product.title,
-        product.slug,
-        product.imageUrl,
-        product.affiliateUrl,
-      ])
-        assert.equal(JSON.stringify(data).includes(value), false);
-    }
+    assert.equal(fs.existsSync(new URL("out/weird-gift-index.html", root)), false);
+    assert.equal(fs.existsSync(new URL("out/weird-gift-index/", root)), false);
+    assert.equal(fs.existsSync(new URL("out/safe/index.json", root)), false);
   },
 );
 test(
