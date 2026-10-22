@@ -1,6 +1,9 @@
 import type { CatalogD1, D1Statement, D1ReadOptions } from '../../lib/catalog/storage/d1.ts';
 import { createHash, randomUUID } from 'node:crypto';
 import { drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
+import { assertOneTimeMigrationBudget, validMigrationLedger } from './one-time-migration-budget.ts';
+import type { OneTimeMigrationBudget } from './one-time-migration-budget.ts';
+import { canonicalJson } from './migration.ts';
 const ownedClients=new WeakSet<CatalogD1>();
 export function isCatalogD1Rest(db:CatalogD1):boolean{return ownedClients.has(db);}
 
@@ -54,11 +57,38 @@ function sqlText(value:unknown):string {
   if(!token)throw new Error('catalog_d1_statement_invalid');return value;
 }
 
-export async function createCatalogD1Rest(options: {
+type RestOptions={
   accountId:string;databaseId:string;databaseName:string;token:string;fetch?:typeof fetch;limits?:Partial<Limits>;accounting?:D1Accounting;
-}):Promise<CatalogD1 & { providerIdentity:string;metrics:()=>{
+};
+type RestClient=CatalogD1 & { providerIdentity:string;metrics:()=>{
   requests:number;statements:number;reportedRowsRead:number|null;reportedRowsWritten:number|null;unconfirmedRequests:number;
-} }> {
+} };
+export function createCatalogD1Rest(options:RestOptions):Promise<RestClient>{return createRest(options);}
+
+/** Explicit one-time operator only. Bind this profile to a NEW workspace's
+ * config/manifest, and pass the SAME retained ledger on every resume. Ordinary
+ * factory/defaults and weekly configuration cannot opt into this allowance. */
+export function createCatalogD1MigrationRest(options:Omit<RestOptions,'limits'|'accounting'>&{
+  budget:{profile:OneTimeMigrationBudget;sha256:string};ledger:D1AccountingState;accounting:D1Accounting;now?:()=>Date;
+}):Promise<RestClient>{
+  try{
+    if(Object.hasOwn(options,'limits')||!options.accounting||!object(options.budget)
+      ||Object.keys(options.budget).sort().join(',')!=='profile,sha256'||!validMigrationLedger(options.ledger)
+      ||canonicalJson(options.ledger)!==canonicalJson(options.accounting.initial))throw new Error();
+    const budget=structuredClone(options.budget),ledger=structuredClone(options.ledger),accounting=options.accounting;
+    const anchor=budget.profile.input.ledgerAtObservation,reserve=accounting.reserve,settle=accounting.settle,now=options.now??(()=>new Date());
+    if(Object.keys(anchor).some(k=>options.ledger[k as keyof D1AccountingState]<anchor[k as keyof D1AccountingState]))throw new Error();
+    const assert=()=>{
+      assertOneTimeMigrationBudget(budget.profile,budget.sha256,now());
+      const scope=budget.profile.input.scope;
+      if(canonicalJson(accounting.scope)!==canonicalJson(scope)||canonicalJson(accounting.initial)!==canonicalJson(ledger)
+        ||scope.accountId!==options.accountId||scope.databaseId!==options.databaseId||scope.databaseName!==options.databaseName
+        ||typeof reserve!=='function'||typeof settle!=='function'||accounting.reserve!==reserve||accounting.settle!==settle)throw new Error('migration_budget_refused');
+    };
+    assert();return createRest({...options,accounting,limits:budget.profile.limits},assert);
+  }catch{return Promise.reject(new Error('migration_budget_refused'));}
+}
+async function createRest(options:RestOptions,migrationAssert?:()=>void):Promise<RestClient>{
   const { accountId,databaseId,databaseName,token }=options;
   const limits={...CATALOG_D1_REST_LIMITS,...options.limits};
   if(typeof accountId!=='string'||!/^[a-f0-9]{32}$/.test(accountId)||typeof databaseId!=='string'
@@ -66,7 +96,8 @@ export async function createCatalogD1Rest(options: {
     ||typeof databaseName!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(databaseName)
     ||typeof token!=='string'||!token||token.length>4096||/[^\x21-\x7e]/.test(token)
     ||Object.keys(limits).some(key=>!Object.hasOwn(CATALOG_D1_REST_LIMITS,key))
-    ||Object.entries(limits).some(([key,value])=>!integer(value)||value<1||value>HARD_LIMITS[key as keyof Limits])
+    ||Object.entries(limits).some(([key,value])=>!integer(value)||value<1||value>(migrationAssert&&key==='reportedRowsRead'?5_000_000
+      :migrationAssert&&key==='reportedRowsWritten'?100_000:HARD_LIMITS[key as keyof Limits]))
     ||limits.timeoutMs<10)throw new Error('catalog_d1_configuration_invalid');
   const send=options.fetch??fetch;
   const base=`https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}`;
@@ -82,6 +113,7 @@ export async function createCatalogD1Rest(options: {
     ({httpRequests:requests,sqlStatements:statements,knownRowsRead:rowsRead,knownRowsWritten:rowsWritten,unconfirmedRequests}=initial);
   }
   async function reserve(body:string|undefined,count:number){
+    migrationAssert?.();
     if(!accounting)return undefined;
     const id=randomUUID();const requestSha256=createHash('sha256').update(JSON.stringify({accountId,databaseId,body:body??null})).digest('hex');
     try{await accounting.reserve({id,requestSha256,units:{httpRequests:1,sqlStatements:count}});return id;}
@@ -94,6 +126,7 @@ export async function createCatalogD1Rest(options: {
   }
   const bindings=new WeakMap<D1Statement,Query>();
   async function request(body?:string,signal?:AbortSignal):Promise<unknown> {
+    migrationAssert?.();
     if(requests>=limits.requests)throw new Error('catalog_d1_budget_exhausted');requests++;
     if(signal?.aborted)throw new Error('catalog_d1_result_unknown');
     const controller=new AbortController();let timer:ReturnType<typeof setTimeout>|undefined;

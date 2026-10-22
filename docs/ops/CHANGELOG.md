@@ -269,6 +269,16 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-22 [owner+claude] — Prepare a bounded one-time migration budget
+
+Added an explicit checksum-bound migration-only REST profile requiring recent
+account-wide UTC-day usage, the same retained ledger and a measured whole-run
+envelope. Its calculation leaves conservative Free headroom and caps rows at the
+requested allowance, without growing ordinary or weekly limits, resetting old
+journals, refunding unknowns or carrying the profile across midnight. Local
+transport/accounting/reopen tests pass; no provider calls or migration run occurred.
+Actual batch costs, complete capture and whole-run capacity remain launch gates.
+
 ### 2026-10-22 [owner+claude] — Publish the simpler homepage and remove public bylines
 
 PR #225 (`f233c4c`) and #226 (`82efb21`) now actually serve from Cloudflare,
