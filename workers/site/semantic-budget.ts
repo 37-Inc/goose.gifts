@@ -41,16 +41,18 @@ export async function reserveSemanticSearch(db: CatalogD1, scope: SemanticBudget
   const caps = semanticBudgetConfig(env, scope);
   if (!caps || !Number.isInteger(tokenUpperBound) || tokenUpperBound < 1 || tokenUpperBound > 800 + TOKEN_OVERHEAD) return false;
   try {
+    const unowned="NOT EXISTS(SELECT 1 FROM catalog_mutation_scopes WHERE phase!='idle')";
     // Indexed cleanup is bounded even after a long idle period; never delete the current day.
     await db.prepare(`DELETE FROM semantic_search_budgets WHERE rowid IN (
-      SELECT rowid FROM semantic_search_budgets WHERE utc_day<date('now','-30 days') ORDER BY utc_day LIMIT 32)`).run();
+      SELECT rowid FROM semantic_search_budgets WHERE utc_day<date('now','-30 days') ORDER BY utc_day LIMIT 32)
+      AND ${unowned}`).run();
     const result = await db.prepare(`INSERT INTO semantic_search_budgets
       (environment,index_scope,utc_day,requests_reserved,tokens_reserved,request_cap,token_cap)
-      SELECT ?,?,date('now'),1,?,?,? WHERE ?<=?
+      SELECT ?,?,date('now'),1,?,?,? WHERE ?<=? AND ${unowned}
       ON CONFLICT(environment,index_scope,utc_day) DO UPDATE SET
         requests_reserved=requests_reserved+1,tokens_reserved=tokens_reserved+excluded.tokens_reserved
       WHERE request_cap=excluded.request_cap AND token_cap=excluded.token_cap
-        AND requests_reserved<request_cap AND tokens_reserved<=token_cap-excluded.tokens_reserved`)
+        AND requests_reserved<request_cap AND tokens_reserved<=token_cap-excluded.tokens_reserved AND ${unowned}`)
       .bind(scope.environment, scope.index, tokenUpperBound, caps.requests, caps.tokens, tokenUpperBound, caps.tokens).run() as {
         success?: boolean; meta?: { changes?: number };
       };

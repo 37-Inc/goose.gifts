@@ -248,7 +248,8 @@ test('receipt sequences remain ordered and new local writes allocate after impor
 });
 
 test('new diagnostics store hashes only and clean by explicit 30-day expiry', async () => {
-  const db = database(); await appendSearchDiagnostic(db, { id: 'test', queryHash: sha256('synthetic query'), queryLength: 15,
+  const db = database();db.sqlite.exec(readFileSync(new URL('../migrations/d1/0009_catalog_mutation_fence.sql',import.meta.url),'utf8'));
+  await appendSearchDiagnostic(db, { id: 'test', queryHash: sha256('synthetic query'), queryLength: 15,
     resultCount: 1, topSimilarity: 0.75, matchType: 'semantic', outcome: 'ok' }, now);
   const row = db.sqlite.prepare('SELECT * FROM search_diagnostics').get();
   assert.equal(row.expires_at, '2026-11-18T12:00:00.000Z'); assert.equal(row.query, undefined);

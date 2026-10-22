@@ -76,11 +76,15 @@ export async function appendSearchDiagnostic(db: CatalogD1, event: SearchDiagnos
     || (event.topSimilarity !== null && (!Number.isFinite(event.topSimilarity) || Math.abs(event.topSimilarity) > 1))) {
     throw new Error('Invalid search diagnostic');
   }
+  // The same atomic batch gates cleanup AND insertion. A provider/diagnostic
+  // callback begun before capture cannot write after ownership was acquired.
+  const unowned="NOT EXISTS(SELECT 1 FROM catalog_mutation_scopes WHERE phase!='idle')";
   await db.batch([
-    db.prepare('DELETE FROM search_diagnostics WHERE expires_at<=?').bind(now.toISOString()),
+    db.prepare(`SELECT json(CASE WHEN ${unowned} THEN 'true' ELSE 'catalog_runtime_owned' END)`),
+    db.prepare(`DELETE FROM search_diagnostics WHERE expires_at<=? AND ${unowned}`).bind(now.toISOString()),
     db.prepare(`INSERT INTO search_diagnostics
       (id,query_hash,query_length,result_count,top_similarity,match_type,outcome,created_at,expires_at)
-      VALUES(?,?,?,?,?,?,?,?,?)`).bind(event.id, event.queryHash, event.queryLength, event.resultCount,
+      SELECT ?,?,?,?,?,?,?,?,? WHERE ${unowned}`).bind(event.id, event.queryHash, event.queryLength, event.resultCount,
       event.topSimilarity, event.matchType, event.outcome, now.toISOString(), new Date(now.getTime() + 30 * 86400000).toISOString()),
   ]);
 }
