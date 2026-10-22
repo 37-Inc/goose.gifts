@@ -4,8 +4,10 @@ import type { OwnedVectorAdapters } from './owned-vector-delivery.ts';
 import { drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
 import { isAccountedPublicationFetch } from './publication-read-fetch.ts';
 
-const ownedReadbacks=new WeakSet<OwnedVectorAdapters['readback']>();
-export function hasAccountedVectorReadback(adapters:Pick<OwnedVectorAdapters,'readback'>):boolean{return ownedReadbacks.has(adapters.readback);}
+const ownedReadbacks=new WeakSet<OwnedVectorAdapters['readback']|NonNullable<OwnedVectorAdapters['readbacks']>>();
+export function hasAccountedVectorReadback(adapters:Pick<OwnedVectorAdapters,'readback'|'readbacks'>):boolean{
+  return ownedReadbacks.has(adapters.readback)&&(!adapters.readbacks||ownedReadbacks.has(adapters.readbacks));
+}
 
 const UUID = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 /** Explicit protected-workflow wiring only. No ambient credentials, redirects,
@@ -93,6 +95,6 @@ export function createVectorizeRestAdapters(options: MutationScope & {
     readbacks,
     async readback(publicId,signal){return(await readbacks([publicId],signal))[0];},
   };
-  if(isAccountedPublicationFetch(send))ownedReadbacks.add(adapters.readback);
+  if(isAccountedPublicationFetch(send)){ownedReadbacks.add(adapters.readback);ownedReadbacks.add(readbacks);}
   return Object.freeze(adapters);
 }
