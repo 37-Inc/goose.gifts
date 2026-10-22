@@ -3,79 +3,48 @@
 This document retains protected-staging history and the separate production
 checkpoint below. The launch spec and `roadmap-lbbz1` remain authoritative.
 
-### October 22 current checkpoint — private acceptance passed; public release pending
+### October 22 current checkpoint — full prepared catalog live and verified
 
-The final source archive `e70c0211829a…` is reconciled into production: all 24
-logical tables and 3,383 products, preserving the existing current rows, native
-payloads, receipts and history. Schema 0015 and the actual local native recovery
-passed. The latter restored 13 tables / 11,932 rows / 3,492 source vectors on PG17.6
-against source17.11; known cooperative writer stops are not a universal ACL
-barrier. Exact private receipt hashes and separate ledgers are in `JOURNAL.md`.
+Release `permanent-catalog-063d9a31ee4f` serves source
+`063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6`, snapshot
+`a78d97dcea9302c1be4609febd42260c5a774e7cd791e75d0120d7d8124f3da7`,
+on actual Worker version `042acba2-5f3a-4d78-9b4e-72e885e1fc8f`.
+Publication receipt
+`ded3e5d44b5a2a7ae6438c7fee3f1793682ecd70695176cb91b241b26d1e34e0`,
+resolved build and actual idle D1 owner are verified. This is provider/public
+acceptance, not an inference from a source merge or static build.
 
-The real permanent installer is complete and released at generation 6 / epoch 299:
-2,359 ready, 1,024 held and 31 substantive articles. It preserves source/native
-evidence and adds no merchant/model or publication operation. This is actual
-private catalog acceptance, not the earlier synthetic capacity fixture.
+There are 2,359 public gifts, 1,024 intentional holds and 3,383 preserved private
+products across the reconciled 24 tables, with native/source/history intact.
+The 31 substantive articles are indexable; permanent-base `nextExpiry` is null.
+Eight optional photo overlays retain **2026-10-22T22:18:10.044Z**; supplier
+expiry was not renewed and gift identity must not disappear at that deadline.
+All 2,359 prepared affiliate links use `goose-gifts-37-20`.
 
-**Public acceptance is still the eight-product `82efb21` release below.** A new
-2,359-product publication is held before version upload on the clean frozen source
-`063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6`; do not infer activation from import,
-installer, source merge or build preparation. The actual static build and verify
-now pass: 2,359 products, 15,121 assets and 23,690 logical guarded routes. Output
-is 287,067,746 bytes (273.77MiB), largest file 247,961 bytes. Final continuation
-uses separately pinned toolchain `16518b9de99110e4e882a8fa722bdf47b3ab863b` against
-unchanged runtime `063d9a3`; the same workspace/config/profile/input/revision and
-retained ledger remain. Schema 0016 applied successfully at13:14 UTC; full details
-and its exact receipt are centralized in `JOURNAL.md`.
-`nextExpiry:null` reflects permanent bases, not renewed photo rights: eight
-finite photo overlays retain October22 22:18:10.044Z. Build/operator fixes do not
-change provider plan, wire/per-file limits or merchant/model cadence. Future
-journal reads/purges MUST use the final `16518b9` operator in
-`stupid-final-catalog-operator`, not superseded tools or runtime readers.
-Exact failure, capacity, schema and source pins are centralized in `JOURNAL.md`.
+Public identity and prepared-body hashes match home, three gift samples, guide
+and `/howie`; privacy 200 and Index 404 pass. Actual browser checks confirm
+24→48→72 unique cards at 390px without overflow, product navigation, a changing
+random spin and zero console errors. One actual `duck` search returned HTTP 200
+and 12 results with limit 36. Retained public/static and browser QA receipts,
+including their exact file hashes, are in the newest `JOURNAL.md` entry.
+Runtime63 is the published package; later main UI/polish is not automatically live.
 
-Runtime staging: 907 tests, 895 pass / 12 optional skips / zero failures; lint
-zero errors / 25 pre-existing warnings. Earlier `3bfefe` targeted publisher/build/
-workspace/depth checks and continuation strict types also pass; the separate
-overlapping counts are in `JOURNAL.md`, not added. The continuation remains held;
-the original protected metadata-session POST is still unknown.
-A separate one-shot metadata diagnostic returned 551,929 bytes, exceeding the old
-512KiB session response bound. It does not acknowledge the original unknown
-request or clear the review pin. Exact retained charges, diagnostic and proposed
-once-only reviewed recovery are in `JOURNAL.md`; public acceptance and
-`roadmap-lbbz1.3.2` remain open.
+PR259 merged as `fe8272f`; reviewed toolchain43/helper `9a4c07b9…dd2c98`
+completed the SAME workspace/profile lineage. Additional publication cost was
+761 HTTP / 2,843 SQL / 557,220 known reads / 11 writes; final ledger is
+3,615 HTTP / 9,303 SQL / 3,511,503 known reads / 21,475 writes / eight retained unknowns.
+Account-wide 17:39:21.913Z analytics left 344,098 Free reads. The scoped profile was
+consumed once: no replay, new allowance or accounting re-anchor. Merchant/model
+calls and native writes were zero; Cloudflare remains Free.
 
-Remaining release work is the measured full source/native/projection proof,
-once-only protected upload/activation and independent public readback, within the
-SAME profile and retained charges. The original publication cutoff is October22
-15:00:00Z; finite photos still expire22:18:10.044Z. Neither deadline is renewed by
-operator recovery. `JOURNAL.md` records remaining capacity; it is not yet a
-passing whole-release cost measurement.
-PR249 is merged at `16518b9`; reviewed query packing counts534 HTTP /2,588 SQL
-for five complete proof passes, with other bounded work additional. This was
-offline query packing, not provider scanned-row billing. The exact reviewed
-`8d736e98…d37ac74` continuation, invoked once at14:33 UTC, returned pending
-(`publication_pending`) after about1.45M new known reads in its first proof.
-That actual cost disproves the earlier whole-flow read-capacity confidence.
-Only45,717 known-read units remain in the unchanged profile; seven unknowns are
-retained. Do not automatically retry, reset counters or create a new profile.
-The new operator pin is adopted; receipt/public acceptance remains absent.
-Final14:40:34 readback confirms the owner remains FREEZING generation7/epoch301,
-stage `uploading`, with no version/permit/deployment/receipt or retry/activation
-marker. All three provider versions lack the target marker; source82/eight stays
-active. Account reads are4,095,249, leaving904,751 below the fixed1M headroom:
-**STOP—no further D1 writes/scans, publication retry, profile or counter reset.**
-PR250 merged at `1503056` with the narrow CROSS JOIN/planner regression fix;
-it has not been exercised live or adopted by the held `16518b9` operator.
-Next is a separately budget-safe low-cost canary and actual full-publication proof,
-not a scheduled retry or an owner-credential gate.
-
-The daily D1 writer remains **GATED** and `roadmap-lbbz1.4` stays open: full
-projection costs do not fit the ordinary 800 HTTP / 1,200 SQL / 10k-write profile.
-Scoped verified-Free routine capacity, bounded prior/vector proof, current
-semantic evidence, a body-free successor seal and an actual daily canary remain
-engineering gates. No global cap increase, new owner gate, paid plan, cadence
-change, old Neon writer or Pinterest restart is implied.
+For future reads/purges use frozen toolchain
+`43b229d628ca0be3aa181a3b10e1bb780080c452` in `stupid-reviewed-publication-window`,
+Node22 plus its explicit tsx loader, canonical `weekly-runs` workspace and
+ORIGINAL `stupid-persistent-catalog` runtime63 repository. The exact command is
+in `RUNBOOK.md`. Keep both frozen checkouts. Historical attention/published
+checkpoint control and body-free unregistered bounds may still produce
+`review`/`busy`; do not clear controls, locks or unknowns, or replay completion.
+The final helper already verified the actual receipt and idle D1 owner.
 
 ### Historical October 22 implementation checkpoint — superseded by actual receipts above
 
@@ -127,7 +96,7 @@ headroom. Daily merchant/model limits, old-run ledgers, original deadlines,
 Pinterest pause and Vercel freeze do not change. The live checkpoint below
 remains the actual public release; do not rerun either completed publication.
 
-### Last accepted public checkpoint — October 22, 06:05 UTC
+### Historical public checkpoint — October 22, 06:05 UTC (superseded)
 
 PR #225 (`f233c4c`) and PR #226 (`82efb21`) are merged and actually published
 on Cloudflare Free. This is a code-only release of the original eight-ready /

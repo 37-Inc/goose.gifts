@@ -57,62 +57,31 @@ Boundaries (always in force):
 
 ### Cloudflare migration boundary
 
-**October22 current focused goal — full prepared catalog live and verified:**
-Cameron explicitly renewed publication authorization after the prior17:00Z
-dispatch window expired. Use the separate reviewed v3 grant: actual fresh
-review time, current authorization hash and the unchanged original v1 grant;
-at most two hours after review and never beyond21:00Z that day. The concrete
-reviewed attempt targets19:00Z. This is source-only until actual publication
-and independent public verification; PR257/258 source merges are not release
-receipts. Original supplier expiry22:18:10.044Z is not renewed.
+**October22 accepted release — full prepared catalog is live and verified.**
+Release `permanent-catalog-063d9a31ee4f` serves runtime source
+`063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6`, snapshot
+`a78d97dcea9302c1be4609febd42260c5a774e7cd791e75d0120d7d8124f3da7`,
+on Worker version `042acba2-5f3a-4d78-9b4e-72e885e1fc8f`.
+The actual receipt, resolved build and D1 idle owner were verified, separately
+from source/build checks. Public HTTP/body hashes and real browser/search checks
+passed. There are2,359 public gifts,1,024 intentional holds and3,383 preserved
+private products;31 substantive articles are indexable. Permanent bases have
+no expiry. Eight optional photo overlays retain their original
+**2026-10-22T22:18:10.044Z** deadline; supplier rights were not renewed.
+The published runtime is not every later `main` UI/polish commit.
 
-**October22 bounded recovery approval remains unchanged:** Cameron answered
-`call_b300df69eace4f54b0282ecc87101d67` with “Allow bounded publication today;
-stay Free.” This authorizes at most600k additional reads while leaving at
-least300k untouched, retaining every prior charge/unknown. It does not authorize
-a paid plan, new merchant/model allowance, routine-writer enablement or an old
-helper retry. Reviewed source is merged through PR257/258, not a public release.
-Do not refresh/re-anchor old accounting. The approved continuation must retain
-all eight unknowns (the previous seven plus the failed read-only inventory GET),
-prove the exact SQL/parameter/inventory batch bounds and
-remaining whole-flow capacity, stop any shared-workspace new unknown, adopt its
-exact reviewed operator code, and separately bind valid dispatch authority.
-Normal daily caps/headroom are unchanged. No prepared allowance existed before
-the eighth unknown; do not issue a second allowance or re-anchor any existing
-profile. Current evidence is in the newest `JOURNAL.md` entry; daily writes
-remain gated. Historical timed checkpoints below preserve their earlier counts.
-
-**October22 current checkpoint:** actual source/production union is reconciled
-across all 24 logical tables / 3,383 products; schema 0015, actual local native
-rollback and the real permanent installer passed. The installer released
-generation 6 / epoch 299 with 2,359 ready / 1,024 held / 31 substantive articles; exact
-receipts and separate retained ledgers are in `JOURNAL.md`. Known cooperative
-writer stops do not claim a universal ACL barrier. Public acceptance remains
-the eight-product `82efb21` release until the pending `063d9a3` publication has its
-own immutable identity, receipt, resolved build and idle-owner proof.
-Its actual static build/verify passed; final continuation uses separately pinned
-`16518b9` tooling after successful additive schema0016, without changing runtime
-`063d9a3`, the shared workspace or its budget. Build/schema success is not public
-acceptance; use the current `JOURNAL.md` checkpoint.
-
-The broad publication is held by protected upload-session uncertainty and an
-actual full-proof read-cost overrun. Do not resend, clear review/pending pins,
-reset leases or infer upload success from the separate metadata diagnostic. Only
-the separately reviewed once-only canonical recovery may continue the same run;
-its final adopted toolchain pin becomes the journal reader/purge authority.
-The reviewed14:33 continuation returned pending, not accepted. Its first proof
-used about1.45M new known reads; offline query packing did not predict provider
-scanned-row billing. Only45,717 known-read units remain in the original profile,
-with seven retained unknowns. Final14:40 readback confirms FREEZING generation7 /
-epoch301, no retry/activation markers and no target provider version. Account
-reads4,095,249 leave904,751—below the fixed1M headroom. **Only the separately
-approved bounded continuation above may proceed after its proof and wiring
-checks; no ordinary retry or counter reset.** The
-join-plan fix is merged in PR250 (`1503056`), not exercised live. Next is a separately budget-safe low-cost
-canary/full-publication continuation with unchanged proof/owner/rights checks.
-The original broad-publication cutoff is October22 15:00:00Z; the photo deadline
-remains22:18:10.044Z. Retain the same profile and every charge, and require measured
-remaining whole-flow capacity without weakening full source/native proof.
+**Completed once-only continuation — do not replay or re-anchor.** PR259 merged
+as `fe8272f`; the actual operator used clean toolchain `43b229d` and reviewed
+helper `9a4c07b9…dd2c98`, on the SAME original workspace/ledger. Its scoped
+profile `cff4e8b4…a85a5923` was consumed once under the existing≤600k additional
+reads/≥300k untouched Free allowance. All eight unknowns remain charged.
+Final ledger:3,615 HTTP /9,303 SQL /3,511,503 known reads /21,475 writes /8unknowns.
+Account-wide analytics at17:39:21.913Z reported4,655,902 reads /69,884 writes,
+leaving344,098 Free reads. This is dated evidence, not a new reservation or
+routine budget. The immutable publication result and public QA file hashes,
+browser evidence and original failure history are in the newest `JOURNAL.md`
+entry. Do not repeat upload/activation or edit historical checkpoint owners to
+make them appear idle: the publisher's final D1 owner read was already null.
 
 **Daily D1 maintenance stays GATED (`roadmap-lbbz1.4`).** A 2,359-product immutable
 projection alone exceeds ordinary 1,200 SQL / 10k-write guards; 800 HTTP is not an
@@ -125,14 +94,14 @@ remains paused, Vercel frozen, Neon retained and the old Neon writer off.
 
 **October22 owner correction — catalog preservation and privacy:** Never
 delete or deactivate a gift, remove its search-index/native-vector entry, or
-shrink the catalog solely because a refresh deadline elapsed. Pause live
-pruning until persistent product identity/editorial is separated from expiring
-supplier display fields (`roadmap-lbbz1.3.2`). Expired supplier photography,
+shrink the catalog solely because a refresh deadline elapsed. The accepted
+persistent catalog separates product identity/editorial from expiring supplier
+display fields (`roadmap-lbbz1.3.2`); keep expiry-only pruning disabled. Expired supplier photography,
 pricing or API claims still cannot be relabeled as current: use a verified
 cleared-content fallback, not product deletion or a silently renewed deadline.
-The full historical catalog migration is required; eight visible launch gifts
-is not completion. Preserve all identities, slugs, editorial, native embeddings
-and operational history, and reconcile the final source delta into production.
+The historical catalog is now reconciled and the cleared2,359-product slice is
+public; the1,024 holds are intentional, not expiry-driven deletion. Preserve all
+identities, slugs, editorial, native embeddings and operational history.
 Private registered supplier-response expiry cleanup below is **not** permission
 to remove catalog records. The owner also retired Weird Gift Index and forbids
 personal-name attribution in public pages, schema, metadata or generated assets;
@@ -148,16 +117,10 @@ deployment, domains, configuration and Neon data; this reversible release freeze
 is not provider retirement. A Vercel deployment/status is not evidence that
 Cloudflare changed. Verify the Cloudflare immutable deployment, actual
 `/.well-known/catalog-release.json`, catalog receipt and idle owner separately.
-October22 verified Cloudflare release `homepage-code-82efb2100d66` serves source
-`82efb2100d6682cc0774bb1955d7ab7d333fbe52`, not the older `9943718` release.
-Version `0f08460b-3f19-4bfe-bf35-c6db880ede9b` / deployment
-`8d8388d8-5f0c-4338-a2fa-0611bc96187c` and the matching receipt were verified;
-the final publisher wrapper verified a resolved build and idle owner. Its new
-ledger is 148 HTTP / 186 SQL, zero unknowns and zero merchant/model/product/
-native writes. The eight-ready/two-held catalog and original October22
-22:18:10.044Z supplier deadline are unchanged. Do not rerun this completed
-publication. See the newest `STUPID_GIFTS_STAGING.md` checkpoint and
-`roadmap-lbbz1.4.3.2`; full catalog `.3.2` and daily writer `.4` remain open.
+The current accepted release is `permanent-catalog-063d9a31ee4f` above. Earlier
+`homepage-code-82efb2100d66` and `9943718` releases remain completed historical
+receipts, not rerunnable recovery steps. See `STUPID_GIFTS_STAGING.md` and
+`JOURNAL.md`; daily writer `.4` remains gated independently of public acceptance.
 
 Weird Gift Index now returns 404 on both public domains, including its data,
 share-image and encoded aliases. Two fail-closed legacy Cloudflare routes
@@ -167,8 +130,8 @@ One exact-host/path Single Redirect sends the old `www` sitemap to the clean
 new sitemap (301, no query forwarding). Preserve these privacy controls until
 the broader old-domain redirect is verified. Do not restore Index or bylines.
 
-As of October 21, `https://stupid.gifts/` is public on Cloudflare Free with an
-eight-product reviewed launch cohort. The old Goose site remains on
+The October21 public launch used an eight-product reviewed cohort; the accepted
+October22 release now has2,359 public gifts on Cloudflare Free. Old Goose remains on
 Vercel/Neon as rollback. On October 21 at 18:23 Pacific, Cameron authorized
 completing the new-site writer migration and disabling the old-site daily
 writer. The existing `goose-gifts-daily-ops` task is the sole operator: daily
@@ -187,10 +150,10 @@ approval to upgrade. Neither anticipated podcast traffic nor a launch rehearsal
 authorizes a paid plan or a shared-account-quota-consuming load test. Preserve
 the existing request, SQL, catalog and model limits.
 
-The pending full-catalog publication uses the clean frozen operator
+The completed full-catalog publication retains the clean frozen runtime
 `/Users/cameronehrlich/.codex/worktrees/stupid-persistent-catalog/goose.gifts`
 at `063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6`. Do not fast-forward or clean this
-checkout while its exact run is pending. Keep retained history/recovery
+checkout or remove its retained package/evidence. Keep retained history/recovery
 operators attached; do not run publication from the shared
 `/Users/cameronehrlich/goose.gifts` checkout, which other authorized chats use.
 Also retain the original
@@ -226,17 +189,20 @@ or a changed backend flag as a successful daily canary. Preserve old Goose as
 rollback, never as a second scheduled writer.
 
 Registered-body expiry cleanup remains required. Future journal reads/purges
-MUST use Node22 and the reviewed toolchain at
-`/Users/cameronehrlich/.codex/worktrees/stupid-final-catalog-operator/goose.gifts`,
-clean `16518b9de99110e4e882a8fa722bdf47b3ab863b`. Use its absolute
-`scripts/catalog/purge-workspaces.ts` path with the ORIGINAL workspace/repository
-arguments: superseded `3bfefe` is no longer the recovery authority;
-frozen53/d38/runtime `063d9a3` readers do not support all legitimate
-new lease/recovery checkpoint transitions, and the older994 reader rejects the earlier
-recovery grant. Do not relabel a manifest to the toolchain SHA. Never erase
-locks, unknown charges or unexpired evidence. Do not
-switch/clean another chat's branch or adopt its ignored build output. Each new
-publication requires its own reviewed exact clean commit/source pin.
+MUST use the retained clean `43b229d628ca0be3aa181a3b10e1bb780080c452` toolchain
+at `stupid-reviewed-publication-window`, not superseded165/3bf/53/d38/994 or
+runtime63 readers. Preserve both frozen43 and63; do not relabel manifests.
+The exact future cleanup invocation (not executed by these docs) is:
+
+```sh
+/Users/cameronehrlich/.nvm/versions/node/v22.23.1/bin/node --import /Users/cameronehrlich/.codex/worktrees/stupid-reviewed-publication-window/goose.gifts/node_modules/tsx/dist/loader.mjs /Users/cameronehrlich/.codex/worktrees/stupid-reviewed-publication-window/goose.gifts/scripts/catalog/purge-workspaces.ts --workspace /Users/cameronehrlich/.codex/private/goose-gifts-migration/weekly-runs --repository /Users/cameronehrlich/.codex/worktrees/stupid-persistent-catalog/goose.gifts
+```
+
+`review`/`busy` reports are not permission to clear controls or locks. The
+completed publisher can retain historical attention/published control and
+body-free unregistered bounds, so review may remain required despite actual
+idle D1 ownership. Never erase unknowns, change reservations or replay completion
+to clear such a report. Each new publication needs its own reviewed source pin.
 
 Before maintenance, run the Node22 purge script from the pinned new toolchain
 with the explicit workspace/original-repository paths above; do not invoke either

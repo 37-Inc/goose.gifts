@@ -21,56 +21,21 @@ context: **what we've done, and where we're going.**
 
 ## Upcoming / planned
 
-- **2026-10-22 recovery batch admission** [owner+claude]: the separate reviewed
-  publication-recovery REST client admits the exact next SQL cost sum, not the
-  global 80k batch maximum. A required durable body-free bound precedes every
-  reservation; settlement and resume enforce that same bound. Original charges,
-  unknowns, approval anchor, ordinary limits and Free headroom are unchanged.
-  This is source-only wiring, not budget issuance or a publication.
-
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **October22 focused publication continuation — source only** [owner+claude]:
-  Cameron explicitly requested finishing the existing prepared 2,359-gift public
-  release, Free-only, rather than expanding the broad blocked goal. PR257/258
-  merged the reviewed build, retention and exact-next-batch budget source; none
-  is public acceptance. A fresh v3 dispatch grant binds current owner authority,
-  an actual review timestamp and the immutable original v1 grant. It permits at
-  most two hours after review and never beyond21:00Z that day; the concrete
-  reviewed attempt targets19:00Z. Original v1/v2 behavior is unchanged.
-  All eight actual unknown requests remain charged, including the failed
-  read-only inventory GET after the earlier seven. The approved≤600k additional
-  reads/≥300k untouched Free buffer, same workspace/ledger and original supplier
-  deadline22:18:10.044Z do not grow. The separate function-only operator is not
-  executed by this source change; current account admission, measured canary,
-  protected upload, activation and independent public verification remain.
-  Public remains eight until those actual checks pass; daily writes stay gated.
-  Historical checkpoint counts below retain their then-current seven unknowns.
+- **Full prepared catalog is live — preserve the receipt** [owner+claude]:
+  `permanent-catalog-063d9a31ee4f` now serves 2,359 gifts, with 1,024 intentional
+  holds and all 3,383 private products preserved. Actual receipt, resolved build,
+  idle D1 owner, public body hashes and browser/search checks passed. Runtime is
+  the frozen `063d9a3` package, not every later UI/polish merge. Tool43 completed
+  the once-only continuation after PR259; all eight unknowns and prior charges
+  remain. No replay, allowance re-anchor or expiry-driven product removal.
+  Permanent bases have no expiry; eight optional photo overlays still expire
+  October22 22:18:10.044Z. Exact receipts/costs are in `JOURNAL.md`.
 
-- **Full-catalog public release pending** [owner+claude]: actual all-24-table /
-  3,383-product production union, schema 0015, local native rollback and permanent
-  installer passed. The installer released generation 6 / epoch 299 with 2,359 ready,
-  1,024 held and 31 substantive articles. Public acceptance remains eight gifts
-  on `82efb21` until the new frozen `063d9a3` publication is independently verified.
-  Actual 2,359-product static build/verify passed with separate pinned `53d52a8`
-  tooling; final recovery operator is now `16518b9` after schema0016 success.
-  Exact receipts and separately labeled regression counts are in `JOURNAL.md`.
-  Protected upload-session uncertainty now holds publication before asset/version
-  upload. A separate metadata-only diagnostic succeeded above the former 512KiB
-  response bound; it does not settle the original unknown request. Public
-  acceptance remains pending, not inferred from those checks.
-  The reviewed14:33 continuation returned pending after about1.45M new known
-  proof reads, disproving earlier whole-flow capacity confidence. Seven unknowns
-  remain charged; no automatic retry, new profile or counter reset.
-  Final14:40 readback confirms no retry/activation marker or target version;
-  account read headroom is exhausted under the fixed guard. Stop actual attempts,
-  PR250 (`1503056`) merges the narrow planner fix, not a live retry or release;
-  a separately budget-safe canary and actual full publication remain open.
-  Do not replay completed migration/recovery or treat the installer as activation.
-
-- **Owner correction — finish the full catalog, preserve products:** eight
-  visible gifts is only the launch slice. `roadmap-lbbz1.3.2` requires actual
+- **Owner correction — preserve the full catalog:** the historical eight-gift
+  launch was only the first slice. `roadmap-lbbz1.3.2` required actual
   source/production reconciliation, persistent original catalog fields and
   compliant supplier-field fallbacks rather than expiry-driven product removal.
   Live pruning/deactivation/index deletion is paused; the existing daily task
@@ -79,22 +44,22 @@ what's likely next.
   The owned history-union code is merged in PR229; permanent text/pages and
   separately expiring photo overlays are implemented in PR228, with a real
   2,392-item synthetic static/browser test (15,422 files; no paid plan).
-  Actual private import/recovery and positive permanent-content clearance are
-  now accepted; production remains eight visible gifts until the new publication
-  passes. Preserve original evidence and do not resume daily writes yet.
+  Actual private import/recovery, positive permanent-content clearance and the
+  2,359-product publication are accepted. Preserve original evidence and do not
+  resume daily writes yet.
 - **Homepage/privacy cleanup shipped:** `roadmap-lbbz1.5.1/.5.2` are closed on
   actual Cloudflare source `82efb21` and live browser/HTTP evidence. Exact
   headline, fewer labels, 24+24 static browse, guide glyphs and Index retirement
   are live; submit-based search avoids per-keystroke model calls. Eight public
-  gifts await the separate broad publication above.
+  gifts were the historical launch slice; the current accepted catalog has 2,359.
 
-- **Cloudflare release path:** the new code-only release is finalized on
-  source `82efb21`; do not replay it or the original `9943718` recovery. Vercel
+- **Cloudflare release path:** the permanent catalog is finalized on source
+  `063d9a3`; do not replay it, `82efb21` or the original `9943718` recovery. Vercel
   remains frozen, retaining the old origin/Neon as rollback. The daily D1
   writer remains gated; final Vercel/Neon retirement is separate.
 
-- **Stupid Gifts daily writer:** the eight-product maintained release is now
-  finalized: the actual build is resolved and its owner idle. PR #221 fixed
+- **Stupid Gifts daily writer:** the 2,359-product public release is finalized,
+  but routine D1 maintenance remains gated. PR #221 fixed
   bounded verification/read-accounting; original-permit settlement did not
   repeat upload, activation, merchant or model calls. The same existing task
   forbids the old Neon entry and holds new D1 maintenance. The 2,359-product
@@ -130,11 +95,11 @@ what's likely next.
   Google Cloud and remaining-provider rebrand checklist. Research/pricing
   integration is post-launch (`roadmap-mt1gp`). Implementation and staged
   migration are authorized and underway; stupid.gifts is now live on Cloudflare
-  Free with eight reviewed products. Private full-catalog acceptance has passed;
-  broad public publication and recurring writer acceptance remain separate.
+  Free with2,359 cleared public products. Private and prepared-public catalog
+  acceptance passed; recurring writer acceptance remains separate.
   October21 owner approved using the existing Codex task for up to ten daily
   existing-product refreshes and weekly discovery. Finish private restart/
-  cleanup and publication verification; hosted CI/Cloudflare Cron is deferred.
+  cleanup and daily-writer acceptance; hosted CI/Cloudflare Cron is deferred.
   Cloudflare account remains Free; $15 was an estimate, not a subscription.
   Owner explicitly requires a measured need and renewed approval before any
   paid upgrade; preserve shared-account quotas during validation.
@@ -305,6 +270,19 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-22 [owner+claude] — Publish and verify the prepared full catalog
+
+Actual Cloudflare release `permanent-catalog-063d9a31ee4f` serves frozen runtime
+`063d9a3`:2,359 public gifts /1,024 intentional holds /3,383 preserved products,
+with31 indexable articles. Receipt `ded3e5d4…1e34e0`, resolved build, idle D1 owner,
+public prepared-body hashes and real mobile/browse/search checks passed.
+PR259 (`fe8272f`) and tool43 enabled the reviewed once-only continuation; final
+ledger retains all eight unknowns. No merchant/model/native writes occurred.
+Eight photo overlays keep their22:18:10.044Z expiry; bases do not expire.
+This is actual acceptance, not a claim that later `main` UI or the daily writer
+is deployed/enabled. Daily `.4` remains gated; Vercel frozen, Pinterest paused.
+Detailed immutable receipt hashes, costs and cleanup boundaries are in `JOURNAL.md`.
 
 ### 2026-10-22 [owner+claude] — Bind a fresh finite publication authorization
 
