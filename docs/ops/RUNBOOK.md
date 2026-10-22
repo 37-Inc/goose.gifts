@@ -83,7 +83,19 @@ The sole persistent operator source checkout is
 Keep it attached; do not archive this worktree or run publication from the shared
 `/Users/cameronehrlich/goose.gifts` checkout, which other authorized chats use.
 Require the operator checkout clean and fast-forward its dedicated branch from
-`origin/main` before running. Never switch/clean another chat's branch or adopt
+`origin/main` before running, **unless an exact earlier publication is still
+unresolved**. October21 run `launch-publish-994371816d46` must remain on clean
+source `994371816d467892f1481c67b8d4ffce27ece11a` and its saved config SHA
+`8749f8c98c16b23ace4fcb9f91d74ce1284e790a0d491cbd7dc0cfc6ff83cbcc`
+until verified finalization. Its maintained release is active, but the original
+600-HTTP guard stopped receipt settlement at 600 HTTP / 1,029 SQL with one
+earlier unknown metadata GET retained. Actual owner: activating, generation3 /
+epoch27. Do not consume another merchant allowance, start over, raise/reset the
+budget, upload/reactivate, purge its unexpired inputs, or advance its checkout.
+The owner has been asked about a separately journaled recovery allowance and
+future request ceiling; approval is not assumed. The task's first-step guard
+reports attention while this remains unresolved. Never switch/clean another
+chat's branch or adopt
 its ignored build output. Pin each publication to that exact clean commit and
 this same source path. An unsafe/dirty operator checkout is a review gate.
 
