@@ -136,13 +136,16 @@ async function readOriginalVectors(ws:RunWorkspace,ref:ArtifactRef):Promise<Reco
   return(value&&typeof value==='object'&&!Array.isArray(value)&&value.type==='run-workspace-blob'
     ?JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(await ws.readBlob(ref))):value) as Record<string,unknown>;
 }
-async function scopedProviders<T>(config:CloudflareWeeklyConfig,resolveToken:(ref:KeychainRef)=>Promise<string>,action:()=>Promise<T>,needsModel=true) {
+async function providerEnvironment(config:CloudflareWeeklyConfig,resolveToken:(ref:KeychainRef)=>Promise<string>,needsModel:boolean) {
   if(needsModel&&!config.credentials.openai)throw new Error('weekly_model_credentials_missing');
   const names=Object.keys(process.env).filter(key=>/^(CATALOG_|AMAZON_|OPENAI_|GOOGLE_SEARCH_|POSTGRES_|VERCEL_)/.test(key));
   const values={...Object.fromEntries(names.map(key=>[key,undefined])),AMAZON_ASSOCIATE_TAG:config.catalog.associateTag,
     AMAZON_MARKETPLACE:config.catalog.marketplace,AMAZON_CREATORS_CREDENTIAL_VERSION:config.credentials.amazonVersion,
     AMAZON_CREATORS_CREDENTIAL_ID:await resolveToken(config.credentials.amazonId),AMAZON_CREATORS_CREDENTIAL_SECRET:await resolveToken(config.credentials.amazonSecret),
     OPENAI_API_KEY:needsModel?await resolveToken(config.credentials.openai!):undefined};
+  return values;
+}
+async function scopedProviders<T>(values:Awaited<ReturnType<typeof providerEnvironment>>,action:()=>Promise<T>) {
   const old=Object.fromEntries(Object.keys(values).map(key=>[key,process.env[key]]));
   try{for(const [key,value]of Object.entries(values)){if(value===undefined)delete process.env[key];else process.env[key]=value;}amazonCreators.clearToken();return await action();}
   finally{amazonCreators.clearToken();for(const [key,value]of Object.entries(old)){if(value===undefined)delete process.env[key];else process.env[key]=value;}}
@@ -254,19 +257,26 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       await write({pins});
     }
     if(cp.phase==='created'){
+      let needsModel=!config.cadence;
       if(config.cadence){
         if(pacificCatalogCalendar(now()).day!==config.cadence.day)throw new Error('weekly_cadence_day_changed');
         const phases=await dailyCatalogPhases(dependencies.cadence!,config.cadence.featuredIds);
         if(!phases.length)return{state:'skipped',reason:'cadence_already_reserved'};
-        if(phases.some(p=>p.discoveryNewOnly||p.enrichSelectedExisting)&&!config.credentials.openai)throw new Error('weekly_model_credentials_missing');
+        needsModel=phases.some(p=>p.discoveryNewOnly||p.enrichSelectedExisting);
+        if(needsModel&&!config.credentials.openai)throw new Error('weekly_model_credentials_missing');
       }
+      // Resolve once before any DB ownership/telemetry write or daily reservation.
+      // An unreadable existing Keychain item must not strand a writing owner or
+      // consume the merchant allowance. Values remain in this invocation only;
+      // resume after completed phases never resolves merchant/model credentials.
+      const environment=await providerEnvironment(config,resolveToken,needsModel);
       const owner=await claimMutationOwnership(db,scope,{phase:'writing',ownerReference:config.runId,operationKey:sha256(`weekly:${options.configSha256}`)});
       if(!owner)throw new Error('weekly_owner_busy');const cursor={current:owner};await write({phase:'phases_running',owner});
       const intent=await ws.readArtifact(cp.pins.rights) as unknown as {rightsById:Record<string,never>;reviewedDeleteReference?:string};
       const evidence=createCatalogProviderEvidence({reviewedRightsById:intent.rightsById,reviewedDeleteReference:intent.reviewedDeleteReference,saveReceipt:input=>ws.saveReceipt(input),now});
       const maintenance=createD1CatalogMaintenanceStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision,intent:evidence.intent});
       const telemetry=createD1CatalogTelemetryStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision});
-      try{await scopedProviders(config,resolveToken,async()=>{
+      try{await scopedProviders(environment,async()=>{
         const {runWeeklyCatalogWithBackend}=await import('../ops/catalog-weekly.mjs');
         const backend={runId:config.runId,gitSha:config.codeSha,backfillLimit:config.backfillLimit,
           maintenanceStore:maintenance,telemetryStore:telemetry,providerEvidence:evidence,deferPublicationFinalization:true,
@@ -276,7 +286,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
           },async finalizeRun(id:string,input:Record<string,unknown>){await telemetry.finishCatalogRun(id,input);return telemetry.loadCatalogRun(id);}};
         if(config.cadence)await runDailyCatalogWithBackend({...backend,cadence:dependencies.cadence!,featuredIds:config.cadence.featuredIds});
         else await runWeeklyCatalogWithBackend(backend);
-      },!config.cadence||(await dailyCatalogPhases(dependencies.cadence!,config.cadence.featuredIds)).some(p=>p.discoveryNewOnly||p.enrichSelectedExisting));}catch(error){
+      });}catch(error){
         const durable=await ws.readCheckpoint();if(durable){saved=durable;cp=durable.checkpoint;}
         if(cp.phase==='phases_running'){
           const row=await telemetry.loadCatalogRun(config.runId);
