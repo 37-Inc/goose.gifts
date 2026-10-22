@@ -29,7 +29,7 @@ import { canonicalJson } from './migration.ts';
 import { readActivatedCatalogVectors } from './owned-vector-delivery.ts';
 import type { PublishedCatalogRead } from './owned-vector-delivery.ts';
 import { createVectorizeRestAdapters } from './vectorize-rest.ts';
-import type { RunWorkspace, PublicationControl } from './run-workspace.ts';
+import type { RunWorkspace, PublicationControl, ArtifactRef } from './run-workspace.ts';
 import { semanticBudgetConfig } from '../../workers/site/semantic-budget.ts';
 
 /** Explicit protected local operator path, NOT a scheduler or a cross-host lock.
@@ -295,18 +295,20 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   const runtime=path.join(workspace.directory,'publication-runtime',config.releaseId);
   const uploadBinding=()=>({schemaVersion:1,releaseId:config.releaseId,requestId:options.requestId,configSha256,
     packageSha256:control!.packageSha256,uploadMarker:control!.uploadMarker});
-  const save=async(patch:Partial<PublicationControl>,nextOwner=owner)=>{
+  const save=async(patch:Partial<PublicationControl>,nextOwner=owner,uploadPending?:ArtifactRef)=>{
     await workspace.assertHeld();control={...control!,...patch};owner=nextOwner;
     // Read normal state only before activation; control-only settlement must not
     // turn expired merchant artifacts back into usable content.
     const view=await workspace.readCheckpoint({controlOnly:true});if(!view)throw new Error('publication_checkpoint_missing');
     if(view.checkpoint.control?.publication?.permit||control.permit&&view.checkpoint.control?.publication?.stage==='activating'){
+      if(uploadPending)throw new Error('publication_upload_review_required');
       await workspace.writeControlCheckpoint(view.sha256,{phase:'attention',owner,control:{publication:control}});
     }else{
       const current=await workspace.readCheckpoint();if(!current)throw new Error('publication_checkpoint_missing');
       const state=current.checkpoint.state;
       if(!state||typeof state!=='object'||Array.isArray(state))throw new Error('publication_checkpoint_invalid');
       await workspace.writeCheckpoint(current.sha256,{...current.checkpoint,phase:'publishing',owner,
+        ...(uploadPending?{pins:{...current.checkpoint.pins,publicationUploadPending:uploadPending}}:{}),
         state:JSON.parse(JSON.stringify({...state,publication:control})),control:{publication:control}});
     }
     checkpoint=await workspace.readCheckpoint({controlOnly:true});
@@ -319,9 +321,13 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     // a later uploading-stage resume from bypassing scope/accounting refusal.
     if(checkpoint?.checkpoint.pins.publicationUploadReview)throw new Error('publication_upload_review_required');
     const pendingUpload=checkpoint?.checkpoint.pins.publicationUploadPending,acknowledgedUpload=checkpoint?.checkpoint.pins.publicationUploadAcknowledged;
+    // Old code pinned BEFORE preflight. Only this built-stage shape can prove
+    // no CLI invocation; actual owner/build/package/D1/provider checks follow.
+    const preflightPending=!!(pendingUpload&&!acknowledgedUpload&&control?.stage==='built'
+      &&pendingUpload.sha256===sha256(canonicalJson(uploadBinding()))&&isAccountedPublicationUploadCommand(command));
     // Pins are append-only. A durable exact acknowledgement logically clears
     // pending; no artifact-body read (or new content rights) is needed on expiry.
-    if((pendingUpload||acknowledgedUpload)&&(!control||!pendingUpload||!acknowledgedUpload
+    if(!preflightPending&&(pendingUpload||acknowledgedUpload)&&(!control||!pendingUpload||!acknowledgedUpload
       ||pendingUpload.sha256!==sha256(canonicalJson(uploadBinding()))
       ||acknowledgedUpload.sha256!==sha256(canonicalJson({...uploadBinding(),pending:pendingUpload}))))
       throw new Error('publication_upload_review_required');
@@ -375,24 +381,29 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         ||control.publication!==null||control.intent!==null||control.permit!==null
         ||(control.stage==='claimed'?control.packageSha256!==null:!control.packageSha256||!HASH.test(control.packageSha256))
         ||control.versionReference!==null||control.deploymentId!==null||control.receiptSha256!==undefined
-        ||pendingUpload||acknowledgedUpload)throw new Error('publication_build_reclaim_fenced');
+        ||pendingUpload&&!preflightPending||acknowledgedUpload)throw new Error('publication_build_reclaim_fenced');
       const columns=Object.keys(buildRow).filter(key=>key!=='observed_at');
       const exact=(row:Record<string,unknown>)=>db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM catalog_build_requests
-        WHERE ${columns.map(key=>`${key} IS ?`).join(' AND ')}) THEN 'true' ELSE 'publication_build_reclaim_fenced' END)`)
+        WHERE ${columns.map(key=>`${key} IS ?`).join(' AND ')}${preflightPending?" AND lease_until>strftime('%Y-%m-%dT%H:%M:%fZ','now')":''}) THEN 'true' ELSE 'publication_build_reclaim_fenced' END)`)
         .bind(...columns.map(key=>row[key]));
       const undispatched=()=>db.prepare(`SELECT json(CASE WHEN NOT EXISTS(SELECT 1 FROM publication_outbox WHERE release_id=?)
         AND NOT EXISTS(SELECT 1 FROM publication_receipts WHERE release_id=?) THEN 'true' ELSE 'publication_build_reclaim_fenced' END)`)
         .bind(config.releaseId,config.releaseId);
       await db.batch([mutationAssertion(db,owner,['freezing']),exact(buildRow),undispatched(),mutationAssertion(db,owner,['freezing'])]);
       const at=canonicalTime(String(buildRow.observed_at));
+      if(preflightPending&&(canonicalTime(old.leaseUntil)<=at||old.leaseUntil<=now().toISOString()))throw new Error('publication_upload_review_required');
+      if(preflightPending||canonicalTime(old.leaseUntil)<=at&&control.stage==='built'){
+        const sealed=await loadPackage(directory,config,control.packageSha256!,now());
+        if(!revision||sealed.manifest.catalogSnapshotSha256!==old.request.sourceDigest
+          ||sealed.manifest.catalogRevision!==old.request.sourceRevision||sealed.manifest.priorReleaseId!==old.request.priorReleaseId
+          ||sealed.manifest.vectorSyncWatermark!==revision.vectorSyncWatermark
+          ||canonicalJson(sealed.snapshot)!==canonicalJson(revision.snapshot))throw new Error('publication_package_changed');
+      }
+      if(preflightPending){
+        if(await api.findVersion(control.uploadMarker)!==null)throw new Error('publication_upload_review_required');
+        await db.batch([mutationAssertion(db,owner,['freezing']),exact(buildRow),undispatched(),mutationAssertion(db,owner,['freezing'])]);
+      }
       if(canonicalTime(old.leaseUntil)<=at){
-        if(control.stage==='built'){
-          const sealed=await loadPackage(directory,config,control.packageSha256!,now());
-          if(!revision||sealed.manifest.catalogSnapshotSha256!==old.request.sourceDigest
-            ||sealed.manifest.catalogRevision!==old.request.sourceRevision||sealed.manifest.priorReleaseId!==old.request.priorReleaseId
-            ||sealed.manifest.vectorSyncWatermark!==revision.vectorSyncWatermark
-            ||canonicalJson(sealed.snapshot)!==canonicalJson(revision.snapshot))throw new Error('publication_package_changed');
-        }
         const attempts=Number(buildRow.attempts),leaseUntil=new Date(Math.min(Date.parse(at)+15*60000,Date.parse(old.request.cutoff))).toISOString();
         if(!Number.isInteger(attempts)||attempts<1||attempts>=3||leaseUntil<=at)throw new Error('publication_build_reclaim_fenced');
         let reclaimed:Awaited<ReturnType<typeof claimBuildRequest>>=null,uncertain=false;
@@ -541,14 +552,12 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     if(control.intent&&canonicalJson(control.intent)!==canonicalJson(intent))throw new Error('publication_package_changed');
     if(control.stage==='built'){
       const protectedUpload=isAccountedPublicationUploadCommand(command);
-      if(protectedUpload){
-        const current=await workspace.readCheckpoint();if(!current)throw new Error('publication_checkpoint_missing');
-        const pending=await workspace.putArtifact(uploadBinding(),{kind:'publication',observedAt:now().toISOString()});
-        await workspace.writeCheckpoint(current.sha256,{...current.checkpoint,pins:{...current.checkpoint.pins,publicationUploadPending:pending}});
-      }
       await enqueuePublication(db,sealed.snapshot,intent,now());
       const publication=await claimPublication(db,sealed.snapshot,intent.releaseId,now());if(!publication)throw new Error('publication_claim_unavailable');
-      await save({intent,publication,stage:'uploading'});
+      const pending=protectedUpload?await workspace.putArtifact(uploadBinding(),{kind:'publication',observedAt:now().toISOString()}):undefined;
+      // One checkpoint binds the first possible CLI invocation to both its
+      // exact publication claim and pending pin, never a preflight-only read.
+      await save({intent,publication,stage:'uploading'},owner,pending);
       assertBuildSource(config.sourceRoot,config.codeSha);await workspace.assertHeld();
       // Intent is durable before the only upload CLI invocation (Wrangler may
       // internally retry immutable version POST). Duplicate tags stay pending.

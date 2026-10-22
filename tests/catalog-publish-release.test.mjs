@@ -447,7 +447,93 @@ const protectedCommand=(f,run=f.command)=>accountedPublicationUploadCommand({wor
   scope:{accountId:f.config.accountId,workerName:f.config.workerName},send:async()=>assert.fail('No remote upload in synthetic command fixture'),command:run});
 const protectedMac={skip:process.platform!=='darwin'};
 
-test('protected upload cannot enqueue intent or dispatch without a durable pending checkpoint',protectedMac,async t=>{
+async function legacyPreflightPending(t,{bindingPatch={}}={}){
+  const context=await stoppedBuilt(t),{f}=context,c=f.checkpoint().control.publication;
+  // Exact retained old-code boundary: built package, no publication yet; the
+  // old executor pinned this binding before its read-only enqueue preflight.
+  const binding={schemaVersion:1,releaseId:f.config.releaseId,requestId:c.requestId,configSha256:sha(canonicalJson(f.config)),
+    packageSha256:c.packageSha256,uploadMarker:c.uploadMarker,...bindingPatch};
+  const pending=await f.workspace.putArtifact(binding,{kind:'publication',observedAt:new Date(AT).toISOString()});
+  const current=await f.workspace.readCheckpoint();
+  await f.workspace.writeCheckpoint(current.sha256,{...current.checkpoint,pins:{...current.checkpoint.pins,publicationUploadPending:pending}});
+  return{...context,pending,binding};
+}
+test('legacy built preflight pin recovers only an interrupted READ, keeps unknown usage and dispatches once',protectedMac,async t=>{
+  const {f,pending}=await legacyPreflightPending(t);let lost=false;
+  const database={...f.db,prepare(query){const statement=f.db.prepare(query);
+    if(!query.startsWith('SELECT 1 WHERE EXISTS(SELECT 1 FROM catalog_revisions'))return statement;
+    const all=statement.all;statement.all=async(...args)=>{
+      const result=await all(...args);if(!lost){lost=true;
+        await f.workspace.reserveBudget({id:'lost-preflight-read',requestSha256:sha(query),units:{httpRequests:1,sqlStatements:1}});
+        await f.workspace.settleBudget('lost-preflight-read',{status:'unknown',usage:null});
+        throw new Error('PRIVATE read ACK lost before enqueue');}
+      return result;
+    };return statement;
+  }};
+  assert.equal((await f.execute(database,{command:protectedCommand(f)})).state,'pending');assert.equal(lost,true);
+  assert.equal(f.checkpoint().control.publication.stage,'built');assert.equal(f.counts().uploadCalls,0);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_outbox WHERE release_id=?').get(f.config.releaseId).n,0);
+  const budget=await f.workspace.budget(),pinBytes=await fs.readFile(path.join(f.workspace.directory,pending.reference));
+  assert.equal(budget.unconfirmedRequests,1);await f.reopen();
+  const result=await f.execute(f.db,{command:protectedCommand(f)});assert.equal(result.state,'published',JSON.stringify(result));
+  assert.equal(f.counts().buildCalls,1);assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+  assert.deepEqual(f.checkpoint().pins.publicationUploadPending,pending);assert.deepEqual(await f.workspace.budget(),budget);
+  assert.deepEqual(await fs.readFile(path.join(f.workspace.directory,pending.reference)),pinBytes);
+  assert.equal((await f.execute()).state,'published');assert.equal(f.counts().uploadCalls,1);
+});
+test('legacy preflight pin refuses ambiguity, expiry, changed package/owner and existing D1 publication before dispatch',protectedMac,async t=>{
+  const faults=['pin','ack','review','uploading','expired','package','revision','owner','outbox','receipt','provider-hit','provider-error','provider-bound','owner-during-read','outbox-during-read'];
+  for(const fault of faults)await t.test(fault,async t=>{
+    const {f,pending,binding,packageDirectory}=await legacyPreflightPending(t,{bindingPatch:fault==='pin'?{releaseId:'wrong-release'}:{}});
+    const addOutbox=()=>f.sql.prepare(`INSERT INTO publication_outbox SELECT ?,?,catalog_revision,intent_json,state,lease_token,lease_until,
+      attempts,dispatch_reference,completed_token,error_code,created_at,updated_at FROM publication_outbox LIMIT 1`).run('e'.repeat(64),f.config.releaseId);
+    if(['ack','review','uploading'].includes(fault)){
+      const current=await f.workspace.readCheckpoint(),next=structuredClone(current.checkpoint);
+      if(fault==='uploading')next.control.publication.stage='uploading';
+      else{const value=fault==='ack'?{...binding,pending}:{schemaVersion:1,code:'publication_upload_unknown'};
+        const ref=await f.workspace.putArtifact(value,{kind:'publication',observedAt:new Date(AT).toISOString()});
+        next.pins[fault==='ack'?'publicationUploadAcknowledged':'publicationUploadReview']=ref;}
+      await f.workspace.writeCheckpoint(current.sha256,next);
+    }
+    if(fault==='expired')f.advance(11*60000);
+    if(fault==='package')await fs.appendFile(path.join(packageDirectory,'assets/index.html'),'unsealed bytes');
+    if(fault==='revision')f.revision.snapshot.products[0].title='Unapproved replacement';
+    if(fault==='owner')f.sql.prepare('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1').run();
+    if(fault==='outbox')addOutbox();
+    if(fault==='receipt')f.sql.prepare(`INSERT INTO publication_receipts SELECT ?,catalog_revision,code_sha,completed_at,manifest_json
+      FROM publication_receipts LIMIT 1`).run(f.config.releaseId);
+    let changed=false;
+    const fetch=async(url,init)=>{const pathname=new URL(url).pathname;
+      if(pathname.endsWith('/versions')){
+        if(fault==='provider-error')throw new Error('PRIVATE lookup unavailable');
+        if(fault==='provider-hit')return Response.json({success:true,result:{items:[{id:version}]}});
+        if(fault==='provider-bound')return Response.json({success:true,result:{items:Array.from({length:10},()=>({id:version}))}});
+        if(!changed&&fault.endsWith('-during-read')){changed=true;
+          if(fault==='owner-during-read')f.sql.prepare('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1').run();else addOutbox();}
+      }
+      if(pathname.endsWith(`/versions/${version}`))return Response.json({success:true,result:{id:version,
+        annotations:{'workers/tag':fault==='provider-hit'?f.checkpoint().control.publication.uploadMarker:'different-marker'}}});
+      return f.fetch(url,init);
+    };
+    const before={...f.sql.prepare('SELECT * FROM catalog_build_requests').get()},result=await f.execute(f.db,{fetch,command:protectedCommand(f)});
+    assert.equal(result.state,'pending');assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
+    assert.deepEqual({...f.sql.prepare('SELECT * FROM catalog_build_requests').get()},before);
+    assert.deepEqual(f.checkpoint().pins.publicationUploadPending,pending);
+  });
+});
+test('new preflight READ failure leaves no upload pin; retry can perform the first upload',protectedMac,async t=>{
+  const {f}=await stoppedBuilt(t);let lost=false;
+  const database={...f.db,prepare(query){const statement=f.db.prepare(query);
+    if(!query.startsWith('SELECT 1 WHERE EXISTS(SELECT 1 FROM catalog_revisions'))return statement;
+    const all=statement.all;statement.all=async(...args)=>{const result=await all(...args);if(!lost){lost=true;throw new Error('PRIVATE preflight read failed');}return result;};
+    return statement;
+  }};
+  assert.equal((await f.execute(database,{command:protectedCommand(f)})).state,'pending');assert.equal(lost,true);
+  assert.equal(f.checkpoint().control.publication.stage,'built');assert.equal(f.checkpoint().pins.publicationUploadPending,undefined);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_outbox WHERE release_id=?').get(f.config.releaseId).n,0);
+  await f.reopen();assert.equal((await f.execute(f.db,{command:protectedCommand(f)})).state,'published');assert.equal(f.counts().uploadCalls,1);
+});
+test('protected upload cannot dispatch without an atomic uploading claim and pending checkpoint',protectedMac,async t=>{
   const f=await setup(t,{real:true}),write=f.workspace.writeCheckpoint;
   f.workspace.writeCheckpoint=async(expected,value)=>{
     if(value.pins.publicationUploadPending)throw new Error('Owned pending checkpoint write failed');
@@ -455,7 +541,22 @@ test('protected upload cannot enqueue intent or dispatch without a durable pendi
   };
   assert.equal((await f.execute(f.db,{command:protectedCommand(f)})).state,'pending');
   assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
-  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_outbox WHERE release_id=?').get(f.config.releaseId).n,0);
+  assert.equal(f.checkpoint().control.publication.stage,'built');assert.equal(f.checkpoint().pins.publicationUploadPending,undefined);
+  assert.equal(f.sql.prepare('SELECT state FROM publication_outbox WHERE release_id=?').get(f.config.releaseId).state,'claimed');
+  // The exact D1 no-outbox assertion fails closed; SQLite errors are sanitized.
+  await f.reopen();assert.equal((await f.execute()).errorCode,'publication_pending');assert.equal(f.counts().uploadCalls,0);
+});
+test('lost atomic uploading checkpoint ACK never dispatches and resume never resends',protectedMac,async t=>{
+  const {f}=await stoppedBuilt(t),write=f.workspace.writeCheckpoint;let lost=false;
+  f.workspace.writeCheckpoint=async(expected,value)=>{
+    if(value.pins.publicationUploadPending)assert.equal(value.control.publication.stage,'uploading');
+    const result=await write(expected,value);
+    if(!lost&&value.pins.publicationUploadPending){lost=true;throw new Error('PRIVATE atomic checkpoint ACK lost');}
+    return result;
+  };
+  assert.equal((await f.execute(f.db,{command:protectedCommand(f)})).state,'pending');assert.equal(lost,true);assert.equal(f.counts().uploadCalls,0);
+  assert.equal(f.checkpoint().control.publication.stage,'uploading');assert.ok(f.checkpoint().pins.publicationUploadPending);
+  await f.reopen();assert.equal((await f.execute()).errorCode,'publication_upload_review_required');assert.equal(f.counts().uploadCalls,0);
 });
 
 test('protected failed upload plus lost review checkpoint remains held after actual workspace reopen',protectedMac,async t=>{
