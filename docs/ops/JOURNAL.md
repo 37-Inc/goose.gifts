@@ -79,6 +79,41 @@ was repeated. All identified failed cases have now passed, along with the
 catalog121 and deadline/abort10 checks. This is bounded follow-up validation,
 not a waiver or a new production publication.
 
+## 2026-10-22 — Restore the owner's existing images and descriptions
+
+Cameron explicitly confirmed permission for the existing dataset imagery and
+asked for faithful migration, not new rights investigation or invented copy.
+The prior SVG-only permanent display was an implementation restriction, not
+evidence that the owner lacked permission. It left 2,351 placeholders and 2,339
+missing visible blurbs and must not be called a finished public presentation.
+
+The new local owner-referenced restoration mode preserves exact current titles,
+photo URLs, descriptions, punny copy and tags. Source IDs/slugs, archive/native
+history, supplier evidence and original clocks remain unchanged. Nonmerchant
+exact-value grants still bind every displayed field. Schema and browser shard
+validation now support HTTPS and local raster photos; maintenance no longer
+forces a cleared image back to the SVG. The existing guarded display installer
+can follow the latest publication using a fresh cooperative capture and exact
+receipt-row digest, without replaying the original whole-catalog import.
+
+Actual local preparation used the retained post-install current state, including
+the fresh ten, not a scrape or Neon query. The private restoration snapshot SHA
+is `2d7db85bba4ba16655aa2966445d99ab14572d9638990fda0d5c62529ffd8fc5`:
+2,359 public images, 2,359 visible descriptions, 42 existing articles, 31 unchanged
+indexable pages, 1,024 unchanged holds and all 3,383 preserved identities. No
+personal owner identifiers or affiliate-tag mismatches were found. No merchant,
+model, Cloudflare request or production write was made by preparation. Exact
+existing content is reused, including old generic blurbs; quality improvement
+is separate work, not a hidden substitution during this migration.
+
+Protected packet and receipt: `existing-display-restoration-20261022/` under the
+existing private migration directory. The old workspace was read without opening
+its writer; original input/object deadlines and every consumed charge were left
+untouched. This entry records local preparation, NOT production completion.
+Fresh Free-plan admission, full build/verification and actual receipt/live checks
+are still required. Daily writer remains gated, old Neon writers off, Pinterest
+paused, creator research deferred and canceled credential work untouched.
+
 ## 2026-10-22 — Prepared full catalog published and independently verified
 
 Actual acceptance supersedes the pending checkpoints below; their failed reads,

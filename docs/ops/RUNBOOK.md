@@ -57,6 +57,25 @@ Boundaries (always in force):
 
 ### Cloudflare migration boundary
 
+**October22 owner clarification — restore the existing presentation.** Cameron
+expressly confirmed permission for the imagery in the existing catalog and
+requested migration of those images and descriptions as-is. Treat that owner
+confirmation as authority for a separate exact-value licensed display grant;
+do not demand a new supplier observation or substitute generic placeholders
+solely because the old API grant expired. Preserve original supplier grants,
+observations and clocks privately, rather than relabeling them. This restoration
+does not authorize new copy generation, a paid plan, reactivation of curation
+holds, native-vector changes or replay of the consumed publication allowance.
+The local prepared restoration has all 2,359 public image URLs/descriptions,
+3,383 preserved identities, unchanged 1,024 holds and 31 indexable pages. It is
+NOT deployed merely because its snapshot or local build is ready. The
+`existingDisplayReference` mode binds current exact dataset values to explicit
+owner-referenced grants. Permanent image validation supports HTTPS and local
+raster imagery through the same field-level approval contract. Follow-up D1
+installation starts from a fresh cooperative capture and exact latest
+publication receipt, not the old completed import. Verify current Free capacity
+before any new publication; do not consume the old grant again.
+
 **October22 accepted release — full prepared catalog is live and verified.**
 Release `permanent-catalog-063d9a31ee4f` serves runtime source
 `063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6`, snapshot

@@ -118,6 +118,42 @@ async function fixture(t,{count=43,initialCount=2,long=false,fresh=false,runtime
     hooks({send,statement}={}){beforeSend=send;beforeStatement=statement;},loseAck(){lose=true;},reservations,settlements};
 }
 
+test('follow-up owner-authorized restoration binds a fresh capture and latest publication, without replaying import',async t=>{
+  const f=await fixture(t,{count:4,initialCount:2});
+  const publication={release_id:'existing-release',catalog_revision:'existing-revision',code_sha:'a'.repeat(40),completed_at:AT,manifest_json:'{}'};
+  f.sql.prepare("INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES(?,?,?,'reconciled')")
+    .run(publication.catalog_revision,AT,'c'.repeat(64));
+  f.sql.prepare('INSERT INTO publication_receipts VALUES(?,?,?,?,?)').run(...Object.values(publication));
+  const captured=await captureOwnedD1({db:f.db,owner:f.owner,reference:'Fresh restoration fixture capture',stoppedWriters:writers(AT)});
+  const assembler=structuredClone(f.input.assembler),current=permanentBaselineCurrent(captured.capture);
+  assembler.existingDisplayReference='owner-confirmed-existing-dataset:fixture';
+  for(const p of current){
+    const rights=assembler.approvedRightsById[p.id];
+    for(const[field,value]of Object.entries({title:p.title,description:p.description||p.wittyDescription||p.title,imageUrl:p.imageUrl,
+      punnyTitle:p.punnyTitle,wittyDescription:p.wittyDescription,editorialWriteup:p.editorialWriteup,
+      ...(p.humorTags?.length?{humorTags:JSON.stringify(p.humorTags)}:{})}))
+      if(typeof value==='string'&&value.trim())rights[field]={basis:'licensed',value,reference:assembler.existingDisplayReference};
+  }
+  const proposal=assemblePermanentBaseline(f.input.evidence,current,assembler);
+  const base={...f.input};delete base.union;
+  const input={...base,capture:captured.capture,captureSha256:captured.captureSha256,assembler,
+    priorPublication:{releaseId:publication.release_id,receiptSha256:sha256(canonicalJson(publication))},
+    approvedProposal:{value:proposal,sha256:sha256(canonicalJson(proposal)),reference:assembler.existingDisplayReference}};
+  const prepared=preparePermanentDisplayPlan(input),before=f.state();
+  assert.throws(()=>preparePermanentDisplayPlan({...input,priorPublication:{...input.priorPublication,receiptSha256:'f'.repeat(64)}}),/prior_publication/);
+  assert.throws(()=>preparePermanentDisplayPlan({...input,union:f.input.union}),/prior_publication/);
+  const result=await applyPermanentDisplayPlan({db:f.db,plan:prepared.plan,planSha256:prepared.sha256,ownerCursor:{current:f.owner},
+    cooperativeCapture:{receipt:captured.receipt,sha256:captured.receiptSha256}});
+  assert.equal(result.state,'reconciled');assert.equal(result.changedProducts,4);
+  for(const row of f.state().products){const original=before.products.find(p=>p.id===row.id),display=JSON.parse(row.public_display_json);
+    assert.equal(display.imageUrl,JSON.parse(original.source_record_json).image_url);
+    assert.equal(display.eligibleUntil,null);assert.equal(row.source_record_json,original.source_record_json);
+    const{persistent,...rootRights}=JSON.parse(row.rights_json);
+    same(rootRights,JSON.parse(original.rights_json));assert.equal(persistent.imageUrl.basis,'licensed');}
+  same(f.state().catalog_maintenance_products,before.catalog_maintenance_products);
+  same(f.state().publication_receipts,before.publication_receipts);
+});
+
 test('real SQLite/REST display-only batches preserve all24/native/rowids/merchant rights and clocks; replay does not write',async t=>{
   const f=await fixture(t),before=f.state(),rowids=f.sql.prepare('SELECT id,rowid FROM products ORDER BY id').all(),cursor={current:f.owner},start=f.metrics();
   const result=await f.apply({ownerCursor:cursor});assert.equal(result.state,'reconciled');assert.equal(result.changedProducts,43);assert.equal(result.vectorWorkEmitted,0);assert.equal(result.publicationEmitted,false);

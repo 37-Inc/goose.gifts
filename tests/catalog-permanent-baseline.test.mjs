@@ -141,3 +141,45 @@ test('reviewed evidence and local SVG bytes/path/SHA stay pinned, with no remote
     f => { const text = svg.replace('</svg>', '<script>bad()</script></svg>'); f.options.placeholder.bytes = Buffer.from(text); f.options.placeholder.expectedSha256 = hash(text); },
   ]) { const f = fixture(); mutate(f); assert.throws(f.run, /permanent_/); }
 });
+
+function restorationFixture(count = 2) {
+  const f = fixture(count);
+  f.options.existingDisplayReference = 'owner-confirmed-existing-dataset:synthetic-fixture';
+  for (const p of f.current) {
+    const grant = value => ({ basis: 'licensed', value, reference: f.options.existingDisplayReference });
+    const rights = f.options.approvedRightsById[p.id];
+    for (const [field, value] of Object.entries({ title: p.title, description: p.wittyDescription || p.title,
+      imageUrl: p.imageUrl, punnyTitle: p.punnyTitle, wittyDescription: p.wittyDescription, editorialWriteup: p.editorialWriteup })) {
+      if (value) rights[field] = grant(value);
+    }
+  }
+  return f;
+}
+
+test('owner-confirmed dataset restoration preserves exact existing photos, copy, IDs and source history', () => {
+  const f = restorationFixture(), before = JSON.stringify({ current: f.current, evidence: f.evidence, options: f.options });
+  const result = f.run();
+  assert.equal(result.proposed.length, 2);
+  for (const candidate of result.proposed) {
+    const original = f.current.find(p => p.id === candidate.id), display = createPersistentCatalogProduct(candidate.input, now);
+    for (const field of ['id', 'publicId', 'slug', 'title', 'imageUrl', 'punnyTitle', 'wittyDescription'])
+      assert.equal(display[field], original[field]);
+    assert.equal(display.description, original.wittyDescription);
+    assert.equal(display.eligibleUntil, null);
+    assert.equal(candidate.input.rights.imageUrl.basis, 'licensed');
+  }
+  assert.equal(result.proposed[0].input.product.editorialWriteup, article);
+  assert.equal(JSON.stringify({ current: f.current, evidence: f.evidence, options: f.options }), before);
+});
+
+test('restoration needs exact owner-referenced grants and never changes curation holds', () => {
+  for (const mutate of [f => f.options.approvedRightsById[f.current[0].id].imageUrl.value = 'https://supplier.invalid/other.jpg',
+    f => f.options.approvedRightsById[f.current[0].id].imageUrl.basis = 'merchant',
+    f => f.options.approvedRightsById[f.current[0].id].imageUrl.reference = 'unrelated',
+    f => f.options.approvedRightsById[f.current[0].id].imageUrl.expiresAt = '2026-10-23T00:00:00.000Z']) {
+    const f = restorationFixture(); mutate(f); assert.throws(f.run, /restoration_field/);
+  }
+  const f = restorationFixture(3); f.current[0].isActive = false; f.current[1].editorialStatus = 'blocked';
+  assert.deepEqual(f.run().holds.map(p => p.reason), ['inactive', 'editorial_hold']);
+  assert.equal(f.run().proposed.length, 1);
+});
