@@ -66,6 +66,19 @@ test('capture binds all24 complete tables, allocator/native bytes, actual schema
   const plan=prepareOwnedOperationalImport({packet,capture:result.capture,captureSha256:result.captureSha256,owner:f.owner});
   await assert.rejects(applyOwnedOperationalImport({db:f.db,plan:plan.plan,planSha256:plan.sha256,ownerCursor:{current:f.owner}}),/capture_unverified/);
 });
+test('real-shaped exact provider/control tables are outside application scope, not allocator metadata',async t=>{
+  const f=await fixture(t);
+  f.sql.exec("CREATE TABLE _cf_KV(key TEXT PRIMARY KEY,value BLOB); INSERT INTO _cf_KV VALUES('fixture',X'00FF')");
+  f.sql.exec("CREATE TABLE d1_migrations(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT UNIQUE,applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL); INSERT INTO d1_migrations(id,name) VALUES(7,'0014_runtime_capture_barrier.sql')");
+  const before=f.state(),result=await captureOwnedD1(f.options);
+  assert.deepEqual(result.capture.tables,before);assert.equal(result.capture.inventory.length,24);
+  assert.equal(result.capture.tables.sqlite_sequence.find(r=>r.name==='d1_migrations').seq,7);
+  assert.deepEqual(result.receipt.outsideApplicationTables,['_cf_KV','d1_migrations']);
+  assert.ok(!result.receipt.schemas.some(s=>['_cf_KV','d1_migrations'].includes(s.table)));
+  for(const name of ['_cf_forged','d1_other']){
+    f.sql.exec(`CREATE TABLE ${name}(value TEXT)`);await assert.rejects(captureOwnedD1(f.options),/catalog_capture_schema/);f.sql.exec(`DROP TABLE ${name}`);
+  }
+});
 
 test('six triggers fence old prepared INSERT/UPDATE/DELETE and conflict-upsert while idle behavior is unchanged',async t=>{
   const f=await fixture(t);await releaseMutationOwnership(f.db,f.owner);

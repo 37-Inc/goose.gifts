@@ -13,6 +13,9 @@ export interface StoppedCaptureWriter {
   id:string;kind:'application'|'operator';codePaths:string[];reference:string;stoppedAt:string;
 }
 const runtimeTables=['search_diagnostics','semantic_search_budgets'];
+// These exact provider/Wrangler control tables are not application recovery
+// data. Their sqlite_sequence entries remain captured verbatim, not filtered.
+const outsideApplicationTables=['_cf_KV','d1_migrations'];
 const normalized=(sql:string)=>sql.trim().replace(/;$/,'');
 function refuse(code:string):never{throw new Error(`catalog_capture_${code}`);}
 const text=(value:unknown,max:number):value is string=>typeof value==='string'&&value.trim().length>0
@@ -26,6 +29,7 @@ async function schema(db:CatalogD1):Promise<SchemaRow[]>{
     const page=(await db.prepare(`WITH bounded AS (SELECT rowid _cursor,name,type,tbl_name,sql,
       length(CAST(json_object('name',name,'type',type,'tbl_name',tbl_name,'sql',sql) AS BLOB)) _bytes
       FROM sqlite_schema WHERE (name NOT GLOB 'sqlite_*' OR name='sqlite_sequence')
+      AND tbl_name NOT IN ('_cf_KV','d1_migrations')
       ${cursor===undefined?'':'AND rowid>CAST(? AS INTEGER)'} ORDER BY rowid LIMIT 40), sized AS
       (SELECT *,sum(_bytes) OVER(ORDER BY _cursor) _total FROM bounded)
       SELECT CAST(_cursor AS TEXT) _cursor,name,type,tbl_name,sql FROM sized
@@ -90,9 +94,10 @@ export async function captureOwnedD1(options:{db:CatalogD1;owner:MutationOwner;r
     ownerBefore:owner,ownerAfter:structuredClone(owner),scopeRowSha256:sha256(canonicalJson(before.row)),
     startedAt:before.observedAt,completedAt:after.observedAt,inventory,
     schemas:schemaBefore.map(row=>({name:row.name,type:row.type,table:row.tbl_name,sha256:sha256(canonicalJson(row))})),
-    schemaSha256:sha256(canonicalJson(schemaBefore)),stoppedWriters:writers,
+    schemaSha256:sha256(canonicalJson(schemaBefore)),outsideApplicationTables,stoppedWriters:writers,
     limitations:['Known-writer stops are explicit operator attestations, not provider-enforced permissions.',
       'Six database triggers guard both old in-flight runtime write paths; privileged SQL/DDL remains outside this cooperative barrier.',
+      'Exact provider _cf_KV and Wrangler d1_migrations tables/DDL are outside the24 application-table scope; sqlite_sequence retains all original allocator entries.',
       'No provider bookmark/atomic-export, merchant observation, rights renewal or production import acceptance is claimed.']};
   return{capture,captureSha256,receipt,receiptSha256:sha256(canonicalJson(receipt))};
 }
