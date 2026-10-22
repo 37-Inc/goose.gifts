@@ -6,6 +6,7 @@ import test from "node:test";
 import ts from "typescript";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
+import { createHash } from "node:crypto";
 import { giftGuides } from "../lib/gift-guide-definitions.ts";
 
 const require = createRequire(import.meta.url);
@@ -37,7 +38,7 @@ test("each published guide has an intentional, accessible line icon instead of a
 
 test("real gift cards have no repeated collection label or Unicode arrow; fixtures stay clearly labeled", () => {
   const { ProductCard } = load("components/ProductCard.tsx", {
-    "./CatalogPhotos": { CatalogCardArt: () => null },
+    "./CatalogPhotos": { CatalogCardArt: () => null, CatalogDisclosure: () => null },
     "../lib/selection": { isIllustrative: () => false },
   });
   const product = { id: "owned-test", slug: "owned-test", source: "amazon", title: "Owned test gift",
@@ -79,6 +80,46 @@ test("guide selection copy uses plain public language without changing membershi
   assert.match(source, /No matching gifts yet/);
   assert.doesNotMatch(source, /Catalog matches in this snapshot|No matching ready products|Browse the collection/);
   assert.match(source, /selectGuideProducts\(catalog, guide\)/);
+});
+
+test("new site-authored packaging disclosure matches only the exact Amazon ASIN, without mutating catalog data", async () => {
+  const { siteEditorialDisclosures } = load("lib/site-editorial.ts", { "server-only": {} });
+  const photos = load("components/CatalogPhotos.tsx", {
+    "./Icon": { Icon: () => null },
+    "@/components/ProductImage": { ProductImage: () => null },
+    "../lib/photo-shard": { PHOTO_PLACEHOLDER: "/images/gift-placeholder.svg" },
+  });
+  const { ProductCard } = load("components/ProductCard.tsx", {
+    "./CatalogPhotos": photos, "../lib/selection": { isIllustrative: () => false },
+  });
+  const product = { id: "B0757WW6KB", source: "amazon", slug: "owned-fixture", title: "Owned identity label",
+    description: "Owned identity label", imageUrl: "/images/gift-placeholder.svg", eligibleUntil: null };
+  const hash = () => createHash("sha256").update(JSON.stringify(product)).digest("hex"), before = hash();
+  const render = child => renderToStaticMarkup(createElement(photos.CatalogPhotos,
+    { indexPath: null, editorialDisclosures: siteEditorialDisclosures }, child));
+  const note = "Empty prank gift box. No fire kit included.";
+  for (const eligibleUntil of [null, "2020-01-01T00:00:00.000Z"]) {
+    const html = render(createElement(ProductCard, { product: { ...product, eligibleUntil } }));
+    assert.equal(html.split(note).length - 1, 1);
+    assert.match(html, /photo-unavailable/);
+  }
+  for (const patch of [{ source: "etsy" }, { id: "B0757WW6KX" }, { id: "unknown", slug: product.slug }])
+    assert.doesNotMatch(render(createElement(ProductCard, { product: { ...product, ...patch } })), /No fire kit included/);
+  const { default: Gift } = load("app/gifts/[slug]/page.product.tsx", {
+    "next/navigation": { notFound() { throw new Error("Unexpected notFound"); } },
+    "../../../components/CatalogPhotos": photos,
+    "@/lib/gift-page-schema": { buildGiftPageSchema: () => ({}) },
+    "../../../lib/catalog": { catalog: { products: [product], dataKind: "catalog" } },
+    "../../../lib/selection": { isIllustrative: () => false },
+    "../../../lib/metadata": { previewMetadata: () => ({}), PREVIEW_ORIGIN: "https://stupid.gifts" },
+    "../../../components/ProductCard": { ProductCard: () => null },
+    "../../../lib/og-data": { og: { cards: [] } },
+  });
+  const detail = render(await Gift({ params: Promise.resolve({ slug: product.slug }) }));
+  assert.equal(detail.split(note).length - 1, 1);
+  assert.match(detail, /<h1>Owned identity label<\/h1><p class="product-disclosure">/);
+  assert.equal(hash(), before);
+  assert.doesNotMatch(fs.readFileSync(new URL("../static-site/components/CatalogPhotos.tsx", import.meta.url), "utf8"), /B0757WW6KB|No fire kit/);
 });
 
 test("home is the browse destination with the approved heading and no redundant collection navigation", () => {

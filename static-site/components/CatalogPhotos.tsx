@@ -5,7 +5,7 @@ import { ProductImage } from "@/components/ProductImage";
 import { PHOTO_PLACEHOLDER, photoVersion, validatePhotoIndex, validatePhotoShard } from "../lib/photo-shard";
 import { Icon } from "./Icon";
 
-const PhotoContext = createContext<{ indexPath: string | null; photoSlots: readonly string[] }>({ indexPath: null, photoSlots: [] });
+const PhotoContext = createContext<{ indexPath: string | null; photoSlots: readonly string[]; editorialDisclosures: Readonly<Record<string, string>> }>({ indexPath: null, photoSlots: [], editorialDisclosures: {} });
 const pending = new Map<string, Promise<unknown>>();
 async function read(path: string, validate: (value: unknown) => unknown): Promise<unknown> {
   const existing = pending.get(path);
@@ -33,8 +33,16 @@ async function read(path: string, validate: (value: unknown) => unknown): Promis
   return request;
 }
 
-export function CatalogPhotos({ indexPath, photoSlots = [], children }: { indexPath: string | null; photoSlots?: readonly string[]; children: React.ReactNode }) {
-  return <PhotoContext.Provider value={{ indexPath, photoSlots }}>{children}</PhotoContext.Provider>;
+export function CatalogPhotos({ indexPath, photoSlots = [], editorialDisclosures = {}, children }: {
+  indexPath: string | null; photoSlots?: readonly string[]; editorialDisclosures?: Readonly<Record<string, string>>; children: React.ReactNode;
+}) {
+  return <PhotoContext.Provider value={{ indexPath, photoSlots, editorialDisclosures }}>{children}</PhotoContext.Provider>;
+}
+
+/** Independently authored site copy; never changes the supplied catalog product. */
+export function CatalogDisclosure({ source, id }: { source: string; id: string }) {
+  const text = useContext(PhotoContext).editorialDisclosures[`${source}/${id}`];
+  return text ? <p className="product-disclosure">{text}</p> : null;
 }
 
 /** Slot IDs reserve the original photo geometry, not rights or supplier URLs.

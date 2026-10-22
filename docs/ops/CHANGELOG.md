@@ -282,6 +282,14 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-22 [owner+claude] — Add an independently authored prank-box disclosure
+
+Add “Empty prank gift box. No fire kit included.” beside the exact Amazon item's
+card and detail heading. This is new owned site editorial, with the dated reference
+and prior factual-review provenance in source—not a changed product DTO, permanent
+grant, supplier deadline or snapshot. Server-provided context keeps its identity
+out of shared JavaScript. No data mutation or publication is performed here.
+
 ### 2026-10-22 [owner+claude] — Keep photo-free catalog cards compact and honest
 
 Replace repeated full-size generic pictures with the existing gift glyph and a

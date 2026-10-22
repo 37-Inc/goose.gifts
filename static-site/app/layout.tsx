@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { previewMetadata } from "../lib/metadata";
 import { isFixtureRelease, photos } from "../lib/catalog";
 import { CatalogPhotos } from "../components/CatalogPhotos";
+import { siteEditorialDisclosures } from "../lib/site-editorial";
 import { StaticAnalytics } from "../components/StaticAnalytics";
 import { StaticContentExpiry } from "../components/StaticContentExpiry";
 import SafeCatalog from "./safe/catalog/page";
@@ -48,7 +49,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </a>
           </nav>
         </header>
-        <CatalogPhotos indexPath={photos.indexPath} photoSlots={Object.keys(photos.index.products)}>
+        <CatalogPhotos indexPath={photos.indexPath} photoSlots={Object.keys(photos.index.products)} editorialDisclosures={siteEditorialDisclosures}>
           <StaticContentExpiry fallback={<SafeCatalog />}>{children}</StaticContentExpiry>
         </CatalogPhotos>
         <footer>

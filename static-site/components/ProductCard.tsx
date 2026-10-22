@@ -1,4 +1,4 @@
-import { CatalogCardArt } from "./CatalogPhotos";
+import { CatalogCardArt, CatalogDisclosure } from "./CatalogPhotos";
 import type { PublicCatalogProduct } from "../../lib/catalog/types";
 import type { CatalogCard } from "../lib/card-shard";
 import { isIllustrative } from "../lib/selection";
@@ -48,6 +48,7 @@ export function ProductCard({
             {product.punnyTitle || product.title}
           </a>
         </h2>
+        {!illustrative && <CatalogDisclosure source={product.source} id={product.id} />}
         {(product.wittyDescription || product.description) !== (product.punnyTitle || product.title) &&
           <p>{product.wittyDescription || product.description}</p>}
         <a data-analytics-product-link="" className="text-action" href={`/gifts/${product.slug}`}>
