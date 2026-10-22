@@ -306,7 +306,7 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
           :`NOT EXISTS(SELECT 1 FROM ${name(t)} WHERE id=${literal(id)})`;
       };
       const assertion=(condition:string)=>`IF NOT(${condition}) THEN RAISE EXCEPTION 'Rollback state mismatch'; END IF;`;
-      const packetSha=options.rollbackFixture!.expectedPacketSha256;
+      const packetSha=(options.cooperativeRollback??options.rollbackFixture)!.expectedPacketSha256;
       const transaction=(lateFailure:boolean)=>{
         let body=`BEGIN IF NOT EXISTS(SELECT 1 FROM _catalog_recovery.rollback_ledger WHERE packet_sha256=${literal(packetSha)}) THEN\n`
           +assertion('NOT EXISTS(SELECT 1 FROM _catalog_recovery.rollback_ledger)');
