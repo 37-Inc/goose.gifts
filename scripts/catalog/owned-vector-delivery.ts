@@ -10,7 +10,7 @@ import type { PublicationIntent, PublishedCatalogBinding } from '../../lib/catal
 import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { hasAccountedVectorReadback } from './vectorize-rest.ts';
 import { pruneExistingRevision, prunedVectorIds, prunedVectorPlan, settleCapturedRevision } from '../../lib/catalog/prune-existing-revision.ts';
-import type { PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
+import type { HistoricalNativeBinding, PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PermanentCatalogRevision } from '../../lib/catalog/freeze-permanent-catalog.ts';
 import { prepareApprovedCohort } from '../../lib/catalog/freeze-approved-cohort.ts';
 import type { ApprovedCohortEnvelope, ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
@@ -934,14 +934,12 @@ export interface ActivatedVectorPlan { catalogRevision:string; planSha256:string
 /** Preserve the original completed native proof. This observes its actual old
  * generation, processed references and exact bits/metadata; it neither promotes
  * those vectors into a permanent grant nor creates a replacement receipt. */
-export function readPermanentNativeProof(options:{db:CatalogD1;owner:MutationOwner;revision:PermanentCatalogRevision;
+export function readHistoricalNativePreservation(options:{db:CatalogD1;owner:MutationOwner;native:HistoricalNativeBinding;current:Row[];original?:Row[];changedIds?:string[];
   adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>;signal?:AbortSignal
-}):Promise<PrunedVectorObservation>{return safe(async()=>{
-  const {db,adapters,signal}=options,owner=structuredClone(options.owner),revision=structuredClone(options.revision);
-  const binding=revision.nativePreservation,plan=prunedVectorPlan(revision);
+}):Promise<string[]>{return safe(async()=>{
+  const {db,adapters,signal}=options,owner=structuredClone(options.owner),binding=structuredClone(options.native),changed=new Set(options.changedIds??[]);
   signal?.throwIfAborted();adapterScope(owner,adapters);
-  if(!binding||canonicalJson(binding)!==canonicalJson(revision.request.native)||owner.operationKey!==revision.operationKey
-    ||!['freezing','activating'].includes(owner.phase))throw new Error('vector_preserved_input_invalid');
+  if(!binding||!['freezing','activating'].includes(owner.phase)||changed.size>20||[...changed].some(id=>!UUID.test(id)))throw new Error('vector_preserved_input_invalid');
   const read=async(sql:string,params:unknown[])=>{signal?.throwIfAborted();
     const rows=(await db.prepare(sql).bind(...params).all<Row>({signal})).results;signal?.throwIfAborted();return rows;};
   const exact=(table:string,row:Row)=>{const keys=Object.keys(row);
@@ -954,10 +952,13 @@ export function readPermanentNativeProof(options:{db:CatalogD1;owner:MutationOwn
   const proof=validateReuse(saved,historical,binding.plan,adapters.providerIdentity);
   if(base.generation>=owner.generation||proof.revisionSha256!==binding.revisionSha256)throw new Error('vector_preserved_revision_changed');
   const rows=await reuseSources(db,proof.approval,signal),vectors=reuseVectors(historical,proof,rows);
-  const originals=new Map(revision.request.installation.plan.input.capture.tables.products.map(row=>[row.public_id,row]));
-  const current=new Map(revision.sourceRows.map(row=>[row.public_id,row]));
-  for(const row of rows)if(canonicalJson(originals.get(row.public_id))!==canonicalJson(JSON.parse(String(row.product_json)))
+  const originals=options.original&&new Map(options.original.map(row=>[row.public_id,row]));
+  const current=new Map(options.current.map(row=>[row.public_id,row]));
+  for(const row of rows)if(originals&&canonicalJson(originals.get(row.public_id))!==canonicalJson(JSON.parse(String(row.product_json)))
     ||!current.get(row.public_id)?.approved_product_json)throw new Error('vector_preserved_source_changed');
+  for(const row of rows){const actual=current.get(row.public_id)!,old=JSON.parse(String(row.product_json));
+    if(changed.has(String(row.public_id)))vectors.delete(String(row.public_id));
+    else if(actual.source_facts_hash!==old.source_facts_hash||actual.embedding_text_hash!==old.embedding_text_hash)throw new Error('vector_preserved_source_changed');}
   const receipts=await read('SELECT * FROM publication_receipts WHERE release_id=?',[binding.source.releaseId]),receipt=receipts[0];
   if(receipts.length!==1||sha256(canonicalJson(receipt))!==binding.source.receiptSha256)throw new Error('vector_preserved_receipt_changed');
   const intent=JSON.parse(String(receipt.manifest_json)) as PublicationIntent;
@@ -981,9 +982,18 @@ export function readPermanentNativeProof(options:{db:CatalogD1;owner:MutationOwn
     ...pruningCurrentQueries(rows.map(row=>current.get(row.public_id)!)).map(q=>assertion(db,`(${q.sql})=?`,[...q.params,q.count]))];
   await db.batch(checks(),{signal});signal?.throwIfAborted();await reuseReadback(adapters,vectors,3000,signal);
   await db.batch(checks(),{signal});signal?.throwIfAborted();
-  return{environment:owner.environment,indexName:owner.indexName,settled:true,planSha256:sha256(canonicalJson(plan)),
-    reference:`preserved-vectors:${binding.source.deliveryId}`};
+  return [...vectors.keys()];
 });}
+export async function readPermanentNativeProof(options:{db:CatalogD1;owner:MutationOwner;revision:PermanentCatalogRevision;
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>;signal?:AbortSignal}):Promise<PrunedVectorObservation>{
+  const {revision,owner}=options;
+  if(!revision.nativePreservation||canonicalJson(revision.nativePreservation)!==canonicalJson(revision.request.native)
+    ||owner.operationKey!==revision.operationKey)throw new Error('vector_preserved_input_invalid');
+  await readHistoricalNativePreservation({...options,native:revision.nativePreservation,current:revision.sourceRows,
+    original:revision.request.installation.plan.input.capture.tables.products});
+  return{environment:owner.environment,indexName:owner.indexName,settled:true,planSha256:sha256(canonicalJson(prunedVectorPlan(revision))),
+    reference:`preserved-vectors:${revision.nativePreservation.source.deliveryId}`};
+}
 export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit,plan:ActivatedVectorPlan,
   adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>,
   options:{signal?:AbortSignal;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision}={}):Promise<PrunedVectorObservation> {
