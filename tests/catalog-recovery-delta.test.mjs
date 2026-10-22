@@ -16,6 +16,8 @@ import {runNativeRecovery} from '../scripts/catalog/recovery-native.ts';
 import {createD1CatalogTelemetryStore} from '../scripts/catalog/telemetry-d1.ts';
 import {createD1CatalogMaintenanceStore} from '../scripts/catalog/maintenance-d1.ts';
 import {claimMutationOwnership} from '../lib/catalog/mutation-fence.ts';
+import {prepareOperationalPacket} from '../scripts/catalog/prepare-operational.ts';
+import {prepareOwnedOperationalImport,applyOwnedOperationalImport} from '../scripts/catalog/owned-operational-import.ts';
 
 const AT='2026-10-21T12:00:00.123456Z';const LATER='2026-10-21T12:01:00.654321Z';
 const uuid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
@@ -35,7 +37,7 @@ function definition(table,index){
 }
 function empty(def){return Object.fromEntries(def.columns.map(c=>[c.name,c.nullable?null:c.type==='boolean'?false:c.type==='jsonb'?'{}':c.type.startsWith('timestamp')?'2026-10-20 10:00:00'+(c.type.endsWith('with time zone')?'+00':''):'TEST']));}
 function inventory(input){input.inventory=D1_RECOVERY_TABLES.map(table=>({table,rows:input.tables[table].length,sha256:sha256(canonicalJson(input.tables[table]))}));return input;}
-async function fixture({searches=0}={}){
+async function fixture({searches=0,ownedImport=false}={}){
   const parent=await mkdtemp(join(process.env.CATALOG_RECOVERY_TEST_EVIDENCE_PARENT||tmpdir(),'sg-delta-fixture-'));
   const directory=join(parent,'baseline');await mkdir(directory,{mode:0o700});
   const tables=[products,catalogRuns,catalogRunItems,productSlugHistory,catalogEditorialEvents,searchQueries].map(definition);
@@ -67,6 +69,7 @@ async function fixture({searches=0}={}){
     relrowsecurity:false,relforcerowsecurity:false,relispartition:false,relhassubclass:false,inherits_from_parent:false})),functions,triggers,
     extensions:[{extname:'vector',extversion:'0.8.0',schema_name:'public'},{extname:'plpgsql',extversion:'1.0',schema_name:'pg_catalog'}]};
   const auditText=JSON.stringify(audit)+'\n',auditPath=join(parent,'audit.json');await writeFile(auditPath,auditText,{mode:0o600});
+  const archive=await validateRecoveryArchive(directory,{expectedManifestSha256:baselineSha256});
   const input={schemaVersion:1,scope:'application-logical-tables-through-0012',provenance:{kind:'synthetic-fixture',reference:'controlled fixture only',barrierEvidence:null},tables:Object.fromEntries(D1_RECOVERY_TABLES.map(t=>[t,[]])),inventory:[]};
   for(const [i,table]of tables.slice(0,6).entries()){
     const timestamps=Object.fromEntries(table.columns.filter(c=>c.type==='timestamp without time zone').map(c=>[`${table.name}.${c.name}`,{timezone:'unresolved',evidence:'fixture historical timezone unknown'}]));
@@ -83,17 +86,26 @@ async function fixture({searches=0}={}){
   }
   input.tables.products[0]=maintain(input.tables.products[0],true);
   input.tables.products.push(maintain(input.tables.products[1],false,'TEST-3'));
+  // The owned-union variant begins before the original legacy items have been
+  // imported, so native allocations genuinely occupy their source sequences.
+  if(ownedImport){
+    input.tables.catalog_run_items=[];
+    // Match the existing history importer: it retains the exact NDJSON line,
+    // not a freshly canonicalized equivalent source_record_json string.
+    const sourceRuns=archive.tables.find(t=>t.definition.name==='catalog_runs');
+    for(const line of sourceRuns.raw.trimEnd().split('\n'))input.tables.catalog_runs.find(r=>r.id===JSON.parse(line).id).source_record_json=line;
+  }
   // Exercise the actual writer's raw/start/finish JSON, casing, defaults,
   // sequence allocation and typed overrides rather than hand-authoring them.
-  const sqlite=new DatabaseSync(':memory:');
+  const sqlite=new DatabaseSync(':memory:');let owned;
   try{
     for(const name of (await readdir(new URL('../migrations/d1/',import.meta.url))).filter(n=>/^00\d\d_.*\.sql$/.test(n)).sort())
       sqlite.exec(await readFile(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
     let clock='2026-10-21T12:00:00.123Z';sqlite.function('strftime',{varargs:true},()=>clock);
     const db={prepare(sql){let params=[];return{sql,get params(){return params;},bind(...p){params=p;return this;},
       async all(){return{results:sqlite.prepare(sql).all(...params).map(r=>({...r}))};},async run(){return sqlite.prepare(sql).run(...params);}};},
-      async batch(statements){sqlite.exec('BEGIN');try{for(const s of statements)sqlite.prepare(s.sql).all(...s.params);sqlite.exec('COMMIT');}catch(e){sqlite.exec('ROLLBACK');throw e;}}};
-    for(const name of ['products','catalog_runs','catalog_run_items'])for(const row of input.tables[name]){
+      async batch(statements){sqlite.exec('BEGIN');try{const results=statements.map(s=>({success:true,results:sqlite.prepare(s.sql).all(...s.params).map(r=>({...r}))}));sqlite.exec('COMMIT');return results;}catch(e){sqlite.exec('ROLLBACK');throw e;}}};
+    for(const name of ['products','catalog_runs','catalog_run_items','catalog_maintenance_products'])for(const row of input.tables[name]){
       const keys=Object.keys(row);sqlite.prepare(`INSERT INTO ${name}(${keys.join(',')}) VALUES(${keys.map(()=>'?')})`).run(...keys.map(k=>row[k]));
     }
     sqlite.exec("INSERT INTO catalog_mutation_scopes(environment,index_name) VALUES('staging','fixture-index')");
@@ -101,20 +113,51 @@ async function fixture({searches=0}={}){
     const options={db,owner,ownerCursor:{current:owner},runId:uuid(21),catalogRevision:'fixture-current'};
     const store=createD1CatalogTelemetryStore(options);const maintenance=createD1CatalogMaintenanceStore(options);
     await store.startCatalogRun({id:uuid(21),mode:'daily',trigger:'fixture',config:{},gitSha:null});
-    await store.insertCatalogRunItems(uuid(21),[{id:uuid(31),phase:'refresh',stage:'selection',decision:'selected',productId:'TEST-3',externalId:'TEST-1',requiresManualReview:false,details:{fixture:true}}]);
+    await store.insertCatalogRunItems(uuid(21),Array.from({length:ownedImport?3:1},(_,i)=>({id:uuid(31+i),phase:'refresh',stage:'selection',decision:'selected',productId:'TEST-3',externalId:'TEST-1',requiresManualReview:false,details:{fixture:true}})));
     await maintenance.recordEditorialEvent({runId:uuid(21),productId:'TEST-3',eventType:'draft_reviewed',status:'generated_ready',details:{fixture:true}});
     clock='2026-10-21T12:01:00.654Z';await store.finishCatalogRun(uuid(21),{status:'completed',counts:{refreshed:1},usage:{inputTokens:2,estimatedCostUsd:.000001}});
     for(const name of ['catalog_runs','catalog_run_items','catalog_editorial_events','catalog_run_telemetry','catalog_mutation_scopes','catalog_maintenance_operations','sqlite_sequence'])
       input.tables[name]=sqlite.prepare(`SELECT * FROM ${name}`).all().map(r=>({...r}));
+    if(ownedImport){
+      const captured=inventory({...input,tables:Object.fromEntries(D1_RECOVERY_TABLES.map(name=>[name,sqlite.prepare(`SELECT * FROM ${name}`).all().map(r=>({...r}))]))});
+      const preserved=captured.tables.products.filter(p=>p.id!=='TEST-3');
+      const packet=prepareOperationalPacket(archive,{importedAt:'2026-10-21T12:02:00.000Z',unresolvedEvidence:'Controlled unresolved historical wall times',
+        preserve:{rows:preserved,rowsFileSha256:sha256(canonicalJson(preserved)),evidenceSha256:sha256(canonicalJson(captured)),evidenceReference:'synthetic/actual-store-capture'}});
+      const prepared=prepareOwnedOperationalImport({packet,capture:captured,captureSha256:sha256(canonicalJson(captured)),owner:options.ownerCursor.current});
+      owned={plan:prepared.plan,sha256:prepared.sha256};
+      await applyOwnedOperationalImport({db,plan:owned.plan,planSha256:owned.sha256,ownerCursor:options.ownerCursor});
+      for(const name of D1_RECOVERY_TABLES)input.tables[name]=sqlite.prepare(`SELECT * FROM ${name}`).all().map(r=>({...r}));
+    }
   }finally{sqlite.close();}
   input.tables.search_diagnostics.push({id:uuid(99),query_hash:'a'.repeat(64),query_length:2,result_count:1,top_similarity:null,
     match_type:'keyword',outcome:'ok',created_at:AT,expires_at:'2026-11-20T12:00:00.123456Z'});
   inventory(input);
-  const archive=await validateRecoveryArchive(directory,{expectedManifestSha256:baselineSha256});
-  return{parent,directory,archive,manifest,input,baselineSha256,auditPath,auditSha256:sha256(auditText),
-    plan(data=input){inventory(data);return prepareRollbackPacket(archive,manifest,data,sha256(canonicalJson(data)));},
-    async packet(){const bytes=canonicalJson(input)+'\n',path=join(parent,'input.json');await writeFile(path,bytes,{mode:0o600});return writeRollbackPacket({archive:directory,baselineSha256,input:path,inputSha256:sha256(bytes),output:join(parent,'packet')});}};
+  return{parent,directory,archive,manifest,input,baselineSha256,auditPath,auditSha256:sha256(auditText),owned,
+    plan(data=input){inventory(data);return prepareRollbackPacket(archive,manifest,data,sha256(canonicalJson(data)),owned);},
+    async packet(){const bytes=canonicalJson(input)+'\n',path=join(parent,'input.json');await writeFile(path,bytes,{mode:0o600});return writeRollbackPacket({archive:directory,baselineSha256,input:path,inputSha256:sha256(bytes),output:join(parent,'packet'),ownedImport:owned});}};
 }
+
+test('owned union rollback restores legacy sequences and explicitly reallocates colliding actual native telemetry',async()=>{
+  const f=await fixture({ownedImport:true});try{
+    const before=canonicalJson(f.input),packet=f.plan();assert.equal(canonicalJson(f.input),before);
+    assert.equal(f.input.tables.catalog_run_items.find(r=>r.id===uuid(30)).sequence,4);
+    assert.equal(f.input.tables.catalog_run_items.find(r=>r.id===uuid(33)).sequence,3);
+    assert.deepEqual(packet.ownedImportSequences.importedSequences,[{id:uuid(30),sourceSequence:3,targetSequence:4}]);
+    assert.deepEqual(packet.ownedImportSequences.nativeSequences,[{id:uuid(33),from:3,to:4}]);
+    assert.equal(packet.changes.some(c=>c.key===uuid(30)),false);
+    assert.equal(packet.changes.find(c=>c.key===uuid(33)).after.sequence,'4');
+    assert.equal(packet.changes.find(c=>c.key==='TEST-1').after.embedding,replacement);
+    assert.equal(packet.changes.find(c=>c.key==='TEST-3').after.embedding,native);
+    assert.equal(packet.sequence.nextValue,'5');
+    assert.throws(()=>prepareRollbackPacket(f.archive,f.manifest,f.input,sha256(before)));
+    const written=await f.packet();
+    assert.equal(await readFile(join(written.directory,'d1-sidecar.json'),'utf8'),canonicalJson(f.input)+'\n');
+    await readRollbackFixture(written.directory,written.packetSha256,f.archive,f.manifest,f.owned);
+    await assert.rejects(readRollbackFixture(written.directory,written.packetSha256,f.archive,f.manifest));
+    const changed=structuredClone(f.owned);changed.plan.sequenceMapping[0].sourceSequence=2;
+    assert.throws(()=>prepareRollbackPacket(f.archive,f.manifest,f.input,sha256(before),changed));
+  }finally{await rm(f.parent,{recursive:true,force:true});}
+});
 
 test('offline packet restores current product state and finalized telemetry, retaining untouched baseline and native vectors',async()=>{
   const f=await fixture();try{const packet=f.plan();assert.equal(packet.changes.length,5);

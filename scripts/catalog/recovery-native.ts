@@ -11,6 +11,7 @@ import { decodePgvectorSendBase64, PGVECTOR_BINARY_ENCODING } from './pgvector-b
 import { validateRecoveryMetadata } from './recovery-metadata.ts';
 import type { RecoveryMetadata } from './recovery-metadata.ts';
 import { readRollbackFixture, rollbackLogicalRow, rollbackRowsHash } from './recovery-delta.ts';
+import type { OwnedOperationalImportPlan } from './owned-operational-import.ts';
 
 // Maintainer-published 0.8.0-pg17 ARM64 manifest, independently inspected before use.
 export const NATIVE_IMAGE = 'pgvector/pgvector@sha256:09c8aaae717baf4412f6efd174f51172c0638720a72a86e804cd698197fc8ba2';
@@ -128,7 +129,7 @@ function schemaSql(table: NativeTable): string {
 export async function runNativeRecovery(options: { archive: string; expectedManifestSha256: string; audit: string;
   expectedAuditSha256: string; workParent: string; metadata?: string; expectedMetadataSha256?: string;
   /** Test-only: recomputed synthetic packet, fresh owned container only. No CLI/provider apply path. */
-  rollbackFixture?: {directory:string;expectedPacketSha256:string} }) {
+  rollbackFixture?: {directory:string;expectedPacketSha256:string;ownedImport?:{plan:OwnedOperationalImportPlan;sha256:string}} }) {
   const archive = await validateRecoveryArchive(options.archive, { expectedManifestSha256: options.expectedManifestSha256 });
   const manifest = await pinnedJson(join(archive.directory, 'manifest.json'), options.expectedManifestSha256) as { tables: NativeTable[]; sequences: Sequence[];
     settings: {database:string;snapshot:string;observedAt:string;serverVersion?:string}; recoveryMetadata?: RecoveryMetadata };
@@ -152,7 +153,7 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
   manifest.sequences.forEach(s=>nativeSequenceSql(s,sequenceState(s)));
   if (manifest.sequences.some((s) => !['public', 'drizzle'].includes(s.schemaname))) throw new Error('Unexpected sequence schema');
   const rollback = options.rollbackFixture ? await readRollbackFixture(options.rollbackFixture.directory,
-    options.rollbackFixture.expectedPacketSha256,archive,manifest) : null;
+    options.rollbackFixture.expectedPacketSha256,archive,manifest,options.rollbackFixture.ownedImport) : null;
   const parent = await assertPrivateOutsideGit(options.workParent); const work = await mkdtemp(join(parent, 'recovery-native-pg17-'));
   const token = randomUUID(); const container = `sg-recovery-${token}`; const volume = `${container}-data`; const label = `goose.catalog.recovery=${token}`;
   const log = join(work, 'commands.log'); await writeFile(log, '', { mode: 0o600, flag: 'wx' });

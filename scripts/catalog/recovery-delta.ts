@@ -10,15 +10,13 @@ import { maintenanceState, maintenanceTextArray, snake } from './maintenance-sta
 import type { Row } from './maintenance-state.ts';
 import { decodePgvectorSendBase64 } from './pgvector-binary.ts';
 import { decodeD1CatalogTelemetryRow } from './telemetry-d1.ts';
+import { D1_RECOVERY_TABLES } from './d1-logical-tables.ts';
+import { normalizeOwnedImportSequences } from './owned-operational-import.ts';
+import type { OwnedOperationalImportPlan, OwnedImportSequenceRollback } from './owned-operational-import.ts';
+export { D1_RECOVERY_TABLES } from './d1-logical-tables.ts';
 
 // Logical application tables at0012. FTS/shadow tables are derived; provider
 // internals are outside this scope. Future application tables require review.
-export const D1_RECOVERY_TABLES = ['products','product_slug_history','catalog_runs','catalog_run_items',
-  'catalog_editorial_events','search_history','search_diagnostics','catalog_revisions','publication_receipts',
-  'vector_sync_outbox','migration_imports','catalog_public_products','catalog_projection_receipts',
-  'publication_outbox','semantic_search_budgets','catalog_build_requests','vector_delete_mutations',
-  'catalog_mutation_scopes','catalog_maintenance_products','catalog_maintenance_operations',
-  'catalog_maintenance_vector_payloads','catalog_vector_deliveries','catalog_run_telemetry','sqlite_sequence'].sort();
 const RUNTIME = ['products','catalog_runs','catalog_run_items','product_slug_history','catalog_editorial_events'];
 const PRODUCT_FIELDS = ['id','public_id','slug','title','price','currency','image_url','affiliate_url','source','source_query',
   'humor_tags','punny_title','witty_description','quality_score','rating','review_count','is_active','embedding',
@@ -43,6 +41,7 @@ export interface RollbackPacket {
   sequence:{schema:string;name:string;nextValue:string}|null;
   transformations:string[];
   limitations:string[];
+  ownedImportSequences?:OwnedImportSequenceRollback;
 }
 function refuse():never { throw new Error('Rollback input incomplete, drifted or unsupported; no source access attempted'); }
 function parse(value:unknown):Row {
@@ -121,7 +120,15 @@ function productAmounts(row:Row,value:Row):void {
   if(typeof price!=='string'||typeof currency!=='string'||row.currency!==currency
     ||row.price_minor!==(Number(price)>0?moneyToMinor(price,currency):null))refuse();
 }
-export function prepareRollbackPacket(archive:Archive,manifest:Manifest,input:FrozenD1RecoveryInput,inputSha256:string):RollbackPacket {
+export function prepareRollbackPacket(archive:Archive,manifest:Manifest,input:FrozenD1RecoveryInput,inputSha256:string,
+  ownedImport?:{plan:OwnedOperationalImportPlan;sha256:string}):RollbackPacket {
+  let sequenceProof:OwnedImportSequenceRollback|undefined;
+  if(ownedImport){
+    if(ownedImport.plan.sourceManifestSha256!==archive.summary.manifestSha256)refuse();
+    const table=archive.tables.find(t=>t.definition.schema==='public'&&t.definition.name==='catalog_run_items');if(!table)refuse();
+    const normalized=normalizeOwnedImportSequences(ownedImport.plan,ownedImport.sha256,input,table.rows);
+    input=normalized.input;sequenceProof=normalized.proof;
+  }
   if(!/^[a-f0-9]{64}$/.test(inputSha256)||input.schemaVersion!==1||input.scope!=='application-logical-tables-through-0012'
     ||!['synthetic-fixture','unverified-capture'].includes(input.provenance?.kind)||!input.provenance.reference?.trim()
     ||input.provenance.barrierEvidence!==null||!exactKeys(input.tables,D1_RECOVERY_TABLES)||!Array.isArray(input.inventory)
@@ -229,6 +236,7 @@ export function prepareRollbackPacket(archive:Archive,manifest:Manifest,input:Fr
     sequence={schema:s.schemaname,name:s.sequencename,nextValue:String(maximumItem+1n>next?maximumItem+1n:next)};
   }
   return {schemaVersion:1,kind:'offline-d1-to-pg-rollback',baselineManifestSha256:archive.summary.manifestSha256,inputSha256,
+    ...(sequenceProof?{ownedImportSequences:sequenceProof}:{}),
     provenance:input.provenance,barrierVerified:false,changes,expectedTables,sequence,limitations:[
       'Frozen logical row input is checksum-bound, not independently verified complete provider/barrier evidence.',
       'No production apply path. Native execution accepts synthetic fixtures in newly owned isolated containers only.',
@@ -237,7 +245,8 @@ export function prepareRollbackPacket(archive:Archive,manifest:Manifest,input:Fr
       'Original cluster roles/settings/grants, final source delta and real post-cutover recovery remain separate gates.'],transformations:[
         'For D1-native runs, PG-only created_at maps to recorded started_at; no distinct D1 creation timestamp is claimed.',
         'New explicit UTC instants map to UTC wall times in legacy naive PG columns; original historical wall times remain unchanged.',
-        'New PG-only product counters initialize to zero; existing counters/category/last-click state remain unchanged.']};
+        'New PG-only product counters initialize to zero; existing counters/category/last-click state remain unchanged.',
+        ...(sequenceProof?['Checksum/receipt-proven imported legacy item sequences return to their original PG values; colliding D1-native additions receive explicit unused PG sequences. Exact D1 sequence values remain in the original sidecar.']:[])]};
 }
 async function privateJson(path:string,expected:string,maxBytes=128*1024*1024):Promise<{bytes:Buffer;data:unknown}>{
   await assertPrivateOutsideGit(dirname(path));if(! /^[a-f0-9]{64}$/.test(expected))refuse();
@@ -256,11 +265,12 @@ async function privateJson(path:string,expected:string,maxBytes=128*1024*1024):P
 /** Offline preparation only. Inputs/outputs are private, pinned and outside Git.
  * A no-network reusable packet builder, deliberately without any database apply CLI.
  */
-export async function writeRollbackPacket(options:{archive:string;baselineSha256:string;input:string;inputSha256:string;output:string}){
+export async function writeRollbackPacket(options:{archive:string;baselineSha256:string;input:string;inputSha256:string;output:string;
+  ownedImport?:{plan:OwnedOperationalImportPlan;sha256:string}}){
   const archive=await validateRecoveryArchive(options.archive,{expectedManifestSha256:options.baselineSha256});
   const manifest=(await privateJson(join(archive.directory,'manifest.json'),options.baselineSha256,1_000_000)).data as Manifest;
   const input=await privateJson(options.input,options.inputSha256);
-  const packet=prepareRollbackPacket(archive,manifest,input.data as FrozenD1RecoveryInput,options.inputSha256);
+  const packet=prepareRollbackPacket(archive,manifest,input.data as FrozenD1RecoveryInput,options.inputSha256,options.ownedImport);
   await assertPrivateOutsideGit(dirname(options.output));await mkdir(options.output,{mode:0o700});
   const text=`${canonicalJson(packet)}\n`;const packetSha256=sha256(text);
   await writeFile(join(options.output,'rollback.json'),text,{mode:0o600,flag:'wx'});
@@ -272,10 +282,11 @@ export async function writeRollbackPacket(options:{archive:string;baselineSha256
   return{directory:options.output,packetSha256,manifestSha256:sha256(receiptText),packet};
 }
 /** Recompute from the pinned sidecar/baseline; a modified packet is not trusted. */
-export async function readRollbackFixture(directory:string,expectedPacketSha256:string,archive:Archive,manifest:Manifest){
+export async function readRollbackFixture(directory:string,expectedPacketSha256:string,archive:Archive,manifest:Manifest,
+  ownedImport?:{plan:OwnedOperationalImportPlan;sha256:string}){
   const p=await privateJson(join(directory,'rollback.json'),expectedPacketSha256);const packet=p.data as RollbackPacket;
   const input=await privateJson(join(directory,'d1-sidecar.json'),packet.inputSha256);
-  const expected=prepareRollbackPacket(archive,manifest,input.data as FrozenD1RecoveryInput,packet.inputSha256);
+  const expected=prepareRollbackPacket(archive,manifest,input.data as FrozenD1RecoveryInput,packet.inputSha256,ownedImport);
   if(packet.provenance.kind!=='synthetic-fixture'||canonicalJson(packet)!==canonicalJson(expected))refuse();return packet;
 }
 
