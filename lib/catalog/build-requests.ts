@@ -19,6 +19,9 @@ export interface CatalogBuildRequest {
 export interface CatalogBuildClaim {
   requestId: string; token: string; runReference: string; leaseUntil: string; request: CatalogBuildRequest;
 }
+export interface BuildRecoveryApproval {
+  schemaVersion:1;requestId:string;packageSha256:string;previousToken:string;checkpointSha256:string;reviewReference:string;
+}
 export interface DeploymentIdentity {
   releaseId: string; codeSha: string; catalogRevision: string; catalogSnapshotSha256: string; manifestSha256: string;
   versionReference: string;
@@ -113,6 +116,74 @@ export async function claimBuildRequest(db: CatalogD1, requestId: string, runRef
   return claimed?.state === 'building' && claimed.lease_token === token
     ? { requestId, token, runReference, leaseUntil, request } : null;
 }
+
+export function encodeBuildRecoveryApproval(value:BuildRecoveryApproval):string {
+  if(!value||Object.keys(value).sort().join(',')!=='checkpointSha256,packageSha256,previousToken,requestId,reviewReference,schemaVersion'
+    ||value.schemaVersion!==1||![value.requestId,value.packageSha256,value.checkpointSha256].every(v=>typeof v==='string'&&HASH.test(v))
+    ||typeof value.previousToken!=='string'||!KEY.test(value.previousToken)||typeof value.reviewReference!=='string'||!REFERENCE.test(value.reviewReference))
+    throw new Error('build_operator_recovery_invalid');
+  return JSON.stringify({schemaVersion:1,requestId:value.requestId,packageSha256:value.packageSha256,previousToken:value.previousToken,
+    checkpointSha256:value.checkpointSha256,reviewReference:value.reviewReference});
+}
+type BuildRecoveryReceipt={schemaVersion:1;kind:'unstarted-build-operator-recovery';approval:BuildRecoveryApproval;owner:MutationOwner;
+  releaseId:string;previous:Record<string,unknown>;normalAttempts:3;operatorAttempts:1;totalAttempts:4;observedAt:string;token:string;leaseUntil:string};
+const flat=(value:object)=>JSON.stringify(Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b))));
+async function operatorBuildRecovery(db:CatalogD1,claim:CatalogBuildClaim,owner:MutationOwner,releaseId:string,approval:BuildRecoveryApproval,create:boolean):Promise<CatalogBuildClaim> {
+  ({claim,owner,approval}=structuredClone({claim,owner,approval}));
+  const approvalBytes=encodeBuildRecoveryApproval(approval),requestBytes=encodeBuildRequest(claim.request),gate=sourceGate(claim.request);
+  mutationFenceQuery(owner,['freezing']);
+  if(owner.phase!=='freezing'||claim.request.environment!==owner.environment||approval.requestId!==claim.requestId
+    ||await digest(requestBytes)!==claim.requestId||!KEY.test(releaseId)||!REFERENCE.test(claim.runReference))throw new Error('build_operator_recovery_fenced');
+  const observed=(await db.prepare(`SELECT *,${NOW} observation_time FROM catalog_build_requests WHERE request_id=?`)
+    .bind(claim.requestId).all<Record<string,unknown>>()).results[0];
+  if(!observed)throw new Error('build_operator_recovery_fenced');
+  const {observation_time,...stored}=observed,at=canonicalTime(String(observation_time));let receipt:BuildRecoveryReceipt;
+  if(stored.operator_recovery_json===null){
+    if(!create||claim.token!==approval.previousToken||stored.lease_token!==claim.token||stored.lease_until!==claim.leaseUntil)
+      throw new Error('build_operator_recovery_fenced');
+    receipt={schemaVersion:1,kind:'unstarted-build-operator-recovery',approval,owner,releaseId,previous:stored,normalAttempts:3,operatorAttempts:1,totalAttempts:4,
+      observedAt:at,token:crypto.randomUUID(),leaseUntil:new Date(Math.min(Date.parse(at)+900000,Date.parse(claim.request.cutoff))).toISOString()};
+  }else{
+    try{receipt=JSON.parse(String(stored.operator_recovery_json));}catch{throw new Error('build_operator_recovery_fenced');}
+  }
+  const p=receipt?.previous,receiptBytes=JSON.stringify(receipt);
+  if(!receipt||Object.keys(receipt).sort().join(',')!=='approval,kind,leaseUntil,normalAttempts,observedAt,operatorAttempts,owner,previous,releaseId,schemaVersion,token,totalAttempts'
+    ||receipt.schemaVersion!==1||receipt.kind!=='unstarted-build-operator-recovery'||encodeBuildRecoveryApproval(receipt.approval)!==approvalBytes
+    ||flat(receipt.owner)!==flat(owner)||receipt.releaseId!==releaseId||receipt.normalAttempts!==3||receipt.operatorAttempts!==1||receipt.totalAttempts!==4
+    ||!p||p.operator_recovery_json!==null||p.request_id!==claim.requestId||p.request_json!==requestBytes||p.environment!==claim.request.environment
+    ||p.source_revision!==claim.request.sourceRevision||p.state!=='building'||p.attempts!==3||p.run_reference!==claim.runReference
+    ||p.lease_token!==approval.previousToken||p.dispatch_reference!==null||p.error_code!==null||p.release_id!==null||p.version_reference!==null
+    ||typeof receipt.token!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(receipt.token)||receipt.token===p.lease_token
+    ||canonicalTime(String(p.lease_until))>receipt.observedAt||canonicalTime(receipt.observedAt)>at
+    ||canonicalTime(receipt.leaseUntil)<=at||receipt.leaseUntil>claim.request.cutoff||Date.parse(receipt.leaseUntil)>Date.parse(receipt.observedAt)+900000
+    ||claim.token!==p.lease_token&&claim.token!==receipt.token
+    ||claim.leaseUntil!==(claim.token===p.lease_token?p.lease_until:receipt.leaseUntil))throw new Error('build_operator_recovery_fenced');
+  const expected={...p,lease_token:receipt.token,lease_until:receipt.leaseUntil,operator_recovery_json:receiptBytes};
+  if(stored.operator_recovery_json!==null&&(stored.operator_recovery_json!==receiptBytes||flat(stored)!==flat(expected)))throw new Error('build_operator_recovery_fenced');
+  const columns=Object.keys(stored).sort();if(columns.some(k=>!/^[_a-z][_a-z0-9]*$/.test(k)))throw new Error('build_operator_recovery_fenced');
+  const exact=(row:Record<string,unknown>,fresh=false)=>db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM catalog_build_requests
+    WHERE ${columns.map(k=>`${k} IS ?`).join(' AND ')}${fresh?` AND lease_until>${NOW}`:''}) AND ${gate.sql} THEN 'true' ELSE 'build_operator_recovery_fenced' END)`)
+    .bind(...columns.map(k=>row[k]),...gate.params);
+  const undispatched=()=>db.prepare(`SELECT json(CASE WHEN NOT EXISTS(SELECT 1 FROM publication_outbox WHERE release_id=?)
+    AND NOT EXISTS(SELECT 1 FROM publication_receipts WHERE release_id=?) THEN 'true' ELSE 'build_operator_recovery_fenced' END)`).bind(releaseId,releaseId);
+  await db.batch([mutationAssertion(db,owner,['freezing']),exact(stored),undispatched(),
+    ...(stored.operator_recovery_json===null?[db.prepare(`UPDATE catalog_build_requests SET lease_token=?,lease_until=?,operator_recovery_json=?
+      WHERE request_id=? AND operator_recovery_json IS NULL AND attempts=3 AND state='building' AND lease_until<=${NOW}`)
+      .bind(receipt.token,receipt.leaseUntil,receiptBytes,claim.requestId)]:[]),exact(expected,true),undispatched(),mutationAssertion(db,owner,['freezing'])]);
+  return{...claim,token:receipt.token,leaseUntil:receipt.leaseUntil};
+}
+/** Trusted operator only: caller proves the exact current checkpoint, sealed
+ * package and exhaustive provider absence, then persists a dispatch marker
+ * before this sole write. Existing markers must use the read-only API instead.
+ * Three normal attempts remain;
+ * the immutable receipt records ONE separate operator attempt, never a reset. */
+export const recoverUnstartedBuildRequest=(db:CatalogD1,claim:CatalogBuildClaim,owner:MutationOwner,releaseId:string,approval:BuildRecoveryApproval)=>
+  operatorBuildRecovery(db,claim,owner,releaseId,approval,true);
+/** Unknown write ACKs may read this exact receipt, never repeat a missing grant
+ * or adopt a foreign replacement token. Initial checkpoint binding is retained
+ * in approval; later matching-receipt replay does not rebind it to a new head. */
+export const readUnstartedBuildRecovery=(db:CatalogD1,claim:CatalogBuildClaim,owner:MutationOwner,releaseId:string,approval:BuildRecoveryApproval)=>
+  operatorBuildRecovery(db,claim,owner,releaseId,approval,false);
 export async function failBuildRequest(db: CatalogD1, claim: CatalogBuildClaim): Promise<void> {
   await db.prepare(`UPDATE catalog_build_requests SET state='failed',lease_token=NULL,lease_until=NULL,error_code='build_failed'
     WHERE request_id=? AND lease_token=? AND run_reference=? AND state='building' AND lease_until>${NOW}`)

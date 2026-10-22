@@ -10,6 +10,7 @@ import { executePublication, validatePublicationConfig } from '../scripts/catalo
 import { accountedPublicationUploadCommand, PublicationUploadCommandError } from '../scripts/catalog/publication-upload-command.ts';
 import { createProjectionPacket, importPublicProjection } from '../lib/catalog/d1.ts';
 import { enqueueBuildRequest, claimBuildRequest, beginBuildActivation } from '../lib/catalog/build-requests.ts';
+import { readUnstartedBuildRecovery } from '../lib/catalog/build-requests.ts';
 import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication, completeActivatedPublication } from '../lib/catalog/publication.ts';
 import { claimMutationOwnership, readMutationOwner } from '../lib/catalog/mutation-fence.ts';
 import { prunedVectorPlan } from '../lib/catalog/prune-existing-revision.ts';
@@ -28,6 +29,7 @@ import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 import { openRunWorkspace } from '../scripts/catalog/run-workspace.ts';
 import { createCatalogD1Rest } from '../scripts/catalog/d1-write-rest.ts';
 import { accountedPublicationFetch, accountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
+import { readOwnedLogicalRows } from '../scripts/catalog/owned-operational-import.ts';
 import safeCatalogPayload from '../static-site/public/safe/catalog.json' with {type:'json'};
 
 const AT=Date.parse('2026-10-19T12:00:00.000Z');
@@ -72,7 +74,7 @@ async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environmen
   let clock=AT;sql.function('strftime',(format,instant)=>{assert.equal(format,'%Y-%m-%dT%H:%M:%fZ');assert.equal(instant,'now');return new Date(clock).toISOString();});
   let afterBatch;const db={providerIdentity:`cloudflare:${'a'.repeat(32)}:${id}`,prepare(query){let params=[];return{query,bind(...values){params=values;return this;},
     async all(){return{results:sql.prepare(query).all(...params).map(r=>({...r}))};},async run(){const r=sql.prepare(query).run(...params);return{success:true,meta:{changes:r.changes}};},
-    execute(){sql.prepare(query).all(...params);}};},async batch(statements){sql.exec('BEGIN');try{for(const s of statements)s.execute();sql.exec('COMMIT');}catch(e){sql.exec('ROLLBACK');throw e;}afterBatch?.(statements);}};
+    execute(){return{results:sql.prepare(query).all(...params).map(r=>({...r}))};}};},async batch(statements){let results;sql.exec('BEGIN');try{results=statements.map(s=>s.execute());sql.exec('COMMIT');}catch(e){sql.exec('ROLLBACK');throw e;}afterBatch?.(statements);return results;}};
   const product={id:'B000000001',publicId:id,slug:'owned-clockwork-spoon',title:'Owned clockwork spoon',description:'Controlled owned fixture.',
     imageUrl:'https://example.invalid/owned.svg',affiliateUrl:'https://www.amazon.com/dp/B000000001?tag=fixture-20',source:'amazon',currency:'USD',price:0,
     editorialWriteup:'Controlled owned editorial.',isActive:true,qualityScore:.8,eligibleUntil:new Date(AT+26*3600000).toISOString()};
@@ -195,9 +197,9 @@ async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environmen
         prior?[{id:priorDeployment,versions:[{version_id:activePriorVersion,percentage:100}],annotations:{'workers/message':'owned fixture prior'}}]:[]});
     }throw new Error(`Unexpected fixture HTTP ${url}`);
   };
-  const execute=(database=db,dependencies={})=>executePublication({db:database,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
-    credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock),...dependencies}});
-  return{db,sql,owner,revision,fetch,command,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,commandEnvironments,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
+  const execute=(database=db,dependencies={},buildRecovery)=>executePublication({db:database,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
+    credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock),...dependencies},buildRecovery});
+  return{db,sql,owner,revision,fetch,command,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,commandEnvironments,checkpoint:()=>checkpoint,now:()=>new Date(clock),advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
     async nextRelease(){
       assert.equal((await readMutationOwner(db,scope)),null);
       const packageDirectory=path.join(workspace.directory,'packages',config.releaseId);
@@ -447,17 +449,121 @@ const protectedCommand=(f,run=f.command)=>accountedPublicationUploadCommand({wor
   scope:{accountId:f.config.accountId,workerName:f.config.workerName},send:async()=>assert.fail('No remote upload in synthetic command fixture'),command:run});
 const protectedMac={skip:process.platform!=='darwin'};
 
-async function legacyPreflightPending(t,{bindingPatch={}}={}){
-  const context=await stoppedBuilt(t),{f}=context,c=f.checkpoint().control.publication;
+async function legacyPreflightPending(t,{bindingPatch={},exhausted=false}={}){
+  const context=await stoppedBuilt(t),{f}=context;
+  if(exhausted){const clean=f.workspace.cleanPublicationBuild;f.workspace.cleanPublicationBuild=async()=>{throw new Error('Local cleanup still interrupted');};
+    for(const ms of [11*60000,16*60000]){f.advance(ms);assert.equal((await f.execute()).state,'pending');}
+    f.workspace.cleanPublicationBuild=clean;assert.equal(f.sql.prepare('SELECT attempts FROM catalog_build_requests').get().attempts,3);
+  }
+  const c=f.checkpoint().control.publication;context.old=structuredClone(c.build);
   // Exact retained old-code boundary: built package, no publication yet; the
   // old executor pinned this binding before its read-only enqueue preflight.
   const binding={schemaVersion:1,releaseId:f.config.releaseId,requestId:c.requestId,configSha256:sha(canonicalJson(f.config)),
     packageSha256:c.packageSha256,uploadMarker:c.uploadMarker,...bindingPatch};
-  const pending=await f.workspace.putArtifact(binding,{kind:'publication',observedAt:new Date(AT).toISOString()});
+  const pending=await f.workspace.putArtifact(binding,{kind:'publication',observedAt:f.now().toISOString()});
   const current=await f.workspace.readCheckpoint();
   await f.workspace.writeCheckpoint(current.sha256,{...current.checkpoint,pins:{...current.checkpoint.pins,publicationUploadPending:pending}});
   return{...context,pending,binding};
 }
+async function operatorRecoveryFixture(t){
+  const context=await legacyPreflightPending(t,{exhausted:true}),{f}=context;f.advance(16*60000);
+  const current=await f.workspace.readCheckpoint(),c=current.checkpoint.control.publication;
+  const approval={schemaVersion:1,requestId:c.requestId,packageSha256:c.packageSha256,previousToken:c.build.token,
+    checkpointSha256:current.sha256,reviewReference:'fixture/explicit-one-operator-attempt'};
+  return{...context,approval};
+}
+test('explicit operator recovery records3 normal plus1 operator, preserves all24 tables and frozen approval across reopen',protectedMac,async t=>{
+  const {f,old,pending,approval}=await operatorRecoveryFixture(t),before=await readOwnedLogicalRows(f.db,f.owner,{phase:'freezing'});
+  for(let i=0;i<3;i++){await f.workspace.reserveBudget({id:`proven-read-${i}`,requestSha256:sha(`SELECT fixture${i}`),units:{httpRequests:1,sqlStatements:1}});
+    await f.workspace.settleBudget(`proven-read-${i}`,{status:'unknown',usage:null});}
+  const budget=await f.workspace.budget(),write=f.workspace.writeCheckpoint;let stopped=false;
+  f.workspace.writeCheckpoint=async(expected,value)=>{const result=await write(expected,value);
+    if(!stopped&&value.control?.publication?.build.token!==old.token){stopped=true;throw new Error('Local recovered checkpoint ACK lost');}return result;};
+  const run=()=>f.execute(f.db,{command:protectedCommand(f)},approval);
+  assert.equal((await run()).state,'pending');assert.equal(stopped,true);assert.equal(f.counts().uploadCalls,0);
+  const after=await readOwnedLogicalRows(f.db,f.owner,{phase:'freezing'}),row=f.sql.prepare('SELECT * FROM catalog_build_requests').get();
+  const receipt=JSON.parse(row.operator_recovery_json),target=before.catalog_build_requests.find(r=>r.request_id===approval.requestId);
+  assert.equal(row.attempts,3);assert.equal(receipt.normalAttempts,3);assert.equal(receipt.operatorAttempts,1);assert.equal(receipt.totalAttempts,4);
+  assert.deepEqual(receipt.approval,approval);assert.deepEqual(receipt.previous,target);assert.notEqual(row.lease_token,old.token);
+  assert.equal(Date.parse(row.lease_until),f.now().getTime()+15*60000);assert.equal(receipt.token,row.lease_token);
+  for(const table of Object.keys(before))if(table!=='catalog_build_requests')assert.deepEqual(after[table],before[table]);
+  assert.deepEqual({...row,lease_token:target.lease_token,lease_until:target.lease_until,operator_recovery_json:null},target);
+  assert.throws(()=>f.sql.prepare('UPDATE catalog_build_requests SET operator_recovery_json=NULL').run(),/immutable/);
+  assert.throws(()=>f.sql.prepare('DELETE FROM catalog_build_requests WHERE request_id=?').run(approval.requestId),/immutable/);
+  assert.throws(()=>f.sql.prepare('UPDATE catalog_build_requests SET attempts=4').run(),/CHECK/);
+  await f.reopen();assert.notEqual((await f.workspace.readCheckpoint()).sha256,approval.checkpointSha256);
+  assert.deepEqual(f.checkpoint().pins.publicationUploadPending,pending);assert.deepEqual(await f.workspace.budget(),budget);
+  assert.equal((await run()).state,'published');assert.equal(f.counts().buildCalls,1);assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+  assert.equal(f.sql.prepare('SELECT operator_recovery_json FROM catalog_build_requests').get().operator_recovery_json,row.operator_recovery_json);
+  assert.equal((await run()).state,'published');assert.equal(f.counts().uploadCalls,1);assert.deepEqual(await f.workspace.budget(),budget);
+});
+test('operator recovery resolves only exact immutable receipt after committed grant ACK loss; foreign token stays fenced',protectedMac,async t=>{
+  for(const foreign of [false,true])await t.test(foreign?'foreign':'exact',async t=>{
+    const {f,approval}=await operatorRecoveryFixture(t);let lost=false;
+    f.after(statements=>{if(!lost&&statements.some(s=>s.query.includes('SET lease_token=?,lease_until=?,operator_recovery_json=?'))){lost=true;
+      if(foreign)f.sql.prepare('UPDATE catalog_build_requests SET lease_token=?').run(version);throw new Error('Local committed recovery ACK lost');}});
+    const result=await f.execute(f.db,{command:protectedCommand(f)},approval);assert.equal(lost,true);
+    assert.equal(result.state,foreign?'pending':'published');assert.equal(f.counts().uploadCalls,foreign?0:1);assert.equal(f.counts().activateCalls,foreign?0:1);
+    assert.equal(f.sql.prepare('SELECT attempts FROM catalog_build_requests').get().attempts,3);
+  });
+});
+test('operator recovery dispatch marker survives reopen and never resends an unknown or undispatched grant',protectedMac,async t=>{
+  for(const fault of ['grant-not-applied','grant-applied-ack-lost','marker-ack-lost'])await t.test(fault,async t=>{
+    const {f,old,approval}=await operatorRecoveryFixture(t);let grantWrites=0,checkpointLost=false;
+    const database={...f.db,async batch(statements){
+      if(!statements.some(s=>s.query.includes('SET lease_token=?,lease_until=?,operator_recovery_json=?')))return f.db.batch(statements);
+      grantWrites++;
+      await f.workspace.reserveBudget({id:'unknown-operator-grant',requestSha256:sha('synthetic operator grant'),units:{httpRequests:1,sqlStatements:1}});
+      await f.workspace.settleBudget('unknown-operator-grant',{status:'unknown',usage:null});
+      if(fault==='grant-applied-ack-lost')await f.db.batch(statements);
+      throw new Error('Local operator grant ACK lost');
+    }};
+    const write=f.workspace.writeCheckpoint;f.workspace.writeCheckpoint=async(expected,value)=>{
+      const result=await write(expected,value);
+      if(!checkpointLost&&(fault==='marker-ack-lost'&&value.pins.buildOperatorRecoveryPending
+        ||fault==='grant-applied-ack-lost'&&value.control.publication.build.token!==old.token)){
+        checkpointLost=true;throw new Error('Local recovery checkpoint ACK lost');
+      }return result;
+    };
+    const run=()=>f.execute(database,{command:protectedCommand(f)},approval);
+    assert.equal((await run()).state,'pending');assert.equal(f.counts().uploadCalls,0);
+    const marker=f.checkpoint().pins.buildOperatorRecoveryPending,budget=await f.workspace.budget();assert.ok(marker);
+    assert.equal(grantWrites,fault==='marker-ack-lost'?0:1);
+    await f.reopen();
+    if(fault==='grant-not-applied'){
+      assert.equal((await f.execute(database,{command:protectedCommand(f)})).state,'pending');
+      assert.equal((await f.execute(database,{command:protectedCommand(f)},{...approval,reviewReference:'fixture/changed-review'})).state,'pending');
+      assert.equal(grantWrites,1);
+    }
+    const result=await run();assert.equal(result.state,fault==='grant-applied-ack-lost'?'published':'pending');
+    assert.equal(grantWrites,fault==='marker-ack-lost'?0:1);assert.deepEqual(f.checkpoint().pins.buildOperatorRecoveryPending,marker);
+    assert.deepEqual(await f.workspace.budget(),budget);assert.equal(f.counts().uploadCalls,fault==='grant-applied-ack-lost'?1:0);
+    if(fault!=='grant-applied-ack-lost')assert.equal(f.sql.prepare('SELECT operator_recovery_json FROM catalog_build_requests').get().operator_recovery_json,null);
+  });
+});
+test('operator recovery refuses missing approval, reanchoring, duplicate grant, elapsed lease and atomic owner drift',protectedMac,async t=>{
+  for(const fault of ['missing','checkpoint','token','package','request','attempts','outbox','provider','atomic-owner','second'])await t.test(fault,async t=>{
+    const {f,old,approval}=await operatorRecoveryFixture(t),grant={...approval};
+    if(fault==='checkpoint')grant.checkpointSha256='0'.repeat(64);if(fault==='token')grant.previousToken=version;
+    if(fault==='package')grant.packageSha256='0'.repeat(64);if(fault==='request')grant.requestId='0'.repeat(64);
+    if(fault==='attempts')f.sql.prepare('UPDATE catalog_build_requests SET attempts=2').run();
+    if(fault==='outbox')f.sql.prepare(`INSERT INTO publication_outbox SELECT ?,?,catalog_revision,intent_json,state,lease_token,lease_until,
+      attempts,dispatch_reference,completed_token,error_code,created_at,updated_at FROM publication_outbox LIMIT 1`).run('e'.repeat(64),f.config.releaseId);
+    if(fault==='atomic-owner')f.sql.exec(`CREATE TRIGGER fixture_operator_aba AFTER UPDATE OF operator_recovery_json ON catalog_build_requests
+      WHEN NEW.operator_recovery_json IS NOT NULL BEGIN UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1; END;`);
+    if(fault==='second'){
+      const write=f.workspace.writeCheckpoint;f.workspace.writeCheckpoint=async(expected,value)=>{
+        const result=await write(expected,value);if(value.control?.publication?.build.token!==old.token)throw new Error('Local stop after recovered checkpoint');return result;};
+      assert.equal((await f.execute(f.db,{command:protectedCommand(f)},grant)).state,'pending');await f.reopen();f.advance(16*60000);
+    }
+    const fetch=fault==='provider'?async(url,init)=>new URL(url).pathname.endsWith('/versions')?Response.json({success:true,result:{items:'unknown'}}):f.fetch(url,init):f.fetch;
+    const before={...f.sql.prepare('SELECT * FROM catalog_build_requests').get()},result=await f.execute(f.db,{fetch,command:protectedCommand(f)},fault==='missing'?undefined:grant);
+    assert.equal(result.state,'pending');assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
+    assert.deepEqual({...f.sql.prepare('SELECT * FROM catalog_build_requests').get()},before);
+    if(fault==='atomic-owner')assert.deepEqual(await readMutationOwner(f.db,scope),f.owner);
+    if(fault==='second')await assert.rejects(readUnstartedBuildRecovery(f.db,f.checkpoint().control.publication.build,f.owner,f.config.releaseId,grant));
+  });
+});
 test('legacy built preflight pin recovers only an interrupted READ, keeps unknown usage and dispatches once',protectedMac,async t=>{
   const {f,pending}=await legacyPreflightPending(t);let lost=false;
   const database={...f.db,prepare(query){const statement=f.db.prepare(query);
