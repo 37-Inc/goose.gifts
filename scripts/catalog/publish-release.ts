@@ -153,7 +153,7 @@ async function inventory(directory:string){const names=await files(directory);le
   if(names.length>CLOUDFLARE_FREE_ASSET_LIMIT)throw new Error('publication_package_bound');const hashes:Record<string,string>={};
   for(const name of names){const file=path.join(directory,name);await privateDirectories(path.dirname(file),directory);
     const body=await privateBytes(file);bytes+=body.length;
-    if(bytes>128*1024*1024)throw new Error('publication_package_bound');hashes[name]=sha256(body);}
+    if(bytes>384*1024*1024)throw new Error('publication_package_bound');hashes[name]=sha256(body);}
   return hashes;}
 export { inventory as inventoryPublicationPackage };
 const safePath=(name:string)=>name.startsWith('/')&&!name.includes('\\')&&!name.split('/').some(part=>part==='.'||part==='..')&&!name.includes('\0');
