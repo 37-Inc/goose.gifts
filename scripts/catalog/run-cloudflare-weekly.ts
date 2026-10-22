@@ -17,6 +17,7 @@ import { decodePgvectorSendBase64 } from './pgvector-binary.ts';
 import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS } from './run-workspace.ts';
 import type { ArtifactRef, RetentionPolicy, RunWorkspace, RunWorkspaceOptions, WorkspaceCheckpoint } from './run-workspace.ts';
 import { executePublication, validatePublicationConfig } from './publish-release.ts';
+import { accountedPublicationReadFetch, isAccountedPublicationReadFetch } from './publication-read-fetch.ts';
 import type { PublicationConfig } from './publish-release.ts';
 import { claimMutationOwnership, releaseMutationOwnership } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner } from '../../lib/catalog/mutation-fence.ts';
@@ -203,6 +204,11 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     database:config.database,vectorIndex:config.vectorIndex,catalog:config.catalog,cloudflareReadToken:config.credentials.cloudflare},
   {resolveToken,resolveWranglerOAuth:dependencies.resolveWranglerOAuth,fetch:dependencies.fetch});
   if(!['start','resume'].includes(options.command))throw new Error('weekly_command');
+  // This driver supplies the ledger and owns the sender's lifetime. A caller's
+  // already-accounted sender may belong to another run; never double-charge or
+  // silently adopt its workspace. The injection seam here is raw transport only.
+  const observationSend=dependencies.publication?.observationFetch??dependencies.publication?.fetch??dependencies.fetch??fetch;
+  if(isAccountedPublicationReadFetch(observationSend))throw new Error('weekly_observation_fetch_already_accounted');
   if(executing)throw new Error('weekly_process_busy');executing=true;
   let workspace:RunWorkspace|undefined;
   try{
@@ -210,6 +216,11 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     if(head!==config.codeSha||resolve(config.publication.sourceRoot)!==resolve(repo)
       ||execFileSync('git',['status','--porcelain','--untracked-files=all'],{cwd:repo,encoding:'utf8'}).trim())throw new Error('weekly_source_mismatch');
     workspace=await openRunWorkspace(workspaceOptions);const ws=workspace;
+    // The owned read sender uses this exact durable ledger. It is separate
+    // from normal publication mutation traffic; it can never activate a Worker.
+    const publication={...dependencies.publication,observationFetch:accountedPublicationReadFetch(ws,observationSend,
+      {accountId:config.accountId,workerName:config.publication.workerName,indexName:config.vectorIndex.name,
+        databaseId:config.database.id,identityOrigin:config.publication.identityOrigin})};
     await ws.purgeExpired();
     let saved=await ws.readCheckpoint({controlOnly:true});
     if(saved&&['phases_running','phase_failed','attention','finalized'].includes(saved.checkpoint.phase)
@@ -229,7 +240,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       if(!saved||!resolving(saved.checkpoint)||!saved.checkpoint.owner)throw error;
       const result=await executePublication({db,owner:saved.checkpoint.owner,revision:null,requestId:saved.checkpoint.control!.publication!.requestId,
         runReference:saved.checkpoint.control!.publication!.runReference,workspace:ws,config:config.publication,credentials:{cloudflareToken:token,
-          identityAuthorization:await identityAuthorization()},dependencies:dependencies.publication});
+          identityAuthorization:await identityAuthorization()},dependencies:publication});
       return result.state==='published'?{state:'attention',phase:'published',reason:'finalization_requires_review',releaseId:result.releaseId,
         receiptSha256:result.receiptSha256,budget:await ws.budget()}:{...result,budget:await ws.budget()};
     }
@@ -370,7 +381,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     if(cp.phase==='publishing'){
       revision=revision||await readOrdered<ApprovedCohortRevision>(ws,cp.pins.revision);
       const result=await executePublication({db,owner:cp.owner!,revision,requestId:String(state().requestId),runReference:config.runId,workspace:ws,
-        config:config.publication,credentials:{cloudflareToken:token,identityAuthorization:await identityAuthorization()},dependencies:dependencies.publication});
+        config:config.publication,credentials:{cloudflareToken:token,identityAuthorization:await identityAuthorization()},dependencies:publication});
       const changed=await ws.readCheckpoint();if(!changed)throw new Error('weekly_checkpoint_missing');saved=changed;cp=changed.checkpoint;
       if(result.state!=='published')return{...result,phase:cp.phase,budget:await ws.budget()};
       const pin=await ws.putArtifact(result,{kind:'publication',observedAt:now()});

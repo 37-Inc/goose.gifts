@@ -28,6 +28,7 @@ import { guides } from '../static-site/lib/guides.ts';
 import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 import { encodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
 import { withCatalogCadence } from '../scripts/ops/catalog-daily.mjs';
+import { accountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
 
 // Real composed stores/fence/evidence/driver/publisher/workspace over SQLite.
 // Only external Amazon/OpenAI/CF and Next compilation are mocked. Real package
@@ -349,6 +350,18 @@ test('weekly OAuth start keeps merchant/model credentials on their exact Keychai
   assert.equal(oauth,1);assert.equal(result.reason,'awaiting_reviewed_approval');assert.equal(f.calls.activate,0);
   assert.deepEqual(refs,[f.config.credentials.amazonId,f.config.credentials.amazonSecret,f.config.credentials.openai]);
   assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'writing');
+});
+test('driver rejects an already-accounted publication sender before opening or adopting any workspace',async t=>{
+  const f=await setup(t);let reserved=0,settled=0,resolved=0;
+  const owned=accountedPublicationReadFetch({async reserveBudget(){reserved++;},async settleBudget(){settled++;}},
+    async()=>assert.fail('Already-accounted sender must not run'),{accountId:f.config.accountId,databaseId:f.config.database.id,
+      workerName:f.config.publication.workerName,indexName:f.config.vectorIndex.name,identityOrigin:f.config.publication.identityOrigin});
+  for(const key of ['observationFetch','fetch'])await assert.rejects(runCloudflareWeekly({...f.options,command:'start'},
+    {...f.dependencies,publication:{...f.dependencies.publication,[key]:owned},resolveToken:async()=>{resolved++;return'FIXTURE_ONLY';}}),
+    /weekly_observation_fetch_already_accounted/);
+  await assert.rejects(fs.stat(f.options.workspace),{code:'ENOENT'});
+  assert.equal(reserved+settled+resolved+f.calls.http,0);
+  assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
 });
 for(const credential of ['amazon-id','amazon-secret','openai'])test(`unreadable ${credential} stops before writer/cadence/merchant work and permits a safe initial resume`,async t=>{
   const monday=credential==='openai';
