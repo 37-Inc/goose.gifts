@@ -57,11 +57,13 @@ Boundaries (always in force):
 
 ### Cloudflare migration boundary
 
-**Resumed offline work is not execution authority:** PR252/253/254 and the
-daily-retention/full-plan changes are under review, not a public release.
-The pending owner question about≤600k further reads/≥300k Free headroom has no
-answer yet. Do not construct a real recovery profile, refresh/re-anchor old
-accounting or run the old helper. Any later approved continuation must retain
+**October22 bounded recovery approval:** Cameron answered
+`call_b300df69eace4f54b0282ecc87101d67` with “Allow bounded publication today;
+stay Free.” This authorizes at most600k additional reads while leaving at
+least300k untouched, retaining every prior charge/unknown. It does not authorize
+a paid plan, new merchant/model allowance, routine-writer enablement or an old
+helper retry. PR252/253/254/255 are combined for review, not a public release.
+Do not refresh/re-anchor old accounting. The approved continuation must retain
 all seven unknowns, prove the exact SQL/parameter/inventory batch bounds and
 remaining whole-flow capacity, stop any shared-workspace new unknown, adopt its
 exact reviewed operator code, and separately bind valid dispatch authority.
@@ -91,8 +93,9 @@ used about1.45M new known reads; offline query packing did not predict provider
 scanned-row billing. Only45,717 known-read units remain in the original profile,
 with seven retained unknowns. Final14:40 readback confirms FREEZING generation7 /
 epoch301, no retry/activation markers and no target provider version. Account
-reads4,095,249 leave904,751—below the fixed1M headroom. **Stop all further D1
-writes/scans and publication retries; no new profile or counter reset.** The
+reads4,095,249 leave904,751—below the fixed1M headroom. **Only the separately
+approved bounded continuation above may proceed after its proof and wiring
+checks; no ordinary retry or counter reset.** The
 join-plan fix is merged in PR250 (`1503056`), not exercised live. Next is a separately budget-safe low-cost
 canary/full-publication continuation with unchanged proof/owner/rights checks.
 The original broad-publication cutoff is October22 15:00:00Z; the photo deadline

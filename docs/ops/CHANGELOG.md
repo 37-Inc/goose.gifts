@@ -25,6 +25,13 @@ Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
 - **October22 resumed implementation — not a release** [owner+claude]:
+  Cameron subsequently approved the exact≤600k additional-read/≥300k untouched
+  Free-only allowance; this does not reset accounting or bypass final SQL-cost,
+  dispatch and publication checks. PR256 (`aba0ee2`) makes the existing
+  source-pinned Cloudflare build canonical; its actual2,359-product build and
+  release verifier pass without legacy Neon credentials. A fresh serial rerun
+  of PR255's affected integration pack now passes40/40, separately from the
+  original disk-space failure. PR252–255 are combined for final review, not live.
   draft PR252 adds an explicit prior-approval-bound activation deadline and fixes
   four equivalent BigInt literals; PR253 refines the actual 2,359-gift static UI
   (compact honest no-photo cards, decorative placeholder alt, plain guide copy,
@@ -34,10 +41,9 @@ what's likely next.
   resume refusal. None grants budget or changes production. Daily retention/
   full-catalog successor draft PR255 keeps cleared listings through stock/price
   changes; source has independent review and focused integration proof. Broad
-  tests hit local ENOSPC; the affected finalization fixture passes separately
-  after scoped space recovery, not a retroactive broad green. Public remains eight.
-  The one pending owner question is whether to allow at most600k more reads with
-  at least300k Free read headroom. No answer, new allowance or actual retry yet.
+  tests originally hit local ENOSPC; the later40/40 serial run is new evidence,
+  not a retroactive broad green. Public remains eight. The owner approval above
+  is received; no actual bounded-recovery attempt has run at this checkpoint.
   Exact frozen SQL/parameter/inventory cost proof, final operator wiring,
   canonical release/build checks, actual full publication and daily canary remain
   required. Do not rerun the old helper or relabel a draft as live.

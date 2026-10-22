@@ -5,6 +5,25 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 16:16Z — Bounded publication approval received; combined review
+
+Cameron answered `call_b300df69eace4f54b0282ecc87101d67` with “Allow bounded
+publication today; stay Free.” The exact allowance is≤600,000 additional reads,
+≥300,000 untouched, all original charges and seven unknowns retained. This
+supersedes the pending-answer wording in the earlier entry; it does not grant
+paid services, new merchant/model calls, routine-writer readiness or permission
+to rerun the unchanged helper. Original dispatch reconciliation and exact
+SQL/inventory bounds remain required before execution.
+
+PR256 merged as `aba0ee2`, making the reviewed Cloudflare static build canonical
+and preserving `build:legacy` for retained Neon rollback. Its actual2,359-product
+build and verifier pass without credential fetching. PR252–255 are combined on
+`codex/stupid-finish-line-integration` for final checks; this is not deployment.
+The fresh serial PR255 integration pack on clean`e477a09` passes40/40, zero
+failures/skips in427.252s. The earlier27/38 disk-space failure remains historical.
+Current public release is still`82efb21`/eight products. No additional provider,
+D1, merchant/model or schedule operation occurred before this checkpoint.
+
 ## 2026-10-22 — Offline finish-line review; public acceptance still held
 
 Owner resumed implementation on Astra extra-high. Existing isolated workers
