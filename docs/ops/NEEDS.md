@@ -31,9 +31,13 @@ Amazon navigation passed. GA4 and PostHog stored launch QA events; these are
 not evidence of acquired human traffic. The old Goose site remains on
 Vercel/Neon. This is **not** the full-catalog/writer/provider migration.
 
-Engineering still owns the bounded daily same-response publication proof:
-the first full rehearsal reached its existing request cap and stopped safely;
-no extra merchant/model request or quota reset was made. The original launch
+The maintained `9943718` release is active, but final receipt/lock settlement
+stopped at the internal 600-HTTP guard (not a Cloudflare Free-plan limit).
+Engineering has requested a separately journaled 150-HTTP / 300-SQL recovery
+allowance for that existing release and a future 800-HTTP / unchanged 1,200-SQL
+guard. These requests do not authorize another upload/activation, product/model
+request, quota reset or paid upgrade. Pending an explicit decision and verified
+recovery, the existing daily task stops before another run. The original launch
 display deadline is October 22 at 22:18:10.044Z. The live page must not be
 called continuously refreshed until a real daily publication is verified.
 Immediate launch was authorized; a show date, another visual approval or a

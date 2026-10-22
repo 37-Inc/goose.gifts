@@ -3,6 +3,30 @@
 This document retains protected-staging history and the separate production
 checkpoint below. The launch spec and `roadmap-lbbz1` remain authoritative.
 
+### Current production checkpoint — October 22, 00:24 UTC
+
+Public identity independently shows source `994371816d467892f1481c67b8d4ffce27ece11a`,
+release `stupid-launch-maintained-994371816d46`, catalog
+`stupid-launch-20261021-maintained`, snapshot SHA
+`9aa5e690c09e08cdd344f48165559982a04548dfc9f75936fa2019667e42b003`,
+manifest SHA `324674daa2b898c092ab220de203eba4249592afdce944aa6081a60ea67d0461`.
+All eight genuine maintenance vector deliveries completed. The original
+600-HTTP guard then stopped final readback/receipt settlement at 600 HTTP /
+1,029 SQL. Known usage is 15,727 rows read / 342 written; the earlier unknown
+identity GET remains charged. The actual owner is **activating**, generation3 /
+epoch27, not idle. Active serving does not equal a finalized publication receipt.
+
+Root and peer independently passed the prospective complete daily-wrapper
+fixture at 597 HTTP / 1,008 SQL using local SQLite and mocked provider/build
+transport, with exact receipt/pointer and idle assertions. It leaves only three
+HTTP calls for delays. A one-time recovery allowance and a future 800-HTTP
+ceiling were requested, not assumed approved. The same scheduled task now
+stops before another allowance or source advance while this publication is
+unresolved. See `JOURNAL.md` and `roadmap-lbbz1.4.3` for exact resume identity.
+Original merchant expiry remains October22 22:18:10.044Z; no fetch/model/paid
+upgrade was added. The historical launch and staging receipts below remain valid
+for their own releases, not substitutes for the pending maintained receipt.
+
 ### Public production checkpoint — October 21, 23:06 UTC
 
 - `https://stupid.gifts/` is live on **Cloudflare Free**, not behind staging

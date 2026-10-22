@@ -5,6 +5,60 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-21 owner session — Maintained release active; settlement needs recovery
+
+Merged PRs #214 (`9156747`) and #215 (`9943718`) preserve all source/native
+checks while batching bounded receipt reads and reusing genuine completed
+whole-cohort vector proofs. Root and independent reviewers passed the focused
+fault suites, catalog regressions, types, lint and production builds. The
+original-ledger durable handoff fixture completed at 578 HTTP / 983 SQL;
+its separate idle/read-only replay check totaled 579 / 984.
+
+The actual protected handoff retained the original 95 HTTP / 190 SQL seed
+charges and every subsequent request. One failed read-only D1 identity GET is
+still charged as unknown; a separately accounted metadata-only read returned
+200 and verified the exact database. Real Vectorize processing took longer
+than the fixture. The same saved run was resumed with a reviewed 30-second
+known-reference wait, without repeating an uncertain effect. All eight
+maintenance vectors completed and the new static release was uploaded/activated.
+Independent public identity readback at October 22 00:24 UTC shows:
+
+- Source `994371816d467892f1481c67b8d4ffce27ece11a`.
+- Release `stupid-launch-maintained-994371816d46`.
+- Catalog `stupid-launch-20261021-maintained`.
+- Snapshot SHA `9aa5e690c09e08cdd344f48165559982a04548dfc9f75936fa2019667e42b003`.
+- Manifest SHA `324674daa2b898c092ab220de203eba4249592afdce944aa6081a60ea67d0461`.
+
+**This is active serving, not finalized publication.** The real run stopped at
+its unchanged 600 HTTP / 1,029 SQL guard during final readback. Known reported
+usage is 15,727 rows read / 342 written, with the one earlier unknown GET retained.
+The actual D1 owner is activating, generation 3 / epoch 27; do not substitute the
+older freezing checkpoint owner. No published handoff receipt exists yet.
+Do not restart, upload, activate, reset charges, or claim the lock is idle.
+
+Root independently reran the complete prospective daily wrapper with real D1
+REST accounting and local SQLite/mocked provider transport: 597 HTTP / 1,008 SQL,
+zero unknowns, eight deliveries, one build/upload/activation, exact final
+identity, body-free last-success pointer, unchanged holds and idle owner.
+This is not a real daily canary. Only three HTTP requests of headroom remain;
+provider delays demonstrate that the guard needs an explicit reviewed decision.
+The owner was asked for a separate, journaled recovery allowance (150 HTTP /
+300 SQL, verification/receipt settlement only) and a future 800-HTTP guard with
+the existing 1,200-SQL/product/model limits unchanged. Neither is assumed granted.
+
+The same task ID `goose-gifts-daily-ops` is now named **Stupid Gifts — Daily
+Catalog Care**. Its ACTIVE 08:30 Pacific cadence and all merchant/model/Free-plan
+limits are retained. A new first-step recovery gate stops before source advance,
+purge or another merchant allowance while this exact handoff is unresolved.
+The daily publisher has not been enabled. Next actual Neon canary, full catalog/
+writer cutover and provider/redirect/decommissioning gates remain open.
+
+Private exact resume identity: run `launch-publish-994371816d46`, config
+`launch-publication-handoff-994371816d46.json`, SHA
+`8749f8c98c16b23ace4fcb9f91d74ce1284e790a0d491cbd7dc0cfc6ff83cbcc`.
+Keep the sole operator checkout clean at `9943718` until reconciliation. No new
+merchant/model call, paid upgrade, social/Slack post or source writer was added.
+
 ## 2026-10-21 owner session — Stupid Gifts public launch
 
 `https://stupid.gifts/` is live on Cloudflare Free. Initial release
