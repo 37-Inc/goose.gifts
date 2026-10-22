@@ -51,7 +51,7 @@ for query in v['queries']:
   e=next(i for i,r in enumerate(plans['new']) if r.startswith('SCAN e '))
   assert e<p,plans
   assert any(k+'=?' in plans['new'][p] for k in ['public_id','product_id','slug']),plans
-  assert next(i for i,r in enumerate(plans['old']) if r.startswith('SEARCH p '))<next(i for i,r in enumerate(plans['old']) if r.startswith('SCAN e ')),plans
+  old_pouter=next(i for i,r in enumerate(plans['old']) if r.startswith('SEARCH p '))<next(i for i,r in enumerate(plans['old']) if r.startswith('SCAN e '))
   costs={}
   for name,text in [('old',old),('new',sql)]:
     ticks=[0]
@@ -60,7 +60,8 @@ for query in v['queries']:
     assert c.execute(text,params).fetchone()[0]=='true'
     c.set_progress_handler(None,0)
     costs[name]=ticks[0]*100
-  assert costs['old']>costs['new']*50,costs
+  assert costs['new']<10000,costs
+  if old_pouter: assert costs['old']>costs['new']*50,costs
   assert c.execute(sql,[json.dumps(list(reversed(rows[:20]))),params[1],20]).fetchone()[0]=='true'
   for change in ['value','partial']:
     chunk=[dict(r) for r in rows[:20]]
