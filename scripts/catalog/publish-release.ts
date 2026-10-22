@@ -22,7 +22,7 @@ import type { ReleaseBuildContext } from '../staging/build.mts';
 import { assertBuildSource, validateBuildContext } from '../staging/build.mts';
 import { verifyReleaseIdentity } from '../staging/release-identity.mts';
 import { verifyFeedPlan, verifyReleaseContext, verifySiteIdentity } from '../staging/verify-release.mts';
-import { readPriorRelease, verifyRetainedAssets } from '../staging/retention.mts';
+import { CLOUDFLARE_FREE_ASSET_LIMIT, readPriorRelease, verifyRetainedAssets } from '../staging/retention.mts';
 import { siteIdentityFor } from '../../static-site/lib/site-identity.ts';
 import { canonicalTime, validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { canonicalJson } from './migration.ts';
@@ -148,11 +148,14 @@ async function files(directory:string){const entries=await fs.readdir(directory,
   if(entries.some(e=>!e.isFile()&&!e.isDirectory()))throw new Error('publication_package_invalid');
   return entries.filter(e=>e.isFile()).map(e=>path.relative(directory,path.join(e.parentPath,e.name)).split(path.sep).join('/')).sort();}
 async function inventory(directory:string){const names=await files(directory);let bytes=0;
-  if(names.length>10_000)throw new Error('publication_package_bound');const hashes:Record<string,string>={};
+  // Count actual files, including private package metadata, within the same
+  // conservative Free asset bound already enforced by the static assembler.
+  if(names.length>CLOUDFLARE_FREE_ASSET_LIMIT)throw new Error('publication_package_bound');const hashes:Record<string,string>={};
   for(const name of names){const file=path.join(directory,name);await privateDirectories(path.dirname(file),directory);
     const body=await privateBytes(file);bytes+=body.length;
     if(bytes>128*1024*1024)throw new Error('publication_package_bound');hashes[name]=sha256(body);}
   return hashes;}
+export { inventory as inventoryPublicationPackage };
 const safePath=(name:string)=>name.startsWith('/')&&!name.includes('\\')&&!name.split('/').some(part=>part==='.'||part==='..')&&!name.includes('\0');
 function childEnv():NodeJS.ProcessEnv{return{PATH:process.env.PATH,HOME:process.env.HOME,TMPDIR:process.env.TMPDIR,
   CI:'true',NODE_ENV:'production',NEXT_TELEMETRY_DISABLED:'1',NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED:'false',WRANGLER_SEND_METRICS:'false'};}

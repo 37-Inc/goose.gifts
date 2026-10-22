@@ -292,6 +292,14 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-22 [owner+claude] — Align private publication file count with Free static capacity
+
+- Allow up to20,000 actual package files, conservatively including private
+  metadata, using the existing static assembler's Free asset limit. Retain the
+  128MiB total, exact binary hashes and all private-file/path/symlink checks.
+  Filesystem tests cover a15,422-file package and both20,000/20,001 boundaries;
+  this is local capacity evidence, not a publication or a daily budget increase.
+
 ### 2026-10-22 [owner+claude] — Select the cooperative rollback packet in native replay
 
 - Fix the local native drill's rollback ledger to use the selected cooperative
