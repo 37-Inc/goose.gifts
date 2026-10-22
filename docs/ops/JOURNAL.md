@@ -5,6 +5,81 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 — Offline finish-line review; public acceptance still held
+
+Owner resumed implementation on Astra extra-high. Existing isolated workers
+continued only bounded offline code/review/test work; no new D1/provider,
+merchant/model, social, schedule or credential operation was performed.
+
+- PR252 (`4e3cfb7`, housekeeping `cf4a16b`) remains draft: v1 approval/request
+  bytes are preserved; v2 binds the entire original approval and a separate
+  finite dispatch deadline. Pure permanent-source assertions no longer confuse
+  a read-only proof with expired dispatch authority. Separate completed batches:
+  23 core, 37 generic, 24 old reviewed, eight v2 and eight permanent tests pass.
+  Four preexisting BigInt literals were mechanically replaced; recovery checks
+  12pass/3optional skips. Legacy `npm run build` now compiles/type-checks but
+  cannot prerender its Neon guide index without POSTGRES_URL. No credential was
+  fetched to hide that precondition; do not report that build as green.
+- Draft PR253 (`7ba05f4`, new owned disclosure `0664c18`) built/verified the unchanged actual snapshot with
+  2,359 products /15,119 assets /23,690 guarded routes. Desktop/mobile review:
+  24→48→72 unique cards,390px no overflow,43 guide icons,0 typing/1 submit search
+  request (local stub only, not live D1 relevance). Eight optional-photo slots
+  keep geometry;2,351 photo-free cards use an honest compact icon strip.
+  Placeholder images have decorative empty alt. Public-asset scan found no
+  owner-name/personal-email/Collection/technical-guide-copy leaks.58pass/3optional
+  skips, three TS projects and lint pass; source remains draft, not deployed.
+  Exact Amazon Fire packaging now has independently authored site copy:
+  “Empty prank gift box. No fire kit included.” Existing factual review is
+  provenance, not a retroactively invented permanent-product grant. New copy
+  appears once on card/detail, never shared JS; DTO/grants/snapshot remain exact.
+- Draft PR254 (`17e519a`) is a separate trusted-operator recovery budget, not
+  a new active allowance. All original HTTP/SQL/write ceilings and charges are
+  retained; approval≤600k incremental reads must leave≥300k Free read headroom.
+  Normal one-million-read headroom is unchanged. Reviewed SQL digests and summed
+  statement bounds are admitted before reserve/IO, one batch at a time; any new
+  unknown stops. Every post-anchor HTTP/SQL/read/write charge must reconcile on
+  resume, so a known over-bound batch cannot disappear on reopening.34 focused
+  tests/types/lint pass. Exact SQL/parameter/inventory maximum-cost proof and
+  shared-workspace unknown-stop wiring are still execution prerequisites.
+- Draft PR255 (`08e4ac0`, full-plan `9075b69`, reader-brand `e477a09`) was independently source-reviewed: D1-only opt-in
+  disables age-deactivation and separates supplier eligibility from permanent
+  curation; explicit blocks, duplicates, low quality and invalid rights still
+  hold. Actual SQLite2359 identities/order survive ten stock/price/title/fact
+  changes and photo expiry. Default Neon/v1 behavior remains unchanged. The
+  separate whole-catalog/30-change/native/successor path passes focused tests:
+  2,359 retained+20 explicitly cleared new gifts reach actual SQLite receipt,
+  IDLE and a36h-later successor reconstruction with exact order. Normal weekly
+  composition and lost D1+activation-ACK cases pass individually; both unknowns
+  remain charged and activation occurs once. The broad pack was27/38: one stale
+  expected-unknown count (corrected focused rerun passes), then a journal error
+  and nine ENOSPC fixture failures. Do not report that broad run as green.
+  Separate peer runs: retention72/72; selected full-plan faults5/5. No routine
+  Free profile, measured whole-run capacity, live canary or enablement is claimed.
+
+The local Mac ran low on disk during parallel offline exports/tests. Only newly
+created disposable QA outputs and three identical-lockfile npm installations
+were removed; deps now use ignored symlinks to protected63. Original package,
+workspace, archive, receipts and rollback evidence were untouched. About4GiB is
+available after cleanup; the affected `loseFinalRelease` finalization fixture
+passes1/1 alone after recovery (Node22,39.47s). Original broad failure stays
+recorded; no actual workspace or publication was replayed.
+
+Last actual usage/readback remains14:40:34Z, not refreshed here:
+account4,095,249 reads/69,870writes; SAME ledger2,851HTTP/6,460SQL/
+2,954,283known reads/21,464writes/seven retained unknowns. Current checkpoint
+`bc624e97048c56f137a5e5818f55c38f6f6258bc7ce4c3f6b797b396e4671433`
+still holds FREEZING7/301 before genuine upload/version/activation. Original
+dispatch cutoff15:00Z passed; a new explicit bounded dispatch grant cannot be
+inferred from a pure source proof. Source runtime63/package3f9 and all old audit,
+pending/review pins and unknown costs remain untouched. Public is still82/eight;
+its old whole-product photo deadline remains22:18:10.044Z.
+
+One owner budget decision is already pending in this chat/coordinator: allow
+at most600k additional reads with at least300k Free headroom, or retain the
+larger buffer. **No answer/no new authority yet; no duplicate question or retry.**
+Do not close migration/daily Beads until actual acceptance. Old Neon writers
+remain off, new D1 writer gated, Vercel frozen and Pinterest paused; no paid plan.
+
 ## 2026-10-22 — Actual private full-catalog receipts; public acceptance pending
 
 These actual receipts supersede the implementation-only next steps below; do
