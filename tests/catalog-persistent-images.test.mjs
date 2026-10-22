@@ -5,6 +5,8 @@ import { createPersistentCatalogProduct, publicProductRightsExpiry } from '../li
 import { createBrowseRelease } from '../static-site/lib/browse.ts';
 import { validateCardShard } from '../static-site/lib/card-shard.ts';
 import { resolvePublicProduct } from '../lib/catalog/display.ts';
+import { readFileSync } from 'node:fs';
+import { createSiteWorker } from '../workers/site/index.ts';
 
 test('owner-cleared existing imagery supports HTTPS and local raster files without an invented supplier lease', () => {
   for (const imageUrl of ['https://images.example.invalid/existing.jpg?size=large', '/images/existing.jpg',
@@ -33,4 +35,18 @@ test('unsafe image schemes, credentials, fragments and local traversal remain re
     'http://example.invalid/photo.jpg', 'https://user:secret@example.invalid/photo.jpg', 'https://example.invalid/photo.jpg#fragment',
     '/../private.jpg', '/images/../private.jpg', '/images/./private.jpg', '/images/a.jpg?private=1', undefined])
     assert.equal(isPersistentImagePath(value), false);
+});
+
+test('local raster imagery is actually served by the Worker, not only accepted by the DTO', async () => {
+  const snapshot = JSON.parse(readFileSync(new URL('../static-site/fixtures/catalog.snapshot.json', import.meta.url)));
+  const worker = createSiteWorker({snapshot, manifest: {catalogRevision: snapshot.catalogRevision, routes: {}}});
+  const fetched = [];
+  const env = {ENVIRONMENT: 'production', ASSETS: {async fetch(request) {fetched.push(new URL(request.url).pathname); return new Response('fixture image');}}};
+  for (const name of ['/images/catalog/owned-photo.jpg', '/images/another.webp', '/images/gift-placeholder.svg']) {
+    const response = await worker.fetch(new Request(`https://preview.invalid${name}`), env);
+    assert.equal(response.status, 200); assert.equal(await response.text(), 'fixture image');
+  }
+  const count = fetched.length;
+  assert.equal((await worker.fetch(new Request('https://preview.invalid/images/private.json'), env)).status, 404);
+  assert.equal(fetched.length, count);
 });
