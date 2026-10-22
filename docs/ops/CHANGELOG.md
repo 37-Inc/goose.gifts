@@ -282,6 +282,15 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-22 [owner+claude] — Keep photo-free catalog cards compact and honest
+
+Replace repeated full-size generic pictures with the existing gift glyph and a
+quiet photo-unavailable label. Only original optional-photo slot IDs reserve
+image geometry; guarded supplier URLs/deadlines and expiry behavior are unchanged.
+Placeholder art is decorative, guide headings use plain public language, and
+24+24 browsing/search/privacy controls remain. This is source/local QA, not a new
+publication or writer activation; public acceptance remains eight gifts.
+
 ### 2026-10-22 [owner+claude] — Accept private full-catalog migration and recovery
 
 Actual final-source/all-24-table production union, schema 0015 and local native

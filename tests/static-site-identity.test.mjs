@@ -64,7 +64,7 @@ function component(relative, config, fixture = false) {
   const commonJs = { exports: {} };
   const dependencies = {
     "../lib/site-identity": config,
-    "../lib/catalog": { isFixtureRelease: fixture, photos: { indexPath: null } },
+    "../lib/catalog": { isFixtureRelease: fixture, photos: { indexPath: null, index: { products: {} } } },
     "../components/CatalogPhotos": { CatalogPhotos: ({ children }) => children },
     "./CatalogPhotos": { CatalogImage: () => React.createElement("img", { alt: "Controlled fixture" }) },
     "../lib/metadata": { previewMetadata: () => ({}) },

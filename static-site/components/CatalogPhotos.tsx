@@ -3,8 +3,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { ProductImage } from "@/components/ProductImage";
 import { PHOTO_PLACEHOLDER, photoVersion, validatePhotoIndex, validatePhotoShard } from "../lib/photo-shard";
+import { Icon } from "./Icon";
 
-const PhotoContext = createContext<string | null>(null);
+const PhotoContext = createContext<{ indexPath: string | null; photoSlots: readonly string[] }>({ indexPath: null, photoSlots: [] });
 const pending = new Map<string, Promise<unknown>>();
 async function read(path: string, validate: (value: unknown) => unknown): Promise<unknown> {
   const existing = pending.get(path);
@@ -32,12 +33,24 @@ async function read(path: string, validate: (value: unknown) => unknown): Promis
   return request;
 }
 
-export function CatalogPhotos({ indexPath, children }: { indexPath: string | null; children: React.ReactNode }) {
-  return <PhotoContext.Provider value={indexPath}>{children}</PhotoContext.Provider>;
+export function CatalogPhotos({ indexPath, photoSlots = [], children }: { indexPath: string | null; photoSlots?: readonly string[]; children: React.ReactNode }) {
+  return <PhotoContext.Provider value={{ indexPath, photoSlots }}>{children}</PhotoContext.Provider>;
+}
+
+/** Slot IDs reserve the original photo geometry, not rights or supplier URLs.
+ * A missing/expired overlay never expands a compact card after hydration. */
+export function CatalogCardArt({ href, label, illustrative = false, ...props }: React.ComponentProps<typeof CatalogImage>
+  & { href: string; label: string; illustrative?: boolean }) {
+  const { photoSlots } = useContext(PhotoContext);
+  const compact = props.imageUrl === PHOTO_PLACEHOLDER && !photoSlots.includes(props.id);
+  return <a data-analytics-product-link="" className={`product-art${illustrative ? "" : " retailer-art"}${compact ? " photo-unavailable" : ""}`}
+    href={href} aria-label={label}>
+    {compact ? <><Icon name="gift" /><span>Photo unavailable</span></> : <CatalogImage {...props} />}
+  </a>;
 }
 
 export function CatalogImage({ id, ...props }: React.ComponentProps<typeof ProductImage> & { id: string }) {
-  const indexPath = useContext(PhotoContext);
+  const { indexPath } = useContext(PhotoContext);
   return <PhotoImage key={`${id}:${indexPath}:${props.imageUrl}`} id={id} indexPath={indexPath} {...props} />;
 }
 function PhotoImage({ id, indexPath, ...props }: React.ComponentProps<typeof ProductImage> & { id: string; indexPath: string | null }) {
@@ -68,5 +81,5 @@ function PhotoImage({ id, indexPath, ...props }: React.ComponentProps<typeof Pro
     return () => { window.clearTimeout(timer); window.removeEventListener("pageshow", expire); document.removeEventListener("visibilitychange", expire); };
   }, [photo]);
   const imageUrl = photo?.imageUrl ?? props.imageUrl;
-  return <ProductImage {...props} key={imageUrl} imageUrl={imageUrl} />;
+  return <ProductImage {...props} key={imageUrl} imageUrl={imageUrl} alt={imageUrl === PHOTO_PLACEHOLDER ? "" : props.alt} />;
 }

@@ -48,7 +48,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </a>
           </nav>
         </header>
-        <CatalogPhotos indexPath={photos.indexPath}>
+        <CatalogPhotos indexPath={photos.indexPath} photoSlots={Object.keys(photos.index.products)}>
           <StaticContentExpiry fallback={<SafeCatalog />}>{children}</StaticContentExpiry>
         </CatalogPhotos>
         <footer>
