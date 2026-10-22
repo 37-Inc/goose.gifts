@@ -5,8 +5,9 @@ Items move to "Received" when done.
 
 ## P0 — blocking autonomous operation
 
-Daily publication is safely held for the bounded recovery decision described
-below. No login, paid upgrade or additional merchant fetch is requested.
+Daily publication is held for the bounded recovery implementation described
+below, not an unanswered request-cap decision. No login, paid upgrade or
+additional merchant fetch is requested for that recovery.
 
 ## P1 — needed within the first weeks
 
@@ -44,18 +45,20 @@ Amazon navigation passed. GA4 and PostHog stored launch QA events; these are
 not evidence of acquired human traffic. The old Goose site remains on
 Vercel/Neon. This is **not** the full-catalog/writer/provider migration.
 
-The maintained `9943718` release is active, but final receipt/lock settlement
+The maintained `9943718` release is active. Its original receipt/lock settlement
 stopped at the internal 600-HTTP guard (not a Cloudflare Free-plan limit).
-Engineering has requested a separately journaled 150-HTTP / 300-SQL recovery
+The owner approved a separately journaled 150-HTTP / 300-SQL recovery
 allowance for that existing release and a future 800-HTTP / unchanged 1,200-SQL
-guard. These requests do not authorize another upload/activation, product/model
-request, quota reset or paid upgrade. Pending an explicit decision and verified
-recovery, the existing daily task stops before another run. The original launch
+guard. The one-time grant is applied without changing original charges or the
+immutable manifest. It does not authorize another upload/activation, product/model
+request, quota reset or paid upgrade. The genuine D1 publication receipt now
+matches the original release, but its owner/build remain activating after a
+three-second observation timeout. Engineering is correcting cancellation and
+draining; the existing daily task stops before another run. The original launch
 display deadline is October 22 at 22:18:10.044Z. The live page must not be
 called continuously refreshed until a real daily publication is verified.
-The guarded original-activation recovery implementation has been prepared and
-independently reviewed locally. No allowance has been applied and no expired
-lease/merchant deadline renewed. Local registered-body expiry cleanup continues
+The guarded original-activation recovery implementation is merged; no expired
+lease/merchant deadline was renewed. Local registered-body expiry cleanup continues
 while provider settlement waits; it does not permit another publication or run.
 The separate existing dependency-audit issue is `roadmap-lbbz1.4.5`. Cameron
 approved integrating the publisher fix independently and authorized straightforward
@@ -64,6 +67,12 @@ for this narrowly scoped publisher change.
 Immediate launch was authorized; a show date, another visual approval or a
 prelaunch seven-day wait is not required. Observation gates destructive
 retirement afterward. Remaining launch/migration follow-ups:
+
+- Finish the tested new-site D1 daily/Monday writer transition. Cameron
+  explicitly wants the old-site daily writer disabled; it is forbidden by the
+  current saved task. The timer remains ACTIVE, but new-site maintenance is
+  still gated, not falsely reported enabled. Source-delta/credential and
+  successful daily publication evidence remain engineering acceptance.
 
 - Verify a useful, current product selection. An actual episode/show date and
   physical demonstration remain owner-coordinated follow-ups, not prerequisites

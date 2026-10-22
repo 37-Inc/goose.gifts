@@ -5,6 +5,72 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 owner session — Approved recovery, actual receipt and provider continuity
+
+Cameron's 18:23 Pacific instruction authorized lifting our internal request guard
+to finish the migration, enabling new-site daily/weekly work and disabling the
+old-site writer. The protected 150 HTTP / 300 SQL approval was applied exactly once
+to the original `launch-publish-994371816d46` journal. Original source994,
+config, manifest, charges, two unknown reservations and merchant expiry remain
+unchanged. Future ordinary headroom is 800 HTTP / 1,200 SQL, not a paid-plan upgrade
+or another merchant/model allowance.
+
+The actual D1 publication receipt now matches the original immutable intent;
+publication status is published. Independently accounted readback still finds
+the build and owner **activating**, generation 3 / epoch 27, external_pending 1.
+Latest ledger: 663 HTTP / 1,084 SQL, 24,224 known rows read / 346 written, against the
+derived 750 HTTP / 1,329 SQL ceiling. No final handoff/idle claim is made.
+
+Investigation and a local reproduction identify a concrete remaining bug: the
+build resolver gives the entire independent provider/D1/eight-native-vector
+observation three seconds, while its adapter ignores abort. It can return
+before the read-only callback/accounting drains. A bounded cancellation/drain
+fix is being tested without removing any proof or repeating activation.
+There was no new upload, activation, merchant/model request, lease renewal,
+quota reset or paid upgrade. Registered local expiry cleanup remains required.
+
+The reviewed correction gives only background activation resolution a bounded
+30-second observation window; the default remains three seconds. With the
+versioned companion below, read-only D1/native/provider calls propagate abort
+and join their owned accounting before returning. Review also caught delayed settlement and non-cooperative response
+body cleanup; raw network replies cannot settle twice, and inert body cleanup
+stays bounded. No source, rights, native-vector or owner proof was removed.
+The prior finalizer remains byte-for-byte `d423eb31…`; the versioned private
+`finalize-active-launch-observation-safe-994371816d46.mts` has SHA-256
+`05c2bbc70cd7adf2c9cc78b8bedb7a110798b7fffd837e395f3e973339d1f417`.
+Its exact predecessor/config/approval/receipt and acknowledgement-only guards
+are unchanged; only cancellation-safe read accounting is injected. Three pure
+guard tests pass. This is prepared reconciliation, not a second live attempt.
+The older pre-activation observation path still needs its separate new-writer
+acceptance; this fix does not claim every publication path is now quiescent.
+The first full regression run exposed two changed native-error labels; those
+were corrected and the entire 21-test approved-cohort file passed independently.
+Focused transport/timeout/guard checks, staging types, lint and production build
+pass. Root's fresh complete staging run passed **704 tests, 18 explicit optional
+skips, zero failures**. Independent transport/core, cohort/helper and
+publication/delivery runs also passed, without summing overlapping cases.
+
+Updated the same existing catalog task in place; it now forbids the old Neon
+entry while the verified new-D1 writer/credentials/source-delta contract is
+unfinished. ACTIVE 08:30 Pacific is a timer state, **not** proof the new writer
+is enabled. Read-only inventory found no second catalog Codex/OpenClaw/local
+cron/LaunchAgent/GitHub job; the portfolio pulse is reporting-only. A separate
+read-only production Worker schedules API read returned HTTP200/empty schedules;
+it is not a second Cron writer. The configured08:30 time is on the
+America/Los_Angeles host; native readback exposed no next-run/timezone field.
+Vercel-hosted schedule state remains unverified. Pinterest stays PAUSED.
+
+Separately completed the authorized GA4 property/stream rebrand through the
+signed-in account, with persisted reload readback: property 507421709 and
+stream 12249530179 are **Stupid Gifts**, website `https://stupid.gifts`, same
+measurement `G-6RR3HPR747`. History, access, timezone/currency and collection
+settings were untouched; Ads AW-17626116539 and PostHog 550427 are preserved.
+See `stupid-gifts-ga4-rebrand-2026-10-22.json`. Enhanced measurement is genuinely
+enabled before/after; email redaction is on, query-parameter redaction is not.
+Keep the automatic-collection privacy audit open rather than claiming the
+sanitized explicit adapter proves account-side collection is safe. No Search
+Console move, new credential or unrelated-project change was made.
+
 ## 2026-10-21 owner session — Pinterest closeout and remaining cutover reconciled
 
 Cameron requested commit/push, completed Bead closure and reconciliation of the

@@ -117,11 +117,19 @@ export async function failBuildRequest(db: CatalogD1, claim: CatalogBuildClaim):
     WHERE request_id=? AND lease_token=? AND run_reference=? AND state='building' AND lease_until>${NOW}`)
     .bind(claim.requestId, claim.token, claim.runReference).run();
 }
-async function observe(adapter: (signal: AbortSignal) => Promise<DeploymentObservation>): Promise<DeploymentObservation> {
+/** Bounded cleanup only. Never wait forever for an arbitrary injected adapter. */
+export async function drainDeploymentObservation(pending: Promise<unknown>): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { await Promise.race([pending.catch(() => undefined), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('deployment_observation_cleanup_pending')), 10_000);
+  })]); }
+  finally { clearTimeout(timer); }
+}
+async function observe(adapter: (signal: AbortSignal) => Promise<DeploymentObservation>, timeoutMs = 3000): Promise<DeploymentObservation> {
   const controller = new AbortController(); let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([adapter(controller.signal), new Promise<never>((_, reject) => {
-      timer = setTimeout(() => { reject(new Error('deployment_observation_failed')); controller.abort(); }, 3000);
+      timer = setTimeout(() => { controller.abort(); reject(new Error('deployment_observation_failed')); }, timeoutMs);
     })]);
   } catch { throw new Error('deployment_observation_failed'); } finally { clearTimeout(timer); }
 }
@@ -204,11 +212,13 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
  * must prove settled provider/run state; a target identity alone is not a receipt.
  */
 export async function resolveBuildActivation(db: CatalogD1, permit: ActivationPermit,
-  readDeployment: (signal: AbortSignal) => Promise<DeploymentObservation>): Promise<'awaiting_receipt' | 'resolved' | 'not_activated'> {
+  readDeployment: (signal: AbortSignal) => Promise<DeploymentObservation>, options: { observationTimeoutMs?: number } = {}): Promise<'awaiting_receipt' | 'resolved' | 'not_activated'> {
+  const timeout = options.observationTimeoutMs ?? 3000;
+  if (!Number.isInteger(timeout) || timeout < 10 || timeout > 30_000) throw new Error('invalid_observation_timeout');
   const stored = await row(db, permit.requestId);
   if (!stored || stored.state !== 'activating' || stored.lease_token !== permit.token || stored.run_reference !== permit.runReference
     || stored.release_id !== permit.releaseId || stored.version_reference !== permit.versionReference) throw new Error('build_fenced');
-  const request = input(stored); const observed = await observe(readDeployment);
+  const request = input(stored); const observed = await observe(readDeployment, timeout);
   if (observed.environment !== request.environment || observed.settled !== true) throw new Error('activation_still_uncertain');
   const finish = async (statement: D1Statement) => {
     if (!permit.mutationOwner) {

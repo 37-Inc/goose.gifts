@@ -25,11 +25,14 @@ Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
 - **Stupid Gifts publication recovery:** the new domain is live with eight
-  reviewed products, but the maintained release still needs final receipt/lock
-  settlement. Narrow original-activation recovery is prepared and locally
-  reviewed, not run. The one-time recovery allowance and future HTTP headroom
-  decisions remain pending; no new product/model fetch, paid upgrade or second
-  job is inferred. Local registered-body expiry cleanup continues while held.
+  reviewed products, but the maintained release still needs final build/lock
+  settlement. The one-time recovery allowance and future HTTP headroom are
+  approved; recovery saved the genuine original D1 receipt, but a three-second
+  full-proof timeout left its owner/build activating. A bounded cancellation/
+  drain fix is in progress before another acknowledgement-only attempt. No
+  new product/model fetch, paid upgrade or second job is inferred. The old
+  Neon entry is disabled; tested D1 daily/Monday activation remains open.
+  Local registered-body expiry cleanup continues while held.
   Existing dependency-audit findings are separately tracked in
   `roadmap-lbbz1.4.5`; Cameron approved merging the publisher fix separately and
   asked us to take care of straightforward dependency/toolchain updates.
@@ -237,6 +240,18 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-22 [owner+claude] — Apply approved recovery and retain exact provider identity
+
+- Applied the once-only internal recovery grant; the genuine original D1
+  publication receipt is now accepted. Its owner/build remain activating after
+  a confirmed three-second full-proof timeout; bounded cancellation/drain is
+  being corrected before another acknowledgement-only attempt.
+- Same daily task, no duplicate: old Neon entry disabled, new D1 writer still
+  gated pending tested transition. No new merchant/model call or paid plan.
+- Existing GA4 property/stream renamed **Stupid Gifts**, website stupid.gifts,
+  preserving measurement/history/access. Automatic-provider collection audit
+  remains open. See `stupid-gifts-ga4-rebrand-2026-10-22.json` and the journal.
 
 ### 2026-10-21 [owner+claude] — Reconcile Pinterest completion and remaining cutover
 

@@ -85,6 +85,13 @@ test('background REST defaults to10s, accepts30s and preserves caller abort with
   const pending=api.dispatch(delivery,aborter.signal);aborter.abort();
   await assert.rejects(pending,/vector_provider_failed/);assert.equal(calls,1);
 });
+test('observation abort awaits asynchronous stream cancellation before returning',async()=>{
+  let cancelled=false;const controller=new AbortController();
+  const api=createVectorizeRestAdapters({...config,fetch:async()=>new Response(new ReadableStream({
+    pull(){return new Promise(()=>{});},async cancel(){await new Promise(resolve=>setTimeout(resolve,25));cancelled=true;}}))});
+  const pending=api.readback(publicId,controller.signal);await new Promise(resolve=>setTimeout(resolve,5));controller.abort();
+  await assert.rejects(pending,/provider_failed/);assert.equal(cancelled,true);
+});
 test('wrong IDs/namespaces/dimensions and malformed explicit configuration are rejected',async()=>{
   for(const result of [[{...vector,id:'00000000-0000-4000-8000-000000000002'}],[{...vector,namespace:'other'}],
     [{...vector,values:[1,2]}],[vector,vector],{matches:[]},[{...vector,metadata:null}]]){

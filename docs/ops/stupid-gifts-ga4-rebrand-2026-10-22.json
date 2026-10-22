@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "operation": "existing-property-and-web-stream-rebrand",
+  "verifiedAt": "2026-10-22",
+  "provider": "Google Analytics",
+  "accountId": "154931353",
+  "propertyId": "507421709",
+  "webStreamId": "12249530179",
+  "measurementId": "G-6RR3HPR747",
+  "before": {
+    "propertyName": "goose.gifts",
+    "streamName": "Website",
+    "streamUrl": "https://goose.gifts"
+  },
+  "after": {
+    "propertyName": "Stupid Gifts",
+    "streamName": "Stupid Gifts",
+    "streamUrl": "https://stupid.gifts"
+  },
+  "verification": "Saved settings persisted after browser reload; exact property, stream and measurement identifiers were unchanged.",
+  "unchanged": [
+    "measurement ID and event history",
+    "timezone and currency",
+    "access and permissions",
+    "event and privacy configuration",
+    "Google Ads AW-17626116539",
+    "PostHog project 550427"
+  ],
+  "privacyFollowup": {
+    "enhancedMeasurement": "enabled before and after this display-name/URL update",
+    "emailRedaction": "enabled",
+    "queryParameterRedaction": "not enabled",
+    "status": "Audit automatic provider collection against the existing explicit sanitized event contract; do not infer provider-level privacy from the web adapter alone."
+  },
+  "limits": [
+    "This is a settings readback, not acquired-traffic or commission evidence.",
+    "No Search Console move, Google Cloud client change or new tracking destination was performed.",
+    "Private before/after screenshots are retained outside the repository."
+  ]
+}

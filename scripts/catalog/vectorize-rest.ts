@@ -1,6 +1,11 @@
 import type { MutationScope } from '../../lib/catalog/mutation-fence.ts';
 import type { SyncVector } from './vector-outbox.ts';
 import type { OwnedVectorAdapters } from './owned-vector-delivery.ts';
+import { drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
+import { isAccountedPublicationReadFetch } from './publication-read-fetch.ts';
+
+const ownedReadbacks=new WeakSet<OwnedVectorAdapters['readback']>();
+export function hasAccountedVectorReadback(adapters:Pick<OwnedVectorAdapters,'readback'>):boolean{return ownedReadbacks.has(adapters.readback);}
 
 const UUID = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 /** Explicit protected-workflow wiring only. No ambient credentials, redirects,
@@ -19,22 +24,29 @@ export function createVectorizeRestAdapters(options: MutationScope & {
   const send = options.fetch ?? fetch;
   const base = `https://api.cloudflare.com/client/v4/accounts/${accountId}/vectorize/v2/indexes/${indexName}`;
   async function request(path: string, signal: AbortSignal, body?: string, ndjson = false): Promise<unknown> {
-    const controller = new AbortController(); const abort = () => controller.abort();
-    signal.addEventListener('abort',abort,{once:true}); if(signal.aborted)controller.abort();
+    signal.throwIfAborted();
+    const controller = new AbortController();let reader:ReadableStreamDefaultReader<Uint8Array>|undefined;
+    let sent:Promise<Response>|undefined,pending:Promise<unknown>|undefined,cancellation:Promise<unknown>|undefined,rejectAbort:(error:Error)=>void=()=>{};
+    const aborted=new Promise<never>((_,reject)=>{rejectAbort=reject;});
+    const abort = () => {controller.abort();cancellation??=reader?.cancel().catch(()=>{});rejectAbort(new Error('vector_provider_failed'));};
+    signal.addEventListener('abort',abort,{once:true});
     const timer=setTimeout(abort,timeout);
     try {
-      const response=await send(`${base}/${path}`,{method:body===undefined?'GET':'POST',redirect:'error',signal:controller.signal,
-        headers:{Authorization:`Bearer ${token}`,...(body===undefined?{}:{'Content-Type':ndjson?'application/x-ndjson':'application/json'})},body});
-      if(!response.ok||!response.body)throw new Error();
-      const reader=response.body.getReader();const chunks:Uint8Array[]=[];let size=0;
+      pending=(async()=>{const response=await(sent=send(`${base}/${path}`,{method:body===undefined?'GET':'POST',redirect:'error',signal:controller.signal,
+        headers:{Authorization:`Bearer ${token}`,...(body===undefined?{}:{'Content-Type':ndjson?'application/x-ndjson':'application/json'})},body}));
+      if(controller.signal.aborted||!response.ok||!response.body){void response.body?.cancel().catch(()=>{});throw new Error();}
+      reader=response.body.getReader();const chunks:Uint8Array[]=[];let size=0;
       try { for(;;){const part=await reader.read();if(part.done)break;size+=part.value.byteLength;
         if(size>128*1024){await reader.cancel();throw new Error();}chunks.push(part.value);} }
       finally {reader.releaseLock();}
       const bytes=Buffer.concat(chunks);const envelope=JSON.parse(bytes.toString('utf8'));
       if(!envelope||envelope.success!==true||!Object.hasOwn(envelope,'result'))throw new Error();
-      return envelope.result;
+      return envelope.result;})();return await Promise.race([pending,aborted]);
     } catch { throw new Error('vector_provider_failed'); }
-    finally {clearTimeout(timer);signal.removeEventListener('abort',abort);}
+    finally {clearTimeout(timer);signal.removeEventListener('abort',abort);
+      if((path==='get_by_ids'||path==='info')&&controller.signal.aborted&&pending){
+        if(isAccountedPublicationReadFetch(send)&&sent)await sent.catch(()=>{});
+        await drainDeploymentObservation(Promise.allSettled([pending,cancellation]));}}
   }
   function id(value:string){if(!UUID.test(value))throw new Error('vector_provider_invalid_id');}
   function vector(value:unknown):SyncVector {
@@ -78,5 +90,6 @@ export function createVectorizeRestAdapters(options: MutationScope & {
       return {...structuredClone(found),values:found.values.map(Math.fround)};
     },
   };
+  if(isAccountedPublicationReadFetch(send))ownedReadbacks.add(adapters.readback);
   return Object.freeze(adapters);
 }

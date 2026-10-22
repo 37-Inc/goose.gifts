@@ -1,5 +1,8 @@
-import type { CatalogD1, D1Statement } from '../../lib/catalog/storage/d1.ts';
+import type { CatalogD1, D1Statement, D1ReadOptions } from '../../lib/catalog/storage/d1.ts';
 import { createHash, randomUUID } from 'node:crypto';
+import { drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
+const ownedClients=new WeakSet<CatalogD1>();
+export function isCatalogD1Rest(db:CatalogD1):boolean{return ownedClients.has(db);}
 
 /** Protected Node wiring only; no credentials/bootstrap, schema, lock or runner.
  * REST wire: https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/
@@ -90,12 +93,17 @@ export async function createCatalogD1Rest(options: {
     catch{throw new Error('catalog_d1_accounting_unknown');}
   }
   const bindings=new WeakMap<D1Statement,Query>();
-  async function request(body?:string):Promise<unknown> {
+  async function request(body?:string,signal?:AbortSignal):Promise<unknown> {
     if(requests>=limits.requests)throw new Error('catalog_d1_budget_exhausted');requests++;
+    if(signal?.aborted)throw new Error('catalog_d1_result_unknown');
     const controller=new AbortController();let timer:ReturnType<typeof setTimeout>|undefined;
-    let reader:ReadableStreamDefaultReader<Uint8Array>|undefined;
+    let reader:ReadableStreamDefaultReader<Uint8Array>|undefined,pending:Promise<unknown>|undefined,cancellation:Promise<unknown>|undefined;
+    let rejectAbort:(error:Error)=>void=()=>{};
+    const aborted=new Promise<never>((_,reject)=>{rejectAbort=reject;});
+    const abort=()=>{controller.abort();cancellation??=reader?.cancel().catch(()=>{});rejectAbort(new Error('catalog_d1_result_unknown'));};
+    signal?.addEventListener('abort',abort,{once:true});
     try{
-      return await Promise.race([(async()=>{
+      pending=(async()=>{
         const response=await send(body===undefined?base:`${base}/query`,{method:body===undefined?'GET':'POST',redirect:'error',
           signal:controller.signal,headers:{Authorization:`Bearer ${token}`,...(body===undefined?{}:{'Content-Type':'application/json'})},
           ...(body===undefined?{}:{body})});
@@ -107,14 +115,16 @@ export async function createCatalogD1Rest(options: {
         const envelope:unknown=JSON.parse(Buffer.concat(chunks).toString('utf8'));
         if(!object(envelope)||envelope.success!==true||!Object.hasOwn(envelope,'result'))throw new Error();
         return envelope.result;
-      })(),new Promise<never>((_,reject)=>{timer=setTimeout(()=>{
-        controller.abort();void reader?.cancel().catch(()=>{});reject(new Error());
-      },limits.timeoutMs);})]);
+      })();return await Promise.race([pending,aborted,new Promise<never>((_,reject)=>{timer=setTimeout(()=>{abort();reject(new Error());},limits.timeoutMs);})]);
     }catch{throw new Error(body===undefined?'catalog_d1_identity_unavailable':'catalog_d1_result_unknown');}
-    finally{clearTimeout(timer);}
+    finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);
+      if(signal&&controller.signal.aborted&&pending)await drainDeploymentObservation(Promise.allSettled([pending,cancellation]));}
   }
-  async function query(batch:Query[]):Promise<Result[]> {
+  async function query(batch:Query[],signal?:AbortSignal):Promise<Result[]> {
     if(!batch.length||batch.length>limits.batchStatements)throw new Error('catalog_d1_batch_invalid');
+    // No cancellable mutation transaction: observation SQL is SELECT-only.
+    if(signal&&batch.some(value=>!/^\s*SELECT\b/i.test(value.sql)))throw new Error('catalog_d1_read_signal_invalid');
+    signal?.throwIfAborted();
     const body=JSON.stringify({batch});
     if(Buffer.byteLength(body)>limits.requestBytes)throw new Error('catalog_d1_request_bound');
     if(statements+batch.length>limits.statements||requests>=limits.requests
@@ -125,7 +135,7 @@ export async function createCatalogD1Rest(options: {
     statements+=batch.length;
     let results:Result[];
     try{
-      const raw=await request(body);
+      const raw=await request(body,signal);
       if(!Array.isArray(raw)||raw.length!==batch.length)throw new Error();
       results=raw.map(value=>{
         if(!object(value)||value.success!==true||!Array.isArray(value.results)||value.results.some(row=>!object(row))
@@ -175,17 +185,17 @@ export async function createCatalogD1Rest(options: {
           throw new Error('catalog_d1_parameters_invalid');
         return statement(sql,Object.freeze(values.slice() as Param[]));
       },
-      async all<T>(){return (await query([bindings.get(value)!]))[0] as Result<T>;},
+      async all<T>(options?:D1ReadOptions){return (await query([bindings.get(value)!],options?.signal))[0] as Result<T>;},
       async run(){return (await query([bindings.get(value)!]))[0];},
     });bindings.set(value,{sql,params});return value;
   }
-  return Object.freeze({providerIdentity:`cloudflare:${accountId}:${databaseId}`,
+  const client=Object.freeze({providerIdentity:`cloudflare:${accountId}:${databaseId}`,
     metrics:()=>({requests,statements,reportedRowsRead:unconfirmedRequests?null:rowsRead,
       reportedRowsWritten:unconfirmedRequests?null:rowsWritten,unconfirmedRequests}),
     prepare:(sql:string)=>statement(sqlText(sql)),
-    batch(values:D1Statement[]){
+    batch(values:D1Statement[],options?:D1ReadOptions){
       if(!Array.isArray(values)||Array.from(values).some(value=>!bindings.has(value)))return Promise.reject(new Error('catalog_d1_batch_invalid'));
-      return query(Array.from(values,value=>bindings.get(value)!));
+      return query(Array.from(values,value=>bindings.get(value)!),options?.signal);
     },
-  });
+  });ownedClients.add(client);return client;
 }
