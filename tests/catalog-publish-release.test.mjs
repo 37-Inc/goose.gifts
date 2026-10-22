@@ -10,7 +10,7 @@ import { executePublication, validatePublicationConfig } from '../scripts/catalo
 import { accountedPublicationUploadCommand, PublicationUploadCommandError } from '../scripts/catalog/publication-upload-command.ts';
 import { createProjectionPacket, importPublicProjection } from '../lib/catalog/d1.ts';
 import { enqueueBuildRequest, claimBuildRequest, beginBuildActivation } from '../lib/catalog/build-requests.ts';
-import { readUnstartedBuildRecovery } from '../lib/catalog/build-requests.ts';
+import { readUnstartedBuildRecovery,encodeReviewedUploadActivationApproval } from '../lib/catalog/build-requests.ts';
 import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication, completeActivatedPublication } from '../lib/catalog/publication.ts';
 import { claimMutationOwnership, readMutationOwner } from '../lib/catalog/mutation-fence.ts';
 import { prunedVectorPlan } from '../lib/catalog/prune-existing-revision.ts';
@@ -60,7 +60,7 @@ function fixtureRelease(snapshot,context,prior=null){
     manifestSha256:sha(manifestBytes),vectorSyncWatermark:manifest.vectorSyncWatermark,priorReleaseId:manifest.priorReleaseId,nextExpiry:manifest.nextExpiry};
   return{...assembled,manifest,manifestBytes,outputs,intent};
 }
-async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environment='staging',semanticSearch,publicAnalytics,priorExpiryMs=26*3600000,retentionMs=5*60000}={}){
+async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environment='staging',semanticSearch,publicAnalytics,priorExpiryMs=26*3600000,retentionMs=5*60000,cutoffMs=25*3600000}={}){
   const scope={environment,indexName:'fixture-index'},sourceMode=environment==='staging'?'preview':'goose-production';
   let actualWorkspace;
   const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-publish-')));t.after(async()=>{
@@ -115,7 +115,7 @@ async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environmen
       canonicalJson({kind:'prune',publicId:id,catalogRevision:snapshot.catalogRevision,projectionReceipt:packet.receipt,planSha256:sha(canonicalJson(plan)),providerIdentity:`cloudflare:${'a'.repeat(32)}:${scope.indexName}`,
         vector:{id,metadata:vector.metadata,nativeBase64:encodePgvectorSendBase64(vector.values)}}),'{}','complete','verified',snapshot.generatedAt);
   const request={schemaVersion:1,environment,sourceRevision:snapshot.catalogRevision,sourceDigest:packet.receipt.snapshot_sha256,codeSha,priorReleaseId:priorConfig?.releaseId??null,
-    capturedAt:snapshot.generatedAt,cutoff:new Date(AT+25*3600000).toISOString()};let {requestId}=await enqueueBuildRequest(db,request);
+    capturedAt:snapshot.generatedAt,cutoff:new Date(AT+cutoffMs).toISOString()};let {requestId}=await enqueueBuildRequest(db,request);
   const config={schemaVersion:1,environment,accountId:'a'.repeat(32),workerName:'fixture-worker',database:{id,name:'fixture-db'},indexName:scope.indexName,codeSha,
     sourceMode,sourceRoot,releaseId:'fixture-release',identityOrigin:environment==='staging'?'https://fixture-worker.example.invalid':siteIdentityFor(sourceMode).origin,
     compatibilityDate:'2026-10-19',prior:priorConfig,...(semanticSearch===undefined?{}:{semanticSearch}),...(publicAnalytics===undefined?{}:{publicAnalytics})};
@@ -262,8 +262,8 @@ async function stoppedClaim(t,{real=true}={}){
   assert.deepEqual(f.counts(),{uploadCalls:0,activateCalls:0,buildCalls:0,identityCalls:0,httpCalls:2});
   return{f,old:structuredClone(f.checkpoint().control.publication.build)};
 }
-async function stoppedBuilt(t,{real=true}={}){
-  const f=await setup(t,{real,retentionMs:3600000}),clean=f.workspace.cleanPublicationBuild;
+async function stoppedBuilt(t,{real=true,retentionMs=3600000,cutoffMs}={}){
+  const f=await setup(t,{real,retentionMs,cutoffMs}),clean=f.workspace.cleanPublicationBuild;
   f.workspace.cleanPublicationBuild=async()=>{throw new Error('Local cleanup stopped before upload');};
   assert.equal((await f.execute()).state,'pending');f.workspace.cleanPublicationBuild=clean;
   const control=f.checkpoint().control.publication;assert.equal(control.stage,'built');assert.match(control.packageSha256,/^[a-f0-9]{64}$/);
@@ -449,8 +449,8 @@ const protectedCommand=(f,run=f.command)=>accountedPublicationUploadCommand({wor
   scope:{accountId:f.config.accountId,workerName:f.config.workerName},send:async()=>assert.fail('No remote upload in synthetic command fixture'),command:run});
 const protectedMac={skip:process.platform!=='darwin'};
 
-async function legacyPreflightPending(t,{bindingPatch={},exhausted=false}={}){
-  const context=await stoppedBuilt(t),{f}=context;
+async function legacyPreflightPending(t,{bindingPatch={},exhausted=false,fixtureOptions}={}){
+  const context=await stoppedBuilt(t,fixtureOptions),{f}=context;
   if(exhausted){const clean=f.workspace.cleanPublicationBuild;f.workspace.cleanPublicationBuild=async()=>{throw new Error('Local cleanup still interrupted');};
     for(const ms of [11*60000,16*60000]){f.advance(ms);assert.equal((await f.execute()).state,'pending');}
     f.workspace.cleanPublicationBuild=clean;assert.equal(f.sql.prepare('SELECT attempts FROM catalog_build_requests').get().attempts,3);
@@ -465,15 +465,15 @@ async function legacyPreflightPending(t,{bindingPatch={},exhausted=false}={}){
   await f.workspace.writeCheckpoint(current.sha256,{...current.checkpoint,pins:{...current.checkpoint.pins,publicationUploadPending:pending}});
   return{...context,pending,binding};
 }
-async function operatorRecoveryFixture(t){
-  const context=await legacyPreflightPending(t,{exhausted:true}),{f}=context;f.advance(16*60000);
+async function operatorRecoveryFixture(t,fixtureOptions){
+  const context=await legacyPreflightPending(t,{exhausted:true,fixtureOptions}),{f}=context;f.advance(16*60000);
   const current=await f.workspace.readCheckpoint(),c=current.checkpoint.control.publication;
   const approval={schemaVersion:1,requestId:c.requestId,packageSha256:c.packageSha256,previousToken:c.build.token,
     checkpointSha256:current.sha256,reviewReference:'fixture/explicit-one-operator-attempt'};
   return{...context,approval};
 }
-async function reviewedRetryFixture(t,{expired=true}={}){
-  const {f,approval:buildRecovery}=await operatorRecoveryFixture(t),base=`https://api.cloudflare.com/client/v4/accounts/${f.config.accountId}`;
+async function reviewedRetryFixture(t,{expired=true,deadlineExtension=false}={}){
+  const {f,approval:buildRecovery}=await operatorRecoveryFixture(t,deadlineExtension?{cutoffMs:90*60000,retentionMs:4*3600000}:undefined),base=`https://api.cloudflare.com/client/v4/accounts/${f.config.accountId}`;
   const kinds=['service','secrets','assets-upload-session'],paths=[`/workers/services/${f.config.workerName}`,`/workers/scripts/${f.config.workerName}/secrets`,
     `/workers/scripts/${f.config.workerName}/assets-upload-session`];
   const command=accountedPublicationUploadCommand({workspace:f.workspace,scope:{accountId:f.config.accountId,workerName:f.config.workerName},
@@ -492,6 +492,49 @@ async function reviewedRetryFixture(t,{expired=true}={}){
     reviewPinSha256:cp.checkpoint.pins.publicationUploadReview.sha256,evidenceSha256:evidence.sha256,reviewReference:'fixture/one-reviewed-pre-version-retry'};
   const retry={approval,evidence};return{f,retry,evidenceValue,run:(database=f.db,dependencies={})=>f.execute(database,{command:protectedCommand(f),...dependencies},undefined,retry)};
 }
+function extendReviewedDeadline(retry,cutoff){
+  const priorApproval=structuredClone(retry.approval);retry.priorApproval=priorApproval;
+  retry.approval={...priorApproval,schemaVersion:2,reviewReference:'fixture/explicit-deadline-v2',
+    priorApprovalSha256:sha(encodeReviewedUploadActivationApproval(priorApproval)),activationDeadline:new Date(Date.parse(cutoff)+90*60000).toISOString()};
+}
+test('reviewed v2 uses a separate later dispatch deadline, preserves original bytes and resolves after its deadline without another POST',protectedMac,async t=>{
+  const {f,retry,run}=await reviewedRetryFixture(t,{deadlineExtension:true}),before=f.sql.prepare('SELECT * FROM catalog_build_requests').get(),
+    cutoff=f.checkpoint().control.publication.build.request.cutoff;
+  extendReviewedDeadline(retry,cutoff);f.advance(Date.parse(cutoff)-f.now().getTime()+1);f.mode.readbackFailure=true;
+  assert.equal((await run()).state,'pending');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+  assert.ok(f.checkpoint().control.publication.permit);const after=f.sql.prepare('SELECT * FROM catalog_build_requests').get();
+  for(const key of ['request_json','lease_token','run_reference','attempts','operator_recovery_json'])assert.equal(after[key],before[key]);
+  const marker=await f.workspace.readArtifact(f.checkpoint().pins.publicationUploadRetryPending);
+  assert.deepEqual(marker.approval,retry.approval);assert.deepEqual(marker.priorApproval,retry.priorApproval);
+  f.advance(Date.parse(retry.approval.activationDeadline)-f.now().getTime()+1);f.mode.readbackFailure=false;
+  await f.reopen();assert.equal((await run()).state,'published');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+});
+test('reviewed v2 rejects wrong prior, package, checkpoint, expired grant and marked v1 without adopting or retrying',protectedMac,async t=>{
+  for(const fault of ['prior','package','checkpoint','expired','marked-v1'])await t.test(fault,async t=>{
+    const {f,retry,run}=await reviewedRetryFixture(t,{deadlineExtension:true}),cutoff=f.checkpoint().control.publication.build.request.cutoff;
+    if(fault==='marked-v1'){
+      const command=protectedCommand(f,async c=>{await f.command(c);if(c.args.includes('upload'))f.mode.vectorFailure=true;});
+      assert.equal((await run(f.db,{command})).state,'pending');
+      assert.ok(f.checkpoint().pins.publicationUploadRetryAcknowledged);f.mode.vectorFailure=false;
+    }
+    const counts=f.counts();extendReviewedDeadline(retry,cutoff);
+    if(fault==='prior')retry.approval.priorApprovalSha256='0'.repeat(64);
+    if(fault==='package')retry.approval.packageSha256='0'.repeat(64);
+    if(fault==='checkpoint')retry.approval.checkpointSha256='0'.repeat(64);
+    if(fault==='expired')f.advance(Date.parse(retry.approval.activationDeadline)-f.now().getTime());
+    assert.equal((await run()).state,'pending');assert.deepEqual(f.counts(),counts);
+    if(fault!=='marked-v1')assert.equal(f.checkpoint().pins.publicationUploadRetryPending,undefined);
+  });
+});
+test('reviewed v2 deadline crossing after CAS never authorizes its first POST or resets on reopen',protectedMac,async t=>{
+  const {f,retry,run}=await reviewedRetryFixture(t,{deadlineExtension:true}),cutoff=f.checkpoint().control.publication.build.request.cutoff;
+  extendReviewedDeadline(retry,cutoff);let applied=false;
+  f.after(statements=>{if(!applied&&statements.some(s=>s.query.startsWith("UPDATE publication_outbox SET state='dispatched',dispatch_reference=?"))){
+    applied=true;f.advance(Date.parse(retry.approval.activationDeadline)-f.now().getTime());throw new Error('Synthetic ACK lost at v2 deadline');}});
+  assert.equal((await run()).state,'pending');assert.equal(applied,true);assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,0);
+  assert.equal(f.checkpoint().control.publication.stage,'uploaded');await f.reopen({controlOnly:true});
+  assert.equal((await run()).state,'pending');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,0);
+});
 test('reviewed metadata-only failure retries once, keeps all original claims/charges, publishes and replays',protectedMac,async t=>{
   const {f,run}=await reviewedRetryFixture(t),before=f.sql.prepare('SELECT * FROM catalog_build_requests').get(),outbox=f.sql.prepare('SELECT * FROM publication_outbox WHERE release_id=?').get(f.config.releaseId);
   const pins=structuredClone(f.checkpoint().pins),budget=await f.workspace.budget();

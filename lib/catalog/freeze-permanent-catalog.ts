@@ -187,13 +187,13 @@ export async function assertPermanentCatalog(db:CatalogD1,owner:MutationOwner,re
       WHERE p.rowid=(SELECT max(rowid) FROM publication_receipts) AND p.release_id=? AND p.catalog_revision=?
         AND p.code_sha=? AND json_extract(p.manifest_json,'$.catalogSnapshotSha256')=?
         AND json_extract(p.manifest_json,'$.priorReleaseId')=? AND o.intent_json=p.manifest_json AND o.state='verified'))
-    AND (? IS NOT NULL OR ?>strftime('%Y-%m-%dT%H:%M:%fZ','now')) AND ?<=strftime('%Y-%m-%dT%H:%M:%fZ','now')
+    AND ?<=strftime('%Y-%m-%dT%H:%M:%fZ','now')
     THEN 'true' ELSE 'permanent_freeze_changed' END)`,params:[revision.sourceRows.length,revision.snapshot.catalogRevision,revision.packet.rows.length,
       revision.globalVectorWatermark,...receiptColumns.map(k=>receipt[k]),
       ...priorColumns.map(k=>prior[k]),revision.snapshot.catalogRevision,revision.snapshot.catalogRevision,revision.sourceDigest,
       revision.request.context.publicationReceiptWatermark,permit?.releaseId??null,revision.snapshot.catalogRevision,revision.request.codeSha,
       revision.packet.receipt.snapshot_sha256,revision.request.context.priorPublication?.releaseId??null,
-      permit?.requestId??null,revision.request.context.cutoff,revision.snapshot.generatedAt]});
+      revision.snapshot.generatedAt]});
   if(permit)queries.push({sql:`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM catalog_mutation_scopes s JOIN catalog_build_requests b ON b.request_id=s.activation_request_id
     WHERE s.environment=? AND s.index_name=? AND s.activation_request_id=? AND b.lease_token=? AND b.run_reference=? AND b.release_id=? AND b.version_reference=?
     AND b.state='activating' AND json_extract(b.request_json,'$.sourceRevision')=?) THEN 'true' ELSE 'permanent_freeze_changed' END)`,
