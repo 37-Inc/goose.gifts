@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
 import test from 'node:test';
+import vm from 'node:vm';
+import ts from 'typescript';
 
 const readSource = (path) => readFile(new URL(path, import.meta.url), 'utf8');
 
@@ -39,7 +41,7 @@ test('public catalog reads share the one-day cache policy', async () => {
   assert.match(sitemap, /export const revalidate = 86_400/);
 });
 
-test('search diagnostics remain while product clicks use the explicit provider adapter', async () => {
+test('raw database search diagnostics are retired while product clicks keep the explicit provider adapter', async () => {
   const [grid, button, searchRoute] = await Promise.all([
     readSource('../components/ProductGrid.tsx'),
     readSource('../components/ProductClickButton.tsx'),
@@ -53,7 +55,66 @@ test('search diagnostics remain while product clicks use the explicit provider a
   }
   await assert.rejects(access(new URL('../app/api/track-click/route.ts', import.meta.url)), { code: 'ENOENT' });
   assert.match(searchRoute, /searchCatalogProducts\(query, limit\)/);
-  assert.match(searchRoute, /db\.insert\(searchQueries\)/);
+  assert.doesNotMatch(searchRoute, /searchQueries|db\.insert|@\/lib\/db['"]/);
+});
+
+async function searchHandler(searchCatalogProducts) {
+  const source = await readSource('../app/api/search-products/route.ts');
+  const { outputText } = ts.transpileModule(source, { compilerOptions: {
+    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
+  } });
+  const commonJs = { exports: {} };
+  const dependencies = [], errors = [];
+  // Execute the actual handler body. The only application capability is the
+  // stubbed search function: importing a DB client or any other dependency fails.
+  vm.runInNewContext(outputText, {
+    module: commonJs, exports: commonJs.exports,
+    console: { error: (...args) => errors.push(args) },
+    require(name) {
+      dependencies.push(name);
+      if (name === 'next/server') return { NextResponse: { json: (body, init) => Response.json(body, init) } };
+      if (name === '@/lib/db/product-search') return { searchCatalogProducts };
+      throw new Error(`Unexpected persistence/runtime dependency: ${name}`);
+    },
+  });
+  assert.deepEqual(dependencies, ['next/server', '@/lib/db/product-search']);
+  return { get: commonJs.exports.GET, errors };
+}
+const searchRequest = (query, limit) => ({ nextUrl: new URL(`https://example.invalid/api/search-products?${new URLSearchParams({
+  q: query, ...(limit === undefined ? {} : { limit }),
+})}`) });
+
+test('actual nonempty search handler preserves results, trimming and limits with no persistence capability', async () => {
+  const calls = [], results = [{ id: 'test-only-product', title: 'Test crab', similarity: 0.8 }];
+  const handler = await searchHandler(async (...args) => { calls.push(args); return results; });
+  for (const [limit, expected] of [[undefined, 36], ['invalid', 36], ['0', 1], ['-7', 1], ['100', 60], ['5', 5], ['2.5', 2]]) {
+    const response = await handler.get(searchRequest('  desk  crab  ', limit));
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { searchId: null, results });
+    assert.deepEqual(calls.at(-1), ['desk  crab', expected]);
+  }
+  assert.equal(calls.length, 7); assert.deepEqual(handler.errors, []);
+});
+
+test('actual empty and short search requests make no search or persistence call', async () => {
+  const handler = await searchHandler(async () => { throw new Error('Short query must not search'); });
+  for (const query of ['', ' ', 'x', ' x ']) {
+    const response = await handler.get(searchRequest(query));
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { results: [], searchId: null });
+  }
+  assert.deepEqual(handler.errors, []);
+  const empty = await searchHandler(async () => []);
+  assert.deepEqual(await (await empty.get(searchRequest('no matches'))).json(), { searchId: null, results: [] });
+});
+
+test('actual search failure keeps the existing error response without persistence', async () => {
+  const failure = new Error('Test-only search failure');
+  const handler = await searchHandler(async () => { throw failure; });
+  const response = await handler.get(searchRequest('desk crab'));
+  assert.equal(response.status, 500);
+  assert.deepEqual(await response.json(), { error: 'Search failed' });
+  assert.deepEqual(handler.errors, [['Product search API error:', failure]]);
 });
 
 test('obsolete admin reports are retired while the bearer-authenticated catalog cache remains', async () => {
