@@ -16,6 +16,15 @@ import type { OwnedOperationalImportPlan } from './owned-operational-import.ts';
 
 // Maintainer-published 0.8.0-pg17 ARM64 manifest, independently inspected before use.
 export const NATIVE_IMAGE = 'pgvector/pgvector@sha256:09c8aaae717baf4412f6efd174f51172c0638720a72a86e804cd698197fc8ba2';
+/** At most60s of startup polling sleeps; Docker probes retain their own bounded
+ * command timeout. No callback is exposed through runNativeRecovery options. */
+export async function waitForNativeStartup(probe:()=>boolean,pause:(ms:number)=>Promise<void>=(ms)=>new Promise(done=>setTimeout(done,ms))){
+  for(let attempt=0;attempt<240;attempt++){
+    try{if(probe())return;}catch{ /* initdb/temporary-server startup is expected */ }
+    await pause(250);
+  }
+  throw new Error('Native PostgreSQL did not become ready');
+}
 type Row = Record<string, string | boolean | null>;
 export interface NativeTable extends RecoveryTable {
   columns: Array<RecoveryTable['columns'][number] & { default?: string | null }>;
@@ -192,18 +201,14 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
     const actual = JSON.parse(command(['inspect', container]).toString())[0];
     if (actual.HostConfig.NetworkMode !== 'none' || Object.keys(actual.HostConfig.PortBindings || {}).length
       || actual.Config.Labels['goose.catalog.recovery'] !== token || actual.Mounts.length !== 1 || actual.Mounts[0].Name !== volume) throw new Error('Native container isolation verification failed');
-    let ready = false;
-    for (let attempt = 0; attempt < 40; attempt++) {
-      try {
+    await waitForNativeStartup(()=>{
         // The image briefly starts a temporary initdb server. Only the final
         // exec'd PostgreSQL is PID1; pg_isready alone can observe that temporary server.
         if (command(['exec', '--user', 'postgres', container, 'cat', '/proc/1/comm']).toString().trim() === 'postgres') {
-          command(['exec', '--user', 'postgres', container, 'pg_isready', '-q', '-h', '/var/run/postgresql', '-U', 'postgres']); ready = true; break;
+          command(['exec', '--user', 'postgres', container, 'pg_isready', '-q', '-h', '/var/run/postgresql', '-U', 'postgres']);return true;
         }
-      } catch { /* startup is bounded; only final PID1 readiness counts */ }
-      await new Promise((done) => setTimeout(done, 250));
-    }
-    if (!ready) throw new Error('Native PostgreSQL did not become ready');
+        return false;
+    });
     sql("CREATE EXTENSION vector VERSION '0.8.0'; CREATE SCHEMA _catalog_recovery;");
     settings = JSON.parse(sql("SELECT json_build_object('serverVersion',current_setting('server_version'),'listenAddresses',current_setting('listen_addresses'),'vectorVersion',(SELECT extversion FROM pg_extension WHERE extname='vector'))::text;").trim());
     if (!String(settings?.serverVersion).startsWith('17.') || settings?.listenAddresses !== '' || settings?.vectorVersion !== '0.8.0') throw new Error('Native server/version/isolation mismatch');
