@@ -68,12 +68,12 @@ function input(value: BuildRow): CatalogBuildRequest {
     || request.sourceRevision !== value.source_revision) throw new Error('build_request_corrupt');
   return request;
 }
-function sourceGate(request: CatalogBuildRequest) {
+function sourceGate(request: CatalogBuildRequest, deadline=request.cutoff) {
   return { sql: `EXISTS(SELECT 1 FROM catalog_revisions c JOIN catalog_projection_receipts p ON p.catalog_revision=c.revision
       AND p.source_export_sha256=c.source_export_sha256 WHERE c.revision=? AND c.status IN ('reconciled','published') AND p.snapshot_sha256=?)
     AND ?<=${NOW} AND ?>${NOW}
     AND (? IS NULL OR EXISTS(SELECT 1 FROM publication_receipts WHERE release_id=?))`,
-  params: [request.sourceRevision, request.sourceDigest, request.capturedAt, request.cutoff, request.priorReleaseId, request.priorReleaseId] };
+  params: [request.sourceRevision, request.sourceDigest, request.capturedAt, deadline, request.priorReleaseId, request.priorReleaseId] };
 }
 
 /** Only the confirmed creator may dispatch. Unknown/lost writes require explicit
@@ -280,20 +280,39 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
   return { requestId: claim.requestId, token: claim.token, runReference: claim.runReference, releaseId: intent.releaseId, versionReference };
 }
 
-export interface ReviewedUploadActivationApproval {
+export interface ReviewedUploadActivationApprovalV1 {
   schemaVersion:1;requestId:string;packageSha256:string;configSha256:string;checkpointSha256:string;
   reviewPinSha256:string;evidenceSha256:string;reviewReference:string;
 }
+export type ReviewedUploadActivationApproval=ReviewedUploadActivationApprovalV1|(
+  Omit<ReviewedUploadActivationApprovalV1,'schemaVersion'>&{schemaVersion:2;priorApprovalSha256:string;activationDeadline:string});
 export interface ReviewedUploadActivationInput {
   claim:CatalogBuildClaim;publication:PublicationClaim;versionReference:string;owner:MutationOwner;
-  approval:ReviewedUploadActivationApproval;original:{build:Record<string,unknown>;publication:Record<string,unknown>};
+  approval:ReviewedUploadActivationApproval;priorApproval?:ReviewedUploadActivationApprovalV1;
+  original:{build:Record<string,unknown>;publication:Record<string,unknown>};
 }
 export function encodeReviewedUploadActivationApproval(value:ReviewedUploadActivationApproval):string {
-  if(!value||Object.keys(value).sort().join(',')!=='checkpointSha256,configSha256,evidenceSha256,packageSha256,requestId,reviewPinSha256,reviewReference,schemaVersion'
-    ||value.schemaVersion!==1||!['requestId','packageSha256','configSha256','checkpointSha256','reviewPinSha256','evidenceSha256']
+  const keys='checkpointSha256,configSha256,evidenceSha256,packageSha256,requestId,reviewPinSha256,reviewReference,schemaVersion';
+  if(!value||![1,2].includes(value.schemaVersion)||Object.keys(value).sort().join(',')!==
+    (value.schemaVersion===2?`activationDeadline,${keys.replace(',requestId',',priorApprovalSha256,requestId')}`:keys)
+    ||!['requestId','packageSha256','configSha256','checkpointSha256','reviewPinSha256','evidenceSha256']
       .every(k=>typeof value[k as keyof typeof value]==='string'&&HASH.test(String(value[k as keyof typeof value])))
+    ||value.schemaVersion===2&&(typeof value.priorApprovalSha256!=='string'||!HASH.test(value.priorApprovalSha256))
     ||typeof value.reviewReference!=='string'||!REFERENCE.test(value.reviewReference))throw new Error('build_reviewed_activation_invalid');
+  if(value.schemaVersion===2)canonicalTime(value.activationDeadline);
   return flat(value);
+}
+/** A separate dispatch grant, never rewritten build inputs or renewed rights.
+ * The prior digest is over the original canonical v1 encoding, without newline. */
+export async function reviewedUploadActivationDeadline(approval:ReviewedUploadActivationApproval,originalCutoff:string,
+  priorApproval?:ReviewedUploadActivationApprovalV1):Promise<string>{
+  encodeReviewedUploadActivationApproval(approval);canonicalTime(originalCutoff);
+  if(approval.schemaVersion===1){if(priorApproval!==undefined)throw new Error('build_reviewed_activation_invalid');return originalCutoff;}
+  if(!priorApproval||priorApproval.schemaVersion!==1||await digest(encodeReviewedUploadActivationApproval(priorApproval))!==approval.priorApprovalSha256
+    ||(['requestId','packageSha256','configSha256','reviewPinSha256','evidenceSha256'] as const).some(k=>approval[k]!==priorApproval[k])
+    ||approval.activationDeadline<=originalCutoff||Date.parse(approval.activationDeadline)-Date.parse(originalCutoff)>2*3600000)
+    throw new Error('build_reviewed_activation_invalid');
+  return approval.activationDeadline;
 }
 type ReviewedRow=Record<string,unknown>;
 const reviewedRefuse=():never=>{throw new Error('build_reviewed_activation_fenced');};
@@ -318,7 +337,7 @@ async function reviewedInput(value:ReviewedUploadActivationInput){
     ||p.intent.codeSha!==c.request.codeSha||p.intent.catalogRevision!==c.request.sourceRevision
     ||p.intent.catalogSnapshotSha256!==c.request.sourceDigest||p.intent.priorReleaseId!==c.request.priorReleaseId)reviewedRefuse();
   canonicalTime(c.leaseUntil);canonicalTime(p.leaseUntil);
-  return i;
+  return{...i,activationDeadline:await reviewedUploadActivationDeadline(a,c.request.cutoff,i.priorApproval)};
 }
 function reviewedAssertion(db:CatalogD1,sql:string,params:unknown[]=[]){
   return db.prepare(`SELECT json(CASE WHEN ${sql} THEN 'true' ELSE 'build_reviewed_activation_fenced' END)`).bind(...params);
@@ -355,12 +374,12 @@ export async function beginReviewedUploadActivation(db:CatalogD1,value:ReviewedU
   if(b.length!==1||u.length!==1||flat(b[0])!==flat(i.original.build)||flat(u[0])!==flat(i.original.publication))reviewedRefuse();
   const prior=await read('SELECT * FROM publication_receipts WHERE release_id=?',[c.request.priorReleaseId]);
   const header=(await read(`SELECT ${NOW} now,coalesce(max(rowid),0) epoch FROM publication_receipts`))[0],at=canonicalTime(String(header.now));
-  if(prior.length!==1||c.leaseUntil>at||p.leaseUntil>at||c.request.cutoff<=at||p.intent.nextExpiry!==earliestDisplayExpiry(snapshot.products)
-    ||await digest(`${JSON.stringify(snapshot)}\n`)!==c.request.sourceDigest||snapshot.products.some(x=>catalogDisplayDeadline(x)<=Date.parse(c.request.cutoff))
+  if(prior.length!==1||c.leaseUntil>at||p.leaseUntil>at||i.activationDeadline<=at||p.intent.nextExpiry!==earliestDisplayExpiry(snapshot.products)
+    ||await digest(`${JSON.stringify(snapshot)}\n`)!==c.request.sourceDigest||snapshot.products.some(x=>catalogDisplayDeadline(x)<=Date.parse(i.activationDeadline))
     ||!(await rollbackPreflight(db,snapshot,new Date(at))).ok)reviewedRefuse();
   const observed=await observe(readDeployment,30_000);
   if(observed.environment!==o.environment||observed.settled!==true||!(await priorMatches(db,c.request,observed.active)))reviewedRefuse();
-  const source=sourceGate(c.request),visible=publicationActivationGate(snapshot,p.intent),imports=await unabandonedImportsQuery(db,o.environment);
+  const source=sourceGate(c.request,i.activationDeadline),visible=publicationActivationGate(snapshot,p.intent),imports=await unabandonedImportsQuery(db,o.environment);
   // Separate assertions in the SAME transaction preserve the full shared gate
   // while keeping its nested current-rights predicate below D1 depth100.
   const ready=()=>[reviewedAssertion(db,source.sql,source.params),reviewedAssertion(db,visible.sql,visible.params),reviewedAssertion(db,`${imports.sql}
