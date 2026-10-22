@@ -91,6 +91,14 @@ export function createCatalogD1MigrationRest(options:Omit<RestOptions,'limits'|'
   }catch{return Promise.reject(new Error('migration_budget_refused'));}
 }
 
+export interface PublicationRecoveryReservationBound {
+  id:string;requestSha256:string;sqlStatements:number;statementSha256s:string[];rowsReadBound:number;rowsWrittenBound:number;
+}
+export interface PublicationRecoverySettlement {
+  id:string;requestSha256:string;sqlStatements:number;rowsRead:number;rowsWritten:number;
+  bound?:PublicationRecoveryReservationBound;
+}
+
 /** Separate, exclusive-workspace recovery client. Old charges/unknowns stay in
  * the same ledger. Reserve the reviewed maximum NEXT BATCH before dispatch;
  * concurrent batches and any new unknown/bound violation stop this client.
@@ -100,7 +108,10 @@ export function createCatalogD1PublicationRecoveryRest(options:Omit<RestOptions,
   /** Complete durable SAME-ledger reservations/known settlements after the
    * original approval anchor. Reconcile every unit; a prior bound violation
    * cannot be cleared by constructing another client. No SQL/body values. */
-  settlements:Array<{id:string;sqlStatements:number;rowsRead:number;rowsWritten:number}>;
+  settlements:PublicationRecoverySettlement[];
+  /** Persist this exact body-free bound durably before acknowledging. On resume,
+   * independently bind each saved bound to its actual reservation/settlement. */
+  onReserveBound:(record:PublicationRecoveryReservationBound)=>Promise<void>;
 }):Promise<RestClient>{
   try{
     if(Object.hasOwn(options,'limits')||!options.accounting||!object(options.budget)
@@ -108,54 +119,76 @@ export function createCatalogD1PublicationRecoveryRest(options:Omit<RestOptions,
       ||canonicalJson(options.ledger)!==canonicalJson(options.accounting.initial))throw new Error();
     const budget=structuredClone(options.budget),initial=structuredClone(options.ledger),accounting=options.accounting;
     const {ledgerAtApproval:anchor,batchBound:bound}=budget.profile.input,scope=budget.profile.input.prior.profile.input.scope;
-    const reserve=accounting.reserve,settle=accounting.settle,now=options.now??(()=>new Date());
+    const reserve=accounting.reserve,settle=accounting.settle,onReserveBound=options.onReserveBound,now=options.now??(()=>new Date());
+    if(typeof onReserveBound!=='function')throw new Error();
+    const reviewedStatements=new Map(bound.statements.map(s=>[s.sha256,s]));
+    const cost=(hashes:string[])=>{
+      let rowsReadBound=0,rowsWrittenBound=0;
+      for(const hash of hashes){const value=reviewedStatements.get(hash);
+        if(!value)throw new Error('publication_recovery_sql_unreviewed');
+        rowsReadBound+=value.rowsRead;rowsWrittenBound+=value.rowsWritten;}
+      if(rowsReadBound>bound.rowsRead||rowsWrittenBound>bound.rowsWritten)throw new Error('publication_recovery_batch_unreviewed');
+      return{rowsReadBound,rowsWrittenBound};
+    };
+    const validBound=(value:PublicationRecoveryReservationBound,s:Pick<PublicationRecoverySettlement,'id'|'requestSha256'|'sqlStatements'>)=>{
+      if(!object(value)||Object.keys(value).sort().join(',')!=='id,requestSha256,rowsReadBound,rowsWrittenBound,sqlStatements,statementSha256s'
+        ||value.id!==s.id||value.requestSha256!==s.requestSha256||value.sqlStatements!==s.sqlStatements
+        ||!Array.isArray(value.statementSha256s)||value.statementSha256s.length!==s.sqlStatements
+        ||value.statementSha256s.some(hash=>typeof hash!=='string'||!/^[a-f0-9]{64}$/.test(hash)))return false;
+      const expected=cost(value.statementSha256s);
+      return value.rowsReadBound===expected.rowsReadBound&&value.rowsWrittenBound===expected.rowsWrittenBound;
+    };
     if(Object.keys(anchor).some(k=>initial[k as keyof D1AccountingState]<anchor[k as keyof D1AccountingState])
       ||initial.unconfirmedRequests!==anchor.unconfirmedRequests)throw new Error();
-    const history=options.settlements;
+    const history=structuredClone(options.settlements);
     if(!Array.isArray(history)||history.length!==initial.httpRequests-anchor.httpRequests
       ||new Set(history.map(s=>s.id)).size!==history.length
-      ||history.some(s=>!object(s)||Object.keys(s).sort().join(',')!=='id,rowsRead,rowsWritten,sqlStatements'
+      ||history.some(s=>!object(s)||Object.keys(s).sort().join(',')!==(s.bound===undefined
+        ?'id,requestSha256,rowsRead,rowsWritten,sqlStatements':'bound,id,requestSha256,rowsRead,rowsWritten,sqlStatements')
         ||typeof s.id!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(s.id)
+        ||typeof s.requestSha256!=='string'||!/^[a-f0-9]{64}$/.test(s.requestSha256)
         ||![s.sqlStatements,s.rowsRead,s.rowsWritten].every(integer)||s.sqlStatements>50
-        ||s.rowsRead>(s.sqlStatements?bound.rowsRead:0)||s.rowsWritten>(s.sqlStatements?bound.rowsWritten:0))
+        ||(s.bound===undefined?s.sqlStatements!==0:!validBound(s.bound,s))
+        ||s.rowsRead>(s.bound?.rowsReadBound??0)||s.rowsWritten>(s.bound?.rowsWrittenBound??0))
       ||history.reduce((n,s)=>n+s.sqlStatements,anchor.sqlStatements)!==initial.sqlStatements
       ||history.reduce((n,s)=>n+s.rowsRead,anchor.knownRowsRead)!==initial.knownRowsRead
       ||history.reduce((n,s)=>n+s.rowsWritten,anchor.knownRowsWritten)!==initial.knownRowsWritten)throw new Error();
     let read=initial.knownRowsRead,written=initial.knownRowsWritten,stopped=false;
-    let pending:{id:string;sql:boolean}|undefined;
-    const reviewedStatements=new Map(bound.statements.map(s=>[s.sha256,s]));
+    let pending:PublicationRecoveryReservationBound|undefined;
+    let next:Pick<PublicationRecoveryReservationBound,'statementSha256s'|'rowsReadBound'|'rowsWrittenBound'>|undefined;
     const assert=()=>{
       assertPublicationRecoveryBudget(budget.profile,budget.sha256,now());
       if(stopped||canonicalJson(accounting.scope)!==canonicalJson(scope)||canonicalJson(accounting.initial)!==canonicalJson(initial)
         ||scope.accountId!==options.accountId||scope.databaseId!==options.databaseId||scope.databaseName!==options.databaseName
-        ||typeof reserve!=='function'||typeof settle!=='function'||accounting.reserve!==reserve||accounting.settle!==settle)
+        ||typeof reserve!=='function'||typeof settle!=='function'||accounting.reserve!==reserve||accounting.settle!==settle
+        ||options.onReserveBound!==onReserveBound)
         throw new Error('publication_recovery_budget_refused');
     };
     const guarded:D1Accounting={scope:accounting.scope,initial,
       async reserve(input){
-        assert();const sql=input.units.sqlStatements>0;
-        if(pending||sql&&(read+bound.rowsRead>budget.profile.limits.reportedRowsRead
-          ||written+bound.rowsWritten>budget.profile.limits.reportedRowsWritten))throw new Error('publication_recovery_budget_refused');
-        pending={id:input.id,sql};
-        try{await reserve.call(accounting,input);}catch{stopped=true;throw new Error('publication_recovery_budget_refused');}
+        assert();const selected=input.units.sqlStatements?next:{statementSha256s:[],rowsReadBound:0,rowsWrittenBound:0};
+        if(pending||!selected||selected.statementSha256s.length!==input.units.sqlStatements
+          ||read+selected.rowsReadBound>budget.profile.limits.reportedRowsRead
+          ||written+selected.rowsWrittenBound>budget.profile.limits.reportedRowsWritten)throw new Error('publication_recovery_budget_refused');
+        pending={id:input.id,requestSha256:input.requestSha256,sqlStatements:input.units.sqlStatements,...selected};next=undefined;
+        try{await onReserveBound(structuredClone(pending));assert();await reserve.call(accounting,input);}
+        catch{stopped=true;throw new Error('publication_recovery_budget_refused');}
       },
       async settle(id,result){
         if(pending?.id!==id){stopped=true;throw new Error('publication_recovery_budget_refused');}
-        const sql=pending.sql;
+        const expected=pending;
         try{await settle.call(accounting,id,result);}catch{stopped=true;throw new Error('publication_recovery_budget_refused');}
         pending=undefined;
         if(result.status==='unknown'){stopped=true;return;}
         read+=result.usage.rowsRead;written+=result.usage.rowsWritten;
-        if(result.usage.rowsRead>(sql?bound.rowsRead:0)||result.usage.rowsWritten>(sql?bound.rowsWritten:0)){
+        if(result.usage.rowsRead>expected.rowsReadBound||result.usage.rowsWritten>expected.rowsWrittenBound){
           stopped=true;throw new Error('publication_recovery_batch_bound_exceeded');
         }
       }};
     const beforeBatch=(batch:Query[])=>{
-      assert();if(pending)throw new Error('publication_recovery_budget_refused');
-      let reads=0,writes=0;
-      for(const q of batch){const cost=reviewedStatements.get(createHash('sha256').update(q.sql).digest('hex'));
-        if(!cost)throw new Error('publication_recovery_sql_unreviewed');reads+=cost.rowsRead;writes+=cost.rowsWritten;}
-      if(reads>bound.rowsRead||writes>bound.rowsWritten)throw new Error('publication_recovery_batch_unreviewed');
+      assert();if(pending)throw new Error('publication_recovery_budget_refused');next=undefined;
+      const statementSha256s=batch.map(q=>createHash('sha256').update(q.sql).digest('hex'));
+      next={statementSha256s,...cost(statementSha256s)};
     };
     assert();return createRest({...options,accounting:guarded,limits:budget.profile.limits},assert,beforeBatch);
   }catch{return Promise.reject(new Error('publication_recovery_budget_refused'));}
