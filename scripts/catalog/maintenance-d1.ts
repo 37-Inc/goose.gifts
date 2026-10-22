@@ -31,6 +31,8 @@ export interface MaintenanceD1Options {
   historical?: { archiveSha256: string; embeddingPresence: Record<string, { present: boolean; sourceRecordSha256: string }>;
     overrides?: Record<string, { product: SemanticProduct; evidence: string }> };
   newPublicId?: () => string;
+  /** D1 daily only. Retailer eligibility cannot revoke existing cleared curation. */
+  preservePermanentListings?: boolean;
 }
 type Loaded = { row: Row; product: SemanticProduct; version: number; present: boolean | null; native: string | null; provenance: Row;
   privateState: unknown[] };
@@ -76,7 +78,8 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
   const { db, runId, catalogRevision } = options;
   let owner = Object.freeze({ ...options.owner }); let tail: Promise<unknown> = Promise.resolve();
   if (!KEY.test(runId) || !KEY.test(catalogRevision) || catalogRevision.length > 64 || owner.phase !== 'writing'
-    || options.historical && !HASH.test(options.historical.archiveSha256)) throw new Error('maintenance_configuration');
+    || options.historical && !HASH.test(options.historical.archiveSha256)
+    || options.preservePermanentListings!==undefined&&typeof options.preservePermanentListings!=='boolean') throw new Error('maintenance_configuration');
   const prepare = (sql: string, params: unknown[] = []) => {
     if (params.length > 100 || params.some(value => typeof value === 'string' && Buffer.byteLength(value)>128*1024)) throw new Error('maintenance_parameter_bound');
     return db.prepare(sql).bind(...params);
@@ -193,7 +196,8 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
   async function write<T>(method: string, rawArgs: unknown[], build: (args: unknown[], intent: MaintenanceIntent, now: string,
     statements: D1Statement[], operationId: string, changes: Row[]) => Promise<T>): Promise<T> {
     const args = copy(rawArgs); const intent = copy(await options.intent?.(method, copy(args)) || {});
-    const inputHash = maintenanceDigest({ method, args, intent, runId, catalogRevision, environment: owner.environment, indexName: owner.indexName });
+    const inputHash = maintenanceDigest({ method, args, intent, runId, catalogRevision, environment: owner.environment, indexName: owner.indexName,
+      ...(options.preservePermanentListings?{listingPolicy:'permanent-base-v1'}:{}) });
     const operationId = sha256(`${runId}:${inputHash}`);
     const replay = await currentReceipt(operationId, inputHash); if (replay) return replay.result as T;
     await checkOwner();
@@ -401,6 +405,14 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         if (p.remotelyVerified === false && intent.verificationById?.[p.id]) throw new Error('maintenance_verification_proof');
         const merged = mergeCatalogMaintenanceUpsert(old?.product || null,p,{sourceFactsHash:args[1],databaseTime:now});
         const product = merged.product;
+        if(options.preservePermanentListings){
+          product.supplierEligible=product.isActive;
+          if(old?.product.isActive&&!product.isActive&&!['blocked','needs_review'].includes(old.product.editorialStatus)){
+            const candidate={...product,isActive:true},rights=intent.rightsById?.[product.id]??JSON.parse(String(old.row.rights_json));
+            const base=maintenanceProjection(candidate,rights,catalogRevision,now,false,null,old);
+            if(base.row.public_display_json!==null)product.isActive=true;
+          }
+        }
         if (args[2]) product.embedding = decodePgvectorSendBase64(args[2]);
         if (!old) {
           product.publicId = (options.newPublicId || randomUUID)().toLowerCase(); if (!UUID.test(product.publicId)) throw new Error('maintenance_public_id');
@@ -456,6 +468,7 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         .slice(0,limit).map(maintenanceRow);
     }),
     deactivateConfirmedMissing: (ids: string[],days: number) => serialize(() => {
+      if(options.preservePermanentListings)throw new Error('maintenance_permanent_deactivation_forbidden');
       if (!Number.isInteger(days) || days < 1) throw new Error('maintenance_deactivation_bound');
       return change('deactivateConfirmedMissing',[ids,days],(p,now) => {
         const time = p.lastVerifiedAt || p.createdAt;

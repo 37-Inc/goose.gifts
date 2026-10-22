@@ -64,6 +64,7 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   const projection = new Map(source.projection.map(row => [String(row.public_id),row]));
   const approved = new Map<string,PublicCatalogProduct>();
   const changed = new Map(request.approval.changes.map(value => [value.publicId,value]));
+  const priorBases=new Set(source.snapshot.products.filter(persistentPublicProduct).map(p=>p.publicId));
   // At most20 independently pinned operation IDs. Vector proof rebuilds this
   // seal repeatedly; one bounded read avoids an N+1 provider request per change.
   const operationIds = [...new Set(request.approval.changes.map(value => value.operationId))];
@@ -85,6 +86,9 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
       const product = validatePublicCatalogProduct(JSON.parse(String(row.public_display_json)),now);
       checkCurrent(product,{ source_facts_hash:row.source_facts_hash },current.get(change.publicId)!,now);
       if (catalogDisplayDeadline(product) <= cutoff) throw new Error('expired');
+      // A permanent catalog never replaces cleared pages with finite-only copy,
+      // or admits new identities by inferring permanent rights from a fetch.
+      if(priorBases.has(change.publicId)&&!persistentPublicProduct(product))throw new Error('permanent_base_missing');
       approved.set(change.publicId,product);
     } catch { /* A reviewed mutation is not a fresh availability/rights grant. */ }
   }
@@ -109,19 +113,19 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   for (const prior of source.snapshot.heldProducts) {
     seen.add(prior.publicId);
     const value = approved.get(prior.publicId);
-    if (value) products.push(value); else safeHeld.push(held(prior,prior.reason));
+    if (value&&(!priorBases.size||persistentPublicProduct(value))) products.push(value); else safeHeld.push(held(prior,prior.reason));
   }
   for (const change of request.approval.changes) if (!seen.has(change.publicId)) {
     const product = approved.get(change.publicId);
-    if (product) products.push(product);
+    if (product&&(!priorBases.size||persistentPublicProduct(product))) products.push(product);
     else { const row=full.get(change.publicId)!;safeHeld.push(held({id:String(row.id),publicId:change.publicId,slug:String(row.slug)},'editorial_hold')); }
   }
-  const stable = new Set(source.snapshot.products.filter(value => persistentPublicProduct(value) && !changed.has(value.publicId))
-    .map(value => value.publicId));
+  const stable = new Set(products.filter(value=>priorBases.has(value.publicId)&&persistentPublicProduct(value)).map(value=>value.publicId));
   const preserved=products.filter(value=>stable.has(value.publicId));
+  const preferred=(value:PublicCatalogProduct)=>persistentPublicProduct(value)??value;
   const candidates=products.filter(value=>!stable.has(value.publicId)
-    && !preserved.some(prior=>areNearDuplicateTitles(prior.title,value.title)));
-  const winners = new Set(suppressNearDuplicateProducts(candidates).map(value => value.publicId));
+    && !preserved.some(prior=>areNearDuplicateTitles(preferred(prior).title,preferred(value).title)));
+  const winners = new Set(suppressNearDuplicateProducts(candidates.map(preferred)).map(value => value.publicId));
   const ready = products.filter(value => { if (stable.has(value.publicId) || winners.has(value.publicId)) return true;
     safeHeld.push(held(value,'duplicate'));return false; });
   const readyIds = new Set(ready.map(value => value.publicId));

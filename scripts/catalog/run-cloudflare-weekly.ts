@@ -285,7 +285,8 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       if(!owner)throw new Error('weekly_owner_busy');const cursor={current:owner};await write({phase:'phases_running',owner});
       const intent=await ws.readArtifact(cp.pins.rights) as unknown as {rightsById:Record<string,never>;reviewedDeleteReference?:string};
       const evidence=createCatalogProviderEvidence({reviewedRightsById:intent.rightsById,reviewedDeleteReference:intent.reviewedDeleteReference,saveReceipt:input=>ws.saveReceipt(input),now});
-      const maintenance=createD1CatalogMaintenanceStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision,intent:evidence.intent});
+      const maintenance=createD1CatalogMaintenanceStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision,
+        intent:evidence.intent,preservePermanentListings:Boolean(config.cadence)});
       const telemetry=createD1CatalogTelemetryStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision});
       try{await scopedProviders(environment,async()=>{
         const {runWeeklyCatalogWithBackend}=await import('../ops/catalog-weekly.mjs');
@@ -295,7 +296,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
             const phaseComplete=await ws.putArtifact(finalization(input.finalization),{kind:'publication',observedAt:now()});
             await write({phase:'phases_complete',owner:cursor.current,phaseComplete});return{status:'pending'};
           },async finalizeRun(id:string,input:Record<string,unknown>){await telemetry.finishCatalogRun(id,input);return telemetry.loadCatalogRun(id);}};
-        if(config.cadence)await runDailyCatalogWithBackend({...backend,cadence:dependencies.cadence!,featuredIds:config.cadence.featuredIds});
+        if(config.cadence)await runDailyCatalogWithBackend({...backend,cadence:dependencies.cadence!,featuredIds:config.cadence.featuredIds,preservePermanentListings:true});
         else await runWeeklyCatalogWithBackend(backend);
       });}catch(error){
         const durable=await ws.readCheckpoint();if(durable){saved=durable;cp=durable.checkpoint;}

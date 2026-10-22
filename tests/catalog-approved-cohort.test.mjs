@@ -43,7 +43,7 @@ function product(n, overrides={}) {
 const rights = p => Object.fromEntries(Object.entries({title:p.title,description:p.wittyDescription,imageUrl:p.imageUrl,
   affiliateUrl:p.affiliateUrl,wittyDescription:p.wittyDescription,editorialWriteup:p.editorialWriteup,humorTags:JSON.stringify(p.humorTags)})
   .map(([field,value])=>[field,{basis:'owned',reference:`test-only-owned/${p.id}/${field}`,value}]));
-async function setup(t,{initial=2,permanent=0}={}) {
+async function setup(t,{initial=2,permanent=0,extraHeld=0,preservePermanentListings=false}={}) {
   const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
   for(const name of (await readdir(new URL('../migrations/d1/',import.meta.url))).filter(name=>/^\d{4}.*\.sql$/.test(name)).sort())
     sql.exec(await readFile(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
@@ -66,8 +66,9 @@ async function setup(t,{initial=2,permanent=0}={}) {
     async readback(publicId){return structuredClone(index.get(publicId)||null);}};
   let cursor={current:await claimMutationOwnership(db,scope,{phase:'writing',ownerReference:'seed-run',operationKey:'a'.repeat(64)})};
   let mode={runId:'seed-run',catalogRevision:'prior-revision'};let intentOverride;
-  function store() { return createD1CatalogMaintenanceStore({db,owner:cursor.current,ownerCursor:cursor,...mode,
-    newPublicId:()=>uuid(Number(sql.prepare('SELECT count(*) n FROM products').get().n)+1),
+  let nextNew=10000;
+  function store() { return createD1CatalogMaintenanceStore({db,owner:cursor.current,ownerCursor:cursor,...mode,preservePermanentListings,
+    newPublicId:()=>mode.runId!=='seed-run'&&permanent?uuid(nextNew++):uuid(Number(sql.prepare('SELECT count(*) n FROM products').get().n)+1),
     intent(_method,args){const p=args[0];if(!p?.id)return{reviewedDeleteReference:'test-only/delete'};
       const hash=args[1];return intentOverride?intentOverride(p,hash):{rightsById:{[p.id]:rights(p)},
         verificationById:{[p.id]:{reference:'test-only/source-observation',observedAt:at(-3600000),sourceFactsHash:hash}},
@@ -90,8 +91,13 @@ async function setup(t,{initial=2,permanent=0}={}) {
     const grants=Object.fromEntries(['title','description','imageUrl','affiliateUrl'].map(field=>[field,{basis:'owned',reference:'synthetic exact clearance',value:p[field]}]));
     sql.prepare(`INSERT INTO products(id,public_id,slug,source,title,description,tags,currency,quality_score,is_active,editorial_status,
       source_facts_hash,catalog_revision,public_display_json,rights_json,source_record_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-      .run(p.id,p.publicId,p.slug,p.source,p.title,p.description,'',p.currency,p.qualityScore,1,'pending',source,'prior-revision',JSON.stringify(p),JSON.stringify(grants),'{}');
+      .run(p.id,p.publicId,p.slug,p.source,p.title,p.description,'',p.currency,p.qualityScore,1,'pending',source,'prior-revision',JSON.stringify(p),JSON.stringify(grants),
+        JSON.stringify({id:p.id,public_id:p.publicId,slug:p.slug,source:p.source,title:p.title,description:p.description,price:'0',currency:p.currency,
+          image_url:p.imageUrl,affiliate_url:p.affiliateUrl,humor_tags:'{}',is_active:true,quality_score:.85,editorial_status:'pending'}));
   }
+  for(let n=3000;n<3000+extraHeld;n++)sql.prepare(`INSERT INTO products(id,public_id,slug,source,title,currency,quality_score,is_active,editorial_status,catalog_revision,rights_json,timestamp_provenance_json,source_record_json)
+    VALUES(?,?,?,?,?,'USD',.4,0,'pending','prior-revision','{}','{"schemaVersion":1,"fields":{}}',?)`).run(id(n),uuid(n),`held-${n}`,'amazon',`Held ${n}`,
+      JSON.stringify({id:id(n),public_id:uuid(n),slug:`held-${n}`,source:'amazon',title:`Held ${n}`,affiliate_url:`https://www.amazon.com/dp/${id(n)}`}));
   const rows=sql.prepare('SELECT * FROM products ORDER BY public_id').all();
   const previous=structuredClone(validateCatalogSnapshot({schemaVersion:1,dataKind:'catalog',catalogRevision:'prior-revision',generatedAt:at(0),
     products:rows.filter(row=>row.public_display_json).map(row=>JSON.parse(row.public_display_json)),
@@ -187,6 +193,21 @@ test('2361 listed products with no changes keep stable permanent membership and 
   const control={catalogRevision:plan.catalogRevision,planSha256:sha256(canonicalJson(plan)),ids:plan.products.map(p=>p.publicId)};
   const dispatches=f.calls();assert.equal((await readActivatedCatalogVectors(f.db,permit,control,f.adapters)).settled,true);
   assert.equal(f.calls(),dispatches);assert.equal(f.index.size,2);
+});
+test('all2359 permanent identities/order survive ten D1 stockout/title/facts/price refreshes and photo expiry; weak new discovery stays held',async t=>{
+  const f=await setup(t,{initial:0,permanent:2359,extraHeld:1023,preservePermanentListings:true}),before=f.previous.products;
+  assert.equal(before.length,2359);assert.equal(f.previous.heldProducts.length,1024);
+  f.advance(36*3600000);f.context.cutoff=new Date(f.now().getTime()+3600000).toISOString();
+  for(let n=100;n<110;n++)await f.upsert(product(n,{title:'Independent object 102',sourceFacts:{fresh:n},isActive:false,
+    availabilityStatus:n%2?'UNAVAILABLE':'UNKNOWN',price:n%2?999999:19.99,embedding:null,editorialStatus:'pending'}));
+  await f.upsert(product(9999,{title:'Uncleared weak discovery',qualityScore:.3,isActive:false,embedding:null}));await f.drain();
+  const changed=Array.from({length:10},(_,n)=>uuid(n+100)),claim=await f.freeze([...changed,uuid(10000)]),prepared=await prepareApprovedCohort(f.db,claim.owner,claim.request);
+  assert.deepEqual(prepared.revision.snapshot.products.map(p=>p.publicId),before.map(p=>p.publicId));
+  assert.deepEqual(prepared.revision.snapshot.products.map(p=>p.title),before.map(p=>p.title));
+  assert.ok(prepared.revision.snapshot.products.every(p=>p.eligibleUntil===null));
+  assert.ok(prepared.revision.snapshot.heldProducts.some(p=>p.publicId===uuid(10000)));
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM products').get().n,3384);
+  assert.equal(approvedCohortVectorPlan(prepared.revision).products.length,0);
 });
 test('one approved change cannot make unrelated permanent identities disappear or raise the20-change contract',async t=>{
   const f=await setup(t,{permanent:2359}),unchanged=f.previous.products.filter(p=>p.eligibleUntil===null);

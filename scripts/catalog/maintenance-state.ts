@@ -21,6 +21,8 @@ export interface SemanticProduct {
   lastVerifiedAt: string | null; createdAt: string | null; updatedAt: string | null;
   /** Exact existing nonmerchant clearance, retained privately through curation holds. */
   persistentBase?: PersistentCatalogProduct;
+  /** D1 daily retailer eligibility is separate from cleared listing curation. */
+  supplierEligible?: boolean;
 }
 const FIELDS = ['id','title','price','currency','imageUrl','affiliateUrl','source','sourceQuery','humorTags','punnyTitle',
   'wittyDescription','qualityScore','rating','reviewCount','isActive','editorialWriteup','sourceFacts','sourceFactsHash',
@@ -68,6 +70,7 @@ export function maintenanceState(row: Row, override?: { product: SemanticProduct
       editorialSourceHash:'editorial_source_hash',availabilityCheckedAt:'availability_checked_at',lastVerifiedAt:'last_verified_at',
       createdAt:'created_at',updatedAt:'updated_at' };
     if (current.id !== row.id || current.isActive !== (row.is_active === 1)
+      || current.supplierEligible!==undefined&&typeof current.supplierEligible!=='boolean'
       || (current.qualityScore === null ? null : Number(current.qualityScore)) !== row.quality_score
       || Object.entries(typed).some(([key,column]) => current[key] !== row[column])) throw new Error('maintenance_current_state_drift');
     return current;
@@ -169,7 +172,7 @@ export function maintenanceProjection(p: SemanticProduct, rights: ProductRights,
     humorTags: p.humorTags || undefined } as unknown as SnapshotProductInput;
   // A rights grant does not prove source facts or the vector's current input.
   let supplier;
-  if (provenInput && /^[a-f0-9]{64}$/.test(p.sourceFactsHash || '')) {
+  if (provenInput && p.supplierEligible!==false && /^[a-f0-9]{64}$/.test(p.sourceFactsHash || '')) {
     try { supplier=createCatalogSnapshot([input], { [p.id]: rights }, { catalogRevision: revision, now: new Date(now) }).products[0]; }
     catch { /* Invalid display data stays private/held; never rewrite the SQL semantic payload. */ }
   }
