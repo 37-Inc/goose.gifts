@@ -5,6 +5,226 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 — Actual private full-catalog receipts; public acceptance pending
+
+These actual receipts supersede the implementation-only next steps below; do
+not replay their completed operations or reset any old accounting.
+
+- Final source archive SHA-256
+  `e70c0211829ac5d9b9c07e39605eb03426ec50de85845013f7a11b6793869fd9`.
+  Production union reconciles all 24 logical tables / 3,383 products while retaining
+  the existing current rows/native payloads/publication/history. Run
+  `history-20261022-complete-v2`, private receipt SHA-256
+  `d309724820df4c6ef67cb80f458afc57ede9f4d8820429a6ff1543fa4604423e`:
+  847 HTTP / 1,593 SQL / 117,521 known reads / 45,790 writes / zero unknowns.
+- Schema 0015 actual receipt SHA-256
+  `cbd951aa5613692f0389a613ce17cc9fabdafde0b794375e1eebc9a0bc6b8e01`.
+- Schema 0016 applied once at13:14 UTC through reviewed helper `77f2d2a6…b46ca56`:
+  receipt `c2e3177eaa189caec3971c5ee81cca8c61616068af100e6d0cee33acf2431e3f`,
+  checkpoint `0097f339e578a53f6e422b1e723f93c28dbeb6d203406cfd6b69034411ead1d7`.
+  It adds one nullable audit column and two immutable triggers, not a table,
+  rebuild or relaxed normal three-attempt CHECK. Original build cells/rowids,
+  all 24 tables / 3,383 products / 2,359 projection rows / eight maintenance sidecars
+  and native payloads are preserved. SAME ledger: 2,452 HTTP / 5,656 SQL /
+  1,204,405 known reads / 21,458 writes / three retained read-only unknowns;
+  no reset, new allowance, merchant/model or public operation.
+- Actual isolated local native recovery inner receipt SHA-256
+  `c92aff4a2af5f8367326386c9f9ec123c301648b5975de337559f9357ab93d13`:
+  13 tables / 11,932 rows / 3,492 source vectors restored and reconciled on PG17.6
+  versus source17.11; both actual source sequences reconciled. The D1 rollback
+  delta covers ten products with no changed allocators, so actual nextval testing
+  is N/A; synthetic native tests cover changed allocators/rollback/replay. Known
+  cooperative writer stops and dated audit evidence are not a universal ACL
+  barrier. This is actual local recovery, not a production Postgres restoration.
+- Real permanent installer plan SHA-256
+  `2e7adc503f7774749fc1c278f6019486647535edd91d30b91e1b7fedeb2f28fc`,
+  receipt SHA-256
+  `1fc77978d464367328a15d2786d2da0bdd785047e438f364d0b1748d95d2668e`.
+  Root independently read that receipt from released checkpoint
+  `405d696d5b246e2c5df9084b4c777c0f2c4c4ad724f2e193c78dffef2c6f2b21`
+  and matched the saved apply result minus its returned checkpoint exactly.
+  Same workspace `permanent-base-20261022-v1`: 67 batches, 2,359 changed / 2,359
+  ready / 1,024 held / 31 substantive articles; all 24 tables/full native/eight
+  maintenance sidecars verified, owner released generation 6 / epoch 299. Retained
+  ledger: 1,125 HTTP / 1,485 SQL / 382,530 known reads / 7,280 writes / zero unknowns. Source
+  facts/native evidence are preserved; no merchant/model or publication operation
+  was performed by the installer.
+
+Public acceptance is still the eight-product `82efb21` release. The 2,359-product
+publication is held before version upload on clean frozen source
+`063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6` in
+`/Users/cameronehrlich/.codex/worktrees/stupid-persistent-catalog/goose.gifts`;
+do not fast-forward that operator, infer activation or reuse a prior receipt.
+Pending release `permanent-catalog-063d9a31ee4f`, catalog
+`stupid-full-catalog-20261022`, uses the SAME workspace/ledger and pinned profile
+`99f6aac985a8c01d73b2e4a72eb697bbd4b08e2393eb8ee424b02db4758aa8c5`,
+not a fresh allowance. Its input SHA-256 is
+`9efbc36aa640db7ca19df876a62185f069d3d341a0e4bea0ff7ff3e61ea849e1`.
+Actual `buildStaticRelease(ROOT63)` and `verifyStaticRelease(ROOT63)` passed with
+the intermediate `53d52a8` toolchain. The final publication/recovery operator is
+`/Users/cameronehrlich/.codex/worktrees/stupid-final-catalog-operator/goose.gifts`,
+clean `16518b9de99110e4e882a8fa722bdf47b3ab863b` (PR249). The earlier `3bfefe`
+operator remains preserved as historical execution evidence. Runtime source
+`063d9a3` and its workspace/config/profile/input/revision
+remain unchanged; no runtime hash is relabeled to the toolchain. Actual output:
+2,359 products / 15,121 assets /
+23,690 logical guarded routes; 287,067,746 bytes (273.77MiB), largest file
+247,961 bytes. The actual static tree has 15,121 files plus 2,558 directories
+(17,679 entries), not 23,690 uploaded files. `nextExpiry:null` means every listing
+has a permanent base; the eight finite photo overlays retain their original
+2026-10-22T22:18:10.044Z deadline. Offline snapshot audit found all 2,359 Amazon
+URLs match their ASIN and canonical tag, with 31 substantive permanent articles;
+this is not public URL acceptance.
+
+The first build stopped before upload: six blocked JS/CSS assets among 40 scanned
+contained only the owned `/images/gift-placeholder.svg` imageUrl for 2,351 direct
+permanent DTOs, with zero other literal/private hits. PR243 (`bd81ad1`) fixes that
+narrow guard. The untouched initial claim then expired before any package,
+intent, version, publication or permit existed; PR244 (`49fdae2`) supplies exact
+claimed-only normal lease recovery plus its guarded durable checkpoint, not
+takeover or a direct operator lease write. Actual output also exceeded the old
+private 128MiB total; PR245 (`53d52a8`) changes ONLY that aggregate cap to 384MiB.
+The 20,000-file, 32MiB private-file, path/security and independent 257MiB wire bounds
+remain unchanged. Cloudflare stays Free; no paid upgrade or global budget raise.
+
+Earlier continuations stopped before upload: the combined registered Next/out/
+build tree had 45,680 entries, incorrectly checked against the 20k journal-event
+bound. PR246 (`d38a590`) separates a 100k cleanup-tree bound without changing the
+20k uploaded-file/event limits. Subsequent outer publication SQL hit provider
+expression depth100; PR247 (`f625`) balances operator predicates and adds a lazy
+exact-base comparison. These optimizations are OPERATOR-ONLY for this sealed
+runtime63: unchanged public keyword SQL remains FTS-first/CROSS JOIN/bounded and
+independently compiles at depth100. Do not claim its cost optimization is live.
+
+Final private continuation SHA-256
+`5b426d0142a52fe5da4177f294c19ccb4b84f82c648c709902642d68d7d7ad85`
+was invoked after schema 0016, then resumed only through read-only reconciliation.
+It is now held at stage `uploading` / phase `attention`, checkpoint
+`9ed0672fbd8e2b00876fe5cc6917f92c1c927996e5f38183e4f099ecb5352a4e`,
+with protected review pin
+`017cd69739a767542ab9229220ea4d8016b8ec98330076993c9cb4d520b420f9`.
+Two known service/secrets GETs preceded one unknown metadata-session POST
+`2d075666c9abd603b7b855e9f6e4fb2a9b8ca9f52aa2b2d69377c6c11ba38c6f`;
+no asset-content or version POST occurred. Read-only provider verification at
+13:28 found no matching version among all three versions; source82/eight public
+gifts remain unchanged. No publication receipt exists. Do not clear the review
+pin, resend the original command or renew an old lease.
+
+At13:40:26 UTC the independently reviewed function-only diagnostic `eb2d30a6…e80e9`
+was invoked once: a NEW separately hashed metadata-only session returned HTTP200 /
+551,929 bytes / 13 buckets / 12,524 hashes / JWT length549; no JWT was retained.
+This exceeds the old 524,288-byte response limit by27,641. The old POST remains
+unknown and its original JSON insertion order is unrecoverable, not reconstructed.
+Saved intent digest `e51a8c6a0259207fdc33160d2f80a46ff62a43b6956efd348c05302ed9fd0f03`
+and result digest `09a403aa23b351d2d7bea25477afc06f642c2b7b886c9a2535cf6dbd76f99d9a`
+bind canonical metadata values, not newline file hashes. SAME ledger now retains
+2,560 HTTP / 5,749 SQL / 1,410,540 known reads / 21,464 writes / five unknowns;
+profile99 is unchanged. Fresh13:45 account-wide analytics report1,610,177 reads /
+69,870 writes and preserve the original reservation plus fixed Free headroom;
+lagged analytics is not a new allowance or proof all unknowns are free.
+
+At14:06 a separate read-only `assertPermanentCatalog` probe failed with
+`catalog_d1_result_unknown` under an operator-observed 30s whole-call signal;
+that is not provider-confirmed timeout causality. Its exact unknown request
+`06579bcc6fe5c3dea13d047a140ba4b1794e6604b3c138511880d0da1ec85125`
+is retained by reserve/settle events6150/6151. The probe added93 HTTP /272 SQL /
+6,289 known reads /zero writes /one unknown. SAME ledger is now2,653 HTTP /
+6,021 SQL /1,416,829 known reads /21,464 writes /six unknowns; checkpoint9ed and
+the original protected upload review are unchanged. No allowance or counter reset.
+
+Subsequent actual read-only costs: the2,359-item visibility gate used31,467 reads /
+1.17s; rollback preflight passed at55,848 reads /33 HTTP /32 SQL /9.2s. Saved
+metadata is `visibility-proof-cost-1.json` and `rollback-preflight-cost-1.json` in
+the same private run. Latest ledger is2,689 HTTP /6,055 SQL /1,504,144 known reads /
+21,464 writes /six unknowns; checkpoint9ed is unchanged.
+
+Original profile99 remains4,000 HTTP /12,000 SQL /3,000,000 known reads /39,000
+known writes. Unknown charges are retained, not proven free or refunded.
+Publication cutoff remains
+2026-10-22T15:00:00.000Z, separate from profile midnight expiry and the original
+22:18:10.044Z photo deadline. No recovery may renew those rights/cutoff or skip
+the full source/native/projection checks to fit. The whole-catalog public count
+is2,359, not the20-change semantic-envelope limit.
+Fresh14:20:38 account-wide analytics reports1,616,533 reads /69,870 writes;
+profile99 and the six-unknown ledger are unchanged. PR249's complete bounded
+source/native/upload/activation flow is being measured, not presumed to fit.
+
+PR249 merged at14:31:22 UTC, canonical
+`16518b9de99110e4e882a8fa722bdf47b3ab863b`. Final function-only continuation
+`8d736e98c19778e5e8eebc53507eba2fcdebcb2b44dbf0b6a0f175f90d37ac74`
+is reviewed with8/8 local tests and strict types. Root invoked it once at14:33 UTC
+using the clean final operator above and initial checkpoint9ed. Its new toolchain
+pin was actually adopted, but `publication-post-session-result-1.json` returned
+pending / `publication_pending`, not a publication receipt.
+The retained body-free cost receipt `reviewed-upload-retry-cost-20261022-v1.json`
+has SHA-256 `84cf61cd9f16d99b40ee1980e0c0108c886dd624effc0fb8133489cf44f9903b`:
+exact retained-input query packing counts534 HTTP /2,588 SQL for five complete
+passes, plus separately bounded preflight/native/provider/upload work. This is
+offline query-shape/local-fixture evidence, not actual provider latency, scanned-row
+billing or completed publication. **Actual read cost disproves the earlier
+whole-flow capacity confidence:** the first proof added159 HTTP /405 SQL /
+1,450,139 known reads /zero writes /one unknown, despite the prior sub0.65M
+whole-flow estimate. Latest SAME ledger is2,848 HTTP /6,460 SQL /2,954,283 known
+reads /21,464 writes /seven unknowns. Unknown cost is not refunded or assumed zero.
+
+Final14:40:34 UTC body-free `post-session-held-verification-1.json` confirms
+checkpoint `bc624e97048c56f137a5e5818f55c38f6f6258bc7ce4c3f6b797b396e4671433`
+unchanged, phase `attention`, owner FREEZING generation7 /epoch301 and stage
+`uploading`; version/permit/deployment/receipt are NULL. Retry pending, retry ACK
+and activation pending markers are all absent. Adopted toolchain pin is
+`a2920fd710fd9dc1259f9ab1e4b7a1b28eaefc6925d4024f03f1153ebfe382f3`;
+the original017 upload-review pin is retained. Exhaustive readback of all three
+provider versions finds no target marker; active deployment `8d8388d8…` /version
+`0f08460b…` /source82 remains unchanged. This verification made zero D1 queries,
+zero provider writes and three accounted metadata GETs. Final SAME ledger:
+2,851 HTTP /6,460 SQL /2,954,283 known reads /21,464 writes /seven unknowns.
+Profile arithmetic remains1,149 HTTP /5,540 SQL /45,717 known reads /17,536 writes,
+but actual account-wide analytics reports4,095,249 reads /69,870 writes. The
+904,751 Free read remainder is below fixed1M headroom, so root stopped actual
+attempts: **no more D1 writes/scans, retry, new profile or counter reset.**
+
+Public remains source82/eight; `roadmap-lbbz1.3.2` stays OPEN. Do not automatically
+retry, replace profile99, reset the ledger or claim provider capacity from the
+offline counters. Cause is now confirmed: the projection join plan charged
+941,262 reads for the observed page, exactly `19×2359×(20+1)+21`; the optimizer
+chose the projection table as outer loop. PR250 merged at14:46:31 UTC, canonical
+`15030564673b94d36ab3ed71d635bb75d4085d55`: two CROSS JOIN changes plus portable
+planner regression, independently reviewed with types/lint/actual-template tests.
+It is not exercised live, a new runtime deployment or an adoption by the frozen
+`16518b9` operator. Next is a separately budget-safe low-cost
+canary only when verified account capacity again preserves fixed headroom, then
+budget-safe actual full publication and public readback. Preserve every full-row,
+native, owner and expiry check; do not re-grant/reset/relabel this run. Original
+15:00 cutoff and22:18 photo deadline do not extend. The daily writer stays gated.
+
+The reviewed continuation permits exactly one protected pre-version retry and an
+atomic exact expired-claim activation CAS; documentation does not authorize a
+second invocation or manual upload. All old audit/review pins
+and unknown charges must survive; actual provider absence and original D1 rows
+must be checked by the canonical executor. Explicit operator recovery preserves
+three normal attempts plus its one immutable additional-attempt receipt, never
+fake an attempts4 UPDATE. Future journal reads/purges MUST use final `16518b9`
+toolchain above, not frozen53/d38/runtime63 readers. Preserve original workspace/
+repository arguments, manifest SHA, checkpoints and every known/unknown charge.
+
+Runtime staging baseline: 907 tests, 895 pass / 12 optional skips / zero failures;
+full lint zero errors / 25 pre-existing unused-import warnings. Earlier `3bfefe`
+targeted proof includes publisher184/184 and build/capture/workspace107/107, plus
+root's21/21 actual-depth100/capture checks; these overlap and MUST NOT be added.
+Private continuation strict types pass. The obsolete legacy Next build
+still cannot prerender its Neon guide without intentionally unpulled
+`POSTGRES_URL`; that is not permission to pull credentials. Actual Cloudflare
+static build passed; upload and immutable public release acceptance remain pending.
+
+The daily D1 job MUST stay gated (`roadmap-lbbz1.4` open). Full 2,359-product
+projection alone exceeds ordinary 1,200 SQL / 10k writes; 800 HTTP is not an accepted
+whole-run measurement. Remaining work is scoped verified-Free routine capacity,
+bounded current/prior/vector proof with current semantic evidence, body-free
+successor seal and an actual normal daily canary. Do not globally raise caps,
+mislabel recurring work as migration, reset an old ledger or change ten/day /
+Monday policy. Old Neon writer off, Neon retained, Vercel frozen, Pinterest
+paused, Free only. No new owner gate was identified.
+
 ## 2026-10-22 — Full-catalog implementation and measured static capacity
 
 Continuing `roadmap-lbbz1.3.2`, not repeating the completed UI release. PR229

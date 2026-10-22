@@ -3,7 +3,81 @@
 This document retains protected-staging history and the separate production
 checkpoint below. The launch spec and `roadmap-lbbz1` remain authoritative.
 
-### October 22 implementation checkpoint — not yet published
+### October 22 current checkpoint — private acceptance passed; public release pending
+
+The final source archive `e70c0211829a…` is reconciled into production: all 24
+logical tables and 3,383 products, preserving the existing current rows, native
+payloads, receipts and history. Schema 0015 and the actual local native recovery
+passed. The latter restored 13 tables / 11,932 rows / 3,492 source vectors on PG17.6
+against source17.11; known cooperative writer stops are not a universal ACL
+barrier. Exact private receipt hashes and separate ledgers are in `JOURNAL.md`.
+
+The real permanent installer is complete and released at generation 6 / epoch 299:
+2,359 ready, 1,024 held and 31 substantive articles. It preserves source/native
+evidence and adds no merchant/model or publication operation. This is actual
+private catalog acceptance, not the earlier synthetic capacity fixture.
+
+**Public acceptance is still the eight-product `82efb21` release below.** A new
+2,359-product publication is held before version upload on the clean frozen source
+`063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6`; do not infer activation from import,
+installer, source merge or build preparation. The actual static build and verify
+now pass: 2,359 products, 15,121 assets and 23,690 logical guarded routes. Output
+is 287,067,746 bytes (273.77MiB), largest file 247,961 bytes. Final continuation
+uses separately pinned toolchain `16518b9de99110e4e882a8fa722bdf47b3ab863b` against
+unchanged runtime `063d9a3`; the same workspace/config/profile/input/revision and
+retained ledger remain. Schema 0016 applied successfully at13:14 UTC; full details
+and its exact receipt are centralized in `JOURNAL.md`.
+`nextExpiry:null` reflects permanent bases, not renewed photo rights: eight
+finite photo overlays retain October22 22:18:10.044Z. Build/operator fixes do not
+change provider plan, wire/per-file limits or merchant/model cadence. Future
+journal reads/purges MUST use the final `16518b9` operator in
+`stupid-final-catalog-operator`, not superseded tools or runtime readers.
+Exact failure, capacity, schema and source pins are centralized in `JOURNAL.md`.
+
+Runtime staging: 907 tests, 895 pass / 12 optional skips / zero failures; lint
+zero errors / 25 pre-existing warnings. Earlier `3bfefe` targeted publisher/build/
+workspace/depth checks and continuation strict types also pass; the separate
+overlapping counts are in `JOURNAL.md`, not added. The continuation remains held;
+the original protected metadata-session POST is still unknown.
+A separate one-shot metadata diagnostic returned 551,929 bytes, exceeding the old
+512KiB session response bound. It does not acknowledge the original unknown
+request or clear the review pin. Exact retained charges, diagnostic and proposed
+once-only reviewed recovery are in `JOURNAL.md`; public acceptance and
+`roadmap-lbbz1.3.2` remain open.
+
+Remaining release work is the measured full source/native/projection proof,
+once-only protected upload/activation and independent public readback, within the
+SAME profile and retained charges. The original publication cutoff is October22
+15:00:00Z; finite photos still expire22:18:10.044Z. Neither deadline is renewed by
+operator recovery. `JOURNAL.md` records remaining capacity; it is not yet a
+passing whole-release cost measurement.
+PR249 is merged at `16518b9`; reviewed query packing counts534 HTTP /2,588 SQL
+for five complete proof passes, with other bounded work additional. This was
+offline query packing, not provider scanned-row billing. The exact reviewed
+`8d736e98…d37ac74` continuation, invoked once at14:33 UTC, returned pending
+(`publication_pending`) after about1.45M new known reads in its first proof.
+That actual cost disproves the earlier whole-flow read-capacity confidence.
+Only45,717 known-read units remain in the unchanged profile; seven unknowns are
+retained. Do not automatically retry, reset counters or create a new profile.
+The new operator pin is adopted; receipt/public acceptance remains absent.
+Final14:40:34 readback confirms the owner remains FREEZING generation7/epoch301,
+stage `uploading`, with no version/permit/deployment/receipt or retry/activation
+marker. All three provider versions lack the target marker; source82/eight stays
+active. Account reads are4,095,249, leaving904,751 below the fixed1M headroom:
+**STOP—no further D1 writes/scans, publication retry, profile or counter reset.**
+PR250 merged at `1503056` with the narrow CROSS JOIN/planner regression fix;
+it has not been exercised live or adopted by the held `16518b9` operator.
+Next is a separately budget-safe low-cost canary and actual full-publication proof,
+not a scheduled retry or an owner-credential gate.
+
+The daily D1 writer remains **GATED** and `roadmap-lbbz1.4` stays open: full
+projection costs do not fit the ordinary 800 HTTP / 1,200 SQL / 10k-write profile.
+Scoped verified-Free routine capacity, bounded prior/vector proof, current
+semantic evidence, a body-free successor seal and an actual daily canary remain
+engineering gates. No global cap increase, new owner gate, paid plan, cadence
+change, old Neon writer or Pinterest restart is implied.
+
+### Historical October 22 implementation checkpoint — superseded by actual receipts above
 
 PR #229 is merged at `d4153499fdb2268f2b5fa6efede1b44f900800d5`:
 the bounded owner-fenced history union preserves current target rows, native
@@ -43,7 +117,8 @@ read / 235 written; analytics can lag and is not a quota reservation. Provider
 `_cf_KV` and `d1_migrations` must be explicitly excluded from application-table
 capture, not mistaken for unknown application tables or silently copied.
 
-Next: actual disposable D1 schema/capture/cost checks; final source-writer and
+The following was the then-open sequence, now superseded by the actual private
+acceptance above: disposable D1 schema/capture/cost checks; final source-writer and
 target-native capture; bounded one-time full import and rollback rehearsal;
 explicit positive permanent-content preparation; a **new** reviewed full-catalog
 publication; then the single new-site daily writer. Internal migration caps may
@@ -52,7 +127,7 @@ headroom. Daily merchant/model limits, old-run ledgers, original deadlines,
 Pinterest pause and Vercel freeze do not change. The live checkpoint below
 remains the actual public release; do not rerun either completed publication.
 
-### Current production checkpoint — October 22, 06:05 UTC
+### Last accepted public checkpoint — October 22, 06:05 UTC
 
 PR #225 (`f233c4c`) and PR #226 (`82efb21`) are merged and actually published
 on Cloudflare Free. This is a code-only release of the original eight-ready /
@@ -85,9 +160,10 @@ two-held catalog, not a full catalog import or a working daily refresh.
 The same single daily task records this completed release and stays gated for
 new D1 maintenance. The original `9943718` workspace/charges remain unchanged.
 Full catalog migration and per-field persistent fallbacks (`roadmap-lbbz1.3.2`)
-are **not implemented by this release**. The current whole-product supplier
-deadline coupling remains a known gap; do not mistake a timer or UI release
-for its resolution, renew rights, or resume expiry-driven pruning.
+were **not implemented by this code-only release**. The later private migration
+and installer above address persistent fields; they do not change this serving
+release until a new publication is accepted. Never renew supplier rights or
+resume expiry-driven pruning from a timer or UI release.
 
 ### Historical original-release finalization — October 22, 02:24 UTC
 

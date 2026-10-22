@@ -57,6 +57,46 @@ Boundaries (always in force):
 
 ### Cloudflare migration boundary
 
+**October22 current checkpoint:** actual source/production union is reconciled
+across all 24 logical tables / 3,383 products; schema 0015, actual local native
+rollback and the real permanent installer passed. The installer released
+generation 6 / epoch 299 with 2,359 ready / 1,024 held / 31 substantive articles; exact
+receipts and separate retained ledgers are in `JOURNAL.md`. Known cooperative
+writer stops do not claim a universal ACL barrier. Public acceptance remains
+the eight-product `82efb21` release until the pending `063d9a3` publication has its
+own immutable identity, receipt, resolved build and idle-owner proof.
+Its actual static build/verify passed; final continuation uses separately pinned
+`16518b9` tooling after successful additive schema0016, without changing runtime
+`063d9a3`, the shared workspace or its budget. Build/schema success is not public
+acceptance; use the current `JOURNAL.md` checkpoint.
+
+The broad publication is held by protected upload-session uncertainty and an
+actual full-proof read-cost overrun. Do not resend, clear review/pending pins,
+reset leases or infer upload success from the separate metadata diagnostic. Only
+the separately reviewed once-only canonical recovery may continue the same run;
+its final adopted toolchain pin becomes the journal reader/purge authority.
+The reviewed14:33 continuation returned pending, not accepted. Its first proof
+used about1.45M new known reads; offline query packing did not predict provider
+scanned-row billing. Only45,717 known-read units remain in the original profile,
+with seven retained unknowns. Final14:40 readback confirms FREEZING generation7 /
+epoch301, no retry/activation markers and no target provider version. Account
+reads4,095,249 leave904,751—below the fixed1M headroom. **Stop all further D1
+writes/scans and publication retries; no new profile or counter reset.** The
+join-plan fix is merged in PR250 (`1503056`), not exercised live. Next is a separately budget-safe low-cost
+canary/full-publication continuation with unchanged proof/owner/rights checks.
+The original broad-publication cutoff is October22 15:00:00Z; the photo deadline
+remains22:18:10.044Z. Retain the same profile and every charge, and require measured
+remaining whole-flow capacity without weakening full source/native proof.
+
+**Daily D1 maintenance stays GATED (`roadmap-lbbz1.4`).** A 2,359-product immutable
+projection alone exceeds ordinary 1,200 SQL / 10k-write guards; 800 HTTP is not an
+accepted whole-run measurement. Finish a scoped fresh-account verified-Free
+routine profile, bounded prior/vector proof and current semantic evidence,
+body-free successor seal and actual normal daily canary before enabling it.
+Do not raise global limits, label a routine run as migration, reset a journal,
+or change the existing ten/day and Monday policies to make it pass. Pinterest
+remains paused, Vercel frozen, Neon retained and the old Neon writer off.
+
 **October22 owner correction — catalog preservation and privacy:** Never
 delete or deactivate a gift, remove its search-index/native-vector entry, or
 shrink the catalog solely because a refresh deadline elapsed. Pause live
@@ -121,17 +161,19 @@ approval to upgrade. Neither anticipated podcast traffic nor a launch rehearsal
 authorizes a paid plan or a shared-account-quota-consuming load test. Preserve
 the existing request, SQL, catalog and model limits.
 
-The current persistent operator source checkout is
-`/Users/cameronehrlich/.codex/worktrees/goose-production-cutover/goose.gifts`.
-Keep it attached; do not run publication from the shared
+The pending full-catalog publication uses the clean frozen operator
+`/Users/cameronehrlich/.codex/worktrees/stupid-persistent-catalog/goose.gifts`
+at `063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6`. Do not fast-forward or clean this
+checkout while its exact run is pending. Keep retained history/recovery
+operators attached; do not run publication from the shared
 `/Users/cameronehrlich/goose.gifts` checkout, which other authorized chats use.
 Also retain the original
 `/Users/cameronehrlich/.codex/worktrees/goose-migration-integration/goose.gifts`
 at `9943718`, bound to the original completed workspace and rollback evidence;
 it is not the source for new publication or maintenance.
-Require the operator checkout clean and fast-forward its dedicated branch from
-`origin/main` before running, **unless an exact earlier publication is still
-unresolved**. October21 run `launch-publish-994371816d46` must remain on clean
+For a new run, separately pin a clean reviewed source before claiming ownership;
+never change an in-progress run's source to follow `origin/main`. October21 run
+`launch-publish-994371816d46` remains historical evidence on clean
 source `994371816d467892f1481c67b8d4ffce27ece11a` and its saved config SHA
 `8749f8c98c16b23ace4fcb9f91d74ce1284e790a0d491cbd7dc0cfc6ff83cbcc`
 until verified finalization. **That release was finalized October22:** PR #221
@@ -157,18 +199,22 @@ idle, a compact-read fixture, an ACTIVE timer
 or a changed backend flag as a successful daily canary. Preserve old Goose as
 rollback, never as a second scheduled writer.
 
-Registered-body expiry cleanup remains required. The old `9943718` journal
-reader rejects the recovery grant: use Node22 and the absolute
-`scripts/catalog/purge-workspaces.ts` path from the clean retained recovery
-operator `/Users/cameronehrlich/.codex/worktrees/goose-production-cutover/goose.gifts`
-with the original workspace/repository paths until the next operating contract
-is pinned. Never erase locks, unknown charges or unexpired evidence. Do not
+Registered-body expiry cleanup remains required. Future journal reads/purges
+MUST use Node22 and the reviewed toolchain at
+`/Users/cameronehrlich/.codex/worktrees/stupid-final-catalog-operator/goose.gifts`,
+clean `16518b9de99110e4e882a8fa722bdf47b3ab863b`. Use its absolute
+`scripts/catalog/purge-workspaces.ts` path with the ORIGINAL workspace/repository
+arguments: superseded `3bfefe` is no longer the recovery authority;
+frozen53/d38/runtime `063d9a3` readers do not support all legitimate
+new lease/recovery checkpoint transitions, and the older994 reader rejects the earlier
+recovery grant. Do not relabel a manifest to the toolchain SHA. Never erase
+locks, unknown charges or unexpired evidence. Do not
 switch/clean another chat's branch or adopt its ignored build output. Each new
 publication requires its own reviewed exact clean commit/source pin.
 
-Before maintenance, run the Node22 purge script from the separately retained
-reviewed recovery operator with the explicit workspace/original-repository
-paths above; do not invoke the old994 reader. It physically expires registered older-run
+Before maintenance, run the Node22 purge script from the pinned new toolchain
+with the explicit workspace/original-repository paths above; do not invoke either
+old reader. It physically expires registered older-run
 bodies in the same private workspace while retaining minimal recovery control.
 Review unsafe, legacy or interrupted-run reports; never delete a lock, reset a
 reservation, adopt another checkout's output, or erase history to force progress.
