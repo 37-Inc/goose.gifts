@@ -19,27 +19,32 @@ function input(){return{prior:structuredClone(old),ledgerAtApproval:structuredCl
   retainedUnknowns:{count:7,evidenceSha256:sha256('all seven unknowns classified read-only or non-D1'),unknownD1Writes:0},
   batchBound:{rowsRead:80000,rowsWritten:1000,evidenceSha256:sha256('synthetic reviewed maximum batch proof'),
     statements:[{sha256:sha256('SELECT 1 AS catalog_d1_primary'),rowsRead:1,rowsWritten:0},
-      {sha256:sha256('SELECT 1'),rowsRead:80000,rowsWritten:0}]}};}
+      {sha256:sha256('SELECT 1'),rowsRead:80000,rowsWritten:0},
+      {sha256:sha256('SELECT 2'),rowsRead:10,rowsWritten:0},
+      {sha256:sha256('SELECT 3'),rowsRead:39990,rowsWritten:0}]}};}
 const budget=(value=input())=>createPublicationRecoveryBudget(value,new Date(AT));
 const live=globalThis.fetch;globalThis.fetch=async()=>{throw new Error('Live network forbidden');};test.after(()=>{globalThis.fetch=live;});
 function fixture(initial=anchor){
   const state=structuredClone(initial);let calls=0,read=1,written=0,lose=false,delay;
-  const reservations=new Map(),history=[];
+  const reservations=new Map(),bounds=new Map(),history=[],order=[];
+  const onReserveBound=async record=>{order.push('bound');bounds.set(record.id,structuredClone(record));};
   const accounting={scope:{...scope},initial:structuredClone(initial),async reserve(r){
+    order.push('reserve');assert.ok(bounds.has(r.id),'durable bound precedes actual reservation');
     reservations.set(r.id,r);
     state.httpRequests++;state.sqlStatements+=r.units.sqlStatements;state.unconfirmedRequests++;
   },async settle(id,r){if(r.status==='known'){state.unconfirmedRequests--;state.knownRowsRead+=r.usage.rowsRead;state.knownRowsWritten+=r.usage.rowsWritten;
-    history.push({id,sqlStatements:reservations.get(id).units.sqlStatements,rowsRead:r.usage.rowsRead,rowsWritten:r.usage.rowsWritten});}}};
-  const send=async(_url,init)=>{calls++;
+    history.push({id,requestSha256:reservations.get(id).requestSha256,sqlStatements:reservations.get(id).units.sqlStatements,
+      rowsRead:r.usage.rowsRead,rowsWritten:r.usage.rowsWritten,bound:structuredClone(bounds.get(id))});}}};
+  const send=async(_url,init)=>{calls++;order.push('send');
     if(!init.body)return Response.json({success:true,result:{uuid:scope.databaseId,name:scope.databaseName,read_replication:{mode:'disabled'}}});
     if(delay)await delay;if(lose){lose=false;throw new Error('Synthetic lost result');}
     const {batch}=JSON.parse(init.body);return Response.json({success:true,result:batch.map(q=>({success:true,
       results:q.sql==='SELECT 1 AS catalog_d1_primary'?[{catalog_d1_primary:1}]:[],
       meta:{served_by_primary:true,rows_read:read,rows_written:written}}))});};
-  return{state,accounting,history,send,calls:()=>calls,cost(r,w=0){read=r;written=w;},lose(){lose=true;},delay(value){delay=value;}};
+  return{state,accounting,history,bounds,order,onReserveBound,send,calls:()=>calls,cost(r,w=0){read=r;written=w;},lose(){lose=true;},delay(value){delay=value;}};
 }
 const options=(f,b=budget())=>({...scope,token:'SYNTHETIC_ONLY',budget:b,ledger:structuredClone(f.accounting.initial),
-  accounting:f.accounting,settlements:structuredClone(f.history),fetch:f.send,now:()=>new Date(AT)});
+  accounting:f.accounting,settlements:structuredClone(f.history),onReserveBound:f.onReserveBound,fetch:f.send,now:()=>new Date(AT)});
 
 test('a separate approved allowance preserves parent caps, all old charges and the default safety margin',()=>{
   const b=budget();assertPublicationRecoveryBudget(b.profile,b.sha256,new Date(AT));
@@ -117,4 +122,79 @@ test('foreign scopes, rollback and extra caller cap overrides have zero IO',asyn
     o=>{o.limits={reportedRowsRead:5000000};},o=>{o.accounting.scope.databaseId='00000000-0000-4000-8000-000000000099';}]){
     const f=fixture(),o=options(f);change(o);await assert.rejects(createCatalogD1PublicationRecoveryRest(o),/budget/);assert.equal(f.calls(),0);
   }
+});
+
+test('only the exact next SQL sum is reserved near the end of the same allowance',async()=>{
+  const f=fixture(),db=await createCatalogD1PublicationRecoveryRest(options(f));
+  f.cost(80000);for(let i=0;i<7;i++)await db.prepare('SELECT 1').all();
+  f.cost(39980);await db.prepare('SELECT 3').all();
+  // Nineteen reads remain: the global80k maximum must not block a reviewed10-read query.
+  f.cost(10);await db.prepare('SELECT 2').all();
+  assert.equal(f.state.knownRowsRead,anchor.knownRowsRead+599991);
+  const charged=structuredClone(f.state),calls=f.calls();
+  await assert.rejects(db.prepare('SELECT 2').all(),/budget/);
+  assert.deepEqual(f.state,charged);assert.equal(f.calls(),calls);
+});
+
+test('durable bounds bind exact reservation, request, ordered SQL digests and sum before IO',async()=>{
+  const f=fixture(),db=await createCatalogD1PublicationRecoveryRest(options(f));f.cost(10);
+  await db.batch([db.prepare('SELECT 2'),db.prepare('SELECT 2')]);
+  assert.deepEqual(f.order,['bound','reserve','send','bound','reserve','send','bound','reserve','send']);
+  const event=f.history.at(-1),record=event.bound;
+  assert.equal(record.id,event.id);assert.equal(record.requestSha256,event.requestSha256);
+  assert.equal(record.requestSha256,sha256(JSON.stringify({accountId:scope.accountId,databaseId:scope.databaseId,
+    body:JSON.stringify({batch:[{sql:'SELECT 2',params:[]},{sql:'SELECT 2',params:[]}]})})));
+  assert.equal(record.sqlStatements,2);assert.deepEqual(record.statementSha256s,[sha256('SELECT 2'),sha256('SELECT 2')]);
+  assert.equal(record.rowsReadBound,20);assert.equal(record.rowsWrittenBound,0);
+  for(const change of [o=>{delete o.onReserveBound;},o=>{o.onReserveBound=async()=>{throw new Error('Durability failed');};}]){
+    const g=fixture(),o=options(g);change(o);
+    await assert.rejects(createCatalogD1PublicationRecoveryRest(o),/budget/);assert.equal(g.calls(),0);assert.deepEqual(g.state,anchor);
+  }
+});
+
+test('per-batch violations below global80k remain charged and refuse every reopen',async()=>{
+  const f=fixture(),b=budget(),db=await createCatalogD1PublicationRecoveryRest(options(f,b));f.cost(11);
+  await assert.rejects(db.prepare('SELECT 2').all(),/accounting_unknown/);
+  assert.equal(f.state.knownRowsRead,anchor.knownRowsRead+12);assert.equal(f.state.unconfirmedRequests,7);
+  const calls=f.calls();await assert.rejects(db.prepare('SELECT 2').all(),/budget/);assert.equal(f.calls(),calls);
+  const next=fixture(f.state);next.history.push(...f.history);
+  await assert.rejects(createCatalogD1PublicationRecoveryRest(options(next,b)),/budget/);assert.equal(next.calls(),0);
+});
+
+test('missing, changed, duplicate or growing durable bounds cannot refund or enlarge a batch',async()=>{
+  const f=fixture(),b=budget(),db=await createCatalogD1PublicationRecoveryRest(options(f,b));f.cost(10);await db.prepare('SELECT 2').all();
+  for(const change of [h=>{delete h[1].bound;},h=>{h[1].bound.id=h[0].id;},
+    h=>{h[1].bound.requestSha256='f'.repeat(64);},h=>{h[1].requestSha256='f'.repeat(64);},
+    h=>{h[1].bound.sqlStatements++;},h=>{h[1].bound.statementSha256s=[];},
+    h=>{h[1].bound.statementSha256s=['f'.repeat(64)];},h=>{h[2].bound.rowsReadBound++;},
+    h=>{h[2].bound.rowsReadBound--;},h=>{h[2].rowsRead--;},h=>{h[2]=structuredClone(h[1]);}]){
+    const next=fixture(f.state);next.history.push(...structuredClone(f.history));change(next.history);
+    await assert.rejects(createCatalogD1PublicationRecoveryRest(options(next,b)),/budget/);assert.equal(next.calls(),0);
+  }
+  // Other shared-ledger provider/CLI HTTP has no SQL bound, but can never claim D1 row units.
+  const next=fixture(f.state);next.history.push(...structuredClone(f.history));delete next.history[0].bound;
+  await createCatalogD1PublicationRecoveryRest(options(next,b));assert.equal(next.calls(),2);
+});
+
+test('callback cannot mutate the in-flight bound',async()=>{
+  const f=fixture(),o=options(f);o.onReserveBound=async record=>{
+    await f.onReserveBound(record);record.rowsReadBound=80000;record.statementSha256s.push(sha256('SELECT 1'));
+  };
+  const db=await createCatalogD1PublicationRecoveryRest(o);f.cost(11);
+  await assert.rejects(db.prepare('SELECT 2').all(),/accounting_unknown/);
+  assert.equal(f.bounds.get(f.history.at(-1).id).rowsReadBound,10);
+});
+
+test('awaiting durable bound persistence is single-flight and a failed save dispatches nothing',async()=>{
+  const f=fixture(),o=options(f);let wait,entered,fail=false;
+  o.onReserveBound=async record=>{entered?.();if(wait)await wait;if(fail)throw new Error('Synthetic save failure');await f.onReserveBound(record);};
+  const db=await createCatalogD1PublicationRecoveryRest(o);let release;
+  wait=new Promise(resolve=>{release=resolve;});const saved=new Promise(resolve=>{entered=resolve;});
+  const first=db.prepare('SELECT 2').all();await saved;const before=structuredClone(f.state),calls=f.calls();
+  await assert.rejects(db.prepare('SELECT 2').all(),/budget/);assert.deepEqual(f.state,before);assert.equal(f.calls(),calls);
+  release();await first;wait=undefined;entered=undefined;fail=true;
+  const charged=structuredClone(f.state),sent=f.calls();
+  await assert.rejects(db.prepare('SELECT 2').all(),/budget/);
+  fail=false;await assert.rejects(db.prepare('SELECT 2').all(),/budget/);
+  assert.deepEqual(f.state,charged);assert.equal(f.calls(),sent);
 });

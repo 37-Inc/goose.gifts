@@ -21,6 +21,13 @@ context: **what we've done, and where we're going.**
 
 ## Upcoming / planned
 
+- **2026-10-22 recovery batch admission** [owner+claude]: the separate reviewed
+  publication-recovery REST client admits the exact next SQL cost sum, not the
+  global 80k batch maximum. A required durable body-free bound precedes every
+  reservation; settlement and resume enforce that same bound. Original charges,
+  unknowns, approval anchor, ordinary limits and Free headroom are unchanged.
+  This is source-only wiring, not budget issuance or a publication.
+
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
