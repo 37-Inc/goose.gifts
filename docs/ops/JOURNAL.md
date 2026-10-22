@@ -48,7 +48,13 @@ Static109route export, static/Worker/staging types and lint passed. The initial
 legacy build refused missing DB configuration; its later scoped local-only build
 using the retained protected Postgres configuration passed. No Vercel deployment
 was requested; deployment7243048336 remains the last recorded legacy release.
-Full staging checks and larger export verification are recorded with the PR.
+The full staging invocation ran719tests:706passed/12skipped, with one obsolete
+local rehearsal assertion still expecting12initial cards. That fixture/report
+now uses the shared initial-card constant and explicitly tests24; its exact
+two-test rerun, staging types and full lint pass. The later public/static/Worker
+batch passed153with4skips. The opt-in73item export test passed; actual browser
+Load more progressed24→48→72→73unique cards and removed the finished button.
+No claim is made that the earlier single full-suite invocation was green.
 Source integration is not Cloudflare publication. The live994release and frozen
 old Goose Index still require actual serving-layer removal/readback; do not
 close either UI/privacy child on local source tests alone. Full catalog `.3.2`

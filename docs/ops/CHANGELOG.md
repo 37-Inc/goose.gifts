@@ -265,6 +265,19 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-22 [owner+claude] — Homepage and public-identity source cleanup
+
+PR #225 simplifies the approved headline/navigation/card labels, adds static
+24+24browsing and guide SVGs, and retires Weird Gift Index and personal bylines
+from both app sources. Final packaging also rejects old retained chunks with
+personal identity. Desktop/mobile and real73fixture Load more checks pass;
+static/legacy local builds, types/lint and focused regressions pass. The full
+suite's sole stale12card fixture assertion was fixed and its exact rerun passes;
+the original failed invocation remains documented. **Not yet Cloudflare
+published; live removal remains open.** Full catalog preservation/migration is
+explicitly required, expiry-driven pruning paused, and the existing schedule
+updated in place. No products removed and no Vercel deployment requested.
+
 ### 2026-10-22 [owner+claude] — Freeze legacy Vercel releases
 
 Cameron correctly flagged continued Vercel deployments after the new Cloudflare
