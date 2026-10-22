@@ -32,10 +32,17 @@ deployed before treating the old HTTP search writer as retired; it is not a
 complete Neon/D1 capture barrier or migration acceptance.
 
 Root build/lint and focused credential-denial/resume, handler and observation
-checks pass. A prior full staging run reported three failures, so the complete
-suite is being rerun with captured failure diagnostics; isolated timeout tests
-alone are not full-suite acceptance. No new provider publication, merchant/model
-request, scheduler activation, quota increase or paid plan was performed.
+checks pass. The captured full run found three stale scan assertions: identity
+reads now use the compact projection, so they no longer exercise the full-reader
+ten-row byte fallback. Retargeted those assertions to existing full-reader
+consumers, retained every overflow/refusal/accounting check, and explicitly
+verified compact identities can omit an oversized unrelated private archive.
+The first run's 689 passes / three failures / 19 optional skips are not waived;
+complete-suite acceptance is being rerun. The independent review also made the
+timeout fault wait for its intended dispatch and restored real timers before
+the healthy retry; production deadlines are unchanged. No new provider
+publication, merchant/model request, scheduler activation, quota increase or
+paid plan was performed. Integration: draft PR #223.
 
 ## 2026-10-22 02:24 UTC — Original release finalized; compact maintenance reads verified
 

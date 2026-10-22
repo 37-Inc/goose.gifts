@@ -76,7 +76,7 @@ async function fixture(t,{count=100,padding=0,legacy=0,legacyPadding=0}={}){
   return{sql,db,calls,store:createD1CatalogMaintenanceStore({...readOptions,db}),direct:createD1CatalogMaintenanceStore({...readOptions,db:local}),
     change(fn){change=fn;},changes:()=>sql.prepare('SELECT total_changes() n').get().n};
 }
-const scans=f=>f.calls.filter(call=>/WHERE p\.id>\? ORDER BY p\.id LIMIT \?/.test(call.sql));
+const scans=f=>f.calls.filter(call=>/WHERE p\.id>\? ORDER BY p\.id LIMIT \?/.test(call.sql)&&/NULL maintenance_native/.test(call.sql));
 test('100 actual maintained native vectors fit bounded REST catalog pages; all five views preserve selection and do no writes',async t=>{
   const f=await fixture(t);const before=f.changes();
   const cases=[['getActiveCatalogIdentities',[]],['getExistingEditorialWriteups',[[id(1)]]],['getAffiliateUrlMismatches',['wrong-20']],
@@ -88,9 +88,9 @@ test('100 actual maintained native vectors fit bounded REST catalog pages; all f
   const event=f.sql.prepare('SELECT sequence FROM vector_sync_outbox ORDER BY sequence LIMIT 1').get();
   const payload=await loadMaintenanceVectorPayload(f.db,event);assert.ok(Object.is(payload.values[0],-0));assert.equal(nativeHash(payload.values),nativeHash(vectors));
 });
-test('oversized read-only pages shrink10→5→2 without advancing/skipping, stay reduced for the scan, and retain unknown usage',async t=>{
+test('oversized full-reader pages shrink10→5→2 without advancing/skipping, stay reduced for the scan, and retain unknown usage',async t=>{
   const f=await fixture(t,{padding:50000});const before=f.changes();
-  const values=await f.store.getActiveCatalogIdentities();assert.deepEqual(values,await f.direct.getActiveCatalogIdentities());assert.equal(values.length,100);
+  const values=await f.store.getAffiliateUrlMismatches('wrong-20');assert.deepEqual(values,await f.direct.getAffiliateUrlMismatches('wrong-20'));assert.equal(values.length,100);
   const attempts=scans(f);assert.deepEqual(attempts.slice(0,3).map(call=>call.params),[['',10],['',5],['',2]]);
   assert.ok(attempts.slice(2).every(call=>call.params[1]===2));assert.equal(attempts.at(-1).rows.length,0);
   assert.equal(f.changes(),before);assert.equal(f.db.metrics().unconfirmedRequests,2);assert.equal(f.db.metrics().reportedRowsRead,null);assert.equal(f.db.metrics().reportedRowsWritten,null);
@@ -101,9 +101,11 @@ test('legacy archive/presence checks survive large pages and byte fallback; one 
   assert.deepEqual(scans(f).slice(0,4).map(call=>call.params),[['',10],['',5],['',2],['',1]]);
   assert.equal((await f.store.getActiveCatalogIdentities()).length,10);assert.equal(f.changes(),before);
   const big=await fixture(t,{count:0,legacy:1,legacyPadding:600000});
-  await assert.rejects(big.store.getActiveCatalogIdentities(),/^Error: catalog_d1_result_unknown$/);
+  await assert.rejects(big.store.getProductsNeedingEnrichment(25),/^Error: catalog_d1_result_unknown$/);
   assert.deepEqual(scans(big).map(call=>call.params),[['',10],['',5],['',2],['',1]]);
   assert.equal(big.db.metrics().unconfirmedRequests,4);
+  // Identity projection intentionally omits the unrelated private archive.
+  assert.equal((await big.store.getActiveCatalogIdentities()).length,1);
   f.sql.prepare("UPDATE products SET updated_at=NULL WHERE id=?").run(id(1));
   assert.equal((await f.store.getActiveCatalogIdentities()).length,10); // Existing nullable historical semantics unchanged.
 });
