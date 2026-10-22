@@ -197,7 +197,7 @@ export function normalizeOwnedImportSequences(plan:OwnedOperationalImportPlan,pl
 
 /** Exact logical read bounded by SQLite's own serialized row sizes. Caller owns
  * the barrier; before/after assertions cannot replace gating every writer. */
-async function logicalRows(db:CatalogD1,owner:MutationOwner){
+export async function readOwnedLogicalRows(db:CatalogD1,owner:MutationOwner){
   await mutationAssertion(db,owner).all();
   const schemas=await db.batch(D1_RECOVERY_TABLES.map(t=>db.prepare(`PRAGMA table_info(${t})`))) as Array<{results:Array<{name:string}>}>;
   if(!Array.isArray(schemas)||schemas.length!==D1_RECOVERY_TABLES.length)refuse('schema');
@@ -229,7 +229,7 @@ async function inspect(db:CatalogD1,plan:OwnedOperationalImportPlan,planSha256:s
   const completed=actual.epoch-plan.owner.epoch;
   if(!Number.isSafeInteger(completed)||completed<0||completed>plan.batches.length||!sameOwner(actual,ownerAt(plan,completed))
     ||!(sameOwner(cursor,actual)||completed>0&&sameOwner(cursor,ownerAt(plan,completed-1))))refuse('owner');
-  const expected=progressRows(plan,planSha256,completed),rows=await logicalRows(db,actual);
+  const expected=progressRows(plan,planSha256,completed),rows=await readOwnedLogicalRows(db,actual);
   for(const table of D1_RECOVERY_TABLES)if(digest(rows[table])!==digest(expected[table]))refuse(`baseline_drift_${table}`);
   return{owner:actual,completed,rows};
 }
