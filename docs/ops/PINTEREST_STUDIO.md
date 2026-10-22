@@ -32,12 +32,27 @@ historical packages did not. No new app/account or approval resubmission.
 The scheduler remains PAUSED. See the [rename receipt and screenshots](pinterest-rebrand-2026-10-21/receipt.json)
 and `pinterest-standard-access.md` for verified state and remaining cutover gates.
 
+**Domain repair completed October21 Pacific (verified2026-10-22T01:03:45Z):**
+the failure email concerned website claiming, not loss of app approval. Added
+the exact Pinterest-issued apex TXT record in Cloudflare, preserving both
+Worker records; both authoritative nameservers and1.1.1.1 return it. Pinterest
+reports **Connected / You're all set!** and sent **Website claimed!** for
+stupid.gifts at01:02:30UTC. Both Goose and Stupid domain claims are retained.
+Selected stupid.gifts as the profile website and saved canonical app links
+`https://stupid.gifts/` and `/privacy`; both pages return200/self-canonical.
+Pinterest stores the profile URL as HTTP, which redirects to HTTPS; www also
+redirects to the apex. Same account/app IDs,28 Pins/five boards, Standard access
+and localhost OAuth redirect verify. No old Pin destination was rewritten.
+See the [domain receipt](pinterest-rebrand-2026-10-21/domain-receipt.json).
+Only claim/profile/app metadata is complete: the scheduler stays PAUSED and
+catalog/analytics/product-redirect/publishing-source gates remain separate.
+
 Before an explicit owner-authorized restart:
 
-1. Verify Stupid.gifts production, privacy page and exact product destinations;
-   existing retained Pin links must redirect to the corresponding product,
-   retaining UTM parameters, not a generic homepage.
-2. Verify the renamed account/app and finish new-domain claim/configuration.
+1. Homepage/privacy200 and canonical domain are verified. Still verify exact
+   product destinations: retained Pin links must redirect to the corresponding
+   product, retaining UTM parameters, not a generic homepage.
+2. Account/app branding, claim and website/privacy metadata are verified.
    The account guard now requires the same stable ID, new handle and BUSINESS
    type; the destination guard intentionally still allows only Goose domains.
    Change destination guards only with tested site cutover. Never loosen them

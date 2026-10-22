@@ -16,9 +16,12 @@ below. No login, paid upgrade or additional merchant fetch is requested.
 authentication blocker. Both are **Stupid.gifts**, owner-selected handle
 **stupid_gifts**; production API/portal verify the same BUSINESS account/app
 IDs,28 Pins/five boards and Standard access active. Scheduler PAUSED remains
-verified; the separate catalog job is unchanged. New-domain claim,
-destinations, enrichment source and analytics verification still wait for the
-production cutover. Rename receipt: `pinterest-rebrand-2026-10-21/receipt.json`.
+verified; the separate catalog job is unchanged. New-domain claim is now fixed:
+the exact apex TXT resolves, Pinterest shows Connected and sent Website
+claimed!, and profile/app website/privacy metadata use stupid.gifts. Goose's
+claim is retained. See `pinterest-rebrand-2026-10-21/domain-receipt.json`.
+Existing Pin destinations, enrichment source, analytics and publishing restart
+remain separate gates; no owner DNS/authentication action remains for this claim.
 The receipt-derived
 October31 v11 review remains pending and will not run automatically while the
 studio is paused. See `PINTEREST_STUDIO.md` for the restart contract.

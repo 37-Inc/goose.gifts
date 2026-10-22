@@ -14,7 +14,9 @@ generation, publication or automatic metric/review run while paused. The exact
 October31 review deadline remains pending; preserve all cohort evidence and
 label the rebrand/redirect intervention. Account/app rename completed in place:
 Stupid.gifts, owner-selected handle stupid_gifts, same IDs/Standard access,
-28 Pins/five boards. Website/domain switch remains held. Saved cadence is
+28 Pins/five boards. Stupid.gifts is now TXT-verified/claimed and selected on
+the profile/app; old Goose claim and Pin URLs remain. Product-destination,
+catalog/analytics and publication cutover remain gated. Saved cadence is
 unchanged/inactive; the weekly catalog task is untouched. Resume only through
 the verified new-site gates in `../PINTEREST_STUDIO.md` and an explicit owner
 decision; a new experiment is still required before more creative/publication.
