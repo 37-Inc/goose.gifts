@@ -5,10 +5,11 @@ import { readFile, readdir } from 'node:fs/promises';
 import { createCatalogD1Rest } from '../scripts/catalog/d1-write-rest.ts';
 import { createD1CatalogMaintenanceStore, loadMaintenanceVectorPayload } from '../scripts/catalog/maintenance-d1.ts';
 import { createD1CatalogTelemetryStore } from '../scripts/catalog/telemetry-d1.ts';
-import { maintenanceEmbeddingText } from '../scripts/catalog/maintenance-state.ts';
+import { maintenanceEmbeddingText, maintenanceRow, maintenanceState, maintenanceTimeOrder, publishedMaintenanceProduct } from '../scripts/catalog/maintenance-state.ts';
 import { deliverOwnedOutboxEvent } from '../scripts/catalog/owned-vector-delivery.ts';
 import { claimMutationOwnership, readMutationOwner, releaseMutationOwnership } from '../lib/catalog/mutation-fence.ts';
 import { convertSourceRow } from '../scripts/catalog/migration.ts';
+import { deduplicateAgainstCatalog } from '../scripts/ops/prefetch-catalog.mjs';
 import { editorialSourceHash } from '../scripts/ops/catalog-editorial-core.mjs';
 import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 
@@ -49,7 +50,7 @@ const rights=p=>Object.fromEntries(Object.entries({title:p.title,description:p.w
   punnyTitle:p.punnyTitle,wittyDescription:p.wittyDescription,editorialWriteup:p.editorialWriteup,humorTags:JSON.stringify(p.humorTags)})
   .map(([key,value])=>[key,{basis:'owned',reference:'test-only-owned-fixture',value}]));
 
-async function fixture(t,limits={requests:10000,statements:25000}) {
+async function fixture(t,limits={requests:10000,statements:25000},{longRows=false}={}) {
   const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
   for(const file of (await readdir(new URL('../migrations/d1/',import.meta.url))).filter(name=>/^\d{4}.*\.sql$/.test(name)).sort())
     sql.exec(await readFile(new URL(`../migrations/d1/${file}`,import.meta.url),'utf8'));
@@ -78,6 +79,11 @@ async function fixture(t,limits={requests:10000,statements:25000}) {
   sql.exec('BEGIN');
   try{for(let n=76;n<=TOTAL;n++){
     const p=product(n,{pending:true,quality:.5});
+    if(longRows&&[80,1500,3300].includes(n)){
+      p.title+=' quote"\\\n😀'.repeat(500);p.imageUrl+='?escaped='+encodeURIComponent('"\\😀'.repeat(200));
+      p.sourceFacts.largeUnused='not-needed-for-selection-or-dedup'.repeat(2000);
+      if(n===80)p.isActive=false;
+    }
     const raw={...Object.fromEntries(Object.entries(p).filter(([key])=>!['remotelyVerified','embedding'].includes(key))
       .map(([key,value])=>[key.replace(/[A-Z]/g,l=>'_'+l.toLowerCase()),key==='sourceFacts'?JSON.stringify(value):value])),
       humor_tags:'{synthetic}',public_id:uuid(n),slug:`test-only-archive-${n}`,source_facts_hash:editorialSourceHash(p),
@@ -87,7 +93,7 @@ async function fixture(t,limits={requests:10000,statements:25000}) {
     const keys=Object.keys(row);sql.prepare(`INSERT INTO products(${keys.join(',')}) VALUES(${keys.map(()=>'?').join(',')})`).run(...keys.map(key=>row[key]));
   }sql.exec('COMMIT');}catch(error){sql.exec('ROLLBACK');throw error;}
   next=TOTAL;clock=NOW;
-  const count={http:0,statements:0,mockRowsRead:0,sqliteRowsWritten:0,batches:0,pages:0,maxRequestBytes:0,maxResponseBytes:0};
+  const count={http:0,statements:0,mockRowsRead:0,sqliteRowsWritten:0,batches:0,pages:0,projectedPages:0,maxRequestBytes:0,maxResponseBytes:0};
   let loseBatch=false;
   const fetch=async(url,init)=>{
     count.http++;assert.equal(init.redirect,'error');assert.equal(init.headers.Authorization,`Bearer ${config.token}`);
@@ -100,7 +106,17 @@ async function fixture(t,limits={requests:10000,statements:25000}) {
       const rows=sql.prepare(query.sql).all(...query.params).map(row=>({...row}));
       const writes=sql.prepare('SELECT total_changes() n').get().n-before;
       count.mockRowsRead+=rows.length;count.sqliteRowsWritten+=writes;
-      if(/WHERE p\.id>\? ORDER BY p\.id LIMIT \?/.test(query.sql)){count.pages++;assert.equal(query.params[1],10);}
+      if(/WHERE p\.id>\? ORDER BY p\.id LIMIT \?/.test(query.sql)){
+        count.pages++;
+        if(query.sql.startsWith('WITH candidates')){
+          count.projectedPages++;assert.ok(query.params[1]>=1&&query.params[1]<=128);
+          for(const row of rows){
+            assert.deepEqual(Object.keys(row),['data']);const view=JSON.parse(row.data);
+            assert.equal('source_facts' in (view.archive||{}),false);assert.equal('embedding' in (view.semantic||{}),false);
+            assert.equal('rights_json' in view,false);assert.equal('maintenance_native' in view,false);
+          }
+        }else assert.equal(query.params[1],10);
+      }
       results.push({success:true,results:rows,meta:{served_by_primary:true,rows_read:rows.length,rows_written:writes,changes:writes}});
     }sql.exec('COMMIT');}catch(error){sql.exec('ROLLBACK');throw error;}
     const bytes=JSON.stringify({success:true,result:results});count.maxResponseBytes=Math.max(count.maxResponseBytes,Buffer.byteLength(bytes));
@@ -153,7 +169,8 @@ test('one finite shared REST budget covers the explicit 3383-row/95-write simula
   assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,0);
   assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,0);
   assert.equal(f.sql.prepare("SELECT count(*) n FROM vector_sync_outbox WHERE status='pending'").get().n,0);
-  assert.equal(f.count.pages,7*Math.ceil(TOTAL/10));
+  assert.equal(f.count.pages-f.count.projectedPages,3*Math.ceil(TOTAL/10));
+  assert.ok(f.count.projectedPages>0&&f.count.pages<7*Math.ceil(TOTAL/10));
   assert.deepEqual(f.sql.prepare('PRAGMA foreign_key_check').all(),[]);
   const metrics=f.db.metrics();assert.equal(metrics.requests,f.count.http);assert.equal(metrics.statements,f.count.statements);
   assert.equal(metrics.reportedRowsRead,f.count.mockRowsRead);assert.equal(metrics.reportedRowsWritten,f.count.sqliteRowsWritten);
@@ -176,13 +193,13 @@ test('one finite shared REST budget covers the explicit 3383-row/95-write simula
 });
 
 test('finite request/statement exhaustion stops a full-catalog scan with no skipped result, write or new budget',async t=>{
-  for(const limits of [{},{requests:10000,statements:300}]){
+  for(const limits of [{requests:40},{requests:600,statements:40}]){
     const f=await fixture(t,limits);const before=f.changes();const owner=structuredClone(f.cursor.current);
     const priorWrites=f.db.metrics().reportedRowsWritten; // Explicit ownership claim precedes the read-only scan.
-    if(!limits.statements)assert.equal((await f.store.getActiveCatalogIdentities()).length,TOTAL);
+    assert.equal((await f.store.getActiveCatalogIdentities()).length,TOTAL);
     await assert.rejects(f.store.getActiveCatalogIdentities(),/^Error: catalog_d1_budget_exhausted$/);
     const stopped={...f.count};const metrics=f.db.metrics();
-    assert.equal(limits.statements?metrics.statements:metrics.requests,limits.statements||600);
+    assert.equal(limits.statements?metrics.statements:metrics.requests,limits.statements||limits.requests);
     await assert.rejects(f.db.prepare('INSERT INTO catalog_mutation_scopes(environment,index_name) VALUES(?,?)')
       .bind('staging','test-only-must-not-write').run(),/^Error: catalog_d1_budget_exhausted$/);
     assert.deepEqual(f.count,stopped);assert.equal(f.changes(),before);assert.deepEqual(f.cursor.current,owner);
@@ -190,4 +207,52 @@ test('finite request/statement exhaustion stops a full-catalog scan with no skip
     assert.equal(f.sql.prepare("SELECT count(*) n FROM catalog_mutation_scopes WHERE index_name='test-only-must-not-write'").get().n,0);
     assert.equal(metrics.unconfirmedRequests,0);assert.equal(metrics.reportedRowsWritten,priorWrites);
   }
+});
+
+test('3383-row daily and Monday views match the old full reader with bounded REST bytes and fresh post-write identities',async t=>{
+  const f=await fixture(t,{requests:600,statements:1200},{longRows:true});
+  const legacy=()=>f.sql.prepare(`SELECT p.*,s.semantic_json maintenance_semantic FROM products p
+    LEFT JOIN catalog_maintenance_products s ON s.product_id=p.id ORDER BY p.id`).all().map(row=>maintenanceState({...row}));
+  const identities=products=>products.map(p=>Object.fromEntries(['id','slug','title','imageUrl','affiliateUrl','qualityScore',
+    'availabilityStatus','availabilityCheckedAt','lastVerifiedAt','editorialStatus','reviewCount'].map(key=>[key,p[key]]))).map(p=>({...p,sourceFacts:null}));
+  const measured=async(name,action)=>{
+    const before={...f.count};const result=await action();const calls=f.count.http-before.http;const statements=f.count.statements-before.statements;
+    t.diagnostic(`${name}: ${calls} HTTP/${statements} SQL, ${f.count.projectedPages-before.projectedPages} projected pages (old full scan:339 pages)`);
+    assert.ok(calls<100);return result;
+  };
+  const featured=[id(3300),id(20)];const prior=legacy();
+  const lane=p=>featured.includes(p.id)?0:publishedMaintenanceProduct(p)?1:2;
+  const choose=products=>products.filter(p=>p.source==='amazon'&&p.isActive&&/^B\d{9}$/.test(p.id))
+    .sort((a,b)=>lane(a)-lane(b)||maintenanceTimeOrder(a.availabilityCheckedAt||a.lastVerifiedAt,b.availabilityCheckedAt||b.lastVerifiedAt,true)
+      ||maintenanceTimeOrder(a.updatedAt,b.updatedAt,false)||a.id.localeCompare(b.id)).slice(0,10);
+  const selected=choose(prior);
+  const daily=await measured('daily selection',()=>f.store.getProductsForRevalidation({daily:true,limit:10,featuredIds:featured}));
+  assert.deepEqual(daily,selected.map(p=>({...maintenanceRow(p),has_embedding:Number(p.id.slice(1))<=75?true:null})));
+  const before=await measured('Monday include-inactive identity dedup',()=>f.store.getActiveCatalogIdentities({includeInactive:true}));
+  assert.deepEqual(before,identities(prior));assert.equal(before.length,TOTAL);
+  const writeups=await measured('Monday editorial comparison',()=>f.store.getExistingEditorialWriteups([id(1)]));
+  assert.deepEqual(writeups,prior.filter(p=>['generated_ready','manual_locked'].includes(p.editorialStatus)&&p.id!==id(1)&&p.editorialWriteup!==null)
+    .map(p=>p.editorialWriteup).filter(Boolean));
+  const updated={...product(3300),title:'TEST ONLY updated unusually specific whistling kettle'};
+  const added={...product(TOTAL+1),title:'TEST ONLY discovered paper moon fan'};
+  for(const p of [updated,added]){const hash=editorialSourceHash(p);p.editorialSourceHash=hash;await f.store.upsertProduct(p,hash);}
+  await f.store.markCatalogDuplicate(added.id,id(1),'test-only-duplicate');
+  const after=await measured('fresh post-write identity dedup',()=>f.store.getActiveCatalogIdentities({includeInactive:true}));
+  assert.deepEqual(after,identities(legacy()));assert.equal(after.length,TOTAL+1);
+  assert.equal(after.find(p=>p.id===updated.id).title,updated.title);
+  assert.ok(after.some(p=>p.id===added.id));
+  assert.equal((await f.store.getActiveCatalogIdentities()).some(p=>p.id===id(80)),false);
+  const candidates=[product(80),added,{...updated,id:id(99990)},{...product(99991),title:'TEST ONLY inflatable lunar crater umbrella'}];
+  const result=deduplicateAgainstCatalog(structuredClone(candidates),after,.8,true);
+  assert.deepEqual(result,deduplicateAgainstCatalog(structuredClone(candidates),identities(legacy()),.8,true));
+  assert.ok(result.rejected.some(p=>p.id===id(80)));assert.ok(result.rejected.some(p=>p.id===added.id));
+  assert.ok(result.rejected.some(p=>p.id===id(99990)));
+  assert.deepEqual(deduplicateAgainstCatalog(structuredClone(candidates),after,.8,false),
+    deduplicateAgainstCatalog(structuredClone(candidates),identities(legacy()),.8,false));
+  const presence=new Map(f.sql.prepare('SELECT product_id,embedding_present FROM catalog_maintenance_products').all().map(row=>[row.product_id,row.embedding_present===1]));
+  const freshDaily=await measured('fresh post-write daily selection',()=>f.store.getProductsForRevalidation({daily:true,limit:10,featuredIds:featured}));
+  assert.deepEqual(freshDaily,choose(legacy()).map(p=>({...maintenanceRow(p),has_embedding:presence.get(p.id)??null})));
+  assert.ok(f.count.maxRequestBytes<512*1024&&f.count.maxResponseBytes<512*1024);
+  assert.equal(f.db.metrics().unconfirmedRequests,0);
+  t.diagnostic(`Measured complete synthetic read/write fixture: ${JSON.stringify({...f.count,metrics:f.db.metrics()})}`);
 });

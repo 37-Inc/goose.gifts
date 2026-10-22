@@ -5,6 +5,52 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 02:24 UTC — Original release finalized; compact maintenance reads verified
+
+PR #221 merged `39720bdaf3ac5023794780b22379f54b5e277f93` after the final
+704-pass/18-optional-skip staging run, build/lint and independent review. Only
+the clean recovery operator was fast-forwarded; original release source994 was
+preserved. The independently reviewed versioned companion `05c2bbc7…` ran once
+with the original approval/permit/config. It read-verifies the accepted exact
+D1 receipt, resolves the build and verifies actual owner idle generation3 /
+epoch27, external_pending0, before saving the immutable final handoff.
+
+Protected `launch-publication-handoff-994371816d46-published.json` SHA-256:
+`d952bf398d01bde420c57e5042f3ad46dd625720c2745b5e378f219067277520`.
+Publication receipt digest remains
+`0fbfd95a631fcbc3962e0b2289f299a6c64adc5f1ee452f2393060a012eccce0`.
+Final accounted ledger: **702 HTTP / 1,116 SQL, 24,408 known reads / 348 writes,
+two unconfirmed reads retained**, within the already granted750/1329 ceiling.
+This settlement added39HTTP/32SQL/two control writes, zero product source writes,
+uploads, activations, merchant or model calls. No lease, rights, original
+merchant expiry or daily allowance was renewed/reset. Public identity and
+home/collection HTTP200 independently still match source994/release
+`stupid-launch-maintained-994371816d46`. Recovery did not rebuild its prebuilt
+assets with the later security dependency update.
+
+The SAME catalog automation was updated in place/read back, preserving ID,
+ACTIVE08:30 cadence, target chat and original creation time. It records final
+settlement and forbids rerunning it, retains local registered expiry cleanup
+and disables old-Neon daily/canary/weekly work. **New-D1 daily is not enabled:**
+complete source barrier/delta, same-response rights/review/publication wiring,
+Monday change-count and pre-activation proof acceptance remain engineering
+work. Existing Keychain entries still need owner-attended access; no further
+unattended retry, environment execution bypass, reseed or ACL mutation occurred.
+Pinterest remains PAUSED; no paid Cloudflare or unrelated provider change.
+
+The reviewed maintenance-store follow-through uses compact keyset views for
+daily lane selection, all-identity dedup (including inactive) and editorial
+comparison, while keeping the full reader where full data is needed. Full
+point-loads are limited to the selected ten daily products. Consistency,
+ownership, native/tag validation, holds, ordering and original row/byte guards
+are unchanged; no cache or schema change was introduced. The synthetic3,383-row
+actual-REST-shaped fixture, including long escaped fields and fresh post-write
+identities, proves equivalent results with46/32/33HTTP respectively. All wire
+responses stay under512KiB. It is NOT a full weekly/publication budget or live
+provider-billing proof. Root independently passed48 targeted tests/build/lint;
+peer26 tests/types/lint and implementation74-test broader maintenance pack pass,
+without adding overlapping counts. New writer/cutover Beads remain open.
+
 ## 2026-10-22 owner session — Approved recovery, actual receipt and provider continuity
 
 Cameron's 18:23 Pacific instruction authorized lifting our internal request guard

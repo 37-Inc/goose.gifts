@@ -83,35 +83,40 @@ Require the operator checkout clean and fast-forward its dedicated branch from
 unresolved**. October21 run `launch-publish-994371816d46` must remain on clean
 source `994371816d467892f1481c67b8d4ffce27ece11a` and its saved config SHA
 `8749f8c98c16b23ace4fcb9f91d74ce1284e790a0d491cbd7dc0cfc6ff83cbcc`
-until verified finalization. Its maintained release is active, but the original
-600-HTTP guard stopped receipt settlement at 600 HTTP / 1,029 SQL with one
-earlier unknown metadata GET retained. Actual owner: activating, generation3 /
-epoch27. Do not consume another merchant allowance, start over, raise/reset the
-budget, upload/reactivate, purge its unexpired inputs, or advance its checkout.
-The owner approved the separately journaled 150 HTTP / 300 SQL recovery allowance
-and future 800 HTTP / unchanged 1,200 SQL guard. That one recovery grant is applied;
-the immutable original manifest and consumed charges are unchanged. The latest
-accounted readback is 663 HTTP / 1,084 SQL, with two unknown reservations retained,
-against a derived 750 HTTP / 1,329 SQL ceiling. The actual D1 publication receipt
-matches the original intent and reports published, but owner/build settlement
-is still activating: a three-second observation timeout interrupts full proof.
-Do not blindly retry; use only the separately reviewed bounded-observation
-correction and original-permit acknowledgement path. No new upload, activation,
-merchant/model call, lease renewal or quota reset is permitted by this recovery.
-The task's first-step guard reports attention while unresolved. This does not suspend local
-registered-body expiry cleanup: purge only expired registered bodies and retain
-the minimal recovery controls, then report attention without provider calls or
-another merchant run. If an approved recovery grant is actually journaled, the
-old `9943718` reader will deliberately reject it; use the separately pinned
-reviewed recovery operator for journal reads/purge, without advancing the
-original release source or editing its manifest. Never switch/clean another
-chat's branch or adopt
-its ignored build output. Pin each publication to that exact clean commit and
-this same source path. An unsafe/dirty operator checkout is a review gate.
+until verified finalization. **That release was finalized October22:** PR #221
+merged `39720bdaf3ac5023794780b22379f54b5e277f93`; the separately pinned recovery
+operator verified the original receipt, resolved build and idle owner
+(generation3 / epoch27, external_pending0). The protected final handoff
+`launch-publication-handoff-994371816d46-published.json` under the private
+migration directory has SHA-256
+`d952bf398d01bde420c57e5042f3ad46dd625720c2745b5e378f219067277520`.
+Final ledger is 702 HTTP / 1,116 SQL, 24,408 known reads / 348 writes, retaining
+both unknown reads. The once-only recovery grant and derived 750 HTTP / 1,329
+SQL ceiling remain journaled; the original manifest/charges are unchanged.
+Recovery made zero new uploads, activations, merchant/model calls or product
+source writes. Do not rerun it or re-grant its allowance. Original display expiry
+is still October22 22:18:10.044Z. Future reviewed ordinary guard is 800 HTTP /
+1,200 SQL, not another merchant/model allowance or a paid-plan commitment.
 
-Before maintenance, run
-`npm run catalog:purge -- --workspace "$HOME/.codex/private/goose-gifts-migration/weekly-runs" --repository "$PWD"`
-from the stable canonical checkout. It physically expires registered older-run
+The same daily task now records finalization, but **new D1 maintenance remains
+gated** on the actual writer/data/delta, protected credentials and same-response
+publication contract. The older pre-activation observation path is a separate
+acceptance item. Do not interpret idle, a compact-read fixture, an ACTIVE timer
+or a changed backend flag as a successful daily canary. Preserve old Goose as
+rollback, never as a second scheduled writer.
+
+Registered-body expiry cleanup remains required. The old `9943718` journal
+reader rejects the recovery grant: use Node22 and the absolute
+`scripts/catalog/purge-workspaces.ts` path from the clean retained recovery
+operator `/Users/cameronehrlich/.codex/worktrees/goose-production-cutover/goose.gifts`
+with the original workspace/repository paths until the next operating contract
+is pinned. Never erase locks, unknown charges or unexpired evidence. Do not
+switch/clean another chat's branch or adopt its ignored build output. Each new
+publication requires its own reviewed exact clean commit/source pin.
+
+Before maintenance, run the Node22 purge script from the separately retained
+reviewed recovery operator with the explicit workspace/original-repository
+paths above; do not invoke the old994 reader. It physically expires registered older-run
 bodies in the same private workspace while retaining minimal recovery control.
 Review unsafe, legacy or interrupted-run reports; never delete a lock, reset a
 reservation, adopt another checkout's output, or erase history to force progress.
