@@ -38,10 +38,12 @@ const grant=value=>({basis:'owned',value,reference:'ROOT synthetic fixture exact
 const writers=at=>[{id:'daily',kind:'application',codePaths:['scripts/catalog/run-cloudflare-weekly.ts'],reference:'Fixture stopped known job',stoppedAt:at},
   {id:'operator',kind:'operator',codePaths:[],reference:'Fixture sole operator',stoppedAt:at}];
 
-async function fixture(t,{count=43,initialCount=2,long=false,fresh=false,runtimeHistory=false}={}){
+async function fixture(t,{count=43,initialCount=2,long=false,fresh=false,runtimeHistory=false,controlMigration=false}={}){
   const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
   for(const name of(await readdir(new URL('../migrations/d1/',import.meta.url))).filter(n=>/^\d{4}.*\.sql$/.test(n)).sort())
     sql.exec(await readFile(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
+  if(controlMigration){sql.exec('CREATE TABLE d1_migrations(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL UNIQUE)');
+    for(let i=1;i<=14;i++)sql.prepare('INSERT INTO d1_migrations(name) VALUES(?)').run(`historical-${i}.sql`);}
   let at=AT,beforeSend,beforeStatement,lose=false,sends=0,maxRequest=0,maxResponse=0,writeBatches=0;const reservations=new Set(),settlements=new Set();
   sql.function('strftime',(format,value)=>{assert.equal(format,'%Y-%m-%dT%H:%M:%fZ');assert.equal(value,'now');return at;});
   sql.function('date',{varargs:true},(...args)=>new Date(Date.parse(at)+(args[1]==='-30 days'?-30*86400000:0)).toISOString().slice(0,10));
@@ -95,6 +97,7 @@ async function fixture(t,{count=43,initialCount=2,long=false,fresh=false,runtime
     await appendSearchDiagnostic(db,{id:'new-runtime',queryHash:'b'.repeat(64),queryLength:7,resultCount:0,topSimilarity:null,matchType:'keyword',outcome:'empty'},new Date(at));
     assert.equal(await reserveSemanticSearch(db,{environment:'production',index:scope.indexName},{ENVIRONMENT:'production',SEMANTIC_SEARCH_ENABLED:'true',SEMANTIC_SEARCH_DAILY_REQUEST_CAP:'100',SEMANTIC_SEARCH_DAILY_TOKEN_CAP:'100000'},22),true);
     owner=await claim('installer');}
+  if(controlMigration)sql.prepare('INSERT INTO d1_migrations(name) VALUES(?)').run('0015_persistent_projection_facts.sql');
   const captured=await captureOwnedD1({db,owner,reference:'Fixture post-union installer capture',stoppedWriters:writers(at)});
   const raw=source.map(r=>JSON.stringify(r)).join('\n')+'\n',events='';
   const tables=[{raw,rows:source,definition:{schema:'public',name:'products',sha256:sha256(raw),rowCount:source.length,columns:Object.keys(source[0]).map(name=>({name}))}},
@@ -106,6 +109,8 @@ async function fixture(t,{count=43,initialCount=2,long=false,fresh=false,runtime
     placeholder:{path:asset,bytes:Buffer.from(svg),expectedSha256:sha256(svg)},now:new Date(at)};
   const proposal=assemblePermanentBaseline(evidence,permanentBaselineCurrent(captured.capture),assembler);
   const input={capture:captured.capture,captureSha256:captured.captureSha256,owner,union:{plan:union.plan,sha256:union.sha256},evidence,assembler,
+    ...(controlMigration?{controlMigration:{name:'0015_persistent_projection_facts.sql',
+      sourceSha256:'ba52088cf45175f5a4107793a848d084ac6d48935aaa1b2efd4e7950a14a0df0',receiptSha256:'e'.repeat(64)}}:{}),
     approvedProposal:{value:proposal,sha256:sha256(canonicalJson(proposal)),reference:'ROOT reviewed exact synthetic plan; not product rights inference'}};
   const prepared=preparePermanentDisplayPlan(input),state=()=>Object.fromEntries(D1_RECOVERY_TABLES.map(table=>[table,sql.prepare(`SELECT * FROM ${table}`).all().map(r=>({...r}))]));
   const apply=(opts={})=>applyPermanentDisplayPlan({db,plan:prepared.plan,planSha256:prepared.sha256,ownerCursor:{current:owner},cooperativeCapture:{receipt:captured.receipt,sha256:captured.receiptSha256},...opts});
@@ -141,6 +146,21 @@ test('fresh owner after release accepts only genuine runtime append/reservation 
   assert.equal(after.search_diagnostics.some(r=>r.id==='expired-runtime'),false);
   assert.equal(after.search_diagnostics.some(r=>r.id==='retained-runtime'),true);
   assert.equal(after.semantic_search_budgets.length,1);assert.equal(after.semantic_search_budgets[0].requests_reserved,2);
+});
+test('only explicit reviewed0015 control allocator14-to15 is portable; no other table or sequence normalization',async t=>{
+  const f=await fixture(t,{count:4,fresh:true,controlMigration:true});
+  const plain=structuredClone(f.input);delete plain.controlMigration;
+  assert.throws(()=>preparePermanentDisplayPlan(plain),/union_drift_sqlite_sequence/);
+  for(const change of [i=>i.controlMigration.sourceSha256='f'.repeat(64),i=>i.controlMigration.receiptSha256='not-a-hash',
+    i=>i.controlMigration.name='0016_other.sql',i=>i.capture.tables.sqlite_sequence.find(r=>r.name==='d1_migrations').seq=16,
+    i=>i.capture.tables.sqlite_sequence.push({name:'unapproved',seq:1}),i=>i.capture.tables.products[0].description='drift']){
+    const input=structuredClone(f.input);change(input);input.capture.inventory=inventory(input.capture.tables);
+    input.captureSha256=sha256(canonicalJson(input.capture));assert.throws(()=>preparePermanentDisplayPlan(input),/control_migration|union_drift/);
+  }
+  f.sql.prepare('UPDATE d1_migrations SET name=? WHERE id=15').run('foreign.sql');
+  await assert.rejects(f.apply(),/control_migration/);assert.equal(f.metrics().writeBatches,0);
+  f.sql.prepare('UPDATE d1_migrations SET name=? WHERE id=15').run('0015_persistent_projection_facts.sql');
+  assert.equal((await f.apply()).state,'reconciled');same(f.state().sqlite_sequence,f.captured.capture.tables.sqlite_sequence);
 });
 test('portable union proof refuses nonruntime changes and unsupported diagnostic/budget drift even when capture is rehashed',async t=>{
   const f=await fixture(t,{count:4,fresh:true,runtimeHistory:true});

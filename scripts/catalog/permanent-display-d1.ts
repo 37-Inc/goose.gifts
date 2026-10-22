@@ -18,6 +18,11 @@ type Proposal=ReturnType<typeof assemblePermanentBaseline>;
 type AssemblerOptions=Parameters<typeof assemblePermanentBaseline>[2];
 const FIELDS=['public_display_json','rights_json','title','description','tags'] as const;
 const HASH=/^[a-f0-9]{64}$/;
+const CONTROL_MIGRATION='0015_persistent_projection_facts.sql';
+const CONTROL_SOURCE='ba52088cf45175f5a4107793a848d084ac6d48935aaa1b2efd4e7950a14a0df0';
+/** Explicit root-reviewed control receipt; never a source/application allocator
+ * waiver. The operator retains and verifies the actual receipt bytes. */
+export interface PermanentControlMigration {name:typeof CONTROL_MIGRATION;sourceSha256:string;receiptSha256:string}
 const same=(a:unknown,b:unknown)=>canonicalJson(a)===canonicalJson(b);
 const digest=(rows:Row[])=>sha256(canonicalJson([...rows].sort((a,b)=>canonicalJson(a).localeCompare(canonicalJson(b)))));
 function refuse(code:string):never{throw new Error(`permanent_display_${code}`);}
@@ -79,6 +84,14 @@ export function validatePermanentRuntimeTransition(before:Record<string,Row[]>,a
 }
 function verifyUnion(input:StoredInput){
   const {capture,owner,union}=input,expected=expectedOwnedOperationalImportRows(union.plan,union.sha256);
+  if(input.controlMigration){
+    const m=input.controlMigration,old=expected.sqlite_sequence.filter(r=>r.name==='d1_migrations'),
+      current=capture.tables.sqlite_sequence.filter(r=>r.name==='d1_migrations');
+    if(!same(Object.keys(m).sort(),['name','receiptSha256','sourceSha256'])||m.name!==CONTROL_MIGRATION
+      ||m.sourceSha256!==CONTROL_SOURCE||!HASH.test(m.receiptSha256)||old.length!==1||current.length!==1
+      ||old[0].seq!==14||current[0].seq!==15)refuse('control_migration');
+    expected.sqlite_sequence=expected.sqlite_sequence.map(r=>r.name==='d1_migrations'?{...r,seq:15}:r);
+  }
   if(!union.plan.batches.length||union.plan.sourceManifestSha256!==input.evidence.manifestSha256
     ||owner.phase!=='writing'||owner.epoch!==union.plan.owner.epoch+union.plan.batches.length)refuse('union');
   const old={...union.plan.owner,epoch:owner.epoch};
@@ -99,6 +112,7 @@ function verifyUnion(input:StoredInput){
 interface StoredInput {
   capture:FrozenD1RecoveryInput;captureSha256:string;owner:MutationOwner;
   union:{plan:OwnedOperationalImportPlan;sha256:string};
+  controlMigration?:PermanentControlMigration;
   evidence:Parameters<typeof assemblePermanentBaseline>[0];
   assembler:Omit<AssemblerOptions,'now'|'placeholder'>&{now:string;placeholder:{path:string;bytesBase64:string;expectedSha256:string}};
   approvedProposal:{value:Proposal;sha256:string;reference:string};
@@ -200,6 +214,11 @@ export async function applyPermanentDisplayPlan(options:{db:CatalogD1;plan:Perma
   checkpoint?:(owner:MutationOwner)=>Promise<void>}){
   const {db,planSha256,ownerCursor}=options,plan=structuredClone(options.plan);
   validatePlan(plan,planSha256);
+  if(plan.input.controlMigration){
+    const rows=(await db.prepare('SELECT id,name FROM d1_migrations WHERE id=? OR name=? ORDER BY id')
+      .bind(15,CONTROL_MIGRATION).all<Row>()).results;
+    if(!same(rows,[{id:15,name:CONTROL_MIGRATION}]))refuse('control_migration');
+  }
   const proof=structuredClone(options.cooperativeCapture);
   if(plan.input.assembler.now!==proof.receipt.completedAt)refuse('capture_time');
   const validate=(owner:MutationOwner)=>validateCooperativeCaptureReceipt({db,originalOwner:plan.input.owner,currentOwner:owner,
