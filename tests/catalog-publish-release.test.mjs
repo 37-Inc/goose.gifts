@@ -694,17 +694,21 @@ test('preactivation and resolve timeouts drain the selected owned sender before 
         result.push({success:true,results:rows,meta:{served_by_primary:true,rows_read:rows.length,rows_written:changes,changes}});
       }f.sql.exec('COMMIT');}catch(error){f.sql.exec('ROLLBACK');throw error;}return Response.json({success:true,result});
     }});
-    let lateResponse,hold=true;const events=[];let observed=0;
+    let lateResponse,hold=true,readStarted;const events=[];let observed=0;
+    const heldRead=new Promise(resolve=>{readStarted=resolve;});
     const observationFetch=accountedPublicationReadFetch({async reserveBudget(){events.push('reserve');},async settleBudget(_id,value){
       if(value.status==='unknown')await new Promise(resolve=>setTimeout(resolve,200));events.push(value.status);
     }},async(url,init)=>{
       observed++;const response=await f.fetch(url,init);
       if(hold&&(phase==='preactivation'||f.checkpoint().control.publication.stage==='published')){
-        hold=false;return new Promise(resolve=>{lateResponse=()=>resolve(response);});}return response;
+        hold=false;return new Promise(resolve=>{lateResponse=()=>resolve(response);readStarted();});}return response;
     },{accountId:f.config.accountId,databaseId:id,workerName:f.config.workerName,indexName:f.config.indexName,identityOrigin:f.config.identityOrigin});
-    // Scale only fixed deadlines; durable cleanup exceeds the generic drain.
-    const timer=globalThis.setTimeout;sub.mock.method(globalThis,'setTimeout',(fn,ms,...args)=>timer(fn,[3000,30000].includes(ms)?40:ms===10000?80:ms,...args));
+    // Trigger the fault only after its read was dispatched. Restore real timers
+    // before the healthy retry: filesystem contention is not a 40 ms SLA.
+    const timer=globalThis.setTimeout;sub.mock.method(globalThis,'setTimeout',(fn,ms,...args)=>[3000,30000].includes(ms)
+      ?timer(()=>{void heldRead.then(()=>fn(...args));},40):timer(fn,ms===10000?80:ms,...args));
     const result=await f.execute(db,{observationFetch});assert.equal(result.state,'pending');assert.ok(observed>0);
+    sub.mock.restoreAll();
     assert.equal(events.filter(s=>s==='unknown').length,1);assert.equal(f.counts().activateCalls,phase==='preactivation'?0:1);
     assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests').get().state,phase==='preactivation'?'building':'activating');
     assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,phase==='preactivation'?'freezing':'activating');
