@@ -58,8 +58,9 @@ const VISIBLE = `v.eligible_until>? AND ${CURRENT_READY} AND v.source_facts_hash
 const base = (column:string) => `(CASE WHEN json_type(${column},'$.eligibleUntil')='null' THEN ${column}
   WHEN json_type(${column},'$.persistent')='object' THEN json_extract(${column},'$.persistent') END)`;
 const V_BASE=base('v.public_display_json'),P_BASE=base('p.public_display_json');
-const BASE_RIGHTS=`(CASE WHEN json_type(p.public_display_json,'$.eligibleUntil')='null' THEN p.rights_json
-  ELSE json_extract(p.rights_json,'$.persistent') END)`;
+// SQL counterpart of persistentDisplayRights, without granting a missing nested base.
+const BASE_RIGHTS=`(CASE WHEN json_type(p.rights_json,'$.persistent')!='null' THEN p.rights_json->'$.persistent'
+  WHEN json_type(p.public_display_json,'$.eligibleUntil')='null' THEN p.rights_json END)`;
 const baseGrant=(key:string)=>`json_extract(${BASE_RIGHTS},'$.'||field.value||'.${key}')`;
 const baseDisplay=`json_extract(${V_BASE},'$.'||field.value)`;
 const editorial=`json_extract(${V_BASE},'$.editorialWriteup')`;

@@ -1,5 +1,5 @@
 import { getGiftPath, hasIndexableGiftEditorial, hasReviewedGiftEditorial, hasSubstantiveGiftEditorial } from '../gift-slugs.ts';
-import type { CatalogSnapshot, ContentRight, DisplayField, HeldReason, ProductRights,
+import type { CatalogSnapshot, ContentRight, DisplayField, DisplayRights, HeldReason, ProductRights,
   PersistentCatalogProduct, PersistentProductInput, PublicCatalogProduct,
   SafeHeldProduct, SnapshotProductInput } from './types.ts';
 
@@ -84,17 +84,19 @@ function approvedRight(right: ContentRight | undefined, value: string, now: numb
 /** Recheck the exact fields of an existing sealed DTO against current grants.
  * This does not create rights or extend the DTO's previously sealed deadline.
  */
+export function persistentDisplayRights(rights: ProductRights): DisplayRights { return rights.persistent ?? rights; }
 export function publicProductRightsExpiry(product: PublicCatalogProduct, rights: ProductRights, now: Date): number | null {
   if (!Number.isFinite(now.getTime())) return null;
   if (product.persistent && (!rights.persistent
     || publicProductRightsExpiry(product.persistent, rights.persistent, now) !== Infinity)) return null;
   const permanent = product.eligibleUntil === null;
+  const permission = permanent ? persistentDisplayRights(rights) : rights;
   const fields: DisplayField[] = ['title', 'description', 'imageUrl', 'affiliateUrl'];
   if (!permanent || product.editorialWriteup) fields.push('editorialWriteup');
   for (const field of OPTIONAL_FIELDS) if (field in product && !fields.includes(field)) fields.push(field);
   const expiries = fields.map((field) => {
     const value = field === 'humorTags' ? JSON.stringify(product.humorTags) : product[field];
-    const right = rights[field];
+    const right = permission[field];
     if (permanent && (!right || right.basis === 'merchant' || right.expiresAt)) return null;
     return typeof value === 'string' && value.length ? approvedRight(right, value, now.getTime()) : null;
   });

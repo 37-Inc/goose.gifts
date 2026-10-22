@@ -7,8 +7,10 @@ import { createD1CatalogMaintenanceStore, loadMaintenanceVectorPayload } from '.
 import { maintenanceEmbeddingText, maintenanceSlugs, maintenanceState, maintenanceTextArray } from '../scripts/catalog/maintenance-state.ts';
 import { canonicalJson, canonicalTimestamp, convertSourceRow, sha256 } from '../scripts/catalog/migration.ts';
 import { mergeCatalogMaintenanceUpsert } from '../scripts/ops/catalog-maintenance-merge.mjs';
-import { editorialSourceHash } from '../scripts/ops/catalog-editorial-core.mjs';
-import { claimMutationOwnership } from '../lib/catalog/mutation-fence.ts';
+import { editorialSourceHash, validateEditorialDraft } from '../scripts/ops/catalog-editorial-core.mjs';
+import { claimMutationOwnership, readMutationOwner } from '../lib/catalog/mutation-fence.ts';
+import { createPersistentCatalogProduct, publicProductRightsExpiry } from '../lib/catalog/snapshot.ts';
+import { checkCurrent } from '../scripts/catalog/export-d1-snapshot.ts';
 import { encodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
 import { getProductsByPublicIds } from '../lib/catalog/storage/d1.ts';
 import { drainVectorOutbox } from '../scripts/catalog/vector-outbox.ts';
@@ -85,6 +87,151 @@ async function setup({products=[],presence={},intent,revision='r-new'}={}) {
     events:() => sqlite.prepare('SELECT * FROM vector_sync_outbox ORDER BY sequence').all().map(row => ({...row})),
     epoch:() => sqlite.prepare('SELECT mutation_epoch FROM catalog_mutation_scopes').get().mutation_epoch};
 }
+
+const permanentArticle=Array(9).fill('Synthetic plastic button fixture provides clicking behavior for this owned test.').join(' ')+'\n\n'
+  +Array(9).fill('Original crab button commentary checks factual persistence without any real merchant offer.').join(' ');
+async function permanentFixture({known=true,direct=false}={}) {
+  const p=input(1,{embedding:vectors,editorialWriteup:permanentArticle,
+    sourceFacts:{material:'plastic',behavior:'clicking button fixture'}});
+  const hash=editorialSourceHash(p);p.editorialSourceHash=hash;
+  assert.equal(validateEditorialDraft(p,p.editorialWriteup).approved,true);
+  const supplierRights=rights(p);supplierRights.imageUrl={...supplierRights.imageUrl,basis:'merchant',observedAt:NOW,
+    expiresAt:'2026-10-21T07:00:00.123Z'};
+  const f=await setup({revision:'r-seed',intent:()=>({rightsById:{[p.id]:supplierRights},
+    verificationById:{[p.id]:{reference:'test/original-observation',observedAt:NOW,sourceFactsHash:hash}},
+    ...(known ? {embeddingById:{[p.id]:{reference:'test/original-native',model:'text-embedding-3-small',
+      text:maintenanceEmbeddingText(p),sourceFactsHash:hash}}} : {})})});
+  await f.store.upsertProduct(p,hash);
+  const row=f.row(1),baseProduct={...p,publicId:row.public_id,slug:row.slug,title:'Cleared crab identity',
+    description:p.wittyDescription,imageUrl:'/images/gift-placeholder.svg',qualityScore:.85,editorialQualityScore:.95,
+    sourceFactsHash:hash};
+  const baseRights=rights(baseProduct),base=createPersistentCatalogProduct({product:baseProduct,rights:baseRights},new Date(NOW));
+  assert.ok(base);assert.equal(base.indexable,true);
+  const display=direct||!known ? base : {...JSON.parse(row.public_display_json),persistent:base};
+  f.sqlite.prepare('UPDATE products SET public_display_json=?,rights_json=? WHERE id=?')
+    .run(canonicalJson(display),canonicalJson({...supplierRights,persistent:baseRights}),p.id);
+  // Local fixture receipt only: no vector dispatch or provider claim.
+  f.sqlite.prepare("UPDATE vector_sync_outbox SET status='complete',completed_at=?").run(NOW);
+  const owner=await readMutationOwner(f.db,f.owner);
+  let intent={reviewedDeleteReference:'test/exact-changed-state-review'};
+  const store=createD1CatalogMaintenanceStore({...f.options,owner,runId:'test-refresh',catalogRevision:'r-refresh',intent:()=>intent});
+  return {...f,p,hash,base,baseRights,supplierRights,store,useIntent(value){intent=value;}};
+}
+
+test('fresh merchant projection carries only existing exact permanent clearance and preserves native/source bytes',async()=>{
+  const f=await permanentFixture();try{
+    const before=f.row(1),native=f.state(1).embedding_native_base64,provenance=f.state(1).embedding_provenance_json;
+    const observedAt='2026-10-20T08:00:00.123Z',freshRights=structuredClone(f.supplierRights);
+    Object.assign(freshRights.imageUrl,{observedAt,expiresAt:'2026-10-21T08:00:00.123Z'});
+    f.setClock(observedAt);f.useIntent({rightsById:{[f.p.id]:freshRights},verificationById:{[f.p.id]:{
+      reference:'test/same-response-fresh-observation',observedAt,sourceFactsHash:f.hash}}});
+    const fresh={...f.p,embedding:undefined};await f.store.upsertProduct(fresh,f.hash);
+    const after=f.row(1),display=JSON.parse(after.public_display_json),permission=JSON.parse(after.rights_json);
+    assert.deepEqual(display.persistent,f.base);assert.deepEqual(f.state(1).product.persistentBase,f.base);
+    assert.deepEqual(permission,{...freshRights,persistent:f.baseRights});assert.equal(display.eligibleUntil,freshRights.imageUrl.expiresAt);
+    assert.equal(f.state(1).embedding_native_base64,native);assert.equal(f.state(1).embedding_provenance_json,provenance);
+    assert.equal(after.source_record_json,before.source_record_json);
+    assert.equal(f.events().filter(e=>e.status==='pending'&&e.operation==='upsert').length,1);
+    const epoch=f.epoch();await f.store.upsertProduct(fresh,f.hash);assert.equal(f.epoch(),epoch);assert.deepEqual(f.row(1),after);
+  }finally{f.close();}
+});
+
+test('elapsed supplier and editorial windows keep a direct base and original grants with no expiry-only vector work',async()=>{
+  for(const direct of [false,true]){
+    const f=await permanentFixture({direct});try{
+      const original=f.row(1),native=f.state(1).embedding_native_base64,proof=f.state(1).embedding_provenance_json,events=f.events();
+      f.setClock('2027-01-01T00:00:00.000Z');
+      await f.store.updateAmazonAffiliateUrl(f.p.id,f.p.affiliateUrl);
+      const row=f.row(1),display=JSON.parse(row.public_display_json);
+      assert.deepEqual(display,f.base);assert.equal(row.eligible_until,null);assert.equal('persistent' in display,false);
+      assert.equal(row.rights_json,original.rights_json);assert.equal(row.source_record_json,original.source_record_json);
+      assert.equal(f.state(1).embedding_native_base64,native);assert.equal(f.state(1).embedding_provenance_json,proof);
+      assert.equal(f.state(1).product.availabilityCheckedAt,NOW);assert.deepEqual(f.events(),events);
+      assert.equal(publicProductRightsExpiry(display,JSON.parse(row.rights_json),new Date('2027-01-01T00:00:00.000Z')),Infinity);
+      assert.doesNotThrow(()=>checkCurrent(display,{source_facts_hash:f.hash},row,new Date('2027-01-01T00:00:00.000Z')));
+      assert.equal((await getProductsByPublicIds(f.db,[row.public_id],new Date('2027-01-01T00:00:00.000Z'))).length,0);
+    }finally{f.close();}
+  }
+});
+
+test('public permanent truthiness never proves unknown native input or queues an upsert',async()=>{
+  const f=await permanentFixture({known:false});try{
+    const native=f.state(1).embedding_native_base64,proof=f.state(1).embedding_provenance_json;
+    await f.store.upsertProduct({...f.p,embedding:undefined},f.hash);
+    assert.deepEqual(JSON.parse(f.row(1).public_display_json),f.base);assert.equal(f.row(1).embedding_text_hash,null);
+    assert.equal(f.state(1).embedding_native_base64,native);assert.equal(f.state(1).embedding_provenance_json,proof);
+    assert.deepEqual(f.events(),[]);
+  }finally{f.close();}
+});
+
+test('facts drift or invalid current article strips only permanent article/indexability without renewing rights or native bytes',async()=>{
+  for(const changedFacts of [true,false]){
+    const f=await permanentFixture();try{
+      const original=f.row(1),native=f.state(1).embedding_native_base64,proof=f.state(1).embedding_provenance_json;
+      const p={...f.p,embedding:undefined,...(changedFacts ? {title:'Changed merchant crab facts',editorialStatus:'pending'}
+        : {editorialWriteup:'Invalid short replacement article.'})};
+      const hash=editorialSourceHash(p);await f.store.upsertProduct(p,hash);
+      const display=JSON.parse(f.row(1).public_display_json),expected={...f.base,indexable:false};delete expected.editorialWriteup;
+      assert.deepEqual(display,expected);assert.deepEqual(f.state(1).product.persistentBase,expected);
+      assert.equal(f.row(1).rights_json,original.rights_json);assert.equal(f.row(1).source_record_json,original.source_record_json);
+      assert.equal(f.state(1).embedding_native_base64,native);assert.equal(f.state(1).embedding_provenance_json,proof);
+      assert.equal(f.events().filter(e=>e.status==='pending'&&e.operation==='delete').length,1);
+      assert.equal(f.events().filter(e=>e.status==='pending'&&e.operation==='upsert').length,0);
+    }finally{f.close();}
+  }
+});
+
+test('current curation holds hide permanent display but retain private clearance for a genuine later release',async()=>{
+  for(const [patch,column,value] of [[{isActive:false},'is_active',0],[{duplicateOfProductId:'fixture-winner'},'duplicate_of_product_id','fixture-winner'],
+    [{qualityScore:'0.4000'},'quality_score',.4],[{editorialStatus:'needs_review'},'editorial_status','needs_review']]){
+    const held=await permanentFixture();try{
+      held.sqlite.prepare(`UPDATE products SET ${column}=? WHERE id=?`).run(value,held.p.id);
+      held.sqlite.prepare('UPDATE catalog_maintenance_products SET semantic_json=? WHERE product_id=?')
+        .run(canonicalJson({...held.state(1).product,...patch}),held.p.id);
+      await held.store.upsertProduct({...held.p,embedding:undefined,...patch},held.hash);
+      assert.equal(held.row(1).public_display_json,null);assert.deepEqual(held.state(1).product.persistentBase,held.base);
+    }finally{held.close();}
+  }
+  const f=await permanentFixture();try{
+    const state=f.state(1).product;state.editorialStatus='blocked';
+    f.sqlite.prepare("UPDATE products SET editorial_status='blocked' WHERE id=?").run(f.p.id);
+    f.sqlite.prepare('UPDATE catalog_maintenance_products SET semantic_json=? WHERE product_id=?').run(canonicalJson(state),f.p.id);
+    await f.store.upsertProduct({...f.p,embedding:undefined,editorialStatus:'blocked'},f.hash);
+    assert.equal(f.row(1).public_display_json,null);assert.deepEqual(f.state(1).product.persistentBase,f.base);
+    // Explicit local curation change, not a daily refresh inventing clearance.
+    const cleared=f.state(1).product;cleared.editorialStatus='generated_ready';
+    f.sqlite.prepare("UPDATE products SET editorial_status='generated_ready' WHERE id=?").run(f.p.id);
+    f.sqlite.prepare('UPDATE catalog_maintenance_products SET semantic_json=? WHERE product_id=?').run(canonicalJson(cleared),f.p.id);
+    f.sqlite.prepare("UPDATE vector_sync_outbox SET status='complete',completed_at=? WHERE status='pending'").run(NOW);
+    const store=createD1CatalogMaintenanceStore({...f.options,owner:await readMutationOwner(f.db,f.owner),
+      runId:'test-after-hold',catalogRevision:'r-after-hold',intent:()=>({reviewedDeleteReference:'test/after-hold'})});
+    f.setClock('2027-01-01T00:00:00.000Z');await store.updateAmazonAffiliateUrl(f.p.id,f.p.affiliateUrl);
+    assert.deepEqual(JSON.parse(f.row(1).public_display_json),f.base);
+  }finally{f.close();}
+});
+
+test('new products and revoked/mismatched permanent grants cannot gain automatic clearance',async()=>{
+  for(const revoke of [()=>({}),r=>({...r,title:{...r.title,value:'Unreviewed replacement'}})]){
+    const f=await permanentFixture();try{
+      f.useIntent({rightsById:{[f.p.id]:{persistent:revoke(f.baseRights)}},reviewedDeleteReference:'test/exact-revocation'});
+      await f.store.upsertProduct({...f.p,embedding:undefined},f.hash);assert.equal(f.row(1).public_display_json,null);
+    }finally{f.close();}
+  }
+  const g=await setup({intent:()=>({rightsById:{[id(1)]:{persistent: rights(input())}}})});try{
+    await g.store.upsertProduct(input(),editorialSourceHash(input()));
+    assert.equal(g.row(1).public_display_json,null);assert.equal(g.state(1).product.persistentBase,undefined);
+  }finally{g.close();}
+});
+
+test('changed optional short copy is not carried under an old exact permanent grant',async()=>{
+  const f=await permanentFixture();try{
+    const permission=f.row(1).rights_json;
+    await f.store.upsertProduct({...f.p,embedding:undefined,punnyTitle:'New unreviewed short title'},f.hash);
+    const display=JSON.parse(f.row(1).public_display_json),expected={...f.base};delete expected.punnyTitle;
+    assert.deepEqual(display,expected);assert.equal(f.row(1).rights_json,permission);
+    assert.equal(display.description,f.p.wittyDescription);assert.equal(display.editorialWriteup,f.p.editorialWriteup);
+  }finally{f.close();}
+});
 
 test('all11 methods are usable via explicit D1 construction; immutable archive/identity and private versus public separation',async () => {
   const original=rawProduct(1);const f=await setup({products:[original],presence:{[uuid(1)]:true}});

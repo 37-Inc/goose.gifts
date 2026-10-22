@@ -285,8 +285,9 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         ? evidence.sourceFactsHash === product.sourceFactsHash ? evidence.observedAt || null : null
         : archivedFactsMatch ? verification : null
       : null) || (merchantVerification ? rights.imageUrl!.observedAt! : null);
-    const projection = maintenanceProjection(product,rights,catalogRevision,now,known && factsMatch && Boolean(observedVerification),observedVerification);
-    const row: Row = { ...projection,embedding_text_hash:binding,timestamp_provenance_json:canonicalJson(timeProof),
+    const projection = maintenanceProjection(product,rights,catalogRevision,now,known && factsMatch && Boolean(observedVerification),observedVerification,old ?? undefined);
+    if (projection.persistentBase) product.persistentBase=projection.persistentBase;
+    const row: Row = { ...projection.row,embedding_text_hash:binding,timestamp_provenance_json:canonicalJson(timeProof),
       source_record_json: old?.row.source_record_json ?? canonicalJson({ kind:'maintenance_creation',schemaVersion:1,operationId,
         id:product.id,public_id:product.publicId,slug:product.slug,source:product.source,product:{...product,embedding:null} }) };
     const pending = (await all<{sequence:number}>('SELECT sequence FROM vector_sync_outbox WHERE public_id=? AND status=\'pending\' ORDER BY sequence',[product.publicId])).map(value => value.sequence);
@@ -316,8 +317,16 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
     [product.id,(old?.version || 0)+1,canonicalJson(semantic),present === null ? null : present ? 1 : 0,native,canonicalJson(provenance)]));
     statements.push(prepare(`DELETE FROM vector_sync_outbox WHERE public_id=? AND status='pending' AND attempts=0
       AND lease_token IS NULL AND lease_until IS NULL AND mutation_reference IS NULL`,[product.publicId]));
-    const needsDelete = !row.public_display_json && Boolean(old && (old.present !== false || old.row.embedding_text_hash || old.row.public_display_json));
-    const operation = row.public_display_json ? 'upsert' : needsDelete ? 'delete' : null;
+    const unchanged = old && !replacedEmbedding && ['title','currency','imageUrl','affiliateUrl','source','sourceQuery','humorTags',
+      'punnyTitle','wittyDescription','qualityScore','isActive','editorialWriteup','sourceFacts','sourceFactsHash','editorialSourceHash',
+      'availabilityStatus','editorialStatus','editorialQualityScore','editorialBlockReason','duplicateOfProductId']
+      .every(key=>canonicalJson(product[key] ?? null)===canonicalJson(old.product[key] ?? null))
+      && canonicalJson({...rights,persistent:null})===canonicalJson({...JSON.parse(String(old.row.rights_json)),persistent:null});
+    // Time passing alone cannot authorize vector deletion. Candidate eligibility
+    // remains strict; permanent display is never proof of a current native input.
+    const needsDelete = !projection.semanticEligible && !unchanged
+      && Boolean(old && (old.present !== false || old.row.embedding_text_hash || old.row.public_display_json));
+    const operation = projection.semanticEligible ? 'upsert' : needsDelete ? 'delete' : null;
     if (operation) {
       let payload: Row; let deleteHash: string | null = null;
       if (operation === 'delete' && binding === null) {

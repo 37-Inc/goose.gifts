@@ -269,6 +269,16 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-22 [owner+claude] — Preserve cleared catalog fields during maintenance
+
+Prepared daily D1 projection carry for an existing exact permanent base and its
+original grants, including private hold recovery. Changed facts/invalid articles
+lose only long copy and indexability; current curation still holds the listing.
+Finite native eligibility remains separate, original native/source bytes stay
+intact, and SQL time cannot renew merchant evidence or authorize vector deletion. Shared lookup
+`6fc02bb` keeps direct safe bases usable with retained merchant root evidence.
+Local SQL/store regressions pass; no provider calls or daily-writer activation.
+
 ### 2026-10-22 [owner+claude] — Prepare a bounded one-time migration budget
 
 Added an explicit checksum-bound migration-only REST profile requiring recent

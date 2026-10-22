@@ -1,7 +1,7 @@
 import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import type { CatalogSnapshot, ProductRights, PublicCatalogProduct } from '../../lib/catalog/types.ts';
 import { createProjectionPacket } from '../../lib/catalog/d1.ts';
-import { canonicalTime, EDITORIAL_MAX_AGE_MS, publicProductRightsExpiry,
+import { canonicalTime, EDITORIAL_MAX_AGE_MS, persistentDisplayRights, publicProductRightsExpiry,
   validateCatalogSnapshot, validatePublicCatalogProduct } from '../../lib/catalog/snapshot.ts';
 import { isPurchasableAvailability } from '../../lib/gift-slugs.ts';
 import { catalogDisplayDeadline, persistentPublicProduct } from '../../lib/catalog/display.ts';
@@ -311,7 +311,7 @@ export function checkCurrent(product: PublicCatalogProduct, projection: Row, cur
       || canonicalJson(persistent) !== canonicalJson(currentPersistent)
       || persistent.indexable && (!['generated_ready', 'manual_locked'].includes(String(current.editorial_status))
         || current.source_facts_hash !== current.editorial_source_hash)
-      || publicProductRightsExpiry(persistent, approved.eligibleUntil === null ? rights : rights.persistent ?? {}, now) !== Infinity)
+      || publicProductRightsExpiry(persistent, approved.eligibleUntil === null ? persistentDisplayRights(rights) : rights.persistent ?? {}, now) !== Infinity)
       throw new Error('current_rights_incompatible');
     // Final publication SQL separately rechecks current reviewed-copy provenance.
     // No supplier observation time, availability or deadline is renewed here.

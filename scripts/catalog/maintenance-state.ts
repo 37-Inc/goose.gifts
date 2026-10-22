@@ -1,7 +1,9 @@
 import { canonicalJson, canonicalTimestamp, moneyToMinor, sha256 } from './migration.ts';
-import { createCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
-import type { ProductRights, SnapshotProductInput } from '../../lib/catalog/types.ts';
+import { createCatalogSnapshot, createPersistentCatalogProduct, persistentDisplayRights, publicProductRightsExpiry,
+  validatePublicCatalogProduct } from '../../lib/catalog/snapshot.ts';
+import type { DisplayRights, PersistentCatalogProduct, ProductRights, SnapshotProductInput } from '../../lib/catalog/types.ts';
 import { isPurchasableAvailability } from '../../lib/gift-slugs.ts';
+import { editorialSourceHash, validateEditorialDraft } from '../ops/catalog-editorial-core.mjs';
 
 export type Row = Record<string, unknown>;
 /** Private PG semantics, not a public DTO. Existing wall times stay opaque. */
@@ -17,6 +19,8 @@ export interface SemanticProduct {
   editorialPromptVersion: string | null; editorialGeneratedAt: string | null; editorialBlockReason: string | null;
   duplicateOfProductId: string | null; contentUpdatedAt: string | null; availabilityCheckedAt: string | null;
   lastVerifiedAt: string | null; createdAt: string | null; updatedAt: string | null;
+  /** Exact existing nonmerchant clearance, retained privately through curation holds. */
+  persistentBase?: PersistentCatalogProduct;
 }
 const FIELDS = ['id','title','price','currency','imageUrl','affiliateUrl','source','sourceQuery','humorTags','punnyTitle',
   'wittyDescription','qualityScore','rating','reviewCount','isActive','editorialWriteup','sourceFacts','sourceFactsHash',
@@ -122,8 +126,41 @@ export function maintenanceTimeOrder(a: unknown,b: unknown,nullsFirst: boolean):
   const at=explicitMaintenanceTime(a);const bt=explicitMaintenanceTime(b);
   return at < bt ? -1 : at > bt ? 1 : 0;
 }
+/** Recover clearance only from an existing saved base, never from fresh grants
+ * or merchant fields. Current factual/curation checks still decide its display. */
+function retainedBase(previous: { row: Row; product: SemanticProduct } | undefined, p: SemanticProduct,
+  rights: ProductRights, now: Date) {
+  if (!previous) return null;
+  try {
+    const oldRights = JSON.parse(String(previous.row.rights_json)) as ProductRights;
+    const saved = JSON.parse(String(previous.row.public_display_json));
+    const candidate = saved?.eligibleUntil === null ? saved : saved?.persistent ?? previous.product.persistentBase;
+    if (!candidate) return null;
+    const base = structuredClone(validatePublicCatalogProduct(candidate, now)) as PersistentCatalogProduct;
+    const permission: DisplayRights = persistentDisplayRights(oldRights);
+    if (base.eligibleUntil !== null || ['id','publicId','slug','source','currency'].some(key => base[key as keyof typeof base] !== p[key])
+      || publicProductRightsExpiry(base, permission, now) !== Infinity
+      || rights.persistent && canonicalJson(rights.persistent) !== canonicalJson(permission)) return null;
+    // A committed identity label is independent of changing merchant titles.
+    // Authored short copy can carry only while its exact current value remains.
+    if (base.description !== base.title && base.description !== p.description && base.description !== p.wittyDescription) return null;
+    for (const field of ['punnyTitle','wittyDescription','humorTags'] as const) {
+      if (canonicalJson(base[field] ?? null) !== canonicalJson(p[field] ?? null)) delete base[field];
+    }
+    if (base.editorialWriteup && (previous.row.source_facts_hash !== p.sourceFactsHash
+      || p.editorialWriteup !== base.editorialWriteup || p.editorialSourceHash !== p.sourceFactsHash || !(Number(p.editorialQualityScore) >= .8)
+      || editorialSourceHash(p) !== p.sourceFactsHash || !validateEditorialDraft(p, base.editorialWriteup).approved)) {
+      delete base.editorialWriteup; base.indexable = false;
+    }
+    const product = { ...base, isActive:p.isActive, duplicateOfProductId:p.duplicateOfProductId,
+      qualityScore:p.qualityScore === null ? undefined : Number(p.qualityScore), editorialStatus:p.editorialStatus,
+      editorialQualityScore:p.editorialQualityScore === null ? undefined : Number(p.editorialQualityScore),
+      sourceFactsHash:p.sourceFactsHash, editorialSourceHash:p.editorialSourceHash } as unknown as SnapshotProductInput;
+    return { saved:base, rights:permission, display:createPersistentCatalogProduct({product,rights:permission},now) };
+  } catch { return null; } // Unknown/corrupt clearance never becomes a public grant.
+}
 export function maintenanceProjection(p: SemanticProduct, rights: ProductRights, revision: string, now: string,
-  provenInput: boolean, observedVerification: string | null) {
+  provenInput: boolean, observedVerification: string | null, previous?: { row: Row; product: SemanticProduct }) {
   const input = { ...p, price: Number(p.price), qualityScore: p.qualityScore === null ? undefined : Number(p.qualityScore),
     editorialQualityScore: p.editorialQualityScore === null ? undefined : Number(p.editorialQualityScore),
     // PG's mutation NOW is retained in the private/typed row, but publishing
@@ -131,15 +168,20 @@ export function maintenanceProjection(p: SemanticProduct, rights: ProductRights,
     availabilityCheckedAt: observedVerification || undefined, lastVerifiedAt: undefined,
     humorTags: p.humorTags || undefined } as unknown as SnapshotProductInput;
   // A rights grant does not prove source facts or the vector's current input.
-  let display;
+  let supplier;
   if (provenInput && /^[a-f0-9]{64}$/.test(p.sourceFactsHash || '')) {
-    try { display=createCatalogSnapshot([input], { [p.id]: rights }, { catalogRevision: revision, now: new Date(now) }).products[0]; }
+    try { supplier=createCatalogSnapshot([input], { [p.id]: rights }, { catalogRevision: revision, now: new Date(now) }).products[0]; }
     catch { /* Invalid display data stays private/held; never rewrite the SQL semantic payload. */ }
   }
+  const base=retainedBase(previous,p,rights,new Date(now));
+  const display=supplier ? {...supplier,...(base?.display ? {persistent:base.display} : {})} : base?.display;
+  // Preserve supplier evidence/deadlines even when only the permanent view is
+  // displayable. Its independent exact grants remain in their existing lane.
+  const storedRights=base ? {...rights,persistent:base.rights} : rights;
   // Postgres permits negative numeric prices; retain them privately but never
   // turn a nonpositive/unknown price into a public offer or invalid D1 amount.
   const price = Number(p.price) > 0 ? moneyToMinor(p.price, p.currency) : null;
-  return { id: p.id, public_id: p.publicId, slug: p.slug, source: p.source,
+  return { semanticEligible:Boolean(supplier), persistentBase:base?.saved, row:{ id: p.id, public_id: p.publicId, slug: p.slug, source: p.source,
     title: display?.title || '', description: display?.description || '', tags: display?.humorTags?.join(' ') || '',
     price_minor: price, currency: p.currency, quality_score: p.qualityScore === null ? null : Number(p.qualityScore),
     is_active: p.isActive ? 1 : 0, duplicate_of_product_id: p.duplicateOfProductId ?? null,
@@ -147,7 +189,7 @@ export function maintenanceProjection(p: SemanticProduct, rights: ProductRights,
     availability_checked_at: p.availabilityCheckedAt, last_verified_at: p.lastVerifiedAt,
     source_facts_hash: p.sourceFactsHash, editorial_source_hash: p.editorialSourceHash,
     catalog_revision: revision, eligible_until: display?.eligibleUntil || null,
-    public_display_json: display ? canonicalJson(display) : null, rights_json: canonicalJson(rights),
-    created_at: p.createdAt, updated_at: p.updatedAt };
+    public_display_json: display ? canonicalJson(display) : null, rights_json: canonicalJson(storedRights),
+    created_at: p.createdAt, updated_at: p.updatedAt } };
 }
 export function maintenanceDigest(value: unknown): string { return sha256(canonicalJson(value)); }

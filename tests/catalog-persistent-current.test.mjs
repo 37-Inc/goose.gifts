@@ -29,6 +29,16 @@ test('current-row checks preserve cleared listings without renewing supplier or 
     assert.equal(JSON.stringify(f), bytes);
   }
 });
+test('a direct base selects its original nested grants without replacing or renewing merchant root evidence',()=>{
+  const f=fixture(),baseRights=JSON.parse(f.current.rights_json);
+  const merchant={title:{basis:'merchant',reference:'Original supplier receipt',value:'Expired supplier title',
+    observedAt:'2020-01-01T00:00:00.000Z',expiresAt:'2020-01-02T00:00:00.000Z'}};
+  f.current.rights_json=JSON.stringify({...merchant,persistent:baseRights});const bytes=JSON.stringify(f);
+  assert.doesNotThrow(()=>checkCurrent(f.product,f.projection,f.current,now));assert.equal(JSON.stringify(f),bytes);
+  for(const persistent of [{},{...baseRights,title:{...baseRights.title,value:'Unapproved replacement'}}]){
+    assert.throws(()=>checkCurrent(f.product,f.projection,{...f.current,rights_json:JSON.stringify({...merchant,persistent})},now));
+  }
+});
 test('permanent current-row checks still reject original curation, factual drift and exact-grant revocation', () => {
   for (const nested of [false, true]) for (const update of [{ is_active: 0 }, { duplicate_of_product_id: 'winner' },
     { quality_score: .1 }, { editorial_status: 'blocked' }, { editorial_status: 'needs_review' },
