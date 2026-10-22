@@ -24,6 +24,14 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **October22 local full-union rollback opt-in** [owner+claude]: separate
+  function-only native drill input binds both cooperative captures, the exact
+  completed owned union/all24 tables and inverse sequence proof. Default
+  synthetic-only refusal, native-byte checks, fresh network-none Docker and
+  owned cleanup remain. Dated audit/ACL limitations and unverified provenance
+  stay explicit. Offline tests are not the actual native drill or broad public
+  catalog publication; `roadmap-lbbz1.3.2` and daily-writer gates remain open.
+
 - **Owner correction — finish the full catalog, preserve products:** eight
   visible gifts is only the launch slice. `roadmap-lbbz1.3.2` requires actual
   source/production reconciliation, persistent original catalog fields and
