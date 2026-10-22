@@ -8,7 +8,10 @@ The current plan is [Stupid Gifts launch and infrastructure](STUPID_GIFTS_LAUNCH
 tracked by `roadmap-lbbz1`: static Next/React builds on Cloudflare Workers,
 D1/Vectorize, recoverable data migration, and a curated show-focused redesign.
 The owner subsequently authorized implementation and staged migration with
-bounded Sol sub-agents and independent review. Production cutover has not occurred.
+bounded Sol sub-agents and independent review. The new public domain is live
+on Cloudflare Free with eight reviewed products; full writer/data/redirect
+migration remains open. The existing daily job now forbids the old Neon entry
+while engineering completes the tested new-site D1 maintenance contract.
 October 21: Cameron explicitly authorizes immediate `stupid.gifts` launch as
 soon as essential content/routing/recovery checks pass. No wait for tomorrow,
 a broadcast date or another design approval. Combine brand/hosting cutover

@@ -56,21 +56,17 @@ Boundaries (always in force):
 
 As of October 21, `https://stupid.gifts/` is public on Cloudflare Free with an
 eight-product reviewed launch cohort. The old Goose site remains on
-Vercel/Neon; the sole merchant/discovery runner is still Neon-backed. Public
-D1 serving is a replica, not permission for a second merchant fetch or source
-writer. Full migration and old-domain redirects remain separate open gates.
-The bounded same-response daily publisher is still being validated; never
-equate a maintenance receipt with a refreshed public release. See the current
+Vercel/Neon as rollback. On October 21 at 18:23 Pacific, Cameron authorized
+completing the new-site writer migration and disabling the old-site daily
+writer. The existing `goose-gifts-daily-ops` task is the sole operator: daily
+08:30 Pacific, up to ten existing products per Pacific day across retries, with
+six-theme discovery on Mondays admitting at most twenty new products.
+Tuesday–Sunday remains model-free. **Do not run the old Neon daily/canary or
+weekly entry.** Its saved task now holds before maintenance until the tested
+D1 writer, credentials, source-write barrier/delta and publication contract
+are documented and verified in `roadmap-lbbz1.4`. An ACTIVE timer or readiness
+check alone does not establish that the new writer is enabled. See the current
 production checkpoint in `STUPID_GIFTS_STAGING.md`.
-
-Until `roadmap-lbbz1.4` records the final source-write barrier, delta
-reconciliation, protected credentials and verified publication, use
-`npm run catalog:daily -- --backend neon --no-notify` with the existing
-Production bootstrap. The existing `goose-gifts-daily-ops` task is the sole
-operator: daily at 08:30 Pacific, up to ten existing products per Pacific day,
-with six-theme discovery on Mondays only. Do not run the old weekly command
-as well: its 50 refreshes and editorial backfill exceed this approved policy.
-Do not select D1 because a readiness check passes.
 
 Stay on Cloudflare Free. Demonstrate an actual usage or required-feature limit
 and assess a bounded Free-plan alternative before asking Cameron for explicit
@@ -92,9 +88,17 @@ until verified finalization. Its maintained release is active, but the original
 earlier unknown metadata GET retained. Actual owner: activating, generation3 /
 epoch27. Do not consume another merchant allowance, start over, raise/reset the
 budget, upload/reactivate, purge its unexpired inputs, or advance its checkout.
-The owner has been asked about a separately journaled recovery allowance and
-future request ceiling; approval is not assumed. The task's first-step guard
-reports attention while this remains unresolved. This does not suspend local
+The owner approved the separately journaled 150 HTTP / 300 SQL recovery allowance
+and future 800 HTTP / unchanged 1,200 SQL guard. That one recovery grant is applied;
+the immutable original manifest and consumed charges are unchanged. The latest
+accounted readback is 663 HTTP / 1,084 SQL, with two unknown reservations retained,
+against a derived 750 HTTP / 1,329 SQL ceiling. The actual D1 publication receipt
+matches the original intent and reports published, but owner/build settlement
+is still activating: a three-second observation timeout interrupts full proof.
+Do not blindly retry; use only the separately reviewed bounded-observation
+correction and original-permit acknowledgement path. No new upload, activation,
+merchant/model call, lease renewal or quota reset is permitted by this recovery.
+The task's first-step guard reports attention while unresolved. This does not suspend local
 registered-body expiry cleanup: purge only expired registered bodies and retain
 the minimal recovery controls, then report attention without provider calls or
 another merchant run. If an approved recovery grant is actually journaled, the
@@ -113,12 +117,12 @@ Review unsafe, legacy or interrupted-run reports; never delete a lock, reset a
 reservation, adopt another checkout's output, or erase history to force progress.
 The daily command reserves its allowance before dispatch; failures and retries
 do not buy another batch that day. A skipped repeat is expected, not a failure.
-While the fresh migration canary in `roadmap-lbbz1.4.3` remains open, the saved
-task uses its separately SHA-pinned private `run-daily-canary.mts` helper as
-the **sole** Neon maintenance entry, after the same env refresh and purge.
-It captures the original response without a second fetch; never also run the
-regular daily command. Missing/changed helper bytes require review. Capture
-does not prove rights or publication; retain the original observation/expiry.
+The earlier SHA-pinned private `run-daily-canary.mts` was the sole Neon entry;
+it is now disabled by the owner's new-site-only direction. Keep its original
+response and consumed allowance as historical evidence, not a runnable fallback.
+Future D1 maintenance must preserve same-response evidence without a second
+merchant fetch. Missing/changed helper bytes require review. Capture does not
+prove rights or publication; retain the original observation/expiry.
 Tuesday–Sunday refreshes make no model calls. On Monday, changed/missing
 editorial or vectors may be enriched only within the same reserved ten-product
 selection and original merchant response; unchanged approved content/vectors
