@@ -11,7 +11,7 @@ const HASH = 'a'.repeat(64);
 const PUBLIC_ID = '00000000-0000-4000-8000-000000000001';
 async function setup() {
   const sqlite = new DatabaseSync(':memory:');
-  for (const name of ['0001_catalog.sql', '0002_public_projections.sql', '0003_publication_outbox.sql'])
+  for (const name of ['0001_catalog.sql', '0002_public_projections.sql', '0003_publication_outbox.sql', '0010_catalog_maintenance.sql'])
     sqlite.exec(await readFile(new URL(`../migrations/d1/${name}`, import.meta.url), 'utf8'));
   let clock = NOW;
   // Model the D1 execution clock, independently of timestamps captured before adapter I/O.

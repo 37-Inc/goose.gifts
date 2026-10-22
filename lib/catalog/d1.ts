@@ -63,9 +63,18 @@ const BASE_RIGHTS=`(CASE WHEN json_type(p.public_display_json,'$.eligibleUntil')
 const baseGrant=(key:string)=>`json_extract(${BASE_RIGHTS},'$.'||field.value||'.${key}')`;
 const baseDisplay=`json_extract(${V_BASE},'$.'||field.value)`;
 const editorial=`json_extract(${V_BASE},'$.editorialWriteup')`;
+// Maintained semantics supersede the immutable archive; missing current copy
+// evidence must not fall back to an older, higher-quality editorial record.
+const currentCopy = (maintained:string,archived:string) => `(CASE WHEN m.product_id IS NULL
+  THEN json_extract(p.source_record_json,'$.${archived}') ELSE json_extract(m.semantic_json,'$.${maintained}') END)`;
+const currentEditorial=currentCopy('editorialWriteup','editorial_writeup');
+const currentEditorialQuality=currentCopy('editorialQualityScore','editorial_quality_score');
+const reviewedQuality=`CASE WHEN json_valid(${currentEditorialQuality}) THEN CASE
+  WHEN json_type(${currentEditorialQuality}) IN ('integer','real') THEN CAST(${currentEditorialQuality} AS REAL) END END`;
 const words=[9,10,11,12,13,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279]
   .reduce((text,code)=>`replace(${text},char(${code}),' ')`,editorial);
 const PERSISTENT_VISIBLE=`coalesce(p.is_active=1 AND p.duplicate_of_product_id IS NULL AND p.quality_score>=0.55
+  AND p.editorial_status NOT IN ('blocked','needs_review')
   AND v.source_facts_hash=p.source_facts_hash AND json_type(${V_BASE})='object' AND json_type(${P_BASE})='object'
   AND json_type(${BASE_RIGHTS})='object' AND json_type(${V_BASE},'$.eligibleUntil')='null'
   AND json_type(${P_BASE},'$.eligibleUntil')='null'
@@ -80,7 +89,13 @@ const PERSISTENT_VISIBLE=`coalesce(p.is_active=1 AND p.duplicate_of_product_id I
   AND NOT EXISTS(${displayValues(V_BASE)} EXCEPT ${displayValues(P_BASE)})
   AND NOT EXISTS(${displayValues(P_BASE)} EXCEPT ${displayValues(V_BASE)})
   AND (json_extract(${V_BASE},'$.indexable')=0 OR (p.editorial_status IN ('generated_ready','manual_locked')
-    AND p.source_facts_hash=p.editorial_source_hash AND length(${editorial})>=500
+    AND p.source_facts_hash=p.editorial_source_hash AND ${reviewedQuality} BETWEEN 0.8 AND 1
+    AND ${currentEditorial}=${editorial}
+    AND ${currentCopy('id','id')}=p.id AND ${currentCopy('publicId','public_id')}=p.public_id
+    AND ${currentCopy('slug','slug')}=p.slug
+    AND ${currentCopy('sourceFactsHash','source_facts_hash')}=p.source_facts_hash
+    AND ${currentCopy('editorialSourceHash','editorial_source_hash')}=p.editorial_source_hash
+    AND ${currentCopy('editorialStatus','editorial_status')}=p.editorial_status AND length(${editorial})>=500
     AND instr(replace(replace(replace(${editorial},char(13),''),char(9),''),' ',''),char(10)||char(10))>0
     AND (SELECT count(*) FROM json_each('['||replace(json_quote(${words}),' ','","')||']') WHERE length(value)>0)>=90))
   AND NOT EXISTS(SELECT 1 FROM json_each('["title","description","imageUrl","affiliateUrl","editorialWriteup","punnyTitle","wittyDescription","humorTags"]') field
@@ -98,7 +113,8 @@ const SEMANTIC_DISPLAY=`CASE WHEN ${PERSISTENT_VISIBLE} THEN v.public_display_js
 // Start with revision/FTS candidates, then inspect each current product by its
 // unique identity. Do not let the planner start with all active products.
 const JOIN = `CROSS JOIN products p ON p.id=v.product_id AND p.public_id=v.public_id
-  JOIN catalog_projection_receipts r ON r.catalog_revision=v.catalog_revision`;
+  JOIN catalog_projection_receipts r ON r.catalog_revision=v.catalog_revision
+  LEFT JOIN catalog_maintenance_products m ON m.product_id=p.id`;
 
 async function hash(value: string): Promise<string> {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));

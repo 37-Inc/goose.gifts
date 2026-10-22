@@ -23,11 +23,12 @@ function rights(product) {
     .filter(field => field in product).map(field => [field, { basis: 'licensed', reference: 'Controlled test-only permission',
       value: field === 'humorTags' ? JSON.stringify(product[field]) : product[field] }]));
 }
-async function setup({persistentSchema=true}={}) {
+async function setup({persistentSchema=true,sourceRecord={}}={}) {
   const sqlite = new DatabaseSync(':memory:');
   sqlite.exec('PRAGMA foreign_keys=ON');
   sqlite.exec(await readFile(new URL('../migrations/d1/0001_catalog.sql', import.meta.url), 'utf8'));
   sqlite.exec(await readFile(new URL('../migrations/d1/0002_public_projections.sql', import.meta.url), 'utf8'));
+  sqlite.exec(await readFile(new URL('../migrations/d1/0010_catalog_maintenance.sql',import.meta.url),'utf8'));
   if(persistentSchema)sqlite.exec(await readFile(new URL('../migrations/d1/0013_persistent_public_products.sql',import.meta.url),'utf8'));
   sqlite.function('strftime', (format, instant) => {
     assert.equal(format, '%Y-%m-%dT%H:%M:%fZ'); assert.equal(instant, 'now'); return NOW.toISOString();
@@ -36,7 +37,7 @@ async function setup({persistentSchema=true}={}) {
     availability_status,source_facts_hash,editorial_source_hash,catalog_revision,eligible_until,rights_json,source_record_json,updated_at,public_display_json)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run('B000000001', PUBLIC_ID, 'funny-button', 'amazon', 'current operational title', 'USD', .8, 1,
       'generated_ready', 'IN_STOCK', HASH, HASH, 'operational-newer', new Date(NOW.getTime() + 2 * 86400_000).toISOString(),
-      JSON.stringify(rights(snapshot('operational').products[0])), '{}', NOW.toISOString(), JSON.stringify(snapshot('operational').products[0]));
+      JSON.stringify(rights(snapshot('operational').products[0])), JSON.stringify(sourceRecord), NOW.toISOString(), JSON.stringify(snapshot('operational').products[0]));
   sqlite.prepare('UPDATE products SET availability_checked_at=?').run(NOW.toISOString());
   const db = { prepare(sql) { let values = []; return {
     bind(...parameters) { values = parameters; return this; },
@@ -300,6 +301,7 @@ test('permanent listing requires exact current grants/base and preserves genuine
     f=>{f.value.products[0].persistent={...f.base,title:'Changed approved identity'};},
     f=>f.sqlite.exec('UPDATE products SET is_active=0'),f=>f.sqlite.exec("UPDATE products SET duplicate_of_product_id='winner'"),
     f=>f.sqlite.exec('UPDATE products SET quality_score=.1'),f=>f.sqlite.exec("UPDATE products SET source_facts_hash='changed'"),
+    f=>f.sqlite.exec("UPDATE products SET editorial_status='blocked'"),f=>f.sqlite.exec("UPDATE products SET editorial_status='needs_review'"),
   ]){
     const f=await persistentSetup();try{
       mutate(f);f.sqlite.prepare('UPDATE products SET public_display_json=?,rights_json=?').run(JSON.stringify(f.value.products[0]),JSON.stringify(f.grants));
@@ -321,16 +323,44 @@ test('revoked supplier grant falls back to a cleared base, never an unproven nes
     assert.deepEqual(await getRevisionProductsByPublicIds(f.db,[PUBLIC_ID],NOW,'persistent'),[]);
   }finally{f.close();}
 });
+test('explicit review holds override standalone and nested identity-only permanent listings',async()=>{
+  for(const standalone of [false,true])for(const status of ['blocked','needs_review']){
+    const f=await persistentSetup({standalone});try{
+      f.sqlite.prepare('UPDATE products SET editorial_status=?').run(status);
+      const late=new Date(NOW.getTime()+40*86400_000);
+      assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'persistent'),[]);
+      assert.deepEqual(await getListedRevisionProductsByPublicIds(f.db,[PUBLIC_ID],late,'persistent'),[]);
+      assert.equal((await rollbackPreflight(f.db,f.value,late)).ok,false);
+      const q=visibleRevisionCountQuery('persistent',late);assert.equal(Object.values(f.sqlite.prepare(q.sql).get(...q.params))[0],0);
+    }finally{f.close();}
+  }
+});
 test('indexable permanent bases require substantive cleared text and current reviewed factual agreement',async()=>{
   for(const separator of ['\n\n','\r\n \t\r\n']){
-    const f=await setup();try{
-      const base={...persistentProduct(),indexable:true,humorTags:['independent','λ'],editorialWriteup:
-        Array(2).fill(Array(48).fill('Specific useful independently authored details.').join(' ')).join(separator)};
+    const base={...persistentProduct(),indexable:true,humorTags:['independent','λ'],editorialWriteup:
+      Array(2).fill(Array(48).fill('Specific useful independently authored details.').join(' ')).join(separator)};
+    const original={id:base.id,public_id:base.publicId,slug:base.slug,source_facts_hash:HASH,editorial_source_hash:HASH,
+      editorial_status:'generated_ready',editorial_quality_score:'0.9000',editorial_writeup:base.editorialWriteup};
+    const f=await setup({sourceRecord:original});try{
       const value=snapshot('substantive');value.products[0]={...value.products[0],persistent:base};
       const grants={...rights(value.products[0]),persistent:rights(base)};
       f.sqlite.prepare('UPDATE products SET public_display_json=?,rights_json=?').run(JSON.stringify(value.products[0]),JSON.stringify(grants));
       await importPublicProjection(f.db,await packet(value));const late=new Date(NOW.getTime()+40*86400_000);
       assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'substantive'),[base]);
+      const current={id:base.id,publicId:base.publicId,slug:base.slug,sourceFactsHash:HASH,editorialSourceHash:HASH,
+        editorialStatus:'generated_ready',editorialQualityScore:'0.9000',editorialWriteup:base.editorialWriteup};
+      f.sqlite.prepare('INSERT INTO catalog_maintenance_products VALUES(?,1,?,NULL,NULL,?)').run(base.id,JSON.stringify(current),'{}');
+      assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'substantive'),[base]);
+      for(const delta of [{editorialQualityScore:'0.7999'},{editorialQualityScore:null},{editorialQualityScore:'0.9junk'},
+        {editorialWriteup:`${base.editorialWriteup} changed`},{editorialWriteup:null},{editorialSourceHash:'changed'},
+        {sourceFactsHash:'changed'},{id:'another-product'},{editorialStatus:'manual_locked'}]){
+        f.sqlite.prepare('UPDATE catalog_maintenance_products SET semantic_json=?').run(JSON.stringify({...current,...delta}));
+        assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'substantive'),[],JSON.stringify(delta));
+        assert.deepEqual(await getListedRevisionProductsByPublicIds(f.db,[PUBLIC_ID],late,'substantive'),[]);
+        const q=visibleRevisionCountQuery('substantive',late);assert.equal(Object.values(f.sqlite.prepare(q.sql).get(...q.params))[0],0);
+        assert.equal((await rollbackPreflight(f.db,value,late)).ok,false);
+      }
+      f.sqlite.prepare('UPDATE catalog_maintenance_products SET semantic_json=?').run(JSON.stringify(current));
       delete grants.persistent.humorTags;f.sqlite.prepare('UPDATE products SET rights_json=?').run(JSON.stringify(grants));
       assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'substantive'),[]);
       f.sqlite.prepare('UPDATE products SET rights_json=?,editorial_status=?').run(JSON.stringify({...grants,persistent:rights(base)}),'pending');
