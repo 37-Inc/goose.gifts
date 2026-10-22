@@ -193,10 +193,16 @@ test('current value rights and deadlines govern IDs, FTS, visible counts and rol
 test('canonical timestamp permission checks avoid D1 long-pattern limits and accept real leap dates', async () => {
   // Actual D1 rejected the previous long GLOB pattern although native SQLite
   // accepted it. Exercise the real predicate, not a duplicate date formatter.
-  assert.doesNotMatch(visibleRevisionCountQuery('r1', NOW).sql, /\bGLOB\b/i);
+  const sql=visibleRevisionCountQuery('r1',NOW).sql;
+  const patterns=[...sql.matchAll(/\bGLOB\s+'([^']*)'/gi)].map(match=>match[1]);
+  assert.ok(patterns.length>0);assert.ok(patterns.every(pattern=>pattern==='*[^a-f0-9]*'&&pattern.length<32));
+  const factualGuard=sql.match(/typeof\(p.source_facts_hash\)='text' AND length\(p.source_facts_hash\)=64 AND p.source_facts_hash NOT GLOB '\*\[\^a-f0-9\]\*'/)?.[0];
+  assert.ok(factualGuard,'only the bounded hexadecimal guard may use GLOB, never timestamp matching');
   for (const expiresAt of ['2028-02-29T12:00:00.000Z', '2028-02-29T23:59:59.999Z']) {
     const f = await setup();
     try {
+      for(const [facts,valid]of [[HASH,1],['0'.repeat(64),1],['A'.repeat(64),0],['g'.repeat(64),0],['a'.repeat(63),0],['a'.repeat(65),0],[null,0]])
+        assert.equal(f.sqlite.prepare(`SELECT ${factualGuard} valid FROM(SELECT ? source_facts_hash) p`).get(facts).valid,valid);
       const value = snapshot('r1'); await importPublicProjection(f.db, await packet(value));
       const grants = rights(value.products[0]); grants.title.expiresAt = expiresAt;
       f.sqlite.prepare('UPDATE products SET rights_json=?').run(JSON.stringify(grants));

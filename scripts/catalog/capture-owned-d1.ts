@@ -51,6 +51,8 @@ async function schema(db:CatalogD1):Promise<SchemaRow[]>{
   }
   return rows;
 }
+/** Same bounded exact schema bytes; no ownership or capture authority implied. */
+export { schema as readCaptureSchema };
 async function checkSchema(rows:SchemaRow[]){
   const names=new Set(rows.filter(r=>r.type==='table').map(r=>r.name));
   if(D1_RECOVERY_TABLES.some(t=>!names.has(t))||[...names].some(t=>!D1_RECOVERY_TABLES.includes(t)

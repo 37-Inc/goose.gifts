@@ -6,6 +6,7 @@ import { createProjectionPacket, projectionQueries } from './d1.ts';
 import { canonicalTime, validateCatalogSnapshot } from './snapshot.ts';
 import { encodeBuildRequest } from './build-requests.ts';
 import type { CatalogBuildRequest } from './build-requests.ts';
+import type { PublishedCatalogBinding } from './publication.ts';
 import { mutationAdvance, mutationAssertion, mutationFenceQuery, unabandonedImportsQuery } from './mutation-fence.ts';
 import type { MutationOwner, MutationScope } from './mutation-fence.ts';
 import { checkCurrent, assertPruningCurrent, readOwnedProjection, readPruningSource } from '../../scripts/catalog/export-d1-snapshot.ts';
@@ -26,11 +27,21 @@ export interface PrunedRevision {
   priorRow: Row; sourceDigest: string; globalVectorWatermark: number; vectorSyncWatermark: number; operationKey: string;
   /** Explicit approved-cohort candidates excluded by current policy/dedup. */
   additionalAbsentIds?: string[];
+  /** One-time migration reads old native bytes/metadata, never promotes them. */
+  nativePreservation?: HistoricalNativeBinding;
+}
+export interface HistoricalNativeBinding {
+  source:PublishedCatalogBinding['source'];revisionSha256:string;plan:Omit<PrunedVectorPlan,'preserved'>;
 }
 export interface PrunedVectorPlan extends MutationScope {
   catalogRevision: string; snapshotSha256: string; globalWatermark: number;
   products: Array<{ publicId: string; sourceFactsHash: string; embeddingTextHash: string | null }>;
   absentIds: string[];
+  preserved?:HistoricalNativeBinding;
+}
+export function prunedVectorIds(plan:PrunedVectorPlan):string[]{
+  return [...new Set([...plan.products.map(p=>p.publicId),...plan.absentIds,
+    ...(plan.preserved?[...plan.preserved.plan.products.map(p=>p.publicId),...plan.preserved.plan.absentIds]:[])])];
 }
 /** Trusted read-only orchestration, not an HTTP body asserting success. It must
  * prove all in-flight index writers settled, exact UUID coverage, target revision
@@ -194,16 +205,23 @@ export async function pruneExistingRevision(db: CatalogD1, owner: MutationOwner,
   try { return await prune(db, owner, request); } catch (error) { throw safeFailure(error); }
 }
 export function prunedVectorPlan(revision: PrunedRevision): PrunedVectorPlan {
+  if(revision.nativePreservation)return{...revision.request.scope,catalogRevision:revision.snapshot.catalogRevision,
+    snapshotSha256:revision.packet.receipt.snapshot_sha256,globalWatermark:revision.globalVectorWatermark,
+    products:[],absentIds:[],preserved:structuredClone(revision.nativePreservation)};
   const rows = new Map(revision.sourceRows.map(row => [row.public_id, row]));
   const ready = new Set(revision.snapshot.products.map(product => product.publicId));
+  // Permanent keyword/listing clearance is not an embedding-input or supplier
+  // observation grant. Only the finite semantic lane needs revision promotion.
+  const semantic = revision.snapshot.products.filter(product => product.eligibleUntil !== null
+    && (!revision.request.context||Date.parse(product.eligibleUntil)>Date.parse(revision.request.context.cutoff)));
   const absent = revision.request.previous.products.filter(product => !ready.has(product.publicId)).map(product => product.publicId);
-  if (revision.snapshot.products.some(product => {
+  if (semantic.some(product => {
     const value = rows.get(product.publicId)?.embedding_text_hash;
     return value !== null && (typeof value !== 'string' || !/^[a-f0-9]{64}$/.test(value));
   })) throw new Error('prune_embedding_hash_unproven');
   return { ...revision.request.scope, catalogRevision: revision.snapshot.catalogRevision,
     snapshotSha256: revision.packet.receipt.snapshot_sha256, globalWatermark: revision.globalVectorWatermark,
-    products: revision.snapshot.products.map(product => ({ publicId: product.publicId,
+    products: semantic.map(product => ({ publicId: product.publicId,
       sourceFactsHash: String(rows.get(product.publicId)!.source_facts_hash),
       embeddingTextHash: typeof rows.get(product.publicId)!.embedding_text_hash === 'string' ? String(rows.get(product.publicId)!.embedding_text_hash) : null })),
     absentIds: [...absent, ...(revision.additionalAbsentIds || []).filter(id => !absent.includes(id))] };

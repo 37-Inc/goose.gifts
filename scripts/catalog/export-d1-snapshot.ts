@@ -9,7 +9,7 @@ import { suppressNearDuplicateProducts } from '../../lib/db/product-scoring.ts';
 import { canonicalJson, canonicalTimestamp, sha256 } from './migration.ts';
 import { mutationFenceQuery } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner, MutationQuery } from '../../lib/catalog/mutation-fence.ts';
-import { pruningCurrentQueries, PRUNING_CURRENT_LIMITS, PRUNING_CURRENT_COLUMNS as CURRENT, PRUNING_ARCHIVE_TIMES as ARCHIVE_TIMES } from '../../lib/catalog/pruning-current.ts';
+import { pruningCurrentQueries, PRUNING_CURRENT_LIMITS, CATALOG_IDENTITY_LIMITS, PRUNING_CURRENT_COLUMNS as CURRENT, PRUNING_ARCHIVE_TIMES as ARCHIVE_TIMES } from '../../lib/catalog/pruning-current.ts';
 export { pruningCurrentQueries } from '../../lib/catalog/pruning-current.ts';
 
 /** The sealed header/held/history/order are not versioned in D1. Supply these
@@ -27,8 +27,8 @@ export interface SnapshotReadContext {
 }
 export type SnapshotReadResult = { status: 'ready'; snapshot: CatalogSnapshot; observedAt: string }
   | { status: 'held'; reason: string; requiresNewRevision: boolean };
-export const SNAPSHOT_READ_LIMITS = Object.freeze({ ready: 5000, held: 10000, slugs: 20000,
-  identities: 10000, rowBytes: PRUNING_CURRENT_LIMITS.rowBytes, resultBytes: 32 * 1024 * 1024, outboxSequence: 100000 });
+export const SNAPSHOT_READ_LIMITS = Object.freeze({ ...CATALOG_IDENTITY_LIMITS,
+  rowBytes: PRUNING_CURRENT_LIMITS.rowBytes, resultBytes: 32 * 1024 * 1024, outboxSequence: 100000 });
 type Row = Record<string, unknown>;
 type CaptureRow = { kind: string; identity: string; data: string };
 const HASH = /^[a-f0-9]{64}$/;
@@ -309,7 +309,7 @@ export function checkCurrent(product: PublicCatalogProduct, projection: Row, cur
   if (persistent) {
     if (['blocked', 'needs_review'].includes(String(current.editorial_status)) || !currentPersistent
       || canonicalJson(persistent) !== canonicalJson(currentPersistent)
-      || persistent.indexable && (!['generated_ready', 'manual_locked'].includes(String(current.editorial_status))
+      || persistent.indexable && (!/^[a-f0-9]{64}$/.test(String(current.source_facts_hash))||!['generated_ready', 'manual_locked'].includes(String(current.editorial_status))
         || current.source_facts_hash !== current.editorial_source_hash)
       || publicProductRightsExpiry(persistent, approved.eligibleUntil === null ? persistentDisplayRights(rights) : rights.persistent ?? {}, now) !== Infinity)
       throw new Error('current_rights_incompatible');
@@ -351,7 +351,7 @@ export async function readPruningSource(db: CatalogD1, snapshotInput: CatalogSna
     || (context.priorPublication === null ? prior.release_id !== null
       : prior.release_id !== context.priorPublication.releaseId || sha256(canonicalJson(prior)) !== context.priorPublication.receiptSha256))
     throw new Error('prune_source_unsettled');
-  const facts = Object.fromEntries(projection.map(row => [String(row.public_id), String(row.source_facts_hash)]));
+  const facts = Object.fromEntries(projection.map(row => [String(row.public_id), row.source_facts_hash===null?null:String(row.source_facts_hash)]));
   const packet = await createProjectionPacket(snapshot, facts, context.sourceExportSha256, new Date(envelope.generatedAt));
   if (canonicalJson(packet.rows) !== canonicalJson([...projection].sort((a,b) => String(a.public_id).localeCompare(String(b.public_id))))
     || canonicalJson(packet.receipt) !== canonicalJson(receipt)) throw new Error('prune_projection_changed');
@@ -413,7 +413,7 @@ export async function reconstructD1Snapshot(db: CatalogD1, envelopeInput: Sealed
     if (byId.size !== projection.length) return hold('projection_bytes_mismatch');
     const products = envelope.products.map((id) => JSON.parse(String(byId.get(id)?.public_display_json)) as PublicCatalogProduct);
     const snapshot = validateCatalogSnapshot({ ...envelope, products }, new Date(envelope.generatedAt));
-    const facts = Object.fromEntries(projection.map((row) => [String(row.public_id), String(row.source_facts_hash)]));
+    const facts = Object.fromEntries(projection.map((row) => [String(row.public_id), row.source_facts_hash===null?null:String(row.source_facts_hash)]));
     const packet = await createProjectionPacket(snapshot, facts, context.sourceExportSha256, new Date(envelope.generatedAt));
     const sortedProjection = [...projection].sort((a, b) => String(a.public_id).localeCompare(String(b.public_id)));
     if (canonicalJson(packet.rows) !== canonicalJson(sortedProjection) || canonicalJson(packet.receipt) !== canonicalJson(receipt)) return hold('projection_bytes_mismatch');

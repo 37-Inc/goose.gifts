@@ -8,14 +8,15 @@ import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import type { MutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import { mutationAssertion, readMutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import type { PrunedRevision } from '../../lib/catalog/prune-existing-revision.ts';
-import { prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
+import { prunedVectorIds, prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
+import type { PermanentCatalogRevision } from '../../lib/catalog/freeze-permanent-catalog.ts';
 import type { ActivationPermit, DeploymentIdentity, DeploymentObservation } from '../../lib/catalog/build-requests.ts';
 import { beginBuildActivation, claimBuildRequest, resolveBuildActivation, drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
 import { isAccountedPublicationFetch } from './publication-read-fetch.ts';
 import { isAccountedPublicationUploadCommand, PublicationUploadCommandError } from './publication-upload-command.ts';
 import { isCatalogD1Rest } from './d1-write-rest.ts';
 import type { PublicationIntent } from '../../lib/catalog/publication.ts';
-import { claimPublication, completeActivatedPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
+import { claimPublication, completeActivatedPublication, completeActivatedPermanentPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
 import type { SiteAssetManifest } from '../../lib/catalog/types.ts';
 import type { ReleaseBuildContext } from '../staging/build.mts';
 import { assertBuildSource, validateBuildContext } from '../staging/build.mts';
@@ -273,9 +274,11 @@ function intentFrom(manifest:SiteAssetManifest,bytes:Uint8Array):PublicationInte
  * publication predicates. Ambiguous external steps are reconciled, not resent.
  * Credentials never enter checkpoints, artifacts, command args or returned errors.
  */
-export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;published?:PublishedCatalogRead;requestId:string;runReference:string;
+export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision;requestId:string;runReference:string;
   workspace:PublicationWorkspace;config:PublicationConfig;credentials:{cloudflareToken:string;identityAuthorization?:string};dependencies?:Dependencies}):Promise<PublicationResult>{
   const {db,workspace,revision}=options;const config=validatePublicationConfig(options.config);const now=options.dependencies?.now??(()=>new Date());
+  if(options.permanent&&(options.published||!revision||canonicalJson(options.permanent)!==canonicalJson(revision))
+    ||revision?.nativePreservation&&!options.permanent)throw new Error('publication_permanent_input_invalid');
   if(db.providerIdentity!==`cloudflare:${config.accountId}:${config.database.id}`)throw new Error('publication_database_scope_mismatch');
   await workspace.assertHeld();await workspace.assertScope({accountId:config.accountId,environment:config.environment,databaseId:config.database.id,
     databaseName:config.database.name,workerName:config.workerName,indexName:config.indexName});
@@ -348,7 +351,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       const plan=prunedVectorPlan(revision);const marker=`catalog-${sha256(`${options.requestId}:${config.releaseId}`).slice(0,40)}`;
       control={schemaVersion:1,configSha256,requestId:options.requestId,runReference:options.runReference,stage:'claimed',build,
         publication:null,intent:null,permit:null,vectorPlan:{catalogRevision:plan.catalogRevision,planSha256:sha256(canonicalJson(plan)),
-          ids:[...plan.products.map(p=>p.publicId),...plan.absentIds]},packageSha256:null,uploadMarker:marker,
+          ids:prunedVectorIds(plan)},packageSha256:null,uploadMarker:marker,
         versionReference:null,deploymentMarker:`${marker}-activate`,deploymentId:null};
       await save({});
     }
@@ -382,7 +385,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
           ||control!.deploymentId!==null&&deployed.id!==control!.deploymentId)throw new Error('publication_activation_pending');
         if(!matchesIdentity(await api.identity(signal),control!.intent!))throw new Error('publication_identity_mismatch');signal?.throwIfAborted();
         await readActivatedCatalogVectors(db,control!.permit!,control!.vectorPlan,createVectorizeRestAdapters({environment:config.environment,
-          indexName:config.indexName,accountId:config.accountId,token:options.credentials.cloudflareToken,fetch:observationSend}),{signal,published:options.published});signal?.throwIfAborted();
+          indexName:config.indexName,accountId:config.accountId,token:options.credentials.cloudflareToken,fetch:observationSend}),
+          {signal,published:options.published,permanent:options.permanent});signal?.throwIfAborted();
         // Re-read deployment after independent identity/vector reads. Never infer
         // not-submitted from elapsed time or an observed prior deployment.
         const after=await api.deployed(signal);signal?.throwIfAborted();if(canonicalJson(after)!==canonicalJson(deployed))throw new Error('publication_activation_pending');
@@ -397,7 +401,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
           await observed();return control!.intent!;
         };
         if(control.publication!.leaseUntil<=now().toISOString())
-          await completeActivatedPublication(db,revision,control.publication!,control.permit,readDeployed,now,options.published);
+          if(options.permanent)await completeActivatedPermanentPublication(db,revision,control.publication!,control.permit,readDeployed,now);
+          else await completeActivatedPublication(db,revision,control.publication!,control.permit,readDeployed,now,options.published);
         else await completePublication(db,sealed.snapshot,config.releaseId,control.publication!.token,readDeployed,now,owner);
       }
       const proof=receipt();

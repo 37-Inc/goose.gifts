@@ -9,8 +9,9 @@ import { encodePublicationIntent, encodePublishedCatalogBinding } from '../../li
 import type { PublicationIntent, PublishedCatalogBinding } from '../../lib/catalog/publication.ts';
 import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { hasAccountedVectorReadback } from './vectorize-rest.ts';
-import { pruneExistingRevision, prunedVectorPlan, settleCapturedRevision } from '../../lib/catalog/prune-existing-revision.ts';
+import { pruneExistingRevision, prunedVectorIds, prunedVectorPlan, settleCapturedRevision } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
+import type { PermanentCatalogRevision } from '../../lib/catalog/freeze-permanent-catalog.ts';
 import { prepareApprovedCohort } from '../../lib/catalog/freeze-approved-cohort.ts';
 import type { ApprovedCohortEnvelope, ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
 import { loadMaintenanceVectorPayload } from './maintenance-d1.ts';
@@ -930,8 +931,62 @@ export function readPublishedCatalogVectors(options:{db:CatalogD1;owner:Mutation
 /** Default control-only readback may survive content-artifact expiry. The
  * explicit published-input path additionally requires the original fresh data. */
 export interface ActivatedVectorPlan { catalogRevision:string; planSha256:string; ids:string[] }
+/** Preserve the original completed native proof. This observes its actual old
+ * generation, processed references and exact bits/metadata; it neither promotes
+ * those vectors into a permanent grant nor creates a replacement receipt. */
+export function readPermanentNativeProof(options:{db:CatalogD1;owner:MutationOwner;revision:PermanentCatalogRevision;
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>;signal?:AbortSignal
+}):Promise<PrunedVectorObservation>{return safe(async()=>{
+  const {db,adapters,signal}=options,owner=structuredClone(options.owner),revision=structuredClone(options.revision);
+  const binding=revision.nativePreservation,plan=prunedVectorPlan(revision);
+  signal?.throwIfAborted();adapterScope(owner,adapters);
+  if(!binding||canonicalJson(binding)!==canonicalJson(revision.request.native)||owner.operationKey!==revision.operationKey
+    ||!['freezing','activating'].includes(owner.phase))throw new Error('vector_preserved_input_invalid');
+  const read=async(sql:string,params:unknown[])=>{signal?.throwIfAborted();
+    const rows=(await db.prepare(sql).bind(...params).all<Row>({signal})).results;signal?.throwIfAborted();return rows;};
+  const exact=(table:string,row:Row)=>{const keys=Object.keys(row);
+    if(!keys.length||keys.length>65||keys.some(k=>!/^[a-z_][a-z0-9_]*$/.test(k)))throw new Error('vector_preserved_input_invalid');
+    return assertion(db,`EXISTS(SELECT 1 FROM ${table} WHERE ${keys.map(k=>`${k} IS ?`).join(' AND ')})`,keys.map(k=>row[k]));};
+  const savedRows=await read('SELECT * FROM catalog_vector_deliveries WHERE delivery_id=?',[binding.source.deliveryId]);
+  const saved=savedRows[0] as Journal;
+  if(savedRows.length!==1||sha256(canonicalJson(saved))!==binding.source.deliverySha256)throw new Error('vector_preserved_journal_changed');
+  const base=JSON.parse(saved.owner_json) as MutationOwner,historical={...base,epoch:base.epoch+1};
+  const proof=validateReuse(saved,historical,binding.plan,adapters.providerIdentity);
+  if(base.generation>=owner.generation||proof.revisionSha256!==binding.revisionSha256)throw new Error('vector_preserved_revision_changed');
+  const rows=await reuseSources(db,proof.approval,signal),vectors=reuseVectors(historical,proof,rows);
+  const originals=new Map(revision.request.installation.plan.input.capture.tables.products.map(row=>[row.public_id,row]));
+  const current=new Map(revision.sourceRows.map(row=>[row.public_id,row]));
+  for(const row of rows)if(canonicalJson(originals.get(row.public_id))!==canonicalJson(JSON.parse(String(row.product_json)))
+    ||!current.get(row.public_id)?.approved_product_json)throw new Error('vector_preserved_source_changed');
+  const receipts=await read('SELECT * FROM publication_receipts WHERE release_id=?',[binding.source.releaseId]),receipt=receipts[0];
+  if(receipts.length!==1||sha256(canonicalJson(receipt))!==binding.source.receiptSha256)throw new Error('vector_preserved_receipt_changed');
+  const intent=JSON.parse(String(receipt.manifest_json)) as PublicationIntent;
+  const builds=await read("SELECT * FROM catalog_build_requests WHERE release_id=? AND state='resolved' LIMIT 2",[binding.source.releaseId]);
+  const publications=await read("SELECT * FROM publication_outbox WHERE release_id=? AND state='verified' LIMIT 2",[binding.source.releaseId]);
+  const build=builds[0],publication=publications[0],request=build&&JSON.parse(String(build.request_json)) as CatalogBuildRequest;
+  if(builds.length!==1||publications.length!==1||encodePublicationIntent(intent)!==receipt.manifest_json
+    ||intent.releaseId!==binding.source.releaseId||intent.catalogRevision!==binding.plan.catalogRevision
+    ||receipt.catalog_revision!==binding.plan.catalogRevision||intent.catalogSnapshotSha256!==binding.plan.snapshotSha256
+    ||intent.codeSha!==receipt.code_sha||intent.vectorSyncWatermark!==binding.plan.globalWatermark
+    ||publication.intent_json!==receipt.manifest_json||!publication.completed_token||!publication.dispatch_reference
+    ||build.environment!==owner.environment||build.source_revision!==binding.plan.catalogRevision||!build.lease_token||!build.run_reference
+    ||typeof build.version_reference!=='string'||!REF.test(build.version_reference)||build.request_id!==sha256(String(build.request_json))
+    ||encodeBuildRequest(request)!==build.request_json||request.codeSha!==intent.codeSha||request.sourceRevision!==binding.plan.catalogRevision
+    ||request.sourceDigest!==binding.plan.snapshotSha256||request.priorReleaseId!==intent.priorReleaseId
+    ||String(saved.completed_at)>String(receipt.completed_at))throw new Error('vector_preserved_receipt_changed');
+  const checks=()=>[mutationAssertion(db,owner,[owner.phase]),exact('catalog_vector_deliveries',saved),
+    assertion(db,'EXISTS(SELECT 1 FROM catalog_mutation_scopes WHERE environment=? AND index_name=? AND captured_at=?)',
+      [owner.environment,owner.indexName,owner.capturedAt]),
+    exact('publication_receipts',receipt),exact('catalog_build_requests',build),exact('publication_outbox',publication),reuseSourceAssertions(db,rows),
+    ...pruningCurrentQueries(rows.map(row=>current.get(row.public_id)!)).map(q=>assertion(db,`(${q.sql})=?`,[...q.params,q.count]))];
+  await db.batch(checks(),{signal});signal?.throwIfAborted();await reuseReadback(adapters,vectors,3000,signal);
+  await db.batch(checks(),{signal});signal?.throwIfAborted();
+  return{environment:owner.environment,indexName:owner.indexName,settled:true,planSha256:sha256(canonicalJson(plan)),
+    reference:`preserved-vectors:${binding.source.deliveryId}`};
+});}
 export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit,plan:ActivatedVectorPlan,
-  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>,options:{signal?:AbortSignal;published?:PublishedCatalogRead}={}):Promise<PrunedVectorObservation> {
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>,
+  options:{signal?:AbortSignal;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision}={}):Promise<PrunedVectorObservation> {
   return safe(async()=>{
     const {signal}=options;signal?.throwIfAborted();
     const owner=permit.mutationOwner;
@@ -941,6 +996,13 @@ export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit
       if(plan.catalogRevision!==expected.catalogRevision||plan.planSha256!==sha256(canonicalJson(expected))
         ||canonicalJson([...plan.ids].sort())!==canonicalJson(reuseIds(expected).sort()))throw new Error('vector_plan_invalid');
       return readPublishedCatalogVectors({db,owner,published:options.published,adapters,permit,signal});}
+    if(options.permanent){const revision=options.permanent,expected=prunedVectorPlan(revision);
+      if(plan.catalogRevision!==expected.catalogRevision||plan.planSha256!==sha256(canonicalJson(expected))
+        ||canonicalJson([...plan.ids].sort())!==canonicalJson(prunedVectorIds(expected).sort()))throw new Error('vector_plan_invalid');
+      const {assertPermanentCatalog}=await import('../../lib/catalog/freeze-permanent-catalog.ts');
+      await assertPermanentCatalog(db,owner,revision,permit,signal);
+      const observed=await readPermanentNativeProof({db,owner,revision,adapters,signal});
+      await assertPermanentCatalog(db,owner,revision,permit,signal);return observed;}
     adapterScope(owner,adapters);
     const check=async()=>{signal?.throwIfAborted();await db.batch([mutationAssertion(db,owner,['activating']),assertion(db,`EXISTS(
       SELECT 1 FROM catalog_mutation_scopes s JOIN catalog_build_requests b ON b.request_id=s.activation_request_id
@@ -955,10 +1017,11 @@ export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit
     const rows=(await db.prepare(`SELECT * FROM catalog_vector_deliveries WHERE environment=? AND index_name=? AND generation=?
       AND json_extract(request_json,'$.kind') IN('prune','approved-cohort-reuse') AND json_extract(request_json,'$.catalogRevision')=? LIMIT 21`)
       .bind(owner.environment,owner.indexName,owner.generation,plan.catalogRevision).all<Journal>({signal})).results;signal?.throwIfAborted();
-    const projections=(await db.prepare(`SELECT public_id,catalog_revision,source_facts_hash FROM catalog_public_products WHERE catalog_revision=? OR catalog_revision=(
-      SELECT p.catalog_revision FROM catalog_build_requests b JOIN publication_receipts p
-      ON p.release_id=json_extract(b.request_json,'$.priorReleaseId') WHERE b.request_id=?) LIMIT 41`)
-      .bind(plan.catalogRevision,permit.requestId).all<{public_id:string;catalog_revision:string;source_facts_hash:string}>({signal})).results;signal?.throwIfAborted();
+    const projections=(await db.prepare(`SELECT public_id,catalog_revision,source_facts_hash FROM catalog_public_products
+      WHERE eligible_until IS NOT NULL AND eligible_until>(SELECT json_extract(request_json,'$.cutoff') FROM catalog_build_requests WHERE request_id=?)
+      AND (catalog_revision=? OR catalog_revision=(SELECT p.catalog_revision FROM catalog_build_requests b JOIN publication_receipts p
+      ON p.release_id=json_extract(b.request_json,'$.priorReleaseId') WHERE b.request_id=?)) LIMIT 41`)
+      .bind(permit.requestId,plan.catalogRevision,permit.requestId).all<{public_id:string;catalog_revision:string;source_facts_hash:string}>({signal})).results;signal?.throwIfAborted();
     const receipt=(await db.prepare(`SELECT p.* FROM catalog_projection_receipts p JOIN catalog_build_requests b
       ON b.source_revision=p.catalog_revision AND json_extract(b.request_json,'$.sourceDigest')=p.snapshot_sha256 WHERE b.request_id=?`)
       .bind(permit.requestId).all<Row>({signal})).results[0];signal?.throwIfAborted();

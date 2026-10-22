@@ -1,11 +1,11 @@
 import type { CatalogD1 } from './storage/d1.ts';
-import { catalogDisplayDeadline } from './display.ts';
+import { catalogDisplayDeadline, persistentPublicProduct } from './display.ts';
 import type { CatalogSnapshot, PublicCatalogProduct, SafeHeldProduct } from './types.ts';
 import type { MutationOwner } from './mutation-fence.ts';
 import { mutationAssertion } from './mutation-fence.ts';
 import { createProjectionPacket } from './d1.ts';
 import { canonicalTime, validateCatalogSnapshot, validatePublicCatalogProduct } from './snapshot.ts';
-import { suppressNearDuplicateProducts } from '../db/product-scoring.ts';
+import { areNearDuplicateTitles, suppressNearDuplicateProducts } from '../db/product-scoring.ts';
 import { checkCurrent, readApprovedCurrentRows, readPruningSource } from '../../scripts/catalog/export-d1-snapshot.ts';
 import { canonicalJson, sha256 } from '../../scripts/catalog/migration.ts';
 import { pruneOperationKey, prunedVectorPlan, sealCapturedRevision, settleCapturedRevision } from './prune-existing-revision.ts';
@@ -113,12 +113,19 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
     if (product) products.push(product);
     else { const row=full.get(change.publicId)!;safeHeld.push(held({id:String(row.id),publicId:change.publicId,slug:String(row.slug)},'editorial_hold')); }
   }
-  const winners = new Set(suppressNearDuplicateProducts(products).map(value => value.publicId));
-  const ready = products.filter(value => { if (winners.has(value.publicId)) return true;safeHeld.push(held(value,'duplicate'));return false; });
+  const stable = new Set(source.snapshot.products.filter(value => persistentPublicProduct(value) && !changed.has(value.publicId))
+    .map(value => value.publicId));
+  const preserved=products.filter(value=>stable.has(value.publicId));
+  const candidates=products.filter(value=>!stable.has(value.publicId)
+    && !preserved.some(prior=>areNearDuplicateTitles(prior.title,value.title)));
+  const winners = new Set(suppressNearDuplicateProducts(candidates).map(value => value.publicId));
+  const ready = products.filter(value => { if (stable.has(value.publicId) || winners.has(value.publicId)) return true;
+    safeHeld.push(held(value,'duplicate'));return false; });
   const readyIds = new Set(ready.map(value => value.publicId));
   const removed = source.snapshot.products.filter(value => !readyIds.has(value.publicId));
   const additionalAbsentIds = request.approval.changes.filter(value => !readyIds.has(value.publicId)).map(value => value.publicId);
-  if (ready.length + new Set([...removed.map(value=>value.publicId),...additionalAbsentIds]).size > 20) throw new Error('cohort_vector_proof_bound');
+  const semantic = ready.filter(value => value.eligibleUntil !== null && Date.parse(value.eligibleUntil) > cutoff);
+  if (semantic.length + new Set([...removed.map(value=>value.publicId),...additionalAbsentIds]).size > 20) throw new Error('cohort_vector_proof_bound');
   const revision = request.approval.catalogRevision;
   const existing = (await db.prepare('SELECT created_at FROM catalog_revisions WHERE revision=?').bind(revision).all()).results[0];
   const generatedAt = existing ? canonicalTime(existing.created_at) : owner.capturedAt;
@@ -129,7 +136,7 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   const sourceRows = [...current.values()].sort((a,b)=>String(a.public_id).localeCompare(String(b.public_id)));
   const globalVectorWatermark = Number(source.header.globalWatermark);
   const sourceDigest = sha256(canonicalJson({ operationKey,generatedAt,globalVectorWatermark,current:sourceRows,prior:source.header.prior }));
-  const facts = Object.fromEntries(sourceRows.map(row => [String(row.public_id),String(row.source_facts_hash)]));
+  const facts = Object.fromEntries(sourceRows.map(row => [String(row.public_id),row.source_facts_hash===null?null:String(row.source_facts_hash)]));
   const packet = await createProjectionPacket(snapshot,facts,sourceDigest,now);
   const sealed = await sealCapturedRevision(db,owner,{request,snapshot,packet,sourceRows,priorRow:source.header.prior as Row,
     sourceDigest,globalVectorWatermark,vectorSyncWatermark:0,operationKey,additionalAbsentIds});

@@ -2,6 +2,7 @@
  * publication code without importing Node-only snapshot/operator machinery. */
 type Row = Record<string, unknown>;
 export const PRUNING_CURRENT_LIMITS = Object.freeze({ rowBytes: 128 * 1024, pageBytes: 384 * 1024 });
+export const CATALOG_IDENTITY_LIMITS=Object.freeze({ready:5000,held:10000,slugs:20000,identities:10000});
 export const PRUNING_CURRENT_COLUMNS = ['id', 'public_id', 'slug', 'source', 'quality_score', 'is_active', 'duplicate_of_product_id',
   'editorial_status', 'availability_status', 'availability_checked_at', 'last_verified_at', 'source_facts_hash',
   'editorial_source_hash', 'embedding_text_hash', 'eligible_until', 'public_display_json', 'rights_json', 'timestamp_provenance_json'];
