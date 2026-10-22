@@ -535,6 +535,22 @@ test('reviewed v2 deadline crossing after CAS never authorizes its first POST or
   assert.equal(f.checkpoint().control.publication.stage,'uploaded');await f.reopen({controlOnly:true});
   assert.equal((await run()).state,'pending');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,0);
 });
+test('reviewed v3 fresh owner authority preserves old grant and reopens marked activation without another POST',protectedMac,async t=>{
+  const {f,retry,run}=await reviewedRetryFixture(t,{deadlineExtension:true}),before=f.sql.prepare('SELECT * FROM catalog_build_requests').get(),
+    cutoff=f.checkpoint().control.publication.build.request.cutoff,priorApproval=structuredClone(retry.approval),
+    reviewedAt=new Date(Date.parse(cutoff)+2*3600000+1).toISOString();
+  retry.priorApproval=priorApproval;retry.approval={...priorApproval,schemaVersion:3,reviewReference:'fixture/fresh-authority-v3',
+    priorApprovalSha256:sha(encodeReviewedUploadActivationApproval(priorApproval)),reviewedAt,authorizationSha256:sha('synthetic current owner authority'),
+    activationDeadline:new Date(Date.parse(reviewedAt)+20*60000).toISOString()};
+  f.advance(Date.parse(reviewedAt)-f.now().getTime());f.mode.readbackFailure=true;
+  assert.equal((await run()).state,'pending');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+  const marker=await f.workspace.readArtifact(f.checkpoint().pins.publicationUploadRetryPending);
+  assert.deepEqual(marker.approval,retry.approval);assert.deepEqual(marker.priorApproval,priorApproval);
+  const after=f.sql.prepare('SELECT * FROM catalog_build_requests').get();
+  for(const key of ['request_json','lease_token','run_reference','attempts','operator_recovery_json'])assert.equal(after[key],before[key]);
+  f.advance(Date.parse(retry.approval.activationDeadline)-f.now().getTime()+1);f.mode.readbackFailure=false;
+  await f.reopen();assert.equal((await run()).state,'published');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+});
 test('reviewed metadata-only failure retries once, keeps all original claims/charges, publishes and replays',protectedMac,async t=>{
   const {f,run}=await reviewedRetryFixture(t),before=f.sql.prepare('SELECT * FROM catalog_build_requests').get(),outbox=f.sql.prepare('SELECT * FROM publication_outbox WHERE release_id=?').get(f.config.releaseId);
   const pins=structuredClone(f.checkpoint().pins),budget=await f.workspace.budget();

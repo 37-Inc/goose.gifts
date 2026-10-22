@@ -377,6 +377,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         ||marker&&(!ack||ack.sha256!==sha256(canonicalJson(retryAck(marker))))||!marker&&ack)
         throw new Error('publication_upload_review_required');
       activationDeadline=await reviewedUploadActivationDeadline(a,control.build.request.cutoff,reviewed.priorApproval);
+      if(a.schemaVersion===3&&now().toISOString()<a.reviewedAt)throw new Error('publication_upload_retry_cutoff');
       if(!control.permit&&!marker&&now().toISOString()>=activationDeadline)throw new Error('publication_upload_retry_cutoff');
       // A marker without genuine command ACK is ALWAYS held before provider IO;
       // a visible version can never mint that acknowledgement on resume.
@@ -390,7 +391,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
             ||review.configSha256!==configSha256)throw new Error('publication_upload_retry_fenced');
         }else{
           retryRecord=await workspace.readArtifact(marker) as unknown as RetryRecord;
-          if(!exact(retryRecord,`approval,control,evidence,oldPending,oldReview,original,owner,${a.schemaVersion===2?'priorApproval,':''}schemaVersion`)||retryRecord.schemaVersion!==1
+          if(!exact(retryRecord,`approval,control,evidence,oldPending,oldReview,original,owner,${a.schemaVersion!==1?'priorApproval,':''}schemaVersion`)||retryRecord.schemaVersion!==1
             ||encodeReviewedUploadActivationApproval(retryRecord.approval)!==encodeReviewedUploadActivationApproval(a)
             ||canonicalJson(retryRecord.priorApproval??null)!==canonicalJson(reviewed.priorApproval??null)
             ||canonicalJson(retryRecord.evidence)!==canonicalJson(reviewed.evidence)||canonicalJson(retryRecord.oldPending)!==canonicalJson(pendingUpload)

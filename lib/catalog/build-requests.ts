@@ -285,7 +285,9 @@ export interface ReviewedUploadActivationApprovalV1 {
   reviewPinSha256:string;evidenceSha256:string;reviewReference:string;
 }
 export type ReviewedUploadActivationApproval=ReviewedUploadActivationApprovalV1|(
-  Omit<ReviewedUploadActivationApprovalV1,'schemaVersion'>&{schemaVersion:2;priorApprovalSha256:string;activationDeadline:string});
+  Omit<ReviewedUploadActivationApprovalV1,'schemaVersion'>&{schemaVersion:2;priorApprovalSha256:string;activationDeadline:string})|(
+  Omit<ReviewedUploadActivationApprovalV1,'schemaVersion'>&{schemaVersion:3;priorApprovalSha256:string;activationDeadline:string;
+    reviewedAt:string;authorizationSha256:string});
 export interface ReviewedUploadActivationInput {
   claim:CatalogBuildClaim;publication:PublicationClaim;versionReference:string;owner:MutationOwner;
   approval:ReviewedUploadActivationApproval;priorApproval?:ReviewedUploadActivationApprovalV1;
@@ -293,24 +295,32 @@ export interface ReviewedUploadActivationInput {
 }
 export function encodeReviewedUploadActivationApproval(value:ReviewedUploadActivationApproval):string {
   const keys='checkpointSha256,configSha256,evidenceSha256,packageSha256,requestId,reviewPinSha256,reviewReference,schemaVersion';
-  if(!value||![1,2].includes(value.schemaVersion)||Object.keys(value).sort().join(',')!==
-    (value.schemaVersion===2?`activationDeadline,${keys.replace(',requestId',',priorApprovalSha256,requestId')}`:keys)
+  const expected=value?.schemaVersion===1?keys:[...keys.split(','),'activationDeadline','priorApprovalSha256',
+    ...(value?.schemaVersion===3?['reviewedAt','authorizationSha256']:[])].sort().join(',');
+  if(!value||![1,2,3].includes(value.schemaVersion)||Object.keys(value).sort().join(',')!==expected
     ||!['requestId','packageSha256','configSha256','checkpointSha256','reviewPinSha256','evidenceSha256']
       .every(k=>typeof value[k as keyof typeof value]==='string'&&HASH.test(String(value[k as keyof typeof value])))
-    ||value.schemaVersion===2&&(typeof value.priorApprovalSha256!=='string'||!HASH.test(value.priorApprovalSha256))
+    ||value.schemaVersion!==1&&(typeof value.priorApprovalSha256!=='string'||!HASH.test(value.priorApprovalSha256))
+    ||value.schemaVersion===3&&(typeof value.authorizationSha256!=='string'||!HASH.test(value.authorizationSha256))
     ||typeof value.reviewReference!=='string'||!REFERENCE.test(value.reviewReference))throw new Error('build_reviewed_activation_invalid');
-  if(value.schemaVersion===2)canonicalTime(value.activationDeadline);
+  if(value.schemaVersion!==1)canonicalTime(value.activationDeadline);
+  if(value.schemaVersion===3)canonicalTime(value.reviewedAt);
   return flat(value);
 }
 /** A separate dispatch grant, never rewritten build inputs or renewed rights.
- * The prior digest is over the original canonical v1 encoding, without newline. */
+ * The prior digest is over the original canonical v1 encoding, without newline.
+ * V3 records fresh owner authority; v1/v2 deadlines and encodings stay intact. */
 export async function reviewedUploadActivationDeadline(approval:ReviewedUploadActivationApproval,originalCutoff:string,
   priorApproval?:ReviewedUploadActivationApprovalV1):Promise<string>{
   encodeReviewedUploadActivationApproval(approval);canonicalTime(originalCutoff);
   if(approval.schemaVersion===1){if(priorApproval!==undefined)throw new Error('build_reviewed_activation_invalid');return originalCutoff;}
   if(!priorApproval||priorApproval.schemaVersion!==1||await digest(encodeReviewedUploadActivationApproval(priorApproval))!==approval.priorApprovalSha256
     ||(['requestId','packageSha256','configSha256','reviewPinSha256','evidenceSha256'] as const).some(k=>approval[k]!==priorApproval[k])
-    ||approval.activationDeadline<=originalCutoff||Date.parse(approval.activationDeadline)-Date.parse(originalCutoff)>2*3600000)
+    ||approval.activationDeadline<=originalCutoff
+    ||approval.schemaVersion===2&&Date.parse(approval.activationDeadline)-Date.parse(originalCutoff)>2*3600000
+    ||approval.schemaVersion===3&&(approval.reviewedAt<originalCutoff||approval.reviewedAt.slice(0,10)!==originalCutoff.slice(0,10)
+      ||approval.activationDeadline<=approval.reviewedAt||Date.parse(approval.activationDeadline)-Date.parse(approval.reviewedAt)>2*3600000
+      ||approval.activationDeadline>`${originalCutoff.slice(0,10)}T21:00:00.000Z`))
     throw new Error('build_reviewed_activation_invalid');
   return approval.activationDeadline;
 }
@@ -374,7 +384,8 @@ export async function beginReviewedUploadActivation(db:CatalogD1,value:ReviewedU
   if(b.length!==1||u.length!==1||flat(b[0])!==flat(i.original.build)||flat(u[0])!==flat(i.original.publication))reviewedRefuse();
   const prior=await read('SELECT * FROM publication_receipts WHERE release_id=?',[c.request.priorReleaseId]);
   const header=(await read(`SELECT ${NOW} now,coalesce(max(rowid),0) epoch FROM publication_receipts`))[0],at=canonicalTime(String(header.now));
-  if(prior.length!==1||c.leaseUntil>at||p.leaseUntil>at||i.activationDeadline<=at||p.intent.nextExpiry!==earliestDisplayExpiry(snapshot.products)
+  if(prior.length!==1||c.leaseUntil>at||p.leaseUntil>at||i.activationDeadline<=at
+    ||i.approval.schemaVersion===3&&i.approval.reviewedAt>at||p.intent.nextExpiry!==earliestDisplayExpiry(snapshot.products)
     ||await digest(`${JSON.stringify(snapshot)}\n`)!==c.request.sourceDigest||snapshot.products.some(x=>catalogDisplayDeadline(x)<=Date.parse(i.activationDeadline))
     ||!(await rollbackPreflight(db,snapshot,new Date(at))).ok)reviewedRefuse();
   const observed=await observe(readDeployment,30_000);
