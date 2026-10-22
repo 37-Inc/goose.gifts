@@ -397,7 +397,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
           await observed();return control!.intent!;
         };
         if(control.publication!.leaseUntil<=now().toISOString())
-          await completeActivatedPublication(db,revision,control.publication!,control.permit,readDeployed,now);
+          await completeActivatedPublication(db,revision,control.publication!,control.permit,readDeployed,now,options.published);
         else await completePublication(db,sealed.snapshot,config.releaseId,control.publication!.token,readDeployed,now,owner);
       }
       const proof=receipt();

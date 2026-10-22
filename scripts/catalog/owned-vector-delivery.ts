@@ -5,8 +5,8 @@ import { mutationAdvance, mutationAssertion, mutationFenceQuery, readMutationOwn
 import type { MutationOwner, MutationScope } from '../../lib/catalog/mutation-fence.ts';
 import type { ActivationPermit, CatalogBuildRequest } from '../../lib/catalog/build-requests.ts';
 import { drainDeploymentObservation, encodeBuildRequest } from '../../lib/catalog/build-requests.ts';
-import { encodePublicationIntent } from '../../lib/catalog/publication.ts';
-import type { PublicationIntent } from '../../lib/catalog/publication.ts';
+import { encodePublicationIntent, encodePublishedCatalogBinding } from '../../lib/catalog/publication.ts';
+import type { PublicationIntent, PublishedCatalogBinding } from '../../lib/catalog/publication.ts';
 import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { hasAccountedVectorReadback } from './vectorize-rest.ts';
 import { pruneExistingRevision, prunedVectorPlan, settleCapturedRevision } from '../../lib/catalog/prune-existing-revision.ts';
@@ -788,15 +788,11 @@ export function readOwnedApprovedCohortVectors(db:CatalogD1,owner:MutationOwner,
 /** Original captured revision and independently pinned, genuinely published
  * receipts. Never construct a new approval or relabel the source generation to
  * authorize a code-only build. The new normal build request is bound separately. */
-export interface PublishedCatalogRead {
-  source:{releaseId:string;receiptSha256:string;deliveryId:string;deliverySha256:string};
-  revision:ApprovedCohortRevision; request:CatalogBuildRequest;
+export interface PublishedCatalogRead extends PublishedCatalogBinding {
+  revision:ApprovedCohortRevision;
 }
 export function publishedCatalogOperationKey(input:PublishedCatalogRead):string {
-  const {source,request}=input;
-  if(!REF.test(source.releaseId)||![source.receiptSha256,source.deliveryId,source.deliverySha256].every(v=>HASH.test(v)))
-    throw new Error('vector_published_input_invalid');
-  return sha256(canonicalJson({schemaVersion:1,kind:'published-catalog-read',source,request:encodeBuildRequest(request)}));
+  return sha256(encodePublishedCatalogBinding(input));
 }
 /** Read-only exception for NEW CODE over the EXACT already-published catalog.
  * Historical proof ownership is validated as historical, never claimed/current.

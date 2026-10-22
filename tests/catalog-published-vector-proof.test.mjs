@@ -11,7 +11,7 @@ import { validateCatalogSnapshot } from '../lib/catalog/snapshot.ts';
 import { claimMutationOwnership, releaseMutationOwnership } from '../lib/catalog/mutation-fence.ts';
 import { approvedCohortOperationKey, approvedCohortVectorPlan, prepareApprovedCohort } from '../lib/catalog/freeze-approved-cohort.ts';
 import { enqueueBuildRequest, claimBuildRequest, beginBuildActivation, resolveBuildActivation } from '../lib/catalog/build-requests.ts';
-import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication } from '../lib/catalog/publication.ts';
+import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication, completeActivatedPublication } from '../lib/catalog/publication.ts';
 import { createD1CatalogMaintenanceStore, loadMaintenanceVectorPayload } from '../scripts/catalog/maintenance-d1.ts';
 import { maintenanceEmbeddingText } from '../scripts/catalog/maintenance-state.ts';
 import { editorialSourceHash } from '../scripts/ops/catalog-editorial-core.mjs';
@@ -245,6 +245,9 @@ async function composition(t){
       wire.statements=Math.max(wire.statements,batch.length);assert.ok(batch.length<=50);const result=[];f.sql.exec('BEGIN');
       try{for(const q of batch){counts.sql++;wire.params=Math.max(wire.params,q.params.length);assert.ok(q.params.length<=100);
         const before=f.sql.prepare('SELECT total_changes() n').get().n,rows=f.sql.prepare(q.sql).all(...q.params).map(r=>({...r}));
+        // Readback corruption only: immutable source journals are NEVER edited.
+        if(mode.journalDrift&&q.sql==='SELECT * FROM catalog_vector_deliveries WHERE delivery_id=?'&&rows[0])rows[0].completed_at=at(20);
+        if(mode.receiptDrift&&q.sql==='SELECT * FROM publication_receipts WHERE release_id=?'&&rows[0])rows[0].completed_at=at(20);
         const changes=f.sql.prepare('SELECT total_changes() n').get().n-before;
         result.push({success:true,results:rows,meta:{served_by_primary:true,rows_read:rows.length,rows_written:changes,changes}});
       }f.sql.exec('COMMIT');}catch(error){f.sql.exec('ROLLBACK');throw error;}
@@ -321,19 +324,39 @@ async function composition(t){
     requestId:queued.requestId,runReference:'published-new-code',workspace,config,credentials:{cloudflareToken:'FIXTURE_ONLY',identityAuthorization:'Basic FIXTURE_ONLY'},
     dependencies:{fetch:io.fetch,observationFetch:io.observationFetch,command:command(),now:f.now}});},
     async reopen(){const expectedManifestSha256=workspace.manifestSha256;await workspace.close();workspace=await openRunWorkspace({...wsOptions,mode:'resume',expectedManifestSha256});io=await transports();},
+    async rejectCompletion(binding,revision=f.revision){const c=(await checkpoint()).control.publication;let reads=0;
+      await assert.rejects(completeActivatedPublication(io.db,revision,c.publication,c.permit,async()=>{reads++;return c.intent;},f.now,binding),/publication_activation_fenced/);
+      assert.equal(reads,0);assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='published-new-code'").get().n,0);},
     budget:()=>workspace.budget(),checkpoint,
     unchanged(){assert.equal(canonicalJson(f.sql.prepare('SELECT * FROM products ORDER BY id').all()),frozenProducts);
       assert.equal(canonicalJson(f.sql.prepare('SELECT * FROM catalog_vector_deliveries ORDER BY delivery_id').all()),frozenJournals);
       assert.equal(native(),frozenNative);assert.equal(f.dispatches(),sourceDispatches);assert.equal(counts.nativeWrites,0);}};
 }
-for(const fault of [false,true])test(`actual accounted same-catalog publisher ${fault?'restarts after lost read ACK':'publishes'} without source/native writes`,{skip:process.platform!=='darwin'},async t=>{
-  const f=await composition(t);if(fault)f.mode.identityFailure=true;
-  let result=await f.execute();if(fault){assert.equal(result.state,'pending');assert.equal(f.counts.activations,1);assert.equal(f.counts.uploads,1);
-    f.unchanged();const before={...f.counts};await f.reopen();assert.equal(f.counts.http,before.http+2);result=await f.execute();}
+for(const fault of ['none','read','expired'])test(`actual accounted same-catalog publisher ${fault==='expired'?'resumes after expired publication lease':fault==='read'?'restarts after lost read ACK':'publishes'} without source/native writes`,{skip:process.platform!=='darwin'},async t=>{
+  const f=await composition(t);if(fault!=='none')f.mode.identityFailure=true;
+  const originalRevisionSha=sha256(canonicalJson(f.revision));
+  let result=await f.execute();if(fault!=='none'){assert.equal(result.state,'pending');assert.equal(f.counts.activations,1);assert.equal(f.counts.uploads,1);
+    f.unchanged();if(fault==='expired'){
+      f.advance(16*60000);const c=(await f.checkpoint()).control.publication;
+      assert.ok(c.publication.leaseUntil<f.now().toISOString());assert.ok(f.revision.snapshot.products.every(p=>p.eligibleUntil>f.now().toISOString()));
+      assert.notEqual(f.revision.operationKey,c.permit.mutationOwner.operationKey);
+    }
+    const before={...f.counts};await f.reopen();assert.equal(f.counts.http,before.http+2);
+    if(fault==='expired'){
+      // Default completion still refuses the original/new ownership mismatch.
+      await f.rejectCompletion(undefined);
+      for(const change of [b=>{b.source.deliverySha256='0'.repeat(64);},b=>{b.request.cutoff=at(5*3600000);}]){
+        const binding=structuredClone(f.published);change(binding);await f.rejectCompletion(binding);
+      }
+      for(const drift of ['journalDrift','receiptDrift']){f.mode[drift]=true;await f.rejectCompletion(f.published);delete f.mode[drift];}
+      await f.rejectCompletion(f.published,{...f.revision,operationKey:(await f.checkpoint()).owner.operationKey});
+    }
+    result=await f.execute();}
   assert.equal(result.state,'published',JSON.stringify(result));assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
   assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='published-new-code'").get().n,1);f.unchanged();
   const counts={...f.counts};assert.equal((await f.execute()).state,'published');assert.equal(f.counts.uploads,counts.uploads);assert.equal(f.counts.activations,counts.activations);
-  const budget=await f.budget();assert.equal(budget.httpRequests,f.counts.http);assert.equal(budget.sqlStatements,f.counts.sql);assert.equal(budget.unconfirmedRequests,fault?1:0);
+  assert.equal(sha256(canonicalJson(f.revision)),originalRevisionSha);
+  const budget=await f.budget();assert.equal(budget.httpRequests,f.counts.http);assert.equal(budget.sqlStatements,f.counts.sql);assert.equal(budget.unconfirmedRequests,fault==='none'?0:1);
   assert.ok(budget.httpRequests<=800);assert.ok(budget.sqlStatements<=1200);assert.equal(f.counts.uploadHttp,3);assert.equal(f.counts.builds,1);
   t.diagnostic(JSON.stringify({scope:'LOCAL same-catalog actual executor/accounting/protected-upload MOCK only',...budget,wire:f.wire,...f.counts}));
 });

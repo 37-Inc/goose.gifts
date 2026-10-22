@@ -29,6 +29,17 @@ idle with one build/upload/activation, zero source/native changes and original
 native float32 bits intact. These are local mocked-provider measurements, not
 live publication or new-writer acceptance. Ordinary800HTTP/1200SQL remains.
 
+Root review additionally reproduced a post-activation late-restart defect: the
+old capture operation key differed from the new code-only owner. Fixed with an
+explicit historical source/new-request binding, never an arbitrary key override
+or relabelled revision. Its actual lost-ACK/+16minute/reopen fixture now finishes
+receipt/idle/replay at171HTTP/224SQL/one retained unknown (including six refusal
+probes); original revision hash and all source/native bytes remain unchanged.
+The default path still refuses the key mismatch. Altered request/source pins,
+corrupt historical readback and a relabelled revision all refuse before provider
+observation. The full baseline staging suite passed740/20skips; final rerun
+includes this additional regression before merge/publication.
+
 The separate full-catalog migration and persistent-field/expiry separation
 remain required (`roadmap-lbbz1.3.2`). No live pruning or Vercel deploy is allowed.
 
