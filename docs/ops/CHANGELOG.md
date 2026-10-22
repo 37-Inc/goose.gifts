@@ -282,6 +282,14 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-22 [owner+claude] — Make the default build match Cloudflare
+
+`npm run build` now uses the existing reviewed, source-pinned static builder;
+`build:staging` stays compatible. The old Neon-backed Next build is explicitly
+`build:legacy`, with its separate rollback environment. No build fetches catalog
+data or deploys; an explicit snapshot/release context remains mandatory. This
+removes an obsolete credential dependency without weakening release verification.
+
 ### 2026-10-22 [owner+claude] — Accept private full-catalog migration and recovery
 
 Actual final-source/all-24-table production union, schema 0015 and local native

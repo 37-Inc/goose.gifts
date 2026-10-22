@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node --import tsx scripts/staging/build.mts",
+    "build:legacy": "next build",
     "start": "next start",
     "lint": "eslint .",
     "test:security-toolchain": "node --test tests/security-toolchain.test.mjs",
