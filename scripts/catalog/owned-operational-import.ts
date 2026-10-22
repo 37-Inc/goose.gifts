@@ -50,9 +50,11 @@ function queries(plan:OwnedOperationalImportPlan,planSha256:string,n:number):Que
   const gate=mutationFenceQuery(owner),after=mutationFenceQuery(next),payload=canonicalJson(batch.rows);
   const predicate=columns.map(c=>`t.${c} IS json_extract(j.value,'$.${c}')`).join(' AND ');
   const receiptColumns=Object.keys(r),receiptParams=Object.values(r);
+  // The same strict assertion now runs inside INSERT; the final next-owner
+  // assertion still rolls back rows, receipt and epoch on any later drift.
   return[
-    {sql:`SELECT json(CASE WHEN ${gate.sql} THEN 'true' ELSE 'mutation_fenced' END)`,params:gate.params},
-    {sql:`INSERT INTO ${batch.table}(${columns.join(',')}) SELECT ${columns.map(c=>`json_extract(j.value,'$.${c}')`).join(',')} FROM json_each(?) j`,params:[payload]},
+    {sql:`INSERT INTO ${batch.table}(${columns.join(',')}) SELECT ${columns.map(c=>`json_extract(j.value,'$.${c}')`).join(',')} FROM json_each(?) j
+      WHERE json(CASE WHEN ${gate.sql} THEN 'true' ELSE 'mutation_fenced' END)='true'`,params:[payload,...gate.params]},
     {sql:`INSERT INTO migration_imports(${receiptColumns.join(',')}) SELECT ${receiptColumns.map(()=>'?').join(',')}
       WHERE (SELECT count(*) FROM json_each(?) j JOIN ${batch.table} t ON t.${key(batch.table)}=json_extract(j.value,'$.${key(batch.table)}') WHERE ${predicate})=?`,params:[...receiptParams,payload,batch.rows.length]},
     {sql:`UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1 WHERE environment=? AND index_name=? AND ${gate.sql}
@@ -209,10 +211,12 @@ async function logicalRows(db:CatalogD1,owner:MutationOwner){
       const page=(await db.prepare(`WITH bounded AS (SELECT rowid _cursor,${list},${size} _bytes FROM ${table}
         ${cursor===undefined?'':'WHERE rowid>CAST(? AS INTEGER)'} ORDER BY rowid LIMIT 40), sized AS
         (SELECT *,sum(_bytes) OVER(ORDER BY _cursor) _total FROM bounded)
-        SELECT CAST(_cursor AS TEXT) _cursor,${list} FROM sized WHERE _total<=393216 ORDER BY sized._cursor`)
+        SELECT CAST(_cursor AS TEXT) _cursor,${list} FROM sized
+        WHERE CASE WHEN _bytes>393216 THEN json('owned_import_read_bounds') ELSE _total<=393216 END ORDER BY sized._cursor`)
         .bind(...(cursor===undefined?[]:[cursor])).all<Row>()).results;
-      if(!page.length){const remaining=(await db.prepare(`SELECT 1 FROM ${table} ${cursor===undefined?'':'WHERE rowid>CAST(? AS INTEGER)'} LIMIT 1`)
-        .bind(...(cursor===undefined?[]:[cursor])).all()).results;if(remaining.length)refuse('read_bounds');break;}
+      // Every bounded nonempty input has a fitting first row or throws above;
+      // an empty result is therefore EOF, never an oversized hidden record.
+      if(!page.length)break;
       for(const row of page){cursor=String(row._cursor);delete row._cursor;rows.push(row);}if(rows.length>20_000)refuse('bounds');
     }
     result[table]=rows;

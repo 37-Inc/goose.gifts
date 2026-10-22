@@ -29,7 +29,7 @@ function table(name,rows){const raw=rows.map(r=>JSON.stringify(r)).join('\n')+(r
   return{definition:{schema:'public',name,rowCount:rows.length,sha256:sha256(raw),columns:(name==='catalog_runs'?['started_at','completed_at']
     :name==='catalog_run_items'?['created_at']:[]).map(name=>({name,type:'timestamp with time zone'}))},rows,raw};}
 function insert(sql,table,row){const columns=Object.keys(row);sql.prepare(`INSERT INTO ${table}(${columns}) VALUES(${columns.map(()=>'?')})`).run(...Object.values(row));}
-async function fixture(t,{products=43,items=3,events=2,searches=2,runs=1,largeDescriptions=false}={}){
+async function fixture(t,{products=43,items=3,events=2,searches=2,runs=1,largeDescriptions=false,oversizedNativeItem=0}={}){
   const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
   for(const name of readdirSync(new URL('../migrations/d1/',import.meta.url)).filter(n=>/^\d{4}.*\.sql$/.test(n)).sort())
     sql.exec(readFileSync(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
@@ -43,6 +43,10 @@ async function fixture(t,{products=43,items=3,events=2,searches=2,runs=1,largeDe
     async batch(statements){metrics.requests++;metrics.statements+=statements.length;
       const bytes=Buffer.byteLength(JSON.stringify(statements.map(s=>s.wire())));metrics.maxRequest=Math.max(metrics.maxRequest,bytes);
       assert.ok(bytes<512*1024);assert.ok(statements.length<=50);assert.ok(statements.every(s=>s.wire().params.length<=100));
+      if(statements.some(s=>s.query.startsWith('INSERT INTO migration_imports'))){assert.equal(statements.length,4);
+        assert.ok(statements[0].query.startsWith('INSERT INTO '));assert.ok(statements[0].query.includes("ELSE 'mutation_fenced' END)='true'"));}
+      if(mode.beforeInsert&&statements.some(s=>s.query.startsWith('INSERT INTO migration_imports'))){
+        mode.beforeInsert=false;sql.prepare("UPDATE catalog_mutation_scopes SET owner_token='foreign' WHERE index_name=?").run(scope.indexName);}
       sql.exec('BEGIN');let result;try{result=statements.map((s,i)=>{const value=s.execute();if(mode.late&&s.query.startsWith('INSERT INTO migration_imports')){
         mode.late=false;sql.prepare("UPDATE catalog_mutation_scopes SET owner_token='foreign' WHERE index_name=?").run(scope.indexName);}void i;return value;});sql.exec('COMMIT');}
       catch(error){sql.exec('ROLLBACK');throw error;}
@@ -79,7 +83,8 @@ async function fixture(t,{products=43,items=3,events=2,searches=2,runs=1,largeDe
   const nativeRun={id:'native-run',status:'completed',mode:'daily',dry_run:0,started_at:AT,completed_at:AT,source_record_json:'{"id":"native-run","status":"running"}'};
   insert(sql,'catalog_runs',nativeRun);insert(sql,'catalog_run_telemetry',{run_id:'native-run',start_json:'{"id":"native-run","status":"running"}',finish_json:'{"status":"completed","counts":{"refreshed":8}}'});
   for(let i=1;i<=10;i++)insert(sql,'catalog_run_items',{sequence:i,id:`native-item-${i}`,run_id:'native-run',product_id:sources[0].id,
-    external_id:sources[0].id,decision:'refreshed',requires_manual_review:0,created_at:AT,source_record_json:JSON.stringify({id:`native-item-${i}`,sequence:i,controlled:true})});
+    external_id:sources[0].id,decision:'refreshed',requires_manual_review:0,created_at:AT,
+    source_record_json:JSON.stringify({id:`native-item-${i}`,sequence:i,controlled:true,...(i===oversizedNativeItem?{oversize:'x'.repeat(400_000)}:{})})});
   insert(sql,'catalog_editorial_events',{id:'native-event',run_id:'native-run',product_id:sources[0].id,event_type:'reviewed',status:'ready',created_at:AT,
     source_record_json:'{"controlled":"native editorial evidence"}',timestamp_provenance_json:'{}'});
   insert(sql,'search_history',{id:'native-history',created_at:null,legacy_bundle_id:null,legacy_bundle_slug:null,archive_reference:null,
@@ -112,6 +117,7 @@ test('full3383 source union preserves ten current products/eight native vectors/
   assert.ok(f.metrics.maxRequest<512*1024);assert.ok(f.metrics.maxResponse<512*1024);
   assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_mutation_scopes').get().n,1);
   const firstMetrics={...f.metrics};
+  assert.ok(firstMetrics.requests<=CATALOG_D1_REST_LIMITS.requests);assert.ok(firstMetrics.statements<=CATALOG_D1_REST_LIMITS.statements);
   const before=hashRows(f.sql.prepare('SELECT * FROM migration_imports').all().map(r=>({...r})));
   assert.equal((await f.apply()).state,'reconciled');assert.equal(hashRows(f.sql.prepare('SELECT * FROM migration_imports').all().map(r=>({...r}))),before);
   console.log(JSON.stringify({fixture:'synthetic-full-union-not-provider',batches:f.plan.batches.length,initial:firstMetrics,
@@ -141,6 +147,29 @@ test('late owner drift rolls back rows/receipt/epoch; baseline/native and receip
   await assert.rejects(f.apply(),/baseline_drift/);
   const g=await fixture(t);await g.apply();g.sql.prepare("UPDATE migration_imports SET batch_sha256=? WHERE batch_number=0").run('f'.repeat(64));
   await assert.rejects(g.apply(),/baseline_drift/);
+});
+
+test('owner loss before INSERT and changed captured state refuse without imported rows or receipts',async t=>{
+  const f=await fixture(t);f.mode.beforeInsert=true;await assert.rejects(f.apply(),/owned_import_owner/);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM products').get().n,10);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM migration_imports').get().n,0);
+  const actual=f.sql.prepare('SELECT owner_token,mutation_epoch FROM catalog_mutation_scopes').get();
+  assert.equal(actual.owner_token,'foreign');assert.equal(actual.mutation_epoch,f.input.owner.epoch);
+  const g=await fixture(t);g.sql.prepare("UPDATE products SET availability_status='CHANGED' WHERE id=?").run(sourceProduct(1).id);
+  await assert.rejects(g.apply(),/baseline_drift_products/);assert.equal(g.sql.prepare('SELECT count(*) n FROM migration_imports').get().n,0);
+});
+
+test('oversized first or later captured row throws inside paged SQL, never reports a truncated EOF',async t=>{
+  for(const oversizedNativeItem of [1,2]){
+    const f=await fixture(t,{oversizedNativeItem}),transport=await restAdapter(f);
+    await assert.rejects(f.apply({db:transport.db}),/catalog_d1_result_unknown/);
+    assert.equal(transport.db.metrics().unconfirmedRequests,1);
+    assert.equal(f.sql.prepare('SELECT count(*) n FROM migration_imports').get().n,0);
+    assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_run_items').get().n,10);
+    assert.deepEqual(await readMutationOwner(f.db,scope),f.input.owner);
+    assert.ok(transport.queries.some(q=>q.includes("json('owned_import_read_bounds')")));
+    assert.ok(!transport.queries.some(q=>/^SELECT 1 FROM\b/.test(q)));
+  }
 });
 
 test('checkpoint loss permits only the exact one-epoch own receipt, not ABA/phase or skipped epochs',async t=>{
@@ -185,14 +214,14 @@ test('rollback mapping proves receipts/full rows, restores original legacy seque
 async function restAdapter(f,{lose=false}={}){
   const config={accountId:'a'.repeat(32),databaseId:uuid(901),databaseName:'owned-import-fixture',token:'LOCAL_FIXTURE_ONLY'};
   const base=`https://api.cloudflare.com/client/v4/accounts/${config.accountId}/d1/database/${config.databaseId}`;
-  const charges=[];const settled=new Set();let sends=0;
+  const charges=[],queries=[];const settled=new Set();let sends=0;
   const accounting={scope:{accountId:config.accountId,databaseId:config.databaseId,databaseName:config.databaseName},
     initial:{httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0},
     async reserve(input){charges.push(input);},async settle(id){assert.ok(!settled.has(id));settled.add(id);}};
   const db=await createCatalogD1Rest({...config,accounting,fetch:async(url,init)=>{
     sends++;assert.equal(init.redirect,'error');
     if(url===base)return Response.json({success:true,result:{uuid:config.databaseId,name:config.databaseName,read_replication:{mode:'disabled'}}});
-    assert.equal(url,`${base}/query`);const {batch}=JSON.parse(init.body);const result=[];f.sql.exec('BEGIN');
+    assert.equal(url,`${base}/query`);const {batch}=JSON.parse(init.body);queries.push(...batch.map(q=>q.sql));const result=[];f.sql.exec('BEGIN');
     try{for(const q of batch){
       const before=f.sql.prepare('SELECT total_changes() n').get().n;
       const results=f.sql.prepare(q.sql).all(...q.params).map(r=>({...r}));
@@ -203,7 +232,7 @@ async function restAdapter(f,{lose=false}={}){
     if(lose&&batch.some(q=>q.sql.startsWith('INSERT INTO migration_imports'))){lose=false;throw new Error('Local post-commit response loss');}
     return Response.json({success:true,result});
   }});
-  return{db,charges,settled,sends:()=>sends};
+  return{db,charges,settled,queries,sends:()=>sends};
 }
 
 test('actual REST transport retains unknown charges while own receipt recovery avoids duplicate inserts',async t=>{
