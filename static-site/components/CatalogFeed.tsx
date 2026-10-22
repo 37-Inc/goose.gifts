@@ -5,6 +5,7 @@ import type { CatalogCard } from "../lib/card-shard";
 import { fetchCardShard } from "../lib/card-shard";
 import { ProductCard } from "./ProductCard";
 import { captureRenderedLists } from "../lib/analytics";
+import { catalogDeadline } from "../../lib/catalog/display";
 
 export function CatalogFeed({
   initial,
@@ -33,12 +34,13 @@ export function CatalogFeed({
   useEffect(() => {
     if (!state.products.length) return;
     const deadline = Math.min(
-      ...state.products.map((p) => Date.parse(p.eligibleUntil)),
+      ...state.products.map((p) => catalogDeadline(p.eligibleUntil)),
     );
+    if (!Number.isFinite(deadline)) return;
     const timer = window.setTimeout(
       () => {
         if (
-          state.products.some((p) => Date.parse(p.eligibleUntil) <= Date.now())
+          state.products.some((p) => catalogDeadline(p.eligibleUntil) <= Date.now())
         ) {
           pending.current?.abort();
           pending.current = null;
@@ -68,7 +70,7 @@ export function CatalogFeed({
       if (abort.signal.aborted) return;
       const seen = new Set(state.products.map((p) => p.id));
       if (
-        state.products.some((p) => Date.parse(p.eligibleUntil) <= Date.now()) ||
+        state.products.some((p) => catalogDeadline(p.eligibleUntil) <= Date.now()) ||
         data.products.some((p) => seen.has(p.id)) ||
         data.next === state.next
       )

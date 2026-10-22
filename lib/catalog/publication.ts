@@ -1,5 +1,6 @@
 import type { CatalogReleaseManifest, CatalogSnapshot } from './types.ts';
 import type { CatalogD1, D1Statement, D1ReadOptions } from './storage/d1.ts';
+import { earliestDisplayExpiry } from './display.ts';
 import { canonicalTime } from './snapshot.ts';
 import { rollbackPreflight, visibleRevisionCountQuery } from './d1.ts';
 import { legacyMutationBatch, mutationAssertion, mutationFenceQuery } from './mutation-fence.ts';
@@ -75,7 +76,7 @@ function gate(snapshot: CatalogSnapshot, intent: PublicationIntent) {
       intent.catalogRevision, intent.nextExpiry, intent.nextExpiry, intent.priorReleaseId, intent.priorReleaseId] };
 }
 async function preflight(db: CatalogD1, snapshot: CatalogSnapshot, intent: PublicationIntent, now: Date): Promise<void> {
-  const earliest = snapshot.products.reduce<string | null>((deadline, product) => deadline === null || product.eligibleUntil < deadline ? product.eligibleUntil : deadline, null);
+  const earliest = earliestDisplayExpiry(snapshot.products);
   if (snapshot.dataKind !== 'catalog' || snapshot.catalogRevision !== intent.catalogRevision || intent.nextExpiry !== earliest
     || !(await rollbackPreflight(db, snapshot, now)).ok) throw new Error('publication_preflight_failed');
   const check = gate(snapshot, intent);

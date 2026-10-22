@@ -2,8 +2,9 @@ import type { CatalogSnapshot, PublicCatalogProduct } from './types.ts';
 import type { CatalogD1 } from './storage/d1.ts';
 import { validateCatalogSnapshot, validatePublicCatalogProduct } from './snapshot.ts';
 import { legacyMutationBatch } from './mutation-fence.ts';
+import { resolvePublicProduct, persistentPublicProduct } from './display.ts';
 
-type Row = Record<string, string | number>;
+type Row = Record<string, string | number | null>;
 export interface ProjectionReceipt extends Row {
   catalog_revision: string; snapshot_sha256: string; projection_sha256: string;
   source_export_sha256: string; product_count: number; created_at: string;
@@ -52,10 +53,68 @@ const CURRENT_PERMISSIONS = `coalesce(json_type(p.public_display_json)='object' 
       AND (${grant('basis')}!='merchant' OR (${canonicalInstant(observed)} AND ${observed}<=?
         AND ${expires}>${observed} AND julianday(${expires})-julianday(${observed})<=1)),0)),0)`;
 const VISIBLE = `v.eligible_until>? AND ${CURRENT_READY} AND v.source_facts_hash=p.source_facts_hash AND ${CURRENT_PERMISSIONS}`;
+// Listing clearance is independent of supplier availability/verification age.
+// It never authorizes a semantic/native read: that path retains VISIBLE above.
+const base = (column:string) => `(CASE WHEN json_type(${column},'$.eligibleUntil')='null' THEN ${column}
+  WHEN json_type(${column},'$.persistent')='object' THEN json_extract(${column},'$.persistent') END)`;
+const V_BASE=base('v.public_display_json'),P_BASE=base('p.public_display_json');
+const BASE_RIGHTS=`(CASE WHEN json_type(p.public_display_json,'$.eligibleUntil')='null' THEN p.rights_json
+  ELSE json_extract(p.rights_json,'$.persistent') END)`;
+const baseGrant=(key:string)=>`json_extract(${BASE_RIGHTS},'$.'||field.value||'.${key}')`;
+const baseDisplay=`json_extract(${V_BASE},'$.'||field.value)`;
+const editorial=`json_extract(${V_BASE},'$.editorialWriteup')`;
+// Maintained semantics supersede the immutable archive; missing current copy
+// evidence must not fall back to an older, higher-quality editorial record.
+const currentCopy = (maintained:string,archived:string) => `(CASE WHEN m.product_id IS NULL
+  THEN json_extract(p.source_record_json,'$.${archived}') ELSE json_extract(m.semantic_json,'$.${maintained}') END)`;
+const currentEditorial=currentCopy('editorialWriteup','editorial_writeup');
+const currentEditorialQuality=currentCopy('editorialQualityScore','editorial_quality_score');
+const reviewedQuality=`CASE WHEN json_valid(${currentEditorialQuality}) THEN CASE
+  WHEN json_type(${currentEditorialQuality}) IN ('integer','real') THEN CAST(${currentEditorialQuality} AS REAL) END END`;
+const words=[9,10,11,12,13,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279]
+  .reduce((text,code)=>`replace(${text},char(${code}),' ')`,editorial);
+const PERSISTENT_VISIBLE=`coalesce(p.is_active=1 AND p.duplicate_of_product_id IS NULL AND p.quality_score>=0.55
+  AND p.editorial_status NOT IN ('blocked','needs_review')
+  AND v.source_facts_hash=p.source_facts_hash AND json_type(${V_BASE})='object' AND json_type(${P_BASE})='object'
+  AND json_type(${BASE_RIGHTS})='object' AND json_type(${V_BASE},'$.eligibleUntil')='null'
+  AND json_type(${P_BASE},'$.eligibleUntil')='null'
+  AND json_type(${V_BASE},'$.indexable') IN ('true','false') AND json_type(${V_BASE},'$.persistent') IS NULL
+  AND json_extract(${V_BASE},'$.id')=v.product_id AND json_extract(${V_BASE},'$.publicId')=v.public_id
+  AND json_extract(${V_BASE},'$.slug')=v.slug AND json_extract(${V_BASE},'$.source')=p.source
+  AND json_extract(${V_BASE},'$.currency')=p.currency
+  AND json_extract(${V_BASE},'$.imageUrl') LIKE '/%.svg' AND json_extract(${V_BASE},'$.imageUrl') NOT LIKE '//%'
+  AND instr(json_extract(${V_BASE},'$.imageUrl'),'..')=0 AND instr(json_extract(${V_BASE},'$.imageUrl'),'%')=0
+  AND instr(json_extract(${V_BASE},'$.imageUrl'),char(63))=0 AND instr(json_extract(${V_BASE},'$.imageUrl'),'#')=0
+  AND instr(json_extract(${V_BASE},'$.imageUrl'),'\\')=0
+  AND NOT EXISTS(${displayValues(V_BASE)} EXCEPT ${displayValues(P_BASE)})
+  AND NOT EXISTS(${displayValues(P_BASE)} EXCEPT ${displayValues(V_BASE)})
+  AND (json_extract(${V_BASE},'$.indexable')=0 OR (p.editorial_status IN ('generated_ready','manual_locked')
+    AND p.source_facts_hash=p.editorial_source_hash AND ${reviewedQuality} BETWEEN 0.8 AND 1
+    AND ${currentEditorial}=${editorial}
+    AND ${currentCopy('id','id')}=p.id AND ${currentCopy('publicId','public_id')}=p.public_id
+    AND ${currentCopy('slug','slug')}=p.slug
+    AND ${currentCopy('sourceFactsHash','source_facts_hash')}=p.source_facts_hash
+    AND ${currentCopy('editorialSourceHash','editorial_source_hash')}=p.editorial_source_hash
+    AND ${currentCopy('editorialStatus','editorial_status')}=p.editorial_status AND length(${editorial})>=500
+    AND instr(replace(replace(replace(${editorial},char(13),''),char(9),''),' ',''),char(10)||char(10))>0
+    AND (SELECT count(*) FROM json_each('['||replace(json_quote(${words}),' ','","')||']') WHERE length(value)>0)>=90))
+  AND NOT EXISTS(SELECT 1 FROM json_each('["title","description","imageUrl","affiliateUrl","editorialWriteup","punnyTitle","wittyDescription","humorTags"]') field
+    WHERE (field.value IN ('title','description','imageUrl','affiliateUrl') OR json_type(${V_BASE},'$.'||field.value) IS NOT NULL)
+    AND NOT coalesce(${baseGrant('basis')} IN ('owned','licensed') AND ${baseGrant('expiresAt')} IS NULL
+      AND typeof(${baseGrant('reference')})='text' AND length(trim(${baseGrant('reference')},${TRIM}))>0
+      AND typeof(${baseGrant('value')})='text' AND ${baseGrant('value')}=${baseDisplay},0)),0)`;
+const LISTED=`(${VISIBLE} OR ${PERSISTENT_VISIBLE})`;
+// A validated base may survive a revoked/expired supplier overlay. An unproven
+// nested base is never sent simply because the outer supplier DTO is fresh.
+const LISTED_DISPLAY=`CASE WHEN ${PERSISTENT_VISIBLE} THEN ${V_BASE}
+  ELSE json_remove(v.public_display_json,'$.persistent') END`;
+const SEMANTIC_DISPLAY=`CASE WHEN ${PERSISTENT_VISIBLE} THEN v.public_display_json
+  ELSE json_remove(v.public_display_json,'$.persistent') END`;
 // Start with revision/FTS candidates, then inspect each current product by its
 // unique identity. Do not let the planner start with all active products.
 const JOIN = `CROSS JOIN products p ON p.id=v.product_id AND p.public_id=v.public_id
-  JOIN catalog_projection_receipts r ON r.catalog_revision=v.catalog_revision`;
+  JOIN catalog_projection_receipts r ON r.catalog_revision=v.catalog_revision
+  LEFT JOIN catalog_maintenance_products m ON m.product_id=p.id`;
 
 async function hash(value: string): Promise<string> {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
@@ -68,8 +127,9 @@ export async function createProjectionPacket(snapshotInput: CatalogSnapshot, fac
     const factsHash = factsByPublicId[product.publicId];
     if (!/^[a-f0-9]{64}$/.test(factsHash || '')) throw new Error('Missing projection factual hash');
     const display = JSON.stringify(product);
+    const indexed=persistentPublicProduct(product)??product;
     return { catalog_revision: snapshot.catalogRevision, public_id: product.publicId, product_id: product.id,
-      slug: product.slug, title: product.title, description: product.description, tags: product.humorTags?.join(' ') || '',
+      slug: product.slug, title: indexed.title, description: indexed.description, tags: indexed.humorTags?.join(' ') || '',
       source_facts_hash: factsHash, eligible_until: product.eligibleUntil, public_display_json: display, display_sha256: await hash(display) };
   }));
   return { rows, receipt: { catalog_revision: snapshot.catalogRevision,
@@ -122,24 +182,35 @@ export async function importPublicProjection(db: CatalogD1, packet: ProjectionPa
   return 'imported';
 }
 function publicRows(rows: { public_display_json: string }[], now: Date): PublicCatalogProduct[] {
-  return rows.flatMap((row) => { try { return [validatePublicCatalogProduct(JSON.parse(row.public_display_json), now)]; } catch { return []; } });
+  return rows.flatMap((row) => { try {
+    const product=resolvePublicProduct(validatePublicCatalogProduct(JSON.parse(row.public_display_json),now),now);
+    return product?[product]:[];
+  } catch { return []; } });
 }
 /** Reused inside fenced publication SQL; omission uses the database execution clock. */
 export function visibleRevisionCountQuery(revision: string, now?: Date): ProjectionQuery {
-  const visible = now ? VISIBLE : VISIBLE.replaceAll('?', "strftime('%Y-%m-%dT%H:%M:%fZ','now')");
+  const visible = now ? LISTED : LISTED.replaceAll('?', "strftime('%Y-%m-%dT%H:%M:%fZ','now')");
   return { sql: `SELECT count(*) FROM catalog_public_products v ${JOIN}
     WHERE v.catalog_revision=? AND ${visible}`, params: [revision, ...(now ? [now.toISOString(), now.toISOString(), now.toISOString()] : [])] };
 }
 export async function getRevisionProductsByPublicIds(db: CatalogD1, ids: string[], now: Date, revision: string): Promise<PublicCatalogProduct[]> {
+  return revisionProductsByPublicIds(db,ids,now,revision,false);
+}
+/** Validated permanent listing lookup; never substitute for semantic/native eligibility. */
+export async function getListedRevisionProductsByPublicIds(db: CatalogD1, ids: string[], now: Date, revision: string): Promise<PublicCatalogProduct[]> {
+  return revisionProductsByPublicIds(db,ids,now,revision,true);
+}
+async function revisionProductsByPublicIds(db: CatalogD1, ids: string[], now: Date, revision: string,listing:boolean): Promise<PublicCatalogProduct[]> {
   if (!revision || ids.length > 240) throw new Error('Revision and bounded product IDs required');
   const unique = [...new Set(ids)]; const found = new Map<string, PublicCatalogProduct>();
   for (let offset = 0; offset < unique.length; offset += 80) {
     const chunk = unique.slice(offset, offset + 80);
     const result = await db.prepare(`WITH requested(public_id) AS (VALUES ${chunk.map(() => '(?)').join(',')})
-      SELECT v.public_display_json FROM requested
+      SELECT ${listing?LISTED_DISPLAY:SEMANTIC_DISPLAY} public_display_json FROM requested
       CROSS JOIN catalog_public_products v ON v.public_id=requested.public_id AND v.catalog_revision=? ${JOIN}
-      WHERE ${VISIBLE}`)
-      .bind(...chunk, revision, now.toISOString(), now.toISOString(), now.toISOString()).all<{ public_display_json: string }>();
+      WHERE ${listing?LISTED:VISIBLE}`)
+      .bind(...chunk,revision,
+        now.toISOString(),now.toISOString(),now.toISOString()).all<{ public_display_json: string }>();
     for (const product of publicRows(result.results, now)) found.set(product.publicId, product);
   }
   return unique.flatMap((id) => found.has(id) ? [found.get(id)!] : []);
@@ -150,27 +221,28 @@ export async function keywordSearchRevision(db: CatalogD1, query: string, limit:
   if (normalized.length < 2 || normalized.length > 200) return [];
   const words = normalized.match(/[\p{L}\p{N}]+/gu)?.slice(0, 20) || [];
   if (!words.length) return [];
-  const result = await db.prepare(`SELECT v.public_display_json FROM catalog_public_products_fts
+  const result = await db.prepare(`SELECT ${LISTED_DISPLAY} public_display_json FROM catalog_public_products_fts
     CROSS JOIN catalog_public_products v ON v.rowid=catalog_public_products_fts.rowid ${JOIN}
-    WHERE catalog_public_products_fts MATCH ? AND v.catalog_revision=? AND ${VISIBLE}
+    WHERE catalog_public_products_fts MATCH ? AND v.catalog_revision=? AND ${LISTED}
     ORDER BY bm25(catalog_public_products_fts),v.public_id LIMIT ?`)
-    .bind(words.map((word) => `"${word}"`).join(' OR '), revision, now.toISOString(), now.toISOString(), now.toISOString(), limit)
+    .bind(words.map((word) => `"${word}"`).join(' OR '), revision,
+      now.toISOString(),now.toISOString(),now.toISOString(),limit)
     .all<{ public_display_json: string }>();
   return publicRows(result.results, now);
 }
 /** Rollback is an explicit compatibility check, never a blind old-Worker flip. */
 export async function rollbackPreflight(db: CatalogD1, snapshot: CatalogSnapshot, now = new Date()): Promise<{ ok: boolean; reason: string }> {
-  if (snapshot.products.some((product) => !(Date.parse(product.eligibleUntil) > now.getTime()))) return { ok: false, reason: 'release_expired' };
+  if (snapshot.products.some((product) => !resolvePublicProduct(product,now))) return { ok: false, reason: 'release_expired' };
   try { validateCatalogSnapshot(snapshot, now); } catch { return { ok: false, reason: 'release_invalid' }; }
   const receipt = await db.prepare('SELECT * FROM catalog_projection_receipts WHERE catalog_revision=?')
     .bind(snapshot.catalogRevision).all<ProjectionReceipt>();
   if (receipt.results.length !== 1) return { ok: false, reason: 'projection_receipt_missing' };
   if (receipt.results[0].snapshot_sha256 !== await hash(`${JSON.stringify(snapshot)}\n`)
     || receipt.results[0].product_count !== snapshot.products.length) return { ok: false, reason: 'release_digest_mismatch' };
-  const expected = new Map(snapshot.products.map((product) => [product.publicId, JSON.stringify(product)]));
+  const expected = new Map(snapshot.products.map((product) => [product.publicId, JSON.stringify(persistentPublicProduct(product)??resolvePublicProduct(product,now))]));
   let visible = 0;
   for (let offset = 0; offset < snapshot.products.length; offset += 240) {
-    const products = await getRevisionProductsByPublicIds(db, snapshot.products.slice(offset, offset + 240).map((product) => product.publicId), now, snapshot.catalogRevision);
+    const products = await getListedRevisionProductsByPublicIds(db, snapshot.products.slice(offset, offset + 240).map((product) => product.publicId), now, snapshot.catalogRevision);
     if (products.some((product) => expected.get(product.publicId) !== JSON.stringify(product))) return { ok: false, reason: 'projection_bytes_incompatible' };
     visible += products.length;
   }

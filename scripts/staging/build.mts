@@ -9,6 +9,7 @@ import { createStaticFeedPlan } from '../../workers/site/feed.ts';
 import { createReleaseIdentity } from './release-identity.mts';
 import { resolveSiteSourceMode, siteIdentityRecordFor } from '../../static-site/lib/site-identity.ts';
 import { assembleReleaseAssets, readPriorRelease } from './retention.mts';
+import { earliestDisplayExpiry } from '../../lib/catalog/display.ts';
 
 export type ReleaseBuildContext = Pick<SiteAssetManifest, 'schemaVersion' | 'releaseId' | 'codeSha' | 'catalogRevision'
   | 'catalogSnapshotSha256' | 'generatedAt' | 'vectorSyncWatermark' | 'priorReleaseId' | 'sourceMode'> & { retainedManifestSha256: string | null };
@@ -108,7 +109,7 @@ async function main() {
   const manifest: SiteAssetManifest = { ...manifestContext,
     retention: retainedManifestSha256 === null ? null : assembled.retention,
     siteIdentitySha256: createHash('sha256').update(identityBytes).digest('hex'), dataKind: snapshot.dataKind,
-    nextExpiry: snapshot.products.map((product) => product.eligibleUntil).sort()[0] || null,
+    nextExpiry: earliestDisplayExpiry(snapshot.products),
     productCount: snapshot.products.length,
     slugCount: snapshot.products.length + snapshot.heldProducts.length + snapshot.slugHistory.length,
     checksums, routes: assembled.routes };

@@ -195,6 +195,22 @@ test("opt-in exact static host sends only contract payloads, once per mount/list
   assert.equal(env.listeners.size, 0);
 });
 
+test("explicit permanent listings preserve list and outbound events without treating missing expiry as permission", async () => {
+  for (const permanent of [true, false]) {
+    const env = environment();
+    delete env.card.dataset.analyticsExpiry;
+    if (permanent) env.card.dataset.analyticsPermanent = "";
+    const cleanup = env.analytics.startStaticAnalytics(true);
+    await flush();
+    env.click(true);
+    await flush();
+    const events = env.calls.filter(([name]) => name === "event").map((event) => event[1]);
+    assert.deepEqual(events, permanent ? ["page_view", "view_item_list", "conversion_event_outbound_click"] : ["page_view"]);
+    assert.doesNotMatch(JSON.stringify(env.calls), /private|affiliate|\?q=/);
+    cleanup();
+  }
+});
+
 test("explicit Goose static mode preserves canonical page origin, provider destinations and coarse internal attribution", async () => {
   for (const host of ["www.goose.gifts", "goose.gifts"]) {
     const env = environment(host, "true", new Map(), "goose-production");

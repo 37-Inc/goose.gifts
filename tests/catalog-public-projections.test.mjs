@@ -3,7 +3,7 @@ import test from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
 import { readFile } from 'node:fs/promises';
 import { createProjectionPacket, getRevisionProductsByPublicIds, importPublicProjection,
-  keywordSearchRevision, projectionQueries, rollbackPreflight, visibleRevisionCountQuery } from '../lib/catalog/d1.ts';
+  getListedRevisionProductsByPublicIds, keywordSearchRevision, projectionQueries, rollbackPreflight, visibleRevisionCountQuery } from '../lib/catalog/d1.ts';
 import { publicProductRightsExpiry } from '../lib/catalog/snapshot.ts';
 import { getProductsByPublicIds, keywordSearch } from '../lib/catalog/storage/d1.ts';
 
@@ -23,10 +23,13 @@ function rights(product) {
     .filter(field => field in product).map(field => [field, { basis: 'licensed', reference: 'Controlled test-only permission',
       value: field === 'humorTags' ? JSON.stringify(product[field]) : product[field] }]));
 }
-async function setup() {
+async function setup({persistentSchema=true,sourceRecord={}}={}) {
   const sqlite = new DatabaseSync(':memory:');
+  sqlite.exec('PRAGMA foreign_keys=ON');
   sqlite.exec(await readFile(new URL('../migrations/d1/0001_catalog.sql', import.meta.url), 'utf8'));
   sqlite.exec(await readFile(new URL('../migrations/d1/0002_public_projections.sql', import.meta.url), 'utf8'));
+  sqlite.exec(await readFile(new URL('../migrations/d1/0010_catalog_maintenance.sql',import.meta.url),'utf8'));
+  if(persistentSchema)sqlite.exec(await readFile(new URL('../migrations/d1/0013_persistent_public_products.sql',import.meta.url),'utf8'));
   sqlite.function('strftime', (format, instant) => {
     assert.equal(format, '%Y-%m-%dT%H:%M:%fZ'); assert.equal(instant, 'now'); return NOW.toISOString();
   });
@@ -34,7 +37,7 @@ async function setup() {
     availability_status,source_facts_hash,editorial_source_hash,catalog_revision,eligible_until,rights_json,source_record_json,updated_at,public_display_json)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run('B000000001', PUBLIC_ID, 'funny-button', 'amazon', 'current operational title', 'USD', .8, 1,
       'generated_ready', 'IN_STOCK', HASH, HASH, 'operational-newer', new Date(NOW.getTime() + 2 * 86400_000).toISOString(),
-      JSON.stringify(rights(snapshot('operational').products[0])), '{}', NOW.toISOString(), JSON.stringify(snapshot('operational').products[0]));
+      JSON.stringify(rights(snapshot('operational').products[0])), JSON.stringify(sourceRecord), NOW.toISOString(), JSON.stringify(snapshot('operational').products[0]));
   sqlite.prepare('UPDATE products SET availability_checked_at=?').run(NOW.toISOString());
   const db = { prepare(sql) { let values = []; return {
     bind(...parameters) { values = parameters; return this; },
@@ -256,4 +259,136 @@ test('current operational holds, factual changes and deadline expiry override bo
     const tampered = snapshot('r1', 'Edited after publication.');
     assert.equal((await rollbackPreflight(fixture.db, tampered, NOW)).reason, 'release_digest_mismatch');
   } finally { fixture.close(); }
+});
+
+function persistentProduct(){
+  const old=snapshot('persistent').products[0];
+  return {id:old.id,publicId:old.publicId,slug:old.slug,source:old.source,currency:old.currency,
+    title:'Desk sound maker',description:'Independently cleared description of a desk sound maker.',
+    imageUrl:'/brand/product.svg',affiliateUrl:old.affiliateUrl,price:0,isActive:true,qualityScore:.8,eligibleUntil:null,indexable:false};
+}
+async function persistentSetup({standalone=false,indexable=false}={}){
+  const f=await setup(),base={...persistentProduct(),indexable},value=snapshot('persistent');
+  value.products=standalone?[base]:[{...value.products[0],persistent:base}];
+  const grants=standalone?rights(base):{...rights(value.products[0]),persistent:rights(base)};
+  f.sqlite.prepare('UPDATE products SET public_display_json=?,rights_json=?,eligible_until=?')
+    .run(JSON.stringify(value.products[0]),JSON.stringify(grants),value.products[0].eligibleUntil);
+  await importPublicProjection(f.db,await packet(value));return{...f,value,base,grants};
+}
+test('permanent listing survives supplier expiry/unknown availability without renewing semantic eligibility',async()=>{
+  for(const standalone of [false,true]){
+    const f=await persistentSetup({standalone});try{
+      const original=f.sqlite.prepare('SELECT * FROM catalog_public_products').get();
+      f.sqlite.exec("UPDATE products SET availability_status='UNKNOWN',availability_checked_at=NULL,last_verified_at=NULL,editorial_status='pending',editorial_source_hash=NULL");
+      const late=new Date(NOW.getTime()+40*86400_000);
+      assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'persistent'),[f.base]);
+      assert.deepEqual(await getListedRevisionProductsByPublicIds(f.db,[PUBLIC_ID],late,'persistent'),[f.base]);
+      assert.deepEqual(await getRevisionProductsByPublicIds(f.db,[PUBLIC_ID],late,'persistent'),[]);
+      assert.equal((await rollbackPreflight(f.db,f.value,late)).ok,true);
+      const query=visibleRevisionCountQuery('persistent',late);assert.equal(Object.values(f.sqlite.prepare(query.sql).get(...query.params))[0],1);
+      assert.deepEqual(f.sqlite.prepare('SELECT * FROM catalog_public_products').get(),original);
+      assert.doesNotMatch(JSON.stringify(await keywordSearchRevision(f.db,'sound maker',60,late,'persistent')),/media-amazon|Sound Button|persistent/);
+      // FTS indexes the cleared identity, not a supplier-only name after expiry.
+      assert.deepEqual(await keywordSearchRevision(f.db,'Controlled button heading',60,late,'persistent'),[]);
+    }finally{f.close();}
+  }
+});
+test('permanent listing requires exact current grants/base and preserves genuine operational holds',async()=>{
+  for(const mutate of [
+    f=>{delete f.grants.persistent;},f=>{f.grants.persistent.title.basis='merchant';},
+    f=>{f.grants.persistent.imageUrl.expiresAt=new Date(NOW.getTime()+86400_000).toISOString();},
+    f=>{f.grants.persistent.description.value='different';},f=>{f.grants.persistent.title.reference=' \t\n';},
+    f=>{f.value.products[0].persistent={...f.base,title:'Changed approved identity'};},
+    f=>f.sqlite.exec('UPDATE products SET is_active=0'),f=>f.sqlite.exec("UPDATE products SET duplicate_of_product_id='winner'"),
+    f=>f.sqlite.exec('UPDATE products SET quality_score=.1'),f=>f.sqlite.exec("UPDATE products SET source_facts_hash='changed'"),
+    f=>f.sqlite.exec("UPDATE products SET editorial_status='blocked'"),f=>f.sqlite.exec("UPDATE products SET editorial_status='needs_review'"),
+  ]){
+    const f=await persistentSetup();try{
+      mutate(f);f.sqlite.prepare('UPDATE products SET public_display_json=?,rights_json=?').run(JSON.stringify(f.value.products[0]),JSON.stringify(f.grants));
+      const late=new Date(NOW.getTime()+86400_000);
+      assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'persistent'),[]);
+      assert.deepEqual(await getListedRevisionProductsByPublicIds(f.db,[PUBLIC_ID],late,'persistent'),[]);
+      const query=visibleRevisionCountQuery('persistent',late);assert.equal(Object.values(f.sqlite.prepare(query.sql).get(...query.params))[0],0);
+    }finally{f.close();}
+  }
+  const f=await setup();try{
+    const value=snapshot('short-invalid');value.products[0]={...value.products[0],persistent:{...persistentProduct(),indexable:true}};
+    await assert.rejects(packet(value),/persistent editorial/);
+  }finally{f.close();}
+});
+test('revoked supplier grant falls back to a cleared base, never an unproven nested DTO',async()=>{
+  const f=await persistentSetup();try{
+    delete f.grants.title;f.sqlite.prepare('UPDATE products SET rights_json=?').run(JSON.stringify(f.grants));
+    assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,NOW,'persistent'),[f.base]);
+    assert.deepEqual(await getRevisionProductsByPublicIds(f.db,[PUBLIC_ID],NOW,'persistent'),[]);
+  }finally{f.close();}
+});
+test('explicit review holds override standalone and nested identity-only permanent listings',async()=>{
+  for(const standalone of [false,true])for(const status of ['blocked','needs_review']){
+    const f=await persistentSetup({standalone});try{
+      f.sqlite.prepare('UPDATE products SET editorial_status=?').run(status);
+      const late=new Date(NOW.getTime()+40*86400_000);
+      assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'persistent'),[]);
+      assert.deepEqual(await getListedRevisionProductsByPublicIds(f.db,[PUBLIC_ID],late,'persistent'),[]);
+      assert.equal((await rollbackPreflight(f.db,f.value,late)).ok,false);
+      const q=visibleRevisionCountQuery('persistent',late);assert.equal(Object.values(f.sqlite.prepare(q.sql).get(...q.params))[0],0);
+    }finally{f.close();}
+  }
+});
+test('indexable permanent bases require substantive cleared text and current reviewed factual agreement',async()=>{
+  for(const separator of ['\n\n','\r\n \t\r\n']){
+    const base={...persistentProduct(),indexable:true,humorTags:['independent','λ'],editorialWriteup:
+      Array(2).fill(Array(48).fill('Specific useful independently authored details.').join(' ')).join(separator)};
+    const original={id:base.id,public_id:base.publicId,slug:base.slug,source_facts_hash:HASH,editorial_source_hash:HASH,
+      editorial_status:'generated_ready',editorial_quality_score:'0.9000',editorial_writeup:base.editorialWriteup};
+    const f=await setup({sourceRecord:original});try{
+      const value=snapshot('substantive');value.products[0]={...value.products[0],persistent:base};
+      const grants={...rights(value.products[0]),persistent:rights(base)};
+      f.sqlite.prepare('UPDATE products SET public_display_json=?,rights_json=?').run(JSON.stringify(value.products[0]),JSON.stringify(grants));
+      await importPublicProjection(f.db,await packet(value));const late=new Date(NOW.getTime()+40*86400_000);
+      assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'substantive'),[base]);
+      const current={id:base.id,publicId:base.publicId,slug:base.slug,sourceFactsHash:HASH,editorialSourceHash:HASH,
+        editorialStatus:'generated_ready',editorialQualityScore:'0.9000',editorialWriteup:base.editorialWriteup};
+      f.sqlite.prepare('INSERT INTO catalog_maintenance_products VALUES(?,1,?,NULL,NULL,?)').run(base.id,JSON.stringify(current),'{}');
+      assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'substantive'),[base]);
+      for(const delta of [{editorialQualityScore:'0.7999'},{editorialQualityScore:null},{editorialQualityScore:'0.9junk'},
+        {editorialWriteup:`${base.editorialWriteup} changed`},{editorialWriteup:null},{editorialSourceHash:'changed'},
+        {sourceFactsHash:'changed'},{id:'another-product'},{editorialStatus:'manual_locked'}]){
+        f.sqlite.prepare('UPDATE catalog_maintenance_products SET semantic_json=?').run(JSON.stringify({...current,...delta}));
+        assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'substantive'),[],JSON.stringify(delta));
+        assert.deepEqual(await getListedRevisionProductsByPublicIds(f.db,[PUBLIC_ID],late,'substantive'),[]);
+        const q=visibleRevisionCountQuery('substantive',late);assert.equal(Object.values(f.sqlite.prepare(q.sql).get(...q.params))[0],0);
+        assert.equal((await rollbackPreflight(f.db,value,late)).ok,false);
+      }
+      f.sqlite.prepare('UPDATE catalog_maintenance_products SET semantic_json=?').run(JSON.stringify(current));
+      delete grants.persistent.humorTags;f.sqlite.prepare('UPDATE products SET rights_json=?').run(JSON.stringify(grants));
+      assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'substantive'),[]);
+      f.sqlite.prepare('UPDATE products SET rights_json=?,editorial_status=?').run(JSON.stringify({...grants,persistent:rights(base)}),'pending');
+      assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'substantive'),[]);
+    }finally{f.close();}
+  }
+});
+test('0013 preserves rowids/fields/receipts/FTS/FKs and rolls back an interrupted table swap',async()=>{
+  const f=await setup({persistentSchema:false});try{
+    await importPublicProjection(f.db,await packet(snapshot('r1')));
+    for(const [index,q]of projectionQueries(await packet(snapshot('r2'))).entries())f.sqlite.prepare(index===0
+      ?q.sql.replace('(catalog_revision','(rowid,catalog_revision').replace(/VALUES\s*\(/,'VALUES(37,'):q.sql).run(...q.params);
+    const state=()=>({rows:f.sqlite.prepare('SELECT rowid,* FROM catalog_public_products ORDER BY rowid').all(),
+      receipts:f.sqlite.prepare('SELECT rowid,* FROM catalog_projection_receipts ORDER BY rowid').all(),
+      fts:f.sqlite.prepare("SELECT rowid FROM catalog_public_products_fts WHERE catalog_public_products_fts MATCH 'button' ORDER BY rowid").all(),
+      fk:f.sqlite.prepare('PRAGMA foreign_key_check').all()});
+    const before=state(),migration=await readFile(new URL('../migrations/d1/0013_persistent_public_products.sql',import.meta.url),'utf8');
+    f.sqlite.exec('BEGIN');assert.throws(()=>f.sqlite.exec(migration.replace('CREATE INDEX catalog_public_expiry_idx','SELECT missing_column FROM missing_table; CREATE INDEX catalog_public_expiry_idx')));
+    f.sqlite.exec('ROLLBACK');assert.deepEqual(state(),before);
+    assert.equal(f.sqlite.prepare("PRAGMA table_info('catalog_public_products')").all().find(c=>c.name==='eligible_until').notnull,1);
+    f.sqlite.exec('BEGIN');f.sqlite.exec(migration);f.sqlite.exec('COMMIT');assert.deepEqual(state(),before);
+    assert.equal(f.sqlite.prepare("PRAGMA table_info('catalog_public_products')").all().find(c=>c.name==='eligible_until').notnull,0);
+    assert.throws(()=>f.sqlite.exec("UPDATE catalog_public_products SET title='changed'"),/immutable/);
+    assert.throws(()=>f.sqlite.exec('UPDATE catalog_projection_receipts SET product_count=0'),/immutable/);
+    const row=projectionQueries(await packet(snapshot('r1')))[0];assert.throws(()=>f.sqlite.prepare(row.sql).run(...row.params),/sealed/);
+    const receipt=projectionQueries(await packet(snapshot('incomplete'))).at(-1);assert.throws(()=>f.sqlite.prepare(receipt.sql).run(...receipt.params),/Incomplete/);
+    f.sqlite.prepare("INSERT INTO catalog_public_products SELECT 'nullable',public_id,product_id,slug,title,description,tags,source_facts_hash,NULL,public_display_json,display_sha256 FROM catalog_public_products WHERE catalog_revision='r1'").run();
+    assert.equal(f.sqlite.prepare("SELECT eligible_until FROM catalog_public_products WHERE catalog_revision='nullable'").get().eligible_until,null);
+    assert.deepEqual(f.sqlite.prepare('PRAGMA foreign_key_check').all(),[]);
+  }finally{f.close();}
 });

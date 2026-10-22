@@ -49,7 +49,8 @@ function productData(element: HTMLElement) {
   const { analyticsId: id, analyticsSource: source,
     analyticsContext: context, analyticsExpiry: expiry } = element.dataset;
   if (!id || !context || !["amazon", "etsy"].includes(source || "")
-    || !(Date.parse(expiry || "") > Date.now())) return;
+    || !(element.dataset.analyticsPermanent === "" && !expiry
+      || Date.parse(expiry || "") > Date.now())) return;
   return { id, source: source as ProductAnalyticsSource, context };
 }
 

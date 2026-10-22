@@ -15,7 +15,8 @@ function load(file, overrides = {}) {
   } });
   const commonJs = { exports: {} };
   vm.runInNewContext(outputText, { module: commonJs, exports: commonJs.exports, AbortController,
-    require: (name) => overrides[name] || require(name) });
+    require: (name) => overrides[name] || (name.startsWith(".")
+      ? createRequire(new URL(`../static-site/${file}`, import.meta.url))(name) : require(name)) });
   return commonJs.exports;
 }
 
@@ -35,7 +36,7 @@ test("each published guide has an intentional, accessible line icon instead of a
 
 test("real gift cards have no repeated collection label or Unicode arrow; fixtures stay clearly labeled", () => {
   const { ProductCard } = load("components/ProductCard.tsx", {
-    "@/components/ProductImage": { ProductImage: () => null },
+    "./CatalogPhotos": { CatalogImage: () => null },
     "../lib/selection": { isIllustrative: () => false },
   });
   const product = { id: "owned-test", slug: "owned-test", source: "amazon", title: "Owned test gift",

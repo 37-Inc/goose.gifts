@@ -1,4 +1,4 @@
-import { ProductImage } from "@/components/ProductImage";
+import { CatalogImage } from "./CatalogPhotos";
 import type { PublicCatalogProduct } from "../../lib/catalog/types";
 import type { CatalogCard } from "../lib/card-shard";
 import { isIllustrative } from "../lib/selection";
@@ -20,14 +20,16 @@ export function ProductCard({
       data-analytics-id={illustrative ? undefined : product.id}
       data-analytics-source={illustrative ? undefined : product.source}
       data-analytics-context={context}
-      data-analytics-expiry={product.eligibleUntil}>
+      data-analytics-expiry={product.eligibleUntil ?? undefined}
+      data-analytics-permanent={product.eligibleUntil === null ? "" : undefined}>
       <a
         data-analytics-product-link=""
         className={`product-art${illustrative ? "" : " retailer-art"}`}
         href={`/gifts/${product.slug}`}
         aria-label={`View ${product.title}`}
       >
-        <ProductImage
+        <CatalogImage
+          id={product.id}
           imageUrl={product.imageUrl}
           alt={
             illustrative
@@ -50,7 +52,8 @@ export function ProductCard({
             {product.punnyTitle || product.title}
           </a>
         </h2>
-        <p>{product.wittyDescription || product.description}</p>
+        {(product.wittyDescription || product.description) !== (product.punnyTitle || product.title) &&
+          <p>{product.wittyDescription || product.description}</p>}
         <a data-analytics-product-link="" className="text-action" href={`/gifts/${product.slug}`}>
           {illustrative ? "Explore the example" : "View gift"}
         </a>

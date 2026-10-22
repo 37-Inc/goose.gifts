@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { catalogDeadline } from '../../lib/catalog/display.ts';
 import { execFileSync } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -83,10 +84,10 @@ export function localFixture(now: () => number, lifetimeMs: number) {
     searchAdapters: { storage: () => ({
       async byPublicIds(ids, at, revision) { calls.ids++; assert.ok(ids.length <= 100); assert.equal(revision, snapshot.catalogRevision);
         if (failure === 'storage') throw new Error('PRIVATE_FAKE_PROVIDER_ERROR'); await pause(1);
-        return snapshot.products.filter(p => ids.includes(p.publicId) && Date.parse(p.eligibleUntil) > at.getTime()); },
+        return snapshot.products.filter(p => ids.includes(p.publicId) && catalogDeadline(p.eligibleUntil) > at.getTime()); },
       async keyword(_query, limit, at) { calls.keyword++; assert.ok(limit <= 240);
         if (failure === 'storage') throw new Error('PRIVATE_FAKE_PROVIDER_ERROR');
-        return snapshot.products.filter(p => Date.parse(p.eligibleUntil) > at.getTime()).slice(0, limit); },
+        return snapshot.products.filter(p => catalogDeadline(p.eligibleUntil) > at.getTime()).slice(0, limit); },
     }), async reserveSemantic(scope, tokens) { calls.budget++; assert.deepEqual(scope, { environment: 'staging', index: 'local-only' });
       assert.ok(Number.isInteger(tokens) && tokens > 0 && tokens <= 816); return failure !== 'budget'; },
     async embed() { calls.embeddings++; if (failure === 'embedding') throw new Error('PRIVATE_FAKE_PROVIDER_ERROR'); await pause(5); return Array(1536).fill(.1); },

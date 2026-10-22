@@ -4,9 +4,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
+import { earliestDisplayExpiry } from "../lib/catalog/display.ts";
 import { createStaticRoutes } from "../static-site/lib/asset-routes.ts";
 import { createBrowseRelease } from "../static-site/lib/browse.ts";
-import { createOgRelease, ogPath } from "../static-site/lib/og.ts";
+import { createOgRelease } from "../static-site/lib/og.ts";
 import { siteIdentity } from "../static-site/lib/site-identity.ts";
 import { guides, selectGuideProducts } from "../static-site/lib/guides.ts";
 import {
@@ -114,7 +115,7 @@ test(
     }
     assert.equal(
       routes["/__next.__PAGE__.txt"].eligibleUntil,
-      exportSnapshot.products.map((product) => product.eligibleUntil).sort()[0],
+      earliestDisplayExpiry(exportSnapshot.products),
     );
     assert.throws(
       () => createStaticRoutes(exportSnapshot, [...inventory, "/orphan.txt"]),
@@ -123,23 +124,20 @@ test(
   },
 );
 test(
-  "related product deadline protects detail HTML and RSC too",
-  { skip: !fs.existsSync(new URL("out/index.html", root)) },
+  "legacy related product deadline protects detail HTML and RSC too",
   () => {
-    const changed = structuredClone(exportSnapshot);
+    // A legacy-only fixture keeps testing the original supplier-only contract,
+    // even when the real export now contains permanent views/photo overlays.
+    const changed = structuredClone(snapshot);
     const related = changed.products[Math.min(2, changed.products.length - 1)];
     related.eligibleUntil = "2026-10-21T00:00:00.000Z";
-    const oldVersion = createBrowseRelease(exportSnapshot).version;
-    const version = createBrowseRelease(changed).version;
-    const previousOg = createOgRelease(exportSnapshot, siteIdentity);
-    const nextOg = createOgRelease(changed, siteIdentity);
-    const renamedOg = new Map(previousOg.cards.map((card) => [ogPath(card), ogPath(nextOg.cards.find((next) => next.subjectId === card.subjectId && next.kind === card.kind))]));
-    const routes = createStaticRoutes(
-      changed,
-      files(new URL("out/", root)).map((file) =>
-        renamedOg.get(file) || file.replace(`/catalog/${oldVersion}/`, `/catalog/${version}/`),
-      ),
-    );
+    const pages = ["/random-gift", "/gift-guides", "/howie", "/preview/presentation", "/gifts", "/gifts/page/1",
+      ...guides.map(guide => `/gift-guides/${guide.slug}`), ...changed.products.map(product => `/gifts/${product.slug}`)];
+    const inventory = ["/index.html", "/index.txt", ...pages.flatMap(page => [`${page}.html`, `${page}.txt`]),
+      ...["catalog", "product", "howie", "presentation"].flatMap(page => [`/safe/${page}.html`, `/safe/${page}.txt`]),
+      "/safe/catalog.json", ...["_full", "_tree", "safe.product.__PAGE__"].map(part => `/safe/product/__next.${part}.txt`),
+      ...createBrowseRelease(changed).shards.map(shard => shard.path), ...createOgRelease(changed, siteIdentity).byPath.keys()];
+    const routes = createStaticRoutes(changed, inventory);
     assert.equal(
       routes[`/gifts/${changed.products[0].slug}`].eligibleUntil,
       related.eligibleUntil,

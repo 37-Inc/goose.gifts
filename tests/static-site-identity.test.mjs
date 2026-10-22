@@ -64,7 +64,9 @@ function component(relative, config, fixture = false) {
   const commonJs = { exports: {} };
   const dependencies = {
     "../lib/site-identity": config,
-    "../lib/catalog": { isFixtureRelease: fixture },
+    "../lib/catalog": { isFixtureRelease: fixture, photos: { indexPath: null } },
+    "../components/CatalogPhotos": { CatalogPhotos: ({ children }) => children },
+    "./CatalogPhotos": { CatalogImage: () => React.createElement("img", { alt: "Controlled fixture" }) },
     "../lib/metadata": { previewMetadata: () => ({}) },
     "../lib/show-data": { show: { latest: null } },
     "../components/StaticAnalytics": { StaticAnalytics: () => React.createElement("i", { "data-test-analytics": true }) },

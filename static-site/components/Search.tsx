@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import type { PublicCatalogProduct } from "../../lib/catalog/types";
 import { ProductCard } from "./ProductCard";
 import { captureRenderedLists, captureStaticSearch } from "../lib/analytics";
+import { catalogDeadline, persistentPublicProduct, resolvePublicProduct } from "../../lib/catalog/display";
+import { validatePublicCatalogProduct } from "../../lib/catalog/snapshot";
 
 type SearchState = {
   status: "idle" | "loading" | "ready" | "unavailable";
@@ -49,14 +51,16 @@ export function Search() {
           throw new Error("Invalid search response");
         // API owns eligibility and public-field validation. Expiry is checked again
         // before showing results, including a response received across its deadline.
-        const products = data.results
-          .filter(
-            (product: PublicCatalogProduct) =>
-              typeof product.slug === "string" &&
-              typeof product.eligibleUntil === "string" &&
-              Date.parse(product.eligibleUntil) > Date.now(),
-          )
-          .slice(0, 36);
+        const now = new Date();
+        const products = data.results.slice(0, 36).flatMap((raw: unknown) => {
+          try {
+            if (!raw || typeof raw !== "object" || Array.isArray(raw)) return [];
+            const display = Object.fromEntries(Object.entries(raw).filter(([key]) => !["similarity", "rankScore", "matchType"].includes(key)));
+            const product = validatePublicCatalogProduct(display, now);
+            const resolved = persistentPublicProduct(product) ?? resolvePublicProduct(product, now);
+            return resolved ? [resolved] : [];
+          } catch { return []; }
+        });
         if (active && !abort.signal.aborted && request === sequence.current) {
           setState({ status: "ready", products });
           captureStaticSearch(products.length);
@@ -82,14 +86,15 @@ export function Search() {
   useEffect(() => {
     if (!state.products.length) return;
     const deadline = Math.min(
-      ...state.products.map((product) => Date.parse(product.eligibleUntil)),
+      ...state.products.map((product) => catalogDeadline(product.eligibleUntil)),
     );
+    if (!Number.isFinite(deadline)) return;
     const timer = window.setTimeout(
       () =>
         setState((current) => ({
           ...current,
           products: current.products.filter(
-            (product) => Date.parse(product.eligibleUntil) > Date.now(),
+            (product) => catalogDeadline(product.eligibleUntil) > Date.now(),
           ),
         })),
       Math.max(0, Math.min(2_147_483_647, deadline - Date.now())),

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { ProductImage } from "@/components/ProductImage";
+import { CatalogImage } from "../../../components/CatalogPhotos";
 import { buildGiftPageSchema } from "@/lib/gift-page-schema";
 import { catalog } from "../../../lib/catalog";
 import { isIllustrative } from "../../../lib/selection";
@@ -26,7 +26,7 @@ export async function generateMetadata({
     product.title,
     product.description,
     `/gifts/${slug}`,
-    { indexable: true, fixture: catalog.dataKind === "synthetic_fixture",
+    { indexable: product.indexable !== false, fixture: catalog.dataKind === "synthetic_fixture",
       image: og.cards.find((card) => card.subjectId === product.publicId) },
   );
 }
@@ -57,12 +57,13 @@ export default async function Gift({
           }}
         />
       )}
-      <a className="back-link" href="/gifts">
-        ← The collection
+      <a className="back-link" href="/">
+        All gifts
       </a>
       <article className="product-detail">
         <div className={`detail-art${illustrative ? "" : " retailer-art"}`}>
-          <ProductImage
+          <CatalogImage
+            id={product.id}
             imageUrl={product.imageUrl}
             alt={
               illustrative
@@ -81,9 +82,9 @@ export default async function Gift({
               : "A carefully considered bad idea"}
           </p>
           <h1>{product.punnyTitle || product.title}</h1>
-          <p className="detail-line">
+          {(product.wittyDescription || product.description) !== (product.punnyTitle || product.title) && <p className="detail-line">
             {product.wittyDescription || product.description}
-          </p>
+          </p>}
           {illustrative ? (
             <div className="fixture-explanation">
               <h2>A design example, not a real listing.</h2>
@@ -101,7 +102,8 @@ export default async function Gift({
               data-analytics-id={product.id}
               data-analytics-source={product.source}
               data-analytics-context="gift_page_primary_cta"
-              data-analytics-expiry={product.eligibleUntil}>
+              data-analytics-expiry={product.eligibleUntil ?? undefined}
+              data-analytics-permanent={product.eligibleUntil === null ? "" : undefined}>
               <a
                 data-analytics-outbound=""
                 href={product.affiliateUrl}
@@ -127,7 +129,7 @@ export default async function Gift({
                 ))}
             </div>
           )}
-          {!illustrative && product.punnyTitle && (
+          {!illustrative && product.punnyTitle && product.eligibleUntil !== null && (
             <div className="listing-identity">
               <h2>Retailer listing name</h2>
               <p>{product.title}</p>

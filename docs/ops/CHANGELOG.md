@@ -31,6 +31,12 @@ what's likely next.
   Live pruning/deactivation/index deletion is paused; the existing daily task
   now records that prohibition. Preserve all IDs, slugs, native vectors and
   history. Bulk migration is separate from the ten/day refresh allowance.
+  The owned history-union code is merged in PR229; permanent text/pages and
+  separately expiring photo overlays are implemented in PR228, with a real
+  2,392-item synthetic static/browser test (15,422 files; no paid plan).
+  Production remains eight visible gifts until actual import/recovery,
+  positive content clearance and a new publication pass. Do not confuse the
+  synthetic capacity test with completed migration or resume daily writes yet.
 - **Homepage/privacy cleanup shipped:** `roadmap-lbbz1.5.1/.5.2` are closed on
   actual Cloudflare source `82efb21` and live browser/HTTP evidence. Exact
   headline, fewer labels, 24+24 static browse, guide glyphs and Index retirement

@@ -13,7 +13,7 @@ const SOURCE = 'b'.repeat(64); const FACTS = 'f'.repeat(64);
 async function setup() {
   const sqlite = new DatabaseSync(':memory:');
   for (const migration of ['0001_catalog.sql', '0002_public_projections.sql', '0003_publication_outbox.sql', '0004_vector_outbox_leases.sql',
-    '0005_historical_timestamps.sql', '0006_semantic_search_budget.sql', '0007_catalog_build_requests.sql'])
+    '0005_historical_timestamps.sql', '0006_semantic_search_budget.sql', '0007_catalog_build_requests.sql', '0010_catalog_maintenance.sql'])
     sqlite.exec(await readFile(new URL(`../migrations/d1/${migration}`, import.meta.url), 'utf8'));
   let clock = NOW; let beforeRun; let unknownActivationReceipt = false; const calls = [];
   sqlite.function('strftime', (format, instant) => {

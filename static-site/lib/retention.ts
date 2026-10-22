@@ -3,6 +3,7 @@ import { canonicalTime, validateCatalogSnapshot } from "../../lib/catalog/snapsh
 import type { CatalogAssetRoute, CatalogSnapshot, SiteAssetManifest } from "../../lib/catalog/types";
 import { projectCard, validateCardShard } from "./card-shard";
 import safeCatalogPayload from "../public/safe/catalog.json";
+import { catalogDeadline, persistentPublicProduct } from "../../lib/catalog/display";
 
 export const RETENTION_OVERLAP_MS = 15 * 60 * 1000;
 type SealedManifest = SiteAssetManifest & { catalogSnapshotSha256: string };
@@ -95,7 +96,7 @@ export function retainStaticAssets(input: RetentionInput) {
   const files = new Map<string, Uint8Array>();
   const routes: Record<string, CatalogAssetRoute> = {};
   let bytes = 0, entries = 0;
-  const byId = new Map(current.products.map((p) => [`${p.source}:${p.id}`, p]));
+  const byId = new Map(current.products.map(p => [`${p.source}:${p.id}`, persistentPublicProduct(p) ?? p]));
   for (const path of candidates) {
     const priorPolicy = manifest.routes[path];
     const previousDeadline = priorPolicy?.retainedUntil;
@@ -117,7 +118,6 @@ export function retainStaticAssets(input: RetentionInput) {
     if (SHARD.test(path)) {
       if (!priorPolicy || priorPolicy.indexable !== false
         || !["ready", "held"].includes(priorPolicy.state)
-        || priorPolicy.state === "ready" && !priorPolicy.eligibleUntil
         || priorPolicy.safeAssetPath !== SAFE_CATALOG) fail();
       let deadline = priorPolicy.eligibleUntil ? Math.min(Date.parse(canonicalTime(priorPolicy.eligibleUntil)), end) : end;
       let eligible = priorPolicy.state === "ready" && deadline > capture;
@@ -127,12 +127,12 @@ export function retainStaticAssets(input: RetentionInput) {
         const match = path.match(SHARD)!;
         const shard = validateCardShard(payload, { catalogRevision: payload.catalogRevision,
           version: match[1], kind: match[2] === "random" ? "random" : "feed",
-          now: Math.min(Date.parse(priorSnapshot.generatedAt), Date.parse(payload.eligibleUntil) - 1) });
-        deadline = Math.min(deadline, Date.parse(shard.eligibleUntil));
+          now: Math.min(Date.parse(priorSnapshot.generatedAt), catalogDeadline(payload.eligibleUntil) - 1) });
+        deadline = Math.min(deadline, catalogDeadline(shard.eligibleUntil));
         for (const card of shard.products) {
           const product = byId.get(`${card.source}:${card.id}`);
           if (!product || cardContent(card) !== cardContent(projectCard(product))) eligible = false;
-          if (product) deadline = Math.min(deadline, Date.parse(product.eligibleUntil));
+          if (product) deadline = Math.min(deadline, catalogDeadline(product.eligibleUntil));
         }
       }
       copy = eligible && deadline > capture;

@@ -3,6 +3,55 @@
 This document retains protected-staging history and the separate production
 checkpoint below. The launch spec and `roadmap-lbbz1` remain authoritative.
 
+### October 22 implementation checkpoint — not yet published
+
+PR #229 is merged at `d4153499fdb2268f2b5fa6efede1b44f900800d5`:
+the bounded owner-fenced history union preserves current target rows, native
+payloads, source archives and allocator mappings. Production capture acceptance
+is deliberately absent in that change. Its full mock import is 495 HTTP /
+1,159 SQL; SQLite's 15,324 `total_changes` is **not** D1 billed writes, which
+also include ordinary indexes. Do not reuse default ten-thousand write capacity
+as a full-migration estimate or reset an existing run's accounting.
+
+PR #228 separates independently cleared permanent fields from optional finite
+supplier photos. HTML, cards, product routes, OG and keyword coverage retain
+product identity; only the original photo JSON expires. No supplier deadline,
+rights grant, private product/native/history row or publication is renewed by
+this code. Per-product factual/review holds remain authoritative. Indexable
+permanent pages require substantive exact reviewed editorial, not a private
+status flag. Supplied grants must match the actual displayed fields.
+
+Root's Node22 combined staging invocation passed **837 / 848**, zero failures,
+eleven optional skips; full ESLint and scoped types pass. A real, explicitly
+synthetic 2,392-product export built 2,392 product HTML routes and **15,422
+files** (18,014 entries including directories), below the Free 20,000-file
+limit. Every manifest checksum and route verified; no owner identifiers or
+supplier text/URLs outside finite photo JSON appeared. Actual local browser
+checks confirmed 24→48→72 distinct products, mobile390px with no overflow and
+the product-page home link. This is build/browser evidence, **not** a real
+catalog import or provider CPU/load acceptance. Wrangler local bundle was
+886.58KiB gzip; its startup profile is not billed production CPU evidence.
+An additional legacy Next build compiled/typechecked but could not prerender
+the unchanged Neon-backed guide without `POSTGRES_URL`; no production credentials
+were pulled to make that obsolete target green. The affected Cloudflare static
+target above actually built and verified.
+
+At 08:24–08:26 UTC, approved Wrangler OAuth readback confirms production still
+has **10 private / 8 projected**, idle owner generation4/epoch27 and disabled
+replication. Account-wide D1 analytics for UTC October22 reported 43,284 rows
+read / 235 written; analytics can lag and is not a quota reservation. Provider
+`_cf_KV` and `d1_migrations` must be explicitly excluded from application-table
+capture, not mistaken for unknown application tables or silently copied.
+
+Next: actual disposable D1 schema/capture/cost checks; final source-writer and
+target-native capture; bounded one-time full import and rollback rehearsal;
+explicit positive permanent-content preparation; a **new** reviewed full-catalog
+publication; then the single new-site daily writer. Internal migration caps may
+be adjusted under the owner's existing authorization, within measured Free
+headroom. Daily merchant/model limits, old-run ledgers, original deadlines,
+Pinterest pause and Vercel freeze do not change. The live checkpoint below
+remains the actual public release; do not rerun either completed publication.
+
 ### Current production checkpoint — October 22, 06:05 UTC
 
 PR #225 (`f233c4c`) and PR #226 (`82efb21`) are merged and actually published

@@ -5,6 +5,45 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 — Full-catalog implementation and measured static capacity
+
+Continuing `roadmap-lbbz1.3.2`, not repeating the completed UI release. PR229
+merged `d415349`: exact source/target union, current-ten preservation, allocator
+mapping and recoverable history are implemented offline. Production acceptance
+remains gated. PR228 adds permanent independently cleared product fields,
+separate original-deadline photo overlays, preserved keyword identity and
+explicit review/indexability holds. All original private rows/native vectors
+and supplier observations remain unchanged. Root review fixed curation override,
+legacy identity/history omission and unsubstantiated indexability defects;
+regressions cover those boundaries and client timer/back-forward restoration.
+
+Combined Node22 staging:848 tests,837 pass,11 optional skips,zero failures;
+full lint/types pass. Actual synthetic2392-product export at application
+`656a9df` contains15422 files/2592directories, all checksums verified, no owner
+identifiers and no supplier text/URLs outside finite photo JSON. Local browser
+verified24/48/72 unique Load more,390px nooverflow and product All gifts link.
+Wrangler dry-run886.58KiB gzip/local startup profiling does not establish
+provider CPU or real migration capacity. No synthetic product is published.
+The separately attempted legacy Next build compiled/typechecked; its unchanged
+guide prerender refused the deliberately absent Neon connection string. This
+is not a failed Cloudflare export or permission to retrieve provider secrets.
+
+Actual read-only production/primary evidence08:24UTC:10private/8projected,
+owneridlegen4epoch27; current public82efb21 unchanged. Account-wide D1 UTC-day
+analytics08:26 reports43284reads/235writes, lagged not reserved. Exact actual
+provider `_cf_KV`/`d1_migrations` table discovery corrected the prospective
+capture gate; unknown application tables still must refuse. Full mock union
+495HTTP/1159SQL is separate from real provider capacity: SQLite15324changes
+does not include all D1 billed index writes. The owner already authorizes
+adjusting our internal migration caps; use a new bounded measured run, never
+reset old journals or increase merchant/model cadence.
+
+Next remains genuine schema/capture/cost canary, source finaldelta, all-history
+production import/native rollback, positive permanent-field preparation and
+new publication before enabling new-site maintenance. Old Neon writers remain
+off; Vercel frozen; Pinterest paused; no merchant/model, schema/catalog writes
+or deployment were performed for this implementation checkpoint.
+
 ## 2026-10-22 06:05 UTC — Homepage/privacy release actually live
 
 PR225 merged `f233c4cf341a6faff73bf5afba538e45ac054d51`; PR226 merged

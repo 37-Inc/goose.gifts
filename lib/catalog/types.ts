@@ -9,12 +9,19 @@ export interface PublicCatalogProduct extends Pick<Product,
   price: 0;
   isActive: true;
   qualityScore: number;
-  eligibleUntil: string;
+  /** Supplier-display deadline; null is only for independently cleared fields. */
+  eligibleUntil: string | null;
+  indexable?: boolean;
+  /** One independently cleared view, never another supplier-data lease. */
+  persistent?: PersistentCatalogProduct;
   punnyTitle?: string;
   wittyDescription?: string;
   editorialWriteup?: string;
   humorTags?: string[];
 }
+
+export type PersistentCatalogProduct = Omit<PublicCatalogProduct, 'eligibleUntil' | 'persistent'>
+  & { eligibleUntil: null; indexable: boolean };
 
 export type HeldReason = 'inactive' | 'duplicate' | 'editorial_hold' | 'expired' | 'rights_unverified';
 export interface SafeHeldProduct {
@@ -45,6 +52,8 @@ export interface CatalogAssetRoute {
   eligibleUntil: string | null;
   state: 'ready' | 'held';
   indexable?: boolean;
+  /** Explicit positive clearance of the route-specific safe variant. */
+  persistentIndexable?: boolean;
   /** Fixed overlap deadline from first retirement capture; never renewed. */
   retainedUntil?: string;
 }
@@ -82,5 +91,10 @@ export interface ContentRight {
   observedAt?: string;
   expiresAt?: string;
 }
-export type ProductRights = Partial<Record<DisplayField, ContentRight>>;
+export type DisplayRights = Partial<Record<DisplayField, ContentRight>>;
+export type ProductRights = DisplayRights & { persistent?: DisplayRights };
 export type SnapshotProductInput = Product & { description?: string; publicId: string; slug: string };
+export interface PersistentProductInput {
+  product: SnapshotProductInput;
+  rights: DisplayRights;
+}

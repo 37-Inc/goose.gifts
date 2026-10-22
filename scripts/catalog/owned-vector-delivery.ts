@@ -811,7 +811,7 @@ export function readPublishedCatalogVectors(options:{db:CatalogD1;owner:Mutation
       ||owner.environment!==request.environment||owner.environment!==plan.environment||owner.indexName!==plan.indexName||request.sourceRevision!==snapshot.catalogRevision
       ||request.sourceDigest!==revision.packet.receipt.snapshot_sha256||request.capturedAt!==snapshot.generatedAt
       ||sha256(`${JSON.stringify(snapshot)}\n`)!==request.sourceDigest||!request.priorReleaseId
-      ||request.cutoff>=snapshot.products.map(p=>p.eligibleUntil).sort()[0]||!snapshot.products.length
+      ||snapshot.products.some(p=>p.eligibleUntil===null||request.cutoff>=p.eligibleUntil)||!snapshot.products.length
       ||ids.length>20||new Set(ids).size!==ids.length||revision.sourceRows.length!==ids.length
       ||canonicalJson(revision.sourceRows.map(r=>r.public_id).sort())!==canonicalJson([...ids].sort())
       ||owner.phase==='activating'&&(!permit||canonicalJson(permit.mutationOwner)!==canonicalJson(owner))

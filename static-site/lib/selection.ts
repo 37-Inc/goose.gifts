@@ -2,6 +2,7 @@ import type {
   CatalogSnapshot,
   PublicCatalogProduct,
 } from "../../lib/catalog/types";
+import { catalogDeadline, persistentPublicProduct } from "../../lib/catalog/display";
 
 export const RANDOM_POOL_LIMIT = 48;
 
@@ -9,13 +10,13 @@ export function readySnapshotProducts(
   snapshot: CatalogSnapshot,
   now = Date.parse(snapshot.generatedAt),
 ) {
-  return snapshot.products.filter(
+  return snapshot.products.map(product => persistentPublicProduct(product) ?? product).filter(
     (product) =>
       product.isActive &&
       product.qualityScore >= 0.55 &&
       product.imageUrl &&
       product.affiliateUrl &&
-      Date.parse(product.eligibleUntil) > now,
+      catalogDeadline(product.eligibleUntil) > now,
   );
 }
 
@@ -23,7 +24,7 @@ export function eligiblePool<
   T extends Pick<PublicCatalogProduct, "eligibleUntil">,
 >(products: readonly T[], now = Date.now()) {
   return products
-    .filter((product) => Date.parse(product.eligibleUntil) > now)
+    .filter((product) => catalogDeadline(product.eligibleUntil) > now)
     .slice(0, RANDOM_POOL_LIMIT);
 }
 

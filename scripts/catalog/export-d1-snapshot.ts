@@ -4,6 +4,7 @@ import { createProjectionPacket } from '../../lib/catalog/d1.ts';
 import { canonicalTime, EDITORIAL_MAX_AGE_MS, publicProductRightsExpiry,
   validateCatalogSnapshot, validatePublicCatalogProduct } from '../../lib/catalog/snapshot.ts';
 import { isPurchasableAvailability } from '../../lib/gift-slugs.ts';
+import { catalogDisplayDeadline, persistentPublicProduct } from '../../lib/catalog/display.ts';
 import { suppressNearDuplicateProducts } from '../../lib/db/product-scoring.ts';
 import { canonicalJson, canonicalTimestamp, sha256 } from './migration.ts';
 import { mutationFenceQuery } from '../../lib/catalog/mutation-fence.ts';
@@ -300,14 +301,28 @@ function verificationTime(current: Row, rights: ProductRights): number {
 export function checkCurrent(product: PublicCatalogProduct, projection: Row, current: Row, now: Date): void {
   if (!current || current.id !== product.id || current.public_id !== product.publicId || current.slug !== product.slug || current.source !== product.source
     || current.is_active !== 1 || current.duplicate_of_product_id !== null || typeof current.quality_score !== 'number' || current.quality_score < .55
-    || !isPurchasableAvailability(String(current.availability_status)) || !['generated_ready', 'manual_locked'].includes(String(current.editorial_status))
-    || current.source_facts_hash !== projection.source_facts_hash || current.source_facts_hash !== current.editorial_source_hash
+    || current.source_facts_hash !== projection.source_facts_hash
     || typeof current.public_display_json !== 'string') throw new Error('current_hold_or_factual_drift');
   const approved = validatePublicCatalogProduct(JSON.parse(current.public_display_json), now);
+  const persistent = persistentPublicProduct(product), currentPersistent = persistentPublicProduct(approved);
+  const rights = object(JSON.parse(String(current.rights_json))) as ProductRights;
+  if (persistent) {
+    if (['blocked', 'needs_review'].includes(String(current.editorial_status)) || !currentPersistent
+      || canonicalJson(persistent) !== canonicalJson(currentPersistent)
+      || persistent.indexable && (!['generated_ready', 'manual_locked'].includes(String(current.editorial_status))
+        || current.source_facts_hash !== current.editorial_source_hash)
+      || publicProductRightsExpiry(persistent, approved.eligibleUntil === null ? rights : rights.persistent ?? {}, now) !== Infinity)
+      throw new Error('current_rights_incompatible');
+    // Final publication SQL separately rechecks current reviewed-copy provenance.
+    // No supplier observation time, availability or deadline is renewed here.
+    return;
+  }
+  if (!isPurchasableAvailability(String(current.availability_status)) || !['generated_ready', 'manual_locked'].includes(String(current.editorial_status))
+    || current.source_facts_hash !== current.editorial_source_hash || product.eligibleUntil === null || approved.eligibleUntil === null)
+    throw new Error('current_hold_or_factual_drift');
   // A grant/factual hash alone cannot make a changed manual display compatible.
   // Only a renewed deadline may advance without changing the sealed display.
   if (canonicalJson({ ...approved, eligibleUntil: product.eligibleUntil }) !== canonicalJson(product)) throw new Error('current_display_incompatible');
-  const rights = object(JSON.parse(String(current.rights_json))) as ProductRights;
   const deadline = publicProductRightsExpiry(product, rights, now);
   const verified = verificationTime(current, rights);
   const until = Math.min(Date.parse(canonicalTime(current.eligible_until)), Date.parse(approved.eligibleUntil));
@@ -402,7 +417,7 @@ export async function reconstructD1Snapshot(db: CatalogD1, envelopeInput: Sealed
     const packet = await createProjectionPacket(snapshot, facts, context.sourceExportSha256, new Date(envelope.generatedAt));
     const sortedProjection = [...projection].sort((a, b) => String(a.public_id).localeCompare(String(b.public_id)));
     if (canonicalJson(packet.rows) !== canonicalJson(sortedProjection) || canonicalJson(packet.receipt) !== canonicalJson(receipt)) return hold('projection_bytes_mismatch');
-    if (snapshot.products.some((product) => Date.parse(product.eligibleUntil) <= Math.max(now.getTime(), Date.parse(context.cutoff)))) return hold('expiry_requires_new_revision', true);
+    if (snapshot.products.some((product) => catalogDisplayDeadline(product) <= Math.max(now.getTime(), Date.parse(context.cutoff)))) return hold('expiry_requires_new_revision', true);
     if (now.toISOString() >= context.cutoff) return hold('capture_window_elapsed');
     if (suppressNearDuplicateProducts(snapshot.products).length !== snapshot.products.length) return hold('duplicates_require_new_revision', true);
     validateCatalogSnapshot(snapshot, now);
@@ -422,7 +437,7 @@ export async function reconstructD1Snapshot(db: CatalogD1, envelopeInput: Sealed
     if (stable(first) !== stable(final)) return hold('source_changed_during_read');
     const observedAt = canonicalTime(final.header.observedAt);
     if (observedAt < now.toISOString()) return hold('database_clock_regressed');
-    if (snapshot.products.some((product) => product.eligibleUntil <= observedAt)) return hold('expiry_requires_new_revision', true);
+    if (snapshot.products.some((product) => catalogDisplayDeadline(product) <= Date.parse(observedAt))) return hold('expiry_requires_new_revision', true);
     if (observedAt >= context.cutoff) return hold('capture_window_elapsed');
     return snapshot.products.length ? { status: 'ready', snapshot, observedAt } : hold('all_held');
   } catch (error) {

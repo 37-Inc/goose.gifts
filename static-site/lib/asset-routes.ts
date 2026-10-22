@@ -9,13 +9,15 @@ import { createShowRelease, episodePath } from "./show";
 import { createOgRelease, ogPath } from "./og";
 import type { OgIdentity } from "./og";
 import { siteIdentity, siteIdentityFor } from "./site-identity";
+import { catalogDisplayView } from "../../lib/catalog/display";
+import { createPhotoRelease } from "./photos";
 
 type RoutePolicy = Omit<CatalogAssetRoute, "assetPath"> & {
   indexable: boolean;
   assetPath?: string;
 };
-function earliest(deadlines: string[]) {
-  return deadlines.length ? [...deadlines].sort()[0] : null;
+function earliest(deadlines: (string | null)[]) {
+  return deadlines.filter((value): value is string => value !== null).sort()[0] ?? null;
 }
 
 function heldCompanions(assetPaths: string[]) {
@@ -41,11 +43,12 @@ function heldCompanions(assetPaths: string[]) {
  * Unrecognized content-bearing pages fail closed instead of leaking stale data.
  */
 export function createStaticRoutes(
-  snapshot: CatalogSnapshot,
+  sealedSnapshot: CatalogSnapshot,
   assetPaths: string[],
   showInputs?: unknown[],
   identity: OgIdentity = siteIdentity,
 ): Record<string, CatalogAssetRoute & { indexable: boolean }> {
+  const snapshot = catalogDisplayView(sealedSnapshot), photos = createPhotoRelease(sealedSnapshot);
   const nextExpiry = earliest(
     snapshot.products.map((product) => product.eligibleUntil),
   );
@@ -111,6 +114,14 @@ export function createStaticRoutes(
       state: shard.payload.status === "ready" ? "ready" : "held",
       indexable: false,
     };
+  if (photos.indexPath) policies[photos.indexPath] = {
+    assetPath: photos.indexPath, safeAssetPath: "/safe/photos.json", eligibleUntil: null,
+    state: "ready", indexable: false,
+  };
+  for (const shard of photos.shards) policies[shard.path] = {
+    assetPath: shard.path, safeAssetPath: "/safe/photos.json", eligibleUntil: shard.eligibleUntil,
+    state: "ready", indexable: false,
+  };
   for (const product of snapshot.products) {
     const displayed = [
       product,
@@ -120,6 +131,7 @@ export function createStaticRoutes(
       ...catalog,
       eligibleUntil: earliest(displayed.map((item) => item.eligibleUntil)),
       safeAssetPath: "/safe/product.html",
+      indexable: catalog.indexable && product.indexable !== false,
     };
   }
   const companions = snapshot.heldProducts.length ? heldCompanions(assetPaths) : [];

@@ -22,7 +22,10 @@ function database() {
     async run() { return sqlite.prepare(text).run(...values); },
   }; }, async batch(statements) { sqlite.exec('BEGIN'); try { for (const s of statements) await s.run(); sqlite.exec('COMMIT'); } catch (e) { sqlite.exec('ROLLBACK'); throw e; } } };
 }
-function migrate(db) { db.sqlite.exec('BEGIN'); db.sqlite.exec(sql('0005_historical_timestamps.sql')); db.sqlite.exec('COMMIT'); }
+function migrate(db) {
+  db.sqlite.exec('BEGIN'); db.sqlite.exec(sql('0005_historical_timestamps.sql')); db.sqlite.exec('COMMIT');
+  db.sqlite.exec(sql('0010_catalog_maintenance.sql')); // Current display reads validate maintained copy, when present.
+}
 function insert(db, table, row) { const keys = Object.keys(row); db.sqlite.prepare(`INSERT INTO ${table}(${keys}) VALUES(${keys.map(() => '?')})`).run(...keys.map((key) => row[key])); }
 const unresolved = { timezone: 'unresolved', evidence: 'SYNTHETIC historical session timezone explicitly unproven' };
 function product(index = 0) {

@@ -14,6 +14,7 @@ const product = (id = 'one') => ({ id, publicId: `public-${id}`, slug: id, title
 async function setup() {
   const sqlite = new DatabaseSync(':memory:');
   sqlite.exec(await readFile(new URL('../migrations/d1/0006_semantic_search_budget.sql', import.meta.url), 'utf8'));
+  sqlite.exec(await readFile(new URL('../migrations/d1/0009_catalog_mutation_fence.sql',import.meta.url),'utf8'));
   let serverNow = NOW; let fail = ''; let receipt = true; let delay = 0;
   sqlite.function('date', { varargs: true }, (...args) => {
     assert.equal(args[0], 'now'); assert.ok(args.length === 1 || args[1] === '-30 days');

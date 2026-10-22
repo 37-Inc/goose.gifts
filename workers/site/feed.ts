@@ -1,4 +1,5 @@
 import type { CatalogSnapshot, PublicCatalogProduct } from '../../lib/catalog/types.ts';
+import { catalogDeadline, persistentPublicProduct, resolvePublicProduct } from '../../lib/catalog/display.ts';
 import { isCatalogDisplayEligibleProduct, productDisplayTypeKey, scoreProductForTrending, suppressNearDuplicateProducts } from '../../lib/db/product-scoring.ts';
 
 function seedHash(value: string): number {
@@ -23,8 +24,12 @@ export function createStaticFeedPlan(snapshot: CatalogSnapshot, catalogSnapshotS
   const asOf = new Date(at);
   if (!Number.isFinite(asOf.getTime())) throw new Error('invalid_snapshot_time');
   const ids = new Set<string>();
-  const ranked = snapshot.products.map((product, index) => ({ product, index })).filter(({ product }) => {
-    if (ids.has(product.id) || !(Date.parse(product.eligibleUntil) > at) || !isCatalogDisplayEligibleProduct(product, { asOf })) return false;
+  const ranked = snapshot.products.flatMap((product, index) => {
+    const resolved=persistentPublicProduct(product)??resolvePublicProduct(product,at);return resolved ? [{product:resolved,index}] : [];
+  }).filter(({ product }) => {
+    if (ids.has(product.id) || !(product.eligibleUntil===null
+      ? product.isActive&&product.qualityScore>=.55&&product.imageUrl&&product.affiliateUrl
+      : isCatalogDisplayEligibleProduct(product, { asOf }))) return false;
     ids.add(product.id);
     return true;
   }).map(({ product, index }) => ({ product, index, title: product.title, score: scoreProductForTrending(product) }))
@@ -49,23 +54,23 @@ export function prepareStaticFeed(snapshot: CatalogSnapshot, input: unknown, exp
     || plan.entries.length > snapshot.products.length) return null;
   const pool: Array<{ product: PublicCatalogProduct; rank: number; type: number }> = [];
   const indices = new Set<number>();
-  const members = new Set<string>();
+  const members = new Map<string,number>();
   for (const entry of plan.entries) {
     if (!Array.isArray(entry) || entry.length !== 2) return null;
     const [index, type] = entry;
     if (!Number.isInteger(index) || index < 0 || index >= snapshot.products.length || indices.has(index)
       || !Number.isInteger(type) || type < 0 || type >= TYPES.length) return null;
-    const product = snapshot.products[index];
+    const product = persistentPublicProduct(snapshot.products[index])??snapshot.products[index];
     if (members.has(product.id)) return null;
     indices.add(index);
-    members.add(product.id);
+    members.set(product.id,catalogDeadline(product.eligibleUntil));
     pool.push({ product, rank: pool.length, type });
   }
   // Include every original content deadline: an expired-all build cannot become success-empty.
   let until = Infinity;
   for (const product of snapshot.products) {
-    const deadline = Date.parse(product.eligibleUntil);
-    if (!Number.isFinite(deadline)) return null;
+    const deadline = catalogDeadline(product.eligibleUntil);
+    if (!Number.isFinite(deadline)&&deadline!==Infinity) return null;
     until = Math.min(until, deadline);
   }
   const queues = new Map<string, typeof pool>();
@@ -74,14 +79,19 @@ export function prepareStaticFeed(snapshot: CatalogSnapshot, input: unknown, exp
     if (!queues.has(type)) queues.set(type, []);
     queues.get(type)!.push(entry);
   }
+  const permanent=snapshot.products.some(product=>persistentPublicProduct(product)!==null);
+  const deadlines=[...members.values()].filter(Number.isFinite).sort((a,b)=>a-b);
 
   return {
     expiresAt: until,
     /** Caller bounds seed<=80, limit<=36 and exclusions<=1200. No per-seed state is retained. */
     select(seed: string, limit: number, excluded: ReadonlySet<string>, now: number) {
-      if (!(until > now)) return null;
-      let remaining = pool.length;
-      for (const id of excluded) if (members.has(id)) remaining--;
+      if(!permanent&&!(until>now))return null; // Legacy all-or-safe contract.
+      let low=0,high=deadlines.length;
+      while(low<high){const middle=(low+high)>>>1;if(deadlines[middle]<=now)low=middle+1;else high=middle;}
+      let remaining = pool.length-low;
+      if(pool.length&&!remaining)return null;
+      for (const id of excluded) if ((members.get(id)??-Infinity)>now) remaining--;
       let inspected = 0;
       const cursors = [...queues].map(([type, entries]) => {
         // Rotate only the leading quality window; the remainder stays ranked.
@@ -95,7 +105,7 @@ export function prepareStaticFeed(snapshot: CatalogSnapshot, input: unknown, exp
           const position = cursor.visited++;
           const entry = cursor.entries[position < cursor.window ? (position + cursor.offset) % cursor.window : position];
           inspected++;
-          if (!excluded.has(entry.product.id)) { cursor.head = entry; return; }
+          if (catalogDeadline(entry.product.eligibleUntil)>now&&!excluded.has(entry.product.id)) { cursor.head = entry; return; }
         }
       }
       for (const cursor of cursors) advance(cursor);

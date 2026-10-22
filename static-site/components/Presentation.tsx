@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ProductImage } from "@/components/ProductImage";
+import { CatalogImage } from "./CatalogPhotos";
 import { unavailableEpisode } from "../lib/episode-display";
 import type { DisplayEpisode } from "../lib/episode-display";
 import { captureRenderedLists } from "../lib/analytics";
@@ -81,7 +81,8 @@ export function Presentation({
       <div className="presentation-slide" aria-live="polite">
         <div className="presentation-art">
           {product ? (
-            <ProductImage
+            <CatalogImage
+              id={product.id}
               imageUrl={product.imageUrl}
               alt={product.title}
               className="object-contain"
@@ -99,7 +100,8 @@ export function Presentation({
           data-analytics-card={product ? "" : undefined}
           data-analytics-id={product?.id} data-analytics-source={product?.source}
           data-analytics-context={`show_presentation:${episode.key}`}
-          data-analytics-expiry={product?.eligibleUntil}>
+          data-analytics-expiry={product?.eligibleUntil ?? undefined}
+          data-analytics-permanent={product?.eligibleUntil === null ? "" : undefined}>
           <p className="eyebrow">
             Selection {String(index + 1).padStart(2, "0")}
           </p>
@@ -124,7 +126,8 @@ export function Presentation({
               {slot.alternatives.map((alternative) => (
                 <span key={alternative.publicId} data-analytics-card="" data-analytics-id={alternative.id}
                   data-analytics-source={alternative.source} data-analytics-context={`show_presentation_alternative:${episode.key}`}
-                  data-analytics-expiry={alternative.eligibleUntil}>
+                  data-analytics-expiry={alternative.eligibleUntil ?? undefined}
+                  data-analytics-permanent={alternative.eligibleUntil === null ? "" : undefined}>
                   <a data-analytics-product-link="" href={`/gifts/${alternative.slug}`} aria-label={`Alternative: ${alternative.title}`}>
                     Alternative: {alternative.punnyTitle || alternative.title}
                   </a>

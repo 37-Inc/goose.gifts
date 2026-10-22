@@ -1,10 +1,13 @@
-import { browse } from "../../../../lib/catalog";
+import { browse, photos } from "../../../../lib/catalog";
+
+const shards = [...browse.shards, ...photos.shards,
+  ...(photos.indexPath ? [{ path: photos.indexPath, payload: photos.index }] : [])];
 
 export const dynamic = "force-static";
 export const dynamicParams = false;
 export function generateStaticParams() {
-  return browse.shards.map((shard) => ({
-    version: browse.version,
+  return shards.map((shard) => ({
+    version: shard.path.split("/")[2],
     file: shard.path.split("/").at(-1)!,
   }));
 }
@@ -13,7 +16,7 @@ export async function GET(
   context: { params: Promise<{ version: string; file: string }> },
 ) {
   const { version, file } = await context.params;
-  const shard = browse.shards.find(
+  const shard = shards.find(
     (item) => item.path === `/catalog/${version}/${file}`,
   );
   return shard

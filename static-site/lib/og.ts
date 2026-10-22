@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { CatalogSnapshot } from "../../lib/catalog/types";
 import { giftGuides as guides } from "../../lib/gift-guide-definitions";
+import { persistentPublicProduct } from "../../lib/catalog/display";
 
 export interface OgIdentity { name: string; origin: string; tagline: string }
 export interface OgCard {
@@ -44,7 +45,8 @@ export function createOgRelease(snapshot: CatalogSnapshot, identity: OgIdentity)
     const title = titleText(guide.h1);
     return title ? [make("guide", guide.slug, title, null)] : [];
   })];
-  for (const product of snapshot.products) {
+  for (const original of snapshot.products) {
+    const product = persistentPublicProduct(original) ?? original;
     const title = titleText(product.punnyTitle || "") || titleText(product.title);
     if (title) cards.push(make(snapshot.dataKind === "synthetic_fixture" ? "fixture" : "product",
       product.publicId, title, product.eligibleUntil));

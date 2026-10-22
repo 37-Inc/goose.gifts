@@ -1,5 +1,6 @@
 import type { CatalogSnapshot } from './types.ts';
 import type { CatalogD1 } from './storage/d1.ts';
+import { catalogDisplayDeadline, earliestDisplayExpiry } from './display.ts';
 import type { PublicationClaim, PublicationIntent } from './publication.ts';
 import { encodePublicationIntent, publicationStatus } from './publication.ts';
 import { rollbackPreflight, visibleRevisionCountQuery } from './d1.ts';
@@ -168,9 +169,9 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
     .all<{ epoch: number }>()).results[0].epoch;
   const observed = await observe(readDeployment);
   if (observed.environment !== request.environment || observed.settled !== true || !(await priorMatches(db, request, observed.active))) throw new Error('build_prior_deployment_changed');
-  const earliest = snapshot.products.map(product => product.eligibleUntil).sort()[0] || null;
+  const earliest = earliestDisplayExpiry(snapshot.products);
   if (intent.codeSha !== request.codeSha || intent.priorReleaseId !== request.priorReleaseId || snapshot.catalogRevision !== intent.catalogRevision
-    || intent.nextExpiry !== earliest || snapshot.products.some(product => product.eligibleUntil <= request.cutoff)
+    || intent.nextExpiry !== earliest || snapshot.products.some(product => catalogDisplayDeadline(product) <= Date.parse(request.cutoff))
     || !(await rollbackPreflight(db, snapshot, now)).ok) throw new Error('build_publication_unready');
   const gate = sourceGate(request); const visible = visibleRevisionCountQuery(intent.catalogRevision);
   const imports = await unabandonedImportsQuery(db,request.environment);
