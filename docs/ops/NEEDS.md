@@ -26,6 +26,15 @@ The receipt-derived
 October31 v11 review remains pending and will not run automatically while the
 studio is paused. See `PINTEREST_STUDIO.md` for the restart contract.
 
+Owner-requested closeout reconciled the central tracker: the older creative
+skill-forward-test task is closed from its existing v5/v6/planning evidence;
+the existing provider task stays in progress. Its single Pinterest child,
+**Finish Pinterest publishing cutover without reopening v11**
+(`roadmap-lbbz1.8.1`), owns the remaining source/guard/redirect/measurement and
+review/restart gates. This is engineering coordination, not a new DNS/login
+request. Fresh sample: bowling works on Goose but the same Stupid path is 404;
+sheep works on both, without an old-to-new redirect. Do not bulk-swap Pin URLs.
+
 **Public launch, October 21:** `https://stupid.gifts/` now serves eight reviewed,
 fresh products from Cloudflare Free. Production Worker version
 `78278d59-a380-43fa-8227-228028e1fd53` and deployment

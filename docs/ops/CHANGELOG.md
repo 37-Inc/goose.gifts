@@ -82,8 +82,12 @@ what's likely next.
   domain is TXT-verified/claimed and selected in profile/app metadata; old
   Goose claim and Pin links remain. Verify
   new-site redirects, catalog sourcing/enrichment, analytics and Pinterest
-  configuration before owner-authorized restart. The October31 review remains
-  pending and will not execute automatically while paused. A new experiment is
+  configuration before owner-authorized restart. Central tracking is reconciled:
+  the creative skill-forward-test Bead is closed on existing v5/v6/planning
+  evidence; `roadmap-lbbz1.8.1` is the single remaining Pinterest cutover child
+  under the existing provider task. Bowling's new-domain path returning 404 means retained
+  Pins must not be blindly repointed; sheep works on both domains. The October31
+  review remains pending and will not execute automatically while paused. A new experiment is
   still required before more creative/publication. See PINTEREST_STUDIO.md.
   Final birthday-hat poster
   makes P6/F6,twelve of twelve. Exact full-cohort review deadline is
@@ -233,6 +237,19 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-21 [owner+claude] — Reconcile Pinterest completion and remaining cutover
+
+Account/app/domain changes are already merged in PRs #206/#218. Closed the
+stale creative-skill task (`roadmap-dfas`) against its completed v5/v6/planning
+evidence; installed validation, 940-event history and all 16 targeted tests
+pass. Reconciled the provider/launch parents without closing unfinished work;
+`roadmap-lbbz1.8.1` is the single remaining Pinterest cutover child. Source
+inspection and two live tracked paths prove the old shortlist/domain guard
+and incomplete product redirects still need integration. Documented the exact
+gates, kept the studio PAUSED and v11 frozen, and preserved every Pin/package.
+No new generation, posting, catalog run, account mutation or spend.
+PR: [#220](https://github.com/37-Inc/goose.gifts/pull/220).
 
 ### 2026-10-21 [owner+claude] — Patch compatible security dependencies
 

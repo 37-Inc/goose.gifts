@@ -2,6 +2,57 @@
 
 ## Scheduler
 
+### Owner closeout and tracker reconciliation — October 21
+
+PRs [#204](https://github.com/37-Inc/goose.gifts/pull/204) (owner pause),
+[#206](https://github.com/37-Inc/goose.gifts/pull/206) (rename/account guard)
+and [#218](https://github.com/37-Inc/goose.gifts/pull/218) (TXT claim and
+profile/app links) are merged and pushed. Production account readback at the
+closeout still returns `1107815345747925810 / stupid_gifts / BUSINESS`,
+Stupid.gifts, website `http://stupid.gifts`, 28 Pins and five boards. Saved
+studio status remains **PAUSED**; no new creative, Pin or schedule change.
+
+Central Beads is reconciled, not replaced by a new markdown task list:
+
+- **Refine Pinterest creative skill and goal workflow** (`roadmap-dfas`) is
+  closed. The missing second independent forward test was already completed
+  as v6 on August 28: exact chicken-vase source, three concepts, prompt,
+  full-resolution 4.75/5 review and append-only evidence corrections are in
+  `pinterest-creative-lab/v6-concepts/README.md` and the creative log. V5 is
+  the first test; the August 25 planning-only invocation was already recorded
+  in the Bead. Later v8 also demonstrates a diagnosed contact revision.
+  Installed skill validation and all 16 creative/Pinterest tests pass; no
+  new test image, paid tool trial or performance claim was needed.
+- **Complete final provider rebrand and affiliate verification**
+  (`roadmap-lbbz1.8`) remains in progress. Its Pinterest branding/claim
+  subset is complete; other provider work belongs to the migration thread.
+- **Finish Pinterest publishing cutover without reopening v11**
+  (`roadmap-lbbz1.8.1`) is the single open child for remaining Pinterest
+  integration and review/restart gates. The existing Standard-access and
+  October 13 scheduler-recovery Beads remain closed; the later owner pause
+  does not undo their historical acceptance.
+
+The October 22 UTC bounded source/live audit confirms why the child stays open:
+
+| Check | Current result |
+|---|---|
+| Candidate source | `pinterest-candidates.mts` still uses legacy `@vercel/postgres` and emits `www.goose.gifts` product URLs; not the new published catalog/enrichment receipt |
+| New-package guard | `pinterest-publishing.mjs` intentionally permits only Goose hosts; Stupid.gifts is rejected until tested cutover |
+| Mini-bowling tracked destination | Current Goose URL 200/self-canonical; the same path and UTMs on Stupid.gifts return 404 |
+| Sheep tracked destination | Both domains 200/self-canonical and query preserved; Goose does not redirect to Stupid |
+| Creative state | 940 valid events, 8 experiments, 37 candidates; v11 P6/F6 frozen, final review undelivered |
+
+These are two sampled paths, not a complete 28-Pin redirect audit. Do not
+mass-repoint Pins, use a homepage fallback or conceal an unavailable product.
+Coordinate corresponding-product availability/redirects with the site owner,
+then verify the full retained set with UTM preservation. Reuse the new site's
+actual stored QA receipts where sufficient; separately prove Pinterest/arm
+attribution and retailer-event behavior rather than equating generic launch
+events with acquisition readiness. The detailed restart gates below and exact
+October31 review deadline remain controlling. Avatar/app-icon replacement is
+optional cosmetic polish, not a blocker to safe acquisition testing. No new
+experiment or resume is authorized by this closeout.
+
 ### Owner-authorized migration pause — October 21
 
 Cameron asked to pause this daily studio while the separate site-migration
