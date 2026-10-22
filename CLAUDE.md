@@ -50,6 +50,12 @@ Keep entries short; heavy operational detail belongs in `JOURNAL.md`.
   the canonical checkout; GitHub automatically deletes the merged remote
   branch. Preserve or inspect any untracked files before removing a worktree.
 - Never merge a change that fails `npm run build` or `npm run lint`.
+- `npm run build` builds the Cloudflare static site with an explicit reviewed
+  `CATALOG_SNAPSHOT_PATH` and `CATALOG_RELEASE_CONTEXT_PATH`, from clean committed
+  source. Run the release verifier afterwards. It never fetches catalog data or
+  deploys. `build:staging` remains a compatible alias. `build:legacy` is the
+  retained Neon-backed Next app and requires its separate rollback environment;
+  do not fetch legacy credentials to validate a Cloudflare-only change.
 - New catalog execution uses only the reviewed D1 operator's explicit credential
   contract; it remains gated. `./scripts/ops/pull-env.sh` is legacy Vercel
   seeding/rollback tooling, not an execution fallback. Do not retry unattended

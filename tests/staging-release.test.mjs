@@ -12,6 +12,14 @@ import { createStaticFeedPlan } from '../workers/site/feed.ts';
 import { createReleaseIdentity, verifyReleaseIdentity } from '../scripts/staging/release-identity.mts';
 import { validateCatalogSnapshot } from '../lib/catalog/snapshot.ts';
 
+test('default build uses the reviewed Cloudflare pipeline, not the retained Neon app or a deployment', () => {
+  const {scripts}=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
+  assert.equal(scripts.build,'node --import tsx scripts/staging/build.mts');
+  assert.equal(scripts['build:staging'],scripts.build);
+  assert.equal(scripts['build:legacy'],'next build');
+  assert.doesNotMatch(scripts.build,/deploy|wrangler|pull-env/);
+});
+
 test('release context requires explicit deterministic identity, prior release, watermark and capture time', () => {
   const snapshot = { catalogRevision: 'r1', generatedAt: '2026-10-19T12:00:00.000Z' };
   const context = { schemaVersion: 1, sourceMode: 'preview', releaseId: 'explicit-release', codeSha: 'a'.repeat(40), catalogRevision: 'r1',
