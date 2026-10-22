@@ -57,6 +57,17 @@ Boundaries (always in force):
 
 ### Cloudflare migration boundary
 
+**Resumed offline work is not execution authority:** PR252/253/254 and the
+daily-retention/full-plan changes are under review, not a public release.
+The pending owner question about≤600k further reads/≥300k Free headroom has no
+answer yet. Do not construct a real recovery profile, refresh/re-anchor old
+accounting or run the old helper. Any later approved continuation must retain
+all seven unknowns, prove the exact SQL/parameter/inventory batch bounds and
+remaining whole-flow capacity, stop any shared-workspace new unknown, adopt its
+exact reviewed operator code, and separately bind valid dispatch authority.
+Normal daily caps/headroom are unchanged. Current offline evidence and draft
+references are in the newest `JOURNAL.md` entry; daily writes remain gated.
+
 **October22 current checkpoint:** actual source/production union is reconciled
 across all 24 logical tables / 3,383 products; schema 0015, actual local native
 rollback and the real permanent installer passed. The installer released
