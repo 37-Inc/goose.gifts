@@ -11,7 +11,7 @@ import type { PrunedRevision } from '../../lib/catalog/prune-existing-revision.t
 import { prunedVectorIds, prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PermanentCatalogRevision } from '../../lib/catalog/freeze-permanent-catalog.ts';
 import type { ActivationPermit, DeploymentIdentity, DeploymentObservation } from '../../lib/catalog/build-requests.ts';
-import { beginBuildActivation, claimBuildRequest, resolveBuildActivation, drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
+import { beginBuildActivation, claimBuildRequest, encodeBuildRequest, resolveBuildActivation, drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
 import { isAccountedPublicationFetch } from './publication-read-fetch.ts';
 import { isAccountedPublicationUploadCommand, PublicationUploadCommandError } from './publication-upload-command.ts';
 import { isCatalogD1Rest } from './d1-write-rest.ts';
@@ -360,8 +360,52 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     }
     // A lost activation-CAS response is recoverable ONLY for the exact claim.
     const actual=await readMutationOwner(db,owner);
-    const buildRow=(await db.prepare('SELECT state,lease_token,run_reference,release_id,version_reference FROM catalog_build_requests WHERE request_id=?')
+    const buildRow=(await db.prepare("SELECT *,strftime('%Y-%m-%dT%H:%M:%fZ','now') observed_at FROM catalog_build_requests WHERE request_id=?")
       .bind(control.requestId).all<Record<string,unknown>>()).results[0];
+    if(control.stage==='claimed'){
+      // No external step exists yet. Reclaim an expired BUILDING lease through
+      // the ordinary bounded API, never renew its token or adopt a foreign one.
+      const old=control.build,requestBytes=encodeBuildRequest(old.request);
+      if(owner.phase!=='freezing'||canonicalJson(actual)!==canonicalJson(owner)||old.requestId!==control.requestId
+        ||old.runReference!==control.runReference||sha256(requestBytes)!==control.requestId||!buildRow
+        ||buildRow.state!=='building'||buildRow.lease_token!==old.token||buildRow.lease_until!==old.leaseUntil
+        ||buildRow.run_reference!==old.runReference||buildRow.request_json!==requestBytes
+        ||buildRow.environment!==config.environment||buildRow.source_revision!==old.request.sourceRevision
+        ||buildRow.dispatch_reference!==null||buildRow.error_code!==null||buildRow.release_id!==null||buildRow.version_reference!==null
+        ||control.publication!==null||control.intent!==null||control.permit!==null||control.packageSha256!==null
+        ||control.versionReference!==null||control.deploymentId!==null||control.receiptSha256!==undefined
+        ||pendingUpload||acknowledgedUpload)throw new Error('publication_build_reclaim_fenced');
+      const columns=Object.keys(buildRow).filter(key=>key!=='observed_at');
+      const exact=(row:Record<string,unknown>)=>db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM catalog_build_requests
+        WHERE ${columns.map(key=>`${key} IS ?`).join(' AND ')}) THEN 'true' ELSE 'publication_build_reclaim_fenced' END)`)
+        .bind(...columns.map(key=>row[key]));
+      const undispatched=()=>db.prepare(`SELECT json(CASE WHEN NOT EXISTS(SELECT 1 FROM publication_outbox WHERE release_id=?)
+        AND NOT EXISTS(SELECT 1 FROM publication_receipts WHERE release_id=?) THEN 'true' ELSE 'publication_build_reclaim_fenced' END)`)
+        .bind(config.releaseId,config.releaseId);
+      await db.batch([mutationAssertion(db,owner,['freezing']),exact(buildRow),undispatched(),mutationAssertion(db,owner,['freezing'])]);
+      const at=canonicalTime(String(buildRow.observed_at));
+      if(canonicalTime(old.leaseUntil)<=at){
+        const attempts=Number(buildRow.attempts),leaseUntil=new Date(Math.min(Date.parse(at)+15*60000,Date.parse(old.request.cutoff))).toISOString();
+        if(!Number.isInteger(attempts)||attempts<1||attempts>=3||leaseUntil<=at)throw new Error('publication_build_reclaim_fenced');
+        let reclaimed:Awaited<ReturnType<typeof claimBuildRequest>>=null,uncertain=false;
+        try{reclaimed=await claimBuildRequest(db,old.requestId,old.runReference,new Date(at),15*60000);}catch{uncertain=true;}
+        if(!reclaimed&&!uncertain)throw new Error('publication_build_reclaim_fenced');
+        const row=(await db.prepare("SELECT *,strftime('%Y-%m-%dT%H:%M:%fZ','now') observed_at FROM catalog_build_requests WHERE request_id=?")
+          .bind(old.requestId).all<Record<string,unknown>>()).results[0];
+        if(!row||row.state!=='building'||row.request_json!==requestBytes||row.environment!==buildRow.environment
+          ||row.source_revision!==buildRow.source_revision||row.run_reference!==old.runReference||row.attempts!==attempts+1
+          ||typeof row.lease_token!=='string'||!UUID.test(row.lease_token)||row.lease_token===old.token||row.lease_until!==leaseUntil
+          ||reclaimed&&(reclaimed.token!==row.lease_token||encodeBuildRequest(reclaimed.request)!==requestBytes)
+          ||leaseUntil<=canonicalTime(String(row.observed_at))||leaseUntil<=now().toISOString()
+          ||row.dispatch_reference!==null||row.error_code!==null||row.release_id!==null||row.version_reference!==null)
+          throw new Error('publication_build_reclaim_fenced');
+        await db.batch([mutationAssertion(db,owner,['freezing']),exact(row),undispatched(),mutationAssertion(db,owner,['freezing'])]);
+        if(canonicalJson(await readMutationOwner(db,owner))!==canonicalJson(owner))throw new Error('publication_build_reclaim_fenced');
+        // A failed pre-write checkpoint leaves a fenced token mismatch. Never
+        // infer ownership from a different token on a later invocation.
+        await save({build:{...old,token:row.lease_token,leaseUntil}});
+      }
+    }
     const receipt=()=>({schemaVersion:1,environment:config.environment,accountId:config.accountId,workerName:config.workerName,
       releaseId:config.releaseId,versionReference:control!.versionReference,requestId:control!.requestId,intent:control!.intent});
     // A lost resolve response must not reacquire a writer or reactivate. The

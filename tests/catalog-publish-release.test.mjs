@@ -58,7 +58,7 @@ function fixtureRelease(snapshot,context,prior=null){
     manifestSha256:sha(manifestBytes),vectorSyncWatermark:manifest.vectorSyncWatermark,priorReleaseId:manifest.priorReleaseId,nextExpiry:manifest.nextExpiry};
   return{...assembled,manifest,manifestBytes,outputs,intent};
 }
-async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environment='staging',semanticSearch,publicAnalytics,priorExpiryMs=26*3600000}={}){
+async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environment='staging',semanticSearch,publicAnalytics,priorExpiryMs=26*3600000,retentionMs=5*60000}={}){
   const scope={environment,indexName:'fixture-index'},sourceMode=environment==='staging'?'preview':'goose-production';
   let actualWorkspace;
   const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-publish-')));t.after(async()=>{
@@ -134,7 +134,7 @@ async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environmen
     workspaceOptions={directory:path.join(directory,'protected'),repository:sourceRoot,mode:'create',runId:'fixture-run',configSha256:'f'.repeat(64),codeSha,
       scope:{...scope,accountId:config.accountId,databaseId:id,databaseName:'fixture-db',workerName:'fixture-worker'},
       retention:{reviewReference:'test-only/retention',rules:Object.fromEntries(['amazon-observation','embedding-response','phase','publication','checkpoint']
-        .map(kind=>[kind,{maxAgeMs:5*60000,notAfter:new Date(AT+48*3600000).toISOString()}]))},
+        .map(kind=>[kind,{maxAgeMs:retentionMs,notAfter:new Date(AT+48*3600000).toISOString()}]))},
       budgetCaps:{httpRequests:100,sqlStatements:200},now:()=>new Date(clock).toISOString()};
     actualWorkspace=await openRunWorkspace(workspaceOptions);
     const initial={...checkpoint};delete initial.sha256;
@@ -251,6 +251,112 @@ test('actual build/upload/activate/identity/native-proof/receipt/idle compositio
   assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
   assert.equal(f.checkpoint().state.driverState,'preserved');assert.doesNotMatch(JSON.stringify(f.checkpoint()),/PRIVATE|example.invalid|clockwork spoon/);
   assert.equal((await f.execute()).state,'published');assert.equal(f.counts().activateCalls,1);
+});
+
+async function stoppedClaim(t,{real=true}={}){
+  const f=await setup(t,{real,retentionMs:3600000});
+  assert.equal((await f.execute(f.db,{command:async()=>{throw new Error('Local build stopped before output');}})).state,'pending');
+  assert.equal(f.checkpoint().control.publication.stage,'claimed');
+  assert.deepEqual(f.counts(),{uploadCalls:0,activateCalls:0,buildCalls:0,identityCalls:0,httpCalls:2});
+  return{f,old:structuredClone(f.checkpoint().control.publication.build)};
+}
+test('claimed build reclaims only expired lease, persists replacement before commands, and keeps unexpired claim unchanged',async t=>{
+  for(const expired of [false,true])await t.test(expired?'expired':'unexpired',async t=>{
+    const {f,old}=await stoppedClaim(t),products=canonicalJson(f.sql.prepare('SELECT * FROM products').all());
+    if(expired)f.advance(11*60000);await f.reopen();
+    const result=await f.execute(f.db,{command:async command=>{
+      const saved=f.checkpoint().control.publication.build,row=f.sql.prepare('SELECT * FROM catalog_build_requests').get();
+      assert.equal(row.lease_token,saved.token);assert.equal(canonicalJson(JSON.parse(row.request_json)),canonicalJson(old.request));
+      assert.equal(row.attempts,expired?2:1);assert.equal(saved.token===old.token,!expired);
+      if(expired)assert.equal(Date.parse(saved.leaseUntil),AT+26*60000);
+      await f.command(command);
+    }});
+    assert.equal(result.state,'published',JSON.stringify(result));assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+    assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests').get().state,'resolved');
+    assert.equal(await readMutationOwner(f.db,scope),null);assert.equal(canonicalJson(f.sql.prepare('SELECT * FROM products').all()),products);
+  });
+});
+test('claimed build recovers exact claim ACK loss and durable checkpoint ACK loss without another attempt',async t=>{
+  for(const fault of ['claim','checkpoint'])await t.test(fault,async t=>{
+    const {f,old}=await stoppedClaim(t);f.advance(11*60000);await f.reopen();let lost=false;
+    if(fault==='claim')f.after(statements=>{
+      if(!lost&&statements.some(s=>s.query.includes("SET state='building',lease_token="))){lost=true;throw new Error('Local committed claim ACK lost');}
+    });
+    else{const write=f.workspace.writeCheckpoint;f.workspace.writeCheckpoint=async(expected,value)=>{
+      const result=await write(expected,value);
+      if(!lost&&value.control?.publication?.stage==='claimed'&&value.control.publication.build.token!==old.token){lost=true;throw new Error('Local committed checkpoint ACK lost');}
+      return result;
+    };}
+    let result=await f.execute();assert.equal(lost,true);
+    if(fault==='checkpoint'){
+      assert.equal(result.state,'pending');assert.equal(f.counts().buildCalls,0);assert.equal(f.counts().uploadCalls,0);
+      assert.notEqual(f.checkpoint().control.publication.build.token,old.token);await f.reopen();result=await f.execute();
+    }
+    assert.equal(result.state,'published',JSON.stringify(result));assert.equal(f.sql.prepare('SELECT attempts FROM catalog_build_requests').get().attempts,2);
+    assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+  });
+});
+test('claimed replacement cannot build/upload before durable checkpoint; pre-write failure stays fenced on reopen',async t=>{
+  const {f,old}=await stoppedClaim(t);f.advance(11*60000);await f.reopen();
+  const write=f.workspace.writeCheckpoint;f.workspace.writeCheckpoint=async(expected,value)=>{
+    if(value.control?.publication?.build.token!==old.token)throw new Error('Local checkpoint not persisted');
+    return write(expected,value);
+  };
+  assert.equal((await f.execute()).state,'pending');assert.equal(f.counts().buildCalls,0);assert.equal(f.counts().uploadCalls,0);
+  assert.equal(f.sql.prepare('SELECT attempts FROM catalog_build_requests').get().attempts,2);
+  await f.reopen();const result=await f.execute();assert.equal(result.errorCode,'publication_build_reclaim_fenced');
+  assert.equal(f.sql.prepare('SELECT attempts FROM catalog_build_requests').get().attempts,2);assert.equal(f.counts().buildCalls,0);
+});
+test('claimed lease reclaim refuses owner/build/control/dispatch drift, exhausted attempts and later stages',async t=>{
+  const faults={
+    owner:f=>f.sql.prepare('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1').run(),
+    token:f=>f.sql.prepare('UPDATE catalog_build_requests SET lease_token=?').run(version),
+    run:f=>f.sql.prepare("UPDATE catalog_build_requests SET run_reference='another-run'").run(),
+    lease:f=>f.sql.prepare('UPDATE catalog_build_requests SET lease_until=?').run(new Date(AT+10*60000+1).toISOString()),
+    request:f=>{f.checkpoint().control.publication.build.request.sourceDigest='0'.repeat(64);},
+    exhausted:f=>f.sql.prepare('UPDATE catalog_build_requests SET attempts=3').run(),
+    dispatch:f=>f.sql.prepare("UPDATE catalog_build_requests SET dispatch_reference='unknown-dispatch'").run(),
+    package:f=>{f.checkpoint().control.publication.packageSha256='0'.repeat(64);},
+    version:f=>{f.checkpoint().control.publication.versionReference=version;},
+    intent:f=>{f.checkpoint().control.publication.intent={};},
+    receipt:f=>{f.checkpoint().control.publication.receiptSha256='0'.repeat(64);},
+    ...Object.fromEntries(['built','uploading','uploaded','activating'].map(stage=>[stage,f=>{f.checkpoint().control.publication.stage=stage;}]))
+  };
+  for(const [name,mutate]of Object.entries(faults))await t.test(name,async t=>{
+    const {f}=await stoppedClaim(t,{real:false});f.advance(11*60000);mutate(f);
+    const before={...f.sql.prepare('SELECT * FROM catalog_build_requests').get()},result=await f.execute();
+    assert.equal(result.state,'pending');assert.equal(f.counts().buildCalls,0);assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
+    assert.deepEqual({...f.sql.prepare('SELECT * FROM catalog_build_requests').get()},before);
+  });
+});
+test('claimed reclaim refuses a foreign replacement or owner drift during the bounded claim',async t=>{
+  for(const fault of ['token','owner'])await t.test(fault,async t=>{
+    const {f}=await stoppedClaim(t);f.advance(11*60000);let changed=false;
+    f.after(statements=>{if(!changed&&statements.some(s=>s.query.includes("SET state='building',lease_token="))){changed=true;
+      if(fault==='token')f.sql.prepare('UPDATE catalog_build_requests SET lease_token=?').run(version);
+      else f.sql.prepare('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1').run();
+    }});
+    const result=await f.execute();assert.equal(changed,true);assert.equal(result.state,'pending');
+    assert.equal(f.counts().buildCalls,0);assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
+  });
+});
+test('durable claimed checkpoint exception refuses other control/owner/pin/lease changes and control-only reconciliation',async t=>{
+  for(const fault of ['phase','owner','pin','request','stage','version','package','same-token','cutoff','control-only'])await t.test(fault,async t=>{
+    const {f}=await stoppedClaim(t),view=await f.workspace.readCheckpoint(),next=structuredClone(view.checkpoint),c=next.control.publication;
+    c.build.token=version;c.build.leaseUntil=new Date(AT+25*60000).toISOString();
+    if(fault==='phase')next.phase='attention';
+    if(fault==='owner')next.owner.epoch++;
+    if(fault==='pin')next.pins.extra=await f.workspace.putArtifact({fixture:'only technical control'},{kind:'phase',observedAt:new Date(AT).toISOString()});
+    if(fault==='request')c.build.request.cutoff=new Date(AT+24*3600000).toISOString();
+    if(fault==='stage')c.stage='built';
+    if(fault==='version')c.versionReference=version;
+    if(fault==='package')c.packageSha256='0'.repeat(64);
+    if(fault==='same-token')c.build.token=view.checkpoint.control.publication.build.token;
+    if(fault==='cutoff')c.build.leaseUntil=new Date(AT+26*3600000).toISOString();
+    if(fault==='control-only')await assert.rejects(f.workspace.writeControlCheckpoint(view.sha256,{phase:'attention',owner:next.owner,control:next.control}),/run_workspace_/);
+    else await assert.rejects(f.workspace.writeCheckpoint(view.sha256,next),/run_workspace_/);
+    assert.equal((await f.workspace.readCheckpoint()).sha256,view.sha256);assert.equal(f.counts().uploadCalls,0);
+  });
 });
 
 test('protected upload refusal persists a body-free review gate that resume cannot bypass',async t=>{
