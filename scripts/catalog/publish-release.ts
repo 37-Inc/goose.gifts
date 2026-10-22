@@ -31,7 +31,7 @@ import { CLOUDFLARE_FREE_ASSET_LIMIT, readPriorRelease, verifyRetainedAssets } f
 import { siteIdentityFor } from '../../static-site/lib/site-identity.ts';
 import { canonicalTime, validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { canonicalJson } from './migration.ts';
-import { readActivatedCatalogVectors, readPermanentNativeProof, readPublishedCatalogVectors, readOwnedApprovedCohortVectors, readOwnedPrunedVectors } from './owned-vector-delivery.ts';
+import { readActivatedCatalogVectors, readActivatedPermanentCatalogNative, readPermanentNativeProof, readPublishedCatalogVectors, readOwnedApprovedCohortVectors, readOwnedPrunedVectors } from './owned-vector-delivery.ts';
 import type { PublishedCatalogRead } from './owned-vector-delivery.ts';
 import { createVectorizeRestAdapters } from './vectorize-rest.ts';
 import type { RunWorkspace, PublicationControl, ArtifactRef } from './run-workspace.ts';
@@ -454,12 +454,20 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       const adapters=createVectorizeRestAdapters({environment:config.environment,indexName:config.indexName,
         accountId:config.accountId,token:options.credentials.cloudflareToken,fetch:observationSend});
       if(options.permanent){
-        await assertPermanentCatalog(db,owner,options.permanent,undefined,signal);
-        const proof=await readPermanentNativeProof({db,owner,revision:options.permanent,adapters,signal});
-        await assertPermanentCatalog(db,owner,options.permanent,undefined,signal);return proof;
+        return readPermanentNativeProof({db,owner,revision:options.permanent,adapters,signal});
       }
       if(options.published)return readPublishedCatalogVectors({db,owner,published:options.published,adapters,signal});
       return 'approval' in revision.request?readOwnedApprovedCohortVectors(db,owner,revision as ApprovedCohortRevision,adapters):readOwnedPrunedVectors(db,owner,revision,adapters);
+    };
+    // Full-catalog scans are sequential owned D1 reads, not a short provider
+    // observation. No proof survives this invocation or crosses an owner change.
+    const permanentProof=async()=>{
+      if(!options.permanent)return;
+      const controller=new AbortController(),remaining=control!.permit?120_000:Date.parse(control!.build.request.cutoff)-now().getTime();
+      if(remaining<=0)throw new Error('publication_upload_retry_cutoff');
+      const timer=setTimeout(()=>controller.abort(),Math.min(120_000,remaining));
+      try{await assertPermanentCatalog(db,owner,options.permanent,control!.permit??undefined,controller.signal);}
+      finally{clearTimeout(timer);} // The concrete D1 sender joins its own ledger before returning.
     };
     if(reviewed&&!retryRecord&&!control.permit){
       if(!revision||!control.publication||!control.intent||owner.phase!=='freezing'||canonicalJson(actual)!==canonicalJson(owner))throw new Error('publication_upload_retry_fenced');
@@ -483,6 +491,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         oldReview:checkpoint!.checkpoint.pins.publicationUploadReview,owner,control:structuredClone(control),original:{build,publication}};
       await verifyBuiltPackage();if(!(await rollbackPreflight(db,revision.snapshot,now())).ok)throw new Error('publication_upload_retry_fenced');
       await vectorProof();if(await api.findVersion(control.uploadMarker)!==null)throw new Error('publication_upload_review_required');
+      await permanentProof();
       const exactRow=(table:string,row:Record<string,unknown>)=>{
         const keys=Object.keys(row).sort();if(keys.some(k=>!/^[_a-z][_a-z0-9]*$/.test(k)))throw new Error('publication_upload_retry_fenced');
         return db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM ${table} WHERE ${keys.map(k=>`${k} IS ?`).join(' AND ')})
@@ -606,8 +615,10 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         if(!deployed||deployed.version!==control!.versionReference||deployed.marker!==control!.deploymentMarker
           ||control!.deploymentId!==null&&deployed.id!==control!.deploymentId)throw new Error('publication_activation_pending');
         if(!matchesIdentity(await api.identity(signal),control!.intent!))throw new Error('publication_identity_mismatch');signal?.throwIfAborted();
-        await readActivatedCatalogVectors(db,control!.permit!,control!.vectorPlan,createVectorizeRestAdapters({environment:config.environment,
-          indexName:config.indexName,accountId:config.accountId,token:options.credentials.cloudflareToken,fetch:observationSend}),
+        const adapters=createVectorizeRestAdapters({environment:config.environment,indexName:config.indexName,accountId:config.accountId,
+          token:options.credentials.cloudflareToken,fetch:observationSend});
+        if(reviewed&&options.permanent)await readActivatedPermanentCatalogNative(db,control!.permit!,control!.vectorPlan,options.permanent,adapters,signal);
+        else await readActivatedCatalogVectors(db,control!.permit!,control!.vectorPlan,adapters,
           {signal,published:options.published,permanent:options.permanent});signal?.throwIfAborted();
         // Re-read deployment after independent identity/vector reads. Never infer
         // not-submitted from elapsed time or an observed prior deployment.
@@ -636,6 +647,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
           // that digest in the protected control journal, never renew content.
         }}
       await save({stage:'published',receiptSha256:ref.sha256});
+      if(reviewed&&options.permanent)await permanentProof();
       let observation:Promise<DeploymentObservation>|undefined;
       try{if(await resolveBuildActivation(db,control.permit,signal=>(observation=observed(signal)),{observationTimeoutMs:30_000})!=='resolved')
         throw new Error('publication_activation_pending');}
@@ -795,6 +807,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
             verifyUploadedVersion(await api.version(control!.versionReference!),config,control!.versionReference!,control!);
             await vectorProof(signal);signal.throwIfAborted();return readPrior(signal);
           })()),async()=>{
+            await permanentProof(); // All rows/held/private/projection proof immediately precedes the action marker.
             const marker=await workspace.putArtifact(expected,{kind:'publication',observedAt:now().toISOString()});
             await save({},owner,{reviewedUploadActivationPending:marker});dispatched=true;
           });}catch(error){

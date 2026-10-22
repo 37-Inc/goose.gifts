@@ -150,13 +150,16 @@ export async function settlePermanentCatalog(db:CatalogD1,owner:MutationOwner,re
   return settleCapturedRevision(db,owner,revision,(_plan,signal)=>readPermanentNativeProof({db,owner,revision,adapters,signal}));
 }
 
-/** Exact full-row and projection CAS under the ACTUAL new owner/permit. */
+/** Exact full-row and projection CAS under the ACTUAL new owner/permit. An
+ * activating permit authorizes read-only resolution after dispatch cutoff, not
+ * another deployment; field rights still use the actual database clock. */
 export async function assertPermanentCatalog(db:CatalogD1,owner:MutationOwner,revision:PermanentCatalogRevision,permit?:ActivationPermit,signal?:AbortSignal){
   if(owner.operationKey!==permanentCatalogOperationKey(revision.request)||!same(revision.nativePreservation,revision.request.native)
     ||revision.operationKey!==owner.operationKey||revision.snapshot.catalogRevision!==revision.request.catalogRevision
     ||sha256(`${JSON.stringify(revision.snapshot)}\n`)!==revision.packet.receipt.snapshot_sha256
     ||!same(revision.snapshot.products.map(p=>p.publicId),revision.request.productOrder)
-    ||owner.phase!=='freezing'&&owner.phase!=='activating'||owner.phase==='activating'&&(!permit||!same(permit.mutationOwner,owner)))refuse();
+    ||owner.phase!=='freezing'&&owner.phase!=='activating'||permit&&owner.phase!=='activating'
+    ||owner.phase==='activating'&&(!permit||!same(permit.mutationOwner,owner)))refuse();
   const queries=pruningCurrentQueries(revision.sourceRows).map(q=>({sql:`SELECT json(CASE WHEN (${q.sql})=? THEN 'true' ELSE 'permanent_freeze_changed' END)`,params:[...q.params,q.count]}));
   const columns=Object.keys(revision.packet.rows[0]??{});
   const projection=(chunk:typeof revision.packet.rows)=>{
@@ -184,13 +187,13 @@ export async function assertPermanentCatalog(db:CatalogD1,owner:MutationOwner,re
       WHERE p.rowid=(SELECT max(rowid) FROM publication_receipts) AND p.release_id=? AND p.catalog_revision=?
         AND p.code_sha=? AND json_extract(p.manifest_json,'$.catalogSnapshotSha256')=?
         AND json_extract(p.manifest_json,'$.priorReleaseId')=? AND o.intent_json=p.manifest_json AND o.state='verified'))
-    AND ?>strftime('%Y-%m-%dT%H:%M:%fZ','now') AND ?<=strftime('%Y-%m-%dT%H:%M:%fZ','now')
+    AND (? IS NOT NULL OR ?>strftime('%Y-%m-%dT%H:%M:%fZ','now')) AND ?<=strftime('%Y-%m-%dT%H:%M:%fZ','now')
     THEN 'true' ELSE 'permanent_freeze_changed' END)`,params:[revision.sourceRows.length,revision.snapshot.catalogRevision,revision.packet.rows.length,
       revision.globalVectorWatermark,...receiptColumns.map(k=>receipt[k]),
       ...priorColumns.map(k=>prior[k]),revision.snapshot.catalogRevision,revision.snapshot.catalogRevision,revision.sourceDigest,
       revision.request.context.publicationReceiptWatermark,permit?.releaseId??null,revision.snapshot.catalogRevision,revision.request.codeSha,
       revision.packet.receipt.snapshot_sha256,revision.request.context.priorPublication?.releaseId??null,
-      revision.request.context.cutoff,revision.snapshot.generatedAt]});
+      permit?.requestId??null,revision.request.context.cutoff,revision.snapshot.generatedAt]});
   if(permit)queries.push({sql:`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM catalog_mutation_scopes s JOIN catalog_build_requests b ON b.request_id=s.activation_request_id
     WHERE s.environment=? AND s.index_name=? AND s.activation_request_id=? AND b.lease_token=? AND b.run_reference=? AND b.release_id=? AND b.version_reference=?
     AND b.state='activating' AND json_extract(b.request_json,'$.sourceRevision')=?) THEN 'true' ELSE 'permanent_freeze_changed' END)`,
