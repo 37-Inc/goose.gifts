@@ -24,9 +24,11 @@ context: **what we've done, and where we're going.**
 - [owner+codex] Restore the existing catalog's images and descriptions faithfully.
   Owner permission is confirmed; all 2,359 public image URLs and blurbs are now
   prepared locally from the preserved dataset. No regenerated copy, product
-  deletion, supplier refetch or paid upgrade. Rendering/guarded-install tests,
-  Free-capacity admission and a verified Cloudflare publication remain before
-  calling this shipped. Daily publishing remains separate and gated.
+  deletion, supplier refetch or paid upgrade. Source support is merged in PR262;
+  rendering, guarded-install tests and the full static build pass. A follow-up
+  native-preservation regression is fixed. Fresh Free-capacity admission and
+  verified Cloudflare content publication remain before calling this shipped.
+  Daily publishing remains separate and gated.
 
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.

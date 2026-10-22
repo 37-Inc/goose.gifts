@@ -13,6 +13,7 @@ import { hasAccountedVectorReadback } from './vectorize-rest.ts';
 import { pruneExistingRevision, prunedVectorIds, prunedVectorPlan, settleCapturedRevision } from '../../lib/catalog/prune-existing-revision.ts';
 import type { HistoricalNativeBinding, PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PermanentCatalogRevision } from '../../lib/catalog/freeze-permanent-catalog.ts';
+import { permanentCatalogOperationKey } from '../../lib/catalog/freeze-permanent-catalog.ts';
 import { prepareApprovedCohort } from '../../lib/catalog/freeze-approved-cohort.ts';
 import type { ApprovedCohortEnvelope, ApprovedCohortRequest, ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
 import { loadMaintenanceVectorPayload } from './maintenance-d1.ts';
@@ -1216,9 +1217,15 @@ export async function readPermanentNativeProof(options:{db:CatalogD1;owner:Mutat
   adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>;signal?:AbortSignal}):Promise<PrunedVectorObservation>{
   const {revision,owner}=options;
   if(!revision.nativePreservation||canonicalJson(revision.nativePreservation)!==canonicalJson(revision.request.native)
-    ||owner.operationKey!==revision.operationKey)throw new Error('vector_preserved_input_invalid');
+    ||owner.operationKey!==revision.operationKey||permanentCatalogOperationKey(revision.request)!==revision.operationKey)
+    throw new Error('vector_preserved_input_invalid');
+  // A subsequent display-only installation starts from the already cleared
+  // catalog, not the original supplier cache. Its full-row preservation is
+  // independently checked by the permanent installer/freezer. Native bits,
+  // metadata, factual/input hashes and original receipts remain verified below.
   await readHistoricalNativePreservation({...options,native:revision.nativePreservation,current:revision.sourceRows,
-    original:revision.request.installation.plan.input.capture.tables.products});
+    ...(revision.request.installation.plan.input.priorPublication ? {}
+      : {original:revision.request.installation.plan.input.capture.tables.products})});
   return{environment:owner.environment,indexName:owner.indexName,settled:true,planSha256:sha256(canonicalJson(prunedVectorPlan(revision))),
     reference:`preserved-vectors:${revision.nativePreservation.source.deliveryId}`};
 }

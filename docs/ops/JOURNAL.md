@@ -5,6 +5,48 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 — Existing catalog presentation restoration, source merged; publication pending
+
+Cameron explicitly confirmed permission for the existing catalog imagery and
+requested faithful migration of the existing images and descriptions. PR262
+merged as `8169afd`; the clean reviewed source `93a8a2a` built and independently
+verified 15,116 static assets for all 2,359 public gifts. All 3,383 identities and
+1,024 intentional holds are preserved. The protected prepared snapshot is
+`2d7db85bba4ba16655aa2966445d99ab14572d9638990fda0d5c62529ffd8fc5`;
+every public product has its original HTTPS image and visible description.
+No new copy generation, merchant requests, native writes or deletion occurred.
+
+Actual local browser checks passed for 24→48 distinct cards, loaded images,
+390px mobile without overflow, and a product's original photo/description and
+canonical affiliate tag. The final focused source checks passed70/70; lint
+has zero errors and25 existing warnings. The stale broad sweep was interrupted,
+not reported green: its two unrelated cohort-boundary failures reproduce on
+untouched main and remain recurring-readiness work. The changed image-contract
+negative case now correctly rejects unsafe HTTP, not licensed HTTPS imagery.
+
+A follow-up publication regression exercises a second display installation
+after the first permanent release and expiry of its optional photo overlay.
+Its original native-proof comparison incorrectly demanded that the new
+cleared display cache equal the historical supplier cache. For an explicitly
+bound follow-up restoration, full-row preservation remains the installer's and
+freezer's responsibility; native readback still verifies exact bits/metadata,
+factual/input hashes and original receipts. The operation key now independently
+rebinds the installation hash, rejecting a changed capture before native reuse.
+The real SQLite/REST permanent/baseline/freeze pack passes28/28, including the
+3,383-identity fixture, ACK-loss recovery, source/held/history/owner drift and the
+new restoration regression. This is local contract evidence, not provider
+capacity or deployment evidence.
+
+At21:39:24UTC the account-wide read-only usage query reported4,688,357 reads
+and69,887 writes:311,643 reads and30,113 writes remain. No new D1 query/write or
+Cloudflare deployment has occurred in this restoration session. Leave today's
+reserve intact; admit a fresh separately bounded restoration after the00:00UTC
+Free reset (17:00Pacific). Preserve every old charge and consumed grant. The
+new private one-time operator composes the existing capture/install/freeze/
+publisher; it is not the recurring writer and must be reviewed/tested before
+dispatch. Keep `roadmap-lbbz1.3.2` open until actual content publication and live
+QA. Daily maintenance remains gated; Vercel frozen; Pinterest paused.
+
 ## 2026-10-22 — Retire legacy Programmable Search / Custom Search API
 
 Cameron asked us to read Google's January1 transition reminder, then explicitly

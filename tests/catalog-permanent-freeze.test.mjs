@@ -16,7 +16,7 @@ import {permanentCatalogOperationKey,preparePermanentCatalog,settlePermanentCata
 import {prunedVectorPlan,prunedVectorIds} from '../lib/catalog/prune-existing-revision.ts';
 import {claimBuildRequest,beginBuildActivation,resolveBuildActivation} from '../lib/catalog/build-requests.ts';
 import {enqueuePublication,claimPublication,recordPublicationDispatch,completePublication,completeActivatedPublication,completeActivatedPermanentPublication} from '../lib/catalog/publication.ts';
-import {readPermanentNativeProof,readActivatedCatalogVectors,readActivatedPermanentCatalogNative} from '../scripts/catalog/owned-vector-delivery.ts';
+import {readPermanentNativeProof,readHistoricalNativePreservation,readActivatedCatalogVectors,readActivatedPermanentCatalogNative} from '../scripts/catalog/owned-vector-delivery.ts';
 import {createSealedSnapshotEnvelope} from '../scripts/catalog/export-d1-snapshot.ts';
 import {createPermanentCatalogSeal,reconstructPermanentSnapshot,readPermanentCatalogPrior} from '../scripts/catalog/permanent-catalog-seal.ts';
 import {approvedCohortOperationKey,prepareApprovedCohort,approvedCohortVectorPlan} from '../lib/catalog/freeze-approved-cohort.ts';
@@ -278,6 +278,59 @@ test('0015 keeps all16 historical projection bytes/rowids/FTS immutable, permits
     assert.throws(()=>insert.run(...keys.map(k=>k==='catalog_revision'?`missing-${field}`:k==='public_display_json'?JSON.stringify(invalid):row[k])));}
   assert.equal(f.sql.prepare("SELECT count(*) n FROM catalog_public_products_fts WHERE catalog_public_products_fts MATCH 'identity'").get().n,1);
   same(rows().slice(0,16),before);
+});
+test('restoring existing photos after permanent publication preserves original native proof and all source/history',async t=>{
+  const f=await fixture(t,{merchant:true}),first=await preparePermanentCatalog(f.db,f.owner,f.request),r=first.revision;
+  const q=await settlePermanentCatalog(f.db,first.owner,r,f.adapters),build=await claimBuildRequest(f.db,q.requestId,'fixture:first',f.now());
+  const intent={releaseId:'permanent-release',catalogRevision:r.snapshot.catalogRevision,codeSha:r.request.codeSha,
+    catalogSnapshotSha256:r.packet.receipt.snapshot_sha256,manifestSha256:'a'.repeat(64),vectorSyncWatermark:0,priorReleaseId:'original-release',nextExpiry:null};
+  await enqueuePublication(f.db,r.snapshot,intent,f.now());const pub=await claimPublication(f.db,r.snapshot,intent.releaseId,f.now());
+  await recordPublicationDispatch(f.db,r.snapshot,pub,'version:fixture:first',f.now());
+  const permit=await beginBuildActivation(f.db,build,r.snapshot,pub,'fixture:first',async()=>({environment:scope.environment,settled:true,
+    active:{...f.original.intent,versionReference:f.original.permit.versionReference}}),f.now(),q.owner),nativePlan=prunedVectorPlan(r);
+  const read=()=>readActivatedCatalogVectors(f.db,permit,{catalogRevision:r.snapshot.catalogRevision,planSha256:sha256(canonicalJson(nativePlan)),
+    ids:prunedVectorIds(nativePlan)},f.adapters,{permanent:r});
+  f.advance(1); // Distinguish this receipt from the original fixture's same-clock publication.
+  await completePublication(f.db,r.snapshot,intent.releaseId,pub.token,async()=>{await read();return intent;},f.now,permit.mutationOwner);
+  assert.equal(await resolveBuildActivation(f.db,permit,async()=>{await read();return{environment:scope.environment,settled:true,
+    active:{...intent,versionReference:permit.versionReference}};}),'resolved');
+  f.advance(Date.parse(r.snapshot.products[0].eligibleUntil)-f.now().getTime()+3600000);
+  f.db=await f.makeNextDayDb(); // Fresh UTC-day fixture client; never extend the original migration profile.
+  const receipt={...f.sql.prepare("SELECT * FROM publication_receipts WHERE release_id='permanent-release'").get()};
+  const owner=await claimMutationOwnership(f.db,scope,{phase:'writing',ownerReference:'restore',operationKey:sha256('restore')});
+  const captured=await captureOwnedD1({db:f.db,owner,reference:'Fresh owner-authorized restoration',stoppedWriters:[
+    {id:'daily',kind:'application',codePaths:['scripts/catalog/run-cloudflare-weekly.ts'],reference:'Synthetic stopped job',stoppedAt:f.now().toISOString()},
+    {id:'operator',kind:'operator',codePaths:[],reference:'Synthetic sole operator',stoppedAt:f.now().toISOString()}]});
+  const current=permanentBaselineCurrent(captured.capture),old=r.request.installation.plan.input;
+  const assembler={...old.assembler,now:f.now(),placeholder:{...old.assembler.placeholder,bytes:Buffer.from(old.assembler.placeholder.bytesBase64,'base64')},
+    existingDisplayReference:'owner-confirmed-existing-dataset:fixture',approvedRightsById:structuredClone(old.assembler.approvedRightsById)};
+  for(const p of current)for(const [field,value]of Object.entries({title:p.title,description:p.description||p.wittyDescription||p.title,imageUrl:p.imageUrl,
+    punnyTitle:p.punnyTitle,wittyDescription:p.wittyDescription,editorialWriteup:p.editorialWriteup,...(p.humorTags?.length?{humorTags:JSON.stringify(p.humorTags)}:{})}))
+    if(typeof value==='string'&&value.trim())assembler.approvedRightsById[p.id][field]={basis:'licensed',value,reference:assembler.existingDisplayReference};
+  const proposal=assemblePermanentBaseline(old.evidence,current,assembler),installation=preparePermanentDisplayPlan({capture:captured.capture,
+    captureSha256:captured.captureSha256,owner,evidence:old.evidence,assembler,priorPublication:{releaseId:intent.releaseId,receiptSha256:sha256(canonicalJson(receipt))},
+    approvedProposal:{value:proposal,sha256:sha256(canonicalJson(proposal)),reference:assembler.existingDisplayReference}}),cursor={current:owner};
+  const native=canonicalJson([...f.index]),dispatches=f.dispatches();
+  await applyPermanentDisplayPlan({db:f.db,plan:installation.plan,planSha256:installation.sha256,ownerCursor:cursor,
+    cooperativeCapture:{receipt:captured.receipt,sha256:captured.receiptSha256}});
+  await releaseMutationOwnership(f.db,cursor.current);
+  const request={...r.request,catalogRevision:'restored',previous:r.snapshot,preserveSupplierPhotos:false,
+    context:{...r.request.context,envelopeSha256:sha256(`${JSON.stringify(createSealedSnapshotEnvelope(r.snapshot))}\n`),snapshotSha256:r.packet.receipt.snapshot_sha256,
+      projectionSha256:r.packet.receipt.projection_sha256,sourceExportSha256:r.sourceDigest,vectorSyncWatermark:0,publicationReceiptWatermark:3,
+      cutoff:new Date(f.now().getTime()+3600000).toISOString(),priorPublication:{releaseId:intent.releaseId,receiptSha256:sha256(canonicalJson(receipt))}},
+    installation:{...installation,capture:{receipt:captured.receipt,sha256:captured.receiptSha256}}};
+  const freezing=await claimMutationOwnership(f.db,scope,{phase:'freezing',ownerReference:'restore',operationKey:permanentCatalogOperationKey(request)});
+  const restored=await preparePermanentCatalog(f.db,freezing,request);
+  assert.equal(restored.revision.snapshot.products.length,r.snapshot.products.length);
+  assert.ok(restored.revision.snapshot.products.every(p=>p.eligibleUntil===null&&p.imageUrl.startsWith('https://')));
+  await assert.rejects(readHistoricalNativePreservation({db:f.db,owner:restored.owner,native:request.native,current:restored.revision.sourceRows,
+    original:captured.capture.tables.products,adapters:f.adapters}),/vector_preserved_source_changed/);
+  assert.equal((await settlePermanentCatalog(f.db,restored.owner,restored.revision,f.adapters)).state,'build_queued');
+  const bad=structuredClone(restored.revision);bad.request.installation.plan.input.capture.tables.products[0].source_query='forged';
+  await assert.rejects(readPermanentNativeProof({db:f.db,owner:restored.owner,revision:bad,adapters:f.adapters}));
+  same([...f.index],JSON.parse(native));assert.equal(Object.is(f.index.get(uuid(1)).values[0],-0),true);assert.equal(f.dispatches(),dispatches);
+  const p=f.index.get(uuid(1));p.values[0]=0;
+  await assert.rejects(readPermanentNativeProof({db:f.db,owner:restored.owner,revision:restored.revision,adapters:f.adapters}));p.values[0]=-0;
 });
 test('body-free published bulk seal survives old body expiry; daily empty/one genuine change preserves original identity/native history',async t=>{
   for(const changed of [false,true])await t.test(changed?'one genuine curation change':'changes:[]',async t=>{
