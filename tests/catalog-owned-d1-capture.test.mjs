@@ -66,6 +66,51 @@ test('capture binds all24 complete tables, allocator/native bytes, actual schema
   const plan=prepareOwnedOperationalImport({packet,capture:result.capture,captureSha256:result.captureSha256,owner:f.owner});
   await assert.rejects(applyOwnedOperationalImport({db:f.db,plan:plan.plan,planSha256:plan.sha256,ownerCursor:{current:f.owner}}),/capture_unverified/);
 });
+async function cooperativePlan(f){
+  const captured=await captureOwnedD1(f.options),row={...captured.capture.tables.products[0],id:'new-held-product',
+    public_id:'00000000-0000-4000-8000-000000009999',slug:'new-held-product',source_record_json:'{"id":"new-held-product"}'};
+  const source='b'.repeat(64),packet={batches:[{table:'products',rows:[row],exportSha256:source}],preservedRows:[],
+    summary:{sourceManifestSha256:source,importedAt:AT,batchCount:1,importedRows:1,sourceIdentityCount:1}};
+  const prepared=prepareOwnedOperationalImport({packet,capture:captured.capture,captureSha256:captured.captureSha256,owner:f.owner});
+  return{plan:prepared.plan,planSha256:prepared.sha256,proof:{receipt:captured.receipt,sha256:captured.receiptSha256}};
+}
+test('optional cooperative receipt permits exact held union/lostACK resume, never changes default capture refusal',async t=>{
+  const f=await fixture(t),transport=await restAdapter(f),db=transport.db,{plan,planSha256,proof}=await cooperativePlan({...f,options:{...f.options,db}}),cursor={current:f.owner};
+  await assert.rejects(applyOwnedOperationalImport({db,plan,planSha256,ownerCursor:cursor}),/capture_unverified/);
+  const before=f.state();transport.loseAck();
+  const apply=()=>applyOwnedOperationalImport({db,plan,planSha256,ownerCursor:cursor,cooperativeCapture:proof});
+  const result=await apply();assert.equal(result.state,'reconciled');assert.equal(result.barrierVerified,false);
+  assert.equal(result.cooperativeReceiptSha256,proof.sha256);assert.equal(f.sql.prepare('SELECT count(*) n FROM migration_imports').get().n,1);
+  assert.equal(f.sql.prepare("SELECT public_display_json FROM products WHERE id='new-held-product'").get().public_display_json,null);
+  assert.deepEqual(f.state().catalog_maintenance_products,before.catalog_maintenance_products);
+  cursor.current=f.owner;assert.equal((await apply()).state,'reconciled');assert.equal(cursor.current.epoch,f.owner.epoch+1);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM migration_imports').get().n,1);
+  assert.deepEqual(f.state().sqlite_sequence,before.sqlite_sequence);
+  assert.equal(db.metrics().unconfirmedRequests,1);assert.equal(transport.sends(),transport.reservations.size);assert.equal(transport.settled.size,transport.reservations.size);
+});
+test('receipt validation independently rejects rehashed false owner/inventory/schema/control evidence before imports',async t=>{
+  const f=await fixture(t),{db}=await restAdapter(f),{plan,planSha256,proof}=await cooperativePlan({...f,options:{...f.options,db}}),before=f.state();
+  for(const mutate of [r=>{r.captureSha256='f'.repeat(64);},r=>{r.inventory[0].sha256='f'.repeat(64);},
+    r=>{r.ownerAfter.generation++;},r=>{r.schemaSha256='f'.repeat(64);},r=>{r.schemas[0].sha256='f'.repeat(64);},
+    r=>{r.scopeRowSha256='f'.repeat(64);},r=>{r.stoppedWriters[0].reference='';},r=>{r.outsideApplicationTables=['_cf_*'];}]){
+    const forged=structuredClone(proof);mutate(forged.receipt);forged.sha256=sha256(canonicalJson(forged.receipt));
+    await assert.rejects(applyOwnedOperationalImport({db,plan,planSha256,ownerCursor:{current:f.owner},cooperativeCapture:forged}));
+    assert.deepEqual(f.state(),before);
+  }
+  f.sql.exec('DROP TRIGGER search_diagnostics_capture_insert');
+  await assert.rejects(applyOwnedOperationalImport({db,plan,planSha256,ownerCursor:{current:f.owner},cooperativeCapture:proof}),/catalog_capture_barrier_schema/);
+  assert.deepEqual(f.state(),before);
+});
+test('matching logical clone or copied client identity cannot reuse another registered resource receipt',async t=>{
+  const f=await fixture(t),{db}=await restAdapter(f),{plan,planSha256,proof}=await cooperativePlan({...f,options:{...f.options,db}}),before=f.state();
+  assert.equal(typeof proof.receipt.providerIdentity,'string');
+  const clone=await restAdapter(f,{databaseId:'00000000-0000-4000-8000-000000000902'});
+  for(const candidate of [f.db,clone.db,{...db,providerIdentity:db.providerIdentity}]){
+    await assert.rejects(applyOwnedOperationalImport({db:candidate,plan,planSha256,ownerCursor:{current:f.owner},cooperativeCapture:proof}),/catalog_capture_receipt/);
+    assert.deepEqual(f.state(),before);
+  }
+  assert.equal((await captureOwnedD1(f.options)).receipt.providerIdentity,null);
+});
 test('real-shaped exact provider/control tables are outside application scope, not allocator metadata',async t=>{
   const f=await fixture(t);
   f.sql.exec("CREATE TABLE _cf_KV(key TEXT PRIMARY KEY,value BLOB); INSERT INTO _cf_KV VALUES('fixture',X'00FF')");
@@ -139,20 +184,29 @@ test('capture refuses missing/modified/extra barriers, unknown tables, absent wr
   await assert.rejects(captureOwnedD1(f.options),/catalog_capture_schema_changed/);
 });
 
-test('actual REST-shaped full3383 capture is paged/byte-bounded and accounts every injected request',async t=>{
-  const f=await fixture(t,{products:3383,longRows:true}),accountId='a'.repeat(32),databaseId='00000000-0000-4000-8000-000000000901';
-  let sends=0,maxResponse=0;const reservations=new Set(),settled=new Set();
+async function restAdapter(f,{databaseId='00000000-0000-4000-8000-000000000901'}={}){
+  const accountId='a'.repeat(32);let sends=0,maxResponse=0,lose=false;const reservations=new Set(),settled=new Set();
   const db=await createCatalogD1Rest({accountId,databaseId,databaseName:'capture-fixture',token:'FIXTURE_ONLY',
     accounting:{scope:{accountId,databaseId,databaseName:'capture-fixture'},initial:{httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0},
       async reserve(r){reservations.add(r.id);},async settle(id){assert.equal(settled.has(id),false);settled.add(id);}},
     fetch:async(url,init)=>{sends++;assert.equal(init.redirect,'error');let response;
+      assert.equal(url,`https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}${init.method==='POST'?'/query':''}`);
       if(init.method==='GET')response={success:true,result:{uuid:databaseId,name:'capture-fixture',read_replication:{mode:'disabled'}}};
       else{const body=JSON.parse(init.body);assert.ok(Buffer.byteLength(init.body)<=512*1024);assert.ok(body.batch.length<=50);
-        response={success:true,result:body.batch.map(q=>{assert.ok(q.params.length<=100);const results=f.sql.prepare(q.sql).all(...q.params).map(r=>({...r}));
-          if(q.sql.startsWith('WITH bounded'))assert.ok(results.length<=40);return{success:true,results,meta:{served_by_primary:true,rows_read:results.length,rows_written:0}};})};}
+        f.sql.exec('BEGIN');let results;
+        try{results=body.batch.map(q=>{assert.ok(q.params.length<=100);const before=f.sql.prepare('SELECT total_changes() n').get().n;
+          const results=f.sql.prepare(q.sql).all(...q.params).map(r=>({...r}));if(q.sql.startsWith('WITH bounded'))assert.ok(results.length<=40);
+          return{success:true,results,meta:{served_by_primary:true,rows_read:results.length,rows_written:f.sql.prepare('SELECT total_changes() n').get().n-before}};});f.sql.exec('COMMIT');}
+        catch{f.sql.exec('ROLLBACK');return Response.json({success:false},{status:400});}
+        if(lose&&body.batch.some(q=>q.sql.startsWith('INSERT INTO migration_imports'))){lose=false;throw new Error('fixture post-commit ACK loss');}
+        response={success:true,result:results};}
       const bytes=JSON.stringify(response);maxResponse=Math.max(maxResponse,Buffer.byteLength(bytes));assert.ok(maxResponse<=512*1024);return new Response(bytes);}});
+  return{db,reservations,settled,sends:()=>sends,maxResponse:()=>maxResponse,loseAck(){lose=true;}};
+}
+test('actual REST-shaped full3383 capture is paged/byte-bounded and accounts every injected request',async t=>{
+  const f=await fixture(t,{products:3383,longRows:true}),transport=await restAdapter(f),{db,reservations,settled}=transport;
   const result=await captureOwnedD1({...f.options,db});assert.equal(result.capture.tables.products.length,3383);
-  assert.deepEqual(result.capture.tables.products,f.state().products);assert.equal(sends,reservations.size);assert.equal(settled.size,reservations.size);
-  assert.equal(db.metrics().requests,sends);assert.equal(db.metrics().unconfirmedRequests,0);
-  console.log(JSON.stringify({fixture:'local-REST-capture-not-provider',metrics:db.metrics(),maxResponse}));
+  assert.deepEqual(result.capture.tables.products,f.state().products);assert.equal(transport.sends(),reservations.size);assert.equal(settled.size,reservations.size);
+  assert.equal(db.metrics().requests,transport.sends());assert.equal(db.metrics().unconfirmedRequests,0);
+  console.log(JSON.stringify({fixture:'local-REST-capture-not-provider',metrics:db.metrics(),maxResponse:transport.maxResponse()}));
 });
