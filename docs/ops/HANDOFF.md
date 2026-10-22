@@ -7,13 +7,31 @@ target; legacy Vercel Git deployment is frozen. Do not create another schedule
 or execute the old setup/bootstrap below. The existing `goose-gifts-daily-ops`
 task and its current writer/access gates remain authoritative.
 
-October22 live checkpoint: Cloudflare now serves `82efb21` /
-`homepage-code-82efb2100d66`; UI/privacy cleanup is deployed and both completed
-publication runs must not be replayed. Full catalog migration and persistent
-product/supplier-field separation remain open, and the daily D1 writer is still
-gated. Use the current operator in `goose-production-cutover`, preserving the
-original `9943718` checkout/workspace as historical evidence. See the current
-production checkpoint in `STUPID_GIFTS_STAGING.md`.
+October22 checkpoint: actual all-24-table / 3,383-product union, schema 0015, local
+native recovery and permanent installer passed; 2,359 ready / 1,024 held / 31
+substantive articles are prepared privately. Public acceptance still serves
+`82efb21` / `homepage-code-82efb2100d66` with eight gifts. The new publication
+uses frozen clean `063d9a3` in `stupid-persistent-catalog`; do not alter that
+operator or replay completed publication/history runs. Actual static build/verify
+passed; schema0016 also applied successfully. Only the final `16518b9` toolchain
+in `stupid-final-catalog-operator` may read/purge the new recovery journal, not
+old53/d38/runtime63 readers. The actual continuation is held before asset/version
+upload by protected unknown session evidence. Do not clear pins, resend or reset
+leases; a separate metadata diagnostic is not acknowledgement. Any new reviewed
+recovery must preserve the same ledger and adopt its final pinned journal reader.
+The exact reviewed continuation, invoked once at14:33 UTC, returned pending after
+an actual proof read-cost overrun. The earlier offline capacity confidence is
+disproven; no automatic retry, new profile or counter reset. This is not public
+acceptance or a runtime-source relabel. Full publication is held: final readback
+holds FREEZING generation7 /
+epoch301 with no retry/activation markers or target version. Account reads are
+below fixed headroom; no more D1 writes/scans or retries. PR250's planner fix is
+merged (`1503056`), not exercised live; a separately budget-safe low-cost canary
+and actual full publication remain required. No next attempt is scheduled here.
+The daily writer remains gated on full-catalog cost/proof/canary work (`roadmap-lbbz1.4`),
+not a new owner-access ask. Preserve the original `994` checkout/workspace,
+Vercel freeze, retained Neon and Pinterest pause. See current receipts in
+`STUPID_GIFTS_STAGING.md` and `JOURNAL.md` before any operation.
 
 The remainder records the July2026 setup; it is retained as history only.
 

@@ -24,28 +24,26 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **October22 native-drill startup window** [owner+claude]: actual local
-  initdb exceeded the old40×250ms polling window and cleaned its owned resources
-  without restoring rows. Allow240×250ms startup polling instead, retaining
-  final PID1+Unix-socket readiness, cached image/network-none and owned cleanup.
-  Deterministic tests cover delayed readiness and bounded exhaustion; actual
-  native recovery still requires a fresh explicit operator execution.
-
-- **October22 actual rollback mapping correction** [owner+claude]: actual
-  post-union preparation exposed two retained held products without maintenance
-  semantics. Exact owned-baseline proof now preserves their inactive/hash
-  controls and genuine current UTC verification fields; archived facts/native
-  bytes and unknown historical creation/update wall times are not rewritten.
-  Arbitrary drift and unowned inputs still refuse. Actual13-table packet maps
-  in memory; native execution remains a separate operator gate.
-
-- **October22 local full-union rollback opt-in** [owner+claude]: separate
-  function-only native drill input binds both cooperative captures, the exact
-  completed owned union/all24 tables and inverse sequence proof. Default
-  synthetic-only refusal, native-byte checks, fresh network-none Docker and
-  owned cleanup remain. Dated audit/ACL limitations and unverified provenance
-  stay explicit. Offline tests are not the actual native drill or broad public
-  catalog publication; `roadmap-lbbz1.3.2` and daily-writer gates remain open.
+- **Full-catalog public release pending** [owner+claude]: actual all-24-table /
+  3,383-product production union, schema 0015, local native rollback and permanent
+  installer passed. The installer released generation 6 / epoch 299 with 2,359 ready,
+  1,024 held and 31 substantive articles. Public acceptance remains eight gifts
+  on `82efb21` until the new frozen `063d9a3` publication is independently verified.
+  Actual 2,359-product static build/verify passed with separate pinned `53d52a8`
+  tooling; final recovery operator is now `16518b9` after schema0016 success.
+  Exact receipts and separately labeled regression counts are in `JOURNAL.md`.
+  Protected upload-session uncertainty now holds publication before asset/version
+  upload. A separate metadata-only diagnostic succeeded above the former 512KiB
+  response bound; it does not settle the original unknown request. Public
+  acceptance remains pending, not inferred from those checks.
+  The reviewed14:33 continuation returned pending after about1.45M new known
+  proof reads, disproving earlier whole-flow capacity confidence. Seven unknowns
+  remain charged; no automatic retry, new profile or counter reset.
+  Final14:40 readback confirms no retry/activation marker or target version;
+  account read headroom is exhausted under the fixed guard. Stop actual attempts,
+  PR250 (`1503056`) merges the narrow planner fix, not a live retry or release;
+  a separately budget-safe canary and actual full publication remain open.
+  Do not replay completed migration/recovery or treat the installer as activation.
 
 - **Owner correction — finish the full catalog, preserve products:** eight
   visible gifts is only the launch slice. `roadmap-lbbz1.3.2` requires actual
@@ -57,14 +55,14 @@ what's likely next.
   The owned history-union code is merged in PR229; permanent text/pages and
   separately expiring photo overlays are implemented in PR228, with a real
   2,392-item synthetic static/browser test (15,422 files; no paid plan).
-  Production remains eight visible gifts until actual import/recovery,
-  positive content clearance and a new publication pass. Do not confuse the
-  synthetic capacity test with completed migration or resume daily writes yet.
+  Actual private import/recovery and positive permanent-content clearance are
+  now accepted; production remains eight visible gifts until the new publication
+  passes. Preserve original evidence and do not resume daily writes yet.
 - **Homepage/privacy cleanup shipped:** `roadmap-lbbz1.5.1/.5.2` are closed on
   actual Cloudflare source `82efb21` and live browser/HTTP evidence. Exact
   headline, fewer labels, 24+24 static browse, guide glyphs and Index retirement
   are live; submit-based search avoids per-keystroke model calls. Eight public
-  gifts still reflect the incomplete catalog migration above.
+  gifts await the separate broad publication above.
 
 - **Cloudflare release path:** the new code-only release is finalized on
   source `82efb21`; do not replay it or the original `9943718` recovery. Vercel
@@ -75,8 +73,11 @@ what's likely next.
   finalized: the actual build is resolved and its owner idle. PR #221 fixed
   bounded verification/read-accounting; original-permit settlement did not
   repeat upload, activation, merchant or model calls. The same existing task
-  forbids the old Neon entry and holds new D1 maintenance until the full data/
-  delta, credential and same-response publication gates pass. Compact D1 daily/
+  forbids the old Neon entry and holds new D1 maintenance. The 2,359-product
+  projection does not fit the ordinary 800 HTTP / 1,200 SQL / 10k-write profile; scoped
+  verified-Free routine capacity, bounded prior/vector proof, current semantic
+  evidence, body-free successor seal and an actual daily canary remain open in
+  `roadmap-lbbz1.4`. No global cap increase or new owner gate is implied. Compact D1 daily/
   discovery reads now avoid transferring full archive/vector bodies for every
   catalog identity; this is tested efficiency work, not a live daily canary.
   Bounded hardening resolves existing merchant/model credentials
@@ -90,15 +91,6 @@ what's likely next.
   Compatible DOMPurify/parser patches are verified with a clean production
   dependency audit and byte-identical app/static styles. The remaining unpatched
   `braces` finding is development-only and stays tracked, not silently ignored.
-
-- **D1-write rollback mechanism prepared** [owner+claude]: bounded offline
-  reconstruction now binds frozen logical D1 rows to a native PG baseline,
-  preserves current product/vector and finalized telemetry state, and retains
-  D1-only data privately. Owned synthetic native proof covers atomic failure,
-  allocator rollback and identical replay. Real complete provider-barrier
-  capture/final delta and production recovery remain open. See
-  [D1 rollback mechanism](STUPID_GIFTS_D1_ROLLBACK_2026-10-21.md),
-  `roadmap-lbbz1.3.1`; no live DB/provider/schedule/cutover changes.
 
 - **Stupid Gifts launch — primary project priority:** October19 owner asked
   for a concrete Cloudflare/static/data-migration and show-focused design spec,
@@ -114,7 +106,8 @@ what's likely next.
   Google Cloud and remaining-provider rebrand checklist. Research/pricing
   integration is post-launch (`roadmap-mt1gp`). Implementation and staged
   migration are authorized and underway; stupid.gifts is now live on Cloudflare
-  Free with eight reviewed products. Full catalog/writer migration is not done.
+  Free with eight reviewed products. Private full-catalog acceptance has passed;
+  broad public publication and recurring writer acceptance remain separate.
   October21 owner approved using the existing Codex task for up to ten daily
   existing-product refreshes and weekly discovery. Finish private restart/
   cleanup and publication verification; hosted CI/Cloudflare Cron is deferred.
@@ -285,12 +278,38 @@ what's likely next.
   commission/price-weighting stays parked.
 - **Catalog-first relaunch** (daily-ops track): keep improving catalog depth,
   enrichment/relevance, search results, outbound CTR. `ROADMAP.md` Phase 1.
-- **`/weird-gift-index` editorial pass** (owner+claude track): still deliberately
-  distinct; give it an intentional pass when the higher-leverage items above land.
-
 ---
 
 ## Changelog
+
+### 2026-10-22 [owner+claude] — Accept private full-catalog migration and recovery
+
+Actual final-source/all-24-table production union, schema 0015 and local native
+recovery passed; the latter reconciled 13 tables / 11,932 rows / 3,492 original vectors
+and the ten-product D1 rollback delta without claiming a universal ACL barrier.
+The real permanent installer completed 2,359 ready / 1,024 held / 31 substantive
+articles and released its owner. Exact receipt hashes and non-reset ledgers are
+in `JOURNAL.md`. Final staging: 895 pass / 12 optional skips / zero failures; full lint
+zero errors with 25 pre-existing warnings. Public acceptance remains eight gifts
+until frozen `063d9a3` publication completes. Daily D1 writer stays gated; no
+Pinterest restart, Vercel deployment, paid plan or merchant/model cadence change.
+Actual static build/verify now passes with separately pinned `53d52a8` tooling:
+15,121 assets / 23,690 logical guarded routes, 273.77MiB output. PRs243–245
+correct the owned-placeholder guard, exact claimed-only lease checkpoint and
+private aggregate package bound; wire/per-file/security limits stay intact.
+Schema0016 applied at13:14UTC, preserving all existing rows/native state and
+three retained read-only unknown charges. PR248's `3bfefe` continuation is now held
+before asset/version upload by protected session uncertainty; the separate
+metadata diagnostic does not acknowledge that old request. No public acceptance
+receipt exists; the exact current ledger and reviewed recovery plan are in the
+current `JOURNAL.md` checkpoint.
+PR249 (`16518b9`) is merged and its operator pin adopted. The reviewed14:33
+continuation returned pending; actual first-proof reads disproved the earlier
+whole-flow cost confidence. Public remains eight; no automatic retry/profile or
+counter reset. Offline query packing is not Cloudflare scanned-row billing.
+Future journal read/purge MUST use final `16518b9` in `stupid-final-catalog-operator`,
+not superseded tools or frozen runtime63.
+See `JOURNAL.md` for exact receipts, non-additive test counts and photo deadlines.
 
 ### 2026-10-22 [owner+claude] — Align private publication file count with Free static capacity
 
