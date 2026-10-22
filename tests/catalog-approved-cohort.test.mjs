@@ -15,9 +15,11 @@ import { maintenanceEmbeddingText } from '../scripts/catalog/maintenance-state.t
 import { editorialSourceHash } from '../scripts/ops/catalog-editorial-core.mjs';
 import { nativeHash, payloadVector } from '../scripts/catalog/vector-outbox.ts';
 import { abandonExpiredPrunedRevision, deliverOwnedOutboxEvent, deliverOwnedApprovedCohortVector, readOwnedApprovedCohortVectors,
-  reuseOwnedApprovedCohortVectorProof, readActivatedCatalogVectors, settleOwnedApprovedCohortVectorProof } from '../scripts/catalog/owned-vector-delivery.ts';
-import { claimBuildRequest, beginBuildActivation } from '../lib/catalog/build-requests.ts';
-import { enqueuePublication, claimPublication, recordPublicationDispatch } from '../lib/catalog/publication.ts';
+  reuseOwnedApprovedCohortVectorProof, readActivatedCatalogVectors, settleOwnedApprovedCohortVectorProof, prepareOwnedApprovedCohortPlan,
+  resumeOwnedPrunedDelete } from '../scripts/catalog/owned-vector-delivery.ts';
+import { claimBuildRequest, beginBuildActivation, resolveBuildActivation } from '../lib/catalog/build-requests.ts';
+import { enqueuePublication, claimPublication, recordPublicationDispatch, completeActivatedApprovedCatalogPublication } from '../lib/catalog/publication.ts';
+import { approvedRevisionControl, hydrateApprovedRevision, createApprovedCatalogSeal, readApprovedPrior } from '../scripts/catalog/approved-catalog-seal.ts';
 import { sealCapturedRevision, settleCapturedRevision } from '../lib/catalog/prune-existing-revision.ts';
 import { createCatalogD1Rest } from '../scripts/catalog/d1-write-rest.ts';
 import { openRunWorkspace } from '../scripts/catalog/run-workspace.ts';
@@ -43,7 +45,7 @@ function product(n, overrides={}) {
 const rights = p => Object.fromEntries(Object.entries({title:p.title,description:p.wittyDescription,imageUrl:p.imageUrl,
   affiliateUrl:p.affiliateUrl,wittyDescription:p.wittyDescription,editorialWriteup:p.editorialWriteup,humorTags:JSON.stringify(p.humorTags)})
   .map(([field,value])=>[field,{basis:'owned',reference:`test-only-owned/${p.id}/${field}`,value}]));
-async function setup(t,{initial=2,permanent=0,extraHeld=0,preservePermanentListings=false}={}) {
+async function setup(t,{initial=2,permanent=0,extraHeld=0,preservePermanentListings=false,earlyExpiry=[]}={}) {
   const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
   for(const name of (await readdir(new URL('../migrations/d1/',import.meta.url))).filter(name=>/^\d{4}.*\.sql$/.test(name)).sort())
     sql.exec(await readFile(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
@@ -70,8 +72,9 @@ async function setup(t,{initial=2,permanent=0,extraHeld=0,preservePermanentListi
   function store() { return createD1CatalogMaintenanceStore({db,owner:cursor.current,ownerCursor:cursor,...mode,preservePermanentListings,
     newPublicId:()=>mode.runId!=='seed-run'&&permanent?uuid(nextNew++):uuid(Number(sql.prepare('SELECT count(*) n FROM products').get().n)+1),
     intent(_method,args){const p=args[0];if(!p?.id)return{reviewedDeleteReference:'test-only/delete'};
-      const hash=args[1];return intentOverride?intentOverride(p,hash):{rightsById:{[p.id]:rights(p)},
-        verificationById:{[p.id]:{reference:'test-only/source-observation',observedAt:at(-3600000),sourceFactsHash:hash}},
+      const hash=args[1],granted=rights(p);if(earlyExpiry.includes(p.id))granted.imageUrl.expiresAt=at(3600000);
+      return intentOverride?intentOverride(p,hash):{rightsById:{[p.id]:granted},
+        verificationById:{[p.id]:{reference:'test-only/source-observation',observedAt:at(earlyExpiry.includes(p.id)?-23*3600000:-3600000),sourceFactsHash:hash}},
         ...(p.embedding?{embeddingById:{[p.id]:{reference:'test-only/original-embedding',model:'text-embedding-3-small',text:maintenanceEmbeddingText(p),sourceFactsHash:hash}}}:{}),
         reviewedDeleteReference:'test-only/delete'};}}); }
   async function upsert(p){const hash=editorialSourceHash(p);p.editorialSourceHash=hash;
@@ -165,6 +168,295 @@ test('multiple approved changes use one bounded receipt read without weakening p
   const wrongOwner=await claimMutationOwnership(f.db,scope,{phase:'freezing',ownerReference:'wrong-input-proof',operationKey:approvedCohortOperationKey(wrong)});
   // Even a matching owner/checksum cannot substitute the second receipt's input.
   await assert.rejects(()=>prepareApprovedCohort(f.db,wrongOwner,wrong),/cohort_approval_changed/);
+});
+test('daily+Monday approval bound admits30 exact identities but never31, duplicates or rewritten envelope bytes',async t=>{
+  const f=await setup(t),claim=await f.freeze();
+  const request=structuredClone(claim.request);request.approval.changes=Array.from({length:30},(_,i)=>({publicId:uuid(i+1),
+    operationId:'a'.repeat(64),inputSha256:'b'.repeat(64),productSha256:'c'.repeat(64),displaySha256:'d'.repeat(64)}));
+  request.approvalSha256=sha256(canonicalJson(request.approval));assert.match(approvedCohortOperationKey(request),/^[a-f0-9]{64}$/);
+  request.approval.changes.push({...request.approval.changes[0],publicId:uuid(31)});request.approvalSha256=sha256(canonicalJson(request.approval));
+  assert.throws(()=>approvedCohortOperationKey(request),/approval_invalid/);
+  request.approval.changes.pop();request.approval.changes[1]=request.approval.changes[0];request.approvalSha256=sha256(canonicalJson(request.approval));
+  assert.throws(()=>approvedCohortOperationKey(request),/approval_invalid/);
+});
+test('Monday ten refreshes plus twenty independently cleared additions preserve all2359 prior bases and full order',async t=>{
+  const f=await setup(t,{initial:0,permanent:2359,extraHeld:1023,preservePermanentListings:true});
+  f.advance(36*3600000);f.context.cutoff=new Date(f.now().getTime()+3600000).toISOString();
+  f.setIntent((p,hash)=>{
+    const permission={title:p.title,description:p.title,
+      imageUrl:'/images/gift-placeholder.svg',affiliateUrl:p.affiliateUrl};
+    const existing=f.sql.prepare('SELECT rights_json FROM products WHERE id=?').get(p.id);
+    return{rightsById:{[p.id]:existing?JSON.parse(existing.rights_json):{...rights(p),persistent:Object.fromEntries(Object.entries(permission)
+      .map(([key,value])=>[key,{basis:'owned',reference:`test-only/actual-clearance/${p.id}/${key}`,value}]))}},
+      verificationById:{[p.id]:{reference:'test-only/fresh-Monday-response',observedAt:f.now().toISOString(),sourceFactsHash:hash}},
+      reviewedDeleteReference:'test-only/delete'};
+  });
+  const ids=[];
+  for(let n=100;n<110;n++){await f.upsert(product(n,{title:'merchant duplicated title',embedding:null,isActive:false,
+    availabilityStatus:n%2?'UNAVAILABLE':'UNKNOWN',sourceFacts:{fixture:n,fresh:true}}));ids.push(uuid(n));}
+  const titles=['Telescope walnut tripod','Copper octopus bookmark','Ceramic meteor lamp','Linen fox cushion','Rubber cactus trivet',
+    'Velvet cosmic umbrella','Brass lobster bell','Glass dragon goblet','Canvas moon hammock','Marble jellyfish clock',
+    'Bamboo raven flute','Steel unicorn wrench','Clay dinosaur planter','Leather orbit pouch','Wool kiwi scarf',
+    'Porcelain shark teapot','Wood robot puzzle','Cotton planet apron','Crystal beetle brooch','Felt wizard slippers'];
+  for(let n=0;n<20;n++){await f.upsert(product(5000+n,{title:titles[n],embedding:null}));ids.push(uuid(10000+n));}
+  await f.drain();const claim=await f.freeze(ids);
+  const prepared=await prepareOwnedApprovedCohortPlan({db:f.db,...claim,adapters:f.adapters});
+  assert.equal(prepared.revision.request.approval.changes.length,30);
+  assert.equal(prepared.revision.snapshot.products.length,2379);
+  assert.deepEqual(prepared.revision.snapshot.products.slice(0,2359).map(p=>p.publicId),f.previous.products.map(p=>p.publicId));
+  assert.deepEqual(prepared.revision.snapshot.products.slice(2359).map(p=>p.publicId),ids.slice(10));
+  assert.ok(prepared.revision.snapshot.products.every(p=>p.eligibleUntil===null));
+  assert.deepEqual(prepared.reusedIds,[]);assert.deepEqual(prepared.remainingIds,[]);
+  const queued=await settleOwnedApprovedCohortVectorProof({db:f.db,...prepared,adapters:f.adapters});
+  assert.equal(queued.state,'build_queued');assert.equal(f.sql.prepare('SELECT count(*) n FROM products').get().n,3403);
+  const revision=prepared.revision,control=approvedRevisionControl(revision);
+  assert.equal(JSON.stringify(control).includes('source_record_json'),false);assert.equal(JSON.stringify(control).includes('rights_json'),false);
+  assert.deepEqual(await hydrateApprovedRevision(f.db,queued.owner,control),revision);
+  const build=await claimBuildRequest(f.db,queued.requestId,'test-only/full-permanent-daily',f.now());
+  const intent={releaseId:'full-permanent-daily',catalogRevision:revision.snapshot.catalogRevision,codeSha:revision.request.codeSha,
+    catalogSnapshotSha256:revision.packet.receipt.snapshot_sha256,manifestSha256:'a'.repeat(64),vectorSyncWatermark:revision.vectorSyncWatermark,
+    priorReleaseId:'prior-release',nextExpiry:null};
+  await enqueuePublication(f.db,revision.snapshot,intent,f.now());const publication=await claimPublication(f.db,revision.snapshot,intent.releaseId,f.now());
+  await recordPublicationDispatch(f.db,revision.snapshot,publication,'version:test-only/actual-version',f.now());
+  const permit=await beginBuildActivation(f.db,build,revision.snapshot,publication,'test-only/actual-version',
+    async()=>({environment:scope.environment,settled:true,active:{...f.priorIntent,versionReference:'prior-version'}}),f.now(),queued.owner);
+  const plan=approvedCohortVectorPlan(revision),vectorPlan={catalogRevision:plan.catalogRevision,planSha256:sha256(canonicalJson(plan)),
+    ids:[...plan.products.map(p=>p.publicId),...plan.absentIds]};
+  f.advance(16*60000);const sent=f.calls();
+  const old=f.sql.prepare('SELECT rights_json FROM products WHERE public_id=?').get(uuid(1)).rights_json;
+  f.sql.prepare("UPDATE products SET rights_json=? WHERE public_id=?").run('{"foreign-held-grant":true}',uuid(1));
+  await assert.rejects(completeActivatedApprovedCatalogPublication(f.db,revision,publication,permit,async()=>intent,f.now));
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,1);
+  f.sql.prepare('UPDATE products SET rights_json=? WHERE public_id=?').run(old,uuid(1));
+  const observed=async()=>{await readActivatedCatalogVectors(f.db,permit,vectorPlan,f.adapters);return intent;};
+  await completeActivatedApprovedCatalogPublication(f.db,revision,publication,permit,observed,f.now);
+  const actual=f.sql.prepare('SELECT * FROM publication_receipts WHERE release_id=?').get(intent.releaseId);
+  const seal=createApprovedCatalogSeal(revision,{releaseId:intent.releaseId,receiptSha256:sha256(canonicalJson(actual))});
+  assert.equal(JSON.stringify(seal).includes('imageUrl'),false);assert.equal(JSON.stringify(seal).includes('rights_json'),false);
+  assert.equal(await resolveBuildActivation(f.db,permit,async signal=>{await readActivatedCatalogVectors(f.db,permit,vectorPlan,f.adapters,{signal});
+    return{environment:scope.environment,settled:true,active:{...intent,versionReference:permit.versionReference}};}),'resolved');
+  assert.equal(f.calls(),sent);
+  f.advance(36*3600000);
+  const nextContext={envelopeSha256:sha256(seal.envelopeJson+'\n'),snapshotSha256:seal.snapshotSha256,
+    projectionSha256:seal.projectionReceipt.projection_sha256,sourceExportSha256:seal.projectionReceipt.source_export_sha256,
+    vectorSyncWatermark:revision.vectorSyncWatermark,publicationReceiptWatermark:2,cutoff:new Date(f.now().getTime()+3600000).toISOString(),
+    priorPublication:seal.publication};
+  const nextWriting=await claimMutationOwnership(f.db,scope,{phase:'writing',ownerReference:'next-day',operationKey:'f'.repeat(64)});
+  const previous=await readApprovedPrior(f.db,nextWriting,seal,nextContext);assert.deepEqual(previous,revision.snapshot);
+  await releaseMutationOwnership(f.db,nextWriting);
+  const nextApproval={schemaVersion:1,runId:'next-day',catalogRevision:'next-day-revision',changes:[]};
+  const request={previous,context:nextContext,scope,codeSha:revision.request.codeSha,approval:nextApproval,approvalSha256:sha256(canonicalJson(nextApproval))};
+  const nextOwner=await claimMutationOwnership(f.db,scope,{phase:'freezing',ownerReference:'next-day',operationKey:approvedCohortOperationKey(request)});
+  const next=await prepareOwnedApprovedCohortPlan({db:f.db,owner:nextOwner,request,adapters:f.adapters});
+  assert.deepEqual(next.revision.snapshot.products.map(p=>p.publicId),revision.snapshot.products.map(p=>p.publicId));
+  assert.deepEqual(next.remainingIds,[]);assert.equal(f.calls(),sent);
+});
+test('body-free full revision hydrates exact pending vector journal only; wrong owner/hash/current drift cannot rewrite or resend',async t=>{
+  const f=await setup(t,{initial:3});await f.upsert(product(1,{sourceFacts:{fixture:1,fresh:true}}));await f.drain();
+  const claim=await f.freeze([uuid(1)]),prepared=await prepareOwnedApprovedCohortPlan({db:f.db,...claim,adapters:f.adapters});
+  const control=approvedRevisionControl(prepared.revision);f.uncertain(true);
+  const first=await deliverOwnedApprovedCohortVector({db:f.db,owner:prepared.owner,revision:prepared.revision,
+    publicId:uuid(2),original:f.originals.get(uuid(2)),adapters:f.adapters});
+  assert.equal(first.state,'pending');const sent=f.calls();
+  assert.deepEqual(await hydrateApprovedRevision(f.db,first.owner,JSON.parse(JSON.stringify(control))),prepared.revision);
+  await assert.rejects(hydrateApprovedRevision(f.db,{...first.owner,token:'foreign-token'},control));
+  await assert.rejects(hydrateApprovedRevision(f.db,first.owner,{...control,sourceRowsSha256:'0'.repeat(64)}));
+  f.sql.prepare("UPDATE products SET rights_json='{}' WHERE public_id=?").run(uuid(3));
+  await assert.rejects(hydrateApprovedRevision(f.db,first.owner,control));
+  assert.equal(f.calls(),sent);assert.equal(f.sql.prepare('SELECT external_pending FROM catalog_mutation_scopes').get().external_pending,1);
+});
+test('only explicit nonmerchant exact persistent grants admit new D1 bases; supplier and malformed grants stay held',async t=>{
+  for(const fault of ['merchant','missing','image','expires','weak']){
+    const f=await setup(t,{initial:0,permanent:1,preservePermanentListings:true});
+    const p=product(5000,{embedding:null,...(fault==='weak'?{qualityScore:.3,isActive:false}:{})});
+    f.setIntent(p=>{
+      const fields={title:p.title,description:p.title,imageUrl:'/images/gift-placeholder.svg',affiliateUrl:p.affiliateUrl};
+      const persistent=Object.fromEntries(Object.entries(fields).map(([key,value])=>[key,{basis:'owned',reference:'explicit exact grant',value}]));
+      if(fault==='merchant')persistent.title.basis='merchant';
+      if(fault==='missing')delete persistent.description;
+      if(fault==='image')persistent.imageUrl.value=p.imageUrl;
+      if(fault==='expires')persistent.title.expiresAt=at(24*3600000);
+      return{rightsById:{[p.id]:{...rights(p),persistent}},reviewedDeleteReference:'test-only/delete'};
+    });
+    await f.upsert(p);await f.drain();const claim=await f.freeze([uuid(10000)]);
+    const prepared=await prepareOwnedApprovedCohortPlan({db:f.db,...claim,adapters:f.adapters});
+    assert.deepEqual(prepared.revision.snapshot.products.map(p=>p.publicId),f.previous.products.map(p=>p.publicId),fault);
+    assert.ok(prepared.revision.snapshot.heldProducts.some(p=>p.publicId===uuid(10000)),fault);
+  }
+});
+async function deliverRemaining(f,prepared){
+  let owner=prepared.owner;
+  for(const publicId of prepared.remainingIds){
+    const plan=approvedCohortVectorPlan(prepared.revision),changed=prepared.revision.request.approval.changes.some(c=>c.publicId===publicId);
+    const options={db:f.db,owner,revision:prepared.revision,publicId,adapters:f.adapters,
+      ...(!changed&&plan.products.some(p=>p.publicId===publicId)?{original:f.originals.get(publicId)}:{})};
+    for(let pass=0;pass<4;pass++){const result=await deliverOwnedApprovedCohortVector({...options,owner});owner=result.owner;
+      if(result.state==='complete')break;assert.equal(result.state,'pending');assert.ok(pass<3);}
+  }
+  return owner;
+}
+test('full-plan policy receipt covers genuine source reuse plus prior promotion/delete without another policy rebuild',async t=>{
+  const f=await setup(t,{initial:4,earlyExpiry:[id(4)]});f.advance(2*3600000);
+  for(const n of [1,2,6])await f.upsert(product(n,{sourceFacts:{fixture:n,fresh:true}}));await f.drain();
+  const claim=await f.freeze([uuid(1),uuid(2),uuid(6)]);let rebuilds=0;const prepare=f.local.prepare.bind(f.local);
+  f.useDb({...f.local,prepare(query){if(query.includes('SELECT * FROM catalog_maintenance_operations'))rebuilds++;return prepare(query);}});
+  f.lose(statements=>statements.some(s=>s.query.startsWith('INSERT INTO catalog_vector_deliveries')));
+  const prepared=await prepareOwnedApprovedCohortPlan({db:f.db,owner:claim.owner,request:claim.request,adapters:f.adapters});
+  assert.deepEqual(prepared.reusedIds,[uuid(1),uuid(2),uuid(6)]);assert.deepEqual(prepared.remainingIds,[uuid(3),uuid(4)]);
+  assert.equal(rebuilds,1);const owner=await deliverRemaining(f,prepared);assert.equal(rebuilds,1);
+  assert.equal(f.index.has(uuid(4)),false);assert.equal(f.index.get(uuid(3)).metadata.catalogRevision,'approved-revision');
+  f.lose(statements=>statements.some(s=>s.query.startsWith('INSERT INTO catalog_build_requests')));
+  await assert.rejects(settleOwnedApprovedCohortVectorProof({db:f.db,owner,revision:prepared.revision,adapters:f.adapters}));
+  const current=await readMutationOwner(f.db,scope);
+  const queued=await settleOwnedApprovedCohortVectorProof({db:f.db,owner:current,revision:prepared.revision,adapters:f.adapters});
+  assert.equal(queued.state,'existing');assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,1);
+  assert.equal(rebuilds,1);assert.ok(Object.is(f.index.get(uuid(3)).values[0],-0));
+  const calls=f.calls();assert.equal((await settleOwnedApprovedCohortVectorProof({db:f.db,owner:queued.owner,revision:prepared.revision,adapters:f.adapters})).state,'existing');
+  assert.equal(f.calls(),calls);
+  const row=f.sql.prepare("SELECT * FROM catalog_vector_deliveries WHERE json_extract(request_json,'$.kind')='approved-cohort-plan'").get();
+  assert.equal(row.attempts,0);assert.equal(row.dispatch_token,null);assert.equal(row.mutation_reference,null);
+  assert.equal(JSON.parse(row.request_json).approval.runId,'weekly-run');
+  const revision=prepared.revision,build=await claimBuildRequest(f.db,queued.requestId,'test-only/full-plan',f.now());
+  const intent={releaseId:'full-plan-release',catalogRevision:revision.snapshot.catalogRevision,codeSha:revision.request.codeSha,
+    catalogSnapshotSha256:revision.packet.receipt.snapshot_sha256,manifestSha256:'a'.repeat(64),vectorSyncWatermark:revision.vectorSyncWatermark,
+    priorReleaseId:'prior-release',nextExpiry:revision.snapshot.products[0].eligibleUntil};
+  await enqueuePublication(f.db,revision.snapshot,intent,f.now());const publication=await claimPublication(f.db,revision.snapshot,intent.releaseId,f.now());
+  await recordPublicationDispatch(f.db,revision.snapshot,publication,'test-only/full-plan-dispatch',f.now());
+  const prior={environment:'staging',settled:true,active:{...f.priorIntent,versionReference:'old-version'}};
+  const permit=await beginBuildActivation(f.db,build,revision.snapshot,publication,'test-only/full-plan-upload',async()=>prior,f.now(),queued.owner);
+  const plan=approvedCohortVectorPlan(revision),control={catalogRevision:plan.catalogRevision,planSha256:sha256(canonicalJson(plan)),
+    ids:[...plan.products.map(p=>p.publicId),...plan.absentIds]};
+  assert.equal((await readActivatedCatalogVectors(f.db,permit,control,f.adapters)).settled,true);
+  for(const ids of [control.ids.slice(1),[...control.ids,control.ids[0]],[...control.ids,uuid(99)]])
+    await assert.rejects(readActivatedCatalogVectors(f.db,permit,{...control,ids},f.adapters));
+  f.index.set(uuid(4),f.index.get(uuid(1)));await assert.rejects(readActivatedCatalogVectors(f.db,permit,control,f.adapters),/vector_not_visible/);
+  assert.equal(f.calls(),calls);
+});
+test('full-plan source/native/metadata/ABA/expiry drift and incomplete remaining coverage fail closed without another native mutation',async t=>{
+  for(const fault of ['native','metadata','source','reference','aba','expiry','partial','extra','revision','unknown']){
+    const f=await setup(t,{initial:3});await f.upsert(product(1,{sourceFacts:{fixture:1,fresh:true}}));await f.drain();
+    const claim=await f.freeze([uuid(1)]),prepared=await prepareOwnedApprovedCohortPlan({db:f.db,owner:claim.owner,request:claim.request,adapters:f.adapters});
+    if(fault==='unknown'){
+      f.uncertain(true);const options={db:f.db,owner:prepared.owner,revision:prepared.revision,publicId:uuid(2),original:f.originals.get(uuid(2)),adapters:f.adapters};
+      const first=await deliverOwnedApprovedCohortVector(options),sent=f.calls();assert.equal(first.state,'pending');
+      const next=await deliverOwnedApprovedCohortVector({...options,owner:first.owner});assert.equal(next.state,'pending');assert.equal(f.calls(),sent);
+      assert.equal(f.sql.prepare('SELECT external_pending FROM catalog_mutation_scopes').get().external_pending,1);continue;
+    }
+    const owner=fault==='partial'?prepared.owner:await deliverRemaining(f,prepared),sent=f.calls();
+    if(fault==='native')f.index.get(uuid(1)).values[2]=.75;
+    if(fault==='metadata')f.index.get(uuid(1)).metadata.embeddingModel='wrong';
+    if(fault==='source')f.sql.prepare("UPDATE products SET rights_json='{}' WHERE public_id=?").run(uuid(3));
+    if(fault==='reference')f.sql.prepare("UPDATE vector_sync_outbox SET mutation_reference='wrong-ref' WHERE source_revision='approved-revision'").run();
+    if(fault==='aba')f.sql.prepare('UPDATE catalog_mutation_scopes SET generation=generation+1').run();
+    if(fault==='expiry')f.advance(7*3600000);
+    const revision=structuredClone(prepared.revision);if(fault==='revision')revision.request.codeSha='0'.repeat(40);
+    let db=f.db;
+    if(fault==='extra')db={...f.db,prepare(query){const statement=f.db.prepare(query);if(!query.includes('WITH encoded AS(SELECT delivery_id'))return statement;
+      return{bind(...args){statement.bind(...args);return this;},async all(...args){const result=await statement.all(...args);
+        if(result.results.length)result.results.push(result.results[0]);return result;}};}};
+    await assert.rejects(settleOwnedApprovedCohortVectorProof({db,owner,revision,adapters:f.adapters}),undefined,fault);
+    assert.equal(f.calls(),sent);assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,0);
+  }
+});
+test('only an exact current full-plan journal grants30s; generic observation remains3s',async t=>{
+  const f=await setup(t);for(const n of [1,2])await f.upsert(product(n,{sourceFacts:{fixture:n,fresh:true}}));await f.drain();
+  const claim=await f.freeze([uuid(1),uuid(2)]),prepared=await prepareOwnedApprovedCohortPlan({db:f.db,...claim,adapters:f.adapters});
+  const {owner,revision}=prepared,sent=f.calls(),realTimer=globalThis.setTimeout,windows=[];
+  t.mock.method(globalThis,'setTimeout',(callback,ms,...args)=>{
+    windows.push(ms);return realTimer(callback,ms===3000?5:ms===30000?120:ms,...args);});
+  let aborted=false;
+  await assert.rejects(settleCapturedRevision(f.db,owner,revision,(_plan,signal)=>new Promise((_,reject)=>{
+    signal.addEventListener('abort',()=>{aborted=true;reject(new Error('test abort'));},{once:true});})),/prune_vectors_unconfirmed/);
+  assert.equal(aborted,true);assert.deepEqual(windows,[3000]);windows.length=0;
+  const policy=f.sql.prepare("SELECT * FROM catalog_vector_deliveries WHERE json_extract(request_json,'$.kind')='approved-cohort-plan'").get();
+  const proof={deliveryId:policy.delivery_id,requestSha256:sha256(policy.request_json)};
+  const sourceRow=f.sql.prepare("SELECT * FROM catalog_vector_deliveries WHERE json_extract(request_json,'$.kind')='outbox' LIMIT 1").get();
+  let invoked=0;
+  for(const [db,current,value,ref] of [[f.db,owner,revision,{...proof,requestSha256:'0'.repeat(64)}],
+    [f.db,owner,revision,{...proof,deliveryId:'0'.repeat(64)}],
+    [f.db,owner,revision,{deliveryId:sourceRow.delivery_id,requestSha256:sha256(sourceRow.request_json)}],
+    [f.db,{...owner,epoch:owner.epoch+1},revision,proof],
+    [f.db,owner,{...revision,sourceDigest:'0'.repeat(64)},proof]]){
+    await assert.rejects(settleCapturedRevision(db,current,value,async()=>{invoked++;throw new Error('unexpected');},ref),/prune_owned_observation_invalid/);
+  }
+  assert.equal(invoked,0);assert.deepEqual(windows,[]);
+  // Timers are scaled only in this test:30ms native latency outlives the generic
+  // 5ms deadline, but fits the authenticated120ms deadline. Production is3s/30s.
+  const adapters={...f.adapters,async readback(id,signal){await new Promise(resolve=>realTimer(resolve,30));signal.throwIfAborted();return f.adapters.readback(id,signal);}};
+  const queued=await settleOwnedApprovedCohortVectorProof({db:f.db,owner,revision,adapters});
+  assert.equal(queued.state,'build_queued');assert.equal(windows.filter(ms=>ms===30000).length,2);assert.equal(windows.includes(3000),false);
+  assert.equal(f.calls(),sent);assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,1);
+});
+test('full-plan30s timeout drains same-ledger native accounting exactly once before return and preserves exact retry',async t=>{
+  const f=await setup(t);for(const n of [1,2])await f.upsert(product(n,{sourceFacts:{fixture:n,fresh:true}}));await f.drain();
+  const rest=await boundedRest(t,f),claim=await f.freeze([uuid(1),uuid(2)]);
+  const prepared=await prepareOwnedApprovedCohortPlan({db:f.db,...claim,adapters:f.adapters}),sent=f.calls();
+  const realTimer=globalThis.setTimeout,windows=[];let reads=0,reserved=0,settled=0,cleanupTimers=0;const statuses=[];
+  t.mock.method(globalThis,'setTimeout',(callback,ms,...args)=>{
+    if(ms===30000)windows.push(()=>callback(...args));
+    // Once both native requests exist, scale cleanup10s to5ms. Durable25ms
+    // settlement must still finish BEFORE return, not leak past this horizon.
+    if(ms===10000&&reads===2){cleanupTimers++;return realTimer(callback,5,...args);}return realTimer(callback,ms,...args);});
+  const send=accountedPublicationReadFetch({async reserveBudget(value){reserved++;await rest.workspace().reserveBudget(value);},
+    async settleBudget(id,value){await new Promise(resolve=>realTimer(resolve,25));await rest.workspace().settleBudget(id,value);settled++;statuses.push(value.status);}},async(_url,init)=>{
+    reads++;if(reads===2)realTimer(()=>windows[0](),5);
+    return new Promise((_,reject)=>init.signal.addEventListener('abort',()=>reject(new Error('raw abort')),{once:true}));
+  },{accountId:rest.options.scope.accountId,workerName:rest.options.scope.workerName,databaseId:rest.options.scope.databaseId,
+    indexName:scope.indexName,identityOrigin:'https://fixture.example.invalid'});
+  const native=createVectorizeRestAdapters({...scope,accountId:rest.options.scope.accountId,token:'TEST_ONLY',fetch:send});
+  await assert.rejects(settleOwnedApprovedCohortVectorProof({db:f.db,...prepared,adapters:{...f.adapters,readback:native.readback}}));
+  t.mock.restoreAll();assert.equal(windows.length,2);assert.ok(cleanupTimers>0);assert.equal(reads,2);assert.equal(reserved,2);assert.equal(settled,2);
+  assert.deepEqual(statuses,['unknown','unknown']);assert.equal((await rest.workspace().budget()).unconfirmedRequests,2);
+  const usage=await rest.workspace().budget();await new Promise(resolve=>realTimer(resolve,40));assert.deepEqual(await rest.workspace().budget(),usage);
+  assert.equal(reads,2);assert.equal(settled,2);assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,0);
+  assert.deepEqual(await readMutationOwner(f.db,scope),prepared.owner);await rest.reopen();
+  const queued=await settleOwnedApprovedCohortVectorProof({db:f.db,...prepared,adapters:f.adapters});assert.equal(queued.state,'build_queued');
+  const replay=await settleOwnedApprovedCohortVectorProof({db:f.db,...prepared,owner:queued.owner,adapters:f.adapters});
+  assert.equal(replay.state,'existing');assert.equal(f.calls(),sent);assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,1);
+});
+test('full-plan30s timeout joins cancelled source-read accounting before return with no late native reads',async t=>{
+  const f=await setup(t);await f.upsert(product(1,{sourceFacts:{fixture:1,fresh:true}}));await f.drain();
+  const rest=await boundedRest(t,f),claim=await f.freeze([uuid(1)]),prepared=await prepareOwnedApprovedCohortPlan({db:f.db,...claim,adapters:f.adapters});
+  const owner=await deliverRemaining(f,prepared),realTimer=globalThis.setTimeout,windows=[];let interrupted=false,reads=0;
+  t.mock.method(globalThis,'setTimeout',(callback,ms,...args)=>{if(ms===30000)windows.push(()=>callback(...args));return realTimer(callback,ms,...args);});
+  rest.before(async batch=>{if(!interrupted&&batch.some(q=>q.sql.includes('d.completed_at delivery_completed_at'))){
+    interrupted=true;windows[0]();await new Promise(resolve=>realTimer(resolve,25));}});
+  await assert.rejects(settleOwnedApprovedCohortVectorProof({db:f.db,owner,revision:prepared.revision,
+    adapters:{...f.adapters,async readback(...args){reads++;return f.adapters.readback(...args);}}}));
+  t.mock.restoreAll();assert.equal(interrupted,true);assert.equal(reads,0);assert.equal((await rest.workspace().budget()).unconfirmedRequests,1);
+  const usage=await rest.workspace().budget(),requests=rest.wire.requests;await new Promise(resolve=>realTimer(resolve,40));
+  assert.deepEqual(await rest.workspace().budget(),usage);assert.equal(rest.wire.requests,requests);assert.equal(reads,0);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,0);assert.deepEqual(await readMutationOwner(f.db,scope),owner);
+});
+test('authenticated30s observation still refuses late full-source/projection/prior/watermark/ABA/cutoff/rights drift',async t=>{
+  for(const fault of ['held-source','projection','prior','watermark','aba','cutoff','rights']){
+    const f=await setup(t);f.context.cutoff=at(25*3600000);
+    await f.upsert(product(1,{sourceFacts:{fixture:1,fresh:true}}));await f.drain();const claim=await f.freeze([uuid(1)]);
+    const prepared=await prepareOwnedApprovedCohortPlan({db:f.db,...claim,adapters:f.adapters}),owner=await deliverRemaining(f,prepared),sent=f.calls();let once=false;
+    const adapters={...f.adapters,async readback(...args){const result=await f.adapters.readback(...args);if(!once){once=true;
+      if(fault==='held-source')f.sql.prepare("UPDATE products SET source_record_json='{}' WHERE public_id=?").run(uuid(3));
+      if(fault==='projection')f.sql.prepare("UPDATE catalog_public_products SET title='wrong' WHERE catalog_revision='approved-revision'").run();
+      if(fault==='prior')f.sql.prepare("UPDATE publication_receipts SET completed_at=? WHERE release_id='prior-release'").run(at(10));
+      if(fault==='watermark')f.sql.prepare(`INSERT INTO vector_sync_outbox(public_id,source_revision,embedding_text_hash,operation,status,created_at,completed_at)
+        VALUES(?,'foreign-revision',?,'upsert','complete',?,?)`).run(uuid(99),'a'.repeat(64),at(10),at(10));
+      if(fault==='aba')f.sql.prepare('UPDATE catalog_mutation_scopes SET generation=generation+1').run();
+      if(fault==='cutoff')f.advance(26*3600000);
+      if(fault==='rights')f.advance(Date.parse(prepared.revision.snapshot.products[0].eligibleUntil)-f.now().getTime());
+    }return result;}};
+    await assert.rejects(settleOwnedApprovedCohortVectorProof({db:f.db,owner,revision:prepared.revision,adapters}),undefined,fault);
+    assert.equal(f.calls(),sent);assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests').get().n,0);
+  }
+});
+test('full-plan accepted DELETE above legacy20 resumes after expiry with exact control and no redispatch',async t=>{
+  const f=await setup(t,{initial:21}),claim=await f.freeze();
+  const prepared=await prepareOwnedApprovedCohortPlan({db:f.db,owner:claim.owner,request:claim.request,adapters:f.adapters});
+  const plan=approvedCohortVectorPlan(prepared.revision);assert.equal(plan.products.length+plan.absentIds.length,21);
+  const publicId=plan.absentIds[0];assert.ok(publicId);
+  const first=await deliverOwnedApprovedCohortVector({db:f.db,owner:prepared.owner,revision:prepared.revision,publicId,adapters:f.adapters});
+  assert.equal(first.state,'pending');const sent=f.calls();f.advance(40*86400000);
+  const result=await resumeOwnedPrunedDelete({db:f.db,owner:first.owner,deliveryId:first.deliveryId,plan,adapters:f.adapters});
+  assert.equal(result.state,'complete');assert.equal(f.calls(),sent);assert.equal(f.index.has(publicId),false);
+  await assert.rejects(resumeOwnedPrunedDelete({db:f.db,owner:result.owner,deliveryId:first.deliveryId,plan:{...plan,absentIds:plan.absentIds.slice(1)},adapters:f.adapters}));
 });
 async function reusable(t,{removed=false,initial=2}={}){
   const f=await setup(t,{initial});

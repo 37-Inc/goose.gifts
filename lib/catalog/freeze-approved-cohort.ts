@@ -6,7 +6,7 @@ import { mutationAssertion } from './mutation-fence.ts';
 import { createProjectionPacket } from './d1.ts';
 import { canonicalTime, validateCatalogSnapshot, validatePublicCatalogProduct } from './snapshot.ts';
 import { areNearDuplicateTitles, suppressNearDuplicateProducts } from '../db/product-scoring.ts';
-import { checkCurrent, readApprovedCurrentRows, readPruningSource } from '../../scripts/catalog/export-d1-snapshot.ts';
+import { checkCurrent, readApprovedCurrentRows, readPruningSource, SNAPSHOT_READ_LIMITS } from '../../scripts/catalog/export-d1-snapshot.ts';
 import { canonicalJson, sha256 } from '../../scripts/catalog/migration.ts';
 import { pruneOperationKey, prunedVectorPlan, sealCapturedRevision, settleCapturedRevision } from './prune-existing-revision.ts';
 import type { PruneRequest, PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from './prune-existing-revision.ts';
@@ -36,7 +36,7 @@ export function approvedCohortOperationKey(request: ApprovedCohortRequest): stri
   if (!envelope || Object.keys(envelope).sort().join(',') !== 'catalogRevision,changes,runId,schemaVersion'
     || envelope.schemaVersion !== 1 || !/^[a-zA-Z0-9._-]{1,200}$/.test(envelope.runId)
     || !/^[a-zA-Z0-9._-]{1,64}$/.test(envelope.catalogRevision) || envelope.catalogRevision === request.previous.catalogRevision
-    || !Array.isArray(envelope.changes) || envelope.changes.length > 20
+    || !Array.isArray(envelope.changes) || envelope.changes.length > 30
     || new Set(envelope.changes.map(value => value.publicId)).size !== envelope.changes.length
     || envelope.changes.some(value => Object.keys(value).sort().join(',') !== 'displaySha256,inputSha256,operationId,productSha256,publicId'
       || !UUID.test(value.publicId) || ![value.operationId,value.inputSha256,value.productSha256,value.displaySha256].every(hash => HASH.test(hash)))
@@ -65,7 +65,7 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   const approved = new Map<string,PublicCatalogProduct>();
   const changed = new Map(request.approval.changes.map(value => [value.publicId,value]));
   const priorBases=new Set(source.snapshot.products.filter(persistentPublicProduct).map(p=>p.publicId));
-  // At most20 independently pinned operation IDs. Vector proof rebuilds this
+  // Daily10 plus Monday20 independently pinned operation IDs. Vector proof rebuilds this
   // seal repeatedly; one bounded read avoids an N+1 provider request per change.
   const operationIds = [...new Set(request.approval.changes.map(value => value.operationId))];
   const receipts = new Map((operationIds.length ? (await db.prepare(`SELECT * FROM catalog_maintenance_operations
@@ -132,7 +132,7 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   const removed = source.snapshot.products.filter(value => !readyIds.has(value.publicId));
   const additionalAbsentIds = request.approval.changes.filter(value => !readyIds.has(value.publicId)).map(value => value.publicId);
   const semantic = ready.filter(value => value.eligibleUntil !== null && Date.parse(value.eligibleUntil) > cutoff);
-  if (semantic.length + new Set([...removed.map(value=>value.publicId),...additionalAbsentIds]).size > 20) throw new Error('cohort_vector_proof_bound');
+  if (semantic.length + new Set([...removed.map(value=>value.publicId),...additionalAbsentIds]).size > SNAPSHOT_READ_LIMITS.identities) throw new Error('cohort_vector_proof_bound');
   const revision = request.approval.catalogRevision;
   const existing = (await db.prepare('SELECT created_at FROM catalog_revisions WHERE revision=?').bind(revision).all()).results[0];
   const generatedAt = existing ? canonicalTime(existing.created_at) : owner.capturedAt;

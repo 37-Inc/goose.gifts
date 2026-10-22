@@ -111,10 +111,10 @@ async function ownedHeader(db: CatalogD1, owner: MutationOwner, revision: string
  * Partial target imports are allowed only for the immutable staging check; they
  * are never made visible by this reader or by an incomplete receipt.
  */
-export async function readOwnedProjection(db: CatalogD1, owner: MutationOwner, revision: string, ids: string[],options:{phase?:'writing'}={}) {
+export async function readOwnedProjection(db: CatalogD1, owner: MutationOwner, revision: string, ids: string[],options:{phase?:'writing'|'activating';approvedRecovery?:boolean}={}) {
   owner = structuredClone(owner); ids = [...ids];
   const phase=options.phase??'freezing';if(owner.phase!==phase)throw new Error('mutation_phase_mismatch');
-  const gate = mutationFenceQuery(owner, [phase]);
+  const gate = options.approvedRecovery?approvedRevisionReadFence(owner):mutationFenceQuery(owner, [phase]);
   const rows = await ownedPages(db, owner, ids, `SELECT ids.ordinal,ids.value identity,
     ${jsonColumns('p', PROJECTION)} data FROM requested ids LEFT JOIN catalog_public_products p
     ON p.public_id=ids.value AND p.catalog_revision=?`, [revision],gate);
@@ -248,22 +248,47 @@ export async function readJournaledPruneDeleteSource(db:CatalogD1,owner:Mutation
  * approval source. Complete row bytes bind the maintenance operation receipt;
  * the narrow captured fields reuse the final pruning CAS and archived aliases.
  */
-export async function readApprovedCurrentRows(db: CatalogD1, ids: string[], owner: MutationOwner) {
+export async function readApprovedCurrentRows(db: CatalogD1, ids: string[], owner: MutationOwner,approvedRecovery=false) {
   owner = structuredClone(owner); ids = [...ids];
-  if (ids.length > 20 || new Set(ids).size !== ids.length || ids.some(id => !UUID.test(id))) throw new Error('read_bounds');
-  const gate = mutationFenceQuery(owner, ['freezing']);
+  if (ids.length > 30 || new Set(ids).size !== ids.length || ids.some(id => !UUID.test(id))) throw new Error('read_bounds');
+  const gate = approvedRecovery?approvedRevisionReadFence(owner):mutationFenceQuery(owner, ['freezing']);
   const columns = (await db.prepare(`SELECT name FROM pragma_table_info('products') WHERE ${gate.sql}`).bind(...gate.params).all<{name:string}>()).results.map(row=>row.name);
   if (!columns.length || columns.length > 65 || columns.some(key=>!/^[a-z_]+$/.test(key))) throw new Error('read_bounds');
   const rows = await ownedPages(db, owner, [...ids].sort(), `SELECT ids.ordinal,ids.value identity,${jsonColumns('p', columns)} data
-    FROM requested ids CROSS JOIN products p ON p.public_id=ids.value`);
+    FROM requested ids CROSS JOIN products p ON p.public_id=ids.value`,[],gate);
   if (rows.length !== ids.length || rows.some(row => Buffer.byteLength(canonicalJson(row)) > SNAPSHOT_READ_LIMITS.rowBytes)) throw new Error('approved_identity_missing');
   const current:Row[] = rows.map(row => {
     const archive = JSON.parse(String(row.source_record_json));
     return { ...Object.fromEntries(CURRENT.map(key => [key, row[key]])), approved_product_json:canonicalJson(row),
       ...Object.fromEntries(['id','public_id','source','availability_checked_at','last_verified_at'].map(key => [`archived_${key}`, archive[key] ?? null])) };
   });
-  await bindMaintenanceObservations(db, current, owner);
+  await bindMaintenanceObservations(db, current, owner,gate);
   return { rows, current };
+}
+/** Read-only hydration of an EXISTING seal, including a genuinely journaled
+ * pending vector intent. This grants no claim, re-seal, mutation or replay. */
+function approvedRevisionReadFence(owner:MutationOwner):MutationQuery{
+  const base=mutationFenceQuery(owner,[owner.phase]);
+  const pending={...base,params:[...base.params.slice(0,-1),1]};
+  return{sql:`(${base.sql} OR (${pending.sql} AND (SELECT count(*) FROM catalog_vector_deliveries
+    WHERE environment=? AND index_name=? AND generation=? AND prior_epoch=? AND owner_json=?
+      AND status='pending' AND dispatch_token IS NOT NULL AND json_extract(request_json,'$.kind') IN('prune','outbox'))=1))`,
+    params:[...base.params,...pending.params,owner.environment,owner.indexName,owner.generation,owner.epoch-1,
+      canonicalJson({...owner,epoch:owner.epoch-1})]};
+}
+export async function readApprovedRevisionSource(db:CatalogD1,owner:MutationOwner,ids:string[],
+  changes:Array<{publicId:string;operationId:string}>){
+  const fence=approvedRevisionReadFence(owner),current=await captureCurrentRows(db,owner,[...ids].sort(),fence);
+  const approved=await readApprovedCurrentRows(db,changes.map(c=>c.publicId),owner,true);
+  const operations=changes.length?(await db.prepare(`SELECT * FROM catalog_maintenance_operations
+    WHERE operation_id IN(SELECT value FROM json_each(?)) AND ${fence.sql}`)
+    .bind(JSON.stringify(changes.map(c=>c.operationId)),...fence.params).all<Row>()).results:[];
+  const byOp=new Map(operations.map(r=>[r.operation_id,r])),byId=new Map(current.map(r=>[String(r.public_id),r]));
+  for(const row of approved.current){const change=changes.find(c=>c.publicId===row.public_id)!,op=byOp.get(change.operationId);
+    if(!op)throw new Error('approved_identity_missing');row.approval_operation_json=canonicalJson(op);byId.set(String(row.public_id),row);}
+  const rows=[...byId.values()].sort((a,b)=>String(a.public_id).localeCompare(String(b.public_id)));
+  if(rows.length!==ids.length)throw new Error('approved_identity_missing');
+  return rows;
 }
 function verificationTime(current: Row, rights: ProductRights): number {
   const column = current.availability_checked_at !== null ? 'availability_checked_at' : 'last_verified_at';

@@ -58,6 +58,17 @@ export function createVectorizeRestAdapters(options: MutationScope & {
       throw new Error('vector_provider_invalid_vector');
     return v;
   }
+  async function readbacks(ids:string[],signal:AbortSignal) {
+    if(!ids.length||ids.length>2||new Set(ids).size!==ids.length)throw new Error('vector_provider_invalid_id');
+    ids.forEach(id);const result=await request('get_by_ids',signal,JSON.stringify({ids}));
+    if(!Array.isArray(result)||result.length>ids.length)throw new Error('vector_provider_failed');
+    const found=new Map<string,SyncVector>();
+    for(const raw of result){const v=vector(raw);
+      if(!ids.includes(v.id)||found.has(v.id))throw new Error('vector_provider_failed');
+      found.set(v.id,{...structuredClone(v),values:v.values.map(Math.fround)});
+    }
+    return ids.map(id=>found.get(id)??null);
+  }
   const adapters:OwnedVectorAdapters={environment,indexName,providerIdentity:`cloudflare:${accountId}:${indexName}`,
     async dispatch(input,signal){
       id(input.publicId);let body:string;
@@ -79,16 +90,8 @@ export function createVectorizeRestAdapters(options: MutationScope & {
       if(!info||info.dimensions!==1536)throw new Error('vector_provider_failed');
       return info.processedUpToMutation===input.reference?{state:'settled',reference:input.reference}:{state:'pending'};
     },
-    async readback(publicId,signal){
-      id(publicId);const result=await request('get_by_ids',signal,JSON.stringify({ids:[publicId]}));
-      if(!Array.isArray(result)||result.length>1)throw new Error('vector_provider_failed');
-      if(!result.length)return null;
-      const found=vector(result[0]);if(found.id!==publicId)throw new Error('vector_provider_failed');
-      // REST may encode float32s using short decimal strings (e.g.0.1). Decode
-      // those validated finite/range-bounded numbers back to their native float32
-      // representation; Math.fround preserves -0. Dispatch bytes stay untouched.
-      return {...structuredClone(found),values:found.values.map(Math.fround)};
-    },
+    readbacks,
+    async readback(publicId,signal){return(await readbacks([publicId],signal))[0];},
   };
   if(isAccountedPublicationFetch(send))ownedReadbacks.add(adapters.readback);
   return Object.freeze(adapters);

@@ -163,7 +163,7 @@ function retainedBase(previous: { row: Row; product: SemanticProduct } | undefin
   } catch { return null; } // Unknown/corrupt clearance never becomes a public grant.
 }
 export function maintenanceProjection(p: SemanticProduct, rights: ProductRights, revision: string, now: string,
-  provenInput: boolean, observedVerification: string | null, previous?: { row: Row; product: SemanticProduct }) {
+  provenInput: boolean, observedVerification: string | null, previous?: { row: Row; product: SemanticProduct }, allowApprovedBase=false) {
   const input = { ...p, price: Number(p.price), qualityScore: p.qualityScore === null ? undefined : Number(p.qualityScore),
     editorialQualityScore: p.editorialQualityScore === null ? undefined : Number(p.editorialQualityScore),
     // PG's mutation NOW is retained in the private/typed row, but publishing
@@ -176,7 +176,19 @@ export function maintenanceProjection(p: SemanticProduct, rights: ProductRights,
     try { supplier=createCatalogSnapshot([input], { [p.id]: rights }, { catalogRevision: revision, now: new Date(now) }).products[0]; }
     catch { /* Invalid display data stays private/held; never rewrite the SQL semantic payload. */ }
   }
-  const base=retainedBase(previous,p,rights,new Date(now));
+  let base=retainedBase(previous,p,rights,new Date(now));
+  // D1-only positive approval. Root merchant grants/title are NEVER a fallback
+  // authority. Every presented value is independently checked by the canonical
+  // persistent constructor; the only image allowed here is our existing SVG.
+  if(!base&&allowApprovedBase&&rights.persistent){
+    const permission=rights.persistent;
+    try{
+      const product={...input,title:permission.title?.value,description:permission.description?.value,
+        imageUrl:'/images/gift-placeholder.svg',affiliateUrl:permission.affiliateUrl?.value} as SnapshotProductInput;
+      const display=createPersistentCatalogProduct({product,rights:permission},new Date(now));
+      if(display)base={saved:display,display,rights:permission};
+    }catch{ /* Supplied but invalid clearance remains held, never synthesized. */ }
+  }
   const display=supplier ? {...supplier,...(base?.display ? {persistent:base.display} : {})} : base?.display;
   // Preserve supplier evidence/deadlines even when only the permanent view is
   // displayable. Its independent exact grants remain in their existing lane.

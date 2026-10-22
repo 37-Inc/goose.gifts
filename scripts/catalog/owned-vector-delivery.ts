@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import {isCatalogD1Rest} from './d1-write-rest.ts';
 import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import { getProductsByPublicIds } from '../../lib/catalog/storage/d1.ts';
 import { mutationAdvance, mutationAssertion, mutationFenceQuery, readMutationOwner } from '../../lib/catalog/mutation-fence.ts';
@@ -13,11 +14,11 @@ import { pruneExistingRevision, prunedVectorIds, prunedVectorPlan, settleCapture
 import type { HistoricalNativeBinding, PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PermanentCatalogRevision } from '../../lib/catalog/freeze-permanent-catalog.ts';
 import { prepareApprovedCohort } from '../../lib/catalog/freeze-approved-cohort.ts';
-import type { ApprovedCohortEnvelope, ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
+import type { ApprovedCohortEnvelope, ApprovedCohortRequest, ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
 import { loadMaintenanceVectorPayload } from './maintenance-d1.ts';
 import { canonicalJson, sha256 } from './migration.ts';
 import { decodePgvectorSendBase64, encodePgvectorSendBase64 } from './pgvector-binary.ts';
-import { checkCurrent, pruningCurrentQueries, readJournaledPruneDeleteSource } from './export-d1-snapshot.ts';
+import { assertPruningCurrent, readOwnedProjection, SNAPSHOT_READ_LIMITS, checkCurrent, pruningCurrentQueries, readJournaledPruneDeleteSource } from './export-d1-snapshot.ts';
 import { nativeHash, payloadVector, visible } from './vector-outbox.ts';
 import type { ImmutableVectorPayload, SyncVector, VectorEvent } from './vector-outbox.ts';
 
@@ -48,6 +49,8 @@ export interface OwnedVectorAdapters extends MutationScope {
   resolve(input: Readonly<{ deliveryId: string; attempt: number; reference: string | null }>, signal: AbortSignal): Promise<
     { state: 'pending' } | { state: 'settled' | 'not_submitted'; reference: string }>;
   readback(publicId: string, signal: AbortSignal): Promise<SyncVector | null>;
+  /** Bounded exact-ID native read; order and NULL absence must match the request. */
+  readbacks?(ids:string[], signal:AbortSignal):Promise<Array<SyncVector|null>>;
 }
 /** The hash is independently reviewed immutable input, not a checksum invented
  * from a provider read. Legacy migration payloads keep their input hash NULL.
@@ -376,20 +379,21 @@ async function outboxDelivery(options: { db: CatalogD1; owner: MutationOwner; se
  * Upserts replace ONLY metadata while preserving reviewed original float32s.
  */
 async function pruneDelivery(options: { db: CatalogD1; owner: MutationOwner; revision: PrunedRevision;
-  publicId: string; original?: OriginalVectorSource; adapters: OwnedVectorAdapters; timeoutMs?: number }, approved = false): Promise<DeliveryResult> {
+  publicId: string; original?: OriginalVectorSource; adapters: OwnedVectorAdapters; timeoutMs?: number }, approved = false,policy?:CohortPlanRequest): Promise<DeliveryResult> {
   const { db,owner,revision,publicId } = options; const timeout = timeoutOf(options.timeoutMs);
   const plan = prunedVectorPlan(revision); const planHash = sha256(canonicalJson(plan));
   const member = plan.products.find(product => product.publicId === publicId); const absent = plan.absentIds.includes(publicId);
-  if (plan.products.length + plan.absentIds.length > OWNED_VECTOR_PROOF_LIMIT) throw new Error('vector_plan_invalid');
+  if (plan.products.length + plan.absentIds.length > (policy?SNAPSHOT_READ_LIMITS.identities:OWNED_VECTOR_PROOF_LIMIT)) throw new Error('vector_plan_invalid');
   if (owner.phase !== 'freezing' || !UUID.test(publicId) || (!member && !absent) || (member && !HASH.test(options.original?.sha256 ?? ''))
     || (absent && options.original)) throw new Error('invalid_owned_prune_vector');
   const id = idFor(owner,{ kind:'prune',planHash,publicId });
   const captured=revision.sourceRows.find(row=>row.public_id===publicId);
   return execute({ ...options,id,timeout,expectedPayloadSha256:options.original?.sha256 ?? null,
     ...(absent&&captured?{pruneDeleteSource:{planSha256:planHash,current:structuredClone(captured),projectionReceipt:revision.packet.receipt}}:{}),async prepare() {
-    const rebuilt = approved ? await prepareApprovedCohort(db,owner,(revision as ApprovedCohortRevision).request)
+    if(policy)await db.batch(planChecks(db,owner,revision as ApprovedCohortRevision));
+    else {const rebuilt = approved ? await prepareApprovedCohort(db,owner,(revision as ApprovedCohortRevision).request)
       : await pruneExistingRevision(db,owner,revision.request);
-    if (rebuilt.state === 'unchanged' || canonicalJson(rebuilt.revision) !== canonicalJson(revision)) throw new Error('vector_prune_changed');
+      if (rebuilt.state === 'unchanged' || canonicalJson(rebuilt.revision) !== canonicalJson(revision)) throw new Error('vector_prune_changed');}
     // Captured rows also have archived_* JSON aliases, not physical columns.
     // Bind those through the canonical pruning predicate and separately capture
     // the complete operational row for the delivery's final exact-row CAS.
@@ -468,10 +472,12 @@ export function resumeOwnedPrunedDelete(options:{db:CatalogD1;owner:MutationOwne
   return safe(async()=>{
     const {db,adapters,deliveryId}=options,owner=structuredClone(options.owner),plan=structuredClone(options.plan);
     adapterScope(owner,adapters);const timeout=timeoutOf(options.timeoutMs);
+    const policy=owner.phase==='freezing'?await journal(db,idFor(owner,{kind:PLAN_KIND})):undefined;
+    if(policy)validatePlan(policy,owner,plan,adapters.providerIdentity);
     if(owner.phase!=='freezing'||!HASH.test(deliveryId)||plan.environment!==owner.environment||plan.indexName!==owner.indexName
       ||!Array.isArray(plan.products)||!Array.isArray(plan.absentIds)||!HASH.test(plan.snapshotSha256)
       ||!Number.isSafeInteger(plan.globalWatermark)||plan.globalWatermark<0
-      ||plan.products.length+plan.absentIds.length>OWNED_VECTOR_PROOF_LIMIT)throw new Error('vector_resume_invalid');
+      ||plan.products.length+plan.absentIds.length>(policy?SNAPSHOT_READ_LIMITS.identities:OWNED_VECTOR_PROOF_LIMIT))throw new Error('vector_resume_invalid');
     const ids=[...plan.products.map(p=>p.publicId),...plan.absentIds];
     if(ids.some(id=>!UUID.test(id))||new Set(ids).size!==ids.length)throw new Error('vector_resume_invalid');
     const row=await journal(db,deliveryId);if(!row)throw new Error('vector_resume_invalid');
@@ -511,8 +517,10 @@ export function deliverOwnedApprovedCohortVector(options: Omit<Parameters<typeof
   return safe(async()=>{
     const change=options.revision.request.approval.changes.find(value=>value.publicId===options.publicId);
     const plan=prunedVectorPlan(options.revision);
-    if(plan.products.length+plan.absentIds.length>OWNED_VECTOR_PROOF_LIMIT)throw new Error('vector_plan_invalid');
-    if(!change || !plan.products.some(value=>value.publicId===options.publicId)) return pruneDelivery(options,true);
+    const policy=await policyReceipt(options.db,options.owner,options.revision,options.adapters.providerIdentity);
+    if(policy?.sources.some(s=>s.publicId===options.publicId))throw new Error('vector_plan_already_reused');
+    if(plan.products.length+plan.absentIds.length>(policy?SNAPSHOT_READ_LIMITS.identities:OWNED_VECTOR_PROOF_LIMIT))throw new Error('vector_plan_invalid');
+    if(!change || !plan.products.some(value=>value.publicId===options.publicId)) return pruneDelivery(options,true,policy??undefined);
     if(options.original)throw new Error('vector_original_unproven');
     const rows=(await options.db.prepare(`SELECT o.* FROM catalog_maintenance_vector_payloads p CROSS JOIN vector_sync_outbox o
       ON o.sequence=p.sequence WHERE p.operation_id=? AND o.public_id=? AND o.source_revision=? AND o.status='complete' AND o.operation='upsert' LIMIT 2`)
@@ -529,7 +537,7 @@ export function deliverOwnedApprovedCohortVector(options: Omit<Parameters<typeof
     const original:OriginalVector={publicId:options.publicId,catalogRevision:event.catalogRevision,
       sourceFactsHash:String(product.source_facts_hash),embeddingTextHash:event.embeddingTextHash,values:vector.values,
       vectorBytesSha256:nativeHash(vector.values)};
-    return pruneDelivery({...options,original:{sha256:sha256(canonicalJson(original)),async load(){return original;}}},true);
+    return pruneDelivery({...options,original:{sha256:sha256(canonicalJson(original)),async load(){return original;}}},true,policy??undefined);
   });
 }
 
@@ -545,9 +553,9 @@ function reuseIds(plan:PrunedVectorPlan) { return [...plan.products.map(p=>p.pub
  * neither a present vector nor a caller-supplied mutation reference is settlement.
  * The maintenance run remains approval.runId, independently of the publisher run.
  */
-async function reuseSources(db:CatalogD1,approval:ApprovedCohortEnvelope,signal?:AbortSignal) {
+async function reuseSources(db:CatalogD1,approval:ApprovedCohortEnvelope,signal?:AbortSignal,paged=false) {
   signal?.throwIfAborted();
-  return (await db.prepare(`SELECT o.*,p.operation_id,p.payload_json,m.input_sha256,m.run_id,m.catalog_revision maintenance_revision,
+  const select=`SELECT o.*,p.operation_id,p.payload_json,m.input_sha256,m.run_id,m.catalog_revision maintenance_revision,
     m.environment maintenance_environment,m.index_name maintenance_index,m.changes_json,
     d.delivery_id,d.environment delivery_environment,d.index_name delivery_index,d.generation delivery_generation,d.prior_epoch,
     d.owner_json,d.request_json,d.product_json,d.status delivery_status,d.disposition,d.attempts delivery_attempts,
@@ -558,8 +566,29 @@ async function reuseSources(db:CatalogD1,approval:ApprovedCohortEnvelope,signal?
     JOIN catalog_maintenance_operations m ON m.operation_id=p.operation_id
     LEFT JOIN catalog_vector_deliveries d ON d.delivery_id=o.lease_token
     LEFT JOIN vector_delete_mutations v ON v.mutation_sha256=o.delete_mutation_sha256
-    AND v.public_id=o.public_id AND v.source_revision=o.source_revision LIMIT 21`)
-    .bind(JSON.stringify(approval.changes)).all<Row>({signal})).results;
+    AND v.public_id=o.public_id AND v.source_revision=o.source_revision`;
+  if(!paged)return(await db.prepare(`${select} LIMIT 21`).bind(JSON.stringify(approval.changes)).all<Row>({signal})).results;
+  const columns=['sequence','public_id','source_revision','embedding_text_hash','operation','status','attempts','created_at','completed_at',
+    'lease_token','lease_until','mutation_reference','error_code','delete_mutation_sha256','operation_id','payload_json','input_sha256','run_id',
+    'maintenance_revision','maintenance_environment','maintenance_index','changes_json','delivery_id','delivery_environment','delivery_index',
+    'delivery_generation','prior_epoch','owner_json','request_json','product_json','delivery_status','disposition','delivery_attempts',
+    'dispatch_token','delivery_reference','evidence_json','delivery_completed_at','review_json'];
+  const rows:Row[]=[];let after='';
+  for(let page=0;page<=30;page++){
+    signal?.throwIfAborted();
+    const found=(await db.prepare(`SELECT data FROM (WITH source AS (${select}), encoded AS(SELECT public_id,
+      json_object(${columns.map(k=>`'${k}',r.${k}`).join(',')}) data FROM source r WHERE public_id>?),
+      sized AS(SELECT *,row_number() OVER(ORDER BY public_id) ordinal,
+        sum(length(CAST(json_object('data',data||'') AS BLOB))) OVER(ORDER BY public_id) bytes FROM encoded)
+      SELECT public_id,CASE WHEN bytes>384*1024 THEN NULL ELSE data END data FROM sized WHERE bytes<=384*1024 OR ordinal=1) ORDER BY public_id`)
+      .bind(JSON.stringify(approval.changes),after).all<{data:string}>({signal})).results;
+    if(!found.length)return rows;
+    if(found.some(r=>typeof r.data!=='string')||Buffer.byteLength(JSON.stringify(found))>384*1024)throw new Error('vector_payload_bound');
+    const decoded=found.map(r=>JSON.parse(r.data) as Row);
+    if(decoded.some(r=>typeof r.public_id!=='string'||String(r.public_id)<=after)||rows.length+decoded.length>30)throw new Error('vector_reuse_source_changed');
+    rows.push(...decoded);after=String(rows.at(-1)!.public_id);
+  }
+  throw new Error('vector_payload_bound');
 }
 function reuseVectors(owner:MutationOwner,request:ReuseRequest,rows:Row[],allowUnsupported=false):Map<string,SyncVector|null> {
   const ids=reuseIds(request.plan),vectors=new Map<string,SyncVector|null>();
@@ -646,15 +675,131 @@ function reuseSourceAssertions(db:CatalogD1,rows:Row[]) {
     ON o.sequence=json_extract(e.value,'$.sequence') WHERE ${columns.map(k=>`o.${k} IS json_extract(e.value,'$.${k}')`).join(' AND ')})=?`,
   [JSON.stringify(rows.map(row=>Object.fromEntries(columns.map(k=>[k,row[k]])))),rows.length]);
 }
-async function reuseReadback(adapters:Pick<OwnedVectorAdapters,'readback'>,vectors:Map<string,SyncVector|null>,timeout=3000,signal?:AbortSignal){
+/** New opt-in full-plan receipt. Historical reuse/prune request bytes and IDs
+ * are unchanged. This attests policy + ONLY the listed genuine source proofs;
+ * it never pretends that remaining promotions/deletions were dispatched. */
+const PLAN_KIND='approved-cohort-plan';
+interface CohortPlanRequest extends Omit<ReuseRequest,'kind'> { kind:typeof PLAN_KIND }
+function planControl(request:CohortPlanRequest){return canonicalJson({schemaVersion:1,kind:PLAN_KIND,revisionSha256:request.revisionSha256});}
+function planEvidence(request:CohortPlanRequest){return canonicalJson([{state:'policy_and_source_verification',
+  sources:request.sources.map(s=>({deliveryId:s.deliveryId,reference:s.reference}))}]);}
+function sourceSubset(request:CohortPlanRequest):ReuseRequest {
+  const ids=new Set(request.sources.map(s=>s.publicId));
+  return {...request,kind:REUSE_KIND,plan:{...request.plan,products:request.plan.products.filter(p=>ids.has(p.publicId)),
+    absentIds:request.plan.absentIds.filter(id=>ids.has(id))}};
+}
+function validatePlan(row:Journal,owner:MutationOwner,plan:PrunedVectorPlan|ActivatedVectorPlan,providerIdentity:string,revision?:ApprovedCohortRevision){
+  const request=JSON.parse(row.request_json) as CohortPlanRequest,base=JSON.parse(row.owner_json) as MutationOwner;
+  const ids='ids' in plan?plan.ids:reuseIds(plan),hash='planSha256' in plan?plan.planSha256:sha256(canonicalJson(plan));
+  if(request.schemaVersion!==1||request.kind!==PLAN_KIND||request.catalogRevision!==plan.catalogRevision
+    ||request.planSha256!==hash||sha256(canonicalJson(request.plan))!==hash||request.providerIdentity!==providerIdentity
+    ||request.plan.environment!==owner.environment||request.plan.indexName!==owner.indexName
+    ||ids.length>SNAPSHOT_READ_LIMITS.identities||new Set(ids).size!==ids.length||ids.some(id=>!UUID.test(id))
+    ||canonicalJson([...ids].sort())!==canonicalJson(reuseIds(request.plan).sort())
+    ||request.approval.schemaVersion!==1||request.approval.catalogRevision!==plan.catalogRevision||request.approval.changes.length>30
+    ||sha256(canonicalJson(request.approval))!==request.approvalSha256||!HASH.test(request.revisionSha256)||!HASH.test(request.sourceRowsSha256)
+    ||request.sources.length>30||new Set(request.sources.map(s=>s.publicId)).size!==request.sources.length
+    ||request.sources.some(s=>!ids.includes(s.publicId)||!request.approval.changes.some(c=>c.publicId===s.publicId)
+      ||!HASH.test(s.sha256)||!HASH.test(s.deliveryId)||typeof s.reference!=='string'||!REF.test(s.reference))
+    ||base.phase!=='freezing'||canonicalJson({...owner,phase:'freezing',epoch:base.epoch})!==canonicalJson(base)
+    ||owner.epoch<base.epoch+1||row.generation!==base.generation||row.prior_epoch!==base.epoch
+    ||row.delivery_id!==idFor(base,{kind:PLAN_KIND})||row.status!=='complete'||row.disposition!=='verified'
+    ||row.attempts!==0||row.dispatch_token!==null||row.mutation_reference!==null
+    ||row.product_json!==planControl(request)||row.evidence_json!==planEvidence(request)
+    ||revision&&(request.revisionSha256!==sha256(canonicalJson(revision))||request.sourceRowsSha256!==sha256(canonicalJson(revision.sourceRows))))
+    throw new Error('vector_plan_receipt_invalid');
+  return request;
+}
+async function policyReceipt(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision,providerIdentity:string){
+  const row=await journal(db,idFor(owner,{kind:PLAN_KIND}));
+  if(!row)return null;
+  return validatePlan(row,owner,prunedVectorPlan(revision),providerIdentity,revision);
+}
+function planChecks(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision){
+  const receipt=revision.packet.receipt,prior=revision.priorRow;
+  const rc=['catalog_revision','snapshot_sha256','projection_sha256','source_export_sha256','product_count','created_at'];
+  const pc=['release_id','catalog_revision','code_sha','completed_at','manifest_json'];
+  return[mutationAssertion(db,owner,['freezing']),assertion(db,`EXISTS(SELECT 1 FROM catalog_projection_receipts WHERE ${rc.map(k=>`${k} IS ?`).join(' AND ')})
+    AND EXISTS(SELECT 1 FROM catalog_revisions WHERE revision=? AND source_export_sha256=? AND status IN('importing','reconciled') AND abandonment_delivery_id IS NULL)
+    AND (SELECT coalesce(max(rowid),0) FROM publication_receipts)=? AND (? IS NULL OR EXISTS(SELECT 1 FROM publication_receipts WHERE ${pc.map(k=>`${k} IS ?`).join(' AND ')}))
+    AND (SELECT coalesce(max(sequence),0) FROM vector_sync_outbox)=? AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE status!='complete') AND ?>${NOW}`,
+    [...rc.map(k=>receipt[k]),revision.snapshot.catalogRevision,revision.sourceDigest,revision.request.context.publicationReceiptWatermark,
+      revision.request.context.priorPublication?.releaseId??null,...pc.map(k=>prior[k]),revision.globalVectorWatermark,revision.request.context.cutoff])];
+}
+async function assertPlanSource(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision){
+  await assertPruningCurrent(db,owner,revision.sourceRows);
+  const rows=await readOwnedProjection(db,owner,revision.snapshot.catalogRevision,revision.packet.rows.map(r=>String(r.public_id)).sort());
+  if(canonicalJson(rows)!==canonicalJson(revision.packet.rows))throw new Error('vector_prune_changed');
+  await db.batch(planChecks(db,owner,revision));
+}
+/** The ONLY constructor of the new policy receipt independently executes the
+ * complete approved policy once. Full source/projection reads are streamed under
+ * the exclusive fence; the compact final transaction retains prior/cutoff/CAS.
+ * Return every remaining ID; callers must not silently skip ordinary work. */
+export function prepareOwnedApprovedCohortPlan(options:{db:CatalogD1;owner:MutationOwner;request:ApprovedCohortRequest;
+  adapters:Pick<OwnedVectorAdapters,'readback'|'readbacks'|'environment'|'indexName'|'providerIdentity'>;timeoutMs?:number}){
+  return safe(async()=>{
+    const {db,adapters}=options;let owner=structuredClone(options.owner);adapterScope(owner,adapters);
+    if(owner.phase!=='freezing')throw new Error('vector_plan_invalid');
+    const id=idFor(owner,{kind:PLAN_KIND}),saved=await journal(db,id);
+    if(saved){const base=JSON.parse(saved.owner_json) as MutationOwner,actual=await readMutationOwner(db,owner);
+      if(!actual||canonicalJson({...owner,epoch:base.epoch})!==canonicalJson(base)
+        ||owner.epoch!==actual.epoch&&!(actual.epoch===base.epoch+1&&[base.epoch-1,base.epoch].includes(owner.epoch)))throw new Error('vector_owner_changed');
+      owner=actual;}
+    const prepared=await prepareApprovedCohort(db,owner,options.request);owner=prepared.owner;
+    const revision=prepared.revision,plan=prunedVectorPlan(revision),ids=reuseIds(plan);
+    if(ids.length>SNAPSHOT_READ_LIMITS.identities)throw new Error('vector_plan_invalid');
+    let request:CohortPlanRequest;
+    if(saved)request=validatePlan(saved,owner,plan,adapters.providerIdentity,revision);
+    else{
+      const candidates=await reuseSources(db,revision.request.approval,undefined,true);
+      request={schemaVersion:1,kind:PLAN_KIND,catalogRevision:plan.catalogRevision,providerIdentity:adapters.providerIdentity,
+        plan,planSha256:sha256(canonicalJson(plan)),projectionReceipt:revision.packet.receipt,approval:revision.request.approval,
+        approvalSha256:revision.request.approvalSha256,revisionSha256:sha256(canonicalJson(revision)),sourceRowsSha256:sha256(canonicalJson(revision.sourceRows)),sources:[]};
+      const vectors=new Map<string,SyncVector|null>();
+      for(const change of request.approval.changes){
+        if(!ids.includes(change.publicId))continue; // A cleared listing is not a semantic/native member.
+        const rows=candidates.filter(r=>r.public_id===change.publicId);if(!rows.length)continue;
+        if(rows.length!==1)throw new Error('vector_reuse_source_changed');const row=rows[0];
+        const link:ReusedSource={publicId:change.publicId,operationId:change.operationId,sequence:Number(row.sequence),deliveryId:String(row.delivery_id),
+          reference:row.delivery_reference===null?null:String(row.delivery_reference),sha256:sha256(canonicalJson(row))};
+        try{const found=reuseVectors(owner,sourceSubset({...request,sources:[link]}),rows,true);
+          request.sources.push(link);for(const entry of found)vectors.set(...entry);}
+        catch(error){if(!(error instanceof Error)||error.message!=='vector_reuse_unsupported')throw error;}
+      }
+      const bytes=canonicalJson(request);if(Buffer.byteLength(bytes)>200000)throw new Error('vector_payload_bound');
+      const reusedRows=candidates.filter(r=>request.sources.some(s=>s.publicId===r.public_id));
+      await assertPlanSource(db,owner,revision);await reuseReadback(adapters,vectors,timeoutOf(options.timeoutMs));
+      await assertPlanSource(db,owner,revision);
+      const next={...owner,epoch:owner.epoch+1};
+      try{await db.batch([...planChecks(db,owner,revision),reuseSourceAssertions(db,reusedRows),
+        db.prepare(`INSERT INTO catalog_vector_deliveries(delivery_id,environment,index_name,generation,prior_epoch,owner_json,request_json,product_json,status,disposition,evidence_json,completed_at)
+          VALUES(?,?,?,?,?,?,?,?,'complete','verified',?,${NOW})`).bind(id,owner.environment,owner.indexName,owner.generation,owner.epoch,
+          canonicalJson(owner),bytes,planControl(request),planEvidence(request)),
+        mutationAdvance(db,owner,{sql:"SELECT 1 FROM catalog_vector_deliveries WHERE delivery_id=? AND request_json=? AND status='complete'",params:[id,bytes]}),
+        mutationAssertion(db,next,['freezing'])]);}catch{/* Only exact committed receipt/epoch recovers a lost acknowledgement. */}
+      const stored=await journal(db,id),actual=await readMutationOwner(db,owner);
+      if(!stored||stored.request_json!==bytes||!actual||canonicalJson(actual)!==canonicalJson(next))throw new Error('vector_plan_unconfirmed');
+      validatePlan(stored,actual,plan,adapters.providerIdentity,revision);owner=actual;
+    }
+    const reusedIds=request.sources.map(s=>s.publicId);
+    return{...prepared,owner,reusedIds,remainingIds:ids.filter(id=>!reusedIds.includes(id))};
+  });
+}
+async function reuseReadback(adapters:Pick<OwnedVectorAdapters,'readback'|'readbacks'>,vectors:Map<string,SyncVector|null>,timeout=3000,signal?:AbortSignal){
   signal?.throwIfAborted();const controller=new AbortController();let rejectAbort:(error:Error)=>void=()=>{};
   const aborted=new Promise<never>((_,reject)=>{rejectAbort=reject;});
   const abort=(error=new Error('vector_provider_timeout'))=>{controller.abort();rejectAbort(error);};
   const cancel=()=>abort();signal?.addEventListener('abort',cancel,{once:true});const timer=setTimeout(cancel,timeout);
   const pending=(async()=>{const entries=[...vectors];
     for(let offset=0;offset<entries.length;offset+=10){controller.signal.throwIfAborted();
-      const results=await Promise.allSettled(entries.slice(offset,offset+10).map(async([id,vector])=>{
-        try{controller.signal.throwIfAborted();if(!visible(vector,await adapters.readback(id,controller.signal)))throw new Error('vector_not_visible');}
+      const groups:Array<Array<[string,SyncVector|null]>>=[];
+      const window=entries.slice(offset,offset+10),size=adapters.readbacks?2:1;
+      for(let i=0;i<window.length;i+=size)groups.push(window.slice(i,i+size));
+      const results=await Promise.allSettled(groups.map(async group=>{
+        try{controller.signal.throwIfAborted();const actual=adapters.readbacks?await adapters.readbacks(group.map(([id])=>id),controller.signal)
+          :[await adapters.readback(group[0][0],controller.signal)];
+          if(actual.length!==group.length||group.some(([,vector],i)=>!visible(vector,actual[i])))throw new Error('vector_not_visible');}
         catch(error){abort(error instanceof Error?error:new Error('vector_not_visible'));throw error;}
       }));controller.signal.throwIfAborted();
       if(results.some(result=>result.status==='rejected'))throw new Error('vector_not_visible');
@@ -752,6 +897,68 @@ async function readReuseVectors(db:CatalogD1,owner:MutationOwner,row:Journal,pla
   return{environment:owner.environment,indexName:owner.indexName,settled:true as const,planSha256:request.planSha256,
     reference:`owned-vectors:${sha256(canonicalJson([row.delivery_id]))}`};
 }
+async function planJournals(db:CatalogD1,owner:MutationOwner,catalogRevision:string,signal?:AbortSignal){
+  const keys=['delivery_id','environment','index_name','generation','prior_epoch','owner_json','request_json','product_json','status',
+    'disposition','attempts','dispatch_token','mutation_reference','evidence_json','completed_at'];
+  const output:Journal[]=[];let after='';
+  for(let page=0;page<=SNAPSHOT_READ_LIMITS.identities;page++){
+    signal?.throwIfAborted();
+    const found=(await db.prepare(`SELECT data FROM (WITH encoded AS(SELECT delivery_id,json_object(${keys.map(k=>`'${k}',${k}`).join(',')}) data
+      FROM catalog_vector_deliveries WHERE environment=? AND index_name=? AND generation=? AND delivery_id>?
+      AND json_extract(request_json,'$.catalogRevision')=? AND json_extract(request_json,'$.kind') IN('prune','approved-cohort-reuse','approved-cohort-plan')),
+      sized AS(SELECT *,row_number() OVER(ORDER BY delivery_id) ordinal,
+        sum(length(CAST(json_object('data',data||'') AS BLOB))) OVER(ORDER BY delivery_id) bytes FROM encoded)
+      SELECT delivery_id,CASE WHEN bytes>384*1024 THEN NULL ELSE data END data FROM sized WHERE bytes<=384*1024 OR ordinal=1) ORDER BY delivery_id`)
+      .bind(owner.environment,owner.indexName,owner.generation,after,catalogRevision).all<{data:string}>({signal})).results;
+    if(!found.length)return output;
+    if(found.some(r=>typeof r.data!=='string')||Buffer.byteLength(JSON.stringify(found))>384*1024)throw new Error('vector_payload_bound');
+    const rows=found.map(r=>JSON.parse(r.data) as Journal);
+    if(rows.some(r=>r.delivery_id<=after)||output.length+rows.length>SNAPSHOT_READ_LIMITS.identities+1)throw new Error('vector_plan_incomplete');
+    output.push(...rows);after=rows.at(-1)!.delivery_id;
+  }
+  throw new Error('vector_payload_bound');
+}
+/** Independent exact coverage, never a subset hash supplied by a caller. All
+ * native values come from genuine source journals or actual ordinary journals;
+ * policy evidence alone does not settle a single remaining UUID. */
+async function readPlanVectors(db:CatalogD1,owner:MutationOwner,rows:Journal[],plan:PrunedVectorPlan|ActivatedVectorPlan,
+  adapters:Pick<OwnedVectorAdapters,'readback'|'readbacks'|'environment'|'indexName'|'providerIdentity'>,revision?:ApprovedCohortRevision,signal?:AbortSignal,timeout=3000){
+  const policies=rows.filter(r=>JSON.parse(r.request_json).kind===PLAN_KIND);
+  if(policies.length!==1)throw new Error('vector_plan_incomplete');
+  const request=validatePlan(policies[0],owner,plan,adapters.providerIdentity,revision),ids=reuseIds(request.plan);
+  const sources=await reuseSources(db,{...request.approval,changes:request.approval.changes.filter(c=>request.sources.some(s=>s.publicId===c.publicId))},signal,true);
+  const vectors=reuseVectors(owner,sourceSubset(request),sources);
+  const members=new Map(request.plan.products.map(p=>[p.publicId,p]));
+  for(const row of rows.filter(r=>r!==policies[0])){
+    const value=decodeRequest(row.request_json),base=JSON.parse(row.owner_json) as MutationOwner;
+    const evidence=JSON.parse(row.evidence_json),last=Array.isArray(evidence)&&evidence.at(-1),member=members.get(value.publicId);
+    if(value.kind!=='prune'||!ids.includes(value.publicId)||vectors.has(value.publicId)
+      ||value.catalogRevision!==request.catalogRevision||value.planSha256!==request.planSha256||value.providerIdentity!==adapters.providerIdentity
+      ||value.globalWatermark!==request.plan.globalWatermark||canonicalJson(value.projectionReceipt)!==canonicalJson(request.projectionReceipt)
+      ||row.status!=='complete'||row.disposition!=='verified'||base.phase!=='freezing'
+      ||canonicalJson({...owner,phase:'freezing',epoch:base.epoch})!==canonicalJson(base)||owner.epoch<base.epoch+2
+      ||row.generation!==base.generation||row.prior_epoch!==base.epoch
+      ||row.delivery_id!==idFor(base,{kind:'prune',planHash:request.planSha256,publicId:value.publicId})
+      ||!last||last.attempt!==row.attempts||last.reference!==row.mutation_reference
+      ||!(row.attempts===0&&row.dispatch_token===null&&row.mutation_reference===null&&last.state==='already_visible'
+        ||row.attempts>0&&row.dispatch_token!==null&&REF.test(row.mutation_reference??'')&&last.state==='settled_visible')
+      ||(member?!value.vector||value.vector.id!==value.publicId||value.vector.metadata.catalogRevision!==request.catalogRevision
+        ||value.vector.metadata.eligible!==true||value.vector.metadata.sourceFactsHash!==member.sourceFactsHash
+        ||(member.embeddingTextHash===null?value.vector.metadata.legacyInputProvenance!=='unverified'
+          :value.vector.metadata.embeddingTextHash!==member.embeddingTextHash||value.vector.metadata.embeddingModel!=='text-embedding-3-small')
+        ||nativeHash(value.vector.values)!==value.vector.metadata.vectorBytesSha256:value.vector!==null))throw new Error('vector_plan_incomplete');
+    vectors.set(value.publicId,value.vector);
+  }
+  if(vectors.size!==ids.length||ids.some(id=>!vectors.has(id)))throw new Error('vector_plan_incomplete');
+  const checks=()=>[mutationAssertion(db,owner,[owner.phase]),reuseSourceAssertions(db,sources)];
+  // The shared settleCapturedRevision performs the unchanged full current and
+  // projection CAS AFTER this cancellable proof. Do not start uncancellable
+  // streamed queries inside its observation timeout. Standalone readers below
+  // independently retain those same full-source checks outside this callback.
+  await db.batch(checks(),{signal});await reuseReadback(adapters,vectors,timeout,signal);await db.batch(checks(),{signal});
+  return{environment:owner.environment,indexName:owner.indexName,settled:true as const,planSha256:request.planSha256,
+    reference:`owned-vectors:${sha256(canonicalJson(rows.map(r=>r.delivery_id).sort()))}`};
+}
 /** Only the genuine immutable verification receipt attests the independently
  * rebuilt EXACT policy revision. This is not a caller boolean, alternate policy,
  * or generic settlement shortcut: independently reload all source proofs/native
@@ -763,6 +970,20 @@ export function settleOwnedApprovedCohortVectorProof(options:{db:CatalogD1;owner
   return safe(async()=>{
     const {db,adapters}=options,owner=structuredClone(options.owner),revision=structuredClone(options.revision);
     adapterScope(owner,adapters);await db.batch([mutationAssertion(db,owner,['freezing'])]);
+    const policy=await journal(db,idFor(owner,{kind:PLAN_KIND}));
+    if(policy){
+      const plan=prunedVectorPlan(revision);validatePlan(policy,owner,plan,adapters.providerIdentity,revision);
+      const rows=await planJournals(db,owner,revision.snapshot.catalogRevision);
+      let pending:Promise<PrunedVectorObservation>|undefined;
+      try{return await settleCapturedRevision(db,owner,revision,(_plan,signal)=>(pending=readPlanVectors(db,owner,rows,plan,adapters,revision,signal,30000)),
+        {deliveryId:policy.delivery_id,requestSha256:sha256(policy.request_json)});}
+      finally{if(pending){
+        // Network deadlines still abort at30s. Only our concrete adapters may
+        // join their own durable accounting beyond arbitrary-adapter cleanup.
+        if(isCatalogD1Rest(db)&&hasAccountedVectorReadback(adapters))await pending.catch(()=>{});
+        else await drainDeploymentObservation(pending);
+      }}
+    }
     const rows=(await db.prepare(`SELECT * FROM catalog_vector_deliveries WHERE environment=? AND index_name=? AND generation=?
       AND json_extract(request_json,'$.catalogRevision')=? AND json_extract(request_json,'$.kind') IN('prune','approved-cohort-reuse') LIMIT 21`)
       .bind(owner.environment,owner.indexName,owner.generation,revision.snapshot.catalogRevision).all<Journal>()).results;
@@ -777,6 +998,11 @@ export function readOwnedApprovedCohortVectors(db:CatalogD1,owner:MutationOwner,
   adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>):Promise<PrunedVectorObservation> {
   return safe(async()=>{
     adapterScope(owner,adapters);await db.batch([mutationAssertion(db,owner,['freezing'])]);
+    if(await journal(db,idFor(owner,{kind:PLAN_KIND}))){
+      await assertPlanSource(db,owner,revision);
+      const result=await readPlanVectors(db,owner,await planJournals(db,owner,revision.snapshot.catalogRevision),prunedVectorPlan(revision),adapters,revision,undefined,30000);
+      await assertPlanSource(db,owner,revision);return result;
+    }
     const rows=(await db.prepare(`SELECT * FROM catalog_vector_deliveries WHERE environment=? AND index_name=? AND generation=?
       AND json_extract(request_json,'$.catalogRevision')=? AND json_extract(request_json,'$.kind') IN('prune','approved-cohort-reuse') LIMIT 21`)
       .bind(owner.environment,owner.indexName,owner.generation,revision.snapshot.catalogRevision).all<Journal>()).results;
@@ -786,9 +1012,11 @@ export function readOwnedApprovedCohortVectors(db:CatalogD1,owner:MutationOwner,
     return readReuseVectors(db,owner,reused[0],prunedVectorPlan(revision),adapters,revision);
   });
 }
-/** Original captured revision and independently pinned, genuinely published
- * receipts. Never construct a new approval or relabel the source generation to
- * authorize a code-only build. The new normal build request is bound separately. */
+/** Control-only readback after activation. No delivery, expiry renewal, watermark
+ * or ownership write is permitted here. Fresh publication still requires the
+ * separate current-rights/lease predicates in completePublication. This small
+ * plan may survive content-artifact expiry for read-only reconciliation.
+ */
 export interface PublishedCatalogRead extends PublishedCatalogBinding {
   revision:ApprovedCohortRevision;
 }
@@ -1020,7 +1248,7 @@ export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit
     const {signal}=options;signal?.throwIfAborted();
     const owner=permit.mutationOwner;
     if(!owner||owner.phase!=='activating'||!HASH.test(plan.planSha256)||!plan.ids.every(id=>UUID.test(id))
-      ||plan.ids.length>OWNED_VECTOR_PROOF_LIMIT||new Set(plan.ids).size!==plan.ids.length)throw new Error('vector_plan_invalid');
+      ||plan.ids.length>SNAPSHOT_READ_LIMITS.identities||new Set(plan.ids).size!==plan.ids.length)throw new Error('vector_plan_invalid');
     if(options.published){const expected=prunedVectorPlan(options.published.revision);
       if(plan.catalogRevision!==expected.catalogRevision||plan.planSha256!==sha256(canonicalJson(expected))
         ||canonicalJson([...plan.ids].sort())!==canonicalJson(reuseIds(expected).sort()))throw new Error('vector_plan_invalid');
@@ -1040,6 +1268,30 @@ export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit
       AND json_extract(b.request_json,'$.sourceRevision')=?)`,[owner.environment,owner.indexName,
       permit.requestId,permit.token,permit.runReference,permit.releaseId,permit.versionReference,plan.catalogRevision])],{signal});signal?.throwIfAborted();};
     await check();
+    const policy=await journal(db,idFor({...owner,phase:'freezing'},{kind:PLAN_KIND}));
+    if(policy){
+      const request=validatePlan(policy,owner,plan,adapters.providerIdentity),projected:Row[]=[];
+      let after='';
+      for(let page=0;page<=2*SNAPSHOT_READ_LIMITS.identities;page+=256){
+        const chunk=(await db.prepare(`SELECT public_id,catalog_revision,source_facts_hash FROM catalog_public_products
+          WHERE eligible_until IS NOT NULL AND eligible_until>(SELECT json_extract(request_json,'$.cutoff') FROM catalog_build_requests WHERE request_id=?)
+          AND (catalog_revision=? OR catalog_revision=(SELECT p.catalog_revision FROM catalog_build_requests b JOIN publication_receipts p
+            ON p.release_id=json_extract(b.request_json,'$.priorReleaseId') WHERE b.request_id=?))
+          AND catalog_revision||':'||public_id>? ORDER BY catalog_revision||':'||public_id LIMIT 256`)
+          .bind(permit.requestId,plan.catalogRevision,permit.requestId,after).all<Row>({signal})).results;
+        projected.push(...chunk);if(!chunk.length)break;
+        after=`${chunk.at(-1)!.catalog_revision}:${chunk.at(-1)!.public_id}`;
+        if(projected.length>2*SNAPSHOT_READ_LIMITS.ready)throw new Error('vector_plan_incomplete');
+      }
+      const receipt=(await db.prepare('SELECT * FROM catalog_projection_receipts WHERE catalog_revision=?').bind(plan.catalogRevision).all<Row>({signal})).results;
+      const ready=projected.filter(r=>r.catalog_revision===plan.catalogRevision);
+      if(receipt.length!==1||canonicalJson(receipt[0])!==canonicalJson(request.projectionReceipt)||ready.length!==request.plan.products.length
+        ||projected.some(r=>!plan.ids.includes(String(r.public_id)))
+        ||request.plan.products.some(p=>!ready.some(r=>r.public_id===p.publicId&&r.source_facts_hash===p.sourceFactsHash)))throw new Error('vector_plan_incomplete');
+      const result=await readPlanVectors(db,owner,await planJournals(db,owner,plan.catalogRevision,signal),plan,adapters,undefined,signal,30000);
+      await check();return result;
+    }
+    if(plan.ids.length>OWNED_VECTOR_PROOF_LIMIT)throw new Error('vector_plan_invalid');
     // Do not filter on caller plan hash: doing so could hide a missing/subset
     // proof. Bind ALL of this generation's target-revision journals, and the
     // immutable target/prior projections, before accepting any provider read.

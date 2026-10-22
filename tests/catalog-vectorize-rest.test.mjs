@@ -11,6 +11,20 @@ const signal=()=>new AbortController().signal;
 const ok=result=>new Response(JSON.stringify({success:true,result}),{headers:{'Content-Type':'application/json'}});
 const config={environment:'staging',indexName:'test-index',accountId,token:'TEST_ONLY_NOT_A_CREDENTIAL'};
 const delivery={deliveryId:'b'.repeat(64),attempt:1,publicId,vector};
+test('two-ID native pages keep exact order/absence/signed zero and never accept extra or duplicate IDs',async()=>{
+  const second='00000000-0000-4000-8000-000000000002';
+  let calls=0;
+  const body=JSON.stringify({success:true,result:[vector]}).replace('"values":[0,','"values":[-0,');
+  const api=createVectorizeRestAdapters({...config,fetch:async(_url,init)=>{calls++;assert.deepEqual(JSON.parse(init.body),{ids:[second,publicId]});return new Response(body);}});
+  const found=await api.readbacks([second,publicId],signal());
+  assert.equal(found[0],null);assert.ok(Object.is(found[1].values[0],-0));assert.equal(calls,1);
+  for(const ids of [[],[publicId,publicId],[publicId,second,mutationId]])await assert.rejects(api.readbacks(ids,signal()),/invalid_id/);
+  assert.equal(calls,1);
+  for(const result of [[vector,vector],[{...vector,id:mutationId}]]){
+    const invalid=createVectorizeRestAdapters({...config,fetch:async()=>ok(result)});
+    await assert.rejects(invalid.readbacks([publicId,second],signal()),/provider_failed/);
+  }
+});
 test('explicit REST bridge binds account/index, preserves negative zero and native bytes, and uses exact-ID readback',async()=>{
   const calls=[];let stored;
   const api=createVectorizeRestAdapters({...config,fetch:async(url,init)=>{

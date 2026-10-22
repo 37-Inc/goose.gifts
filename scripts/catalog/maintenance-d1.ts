@@ -138,7 +138,7 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
   // Read-only purpose projections, not persistence inputs. Keep the existing
   // semantic/typed consistency checks, without shipping source facts, native
   // vectors, rights or complete archive/current JSON for every identity.
-  const catalogView = async (fields: string[]) => {
+  const catalogView = async (fields: string[],preferBase=false) => {
     const typed = ['id','public_id','slug','source','is_active','quality_score','source_facts_hash','editorial_source_hash',
       'availability_status','editorial_status','duplicate_of_product_id','availability_checked_at','last_verified_at','created_at','updated_at'];
     const semantic = [...new Set(['id','publicId','slug','source','isActive','qualityScore','sourceFactsHash','editorialSourceHash',
@@ -147,6 +147,8 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
     const archive = [...new Set(['id','public_id','slug','title','affiliate_url',...fields.map(snake)])];
     const project = (column: string, keys: string[]) => `json_object(${keys.map(key => `'${key}',json(${column}->'$.${key}')`).join(',')})`;
     const data = `json_object(${typed.map(key => `'${key}',p.${key}`).join(',')},
+      'preferredTitle',${preferBase&&options.preservePermanentListings?`CASE WHEN json_type(p.public_display_json,'$.eligibleUntil')='null'
+        THEN json_extract(p.public_display_json,'$.title') ELSE json_extract(p.public_display_json,'$.persistent.title') END`:'NULL'},
       'archive',json(CASE WHEN s.semantic_json IS NULL THEN ${project('p.source_record_json',archive)} ELSE NULL END),
       'semantic',json(CASE WHEN s.semantic_json IS NULL THEN NULL ELSE ${project('s.semantic_json',semantic)} END),
       'invalidSemantic',s.semantic_json IS NOT NULL AND (${semantic.map(key => `json_type(s.semantic_json,'$.${key}') IS NULL`).join(' OR ')}))`;
@@ -175,8 +177,12 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         if (view.invalidSemantic) throw new Error('maintenance_current_state_drift');
         // maintenanceState expects a PG text[] even though these views do not
         // consume tags. Full selected point-loads still validate their real tags.
-        values.push(maintenanceState({...view,source_record_json:JSON.stringify({...view.archive,humor_tags:null}),
-          maintenance_semantic:view.semantic === null ? null : JSON.stringify(view.semantic)},options.historical?.overrides?.[String(view.id)]));
+        const product=maintenanceState({...view,source_record_json:JSON.stringify({...view.archive,humor_tags:null}),
+          maintenance_semantic:view.semantic === null ? null : JSON.stringify(view.semantic)},options.historical?.overrides?.[String(view.id)]);
+        // Discovery identity/family dedup only; never overwrite semantic source
+        // fields or use this read-only label as public clearance.
+        if(preferBase&&options.preservePermanentListings&&typeof view.preferredTitle==='string'&&view.preferredTitle.trim())product.title=view.preferredTitle;
+        values.push(product);
       }
       after = String(values.at(-1)!.id);
     }
@@ -289,7 +295,7 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         ? evidence.sourceFactsHash === product.sourceFactsHash ? evidence.observedAt || null : null
         : archivedFactsMatch ? verification : null
       : null) || (merchantVerification ? rights.imageUrl!.observedAt! : null);
-    const projection = maintenanceProjection(product,rights,catalogRevision,now,known && factsMatch && Boolean(observedVerification),observedVerification,old ?? undefined);
+    const projection = maintenanceProjection(product,rights,catalogRevision,now,known && factsMatch && Boolean(observedVerification),observedVerification,old ?? undefined,options.preservePermanentListings);
     if (projection.persistentBase) product.persistentBase=projection.persistentBase;
     const row: Row = { ...projection.row,embedding_text_hash:binding,timestamp_provenance_json:canonicalJson(timeProof),
       source_record_json: old?.row.source_record_json ?? canonicalJson({ kind:'maintenance_creation',schemaVersion:1,operationId,
@@ -425,7 +431,7 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         return {inserted:merged.inserted,slug:product.slug};
       }));
     },
-    getActiveCatalogIdentities: ({includeInactive=false}: {includeInactive?:boolean} = {}) => serialize(async () => (await catalogView(['imageUrl','reviewCount'])).filter(p => includeInactive || p.isActive && p.title !== '')
+    getActiveCatalogIdentities: ({includeInactive=false}: {includeInactive?:boolean} = {}) => serialize(async () => (await catalogView(['imageUrl','reviewCount'],true)).filter(p => includeInactive || p.isActive && p.title !== '')
       .map(p => Object.fromEntries(['id','slug','title','imageUrl','affiliateUrl','qualityScore','availabilityStatus','availabilityCheckedAt',
         'lastVerifiedAt','editorialStatus','reviewCount'].map(key => [key,p[key]]))).map(p => ({...p,sourceFacts:null}))),
     getExistingEditorialWriteups: (excludedIds: string[] = []) => serialize(async () => (await catalogView(['editorialWriteup']))

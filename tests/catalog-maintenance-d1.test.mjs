@@ -140,13 +140,15 @@ test('D1 daily retailer stock/unknown/price eligibility never revokes an exact c
     const f=await permanentFixture({preservePermanentListings:true});try{
       const before=f.row(1),native=f.state(1).embedding_native_base64;
       f.setClock('2027-01-01T00:00:00.000Z');
-      const p={...f.p,...patch,isActive:false,embedding:undefined};await f.store.upsertProduct(p,editorialSourceHash(p));
+      const p={...f.p,...patch,title:'Fresh merchant title cannot rename a cleared listing',isActive:false,embedding:undefined};await f.store.upsertProduct(p,editorialSourceHash(p));
       const row=f.row(1),display=JSON.parse(row.public_display_json);
       assert.equal(row.is_active,1);assert.equal(display.eligibleUntil,null);assert.equal(display.title,f.base.title);
       assert.equal(display.imageUrl,f.base.imageUrl);assert.equal(display.publicId,f.base.publicId);
       assert.equal(f.state(1).product.supplierEligible,false);assert.equal(row.rights_json,before.rights_json);
       assert.equal(row.source_record_json,before.source_record_json);assert.equal(f.state(1).embedding_native_base64,native);
       assert.equal(f.events().filter(e=>e.status==='pending'&&e.operation==='upsert').length,0);
+      assert.equal((await f.store.getActiveCatalogIdentities({includeInactive:true}))[0].title,f.base.title);
+      assert.equal(f.state(1).product.title,p.title); // Source remains the actual merchant title.
       await assert.rejects(f.store.deactivateConfirmedMissing([f.p.id],1),/permanent_deactivation_forbidden/);
       assert.equal(f.row(1).is_active,1);
     }finally{f.close();}
