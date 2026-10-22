@@ -362,7 +362,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     const actual=await readMutationOwner(db,owner);
     const buildRow=(await db.prepare("SELECT *,strftime('%Y-%m-%dT%H:%M:%fZ','now') observed_at FROM catalog_build_requests WHERE request_id=?")
       .bind(control.requestId).all<Record<string,unknown>>()).results[0];
-    if(control.stage==='claimed'){
+    if(control.stage==='claimed'||control.stage==='built'){
       // No external step exists yet. Reclaim an expired BUILDING lease through
       // the ordinary bounded API, never renew its token or adopt a foreign one.
       const old=control.build,requestBytes=encodeBuildRequest(old.request);
@@ -372,7 +372,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         ||buildRow.run_reference!==old.runReference||buildRow.request_json!==requestBytes
         ||buildRow.environment!==config.environment||buildRow.source_revision!==old.request.sourceRevision
         ||buildRow.dispatch_reference!==null||buildRow.error_code!==null||buildRow.release_id!==null||buildRow.version_reference!==null
-        ||control.publication!==null||control.intent!==null||control.permit!==null||control.packageSha256!==null
+        ||control.publication!==null||control.intent!==null||control.permit!==null
+        ||(control.stage==='claimed'?control.packageSha256!==null:!control.packageSha256||!HASH.test(control.packageSha256))
         ||control.versionReference!==null||control.deploymentId!==null||control.receiptSha256!==undefined
         ||pendingUpload||acknowledgedUpload)throw new Error('publication_build_reclaim_fenced');
       const columns=Object.keys(buildRow).filter(key=>key!=='observed_at');
@@ -385,6 +386,13 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       await db.batch([mutationAssertion(db,owner,['freezing']),exact(buildRow),undispatched(),mutationAssertion(db,owner,['freezing'])]);
       const at=canonicalTime(String(buildRow.observed_at));
       if(canonicalTime(old.leaseUntil)<=at){
+        if(control.stage==='built'){
+          const sealed=await loadPackage(directory,config,control.packageSha256!,now());
+          if(!revision||sealed.manifest.catalogSnapshotSha256!==old.request.sourceDigest
+            ||sealed.manifest.catalogRevision!==old.request.sourceRevision||sealed.manifest.priorReleaseId!==old.request.priorReleaseId
+            ||sealed.manifest.vectorSyncWatermark!==revision.vectorSyncWatermark
+            ||canonicalJson(sealed.snapshot)!==canonicalJson(revision.snapshot))throw new Error('publication_package_changed');
+        }
         const attempts=Number(buildRow.attempts),leaseUntil=new Date(Math.min(Date.parse(at)+15*60000,Date.parse(old.request.cutoff))).toISOString();
         if(!Number.isInteger(attempts)||attempts<1||attempts>=3||leaseUntil<=at)throw new Error('publication_build_reclaim_fenced');
         let reclaimed:Awaited<ReturnType<typeof claimBuildRequest>>=null,uncertain=false;

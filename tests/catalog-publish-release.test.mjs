@@ -260,6 +260,72 @@ async function stoppedClaim(t,{real=true}={}){
   assert.deepEqual(f.counts(),{uploadCalls:0,activateCalls:0,buildCalls:0,identityCalls:0,httpCalls:2});
   return{f,old:structuredClone(f.checkpoint().control.publication.build)};
 }
+async function stoppedBuilt(t,{real=true}={}){
+  const f=await setup(t,{real,retentionMs:3600000}),clean=f.workspace.cleanPublicationBuild;
+  f.workspace.cleanPublicationBuild=async()=>{throw new Error('Local cleanup stopped before upload');};
+  assert.equal((await f.execute()).state,'pending');f.workspace.cleanPublicationBuild=clean;
+  const control=f.checkpoint().control.publication;assert.equal(control.stage,'built');assert.match(control.packageSha256,/^[a-f0-9]{64}$/);
+  assert.equal(f.counts().buildCalls,1);assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
+  return{f,old:structuredClone(control.build),packageSha256:control.packageSha256,
+    packageDirectory:path.join(f.workspace.directory,'packages',f.config.releaseId)};
+}
+test('sealed built package resumes with only exact expired lease reclaimed, without rebuilding or changing package',async t=>{
+  for(const expired of [false,true])await t.test(expired?'expired':'unexpired',async t=>{
+    const {f,old,packageSha256}=await stoppedBuilt(t),products=canonicalJson(f.sql.prepare('SELECT * FROM products').all());
+    if(expired)f.advance(11*60000);await f.reopen();
+    const result=await f.execute(f.db,{command:async command=>{
+      const saved=f.checkpoint().control.publication,row=f.sql.prepare('SELECT * FROM catalog_build_requests').get();
+      assert.equal(row.lease_token,saved.build.token);assert.equal(saved.packageSha256,packageSha256);
+      assert.equal(row.attempts,expired?2:1);assert.equal(saved.build.token===old.token,!expired);
+      assert.deepEqual(saved.build.request,old.request);if(expired)assert.equal(Date.parse(saved.build.leaseUntil),AT+26*60000);
+      await f.command(command);
+    }});
+    assert.equal(result.state,'published',JSON.stringify(result));assert.equal(f.counts().buildCalls,1);
+    assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);assert.equal(await readMutationOwner(f.db,scope),null);
+    assert.equal(canonicalJson(f.sql.prepare('SELECT * FROM products').all()),products);
+  });
+});
+test('expired built reclaim validates package and rejects owner, dispatch, external pins and receipt drift before claim',async t=>{
+  const faults={
+    package:async({packageDirectory})=>fs.appendFile(path.join(packageDirectory,'assets/index.html'),'unsealed bytes'),
+    'package hash':({f})=>{f.checkpoint().control.publication.packageSha256='0'.repeat(64);},
+    revision:({f})=>{f.revision.snapshot.products[0].title='Unapproved replacement';},
+    watermark:({f})=>{f.revision.vectorSyncWatermark++;},
+    owner:({f})=>f.sql.prepare('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1').run(),
+    token:({f})=>f.sql.prepare('UPDATE catalog_build_requests SET lease_token=?').run(version),
+    dispatch:({f})=>f.sql.prepare("UPDATE catalog_build_requests SET dispatch_reference='unknown-dispatch'").run(),
+    exhausted:({f})=>f.sql.prepare('UPDATE catalog_build_requests SET attempts=3').run(),
+    'control version':({f})=>{f.checkpoint().control.publication.versionReference=version;},
+    'control receipt':({f})=>{f.checkpoint().control.publication.receiptSha256='0'.repeat(64);},
+    ...Object.fromEntries(['publicationUploadPending','publicationUploadAcknowledged','publicationUploadReview'].map(pin=>[pin,({f})=>{
+      f.checkpoint().pins[pin]={sha256:'0'.repeat(64),reference:'objects/test-only.json'};
+    }])),
+    outbox:({f})=>f.sql.prepare(`INSERT INTO publication_outbox SELECT ?,?,catalog_revision,intent_json,state,lease_token,lease_until,
+      attempts,dispatch_reference,completed_token,error_code,created_at,updated_at FROM publication_outbox LIMIT 1`)
+      .run('e'.repeat(64),f.config.releaseId),
+    receipt:({f})=>f.sql.prepare(`INSERT INTO publication_receipts SELECT ?,catalog_revision,code_sha,completed_at,manifest_json
+      FROM publication_receipts LIMIT 1`).run(f.config.releaseId)
+  };
+  for(const [name,mutate]of Object.entries(faults))await t.test(name,async t=>{
+    const context=await stoppedBuilt(t,{real:false}),{f}=context;f.advance(11*60000);await mutate(context);
+    const before={...f.sql.prepare('SELECT * FROM catalog_build_requests').get()},result=await f.execute();
+    assert.equal(result.state,'pending');assert.equal(f.counts().buildCalls,1);assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
+    assert.deepEqual({...f.sql.prepare('SELECT * FROM catalog_build_requests').get()},before);
+  });
+});
+test('built replacement checkpoint ACK loss reopens exact same package without another claim or upload',async t=>{
+  const {f,old,packageSha256}=await stoppedBuilt(t);f.advance(11*60000);await f.reopen();
+  let lost=false;const write=f.workspace.writeCheckpoint;f.workspace.writeCheckpoint=async(expected,value)=>{
+    const result=await write(expected,value);
+    if(!lost&&value.control?.publication?.stage==='built'&&value.control.publication.build.token!==old.token){lost=true;throw new Error('Local committed checkpoint ACK lost');}
+    return result;
+  };
+  assert.equal((await f.execute()).state,'pending');assert.equal(lost,true);assert.equal(f.counts().uploadCalls,0);
+  await f.reopen();assert.equal(f.checkpoint().control.publication.packageSha256,packageSha256);
+  const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
+  assert.equal(f.sql.prepare('SELECT attempts FROM catalog_build_requests').get().attempts,2);
+  assert.equal(f.counts().buildCalls,1);assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+});
 test('claimed build reclaims only expired lease, persists replacement before commands, and keeps unexpired claim unchanged',async t=>{
   for(const expired of [false,true])await t.test(expired?'expired':'unexpired',async t=>{
     const {f,old}=await stoppedClaim(t),products=canonicalJson(f.sql.prepare('SELECT * FROM products').all());
@@ -340,15 +406,15 @@ test('claimed reclaim refuses a foreign replacement or owner drift during the bo
     assert.equal(f.counts().buildCalls,0);assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
   });
 });
-test('durable claimed checkpoint exception refuses other control/owner/pin/lease changes and control-only reconciliation',async t=>{
-  for(const fault of ['phase','owner','pin','request','stage','version','package','same-token','cutoff','control-only'])await t.test(fault,async t=>{
-    const {f}=await stoppedClaim(t),view=await f.workspace.readCheckpoint(),next=structuredClone(view.checkpoint),c=next.control.publication;
+test('durable claimed/built checkpoint exception refuses other control/owner/pin/lease changes and control-only reconciliation',async t=>{
+  for(const stage of ['claimed','built'])for(const fault of ['phase','owner','pin','request','stage','version','package','same-token','cutoff','control-only'])await t.test(`${stage}/${fault}`,async t=>{
+    const {f}=await(stage==='claimed'?stoppedClaim(t):stoppedBuilt(t)),view=await f.workspace.readCheckpoint(),next=structuredClone(view.checkpoint),c=next.control.publication;
     c.build.token=version;c.build.leaseUntil=new Date(AT+25*60000).toISOString();
     if(fault==='phase')next.phase='attention';
     if(fault==='owner')next.owner.epoch++;
     if(fault==='pin')next.pins.extra=await f.workspace.putArtifact({fixture:'only technical control'},{kind:'phase',observedAt:new Date(AT).toISOString()});
     if(fault==='request')c.build.request.cutoff=new Date(AT+24*3600000).toISOString();
-    if(fault==='stage')c.stage='built';
+    if(fault==='stage')c.stage=stage==='claimed'?'built':'uploading';
     if(fault==='version')c.versionReference=version;
     if(fault==='package')c.packageSha256='0'.repeat(64);
     if(fault==='same-token')c.build.token=view.checkpoint.control.publication.build.token;
