@@ -43,7 +43,7 @@ function product(n, overrides={}) {
 const rights = p => Object.fromEntries(Object.entries({title:p.title,description:p.wittyDescription,imageUrl:p.imageUrl,
   affiliateUrl:p.affiliateUrl,wittyDescription:p.wittyDescription,editorialWriteup:p.editorialWriteup,humorTags:JSON.stringify(p.humorTags)})
   .map(([field,value])=>[field,{basis:'owned',reference:`test-only-owned/${p.id}/${field}`,value}]));
-async function setup(t,{initial=2}={}) {
+async function setup(t,{initial=2,permanent=0}={}) {
   const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
   for(const name of (await readdir(new URL('../migrations/d1/',import.meta.url))).filter(name=>/^\d{4}.*\.sql$/.test(name)).sort())
     sql.exec(await readFile(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
@@ -83,6 +83,15 @@ async function setup(t,{initial=2}={}) {
   for(let n=1;n<=initial;n++)await upsert(product(n));
   await upsert(product(initial+1,{isActive:false,embedding:null}));
   await drain();
+  for(let n=100;n<100+permanent;n++){
+    const p={id:id(n),publicId:uuid(n),slug:`independent-object-${n}`,title:`Independent object ${n}`,
+      description:`Independent object ${n}`,imageUrl:'/images/gift-placeholder.svg',affiliateUrl:`https://www.amazon.com/dp/${id(n)}?tag=fixture-20`,
+      source:'amazon',currency:'USD',price:0,isActive:true,qualityScore:.85,eligibleUntil:null,indexable:false};
+    const grants=Object.fromEntries(['title','description','imageUrl','affiliateUrl'].map(field=>[field,{basis:'owned',reference:'synthetic exact clearance',value:p[field]}]));
+    sql.prepare(`INSERT INTO products(id,public_id,slug,source,title,description,tags,currency,quality_score,is_active,editorial_status,
+      source_facts_hash,catalog_revision,public_display_json,rights_json,source_record_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+      .run(p.id,p.publicId,p.slug,p.source,p.title,p.description,'',p.currency,p.qualityScore,1,'pending',source,'prior-revision',JSON.stringify(p),JSON.stringify(grants),'{}');
+  }
   const rows=sql.prepare('SELECT * FROM products ORDER BY public_id').all();
   const previous=structuredClone(validateCatalogSnapshot({schemaVersion:1,dataKind:'catalog',catalogRevision:'prior-revision',generatedAt:at(0),
     products:rows.filter(row=>row.public_display_json).map(row=>JSON.parse(row.public_display_json)),
@@ -158,6 +167,43 @@ async function reusable(t,{removed=false,initial=2}={}){
   const prepared=await prepareApprovedCohort(f.db,claim.owner,claim.request);
   return{f,...prepared,options:{db:f.db,owner:prepared.owner,revision:prepared.revision,adapters:f.adapters}};
 }
+test('2361 listed products with no changes keep stable permanent membership and prove only two finite native members',async t=>{
+  const f=await setup(t,{permanent:2359}),original=f.previous.products;
+  const claim=await f.freeze(),prepared=await prepareApprovedCohort(f.db,claim.owner,claim.request),revision=prepared.revision;
+  assert.equal(revision.snapshot.products.length,2361);assert.equal(revision.snapshot.heldProducts.length,1);
+  assert.equal(sha256(canonicalJson(revision.snapshot.products)),sha256(canonicalJson(original)));
+  const plan=approvedCohortVectorPlan(revision);assert.equal(plan.products.length,2);assert.deepEqual(plan.absentIds,[]);
+  const current=await f.promote(prepared);
+  const queued=await settleApprovedCohort(f.db,current,revision,()=>readOwnedApprovedCohortVectors(f.db,current,revision,f.adapters));
+  const build=await claimBuildRequest(f.db,queued.requestId,'test-only/wide-build',f.now());
+  const intent={releaseId:'wide-release',catalogRevision:revision.snapshot.catalogRevision,codeSha:revision.request.codeSha,
+    catalogSnapshotSha256:revision.packet.receipt.snapshot_sha256,manifestSha256:'a'.repeat(64),vectorSyncWatermark:revision.vectorSyncWatermark,
+    priorReleaseId:'prior-release',nextExpiry:revision.snapshot.products[0].eligibleUntil};
+  await enqueuePublication(f.db,revision.snapshot,intent,f.now());
+  const publication=await claimPublication(f.db,revision.snapshot,intent.releaseId,f.now());
+  await recordPublicationDispatch(f.db,revision.snapshot,publication,'test-only/wide-dispatch',f.now());
+  const permit=await beginBuildActivation(f.db,build,revision.snapshot,publication,'test-only/wide-upload',async()=>({environment:'staging',settled:true,
+    active:{...f.priorIntent,versionReference:'old-version'}}),f.now(),queued.owner);
+  const control={catalogRevision:plan.catalogRevision,planSha256:sha256(canonicalJson(plan)),ids:plan.products.map(p=>p.publicId)};
+  const dispatches=f.calls();assert.equal((await readActivatedCatalogVectors(f.db,permit,control,f.adapters)).settled,true);
+  assert.equal(f.calls(),dispatches);assert.equal(f.index.size,2);
+});
+test('one approved change cannot make unrelated permanent identities disappear or raise the20-change contract',async t=>{
+  const f=await setup(t,{permanent:2359}),unchanged=f.previous.products.filter(p=>p.eligibleUntil===null);
+  await f.upsert(product(1,{sourceFacts:{fixture:1,new:true}}));await f.drain();
+  const claim=await f.freeze([uuid(1)]),prepared=await prepareApprovedCohort(f.db,claim.owner,claim.request);
+  assert.equal(prepared.revision.snapshot.products.length,2361);
+  assert.equal(sha256(canonicalJson(prepared.revision.snapshot.products.filter(p=>p.eligibleUntil===null))),sha256(canonicalJson(unchanged)));
+  assert.equal(approvedCohortVectorPlan(prepared.revision).products.length,2);
+  const excessive=structuredClone(claim.request);excessive.approval.changes=Array.from({length:21},(_,n)=>({...claim.request.approval.changes[0],publicId:uuid(n+1)}));
+  excessive.approvalSha256=sha256(canonicalJson(excessive.approval));assert.throws(()=>approvedCohortOperationKey(excessive),/approval_invalid/);
+});
+test('changed candidates still face family rejection against every preserved permanent member',async t=>{
+  const f=await setup(t,{permanent:2});await f.upsert(product(1,{title:'Independent object 101'}));await f.drain();
+  const claim=await f.freeze([uuid(1)]),prepared=await prepareApprovedCohort(f.db,claim.owner,claim.request);
+  assert.deepEqual(prepared.revision.snapshot.products.filter(p=>p.eligibleUntil===null),f.previous.products.filter(p=>p.eligibleUntil===null));
+  assert.ok(prepared.revision.snapshot.heldProducts.some(p=>p.publicId===uuid(1)&&p.reason==='duplicate'));
+});
 test('settled proof reuse verifies whole approved cohort without provider mutations and survives lost commit/replay/activation',async t=>{
   const {f,options,revision}=await reusable(t,{initial:3});const sent=f.calls(),epoch=options.owner.epoch;
   let rebuilds=0;const prepare=f.local.prepare.bind(f.local);

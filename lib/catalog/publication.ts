@@ -8,7 +8,7 @@ import type { MutationOwner } from './mutation-fence.ts';
 import type { ActivationPermit, CatalogBuildRequest } from './build-requests.ts';
 import { encodeBuildRequest } from './build-requests.ts';
 import type { PrunedRevision } from './prune-existing-revision.ts';
-import { pruningCurrentQueries } from './pruning-current.ts';
+import { pruningCurrentQueries, CATALOG_IDENTITY_LIMITS } from './pruning-current.ts';
 
 /** Compact identity of an independently verified immutable package, not another release registry. */
 export type PublicationIntent = Pick<CatalogReleaseManifest, 'releaseId' | 'codeSha' | 'catalogRevision'
@@ -196,13 +196,15 @@ export async function completePublication(db: CatalogD1, snapshot: CatalogSnapsh
  * ownership does not expire: elapsed build/publication leases grant neither a
  * takeover nor another deployment. This bounded path renews no lease or rights;
  * fresh original package/current-source/native proof is still mandatory. */
-export async function completeActivatedPublication(db: CatalogD1, revision: PrunedRevision, publication: PublicationClaim, permit: ActivationPermit,
-  readDeployed: (intent: PublicationIntent) => Promise<PublicationIntent>, now: () => Date = () => new Date(), published?:PublishedCatalogBinding): Promise<void> {
+async function completeActivated(db: CatalogD1, revision: PrunedRevision, publication: PublicationClaim, permit: ActivationPermit,
+  readDeployed: (intent: PublicationIntent) => Promise<PublicationIntent>, now: () => Date, published?:PublishedCatalogBinding,bulk=false): Promise<void> {
   ({ revision, publication, permit, published } = structuredClone({ revision, publication, permit, published }));
   const owner = permit.mutationOwner, snapshot = revision.snapshot, intent = publication.intent;
   const operationKey=published?await digest(encodePublishedCatalogBinding(published)):revision.operationKey;
-  if (!owner || owner.phase !== 'activating' || permit.releaseId !== intent.releaseId || snapshot.products.length > 10
-    || revision.sourceRows.length > 20 || new Set(revision.sourceRows.map(row => row.public_id)).size !== revision.sourceRows.length
+  if (!owner || owner.phase !== 'activating' || permit.releaseId !== intent.releaseId || snapshot.products.length > (bulk?CATALOG_IDENTITY_LIMITS.ready:10)
+    || revision.sourceRows.length > (bulk?CATALOG_IDENTITY_LIMITS.identities:20)
+    ||bulk&&(!revision.nativePreservation||published||snapshot.products.length+snapshot.heldProducts.length!==revision.sourceRows.length)
+    || new Set(revision.sourceRows.map(row => row.public_id)).size !== revision.sourceRows.length
     || [...snapshot.products, ...snapshot.heldProducts].some(product => !revision.sourceRows.some(row => row.public_id === product.publicId))
     || revision.request.scope.environment !== owner.environment || revision.request.scope.indexName !== owner.indexName
     || operationKey !== owner.operationKey || !Number.isSafeInteger(revision.globalVectorWatermark) || revision.globalVectorWatermark < 0)
@@ -219,23 +221,28 @@ export async function completeActivatedPublication(db: CatalogD1, revision: Prun
     || request.codeSha !== intent.codeSha || request.priorReleaseId !== intent.priorReleaseId) throw new Error('publication_activation_fenced');
   const assertion = (sql: string, params: unknown[]) => db.prepare(`SELECT json(CASE WHEN ${sql} THEN 'true' ELSE 'publication_activation_fenced' END)`).bind(...params);
   const historical:D1Statement[]=[];
-  if(published){
-    if(encodeBuildRequest(published.request)!==build.request_json)throw new Error('publication_activation_fenced');
-    const journal=(await db.prepare('SELECT * FROM catalog_vector_deliveries WHERE delivery_id=?').bind(published.source.deliveryId)
+  if(published||bulk){
+    if(published&&encodeBuildRequest(published.request)!==build.request_json)throw new Error('publication_activation_fenced');
+    const binding=published?.source??revision.nativePreservation!.source;
+    encodePublishedCatalogBinding({source:binding,request}); // Same exact bounded source identity.
+    const journal=(await db.prepare('SELECT * FROM catalog_vector_deliveries WHERE delivery_id=?').bind(binding.deliveryId)
       .all<Record<string,unknown>>()).results;
-    const receipts=(await db.prepare('SELECT * FROM publication_receipts WHERE release_id=?').bind(published.source.releaseId)
+    const receipts=(await db.prepare('SELECT * FROM publication_receipts WHERE release_id=?').bind(binding.releaseId)
       .all<Record<string,unknown>>()).results;
     if(journal.length!==1||receipts.length!==1)throw new Error('publication_activation_fenced');
     const prior=journal[0],receipt=receipts[0],captured=JSON.parse(String(prior.owner_json)),proof=JSON.parse(String(prior.request_json));
     // These are flat D1 control rows. Hash/compare exact original bytes without
     // importing Node code or rewriting the original captured revision.
     const canonicalRow=(r:Record<string,unknown>)=>JSON.stringify(Object.fromEntries(Object.entries(r).sort(([a],[b])=>a.localeCompare(b))));
-    if(await digest(canonicalRow(prior))!==published.source.deliverySha256||await digest(canonicalRow(receipt))!==published.source.receiptSha256
+    const oldCatalog=bulk?revision.nativePreservation!.plan.catalogRevision:snapshot.catalogRevision;
+    if(await digest(canonicalRow(prior))!==binding.deliverySha256||await digest(canonicalRow(receipt))!==binding.receiptSha256
       ||prior.status!=='complete'||prior.disposition!=='verified'||proof.kind!=='approved-cohort-reuse'
-      ||proof.catalogRevision!==snapshot.catalogRevision||prior.environment!==owner.environment||prior.index_name!==owner.indexName
-      ||captured.operationKey!==revision.operationKey||captured.environment!==owner.environment||captured.indexName!==owner.indexName
+      ||proof.catalogRevision!==oldCatalog||prior.environment!==owner.environment||prior.index_name!==owner.indexName
+      ||!bulk&&captured.operationKey!==revision.operationKey||captured.environment!==owner.environment||captured.indexName!==owner.indexName
       ||captured.generation!==prior.generation||Number(prior.generation)>=owner.generation
-      ||receipt.catalog_revision!==snapshot.catalogRevision||receipt.code_sha!==revision.request.codeSha)
+      ||receipt.catalog_revision!==oldCatalog||!bulk&&receipt.code_sha!==revision.request.codeSha
+      ||bulk&&(proof.revisionSha256!==revision.nativePreservation!.revisionSha256
+        ||JSON.parse(String(receipt.manifest_json)).catalogSnapshotSha256!==revision.nativePreservation!.plan.snapshotSha256))
       throw new Error('publication_activation_fenced');
     for(const [table,r]of [['catalog_vector_deliveries',prior],['publication_receipts',receipt]] as const){
       const keys=Object.keys(r);if(keys.length>65||keys.some(k=>!/^[a-z_][a-z0-9_]*$/.test(k)))throw new Error('publication_activation_fenced');
@@ -260,19 +267,51 @@ export async function completeActivatedPublication(db: CatalogD1, revision: Prun
       AND (SELECT coalesce(max(sequence),0) FROM vector_sync_outbox)=? AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE status!='complete')
       AND EXISTS(SELECT 1 FROM catalog_projection_receipts WHERE ${receiptColumns.map(key => `${key} IS ?`).join(' AND ')})
       AND (SELECT count(*) FROM catalog_public_products WHERE catalog_revision=?)=?
-      AND (SELECT count(*) FROM json_each(?) e JOIN catalog_public_products p ON p.catalog_revision=? AND p.public_id=json_extract(e.value,'$.public_id')
-        WHERE ${projectionColumns.map(key => `p.${key} IS json_extract(e.value,'$.${key}')`).join(' AND ')})=? AND ${check.sql}`,
+      ${bulk?`AND (SELECT count(*) FROM products)=? AND EXISTS(SELECT 1 FROM publication_receipts WHERE release_id=? AND catalog_revision=?
+        AND code_sha=? AND completed_at IS ? AND manifest_json=?) AND (SELECT coalesce(max(rowid),0) FROM publication_receipts)=?`
+        :`AND (SELECT count(*) FROM json_each(?) e JOIN catalog_public_products p ON p.catalog_revision=? AND p.public_id=json_extract(e.value,'$.public_id')
+        WHERE ${projectionColumns.map(key => `p.${key} IS json_extract(e.value,'$.${key}')`).join(' AND ')})=?`} AND ${check.sql}`,
     [owner.environment, owner.indexName, owner.capturedAt, permit.requestId, permit.token, build.lease_until, permit.runReference, permit.releaseId, permit.versionReference, build.request_json, request.sourceRevision,
       value.intent_id, value.intent_json, publication.token, publication.leaseUntil, value.dispatch_reference, revision.globalVectorWatermark,
-      ...receiptColumns.map(key => receipt[key]), intent.catalogRevision, receipt.product_count, JSON.stringify(revision.packet.rows), intent.catalogRevision, receipt.product_count, ...check.params]),
-    ...pruningCurrentQueries(revision.sourceRows).map(query => assertion(`(${query.sql})=?`, [...query.params, query.count]))];
+      ...receiptColumns.map(key => receipt[key]), intent.catalogRevision, receipt.product_count,
+      ...(bulk?[revision.sourceRows.length,...['release_id','catalog_revision','code_sha','completed_at','manifest_json'].map(k=>revision.priorRow[k]),revision.request.context.publicationReceiptWatermark]
+        :[JSON.stringify(revision.packet.rows),intent.catalogRevision,receipt.product_count]),...check.params]),
+    ...(!bulk?pruningCurrentQueries(revision.sourceRows).map(query => assertion(`(${query.sql})=?`, [...query.params, query.count])):[])];
+  const fullRows=async()=>{
+    const queries=pruningCurrentQueries(revision.sourceRows).map(q=>({sql:`(${q.sql})=?`,params:[...q.params,q.count]}));
+    const add=(rows:typeof revision.packet.rows)=>{
+      const q={sql:`(SELECT count(*) FROM json_each(?) e JOIN catalog_public_products p ON p.catalog_revision=?
+        AND p.public_id=json_extract(e.value,'$.public_id') WHERE ${projectionColumns.map(k=>`p.${k} IS json_extract(e.value,'$.${k}')`).join(' AND ')})=?`,
+        params:[JSON.stringify(rows),intent.catalogRevision,rows.length]};
+      if(new TextEncoder().encode(JSON.stringify(q)).length>384*1024){if(rows.length<2)throw new Error('publication_activation_fenced');
+        const n=Math.floor(rows.length/2);add(rows.slice(0,n));add(rows.slice(n));}else queries.push(q);
+    };
+    for(let i=0;i<revision.packet.rows.length;i+=20)add(revision.packet.rows.slice(i,i+20));
+    // Same cooperative owner excludes application writers between bounded pages
+    // and final compact receipt CAS. Privileged out-of-band SQL is not a barrier.
+    let batch:typeof queries=[],bytes=0;
+    const flush=async()=>{await db.batch([...assertions(),...batch.map(q=>assertion(q.sql,q.params)),mutationAssertion(db,owner,['activating'])]);batch=[];bytes=0;};
+    for(const q of queries){const n=new TextEncoder().encode(JSON.stringify(q)).length;if(batch.length>=40||bytes+n>400*1024)await flush();batch.push(q);bytes+=n;}
+    if(batch.length)await flush();
+  };
   // Owner/source assertions run before the trusted provider read and again in
   // the final receipt transaction. There is no upload/activate/claim callback.
-  await db.batch(assertions());
+  if(bulk)await fullRows();else await db.batch(assertions());
   let deployed: PublicationIntent;
   try { deployed = await readDeployed(intent); } catch { throw new Error('publication_readback_failed'); }
   if (encode(deployed) !== value.intent_json) throw new Error('publication_readback_mismatch');
   const at = now(); await preflight(db, snapshot, intent, at);
+  if(bulk)await fullRows();
   await db.batch([...assertions(), ...completionStatements(db, snapshot, value, publication.token, at, false)]);
   await completed(db, value, publication.token);
+}
+export function completeActivatedPublication(db:CatalogD1,revision:PrunedRevision,publication:PublicationClaim,permit:ActivationPermit,
+  readDeployed:(intent:PublicationIntent)=>Promise<PublicationIntent>,now:()=>Date=()=>new Date(),published?:PublishedCatalogBinding){
+  return completeActivated(db,revision,publication,permit,readDeployed,now,published);
+}
+/** One-time permanent catalog only; original native proof and all full rows are
+ * independently rechecked. This is not a larger recurring change allowance. */
+export function completeActivatedPermanentPublication(db:CatalogD1,revision:PrunedRevision,publication:PublicationClaim,permit:ActivationPermit,
+  readDeployed:(intent:PublicationIntent)=>Promise<PublicationIntent>,now:()=>Date=()=>new Date()){
+  return completeActivated(db,revision,publication,permit,readDeployed,now,undefined,true);
 }

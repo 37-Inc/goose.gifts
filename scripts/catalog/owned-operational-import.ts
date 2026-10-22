@@ -204,8 +204,9 @@ export function normalizeOwnedImportSequences(plan:OwnedOperationalImportPlan,pl
 
 /** Exact logical read bounded by SQLite's own serialized row sizes. Caller owns
  * the barrier; before/after assertions cannot replace gating every writer. */
-export async function readOwnedLogicalRows(db:CatalogD1,owner:MutationOwner){
-  await mutationAssertion(db,owner).all();
+export async function readOwnedLogicalRows(db:CatalogD1,owner:MutationOwner,options:{phase?:'freezing'}={}){
+  const phase=options.phase??'writing';if(owner.phase!==phase)refuse('owner');
+  await mutationAssertion(db,owner,[phase]).all();
   const schemas=await db.batch(D1_RECOVERY_TABLES.map(t=>db.prepare(`PRAGMA table_info(${t})`))) as Array<{results:Array<{name:string}>}>;
   if(!Array.isArray(schemas)||schemas.length!==D1_RECOVERY_TABLES.length)refuse('schema');
   const result:Record<string,Row[]>={};
@@ -228,7 +229,7 @@ export async function readOwnedLogicalRows(db:CatalogD1,owner:MutationOwner){
     }
     result[table]=rows;
   }
-  await mutationAssertion(db,owner).all();return result;
+  await mutationAssertion(db,owner,[phase]).all();return result;
 }
 
 async function inspect(db:CatalogD1,plan:OwnedOperationalImportPlan,planSha256:string,cursor:MutationOwner){

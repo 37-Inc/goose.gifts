@@ -76,7 +76,7 @@ const words=[9,10,11,12,13,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200
   .reduce((text,code)=>`replace(${text},char(${code}),' ')`,editorial);
 const PERSISTENT_VISIBLE=`coalesce(p.is_active=1 AND p.duplicate_of_product_id IS NULL AND p.quality_score>=0.55
   AND p.editorial_status NOT IN ('blocked','needs_review')
-  AND v.source_facts_hash=p.source_facts_hash AND json_type(${V_BASE})='object' AND json_type(${P_BASE})='object'
+  AND v.source_facts_hash IS p.source_facts_hash AND json_type(${V_BASE})='object' AND json_type(${P_BASE})='object'
   AND json_type(${BASE_RIGHTS})='object' AND json_type(${V_BASE},'$.eligibleUntil')='null'
   AND json_type(${P_BASE},'$.eligibleUntil')='null'
   AND json_type(${V_BASE},'$.indexable') IN ('true','false') AND json_type(${V_BASE},'$.persistent') IS NULL
@@ -90,6 +90,7 @@ const PERSISTENT_VISIBLE=`coalesce(p.is_active=1 AND p.duplicate_of_product_id I
   AND NOT EXISTS(${displayValues(V_BASE)} EXCEPT ${displayValues(P_BASE)})
   AND NOT EXISTS(${displayValues(P_BASE)} EXCEPT ${displayValues(V_BASE)})
   AND (json_extract(${V_BASE},'$.indexable')=0 OR (p.editorial_status IN ('generated_ready','manual_locked')
+    AND typeof(p.source_facts_hash)='text' AND length(p.source_facts_hash)=64 AND p.source_facts_hash NOT GLOB '*[^a-f0-9]*'
     AND p.source_facts_hash=p.editorial_source_hash AND ${reviewedQuality} BETWEEN 0.8 AND 1
     AND ${currentEditorial}=${editorial}
     AND ${currentCopy('id','id')}=p.id AND ${currentCopy('publicId','public_id')}=p.public_id
@@ -121,12 +122,13 @@ async function hash(value: string): Promise<string> {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return [...new Uint8Array(bytes)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
-export async function createProjectionPacket(snapshotInput: CatalogSnapshot, factsByPublicId: Record<string, string>, sourceSha256: string, now = new Date()): Promise<ProjectionPacket> {
+export async function createProjectionPacket(snapshotInput: CatalogSnapshot, factsByPublicId: Record<string, string|null>, sourceSha256: string, now = new Date()): Promise<ProjectionPacket> {
   const snapshot = validateCatalogSnapshot(snapshotInput, now);
   if (snapshot.dataKind !== 'catalog' || !/^[a-f0-9]{64}$/.test(sourceSha256)) throw new Error('A real validated snapshot and source checksum are required');
   const rows = await Promise.all([...snapshot.products].sort((a, b) => a.publicId.localeCompare(b.publicId)).map(async (product) => {
     const factsHash = factsByPublicId[product.publicId];
-    if (!/^[a-f0-9]{64}$/.test(factsHash || '')) throw new Error('Missing projection factual hash');
+    if (!/^[a-f0-9]{64}$/.test(factsHash || '')
+      && !(factsHash===null&&product.eligibleUntil===null&&product.indexable===false)) throw new Error('Missing projection factual hash');
     const display = JSON.stringify(product);
     const indexed=persistentPublicProduct(product)??product;
     return { catalog_revision: snapshot.catalogRevision, public_id: product.publicId, product_id: product.id,
