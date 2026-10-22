@@ -24,6 +24,13 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **October22 native-drill startup window** [owner+claude]: actual local
+  initdb exceeded the old40×250ms polling window and cleaned its owned resources
+  without restoring rows. Allow240×250ms startup polling instead, retaining
+  final PID1+Unix-socket readiness, cached image/network-none and owned cleanup.
+  Deterministic tests cover delayed readiness and bounded exhaustion; actual
+  native recovery still requires a fresh explicit operator execution.
+
 - **October22 actual rollback mapping correction** [owner+claude]: actual
   post-union preparation exposed two retained held products without maintenance
   semantics. Exact owned-baseline proof now preserves their inactive/hash

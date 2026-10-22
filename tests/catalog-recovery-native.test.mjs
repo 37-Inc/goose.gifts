@@ -3,7 +3,7 @@ import test from 'node:test';
 import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { nativeVectorCopy, nativeTableSql, nativeInsertSql, nativeReadbackSql, validateNativeAudit, runNativeRecovery } from '../scripts/catalog/recovery-native.ts';
+import { nativeVectorCopy, nativeTableSql, nativeInsertSql, nativeReadbackSql, validateNativeAudit, runNativeRecovery, waitForNativeStartup } from '../scripts/catalog/recovery-native.ts';
 import { encodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
 import { sha256 } from '../scripts/catalog/migration.ts';
 
@@ -22,6 +22,16 @@ const rows = [ { id: 'SYNTHETIC-TEST-1', public_id: '00000000-0000-4000-8000-000
   details:'{"a": 1, "private": "Synthetic fixture only"}', active:false, embedding,sequence_id:'5' },
 { id:'SYNTHETIC-TEST-2', public_id:'00000000-0000-4000-8000-000000000002', slug:'synthetic-two', amount:null,
   created_at:null, checked_at:null, tags:null, details:null, active:true, embedding:null,sequence_id:null } ];
+
+test('native startup accepts final readiness after old10s window, without changing the bounded240x250ms maximum',async()=>{
+  let probes=0;const sleeps=[];
+  await waitForNativeStartup(()=>{probes++;if(probes<5)throw new Error('Controlled initdb startup');return probes===61;},async ms=>{sleeps.push(ms);});
+  assert.equal(probes,61);assert.equal(sleeps.length,60);assert.ok(sleeps.every(ms=>ms===250));
+  probes=0;sleeps.length=0;
+  await assert.rejects(waitForNativeStartup(()=>{probes++;return false;},async ms=>{sleeps.push(ms);}),/did not become ready/);
+  assert.equal(probes,240);assert.equal(sleeps.length,240);assert.equal(sleeps.reduce((a,b)=>a+b,0),60000);
+  await waitForNativeStartup(()=>true,async()=>assert.fail('Already-ready startup must not pause'));
+});
 
 test('native COPY binary preserves vector header/bits, ordinal int64 and NULL without decimal conversion', () => {
   const bytes = nativeVectorCopy(rows, 'embedding');
