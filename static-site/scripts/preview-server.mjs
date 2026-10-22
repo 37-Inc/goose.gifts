@@ -37,7 +37,11 @@ http
       response.end();
       return;
     }
-    if (pathname === "/weird-gift-index/data") pathname += ".json";
+    if (/^\/weird-gift-index(?:[/.]|$)|^\/safe\/index\.json$/.test(pathname)) {
+      response.writeHead(404);
+      response.end();
+      return;
+    }
     const target = path.resolve(root, `.${pathname}`);
     if (
       !target.startsWith(`${root.replace(/\/$/, "")}/`) &&

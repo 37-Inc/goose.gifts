@@ -57,6 +57,21 @@ Boundaries (always in force):
 
 ### Cloudflare migration boundary
 
+**October22 owner correction — catalog preservation and privacy:** Never
+delete or deactivate a gift, remove its search-index/native-vector entry, or
+shrink the catalog solely because a refresh deadline elapsed. Pause live
+pruning until persistent product identity/editorial is separated from expiring
+supplier display fields (`roadmap-lbbz1.3.2`). Expired supplier photography,
+pricing or API claims still cannot be relabeled as current: use a verified
+cleared-content fallback, not product deletion or a silently renewed deadline.
+The full historical catalog migration is required; eight visible launch gifts
+is not completion. Preserve all identities, slugs, editorial, native embeddings
+and operational history, and reconcile the final source delta into production.
+Private registered supplier-response expiry cleanup below is **not** permission
+to remove catalog records. The owner also retired Weird Gift Index and forbids
+personal-name attribution in public pages, schema, metadata or generated assets;
+use Stupid Gifts / Thirty Seven Inc and the verified product contact alias.
+
 **Release target: Cloudflare only.** On October22, the legacy Vercel project
 `37-inc/goose-gifts` was disconnected from `37-Inc/goose.gifts`; persistent Git
 settings readback confirmed no repository connection and no deploy hooks.

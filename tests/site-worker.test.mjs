@@ -115,6 +115,32 @@ test('production host redirects cannot revive retired, unknown or unsafe routes 
   assert.equal(fixture.calls.length, 0);
 });
 
+test('retired Index pages, data, image and RSC aliases are real 404s even in a stale manifest', async () => {
+  const baseline = setup();
+  const manifest = structuredClone(baseline.manifest);
+  for (const path of ['/weird-gift-index', '/weird-gift-index/data', '/weird-gift-index/data.json', '/safe/index.json'])
+    manifest.routes[path] = ready(path, { safeAssetPath: '/safe/index.json' });
+  const fixture = setup({ manifest, canonicalOrigin: 'https://stupid.gifts' });
+  const paths = ['/weird-gift-index', '/weird-gift-index/', '/weird-gift-index.html', '/weird-gift-index.txt',
+    '/weird-gift-index/data', '/weird-gift-index/data.json', '/weird-gift-index/opengraph-image',
+    '/weird-gift-index/__next._full.txt', '/%77eird-gift-index', '/weird%2dgift-index/data', '/safe/index.json'];
+  for (const host of ['stupid.gifts', 'www.stupid.gifts']) for (const path of paths) for (const method of ['GET', 'HEAD']) {
+    const response = await fixture.worker.fetch(new Request(`https://${host}${path}?utm_source=test`, { method }), fixture.env);
+    assert.equal(response.status, 404, `${host}${path}`);
+    assert.equal(response.headers.get('Location'), null);
+  }
+  assert.equal(fixture.calls.length, 0);
+  const sitemap = await fixture.worker.fetch(new Request('https://stupid.gifts/sitemap.xml'), fixture.env);
+  assert.doesNotMatch(await sitemap.text(), /weird-gift-index|safe\/index/);
+  fixture.env.ENVIRONMENT = 'staging'; fixture.env.STAGING_AUTH_SECRET = 'synthetic-at-least-sixteen';
+  assert.equal((await fixture.worker.fetch(new Request('https://preview.example/weird-gift-index'), fixture.env)).status, 401);
+  const protectedRetired = await fixture.worker.fetch(new Request('https://preview.example/weird-gift-index', {
+    headers: { Authorization: `Basic ${btoa('staging:synthetic-at-least-sixteen')}` },
+  }), fixture.env);
+  assert.equal(protectedRetired.status, 404);
+  assert.equal(protectedRetired.headers.get('X-Robots-Tag'), 'noindex, nofollow');
+});
+
 test('canonical production identity never bypasses preview authentication or noindex policy', async () => {
   const fixture = setup({ canonicalOrigin: 'https://stupid.gifts' }); fixture.env.ENVIRONMENT = 'staging';
   const request = (headers) => fixture.worker.fetch(new Request('https://stupid-gifts-staging.thirty-seven-inc.workers.dev/', { headers }), fixture.env);

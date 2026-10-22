@@ -9,6 +9,13 @@ import { siteIdentityFor } from '../../static-site/lib/site-identity.ts';
 type Context = Pick<SiteAssetManifest, 'priorReleaseId' | 'generatedAt' | 'sourceMode'> & { retainedManifestSha256: string | null };
 type Files = ReadonlyMap<string, Uint8Array>;
 function fail(): never { throw new Error('Retained release input is missing or incompatible'); }
+function assertPublicIdentitySafe(files: Files) {
+  for (const [name, bytes] of files) {
+    if (/\.(?:html|txt|json|js|mjs|css|svg|xml)$/.test(name)
+      && /\b(?:cameron|ehrlich|cameronehrlich)\b|\b(?:cam|cameron)@37\.technology\b/i.test(new TextDecoder().decode(bytes)))
+      throw new Error('Public assets must not contain personal owner identity');
+  }
+}
 function safePath(name: string) {
   return name.startsWith('/') && !name.includes('//') && !/[\\%?#\0]/.test(name)
     && !name.split('/').some((part) => part === '.' || part === '..');
@@ -58,6 +65,7 @@ export function assembleReleaseAssets(snapshot: CatalogSnapshot, current: Files,
   prior: RetentionInput['prior'] | null) {
   const currentAssetPaths = [...current.keys()].sort();
   if (currentAssetPaths.length > 100000 || currentAssetPaths.some((name) => !safePath(name))) fail();
+  assertPublicIdentitySafe(current);
   for (const [name, bytes] of current) if (/^\/_next\/static\/.*\.(?:js|css)$/.test(name)) assertOwnedCodeSafe(bytes, [snapshot]);
   const currentRoutes = createStaticRoutes(snapshot, currentAssetPaths, undefined, siteIdentityFor(context.sourceMode));
   if (context.retainedManifestSha256 === null) {
@@ -66,6 +74,9 @@ export function assembleReleaseAssets(snapshot: CatalogSnapshot, current: Files,
   }
   if (!prior || prior.releaseId !== context.priorReleaseId || prior.manifestSha256 !== context.retainedManifestSha256) fail();
   const retained = retainStaticAssets({ prior, current: { snapshot, assets: current, routes: currentRoutes }, capturedAt: context.generatedAt });
+  // Old page chunks are public too. If one contains retired attribution, the
+  // operator must use an explicit no-retention release, not carry it forward.
+  assertPublicIdentitySafe(retained.files);
   return { assets: new Map([...retained.files, ...current]), routes: { ...retained.routes, ...currentRoutes },
     retention: { priorManifestSha256: context.retainedManifestSha256, currentAssetPaths } };
 }

@@ -46,7 +46,7 @@ function fixtureEpisodes(snapshot) {
 }
 function inventory(snapshot, inputs = []) {
   const show = createShowRelease(snapshot, inputs);
-  const pages = ["/", "/random-gift", "/gift-guides", "/weird-gift-index", "/howie", "/preview/presentation",
+  const pages = ["/", "/random-gift", "/gift-guides", "/howie", "/preview/presentation",
     ...guides.map((g) => `/gift-guides/${g.slug}`), ...directoryPages(snapshot).map((p) => directoryPath(p.page)),
     "/gifts/page/1", ...snapshot.products.map((p) => `/gifts/${p.slug}`),
     ...show.episodes.flatMap((e) => [`/howie/${e.key}`, `/howie/${e.key}/presentation`])];
@@ -55,7 +55,7 @@ function inventory(snapshot, inputs = []) {
   return [...new Set([
     ...pages.flatMap((p) => p === "/" ? ["/index.html", "/index.txt", "/__next.__PAGE__.txt"]
       : [`${p}.html`, `${p}.txt`, `${p}/__next.__PAGE__.txt`]),
-    ...safe.flatMap((p) => [`${p}.html`, `${p}.txt`]), "/safe/catalog.json", "/safe/index.json", "/weird-gift-index/data.json",
+    ...safe.flatMap((p) => [`${p}.html`, `${p}.txt`]), "/safe/catalog.json",
     ...["_full", "_tree", "safe.product.__PAGE__"].map((part) => `/safe/product/__next.${part}.txt`),
     ...show.episodes.flatMap((e) => [`/howie/${e.key}/data.json`, `/safe/howie/${e.key}/data.json`]),
     ...createBrowseRelease(snapshot).shards.map((s) => s.path),

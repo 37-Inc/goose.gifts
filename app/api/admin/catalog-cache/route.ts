@@ -20,8 +20,6 @@ export async function POST(request: NextRequest) {
   revalidatePath('/gift-guides');
   revalidatePath('/gift-guides/[slug]', 'page');
   revalidatePath('/random-gift');
-  revalidatePath('/weird-gift-index');
-  revalidatePath('/weird-gift-index/data');
   revalidatePath('/sitemap.xml');
   revalidatePath('/sitemap/0.xml');
 
@@ -35,8 +33,6 @@ export async function POST(request: NextRequest) {
       '/gift-guides',
       '/gift-guides/[slug]',
       '/random-gift',
-      '/weird-gift-index',
-      '/weird-gift-index/data',
       '/sitemap.xml',
       '/sitemap/0.xml',
     ],

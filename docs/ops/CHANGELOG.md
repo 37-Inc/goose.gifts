@@ -24,6 +24,20 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **Owner correction — finish the full catalog, preserve products:** eight
+  visible gifts is only the launch slice. `roadmap-lbbz1.3.2` requires actual
+  source/production reconciliation, persistent original catalog fields and
+  compliant supplier-field fallbacks rather than expiry-driven product removal.
+  Live pruning/deactivation/index deletion is paused; the existing daily task
+  now records that prohibition. Preserve all IDs, slugs, native vectors and
+  history. Bulk migration is separate from the ten/day refresh allowance.
+- **Homepage/privacy cleanup in implementation:** `roadmap-lbbz1.5.1/.5.2`
+  cover the approved “Stupid gifts. Excellent taste.” heading, removal of
+  repeated Collection labels/tab, static 24+24 browse batches, SVG guide glyphs,
+  complete Weird Gift Index retirement and no public personal-name bylines.
+  Submit-based search stays until a cost-bounded alternative is justified.
+  Code integration and Cloudflare publication are separate evidence gates.
+
 - **Cloudflare release path:** Vercel Git deployment is frozen and its existing
   Goose deployment retained only as rollback. Cloudflare still serves source
   `9943718`; publish the current reviewed code there through the normal receipt/
@@ -250,6 +264,19 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-22 [owner+claude] — Homepage and public-identity source cleanup
+
+PR #225 simplifies the approved headline/navigation/card labels, adds static
+24+24browsing and guide SVGs, and retires Weird Gift Index and personal bylines
+from both app sources. Final packaging also rejects old retained chunks with
+personal identity. Desktop/mobile and real73fixture Load more checks pass;
+static/legacy local builds, types/lint and focused regressions pass. The full
+suite's sole stale12card fixture assertion was fixed and its exact rerun passes;
+the original failed invocation remains documented. **Not yet Cloudflare
+published; live removal remains open.** Full catalog preservation/migration is
+explicitly required, expiry-driven pruning paused, and the existing schedule
+updated in place. No products removed and no Vercel deployment requested.
 
 ### 2026-10-22 [owner+claude] — Freeze legacy Vercel releases
 

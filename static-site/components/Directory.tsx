@@ -43,7 +43,7 @@ export function Directory({
           <h2>No ready selections in this snapshot.</h2>
           <p>
             Held products are not shown.{" "}
-            <a href="/gift-guides">Read the gift guides →</a>
+            <a href="/gift-guides">Read the gift guides</a>
           </p>
         </div>
       )}
@@ -56,7 +56,7 @@ export function Directory({
             Page {page.page} of {page.pageCount}
           </span>
           {page.page < page.pageCount && (
-            <a href={directoryPath(page.page + 1)}>Next →</a>
+            <a href={directoryPath(page.page + 1)}>Next</a>
           )}
         </nav>
       )}

@@ -9,6 +9,7 @@ test('local rehearsal uses actual Worker95/5 dispatch with no network and bounde
   assert.deepEqual(result.mix, { static: 95, mockSemantic: 5 });
   assert.equal(result.adapters.ids, 5); assert.equal(result.adapters.embeddings, 5); assert.equal(result.adapters.vectors, 5);
   assert.equal(result.adapters.keyword, 0); assert.ok(result.elapsedMs >= 1000); assert.equal(result.probes.passed, true);
+  assert.equal(result.probes.initialCards, 24);
   assert.deepEqual(result.checks, { adapterCounts: true, noNetwork: true });
   assert.ok(result.limitations.some(value => value.includes('not D1 SQL')));
 });

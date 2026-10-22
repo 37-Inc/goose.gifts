@@ -88,7 +88,7 @@ test("layout and show wordmarks/URLs follow source mode without losing contact o
     assert.equal(layout.metadata.icons.icon, "/favicon.ico");
     const html = renderToStaticMarkup(React.createElement(layout.default, null, React.createElement("main", { id: "main" })));
     assert.match(html, new RegExp(`${config.siteIdentity.brand}<span>\\.</span>gifts`));
-    assert.ok(html.includes(config.siteIdentity.tagline));
+    assert.doesNotMatch(html, /The collection|weird-gift-index/);
     assert.ok(html.includes("mailto:goosegifts@37.technology"));
     assert.equal(html.includes("Private staging preview"), mode === "preview");
     assert.equal(html.includes("data-test-analytics"), mode !== "preview");

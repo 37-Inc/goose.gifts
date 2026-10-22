@@ -55,11 +55,11 @@ test.after(()=>{globalThis.fetch=original.fetch;amazonCreators.getItems=original
 async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true,mode:0o700});await fs.writeFile(file,
   typeof value==='string'||value instanceof Uint8Array?value:`${JSON.stringify(value)}\n`,{mode:0o600});}
 function sealedFixture(snapshot,context,prior=null){
-  const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/weird-gift-index','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
+  const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
     ...snapshot.products.map(p=>`/gifts/${p.slug}`)];
   const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,Buffer.from('Owned fixture HTML')]));
-  for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/index.json','/safe/asset.txt'])assets.set(name,Buffer.from('Owned unavailable'));
-  assets.set('/safe/catalog.json',safeCatalogPayload);assets.set('/weird-gift-index/data.json',Buffer.from('{"scope":"sample"}'));
+  for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/asset.txt'])assets.set(name,Buffer.from('Owned unavailable'));
+  assets.set('/safe/catalog.json',safeCatalogPayload);
   for(const suffix of ['.txt','/__next._full.txt','/__next._tree.txt','/__next.safe.product.__PAGE__.txt'])assets.set(`/safe/product${suffix}`,Buffer.from('Owned safe RSC'));
   for(const shard of createBrowseRelease(snapshot).shards)assets.set(shard.path,Buffer.from(JSON.stringify(shard.payload)));
   for(const name of createOgRelease(snapshot,siteIdentityFor('preview')).byPath.keys())assets.set(name,Buffer.from('Owned PNG fixture'));

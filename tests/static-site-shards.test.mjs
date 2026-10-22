@@ -42,15 +42,15 @@ const expected = (release, shard) => ({
   now: Date.parse(fixture.generatedAt),
 });
 
-test("browse uses 3 hero + at most 9 initial cards, then deterministic 24-card shards", () => {
+test("browse uses 3 hero + at most 21 initial cards, then deterministic 24-card shards", () => {
   const input = largeFixture();
   const release = createBrowseRelease(input);
   assert.equal(release.opening.length, 3);
-  assert.equal(release.feed.initial.length, 9);
+  assert.equal(release.feed.initial.length, 21);
   const feed = release.shards.filter((shard) => shard.payload.kind === "feed");
   assert.deepEqual(
     feed.map((shard) => shard.payload.products.length),
-    [24, 24, 13],
+    [24, 24, 1],
   );
   assert.equal(release.feed.next, feed[0].path);
   assert.equal(feed[0].payload.next, feed[1].path);
@@ -112,7 +112,7 @@ test("card projection is explicit, price/retailer/editorial/private fields never
 });
 test("held/expired records are absent and each shard expires at its own first content deadline", () => {
   const input = largeFixture();
-  input.products[15].eligibleUntil = "2026-10-21T00:00:00.000Z";
+  input.products[35].eligibleUntil = "2026-10-21T00:00:00.000Z";
   input.products.push({
     ...input.products[0],
     id: "expired-secret",
@@ -290,7 +290,7 @@ test(
         path.join(out, "random-gift.html"),
         "utf8",
       );
-      for (const product of snapshot.products.slice(12))
+      for (const product of snapshot.products.slice(24))
         assert.equal(home.includes(product.slug), false);
       for (const product of snapshot.products.slice(1))
         assert.equal(random.includes(product.slug), false);

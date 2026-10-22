@@ -1,0 +1,52 @@
+import { Icon } from "./Icon";
+import type { IconName } from "./Icon";
+
+export const guideIcons: Record<string, IconName> = {
+  "white-elephant-gifts": "gift",
+  "funny-gifts-for-coworkers": "briefcase",
+  "funny-gifts-for-dads": "glasses",
+  "weird-kitchen-gadgets": "utensils",
+  "novelty-desk-toys": "lamp",
+  "secret-santa-gag-gifts": "gift",
+  "dirty-santa-gifts": "spark",
+  "funny-gifts-for-dads-who-fish": "fish",
+  "cat-lover-gag-gifts": "cat",
+  "dog-lover-gag-gifts": "dog",
+  "prank-gifts-for-friends": "spark",
+  "funny-birthday-gag-gifts": "cake",
+  "funny-retirement-gifts": "sun",
+  "funny-gifts-for-bosses": "crown",
+  "office-prank-gifts": "briefcase",
+  "funny-coffee-mugs": "coffee",
+  "weird-bathroom-gifts": "toilet",
+  "funny-poop-gifts": "toilet",
+  "funny-housewarming-gifts": "home",
+  "funny-stocking-stuffers": "stocking",
+  "white-elephant-gifts-for-adults": "gift",
+  "gifts-for-people-who-have-everything": "spark",
+  "funny-gifts-for-men": "gift",
+  "funny-gifts-for-women": "gift",
+  "sarcastic-gifts": "message",
+  "funny-cooking-gifts": "utensils",
+  "weird-home-decor-gifts": "lamp",
+  "optical-illusion-decor-gifts": "eye",
+  "funny-gifts-for-teachers": "pencil",
+  "funny-gifts-for-nurses": "medical",
+  "funny-book-lover-gifts": "book",
+  "funny-sports-fan-gifts": "trophy",
+  "funny-wine-gifts": "wine",
+  "funny-bath-gifts": "bath",
+  "adult-coloring-book-gifts": "palette",
+  "funny-halloween-gifts": "pumpkin",
+  "funny-christmas-gifts": "tree",
+  "funny-valentines-gifts": "heart",
+  "funny-gifts-for-moms": "heart",
+  "funny-gifts-for-gamers": "gamepad",
+  "funny-golf-gifts": "golf",
+  "funny-gardening-gifts": "leaf",
+  "funny-hostess-gifts": "wine",
+};
+
+export function GuideIcon({ slug }: { slug: string }) {
+  return <Icon name={guideIcons[slug] || "gift"} className="guide-icon" />;
+}

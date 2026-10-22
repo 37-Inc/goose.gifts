@@ -122,37 +122,36 @@ export function Search() {
         }}
       >
         <label className="sr-only" htmlFor="gift-query">
-          Search the collection
+          Search gifts
         </label>
         <input
           id="gift-query"
           name="q"
           type="search"
-          placeholder="For the person who has everything…"
+          placeholder="Search gifts"
           value={query}
           minLength={2}
           maxLength={200}
           onChange={(event) => setQuery(event.target.value)}
         />
         <button type="submit">
-          Find a gift <span aria-hidden="true">↗</span>
+          Search
         </button>
       </form>
       <div role="status" aria-live="polite">
         {state.status === "loading" && (
-          <p className="search-status">Looking through the collection…</p>
+          <p className="search-status">Searching…</p>
         )}
         {state.status === "unavailable" && (
           <p className="search-status">
-            Search is taking a break. Try again later, or browse the collection.{" "}
-            <a href="/gifts">Browse all gifts →</a>
+            Search couldn’t load. Try again, or <a href="/">browse gifts</a>.
           </p>
         )}
         {state.status === "ready" && (
           <p className="search-status">
             {state.products.length
-              ? `${state.products.length} ${state.products.length === 1 ? "gift" : "gifts"} to consider.`
-              : "Nothing quite right yet. Try a different description, or browse the collection."}
+              ? `${state.products.length} ${state.products.length === 1 ? "gift" : "gifts"}`
+              : "No matches. Try another search."}
           </p>
         )}
         {!hasQuery && query.length === 1 && (

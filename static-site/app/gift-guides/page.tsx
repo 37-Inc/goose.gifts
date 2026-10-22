@@ -3,6 +3,8 @@ import { previewMetadata } from "../../lib/metadata";
 import { PREVIEW_ORIGIN } from "../../lib/metadata";
 import { JsonLd } from "../../components/JsonLd";
 import { isFixtureRelease } from "../../lib/catalog";
+import { GuideIcon } from "../../components/GuideIcon";
+import { Icon } from "../../components/Icon";
 export const metadata = previewMetadata(
   "Gift guides",
   "Browse gift guides with original editorial and matching selections from the curated collection.",
@@ -31,19 +33,14 @@ export default function Guides() {
         }}
       />
       <div className="page-heading">
-        <p className="eyebrow">A little direction</p>
-        <h1>Know your audience.</h1>
-        <p>
-          Good bad ideas start with the person opening them. Browse all{" "}
-          {guides.length} guides.
-        </p>
+        <h1>Gift guides</h1>
       </div>
       <div className="guide-links">
-        {guides.map((guide, index) => (
+        {guides.map((guide) => (
           <a key={guide.slug} href={`/gift-guides/${guide.slug}`}>
-            <span>{String(index + 1).padStart(2, "0")}</span>
+            <GuideIcon slug={guide.slug} />
             {guide.title}
-            <span>↗</span>
+            <Icon name="chevron" />
           </a>
         ))}
       </div>

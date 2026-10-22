@@ -44,11 +44,7 @@ export function ProductCard({
         />
       </a>
       <div className="card-copy">
-        <p className="eyebrow">
-          {illustrative
-            ? "Illustrative fixture · not for sale"
-            : "The collection"}
-        </p>
+        {illustrative && <p className="eyebrow">Illustrative fixture · not for sale</p>}
         <h2>
           <a data-analytics-product-link="" href={`/gifts/${product.slug}`}>
             {product.punnyTitle || product.title}
@@ -56,8 +52,7 @@ export function ProductCard({
         </h2>
         <p>{product.wittyDescription || product.description}</p>
         <a data-analytics-product-link="" className="text-action" href={`/gifts/${product.slug}`}>
-          {illustrative ? "Explore the example" : "View gift"}{" "}
-          <span aria-hidden="true">↗</span>
+          {illustrative ? "Explore the example" : "View gift"}
         </a>
       </div>
     </article>

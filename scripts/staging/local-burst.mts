@@ -7,7 +7,7 @@ import { monitorEventLoopDelay, performance } from 'node:perf_hooks';
 import { pathToFileURL } from 'node:url';
 import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import type { CatalogAssetRoute, SiteAssetManifest } from '../../lib/catalog/types.ts';
-import { createBrowseRelease } from '../../static-site/lib/browse.ts';
+import { createBrowseRelease, INITIAL_BROWSE_COUNT } from '../../static-site/lib/browse.ts';
 import { validateCardShard } from '../../static-site/lib/card-shard.ts';
 import { nextRandomIndex } from '../../static-site/lib/selection.ts';
 import { createSiteWorker } from '../../workers/site/index.ts';
@@ -35,7 +35,7 @@ export function localFixture(now: () => number, lifetimeMs: number) {
       isActive: true, qualityScore: .8, eligibleUntil: end })) }, new Date(started));
   const browse = createBrowseRelease(snapshot), digest = hash(`${JSON.stringify(snapshot)}\n`);
   const plan = createStaticFeedPlan(snapshot, digest), prepared = prepareStaticFeed(snapshot, plan, digest)!;
-  assert.equal(browse.opening.length + browse.feed.initial.length, 12); assert.equal(browse.random.poolSize, 48);
+  assert.equal(browse.opening.length + browse.feed.initial.length, INITIAL_BROWSE_COUNT); assert.equal(browse.random.poolSize, 48);
   assert.equal(plan.entries.length, 60);
   const html = (products = browse.opening) => '<!doctype html><html><meta name="robots" content="noindex,nofollow"><body><main><h1>Local fictional fixtures, not for sale</h1>'
     + products.map(p => `<article><a href="/gifts/${p.slug}"><img src="${p.imageUrl}" alt="Owned fictional fixture" width="640" height="640"><h2>${p.title}</h2></a><p>${p.description}</p></article>`).join('')
@@ -143,7 +143,7 @@ export async function safetyProbes() {
   assert.equal((await f.request('/api/catalog-feed', { method: 'POST', body: '{}' })).status, 503);
   assert.doesNotMatch(await (await f.request('/sitemap.xml')).text(), /<url>/);
   assert.equal((await f.request('/catalog/unknown.json')).status, 404);
-  return { passed: true, initialCards: 12, randomPool: 48, shardLimit: 24, feedInspectionBound: 64,
+  return { passed: true, initialCards: INITIAL_BROWSE_COUNT, randomPool: 48, shardLimit: 24, feedInspectionBound: 64,
     expiryClock: 'advanced fixture clock outside timed load', privacy: 'protected CSP/noindex/no-store plus fixture asset scan' };
 }
 

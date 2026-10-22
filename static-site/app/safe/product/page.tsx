@@ -22,7 +22,7 @@ export default function SafeProduct() {
         Browse the rest of the collection while we review this selection.
       </p>
       <a className="button" href="/gifts">
-        Back to the collection →
+        Browse gifts
       </a>
     </main>
   );

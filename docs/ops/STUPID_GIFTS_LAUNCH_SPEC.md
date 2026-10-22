@@ -21,6 +21,59 @@ all deferred work a launch blocker.
 
 ## Purpose and decisions
 
+**October22 owner corrections:** Finish migrating the **whole catalog**, not
+only the eight visible launch products. Preserve every product identity, slug,
+native embedding, original editorial and history; a refresh deadline is not
+authorization to delete or deactivate a gift or remove it from search. Separate
+persistent cleared catalog content from supplier fields with genuine retention
+limits. After a supplier image, API description or offer expires, omit/replace
+that field with a compliant fallback while preserving a useful product page,
+listing and retailer link. Do not solve this by extending rights, republishing
+expired supplier data, or waiting for a 3,383-item backfill at ten items/day.
+Current whole-product `eligibleUntil` guards remain a known implementation gap,
+not the desired final catalog policy. Live pruning is paused pending this fix.
+Canonical child `roadmap-lbbz1.3.2` requires full source-to-production count/hash
+reconciliation, final source barrier/delta, broad browse/search coverage and
+real recovery proof before migration completion.
+
+Retire Weird Gift Index, its JSON endpoint, citations and schema completely;
+return genuine 404/410s. Do not publish the owner's personal name, byline or
+email anywhere on the public site. Keep truthful Thirty Seven Inc ownership
+and verified `goosegifts@37.technology` product contact. Homepage heading is
+**Stupid gifts. Excellent taste.** Remove repeated collection labels and the
+duplicate Collection navigation tab; home is the primary browse surface with
+24 initial gifts and static 24-item Load more batches. Keep crawlable directory
+URLs as supporting pagination, not a competing destination. Use restrained SVG
+guide glyphs rather than numbered lists or platform-dependent arrow symbols.
+Submit-based search remains for now: per-keystroke semantic embedding calls
+are not justified. Revisit bounded debounced keyword search after full migration.
+These corrections supersede conflicting older route/freshness/design language.
+
+### Full-catalog completion sequence (not daily discovery)
+
+1. Reconcile the protected full source baseline and final delta with **production**
+   D1. Staging's 3,383 identities are not production migration evidence; the
+   production launch packet contains ten private products, eight publicly ready.
+   Preserve source/native/history and any target-native records; inspect actual
+   receipts before claiming missing records were deleted or restored.
+2. Implement a persistent cleared-content product projection and field-specific
+   supplier deadlines. Keep original editorial, stable identifiers/slugs and
+   retailer navigation useful; replace only fields whose display rights expire.
+   Preserve unavailable products without implying they can currently be bought.
+   Add regressions showing refresh expiry cannot erase a product, its page or
+   its search identity. Do not disable supplier-rights guards wholesale.
+3. Bulk-migrate existing approved content and immutable history, not a thousands-
+   item paid refetch/regeneration. Build the broad homepage feed, product pages
+   and guides from that reconciled projection. Provide keyword coverage across
+   the catalog; preserve all native embeddings privately and measure the eligible
+   Vectorize subset against the existing Free quota before indexing. No paid
+   upgrade or silent catalog reduction to fit that index.
+4. Prove final source barrier/delta and recovery, compare actual counts/digests,
+   and test representative old/new product URLs, broad search, static Load more,
+   affiliate navigation and field expiry. Then publish Cloudflare and enable
+   the single daily-ten maintenance job. Daily refresh is ongoing upkeep, not
+   the migration mechanism. Keep the old site/data as rollback until verified.
+
 Prepare the existing gift catalog for a recurring weekly segment on **Howie
 Mandel Does Stuff** and the visitors it may bring. Optimize for products that
 are funny at a glance, worth exploring, and actually purchasable. The first
@@ -169,11 +222,11 @@ Use the existing `37.technology` Cloudflare account, which also owns
 | `/search` | Preserve its current redirect/query behavior in Worker routing; do not turn it into an unrelated page. |
 | `/api/search-products` | Worker semantic search with the existing response shape, bounded diagnostics, keyword fallback, and abuse limits. |
 | `/api/catalog-feed` | Preserve bounded POST compatibility using the published catalog artifact, not D1. New browsing uses small static feed shards. |
-| `/gifts` and pagination | Static directory pages. Move pagination to `/gifts/page/2` etc.; redirect existing `?page=N` links with correct canonical and boundary behavior. |
+| `/gifts` and pagination | Supporting crawlable directory pages, not a Collection tab. Home is the primary full-catalog browse destination. Preserve pagination URLs and correct canonical/boundary behavior. |
 | `/gifts/[slug]` | Prebuilt product HTML, metadata, related products and share card. Thin Worker expiry guard serves the asset or a safe noindex fallback without querying D1. Existing slugs do not change for branding. |
 | `/gift-guides` and `/gift-guides/[slug]` | Prebuilt existing guides with current eligibility and internal links. |
 | `/random-gift` | Static useful initial selection plus client-side spinning over a bounded versioned eligible pool. No DB request per spin. Preserve no-immediate-repeat; link/share the selection through its normal `/gifts/[slug]` URL. |
-| `/weird-gift-index` and `/weird-gift-index/data` | Static dated analysis and allowlisted public data generated together; preserve citation, methodology, schema, and contact identity. |
+| `/weird-gift-index` and its data/companion paths | Retired by owner October22; genuine 404/410, no schema, citation, JSON endpoint or public links. |
 | `/privacy`, robots, sitemap and verification files | Static artifacts. Retain `/sitemap/0.xml` compatibility while publishing `/sitemap.xml` directly. |
 | Retired bundle, admin/auth/report and `/api/og/random-gift` paths | No handlers or feature parity required; return a real 404/410. Product slug-history redirects remain, but bundle redirects and gift-query resolution do not. |
 | `/howie` | New static weekly selection and links to the actual products; previous episodes remain reachable. |

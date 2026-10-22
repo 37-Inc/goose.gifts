@@ -22,22 +22,20 @@ test('product views stay in client analytics instead of waking Neon', async () =
 });
 
 test('public catalog reads share the one-day cache policy', async () => {
-  const [policy, homepage, giftPages, randomGift, giftGuides, weirdIndex, sitemap] = await Promise.all([
+  const [policy, homepage, giftPages, randomGift, giftGuides, sitemap] = await Promise.all([
     readSource('../lib/catalog-cache-policy.ts'),
     readSource('../lib/db/operations.ts'),
     readSource('../lib/db/gift-pages.ts'),
     readSource('../lib/db/random-gift.ts'),
     readSource('../lib/gift-guides.ts'),
-    readSource('../lib/weird-gift-index.ts'),
     readSource('../app/sitemap.ts'),
   ]);
 
   assert.match(policy, /PUBLIC_CATALOG_CACHE_SECONDS = 86_400/);
-  for (const source of [homepage, giftPages, randomGift, giftGuides, weirdIndex]) {
+  for (const source of [homepage, giftPages, randomGift, giftGuides]) {
     assert.match(source, /PUBLIC_CATALOG_CACHE_SECONDS/);
   }
   assert.match(giftGuides, /unstable_cache\([\s\S]*tags: \['catalog-products'\]/);
-  assert.match(weirdIndex, /tags: \['catalog-products', 'weird-gift-index'\]/);
   assert.match(sitemap, /export const revalidate = 86_400/);
 });
 

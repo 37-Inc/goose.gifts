@@ -58,9 +58,14 @@ configuration and explicit activation remain separate release gates. Do not set
 the flag for current staging or fixture deployments.
 
 Review `/`, `/gifts/illustrative-very-official-paperweight`,
-`/gifts/illustrative-held-selection`, `/gift-guides`, `/weird-gift-index`,
-`/weird-gift-index/data`, `/random-gift`, `/howie`, `/safe/catalog`, and
+`/gifts/illustrative-held-selection`, `/gift-guides`,
+`/random-gift`, `/howie`, `/safe/catalog`, and
 `/preview/presentation`.
+Weird Gift Index and its data/companion routes are retired and must return 404,
+including when a stale package still contains those paths. Public source and
+final packaged assets must not contain personal owner attribution. A retained
+old chunk with that identity refuses packaging; use an explicit no-retention
+release rather than carrying those bytes forward.
 The last route is unlinked, noindex and excluded from sitemap policies; arrow,
 PageUp/PageDown, Home/End and Space keys operate its selection slides.
 

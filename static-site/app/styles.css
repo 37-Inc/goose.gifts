@@ -318,15 +318,19 @@ nav .nav-search {
   font-weight: 450;
   letter-spacing: -0.035em;
 }
-.guide-links > a > span:first-child {
-  font-size: 11px;
-  color: var(--muted);
-  width: 30px;
+.icon {
+  flex-shrink: 0;
+  vertical-align: middle;
 }
-.guide-links > a > span:last-child {
+.guide-links .guide-icon {
+  color: var(--muted);
+  width: 24px;
+  height: 24px;
+}
+.guide-links > a > .icon:last-child {
   margin-left: auto;
-  font-size: 20px;
-  color: var(--accent);
+  color: var(--muted);
+  width: 16px;
 }
 .catalog-grid {
   display: grid;
@@ -470,16 +474,14 @@ nav .nav-search {
   gap: 32px;
 }
 .guide-editorial h3,
-.guide-faq h3,
-.index-methodology h3 {
+.guide-faq h3 {
   font-size: 20px;
   line-height: 1.3;
   letter-spacing: -0.025em;
   margin: 0 0 16px;
 }
 .guide-editorial p,
-.guide-faq p,
-.index-report p:not(.eyebrow):not(.quiet) {
+.guide-faq p {
   color: var(--muted);
   font-size: 14px;
   line-height: 1.75;
@@ -489,8 +491,7 @@ nav .nav-search {
   max-width: 780px;
 }
 .guide-faq h2,
-.guide-detail > .section-block > h2,
-.index-report h2 {
+.guide-detail > .section-block > h2 {
   font-size: 28px;
   margin-bottom: 24px;
 }
@@ -512,69 +513,6 @@ nav .nav-search {
 .related-guide-links a:hover,
 .guide-links a:hover {
   color: var(--accent);
-}
-.index-report article {
-  max-width: 900px;
-  margin: auto;
-}
-.index-report time {
-  overflow-wrap: anywhere;
-}
-.index-scope {
-  padding: 28px;
-  background: #eeece3;
-}
-.index-scope p:last-child {
-  margin-bottom: 0;
-}
-.index-report table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  margin: 24px 0;
-}
-.index-report caption {
-  text-align: left;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.6;
-  margin-bottom: 18px;
-}
-.index-report th,
-.index-report td {
-  border-bottom: 1px solid var(--line);
-  padding: 15px 12px 15px 0;
-  text-align: right;
-  font-weight: 450;
-}
-.index-report th:first-child {
-  text-align: left;
-}
-.index-report thead th {
-  font-size: 10px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.index-methodology h3 {
-  margin-top: 30px;
-}
-.index-methodology details {
-  border-top: 1px solid var(--line);
-  font-size: 13px;
-  padding: 18px 0;
-}
-.index-methodology summary {
-  cursor: pointer;
-}
-.index-methodology details p {
-  margin: 18px 0 0;
-}
-.index-methodology .button {
-  margin-top: 24px;
-}
-.index-citation a {
-  text-decoration: underline;
 }
 #gift-retailer-primary {
   margin-top: 30px;
@@ -889,10 +827,11 @@ footer > .quiet {
 }
 .presentation-bottom button {
   height: 40px;
-  width: 48px;
+  min-width: 64px;
+  padding: 0 12px;
   border: 1px solid var(--line);
   background: transparent;
-  font-size: 22px;
+  font-size: 12px;
   margin-left: 8px;
 }
 .presentation-bottom .quiet {
@@ -934,9 +873,6 @@ body:has(.presentation-main) > .preview-notice {
   }
 }
 @media (max-width: 1000px) {
-  .desktop-note {
-    display: none;
-  }
   nav {
     gap: 20px;
   }
@@ -1008,12 +944,8 @@ body:has(.presentation-main) > .preview-notice {
     gap: 10px;
   }
   .guide-detail .section-heading h2,
-  .guide-faq h2,
-  .index-report h2 {
+  .guide-faq h2 {
     font-size: 24px;
-  }
-  .index-scope {
-    padding: 22px;
   }
   .preview-notice {
     font-size: 8px;
@@ -1130,10 +1062,6 @@ body:has(.presentation-main) > .preview-notice {
   .guide-links > a {
     font-size: 21px;
     padding: 23px 0;
-  }
-  .guide-links > a > span:first-child {
-    font-size: 9px;
-    width: 17px;
   }
   .catalog-grid {
     grid-template-columns: 1fr;

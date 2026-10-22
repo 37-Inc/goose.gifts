@@ -4,7 +4,7 @@ import { readySnapshotProducts, RANDOM_POOL_LIMIT } from "./selection";
 import { projectCard } from "./card-shard";
 import type { CardShard } from "./card-shard";
 
-export const INITIAL_BROWSE_COUNT = 12;
+export const INITIAL_BROWSE_COUNT = 24;
 export const FEED_SHARD_SIZE = 24;
 export function createBrowseRelease(snapshot: CatalogSnapshot) {
   const cards = readySnapshotProducts(snapshot).map(projectCard);

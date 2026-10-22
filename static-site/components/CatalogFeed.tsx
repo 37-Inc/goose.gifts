@@ -80,7 +80,7 @@ export function CatalogFeed({
       });
     } catch {
       if (!abort.signal.aborted)
-        setState({ products: [], next: null, status: "unavailable" });
+        setState((current) => ({ ...current, status: "unavailable" }));
     } finally {
       if (pending.current === abort) pending.current = null;
     }
@@ -91,12 +91,7 @@ export function CatalogFeed({
       className="browse-feed section-block"
       aria-labelledby="browse-heading"
     >
-      <div className="section-heading">
-        <h2 id="browse-heading">More questionable decisions.</h2>
-        <a href="/gifts" className="text-action">
-          Full collection ↗
-        </a>
-      </div>
+      <h2 id="browse-heading" className="sr-only">Gifts</h2>
       {state.products.length > 0 && (
         <div className="catalog-grid">
           {state.products.map((product) => (
@@ -107,12 +102,12 @@ export function CatalogFeed({
       <div role="status" aria-live="polite">
         {state.status === "unavailable" && (
           <p className="search-status">
-            This collection needs a fresh look.{" "}
-            <a href="/gifts">Browse the latest collection →</a>
+            More gifts couldn’t load.{" "}
+            <a href="/">Try again</a>
           </p>
         )}
         {state.status === "loading" && (
-          <p className="quiet">Loading a few more ideas…</p>
+          <p className="quiet">Loading gifts…</p>
         )}
       </div>
       {state.next && (
@@ -122,7 +117,7 @@ export function CatalogFeed({
           disabled={state.status === "loading"}
           onClick={more}
         >
-          More gifts <span aria-hidden="true">↓</span>
+          Load more
         </button>
       )}
     </section>
