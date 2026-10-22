@@ -6,7 +6,9 @@ import { DatabaseSync } from 'node:sqlite';
 import { createProjectionPacket, importPublicProjection, keywordSearchRevision, getListedRevisionProductsByPublicIds,
   getRevisionProductsByPublicIds, visibleRevisionCountQuery } from '../lib/catalog/d1.ts';
 import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication, completeActivatedPublication } from '../lib/catalog/publication.ts';
-import { enqueueBuildRequest, claimBuildRequest, beginBuildActivation, resolveBuildActivation } from '../lib/catalog/build-requests.ts';
+import { enqueueBuildRequest, claimBuildRequest, beginBuildActivation, resolveBuildActivation,
+  recoverUnstartedBuildRequest, readUnstartedBuildRecovery } from '../lib/catalog/build-requests.ts';
+import { claimMutationOwnership } from '../lib/catalog/mutation-fence.ts';
 import { setup, scope } from './helpers/published-vector-fixture.mjs';
 
 // Node SQLite's default1000 masks D1's actual100. Use SQLite's runtime engine
@@ -120,6 +122,28 @@ test('public SQL and actual publication/activation/receipt contexts compile at S
   phase = 'completePublication/receipt'; await completePublication(db, snapshot, intent.releaseId, publication.token, async () => intent, now);
   phase = 'resolveBuildActivation'; assert.equal(await resolveBuildActivation(db, permit, async () => ({ environment: 'staging', settled: true,
     active: { ...intent, versionReference: permit.versionReference } })), 'resolved');
+  // Execute/capture the new wrapper against this same genuinely permanent
+  // projection. Three real claims expire; the separate operator receipt never
+  // changes attempts=3 or replaces the current/publication predicates above.
+  phase = 'operator-build-claims';
+  const operatorRequest = await enqueueBuildRequest(db, { ...request, priorReleaseId: intent.releaseId });
+  let exhausted = await claimBuildRequest(db, operatorRequest.requestId, 'fixture-operator-depth', at);
+  for (const minutes of [11, 16]) {
+    at.setTime(at.getTime() + minutes * 60_000);
+    exhausted = await claimBuildRequest(db, operatorRequest.requestId, 'fixture-operator-depth', at);
+  }
+  assert.ok(exhausted); at.setTime(at.getTime() + 16 * 60_000);
+  sqlite.prepare('INSERT OR IGNORE INTO catalog_mutation_scopes(environment,index_name) VALUES(?,?)').run(scope.environment, scope.indexName);
+  const operatorOwner = await claimMutationOwnership(db, scope,
+    { phase: 'freezing', ownerReference: 'fixture-operator-depth', operationKey: 'e'.repeat(64) });
+  assert.ok(operatorOwner);
+  const approval = { schemaVersion: 1, requestId: operatorRequest.requestId, packageSha256: 'a'.repeat(64),
+    previousToken: exhausted.token, checkpointSha256: 'b'.repeat(64), reviewReference: 'fixture/depth100' };
+  phase = 'recoverUnstartedBuildRequest';
+  const recovered = await recoverUnstartedBuildRequest(db, exhausted, operatorOwner, 'depth-operator-release', approval);
+  phase = 'readUnstartedBuildRecovery';
+  assert.deepEqual(await readUnstartedBuildRecovery(db, recovered, operatorOwner, 'depth-operator-release', approval), recovered);
+  assert.equal(sqlite.prepare('SELECT attempts FROM catalog_build_requests WHERE request_id=?').get(operatorRequest.requestId).attempts, 3);
   const result = compileAtD1Depth(schema, queries);
   const failed = result.results.filter(q => !q.ok);
   t.diagnostic(JSON.stringify({ sqlite: result.sqlite, expressionDepth: result.limit, queries: queries.length, failed }));

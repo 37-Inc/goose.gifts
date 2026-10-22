@@ -409,7 +409,8 @@ function controlEvolution(old:CheckpointControl,next:CheckpointControl) {
     &&['publication','intent','permit','versionReference','deploymentId'].every(k=>a[k as keyof PublicationControl]===null&&b[k as keyof PublicationControl]===null)
     &&(a.stage==='claimed'?a.packageSha256===null:hash(a.packageSha256))&&a.packageSha256===b.packageSha256
     &&a.receiptSha256===undefined&&b.receiptSha256===undefined
-    &&!['publicationUploadPending','publicationUploadAcknowledged','publicationUploadReview'].some(k=>old.pins[k]||next.pins[k])
+    &&!['publicationUploadAcknowledged','publicationUploadReview'].some(k=>old.pins[k]||next.pins[k])
+    &&(!old.pins.publicationUploadPending||a.stage==='built') // Exact unchanged preflight pin; publisher proves its binding and explicit recovery receipt.
     &&same({...a,build:b.build},b)&&same({...a.build,token:b.build.token,leaseUntil:b.build.leaseUntil},b.build)
     &&a.build.token!==b.build.token&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(b.build.token)
     &&b.build.leaseUntil>a.build.leaseUntil&&b.build.leaseUntil<=a.build.request.cutoff;

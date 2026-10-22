@@ -10,8 +10,9 @@ import { mutationAssertion, readMutationOwner } from '../../lib/catalog/mutation
 import type { PrunedRevision } from '../../lib/catalog/prune-existing-revision.ts';
 import { prunedVectorIds, prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PermanentCatalogRevision } from '../../lib/catalog/freeze-permanent-catalog.ts';
-import type { ActivationPermit, DeploymentIdentity, DeploymentObservation } from '../../lib/catalog/build-requests.ts';
-import { beginBuildActivation, claimBuildRequest, encodeBuildRequest, resolveBuildActivation, drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
+import type { ActivationPermit, DeploymentIdentity, DeploymentObservation, BuildRecoveryApproval } from '../../lib/catalog/build-requests.ts';
+import { beginBuildActivation, claimBuildRequest, encodeBuildRequest, resolveBuildActivation, drainDeploymentObservation,
+  encodeBuildRecoveryApproval, recoverUnstartedBuildRequest, readUnstartedBuildRecovery } from '../../lib/catalog/build-requests.ts';
 import { isAccountedPublicationFetch } from './publication-read-fetch.ts';
 import { isAccountedPublicationUploadCommand, PublicationUploadCommandError } from './publication-upload-command.ts';
 import { isCatalogD1Rest } from './d1-write-rest.ts';
@@ -29,7 +30,7 @@ import { canonicalJson } from './migration.ts';
 import { readActivatedCatalogVectors } from './owned-vector-delivery.ts';
 import type { PublishedCatalogRead } from './owned-vector-delivery.ts';
 import { createVectorizeRestAdapters } from './vectorize-rest.ts';
-import type { RunWorkspace, PublicationControl } from './run-workspace.ts';
+import type { RunWorkspace, PublicationControl, ArtifactRef } from './run-workspace.ts';
 import { semanticBudgetConfig } from '../../workers/site/semantic-budget.ts';
 
 /** Explicit protected local operator path, NOT a scheduler or a cross-host lock.
@@ -278,8 +279,9 @@ function intentFrom(manifest:SiteAssetManifest,bytes:Uint8Array):PublicationInte
  * Credentials never enter checkpoints, artifacts, command args or returned errors.
  */
 export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision;requestId:string;runReference:string;
-  workspace:PublicationWorkspace;config:PublicationConfig;credentials:{cloudflareToken:string;identityAuthorization?:string};dependencies?:Dependencies}):Promise<PublicationResult>{
+  workspace:PublicationWorkspace;config:PublicationConfig;credentials:{cloudflareToken:string;identityAuthorization?:string};dependencies?:Dependencies;buildRecovery?:BuildRecoveryApproval}):Promise<PublicationResult>{
   const {db,workspace,revision}=options;const config=validatePublicationConfig(options.config);const now=options.dependencies?.now??(()=>new Date());
+  if(options.buildRecovery)encodeBuildRecoveryApproval(options.buildRecovery);
   if(options.permanent&&(options.published||!revision||canonicalJson(options.permanent)!==canonicalJson(revision))
     ||revision?.nativePreservation&&!options.permanent)throw new Error('publication_permanent_input_invalid');
   if(db.providerIdentity!==`cloudflare:${config.accountId}:${config.database.id}`)throw new Error('publication_database_scope_mismatch');
@@ -295,18 +297,20 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   const runtime=path.join(workspace.directory,'publication-runtime',config.releaseId);
   const uploadBinding=()=>({schemaVersion:1,releaseId:config.releaseId,requestId:options.requestId,configSha256,
     packageSha256:control!.packageSha256,uploadMarker:control!.uploadMarker});
-  const save=async(patch:Partial<PublicationControl>,nextOwner=owner)=>{
+  const save=async(patch:Partial<PublicationControl>,nextOwner=owner,uploadPending?:ArtifactRef)=>{
     await workspace.assertHeld();control={...control!,...patch};owner=nextOwner;
     // Read normal state only before activation; control-only settlement must not
     // turn expired merchant artifacts back into usable content.
     const view=await workspace.readCheckpoint({controlOnly:true});if(!view)throw new Error('publication_checkpoint_missing');
     if(view.checkpoint.control?.publication?.permit||control.permit&&view.checkpoint.control?.publication?.stage==='activating'){
+      if(uploadPending)throw new Error('publication_upload_review_required');
       await workspace.writeControlCheckpoint(view.sha256,{phase:'attention',owner,control:{publication:control}});
     }else{
       const current=await workspace.readCheckpoint();if(!current)throw new Error('publication_checkpoint_missing');
       const state=current.checkpoint.state;
       if(!state||typeof state!=='object'||Array.isArray(state))throw new Error('publication_checkpoint_invalid');
       await workspace.writeCheckpoint(current.sha256,{...current.checkpoint,phase:'publishing',owner,
+        ...(uploadPending?{pins:{...current.checkpoint.pins,publicationUploadPending:uploadPending}}:{}),
         state:JSON.parse(JSON.stringify({...state,publication:control})),control:{publication:control}});
     }
     checkpoint=await workspace.readCheckpoint({controlOnly:true});
@@ -318,10 +322,16 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     // ordinary CLI exit. Its body-free pin survives content expiry and prevents
     // a later uploading-stage resume from bypassing scope/accounting refusal.
     if(checkpoint?.checkpoint.pins.publicationUploadReview)throw new Error('publication_upload_review_required');
+    if(checkpoint?.checkpoint.pins.buildOperatorRecoveryPending&&control?.stage==='built'&&!options.buildRecovery)
+      throw new Error('publication_build_recovery_fenced');
     const pendingUpload=checkpoint?.checkpoint.pins.publicationUploadPending,acknowledgedUpload=checkpoint?.checkpoint.pins.publicationUploadAcknowledged;
+    // Old code pinned BEFORE preflight. Only this built-stage shape can prove
+    // no CLI invocation; actual owner/build/package/D1/provider checks follow.
+    const preflightPending=!!(pendingUpload&&!acknowledgedUpload&&control?.stage==='built'
+      &&pendingUpload.sha256===sha256(canonicalJson(uploadBinding()))&&isAccountedPublicationUploadCommand(command));
     // Pins are append-only. A durable exact acknowledgement logically clears
     // pending; no artifact-body read (or new content rights) is needed on expiry.
-    if((pendingUpload||acknowledgedUpload)&&(!control||!pendingUpload||!acknowledgedUpload
+    if(!preflightPending&&(pendingUpload||acknowledgedUpload)&&(!control||!pendingUpload||!acknowledgedUpload
       ||pendingUpload.sha256!==sha256(canonicalJson(uploadBinding()))
       ||acknowledgedUpload.sha256!==sha256(canonicalJson({...uploadBinding(),pending:pendingUpload}))))
       throw new Error('publication_upload_review_required');
@@ -360,8 +370,47 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     }
     // A lost activation-CAS response is recoverable ONLY for the exact claim.
     const actual=await readMutationOwner(db,owner);
-    const buildRow=(await db.prepare("SELECT *,strftime('%Y-%m-%dT%H:%M:%fZ','now') observed_at FROM catalog_build_requests WHERE request_id=?")
+    let buildRow=(await db.prepare("SELECT *,strftime('%Y-%m-%dT%H:%M:%fZ','now') observed_at FROM catalog_build_requests WHERE request_id=?")
       .bind(control.requestId).all<Record<string,unknown>>()).results[0];
+    const verifyBuiltPackage=async()=>{
+      const c=control!,sealed=await loadPackage(directory,config,c.packageSha256!,now()),request=c.build.request;
+      if(!revision||sealed.manifest.catalogSnapshotSha256!==request.sourceDigest
+        ||sealed.manifest.catalogRevision!==request.sourceRevision||sealed.manifest.priorReleaseId!==request.priorReleaseId
+        ||sealed.manifest.vectorSyncWatermark!==revision.vectorSyncWatermark
+        ||canonicalJson(sealed.snapshot)!==canonicalJson(revision.snapshot))throw new Error('publication_package_changed');
+    };
+    let operatorRecovered=false;
+    if(options.buildRecovery&&control.stage==='built'){
+      const approval=options.buildRecovery,recoveryPending=checkpoint?.checkpoint.pins.buildOperatorRecoveryPending;
+      const recoveryBinding={schemaVersion:1,approval,owner,releaseId:config.releaseId,configSha256,upload:uploadBinding()};
+      if(!preflightPending||owner.phase!=='freezing'||canonicalJson(actual)!==canonicalJson(owner)||!buildRow
+        ||approval.requestId!==control.requestId||approval.packageSha256!==control.packageSha256
+        ||control.publication!==null||control.intent!==null||control.permit!==null||control.versionReference!==null
+        ||control.deploymentId!==null||control.receiptSha256!==undefined
+        ||(recoveryPending?recoveryPending.sha256!==sha256(canonicalJson(recoveryBinding)):
+          buildRow.operator_recovery_json!==null||checkpoint?.sha256!==approval.checkpointSha256||control.build.token!==approval.previousToken))
+        throw new Error('publication_build_recovery_fenced');
+      await verifyBuiltPackage();
+      if(await api.findVersion(control.uploadMarker)!==null)throw new Error('publication_upload_review_required');
+      let recovered;
+      if(recoveryPending)recovered=await readUnstartedBuildRecovery(db,control.build,owner,config.releaseId,approval);
+      else{
+        // Persist dispatch intent BEFORE the only grant write. A lost marker ACK
+        // (even before SQL) stays held; reopening can ONLY read an exact receipt.
+        const current=await workspace.readCheckpoint();if(!current||current.sha256!==approval.checkpointSha256)
+          throw new Error('publication_build_recovery_fenced');
+        const marker=await workspace.putArtifact(recoveryBinding,{kind:'publication',observedAt:now().toISOString()});
+        await workspace.writeCheckpoint(current.sha256,{...current.checkpoint,
+          pins:{...current.checkpoint.pins,buildOperatorRecoveryPending:marker}});
+        checkpoint=await workspace.readCheckpoint({controlOnly:true});
+        try{recovered=await recoverUnstartedBuildRequest(db,control.build,owner,config.releaseId,approval);}
+        catch{recovered=await readUnstartedBuildRecovery(db,control.build,owner,config.releaseId,approval);}
+      }
+      if(canonicalJson(recovered)!==canonicalJson(control.build))await save({build:recovered});
+      buildRow=(await db.prepare("SELECT *,strftime('%Y-%m-%dT%H:%M:%fZ','now') observed_at FROM catalog_build_requests WHERE request_id=?")
+        .bind(control.requestId).all<Record<string,unknown>>()).results[0];
+      operatorRecovered=true;
+    }
     if(control.stage==='claimed'||control.stage==='built'){
       // No external step exists yet. Reclaim an expired BUILDING lease through
       // the ordinary bounded API, never renew its token or adopt a foreign one.
@@ -375,24 +424,23 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         ||control.publication!==null||control.intent!==null||control.permit!==null
         ||(control.stage==='claimed'?control.packageSha256!==null:!control.packageSha256||!HASH.test(control.packageSha256))
         ||control.versionReference!==null||control.deploymentId!==null||control.receiptSha256!==undefined
-        ||pendingUpload||acknowledgedUpload)throw new Error('publication_build_reclaim_fenced');
+        ||pendingUpload&&!preflightPending||acknowledgedUpload)throw new Error('publication_build_reclaim_fenced');
       const columns=Object.keys(buildRow).filter(key=>key!=='observed_at');
       const exact=(row:Record<string,unknown>)=>db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM catalog_build_requests
-        WHERE ${columns.map(key=>`${key} IS ?`).join(' AND ')}) THEN 'true' ELSE 'publication_build_reclaim_fenced' END)`)
+        WHERE ${columns.map(key=>`${key} IS ?`).join(' AND ')}${preflightPending?" AND lease_until>strftime('%Y-%m-%dT%H:%M:%fZ','now')":''}) THEN 'true' ELSE 'publication_build_reclaim_fenced' END)`)
         .bind(...columns.map(key=>row[key]));
       const undispatched=()=>db.prepare(`SELECT json(CASE WHEN NOT EXISTS(SELECT 1 FROM publication_outbox WHERE release_id=?)
         AND NOT EXISTS(SELECT 1 FROM publication_receipts WHERE release_id=?) THEN 'true' ELSE 'publication_build_reclaim_fenced' END)`)
         .bind(config.releaseId,config.releaseId);
       await db.batch([mutationAssertion(db,owner,['freezing']),exact(buildRow),undispatched(),mutationAssertion(db,owner,['freezing'])]);
       const at=canonicalTime(String(buildRow.observed_at));
+      if(preflightPending&&(canonicalTime(old.leaseUntil)<=at||old.leaseUntil<=now().toISOString()))throw new Error('publication_upload_review_required');
+      if(!operatorRecovered&&(preflightPending||canonicalTime(old.leaseUntil)<=at&&control.stage==='built'))await verifyBuiltPackage();
+      if(preflightPending&&!operatorRecovered){
+        if(await api.findVersion(control.uploadMarker)!==null)throw new Error('publication_upload_review_required');
+        await db.batch([mutationAssertion(db,owner,['freezing']),exact(buildRow),undispatched(),mutationAssertion(db,owner,['freezing'])]);
+      }
       if(canonicalTime(old.leaseUntil)<=at){
-        if(control.stage==='built'){
-          const sealed=await loadPackage(directory,config,control.packageSha256!,now());
-          if(!revision||sealed.manifest.catalogSnapshotSha256!==old.request.sourceDigest
-            ||sealed.manifest.catalogRevision!==old.request.sourceRevision||sealed.manifest.priorReleaseId!==old.request.priorReleaseId
-            ||sealed.manifest.vectorSyncWatermark!==revision.vectorSyncWatermark
-            ||canonicalJson(sealed.snapshot)!==canonicalJson(revision.snapshot))throw new Error('publication_package_changed');
-        }
         const attempts=Number(buildRow.attempts),leaseUntil=new Date(Math.min(Date.parse(at)+15*60000,Date.parse(old.request.cutoff))).toISOString();
         if(!Number.isInteger(attempts)||attempts<1||attempts>=3||leaseUntil<=at)throw new Error('publication_build_reclaim_fenced');
         let reclaimed:Awaited<ReturnType<typeof claimBuildRequest>>=null,uncertain=false;
@@ -541,14 +589,12 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     if(control.intent&&canonicalJson(control.intent)!==canonicalJson(intent))throw new Error('publication_package_changed');
     if(control.stage==='built'){
       const protectedUpload=isAccountedPublicationUploadCommand(command);
-      if(protectedUpload){
-        const current=await workspace.readCheckpoint();if(!current)throw new Error('publication_checkpoint_missing');
-        const pending=await workspace.putArtifact(uploadBinding(),{kind:'publication',observedAt:now().toISOString()});
-        await workspace.writeCheckpoint(current.sha256,{...current.checkpoint,pins:{...current.checkpoint.pins,publicationUploadPending:pending}});
-      }
       await enqueuePublication(db,sealed.snapshot,intent,now());
       const publication=await claimPublication(db,sealed.snapshot,intent.releaseId,now());if(!publication)throw new Error('publication_claim_unavailable');
-      await save({intent,publication,stage:'uploading'});
+      const pending=protectedUpload?await workspace.putArtifact(uploadBinding(),{kind:'publication',observedAt:now().toISOString()}):undefined;
+      // One checkpoint binds the first possible CLI invocation to both its
+      // exact publication claim and pending pin, never a preflight-only read.
+      await save({intent,publication,stage:'uploading'},owner,pending);
       assertBuildSource(config.sourceRoot,config.codeSha);await workspace.assertHeld();
       // Intent is durable before the only upload CLI invocation (Wrangler may
       // internally retry immutable version POST). Duplicate tags stay pending.

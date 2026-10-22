@@ -66,6 +66,38 @@ test('capture binds all24 complete tables, allocator/native bytes, actual schema
   const plan=prepareOwnedOperationalImport({packet,capture:result.capture,captureSha256:result.captureSha256,owner:f.owner});
   await assert.rejects(applyOwnedOperationalImport({db:f.db,plan:plan.plan,planSha256:plan.sha256,ownerCursor:{current:f.owner}}),/capture_unverified/);
 });
+
+test('additive build recovery column preserves original rowids/constraints and stays inside exact24-table capture',async t=>{
+  const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
+  for(const name of(await readdir(new URL('../migrations/d1/',import.meta.url))).filter(n=>/^\d{4}.*\.sql$/.test(n)&&n<'0016').sort())
+    sql.exec(await readFile(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
+  sql.prepare("INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES('audit-source',?,'fixture','reconciled')").run(AT);
+  sql.prepare(`INSERT INTO catalog_build_requests(request_id,environment,source_revision,request_json,state,attempts)
+    VALUES('audit-build','production','audit-source','{}','failed',3)`).run();
+  const before=sql.prepare('SELECT rowid,* FROM catalog_build_requests').all(),indexes=sql.prepare("SELECT name,sql FROM sqlite_schema WHERE type='index' AND tbl_name='catalog_build_requests' ORDER BY name").all();
+  sql.exec(await readFile(new URL('../migrations/d1/0016_build_operator_recovery.sql',import.meta.url),'utf8'));
+  const after=sql.prepare('SELECT rowid,* FROM catalog_build_requests').all();assert.equal(after[0].operator_recovery_json,null);
+  assert.deepEqual(after.map(({operator_recovery_json,...row})=>{void operator_recovery_json;return row;}),before.map(row=>({...row})));
+  assert.deepEqual(sql.prepare("SELECT name,sql FROM sqlite_schema WHERE type='index' AND tbl_name='catalog_build_requests' ORDER BY name").all(),indexes);
+  assert.deepEqual(sql.prepare('PRAGMA foreign_key_check').all(),[]);
+  assert.throws(()=>sql.exec('UPDATE catalog_build_requests SET attempts=4'),/CHECK/);
+  assert.throws(()=>sql.exec("UPDATE catalog_build_requests SET request_json='{\"altered\":true}'"),/immutable/);
+  assert.throws(()=>sql.exec("UPDATE catalog_build_requests SET operator_recovery_json='not JSON'"),/CHECK/);
+  sql.exec(`UPDATE catalog_build_requests SET operator_recovery_json='{"fixture":"opaque technical receipt"}'`);
+  for(const update of ['NULL',`'{"replacement":true}'`])assert.throws(()=>sql.exec(`UPDATE catalog_build_requests SET operator_recovery_json=${update}`),/immutable/);
+  assert.throws(()=>sql.exec('DELETE FROM catalog_build_requests'),/immutable/);
+  const f=await fixture(t);
+  f.sql.prepare("INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES('audit-source',?,'fixture','reconciled')").run(AT);
+  f.sql.prepare(`INSERT INTO catalog_build_requests(request_id,environment,source_revision,request_json,state,attempts,operator_recovery_json)
+    VALUES('audit-build','production','audit-source','{}','failed',3,?)`).run('{"fixture":"opaque technical receipt"}');
+  const capture=await captureOwnedD1(f.options);
+  assert.equal(capture.capture.inventory.length,24);assert.deepEqual(capture.capture.tables.catalog_build_requests,
+    f.sql.prepare('SELECT * FROM catalog_build_requests').all().map(row=>({...row})));
+  assert.equal(capture.receipt.schemas.filter(row=>row.name.startsWith('catalog_build_operator_recovery_')).length,2);
+  const packet={batches:[],preservedRows:[],summary:{sourceManifestSha256:'b'.repeat(64),importedAt:AT,batchCount:0,importedRows:0,sourceIdentityCount:0}};
+  const planned=prepareOwnedOperationalImport({packet,capture:capture.capture,captureSha256:capture.captureSha256,owner:f.owner});
+  assert.equal(planned.plan.baseline.catalog_build_requests[0].operator_recovery_json,'{"fixture":"opaque technical receipt"}');
+});
 async function cooperativePlan(f){
   const captured=await captureOwnedD1(f.options),row={...captured.capture.tables.products[0],id:'new-held-product',
     public_id:'00000000-0000-4000-8000-000000009999',slug:'new-held-product',source_record_json:'{"id":"new-held-product"}'};
