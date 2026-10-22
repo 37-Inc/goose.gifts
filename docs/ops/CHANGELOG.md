@@ -260,6 +260,7 @@ See `JOURNAL.md`, `roadmap-lbbz1.4.3` and `roadmap-lbbz1.4.5`.
   content, catalog, analytics, credential, routing or schedule mutation.
 - Receipt/screenshot references,940-event creative validation, six creative/
   ten Pinterest tests, production build, lint and diff check pass on Node22.
+  Domain handoff PR [#218](https://github.com/37-Inc/goose.gifts/pull/218).
 
 ### 2026-10-21 [owner+claude] — Bind prospective launch copy review to original evidence
 
