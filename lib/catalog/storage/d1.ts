@@ -1,15 +1,17 @@
 import { validatePublicCatalogProduct } from '../snapshot.ts';
 import type { PublicCatalogProduct } from '../types.ts';
 
+/** Optional cancellation is for observation SELECTs only, never mutation IO. */
+export interface D1ReadOptions { signal?: AbortSignal }
 export interface D1Statement {
   bind(...values: unknown[]): D1Statement;
-  all<T = Record<string, unknown>>(): Promise<{ results: T[] }>;
+  all<T = Record<string, unknown>>(options?: D1ReadOptions): Promise<{ results: T[] }>;
   run(): Promise<unknown>;
 }
 export interface CatalogD1 {
   prepare(sql: string): D1Statement;
   /** D1 batch is atomic: a failed statement rolls back the complete batch. */
-  batch(statements: D1Statement[]): Promise<unknown>;
+  batch(statements: D1Statement[], options?: D1ReadOptions): Promise<unknown>;
 }
 
 const READY = `p.is_active=1 AND p.duplicate_of_product_id IS NULL

@@ -1,0 +1,65 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { accountedPublicationReadFetch, isAccountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
+import { createVectorizeRestAdapters } from '../scripts/catalog/vectorize-rest.ts';
+
+const id='00000000-0000-4000-8000-000000000001';
+const scope={accountId:'a'.repeat(32),workerName:'fixture-worker',indexName:'fixture-index',databaseId:id,identityOrigin:'https://fixture.example.invalid'};
+const vector=`https://api.cloudflare.com/client/v4/accounts/${scope.accountId}/vectorize/v2/indexes/${scope.indexName}`;
+const init={method:'POST',redirect:'error',body:JSON.stringify({ids:[id]})};
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+test('scoped read companion refuses mutation/foreign/oversize requests before any reservation',async()=>{
+  const events=[];const ws={async reserveBudget(value){events.push(value);},async settleBudget(_id,value){events.push(value);}};
+  const read=accountedPublicationReadFetch(ws,async()=>Response.json({success:true,result:[]}),scope);
+  assert.equal(isAccountedPublicationReadFetch(read),true);assert.equal(isAccountedPublicationReadFetch(async()=>{}),false);
+  for(const [url,options]of [[`${vector}/upsert`,init],[`${vector}/get_by_ids`,{...init,body:JSON.stringify({ids:[id,id]})}],
+    [`${vector}/get_by_ids`,{...init,body:'x'.repeat(4097)}],[`${vector}/get_by_ids?other=1`,init],
+    ['https://other.invalid/.well-known/catalog-release.json',{method:'GET',redirect:'error'}],
+    [`${vector}/info`,{method:'GET',redirect:'follow'}]])await assert.rejects(read(url,options),/scope_invalid/);
+  assert.equal(events.length,0);
+  await read(`${vector}/get_by_ids`,init);assert.equal(events[0].units.httpRequests,1);assert.deepEqual(events[1],{status:'known',usage:{rowsRead:0,rowsWritten:0}});
+});
+test('abort during reserve never dispatches, preserves unknown once and awaits own settlement',async()=>{
+  let releaseReserve,releaseSettle,sends=0;const events=[];
+  const ws={async reserveBudget(){events.push('reserve');await new Promise(resolve=>{releaseReserve=resolve;});},
+    async settleBudget(_id,value){events.push(value.status);await new Promise(resolve=>{releaseSettle=resolve;});events.push('settled');}};
+  const read=accountedPublicationReadFetch(ws,async()=>{sends++;return Response.json({});},scope),controller=new AbortController();
+  let returned=false;const pending=read(`${vector}/get_by_ids`,{...init,signal:controller.signal}).finally(()=>{returned=true;});
+  const rejected=assert.rejects(pending,/read_unavailable/);controller.abort();releaseReserve();await pause(5);
+  assert.equal(returned,false);assert.equal(sends,0);assert.deepEqual(events,['reserve','unknown']);releaseSettle();await rejected;
+  assert.deepEqual(events,['reserve','unknown','settled']);
+});
+test('default read timeout fences arbitrary raw sender and late response cannot touch ledger',async t=>{
+  t.mock.timers.enable({apis:['setTimeout']});let deliver,cancelled=false;const events=[];
+  const ws={async reserveBudget(){events.push('reserve');},async settleBudget(_id,value){events.push(value.status);}};
+  const read=accountedPublicationReadFetch(ws,async()=>new Promise(resolve=>{deliver=resolve;}),scope);
+  const pending=read(`${vector}/get_by_ids`,init),rejected=assert.rejects(pending,/read_unavailable/);
+  await Promise.resolve();t.mock.timers.tick(10_000);await rejected;assert.deepEqual(events,['reserve','unknown']);
+  deliver(new Response(new ReadableStream({cancel(){cancelled=true;}})));await Promise.resolve();await Promise.resolve();
+  assert.equal(cancelled,true);assert.deepEqual(events,['reserve','unknown']);
+});
+test('owned native read waits for delayed durable cleanup beyond the generic ten-second drain',async t=>{
+  t.mock.timers.enable({apis:['setTimeout']});let sent=false,settled=false,returned=false;const events=[];
+  const ws={async reserveBudget(){events.push('reserve');},async settleBudget(_id,value){events.push(value.status);await pause(12_000);settled=true;}};
+  const read=accountedPublicationReadFetch(ws,async()=>{sent=true;return new Promise(()=>{});},scope);
+  const api=createVectorizeRestAdapters({...scope,environment:'staging',token:'TEST_ONLY',fetch:read,timeoutMs:10});
+  const pending=api.readback(id,new AbortController().signal).finally(()=>{returned=true;}),rejected=assert.rejects(pending,/provider_failed/);
+  await Promise.resolve();assert.equal(sent,true);t.mock.timers.tick(10);await Promise.resolve();await Promise.resolve();
+  assert.deepEqual(events,['reserve','unknown']);t.mock.timers.tick(10_000);await Promise.resolve();assert.equal(returned,false);assert.equal(settled,false);
+  t.mock.timers.tick(2000);await rejected;assert.equal(settled,true);assert.equal(returned,true);assert.deepEqual(events,['reserve','unknown']);
+});
+test('failed settlement is never retried or changed to another status',async()=>{
+  const events=[];const ws={async reserveBudget(){},async settleBudget(_id,value){events.push(value.status);throw new Error('durability failure');}};
+  const read=accountedPublicationReadFetch(ws,async()=>Response.json({}),scope);
+  await assert.rejects(read(`${vector}/get_by_ids`,init),/durability failure/);assert.deepEqual(events,['known']);
+});
+test('owned send accounting never grants an unbounded response-parser or stream-cancel join',async t=>{
+  t.mock.timers.enable({apis:['setTimeout']});let settled=0,cancelled=false;
+  const read=accountedPublicationReadFetch({async reserveBudget(){},async settleBudget(){settled++;}},async()=>new Response(new ReadableStream({
+    start(c){c.enqueue(new Uint8Array(128*1024+1));},cancel(){cancelled=true;return new Promise(()=>{});}})),scope);
+  const api=createVectorizeRestAdapters({...scope,environment:'staging',token:'TEST_ONLY',fetch:read,timeoutMs:10});
+  const pending=api.readback(id,new AbortController().signal),rejected=assert.rejects(pending,/cleanup_pending/);
+  for(let i=0;i<12;i++)await Promise.resolve();assert.equal(settled,1);assert.equal(cancelled,true);
+  t.mock.timers.tick(10);for(let i=0;i<12;i++)await Promise.resolve();
+  t.mock.timers.tick(10_000);await rejected;assert.equal(settled,1);
+});

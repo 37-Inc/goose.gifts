@@ -21,6 +21,8 @@ import { enqueuePublication, claimPublication, recordPublicationDispatch } from 
 import { sealCapturedRevision, settleCapturedRevision } from '../lib/catalog/prune-existing-revision.ts';
 import { createCatalogD1Rest } from '../scripts/catalog/d1-write-rest.ts';
 import { openRunWorkspace } from '../scripts/catalog/run-workspace.ts';
+import { createVectorizeRestAdapters } from '../scripts/catalog/vectorize-rest.ts';
+import { accountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
 
 const AT = Date.parse('2026-10-20T12:00:00.000Z');
 const at = ms => new Date(AT+ms).toISOString();
@@ -207,6 +209,34 @@ test('settled proof reuse requires actual held delete absence; no fabricated del
   const prepared=await prepareApprovedCohort(g.db,c.owner,c.request);assert.ok(approvedCohortVectorPlan(prepared.revision).absentIds.includes(uuid(3)));
   const before=g.calls();assert.equal((await reuseOwnedApprovedCohortVectorProof({db:g.db,owner:prepared.owner,revision:prepared.revision,adapters:g.adapters})).state,'unsupported');
   assert.equal(g.calls(),before);assert.equal(g.sql.prepare("SELECT count(*) n FROM catalog_vector_deliveries WHERE json_extract(request_json,'$.kind')='approved-cohort-reuse'").get().n,0);
+});
+test('activated whole-cohort read joins failed siblings and inner timeout accounting before rejecting',async t=>{
+  for(const fault of ['failure','timeout']){
+    const {f,options,revision}=await reusable(t);const proof=await reuseOwnedApprovedCohortVectorProof(options);
+    const queued=await settleOwnedApprovedCohortVectorProof({...options,owner:proof.owner});
+    const build=await claimBuildRequest(f.db,queued.requestId,'test-only/read-drain',f.now());
+    const intent={releaseId:'read-drain-release',catalogRevision:revision.snapshot.catalogRevision,codeSha:revision.request.codeSha,
+      catalogSnapshotSha256:revision.packet.receipt.snapshot_sha256,manifestSha256:'a'.repeat(64),vectorSyncWatermark:revision.vectorSyncWatermark,
+      priorReleaseId:'prior-release',nextExpiry:revision.snapshot.products[0].eligibleUntil};
+    await enqueuePublication(f.db,revision.snapshot,intent,f.now());const publication=await claimPublication(f.db,revision.snapshot,intent.releaseId,f.now());
+    await recordPublicationDispatch(f.db,revision.snapshot,publication,'test-only/read-drain',f.now());
+    const prior={environment:'staging',settled:true,active:{...f.priorIntent,versionReference:'old-version'}};
+    const permit=await beginBuildActivation(f.db,build,revision.snapshot,publication,'test-only/upload',async()=>prior,f.now(),queued.owner);
+    const plan=approvedCohortVectorPlan(revision),control={catalogRevision:plan.catalogRevision,planSha256:sha256(canonicalJson(plan)),ids:plan.products.map(p=>p.publicId)};
+    let reads=0,reserved=0,settled=0;const statuses=[];
+    const send=accountedPublicationReadFetch({async reserveBudget(){reserved++;},async settleBudget(_id,value){
+      await new Promise(resolve=>setTimeout(resolve,25));settled++;statuses.push(value.status);}},async(_url,init)=>{
+      reads++;const publicId=JSON.parse(init.body).ids[0];
+      if(fault==='failure'&&publicId===uuid(1))return Response.json({success:true,result:[]});
+      return new Promise((_,reject)=>init.signal.addEventListener('abort',()=>reject(new Error('raw abort')),{once:true}));
+    },{accountId:'a'.repeat(32),workerName:'fixture-worker',databaseId:uuid(9),indexName:scope.indexName,identityOrigin:'https://fixture.example.invalid'});
+    const native=createVectorizeRestAdapters({...scope,accountId:'a'.repeat(32),token:'TEST_ONLY',fetch:send});
+    await assert.rejects(readActivatedCatalogVectors(f.db,permit,control,{...f.adapters,readback:native.readback}),fault==='failure'?/vector_not_visible/:/vector_provider_timeout/);
+    assert.equal(reads,2);assert.equal(reserved,2);assert.equal(settled,2);assert.equal(statuses.filter(s=>s==='unknown').length,fault==='failure'?1:2);
+    await new Promise(resolve=>setTimeout(resolve,40));assert.equal(reads,2);assert.equal(settled,2);
+    assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'activating');
+    assert.equal((await readActivatedCatalogVectors(f.db,permit,control,f.adapters)).settled,true);
+  }
 });
 test('settled proof reuse refuses native/metadata errors, unknown/source reference drift, owner ABA, expiry and unapproved coverage',async t=>{
   for(const fault of ['native','metadata','model','eligible','reference','unknown','input','run','payload','source','outbox','prior','projection','aba','expiry']){

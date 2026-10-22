@@ -116,7 +116,9 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
     sourceMode,sourceRoot,releaseId:'fixture-release',identityOrigin:environment==='staging'?'https://fixture-worker.example.invalid':siteIdentityFor(sourceMode).origin,
     compatibilityDate:'2026-10-19',prior:priorConfig,...(semanticSearch===undefined?{}:{semanticSearch}),...(publicAnalytics===undefined?{}:{publicAnalytics})};
   let checkpoint={sha256:'0'.repeat(64),phase:'freezing',owner,state:{driverState:'preserved'},pins:{phase:'b'.repeat(64)},phaseComplete:null,control:{}};
-  let workspace={directory:path.join(directory,'workspace'),repository:await fs.realpath(sourceRoot),manifest:{codeSha},async assertHeld(){},assertScope(s){assert.deepEqual(s,{accountId:config.accountId,environment,databaseId:id,
+  let workspace={directory:path.join(directory,'workspace'),repository:await fs.realpath(sourceRoot),manifest:{codeSha},async assertHeld(){
+    if(checkpoint.control.publication?.stage==='published'&&mode.resolveDelayMs){const ms=mode.resolveDelayMs;delete mode.resolveDelayMs;await new Promise(resolve=>setTimeout(resolve,ms));}
+  },assertScope(s){assert.deepEqual(s,{accountId:config.accountId,environment,databaseId:id,
     databaseName:'fixture-db',workerName:'fixture-worker',indexName:scope.indexName});},async readCheckpoint(options){const copy=structuredClone(checkpoint);if(options?.controlOnly)delete copy.state;
       const {sha256,...value}=copy;return{sha256,checkpoint:value};},
     async writeCheckpoint(expected,value){assert.equal(expected,checkpoint.sha256);checkpoint={...structuredClone(value),sha256:sha(canonicalJson(value))};},
@@ -175,7 +177,9 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
         ...Object.entries(uploadedConfigs.at(-1)?.vars??{}).filter(([name])=>name.startsWith('SEMANTIC_SEARCH_')&&name!==mode.missingSearchBinding)
           .map(([name,text])=>({name,type:'plain_text',text:mode.searchBinding?.name===name?mode.searchBinding.text:text})),
         ...(!mode.missingGuard?[{name:'STAGING_AUTH_SECRET',type:'secret_text'}]:[])]}});}
-    if(u.pathname.endsWith('/get_by_ids')){if(mode.vectorFailure)return response([]);const expected=structuredClone(vector);
+    if(u.pathname.endsWith('/get_by_ids')){if(mode.vectorAbortCleanup){return new Promise((_,reject)=>init.signal.addEventListener('abort',()=>setTimeout(()=>{
+      mode.vectorCleaned=true;reject(new Error('PRIVATE accounted abort cleanup'));},40),{once:true}));}
+      if(mode.vectorFailure)return response([]);const expected=structuredClone(vector);
       // Preserve signed-zero native bytes across the mock REST boundary.
       return new Response(`{"success":true,"result":[{"id":"${id}","values":[${expected.values.map(n=>Object.is(n,-0)?'-0':n).join(',')}],"metadata":${JSON.stringify(expected.metadata)}}]}`,{headers:{'Content-Type':'application/json'}});}
     if(u.pathname.endsWith('/deployments')){
@@ -650,4 +654,31 @@ test('independent uploaded enabled/request/token binding mismatches or missing c
     delete f.mode.missingSearchBinding;delete f.mode.searchBinding;
     assert.equal((await f.execute()).state,'published');assert.equal(f.counts().uploadCalls,1);
   }
+});
+test('protected resolve accepts a healthy aggregate observation over the legacy three-second deadline',async t=>{
+  const f=await setup(t);f.mode.resolveDelayMs=3200;
+  const start=performance.now();assert.equal((await f.execute()).state,'published');assert.ok(performance.now()-start>=3200);
+  assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+  assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
+  const counts=f.counts();assert.equal((await f.execute()).state,'published');assert.deepEqual(f.counts(),{...counts,httpCalls:counts.httpCalls+2});
+});
+test('inner native timeout drains aborted read cleanup before pending, keeps permit, and exact retry settles once',async t=>{
+  const f=await setup(t);f.mode.activationLost=true;assert.equal((await f.execute()).state,'pending');delete f.mode.activationLost;
+  f.mode.vectorAbortCleanup=true;assert.equal((await f.execute()).state,'pending');assert.equal(f.mode.vectorCleaned,true);
+  assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests').get().state,'activating');
+  assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,0);
+  const counts=f.counts();await new Promise(resolve=>setTimeout(resolve,75));assert.deepEqual(f.counts(),counts);
+  delete f.mode.vectorAbortCleanup;assert.equal((await f.execute()).state,'published');
+  assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+  assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
+});
+test('outer resolve deadline aborts the owned chain before further reads, preserves receipt and retries exactly',async t=>{
+  const f=await setup(t),timer=globalThis.setTimeout;
+  t.mock.method(globalThis,'setTimeout',(fn,ms,...args)=>timer(fn,ms===30_000?10:ms,...args));
+  f.mode.resolveDelayMs=75;assert.equal((await f.execute()).state,'pending');
+  assert.equal(f.checkpoint().control.publication.stage,'published');
+  assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests').get().state,'activating');
+  const counts=f.counts();await new Promise(resolve=>setTimeout(resolve,100));assert.deepEqual(f.counts(),counts);
+  assert.equal((await f.execute()).state,'published');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+  assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
 });

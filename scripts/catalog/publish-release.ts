@@ -10,7 +10,9 @@ import { mutationAssertion, readMutationOwner } from '../../lib/catalog/mutation
 import type { PrunedRevision } from '../../lib/catalog/prune-existing-revision.ts';
 import { prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { DeploymentIdentity, DeploymentObservation } from '../../lib/catalog/build-requests.ts';
-import { beginBuildActivation, claimBuildRequest, resolveBuildActivation } from '../../lib/catalog/build-requests.ts';
+import { beginBuildActivation, claimBuildRequest, resolveBuildActivation, drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
+import { isAccountedPublicationReadFetch } from './publication-read-fetch.ts';
+import { isCatalogD1Rest } from './d1-write-rest.ts';
 import type { PublicationIntent } from '../../lib/catalog/publication.ts';
 import { claimPublication, completeActivatedPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
 import type { SiteAssetManifest } from '../../lib/catalog/types.ts';
@@ -171,20 +173,29 @@ function provider(config:PublicationConfig,token:string,send:typeof fetch,identi
   if(!token||token.length>4096||/[^\x21-\x7e]/.test(token)
     ||identityAuthorization!==undefined&&(identityAuthorization.length>4096||/[\r\n]/.test(identityAuthorization)))throw new Error('publication_credentials_invalid');
   const base=`https://api.cloudflare.com/client/v4/accounts/${config.accountId}`;let calls=0;
-  async function request(url:string,body?:unknown,identity=false,allow404=false):Promise<unknown>{
+  async function request(url:string,body?:unknown,identity=false,allow404=false,signal?:AbortSignal):Promise<unknown>{
+    signal?.throwIfAborted();
     if(++calls>100)throw new Error('publication_provider_bound');const controller=new AbortController();let timer:ReturnType<typeof setTimeout>|undefined;
     let reader:ReadableStreamDefaultReader<Uint8Array>|undefined;
-    try{return await Promise.race([(async()=>{const response=await send(url,{method:body===undefined?'GET':'POST',redirect:'error',signal:controller.signal,
+    let sent:Promise<Response>|undefined,pending:Promise<unknown>|undefined,cancellation:Promise<unknown>|undefined,rejectAbort:(error:Error)=>void=()=>{};
+    const aborted=new Promise<never>((_,reject)=>{rejectAbort=reject;});
+    const abort=()=>{controller.abort();cancellation??=reader?.cancel().catch(()=>{});rejectAbort(new Error());};
+    signal?.addEventListener('abort',abort,{once:true});
+    try{pending=(async()=>{const response=await(sent=send(url,{method:body===undefined?'GET':'POST',redirect:'error',signal:controller.signal,
       headers:identity?{...(identityAuthorization?{Authorization:identityAuthorization}:{}), 'Cache-Control':'no-cache'}:
-        {Authorization:`Bearer ${token}`,...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})});
+        {Authorization:`Bearer ${token}`,...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})}));
+      if(controller.signal.aborted){void response.body?.cancel().catch(()=>{});throw new Error();}
       if(response.status===404&&allow404){await response.body?.cancel();return null;}
       if(!response.ok||!response.body)throw new Error();reader=response.body.getReader();const chunks:Uint8Array[]=[];let size=0;
       try{for(;;){const part=await reader.read();if(part.done)break;size+=part.value.byteLength;
         if(size>512*1024){await reader.cancel();throw new Error();}chunks.push(part.value);}}finally{reader.releaseLock();}
       const raw=JSON.parse(Buffer.concat(chunks).toString('utf8'));
       if(identity)return raw;if(!raw||raw.success!==true||!Object.hasOwn(raw,'result'))throw new Error();return raw.result;
-    })(),new Promise<never>((_,reject)=>{timer=setTimeout(()=>{controller.abort();void reader?.cancel().catch(()=>{});reject(new Error());},2500);})]);
-    }catch{throw new Error(body===undefined?'publication_provider_unavailable':'publication_activation_unknown');}finally{clearTimeout(timer);}
+    })();return await Promise.race([pending,aborted,new Promise<never>((_,reject)=>{timer=setTimeout(()=>{abort();reject(new Error());},2500);})]);
+    }catch{throw new Error(body===undefined?'publication_provider_unavailable':'publication_activation_unknown');}
+    finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);if(body===undefined&&controller.signal.aborted&&pending){
+      if(isAccountedPublicationReadFetch(send)&&sent)await sent.catch(()=>{});
+      await drainDeploymentObservation(Promise.allSettled([pending,cancellation]));}}
   }
   const script=`${base}/workers/scripts/${config.workerName}`;
   return{
@@ -201,13 +212,13 @@ function provider(config:PublicationConfig,token:string,send:typeof fetch,identi
           const version=await this.version(item.id);if((version.annotations as Record<string,unknown>)?.['workers/tag']===marker)found.push(item.id);}
         if(result.items.length<10){if(found.length>1)throw new Error('publication_version_ambiguous');return found[0]??null;}}
       throw new Error('publication_version_lookup_bound');},
-    async deployed(){const result=await request(`${script}/deployments`,undefined,false,true) as {deployments?:unknown[]}|null;
+    async deployed(signal?:AbortSignal){const result=await request(`${script}/deployments`,undefined,false,true,signal) as {deployments?:unknown[]}|null;
       if(result===null)return null;if(!Array.isArray(result?.deployments))throw new Error('publication_provider_invalid');
       const value=result.deployments[0] as {id?:string;versions?:{version_id:string;percentage:number}[];annotations?:Record<string,unknown>}|undefined;
       if(!value)return null;if(!UUID.test(value.id??'')||!Array.isArray(value.versions)||value.versions.length!==1
         ||value.versions[0].percentage!==100||!UUID.test(value.versions[0].version_id))throw new Error('publication_deployment_not_settled');
       return{id:value.id!,version:value.versions[0].version_id,marker:value.annotations?.['workers/message']};},
-    async identity(){return await request(`${config.identityOrigin}/.well-known/catalog-release.json`,undefined,true);},
+    async identity(signal?:AbortSignal){return await request(`${config.identityOrigin}/.well-known/catalog-release.json`,undefined,true,false,signal);},
     async activate(version:string,marker:string){const result=await request(`${script}/deployments`,{strategy:'percentage',
       versions:[{version_id:version,percentage:100}],annotations:{'workers/message':marker}}) as {id?:string};
       if(!UUID.test(result?.id??''))throw new Error('publication_activation_unknown');return result.id!;},
@@ -347,16 +358,16 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     }
     if(control.permit){
       owner=control.permit.mutationOwner!;
-      const observed=async():Promise<DeploymentObservation>=>{
-        await workspace.assertHeld();const deployed=await api.deployed();
+      const observed=async(signal?:AbortSignal):Promise<DeploymentObservation>=>{
+        signal?.throwIfAborted();await workspace.assertHeld();signal?.throwIfAborted();const deployed=await api.deployed(signal);signal?.throwIfAborted();
         if(!deployed||deployed.version!==control!.versionReference||deployed.marker!==control!.deploymentMarker
           ||control!.deploymentId!==null&&deployed.id!==control!.deploymentId)throw new Error('publication_activation_pending');
-        if(!matchesIdentity(await api.identity(),control!.intent!))throw new Error('publication_identity_mismatch');
+        if(!matchesIdentity(await api.identity(signal),control!.intent!))throw new Error('publication_identity_mismatch');signal?.throwIfAborted();
         await readActivatedCatalogVectors(db,control!.permit!,control!.vectorPlan,createVectorizeRestAdapters({environment:config.environment,
-          indexName:config.indexName,accountId:config.accountId,token:options.credentials.cloudflareToken,fetch:options.dependencies?.fetch}));
+          indexName:config.indexName,accountId:config.accountId,token:options.credentials.cloudflareToken,fetch:options.dependencies?.fetch}),{signal});signal?.throwIfAborted();
         // Re-read deployment after independent identity/vector reads. Never infer
         // not-submitted from elapsed time or an observed prior deployment.
-        const after=await api.deployed();if(canonicalJson(after)!==canonicalJson(deployed))throw new Error('publication_activation_pending');
+        const after=await api.deployed(signal);signal?.throwIfAborted();if(canonicalJson(after)!==canonicalJson(deployed))throw new Error('publication_activation_pending');
         return{environment:config.environment,settled:true,active:identity(control!.intent!,control!.versionReference!)};
       };
       if((await publicationStatus(db,config.releaseId)).state!=='published'){
@@ -380,7 +391,14 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
           // that digest in the protected control journal, never renew content.
         }}
       await save({stage:'published',receiptSha256:ref.sha256});
-      if(await resolveBuildActivation(db,control.permit,observed)!=='resolved')throw new Error('publication_activation_pending');
+      let observation:Promise<DeploymentObservation>|undefined;
+      try{if(await resolveBuildActivation(db,control.permit,signal=>(observation=observed(signal)),{observationTimeoutMs:30_000})!=='resolved')
+        throw new Error('publication_activation_pending');}
+      finally{if(observation){
+        // Only concrete bounded read transports can own durable ledger cleanup.
+        // Arbitrary injected adapters never acquire an unbounded join.
+        if(isAccountedPublicationReadFetch(options.dependencies?.fetch)&&isCatalogD1Rest(db))await observation.catch(()=>{});
+        else await drainDeploymentObservation(observation);}}
       return{state:'published',owner:null,releaseId:config.releaseId,receiptSha256:ref.sha256,receipt:proof};
     }
     if(config.prior===null)throw new Error('publication_bootstrap_required'); // Historical reconciliation only; never a new external action.

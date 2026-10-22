@@ -14,7 +14,7 @@ const result=(results=[],meta={})=>({success:true,results,meta:{served_by_primar
 const originalFetch=globalThis.fetch;
 globalThis.fetch=async()=>{throw new Error('Live network is forbidden in this test');};
 test.after(()=>{globalThis.fetch=originalFetch;});
-async function fixture(t,limits) {
+async function fixture(t,limits,accounting) {
   const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('CREATE TABLE items(id TEXT PRIMARY KEY,value TEXT)');
   const calls=[];let change;
   const fetch=async(url,init)=>{
@@ -34,7 +34,9 @@ async function fixture(t,limits) {
       }sql.exec('COMMIT');return ok(rows);
     }catch{sql.exec('ROLLBACK');return new Response(JSON.stringify({success:false,errors:[{message:'PRIVATE SQL/value/token'}]}),{status:400});}
   };
-  const db=await createCatalogD1Rest({...config,fetch,limits});
+  const db=await createCatalogD1Rest({...config,fetch,limits,accounting:accounting&&{...accounting,
+    scope:{accountId:config.accountId,databaseId:config.databaseId,databaseName:config.databaseName},
+    initial:{httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0}}});
   return{db,sql,calls,fetch,change(fn){change=fn;}};
 }
 test('explicit identity/disabled replication and primary probe precede standard immutable all/run/batch operations',async t=>{
@@ -168,4 +170,23 @@ test('timeout covers fetch and body, oversize body cancels; all outcomes remain 
   await assert.rejects(f.db.prepare('SELECT 1').all(),/result_unknown/);assert.equal(cancelled,true);
   cancelled=false;f.change(()=>new Response(new ReadableStream({cancel(){cancelled=true;}}),{status:403}));
   await assert.rejects(f.db.prepare('SELECT 1').all(),/result_unknown/);assert.equal(cancelled,true);
+});
+test('observation abort drains transport and unknown accounting; no later dispatch or cancellable mutation',async t=>{
+  const events=[];let holdReserve=false,releaseReserve;
+  const f=await fixture(t,undefined,{async reserve(){events.push('reserve');if(holdReserve)await new Promise(resolve=>{releaseReserve=resolve;});},
+    async settle(_id,value){await new Promise(resolve=>setTimeout(resolve,15));events.push(value.status);}});
+  events.length=0;const aborter=new AbortController();let cleaned=false;
+  f.change((_batch,init)=>new Promise((_,reject)=>init.signal.addEventListener('abort',()=>setTimeout(()=>{cleaned=true;reject(new Error('aborted'));},25),{once:true})));
+  const pending=f.db.prepare('SELECT 1').all({signal:aborter.signal});
+  await new Promise(resolve=>setTimeout(resolve,5));aborter.abort();await assert.rejects(pending,/result_unknown/);
+  assert.equal(cleaned,true);assert.deepEqual(events,['reserve','unknown']);assert.equal(f.db.metrics().unconfirmedRequests,1);
+  const count=f.calls.length;await new Promise(resolve=>setTimeout(resolve,40));assert.equal(f.calls.length,count);assert.deepEqual(events,['reserve','unknown']);
+  await assert.rejects(f.db.prepare('SELECT 1').all({signal:aborter.signal}),/abort/i);assert.equal(f.calls.length,count);
+  for(const statements of [[f.db.prepare("INSERT INTO items VALUES('bad','bad')")],[f.db.prepare('SELECT 1'),f.db.prepare('DELETE FROM items')]])
+    await assert.rejects(f.db.batch(statements,{signal:new AbortController().signal}),/read_signal_invalid/);
+  assert.equal(f.calls.length,count);assert.equal(f.sql.prepare('SELECT count(*) n FROM items').get().n,0);
+  // Abort during async reservation cannot dispatch afterward or refund its reservation.
+  holdReserve=true;const second=new AbortController();const reserved=f.db.prepare('SELECT 1').all({signal:second.signal});
+  while(!releaseReserve)await new Promise(resolve=>setTimeout(resolve,1));second.abort();releaseReserve();
+  await assert.rejects(reserved,/result_unknown/);assert.equal(f.calls.length,count);assert.deepEqual(events,['reserve','unknown','reserve','unknown']);
 });

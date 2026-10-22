@@ -85,6 +85,23 @@ test('canonical immutable requests are idempotent and cannot invent unknown sour
       assert.throws(() => encodeBuildRequest({ ...f.request, ...changed }));
   } finally { f.close(); }
 });
+test('resolve-only observation timeout is explicit, bounded, aborts and leaves exact activation retryable',async()=>{
+  const f=await setup();
+  try{
+    const claim=await f.build(),publication=await f.publication(),permit=await f.activate(claim,publication);
+    let observedSignal;const before=f.calls.length;
+    for(const value of [0,9,30_001,1.5,NaN,Infinity])await assert.rejects(resolveBuildActivation(f.db,permit,async()=>f.after,{observationTimeoutMs:value}),/invalid_observation_timeout/);
+    assert.equal(f.calls.length,before);
+    await assert.rejects(resolveBuildActivation(f.db,permit,async signal=>{observedSignal=signal;return new Promise(()=>{});},{observationTimeoutMs:10}),/observation_failed/);
+    assert.equal(observedSignal.aborted,true);assert.equal(f.row().state,'activating');
+    assert.equal(await resolveBuildActivation(f.db,permit,async()=>f.after),'awaiting_receipt');
+    const scheduled=[],timer=globalThis.setTimeout;
+    // An unchanged generic caller still receives the original three-second bound.
+    const original=globalThis.setTimeout;globalThis.setTimeout=(fn,ms,...args)=>{scheduled.push(ms);return timer(fn,ms,...args);};
+    try{assert.equal(await resolveBuildActivation(f.db,permit,async()=>f.after),'awaiting_receipt');}finally{globalThis.setTimeout=original;}
+    assert.deepEqual(scheduled,[3000]);
+  }finally{f.close();}
+});
 
 test('unchanged check does no D1 work; duplicate due checks dispatch one request but never publish', async () => {
   const f = await setup(); let dispatched = 0;
