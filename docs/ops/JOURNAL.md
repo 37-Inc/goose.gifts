@@ -47,6 +47,38 @@ diff/receipt/screenshot checks pass. The first new throttling test used a generi
 Error; corrected the fixture to the actual AmazonCreatorsApiError class so it
 tests the real provider classification without weakening production handling.
 
+**Initial merge hold, not falsely green:** the initial broader run finished 1,132 tests:
+1,108 pass / four fail /20 optional skips. One relevant failure compared the
+historical recipe reference to current whole-file bytes; corrected only the
+test to read the actual immutable `7223ead` Git blob. All eight provenance tests
+now pass; historical recipe/validator references and all catalog evidence stay
+unchanged. Ten isolated publication deadline/abort tests also pass. The 393-asset
+synthetic preview build and release verifier passed from clean source `5f4d7a3`;
+no deployment was performed.
+
+A diagnostic run excluding the three slowest suites recorded additional
+pre-existing checks: guide text assertions expect old “Browse the collection” /
+“No matching ready products” copy; the current approved component says “Browse
+all gifts” / “No matching gifts yet.” The indexability mismatch independently
+reproduces on clean pre-change `6e710fb`. Same-catalog publication lost-ACK and
+expired-lease fixtures also fail (pending vs published / vector timeout);
+their source/production modules are untouched by this PR. Baseline replay is
+recorded separately in the body-free validation summary. Do not change
+publication behavior, silently waive the broad suite, or describe it as green.
+PR #261 contains the source cleanup; external API retirement remains complete.
+
+**Failure-case replay complete:** the same guide expectation fails on the clean
+pre-change checkout. Updated only the two stale copy expectations to the actual
+approved component text, preserving every indexability/schema/membership check.
+All20 provenance/guide/export checks pass. The lost-ACK case passes on clean
+baseline; both branch lost-ACK and expired-lease cases pass isolated serial
+replay (117.873s total). No publisher or vector code, deadline, retry, budget or
+native guard was changed. The initial failures under concurrent fixture load
+remain recorded; do not describe the initial full sweep as green or pretend it
+was repeated. All identified failed cases have now passed, along with the
+catalog121 and deadline/abort10 checks. This is bounded follow-up validation,
+not a waiver or a new production publication.
+
 ## 2026-10-22 — Prepared full catalog published and independently verified
 
 Actual acceptance supersedes the pending checkpoints below; their failed reads,

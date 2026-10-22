@@ -113,7 +113,7 @@ test("eligible maintained routes index only in explicit production; held/thin/du
       assert.equal(output.robots.rules.disallow, "/");
       assert.match(output.privacy, /Preview privacy/);
     }
-    assert.match(output.emptyGuide, /Browse the collection/);
+    assert.match(output.emptyGuide, /Browse all gifts/);
     assert.doesNotMatch(output.emptyGuide, /Browse the staging collection/);
   }
 });

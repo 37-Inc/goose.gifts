@@ -172,7 +172,7 @@ test(
         graph.some((item) => item["@type"] === "FAQPage"),
         Boolean(guide.faqs?.length),
       );
-      if (!selected.length) assert.match(html, /No matching ready products/);
+      if (!selected.length) assert.match(html, /No matching gifts yet/);
       for (const product of exportSnapshot.products)
         assert.equal(
           html.includes(`href="/gifts/${product.slug}"`),

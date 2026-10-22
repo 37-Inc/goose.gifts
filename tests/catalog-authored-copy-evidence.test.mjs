@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
 import test from 'node:test';
 import { mapAuthoredCopyEvidence } from '../scripts/catalog/authored-copy-evidence.ts';
 import { editorialSourceHash, editorialWordCount, validateEditorialDraft } from '../scripts/ops/catalog-editorial-core.mjs';
@@ -150,12 +150,21 @@ test('UTF-8 field hashes and historical fallback truncation are byte-exact, neve
   assert.equal(field.value, fallback); assert.equal(field.sha256, hash(fallback));
 });
 
-test('historical recipe/validator references pin the actual reviewed source, rather than unversioned future behavior', async () => {
+test('historical recipe/validator references pin the actual reviewed source, rather than unversioned future behavior', () => {
   const fixture = setup([product({ witty_description: 'Found while hunting for peculiar desk gifts.' })]); fixture.options.seeds = [];
   const fields = fixture.run().products[0].fields;
   for (const [field, file, symbol] of [[fields.description, 'prefetch-catalog.mjs', 'fallbackWittyDescription'],
     [fields.editorialWriteup, 'catalog-editorial-core.mjs', 'validateEditorialDraft']]) {
-    const bytes = await readFile(new URL(`../scripts/ops/${file}`, import.meta.url));
-    assert.equal(field.references.some(ref => ref.endsWith(`#${symbol}:sha256:${hash(bytes)}`)), true);
+    const ref = field.references.find(ref => ref.includes(`/${file}#${symbol}:sha256:`));
+    assert.ok(ref);
+    const match = /^repo:([a-f0-9]{40})\/(scripts\/ops\/[^#]+)#([^:]+):sha256:([a-f0-9]{64})$/.exec(ref);
+    assert.ok(match);
+    assert.equal(match[1], '7223ead2619eb3f5937d5a826639603f50a13fdf');
+    assert.equal(match[2], `scripts/ops/${file}`);assert.equal(match[3], symbol);
+    // Compare the immutable reviewed blob, not unrelated future edits to the
+    // current checkout. Never relabel a historical recipe to make a test green.
+    const bytes = execFileSync('git', ['show', `${match[1]}:${match[2]}`], { cwd: new URL('../', import.meta.url) });
+    assert.equal(hash(bytes), match[4]);
+    assert.match(bytes.toString(), new RegExp(`function ${symbol}\\b`));
   }
 });

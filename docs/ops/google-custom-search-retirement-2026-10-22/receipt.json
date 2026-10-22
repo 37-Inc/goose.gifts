@@ -38,5 +38,10 @@
     "No project, key or Programmable Search Engine object deletion",
     "No site publication, scheduler change, Pinterest post or paid upgrade"
   ],
-  "tracker": "roadmap-lbbz1.8.2"
+  "tracker": "roadmap-lbbz1.8.2",
+  "codeCleanup": {
+    "pullRequest": "https://github.com/37-Inc/goose.gifts/pull/261",
+    "status": "validated_for_merge_after_failure_case_replays",
+    "note": "External API disable is complete; source merge is a separate acceptance gate."
+  }
 }

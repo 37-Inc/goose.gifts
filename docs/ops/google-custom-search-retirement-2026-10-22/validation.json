@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "6e710fbcc8c62349197ef667afd068cc24c911b4",
+  "initialCodeCommit": "5f4d7a3194eaacaddaed2772e6550c644e69905f",
+  "catalogOperationTests": { "passed": 121, "failed": 0 },
+  "correctedProvenanceTests": {
+    "passed": 8, "failed": 0,
+    "change": "Read and hash the immutable pinned Git blob, not today's unrelated whole-file edits; historical references remain unchanged."
+  },
+  "isolatedPublicationTimeoutTests": { "passed": 10, "failed": 0 },
+  "correctedProvenanceAndGuideExportTests": { "passed": 20, "failed": 0, "skipped": 0 },
+  "isolatedSerialPublicationReplays": { "passed": 2, "failed": 0, "durationMs": 117873.298208, "publisherCodeOrDeadlinesChanged": false },
+  "lint": { "errors": 0, "warnings": 25, "warningScope": "Unchanged published-vector-proof test file" },
+  "syntheticBuild": { "passed": true, "releaseVerified": true, "assets": 393, "guardedRoutes": 372, "publicDeployment": false },
+  "initialFullSuite": { "tests": 1132, "passed": 1108, "failed": 4, "skipped": 20, "durationMs": 1016529.486041 },
+  "diagnosticSubsetBeforeProvenanceCorrection": { "tests": 850, "passed": 833, "failed": 5, "skipped": 12 },
+  "initialFailureDiagnosesAndRechecks": [
+    {
+      "file": "tests/static-site-indexability.test.mjs",
+      "failure": "Expected obsolete Browse the collection copy; current unchanged component renders Browse all gifts.",
+      "reproducedOnCleanBaseline": true,
+      "resolution": "Test expectation now matches existing approved Browse all gifts copy; focused recheck passed."
+    },
+    {
+      "file": "tests/static-site.test.mjs",
+      "failure": "With an exported fixture present, expects obsolete No matching ready products copy; component renders No matching gifts yet.",
+      "productionSourceChangedByCleanup": false,
+      "resolution": "Test expectation now matches existing approved No matching gifts yet copy; exported-fixture recheck passed."
+    },
+    {
+      "file": "tests/catalog-published-vector-proof.test.mjs",
+      "failure": "Lost-read-ACK / expired-lease integration fixtures report pending instead of published or vector_provider_timeout.",
+      "productionSourceChangedByCleanup": false,
+      "cleanBaselineLostAckReplay": "passed",
+      "branchIsolatedSerialLostAckAndExpiredLeaseReplays": "both passed, no production code/deadline changes"
+    }
+  ],
+  "mergeStatus": "ready_after_all_identified_failure_cases_passed_rechecks",
+  "fullSuiteRepeatedAfterCorrections": false,
+  "externalApiRetirement": "complete_independently_verified",
+  "notPerformed": ["No test waiver or timeout relaxation", "No production UI or publisher behavior change", "No live catalog/provider/model execution", "No production publication or scheduler change"]
+}
