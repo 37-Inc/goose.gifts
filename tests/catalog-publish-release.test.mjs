@@ -26,6 +26,7 @@ import { guides } from '../static-site/lib/guides.ts';
 import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 import { openRunWorkspace } from '../scripts/catalog/run-workspace.ts';
 import { createCatalogD1Rest } from '../scripts/catalog/d1-write-rest.ts';
+import { accountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
 import safeCatalogPayload from '../static-site/public/safe/catalog.json' with {type:'json'};
 
 const AT=Date.parse('2026-10-19T12:00:00.000Z');
@@ -56,7 +57,7 @@ function fixtureRelease(snapshot,context,prior=null){
     manifestSha256:sha(manifestBytes),vectorSyncWatermark:manifest.vectorSyncWatermark,priorReleaseId:manifest.priorReleaseId,nextExpiry:manifest.nextExpiry};
   return{...assembled,manifest,manifestBytes,outputs,intent};
 }
-async function setup(t,{real=false,prior=true,environment='staging',semanticSearch,publicAnalytics,priorExpiryMs=26*3600000}={}){
+async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environment='staging',semanticSearch,publicAnalytics,priorExpiryMs=26*3600000}={}){
   const scope={environment,indexName:'fixture-index'},sourceMode=environment==='staging'?'preview':'goose-production';
   let actualWorkspace;
   const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-publish-')));t.after(async()=>{
@@ -93,7 +94,7 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
     await enqueuePublication(db,priorSnapshot,priorRelease.intent,new Date(AT));const claim=await claimPublication(db,priorSnapshot,priorRelease.intent.releaseId,new Date(AT));
     await recordPublicationDispatch(db,priorSnapshot,claim,`version:${priorVersion}`,new Date(AT));
     await completePublication(db,priorSnapshot,priorRelease.intent.releaseId,claim.token,async()=>priorRelease.intent,()=>new Date(AT));
-    priorConfig={directory:priorDirectory,manifestSha256:sha(priorRelease.manifestBytes),releaseId:priorRelease.intent.releaseId,versionReference:priorVersion};
+    priorConfig={directory:identityOnlyPrior?null:priorDirectory,manifestSha256:sha(priorRelease.manifestBytes),releaseId:priorRelease.intent.releaseId,versionReference:priorVersion};
   }
   sql.prepare('INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES(?,?,?,?)').run(snapshot.catalogRevision,snapshot.generatedAt,'b'.repeat(64),'reconciled');
   const packet=await createProjectionPacket(snapshot,{[id]:'f'.repeat(64)},'b'.repeat(64),new Date(AT));await importPublicProjection(db,packet);
@@ -193,9 +194,9 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
         prior?[{id:priorDeployment,versions:[{version_id:activePriorVersion,percentage:100}],annotations:{'workers/message':'owned fixture prior'}}]:[]});
     }throw new Error(`Unexpected fixture HTTP ${url}`);
   };
-  const execute=(database=db)=>executePublication({db:database,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
-    credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock)}});
-  return{db,sql,owner,revision,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,commandEnvironments,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
+  const execute=(database=db,dependencies={})=>executePublication({db:database,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
+    credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock),...dependencies}});
+  return{db,sql,owner,revision,fetch,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,commandEnvironments,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
     async nextRelease(){
       assert.equal((await readMutationOwner(db,scope)),null);
       const packageDirectory=path.join(workspace.directory,'packages',config.releaseId);
@@ -681,4 +682,41 @@ test('outer resolve deadline aborts the owned chain before further reads, preser
   const counts=f.counts();await new Promise(resolve=>setTimeout(resolve,100));assert.deepEqual(f.counts(),counts);
   assert.equal((await f.execute()).state,'published');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
   assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
+});
+test('preactivation and resolve timeouts drain the selected owned sender before exact once-only retry',async t=>{
+  for(const [identityOnlyPrior,phase]of [[false,'preactivation'],[true,'preactivation'],[true,'resolve']])await t.test(`${phase}/${identityOnlyPrior?'receipt':'retained'}`,async sub=>{
+    const f=await setup(sub,{identityOnlyPrior}),base=`https://api.cloudflare.com/client/v4/accounts/${f.config.accountId}/d1/database/${id}`;
+    const db=await createCatalogD1Rest({accountId:f.config.accountId,databaseId:id,databaseName:f.config.database.name,token:'FIXTURE_ONLY',fetch:async(url,init)=>{
+      if(url===base)return Response.json({success:true,result:{uuid:id,name:f.config.database.name,read_replication:{mode:'disabled'}}});
+      assert.equal(url,`${base}/query`);const result=[];f.sql.exec('BEGIN');
+      try{for(const query of JSON.parse(init.body).batch){const before=f.sql.prepare('SELECT total_changes() n').get().n;
+        const rows=f.sql.prepare(query.sql).all(...query.params).map(row=>({...row})),changes=f.sql.prepare('SELECT total_changes() n').get().n-before;
+        result.push({success:true,results:rows,meta:{served_by_primary:true,rows_read:rows.length,rows_written:changes,changes}});
+      }f.sql.exec('COMMIT');}catch(error){f.sql.exec('ROLLBACK');throw error;}return Response.json({success:true,result});
+    }});
+    let lateResponse,hold=true;const events=[];let observed=0;
+    const observationFetch=accountedPublicationReadFetch({async reserveBudget(){events.push('reserve');},async settleBudget(_id,value){
+      if(value.status==='unknown')await new Promise(resolve=>setTimeout(resolve,200));events.push(value.status);
+    }},async(url,init)=>{
+      observed++;const response=await f.fetch(url,init);
+      if(hold&&(phase==='preactivation'||f.checkpoint().control.publication.stage==='published')){
+        hold=false;return new Promise(resolve=>{lateResponse=()=>resolve(response);});}return response;
+    },{accountId:f.config.accountId,databaseId:id,workerName:f.config.workerName,indexName:f.config.indexName,identityOrigin:f.config.identityOrigin});
+    // Scale only fixed deadlines; durable cleanup exceeds the generic drain.
+    const timer=globalThis.setTimeout;sub.mock.method(globalThis,'setTimeout',(fn,ms,...args)=>timer(fn,[3000,30000].includes(ms)?40:ms===10000?80:ms,...args));
+    const result=await f.execute(db,{observationFetch});assert.equal(result.state,'pending');assert.ok(observed>0);
+    assert.equal(events.filter(s=>s==='unknown').length,1);assert.equal(f.counts().activateCalls,phase==='preactivation'?0:1);
+    assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests').get().state,phase==='preactivation'?'building':'activating');
+    assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,phase==='preactivation'?'freezing':'activating');
+    assert.equal(f.checkpoint().control.publication.permit===null,phase==='preactivation');
+    const changes=f.sql.prepare('SELECT total_changes() n').get().n,counts=f.counts(),checkpoint=f.checkpoint().sha256,
+      priorEvents=[...events],priorObserved=observed;lateResponse();
+    await new Promise(resolve=>setTimeout(resolve,30));assert.deepEqual(events,priorEvents);assert.equal(observed,priorObserved);
+    assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);assert.deepEqual(f.counts(),counts);assert.equal(f.checkpoint().sha256,checkpoint);
+    // The read-only sender never sees normal activation/mutation traffic.
+    const retry=await f.execute(db,{observationFetch:accountedPublicationReadFetch({async reserveBudget(){},async settleBudget(){}},f.fetch,
+      {accountId:f.config.accountId,databaseId:id,workerName:f.config.workerName,indexName:f.config.indexName,identityOrigin:f.config.identityOrigin})});
+    assert.equal(retry.state,'published',JSON.stringify(retry));assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+    assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
+  });
 });

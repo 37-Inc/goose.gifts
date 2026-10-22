@@ -1,5 +1,5 @@
 import type { CatalogReleaseManifest, CatalogSnapshot } from './types.ts';
-import type { CatalogD1, D1Statement } from './storage/d1.ts';
+import type { CatalogD1, D1Statement, D1ReadOptions } from './storage/d1.ts';
 import { canonicalTime } from './snapshot.ts';
 import { rollbackPreflight, visibleRevisionCountQuery } from './d1.ts';
 import { legacyMutationBatch, mutationAssertion, mutationFenceQuery } from './mutation-fence.ts';
@@ -38,8 +38,8 @@ async function digest(value: string): Promise<string> {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return [...new Uint8Array(bytes)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
-async function row(db: CatalogD1, releaseId: string): Promise<Outbox | undefined> {
-  return (await db.prepare('SELECT * FROM publication_outbox WHERE release_id=?').bind(releaseId).all<Outbox>()).results[0];
+async function row(db: CatalogD1, releaseId: string, options?: D1ReadOptions): Promise<Outbox | undefined> {
+  return (await db.prepare('SELECT * FROM publication_outbox WHERE release_id=?').bind(releaseId).all<Outbox>(options)).results[0];
 }
 function intentFrom(value: Outbox): PublicationIntent {
   const intent = JSON.parse(value.intent_json) as PublicationIntent;
@@ -94,10 +94,13 @@ async function completed(db: CatalogD1, value: Outbox, token: string): Promise<v
 }
 
 /** Historical completion state, not a claim that this release is still active/fresh. */
-export async function publicationStatus(db: CatalogD1, releaseId: string) {
-  const value = await row(db, releaseId);
+export async function publicationStatus(db: CatalogD1, releaseId: string, options?: D1ReadOptions) {
+  options?.signal?.throwIfAborted();
+  const value = await row(db, releaseId, options);
+  options?.signal?.throwIfAborted();
   const receipt = (await db.prepare('SELECT code_sha,catalog_revision,manifest_json FROM publication_receipts WHERE release_id=?')
-    .bind(releaseId).all<{ code_sha: string; catalog_revision: string; manifest_json: string }>()).results[0];
+    .bind(releaseId).all<{ code_sha: string; catalog_revision: string; manifest_json: string }>(options)).results[0];
+  options?.signal?.throwIfAborted();
   if (receipt) {
     if (!value || receipt.manifest_json !== value.intent_json || receipt.code_sha !== intentFrom(value).codeSha
       || receipt.catalog_revision !== intentFrom(value).catalogRevision) throw new Error('publication_receipt_mismatch');

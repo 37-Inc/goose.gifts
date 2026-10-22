@@ -131,7 +131,7 @@ async function observe(adapter: (signal: AbortSignal) => Promise<DeploymentObser
     return await Promise.race([adapter(controller.signal), new Promise<never>((_, reject) => {
       timer = setTimeout(() => { controller.abort(); reject(new Error('deployment_observation_failed')); }, timeoutMs);
     })]);
-  } catch { throw new Error('deployment_observation_failed'); } finally { clearTimeout(timer); }
+  } catch { controller.abort(); throw new Error('deployment_observation_failed'); } finally { clearTimeout(timer); }
 }
 function matches(active: DeploymentIdentity, intent: PublicationIntent) {
   return active.releaseId === intent.releaseId && active.codeSha === intent.codeSha && active.catalogRevision === intent.catalogRevision
