@@ -110,10 +110,32 @@ test('actual child deadline joins an aborted remote attempt and delayed unknown 
 });
 
 test('oversized replies retain one unknown charge, never a false successful completion',mac,async()=>{
-  const ws=ledger();await assert.rejects(factory(ws,async()=>new Response(new Uint8Array(512*1024+1)),async wrapped=>{
+  const ws=ledger();await assert.rejects(factory(ws,async()=>new Response(new Uint8Array(2*1024*1024+1)),async wrapped=>{
     await(await fetch(`${endpoint(wrapped)}${route}/assets-upload-session`,{method:'POST',body:'{}'})).arrayBuffer();
   })(command),PublicationUploadCommandError);
   assert.equal(ws.events.filter(event=>event.reserve).length,1);assert.deepEqual(settled(ws).map(event=>event.status),['unknown']);
+});
+
+test('only session metadata accepts measured551929B and exact2MiB; content/version replies keep512KiB',mac,async()=>{
+  for(const [suffix,size,ok]of [[`${route}/assets-upload-session`,551929,true],[`${route}/assets-upload-session`,2*1024*1024,true],
+    [`${route}/assets-upload-session`,2*1024*1024+1,false],[`${route}/versions?bindings_inherit=strict`,512*1024,true],
+    [`${route}/versions?bindings_inherit=strict`,512*1024+1,false],[`/accounts/${scope.accountId}/workers/assets/upload?base64=true`,512*1024+1,false]]){
+    const ws=ledger();let cancelled=false;
+    const run=factory(ws,async()=>new Response(new ReadableStream({start(c){c.enqueue(new Uint8Array(size));},cancel(){cancelled=true;}})),async wrapped=>{
+      const response=await fetch(`${endpoint(wrapped)}${suffix}`,{method:'POST',body:'{}'});await response.arrayBuffer();
+    });
+    // Accepted streams must end; rejected streams prove cancellation instead.
+    if(ok){await factory(ws,async()=>new Response(new Uint8Array(size)),async wrapped=>{
+      const r=await fetch(`${endpoint(wrapped)}${suffix}`,{method:'POST',body:'{}'});assert.equal((await r.arrayBuffer()).byteLength,size);
+    })(command);}else{await assert.rejects(run(command),error=>error.code==='publication_upload_unknown');assert.equal(cancelled,true);}
+    assert.equal(ws.events.filter(e=>e.reserve).length,1);assert.deepEqual(settled(ws).map(e=>e.status),[ok?'known':'unknown']);
+  }
+});
+test('a service whose name is assets-upload-session does not receive the metadata response allowance',mac,async()=>{
+  const ws=ledger(),named={...scope,workerName:'assets-upload-session'};
+  await assert.rejects(accountedPublicationUploadCommand({workspace:ws,scope:named,send:async()=>new Response(new Uint8Array(512*1024+1)),
+    command:async wrapped=>{await(await fetch(`${endpoint(wrapped)}/accounts/${scope.accountId}/workers/services/assets-upload-session`)).arrayBuffer();}})(command),
+  error=>error.code==='publication_upload_unknown');assert.deepEqual(settled(ws).map(e=>e.status),['unknown']);
 });
 
 test('actual sandbox allows only the exact IPv4 bridge port and descendants inherit denial',mac,async t=>{

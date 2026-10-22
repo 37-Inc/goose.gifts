@@ -14,6 +14,9 @@ const SANDBOX='/usr/bin/sandbox-exec';
 // Upload chunks have an independent per-request/concurrent-aggregate wire bound,
 // including base64/multipart overhead; this is not the sealed package total bound.
 const REQUEST_BYTES=2*128*1024*1024+1024*1024,RESPONSE_BYTES=512*1024,REQUEST_MS=30_000;
+// A 20k-entry metadata session can exceed512KiB (measured551929B). Asset
+// contents/version responses retain the old bound; this is not a package cap.
+const responseLimit=(url:string)=>/^\/client\/v4\/accounts\/[a-f0-9]{32}\/workers\/scripts\/[a-zA-Z0-9_-]{1,100}\/assets-upload-session$/.test(new URL(url).pathname)?2*1024*1024:RESPONSE_BYTES;
 const HOP=new Set(['connection','keep-alive','proxy-authenticate','proxy-authorization','te','trailer','transfer-encoding','upgrade','host','content-length']);
 type Scope={accountId:string;workerName:string};
 type Workspace=Pick<RunWorkspace,'assertHeld'|'reserveBudget'|'settleBudget'>;
@@ -49,11 +52,12 @@ function cleanHeaders(input:IncomingMessage['headers']):Record<string,string>{
 /** One native HTTPS request, no redirects or transport-level automatic retries. */
 function remote(url:string,init:RequestInit):Promise<Response>{
   return new Promise((resolve,reject)=>{
+    const limit=responseLimit(url);
     let body:Buffer|undefined,error:Error|undefined,status=0,responseHeaders:Record<string,string>={};
     const req=httpsRequest(url,{method:init.method,headers:init.headers as Record<string,string>,signal:init.signal??undefined},res=>{
       status=res.statusCode??0;const chunks:Buffer[]=[];let size=0;
       responseHeaders=cleanHeaders(res.headers);
-      res.on('data',(chunk:Buffer)=>{size+=chunk.length;if(size>RESPONSE_BYTES){req.destroy(new Error());return;}chunks.push(chunk);});
+      res.on('data',(chunk:Buffer)=>{size+=chunk.length;if(size>limit){req.destroy(new Error());return;}chunks.push(chunk);});
       res.on('end',()=>{body=Buffer.concat(chunks);});res.on('error',()=>{error=new Error();req.destroy();});
     });
     req.on('error',()=>{error=new Error();});
@@ -119,7 +123,7 @@ export function accountedPublicationUploadCommand(options:{workspace:Workspace;s
           if(response.status>=300&&response.status<400||response.headers.get('content-encoding')&&!['identity'].includes(response.headers.get('content-encoding')!))throw new Error();
           const reader=response.body?.getReader(),chunks:Uint8Array[]=[];let size=0;
           try{if(reader)for(;;){const part=await Promise.race([reader.read(),aborted]);if(part.done)break;size+=part.value.byteLength;
-            if(size>RESPONSE_BYTES){void reader.cancel().catch(()=>{});throw new Error();}chunks.push(part.value);}}
+            if(size>responseLimit(target)){void reader.cancel().catch(()=>{});throw new Error();}chunks.push(part.value);}}
           finally{if(controller.signal.aborted)void reader?.cancel().catch(()=>{});try{reader?.releaseLock();}catch{}}
           const payload=Buffer.concat(chunks);settled=true;await ws.settleBudget(reservation,{status:'known',usage:{rowsRead:0,rowsWritten:0}});
           controller.signal.throwIfAborted();const output=cleanHeaders(Object.fromEntries(response.headers));
