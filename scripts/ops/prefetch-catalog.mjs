@@ -282,19 +282,6 @@ function cleanAmazonImageUrl(url) {
   }
 }
 
-function extractAsin(url) {
-  const match = url.match(/\/dp\/([A-Z0-9]{10})|\/gp\/product\/([A-Z0-9]{10})/);
-  return match ? match[1] || match[2] : null;
-}
-
-function cleanTitle(title) {
-  return title
-    .replace(/\s*[-:]\s*Amazon\.com\s*$/i, '')
-    .replace(/\s*Amazon\.com\s*$/i, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
 const DUPLICATE_TITLE_STOP_WORDS = new Set([
   'a', 'an', 'and', 'for', 'gift', 'gifts', 'in', 'of', 'on', 'the', 'to', 'with',
   'adult', 'adults', 'birthday', 'boy', 'boys', 'christmas', 'cool', 'coworker',
@@ -1049,102 +1036,13 @@ function observedAmazon(operation, request, evidence, beforeRequest) {
 }
 
 async function searchAmazonCandidates(theme, options, evidence) {
-  let creatorCandidates = [];
-  try {
-    creatorCandidates = finalizeProducts(
-      await observedAmazon('searchItems', { keywords: theme, itemCount: options.perTheme }, evidence),
-      theme,
-      options
-    );
-  } catch (error) {
-    // Receipt uncertainty is NOT provider throttling: propagate it before any
-    // Google/GetItems fallback, preserving the existing default call policy.
-    if (!isAmazonThrottleError(error)) throw error;
-    console.warn(`Amazon Creators SearchItems throttled for "${theme}"; trying Google CSE fallback.`);
-  }
-
-  if (creatorCandidates.length >= Math.min(options.perTheme, 10)) {
-    return creatorCandidates;
-  }
-
-  const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
-  const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;
-
-  if (!apiKey || !searchEngineId) {
-    return creatorCandidates;
-  }
-
-  let data;
-  try {
-    const params = new URLSearchParams({
-      key: apiKey,
-      cx: searchEngineId,
-      q: `${theme} amazon product`,
-      siteSearch: 'amazon.com',
-      siteSearchFilter: 'i',
-      num: String(Math.min(options.perTheme, 10)),
-    });
-    const response = await fetch(`https://customsearch.googleapis.com/customsearch/v1?${params}`);
-
-    if (!response.ok) {
-      const body = await response.text();
-      throw new Error(`Google CSE failed (${response.status}): ${body.slice(0, 300)}`);
-    }
-    data = await response.json();
-  } catch {
-    console.warn(`Google CSE fallback failed for "${theme}"; retaining verified Creators results.`);
-    return creatorCandidates;
-  }
-
-  const items = data.items ?? [];
-  const discovered = items
-    .map((item) => {
-      const asin = extractAsin(item.link || '');
-      if (!asin) return null;
-
-      const metatag = item.pagemap?.metatags?.[0] ?? {};
-      const rawImageUrl = metatag['og:image'] || item.pagemap?.cse_image?.[0]?.src || '';
-      const snippetPrice = String(item.snippet || '').match(/\$(\d+(?:\.\d{2})?)/);
-
-      return {
-        asin,
-        fallbackTitle: cleanTitle(item.title || ''),
-        fallbackImageUrl: cleanAmazonImageUrl(rawImageUrl),
-        fallbackPrice: Number.parseFloat(metatag['og:price:amount'] || snippetPrice?.[1] || '0'),
-      };
-    })
-    .filter(Boolean);
-
-  let verifiedFallback = [];
-  try {
-    verifiedFallback = await observedAmazon('getItems', discovered.map((item) => item.asin), evidence);
-  } catch (error) {
-    if (creatorCandidates.length === 0 && !isAmazonThrottleError(error)) throw error;
-    // Prior verified search results may survive a failed fallback capture; the
-    // evidence adapter invalidates affected IDs rather than blessing fallback.
-    console.warn(`Amazon Creators GetItems fallback failed for "${theme}"; preserving only verified search results.`);
-  }
-
-  const fallbackTitles = new Map(discovered.map((item) => [item.asin, item.fallbackTitle]));
-  const fallbackCandidates = finalizeProducts(
-    verifiedFallback.map((product) => ({
-      ...product,
-      imageUrl: cleanAmazonImageUrl(product.imageUrl),
-      title: product.title || fallbackTitles.get(product.id) || '',
-    })),
+  // Discovery is Creators-only. Keep short/empty responses as returned, and
+  // let existing theme/telemetry handling distinguish throttling from failure.
+  return finalizeProducts(
+    await observedAmazon('searchItems', { keywords: theme, itemCount: options.perTheme }, evidence),
     theme,
     options
   );
-
-  const merged = new Map();
-
-  [...creatorCandidates, ...fallbackCandidates].forEach((product) => {
-    if (!merged.has(product.id)) {
-      merged.set(product.id, product);
-    }
-  });
-
-  return Array.from(merged.values());
 }
 
 function finalizeProducts(products, theme, options) {

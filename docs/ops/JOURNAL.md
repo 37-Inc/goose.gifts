@@ -5,6 +5,48 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 — Retire legacy Programmable Search / Custom Search API
+
+Cameron asked us to read Google's January1 transition reminder, then explicitly
+authorized removing the old code and decommissioning the API if it was legacy.
+The named project is `goose-gifts-1759468598826`. The current Cloudflare provider
+environment strips `GOOGLE_SEARCH_*` and has no replacement Google credential
+configuration; the old Neon writer is off. Customer-facing search uses catalog
+D1/optional Vectorize, not Google's Programmable Search Element or JSON API.
+
+The signed-in Chrome37 console independently showed Custom Search API
+`customsearch.googleapis.com` Enabled. Its all-methods/all-credentials30-day
+table (September22–October22Pacific) showed five List requests and0%errors;
+do not describe that historical window as unused or infer a current caller.
+Submitted the exact service's Disable action once. It navigated to the product
+library; after reload, the same project/service offers **enable this API** /
+**Enable**. An accessibility timeout during navigation was reconciled via the
+documented DOM readback, not another disable submission. Before/after screenshots
+and a body-free receipt are in `google-custom-search-retirement-2026-10-22/`.
+No project, key, engine object, IAM, OAuth, billing or other API was changed.
+
+Removed the runnable catalog Google request, URL/ASIN/snippet parser and
+fallback verification merge. Creators short/empty results stay short/empty;
+throttles reach the existing skip/warning telemetry, while non-throttle errors
+and receipt uncertainty propagate. Tests leave obsolete dummy credentials
+present and forbid external fallback requests. Updated README and `.env.example`;
+the old setup URL is a concise retirement notice rather than instructions to
+re-enable a deprecated integration. The defensive provider-environment scrub
+remains intentionally, and historical journal/provider receipts are immutable.
+
+The Beads workflow keeps this bounded cleanup in the existing provider parent
+as **Retire unused Google Custom Search API fallback** (`roadmap-lbbz1.8.2`).
+No real catalog execution, merchant/model/search test, site publication, paid
+service or Pinterest change occurred. Canonical/pinned operator checkouts and
+unrelated work were preserved in an isolated task worktree. A repository merge
+is not a Cloudflare release; this removes operator source and disables its old
+external dependency without rebuilding or relabeling the live catalog.
+Initial acceptance checks: all121 catalog-operation tests pass. Lint exits0
+with25 warnings in the unchanged published-vector-proof test file and no errors;
+diff/receipt/screenshot checks pass. The first new throttling test used a generic
+Error; corrected the fixture to the actual AmazonCreatorsApiError class so it
+tests the real provider classification without weakening production handling.
+
 ## 2026-10-22 — Prepared full catalog published and independently verified
 
 Actual acceptance supersedes the pending checkpoints below; their failed reads,

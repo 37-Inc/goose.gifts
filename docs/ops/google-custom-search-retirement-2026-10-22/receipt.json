@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "type": "google_custom_search.retired",
+  "verifiedAt": "2026-10-22T21:11:51Z",
+  "authorization": "Cameron asked to remove the old code and decommission the Google Cloud API if it was the old search method.",
+  "projectId": "goose-gifts-1759468598826",
+  "service": "customsearch.googleapis.com",
+  "method": "Existing signed-in Chrome 37 Google Cloud console; Disable API, then exact-service library reload and readback.",
+  "before": {
+    "status": "Enabled",
+    "selectedWindow": "30 days, September 22 through October 22, 2026 Pacific",
+    "methodsTable": { "method": "google.customsearch.v1.CustomSearchService.List", "requests": 5, "errorPercent": 0 },
+    "interpretation": "Five historical requests are not zero use; the table does not identify a current active caller."
+  },
+  "after": {
+    "libraryUrl": "https://console.cloud.google.com/apis/library/customsearch.googleapis.com?project=goose-gifts-1759468598826",
+    "statusEvidence": "Custom Search API product page offers enable this API / Enable after reload; no enabled Manage state.",
+    "disabled": true,
+    "disableSubmittedOnce": true,
+    "readbackAfterReload": true
+  },
+  "dependencyEvidence": [
+    "Current Cloudflare operator removes GOOGLE_SEARCH_* from the provider environment and has no Google credential configuration.",
+    "Legacy discovery had an optional Custom Search REST fallback requiring both obsolete environment values; that code is removed.",
+    "Current customer-facing search uses catalog/D1 and optional Vectorize, not Google web search.",
+    "Old Neon catalog writer is disabled by the current runbook."
+  ],
+  "screenshots": ["enabled-before.png", "disabled-after-reload.png"],
+  "preserved": [
+    "Google Cloud project, existing keys, IAM, OAuth clients, billing and all other API services",
+    "GA4, Search Console, Ads and PostHog",
+    "Amazon Creators discovery/verification, public catalog, history and provider receipts",
+    "Current immutable Cloudflare release, frozen legacy Vercel/Neon rollback state and gated daily writer",
+    "PAUSED Pinterest studio and frozen v11 cohort"
+  ],
+  "notPerformed": [
+    "No Google search test call, live catalog run, merchant/model request or replacement subscription",
+    "No project, key or Programmable Search Engine object deletion",
+    "No site publication, scheduler change, Pinterest post or paid upgrade"
+  ],
+  "tracker": "roadmap-lbbz1.8.2"
+}

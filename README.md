@@ -27,7 +27,7 @@ and admin bundle screens have been removed from the maintained runtime path.
 - Tailwind CSS
 - Cloudflare Workers static assets, D1 and optional Vectorize, on the Free plan
 - Separately configured APIs for bounded editorial/embedding maintenance
-- Amazon Creators API plus Google Custom Search for catalog discovery
+- Amazon Creators API for verified catalog discovery and refresh
 
 Vercel and Neon are retained for rollback only. Their Git auto-deployment and
 old catalog writers are disabled; repository pushes do not publish to Vercel.

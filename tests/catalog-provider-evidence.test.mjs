@@ -243,7 +243,7 @@ test('latest ASIN only: same-response image variants survive; missing/invalid/un
   assert.ok(check(changed));assert.throws(()=>check(product),/superseded/);
 });
 
-test('Google-configured SearchItems receipt uncertainty propagates before any fallback calls',async t=>{
+test('obsolete Google credentials cannot bypass SearchItems receipt uncertainty',async t=>{
   const f=await fixture(t);const mock=providerMocks();let google=0;const openai=responder;
   process.env.GOOGLE_SEARCH_API_KEY='TEST_ONLY_NO_CREDENTIAL';process.env.GOOGLE_SEARCH_ENGINE_ID='TEST_ONLY_ENGINE';
   t.after(()=>{delete process.env.GOOGLE_SEARCH_API_KEY;delete process.env.GOOGLE_SEARCH_ENGINE_ID;});
@@ -254,21 +254,40 @@ test('Google-configured SearchItems receipt uncertainty propagates before any fa
   assert.equal(google,0);assert.deepEqual(mock.calls,{getItems:0,searchItems:1,chat:0,embedding:0});
 });
 
-test('actual GetItems fallback omission/storage uncertainty preserves search values but invalidates their old evidence',async t=>{
+test('discovery never calls retired search or GetItems fallback with obsolete credentials present',async t=>{
   process.env.GOOGLE_SEARCH_API_KEY='TEST_ONLY_NO_CREDENTIAL';process.env.GOOGLE_SEARCH_ENGINE_ID='TEST_ONLY_ENGINE';
   t.after(()=>{delete process.env.GOOGLE_SEARCH_API_KEY;delete process.env.GOOGLE_SEARCH_ENGINE_ID;});
-  for(const uncertain of [false,true]){
-    const f=await fixture(t);const mock=providerMocks();let google=0;const openai=responder;
-    amazonCreators.getItems=async()=>{mock.calls.getItems++;return uncertain?[{...product,title:'Later contradictory merchant title'}]:[];};
-    responder=(url,init)=>{if(String(url).startsWith('https://customsearch.googleapis.com/')){google++;return Response.json({items:[{link:product.affiliateUrl}]});}return openai(url,init);};
-    const evidence=createCatalogProviderEvidence({now:()=>NOW,async saveReceipt(input){
-      if(uncertain&&input.receipt.operation==='getItems')throw new Error('PRIVATE storage response loss');
-      return{sha256:input.sha256,reference:`test-only/${input.sha256}`};}});
+  for(const result of ['partial','empty','throttled']){
+    const f=await fixture(t);const mock=providerMocks();let externalRequests=0;
+    amazonCreators.searchItems=async()=>{
+      mock.calls.searchItems++;
+      if(result==='throttled')throw new amazonCreators.AmazonCreatorsApiError('TooManyRequests',{status:429});
+      return result==='partial'?[structuredClone(product)]:[];
+    };
+    responder=()=>{externalRequests++;throw new Error('Unexpected external request');};
     const options=parseArgs(['--dry-run','--theme-limit','1','--per-theme','10','--max-new','1','--min-quality-score','0.05','--backfill-limit','0']);
-    await executeCatalog(options,undefined,telemetry(),f.store,evidence);
-    assert.equal(google,1);assert.deepEqual(mock.calls,{getItems:1,searchItems:1,chat:0,embedding:0});
-    assert.throws(()=>evidence.intent('upsertProduct',[product,editorialSourceHash(product)]),/superseded/);
+    const observed=telemetry();
+    await executeCatalog(options,undefined,observed,f.store,f.evidence);
+    assert.equal(externalRequests,0,result);
+    assert.deepEqual(mock.calls,{getItems:0,searchItems:1,chat:0,embedding:0});
+    if(result==='throttled'){
+      assert.equal(f.receipts.length,0);
+      assert.equal(observed.warnings[0].reasonCode,'provider_throttled');
+    }else{
+      assert.equal(f.receipts.length,1);
+      assert.equal(f.receipts[0].receipt.operation,'searchItems');
+      assert.equal(f.receipts[0].receipt.products.some(p=>p.id===ID),result==='partial');
+    }
   }
+});
+
+test('non-throttling discovery errors propagate without a fallback request',async t=>{
+  const f=await fixture(t);providerMocks();let externalRequests=0;
+  amazonCreators.searchItems=async()=>{throw new Error('TEST ONLY source unavailable');};
+  responder=()=>{externalRequests++;throw new Error('Unexpected external request');};
+  const options=parseArgs(['--dry-run','--theme-limit','1','--per-theme','10','--max-new','1','--backfill-limit','0']);
+  await assert.rejects(executeCatalog(options,undefined,telemetry(),f.store,f.evidence),/source unavailable/);
+  assert.equal(externalRequests,0);assert.equal(f.receipts.length,0);
 });
 
 test('actual transformed-image revalidation uses opt-in clean hash; default PG-compatible raw hash is unchanged',async t=>{

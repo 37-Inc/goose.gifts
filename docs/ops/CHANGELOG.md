@@ -271,6 +271,22 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-22 [owner+claude] — Retire the unused Google Custom Search fallback
+
+Cameron asked to remove the old Programmable Search integration after Google's
+transition reminder. Catalog discovery is now Creators-only: removed the Google
+request/parser/GetItems fallback, unused parsing helpers and sample credentials;
+replaced obsolete setup instructions with a retirement notice. Regression
+coverage checks that stale credentials cannot trigger external fallback calls,
+while partial/empty results, throttling telemetry and receipt failures remain
+honest. Only `customsearch.googleapis.com` was disabled in
+`goose-gifts-1759468598826`; the reloaded console offers Enable. The prior
+30-day table showed five requests, not zero historical use. Project, keys,
+other Google APIs, live catalog, source-pinned publications and schedules were
+left alone. Receipt/screenshots: `google-custom-search-retirement-2026-10-22/`.
+Tracked by **Retire unused Google Custom Search API fallback**
+(`roadmap-lbbz1.8.2`). No replacement service or spend.
+
 ### 2026-10-22 [owner+claude] — Publish and verify the prepared full catalog
 
 Actual Cloudflare release `permanent-catalog-063d9a31ee4f` serves frozen runtime
