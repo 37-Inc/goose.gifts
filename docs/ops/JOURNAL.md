@@ -114,6 +114,34 @@ Fresh Free-plan admission, full build/verification and actual receipt/live check
 are still required. Daily writer remains gated, old Neon writers off, Pinterest
 paused, creator research deferred and canceled credential work untouched.
 
+Restoration verification: full clean local build and independent verifier on
+`7b178ae` passed with 15,116 assets / 23,687 guarded routes / no display expiry.
+Real browser loaded 24 then 48 unique cards, with zero broken loaded images;
+390px mobile had no horizontal overflow. A product page displayed its original
+photo/description and `goose-gifts-37-20` destination. The local preview adapter
+was corrected to decode Next's bracketed chunk URLs; a fresh product-page
+browser session then had zero console errors/warnings. No production search or
+affiliate click was generated. Root review tightened local-image routing to
+only cleared snapshot images present in the compiled checksum inventory; the
+unreviewed-file 404 guard stays intact. The corresponding 31 image/Worker tests
+and explicit-grant cohort negative cases pass.
+
+The broad test pass exposed two unrelated existing cohort-boundary failures:
+tests still demand a 20-change prepare limit although current-main code accepts
+30 and defers native proof bounds. Both fail identically on an untouched
+`6e710fb` source archive. They remain recurring-readiness scope, not a reason to
+enable that writer or silently change its contract. Preserve that red baseline;
+the restoration image-contract case was updated from rejecting valid cleared
+HTTPS imagery to rejecting an unsafe HTTP image and passes.
+
+Fresh account-wide metadata at **21:39:24Z**: 4,688,357 D1 reads / 69,887 writes,
+leaving 311,643 reads / 30,113 writes. The metadata request used zero D1 SQL and
+made zero production writes. Do not start a fresh full-catalog publication in
+that remaining reserve or revive the consumed migration allowance; re-admit
+against actual usage after the daily reset. The owner permission decision is
+settled, not the remaining gate. Canonical `.3.2` is reopened for the missing
+public presentation while preserving its completed data-migration evidence.
+
 ## 2026-10-22 — Prepared full catalog published and independently verified
 
 Actual acceptance supersedes the pending checkpoints below; their failed reads,

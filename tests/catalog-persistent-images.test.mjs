@@ -39,7 +39,10 @@ test('unsafe image schemes, credentials, fragments and local traversal remain re
 
 test('local raster imagery is actually served by the Worker, not only accepted by the DTO', async () => {
   const snapshot = JSON.parse(readFileSync(new URL('../static-site/fixtures/catalog.snapshot.json', import.meta.url)));
-  const worker = createSiteWorker({snapshot, manifest: {catalogRevision: snapshot.catalogRevision, routes: {}}});
+  const paths = ['/images/catalog/owned-photo.jpg', '/images/another.webp'];
+  for (const [index, imageUrl] of paths.entries()) snapshot.products[index] = {...snapshot.products[index], imageUrl, eligibleUntil: null, indexable: false};
+  const worker = createSiteWorker({snapshot, manifest: {catalogRevision: snapshot.catalogRevision, routes: {},
+    checksums: Object.fromEntries(paths.map(p => [p, 'a'.repeat(64)]))}});
   const fetched = [];
   const env = {ENVIRONMENT: 'production', ASSETS: {async fetch(request) {fetched.push(new URL(request.url).pathname); return new Response('fixture image');}}};
   for (const name of ['/images/catalog/owned-photo.jpg', '/images/another.webp', '/images/gift-placeholder.svg']) {
@@ -48,5 +51,6 @@ test('local raster imagery is actually served by the Worker, not only accepted b
   }
   const count = fetched.length;
   assert.equal((await worker.fetch(new Request('https://preview.invalid/images/private.json'), env)).status, 404);
+  assert.equal((await worker.fetch(new Request('https://preview.invalid/images/unreviewed-file.jpg'), env)).status, 404);
   assert.equal(fetched.length, count);
 });
