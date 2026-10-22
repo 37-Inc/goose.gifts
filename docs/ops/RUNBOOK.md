@@ -94,7 +94,13 @@ epoch27. Do not consume another merchant allowance, start over, raise/reset the
 budget, upload/reactivate, purge its unexpired inputs, or advance its checkout.
 The owner has been asked about a separately journaled recovery allowance and
 future request ceiling; approval is not assumed. The task's first-step guard
-reports attention while this remains unresolved. Never switch/clean another
+reports attention while this remains unresolved. This does not suspend local
+registered-body expiry cleanup: purge only expired registered bodies and retain
+the minimal recovery controls, then report attention without provider calls or
+another merchant run. If an approved recovery grant is actually journaled, the
+old `9943718` reader will deliberately reject it; use the separately pinned
+reviewed recovery operator for journal reads/purge, without advancing the
+original release source or editing its manifest. Never switch/clean another
 chat's branch or adopt
 its ignored build output. Pin each publication to that exact clean commit and
 this same source path. An unsafe/dirty operator checkout is a review gate.

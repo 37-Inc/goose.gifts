@@ -27,6 +27,15 @@ Original merchant expiry remains October22 22:18:10.044Z; no fetch/model/paid
 upgrade was added. The historical launch and staging receipts below remain valid
 for their own releases, not substitutes for the pending maintained receipt.
 
+The narrow original-activation completion and once-only workspace recovery grant
+are now implemented for local review/testing. They preserve original ownership,
+charges, immutable manifest and rights; no live grant or settlement has occurred.
+Ordinary completion remains lease-bound. The separately pinned new operator can
+settle an elapsed claim only with fresh original evidence or reconcile an actual
+already-accepted historical receipt without content. Local registered expiry
+cleanup remains required while pending. See the newest journal entry for the
+private finalizer pin and its independently reviewed dispatch restrictions.
+
 ### Public production checkpoint — October 21, 23:06 UTC
 
 - `https://stupid.gifts/` is live on **Cloudflare Free**, not behind staging
