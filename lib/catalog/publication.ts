@@ -75,6 +75,8 @@ function gate(snapshot: CatalogSnapshot, intent: PublicationIntent) {
       ...visible.params, snapshot.products.length, intent.catalogRevision, intent.vectorSyncWatermark,
       intent.catalogRevision, intent.nextExpiry, intent.nextExpiry, intent.priorReleaseId, intent.priorReleaseId] };
 }
+/** Same predicates for the explicit reviewed, original-token activation CAS. */
+export { gate as publicationActivationGate };
 async function preflight(db: CatalogD1, snapshot: CatalogSnapshot, intent: PublicationIntent, now: Date): Promise<void> {
   const earliest = earliestDisplayExpiry(snapshot.products);
   if (snapshot.dataKind !== 'catalog' || snapshot.catalogRevision !== intent.catalogRevision || intent.nextExpiry !== earliest
