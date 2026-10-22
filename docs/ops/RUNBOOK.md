@@ -8,8 +8,11 @@ instruction set for operating goose.gifts autonomously.
 Cameron Ehrlich (owner, cameronehrlich@gmail.com, GitHub org `37-Inc`) has fully
 handed over day-to-day operation of goose.gifts. Standing authorization:
 
-- **Merge and deploy**: open PRs and merge them to `main` (Vercel auto-deploys).
-- **Access**: use any credentials provided in the environment.
+- **Merge and deploy**: open PRs and merge them to `main`; publish stupid.gifts
+  through its reviewed Cloudflare release contract. A merge alone is not a
+  production publication. Vercel Git auto-deployment is frozen.
+- **Access**: use only the credential source authorized for the specific
+  operation; do not substitute ambient credentials or bypass access gates.
 - **Judgment**: pick the highest-leverage work each day; don't wait for approval
   on reversible changes.
 
@@ -53,6 +56,20 @@ Boundaries (always in force):
 ## Daily run
 
 ### Cloudflare migration boundary
+
+**Release target: Cloudflare only.** On October22, the legacy Vercel project
+`37-inc/goose-gifts` was disconnected from `37-Inc/goose.gifts`; persistent Git
+settings readback confirmed no repository connection and no deploy hooks.
+`vercel.json` also sets `git.deploymentEnabled: false` as a reconnect fail-safe.
+Do not reconnect Git, trigger a Vercel CLI/API/manual deployment or add/invoke a
+deploy hook without explicit rollback authorization. Retain the existing Goose
+deployment, domains, configuration and Neon data; this reversible release freeze
+is not provider retirement. A Vercel deployment/status is not evidence that
+Cloudflare changed. Verify the Cloudflare immutable deployment, actual
+`/.well-known/catalog-release.json`, catalog receipt and idle owner separately.
+At this checkpoint Cloudflare still serves source `9943718`; source merged
+after that is not yet published there. See `roadmap-lbbz1.4.6` for the freeze
+receipt and `roadmap-lbbz1.4` for the unfinished publication/migration gates.
 
 As of October 21, `https://stupid.gifts/` is public on Cloudflare Free with an
 eight-product reviewed launch cohort. The old Goose site remains on
@@ -166,7 +183,12 @@ paths in catalog invalidation. After maintenance, compare actual sitemap
 URLs with the complete paginated gift directory; an invalidation HTTP 200
 alone is not proof that public caches refreshed. The 24-hour fallback remains.
 
-0. **Bootstrap credentials.** Before a scheduled catalog run or any affiliate
+The numbered legacy Neon procedure below is retained for reference, not a
+runnable fallback: the Cloudflare migration boundary above supersedes its
+credential bootstrap, maintenance and deployment steps. New D1 execution remains
+held until its exact reviewed operating command is recorded.
+
+0. **Legacy bootstrap (disabled for scheduled execution).** Before a legacy catalog run or any affiliate
    URL repair, run `./scripts/ops/pull-env.sh` to refresh production env vars
    from Vercel even when `.env.local` already exists. This keeps
    `AMAZON_ASSOCIATE_TAG` and other catalog configuration tied to one source of
@@ -327,8 +349,15 @@ alone is not proof that public caches refreshed. The 24-hour fallback remains.
    mistakes, accessibility issues, stale docs, and SEO/GEO claims that are not
    backed by visible page content. Fix what you find before shipping. If the
    change is risky, add a targeted test or a narrower runtime check.
-6. **QA.** `npm install && npm audit --audit-level=high && npm run build && npm run lint`
-   must pass. Test the
+6. **QA.** Use the lockfile (`npm ci`), run `npm run lint`, relevant regression
+   tests and the affected target's build. The Cloudflare target is
+   `npm run build:staging` with an explicit reviewed snapshot/release context;
+   a fixture export proves build behavior, not production acceptance. Review
+   `npm audit --audit-level=high` and `npm audit --omit=dev`; do not ignore new
+   findings or generalize an owner-approved exception. The existing unpatched
+   development-only `braces` finding remains tracked in `roadmap-lbbz1.4.5`.
+   `npm run build` checks the retained legacy app, not Cloudflare publication.
+   Test the
    change as a user would where feasible. For UI or user-flow changes, run the
    site locally or inspect production after deploy in a browser at desktop and
    mobile widths; verify the affected workflow still functions, text does not
@@ -337,9 +366,13 @@ alone is not proof that public caches refreshed. The 24-hour fallback remains.
    check the touched page's title, meta description, canonical URL, structured
    data, robots/sitemap visibility, and whether the marked-up data is visible on
    the page rather than hidden-only.
-7. **Ship.** Commit on a `claude/`-prefixed branch, push, open a PR with a
-   clear description, and merge it. Confirm the production site still works
-   after deploy (~2 min for Vercel).
+7. **Ship.** Commit on a `codex/`-prefixed branch, push, open a PR with a
+   clear description, review it and merge it. This integrates code only. Publish
+   the exact reviewed source to Cloudflare through the normal catalog release
+   contract, then verify its deployment, live release identity, catalog receipt,
+   original expiry and idle owner. Never use a Vercel build as this release gate.
+   If publication is held, record the actual serving SHA and pending gate; do
+   not silently bypass it or call a merged change deployed.
    - Use one branch and PR for one logical run. Put the planned code, tests,
      operating docs, creative/event records, and known receipt fields in that
      PR before merge. Do not create a follow-up PR solely to add its own PR
