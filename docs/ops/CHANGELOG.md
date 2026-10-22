@@ -286,9 +286,26 @@ what's likely next.
 
 `npm run build` now uses the existing reviewed, source-pinned static builder;
 `build:staging` stays compatible. The old Neon-backed Next build is explicitly
-`build:legacy`, with its separate rollback environment. No build fetches catalog
-data or deploys; an explicit snapshot/release context remains mandatory. This
+`build:legacy`, with its separate rollback environment. The Cloudflare build does
+not fetch catalog data or deploy; an explicit snapshot/release context remains mandatory. This
 removes an obsolete credential dependency without weakening release verification.
+
+### 2026-10-22 [owner+claude] — Add an independently authored prank-box disclosure
+
+Add “Empty prank gift box. No fire kit included.” beside the exact Amazon item's
+card and detail heading. This is new owned site editorial, with the dated reference
+and prior factual-review provenance in source—not a changed product DTO, permanent
+grant, supplier deadline or snapshot. Server-provided context keeps its identity
+out of shared JavaScript. No data mutation or publication is performed here.
+
+### 2026-10-22 [owner+claude] — Keep photo-free catalog cards compact and honest
+
+Replace repeated full-size generic pictures with the existing gift glyph and a
+quiet photo-unavailable label. Only original optional-photo slot IDs reserve
+image geometry; guarded supplier URLs/deadlines and expiry behavior are unchanged.
+Placeholder art is decorative, guide headings use plain public language, and
+24+24 browsing/search/privacy controls remain. This is source/local QA, not a new
+publication or writer activation; public acceptance remains eight gifts.
 
 ### 2026-10-22 [owner+claude] — Accept private full-catalog migration and recovery
 

@@ -40,8 +40,9 @@ function client(serve = async (_path, body) => body, json = true) {
     Date: class extends Date { static now() { return clock; } },
     require(name) {
       if (name === 'react') return react;
-      if (name === 'react/jsx-runtime') return { jsx: element };
+      if (name === 'react/jsx-runtime') return { jsx: element, jsxs: element, Fragment: 'mock-fragment' };
       if (name === '@/components/ProductImage') return { ProductImage: 'mock-image-no-network' };
+      if (name === './Icon') return { Icon: 'mock-decorative-icon' };
       if (name === '../lib/photo-shard') return photos;
       throw new Error('Unexpected photo client dependency');
     },
@@ -61,7 +62,7 @@ function client(serve = async (_path, body) => body, json = true) {
     navigator: { sendBeacon: deny, get credentials() { return deny(); } },
   });
   function render(name, props = { id: first, imageUrl: photos.PHOTO_PLACEHOLDER, alt: 'Synthetic fixture' }, path = indexPath) {
-    context = path;
+    context = { indexPath: path, photoSlots: [first, second] };
     const outer = commonJs.exports.CatalogImage(props);
     let fiber = slots.get(name);
     if (!fiber || fiber.key !== outer.key) {
@@ -77,6 +78,7 @@ function client(serve = async (_path, body) => body, json = true) {
     async flush() { for (let i = 0; i < 8; i++) { await flush();
       for (const [name, fiber] of slots) if (fiber.dirty) render(name, fiber.props, fiber.path); } },
     url(name) { return slots.get(name).view.props.imageUrl; },
+    alt(name) { return slots.get(name).view.props.alt; },
     async expire(trigger) { clock = 5000;
       if (trigger === 'timer') { for (const [id, timer] of [...timers]) if (timer.at <= clock) { timers.delete(id); timer.fn(); } }
       else for (const fn of [...(listeners.get(trigger) || [])]) fn();
@@ -94,6 +96,13 @@ test('multiple images share one index and shard request; no provider/storage cal
   const ui = client(); ui.render('one'); ui.render('two', props(second)); await ui.flush();
   assert.equal(ui.url('one'), image(first)); assert.equal(ui.url('two'), image(second));
   assert.deepEqual(ui.calls, [indexPath, `/catalog/${version}/photos-1.json`]); ui.close();
+});
+
+test('placeholder is decorative until the original finite overlay is verified, and again after expiry', async () => {
+  const ui = client(); ui.render('one'); assert.equal(ui.alt('one'), '');
+  await ui.flush(); assert.equal(ui.alt('one'), 'Synthetic fixture');
+  await ui.expire('timer'); assert.equal(ui.alt('one'), '');
+  assert.equal(ui.url('one'), photos.PHOTO_PLACEHOLDER); ui.close();
 });
 
 test('a supplier URL is never shown when either index or shard I/O crosses its deadline', async () => {
