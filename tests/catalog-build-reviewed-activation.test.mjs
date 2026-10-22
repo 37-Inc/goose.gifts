@@ -10,9 +10,15 @@ import { prunedVectorPlan } from '../lib/catalog/prune-existing-revision.ts';
 import { readHistoricalNativePreservation } from '../scripts/catalog/owned-vector-delivery.ts';
 import { enqueuePublication,claimPublication,recordPublicationDispatch } from '../lib/catalog/publication.ts';
 import { enqueueBuildRequest,claimBuildRequest,recoverUnstartedBuildRequest,beginBuildActivation,
-  beginReviewedUploadActivation,readReviewedUploadActivation,encodeReviewedUploadActivationApproval } from '../lib/catalog/build-requests.ts';
+  beginReviewedUploadActivation,readReviewedUploadActivation,encodeReviewedUploadActivationApproval,reviewedUploadActivationDeadline } from '../lib/catalog/build-requests.ts';
 
 const hash='a'.repeat(64),version=uuid(990),same=(a,b)=>assert.equal(canonicalJson(a),canonicalJson(b)),marked=async()=>{};
+function deadlineGrant(input){
+  const priorApproval=structuredClone(input.approval);
+  return{...input,priorApproval,approval:{...priorApproval,schemaVersion:2,checkpointSha256:'b'.repeat(64),
+    reviewReference:'fixture:explicit-deadline-v2',priorApprovalSha256:sha256(encodeReviewedUploadActivationApproval(priorApproval)),
+    activationDeadline:new Date(Date.parse(input.claim.request.cutoff)+90*60000).toISOString()}};
+}
 async function fixture(t,{wide=false,grantRelease='reviewed-release'}={}){
   const f=await setup(t);let snapshot=f.revision.snapshot,source=f.revision.packet.receipt.source_export_sha256;
   if(wide){
@@ -89,6 +95,40 @@ test('unknown atomic ACK reads exact permit only; missing grant never dispatches
   assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,before);assert.equal(writes,1);
   await assert.rejects(beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof,marked));assert.equal(writes,1);
   const g=await fixture(t);await assert.rejects(readReviewedUploadActivation(g.db,g.input));assert.equal(g.batches.length,0);
+});
+
+test('v2 separately authorizes a bounded later dispatch without rewriting original request, claims or v1 bytes',async t=>{
+  const f=await fixture(t),old=canonicalJson(f.input),input=deadlineGrant(f.input),request=f.input.original.build.request_json;
+  assert.equal(encodeReviewedUploadActivationApproval(f.input.approval),canonicalJson(f.input.approval));
+  assert.equal(await reviewedUploadActivationDeadline(f.input.approval,f.input.claim.request.cutoff),f.input.claim.request.cutoff);
+  f.advance(Date.parse(f.input.claim.request.cutoff)-f.now().getTime()+1);
+  await assert.rejects(beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof,marked));
+  const permit=await beginReviewedUploadActivation(f.db,input,f.snapshot,f.proof,marked);
+  const build=f.sql.prepare('SELECT * FROM catalog_build_requests WHERE request_id=?').get(input.claim.requestId);
+  assert.equal(build.request_json,request);assert.equal(build.lease_token,input.claim.token);assert.equal(build.attempts,3);
+  assert.equal(build.operator_recovery_json,input.original.build.operator_recovery_json);
+  assert.equal(canonicalJson(f.input),old);assert.equal(f.inventory(),f.before);assert.equal(canonicalJson([...f.index]),f.native);
+  f.advance(Date.parse(input.approval.activationDeadline)-f.now().getTime()+1);
+  same(await readReviewedUploadActivation(f.db,input),permit); // Resolution only; never another dispatch.
+});
+
+test('v2 rejects wrong prior approval, widened bindings and deadline; crossing the new deadline rolls back exact rows',async t=>{
+  for(const fault of ['prior','package','missing-prior','overlong','not-later','expired','late'])await t.test(fault,async t=>{
+    const f=await fixture(t),input=deadlineGrant(f.input),owner={...f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get()};
+    if(fault==='prior')input.approval.priorApprovalSha256='0'.repeat(64);
+    if(fault==='package')input.approval.packageSha256='0'.repeat(64);
+    if(fault==='missing-prior')delete input.priorApproval;
+    if(fault==='overlong')input.approval.activationDeadline=new Date(Date.parse(input.claim.request.cutoff)+2*3600000+1).toISOString();
+    if(fault==='not-later')input.approval.activationDeadline=input.claim.request.cutoff;
+    if(fault==='expired')f.advance(Date.parse(input.approval.activationDeadline)-f.now().getTime());
+    let marks=0;
+    await assert.rejects(beginReviewedUploadActivation(f.db,input,f.snapshot,f.proof,async()=>{marks++;
+      if(fault==='late')f.advance(Date.parse(input.approval.activationDeadline)-f.now().getTime());}));
+    assert.equal(marks,fault==='late'?1:0);
+    same(f.sql.prepare('SELECT * FROM catalog_build_requests WHERE request_id=?').get(input.claim.requestId),input.original.build);
+    same(f.sql.prepare('SELECT * FROM publication_outbox WHERE intent_id=?').get(input.publication.intentId),input.original.publication);
+    same(f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get(),owner);
+  });
 });
 
 test('proof failures happen before durable marker; late owner/source/prior/row drift rolls back the whole CAS',async t=>{

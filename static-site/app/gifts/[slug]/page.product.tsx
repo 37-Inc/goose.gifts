@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { CatalogImage } from "../../../components/CatalogPhotos";
+import { CatalogDisclosure, CatalogImage } from "../../../components/CatalogPhotos";
 import { buildGiftPageSchema } from "@/lib/gift-page-schema";
 import { catalog } from "../../../lib/catalog";
 import { isIllustrative } from "../../../lib/selection";
@@ -82,6 +82,7 @@ export default async function Gift({
               : "A carefully considered bad idea"}
           </p>
           <h1>{product.punnyTitle || product.title}</h1>
+          {!illustrative && <CatalogDisclosure source={product.source} id={product.id} />}
           {(product.wittyDescription || product.description) !== (product.punnyTitle || product.title) && <p className="detail-line">
             {product.wittyDescription || product.description}
           </p>}

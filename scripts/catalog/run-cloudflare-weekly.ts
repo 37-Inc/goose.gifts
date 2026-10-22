@@ -11,17 +11,21 @@ import { createD1CatalogMaintenanceStore, loadMaintenanceVectorPayload } from '.
 import { createD1CatalogTelemetryStore } from './telemetry-d1.ts';
 import { createCatalogProviderEvidence } from './provider-evidence.ts';
 import { createVectorizeRestAdapters } from './vectorize-rest.ts';
-import { deliverOwnedOutboxEvent, deliverOwnedApprovedCohortVector, readOwnedApprovedCohortVectors } from './owned-vector-delivery.ts';
+import { deliverOwnedOutboxEvent, deliverOwnedApprovedCohortVector, prepareOwnedApprovedCohortPlan, settleOwnedApprovedCohortVectorProof } from './owned-vector-delivery.ts';
 import { canonicalJson, sha256 } from './migration.ts';
 import { decodePgvectorSendBase64 } from './pgvector-binary.ts';
 import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS } from './run-workspace.ts';
 import type { ArtifactRef, RetentionPolicy, RunWorkspace, RunWorkspaceOptions, WorkspaceCheckpoint } from './run-workspace.ts';
 import { executePublication, validatePublicationConfig } from './publish-release.ts';
-import { accountedPublicationReadFetch, isAccountedPublicationReadFetch } from './publication-read-fetch.ts';
+import { accountedPublicationReadFetch, accountedPublicationFetch, isAccountedPublicationFetch } from './publication-read-fetch.ts';
+import { accountedPublicationUploadCommand } from './publication-upload-command.ts';
+import { approvedRequestControl, hydrateApprovedRequest, approvedRevisionControl, hydrateApprovedRevision,
+  approvedArtifactObservedAt, readApprovedPrior, createApprovedCatalogSeal } from './approved-catalog-seal.ts';
+import type { ApprovedCatalogSeal } from './approved-catalog-seal.ts';
 import type { PublicationConfig } from './publish-release.ts';
 import { claimMutationOwnership, releaseMutationOwnership } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner } from '../../lib/catalog/mutation-fence.ts';
-import { approvedCohortOperationKey, approvedCohortVectorPlan, prepareApprovedCohort, settleApprovedCohort } from '../../lib/catalog/freeze-approved-cohort.ts';
+import { approvedCohortOperationKey, approvedCohortVectorPlan } from '../../lib/catalog/freeze-approved-cohort.ts';
 import type { ApprovedCohortRequest, ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
 import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import { canonicalTime } from '../../lib/catalog/snapshot.ts';
@@ -44,7 +48,7 @@ export const WEEKLY_RESUME_STATES=Object.freeze({
   phases_running:'Ambiguous provider work: STOP for explicit review; never replay automatically.',
   phases_complete:'Providers finished; await a separately reviewed post-phase approval, then drain/freeze.',
   draining:'Resume only the pinned outbox event and immutable payload; unknown mutation stays owned.',
-  freezing:'Resume the same approved seal, original vectors and exact proof (union at most20).',
+  freezing:'Resume the same full-catalog seal and genuine whole native plan; <=30 reviewed changes, not a30-vector truncation.',
   publishing:'Resume pinned build/upload/activation/readback only; no merchant/model phases.',
   published:'Verified receipt; deliberately reacquire writing solely for exact telemetry finalization.',
   finalized:'Terminal exact telemetry readback; never rerun.',
@@ -208,7 +212,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
   // already-accounted sender may belong to another run; never double-charge or
   // silently adopt its workspace. The injection seam here is raw transport only.
   const observationSend=dependencies.publication?.observationFetch??dependencies.publication?.fetch??dependencies.fetch??fetch;
-  if(isAccountedPublicationReadFetch(observationSend))throw new Error('weekly_observation_fetch_already_accounted');
+  if(isAccountedPublicationFetch(observationSend))throw new Error('weekly_observation_fetch_already_accounted');
   if(executing)throw new Error('weekly_process_busy');executing=true;
   let workspace:RunWorkspace|undefined;
   try{
@@ -218,9 +222,12 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     workspace=await openRunWorkspace(workspaceOptions);const ws=workspace;
     // The owned read sender uses this exact durable ledger. It is separate
     // from normal publication mutation traffic; it can never activate a Worker.
-    const publication={...dependencies.publication,observationFetch:accountedPublicationReadFetch(ws,observationSend,
-      {accountId:config.accountId,workerName:config.publication.workerName,indexName:config.vectorIndex.name,
-        databaseId:config.database.id,identityOrigin:config.publication.identityOrigin})};
+    const networkScope={accountId:config.accountId,workerName:config.publication.workerName,indexName:config.vectorIndex.name,
+      databaseId:config.database.id,identityOrigin:config.publication.identityOrigin};
+    const generalSend=accountedPublicationFetch(ws,dependencies.fetch??fetch,networkScope);
+    const publication={...dependencies.publication,fetch:accountedPublicationFetch(ws,dependencies.publication?.fetch??dependencies.fetch??fetch,networkScope),
+      command:dependencies.publication?.command??accountedPublicationUploadCommand({workspace:ws,scope:networkScope}),
+      observationFetch:accountedPublicationReadFetch(ws,observationSend,networkScope)};
     await ws.purgeExpired();
     let saved=await ws.readCheckpoint({controlOnly:true});
     if(saved&&['phases_running','phase_failed','attention','finalized'].includes(saved.checkpoint.phase)
@@ -285,7 +292,8 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       if(!owner)throw new Error('weekly_owner_busy');const cursor={current:owner};await write({phase:'phases_running',owner});
       const intent=await ws.readArtifact(cp.pins.rights) as unknown as {rightsById:Record<string,never>;reviewedDeleteReference?:string};
       const evidence=createCatalogProviderEvidence({reviewedRightsById:intent.rightsById,reviewedDeleteReference:intent.reviewedDeleteReference,saveReceipt:input=>ws.saveReceipt(input),now});
-      const maintenance=createD1CatalogMaintenanceStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision,intent:evidence.intent});
+      const maintenance=createD1CatalogMaintenanceStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision,
+        intent:evidence.intent,preservePermanentListings:Boolean(config.cadence)});
       const telemetry=createD1CatalogTelemetryStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision});
       try{await scopedProviders(environment,async()=>{
         const {runWeeklyCatalogWithBackend}=await import('../ops/catalog-weekly.mjs');
@@ -295,7 +303,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
             const phaseComplete=await ws.putArtifact(finalization(input.finalization),{kind:'publication',observedAt:now()});
             await write({phase:'phases_complete',owner:cursor.current,phaseComplete});return{status:'pending'};
           },async finalizeRun(id:string,input:Record<string,unknown>){await telemetry.finishCatalogRun(id,input);return telemetry.loadCatalogRun(id);}};
-        if(config.cadence)await runDailyCatalogWithBackend({...backend,cadence:dependencies.cadence!,featuredIds:config.cadence.featuredIds});
+        if(config.cadence)await runDailyCatalogWithBackend({...backend,cadence:dependencies.cadence!,featuredIds:config.cadence.featuredIds,preservePermanentListings:true});
         else await runWeeklyCatalogWithBackend(backend);
       });}catch(error){
         const durable=await ws.readCheckpoint();if(durable){saved=durable;cp=durable.checkpoint;}
@@ -307,7 +315,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
         return{state:'attention',phase:cp.phase,errorCode:safeCode(error),budget:await ws.budget()};
       }
     }
-    const adapters=createVectorizeRestAdapters({...scope,accountId:config.accountId,token,fetch:dependencies.fetch});
+    const adapters=createVectorizeRestAdapters({...scope,accountId:config.accountId,token,fetch:generalSend});
     if(cp.phase==='phases_complete'||cp.phase==='draining'){
       // Review is separate from running paid phases. Never synthesize an envelope
       // from whichever mutable rows happen to be ready when this command resumes.
@@ -334,27 +342,35 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
         }
         if(n===199)throw new Error('weekly_outbox_bound');
       }
-      const request={previous:await readOrdered(ws,cp.pins.previous),context:await ws.readArtifact(cp.pins.context),scope,codeSha:config.codeSha,
+      const prior=await readOrdered(ws,cp.pins.previous) as ApprovedCatalogSeal;
+      const context=await ws.readArtifact(cp.pins.context) as unknown as ApprovedCohortRequest['context'];
+      const previous=['approved-catalog-seal','permanent-catalog-seal'].includes(prior.kind)
+        ?await readApprovedPrior(db,cp.owner!,prior,context):prior as unknown as ApprovedCohortRequest['previous'];
+      const request={previous,context,scope,codeSha:config.codeSha,
         approval:await ws.readArtifact(cp.pins.approval),approvalSha256:cp.pins.approval.sha256} as unknown as ApprovedCohortRequest;
       approvedCohortOperationKey(request);
-      const pin=await putOrdered(ws,request,now());await write({phase:'freezing',pins:{...cp.pins,request:pin}});
+      const pin=await putOrdered(ws,approvedRequestControl(request),now());await write({phase:'freezing',pins:{...cp.pins,request:pin}});
     }
     let revision:ApprovedCohortRevision|undefined;
     if(cp.phase==='freezing'){
-      const request=await readOrdered<ApprovedCohortRequest>(ws,cp.pins.request);
-      if(cp.pins.preparedRevision)revision=await readOrdered<ApprovedCohortRevision>(ws,cp.pins.preparedRevision);
+      const stored=await readOrdered<ReturnType<typeof approvedRequestControl>>(ws,cp.pins.request);
+      const request=stored.kind==='approved-request-control'?await hydrateApprovedRequest(db,cp.owner!,stored):stored as unknown as ApprovedCohortRequest;
+      if(cp.pins.preparedRevision)revision=await hydrateApprovedRevision(db,cp.owner!,
+        await readOrdered<ReturnType<typeof approvedRevisionControl>>(ws,cp.pins.preparedRevision));
       else{
         const claim={phase:'freezing' as const,ownerReference:`${config.runId}:freeze`,operationKey:approvedCohortOperationKey(request)};
         let owner=await claimMutationOwnership(db,scope,claim);
         if(!owner){if(cp.owner?.phase!=='writing')throw new Error('weekly_freeze_claim');await releaseExact(db,cp.owner);owner=await claimMutationOwnership(db,scope,claim);}
         if(!owner)throw new Error('weekly_freeze_claim');await write({owner});
-        const prepared=await prepareApprovedCohort(db,owner,request);revision=prepared.revision;
-        const pin=await putOrdered(ws,revision,now());
-        await write({owner:prepared.owner,pins:{...cp.pins,preparedRevision:pin},state:{...state(),vectorOffset:0}});
+        const prepared=await prepareOwnedApprovedCohortPlan({db,owner,request,adapters});revision=prepared.revision;
+        const pin=await putOrdered(ws,approvedRevisionControl(revision),approvedArtifactObservedAt(revision.snapshot,now(),config.retention.rules.publication.maxAgeMs));
+        await write({owner:prepared.owner,pins:{...cp.pins,preparedRevision:pin},state:{...state(),vectorOffset:0,vectorIds:prepared.remainingIds}});
       }
       const plan=approvedCohortVectorPlan(revision);
       const originals=cp.pins.originalVectors?await readOriginalVectors(ws,cp.pins.originalVectors):{};
-      const vectorIds=[...plan.products.map(p=>p.publicId),...plan.absentIds];
+      const vectorIds=state().vectorIds as string[];
+      if(!Array.isArray(vectorIds)||new Set(vectorIds).size!==vectorIds.length
+        ||vectorIds.some(id=>!plan.products.some(p=>p.publicId===id)&&!plan.absentIds.includes(id)))throw new Error('weekly_vector_plan_changed');
       for(let index=Number(state().vectorOffset)||0;index<vectorIds.length;index++){
         const publicId=vectorIds[index];
         // Replaying complete earlier journal entries recovers only their own
@@ -374,18 +390,21 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
             return{state:'pending',phase:cp.phase,errorCode:result.errorCode,budget:await ws.budget()};
         }
       }
-      const queued=await settleApprovedCohort(db,cp.owner!,revision,()=>readOwnedApprovedCohortVectors(db,cp.owner!,revision!,adapters));
-      const pin=await putOrdered(ws,revision,now());
+      const queued=await settleOwnedApprovedCohortVectorProof({db,owner:cp.owner!,revision,adapters});
+      const pin=await putOrdered(ws,approvedRevisionControl(revision),approvedArtifactObservedAt(revision.snapshot,now(),config.retention.rules.publication.maxAgeMs));
       await write({phase:'publishing',owner:queued.owner,pins:{...cp.pins,revision:pin},state:{...state(),requestId:queued.requestId}});
     }
     if(cp.phase==='publishing'){
-      revision=revision||await readOrdered<ApprovedCohortRevision>(ws,cp.pins.revision);
-      const result=await executePublication({db,owner:cp.owner!,revision,requestId:String(state().requestId),runReference:config.runId,workspace:ws,
+      revision=revision||await hydrateApprovedRevision(db,cp.owner!,await readOrdered<ReturnType<typeof approvedRevisionControl>>(ws,cp.pins.revision));
+      const result=await executePublication({db,owner:cp.owner!,revision,approvedCatalog:revision,requestId:String(state().requestId),runReference:config.runId,workspace:ws,
         config:config.publication,credentials:{cloudflareToken:token,identityAuthorization:await identityAuthorization()},dependencies:publication});
       const changed=await ws.readCheckpoint();if(!changed)throw new Error('weekly_checkpoint_missing');saved=changed;cp=changed.checkpoint;
       if(result.state!=='published')return{...result,phase:cp.phase,budget:await ws.budget()};
-      const pin=await ws.putArtifact(result,{kind:'publication',observedAt:now()});
-      await write({phase:'published',owner:null,pins:{...cp.pins,published:pin}});
+      const actual=(await db.prepare('SELECT * FROM publication_receipts WHERE release_id=?').bind(result.releaseId).all()).results;
+      if(actual.length!==1)throw new Error('weekly_publication_receipt_missing');
+      const seal=createApprovedCatalogSeal(revision,{releaseId:result.releaseId,receiptSha256:sha256(canonicalJson(actual[0]))});
+      const pin=await ws.putArtifact(result,{kind:'publication',observedAt:now()}),sealPin=await putOrdered(ws,seal,now());
+      await write({phase:'published',owner:null,pins:{...cp.pins,published:pin,publishedSeal:sealPin}});
     }
     if(cp.phase==='published'){
       const receipt=await ws.readArtifact(cp.pins.published) as Record<string,unknown>;
@@ -397,7 +416,8 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       await telemetry.finishCatalogRun(config.runId,input);const actual=await telemetry.loadCatalogRun(config.runId);
       if(actual?.run.id!==config.runId||actual.run.status!=='completed'||canonicalJson(actual.run.counts)!==canonicalJson(input.counts))throw new Error('weekly_finalization_mismatch');
       await write({owner:cursor.current});await releaseExact(db,cursor.current);await write({phase:'finalized',owner:null});
-      return{state:'finalized',runId:config.runId,releaseId:receipt.releaseId,receiptSha256:receipt.receiptSha256,budget:await ws.budget()};
+      return{state:'finalized',runId:config.runId,releaseId:receipt.releaseId,receiptSha256:receipt.receiptSha256,
+        catalogSeal:cp.pins.publishedSeal?await readOrdered(ws,cp.pins.publishedSeal):undefined,budget:await ws.budget()};
     }
     throw new Error('weekly_checkpoint_phase');
   }finally{try{await workspace?.close();}finally{executing=false;}}

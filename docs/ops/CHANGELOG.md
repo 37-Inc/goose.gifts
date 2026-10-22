@@ -24,6 +24,30 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **October22 resumed implementation — not a release** [owner+claude]:
+  Cameron subsequently approved the exact≤600k additional-read/≥300k untouched
+  Free-only allowance; this does not reset accounting or bypass final SQL-cost,
+  dispatch and publication checks. PR256 (`aba0ee2`) makes the existing
+  source-pinned Cloudflare build canonical; its actual2,359-product build and
+  release verifier pass without legacy Neon credentials. A fresh serial rerun
+  of PR255's affected integration pack now passes40/40, separately from the
+  original disk-space failure. PR252–255 are combined for final review, not live.
+  draft PR252 adds an explicit prior-approval-bound activation deadline and fixes
+  four equivalent BigInt literals; PR253 refines the actual 2,359-gift static UI
+  (compact honest no-photo cards, decorative placeholder alt, plain guide copy,
+  and a new original empty-prank-box disclosure without changing catalog data).
+  Draft PR254 adds an approval-bound, same-ledger publication allowance with
+  pre-dispatch SQL/cost admission, single-flight requests and durable over-bound
+  resume refusal. None grants budget or changes production. Daily retention/
+  full-catalog successor draft PR255 keeps cleared listings through stock/price
+  changes; source has independent review and focused integration proof. Broad
+  tests originally hit local ENOSPC; the later40/40 serial run is new evidence,
+  not a retroactive broad green. Public remains eight. The owner approval above
+  is received; no actual bounded-recovery attempt has run at this checkpoint.
+  Exact frozen SQL/parameter/inventory cost proof, final operator wiring,
+  canonical release/build checks, actual full publication and daily canary remain
+  required. Do not rerun the old helper or relabel a draft as live.
+
 - **Full-catalog public release pending** [owner+claude]: actual all-24-table /
   3,383-product production union, schema 0015, local native rollback and permanent
   installer passed. The installer released generation 6 / epoch 299 with 2,359 ready,
@@ -286,9 +310,26 @@ what's likely next.
 
 `npm run build` now uses the existing reviewed, source-pinned static builder;
 `build:staging` stays compatible. The old Neon-backed Next build is explicitly
-`build:legacy`, with its separate rollback environment. No build fetches catalog
-data or deploys; an explicit snapshot/release context remains mandatory. This
+`build:legacy`, with its separate rollback environment. The Cloudflare build does
+not fetch catalog data or deploy; an explicit snapshot/release context remains mandatory. This
 removes an obsolete credential dependency without weakening release verification.
+
+### 2026-10-22 [owner+claude] — Add an independently authored prank-box disclosure
+
+Add “Empty prank gift box. No fire kit included.” beside the exact Amazon item's
+card and detail heading. This is new owned site editorial, with the dated reference
+and prior factual-review provenance in source—not a changed product DTO, permanent
+grant, supplier deadline or snapshot. Server-provided context keeps its identity
+out of shared JavaScript. No data mutation or publication is performed here.
+
+### 2026-10-22 [owner+claude] — Keep photo-free catalog cards compact and honest
+
+Replace repeated full-size generic pictures with the existing gift glyph and a
+quiet photo-unavailable label. Only original optional-photo slot IDs reserve
+image geometry; guarded supplier URLs/deadlines and expiry behavior are unchanged.
+Placeholder art is decorative, guide headings use plain public language, and
+24+24 browsing/search/privacy controls remain. This is source/local QA, not a new
+publication or writer activation; public acceptance remains eight gifts.
 
 ### 2026-10-22 [owner+claude] — Accept private full-catalog migration and recovery
 

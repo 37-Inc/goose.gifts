@@ -3,6 +3,8 @@ import { createHash, randomUUID } from 'node:crypto';
 import { drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
 import { assertOneTimeMigrationBudget, validMigrationLedger } from './one-time-migration-budget.ts';
 import type { OneTimeMigrationBudget } from './one-time-migration-budget.ts';
+import { assertPublicationRecoveryBudget } from './publication-recovery-budget.ts';
+import type { PublicationRecoveryBudget } from './publication-recovery-budget.ts';
 import { canonicalJson } from './migration.ts';
 const ownedClients=new WeakSet<CatalogD1>();
 export function isCatalogD1Rest(db:CatalogD1):boolean{return ownedClients.has(db);}
@@ -88,7 +90,77 @@ export function createCatalogD1MigrationRest(options:Omit<RestOptions,'limits'|'
     assert();return createRest({...options,accounting,limits:budget.profile.limits},assert);
   }catch{return Promise.reject(new Error('migration_budget_refused'));}
 }
-async function createRest(options:RestOptions,migrationAssert?:()=>void):Promise<RestClient>{
+
+/** Separate, exclusive-workspace recovery client. Old charges/unknowns stay in
+ * the same ledger. Reserve the reviewed maximum NEXT BATCH before dispatch;
+ * concurrent batches and any new unknown/bound violation stop this client.
+ * The caller must independently prove the exact SQL/inventory batch bound. */
+export function createCatalogD1PublicationRecoveryRest(options:Omit<RestOptions,'limits'|'accounting'>&{
+  budget:{profile:PublicationRecoveryBudget;sha256:string};ledger:D1AccountingState;accounting:D1Accounting;now?:()=>Date;
+  /** Complete durable SAME-ledger reservations/known settlements after the
+   * original approval anchor. Reconcile every unit; a prior bound violation
+   * cannot be cleared by constructing another client. No SQL/body values. */
+  settlements:Array<{id:string;sqlStatements:number;rowsRead:number;rowsWritten:number}>;
+}):Promise<RestClient>{
+  try{
+    if(Object.hasOwn(options,'limits')||!options.accounting||!object(options.budget)
+      ||Object.keys(options.budget).sort().join(',')!=='profile,sha256'||!validMigrationLedger(options.ledger)
+      ||canonicalJson(options.ledger)!==canonicalJson(options.accounting.initial))throw new Error();
+    const budget=structuredClone(options.budget),initial=structuredClone(options.ledger),accounting=options.accounting;
+    const {ledgerAtApproval:anchor,batchBound:bound}=budget.profile.input,scope=budget.profile.input.prior.profile.input.scope;
+    const reserve=accounting.reserve,settle=accounting.settle,now=options.now??(()=>new Date());
+    if(Object.keys(anchor).some(k=>initial[k as keyof D1AccountingState]<anchor[k as keyof D1AccountingState])
+      ||initial.unconfirmedRequests!==anchor.unconfirmedRequests)throw new Error();
+    const history=options.settlements;
+    if(!Array.isArray(history)||history.length!==initial.httpRequests-anchor.httpRequests
+      ||new Set(history.map(s=>s.id)).size!==history.length
+      ||history.some(s=>!object(s)||Object.keys(s).sort().join(',')!=='id,rowsRead,rowsWritten,sqlStatements'
+        ||typeof s.id!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(s.id)
+        ||![s.sqlStatements,s.rowsRead,s.rowsWritten].every(integer)||s.sqlStatements>50
+        ||s.rowsRead>(s.sqlStatements?bound.rowsRead:0)||s.rowsWritten>(s.sqlStatements?bound.rowsWritten:0))
+      ||history.reduce((n,s)=>n+s.sqlStatements,anchor.sqlStatements)!==initial.sqlStatements
+      ||history.reduce((n,s)=>n+s.rowsRead,anchor.knownRowsRead)!==initial.knownRowsRead
+      ||history.reduce((n,s)=>n+s.rowsWritten,anchor.knownRowsWritten)!==initial.knownRowsWritten)throw new Error();
+    let read=initial.knownRowsRead,written=initial.knownRowsWritten,stopped=false;
+    let pending:{id:string;sql:boolean}|undefined;
+    const reviewedStatements=new Map(bound.statements.map(s=>[s.sha256,s]));
+    const assert=()=>{
+      assertPublicationRecoveryBudget(budget.profile,budget.sha256,now());
+      if(stopped||canonicalJson(accounting.scope)!==canonicalJson(scope)||canonicalJson(accounting.initial)!==canonicalJson(initial)
+        ||scope.accountId!==options.accountId||scope.databaseId!==options.databaseId||scope.databaseName!==options.databaseName
+        ||typeof reserve!=='function'||typeof settle!=='function'||accounting.reserve!==reserve||accounting.settle!==settle)
+        throw new Error('publication_recovery_budget_refused');
+    };
+    const guarded:D1Accounting={scope:accounting.scope,initial,
+      async reserve(input){
+        assert();const sql=input.units.sqlStatements>0;
+        if(pending||sql&&(read+bound.rowsRead>budget.profile.limits.reportedRowsRead
+          ||written+bound.rowsWritten>budget.profile.limits.reportedRowsWritten))throw new Error('publication_recovery_budget_refused');
+        pending={id:input.id,sql};
+        try{await reserve.call(accounting,input);}catch{stopped=true;throw new Error('publication_recovery_budget_refused');}
+      },
+      async settle(id,result){
+        if(pending?.id!==id){stopped=true;throw new Error('publication_recovery_budget_refused');}
+        const sql=pending.sql;
+        try{await settle.call(accounting,id,result);}catch{stopped=true;throw new Error('publication_recovery_budget_refused');}
+        pending=undefined;
+        if(result.status==='unknown'){stopped=true;return;}
+        read+=result.usage.rowsRead;written+=result.usage.rowsWritten;
+        if(result.usage.rowsRead>(sql?bound.rowsRead:0)||result.usage.rowsWritten>(sql?bound.rowsWritten:0)){
+          stopped=true;throw new Error('publication_recovery_batch_bound_exceeded');
+        }
+      }};
+    const beforeBatch=(batch:Query[])=>{
+      assert();if(pending)throw new Error('publication_recovery_budget_refused');
+      let reads=0,writes=0;
+      for(const q of batch){const cost=reviewedStatements.get(createHash('sha256').update(q.sql).digest('hex'));
+        if(!cost)throw new Error('publication_recovery_sql_unreviewed');reads+=cost.rowsRead;writes+=cost.rowsWritten;}
+      if(reads>bound.rowsRead||writes>bound.rowsWritten)throw new Error('publication_recovery_batch_unreviewed');
+    };
+    assert();return createRest({...options,accounting:guarded,limits:budget.profile.limits},assert,beforeBatch);
+  }catch{return Promise.reject(new Error('publication_recovery_budget_refused'));}
+}
+async function createRest(options:RestOptions,migrationAssert?:()=>void,beforeBatch?:(batch:Query[])=>void):Promise<RestClient>{
   const { accountId,databaseId,databaseName,token }=options;
   const limits={...CATALOG_D1_REST_LIMITS,...options.limits};
   if(typeof accountId!=='string'||!/^[a-f0-9]{32}$/.test(accountId)||typeof databaseId!=='string'
@@ -162,6 +234,7 @@ async function createRest(options:RestOptions,migrationAssert?:()=>void):Promise
     if(Buffer.byteLength(body)>limits.requestBytes)throw new Error('catalog_d1_request_bound');
     if(statements+batch.length>limits.statements||requests>=limits.requests
       ||rowsRead>=limits.reportedRowsRead||rowsWritten>=limits.reportedRowsWritten)throw new Error('catalog_d1_budget_exhausted');
+    beforeBatch?.(batch);
     const reservation=await reserve(body,batch.length);
     if(statements+batch.length>limits.statements||requests>=limits.requests
       ||rowsRead>=limits.reportedRowsRead||rowsWritten>=limits.reportedRowsWritten)throw new Error('catalog_d1_budget_exhausted');

@@ -188,6 +188,14 @@ test('permanent receipt owns full rows; concrete native observation remains exac
   const schema=f.sql.prepare("SELECT sql FROM sqlite_schema WHERE sql IS NOT NULL AND tbl_name='catalog_public_products' AND type IN('table','index') ORDER BY type='index'").all().map(r=>r.sql+';').join('\n');
   t.diagnostic(JSON.stringify({fixture:'actual two SQL templates,2359 local projections; not D1 billed rows',cost:assertIndexedProjectionQueries([first,second],schema)}));
 });
+test('pure permanent source proof may read past dispatch cutoff but cannot authorize ordinary settlement',async t=>{
+  const f=await fixture(t,{afterExpiry:true}),prepared=await preparePermanentCatalog(f.db,f.owner,f.request),before=f.sql.prepare('SELECT total_changes() n').get().n;
+  f.advance(Date.parse(prepared.revision.request.context.cutoff)-f.now().getTime()+1);
+  await assertPermanentCatalog(f.db,prepared.owner,prepared.revision);
+  assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,before);
+  await assert.rejects(settlePermanentCatalog(f.db,prepared.owner,prepared.revision,f.adapters));
+  assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,before);
+});
 test('one-time permanent freeze preserves3383 identities/native, then reopens and settles expired active ACK with bounded full-row proofs',async t=>{
   const f=await fixture(t,{count:3383,afterExpiry:true}),products=f.sql.prepare('SELECT * FROM products ORDER BY id').all(),native=canonicalJson([...f.index]),
     journals=f.sql.prepare('SELECT * FROM catalog_vector_deliveries ORDER BY delivery_id').all(),start=f.metrics();
@@ -228,7 +236,7 @@ test('one-time permanent freeze preserves3383 identities/native, then reopens an
   t.diagnostic(JSON.stringify({fixture:'LOCAL REST+SQLite only; not provider acceptance',prepare:cost(start,sealed),settle:cost(sealed,settled),
     extraProofAndReplay:cost(settled,repeated),publicationThroughIdle:cost(repeated,end),freezeThroughIdle:cost(start,end),wire:end}));
 });
-test('current overlay keeps original clock; source/history/receipt/native/owner/expiry drift refuses and committed seal retry is exact',async t=>{
+test('current overlay keeps original clock; source/history/receipt/native/owner drift refuses and ordinary cutoff stays enforced',async t=>{
   const f=await fixture(t),before=f.dispatches();f.loseSeal();await assert.rejects(preparePermanentCatalog(f.db,f.owner,f.request));
   const actual=f.sql.prepare('SELECT mutation_epoch epoch FROM catalog_mutation_scopes').get(),prepared=await preparePermanentCatalog(f.db,{...f.owner,epoch:actual.epoch},f.request);
   assert.ok(prepared.revision.snapshot.products.slice(0,8).every(p=>p.persistent&&p.eligibleUntil!==null));
@@ -248,7 +256,9 @@ test('current overlay keeps original clock; source/history/receipt/native/owner/
     if(fault==='prior')f.sql.prepare("UPDATE publication_receipts SET code_sha=? WHERE release_id='original-release'").run(f.original.intent.codeSha);
     if(fault==='owner')f.sql.prepare('UPDATE catalog_mutation_scopes SET captured_at=?').run(prepared.owner.capturedAt);
   }
-  assert.equal(f.dispatches(),before);same(original,prepared.revision);f.advance(2*3600000);await assert.rejects(assertPermanentCatalog(f.db,prepared.owner,original));
+  assert.equal(f.dispatches(),before);same(original,prepared.revision);f.advance(2*3600000);
+  await assertPermanentCatalog(f.db,prepared.owner,original); // Read proof is not dispatch authority.
+  await assert.rejects(settlePermanentCatalog(f.db,prepared.owner,original,f.adapters));
 });
 test('0015 keeps all16 historical projection bytes/rowids/FTS immutable, permits only explicit identity-only null facts',async t=>{
   const f=await setup(t,{migrationThrough:14}),rows=()=>f.sql.prepare('SELECT rowid,* FROM catalog_public_products ORDER BY rowid').all(),before=rows();

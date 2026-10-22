@@ -151,7 +151,7 @@ export function prepareRollbackPacket(archive:Archive,manifest:Manifest,input:Fr
   const maintenance=indexed(input.tables.catalog_maintenance_products,'product_id');
   const telemetry=indexed(input.tables.catalog_run_telemetry,'run_id');const changes:RollbackPacket['changes']=[];
   const preserved=ownedImport?indexed(ownedImport.plan.baseline.products,'id'):null;let heldControls=0;
-  const expectedTables:RollbackPacket['expectedTables']=[];const finalTables=[];let maximumItem=0n;let addedItems=false;
+  const expectedTables:RollbackPacket['expectedTables']=[];const finalTables=[];let maximumItem=BigInt(0);let addedItems=false;
   for(const table of archive.tables){
     const def=table.definition;let final=table.rows;
     if(def.schema==='public'&&RUNTIME.includes(def.name)){
@@ -260,8 +260,8 @@ export function prepareRollbackPacket(archive:Archive,manifest:Manifest,input:Fr
   if(addedItems){const s=manifest.sequences.find(s=>s.schemaname==='public'&&s.sequencename==='catalog_run_items_sequence_seq');
     const state=manifest.recoveryMetadata?.sequences.find(x=>x.schema===s?.schemaname&&x.name===s.sequencename);
     if(!s||s.increment_by!=='1'||s.cycle||!state)refuse();
-    const next=state.isCalled?BigInt(state.lastValue)+1n:BigInt(state.lastValue);
-    sequence={schema:s.schemaname,name:s.sequencename,nextValue:String(maximumItem+1n>next?maximumItem+1n:next)};
+    const next=state.isCalled?BigInt(state.lastValue)+BigInt(1):BigInt(state.lastValue);
+    sequence={schema:s.schemaname,name:s.sequencename,nextValue:String(maximumItem+BigInt(1)>next?maximumItem+BigInt(1):next)};
   }
   return {schemaVersion:1,kind:'offline-d1-to-pg-rollback',baselineManifestSha256:archive.summary.manifestSha256,inputSha256,
     ...(sequenceProof?{ownedImportSequences:sequenceProof}:{}),

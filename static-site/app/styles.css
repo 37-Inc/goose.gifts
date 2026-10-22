@@ -1204,3 +1204,24 @@ body:has(.presentation-main) > .preview-notice {
     animation: none !important;
   }
 }
+
+/* No-photo listings stay useful without repeating a full-size generic picture.
+   Known optional photo slots retain their geometry before/after photo I/O. */
+.product-card .product-art.photo-unavailable,
+.opening-grid .lead-card .product-art.photo-unavailable,
+.opening-grid > .product-card:not(.lead-card) .product-art.photo-unavailable {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  aspect-ratio: auto;
+  min-height: 56px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  background: #f1eee5;
+  color: var(--muted);
+  font-size: 11px;
+}
+.photo-unavailable .icon {
+  color: var(--accent);
+  flex: 0 0 20px;
+}

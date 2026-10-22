@@ -13,15 +13,15 @@ import { prunedVectorIds, prunedVectorPlan } from '../../lib/catalog/prune-exist
 import type { PermanentCatalogRevision } from '../../lib/catalog/freeze-permanent-catalog.ts';
 import { assertPermanentCatalog } from '../../lib/catalog/freeze-permanent-catalog.ts';
 import type { ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
-import type { ActivationPermit, DeploymentIdentity, DeploymentObservation, BuildRecoveryApproval, ReviewedUploadActivationApproval, ReviewedUploadActivationInput } from '../../lib/catalog/build-requests.ts';
+import type { ActivationPermit, DeploymentIdentity, DeploymentObservation, BuildRecoveryApproval, ReviewedUploadActivationApproval, ReviewedUploadActivationApprovalV1, ReviewedUploadActivationInput } from '../../lib/catalog/build-requests.ts';
 import { beginBuildActivation, claimBuildRequest, encodeBuildRequest, resolveBuildActivation, drainDeploymentObservation,
   encodeBuildRecoveryApproval, recoverUnstartedBuildRequest, readUnstartedBuildRecovery,
-  encodeReviewedUploadActivationApproval, beginReviewedUploadActivation, readReviewedUploadActivation } from '../../lib/catalog/build-requests.ts';
+  encodeReviewedUploadActivationApproval, reviewedUploadActivationDeadline, beginReviewedUploadActivation, readReviewedUploadActivation } from '../../lib/catalog/build-requests.ts';
 import { isAccountedPublicationFetch } from './publication-read-fetch.ts';
 import { isAccountedPublicationUploadCommand, PublicationUploadCommandError } from './publication-upload-command.ts';
 import { isCatalogD1Rest } from './d1-write-rest.ts';
 import type { PublicationIntent } from '../../lib/catalog/publication.ts';
-import { claimPublication, completeActivatedPublication, completeActivatedPermanentPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
+import { claimPublication, completeActivatedPublication, completeActivatedPermanentPublication, completeActivatedApprovedCatalogPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
 import type { SiteAssetManifest } from '../../lib/catalog/types.ts';
 import type { ReleaseBuildContext } from '../staging/build.mts';
 import { assertBuildSource, validateBuildContext } from '../staging/build.mts';
@@ -129,7 +129,7 @@ export interface ReviewedUploadRetryEvidence {
     buckets:number;hashes:number;maxJwtLength:number;errorClass:null};
 }
 type RetryRecord={schemaVersion:1;approval:ReviewedUploadActivationApproval;evidence:ArtifactRef;oldPending:ArtifactRef;oldReview:ArtifactRef;
-  owner:MutationOwner;control:PublicationControl;original:ReviewedUploadActivationInput['original']};
+  owner:MutationOwner;control:PublicationControl;original:ReviewedUploadActivationInput['original'];priorApproval?:ReviewedUploadActivationApprovalV1};
 function reviewedEvidence(value:unknown,config:PublicationConfig):asserts value is ReviewedUploadRetryEvidence {
   const e=value as ReviewedUploadRetryEvidence,d=e?.diagnostic,base=`https://api.cloudflare.com/client/v4/accounts/${config.accountId}`;
   if(!e||!exact(e,'assetContentRequests,diagnostic,kind,logSha256,requests,schemaVersion,versionPosts')||e.schemaVersion!==1
@@ -309,15 +309,17 @@ function intentFrom(manifest:SiteAssetManifest,bytes:Uint8Array):PublicationInte
  * publication predicates. Ambiguous external steps are reconciled, not resent.
  * Credentials never enter checkpoints, artifacts, command args or returned errors.
  */
-export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision;requestId:string;runReference:string;
+export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision;approvedCatalog?:ApprovedCohortRevision;requestId:string;runReference:string;
   workspace:PublicationWorkspace;config:PublicationConfig;credentials:{cloudflareToken:string;identityAuthorization?:string};dependencies?:Dependencies;buildRecovery?:BuildRecoveryApproval;
-  reviewedUploadRetry?:{approval:ReviewedUploadActivationApproval;evidence:ArtifactRef}}):Promise<PublicationResult>{
+  reviewedUploadRetry?:{approval:ReviewedUploadActivationApproval;evidence:ArtifactRef;priorApproval?:ReviewedUploadActivationApprovalV1}}):Promise<PublicationResult>{
   const {db,workspace,revision}=options;const config=validatePublicationConfig(options.config);const now=options.dependencies?.now??(()=>new Date());
   if(options.buildRecovery)encodeBuildRecoveryApproval(options.buildRecovery);
   const reviewed=options.reviewedUploadRetry;
   if(reviewed)encodeReviewedUploadActivationApproval(reviewed.approval);
   if(options.permanent&&(options.published||!revision||canonicalJson(options.permanent)!==canonicalJson(revision))
     ||revision?.nativePreservation&&!options.permanent)throw new Error('publication_permanent_input_invalid');
+  if(options.approvedCatalog&&(options.permanent||options.published||!revision||canonicalJson(options.approvedCatalog)!==canonicalJson(revision)))
+    throw new Error('publication_approved_input_invalid');
   if(db.providerIdentity!==`cloudflare:${config.accountId}:${config.database.id}`)throw new Error('publication_database_scope_mismatch');
   await workspace.assertHeld();await workspace.assertScope({accountId:config.accountId,environment:config.environment,databaseId:config.database.id,
     databaseName:config.database.name,workerName:config.workerName,indexName:config.indexName});
@@ -331,7 +333,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   const runtime=path.join(workspace.directory,'publication-runtime',config.releaseId);
   const uploadBinding=()=>({schemaVersion:1,releaseId:config.releaseId,requestId:options.requestId,configSha256,
     packageSha256:control!.packageSha256,uploadMarker:control!.uploadMarker});
-  let retryRecord:RetryRecord|undefined;
+  let retryRecord:RetryRecord|undefined,activationDeadline:string|undefined;
   const retryAck=(pending:ArtifactRef)=>({schemaVersion:1,approval:reviewed!.approval,evidence:reviewed!.evidence,pending,
     oldPending:checkpoint!.checkpoint.pins.publicationUploadPending,oldReview:checkpoint!.checkpoint.pins.publicationUploadReview,upload:uploadBinding()});
   const runUpload=()=>command({file:process.execPath,args:['node_modules/wrangler/bin/wrangler.js','versions','upload','--config',path.join(directory,'wrangler.json'),
@@ -374,6 +376,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         ||pendingUpload.sha256!==sha256(canonicalJson(uploadBinding()))||!isAccountedPublicationUploadCommand(command)
         ||marker&&(!ack||ack.sha256!==sha256(canonicalJson(retryAck(marker))))||!marker&&ack)
         throw new Error('publication_upload_review_required');
+      activationDeadline=await reviewedUploadActivationDeadline(a,control.build.request.cutoff,reviewed.priorApproval);
+      if(!control.permit&&!marker&&now().toISOString()>=activationDeadline)throw new Error('publication_upload_retry_cutoff');
       // A marker without genuine command ACK is ALWAYS held before provider IO;
       // a visible version can never mint that acknowledgement on resume.
       if(!control.permit){
@@ -386,8 +390,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
             ||review.configSha256!==configSha256)throw new Error('publication_upload_retry_fenced');
         }else{
           retryRecord=await workspace.readArtifact(marker) as unknown as RetryRecord;
-          if(!exact(retryRecord,'approval,control,evidence,oldPending,oldReview,original,owner,schemaVersion')||retryRecord.schemaVersion!==1
+          if(!exact(retryRecord,`approval,control,evidence,oldPending,oldReview,original,owner,${a.schemaVersion===2?'priorApproval,':''}schemaVersion`)||retryRecord.schemaVersion!==1
             ||encodeReviewedUploadActivationApproval(retryRecord.approval)!==encodeReviewedUploadActivationApproval(a)
+            ||canonicalJson(retryRecord.priorApproval??null)!==canonicalJson(reviewed.priorApproval??null)
             ||canonicalJson(retryRecord.evidence)!==canonicalJson(reviewed.evidence)||canonicalJson(retryRecord.oldPending)!==canonicalJson(pendingUpload)
             ||canonicalJson(retryRecord.oldReview)!==canonicalJson(pins.publicationUploadReview)
             ||canonicalJson({...retryRecord.control,stage:control.stage,versionReference:control.versionReference})!==canonicalJson(control)
@@ -463,7 +468,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     // observation. No proof survives this invocation or crosses an owner change.
     const permanentProof=async()=>{
       if(!options.permanent)return;
-      const controller=new AbortController(),remaining=control!.permit?120_000:Date.parse(control!.build.request.cutoff)-now().getTime();
+      const controller=new AbortController(),remaining=control!.permit?120_000:Date.parse(activationDeadline??control!.build.request.cutoff)-now().getTime();
       if(remaining<=0)throw new Error('publication_upload_retry_cutoff');
       const timer=setTimeout(()=>controller.abort(),Math.min(120_000,remaining));
       try{await assertPermanentCatalog(db,owner,options.permanent,control!.permit??undefined,controller.signal);}
@@ -488,7 +493,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         ||publication.dispatch_reference!==null||publication.completed_token!==null||publication.error_code!==null)throw new Error('publication_upload_retry_fenced');
       const {observed_at:ignored,...build}=buildRow;void ignored;
       retryRecord={schemaVersion:1,approval:reviewed.approval,evidence:reviewed.evidence,oldPending:pendingUpload!,
-        oldReview:checkpoint!.checkpoint.pins.publicationUploadReview,owner,control:structuredClone(control),original:{build,publication}};
+        oldReview:checkpoint!.checkpoint.pins.publicationUploadReview,owner,control:structuredClone(control),original:{build,publication},
+        ...(reviewed.priorApproval?{priorApproval:reviewed.priorApproval}:{})};
       await verifyBuiltPackage();if(!(await rollbackPreflight(db,revision.snapshot,now())).ok)throw new Error('publication_upload_retry_fenced');
       await vectorProof();if(await api.findVersion(control.uploadMarker)!==null)throw new Error('publication_upload_review_required');
       await permanentProof();
@@ -496,7 +502,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         const keys=Object.keys(row).sort();if(keys.some(k=>!/^[_a-z][_a-z0-9]*$/.test(k)))throw new Error('publication_upload_retry_fenced');
         return db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM ${table} WHERE ${keys.map(k=>`${k} IS ?`).join(' AND ')})
           AND ?>strftime('%Y-%m-%dT%H:%M:%fZ','now') AND NOT EXISTS(SELECT 1 FROM publication_receipts WHERE release_id=?)
-          THEN 'true' ELSE 'publication_upload_retry_fenced' END)`).bind(...keys.map(k=>row[k]),b.request.cutoff,config.releaseId);
+          THEN 'true' ELSE 'publication_upload_retry_fenced' END)`).bind(...keys.map(k=>row[k]),activationDeadline!,config.releaseId);
       };
       await db.batch([mutationAssertion(db,owner,['freezing']),exactRow('catalog_build_requests',build),exactRow('publication_outbox',publication),mutationAssertion(db,owner,['freezing'])]);
       const current=await workspace.readCheckpoint();if(current?.sha256!==reviewed.approval.checkpointSha256)throw new Error('publication_upload_retry_fenced');
@@ -633,8 +639,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         const readDeployed=async()=>{
           await observed();return control!.intent!;
         };
-        if(control.publication!.leaseUntil<=now().toISOString())
+        if(options.approvedCatalog||control.publication!.leaseUntil<=now().toISOString())
           if(options.permanent)await completeActivatedPermanentPublication(db,revision,control.publication!,control.permit,readDeployed,now);
+          else if(options.approvedCatalog)await completeActivatedApprovedCatalogPublication(db,revision,control.publication!,control.permit,readDeployed,now);
           else await completeActivatedPublication(db,revision,control.publication!,control.permit,readDeployed,now,options.published);
         else await completePublication(db,sealed.snapshot,config.releaseId,control.publication!.token,readDeployed,now,owner);
       }
@@ -660,6 +667,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     }
     if(config.prior===null)throw new Error('publication_bootstrap_required'); // Historical reconciliation only; never a new external action.
     if(!revision||owner.phase!=='freezing')throw new Error('publication_revision_required');
+    // The routine whole-catalog mode requires its genuine COMPLETE policy and
+    // every native/absence proof BEFORE a build/upload, not only at completion.
+    if(options.approvedCatalog)await vectorProof();
     assertBuildSource(config.sourceRoot,config.codeSha);
     if(control.stage==='claimed'){
       const context:ReleaseBuildContext={schemaVersion:1,sourceMode:config.sourceMode,releaseId:config.releaseId,codeSha:config.codeSha,
@@ -793,7 +803,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       if(reviewed){
         if(!retryRecord)throw new Error('publication_upload_retry_fenced');
         const input:ReviewedUploadActivationInput={claim:control.build,publication:control.publication!,versionReference:control.versionReference!,
-          owner:retryRecord.owner,approval:reviewed.approval,original:retryRecord.original};
+          owner:retryRecord.owner,approval:reviewed.approval,original:retryRecord.original,
+          ...(retryRecord.priorApproval?{priorApproval:retryRecord.priorApproval}:{})};
         const pins=checkpoint!.checkpoint.pins,expected={schemaVersion:1,input,retryPending:pins.publicationUploadRetryPending,
           retryAcknowledged:pins.publicationUploadRetryAcknowledged,configSha256};
         const marked=pins.reviewedUploadActivationPending;
@@ -822,11 +833,11 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       if(isAccountedPublicationFetch(observationSend)&&isCatalogD1Rest(db))await observation.catch(()=>{});
       else await drainDeploymentObservation(observation);}}
     // CAS pending is NOT provider dispatch pending. A recovered permit may
-    // authorize its FIRST POST only while the original cutoff remains future.
-    if(reviewed&&now().toISOString()>=control.build.request.cutoff)throw new Error('publication_upload_retry_cutoff');
+    // authorize its FIRST POST only while its explicit dispatch grant is future.
+    if(reviewed&&now().toISOString()>=activationDeadline!)throw new Error('publication_upload_retry_cutoff');
     await save(reviewed?{stage:'activating',permit}:{permit},permit.mutationOwner!);
     await workspace.assertHeld(); // Exact owner fence immediately precedes real activation.
-    if(reviewed&&now().toISOString()>=control.build.request.cutoff)throw new Error('publication_upload_retry_cutoff');
+    if(reviewed&&now().toISOString()>=activationDeadline!)throw new Error('publication_upload_retry_cutoff');
     const deploymentId=await api.activate(control.versionReference!,control.deploymentMarker);
     await save({deploymentId});
     // One invocation performs the readback too; recursive entry only reuses the

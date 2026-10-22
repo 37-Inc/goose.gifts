@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 import amazonCreators from '../lib/amazon-creators.js';
 import { deduplicateAgainstCatalog } from '../scripts/ops/prefetch-catalog.mjs';
-import { dailyCatalogExecutor, dailyCatalogPhases, pacificCatalogCalendar, runNeonDailyCatalog, withCatalogCadence } from '../scripts/ops/catalog-daily.mjs';
+import { dailyCatalogExecutor, dailyCatalogPhases, pacificCatalogCalendar, runDailyCatalogWithBackend, runNeonDailyCatalog, withCatalogCadence } from '../scripts/ops/catalog-daily.mjs';
 import { createPostgresCatalogMaintenanceStore } from '../scripts/ops/catalog-maintenance-postgres.mjs';
 
 const NOW = '2026-10-21T18:00:00.000Z', MONDAY = '2026-10-19T18:00:00.000Z';
@@ -64,6 +64,16 @@ test('same-day Monday repeats never add 50 refreshes or 25 backfills; each Monda
   await withCatalogCadence(options, async cadence => assert.deepEqual((await dailyCatalogPhases(cadence)).map(p => p.dailyRefresh), [true]));
   time = '2026-10-26T18:00:00Z';
   await withCatalogCadence(options, async cadence => assert.equal((await dailyCatalogPhases(cadence)).length, 2));
+});
+test('only the D1 permanent-listing backend disables legacy missing-age deactivation',async t=>{
+  const options=await fixture(t);
+  await withCatalogCadence(options,async cadence=>{
+    assert.equal((await dailyCatalogPhases(cadence))[0].deactivateMissing,true);
+    await assert.rejects(runDailyCatalogWithBackend({cadence,preservePermanentListings:true,runId:'d1-only',gitSha:'fixture',
+      maintenanceStore:{},telemetryStore:telemetry(),async publish(){assert.fail('unexpected publication');},
+      async finalizeRun(id,input){return{run:{id,status:input.status}};},
+      async execute(phase){assert.equal(phase.deactivateMissing,false);throw new Error('test_stopped_before_provider');}}),/test_stopped_before_provider/);
+  });
 });
 
 test('overlapping owners, damaged reservations and clock-crossed requests fail closed', async t => {

@@ -411,10 +411,12 @@ test('lost D1 response and uncertain publication resume without paid phases, cou
   const f=await setup(t);f.loseWrite();assert.equal((await f.run('start')).reason,'awaiting_reviewed_approval');
   f.mode.identityFailure=true;f.mode.activationLost=true;const first=await f.run('resume',await f.approve());assert.equal(first.state,'pending');
   assert.equal(f.sql.prepare('SELECT status FROM catalog_runs').get().status,'running');assert.equal(f.calls.activate,1);
-  const before={...f.calls};const usage=(await readRunWorkspace(f.workspaceOptions)).budget;assert.equal(usage.unconfirmedRequests,1);
+  // Both the lost D1 ACK and the consumed activation response are charged.
+  // General publication REST was previously outside this workspace ledger.
+  const before={...f.calls};const usage=(await readRunWorkspace(f.workspaceOptions)).budget;assert.equal(usage.unconfirmedRequests,2);
   delete f.mode.identityFailure;const result=await f.run('resume');assert.equal(result.state,'finalized',JSON.stringify(result));
   assert.equal(f.calls.activate,1);assert.equal(f.calls.search,before.search);assert.equal(f.calls.embedding,before.embedding);
-  assert.ok(result.budget.httpRequests>usage.httpRequests);assert.equal(result.budget.unconfirmedRequests,1);assert.ok(result.budget.knownRowsWritten>=usage.knownRowsWritten);
+  assert.ok(result.budget.httpRequests>usage.httpRequests);assert.equal(result.budget.unconfirmedRequests,2);assert.ok(result.budget.knownRowsWritten>=usage.knownRowsWritten);
 });
 test('uploaded-stage restart preserves sealed snapshot and fixed publication intent bytes before activation',async t=>{
   const f=await setup(t);await f.run('start');f.mode.stopAfterUpload=true;

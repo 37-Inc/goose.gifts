@@ -55,7 +55,7 @@ export default async function Guide({
       >
         <div className="section-heading">
           <h2 id="guide-selection-heading">
-            Catalog matches in this snapshot.
+            Gift ideas
           </h2>
           <span className="quiet">
             {products.length}{" "}
@@ -77,11 +77,10 @@ export default async function Guide({
         ) : (
           <div className="guide-pending">
             <p>
-              No matching ready products in this snapshot. We have not filled
-              this guide with unrelated gifts.
+              No matching gifts yet. Browse all gifts for another idea.
             </p>
             <a className="text-action" href="/gifts">
-              Browse the collection
+              Browse all gifts
             </a>
           </div>
         )}
