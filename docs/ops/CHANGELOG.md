@@ -32,7 +32,7 @@ what's likely next.
   delta, credential and same-response publication gates pass. Compact D1 daily/
   discovery reads now avoid transferring full archive/vector bodies for every
   catalog identity; this is tested efficiency work, not a live daily canary.
-  The next bounded integration resolves existing merchant/model credentials
+  Bounded hardening resolves existing merchant/model credentials
   before claiming a writer or reserving cadence, drains timed-out pre-activation
   reads, and removes old-site raw database search logging. These changes do not
   enable the new writer or prove a complete Monday publication fits its budget.
@@ -247,16 +247,19 @@ what's likely next.
 
 ### 2026-10-22 [owner+claude] — Harden credential and publication failure boundaries
 
-Prepared credential-before-claim/resume checks and cancellation-safe
+PR #223 adds credential-before-claim/resume checks and cancellation-safe
 pre-activation observation accounting. An unreadable existing Keychain item now
 leaves the database owner and daily allowance untouched. Observation reads use
 the same run ledger without adopting an already-accounted caller transport;
 activation/upload traffic remains separate. Removed the old public search
 route's raw query/user-agent database insert while preserving results, errors,
 the response shape and explicit browser analytics. Existing database history is
-not deleted. Full integration verification and normal deployment are pending;
-new-D1 daily maintenance remains gated. See `JOURNAL.md` and
-`roadmap-lbbz1.4.3`.
+not deleted. The complete Node22 suite passes692 tests with19 optional skips;
+18 analytics/search/security checks, build/lint and independent review pass.
+Three stale full-reader scan assertions were retargeted without weakening byte
+fallback/refusal or unknown accounting. New-D1 daily maintenance remains gated;
+the separately measured Monday scale/proof failure stays unmerged and tracked
+in `roadmap-lbbz1.4.3.1`. See `JOURNAL.md` and `roadmap-lbbz1.4.3`.
 
 ### 2026-10-22 [owner+claude] — Finalize existing release and reduce D1 maintenance reads
 

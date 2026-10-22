@@ -37,12 +37,27 @@ reads now use the compact projection, so they no longer exercise the full-reader
 ten-row byte fallback. Retargeted those assertions to existing full-reader
 consumers, retained every overflow/refusal/accounting check, and explicitly
 verified compact identities can omit an oversized unrelated private archive.
-The first run's 689 passes / three failures / 19 optional skips are not waived;
-complete-suite acceptance is being rerun. The independent review also made the
-timeout fault wait for its intended dispatch and restored real timers before
-the healthy retry; production deadlines are unchanged. No new provider
-publication, merchant/model request, scheduler activation, quota increase or
-paid plan was performed. Integration: draft PR #223.
+The first run's 689 passes / three failures / 19 optional skips were not waived;
+the corrected complete Node22 suite passes **692 / zero failures / 19 optional
+skips** (711 total). Independent review also made the timeout fault wait for
+its intended dispatch and restored real timers before the healthy retry;
+production deadlines are unchanged. Root and peer each passed the timeout
+matrix4/4 and corrected scan file5/5; overlapping counts are not summed. Root's
+18 analytics/search-boundary/security checks pass, as do staging/Worker types,
+full lint and the build for byte-identical application source. A fresh
+production-only dependency audit has zero findings; a full audit timed out, so
+its prior seven development-only findings are not relabelled as a fresh result.
+No new Cloudflare publication, merchant/model request, scheduler activation,
+quota increase or paid plan was performed. Integration: PR #223.
+
+The separate Monday full-plan checkpoint `e878e7c` remains isolated and unmerged.
+With3,383 identities plus30 changes, the production800HTTP/1200SQL guard refuses
+at612HTTP/1200SQL. Test-only2000/4000 headroom still produces a queue-proof
+failure at1730HTTP/3544SQL with two canceled-read unknowns; no build is accepted.
+This excludes merchant/model and executor packaging/upload, and mock returned
+rows are not D1 scanned/billing evidence. Its ordinary failing acceptance is
+retained, not converted to TODO or a successful release. Next bounded work is
+`roadmap-lbbz1.4.3.1`; the new daily writer must remain gated.
 
 ## 2026-10-22 02:24 UTC — Original release finalized; compact maintenance reads verified
 
