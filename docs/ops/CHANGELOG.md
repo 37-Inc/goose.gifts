@@ -31,7 +31,8 @@ what's likely next.
   decisions remain pending; no new product/model fetch, paid upgrade or second
   job is inferred. Local registered-body expiry cleanup continues while held.
   Existing dependency-audit findings are separately tracked in
-  `roadmap-lbbz1.4.5`; no forced Tailwind major upgrade is bundled in this fix.
+  `roadmap-lbbz1.4.5`; Cameron approved merging the publisher fix separately and
+  asked us to take care of straightforward dependency/toolchain updates.
 
 - **D1-write rollback mechanism prepared** [owner+claude]: bounded offline
   reconstruction now binds frozen logical D1 rows to a native PG baseline,
@@ -236,8 +237,12 @@ verification allowance. Ordinary completion remains lease-bound. A mechanical
 pure-CAS extraction preserves Worker compatibility; fault, accounting and browser
 bundle tests cover the change. No live grant or provider recovery has run.
 Original charges, merchant deadlines and the sole scheduled job remain intact.
+Root's full staging check passed691/709 with18 explicit optional skips; the
+eight-product local recovery proof used75 HTTP/67 SQL with no second deployment.
 The unchanged dependency audit has a separately tracked build-tool finding;
-do not merge past the runbook gate or force a major dependency upgrade.
+Cameron explicitly approved [PR #217](https://github.com/37-Inc/goose.gifts/pull/217)
+integration while that cleanup proceeds separately. No major dependency upgrade
+is bundled in the publisher fix, and actual recovery still needs its own approval.
 See `JOURNAL.md`, `roadmap-lbbz1.4.3` and `roadmap-lbbz1.4.5`.
 
 ### 2026-10-21 [owner+claude] — Bind prospective launch copy review to original evidence

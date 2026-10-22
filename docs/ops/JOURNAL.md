@@ -50,14 +50,33 @@ This is preparation and local verification, not live settlement, a real daily
 canary or full migration. No new merchant/model call, provider mutation, paid
 upgrade, social/Slack post, second job or daily reservation reset was performed.
 
-Node22 production build and lint pass. The unchanged lockfile's full
+Root's full Node22 staging regression passed **691 tests, 18 explicit optional
+skips, zero failures**; production build and lint pass. The separate local
+eight-ready/two-held recovery rehearsal also passed: one original activation
+followed by a lost identity read; 55 counted read-only fills reached 600 HTTP /
+963 SQL. After both original claim leases elapsed (product data still fresh),
+the synthetic once-only allowance produced a 750 HTTP / 1,263 SQL ceiling.
+Recovery plus idempotent replay consumed 75 HTTP / 67 SQL, finishing at
+675 / 1,030 with the original unknown charge retained. Exactly one build,
+upload and activation occurred in the entire fixture, with none during recovery;
+all ten product/native sidecar rows and both holds were unchanged. These are
+mocked fixture totals, **not the live run's 600 / 1,029 ledger**. The fixture's
+distinct catalog/release ID specialization is explicit. Private body-free review
+receipt `activation-recovery-local-proof-2026-10-22.json` SHA-256
+`3d6e57f2f8900e883f3d9f4cab6e6375c768b64f1e20db14bbac8e65a5850c73`.
+
+The unchanged lockfile's full
 `npm audit --audit-level=high` fails on seven inherited high build-tool findings
 rooted in `braces`; the official
 [advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) lists no patched
 version. Production-only audit exits0 at the high threshold, with one low
 DOMPurify finding under PostHog. No dependency was changed or advisory ignored.
-`roadmap-lbbz1.4.5` tracks a conservative resolution or explicitly accepted
-build-only exception; hold the new recovery PR merge at this runbook gate.
+For [PR #217](https://github.com/37-Inc/goose.gifts/pull/217), Cameron explicitly
+approved merging the narrow publisher fix while tracking dependency cleanup
+separately, then authorized straightforward latest-dependency/toolchain fixes.
+`roadmap-lbbz1.4.5` remains open for that separate cleanup; this is not a claim
+of a clean full audit or a global exception for future releases. Actual recovery
+allowance/headroom decisions are still pending and remain independently gated.
 
 ## 2026-10-21 owner session — Maintained release active; settlement needs recovery
 
