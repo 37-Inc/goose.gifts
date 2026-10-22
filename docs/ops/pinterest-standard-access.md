@@ -22,8 +22,9 @@ gate is a one-time **video-demo review**, not money.
 | App name | `Stupid.gifts` (formerly `Goose.gifts`; verified 2026-10-21) |
 | App ID | `1588384` |
 | Account | `stupid_gifts` — **BUSINESS**, same ID `1107815345747925810` (verified via production `pinterest:whoami`) |
-| Claimed website | `www.goose.gifts` (shows as claimed on the profile) |
-| Privacy policy | https://www.goose.gifts/privacy (live, 200) |
+| Claimed websites | `stupid.gifts` selected on profile; `goose.gifts` retained |
+| App website | https://stupid.gifts/ (saved, live200, self-canonical) |
+| Privacy policy | https://stupid.gifts/privacy (saved, live200, self-canonical) |
 | Scopes | `boards:read boards:write pins:read pins:write user_accounts:read` |
 | Redirect URI | `http://localhost:3737/oauth/pinterest/callback` |
 | Token storage | macOS Keychain — only OAuth `pina_`/`pinr_` tokens; no passwords/session |
@@ -177,6 +178,27 @@ frame that shows a raw token.**
 
 ## Production operating state
 
+**Latest domain verification, October21 Pacific / October22 UTC:** the business
+mailbox received “Trouble claiming your website” at23:17:05UTC, not an app-access
+rejection. No TXT or HTML verification was present. Added one TXT record to the
+Cloudflare apex, DNS-only/TTL Auto:
+`pinterest-site-verification=d26f095726909fff0819fed34db1267f`.
+The two existing Worker records were preserved. Cloudflare table, both
+authoritative nameservers and1.1.1.1 independently return the exact value.
+Pinterest then showed “Connected / You're all set!” for stupid.gifts and sent
+“Website claimed!” at2026-10-22T01:02:30Z. Goose's claim is also retained.
+
+Profile website now selects stupid.gifts; API returns http://stupid.gifts,
+verified to redirect to https://stupid.gifts/. App website/privacy fields already
+contained the new www host on arrival and were normalized/saved/read back as
+https://stupid.gifts/ and https://stupid.gifts/privacy. Both return200 with the
+expected canonicals; www redirects to apex. App1588384 still shows Standard
+access active, same localhost redirect. Production account still matches
+1107815345747925810 / stupid_gifts / BUSINESS,28 Pins/five boards.
+No credentials, scopes, old Pin URLs, catalog/analytics, publisher-domain guard
+or schedule were changed. Studio remains PAUSED; this is not publishing restart
+or full product-destination migration. [Receipt/screenshots](pinterest-rebrand-2026-10-21/domain-receipt.json).
+
 **October21 owner-authorized rename completed:** profile/business name and app
 name/company are now **Stupid.gifts**. `stupidgifts` was taken; after Pinterest's
 no-dot rule was explained, Cameron explicitly selected **stupid_gifts**.
@@ -187,11 +209,11 @@ five boards. App details saved with “Updated!”; My apps readback shows
 retains first-party-only behavior and token-storage handling. No new app,
 review resubmission, OAuth rotation or scope change was needed/performed.
 
-The transitional bio truthfully says Goose.gifts is becoming Stupid.gifts.
-Website/privacy URLs, old domain claim, redirect URI, avatar/app icon and every
-retained Pin/package/UTM are unchanged. Do not interpret renamed branding as
-proof the new site is live. The account guard now requires the original stable
-ID, `stupid_gifts` and BUSINESS; tests reject wrong/missing ID, old/wrong handle
+At the earlier rename, the transitional bio said Goose.gifts was becoming
+Stupid.gifts and website/privacy/claim were unchanged; the later domain repair
+above supersedes that metadata, not the original receipt. The account guard
+requires the original stable ID, `stupid_gifts` and BUSINESS; tests reject
+wrong/missing ID, old/wrong handle
 and personal accounts. Destination guards still reject Stupid.gifts until
 tested production cutover. The studio remains **PAUSED**, v11 remains frozen
 P6/F6 with generation/posting disabled, and the final review remains pending.

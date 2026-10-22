@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "type": "website_claim.verified_and_selected",
+  "verifiedAt": "2026-10-22T01:03:45Z",
+  "ownerLocalDate": "2026-10-21",
+  "authorization": "Cameron asked to inspect the error email and Chrome, preferably add the TXT record, fix verification and swap in the new domain.",
+  "domain": "stupid.gifts",
+  "accountId": "1107815345747925810",
+  "username": "stupid_gifts",
+  "appId": "1588384",
+  "emailEvidence": {
+    "failureSubject": "Trouble claiming your website",
+    "failureSentAt": "2026-10-21T23:17:05Z",
+    "failureAuthentication": "SPF, DKIM and DMARC pass; Pinterest account sender",
+    "successSubject": "Website claimed!",
+    "successSentAt": "2026-10-22T01:02:30Z",
+    "successDomain": "stupid.gifts",
+    "mailbox": "Existing Goose Gifts business mailbox; read-only, no mail changes"
+  },
+  "dns": {
+    "provider": "Cloudflare",
+    "accountId": "7f05a1dcb6e16f9c239564a0293bbe74",
+    "type": "TXT",
+    "name": "stupid.gifts",
+    "hostInput": "@",
+    "content": "pinterest-site-verification=d26f095726909fff0819fed34db1267f",
+    "ttl": "Auto",
+    "proxyStatus": "DNS only",
+    "previousRecordCount": 2,
+    "recordCountAfter": 3,
+    "preservedWorkerRecords": ["stupid.gifts", "www.stupid.gifts"],
+    "source": "Exact Add TXT record value in the signed-in Pinterest account",
+    "verification": [
+      "Cloudflare DNS table readback",
+      "jakub.ns.cloudflare.com authoritative TXT readback",
+      "jill.ns.cloudflare.com authoritative TXT readback",
+      "1.1.1.1 recursive TXT readback"
+    ],
+    "method": "Existing Chrome 37 session; cf CLI credential unavailable, no new credentials or permissions created"
+  },
+  "pinterest": {
+    "claimResult": "Connected; You're all set!; stupid.gifts",
+    "claimedDomainsAfter": ["goose.gifts", "stupid.gifts"],
+    "previousProfileWebsite": "http://www.goose.gifts",
+    "profileWebsiteApiReadback": "http://stupid.gifts",
+    "profileWebsiteEffectiveUrl": "https://stupid.gifts/",
+    "appWebsiteBefore": "https://www.stupid.gifts/",
+    "appPrivacyBefore": "https://www.stupid.gifts/privacy",
+    "appWebsiteSaved": "https://stupid.gifts/",
+    "appPrivacySaved": "https://stupid.gifts/privacy",
+    "appAccessReadback": "Standard access active",
+    "oauthRedirectUnchanged": "http://localhost:3737/oauth/pinterest/callback",
+    "pinCount": 28,
+    "boardCount": 5
+  },
+  "httpReadbacks": [
+    { "requested": "https://stupid.gifts/", "status": 200, "canonical": "https://stupid.gifts/" },
+    { "requested": "https://stupid.gifts/privacy", "status": 200, "canonical": "https://stupid.gifts/privacy" },
+    { "requested": "http://stupid.gifts/", "status": 200, "finalUrl": "https://stupid.gifts/" },
+    { "requested": "https://www.stupid.gifts/", "status": 200, "finalUrl": "https://stupid.gifts/" }
+  ],
+  "screenshots": ["domain-connected.png", "domain-profile.png", "domain-dns.png"],
+  "unchanged": [
+    "Existing account/app IDs, Standard approval, OAuth credentials, scopes and redirect",
+    "Existing Pins, boards, Pin destinations, UTMs, approval packages and publication receipts",
+    "Goose domain claim and the two Cloudflare Worker routing records",
+    "Public site source, catalog, analytics, enrichment and automation configuration",
+    "PAUSED studio; frozen v11 P6/F6, generation and publication disabled"
+  ],
+  "remainingGates": [
+    "Existing product redirects and new-site publishing destination guard cutover",
+    "Verified new-catalog shortlist/enrichment source and acquisition/retailer-action measurement",
+    "Pending v11 review and explicit owner-authorized restart/new experiment"
+  ]
+}

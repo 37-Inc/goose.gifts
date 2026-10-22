@@ -36,8 +36,11 @@ No automatic checkpoints or October31 review will run while paused. Review
 remains pending; restart gates and rebrand-intervention handling are in
 `PINTEREST_STUDIO.md`. The existing account/app are now **Stupid.gifts**;
 owner-selected handle **stupid_gifts**, same account/app IDs and Standard access.
-28 Pins/five boards are retained; website/domain switch remains held. See
-`pinterest-rebrand-2026-10-21/receipt.json`. The following metrics are the dated
+28 Pins/five boards are retained. The new domain is now TXT-verified/claimed,
+selected on the public profile, and saved in app website/privacy metadata;
+Goose's claim and all old Pin links remain. Publication, product-redirect,
+catalog-source and analytics gates are not reopened. See
+`pinterest-rebrand-2026-10-21/domain-receipt.json`. The following metrics are the dated
 October21 morning baseline, not a new migration measurement.
 
 The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,

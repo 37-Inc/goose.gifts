@@ -78,6 +78,51 @@ separately, then authorized straightforward latest-dependency/toolchain fixes.
 of a clean full audit or a global exception for future releases. Actual recovery
 allowance/headroom decisions are still pending and remain independently gated.
 
+## 2026-10-21 owner session — Fix missing Pinterest TXT; swap profile/app domain
+
+Owner asked to inspect the email/Chrome, prefer DNS TXT and fix/select the new
+domain. The connected personal Gmail lacked it; the existing business mailbox
+read-only query found Pinterest's “Trouble claiming your website” dated
+2026-10-21T23:17:05Z, delivered to the Goose alias with SPF/DKIM/DMARC pass.
+Plain body says website claiming failed, not Standard access. No TXT resolved
+and homepage/privacy had no p:domain_verify tag; both live pages returned200.
+
+Signed-in Chrome37 Pinterest Claim/Add TXT record supplied exactly
+pinterest-site-verification=d26f095726909fff0819fed34db1267f. Tried official cf
+CLI discovery first; its ambient token was unusable and no named auth profile
+was available. Did not reset/authenticate/broaden it. Existing Cloudflare Chrome
+session verified account7f05a1dcb6e16f9c239564a0293bbe74 / stupid.gifts / Free,
+with only apex/www production Worker records. Added one apex TXT, DNS-only and
+TTL Auto, preserving both routing records. Table now shows three records;
+jakub/jill authoritative nameservers and1.1.1.1 return the exact value.
+
+Pinterest claim returned Connected / You're all set! / stupid.gifts. Settings
+list both Goose and Stupid claims; none was unclaimed. Confirmation email
+“Website claimed!” at2026-10-22T01:02:30Z explicitly names stupid.gifts.
+Selected stupid.gifts in the profile website dropdown and saved. Production API
+readback confirms same BUSINESS ID1107815345747925810, stupid_gifts,
+website_url=http://stupid.gifts,28 Pins/five boards; preserved the owner's
+existing bio. HTTP and www URLs redirect to canonical https://stupid.gifts/.
+
+The app's website/privacy already used www.stupid.gifts on arrival. Normalized
+both to the live canonical apex and saved/read back with Save disabled:
+https://stupid.gifts/ and https://stupid.gifts/privacy, both200/self-canonical.
+Configure readback retains app1588384, Standard access active and original
+localhost OAuth redirect. Later screenshot/navigation timed out after those
+successful readbacks; no additional account/credential mutation was attempted.
+Claim/profile/DNS screenshots and domain-receipt.json preserve the outcome.
+
+Studio still PAUSED; no posting/generation/deletion, old Pin URL/package rewrite,
+OAuth rotation, new permissions, site-source/analytics/catalog job mutation or
+spend. New-domain metadata completion does not close product redirects,
+catalog-source, downstream measurement, pending v11 review or restart/new-test
+approval. Existing rename receipt, creative log and all public cohort receipts
+remain unchanged. No mail was sent, archived or deleted by this task.
+Node22: receipt JSON/screenshot references,940-event creative validation,
+six creative/ten Pinterest tests, production build, lint and diff check pass.
+Only operating docs and non-secret evidence changed; no publisher/domain guard,
+site build/release, creative event, approval or publication receipt rewrite.
+
 ## 2026-10-21 owner session — Maintained release active; settlement needs recovery
 
 Merged PRs #214 (`9156747`) and #215 (`9943718`) preserve all source/native

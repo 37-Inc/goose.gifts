@@ -75,7 +75,9 @@ what's likely next.
 - **Pinterest — owner-paused for Stupid.gifts migration:** October21 scheduler
   PAUSED/readback verified; cadence/chat and all v11 evidence retained. The
   separate catalog job is untouched. Account/app rename is now complete:
-  Stupid.gifts / stupid_gifts, same IDs and Standard access retained. Verify
+  Stupid.gifts / stupid_gifts, same IDs and Standard access retained. The new
+  domain is TXT-verified/claimed and selected in profile/app metadata; old
+  Goose claim and Pin links remain. Verify
   new-site redirects, catalog sourcing/enrichment, analytics and Pinterest
   configuration before owner-authorized restart. The October31 review remains
   pending and will not execute automatically while paused. A new experiment is
@@ -244,6 +246,20 @@ Cameron explicitly approved [PR #217](https://github.com/37-Inc/goose.gifts/pull
 integration while that cleanup proceeds separately. No major dependency upgrade
 is bundled in the publisher fix, and actual recovery still needs its own approval.
 See `JOURNAL.md`, `roadmap-lbbz1.4.3` and `roadmap-lbbz1.4.5`.
+
+### 2026-10-21 [owner+claude] — Fix Pinterest domain claim and select Stupid.gifts
+
+- Read the genuine website-claim failure email and exact TXT value in Chrome.
+  Added only the missing apex TXT in Cloudflare; both authoritative nameservers
+  and1.1.1.1 verify it. Pinterest reports Connected and sent Website claimed!
+  for stupid.gifts at2026-10-22T01:02:30Z. Old Goose claim/Worker records remain.
+- Switched profile website to stupid.gifts and saved canonical app website/
+  privacy links; live200/canonical/HTTP+www redirects and unchanged Standard
+  access/account IDs/28 Pins/five boards verify. Domain receipts/screenshots
+  are in `pinterest-rebrand-2026-10-21/`. Publishing remains PAUSED; no old Pin,
+  content, catalog, analytics, credential, routing or schedule mutation.
+- Receipt/screenshot references,940-event creative validation, six creative/
+  ten Pinterest tests, production build, lint and diff check pass on Node22.
 
 ### 2026-10-21 [owner+claude] — Bind prospective launch copy review to original evidence
 
