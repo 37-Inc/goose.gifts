@@ -9,7 +9,7 @@ import type { MutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import { mutationAssertion, readMutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import type { PrunedRevision } from '../../lib/catalog/prune-existing-revision.ts';
 import { prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
-import type { DeploymentIdentity, DeploymentObservation } from '../../lib/catalog/build-requests.ts';
+import type { ActivationPermit, DeploymentIdentity, DeploymentObservation } from '../../lib/catalog/build-requests.ts';
 import { beginBuildActivation, claimBuildRequest, resolveBuildActivation, drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
 import { isAccountedPublicationReadFetch } from './publication-read-fetch.ts';
 import { isCatalogD1Rest } from './d1-write-rest.ts';
@@ -105,7 +105,8 @@ function searchVars(config:PublicationConfig){
 export type PublicationWorkspace=RunWorkspace;
 export type { PublicationControl } from './run-workspace.ts';
 export interface PublicationCommand { file:string;args:string[];cwd:string;env:NodeJS.ProcessEnv;timeoutMs:number }
-type Dependencies={fetch?:typeof fetch;command?:(command:PublicationCommand)=>Promise<void>;now?:()=>Date};
+// A separate READ-only sender never receives upload/activation dispatches.
+type Dependencies={fetch?:typeof fetch;observationFetch?:typeof fetch;command?:(command:PublicationCommand)=>Promise<void>;now?:()=>Date};
 export type PublicationResult={state:'pending';owner:MutationOwner;errorCode:string}|{
   state:'published';owner:null;releaseId:string;receiptSha256:string;receipt:Record<string,unknown>;
 };
@@ -169,19 +170,20 @@ async function commandDefault(command:PublicationCommand){
  * budget is per invocation. Wrangler separately retries asset/immutable VERSION
  * upload internally; duplicate matching versions are ambiguous, never activated.
  */
-function provider(config:PublicationConfig,token:string,send:typeof fetch,identityAuthorization?:string){
+function provider(config:PublicationConfig,token:string,send:typeof fetch,identityAuthorization?:string,observationSend=send){
   if(!token||token.length>4096||/[^\x21-\x7e]/.test(token)
     ||identityAuthorization!==undefined&&(identityAuthorization.length>4096||/[\r\n]/.test(identityAuthorization)))throw new Error('publication_credentials_invalid');
   const base=`https://api.cloudflare.com/client/v4/accounts/${config.accountId}`;let calls=0;
   async function request(url:string,body?:unknown,identity=false,allow404=false,signal?:AbortSignal):Promise<unknown>{
     signal?.throwIfAborted();
+    const readSend=signal&&body===undefined?observationSend:send;
     if(++calls>100)throw new Error('publication_provider_bound');const controller=new AbortController();let timer:ReturnType<typeof setTimeout>|undefined;
     let reader:ReadableStreamDefaultReader<Uint8Array>|undefined;
     let sent:Promise<Response>|undefined,pending:Promise<unknown>|undefined,cancellation:Promise<unknown>|undefined,rejectAbort:(error:Error)=>void=()=>{};
     const aborted=new Promise<never>((_,reject)=>{rejectAbort=reject;});
     const abort=()=>{controller.abort();cancellation??=reader?.cancel().catch(()=>{});rejectAbort(new Error());};
     signal?.addEventListener('abort',abort,{once:true});
-    try{pending=(async()=>{const response=await(sent=send(url,{method:body===undefined?'GET':'POST',redirect:'error',signal:controller.signal,
+    try{pending=(async()=>{const response=await(sent=readSend(url,{method:body===undefined?'GET':'POST',redirect:'error',signal:controller.signal,
       headers:identity?{...(identityAuthorization?{Authorization:identityAuthorization}:{}), 'Cache-Control':'no-cache'}:
         {Authorization:`Bearer ${token}`,...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})}));
       if(controller.signal.aborted){void response.body?.cancel().catch(()=>{});throw new Error();}
@@ -194,7 +196,7 @@ function provider(config:PublicationConfig,token:string,send:typeof fetch,identi
     })();return await Promise.race([pending,aborted,new Promise<never>((_,reject)=>{timer=setTimeout(()=>{abort();reject(new Error());},2500);})]);
     }catch{throw new Error(body===undefined?'publication_provider_unavailable':'publication_activation_unknown');}
     finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);if(body===undefined&&controller.signal.aborted&&pending){
-      if(isAccountedPublicationReadFetch(send)&&sent)await sent.catch(()=>{});
+      if(isAccountedPublicationReadFetch(readSend)&&sent)await sent.catch(()=>{});
       await drainDeploymentObservation(Promise.allSettled([pending,cancellation]));}}
   }
   const script=`${base}/workers/scripts/${config.workerName}`;
@@ -277,7 +279,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     databaseName:config.database.name,workerName:config.workerName,indexName:config.indexName});
   if(workspace.manifest.codeSha!==config.codeSha)throw new Error('publication_workspace_mismatch');
   if(workspace.repository!==await fs.realpath(config.sourceRoot))throw new Error('publication_workspace_mismatch');
-  const api=provider(config,options.credentials.cloudflareToken,options.dependencies?.fetch??fetch,options.credentials.identityAuthorization);
+  const observationSend=options.dependencies?.observationFetch??options.dependencies?.fetch??fetch;
+  const api=provider(config,options.credentials.cloudflareToken,options.dependencies?.fetch??fetch,options.credentials.identityAuthorization,observationSend);
   const command=options.dependencies?.command??commandDefault;const configSha256=sha256(canonicalJson(config));
   let checkpoint=await workspace.readCheckpoint({controlOnly:true});let control=checkpoint?.checkpoint.control?.publication;
   let owner=options.owner;const directory=path.join(workspace.directory,'packages',config.releaseId);
@@ -364,7 +367,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
           ||control!.deploymentId!==null&&deployed.id!==control!.deploymentId)throw new Error('publication_activation_pending');
         if(!matchesIdentity(await api.identity(signal),control!.intent!))throw new Error('publication_identity_mismatch');signal?.throwIfAborted();
         await readActivatedCatalogVectors(db,control!.permit!,control!.vectorPlan,createVectorizeRestAdapters({environment:config.environment,
-          indexName:config.indexName,accountId:config.accountId,token:options.credentials.cloudflareToken,fetch:options.dependencies?.fetch}),{signal});signal?.throwIfAborted();
+          indexName:config.indexName,accountId:config.accountId,token:options.credentials.cloudflareToken,fetch:observationSend}),{signal});signal?.throwIfAborted();
         // Re-read deployment after independent identity/vector reads. Never infer
         // not-submitted from elapsed time or an observed prior deployment.
         const after=await api.deployed(signal);signal?.throwIfAborted();if(canonicalJson(after)!==canonicalJson(deployed))throw new Error('publication_activation_pending');
@@ -397,7 +400,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       finally{if(observation){
         // Only concrete bounded read transports can own durable ledger cleanup.
         // Arbitrary injected adapters never acquire an unbounded join.
-        if(isAccountedPublicationReadFetch(options.dependencies?.fetch)&&isCatalogD1Rest(db))await observation.catch(()=>{});
+        if(isAccountedPublicationReadFetch(observationSend)&&isCatalogD1Rest(db))await observation.catch(()=>{});
         else await drainDeploymentObservation(observation);}}
       return{state:'published',owner:null,releaseId:config.releaseId,receiptSha256:ref.sha256,receipt:proof};
     }
@@ -487,30 +490,36 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     // Persist exact deployment intent BEFORE the D1 CAS and actual POST. A crash
     // after this point is reconciled from the exact claim, never automatically POSTed.
     await save({stage:'activating'});
-    const readPrior=async():Promise<DeploymentObservation>=>{
-      const deployed=await api.deployed();
+    const readPrior=async(signal:AbortSignal):Promise<DeploymentObservation>=>{
+      signal.throwIfAborted();await workspace.assertHeld();signal.throwIfAborted();
+      const deployed=await api.deployed(signal);signal.throwIfAborted();
       if(config.prior===null)throw new Error('publication_bootstrap_required');
       if(deployed?.version!==config.prior.versionReference)throw new Error('publication_prior_changed');
       let prior:PublicationIntent;
       if(config.prior.directory!==null){
-        const priorBytes=await fs.readFile(path.join(config.prior.directory,'asset-manifest.json'));
+        const priorBytes=await fs.readFile(path.join(config.prior.directory,'asset-manifest.json'),{signal});signal.throwIfAborted();
         if(sha256(priorBytes)!==config.prior.manifestSha256)throw new Error('publication_prior_changed');
         prior=intentFrom(JSON.parse(priorBytes.toString()),priorBytes);
       }else{
         // Prior receipts are non-content historical identities, not permission
         // to retain/reuse expired assets. Verify both the D1 journal and the
         // provider's exact active version/identity before granting activation.
-        if((await publicationStatus(db,config.prior.releaseId)).state!=='published')throw new Error('publication_prior_changed');
+        if((await publicationStatus(db,config.prior.releaseId,{signal})).state!=='published')throw new Error('publication_prior_changed');signal.throwIfAborted();
         const row=(await db.prepare('SELECT manifest_json FROM publication_receipts WHERE release_id=?')
-          .bind(config.prior.releaseId).all<{manifest_json:string}>()).results[0];
+          .bind(config.prior.releaseId).all<{manifest_json:string}>({signal})).results[0];signal.throwIfAborted();
         if(!row)throw new Error('publication_prior_changed');
         prior=JSON.parse(row.manifest_json);
         if(encodePublicationIntent(prior)!==row.manifest_json||prior.manifestSha256!==config.prior.manifestSha256)throw new Error('publication_prior_changed');
       }
-      if(prior.releaseId!==config.prior.releaseId||!matchesIdentity(await api.identity(),prior))throw new Error('publication_prior_changed');
+      if(prior.releaseId!==config.prior.releaseId||!matchesIdentity(await api.identity(signal),prior))throw new Error('publication_prior_changed');signal.throwIfAborted();
       return{environment:config.environment,settled:true,active:identity(prior,config.prior.versionReference)};
     };
-    const permit=await beginBuildActivation(db,control.build,sealed.snapshot,control.publication!,control.versionReference!,readPrior,now(),owner);
+    let observation:Promise<DeploymentObservation>|undefined,permit:ActivationPermit;
+    try{permit=await beginBuildActivation(db,control.build,sealed.snapshot,control.publication!,control.versionReference!,
+      signal=>(observation=readPrior(signal)),now(),owner);}
+    finally{if(observation){
+      if(isAccountedPublicationReadFetch(observationSend)&&isCatalogD1Rest(db))await observation.catch(()=>{});
+      else await drainDeploymentObservation(observation);}}
     await save({permit},permit.mutationOwner!);
     await workspace.assertHeld(); // Exact owner fence immediately precedes real activation.
     const deploymentId=await api.activate(control.versionReference!,control.deploymentMarker);

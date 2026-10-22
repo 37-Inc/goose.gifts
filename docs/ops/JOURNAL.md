@@ -5,6 +5,60 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 owner session — Fail before writer claim; finish bounded observation reads
+
+The next isolated integration resolves the exact required merchant/model
+credentials once, before database ownership, telemetry or daily reservation.
+Failure retains a resumable `created` checkpoint with an idle owner and no
+merchant/model work. Tuesday–Sunday do not resolve a model credential. There is
+no environment execution fallback, Keychain reseed, ACL change or unattended
+credential retry. Regression diagnostics compare environment invariants without
+formatting values; test children use a minimal environment.
+
+Pre-activation observation now propagates abort through provider and D1 reads,
+checks cancellation after each await, and drains the selected concrete owned
+transport before returning. Its three-second proof deadline and activation CAS
+predicates are unchanged. Resolve-only observation retains its separate
+thirty-second deadline. The driver supplies its own workspace ledger to the
+read-only transport and refuses an already-accounted caller sender. This fixes
+read-lifetime accounting, not all ordinary Vectorize/publication HTTP accounting
+and not the complete Monday workload budget.
+
+The old Next `/api/search-products` handler no longer inserts raw search text
+or user agents into Neon. Search behavior, response `searchId: null`, explicit
+GA4/PostHog events and historical stored diagnostics are preserved. Actual
+handler tests execute with no database-import capability. This patch must be
+deployed before treating the old HTTP search writer as retired; it is not a
+complete Neon/D1 capture barrier or migration acceptance.
+
+Root build/lint and focused credential-denial/resume, handler and observation
+checks pass. The captured full run found three stale scan assertions: identity
+reads now use the compact projection, so they no longer exercise the full-reader
+ten-row byte fallback. Retargeted those assertions to existing full-reader
+consumers, retained every overflow/refusal/accounting check, and explicitly
+verified compact identities can omit an oversized unrelated private archive.
+The first run's 689 passes / three failures / 19 optional skips were not waived;
+the corrected complete Node22 suite passes **692 / zero failures / 19 optional
+skips** (711 total). Independent review also made the timeout fault wait for
+its intended dispatch and restored real timers before the healthy retry;
+production deadlines are unchanged. Root and peer each passed the timeout
+matrix4/4 and corrected scan file5/5; overlapping counts are not summed. Root's
+18 analytics/search-boundary/security checks pass, as do staging/Worker types,
+full lint and the build for byte-identical application source. A fresh
+production-only dependency audit has zero findings; a full audit timed out, so
+its prior seven development-only findings are not relabelled as a fresh result.
+No new Cloudflare publication, merchant/model request, scheduler activation,
+quota increase or paid plan was performed. Integration: PR #223.
+
+The separate Monday full-plan checkpoint `e878e7c` remains isolated and unmerged.
+With3,383 identities plus30 changes, the production800HTTP/1200SQL guard refuses
+at612HTTP/1200SQL. Test-only2000/4000 headroom still produces a queue-proof
+failure at1730HTTP/3544SQL with two canceled-read unknowns; no build is accepted.
+This excludes merchant/model and executor packaging/upload, and mock returned
+rows are not D1 scanned/billing evidence. Its ordinary failing acceptance is
+retained, not converted to TODO or a successful release. Next bounded work is
+`roadmap-lbbz1.4.3.1`; the new daily writer must remain gated.
+
 ## 2026-10-22 02:24 UTC — Original release finalized; compact maintenance reads verified
 
 PR #221 merged `39720bdaf3ac5023794780b22379f54b5e277f93` after the final

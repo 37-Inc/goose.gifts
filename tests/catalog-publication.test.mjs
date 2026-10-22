@@ -56,6 +56,17 @@ async function dispatched(fixture, intent = fixture.intent) {
   await recordPublicationDispatch(fixture.db, fixture.snapshot, claim, 'synthetic-run-1', fixture.date());
   return claim;
 }
+test('observation publication status propagates abort and never starts the next SELECT after cancellation',async()=>{
+  const f=await setup();
+  try{
+    const controller=new AbortController(),signals=[],queries=[];
+    const db={...f.db,prepare(sql){const statement=f.db.prepare(sql);return{...statement,bind(...args){statement.bind(...args);return this;},async all(options){
+      queries.push(sql);signals.push(options?.signal);const result=await statement.all();controller.abort();return result;}};}};
+    await assert.rejects(publicationStatus(db,f.intent.releaseId,{signal:controller.signal}),/abort/i);
+    assert.equal(queries.length,1);assert.equal(signals[0],controller.signal);
+    await assert.rejects(publicationStatus(db,f.intent.releaseId,{signal:controller.signal}),/abort/i);assert.equal(queries.length,1);
+  }finally{f.close();}
+});
 
 test('accepted dispatch is not publication; only matching independent readback creates existing completion receipt', async () => {
   const f = await setup(); let claim; let dispatches = 0;

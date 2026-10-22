@@ -17,6 +17,7 @@ import { decodePgvectorSendBase64 } from './pgvector-binary.ts';
 import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS } from './run-workspace.ts';
 import type { ArtifactRef, RetentionPolicy, RunWorkspace, RunWorkspaceOptions, WorkspaceCheckpoint } from './run-workspace.ts';
 import { executePublication, validatePublicationConfig } from './publish-release.ts';
+import { accountedPublicationReadFetch, isAccountedPublicationReadFetch } from './publication-read-fetch.ts';
 import type { PublicationConfig } from './publish-release.ts';
 import { claimMutationOwnership, releaseMutationOwnership } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner } from '../../lib/catalog/mutation-fence.ts';
@@ -136,13 +137,16 @@ async function readOriginalVectors(ws:RunWorkspace,ref:ArtifactRef):Promise<Reco
   return(value&&typeof value==='object'&&!Array.isArray(value)&&value.type==='run-workspace-blob'
     ?JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(await ws.readBlob(ref))):value) as Record<string,unknown>;
 }
-async function scopedProviders<T>(config:CloudflareWeeklyConfig,resolveToken:(ref:KeychainRef)=>Promise<string>,action:()=>Promise<T>,needsModel=true) {
+async function providerEnvironment(config:CloudflareWeeklyConfig,resolveToken:(ref:KeychainRef)=>Promise<string>,needsModel:boolean) {
   if(needsModel&&!config.credentials.openai)throw new Error('weekly_model_credentials_missing');
   const names=Object.keys(process.env).filter(key=>/^(CATALOG_|AMAZON_|OPENAI_|GOOGLE_SEARCH_|POSTGRES_|VERCEL_)/.test(key));
   const values={...Object.fromEntries(names.map(key=>[key,undefined])),AMAZON_ASSOCIATE_TAG:config.catalog.associateTag,
     AMAZON_MARKETPLACE:config.catalog.marketplace,AMAZON_CREATORS_CREDENTIAL_VERSION:config.credentials.amazonVersion,
     AMAZON_CREATORS_CREDENTIAL_ID:await resolveToken(config.credentials.amazonId),AMAZON_CREATORS_CREDENTIAL_SECRET:await resolveToken(config.credentials.amazonSecret),
     OPENAI_API_KEY:needsModel?await resolveToken(config.credentials.openai!):undefined};
+  return values;
+}
+async function scopedProviders<T>(values:Awaited<ReturnType<typeof providerEnvironment>>,action:()=>Promise<T>) {
   const old=Object.fromEntries(Object.keys(values).map(key=>[key,process.env[key]]));
   try{for(const [key,value]of Object.entries(values)){if(value===undefined)delete process.env[key];else process.env[key]=value;}amazonCreators.clearToken();return await action();}
   finally{amazonCreators.clearToken();for(const [key,value]of Object.entries(old)){if(value===undefined)delete process.env[key];else process.env[key]=value;}}
@@ -200,6 +204,11 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     database:config.database,vectorIndex:config.vectorIndex,catalog:config.catalog,cloudflareReadToken:config.credentials.cloudflare},
   {resolveToken,resolveWranglerOAuth:dependencies.resolveWranglerOAuth,fetch:dependencies.fetch});
   if(!['start','resume'].includes(options.command))throw new Error('weekly_command');
+  // This driver supplies the ledger and owns the sender's lifetime. A caller's
+  // already-accounted sender may belong to another run; never double-charge or
+  // silently adopt its workspace. The injection seam here is raw transport only.
+  const observationSend=dependencies.publication?.observationFetch??dependencies.publication?.fetch??dependencies.fetch??fetch;
+  if(isAccountedPublicationReadFetch(observationSend))throw new Error('weekly_observation_fetch_already_accounted');
   if(executing)throw new Error('weekly_process_busy');executing=true;
   let workspace:RunWorkspace|undefined;
   try{
@@ -207,6 +216,11 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     if(head!==config.codeSha||resolve(config.publication.sourceRoot)!==resolve(repo)
       ||execFileSync('git',['status','--porcelain','--untracked-files=all'],{cwd:repo,encoding:'utf8'}).trim())throw new Error('weekly_source_mismatch');
     workspace=await openRunWorkspace(workspaceOptions);const ws=workspace;
+    // The owned read sender uses this exact durable ledger. It is separate
+    // from normal publication mutation traffic; it can never activate a Worker.
+    const publication={...dependencies.publication,observationFetch:accountedPublicationReadFetch(ws,observationSend,
+      {accountId:config.accountId,workerName:config.publication.workerName,indexName:config.vectorIndex.name,
+        databaseId:config.database.id,identityOrigin:config.publication.identityOrigin})};
     await ws.purgeExpired();
     let saved=await ws.readCheckpoint({controlOnly:true});
     if(saved&&['phases_running','phase_failed','attention','finalized'].includes(saved.checkpoint.phase)
@@ -226,7 +240,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       if(!saved||!resolving(saved.checkpoint)||!saved.checkpoint.owner)throw error;
       const result=await executePublication({db,owner:saved.checkpoint.owner,revision:null,requestId:saved.checkpoint.control!.publication!.requestId,
         runReference:saved.checkpoint.control!.publication!.runReference,workspace:ws,config:config.publication,credentials:{cloudflareToken:token,
-          identityAuthorization:await identityAuthorization()},dependencies:dependencies.publication});
+          identityAuthorization:await identityAuthorization()},dependencies:publication});
       return result.state==='published'?{state:'attention',phase:'published',reason:'finalization_requires_review',releaseId:result.releaseId,
         receiptSha256:result.receiptSha256,budget:await ws.budget()}:{...result,budget:await ws.budget()};
     }
@@ -254,19 +268,26 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       await write({pins});
     }
     if(cp.phase==='created'){
+      let needsModel=!config.cadence;
       if(config.cadence){
         if(pacificCatalogCalendar(now()).day!==config.cadence.day)throw new Error('weekly_cadence_day_changed');
         const phases=await dailyCatalogPhases(dependencies.cadence!,config.cadence.featuredIds);
         if(!phases.length)return{state:'skipped',reason:'cadence_already_reserved'};
-        if(phases.some(p=>p.discoveryNewOnly||p.enrichSelectedExisting)&&!config.credentials.openai)throw new Error('weekly_model_credentials_missing');
+        needsModel=phases.some(p=>p.discoveryNewOnly||p.enrichSelectedExisting);
+        if(needsModel&&!config.credentials.openai)throw new Error('weekly_model_credentials_missing');
       }
+      // Resolve once before any DB ownership/telemetry write or daily reservation.
+      // An unreadable existing Keychain item must not strand a writing owner or
+      // consume the merchant allowance. Values remain in this invocation only;
+      // resume after completed phases never resolves merchant/model credentials.
+      const environment=await providerEnvironment(config,resolveToken,needsModel);
       const owner=await claimMutationOwnership(db,scope,{phase:'writing',ownerReference:config.runId,operationKey:sha256(`weekly:${options.configSha256}`)});
       if(!owner)throw new Error('weekly_owner_busy');const cursor={current:owner};await write({phase:'phases_running',owner});
       const intent=await ws.readArtifact(cp.pins.rights) as unknown as {rightsById:Record<string,never>;reviewedDeleteReference?:string};
       const evidence=createCatalogProviderEvidence({reviewedRightsById:intent.rightsById,reviewedDeleteReference:intent.reviewedDeleteReference,saveReceipt:input=>ws.saveReceipt(input),now});
       const maintenance=createD1CatalogMaintenanceStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision,intent:evidence.intent});
       const telemetry=createD1CatalogTelemetryStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision});
-      try{await scopedProviders(config,resolveToken,async()=>{
+      try{await scopedProviders(environment,async()=>{
         const {runWeeklyCatalogWithBackend}=await import('../ops/catalog-weekly.mjs');
         const backend={runId:config.runId,gitSha:config.codeSha,backfillLimit:config.backfillLimit,
           maintenanceStore:maintenance,telemetryStore:telemetry,providerEvidence:evidence,deferPublicationFinalization:true,
@@ -276,7 +297,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
           },async finalizeRun(id:string,input:Record<string,unknown>){await telemetry.finishCatalogRun(id,input);return telemetry.loadCatalogRun(id);}};
         if(config.cadence)await runDailyCatalogWithBackend({...backend,cadence:dependencies.cadence!,featuredIds:config.cadence.featuredIds});
         else await runWeeklyCatalogWithBackend(backend);
-      },!config.cadence||(await dailyCatalogPhases(dependencies.cadence!,config.cadence.featuredIds)).some(p=>p.discoveryNewOnly||p.enrichSelectedExisting));}catch(error){
+      });}catch(error){
         const durable=await ws.readCheckpoint();if(durable){saved=durable;cp=durable.checkpoint;}
         if(cp.phase==='phases_running'){
           const row=await telemetry.loadCatalogRun(config.runId);
@@ -360,7 +381,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     if(cp.phase==='publishing'){
       revision=revision||await readOrdered<ApprovedCohortRevision>(ws,cp.pins.revision);
       const result=await executePublication({db,owner:cp.owner!,revision,requestId:String(state().requestId),runReference:config.runId,workspace:ws,
-        config:config.publication,credentials:{cloudflareToken:token,identityAuthorization:await identityAuthorization()},dependencies:dependencies.publication});
+        config:config.publication,credentials:{cloudflareToken:token,identityAuthorization:await identityAuthorization()},dependencies:publication});
       const changed=await ws.readCheckpoint();if(!changed)throw new Error('weekly_checkpoint_missing');saved=changed;cp=changed.checkpoint;
       if(result.state!=='published')return{...result,phase:cp.phase,budget:await ws.budget()};
       const pin=await ws.putArtifact(result,{kind:'publication',observedAt:now()});

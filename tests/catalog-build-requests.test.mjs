@@ -102,6 +102,19 @@ test('resolve-only observation timeout is explicit, bounded, aborts and leaves e
     assert.deepEqual(scheduled,[3000]);
   }finally{f.close();}
 });
+test('preactivation keeps its three-second bound and aborts failed observers before any activation CAS',async t=>{
+  const f=await setup();
+  try{
+    const claim=await f.build(),publication=await f.publication();let signal,deliver;
+    const timer=globalThis.setTimeout,deadlines=[];
+    t.mock.method(globalThis,'setTimeout',(fn,ms,...args)=>{deadlines.push(ms);return timer(fn,ms===3000?10:ms,...args);});
+    await assert.rejects(f.activate(claim,publication,async value=>{signal=value;return new Promise(resolve=>{deliver=resolve;});}),/observation_failed/);
+    assert.deepEqual(deadlines,[3000]);assert.equal(signal.aborted,true);assert.equal(f.row().state,'building');
+    const calls=f.calls.length;deliver(f.before);await Promise.resolve();await Promise.resolve();assert.equal(f.calls.length,calls);assert.equal(f.row().state,'building');
+    await assert.rejects(f.activate(claim,publication,async value=>{signal=value;throw new Error('read failure');}),/observation_failed/);
+    assert.equal(signal.aborted,true);assert.equal(f.row().state,'building');
+  }finally{f.close();}
+});
 
 test('unchanged check does no D1 work; duplicate due checks dispatch one request but never publish', async () => {
   const f = await setup(); let dispatched = 0;

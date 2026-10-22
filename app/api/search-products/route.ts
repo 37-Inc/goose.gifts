@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { searchQueries } from '@/lib/db/schema';
 import { searchCatalogProducts } from '@/lib/db/product-search';
 
 export const runtime = 'nodejs';
@@ -27,25 +25,9 @@ export async function GET(request: NextRequest) {
     }
 
     const results = await searchCatalogProducts(query, limit);
-    const topSimilarity = results.length > 0 ? results[0].similarity : null;
-    const userAgent = request.headers.get('user-agent') || undefined;
-    let searchId: string | null = null;
-
-    try {
-      const [search] = await db.insert(searchQueries).values({
-        query,
-        resultCount: results.length,
-        topSimilarity: topSimilarity?.toString(),
-        userAgent,
-      }).returning({ id: searchQueries.id });
-
-      searchId = search?.id || null;
-    } catch (error) {
-      console.error('Failed to log product search query:', error);
-    }
 
     return NextResponse.json({
-      searchId,
+      searchId: null,
       results,
     });
   } catch (error) {

@@ -28,6 +28,7 @@ import { guides } from '../static-site/lib/guides.ts';
 import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 import { encodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
 import { withCatalogCadence } from '../scripts/ops/catalog-daily.mjs';
+import { accountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
 
 // Real composed stores/fence/evidence/driver/publisher/workspace over SQLite.
 // Only external Amazon/OpenAI/CF and Next compilation are mocked. Real package
@@ -349,6 +350,46 @@ test('weekly OAuth start keeps merchant/model credentials on their exact Keychai
   assert.equal(oauth,1);assert.equal(result.reason,'awaiting_reviewed_approval');assert.equal(f.calls.activate,0);
   assert.deepEqual(refs,[f.config.credentials.amazonId,f.config.credentials.amazonSecret,f.config.credentials.openai]);
   assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'writing');
+});
+test('driver rejects an already-accounted publication sender before opening or adopting any workspace',async t=>{
+  const f=await setup(t);let reserved=0,settled=0,resolved=0;
+  const owned=accountedPublicationReadFetch({async reserveBudget(){reserved++;},async settleBudget(){settled++;}},
+    async()=>assert.fail('Already-accounted sender must not run'),{accountId:f.config.accountId,databaseId:f.config.database.id,
+      workerName:f.config.publication.workerName,indexName:f.config.vectorIndex.name,identityOrigin:f.config.publication.identityOrigin});
+  for(const key of ['observationFetch','fetch'])await assert.rejects(runCloudflareWeekly({...f.options,command:'start'},
+    {...f.dependencies,publication:{...f.dependencies.publication,[key]:owned},resolveToken:async()=>{resolved++;return'FIXTURE_ONLY';}}),
+    /weekly_observation_fetch_already_accounted/);
+  await assert.rejects(fs.stat(f.options.workspace),{code:'ENOENT'});
+  assert.equal(reserved+settled+resolved+f.calls.http,0);
+  assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
+});
+for(const credential of ['amazon-id','amazon-secret','openai'])test(`unreadable ${credential} stops before writer/cadence/merchant work and permits a safe initial resume`,async t=>{
+  const monday=credential==='openai';
+  const f=await setup(t,{at:monday?'2026-10-19T18:00:00.000Z':NOW});
+  f.config.cadence={day:monday?'2026-10-19':'2026-10-20',featuredIds:[ID]};f.config.backfillLimit=0;
+  if(!monday)delete f.config.credentials.openai;
+  await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+  f.workspaceOptions.configSha256=f.options.configSha256;
+  const before=f.sql.prepare('SELECT total_changes() n').get().n;
+  const owner={...f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get()};
+  const resolves=[];const environment={...process.env};
+  await assert.rejects(runCloudflareWeekly({...f.options,command:'start',cadenceOnly:true},{...f.dependencies,
+    resolveToken:async ref=>{resolves.push(ref.service);if(ref.service.endsWith(`.${credential}`))throw new Error('runner_check_keychain_unavailable');
+      return f.dependencies.resolveToken(ref);}}),/runner_check_keychain_unavailable/);
+  assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,before);
+  assert.deepEqual({...f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get()},owner);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_runs').get().n,0);
+  assert.equal((await readRunWorkspace(f.workspaceOptions)).checkpoint.checkpoint.phase,'created');
+  assert.deepEqual(await fs.readdir(path.join(f.options.workspace,'cadence')),[]);
+  assert.ok(Object.keys(environment).length===Object.keys(process.env).length
+    &&Object.entries(environment).every(([key,value])=>process.env[key]===value),'Credential failure changed the scoped environment');
+  assert.equal(f.calls.getItems+f.calls.search+f.calls.chat+f.calls.embedding+f.calls.upsert+f.calls.upload+f.calls.activate,0);
+  if(!monday)assert.equal(resolves.some(s=>s.endsWith('.openai')),false);
+  const called=[];
+  const result=await runCloudflareWeekly({...f.options,command:'resume',cadenceOnly:true},{...f.dependencies,
+    resolveToken:async ref=>{called.push(ref.service);return f.dependencies.resolveToken(ref);}});
+  assert.equal(result.reason,'awaiting_reviewed_approval');assert.equal(f.calls.getItems,1);
+  for(const service of new Set(called))assert.equal(called.filter(s=>s===service).length,1);
 });
 test('actual weekly phases defer for post-phase review, then compose owned delivery/build/activation/readback/exact finalization',async t=>{
   const f=await setup(t);const old=process.env.CATALOG_DISCOVERY_THEMES;process.env.CATALOG_DISCOVERY_THEMES='MUST_NOT_RUN';
