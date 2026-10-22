@@ -74,37 +74,53 @@ const reviewedQuality=`CASE WHEN json_valid(${currentEditorialQuality}) THEN CAS
   WHEN json_type(${currentEditorialQuality}) IN ('integer','real') THEN CAST(${currentEditorialQuality} AS REAL) END END`;
 const words=[9,10,11,12,13,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279]
   .reduce((text,code)=>`replace(${text},char(${code}),' ')`,editorial);
-const PERSISTENT_VISIBLE=`coalesce(p.is_active=1 AND p.duplicate_of_product_id IS NULL AND p.quality_score>=0.55
-  AND p.editorial_status NOT IN ('blocked','needs_review')
-  AND v.source_facts_hash IS p.source_facts_hash AND json_type(${V_BASE})='object' AND json_type(${P_BASE})='object'
-  AND json_type(${BASE_RIGHTS})='object' AND json_type(${V_BASE},'$.eligibleUntil')='null'
-  AND json_type(${P_BASE},'$.eligibleUntil')='null'
-  AND json_type(${V_BASE},'$.indexable') IN ('true','false') AND json_type(${V_BASE},'$.persistent') IS NULL
-  AND json_extract(${V_BASE},'$.id')=v.product_id AND json_extract(${V_BASE},'$.publicId')=v.public_id
-  AND json_extract(${V_BASE},'$.slug')=v.slug AND json_extract(${V_BASE},'$.source')=p.source
-  AND json_extract(${V_BASE},'$.currency')=p.currency
-  AND json_extract(${V_BASE},'$.imageUrl') LIKE '/%.svg' AND json_extract(${V_BASE},'$.imageUrl') NOT LIKE '//%'
-  AND instr(json_extract(${V_BASE},'$.imageUrl'),'..')=0 AND instr(json_extract(${V_BASE},'$.imageUrl'),'%')=0
-  AND instr(json_extract(${V_BASE},'$.imageUrl'),char(63))=0 AND instr(json_extract(${V_BASE},'$.imageUrl'),'#')=0
-  AND instr(json_extract(${V_BASE},'$.imageUrl'),'\\')=0
-  AND NOT EXISTS(${displayValues(V_BASE)} EXCEPT ${displayValues(P_BASE)})
-  AND NOT EXISTS(${displayValues(P_BASE)} EXCEPT ${displayValues(V_BASE)})
-  AND (json_extract(${V_BASE},'$.indexable')=0 OR (p.editorial_status IN ('generated_ready','manual_locked')
-    AND typeof(p.source_facts_hash)='text' AND length(p.source_facts_hash)=64 AND p.source_facts_hash NOT GLOB '*[^a-f0-9]*'
-    AND p.source_facts_hash=p.editorial_source_hash AND ${reviewedQuality} BETWEEN 0.8 AND 1
-    AND ${currentEditorial}=${editorial}
-    AND ${currentCopy('id','id')}=p.id AND ${currentCopy('publicId','public_id')}=p.public_id
-    AND ${currentCopy('slug','slug')}=p.slug
-    AND ${currentCopy('sourceFactsHash','source_facts_hash')}=p.source_facts_hash
-    AND ${currentCopy('editorialSourceHash','editorial_source_hash')}=p.editorial_source_hash
-    AND ${currentCopy('editorialStatus','editorial_status')}=p.editorial_status AND length(${editorial})>=500
-    AND instr(replace(replace(replace(${editorial},char(13),''),char(9),''),' ',''),char(10)||char(10))>0
-    AND (SELECT count(*) FROM json_each('['||replace(json_quote(${words}),' ','","')||']') WHERE length(value)>0)>=90))
-  AND NOT EXISTS(SELECT 1 FROM json_each('["title","description","imageUrl","affiliateUrl","editorialWriteup","punnyTitle","wittyDescription","humorTags"]') field
+// D1 limits expression depth to100, including the enclosing receipt/CAS gates.
+// AND is associative even for SQL NULL; only grouping changes, never predicates
+// or their order/parameters. A flat chain becomes a left-deep SQLite AST.
+function allOf(parts: string[]): string {
+  if (parts.length === 1) return parts[0];
+  const middle = Math.floor(parts.length / 2);
+  return `(${allOf(parts.slice(0, middle))} AND ${allOf(parts.slice(middle))})`;
+}
+const PERSISTENT_VISIBLE=`coalesce(${allOf([
+  'p.is_active=1', 'p.duplicate_of_product_id IS NULL', 'p.quality_score>=0.55',
+  "p.editorial_status NOT IN ('blocked','needs_review')",
+  'v.source_facts_hash IS p.source_facts_hash', `json_type(${V_BASE})='object'`, `json_type(${P_BASE})='object'`,
+  `json_type(${BASE_RIGHTS})='object'`, `json_type(${V_BASE},'$.eligibleUntil')='null'`,
+  `json_type(${P_BASE},'$.eligibleUntil')='null'`,
+  `json_type(${V_BASE},'$.indexable') IN ('true','false')`, `json_type(${V_BASE},'$.persistent') IS NULL`,
+  `json_extract(${V_BASE},'$.id')=v.product_id`, `json_extract(${V_BASE},'$.publicId')=v.public_id`,
+  `json_extract(${V_BASE},'$.slug')=v.slug`, `json_extract(${V_BASE},'$.source')=p.source`,
+  `json_extract(${V_BASE},'$.currency')=p.currency`,
+  `json_extract(${V_BASE},'$.imageUrl') LIKE '/%.svg'`, `json_extract(${V_BASE},'$.imageUrl') NOT LIKE '//%'`,
+  `instr(json_extract(${V_BASE},'$.imageUrl'),'..')=0`, `instr(json_extract(${V_BASE},'$.imageUrl'),'%')=0`,
+  `instr(json_extract(${V_BASE},'$.imageUrl'),char(63))=0`, `instr(json_extract(${V_BASE},'$.imageUrl'),'#')=0`,
+  `instr(json_extract(${V_BASE},'$.imageUrl'),'\\')=0`,
+  // Identical JSON necessarily has identical trees. CASE is lazy in SQLite:
+  // avoid four virtual tree scans per identical base, keeping the exact old
+  // symmetric comparison for different bytes (including reordered keys).
+  `(CASE WHEN ${V_BASE}=${P_BASE} THEN 1 ELSE
+    (NOT EXISTS(${displayValues(V_BASE)} EXCEPT ${displayValues(P_BASE)})
+      AND NOT EXISTS(${displayValues(P_BASE)} EXCEPT ${displayValues(V_BASE)})) END)`,
+  `(json_extract(${V_BASE},'$.indexable')=0 OR ${allOf([
+    "p.editorial_status IN ('generated_ready','manual_locked')",
+    "(typeof(p.source_facts_hash)='text' AND length(p.source_facts_hash)=64 AND p.source_facts_hash NOT GLOB '*[^a-f0-9]*')",
+    'p.source_facts_hash=p.editorial_source_hash', `${reviewedQuality} BETWEEN 0.8 AND 1`,
+    `${currentEditorial}=${editorial}`,
+    `${currentCopy('id','id')}=p.id`, `${currentCopy('publicId','public_id')}=p.public_id`,
+    `${currentCopy('slug','slug')}=p.slug`,
+    `${currentCopy('sourceFactsHash','source_facts_hash')}=p.source_facts_hash`,
+    `${currentCopy('editorialSourceHash','editorial_source_hash')}=p.editorial_source_hash`,
+    `${currentCopy('editorialStatus','editorial_status')}=p.editorial_status`, `length(${editorial})>=500`,
+    `instr(replace(replace(replace(${editorial},char(13),''),char(9),''),' ',''),char(10)||char(10))>0`,
+    `(SELECT count(*) FROM json_each('['||replace(json_quote(${words}),' ','","')||']') WHERE length(value)>0)>=90`,
+  ])})`,
+  `NOT EXISTS(SELECT 1 FROM json_each('["title","description","imageUrl","affiliateUrl","editorialWriteup","punnyTitle","wittyDescription","humorTags"]') field
     WHERE (field.value IN ('title','description','imageUrl','affiliateUrl') OR json_type(${V_BASE},'$.'||field.value) IS NOT NULL)
     AND NOT coalesce(${baseGrant('basis')} IN ('owned','licensed') AND ${baseGrant('expiresAt')} IS NULL
       AND typeof(${baseGrant('reference')})='text' AND length(trim(${baseGrant('reference')},${TRIM}))>0
-      AND typeof(${baseGrant('value')})='text' AND ${baseGrant('value')}=${baseDisplay},0)),0)`;
+      AND typeof(${baseGrant('value')})='text' AND ${baseGrant('value')}=${baseDisplay},0))`,
+])},0)`;
 const LISTED=`(${VISIBLE} OR ${PERSISTENT_VISIBLE})`;
 // A validated base may survive a revoked/expired supplier overlay. An unproven
 // nested base is never sent simply because the outer supplier DTO is fresh.
