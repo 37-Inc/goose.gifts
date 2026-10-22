@@ -33,8 +33,17 @@ export interface PermanentCatalogRequest extends PruneRequest {
   productOrder:string[];
 }
 export interface PermanentCatalogRevision extends PrunedRevision {request:PermanentCatalogRequest;nativePreservation:HistoricalNativeBinding}
+export function permanentCatalogBinding(request:PermanentCatalogRequest){return{kind:'installed-permanent-catalog',base:pruneOperationKey(request),catalogRevision:request.catalogRevision,
+  installation:request.installation.sha256,capture:request.installation.capture.sha256,native:request.native,
+  installationOwner:{generation:request.installation.plan.input.owner.generation,epoch:request.installation.plan.input.owner.epoch+request.installation.plan.batches.length},
+  preserveSupplierPhotos:request.preserveSupplierPhotos,productOrder:request.productOrder};}
+export function permanentSourceInventory(rows:Row[]){return rows.map(row=>({publicId:String(row.public_id),sourceRowSha256:sha256(canonicalJson(row)),
+  productSha256:sha256(canonicalJson(JSON.parse(String(row.approved_product_json)))),privateStateSha256:String(row.private_product_sha256)}));}
+export function permanentSourceDigest(operationKey:string,generatedAt:string,globalVectorWatermark:number,inventory:ReturnType<typeof permanentSourceInventory>,prior:Row){
+  return sha256(canonicalJson({kind:'permanent-source-inventory-v1',operationKey,generatedAt,globalVectorWatermark,current:inventory,prior}));
+}
 export function permanentCatalogOperationKey(request:PermanentCatalogRequest):string{
-  const base=pruneOperationKey(request),{installation,native}=request;
+  pruneOperationKey(request);const {installation,native}=request;
   if(!/^[a-zA-Z0-9._-]{1,64}$/.test(request.catalogRevision)||request.catalogRevision===request.previous.catalogRevision
     ||typeof request.preserveSupplierPhotos!=='boolean'||!Array.isArray(request.productOrder)
     ||request.productOrder.length>SNAPSHOT_READ_LIMITS.identities||new Set(request.productOrder).size!==request.productOrder.length
@@ -44,17 +53,18 @@ export function permanentCatalogOperationKey(request:PermanentCatalogRequest):st
     ||!HASH.test(native.source.receiptSha256)||!/^[a-zA-Z0-9._-]{1,64}$/.test(native.source.releaseId)
     ||native.plan.products.length+native.plan.absentIds.length>20
     ||'preserved' in native.plan||native.plan.environment!==request.scope.environment||native.plan.indexName!==request.scope.indexName)refuse();
-  return sha256(canonicalJson({kind:'installed-permanent-catalog',base,catalogRevision:request.catalogRevision,
-    installation:installation.sha256,capture:installation.capture.sha256,native,preserveSupplierPhotos:request.preserveSupplierPhotos,productOrder:request.productOrder}));
+  return sha256(canonicalJson(permanentCatalogBinding(request)));
 }
 function scopeRow(row:Row,owner:MutationOwner):Row{return{...row,phase:owner.phase,owner_token:owner.token,generation:owner.generation,
   mutation_epoch:owner.epoch,owner_reference:owner.ownerReference,operation_key:owner.operationKey,captured_at:owner.capturedAt,
   external_pending:0,activation_request_id:null};}
-function sourceRows(rows:Record<string,Row[]>):Row[]{
+export function permanentSourceRows(rows:Record<string,Row[]>):Row[]{
   const operations=new Map(rows.catalog_maintenance_operations.map(r=>[r.operation_id,r]));
+  const privateRows=new Map(rows.catalog_maintenance_products.map(r=>[r.product_id,r]));
   return rows.products.map((row):Row=>{const archive=JSON.parse(String(row.source_record_json)),proof=JSON.parse(String(row.timestamp_provenance_json));
     const column=row.availability_checked_at!==null?'availability_checked_at':'last_verified_at',operation=operations.get(proof?.fields?.[column]?.operationId);
     return{...Object.fromEntries(PRUNING_CURRENT_COLUMNS.map(k=>[k,row[k]])),approved_product_json:canonicalJson(row),
+      private_product_sha256:sha256(canonicalJson(privateRows.get(row.id)??null)),
       ...Object.fromEntries(['id','public_id','source','availability_checked_at','last_verified_at'].map(k=>[`archived_${k}`,archive[k]??null])),
       ...(operation?{verification_operation_json:canonicalJson(operation)}:{})};
   }).sort((a,b)=>String(a.public_id).localeCompare(String(b.public_id)));
@@ -92,7 +102,7 @@ async function prepare(db:CatalogD1,owner:MutationOwner,input:PermanentCatalogRe
   const {actual,queued}=await installed(db,owner,request),source=await readPruningSource(db,request.previous,request.context,owner);
   const now=new Date(source.observedAt),cutoff=Date.parse(request.context.cutoff);
   if(now.getTime()<Date.parse(owner.capturedAt)||cutoff<=now.getTime()||cutoff-Date.parse(owner.capturedAt)>26*3600000)refuse();
-  const current=sourceRows(actual),byId=new Map(current.map(r=>[String(r.id),r])),before=new Map(request.installation.plan.input.capture.tables.products.map(r=>[String(r.id),r]));
+  const current=permanentSourceRows(actual),byId=new Map(current.map(r=>[String(r.id),r])),before=new Map(request.installation.plan.input.capture.tables.products.map(r=>[String(r.id),r]));
   const proposal=request.installation.plan.input.approvedProposal.value;
   if(actual.products.length>SNAPSHOT_READ_LIMITS.identities||proposal.reconciliation.identityCount!==actual.products.length
     ||proposal.proposed.length+proposal.holds.length!==actual.products.length)refuse();
@@ -122,8 +132,8 @@ async function prepare(db:CatalogD1,owner:MutationOwner,input:PermanentCatalogRe
   const existing=actual.catalog_revisions.find(r=>r.revision===request.catalogRevision),generatedAt=existing?canonicalTime(existing.created_at):owner.capturedAt;
   const snapshot=validateCatalogSnapshot({schemaVersion:1,dataKind:'catalog',catalogRevision:request.catalogRevision,generatedAt,
     products,heldProducts,slugHistory:[...history.values()]},now);
-  const globalVectorWatermark=Number(source.header.globalWatermark),sourceDigest=sha256(canonicalJson({operationKey,generatedAt,
-    globalVectorWatermark,current,prior:source.header.prior}));
+  const globalVectorWatermark=Number(source.header.globalWatermark),sourceDigest=permanentSourceDigest(operationKey,generatedAt,
+    globalVectorWatermark,permanentSourceInventory(current),source.header.prior as Row);
   const packet=await createProjectionPacket(snapshot,Object.fromEntries(current.map(r=>[String(r.public_id),r.source_facts_hash===null?null:String(r.source_facts_hash)])),sourceDigest,now);
   const bytes=encodeBuildRequest({schemaVersion:1,environment:owner.environment,sourceRevision:snapshot.catalogRevision,sourceDigest:packet.receipt.snapshot_sha256,
     codeSha:request.codeSha,priorReleaseId:request.context.priorPublication?.releaseId??null,capturedAt:generatedAt,cutoff:request.context.cutoff});

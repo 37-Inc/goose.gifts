@@ -3,7 +3,7 @@ import test from 'node:test';
 import {readFile} from 'node:fs/promises';
 import {setup,scope,uuid} from './helpers/published-vector-fixture.mjs';
 import {canonicalJson,sha256,convertSourceRow} from '../scripts/catalog/migration.ts';
-import {createCatalogD1MigrationRest} from '../scripts/catalog/d1-write-rest.ts';
+import {createCatalogD1MigrationRest,createCatalogD1Rest} from '../scripts/catalog/d1-write-rest.ts';
 import {createOneTimeMigrationBudget} from '../scripts/catalog/one-time-migration-budget.ts';
 import {captureOwnedD1} from '../scripts/catalog/capture-owned-d1.ts';
 import {prepareOwnedOperationalImport,applyOwnedOperationalImport} from '../scripts/catalog/owned-operational-import.ts';
@@ -17,14 +17,18 @@ import {claimBuildRequest,beginBuildActivation,resolveBuildActivation} from '../
 import {enqueuePublication,claimPublication,recordPublicationDispatch,completePublication,completeActivatedPublication,completeActivatedPermanentPublication} from '../lib/catalog/publication.ts';
 import {readPermanentNativeProof,readActivatedCatalogVectors} from '../scripts/catalog/owned-vector-delivery.ts';
 import {createSealedSnapshotEnvelope} from '../scripts/catalog/export-d1-snapshot.ts';
+import {createPermanentCatalogSeal,reconstructPermanentSnapshot,readPermanentCatalogPrior} from '../scripts/catalog/permanent-catalog-seal.ts';
+import {approvedCohortOperationKey,prepareApprovedCohort,approvedCohortVectorPlan} from '../lib/catalog/freeze-approved-cohort.ts';
+import {createD1CatalogMaintenanceStore,loadMaintenanceVectorPayload} from '../scripts/catalog/maintenance-d1.ts';
+import {deliverOwnedOutboxEvent} from '../scripts/catalog/owned-vector-delivery.ts';
 import {createProjectionPacket,getListedRevisionProductsByPublicIds,getRevisionProductsByPublicIds} from '../lib/catalog/d1.ts';
 
 const accountId='a'.repeat(32),databaseId=uuid(9999),manifest='b'.repeat(64),asset='/images/gift-placeholder.svg';
 const svg='<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h10"/></svg>';
 const grant=value=>({basis:'owned',value,reference:'ROOT approved exact synthetic value; no real rights claim'});
 const same=(a,b)=>assert.equal(canonicalJson(a),canonicalJson(b));
-async function fixture(t,{count=12,afterExpiry=false}={}){
-  const f=await setup(t,{providerIdentity:`cloudflare:${accountId}:${scope.indexName}`});
+async function fixture(t,{count=12,afterExpiry=false,merchant=false}={}){
+  const f=await setup(t,{providerIdentity:`cloudflare:${accountId}:${scope.indexName}`,merchant});
   if(afterExpiry)f.advance(Date.parse(f.revision.snapshot.products[0].eligibleUntil)-f.now().getTime()+3600000);
   let statements=0,requests=0,maxRequest=0,maxResponse=0,loseSeal=false;
   const ledger={httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0},dbScope={accountId,databaseId,databaseName:'permanent-freeze'};
@@ -45,6 +49,8 @@ async function fixture(t,{count=12,afterExpiry=false}={}){
       const bytes=JSON.stringify({success:true,result});maxResponse=Math.max(maxResponse,Buffer.byteLength(bytes));assert.ok(maxResponse<=512*1024);return new Response(bytes);};
   const makeDb=(initial=ledger)=>createCatalogD1MigrationRest({accountId,databaseId,databaseName:'permanent-freeze',token:'FIXTURE_ONLY',budget,ledger:initial,now:f.now,
     accounting:{scope:dbScope,initial,async reserve(){},async settle(){}},fetch:send});
+  const makeNextDayDb=()=>createCatalogD1Rest({accountId,databaseId,databaseName:'permanent-freeze',token:'FIXTURE_ONLY',limits:{requests:800},
+    accounting:{scope:dbScope,initial:ledger,async reserve(){},async settle(){}},fetch:send});
   const db=await makeDb();
   await releaseMutationOwnership(db,f.owner);
   const now=()=>f.now().toISOString(),writers=()=>[{id:'daily',kind:'application',codePaths:['scripts/catalog/run-cloudflare-weekly.ts'],reference:'Synthetic stopped job',stoppedAt:now()},
@@ -87,7 +93,7 @@ async function fixture(t,{count=12,afterExpiry=false}={}){
     native:{source:f.published.source,revisionSha256:sha256(canonicalJson(f.revision)),plan:prunedVectorPlan(f.revision)}};
   const freezing=await claimMutationOwnership(db,scope,{phase:'freezing',ownerReference:'permanent',operationKey:permanentCatalogOperationKey(request)});
   const metrics=()=>({requests,statements,maxRequest,maxResponse});
-  return{...f,db,makeDb,request,owner:freezing,metrics,loseSeal(){loseSeal=true;}};
+  return{...f,db,makeDb,makeNextDayDb,request,owner:freezing,metrics,loseSeal(){loseSeal=true;}};
 }
 test('one-time permanent freeze preserves3383 identities/native, then reopens and settles expired active ACK with bounded full-row proofs',async t=>{
   const f=await fixture(t,{count:3383,afterExpiry:true}),products=f.sql.prepare('SELECT * FROM products ORDER BY id').all(),native=canonicalJson([...f.index]),
@@ -168,4 +174,62 @@ test('0015 keeps all16 historical projection bytes/rowids/FTS immutable, permits
     assert.throws(()=>insert.run(...keys.map(k=>k==='catalog_revision'?`missing-${field}`:k==='public_display_json'?JSON.stringify(invalid):row[k])));}
   assert.equal(f.sql.prepare("SELECT count(*) n FROM catalog_public_products_fts WHERE catalog_public_products_fts MATCH 'identity'").get().n,1);
   same(rows().slice(0,16),before);
+});
+test('body-free published bulk seal survives old body expiry; daily empty/one genuine change preserves original identity/native history',async t=>{
+  for(const changed of [false,true])await t.test(changed?'one genuine curation change':'changes:[]',async t=>{
+    const f=await fixture(t,{merchant:true}),prepared=await preparePermanentCatalog(f.db,f.owner,f.request),r=prepared.revision;
+    const q=await settlePermanentCatalog(f.db,prepared.owner,r,f.adapters),build=await claimBuildRequest(f.db,q.requestId,'fixture:bulk',f.now());
+    const intent={releaseId:'permanent-release',catalogRevision:r.snapshot.catalogRevision,codeSha:r.request.codeSha,catalogSnapshotSha256:r.packet.receipt.snapshot_sha256,
+      manifestSha256:'a'.repeat(64),vectorSyncWatermark:0,priorReleaseId:'original-release',nextExpiry:null};
+    await enqueuePublication(f.db,r.snapshot,intent,f.now());const pub=await claimPublication(f.db,r.snapshot,intent.releaseId,f.now());
+    await recordPublicationDispatch(f.db,r.snapshot,pub,'version:fixture:permanent',f.now());
+    const permit=await beginBuildActivation(f.db,build,r.snapshot,pub,'fixture:permanent',async()=>({environment:scope.environment,settled:true,
+      active:{...f.original.intent,versionReference:f.original.permit.versionReference}}),f.now(),q.owner),plan=prunedVectorPlan(r);
+    const read=()=>readActivatedCatalogVectors(f.db,permit,{catalogRevision:r.snapshot.catalogRevision,planSha256:sha256(canonicalJson(plan)),ids:prunedVectorIds(plan)},f.adapters,{permanent:r});
+    await completePublication(f.db,r.snapshot,intent.releaseId,pub.token,async()=>{await read();return intent;},f.now,permit.mutationOwner);
+    assert.equal(await resolveBuildActivation(f.db,permit,async()=>{await read();return{environment:scope.environment,settled:true,active:{...intent,versionReference:permit.versionReference}};}),'resolved');
+    const receipt={...f.sql.prepare("SELECT * FROM publication_receipts WHERE release_id='permanent-release'").get()},seal=createPermanentCatalogSeal(r,{releaseId:intent.releaseId,receiptSha256:sha256(canonicalJson(receipt))});
+    assert.ok(r.snapshot.products.slice(0,8).every(p=>p.persistent&&p.eligibleUntil!==null));
+    assert.doesNotMatch(JSON.stringify(seal),/source_record_json|supplier\.invalid|example\.invalid|embedding_native_base64|rights_json|editorialWriteup/);
+    // New UTC day, separate normal routine accounting; old migration/profile
+    // counters remain retained, never extended or reset. No merchant/model call.
+    f.advance(Date.parse(r.snapshot.products[0].eligibleUntil)-f.now().getTime()+3600000);f.db=await f.makeNextDayDb();
+    const native=canonicalJson([...f.index]),writing=await claimMutationOwnership(f.db,scope,{phase:'writing',ownerReference:'future-day',operationKey:sha256('future-day')}),cursor={current:writing};
+    const previous=await reconstructPermanentSnapshot(f.db,writing,seal);same(previous,r.snapshot);const changes=[];
+    if(changed){const store=createD1CatalogMaintenanceStore({db:f.db,owner:writing,ownerCursor:cursor,runId:'future-day',catalogRevision:'future-day',
+      intent:()=>({reviewedDeleteReference:'Synthetic genuine curation duplicate review, never elapsed expiry'})});
+      await store.markCatalogDuplicate('B000000011','B000000001','Synthetic explicit duplicate review');
+      const event=f.sql.prepare("SELECT sequence FROM vector_sync_outbox WHERE source_revision='future-day'").get();
+      for(let n=0;n<2;n++){const delivered=await deliverOwnedOutboxEvent({db:f.db,owner:cursor.current,sequence:event.sequence,catalogRevision:'future-day',adapters:f.adapters,loadPayload:e=>loadMaintenanceVectorPayload(f.db,e)});
+        cursor.current=delivered.owner;if(delivered.state==='complete')break;}
+      const product={...f.sql.prepare('SELECT * FROM products WHERE public_id=?').get(uuid(11))},operation=f.sql.prepare("SELECT * FROM catalog_maintenance_operations WHERE run_id='future-day'").get();
+      changes.push({publicId:uuid(11),operationId:operation.operation_id,inputSha256:operation.input_sha256,productSha256:sha256(canonicalJson(product)),displaySha256:sha256(product.public_display_json??'null')});}
+    await releaseMutationOwnership(f.db,cursor.current);
+    const approval={schemaVersion:1,runId:'future-day',catalogRevision:'future-day',changes},approvalSha256=sha256(canonicalJson(approval));
+    const request={scope,codeSha:'8'.repeat(40),previous,approval,approvalSha256,context:{...f.request.context,envelopeSha256:sha256(`${JSON.stringify(createSealedSnapshotEnvelope(previous))}\n`),
+      snapshotSha256:r.packet.receipt.snapshot_sha256,projectionSha256:r.packet.receipt.projection_sha256,sourceExportSha256:r.sourceDigest,vectorSyncWatermark:0,
+      cutoff:new Date(f.now().getTime()+3600000).toISOString(),
+      publicationReceiptWatermark:3,priorPublication:{releaseId:intent.releaseId,receiptSha256:sha256(canonicalJson(receipt))}}};
+    const owner=await claimMutationOwnership(f.db,scope,{phase:'freezing',ownerReference:'future-day',operationKey:approvedCohortOperationKey(request)});
+    const proof=await readPermanentCatalogPrior({db:f.db,owner,seal,approval,approvalSha256,adapters:f.adapters});assert.equal(proof.state,'verified');
+    assert.equal(proof.preservedIds.length,8);assert.deepEqual(proof.changedIds,changed?[uuid(11)]:[]);
+    const daily=await prepareApprovedCohort(f.db,owner,request);assert.equal(daily.revision.snapshot.products.length,changed?9:10);
+    assert.ok(daily.revision.snapshot.products.every(p=>p.eligibleUntil===null));assert.doesNotMatch(JSON.stringify(daily.revision.snapshot),/example\.invalid|supplier\.invalid/);
+    assert.equal(daily.revision.snapshot.heldProducts.length,changed?3:2);assert.equal(approvedCohortVectorPlan(daily.revision).products.length,0);
+    assert.ok(Object.is(f.index.get(uuid(1)).values[0],-0));assert.equal(canonicalJson([...f.index]),native);
+    for(const mutate of [s=>s.inventory[0].productSha256='0'.repeat(64),s=>s.control.native.source.deliverySha256='0'.repeat(64),s=>s.publication.receiptSha256='0'.repeat(64)]){
+      const bad=structuredClone(seal);mutate(bad);await assert.rejects(readPermanentCatalogPrior({db:f.db,owner:daily.owner,seal:bad,approval,approvalSha256,adapters:f.adapters}));}
+    if(!changed){const observe=()=>readPermanentCatalogPrior({db:f.db,owner:daily.owner,seal,approval,approvalSha256,adapters:f.adapters});
+      const held=f.sql.prepare('SELECT tags FROM products WHERE public_id=?').get(uuid(9));
+      f.sql.prepare("UPDATE products SET tags='unapproved held drift' WHERE public_id=?").run(uuid(9));await assert.rejects(observe());
+      f.sql.prepare('UPDATE products SET tags=? WHERE public_id=?').run(held.tags,uuid(9));
+      f.sql.prepare('UPDATE catalog_maintenance_products SET version=version+1 WHERE product_id=?').run('B000000001');await assert.rejects(observe());
+      f.sql.prepare('UPDATE catalog_maintenance_products SET version=version-1 WHERE product_id=?').run('B000000001');
+      const build=f.sql.prepare("SELECT request_id,version_reference FROM catalog_build_requests WHERE release_id='permanent-release'").get();
+      f.sql.prepare('UPDATE catalog_build_requests SET version_reference=? WHERE request_id=?').run('fixture:unapproved-version',build.request_id);await assert.rejects(observe());
+      f.sql.prepare('UPDATE catalog_build_requests SET version_reference=? WHERE request_id=?').run(build.version_reference,build.request_id);
+      f.index.get(uuid(1)).values[0]=0;await assert.rejects(observe());f.index.get(uuid(1)).values[0]=-0;
+      assert.equal((await observe()).state,'verified');}
+    assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'freezing');
+  });
 });

@@ -111,12 +111,13 @@ async function ownedHeader(db: CatalogD1, owner: MutationOwner, revision: string
  * Partial target imports are allowed only for the immutable staging check; they
  * are never made visible by this reader or by an incomplete receipt.
  */
-export async function readOwnedProjection(db: CatalogD1, owner: MutationOwner, revision: string, ids: string[]) {
+export async function readOwnedProjection(db: CatalogD1, owner: MutationOwner, revision: string, ids: string[],options:{phase?:'writing'}={}) {
   owner = structuredClone(owner); ids = [...ids];
-  const gate = mutationFenceQuery(owner, ['freezing']);
+  const phase=options.phase??'freezing';if(owner.phase!==phase)throw new Error('mutation_phase_mismatch');
+  const gate = mutationFenceQuery(owner, [phase]);
   const rows = await ownedPages(db, owner, ids, `SELECT ids.ordinal,ids.value identity,
     ${jsonColumns('p', PROJECTION)} data FROM requested ids LEFT JOIN catalog_public_products p
-    ON p.public_id=ids.value AND p.catalog_revision=?`, [revision]);
+    ON p.public_id=ids.value AND p.catalog_revision=?`, [revision],gate);
   const present = rows.filter(row => row.public_id !== null);
   const count = (await db.prepare(`SELECT (SELECT count(*) FROM catalog_public_products WHERE catalog_revision=?) n WHERE ${gate.sql}`)
     .bind(revision,...gate.params).all<{ n: number }>()).results;

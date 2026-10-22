@@ -28,7 +28,7 @@ export function product(n,fresh=false){return{id:`B${String(n).padStart(9,'0')}`
 export const rights=p=>Object.fromEntries(Object.entries({title:p.title,description:p.wittyDescription,imageUrl:p.imageUrl,affiliateUrl:p.affiliateUrl,
   wittyDescription:p.wittyDescription,editorialWriteup:p.editorialWriteup,humorTags:JSON.stringify(p.humorTags)})
   .map(([k,value])=>[k,{basis:'owned',reference:`test-only/${p.id}/${k}`,value}]));
-export async function setup(t,{providerIdentity='fixture:published-index',codeSha='f'.repeat(40),originalVersion,migrationThrough=99}={}){
+export async function setup(t,{providerIdentity='fixture:published-index',codeSha='f'.repeat(40),originalVersion,migrationThrough=99,merchant=false}={}){
   const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
   for(const name of(await readdir(new URL('../../migrations/d1/',import.meta.url))).filter(n=>/^\d{4}.*\.sql$/.test(n)&&Number(n.slice(0,4))<=migrationThrough).sort())
     sql.exec(await readFile(new URL(`../../migrations/d1/${name}`,import.meta.url),'utf8'));
@@ -50,9 +50,11 @@ export async function setup(t,{providerIdentity='fixture:published-index',codeSh
   const adapters={...scope,providerIdentity,async dispatch(input){assert.equal(proofOnly,false);dispatches++;
     if(input.vector)index.set(input.publicId,structuredClone(input.vector));else index.delete(input.publicId);return{reference:`fixture:${dispatches}`};},
     async resolve(input){return{state:'settled',reference:input.reference};},async readback(id,signal){signal.throwIfAborted();return structuredClone(index.get(id)??null);}};
-  async function upsert(p){const hash=editorialSourceHash(p);p.editorialSourceHash=hash;const store=createD1CatalogMaintenanceStore({db,...mode,
+  async function upsert(p){const hash=editorialSourceHash(p);p.editorialSourceHash=hash;const grants=rights(p);
+    if(merchant)for(const grant of Object.values(grants))Object.assign(grant,{basis:'merchant',observedAt:at(-3600000),expiresAt:at(23*3600000)});
+    const store=createD1CatalogMaintenanceStore({db,...mode,
     owner:cursor.current,ownerCursor:cursor,newPublicId:()=>uuid(Number(sql.prepare('SELECT count(*) n FROM products').get().n)+1),
-    intent(){return{rightsById:{[p.id]:rights(p)},verificationById:{[p.id]:{reference:'fixture:observation',observedAt:at(-3600000),sourceFactsHash:hash}},
+    intent(){return{rightsById:{[p.id]:grants},verificationById:{[p.id]:{reference:'fixture:observation',observedAt:at(-3600000),sourceFactsHash:hash}},
       ...(p.embedding?{embeddingById:{[p.id]:{reference:'fixture:embedding',model:'text-embedding-3-small',text:maintenanceEmbeddingText(p),sourceFactsHash:hash}}}:{})};}});
     await store.upsertProduct(p,hash);}
   async function drain(){for(const r of sql.prepare("SELECT sequence FROM vector_sync_outbox WHERE status='pending' ORDER BY sequence").all()){

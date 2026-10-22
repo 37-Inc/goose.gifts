@@ -99,7 +99,10 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
       try {
         checkCurrent(prior,projection.get(prior.publicId)!,current.get(prior.publicId)!,now);
         if (catalogDisplayDeadline(prior) <= cutoff) throw new Error('expired');
-        products.push(prior); // Untouched means exact old bytes/deadline, never renewed.
+        // Do not re-pin expired supplier fields into a later prepared artifact.
+        // The independently cleared base keeps its exact identity/copy/grants.
+        products.push(prior.eligibleUntil!==null&&Date.parse(prior.eligibleUntil)<=now.getTime()
+          ?persistentPublicProduct(prior)??prior:prior);
       } catch { safeHeld.push(held(prior,catalogDisplayDeadline(prior) <= cutoff ? 'expired' : 'editorial_hold')); }
     }
   }
