@@ -293,6 +293,29 @@ test('permanent listing survives supplier expiry/unknown availability without re
     }finally{f.close();}
   }
 });
+test('direct permanent SQL reads use nested base grants while retaining expired merchant root evidence',async()=>{
+  const f=await persistentSetup({standalone:true});try{
+    const root=Object.fromEntries(Object.entries(rights(snapshot('original-supplier').products[0])).map(([field,value])=>[field,
+      {...value,basis:'merchant',observedAt:new Date(NOW.getTime()-2*86400_000).toISOString(),
+        expiresAt:new Date(NOW.getTime()-86400_000).toISOString()}]));
+    const permission={...root,persistent:rights(f.base)};
+    f.sqlite.prepare('UPDATE products SET rights_json=?').run(JSON.stringify(permission));
+    const before=f.sqlite.prepare('SELECT * FROM products').get(),late=new Date(NOW.getTime()+40*86400_000);
+    assert.deepEqual(await getListedRevisionProductsByPublicIds(f.db,[PUBLIC_ID],late,'persistent'),[f.base]);
+    assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'persistent'),[f.base]);
+    assert.deepEqual(await getRevisionProductsByPublicIds(f.db,[PUBLIC_ID],late,'persistent'),[]);
+    const query=visibleRevisionCountQuery('persistent',late);assert.equal(Object.values(f.sqlite.prepare(query.sql).get(...query.params))[0],1);
+    assert.equal((await rollbackPreflight(f.db,f.value,late)).ok,true);
+    assert.deepEqual(f.sqlite.prepare('SELECT * FROM products').get(),before);
+    // An explicitly present invalid lane cannot fall back to otherwise valid root grants.
+    for(const persistent of [{},{...rights(f.base),title:{...rights(f.base).title,value:'Unapproved'}},'invalid',false,[]]){
+      f.sqlite.prepare('UPDATE products SET rights_json=?').run(JSON.stringify({...rights(f.base),persistent}));
+      assert.deepEqual(await getListedRevisionProductsByPublicIds(f.db,[PUBLIC_ID],late,'persistent'),[]);
+      assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'persistent'),[]);
+      assert.equal(Object.values(f.sqlite.prepare(query.sql).get(...query.params))[0],0);
+    }
+  }finally{f.close();}
+});
 test('permanent listing requires exact current grants/base and preserves genuine operational holds',async()=>{
   for(const mutate of [
     f=>{delete f.grants.persistent;},f=>{f.grants.persistent.title.basis='merchant';},
