@@ -163,7 +163,7 @@ export async function assertPermanentCatalog(db:CatalogD1,owner:MutationOwner,re
   const queries=pruningCurrentQueries(revision.sourceRows).map(q=>({sql:`SELECT json(CASE WHEN (${q.sql})=? THEN 'true' ELSE 'permanent_freeze_changed' END)`,params:[...q.params,q.count]}));
   const columns=Object.keys(revision.packet.rows[0]??{});
   const projection=(chunk:typeof revision.packet.rows)=>{
-    const query={sql:`SELECT json(CASE WHEN (SELECT count(*) FROM json_each(?) e JOIN catalog_public_products p
+    const query={sql:`SELECT json(CASE WHEN (SELECT count(*) FROM json_each(?) e CROSS JOIN catalog_public_products p
       ON p.catalog_revision=? AND p.public_id=json_extract(e.value,'$.public_id') WHERE ${columns.map(k=>`p.${k} IS json_extract(e.value,'$.${k}')`).join(' AND ')})=? THEN 'true' ELSE 'permanent_freeze_changed' END)`,
     params:[JSON.stringify(chunk),revision.snapshot.catalogRevision,chunk.length]};
     if(Buffer.byteLength(JSON.stringify(query))>384*1024){if(chunk.length<2)refuse();const n=Math.floor(chunk.length/2);projection(chunk.slice(0,n));projection(chunk.slice(n));}

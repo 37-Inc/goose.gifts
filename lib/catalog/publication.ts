@@ -291,7 +291,7 @@ async function completeActivated(db: CatalogD1, revision: PrunedRevision, public
     await db.batch(assertions());
     const queries=pruningCurrentQueries(revision.sourceRows).map(q=>({sql:`(${q.sql})=?`,params:[...q.params,q.count]}));
     const add=(rows:typeof revision.packet.rows)=>{
-      const q={sql:`(SELECT count(*) FROM json_each(?) e JOIN catalog_public_products p ON p.catalog_revision=?
+      const q={sql:`(SELECT count(*) FROM json_each(?) e CROSS JOIN catalog_public_products p ON p.catalog_revision=?
         AND p.public_id=json_extract(e.value,'$.public_id') WHERE ${projectionColumns.map(k=>`p.${k} IS json_extract(e.value,'$.${k}')`).join(' AND ')})=?`,
         params:[JSON.stringify(rows),intent.catalogRevision,rows.length]};
       if(new TextEncoder().encode(JSON.stringify(q)).length>384*1024){if(rows.length<2)throw new Error('publication_activation_fenced');

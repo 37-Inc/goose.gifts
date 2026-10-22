@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFile} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
 import {setup,scope,uuid} from './helpers/published-vector-fixture.mjs';
 import {canonicalJson,sha256,convertSourceRow} from '../scripts/catalog/migration.ts';
 import {createCatalogD1MigrationRest,createCatalogD1Rest} from '../scripts/catalog/d1-write-rest.ts';
@@ -27,10 +28,55 @@ const accountId='a'.repeat(32),databaseId=uuid(9999),manifest='b'.repeat(64),ass
 const svg='<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h10"/></svg>';
 const grant=value=>({basis:'owned',value,reference:'ROOT approved exact synthetic value; no real rights claim'});
 const same=(a,b)=>assert.equal(canonicalJson(a),canonicalJson(b));
+function assertIndexedProjectionQueries(queries,schema){
+  const script=`import sys,json,sqlite3
+v=json.load(sys.stdin)
+c=sqlite3.connect(':memory:',cached_statements=0)
+c.executescript(v['schema'])
+c.setlimit(sqlite3.SQLITE_LIMIT_EXPR_DEPTH,100)
+template=next(r for r in json.loads(v['queries'][0]['params'][0]) if r['source_facts_hash'] is None)
+rows=[]
+for i in range(2359):
+  r=dict(template,public_id='fixture-'+str(i),product_id='product-'+str(i),slug='slug-'+str(i))
+  rows.append(r)
+keys=list(template)
+c.executemany('INSERT INTO catalog_public_products('+','.join(keys)+') VALUES('+','.join('?' for _ in keys)+')',[[r[k] for k in keys] for r in rows])
+report=[]
+for query in v['queries']:
+  sql=query['sql']; params=[json.dumps(rows[:20],separators=(',',':')),template['catalog_revision'],20]
+  old=sql.replace(' e CROSS JOIN catalog_public_products p',' e JOIN catalog_public_products p')
+  assert old!=sql
+  plans={name:[r[3] for r in c.execute('EXPLAIN QUERY PLAN '+text,params)] for name,text in [('old',old),('new',sql)]}
+  p=next(i for i,r in enumerate(plans['new']) if r.startswith('SEARCH p '))
+  e=next(i for i,r in enumerate(plans['new']) if r.startswith('SCAN e '))
+  assert e<p,plans
+  assert any(k+'=?' in plans['new'][p] for k in ['public_id','product_id','slug']),plans
+  assert next(i for i,r in enumerate(plans['old']) if r.startswith('SEARCH p '))<next(i for i,r in enumerate(plans['old']) if r.startswith('SCAN e ')),plans
+  costs={}
+  for name,text in [('old',old),('new',sql)]:
+    ticks=[0]
+    def progress(): ticks[0]+=1; return 0
+    c.set_progress_handler(progress,100)
+    assert c.execute(text,params).fetchone()[0]=='true'
+    c.set_progress_handler(None,0)
+    costs[name]=ticks[0]*100
+  assert costs['old']>costs['new']*50,costs
+  assert c.execute(sql,[json.dumps(list(reversed(rows[:20]))),params[1],20]).fetchone()[0]=='true'
+  for change in ['value','partial']:
+    chunk=[dict(r) for r in rows[:20]]
+    if change=='value': chunk[0]['description']='different'
+    else: chunk=chunk[:-1]
+    try: c.execute(sql,[json.dumps(chunk),params[1],20]).fetchone()
+    except sqlite3.Error: pass
+    else: raise AssertionError('projection drift was accepted')
+  report.append({'steps':costs,'plan':plans['new']})
+print(json.dumps(report))`;
+  return JSON.parse(execFileSync('python3',['-c',script],{input:JSON.stringify({schema,queries}),encoding:'utf8',timeout:10000,maxBuffer:1024*1024}));
+}
 async function fixture(t,{count=12,afterExpiry=false,merchant=false}={}){
   const f=await setup(t,{providerIdentity:`cloudflare:${accountId}:${scope.indexName}`,merchant});
   if(afterExpiry)f.advance(Date.parse(f.revision.snapshot.products[0].eligibleUntil)-f.now().getTime()+3600000);
-  let statements=0,requests=0,maxRequest=0,maxResponse=0,loseSeal=false;const queryText=[];
+  let statements=0,requests=0,maxRequest=0,maxResponse=0,loseSeal=false;const queryText=[],queryWire=[];
   const ledger={httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0},dbScope={accountId,databaseId,databaseName:'permanent-freeze'};
   // Explicit LOCAL fixture profile covers genuine union+installer+freeze/replay;
   // synthetic usage is not account evidence or authorization for any live run.
@@ -40,6 +86,7 @@ async function fixture(t,{count=12,afterExpiry=false,merchant=false}={}){
   const send=async(url,init)=>{requests++;assert.equal(url,`https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}${init.method==='POST'?'/query':''}`);
       if(init.method==='GET')return Response.json({success:true,result:{uuid:databaseId,name:'permanent-freeze',read_replication:{mode:'disabled'}}});
       const {batch}=JSON.parse(init.body);assert.ok(batch.length<=50);statements+=batch.length;queryText.push(...batch.map(q=>q.sql));
+      queryWire.push(...batch.filter(q=>q.sql.includes('FROM json_each(?) e CROSS JOIN catalog_public_products p')));
       maxRequest=Math.max(maxRequest,Buffer.byteLength(init.body));assert.ok(maxRequest<=512*1024);f.sql.exec('BEGIN');let result;
       try{result=batch.map(q=>{assert.ok(q.params.length<=100);const before=f.sql.prepare('SELECT total_changes() n').get().n;
         const rows=f.sql.prepare(q.sql).all(...q.params).map(r=>({...r}));return{success:true,results:rows,meta:{served_by_primary:true,
@@ -93,7 +140,7 @@ async function fixture(t,{count=12,afterExpiry=false,merchant=false}={}){
     native:{source:f.published.source,revisionSha256:sha256(canonicalJson(f.revision)),plan:prunedVectorPlan(f.revision)}};
   const freezing=await claimMutationOwnership(db,scope,{phase:'freezing',ownerReference:'permanent',operationKey:permanentCatalogOperationKey(request)});
   const metrics=()=>({requests,statements,maxRequest,maxResponse});
-  return{...f,db,makeDb,makeNextDayDb,request,owner:freezing,metrics,queryText,loseSeal(){loseSeal=true;}};
+  return{...f,db,makeDb,makeNextDayDb,request,owner:freezing,metrics,queryText,queryWire,loseSeal(){loseSeal=true;}};
 }
 test('permanent receipt owns full rows; concrete native observation remains exact-permit fenced and accepted resolution survives cutoff',async t=>{
   const f=await fixture(t,{afterExpiry:true}),prepared=await preparePermanentCatalog(f.db,f.owner,f.request),r=prepared.revision,
@@ -133,6 +180,12 @@ test('permanent receipt owns full rows; concrete native observation remains exac
   assert.equal(await resolveBuildActivation(f.db,permit,async()=>{await read();return{environment:scope.environment,settled:true,
     active:{...intent,versionReference:permit.versionReference}};}),'resolved');
   assert.equal(f.dispatches(),writes);assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
+  const projectionQueries=f.queryWire.filter(q=>q.sql.includes('FROM json_each(?) e CROSS JOIN catalog_public_products p')),
+    first=projectionQueries.find(q=>q.sql.includes('ON p.catalog_revision=? AND p.public_id=')),
+    second=projectionQueries.find(q=>q.sql.includes('ON p.catalog_revision=?\n'));
+  assert.ok(first&&second,'Both actual generated bulk projection SQL templates were captured');
+  const schema=f.sql.prepare("SELECT sql FROM sqlite_schema WHERE sql IS NOT NULL AND tbl_name='catalog_public_products' AND type IN('table','index') ORDER BY type='index'").all().map(r=>r.sql+';').join('\n');
+  t.diagnostic(JSON.stringify({fixture:'actual two SQL templates,2359 local projections; not D1 billed rows',cost:assertIndexedProjectionQueries([first,second],schema)}));
 });
 test('one-time permanent freeze preserves3383 identities/native, then reopens and settles expired active ACK with bounded full-row proofs',async t=>{
   const f=await fixture(t,{count:3383,afterExpiry:true}),products=f.sql.prepare('SELECT * FROM products ORDER BY id').all(),native=canonicalJson([...f.index]),
