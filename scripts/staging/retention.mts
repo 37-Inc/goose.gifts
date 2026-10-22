@@ -8,6 +8,10 @@ import { siteIdentityFor } from '../../static-site/lib/site-identity.ts';
 
 type Context = Pick<SiteAssetManifest, 'priorReleaseId' | 'generatedAt' | 'sourceMode'> & { retainedManifestSha256: string | null };
 type Files = ReadonlyMap<string, Uint8Array>;
+export const CLOUDFLARE_FREE_ASSET_LIMIT = 20000;
+export function assertFreeAssetCapacity(assets: Files) {
+  if (assets.size > CLOUDFLARE_FREE_ASSET_LIMIT) throw new Error('Static export exceeds Cloudflare Free asset limit');
+}
 function fail(): never { throw new Error('Retained release input is missing or incompatible'); }
 function assertPublicIdentitySafe(files: Files) {
   for (const [name, bytes] of files) {
@@ -64,6 +68,7 @@ export async function readPriorRelease(context: Context, directory?: string): Pr
 export function assembleReleaseAssets(snapshot: CatalogSnapshot, current: Files, context: Context,
   prior: RetentionInput['prior'] | null) {
   const currentAssetPaths = [...current.keys()].sort();
+  assertFreeAssetCapacity(current);
   if (currentAssetPaths.length > 100000 || currentAssetPaths.some((name) => !safePath(name))) fail();
   assertPublicIdentitySafe(current);
   for (const [name, bytes] of current) if (/^\/_next\/static\/.*\.(?:js|css)$/.test(name)) assertOwnedCodeSafe(bytes, [snapshot]);
@@ -77,7 +82,9 @@ export function assembleReleaseAssets(snapshot: CatalogSnapshot, current: Files,
   // Old page chunks are public too. If one contains retired attribution, the
   // operator must use an explicit no-retention release, not carry it forward.
   assertPublicIdentitySafe(retained.files);
-  return { assets: new Map([...retained.files, ...current]), routes: { ...retained.routes, ...currentRoutes },
+  const assets = new Map([...retained.files, ...current]);
+  assertFreeAssetCapacity(assets);
+  return { assets, routes: { ...retained.routes, ...currentRoutes },
     retention: { priorManifestSha256: context.retainedManifestSha256, currentAssetPaths } };
 }
 

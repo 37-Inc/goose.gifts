@@ -1,5 +1,6 @@
 import type { PublicCatalogProduct } from "../../lib/catalog/types";
 import { isIllustrative } from "./selection";
+import { earliestCatalogExpiry } from "../../lib/catalog/display";
 
 /** Rendering projection, not a second catalog/storage contract. */
 export type CatalogCard = Pick<
@@ -36,7 +37,7 @@ export interface CardShard {
   catalogRevision: string;
   version: string;
   kind: "feed" | "random";
-  eligibleUntil: string;
+  eligibleUntil: string | null;
   products: CatalogCard[];
   next: string | null;
 }
@@ -66,6 +67,7 @@ function record(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 function instant(value: unknown): number {
+  if (value === null) return Infinity;
   if (typeof value !== "string") return NaN;
   const time = Date.parse(value);
   return Number.isFinite(time) && new Date(time).toISOString() === value
@@ -134,6 +136,8 @@ export function validateCardShard(
       typeof card.description !== "string" ||
       !card.description.trim() ||
       !imageUrl(card.imageUrl) ||
+      (card.eligibleUntil === null && (typeof card.imageUrl !== "string" || !/^\/(?!\/)[a-zA-Z0-9/_\-.]+\.svg$/.test(card.imageUrl)
+        || card.imageUrl.split("/").some(part => part === "." || part === ".."))) ||
       typeof card.illustrative !== "boolean" ||
       !(instant(card.eligibleUntil) > expected.now) ||
       ["punnyTitle", "wittyDescription"].some(
@@ -148,7 +152,7 @@ export function validateCardShard(
   }
   if (
     value.eligibleUntil !==
-    (value.products as CatalogCard[]).map((p) => p.eligibleUntil).sort()[0]
+    earliestCatalogExpiry(value.products as CatalogCard[])
   )
     unavailable();
   if (

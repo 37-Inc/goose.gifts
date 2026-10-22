@@ -353,10 +353,29 @@ test('single-encoded equivalents of retained chunk paths share the exact expiry 
 test('timeless privacy companions and owned illustrations remain available', async () => {
   const fixture = setup();
   fixture.advance(2400);
-  for (const path of ['/privacy', '/privacy.html', '/privacy.txt', '/privacy/__next._full.txt', '/illustrations/button.svg']) {
+  for (const path of ['/privacy', '/privacy.html', '/privacy.txt', '/privacy/__next._full.txt', '/illustrations/button.svg', '/images/gift-placeholder.svg']) {
     assert.equal((await fixture.request(path)).status, 200, path);
   }
   assert.equal(new URL(fixture.calls[0].url).pathname, '/privacy.html');
+  assert.equal((await fixture.request('/images/unreviewed-file.svg')).status,404);
+});
+
+test('photo shards expire independently of permanent pages, including expiry during asset I/O',async()=>{
+  for(const duringIO of [false,true]){
+    const f=setup();let clock=NOW;
+    const pathname=`/catalog/${'a'.repeat(64)}/photos-1.json`;
+    f.manifest.routes['/']={...f.manifest.routes['/'],eligibleUntil:null};
+    f.manifest.routes[pathname]={assetPath:pathname,safeAssetPath:'/safe/photos.json',eligibleUntil:DEADLINE,state:'ready',indexable:false};
+    const worker=createSiteWorker({manifest:f.manifest,snapshot:f.snapshot,now:()=>clock});
+    const env={...f.env,ASSETS:{async fetch(request){const path=new URL(request.url).pathname;
+      if(duringIO&&path===pathname)clock=NOW+2400;
+      return Response.json(path==='/safe/photos.json'?{status:'unavailable'}:{imageUrl:'https://supplier.invalid/synthetic.jpg'});}}};
+    if(!duringIO)clock=NOW+2400;
+    const response=await worker.fetch(new Request(`https://preview.example${pathname}`),env);
+    assert.deepEqual(await response.json(),{status:'unavailable'});
+    assert.equal(response.headers.get('Cache-Control'),'no-store');
+    assert.equal((await worker.fetch(new Request('https://preview.example/'),f.env)).status,200);
+  }
 });
 
 test('POST feed preserves products/hasMore, bounds input, and fails clearly after expiry', async () => {

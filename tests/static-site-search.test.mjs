@@ -26,7 +26,7 @@ function search(href, query = "desk") {
       };
       if (name === "./ProductCard") return { ProductCard: () => null };
       if (name === "../lib/analytics") return { captureRenderedLists() {}, captureStaticSearch() {} };
-      return require(name);
+      return name.startsWith(".") ? createRequire(new URL("../static-site/components/Search.tsx", import.meta.url))(name) : require(name);
     },
     fetch: async (url, options) => { requests.push({ url, signal: options.signal });
       return { ok: true, json: async () => ({ results: [] }) }; },

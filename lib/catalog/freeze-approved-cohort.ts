@@ -1,4 +1,5 @@
 import type { CatalogD1 } from './storage/d1.ts';
+import { catalogDisplayDeadline } from './display.ts';
 import type { CatalogSnapshot, PublicCatalogProduct, SafeHeldProduct } from './types.ts';
 import type { MutationOwner } from './mutation-fence.ts';
 import { mutationAssertion } from './mutation-fence.ts';
@@ -83,7 +84,7 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
     try {
       const product = validatePublicCatalogProduct(JSON.parse(String(row.public_display_json)),now);
       checkCurrent(product,{ source_facts_hash:row.source_facts_hash },current.get(change.publicId)!,now);
-      if (Date.parse(product.eligibleUntil) <= cutoff) throw new Error('expired');
+      if (catalogDisplayDeadline(product) <= cutoff) throw new Error('expired');
       approved.set(change.publicId,product);
     } catch { /* A reviewed mutation is not a fresh availability/rights grant. */ }
   }
@@ -97,9 +98,9 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
     } else {
       try {
         checkCurrent(prior,projection.get(prior.publicId)!,current.get(prior.publicId)!,now);
-        if (Date.parse(prior.eligibleUntil) <= cutoff) throw new Error('expired');
+        if (catalogDisplayDeadline(prior) <= cutoff) throw new Error('expired');
         products.push(prior); // Untouched means exact old bytes/deadline, never renewed.
-      } catch { safeHeld.push(held(prior,Date.parse(prior.eligibleUntil) <= cutoff ? 'expired' : 'editorial_hold')); }
+      } catch { safeHeld.push(held(prior,catalogDisplayDeadline(prior) <= cutoff ? 'expired' : 'editorial_hold')); }
     }
   }
   for (const prior of source.snapshot.heldProducts) {

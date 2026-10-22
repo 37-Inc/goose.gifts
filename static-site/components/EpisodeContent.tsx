@@ -1,4 +1,4 @@
-import { ProductImage } from "@/components/ProductImage";
+import { CatalogImage } from "./CatalogPhotos";
 import type { DisplayEpisode, EpisodeProduct } from "../lib/episode-display";
 import { episodePath } from "../lib/show";
 
@@ -9,10 +9,11 @@ function Product({ product, context, caption, position }: {
     <article className="episode-product"
       data-analytics-card="" data-analytics-id={product.id}
       data-analytics-source={product.source} data-analytics-context={context}
-      data-analytics-expiry={product.eligibleUntil}>
+      data-analytics-expiry={product.eligibleUntil ?? undefined}
+      data-analytics-permanent={product.eligibleUntil === null ? "" : undefined}>
       <a className="product-art retailer-art" data-analytics-product-link=""
         href={`/gifts/${product.slug}`} aria-label={`View ${product.title}`}>
-        <ProductImage imageUrl={product.imageUrl} alt={product.title} className="object-contain"
+        <CatalogImage id={product.id} imageUrl={product.imageUrl} alt={product.title} className="object-contain"
           sizes="(max-width: 700px) 90vw, 45vw" priority={position === 1} />
       </a>
       <div className="episode-product-copy">

@@ -3,6 +3,7 @@ import type { CatalogSnapshot } from "../../lib/catalog/types";
 import { readySnapshotProducts, RANDOM_POOL_LIMIT } from "./selection";
 import { projectCard } from "./card-shard";
 import type { CardShard } from "./card-shard";
+import { earliestCatalogExpiry } from "../../lib/catalog/display";
 
 export const INITIAL_BROWSE_COUNT = 24;
 export const FEED_SHARD_SIZE = 24;
@@ -27,8 +28,7 @@ export function createBrowseRelease(snapshot: CatalogSnapshot) {
     path: string,
     next: string | null = null,
   ) => {
-    const eligibleUntil =
-      products.map((p) => p.eligibleUntil).sort()[0] || null;
+    const eligibleUntil = earliestCatalogExpiry(products);
     const payload = products.length
       ? {
           schemaVersion: 1 as const,
@@ -36,7 +36,7 @@ export function createBrowseRelease(snapshot: CatalogSnapshot) {
           catalogRevision: snapshot.catalogRevision,
           version,
           kind,
-          eligibleUntil: eligibleUntil!,
+          eligibleUntil,
           products,
           next,
         }

@@ -6,6 +6,7 @@ import { fetchCardShard } from "../lib/card-shard";
 import { eligiblePool, nextRandomIndex } from "../lib/selection";
 import { ProductCard } from "./ProductCard";
 import { captureRenderedLists, captureStaticRandomSpin } from "../lib/analytics";
+import { catalogDeadline } from "../../lib/catalog/display";
 
 export function RandomSelection({
   initial,
@@ -36,11 +37,12 @@ export function RandomSelection({
   useEffect(() => {
     if (!pool.length) return;
     const nextExpiry = Math.min(
-      ...pool.map((p) => Date.parse(p.eligibleUntil)),
+      ...pool.map((p) => catalogDeadline(p.eligibleUntil)),
     );
+    if (!Number.isFinite(nextExpiry)) return;
     const timer = window.setTimeout(
       () => {
-        if (pool.some((p) => Date.parse(p.eligibleUntil) <= Date.now())) {
+        if (pool.some((p) => catalogDeadline(p.eligibleUntil) <= Date.now())) {
           pending.current?.abort();
           pending.current = null;
           setPool([]);
@@ -100,12 +102,10 @@ export function RandomSelection({
             disabled={poolSize < 2 || loading}
             onClick={spin}
           >
-            {loading ? "Choosing another…" : "Another questionable decision"}{" "}
-            <span aria-hidden="true">↻</span>
+            {loading ? "Choosing another…" : "Another questionable decision"}
           </button>
           <p className="quiet" role="status" aria-live="polite">
-            {poolSize} {initial?.illustrative ? "examples" : "gifts"} in this
-            versioned pool.{poolSize > 1 && " No repeat on the next spin."}
+            {poolSize > 1 && "No repeat on the next spin."}
           </p>
         </>
       ) : (
