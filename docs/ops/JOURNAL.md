@@ -5,6 +5,66 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 — Prepared full catalog published and independently verified
+
+Actual acceptance supersedes the pending checkpoints below; their failed reads,
+unknowns and historical counts remain unchanged. PR259 merged as `fe8272f`;
+clean toolchain `43b229d628ca0be3aa181a3b10e1bb780080c452` and approved helper
+`9a4c07b9ff3d2ab4984fa23e61e25afa72c15de3422027a17e1ccad496dd2c98`
+completed the SAME `permanent-base-20261022-v1` run, without a ledger reset.
+
+- Release `permanent-catalog-063d9a31ee4f`, runtime
+  `063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6`, catalog
+  `stupid-full-catalog-20261022`, snapshot
+  `a78d97dcea9302c1be4609febd42260c5a774e7cd791e75d0120d7d8124f3da7`.
+  Actual version `042acba2-5f3a-4d78-9b4e-72e885e1fc8f`, manifest
+  `3420b5f756fc2d6698977a8ed3e1d6e9d4f23fe509f621d95e938c94eb18e6b1`,
+  publication receipt
+  `ded3e5d44b5a2a7ae6438c7fee3f1793682ecd70695176cb91b241b26d1e34e0`.
+- `executePublication` resolved the build; the final helper independently read
+  the actual receipt and D1 mutation owner=null. A historical activating owner
+  retained in checkpoint control is not a live lock: do not replay completion
+  or edit that checkpoint to clear it. Immutable publication result
+  `current-authority-publish-actual-v1.json` SHA-256
+  `1343e751b1188af9a6df912ad26ad953f8d558f54c594b2658c9e8610ae15700`.
+- 2,359 gifts are public,1,024 intentionally held and all3,383 private products,
+  source/native/history preserved. There are31 indexable substantive articles;
+  permanent-base `nextExpiry` is null. Eight optional photo overlays still expire
+  **2026-10-22T22:18:10.044Z**; no supplier rights or observations were renewed.
+  All2,359 prepared affiliate links use `goose-gifts-37-20`.
+- Public identity and prepared-body hashes match home, three sampled gift pages,
+  guide and `/howie`; privacy200 and retired Index404 also pass. Retained static
+  QA `live-catalog-static-qa-20261022.json` SHA-256
+  `06efbece116de8ed5af9b9d0dbc49092c5b8a31364b0dfdd1c5c34e0e1514b6a`
+  records17:38:32.414Z verification,10 public HTTP requests/0 D1 queries,
+  all prepared routes present and exact31 product sitemap entries.
+  Real browser QA proves24→48→72 unique cards at390px without overflow, correct
+  product navigation, a random spin changing gift, zero console errors and one
+  actual `duck` search (`limit=36`,HTTP200,12 results). Browser receipt
+  `live-browser-qa-20261022.json` SHA-256
+  `082ff3580770fe3fc9d5a34cec3128377189a91dfc7b9ebccc31100af0a8e9b6`.
+- Additional publication cost:761 HTTP /2,843 SQL /557,220 known reads /11 writes.
+  Final SAME ledger:3,615 HTTP /9,303 SQL /3,511,503 known reads /21,475 writes /
+  **eight unchanged unknowns**. Account-wide GraphQL at17:39:21.913Z reports
+  4,655,902 reads /69,884 writes, leaving344,098 Free reads. Scoped profile
+  `cff4e8b4d6d8ebb4a07e01b115efa7656fb3740b35a3b0cb498af778a85a5923`
+  was consumed once; no replay, re-anchor or fresh allowance is implied.
+  Merchant calls0 /model calls0 /native writes0; Cloudflare remains Free.
+
+All three immutable QA/result files above are retained under private
+`goose-gifts-migration/permanent-base-20261022-v1`. Body-free current control
+file hash is `b1080d17fe9907cf327360b26c270728c1bba4e1cc6619d54f9251ee885a6cb2`.
+Use retained43/Node22+tsx for future reads/purges, with original63 repository and
+canonical `weekly-runs` root; `review`/`busy` must not be cleared or bypassed.
+Body-free unregistered bounds and historical control can legitimately require
+review. Frozen43/63 and all original receipts remain retained.
+
+Root recorded `.3.2` acceptance/closure and updated the existing daily heartbeat
+in place, not a second writer. Daily `.4` remains **GATED**; Pinterest is paused,
+Vercel frozen and Neon retained. The public package is runtime63: later `main`
+UI/polish source is not automatically deployed. No provider, scheduler or Beads
+action is performed by this documentation update.
+
 ## 2026-10-22 16:16Z — Bounded publication approval received; combined review
 
 Cameron answered `call_b300df69eace4f54b0282ecc87101d67` with “Allow bounded
