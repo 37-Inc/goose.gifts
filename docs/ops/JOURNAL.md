@@ -5,6 +5,80 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 — Retire legacy Programmable Search / Custom Search API
+
+Cameron asked us to read Google's January1 transition reminder, then explicitly
+authorized removing the old code and decommissioning the API if it was legacy.
+The named project is `goose-gifts-1759468598826`. The current Cloudflare provider
+environment strips `GOOGLE_SEARCH_*` and has no replacement Google credential
+configuration; the old Neon writer is off. Customer-facing search uses catalog
+D1/optional Vectorize, not Google's Programmable Search Element or JSON API.
+
+The signed-in Chrome37 console independently showed Custom Search API
+`customsearch.googleapis.com` Enabled. Its all-methods/all-credentials30-day
+table (September22–October22Pacific) showed five List requests and0%errors;
+do not describe that historical window as unused or infer a current caller.
+Submitted the exact service's Disable action once. It navigated to the product
+library; after reload, the same project/service offers **enable this API** /
+**Enable**. An accessibility timeout during navigation was reconciled via the
+documented DOM readback, not another disable submission. Before/after screenshots
+and a body-free receipt are in `google-custom-search-retirement-2026-10-22/`.
+No project, key, engine object, IAM, OAuth, billing or other API was changed.
+
+Removed the runnable catalog Google request, URL/ASIN/snippet parser and
+fallback verification merge. Creators short/empty results stay short/empty;
+throttles reach the existing skip/warning telemetry, while non-throttle errors
+and receipt uncertainty propagate. Tests leave obsolete dummy credentials
+present and forbid external fallback requests. Updated README and `.env.example`;
+the old setup URL is a concise retirement notice rather than instructions to
+re-enable a deprecated integration. The defensive provider-environment scrub
+remains intentionally, and historical journal/provider receipts are immutable.
+
+The Beads workflow keeps this bounded cleanup in the existing provider parent
+as **Retire unused Google Custom Search API fallback** (`roadmap-lbbz1.8.2`).
+No real catalog execution, merchant/model/search test, site publication, paid
+service or Pinterest change occurred. Canonical/pinned operator checkouts and
+unrelated work were preserved in an isolated task worktree. A repository merge
+is not a Cloudflare release; this removes operator source and disables its old
+external dependency without rebuilding or relabeling the live catalog.
+Initial acceptance checks: all121 catalog-operation tests pass. Lint exits0
+with25 warnings in the unchanged published-vector-proof test file and no errors;
+diff/receipt/screenshot checks pass. The first new throttling test used a generic
+Error; corrected the fixture to the actual AmazonCreatorsApiError class so it
+tests the real provider classification without weakening production handling.
+
+**Initial merge hold, not falsely green:** the initial broader run finished 1,132 tests:
+1,108 pass / four fail /20 optional skips. One relevant failure compared the
+historical recipe reference to current whole-file bytes; corrected only the
+test to read the actual immutable `7223ead` Git blob. All eight provenance tests
+now pass; historical recipe/validator references and all catalog evidence stay
+unchanged. Ten isolated publication deadline/abort tests also pass. The 393-asset
+synthetic preview build and release verifier passed from clean source `5f4d7a3`;
+no deployment was performed.
+
+A diagnostic run excluding the three slowest suites recorded additional
+pre-existing checks: guide text assertions expect old “Browse the collection” /
+“No matching ready products” copy; the current approved component says “Browse
+all gifts” / “No matching gifts yet.” The indexability mismatch independently
+reproduces on clean pre-change `6e710fb`. Same-catalog publication lost-ACK and
+expired-lease fixtures also fail (pending vs published / vector timeout);
+their source/production modules are untouched by this PR. Baseline replay is
+recorded separately in the body-free validation summary. Do not change
+publication behavior, silently waive the broad suite, or describe it as green.
+PR #261 contains the source cleanup; external API retirement remains complete.
+
+**Failure-case replay complete:** the same guide expectation fails on the clean
+pre-change checkout. Updated only the two stale copy expectations to the actual
+approved component text, preserving every indexability/schema/membership check.
+All20 provenance/guide/export checks pass. The lost-ACK case passes on clean
+baseline; both branch lost-ACK and expired-lease cases pass isolated serial
+replay (117.873s total). No publisher or vector code, deadline, retry, budget or
+native guard was changed. The initial failures under concurrent fixture load
+remain recorded; do not describe the initial full sweep as green or pretend it
+was repeated. All identified failed cases have now passed, along with the
+catalog121 and deadline/abort10 checks. This is bounded follow-up validation,
+not a waiver or a new production publication.
+
 ## 2026-10-22 — Prepared full catalog published and independently verified
 
 Actual acceptance supersedes the pending checkpoints below; their failed reads,
