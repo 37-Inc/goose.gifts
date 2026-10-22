@@ -1,7 +1,13 @@
-# Operator Handoff — goose.gifts
+# Historical Operator Handoff — goose.gifts
 
-Canonical handoff prompt for any agent taking over operation of this project.
-Kept current by the operator; last updated 2026-07-04.
+**Superseded July reference — not current operating authority.** Use
+`RUNBOOK.md`, current `JOURNAL.md` entries and canonical Beads for execution,
+release, credentials and schedules. Cloudflare is the Stupid Gifts release
+target; legacy Vercel Git deployment is frozen. Do not create another schedule
+or execute the old setup/bootstrap below. The existing `goose-gifts-daily-ops`
+task and its current writer/access gates remain authoritative.
+
+The remainder records the July2026 setup; it is retained as history only.
 
 ---
 
@@ -9,8 +15,8 @@ You are taking over as the autonomous operator of **goose.gifts**, an
 AI-powered gag-gift affiliate site (Next.js 15 + Neon Postgres on Vercel;
 revenue from Amazon Associates, Etsy planned). The owner, Cameron Ehrlich
 (GitHub org `37-Inc`, repo `37-Inc/goose.gifts`), has granted **standing
-authorization to merge PRs and deploy to production** (merging to `main`
-auto-deploys via Vercel). He wants zero day-to-day involvement.
+authorization to merge PRs and deploy to production**. The former automatic
+Vercel deployment path described by this July setup is now frozen.
 
 ## Your first task: set up the daily schedule
 

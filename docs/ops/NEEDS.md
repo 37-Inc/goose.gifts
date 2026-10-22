@@ -6,8 +6,9 @@ Items move to "Received" when done.
 ## P0 — blocking autonomous operation
 
 Original publication recovery is complete. New D1 daily publication still needs
-the tested writer/data/delta and same-response publication contract, plus
-owner-attended access to the existing project Keychain entries described below.
+the tested writer/data/delta and same-response publication contract. October22
+owner-attended Keychain approval and a fresh unchanged reader both passed;
+there is no current credential-access request outstanding.
 There is no outstanding request-cap or paid-upgrade decision for this work.
 
 ## P1 — needed within the first weeks
@@ -119,15 +120,16 @@ zero reported rows written. An earlier read failed and is retained separately;
 neither check audits all write permissions or authorizes cutover. No new token,
 login or paid plan is required for this observed read path.
 
-The four project Keychain items were created from refreshed authorized sources,
-but `/usr/bin/security` value readback timed out with no output. They are not
-verified usable. Preserve them: no reseeding, deletion, unlock or automated
-ACL/partition edits. A separate owner-attended, item-specific access approval
-may be needed; confirm the exact request before accepting it, then verify in a
-new reader process. Keep the existing Vercel/env/CSV bootstrap protected for
-seeding/rollback only; the old scheduled Neon writer is disabled. Do not use an
-environment execution fallback to evade the Keychain gate. See
-`roadmap-lbbz1.4.4`; it remains open.
+The earlier Keychain timeout is resolved for the current login/session.
+October22 Cameron authorized another attended attempt: all four existing items
+were readable, the attended verifier matched protected sources, and a fresh
+unchanged three-second reader independently returned `local_items_verified`.
+No credential values, provider calls, seed/replace/unlock or automated ACL edits.
+This does not promise access after future locking/logout; fail closed and request
+attended approval if access fails again. Keep the Vercel/env/CSV sources protected
+for seeding/rollback only, never as execution fallback. The old scheduled Neon
+writer stays disabled; working credentials alone do not enable the new writer.
+See `roadmap-lbbz1.4.4` for the verification receipt.
 See `STUPID_GIFTS_STAGING.md` and epic `roadmap-lbbz1`.
 
 ### 1. Owned growth channel approval

@@ -5,6 +5,70 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 04:06 UTC — Owner-attended Keychain verification passed
+
+Cameron explicitly asked to prompt again and approved the existing catalog
+items. Captured `/usr/bin/security` reads, bounded to60seconds for attended
+approval, accessed only the four allowlisted services/account `goose.gifts`:
+Amazon Creators ID/secret, OpenAI and staging secret. No values were displayed.
+The first unchanged three-second verifier still failed closed; that failure is
+retained. A bounded attended source-comparison verifier then passed all four
+items twice, followed by a fresh unchanged three-second verifier returning
+`local_items_verified` with every item `matches_source`, `providerCalls:0` and
+`currentBootstrapChanged:false`. Canonical tag/version remain unchanged.
+
+No reseed, replacement, automatic unlock, ACL/partition edit, credential rotation
+or provider request was performed. Current reader access is verified, not a
+promise across future logout/locking. The existing task records this receipt and
+must stop for attended approval if access fails again. Credential preparation
+`roadmap-lbbz1.4.4` can close on its own acceptance; daily writer/publication and
+full migration remain open, not enabled by working credentials.
+
+## 2026-10-22 owner correction — Cloudflare release target; Vercel Git frozen
+
+The owner correctly challenged continued Vercel deployment. The old GitHub
+integration still built PR pushes and main; successful Vercel builds did not
+update the independently published Cloudflare assets. In the existing signed-in
+Chrome37 account, verified exact project Thirty Seven Inc / `goose-gifts` and
+repository `37-Inc/goose.gifts`, then removed its Git connection. After reload,
+the Git settings persistently reported no connected repository; no deploy hooks
+were configured. No account/security setting, other project, domain, environment,
+database or deployment was changed. The existing production artifact is retained,
+not retired: GitHub deployment7243048336 at source
+`dd6bb4afb16f95ed830b262fa26a040de9fd34ec`. Readback at04:00UTC still showed that
+as latest Production deployment and the public Goose homepage returned200/Vercel.
+
+The private UI proof is
+`~/.codex/private/goose-gifts-migration/vercel-git-disconnected-2026-10-22.jpg`.
+Repository `vercel.json` additionally disables Git deployments for all branches
+carrying the config, following Vercel's documented `git.deploymentEnabled` Boolean
+setting. Project-side disconnection also covers old branches without the file.
+Do not infer that the file blocks manual/API deployment; those paths and Git
+reconnection are explicitly forbidden without rollback authorization.
+
+Independent review identified `HANDOFF.md` as another stale active authority
+path; it now explicitly marks its July setup as superseded history and directs
+execution to the current runbook/Beads, without creating a duplicate schedule.
+The same existing catalog task was updated in place with the Cloudflare-only
+release guard; its ID, cadence, target chat, limits and writer hold are unchanged.
+
+Cloudflare's public `/.well-known/catalog-release.json` still reports release
+`stupid-launch-maintained-994371816d46`, source
+`994371816d467892f1481c67b8d4ffce27ece11a`, snapshot
+`9aa5e690c09e08cdd344f48165559982a04548dfc9f75936fa2019667e42b003` and manifest
+`324674daa2b898c092ab220de203eba4249592afdce944aa6081a60ea67d0461`.
+The freeze is not an updated Cloudflare publication, full data/writer migration
+or permission for final Vercel/Neon deletion. The normal publication/expiry and
+accounting gates remain open. Bead `roadmap-lbbz1.4.6` tracks this bounded
+correction; `.4` and `.7` retain their unfinished acceptance.
+
+Correction integration: PR #224. Node22 release-target, build identity/provenance
+and patched-style regressions pass16/16; full lint and diff check pass. Independent
+review found/fixed the historical handoff conflict and approved the final diff.
+This configuration/docs-only change does not rebuild site assets. After branch
+push, latest provider deployment was still7243048336/dd6, with no new Vercel
+Preview or Production deployment; repeat this readback after merge.
+
 ## 2026-10-22 owner session — Fail before writer claim; finish bounded observation reads
 
 The next isolated integration resolves the exact required merchant/model

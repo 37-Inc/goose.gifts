@@ -37,12 +37,21 @@ Keep entries short; heavy operational detail belongs in `JOURNAL.md`.
 
 ## Conventions
 
-- Develop on a `claude/`-prefixed branch; open a PR and (with standing owner
-  authorization) merge to `main`, which auto-deploys to production via Vercel.
+- Develop on a `codex/`-prefixed branch; open a PR and (with standing owner
+  authorization) merge to `main`. **Cloudflare is the release target for
+  stupid.gifts. A main merge is not a Cloudflare publication.** Follow the
+  reviewed, source-pinned publication/readback contract in `docs/ops/RUNBOOK.md`.
+- Vercel Git auto-deployment is frozen: the legacy project's Git connection is
+  removed and `vercel.json` disables Git deployments. Retain the existing Goose
+  deployment as rollback only. Do not reconnect Git, redeploy manually or invoke
+  a deploy hook without explicit rollback authorization. Provider deletion is a
+  separate retirement gate, not part of this freeze.
 - After a PR merges, remove its completed local worktree and local branch from
   the canonical checkout; GitHub automatically deletes the merged remote
   branch. Preserve or inspect any untracked files before removing a worktree.
 - Never merge a change that fails `npm run build` or `npm run lint`.
-- Credentials self-bootstrap via `./scripts/ops/pull-env.sh` (needs
-  `VERCEL_TOKEN`). Database access works only over HTTPS (`@vercel/postgres`),
-  never raw TCP 5432.
+- New catalog execution uses only the reviewed D1 operator's explicit credential
+  contract; it remains gated. `./scripts/ops/pull-env.sh` is legacy Vercel
+  seeding/rollback tooling, not an execution fallback. Do not retry unattended
+  Keychain access, change ACLs or substitute ambient credentials. Retained Neon
+  access uses HTTPS (`@vercel/postgres`), never raw TCP 5432.

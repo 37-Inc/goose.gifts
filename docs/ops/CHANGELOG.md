@@ -24,6 +24,12 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **Cloudflare release path:** Vercel Git deployment is frozen and its existing
+  Goose deployment retained only as rollback. Cloudflare still serves source
+  `9943718`; publish the current reviewed code there through the normal receipt/
+  expiry contract before calling later merged fixes deployed. The daily D1
+  writer remains gated; final Vercel/Neon retirement is separate.
+
 - **Stupid Gifts daily writer:** the eight-product maintained release is now
   finalized: the actual build is resolved and its owner idle. PR #221 fixed
   bounded verification/read-accounting; original-permit settlement did not
@@ -244,6 +250,21 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-22 [owner+claude] — Freeze legacy Vercel releases
+
+Cameron correctly flagged continued Vercel deployments after the new Cloudflare
+launch. Removed the legacy project's Git connection and verified its persistent
+disconnected state; the existing Goose deployment remains healthy. Added the
+documented all-branch `git.deploymentEnabled: false` fail-safe and regression
+test, and corrected current operator/release instructions. A main merge is not
+Cloudflare publication: source `9943718` is still the live Stupid Gifts build.
+No provider project, domain, database or deployment was deleted. Tracking:
+`roadmap-lbbz1.4.6`, PR #224; full migration/publication remains open in `.4`.
+Sixteen focused regressions, full lint and independent review pass. Cameron's
+renewed attended Keychain approval also passed source comparison and a fresh
+unchanged reader; the same task records that access is now verified for the
+current session without enabling the writer or changing limits.
 
 ### 2026-10-22 [owner+claude] — Harden credential and publication failure boundaries
 
