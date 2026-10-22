@@ -7,6 +7,31 @@ operator's memory across runs — write for a cold start.
 
 ## 2026-10-22 — Preserve the full catalog; simplify home and retire Index
 
+### Code-only publication follow-through
+
+Homepage/privacy PR225 is merged at `f233c4c`; its complete staging suite passed
+709 tests with12 optional skips and zero failures. Cloudflare still serves994
+until a separately verified publication. The new read-only published-catalog
+proof binds the genuine original captured revision and completed delivery/
+publication/build receipts to the new code request and owner. It rechecks all
+ten source rows, original rights/deadlines, projection, global watermarks, eight
+native vectors and two held absences. No metadata promotion, native mutation,
+merchant/model request, new catalog revision or renewed deadline is allowed.
+
+The same workspace now accounts for scoped REST attempts and every Wrangler
+upload attempt through an ephemeral Mac loopback bridge. A durable pending pin
+precedes upload; only its exact successful acknowledgement permits resumption.
+An unknown or rejected protected upload stays review-gated across restarts.
+Independent transport/crash tests pass44/44. Actual executor fixtures with
+8ready/2held use144HTTP/193SQL/zero unknowns normally and155HTTP/199SQL/one
+retained unknown after lost-read ACK and real workspace reopen. Both finish
+idle with one build/upload/activation, zero source/native changes and original
+native float32 bits intact. These are local mocked-provider measurements, not
+live publication or new-writer acceptance. Ordinary800HTTP/1200SQL remains.
+
+The separate full-catalog migration and persistent-field/expiry separation
+remain required (`roadmap-lbbz1.3.2`). No live pruning or Vercel deploy is allowed.
+
 Owner objects to “expired gifts” removal and confirms the eight-product site is
 not the completed migration. Read-only persisted-evidence audit (not a fresh DB
 recount) found staging retained all3,383 identities/history, while the production

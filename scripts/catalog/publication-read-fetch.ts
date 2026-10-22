@@ -1,16 +1,52 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { RunWorkspace } from './run-workspace.ts';
 
-interface ReadScope { accountId:string;workerName:string;indexName:string;databaseId:string;identityOrigin:string }
+export interface PublicationFetchScope { accountId:string;workerName:string;indexName:string;databaseId:string;identityOrigin:string }
 const UUID=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 const owned=new WeakSet<typeof fetch>();
+const ownedGeneral=new WeakSet<typeof fetch>();
 export function isAccountedPublicationReadFetch(send:typeof fetch|undefined):boolean { return !!send&&owned.has(send); }
+export function isAccountedPublicationFetch(send:typeof fetch|undefined):boolean { return !!send&&(owned.has(send)||ownedGeneral.has(send)); }
+
+function ids(body:unknown):boolean {
+  const value=body as {ids?:unknown};
+  return !!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).join(',')==='ids'
+    &&Array.isArray(value.ids)&&value.ids.length>0&&value.ids.length<=10
+    &&value.ids.every(id=>typeof id==='string'&&UUID.test(id))&&new Set(value.ids).size===value.ids.length;
+}
+function mutationBody(body:unknown,kind:'upsert'|'deploy'):boolean {
+  if(!body||typeof body!=='object'||Array.isArray(body))return false;
+  const value=body as Record<string,unknown>;
+  if(kind==='upsert')return Object.keys(value).sort().join(',')==='id,metadata,values'
+    &&typeof value.id==='string'&&UUID.test(value.id)&&Array.isArray(value.values)&&value.values.length===1536
+    &&value.values.every(n=>typeof n==='number'&&Number.isFinite(n)&&Number.isFinite(Math.fround(n)))
+    &&!!value.metadata&&typeof value.metadata==='object'&&!Array.isArray(value.metadata)&&Buffer.byteLength(JSON.stringify(value.metadata))<=4096;
+  const versions=value.versions as {version_id?:unknown;percentage?:unknown}[];
+  const annotations=value.annotations as Record<string,unknown>;
+  return Object.keys(value).sort().join(',')==='annotations,strategy,versions'&&value.strategy==='percentage'
+    &&Array.isArray(versions)&&versions.length===1&&!!versions[0]
+    &&Object.keys(versions[0]).sort().join(',')==='percentage,version_id'&&versions[0].percentage===100
+    &&typeof versions[0].version_id==='string'&&UUID.test(versions[0].version_id)
+    &&!!annotations&&typeof annotations==='object'&&!Array.isArray(annotations)&&Object.keys(annotations).join(',')==='workers/message'
+    &&typeof annotations['workers/message']==='string'&&/^[a-zA-Z0-9._:/-]{1,200}$/.test(annotations['workers/message']);
+}
 
 /** READ-only companion wiring. The raw sender never receives ledger callbacks:
  * late responses cannot settle twice or write after this promise has finished.
  * Network time is bounded; our own durable reservation/settlement is awaited.
  */
-export function accountedPublicationReadFetch(ws:Pick<RunWorkspace,'reserveBudget'|'settleBudget'>,send:typeof fetch,scope:ReadScope):typeof fetch {
+export function accountedPublicationReadFetch(ws:Pick<RunWorkspace,'reserveBudget'|'settleBudget'>,send:typeof fetch,scope:PublicationFetchScope):typeof fetch {
+  return accountedFetch(ws,send,scope,true);
+}
+/** General first-party REST companion, not a D1 query or Wrangler upload client.
+ * D1 retains its own accounting; every allowed injected REST attempt shares
+ * this workspace. Never wrap an already-accounted sender from another run.
+ */
+export function accountedPublicationFetch(ws:Pick<RunWorkspace,'reserveBudget'|'settleBudget'>,send:typeof fetch,scope:PublicationFetchScope):typeof fetch {
+  return accountedFetch(ws,send,scope,false);
+}
+function accountedFetch(ws:Pick<RunWorkspace,'reserveBudget'|'settleBudget'>,send:typeof fetch,scope:PublicationFetchScope,readOnly:boolean):typeof fetch {
+  if(isAccountedPublicationFetch(send))throw new Error('publication_fetch_already_accounted');
   if(!/^[a-f0-9]{32}$/.test(scope.accountId)||!UUID.test(scope.databaseId)
     ||![scope.workerName,scope.indexName].every(n=>/^[a-zA-Z0-9_-]{1,100}$/.test(n))
     ||new URL(scope.identityOrigin).origin!==scope.identityOrigin||!scope.identityOrigin.startsWith('https://'))throw new Error('publication_read_scope_invalid');
@@ -22,12 +58,19 @@ export function accountedPublicationReadFetch(ws:Pick<RunWorkspace,'reserveBudge
     const get=method==='GET'&&init.body===undefined&&(url.origin===scope.identityOrigin&&url.pathname==='/.well-known/catalog-release.json'
       ||url.origin==='https://api.cloudflare.com'&&[`${worker}/deployments`,vector,`${vector}/info`,`${account}/d1/database/${scope.databaseId}`].includes(url.pathname)
       ||url.origin==='https://api.cloudflare.com'&&url.pathname.startsWith(`${worker}/versions/`)&&UUID.test(url.pathname.slice(`${worker}/versions/`.length)));
-    let native=false;
-    if(method==='POST'&&url.origin==='https://api.cloudflare.com'&&url.pathname===`${vector}/get_by_ids`&&typeof init.body==='string'&&Buffer.byteLength(init.body)<=4096){
-      try{const body=JSON.parse(init.body);native=Object.keys(body).join(',')==='ids'&&Array.isArray(body.ids)&&body.ids.length>0&&body.ids.length<=10
-        &&body.ids.every((id:unknown)=>typeof id==='string'&&UUID.test(id))&&new Set(body.ids).size===body.ids.length;}catch{}
+    const versions=!readOnly&&method==='GET'&&init.body===undefined&&url.origin==='https://api.cloudflare.com'
+      &&url.pathname===`${worker}/versions`&&[...url.searchParams.keys()].sort().join(',')==='page,per_page'
+      &&/^(?:[1-9]|10)$/.test(url.searchParams.get('page')??'')&&url.searchParams.get('per_page')==='10';
+    let native=false,mutation=false;
+    if(method==='POST'&&url.origin==='https://api.cloudflare.com'&&typeof init.body==='string'&&Buffer.byteLength(init.body)<=128*1024){
+      try{const body=JSON.parse(init.body);
+        native=url.pathname===`${vector}/get_by_ids`&&Buffer.byteLength(init.body)<=4096&&ids(body);
+        mutation=!readOnly&&(url.pathname===`${vector}/delete_by_ids`&&ids(body)
+          ||url.pathname===`${vector}/upsert`&&mutationBody(body,'upsert')
+          ||url.pathname===`${worker}/deployments`&&mutationBody(body,'deploy'));
+      }catch{}
     }
-    if(!get&&!native||url.username||url.password||url.search||url.hash)throw new Error('publication_read_scope_invalid');
+    if(!get&&!native&&!versions&&!mutation||url.username||url.password||url.search&&!versions||url.hash)throw new Error('publication_read_scope_invalid');
     init.signal?.throwIfAborted();const controller=new AbortController();
     let rejectAbort:(error:Error)=>void=()=>{};
     const aborted=new Promise<never>((_,reject)=>{rejectAbort=reject;});
@@ -51,5 +94,5 @@ export function accountedPublicationReadFetch(ws:Pick<RunWorkspace,'reserveBudge
       await ws.settleBudget(id,{status:'known',usage:{rowsRead:0,rowsWritten:0}});return response;
     }finally{clearTimeout(timer);init.signal?.removeEventListener('abort',abort);}
   };
-  owned.add(read);return read;
+  (readOnly?owned:ownedGeneral).add(read);return read;
 }

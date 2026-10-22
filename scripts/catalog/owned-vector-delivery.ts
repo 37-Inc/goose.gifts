@@ -3,8 +3,11 @@ import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import { getProductsByPublicIds } from '../../lib/catalog/storage/d1.ts';
 import { mutationAdvance, mutationAssertion, mutationFenceQuery, readMutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner, MutationScope } from '../../lib/catalog/mutation-fence.ts';
-import type { ActivationPermit } from '../../lib/catalog/build-requests.ts';
-import { drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
+import type { ActivationPermit, CatalogBuildRequest } from '../../lib/catalog/build-requests.ts';
+import { drainDeploymentObservation, encodeBuildRequest } from '../../lib/catalog/build-requests.ts';
+import { encodePublicationIntent } from '../../lib/catalog/publication.ts';
+import type { PublicationIntent } from '../../lib/catalog/publication.ts';
+import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { hasAccountedVectorReadback } from './vectorize-rest.ts';
 import { pruneExistingRevision, prunedVectorPlan, settleCapturedRevision } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
@@ -13,7 +16,7 @@ import type { ApprovedCohortEnvelope, ApprovedCohortRevision } from '../../lib/c
 import { loadMaintenanceVectorPayload } from './maintenance-d1.ts';
 import { canonicalJson, sha256 } from './migration.ts';
 import { decodePgvectorSendBase64, encodePgvectorSendBase64 } from './pgvector-binary.ts';
-import { pruningCurrentQueries, readJournaledPruneDeleteSource } from './export-d1-snapshot.ts';
+import { checkCurrent, pruningCurrentQueries, readJournaledPruneDeleteSource } from './export-d1-snapshot.ts';
 import { nativeHash, payloadVector, visible } from './vector-outbox.ts';
 import type { ImmutableVectorPayload, SyncVector, VectorEvent } from './vector-outbox.ts';
 
@@ -782,19 +785,166 @@ export function readOwnedApprovedCohortVectors(db:CatalogD1,owner:MutationOwner,
     return readReuseVectors(db,owner,reused[0],prunedVectorPlan(revision),adapters,revision);
   });
 }
-/** Control-only readback after activation. No delivery, expiry renewal, watermark
- * or ownership write is permitted here. Fresh publication still requires the
- * separate current-rights/lease predicates in completePublication. This small
- * plan may survive content-artifact expiry for read-only reconciliation.
- */
+/** Original captured revision and independently pinned, genuinely published
+ * receipts. Never construct a new approval or relabel the source generation to
+ * authorize a code-only build. The new normal build request is bound separately. */
+export interface PublishedCatalogRead {
+  source:{releaseId:string;receiptSha256:string;deliveryId:string;deliverySha256:string};
+  revision:ApprovedCohortRevision; request:CatalogBuildRequest;
+}
+export function publishedCatalogOperationKey(input:PublishedCatalogRead):string {
+  const {source,request}=input;
+  if(!REF.test(source.releaseId)||![source.receiptSha256,source.deliveryId,source.deliverySha256].every(v=>HASH.test(v)))
+    throw new Error('vector_published_input_invalid');
+  return sha256(canonicalJson({schemaVersion:1,kind:'published-catalog-read',source,request:encodeBuildRequest(request)}));
+}
+/** Read-only exception for NEW CODE over the EXACT already-published catalog.
+ * Historical proof ownership is validated as historical, never claimed/current.
+ * Every observation is fenced by the actual new owner/permit before AND after
+ * native readback. No delivery journal, epoch, metadata or deadline is written. */
+export function readPublishedCatalogVectors(options:{db:CatalogD1;owner:MutationOwner;published:PublishedCatalogRead;
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>;permit?:ActivationPermit;signal?:AbortSignal
+}):Promise<PrunedVectorObservation>{
+  return safe(async()=>{
+    const {db,adapters,signal}=options,owner=structuredClone(options.owner),input=structuredClone(options.published);
+    const {source,revision,request}=input,plan=prunedVectorPlan(revision),requestBytes=encodeBuildRequest(request);
+    const snapshot=revision.snapshot,ids=[...snapshot.products,...snapshot.heldProducts].map(p=>p.publicId);
+    const permit=options.permit&&structuredClone(options.permit),planHash=sha256(canonicalJson(plan));
+    signal?.throwIfAborted();adapterScope(owner,adapters);
+    if(!['freezing','activating'].includes(owner.phase)||owner.operationKey!==publishedCatalogOperationKey(input)
+      ||owner.environment!==request.environment||owner.environment!==plan.environment||owner.indexName!==plan.indexName||request.sourceRevision!==snapshot.catalogRevision
+      ||request.sourceDigest!==revision.packet.receipt.snapshot_sha256||request.capturedAt!==snapshot.generatedAt
+      ||sha256(`${JSON.stringify(snapshot)}\n`)!==request.sourceDigest||!request.priorReleaseId
+      ||request.cutoff>=snapshot.products.map(p=>p.eligibleUntil).sort()[0]||!snapshot.products.length
+      ||ids.length>20||new Set(ids).size!==ids.length||revision.sourceRows.length!==ids.length
+      ||canonicalJson(revision.sourceRows.map(r=>r.public_id).sort())!==canonicalJson([...ids].sort())
+      ||owner.phase==='activating'&&(!permit||canonicalJson(permit.mutationOwner)!==canonicalJson(owner))
+      ||owner.phase==='freezing'&&permit)throw new Error('vector_published_input_invalid');
+    const read=async(sql:string,params:unknown[]=[])=>{signal?.throwIfAborted();
+      const result=(await db.prepare(sql).bind(...params).all<Row>({signal})).results;signal?.throwIfAborted();return result;};
+    const exact=(table:string,row:Row)=>{
+      const keys=Object.keys(row);if(!keys.length||keys.length>65||keys.some(k=>!/^[a-z_][a-z0-9_]*$/.test(k)))throw new Error('vector_published_input_invalid');
+      return assertion(db,`EXISTS(SELECT 1 FROM ${table} WHERE ${keys.map(k=>`${k} IS ?`).join(' AND ')})`,keys.map(k=>row[k]));};
+    // Original immutable completed proof, with its OWN generation/owner bytes.
+    const journalRows=await read('SELECT * FROM catalog_vector_deliveries WHERE delivery_id=?',[source.deliveryId]);
+    const saved=journalRows[0] as Journal;
+    if(journalRows.length!==1||sha256(canonicalJson(saved))!==source.deliverySha256)throw new Error('vector_published_journal_changed');
+    const recordedBase=JSON.parse(saved.owner_json) as MutationOwner;
+    const recordedCompletedOwner={...recordedBase,epoch:recordedBase.epoch+1};
+    const proof=validateReuse(saved,recordedCompletedOwner,plan,adapters.providerIdentity);
+    if(recordedBase.generation>=owner.generation||proof.revisionSha256!==sha256(canonicalJson(revision))
+      ||proof.sourceRowsSha256!==sha256(canonicalJson(revision.sourceRows))
+      ||canonicalJson(proof.projectionReceipt)!==canonicalJson(revision.packet.receipt))throw new Error('vector_published_revision_changed');
+    const sourceRows=await reuseSources(db,proof.approval,signal),vectors=reuseVectors(recordedCompletedOwner,proof,sourceRows);
+    // Additional fresh absence READS, not historical deletion/dispatch proof.
+    for(const held of snapshot.heldProducts)if(!vectors.has(held.publicId))vectors.set(held.publicId,null);
+    const receipts=await read('SELECT * FROM publication_receipts WHERE release_id IN (?,?)',[source.releaseId,request.priorReleaseId]);
+    const original=receipts.find(r=>r.release_id===source.releaseId),prior=receipts.find(r=>r.release_id===request.priorReleaseId);
+    if(!original||!prior||sha256(canonicalJson(original))!==source.receiptSha256)throw new Error('vector_published_receipt_changed');
+    const oldRequest=encodeBuildRequest({schemaVersion:1,environment:owner.environment,sourceRevision:snapshot.catalogRevision,
+      sourceDigest:request.sourceDigest,codeSha:revision.request.codeSha,priorReleaseId:revision.request.context.priorPublication?.releaseId??null,
+      capturedAt:snapshot.generatedAt,cutoff:revision.request.context.cutoff});
+    const bindings:ReturnType<typeof exact>[]=[exact('catalog_vector_deliveries',saved)];
+    for(const receipt of receipts){
+      const intent=JSON.parse(String(receipt.manifest_json)) as PublicationIntent;
+      const builds=await read("SELECT * FROM catalog_build_requests WHERE release_id=? AND state='resolved' LIMIT 2",[receipt.release_id]);
+      const publications=await read("SELECT * FROM publication_outbox WHERE release_id=? AND state='verified' LIMIT 2",[receipt.release_id]);
+      const build=builds[0],publication=publications[0];
+      if(builds.length!==1||publications.length!==1||encodePublicationIntent(intent)!==receipt.manifest_json
+        ||intent.releaseId!==receipt.release_id||intent.codeSha!==receipt.code_sha||intent.catalogRevision!==snapshot.catalogRevision
+        ||receipt.catalog_revision!==snapshot.catalogRevision||intent.catalogSnapshotSha256!==request.sourceDigest
+        ||intent.vectorSyncWatermark!==revision.vectorSyncWatermark||intent.nextExpiry!==snapshot.products.map(p=>p.eligibleUntil).sort()[0]
+        ||publication.intent_json!==receipt.manifest_json||!publication.completed_token||!publication.dispatch_reference
+        ||build.environment!==owner.environment||build.source_revision!==snapshot.catalogRevision||!build.lease_token||!build.run_reference
+        ||build.request_id!==sha256(String(build.request_json))
+        ||typeof build.version_reference!=='string'||!REF.test(build.version_reference)
+        ||receipt===original&&(build.request_json!==oldRequest||intent.codeSha!==revision.request.codeSha
+          ||String(saved.completed_at)>String(receipt.completed_at)))throw new Error('vector_published_build_changed');
+      const built=JSON.parse(String(build.request_json)) as CatalogBuildRequest;
+      if(encodeBuildRequest(built)!==build.request_json||built.codeSha!==intent.codeSha||built.sourceRevision!==snapshot.catalogRevision
+        ||built.sourceDigest!==request.sourceDigest||built.priorReleaseId!==intent.priorReleaseId||built.capturedAt!==snapshot.generatedAt)
+        throw new Error('vector_published_request_changed');
+      bindings.push(exact('publication_receipts',receipt),exact('catalog_build_requests',build),exact('publication_outbox',publication));
+    }
+    if(request.codeSha===prior.code_sha)throw new Error('vector_published_code_unchanged');
+    // Approved rows already carry exact full-row CAS in sourceRows. Capture the
+    // remaining (held) full rows too, without duplicating eight large payloads.
+    const remaining=revision.sourceRows.filter(r=>!r.approved_product_json).map(r=>r.public_id);
+    const current=await read(`SELECT p.* FROM json_each(?) i CROSS JOIN products p ON p.public_id=i.value LIMIT 21`,[JSON.stringify(remaining)]);
+    if(current.length!==remaining.length||new Set(current.map(r=>r.public_id)).size!==remaining.length)throw new Error('vector_published_source_changed');
+    bindings.push(...current.map(row=>exact('products',row)));
+    if(permit){
+      const builds=await read('SELECT * FROM catalog_build_requests WHERE request_id=?',[permit.requestId]);
+      const publications=await read('SELECT * FROM publication_outbox WHERE release_id=?',[permit.releaseId]);
+      if(builds.length!==1||publications.length!==1||!['dispatched','verified'].includes(String(publications[0].state)))
+        throw new Error('vector_published_permit_changed');
+      const publication=publications[0],intent=JSON.parse(String(publication.intent_json)) as PublicationIntent;
+      if(encodePublicationIntent(intent)!==publication.intent_json||intent.releaseId!==permit.releaseId||intent.codeSha!==request.codeSha
+        ||intent.catalogRevision!==snapshot.catalogRevision||intent.catalogSnapshotSha256!==request.sourceDigest
+        ||intent.priorReleaseId!==request.priorReleaseId||intent.vectorSyncWatermark!==revision.vectorSyncWatermark
+        ||intent.nextExpiry!==snapshot.products.map(p=>p.eligibleUntil).sort()[0]||permit.requestId!==sha256(requestBytes))
+        throw new Error('vector_published_permit_changed');
+      bindings.push(exact('catalog_build_requests',builds[0]),exact('publication_outbox',publication));
+    }
+    const projectionColumns=Object.keys(revision.packet.rows[0]??{}),priorManifest=String(prior.manifest_json);
+    if(!projectionColumns.length||projectionColumns.some(k=>!/^[a-z_][a-z0-9_]*$/.test(k)))throw new Error('vector_published_source_changed');
+    const checks=()=>[mutationAssertion(db,owner,[owner.phase]),...bindings,reuseSourceAssertions(db,sourceRows),
+      assertion(db,'EXISTS(SELECT 1 FROM catalog_mutation_scopes WHERE environment=? AND index_name=? AND captured_at=? AND activation_request_id IS ?)',
+        [owner.environment,owner.indexName,owner.capturedAt,permit?.requestId??null]),
+      ...(revision.request.context.priorPublication?[exact('publication_receipts',revision.priorRow)]:[]),
+      ...pruningCurrentQueries(revision.sourceRows).map(q=>assertion(db,`(${q.sql})=?`,[...q.params,q.count])),
+      exact('catalog_projection_receipts',revision.packet.receipt),
+      assertion(db,`EXISTS(SELECT 1 FROM catalog_revisions WHERE revision=? AND status='published' AND source_export_sha256=?
+        AND abandonment_delivery_id IS NULL) AND (SELECT count(*) FROM products)=?
+        AND (SELECT count(*) FROM catalog_public_products WHERE catalog_revision=?)=?
+        AND (SELECT count(*) FROM json_each(?) e JOIN catalog_public_products p ON p.catalog_revision=?
+        AND p.public_id=json_extract(e.value,'$.public_id') WHERE ${projectionColumns.map(k=>`p.${k} IS json_extract(e.value,'$.${k}')`).join(' AND ')})=?
+        AND (SELECT coalesce(max(sequence),0) FROM vector_sync_outbox)=?
+        AND (SELECT coalesce(max(sequence),0) FROM vector_sync_outbox WHERE source_revision=?)=?
+        AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE status!='complete')
+        AND NOT EXISTS(SELECT 1 FROM catalog_vector_deliveries WHERE environment=? AND index_name=? AND status!='complete')
+        AND NOT EXISTS(SELECT 1 FROM catalog_revisions WHERE status='importing')
+        AND ?>${NOW} AND ?<=${NOW}
+        AND EXISTS(SELECT 1 FROM publication_receipts p WHERE p.rowid=(SELECT max(rowid) FROM publication_receipts)
+          AND ((p.release_id=? AND p.manifest_json=?) OR (p.release_id=? AND p.catalog_revision=? AND p.code_sha=?
+            AND json_extract(p.manifest_json,'$.catalogSnapshotSha256')=? AND json_extract(p.manifest_json,'$.priorReleaseId')=?
+            AND json_extract(p.manifest_json,'$.vectorSyncWatermark')=? AND json_extract(p.manifest_json,'$.nextExpiry')=?
+            AND EXISTS(SELECT 1 FROM publication_outbox o WHERE o.release_id=p.release_id AND o.state='verified' AND o.intent_json=p.manifest_json))))`,
+      [snapshot.catalogRevision,revision.sourceDigest,ids.length,snapshot.catalogRevision,revision.packet.rows.length,JSON.stringify(revision.packet.rows),
+        snapshot.catalogRevision,revision.packet.rows.length,revision.globalVectorWatermark,snapshot.catalogRevision,revision.vectorSyncWatermark,
+        owner.environment,owner.indexName,request.cutoff,request.capturedAt,request.priorReleaseId,priorManifest,
+        permit?.releaseId??null,snapshot.catalogRevision,request.codeSha,request.sourceDigest,request.priorReleaseId,
+        revision.vectorSyncWatermark,snapshot.products.map(p=>p.eligibleUntil).sort()[0]]),
+      ...(permit?[assertion(db,`EXISTS(SELECT 1 FROM catalog_mutation_scopes s JOIN catalog_build_requests b ON b.request_id=s.activation_request_id
+        WHERE s.environment=? AND s.index_name=? AND b.request_id=? AND b.environment=? AND b.request_json=? AND b.state='activating'
+          AND b.lease_token=? AND b.run_reference=? AND b.release_id=? AND b.version_reference=?)`,[owner.environment,owner.indexName,
+        permit.requestId,owner.environment,requestBytes,permit.token,permit.runReference,permit.releaseId,permit.versionReference])]:[])];
+    const check=async()=>{
+      signal?.throwIfAborted();
+      const time=(await read(`SELECT ${NOW} now`))[0].now as string;validateCatalogSnapshot(snapshot,new Date(time));
+      for(const product of snapshot.products)checkCurrent(product,revision.packet.rows.find(r=>r.public_id===product.publicId)!,
+        revision.sourceRows.find(r=>r.public_id===product.publicId)!,new Date(time));
+      await db.batch(checks(),{signal});signal?.throwIfAborted();
+    };
+    await check();await reuseReadback(adapters,vectors,3000,signal);await check();signal?.throwIfAborted();
+    return{environment:owner.environment,indexName:owner.indexName,settled:true as const,planSha256:planHash,
+      reference:`published-vectors:${source.deliveryId}`};
+  });
+}
+/** Default control-only readback may survive content-artifact expiry. The
+ * explicit published-input path additionally requires the original fresh data. */
 export interface ActivatedVectorPlan { catalogRevision:string; planSha256:string; ids:string[] }
 export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit,plan:ActivatedVectorPlan,
-  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>,options:{signal?:AbortSignal}={}):Promise<PrunedVectorObservation> {
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>,options:{signal?:AbortSignal;published?:PublishedCatalogRead}={}):Promise<PrunedVectorObservation> {
   return safe(async()=>{
     const {signal}=options;signal?.throwIfAborted();
     const owner=permit.mutationOwner;
     if(!owner||owner.phase!=='activating'||!HASH.test(plan.planSha256)||!plan.ids.every(id=>UUID.test(id))
       ||plan.ids.length>OWNED_VECTOR_PROOF_LIMIT||new Set(plan.ids).size!==plan.ids.length)throw new Error('vector_plan_invalid');
+    if(options.published){const expected=prunedVectorPlan(options.published.revision);
+      if(plan.catalogRevision!==expected.catalogRevision||plan.planSha256!==sha256(canonicalJson(expected))
+        ||canonicalJson([...plan.ids].sort())!==canonicalJson(reuseIds(expected).sort()))throw new Error('vector_plan_invalid');
+      return readPublishedCatalogVectors({db,owner,published:options.published,adapters,permit,signal});}
     adapterScope(owner,adapters);
     const check=async()=>{signal?.throwIfAborted();await db.batch([mutationAssertion(db,owner,['activating']),assertion(db,`EXISTS(
       SELECT 1 FROM catalog_mutation_scopes s JOIN catalog_build_requests b ON b.request_id=s.activation_request_id

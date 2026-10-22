@@ -265,6 +265,17 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-22 [owner+claude] — Prepare the real homepage publication
+
+PR225 merged the concise homepage,24-card static browsing, guide glyphs and
+Index/privacy source removal; full staging709pass/12skip. Added a bounded
+code-only publisher proof that reuses the exact original catalog and native
+vectors without renewing supplier expiry or doing merchant/model work. Scoped
+REST and protected upload attempts share one durable ledger, with crash-safe
+pending/ack guards. Local full executor fixtures pass under800HTTP/1200SQL.
+Source integration is not a Cloudflare deployment; live readback and old-domain
+Index removal remain open, as does the bulk full-catalog migration.
+
 ### 2026-10-22 [owner+claude] — Homepage and public-identity source cleanup
 
 PR #225 simplifies the approved headline/navigation/card labels, adds static

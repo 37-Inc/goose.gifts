@@ -2,7 +2,7 @@ import type { MutationScope } from '../../lib/catalog/mutation-fence.ts';
 import type { SyncVector } from './vector-outbox.ts';
 import type { OwnedVectorAdapters } from './owned-vector-delivery.ts';
 import { drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
-import { isAccountedPublicationReadFetch } from './publication-read-fetch.ts';
+import { isAccountedPublicationFetch } from './publication-read-fetch.ts';
 
 const ownedReadbacks=new WeakSet<OwnedVectorAdapters['readback']>();
 export function hasAccountedVectorReadback(adapters:Pick<OwnedVectorAdapters,'readback'>):boolean{return ownedReadbacks.has(adapters.readback);}
@@ -44,8 +44,8 @@ export function createVectorizeRestAdapters(options: MutationScope & {
       return envelope.result;})();return await Promise.race([pending,aborted]);
     } catch { throw new Error('vector_provider_failed'); }
     finally {clearTimeout(timer);signal.removeEventListener('abort',abort);
-      if((path==='get_by_ids'||path==='info')&&controller.signal.aborted&&pending){
-        if(isAccountedPublicationReadFetch(send)&&sent)await sent.catch(()=>{});
+      if(controller.signal.aborted&&pending&&(path==='get_by_ids'||path==='info'||isAccountedPublicationFetch(send))){
+        if(isAccountedPublicationFetch(send)&&sent)await sent.catch(()=>{});
         await drainDeploymentObservation(Promise.allSettled([pending,cancellation]));}}
   }
   function id(value:string){if(!UUID.test(value))throw new Error('vector_provider_invalid_id');}
@@ -90,6 +90,6 @@ export function createVectorizeRestAdapters(options: MutationScope & {
       return {...structuredClone(found),values:found.values.map(Math.fround)};
     },
   };
-  if(isAccountedPublicationReadFetch(send))ownedReadbacks.add(adapters.readback);
+  if(isAccountedPublicationFetch(send))ownedReadbacks.add(adapters.readback);
   return Object.freeze(adapters);
 }

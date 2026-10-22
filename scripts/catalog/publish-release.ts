@@ -11,7 +11,8 @@ import type { PrunedRevision } from '../../lib/catalog/prune-existing-revision.t
 import { prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { ActivationPermit, DeploymentIdentity, DeploymentObservation } from '../../lib/catalog/build-requests.ts';
 import { beginBuildActivation, claimBuildRequest, resolveBuildActivation, drainDeploymentObservation } from '../../lib/catalog/build-requests.ts';
-import { isAccountedPublicationReadFetch } from './publication-read-fetch.ts';
+import { isAccountedPublicationFetch } from './publication-read-fetch.ts';
+import { isAccountedPublicationUploadCommand, PublicationUploadCommandError } from './publication-upload-command.ts';
 import { isCatalogD1Rest } from './d1-write-rest.ts';
 import type { PublicationIntent } from '../../lib/catalog/publication.ts';
 import { claimPublication, completeActivatedPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
@@ -25,6 +26,7 @@ import { siteIdentityFor } from '../../static-site/lib/site-identity.ts';
 import { canonicalTime, validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { canonicalJson } from './migration.ts';
 import { readActivatedCatalogVectors } from './owned-vector-delivery.ts';
+import type { PublishedCatalogRead } from './owned-vector-delivery.ts';
 import { createVectorizeRestAdapters } from './vectorize-rest.ts';
 import type { RunWorkspace, PublicationControl } from './run-workspace.ts';
 import { semanticBudgetConfig } from '../../workers/site/semantic-budget.ts';
@@ -195,8 +197,8 @@ function provider(config:PublicationConfig,token:string,send:typeof fetch,identi
       if(identity)return raw;if(!raw||raw.success!==true||!Object.hasOwn(raw,'result'))throw new Error();return raw.result;
     })();return await Promise.race([pending,aborted,new Promise<never>((_,reject)=>{timer=setTimeout(()=>{abort();reject(new Error());},2500);})]);
     }catch{throw new Error(body===undefined?'publication_provider_unavailable':'publication_activation_unknown');}
-    finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);if(body===undefined&&controller.signal.aborted&&pending){
-      if(isAccountedPublicationReadFetch(readSend)&&sent)await sent.catch(()=>{});
+    finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);if(controller.signal.aborted&&pending&&(body===undefined||isAccountedPublicationFetch(readSend))){
+      if(isAccountedPublicationFetch(readSend)&&sent)await sent.catch(()=>{});
       await drainDeploymentObservation(Promise.allSettled([pending,cancellation]));}}
   }
   const script=`${base}/workers/scripts/${config.workerName}`;
@@ -271,7 +273,7 @@ function intentFrom(manifest:SiteAssetManifest,bytes:Uint8Array):PublicationInte
  * publication predicates. Ambiguous external steps are reconciled, not resent.
  * Credentials never enter checkpoints, artifacts, command args or returned errors.
  */
-export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;requestId:string;runReference:string;
+export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;published?:PublishedCatalogRead;requestId:string;runReference:string;
   workspace:PublicationWorkspace;config:PublicationConfig;credentials:{cloudflareToken:string;identityAuthorization?:string};dependencies?:Dependencies}):Promise<PublicationResult>{
   const {db,workspace,revision}=options;const config=validatePublicationConfig(options.config);const now=options.dependencies?.now??(()=>new Date());
   if(db.providerIdentity!==`cloudflare:${config.accountId}:${config.database.id}`)throw new Error('publication_database_scope_mismatch');
@@ -285,6 +287,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   let checkpoint=await workspace.readCheckpoint({controlOnly:true});let control=checkpoint?.checkpoint.control?.publication;
   let owner=options.owner;const directory=path.join(workspace.directory,'packages',config.releaseId);
   const runtime=path.join(workspace.directory,'publication-runtime',config.releaseId);
+  const uploadBinding=()=>({schemaVersion:1,releaseId:config.releaseId,requestId:options.requestId,configSha256,
+    packageSha256:control!.packageSha256,uploadMarker:control!.uploadMarker});
   const save=async(patch:Partial<PublicationControl>,nextOwner=owner)=>{
     await workspace.assertHeld();control={...control!,...patch};owner=nextOwner;
     // Read normal state only before activation; control-only settlement must not
@@ -304,6 +308,17 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   try{
     if(!HASH.test(options.requestId)||!/^[a-zA-Z0-9._:/-]{1,200}$/.test(options.runReference))throw new Error('publication_input_invalid');
     if(control&&(control.configSha256!==configSha256||control.requestId!==options.requestId||control.runReference!==options.runReference))throw new Error('publication_checkpoint_mismatch');
+    // A rejected protected upload is an operator-review gate, not an uncertain
+    // ordinary CLI exit. Its body-free pin survives content expiry and prevents
+    // a later uploading-stage resume from bypassing scope/accounting refusal.
+    if(checkpoint?.checkpoint.pins.publicationUploadReview)throw new Error('publication_upload_review_required');
+    const pendingUpload=checkpoint?.checkpoint.pins.publicationUploadPending,acknowledgedUpload=checkpoint?.checkpoint.pins.publicationUploadAcknowledged;
+    // Pins are append-only. A durable exact acknowledgement logically clears
+    // pending; no artifact-body read (or new content rights) is needed on expiry.
+    if((pendingUpload||acknowledgedUpload)&&(!control||!pendingUpload||!acknowledgedUpload
+      ||pendingUpload.sha256!==sha256(canonicalJson(uploadBinding()))
+      ||acknowledgedUpload.sha256!==sha256(canonicalJson({...uploadBinding(),pending:pendingUpload}))))
+      throw new Error('publication_upload_review_required');
     if(config.prior===null){
       // Old first-deploy checkpoints may still need settlement. A local marker
       // alone cannot grant that exception or permission for a new activation.
@@ -367,7 +382,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
           ||control!.deploymentId!==null&&deployed.id!==control!.deploymentId)throw new Error('publication_activation_pending');
         if(!matchesIdentity(await api.identity(signal),control!.intent!))throw new Error('publication_identity_mismatch');signal?.throwIfAborted();
         await readActivatedCatalogVectors(db,control!.permit!,control!.vectorPlan,createVectorizeRestAdapters({environment:config.environment,
-          indexName:config.indexName,accountId:config.accountId,token:options.credentials.cloudflareToken,fetch:observationSend}),{signal});signal?.throwIfAborted();
+          indexName:config.indexName,accountId:config.accountId,token:options.credentials.cloudflareToken,fetch:observationSend}),{signal,published:options.published});signal?.throwIfAborted();
         // Re-read deployment after independent identity/vector reads. Never infer
         // not-submitted from elapsed time or an observed prior deployment.
         const after=await api.deployed(signal);signal?.throwIfAborted();if(canonicalJson(after)!==canonicalJson(deployed))throw new Error('publication_activation_pending');
@@ -400,7 +415,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       finally{if(observation){
         // Only concrete bounded read transports can own durable ledger cleanup.
         // Arbitrary injected adapters never acquire an unbounded join.
-        if(isAccountedPublicationReadFetch(observationSend)&&isCatalogD1Rest(db))await observation.catch(()=>{});
+        if(isAccountedPublicationFetch(observationSend)&&isCatalogD1Rest(db))await observation.catch(()=>{});
         else await drainDeploymentObservation(observation);}}
       return{state:'published',owner:null,releaseId:config.releaseId,receiptSha256:ref.sha256,receipt:proof};
     }
@@ -465,6 +480,12 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     const intent=intentFrom(sealed.manifest,sealed.bytes);
     if(control.intent&&canonicalJson(control.intent)!==canonicalJson(intent))throw new Error('publication_package_changed');
     if(control.stage==='built'){
+      const protectedUpload=isAccountedPublicationUploadCommand(command);
+      if(protectedUpload){
+        const current=await workspace.readCheckpoint();if(!current)throw new Error('publication_checkpoint_missing');
+        const pending=await workspace.putArtifact(uploadBinding(),{kind:'publication',observedAt:now().toISOString()});
+        await workspace.writeCheckpoint(current.sha256,{...current.checkpoint,pins:{...current.checkpoint.pins,publicationUploadPending:pending}});
+      }
       await enqueuePublication(db,sealed.snapshot,intent,now());
       const publication=await claimPublication(db,sealed.snapshot,intent.releaseId,now());if(!publication)throw new Error('publication_claim_unavailable');
       await save({intent,publication,stage:'uploading'});
@@ -474,7 +495,26 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       try{await command({file:process.execPath,args:['node_modules/wrangler/bin/wrangler.js','versions','upload','--config',path.join(directory,'wrangler.json'),
         '--outdir',path.join(runtime,'bundle'),'--tag',control.uploadMarker,'--message',`package:${control.packageSha256}`],cwd:config.sourceRoot,env:{...childEnv(),TMPDIR:path.join(runtime,'tmp'),
         CLOUDFLARE_ACCOUNT_ID:config.accountId,CLOUDFLARE_API_TOKEN:options.credentials.cloudflareToken,
-        WRANGLER_LOG_PATH:path.join(runtime,'logs'),WRANGLER_OUTPUT_FILE_PATH:path.join(runtime,'upload.ndjson')},timeoutMs:300_000});}catch{/* Unknown upload: read-only reconciliation below. */}
+        WRANGLER_LOG_PATH:path.join(runtime,'logs'),WRANGLER_OUTPUT_FILE_PATH:path.join(runtime,'upload.ndjson')},timeoutMs:300_000});}catch(error){
+        if(error instanceof PublicationUploadCommandError){
+          const current=await workspace.readCheckpoint();if(!current)throw new Error('publication_checkpoint_missing');
+          const review=await workspace.putArtifact({schemaVersion:1,code:error.code,releaseId:config.releaseId,
+            requestId:options.requestId,configSha256},{kind:'publication',observedAt:now().toISOString()});
+          await workspace.writeCheckpoint(current.sha256,{...current.checkpoint,phase:'attention',owner,
+            pins:{...current.checkpoint.pins,publicationUploadReview:review}});
+          throw error;
+        }
+        if(protectedUpload)throw error;
+        // An ordinary legacy CLI's unknown result retains read-only reconciliation.
+      }
+      if(protectedUpload){
+        const current=await workspace.readCheckpoint();if(!current)throw new Error('publication_checkpoint_missing');
+        if(current.checkpoint.pins.publicationUploadReview)throw new Error('publication_upload_review_required');
+        const pending=current.checkpoint.pins.publicationUploadPending;
+        if(!pending||pending.sha256!==sha256(canonicalJson(uploadBinding())))throw new Error('publication_upload_review_required');
+        const acknowledged=await workspace.putArtifact({...uploadBinding(),pending},{kind:'publication',observedAt:now().toISOString()});
+        await workspace.writeCheckpoint(current.sha256,{...current.checkpoint,pins:{...current.checkpoint.pins,publicationUploadAcknowledged:acknowledged}});
+      }
     }
     if(control.stage==='uploading'){
       const version=await api.findVersion(control.uploadMarker);if(!version)throw new Error('publication_upload_pending');
@@ -518,7 +558,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     try{permit=await beginBuildActivation(db,control.build,sealed.snapshot,control.publication!,control.versionReference!,
       signal=>(observation=readPrior(signal)),now(),owner);}
     finally{if(observation){
-      if(isAccountedPublicationReadFetch(observationSend)&&isCatalogD1Rest(db))await observation.catch(()=>{});
+      if(isAccountedPublicationFetch(observationSend)&&isCatalogD1Rest(db))await observation.catch(()=>{});
       else await drainDeploymentObservation(observation);}}
     await save({permit},permit.mutationOwner!);
     await workspace.assertHeld(); // Exact owner fence immediately precedes real activation.
