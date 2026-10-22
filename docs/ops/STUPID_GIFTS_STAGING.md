@@ -3,7 +3,44 @@
 This document retains protected-staging history and the separate production
 checkpoint below. The launch spec and `roadmap-lbbz1` remain authoritative.
 
-### Current production checkpoint — October 22, 02:24 UTC
+### Current production checkpoint — October 22, 06:05 UTC
+
+PR #225 (`f233c4c`) and PR #226 (`82efb21`) are merged and actually published
+on Cloudflare Free. This is a code-only release of the original eight-ready /
+two-held catalog, not a full catalog import or a working daily refresh.
+
+- Release `homepage-code-82efb2100d66`, source
+  `82efb2100d6682cc0774bb1955d7ab7d333fbe52`.
+- Worker version `0f08460b-3f19-4bfe-bf35-c6db880ede9b`, deployment
+  `8d8388d8-5f0c-4338-a2fa-0611bc96187c`.
+- Original catalog `stupid-launch-20261021-maintained`, snapshot
+  `9aa5e690c09e08cdd344f48165559982a04548dfc9f75936fa2019667e42b003`.
+- New manifest
+  `b48870f4bdd1d8da748ed811ed27cc9249aeeb7b841c3ba053fb72147cf7d197`;
+  receipt `f97f99f6b0ac28caffe69b0115331533a963d9a9d883f2512986eb80225d68eb`.
+- New protected workspace `weekly-runs/runs/homepage-code-82efb2100d66`
+  under the private migration directory: 148 HTTP / 186 SQL, 18,834 known
+  rows read / 21 control rows written, zero unknowns. Final wrapper verified
+  build resolved and actual owner idle. No merchant/model/product/native writes
+  or cadence reservation; original deadline **2026-10-22T22:18:10.044Z** remains.
+- Public HTTP and actual Chrome reload confirm the exact new headline,
+  removed Collection navigation/card labels and Index links. Guide glyphs and
+  no-emoji actions are deployed. Static Load more has a real browser fixture
+  proving 24/48/72/73 unique cards; production still has only eight products.
+  Final PR #226 staging: 741 pass / 20 optional skips / zero failures.
+- Retired Index page/data/image/encoded variants return 404 on Stupid and
+  canonical Goose, including apex redirect follow-through. The old sitemap
+  now redirects to the clean Stupid sitemap. Vercel remains frozen at `dd6bb4a`;
+  the old origin and Neon are retained, not redeployed or retired.
+
+The same single daily task records this completed release and stays gated for
+new D1 maintenance. The original `9943718` workspace/charges remain unchanged.
+Full catalog migration and per-field persistent fallbacks (`roadmap-lbbz1.3.2`)
+are **not implemented by this release**. The current whole-product supplier
+deadline coupling remains a known gap; do not mistake a timer or UI release
+for its resolution, renew rights, or resume expiry-driven pruning.
+
+### Historical original-release finalization — October 22, 02:24 UTC
 
 Public identity independently shows source `994371816d467892f1481c67b8d4ffce27ece11a`,
 release `stupid-launch-maintained-994371816d46`, catalog

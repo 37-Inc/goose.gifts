@@ -5,6 +5,67 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-22 06:05 UTC — Homepage/privacy release actually live
+
+PR225 merged `f233c4cf341a6faff73bf5afba538e45ac054d51`; PR226 merged
+`82efb2100d6682cc0774bb1955d7ab7d333fbe52` after final 761-test staging
+invocation:741 pass,20 optional skips,zero failures, full lint/types and
+independent transport/recovery review. The explicit historical source/new-code
+binding preserves the original captured revision, rather than fabricating a
+new capture or promoting eight native payloads solely to change the UI.
+
+Actual normal release `homepage-code-82efb2100d66` completed on the clean
+dedicated `goose-production-cutover` operator. Version
+`0f08460b-3f19-4bfe-bf35-c6db880ede9b`, deployment
+`8d8388d8-5f0c-4338-a2fa-0611bc96187c`, manifest
+`b48870f4bdd1d8da748ed811ed27cc9249aeeb7b841c3ba053fb72147cf7d197`, receipt
+`f97f99f6b0ac28caffe69b0115331533a963d9a9d883f2512986eb80225d68eb`.
+Final wrapper verified the actual resolved build and idle owner. New workspace
+ledger148HTTP/186SQL,18,834 known rows read/21 control rows written,zero unknowns;
+zero merchant/model/product/native writes or cadence reservation. Original
+catalog/snapshot,8ready/2held and October22 22:18:10.044Z deadline are unchanged.
+Original994 workspace702HTTP/1116SQL/two unknowns remains untouched. Do not
+rerun either completed publication or fast-forward its immutable source pins.
+
+Public HTTP identity and actual Chrome reload verify the exact new headline,
+no Collection nav/card labels, no Index footer, restrained actions and guide
+glyphs. Earlier desktop390px QA and actual73-product fixture show no overflow,
+24→48→72→73unique Load more and correct finished state; production remains8.
+Live screenshot is privately retained inside the already-registered publication
+runtime as `qa-live-homepage-20261022.png`, under its original retention deadline.
+No automatic per-keystroke embedding
+calls were introduced. Product outbound link retains `goose-gifts-37-20`.
+
+Both Stupid and canonical Goose Index page/trailing slash/data.json/share-image/
+encoded aliases now return404, including apex follow-through and HEAD. Frozen
+legacy source audit found owner identifiers only in that Index implementation;
+12loaded JS assets from representative home/gifts/guides/privacy/sitemap checks
+contained none. An independent scan of all422final publication assets
+(7,762,087bytes, including non-text assets) found zero personal identifiers.
+For legacy privacy, two exact Index-family fail-closed routes
+use the existing production Worker. Onlywww CNAME changed DNS-only→Proxied;
+its exact Vercel target and all other DNS/TLS records/settings remain unchanged.
+Apex stays DNS-only and its existing308 forwards to protectedwww. Legacy XML
+still listed Index: a temporary sitemap Worker route returned404 and was
+immediately removed. One exact `www`host + `/sitemap.xml` Single Redirect now
+returns301 to `https://stupid.gifts/sitemap.xml` without query forwarding;
+both domains finish200 with no Index/name. Saved routes/DNS/redirect screenshots
+are private. No new Worker, paid plan, Vercel deployment or provider deletion.
+
+Closed `.5.1`, `.5.2`, `.4.3.2` on actual evidence, not source merge alone.
+The same existing catalog task is updated in place with82identity and the
+no-expiry-removals correction, unchanged ACTIVE/daily0830/chat/limits; D1 writer
+still gated. Full catalog `.3.2`, source/target-native delta/recovery and
+persistent product/supplier-field separation remain unfinished. Whole-product
+deadline coupling is still a known gap; this UI release does not solve it.
+Next bulk migration must reuse archived3383identities and authored-copy evidence,
+not3383new merchant/model calls. Read-only offline inventory found88long
+editorials with generation/sourcehash/event receipts and998short descriptions
+matching our fallback authoring function;991truncated merchant titles are not
+equivalent authored copy. Map positive evidence without inventing rights or
+renewing expired supplier imagery/offers. Preserve private native vectors and
+target history; semantic capacity must not determine catalog size.
+
 ## 2026-10-22 — Preserve the full catalog; simplify home and retire Index
 
 ### Code-only publication follow-through
