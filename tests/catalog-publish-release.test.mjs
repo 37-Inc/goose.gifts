@@ -197,8 +197,8 @@ async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environmen
         prior?[{id:priorDeployment,versions:[{version_id:activePriorVersion,percentage:100}],annotations:{'workers/message':'owned fixture prior'}}]:[]});
     }throw new Error(`Unexpected fixture HTTP ${url}`);
   };
-  const execute=(database=db,dependencies={},buildRecovery)=>executePublication({db:database,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
-    credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock),...dependencies},buildRecovery});
+  const execute=(database=db,dependencies={},buildRecovery,reviewedUploadRetry)=>executePublication({db:database,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
+    credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock),...dependencies},buildRecovery,reviewedUploadRetry});
   return{db,sql,owner,revision,fetch,command,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,commandEnvironments,checkpoint:()=>checkpoint,now:()=>new Date(clock),advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
     async nextRelease(){
       assert.equal((await readMutationOwner(db,scope)),null);
@@ -472,6 +472,96 @@ async function operatorRecoveryFixture(t){
     checkpointSha256:current.sha256,reviewReference:'fixture/explicit-one-operator-attempt'};
   return{...context,approval};
 }
+async function reviewedRetryFixture(t,{expired=true}={}){
+  const {f,approval:buildRecovery}=await operatorRecoveryFixture(t),base=`https://api.cloudflare.com/client/v4/accounts/${f.config.accountId}`;
+  const kinds=['service','secrets','assets-upload-session'],paths=[`/workers/services/${f.config.workerName}`,`/workers/scripts/${f.config.workerName}/secrets`,
+    `/workers/scripts/${f.config.workerName}/assets-upload-session`];
+  const command=accountedPublicationUploadCommand({workspace:f.workspace,scope:{accountId:f.config.accountId,workerName:f.config.workerName},
+    send:async url=>{if(url.endsWith('assets-upload-session'))throw new Error('Synthetic old session response interrupted');return Response.json({success:true,result:{}});},
+    command:async wrapped=>{if(!wrapped.args.includes('upload'))return f.command(wrapped);
+      for(let i=0;i<3;i++)await(await fetch(`${wrapped.env.CLOUDFLARE_API_BASE_URL}/accounts/${f.config.accountId}${paths[i]}`,
+        {method:i===2?'POST':'GET',...(i===2?{body:'{}'}:{})})).arrayBuffer();}});
+  const stopped=await f.execute(f.db,{command},buildRecovery);assert.equal(stopped.errorCode,'publication_upload_unknown');
+  assert.equal(f.checkpoint().control.publication.stage,'uploading');assert.equal(f.counts().uploadCalls,0);if(expired)f.advance(16*60000);
+  const evidenceValue={schemaVersion:1,kind:'metadata-only-session-failure',logSha256:sha('synthetic retained log'),
+    requests:kinds.map((kind,i)=>({kind,requestSha256:sha(`${i===2?'POST':'GET'}${base}${paths[i]}${i===2?'{}':''}`),settlement:i===2?'unknown':'known'})),
+    assetContentRequests:0,versionPosts:0,diagnostic:{intentSha256:sha('synthetic diagnostic intent'),resultSha256:sha('synthetic diagnostic metadata'),
+      bodySha256:sha('new canonical manifest'),requestSha256:sha('new canonical request'),status:200,totalBytes:551929,buckets:13,hashes:12524,maxJwtLength:549,errorClass:null}};
+  const evidence=await f.workspace.putArtifact(evidenceValue,{kind:'publication',observedAt:f.now().toISOString()}),cp=await f.workspace.readCheckpoint(),c=cp.checkpoint.control.publication;
+  const approval={schemaVersion:1,requestId:c.requestId,packageSha256:c.packageSha256,configSha256:c.configSha256,checkpointSha256:cp.sha256,
+    reviewPinSha256:cp.checkpoint.pins.publicationUploadReview.sha256,evidenceSha256:evidence.sha256,reviewReference:'fixture/one-reviewed-pre-version-retry'};
+  const retry={approval,evidence};return{f,retry,evidenceValue,run:(database=f.db,dependencies={})=>f.execute(database,{command:protectedCommand(f),...dependencies},undefined,retry)};
+}
+test('reviewed metadata-only failure retries once, keeps all original claims/charges, publishes and replays',protectedMac,async t=>{
+  const {f,run}=await reviewedRetryFixture(t),before=f.sql.prepare('SELECT * FROM catalog_build_requests').get(),outbox=f.sql.prepare('SELECT * FROM publication_outbox WHERE release_id=?').get(f.config.releaseId);
+  const pins=structuredClone(f.checkpoint().pins),budget=await f.workspace.budget();
+  let checked=false;f.after(statements=>{if(statements.some(s=>s.query.startsWith("UPDATE publication_outbox SET state='dispatched',dispatch_reference=?"))){checked=true;
+    const u=f.sql.prepare('SELECT * FROM publication_outbox WHERE release_id=?').get(f.config.releaseId);
+    assert.equal(u.lease_until,outbox.lease_until);assert.equal(u.lease_token,outbox.lease_token);assert.equal(u.attempts,outbox.attempts);}});
+  const result=await run();assert.equal(result.state,'published',JSON.stringify(result));assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+  const after=f.sql.prepare('SELECT * FROM catalog_build_requests').get(),u=f.sql.prepare('SELECT * FROM publication_outbox WHERE release_id=?').get(f.config.releaseId);
+  assert.equal(after.attempts,3);assert.equal(after.operator_recovery_json,before.operator_recovery_json);assert.equal(after.lease_token,before.lease_token);
+  assert.equal(checked,true);assert.equal(u.completed_token,outbox.lease_token);assert.equal(u.attempts,outbox.attempts);
+  assert.deepEqual(f.checkpoint().pins.publicationUploadReview,pins.publicationUploadReview);assert.deepEqual(f.checkpoint().pins.publicationUploadPending,pins.publicationUploadPending);
+  assert.ok(f.checkpoint().pins.publicationUploadRetryAcknowledged);assert.ok(f.checkpoint().pins.reviewedUploadActivationPending);assert.deepEqual(await f.workspace.budget(),budget);
+  await f.reopen();assert.equal((await run()).state,'published');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+});
+test('reviewed retry unknown command or ACK loss never resends even when version is visible',protectedMac,async t=>{
+  for(const fault of ['command','ack'])await t.test(fault,async t=>{
+    const {f,run}=await reviewedRetryFixture(t);if(fault==='ack'){const write=f.workspace.writeCheckpoint;
+      f.workspace.writeCheckpoint=async(expected,value)=>{if(value.pins.publicationUploadRetryAcknowledged)throw new Error('Synthetic ACK prewrite failure');return write(expected,value);};}
+    const command=protectedCommand(f,async c=>{await f.command(c);if(fault==='command'&&c.args.includes('upload'))throw new Error('Synthetic command result lost');});
+    assert.equal((await run(f.db,{command})).state,'pending');assert.ok(f.checkpoint().pins.publicationUploadRetryPending);
+    assert.equal(f.checkpoint().pins.publicationUploadRetryAcknowledged,undefined);const counts=f.counts(),budget=await f.workspace.budget();
+    await f.reopen();assert.equal((await run()).state,'pending');assert.deepEqual(f.counts(),counts);assert.deepEqual(await f.workspace.budget(),budget);
+  });
+});
+test('reviewed activation marker distinguishes first POST from unknown CAS and normal activating reconciliation',protectedMac,async t=>{
+  for(const fault of ['cas-not-applied','cas-ack-lost','permit-prewrite','permit-ack-lost','read-failure'])await t.test(fault,async t=>{
+    const {f,run}=await reviewedRetryFixture(t);let cas=0,stopped=false;
+    const database={...f.db,async batch(statements){if(!statements.some(s=>s.query.startsWith("UPDATE publication_outbox SET state='dispatched',dispatch_reference=?")))return f.db.batch(statements);
+      cas++;if(fault==='cas-not-applied')throw new Error('Synthetic CAS not applied');const r=await f.db.batch(statements);
+      if(fault==='cas-ack-lost')throw new Error('Synthetic CAS ACK lost');return r;}};
+    if(fault.startsWith('permit')){const write=f.workspace.writeCheckpoint;f.workspace.writeCheckpoint=async(expected,value)=>{
+      if(!stopped&&value.control.publication.permit){stopped=true;if(fault==='permit-ack-lost')await write(expected,value);throw new Error('Synthetic permit checkpoint lost');}
+      return write(expected,value);};}
+    const command=protectedCommand(f,async c=>{await f.command(c);if(fault==='read-failure'&&c.args.includes('upload'))f.mode.vectorFailure=true;});
+    const first=await run(database,{command});
+    if(fault==='cas-ack-lost'){assert.equal(first.state,'published');assert.equal(cas,1);assert.equal(f.counts().activateCalls,1);return;}
+    assert.equal(first.state,'pending');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,0);
+    if(fault==='read-failure'){assert.equal(f.checkpoint().pins.reviewedUploadActivationPending,undefined);f.mode.vectorFailure=false;}
+    else assert.ok(f.checkpoint().pins.reviewedUploadActivationPending);
+    const budget=await f.workspace.budget();await f.reopen();const result=await run(database);
+    assert.equal(result.state,['permit-prewrite','read-failure'].includes(fault)?'published':'pending');
+    assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,['permit-prewrite','read-failure'].includes(fault)?1:0);
+    assert.equal(cas,1);assert.deepEqual(await f.workspace.budget(),budget);
+  });
+});
+test('reviewed retry rejects altered approval/evidence, foreign3+1 proof, current/native drift and prior visible version before retry upload',protectedMac,async t=>{
+  for(const fault of ['checkpoint','review','evidence','attempts','missing-operator','foreign-operator','lease','source','native','version'])await t.test(fault,async t=>{
+    const {f,retry,run}=await reviewedRetryFixture(t,{expired:fault!=='lease'});
+    if(fault==='checkpoint')retry.approval.checkpointSha256='0'.repeat(64);
+    if(fault==='review')retry.approval.reviewPinSha256='0'.repeat(64);
+    if(fault==='evidence')retry.approval.evidenceSha256='0'.repeat(64);
+    if(fault==='attempts')f.sql.exec('UPDATE catalog_build_requests SET attempts=2');
+    if(fault.includes('operator')){f.sql.exec('DROP TRIGGER catalog_build_operator_recovery_immutable');
+      f.sql.exec(fault==='missing-operator'?'UPDATE catalog_build_requests SET operator_recovery_json=NULL':
+        `UPDATE catalog_build_requests SET operator_recovery_json=json_set(operator_recovery_json,'$.owner.token','foreign')`);}
+    if(fault==='source')f.sql.exec('UPDATE products SET is_active=0');if(fault==='native')f.mode.vectorFailure=true;
+    const fetch=fault==='version'?async(url,init)=>{if(new URL(url).pathname.endsWith('/versions'))return Response.json({success:true,result:{items:[{id:version}]}});
+      return f.fetch(url,init);}:f.fetch;
+    assert.equal((await run(f.db,{fetch})).state,'pending');assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
+    assert.equal(f.checkpoint().pins.publicationUploadRetryPending,undefined);
+  });
+});
+test('reviewed retry never sends a first activation POST at or beyond original cutoff after exact CAS readback',protectedMac,async t=>{
+  const {f,run}=await reviewedRetryFixture(t);let applied=false;
+  f.after(statements=>{if(!applied&&statements.some(s=>s.query.startsWith("UPDATE publication_outbox SET state='dispatched',dispatch_reference=?"))){
+    applied=true;f.advance(Date.parse(f.checkpoint().control.publication.build.request.cutoff)-f.now().getTime());throw new Error('Synthetic ACK lost at cutoff');}});
+  assert.equal((await run()).state,'pending');assert.equal(applied,true);assert.equal(f.counts().activateCalls,0);
+  assert.equal(f.checkpoint().control.publication.stage,'uploaded');await f.reopen({controlOnly:true});assert.equal((await run()).state,'pending');
+  assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,0);
+});
 test('explicit operator recovery records3 normal plus1 operator, preserves all24 tables and frozen approval across reopen',protectedMac,async t=>{
   const {f,old,pending,approval}=await operatorRecoveryFixture(t),before=await readOwnedLogicalRows(f.db,f.owner,{phase:'freezing'});
   for(let i=0;i<3;i++){await f.workspace.reserveBudget({id:`proven-read-${i}`,requestSha256:sha(`SELECT fixture${i}`),units:{httpRequests:1,sqlStatements:1}});

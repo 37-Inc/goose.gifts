@@ -15,7 +15,7 @@ import {permanentCatalogOperationKey,preparePermanentCatalog,settlePermanentCata
 import {prunedVectorPlan,prunedVectorIds} from '../lib/catalog/prune-existing-revision.ts';
 import {claimBuildRequest,beginBuildActivation,resolveBuildActivation} from '../lib/catalog/build-requests.ts';
 import {enqueuePublication,claimPublication,recordPublicationDispatch,completePublication,completeActivatedPublication,completeActivatedPermanentPublication} from '../lib/catalog/publication.ts';
-import {readPermanentNativeProof,readActivatedCatalogVectors} from '../scripts/catalog/owned-vector-delivery.ts';
+import {readPermanentNativeProof,readActivatedCatalogVectors,readActivatedPermanentCatalogNative} from '../scripts/catalog/owned-vector-delivery.ts';
 import {createSealedSnapshotEnvelope} from '../scripts/catalog/export-d1-snapshot.ts';
 import {createPermanentCatalogSeal,reconstructPermanentSnapshot,readPermanentCatalogPrior} from '../scripts/catalog/permanent-catalog-seal.ts';
 import {approvedCohortOperationKey,prepareApprovedCohort,approvedCohortVectorPlan} from '../lib/catalog/freeze-approved-cohort.ts';
@@ -30,7 +30,7 @@ const same=(a,b)=>assert.equal(canonicalJson(a),canonicalJson(b));
 async function fixture(t,{count=12,afterExpiry=false,merchant=false}={}){
   const f=await setup(t,{providerIdentity:`cloudflare:${accountId}:${scope.indexName}`,merchant});
   if(afterExpiry)f.advance(Date.parse(f.revision.snapshot.products[0].eligibleUntil)-f.now().getTime()+3600000);
-  let statements=0,requests=0,maxRequest=0,maxResponse=0,loseSeal=false;
+  let statements=0,requests=0,maxRequest=0,maxResponse=0,loseSeal=false;const queryText=[];
   const ledger={httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0},dbScope={accountId,databaseId,databaseName:'permanent-freeze'};
   // Explicit LOCAL fixture profile covers genuine union+installer+freeze/replay;
   // synthetic usage is not account evidence or authorization for any live run.
@@ -39,7 +39,7 @@ async function fixture(t,{count=12,afterExpiry=false,merchant=false}={}){
     required:{requests:10000,statements:25000,rowsRead:2000000,rowsWritten:85000,evidenceSha256:'b'.repeat(64)}},f.now());
   const send=async(url,init)=>{requests++;assert.equal(url,`https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}${init.method==='POST'?'/query':''}`);
       if(init.method==='GET')return Response.json({success:true,result:{uuid:databaseId,name:'permanent-freeze',read_replication:{mode:'disabled'}}});
-      const {batch}=JSON.parse(init.body);assert.ok(batch.length<=50);statements+=batch.length;
+      const {batch}=JSON.parse(init.body);assert.ok(batch.length<=50);statements+=batch.length;queryText.push(...batch.map(q=>q.sql));
       maxRequest=Math.max(maxRequest,Buffer.byteLength(init.body));assert.ok(maxRequest<=512*1024);f.sql.exec('BEGIN');let result;
       try{result=batch.map(q=>{assert.ok(q.params.length<=100);const before=f.sql.prepare('SELECT total_changes() n').get().n;
         const rows=f.sql.prepare(q.sql).all(...q.params).map(r=>({...r}));return{success:true,results:rows,meta:{served_by_primary:true,
@@ -93,8 +93,47 @@ async function fixture(t,{count=12,afterExpiry=false,merchant=false}={}){
     native:{source:f.published.source,revisionSha256:sha256(canonicalJson(f.revision)),plan:prunedVectorPlan(f.revision)}};
   const freezing=await claimMutationOwnership(db,scope,{phase:'freezing',ownerReference:'permanent',operationKey:permanentCatalogOperationKey(request)});
   const metrics=()=>({requests,statements,maxRequest,maxResponse});
-  return{...f,db,makeDb,makeNextDayDb,request,owner:freezing,metrics,loseSeal(){loseSeal=true;}};
+  return{...f,db,makeDb,makeNextDayDb,request,owner:freezing,metrics,queryText,loseSeal(){loseSeal=true;}};
 }
+test('permanent receipt owns full rows; concrete native observation remains exact-permit fenced and accepted resolution survives cutoff',async t=>{
+  const f=await fixture(t,{afterExpiry:true}),prepared=await preparePermanentCatalog(f.db,f.owner,f.request),r=prepared.revision,
+    q=await settlePermanentCatalog(f.db,prepared.owner,r,f.adapters),build=await claimBuildRequest(f.db,q.requestId,'fixture:boundary',f.now()),
+    intent={releaseId:'permanent-boundary',catalogRevision:r.snapshot.catalogRevision,codeSha:r.request.codeSha,
+      catalogSnapshotSha256:r.packet.receipt.snapshot_sha256,manifestSha256:'a'.repeat(64),vectorSyncWatermark:0,priorReleaseId:'original-release',nextExpiry:null};
+  await enqueuePublication(f.db,r.snapshot,intent,f.now());const pub=await claimPublication(f.db,r.snapshot,intent.releaseId,f.now());
+  await recordPublicationDispatch(f.db,r.snapshot,pub,'version:fixture:boundary',f.now());
+  const permit=await beginBuildActivation(f.db,build,r.snapshot,pub,'fixture:boundary',async()=>({environment:scope.environment,settled:true,
+    active:{...f.original.intent,versionReference:f.original.permit.versionReference}}),f.now(),q.owner),plan=prunedVectorPlan(r),
+    control={catalogRevision:r.snapshot.catalogRevision,planSha256:sha256(canonicalJson(plan)),ids:prunedVectorIds(plan)},
+    read=(p=permit,c=control,a=f.adapters)=>readActivatedPermanentCatalogNative(f.db,p,c,r,a);
+  await read();await assert.rejects(read({...permit,token:uuid(999)}));
+  await assert.rejects(read(permit,{...control,ids:control.ids.slice(1)}));
+  await assert.rejects(read({...permit,mutationOwner:{...permit.mutationOwner,generation:permit.mutationOwner.generation+1}}));
+  const tags=f.sql.prepare('SELECT tags FROM products WHERE public_id=?').get(uuid(9)).tags;
+  f.sql.prepare("UPDATE products SET tags='held drift' WHERE public_id=?").run(uuid(9));
+  await assert.rejects(readActivatedCatalogVectors(f.db,permit,control,f.adapters,{permanent:r}));
+  f.sql.prepare('UPDATE products SET tags=? WHERE public_id=?').run(tags,uuid(9));
+  f.advance(16*60000);let once=false;
+  const drift={...f.adapters,async readback(id,signal){const value=await f.adapters.readback(id,signal);if(!once){once=true;
+    f.sql.prepare("UPDATE products SET tags='late held drift' WHERE public_id=?").run(uuid(9));}return value;}};
+  await assert.rejects(completeActivatedPermanentPublication(f.db,r,pub,permit,async()=>{await read(permit,control,drift);return intent;},f.now));
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts WHERE release_id=?').get(intent.releaseId).n,0);
+  f.sql.prepare('UPDATE products SET tags=? WHERE public_id=?').run(tags,uuid(9));
+  f.advance(Date.parse(r.request.context.cutoff)-f.now().getTime()+1);const writes=f.dispatches();
+  await assert.rejects(assertPermanentCatalog(f.db,q.owner,r));
+  await assert.rejects(assertPermanentCatalog(f.db,permit.mutationOwner,r,{...permit,token:uuid(999)}));
+  await assertPermanentCatalog(f.db,permit.mutationOwner,r,permit);
+  const start=f.queryText.length;
+  await completeActivatedPermanentPublication(f.db,r,pub,permit,async()=>{await read();return intent;},f.now);
+  // Both complete row scans retain boundary visibility gates and final receipt
+  // gates, but never repeat the full visibility scan in each source byte-page.
+  const visibility=f.queryText.slice(start).filter(sql=>sql.includes('catalog_revisions c JOIN catalog_projection_receipts r')).length;
+  assert.equal(visibility,7);
+  await assertPermanentCatalog(f.db,permit.mutationOwner,r,permit);
+  assert.equal(await resolveBuildActivation(f.db,permit,async()=>{await read();return{environment:scope.environment,settled:true,
+    active:{...intent,versionReference:permit.versionReference}};}),'resolved');
+  assert.equal(f.dispatches(),writes);assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
+});
 test('one-time permanent freeze preserves3383 identities/native, then reopens and settles expired active ACK with bounded full-row proofs',async t=>{
   const f=await fixture(t,{count:3383,afterExpiry:true}),products=f.sql.prepare('SELECT * FROM products ORDER BY id').all(),native=canonicalJson([...f.index]),
     journals=f.sql.prepare('SELECT * FROM catalog_vector_deliveries ORDER BY delivery_id').all(),start=f.metrics();
@@ -120,7 +159,7 @@ test('one-time permanent freeze preserves3383 identities/native, then reopens an
   const permit=await beginBuildActivation(f.db,build,revision.snapshot,publication,'fixture:bulk-version',async()=>({environment:scope.environment,settled:true,
     active:{...f.original.intent,versionReference:f.original.permit.versionReference}}),f.now(),queued.owner);
   const control={catalogRevision:'permanent',planSha256:sha256(canonicalJson(plan)),ids:prunedVectorIds(plan)};
-  let activeDb=f.db,observations=0;const observe=async()=>{observations++;return readActivatedCatalogVectors(activeDb,permit,control,f.adapters,{permanent:revision});};
+  let activeDb=f.db,observations=0;const observe=async()=>{observations++;return readActivatedPermanentCatalogNative(activeDb,permit,control,revision,f.adapters);};
   await assert.rejects(completePublication(f.db,revision.snapshot,intent.releaseId,publication.token,async()=>{await observe();throw new Error('Synthetic active version read ACK lost');},f.now,permit.mutationOwner));
   f.advance(16*60000);const beforeReopen=f.db.metrics();activeDb=await f.makeDb({httpRequests:beforeReopen.requests,sqlStatements:beforeReopen.statements,
     knownRowsRead:beforeReopen.reportedRowsRead,knownRowsWritten:beforeReopen.reportedRowsWritten,unconfirmedRequests:beforeReopen.unconfirmedRequests});
@@ -128,6 +167,7 @@ test('one-time permanent freeze preserves3383 identities/native, then reopens an
   await assert.rejects(completeActivatedPublication(activeDb,revision,publication,permit,async()=>{assert.fail('ordinary10/20 guard widened');},f.now),/publication_activation_fenced/);
   const callbacks=observations;await completeActivatedPermanentPublication(activeDb,revision,publication,permit,async()=>{await observe();return intent;},f.now);
   assert.ok(observations>callbacks);assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='permanent-release'").get().n,1);
+  await assertPermanentCatalog(activeDb,permit.mutationOwner,revision,permit);
   assert.equal(await resolveBuildActivation(activeDb,permit,async()=>{await observe();return{environment:scope.environment,settled:true,active:{...intent,versionReference:permit.versionReference}};}),'resolved');
   assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');assert.equal(canonicalJson([...f.index]),native);
   const end=f.metrics(),cost=(a,b)=>({requests:b.requests-a.requests,statements:b.statements-a.statements});

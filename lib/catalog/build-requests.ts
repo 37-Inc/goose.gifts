@@ -2,7 +2,7 @@ import type { CatalogSnapshot } from './types.ts';
 import type { CatalogD1 } from './storage/d1.ts';
 import { catalogDisplayDeadline, earliestDisplayExpiry } from './display.ts';
 import type { PublicationClaim, PublicationIntent } from './publication.ts';
-import { encodePublicationIntent, publicationStatus } from './publication.ts';
+import { encodePublicationIntent, publicationStatus, publicationActivationGate } from './publication.ts';
 import { rollbackPreflight, visibleRevisionCountQuery } from './d1.ts';
 import { canonicalTime } from './snapshot.ts';
 import { legacyMutationBatch, legacyMutationGuard, mutationAssertion, mutationFenceQuery, unabandonedImportsQuery } from './mutation-fence.ts';
@@ -278,6 +278,125 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
   const result = await statement.run() as { success?: boolean; meta?: { changes?: number } };
   if (result.success !== true || result.meta?.changes !== 1) throw new Error('build_fenced_or_preflight_changed');
   return { requestId: claim.requestId, token: claim.token, runReference: claim.runReference, releaseId: intent.releaseId, versionReference };
+}
+
+export interface ReviewedUploadActivationApproval {
+  schemaVersion:1;requestId:string;packageSha256:string;configSha256:string;checkpointSha256:string;
+  reviewPinSha256:string;evidenceSha256:string;reviewReference:string;
+}
+export interface ReviewedUploadActivationInput {
+  claim:CatalogBuildClaim;publication:PublicationClaim;versionReference:string;owner:MutationOwner;
+  approval:ReviewedUploadActivationApproval;original:{build:Record<string,unknown>;publication:Record<string,unknown>};
+}
+export function encodeReviewedUploadActivationApproval(value:ReviewedUploadActivationApproval):string {
+  if(!value||Object.keys(value).sort().join(',')!=='checkpointSha256,configSha256,evidenceSha256,packageSha256,requestId,reviewPinSha256,reviewReference,schemaVersion'
+    ||value.schemaVersion!==1||!['requestId','packageSha256','configSha256','checkpointSha256','reviewPinSha256','evidenceSha256']
+      .every(k=>typeof value[k as keyof typeof value]==='string'&&HASH.test(String(value[k as keyof typeof value])))
+    ||typeof value.reviewReference!=='string'||!REFERENCE.test(value.reviewReference))throw new Error('build_reviewed_activation_invalid');
+  return flat(value);
+}
+type ReviewedRow=Record<string,unknown>;
+const reviewedRefuse=():never=>{throw new Error('build_reviewed_activation_fenced');};
+async function reviewedInput(value:ReviewedUploadActivationInput){
+  const i=structuredClone(value),{claim:c,publication:p,owner:o,approval:a,original:r}=i;
+  encodeReviewedUploadActivationApproval(a);mutationFenceQuery(o,['freezing']);
+  const bytes=encodeBuildRequest(c.request),intent=encodePublicationIntent(p.intent),b=r.build,u=r.publication;
+  let receipt:BuildRecoveryReceipt;try{receipt=JSON.parse(String(b.operator_recovery_json));encodeBuildRecoveryApproval(receipt.approval);}catch{return reviewedRefuse();}
+  if(a.requestId!==c.requestId||await digest(bytes)!==c.requestId||o.environment!==c.request.environment||!c.request.priorReleaseId
+    ||typeof i.versionReference!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(i.versionReference)
+    ||b.request_id!==c.requestId||b.request_json!==bytes||b.environment!==o.environment||b.source_revision!==c.request.sourceRevision
+    ||b.state!=='building'||b.lease_token!==c.token||b.lease_until!==c.leaseUntil||b.run_reference!==c.runReference||b.attempts!==3
+    ||[b.release_id,b.version_reference,b.dispatch_reference,b.error_code].some(v=>v!==null)
+    ||receipt.schemaVersion!==1||receipt.kind!=='unstarted-build-operator-recovery'||receipt.releaseId!==p.intent.releaseId
+    ||receipt.normalAttempts!==3||receipt.operatorAttempts!==1||receipt.totalAttempts!==4
+    ||receipt.token!==c.token||receipt.leaseUntil!==c.leaseUntil||flat(receipt.owner)!==flat(o)
+    ||receipt.approval.requestId!==c.requestId||receipt.approval.packageSha256!==a.packageSha256
+    ||u.intent_id!==p.intentId||u.intent_id!==await digest(intent)||u.intent_json!==intent||u.release_id!==p.intent.releaseId
+    ||u.catalog_revision!==c.request.sourceRevision||u.state!=='claimed'||u.lease_token!==p.token||u.lease_until!==p.leaseUntil
+    ||!Number.isInteger(u.attempts)||Number(u.attempts)<1||Number(u.attempts)>3
+    ||[u.dispatch_reference,u.completed_token,u.error_code].some(v=>v!==null)
+    ||p.intent.codeSha!==c.request.codeSha||p.intent.catalogRevision!==c.request.sourceRevision
+    ||p.intent.catalogSnapshotSha256!==c.request.sourceDigest||p.intent.priorReleaseId!==c.request.priorReleaseId)reviewedRefuse();
+  canonicalTime(c.leaseUntil);canonicalTime(p.leaseUntil);
+  return i;
+}
+function reviewedAssertion(db:CatalogD1,sql:string,params:unknown[]=[]){
+  return db.prepare(`SELECT json(CASE WHEN ${sql} THEN 'true' ELSE 'build_reviewed_activation_fenced' END)`).bind(...params);
+}
+function reviewedExact(db:CatalogD1,table:string,r:ReviewedRow){
+  const keys=Object.keys(r);if(!keys.length||keys.length>65||keys.some(k=>!/^[_a-z][_a-z0-9]*$/.test(k)
+    ||r[k]!==null&&!['string','number'].includes(typeof r[k])))reviewedRefuse();
+  return reviewedAssertion(db,`EXISTS(SELECT 1 FROM ${table} WHERE ${keys.map(k=>`${k} IS ?`).join(' AND ')})`,keys.map(k=>r[k]));
+}
+function reviewedApplied(i:ReviewedUploadActivationInput){
+  return{build:{...i.original.build,state:'activating',lease_until:null,release_id:i.publication.intent.releaseId,version_reference:i.versionReference},
+    publication:{...i.original.publication,state:'dispatched',dispatch_reference:`version:${i.versionReference}`}};
+}
+function reviewedOwner(db:CatalogD1,i:ReviewedUploadActivationInput,active:boolean){
+  const o=active?{...i.owner,phase:'activating' as const}:i.owner;
+  return[mutationAssertion(db,o,[o.phase]),reviewedAssertion(db,`EXISTS(SELECT 1 FROM catalog_mutation_scopes
+    WHERE environment=? AND index_name=? AND captured_at=? AND activation_request_id IS ?)`,
+    [o.environment,o.indexName,o.capturedAt,active?i.claim.requestId:null])];
+}
+function reviewedPermit(i:ReviewedUploadActivationInput):ActivationPermit{return{requestId:i.claim.requestId,token:i.claim.token,
+  runReference:i.claim.runReference,releaseId:i.publication.intent.releaseId,versionReference:i.versionReference,mutationOwner:{...i.owner,phase:'activating'}};}
+/** Explicit operator authority, not an inference from expired tokens/opaque
+ * hashes. The executor binds approval + full original rows in its durable marker
+ * and independently proves real upload ACK/version/package/full source/native
+ * in readDeployment. Its beforeCommit hook MUST durably mark the one CAS; marked
+ * retries call ONLY readReviewedUploadActivation. No provider dispatch is here. */
+export async function beginReviewedUploadActivation(db:CatalogD1,value:ReviewedUploadActivationInput,snapshotInput:CatalogSnapshot,
+  readDeployment:(signal:AbortSignal)=>Promise<DeploymentObservation>,beforeCommit:()=>Promise<void>):Promise<ActivationPermit>{
+  if(typeof beforeCommit!=='function')throw new Error('build_reviewed_activation_invalid');
+  const i=await reviewedInput(value),snapshot=structuredClone(snapshotInput),{claim:c,publication:p,owner:o}=i;
+  const read=async(sql:string,params:unknown[]=[])=> (await db.prepare(sql).bind(...params).all<ReviewedRow>()).results;
+  const b=await read('SELECT * FROM catalog_build_requests WHERE request_id=?',[c.requestId]);
+  const u=await read('SELECT * FROM publication_outbox WHERE intent_id=?',[p.intentId]);
+  if(b.length!==1||u.length!==1||flat(b[0])!==flat(i.original.build)||flat(u[0])!==flat(i.original.publication))reviewedRefuse();
+  const prior=await read('SELECT * FROM publication_receipts WHERE release_id=?',[c.request.priorReleaseId]);
+  const header=(await read(`SELECT ${NOW} now,coalesce(max(rowid),0) epoch FROM publication_receipts`))[0],at=canonicalTime(String(header.now));
+  if(prior.length!==1||c.leaseUntil>at||p.leaseUntil>at||c.request.cutoff<=at||p.intent.nextExpiry!==earliestDisplayExpiry(snapshot.products)
+    ||await digest(`${JSON.stringify(snapshot)}\n`)!==c.request.sourceDigest||snapshot.products.some(x=>catalogDisplayDeadline(x)<=Date.parse(c.request.cutoff))
+    ||!(await rollbackPreflight(db,snapshot,new Date(at))).ok)reviewedRefuse();
+  const observed=await observe(readDeployment,30_000);
+  if(observed.environment!==o.environment||observed.settled!==true||!(await priorMatches(db,c.request,observed.active)))reviewedRefuse();
+  const source=sourceGate(c.request),visible=publicationActivationGate(snapshot,p.intent),imports=await unabandonedImportsQuery(db,o.environment);
+  // Separate assertions in the SAME transaction preserve the full shared gate
+  // while keeping its nested current-rights predicate below D1 depth100.
+  const ready=()=>[reviewedAssertion(db,source.sql,source.params),reviewedAssertion(db,visible.sql,visible.params),reviewedAssertion(db,`${imports.sql}
+    AND (SELECT coalesce(max(rowid),0) FROM publication_receipts)=?
+    AND NOT EXISTS(SELECT 1 FROM publication_receipts WHERE release_id=?)
+    AND NOT EXISTS(SELECT 1 FROM catalog_build_requests WHERE environment=? AND state='activating' AND request_id!=?)
+    AND NOT EXISTS(SELECT 1 FROM publication_outbox WHERE catalog_revision=? AND state IN ('claimed','dispatched') AND intent_id!=?)
+    AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE status!='complete') AND ?<=${NOW} AND ?<=${NOW}`,
+    [...imports.params,header.epoch,p.intent.releaseId,o.environment,c.requestId,
+      p.intent.catalogRevision,p.intentId,c.leaseUntil,p.leaseUntil])];
+  const applied=reviewedApplied(i),fence=mutationFenceQuery(o,['freezing']);
+  const statements=[...reviewedOwner(db,i,false),reviewedExact(db,'catalog_build_requests',i.original.build),
+    reviewedExact(db,'publication_outbox',i.original.publication),reviewedExact(db,'publication_receipts',prior[0]),...ready(),
+    db.prepare("UPDATE publication_outbox SET state='dispatched',dispatch_reference=? WHERE intent_id=? AND state='claimed' AND lease_token=?")
+      .bind(`version:${i.versionReference}`,p.intentId,p.token),
+    db.prepare("UPDATE catalog_build_requests SET state='activating',lease_until=NULL,release_id=?,version_reference=? WHERE request_id=? AND state='building' AND lease_token=?")
+      .bind(p.intent.releaseId,i.versionReference,c.requestId,c.token),
+    db.prepare(`UPDATE catalog_mutation_scopes SET phase='activating',external_pending=1,activation_request_id=?
+      WHERE environment=? AND index_name=? AND ${fence.sql}`).bind(c.requestId,o.environment,o.indexName,...fence.params),
+    reviewedExact(db,'catalog_build_requests',applied.build),reviewedExact(db,'publication_outbox',applied.publication),
+    reviewedExact(db,'publication_receipts',prior[0]),...ready(),...reviewedOwner(db,i,true)];
+  await beforeCommit(); // No subsequent read/proof before the sole atomic CAS.
+  await db.batch(statements);return reviewedPermit(i);
+}
+/** Read-only exact applied-state recovery, even after cutoff; it is NOT authority
+ * to send/re-send activation. Missing/foreign CAS remains fenced forever. */
+export async function readReviewedUploadActivation(db:CatalogD1,value:ReviewedUploadActivationInput):Promise<ActivationPermit>{
+  const i=await reviewedInput(value),applied=reviewedApplied(i);
+  for(const [table,key,id,expected]of [['catalog_build_requests','request_id',i.claim.requestId,applied.build],
+    ['publication_outbox','intent_id',i.publication.intentId,applied.publication]] as const){
+    const rows=(await db.prepare(`SELECT * FROM ${table} WHERE ${key}=?`).bind(id).all<ReviewedRow>()).results;
+    if(rows.length!==1||flat(rows[0])!==flat(expected))reviewedRefuse();
+  }
+  await db.batch([...reviewedOwner(db,i,true),reviewedExact(db,'catalog_build_requests',applied.build),
+    reviewedExact(db,'publication_outbox',applied.publication),...reviewedOwner(db,i,true)]);
+  return reviewedPermit(i);
 }
 
 /** No timeout/takeover shortcut for an uncertain activation. The injected adapter

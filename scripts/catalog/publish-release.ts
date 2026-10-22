@@ -7,12 +7,16 @@ import { promisify } from 'node:util';
 import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import type { MutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import { mutationAssertion, readMutationOwner } from '../../lib/catalog/mutation-fence.ts';
+import { rollbackPreflight } from '../../lib/catalog/d1.ts';
 import type { PrunedRevision } from '../../lib/catalog/prune-existing-revision.ts';
 import { prunedVectorIds, prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PermanentCatalogRevision } from '../../lib/catalog/freeze-permanent-catalog.ts';
-import type { ActivationPermit, DeploymentIdentity, DeploymentObservation, BuildRecoveryApproval } from '../../lib/catalog/build-requests.ts';
+import { assertPermanentCatalog } from '../../lib/catalog/freeze-permanent-catalog.ts';
+import type { ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
+import type { ActivationPermit, DeploymentIdentity, DeploymentObservation, BuildRecoveryApproval, ReviewedUploadActivationApproval, ReviewedUploadActivationInput } from '../../lib/catalog/build-requests.ts';
 import { beginBuildActivation, claimBuildRequest, encodeBuildRequest, resolveBuildActivation, drainDeploymentObservation,
-  encodeBuildRecoveryApproval, recoverUnstartedBuildRequest, readUnstartedBuildRecovery } from '../../lib/catalog/build-requests.ts';
+  encodeBuildRecoveryApproval, recoverUnstartedBuildRequest, readUnstartedBuildRecovery,
+  encodeReviewedUploadActivationApproval, beginReviewedUploadActivation, readReviewedUploadActivation } from '../../lib/catalog/build-requests.ts';
 import { isAccountedPublicationFetch } from './publication-read-fetch.ts';
 import { isAccountedPublicationUploadCommand, PublicationUploadCommandError } from './publication-upload-command.ts';
 import { isCatalogD1Rest } from './d1-write-rest.ts';
@@ -27,7 +31,7 @@ import { CLOUDFLARE_FREE_ASSET_LIMIT, readPriorRelease, verifyRetainedAssets } f
 import { siteIdentityFor } from '../../static-site/lib/site-identity.ts';
 import { canonicalTime, validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { canonicalJson } from './migration.ts';
-import { readActivatedCatalogVectors } from './owned-vector-delivery.ts';
+import { readActivatedCatalogVectors, readActivatedPermanentCatalogNative, readPermanentNativeProof, readPublishedCatalogVectors, readOwnedApprovedCohortVectors, readOwnedPrunedVectors } from './owned-vector-delivery.ts';
 import type { PublishedCatalogRead } from './owned-vector-delivery.ts';
 import { createVectorizeRestAdapters } from './vectorize-rest.ts';
 import type { RunWorkspace, PublicationControl, ArtifactRef } from './run-workspace.ts';
@@ -114,6 +118,33 @@ type Dependencies={fetch?:typeof fetch;observationFetch?:typeof fetch;command?:(
 export type PublicationResult={state:'pending';owner:MutationOwner;errorCode:string}|{
   state:'published';owner:null;releaseId:string;receiptSha256:string;receipt:Record<string,unknown>;
 };
+/** A trusted operator's actual retained bridge ledger/log + one independently
+ * measured metadata session. Registered bytes are pinned BEFORE approval; this
+ * does not claim recovery of the old sanitized/omitted POST body. */
+export interface ReviewedUploadRetryEvidence {
+  schemaVersion:1;kind:'metadata-only-session-failure';logSha256:string;
+  requests:{kind:'service'|'secrets'|'assets-upload-session';requestSha256:string;settlement:'known'|'unknown'}[];
+  assetContentRequests:0;versionPosts:0;
+  diagnostic:{intentSha256:string;resultSha256:string;bodySha256:string;requestSha256:string;status:200;totalBytes:number;
+    buckets:number;hashes:number;maxJwtLength:number;errorClass:null};
+}
+type RetryRecord={schemaVersion:1;approval:ReviewedUploadActivationApproval;evidence:ArtifactRef;oldPending:ArtifactRef;oldReview:ArtifactRef;
+  owner:MutationOwner;control:PublicationControl;original:ReviewedUploadActivationInput['original']};
+function reviewedEvidence(value:unknown,config:PublicationConfig):asserts value is ReviewedUploadRetryEvidence {
+  const e=value as ReviewedUploadRetryEvidence,d=e?.diagnostic,base=`https://api.cloudflare.com/client/v4/accounts/${config.accountId}`;
+  if(!e||!exact(e,'assetContentRequests,diagnostic,kind,logSha256,requests,schemaVersion,versionPosts')||e.schemaVersion!==1
+    ||e.kind!=='metadata-only-session-failure'||!HASH.test(e.logSha256)||e.assetContentRequests!==0||e.versionPosts!==0
+    ||!Array.isArray(e.requests)||e.requests.length!==3||e.requests.some((r,i)=>!exact(r,'kind,requestSha256,settlement')
+      ||r.kind!==['service','secrets','assets-upload-session'][i]||r.settlement!==(i===2?'unknown':'known')||!HASH.test(r.requestSha256))
+    ||e.requests[0].requestSha256!==sha256(`GET${base}/workers/services/${config.workerName}`)
+    ||e.requests[1].requestSha256!==sha256(`GET${base}/workers/scripts/${config.workerName}/secrets`)
+    ||!d||!exact(d,'bodySha256,buckets,errorClass,hashes,intentSha256,maxJwtLength,requestSha256,resultSha256,status,totalBytes')
+    ||![d.bodySha256,d.intentSha256,d.requestSha256,d.resultSha256].every(v=>typeof v==='string'&&HASH.test(v))
+    ||d.requestSha256===e.requests[2].requestSha256||d.status!==200||d.errorClass!==null
+    ||!Number.isSafeInteger(d.totalBytes)||d.totalBytes<=512*1024||d.totalBytes>2*1024*1024
+    ||![d.buckets,d.hashes,d.maxJwtLength].every(n=>Number.isSafeInteger(n)&&n>0)||d.buckets>d.hashes||d.hashes>20_000||d.maxJwtLength>d.totalBytes)
+    throw new Error('publication_upload_retry_evidence_invalid');
+}
 const packageFiles=['asset-manifest.json','catalog.snapshot.json','release-context.json','release-identity.json','site-identity.json','feed-plan.json'];
 async function privateBytes(file:string,max=32*1024*1024){
   const before=await fs.lstat(file);
@@ -177,7 +208,7 @@ async function commandDefault(command:PublicationCommand){
  * budget is per invocation. Wrangler separately retries asset/immutable VERSION
  * upload internally; duplicate matching versions are ambiguous, never activated.
  */
-function provider(config:PublicationConfig,token:string,send:typeof fetch,identityAuthorization?:string,observationSend=send){
+function provider(config:PublicationConfig,token:string,send:typeof fetch,identityAuthorization?:string,observationSend=send,readTimeoutMs=2500){
   if(!token||token.length>4096||/[^\x21-\x7e]/.test(token)
     ||identityAuthorization!==undefined&&(identityAuthorization.length>4096||/[\r\n]/.test(identityAuthorization)))throw new Error('publication_credentials_invalid');
   const base=`https://api.cloudflare.com/client/v4/accounts/${config.accountId}`;let calls=0;
@@ -200,7 +231,7 @@ function provider(config:PublicationConfig,token:string,send:typeof fetch,identi
         if(size>512*1024){await reader.cancel();throw new Error();}chunks.push(part.value);}}finally{reader.releaseLock();}
       const raw=JSON.parse(Buffer.concat(chunks).toString('utf8'));
       if(identity)return raw;if(!raw||raw.success!==true||!Object.hasOwn(raw,'result'))throw new Error();return raw.result;
-    })();return await Promise.race([pending,aborted,new Promise<never>((_,reject)=>{timer=setTimeout(()=>{abort();reject(new Error());},2500);})]);
+    })();return await Promise.race([pending,aborted,new Promise<never>((_,reject)=>{timer=setTimeout(()=>{abort();reject(new Error());},body===undefined?readTimeoutMs:2500);})]);
     }catch{throw new Error(body===undefined?'publication_provider_unavailable':'publication_activation_unknown');}
     finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);if(controller.signal.aborted&&pending&&(body===undefined||isAccountedPublicationFetch(readSend))){
       if(isAccountedPublicationFetch(readSend)&&sent)await sent.catch(()=>{});
@@ -279,9 +310,12 @@ function intentFrom(manifest:SiteAssetManifest,bytes:Uint8Array):PublicationInte
  * Credentials never enter checkpoints, artifacts, command args or returned errors.
  */
 export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision;requestId:string;runReference:string;
-  workspace:PublicationWorkspace;config:PublicationConfig;credentials:{cloudflareToken:string;identityAuthorization?:string};dependencies?:Dependencies;buildRecovery?:BuildRecoveryApproval}):Promise<PublicationResult>{
+  workspace:PublicationWorkspace;config:PublicationConfig;credentials:{cloudflareToken:string;identityAuthorization?:string};dependencies?:Dependencies;buildRecovery?:BuildRecoveryApproval;
+  reviewedUploadRetry?:{approval:ReviewedUploadActivationApproval;evidence:ArtifactRef}}):Promise<PublicationResult>{
   const {db,workspace,revision}=options;const config=validatePublicationConfig(options.config);const now=options.dependencies?.now??(()=>new Date());
   if(options.buildRecovery)encodeBuildRecoveryApproval(options.buildRecovery);
+  const reviewed=options.reviewedUploadRetry;
+  if(reviewed)encodeReviewedUploadActivationApproval(reviewed.approval);
   if(options.permanent&&(options.published||!revision||canonicalJson(options.permanent)!==canonicalJson(revision))
     ||revision?.nativePreservation&&!options.permanent)throw new Error('publication_permanent_input_invalid');
   if(db.providerIdentity!==`cloudflare:${config.accountId}:${config.database.id}`)throw new Error('publication_database_scope_mismatch');
@@ -290,27 +324,34 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   if(workspace.manifest.codeSha!==config.codeSha)throw new Error('publication_workspace_mismatch');
   if(workspace.repository!==await fs.realpath(config.sourceRoot))throw new Error('publication_workspace_mismatch');
   const observationSend=options.dependencies?.observationFetch??options.dependencies?.fetch??fetch;
-  const api=provider(config,options.credentials.cloudflareToken,options.dependencies?.fetch??fetch,options.credentials.identityAuthorization,observationSend);
+  const api=provider(config,options.credentials.cloudflareToken,options.dependencies?.fetch??fetch,options.credentials.identityAuthorization,observationSend,reviewed?10_000:2500);
   const command=options.dependencies?.command??commandDefault;const configSha256=sha256(canonicalJson(config));
   let checkpoint=await workspace.readCheckpoint({controlOnly:true});let control=checkpoint?.checkpoint.control?.publication;
   let owner=options.owner;const directory=path.join(workspace.directory,'packages',config.releaseId);
   const runtime=path.join(workspace.directory,'publication-runtime',config.releaseId);
   const uploadBinding=()=>({schemaVersion:1,releaseId:config.releaseId,requestId:options.requestId,configSha256,
     packageSha256:control!.packageSha256,uploadMarker:control!.uploadMarker});
-  const save=async(patch:Partial<PublicationControl>,nextOwner=owner,uploadPending?:ArtifactRef)=>{
+  let retryRecord:RetryRecord|undefined;
+  const retryAck=(pending:ArtifactRef)=>({schemaVersion:1,approval:reviewed!.approval,evidence:reviewed!.evidence,pending,
+    oldPending:checkpoint!.checkpoint.pins.publicationUploadPending,oldReview:checkpoint!.checkpoint.pins.publicationUploadReview,upload:uploadBinding()});
+  const runUpload=()=>command({file:process.execPath,args:['node_modules/wrangler/bin/wrangler.js','versions','upload','--config',path.join(directory,'wrangler.json'),
+    '--outdir',path.join(runtime,'bundle'),'--tag',control!.uploadMarker,'--message',`package:${control!.packageSha256}`],cwd:config.sourceRoot,
+    env:{...childEnv(),TMPDIR:path.join(runtime,'tmp'),CLOUDFLARE_ACCOUNT_ID:config.accountId,CLOUDFLARE_API_TOKEN:options.credentials.cloudflareToken,
+      WRANGLER_LOG_PATH:path.join(runtime,'logs'),WRANGLER_OUTPUT_FILE_PATH:path.join(runtime,'upload.ndjson')},timeoutMs:300_000});
+  const save=async(patch:Partial<PublicationControl>,nextOwner=owner,appendPins?:Record<string,ArtifactRef>)=>{
     await workspace.assertHeld();control={...control!,...patch};owner=nextOwner;
     // Read normal state only before activation; control-only settlement must not
     // turn expired merchant artifacts back into usable content.
     const view=await workspace.readCheckpoint({controlOnly:true});if(!view)throw new Error('publication_checkpoint_missing');
     if(view.checkpoint.control?.publication?.permit||control.permit&&view.checkpoint.control?.publication?.stage==='activating'){
-      if(uploadPending)throw new Error('publication_upload_review_required');
+      if(appendPins)throw new Error('publication_upload_review_required');
       await workspace.writeControlCheckpoint(view.sha256,{phase:'attention',owner,control:{publication:control}});
     }else{
       const current=await workspace.readCheckpoint();if(!current)throw new Error('publication_checkpoint_missing');
       const state=current.checkpoint.state;
       if(!state||typeof state!=='object'||Array.isArray(state))throw new Error('publication_checkpoint_invalid');
       await workspace.writeCheckpoint(current.sha256,{...current.checkpoint,phase:'publishing',owner,
-        ...(uploadPending?{pins:{...current.checkpoint.pins,publicationUploadPending:uploadPending}}:{}),
+        ...(appendPins?{pins:{...current.checkpoint.pins,...appendPins}}:{}),
         state:JSON.parse(JSON.stringify({...state,publication:control})),control:{publication:control}});
     }
     checkpoint=await workspace.readCheckpoint({controlOnly:true});
@@ -321,17 +362,46 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     // A rejected protected upload is an operator-review gate, not an uncertain
     // ordinary CLI exit. Its body-free pin survives content expiry and prevents
     // a later uploading-stage resume from bypassing scope/accounting refusal.
-    if(checkpoint?.checkpoint.pins.publicationUploadReview)throw new Error('publication_upload_review_required');
+    if(checkpoint?.checkpoint.pins.publicationUploadReview&&!reviewed)throw new Error('publication_upload_review_required');
     if(checkpoint?.checkpoint.pins.buildOperatorRecoveryPending&&control?.stage==='built'&&!options.buildRecovery)
       throw new Error('publication_build_recovery_fenced');
     const pendingUpload=checkpoint?.checkpoint.pins.publicationUploadPending,acknowledgedUpload=checkpoint?.checkpoint.pins.publicationUploadAcknowledged;
+    if(reviewed){
+      const a=reviewed.approval,pins=checkpoint?.checkpoint.pins,marker=pins?.publicationUploadRetryPending,ack=pins?.publicationUploadRetryAcknowledged;
+      if(!control||!checkpoint||!pins?.publicationUploadReview||!pendingUpload||acknowledgedUpload||options.buildRecovery
+        ||a.requestId!==control.requestId||a.packageSha256!==control.packageSha256||a.configSha256!==configSha256
+        ||a.reviewPinSha256!==pins.publicationUploadReview.sha256||a.evidenceSha256!==reviewed.evidence.sha256
+        ||pendingUpload.sha256!==sha256(canonicalJson(uploadBinding()))||!isAccountedPublicationUploadCommand(command)
+        ||marker&&(!ack||ack.sha256!==sha256(canonicalJson(retryAck(marker))))||!marker&&ack)
+        throw new Error('publication_upload_review_required');
+      // A marker without genuine command ACK is ALWAYS held before provider IO;
+      // a visible version can never mint that acknowledgement on resume.
+      if(!control.permit){
+        const e=await workspace.readArtifact(reviewed.evidence);reviewedEvidence(e,config);
+        if(!marker){
+          if(control.stage!=='uploading'||checkpoint.sha256!==a.checkpointSha256||control.versionReference!==null||control.permit!==null
+            ||control.deploymentId!==null||control.receiptSha256!==undefined||owner.phase!=='freezing')throw new Error('publication_upload_retry_fenced');
+          const review=await workspace.readArtifact(pins.publicationUploadReview) as Record<string,unknown>;
+          if(review.code!=='publication_upload_unknown'||review.requestId!==control.requestId||review.releaseId!==config.releaseId
+            ||review.configSha256!==configSha256)throw new Error('publication_upload_retry_fenced');
+        }else{
+          retryRecord=await workspace.readArtifact(marker) as unknown as RetryRecord;
+          if(!exact(retryRecord,'approval,control,evidence,oldPending,oldReview,original,owner,schemaVersion')||retryRecord.schemaVersion!==1
+            ||encodeReviewedUploadActivationApproval(retryRecord.approval)!==encodeReviewedUploadActivationApproval(a)
+            ||canonicalJson(retryRecord.evidence)!==canonicalJson(reviewed.evidence)||canonicalJson(retryRecord.oldPending)!==canonicalJson(pendingUpload)
+            ||canonicalJson(retryRecord.oldReview)!==canonicalJson(pins.publicationUploadReview)
+            ||canonicalJson({...retryRecord.control,stage:control.stage,versionReference:control.versionReference})!==canonicalJson(control)
+            ||canonicalJson(retryRecord.owner)!==canonicalJson(owner))throw new Error('publication_upload_retry_fenced');
+        }
+      }
+    }
     // Old code pinned BEFORE preflight. Only this built-stage shape can prove
     // no CLI invocation; actual owner/build/package/D1/provider checks follow.
     const preflightPending=!!(pendingUpload&&!acknowledgedUpload&&control?.stage==='built'
       &&pendingUpload.sha256===sha256(canonicalJson(uploadBinding()))&&isAccountedPublicationUploadCommand(command));
     // Pins are append-only. A durable exact acknowledgement logically clears
     // pending; no artifact-body read (or new content rights) is needed on expiry.
-    if(!preflightPending&&(pendingUpload||acknowledgedUpload)&&(!control||!pendingUpload||!acknowledgedUpload
+    if(!reviewed&&!preflightPending&&(pendingUpload||acknowledgedUpload)&&(!control||!pendingUpload||!acknowledgedUpload
       ||pendingUpload.sha256!==sha256(canonicalJson(uploadBinding()))
       ||acknowledgedUpload.sha256!==sha256(canonicalJson({...uploadBinding(),pending:pendingUpload}))))
       throw new Error('publication_upload_review_required');
@@ -379,6 +449,64 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         ||sealed.manifest.vectorSyncWatermark!==revision.vectorSyncWatermark
         ||canonicalJson(sealed.snapshot)!==canonicalJson(revision.snapshot))throw new Error('publication_package_changed');
     };
+    const vectorProof=async(signal?:AbortSignal)=>{
+      if(!revision)throw new Error('publication_revision_required');
+      const adapters=createVectorizeRestAdapters({environment:config.environment,indexName:config.indexName,
+        accountId:config.accountId,token:options.credentials.cloudflareToken,fetch:observationSend});
+      if(options.permanent){
+        return readPermanentNativeProof({db,owner,revision:options.permanent,adapters,signal});
+      }
+      if(options.published)return readPublishedCatalogVectors({db,owner,published:options.published,adapters,signal});
+      return 'approval' in revision.request?readOwnedApprovedCohortVectors(db,owner,revision as ApprovedCohortRevision,adapters):readOwnedPrunedVectors(db,owner,revision,adapters);
+    };
+    // Full-catalog scans are sequential owned D1 reads, not a short provider
+    // observation. No proof survives this invocation or crosses an owner change.
+    const permanentProof=async()=>{
+      if(!options.permanent)return;
+      const controller=new AbortController(),remaining=control!.permit?120_000:Date.parse(control!.build.request.cutoff)-now().getTime();
+      if(remaining<=0)throw new Error('publication_upload_retry_cutoff');
+      const timer=setTimeout(()=>controller.abort(),Math.min(120_000,remaining));
+      try{await assertPermanentCatalog(db,owner,options.permanent,control!.permit??undefined,controller.signal);}
+      finally{clearTimeout(timer);} // The concrete D1 sender joins its own ledger before returning.
+    };
+    if(reviewed&&!retryRecord&&!control.permit){
+      if(!revision||!control.publication||!control.intent||owner.phase!=='freezing'||canonicalJson(actual)!==canonicalJson(owner))throw new Error('publication_upload_retry_fenced');
+      const publication=(await db.prepare('SELECT * FROM publication_outbox WHERE intent_id=?').bind(control.publication.intentId).all<Record<string,unknown>>()).results[0];
+      const b=control.build,p=control.publication;
+      let operator;
+      try{operator=JSON.parse(String(buildRow?.operator_recovery_json));encodeBuildRecoveryApproval(operator.approval);}
+      catch{throw new Error('publication_upload_retry_fenced');}
+      if(!buildRow||!publication||buildRow.state!=='building'||buildRow.lease_token!==b.token||buildRow.lease_until!==b.leaseUntil
+        ||typeof buildRow.observed_at!=='string'||b.leaseUntil>buildRow.observed_at||p.leaseUntil>buildRow.observed_at
+        ||buildRow.attempts!==3||operator.schemaVersion!==1||operator.kind!=='unstarted-build-operator-recovery'
+        ||operator.normalAttempts!==3||operator.operatorAttempts!==1||operator.totalAttempts!==4||operator.releaseId!==config.releaseId
+        ||operator.token!==b.token||operator.leaseUntil!==b.leaseUntil||canonicalJson(operator.owner)!==canonicalJson(owner)
+        ||operator.approval.requestId!==b.requestId||operator.approval.packageSha256!==control.packageSha256
+        ||buildRow.request_json!==encodeBuildRequest(b.request)||buildRow.run_reference!==b.runReference||buildRow.release_id!==null||buildRow.version_reference!==null
+        ||buildRow.dispatch_reference!==null||buildRow.error_code!==null||publication.state!=='claimed'||publication.lease_token!==p.token
+        ||publication.lease_until!==p.leaseUntil||publication.intent_json!==encodePublicationIntent(p.intent)||publication.release_id!==config.releaseId
+        ||publication.dispatch_reference!==null||publication.completed_token!==null||publication.error_code!==null)throw new Error('publication_upload_retry_fenced');
+      const {observed_at:ignored,...build}=buildRow;void ignored;
+      retryRecord={schemaVersion:1,approval:reviewed.approval,evidence:reviewed.evidence,oldPending:pendingUpload!,
+        oldReview:checkpoint!.checkpoint.pins.publicationUploadReview,owner,control:structuredClone(control),original:{build,publication}};
+      await verifyBuiltPackage();if(!(await rollbackPreflight(db,revision.snapshot,now())).ok)throw new Error('publication_upload_retry_fenced');
+      await vectorProof();if(await api.findVersion(control.uploadMarker)!==null)throw new Error('publication_upload_review_required');
+      await permanentProof();
+      const exactRow=(table:string,row:Record<string,unknown>)=>{
+        const keys=Object.keys(row).sort();if(keys.some(k=>!/^[_a-z][_a-z0-9]*$/.test(k)))throw new Error('publication_upload_retry_fenced');
+        return db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM ${table} WHERE ${keys.map(k=>`${k} IS ?`).join(' AND ')})
+          AND ?>strftime('%Y-%m-%dT%H:%M:%fZ','now') AND NOT EXISTS(SELECT 1 FROM publication_receipts WHERE release_id=?)
+          THEN 'true' ELSE 'publication_upload_retry_fenced' END)`).bind(...keys.map(k=>row[k]),b.request.cutoff,config.releaseId);
+      };
+      await db.batch([mutationAssertion(db,owner,['freezing']),exactRow('catalog_build_requests',build),exactRow('publication_outbox',publication),mutationAssertion(db,owner,['freezing'])]);
+      const current=await workspace.readCheckpoint();if(current?.sha256!==reviewed.approval.checkpointSha256)throw new Error('publication_upload_retry_fenced');
+      assertBuildSource(config.sourceRoot,config.codeSha);
+      const marker=await workspace.putArtifact(retryRecord,{kind:'publication',observedAt:now().toISOString()});
+      await save({},owner,{publicationUploadRetryPending:marker});
+      await workspace.assertHeld();await runUpload(); // Genuine factory success is required; no unknown reconciliation can create this ACK.
+      const ack=await workspace.putArtifact(retryAck(marker),{kind:'publication',observedAt:now().toISOString()});
+      await save({},owner,{publicationUploadRetryAcknowledged:ack});
+    }
     let operatorRecovered=false;
     if(options.buildRecovery&&control.stage==='built'){
       const approval=options.buildRecovery,recoveryPending=checkpoint?.checkpoint.pins.buildOperatorRecoveryPending;
@@ -474,7 +602,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         ||sha256(canonicalJson(receipt()))!==control.receiptSha256)throw new Error('publication_receipt_mismatch');
       return{state:'published',owner:null,releaseId:config.releaseId,receiptSha256:control.receiptSha256,receipt:receipt()};
     }
-    if(!control.permit&&actual?.phase==='activating'&&buildRow?.state==='activating'&&buildRow.lease_token===control.build.token
+    if(!reviewed&&!control.permit&&actual?.phase==='activating'&&buildRow?.state==='activating'&&buildRow.lease_token===control.build.token
       &&buildRow.run_reference===control.runReference&&buildRow.release_id===config.releaseId&&buildRow.version_reference===control.versionReference
       &&canonicalJson({...actual,phase:owner.phase})===canonicalJson(owner)){
       await save({stage:'activating',permit:{requestId:control.requestId,token:control.build.token,runReference:control.runReference,
@@ -487,8 +615,10 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         if(!deployed||deployed.version!==control!.versionReference||deployed.marker!==control!.deploymentMarker
           ||control!.deploymentId!==null&&deployed.id!==control!.deploymentId)throw new Error('publication_activation_pending');
         if(!matchesIdentity(await api.identity(signal),control!.intent!))throw new Error('publication_identity_mismatch');signal?.throwIfAborted();
-        await readActivatedCatalogVectors(db,control!.permit!,control!.vectorPlan,createVectorizeRestAdapters({environment:config.environment,
-          indexName:config.indexName,accountId:config.accountId,token:options.credentials.cloudflareToken,fetch:observationSend}),
+        const adapters=createVectorizeRestAdapters({environment:config.environment,indexName:config.indexName,accountId:config.accountId,
+          token:options.credentials.cloudflareToken,fetch:observationSend});
+        if(reviewed&&options.permanent)await readActivatedPermanentCatalogNative(db,control!.permit!,control!.vectorPlan,options.permanent,adapters,signal);
+        else await readActivatedCatalogVectors(db,control!.permit!,control!.vectorPlan,adapters,
           {signal,published:options.published,permanent:options.permanent});signal?.throwIfAborted();
         // Re-read deployment after independent identity/vector reads. Never infer
         // not-submitted from elapsed time or an observed prior deployment.
@@ -517,6 +647,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
           // that digest in the protected control journal, never renew content.
         }}
       await save({stage:'published',receiptSha256:ref.sha256});
+      if(reviewed&&options.permanent)await permanentProof();
       let observation:Promise<DeploymentObservation>|undefined;
       try{if(await resolveBuildActivation(db,control.permit,signal=>(observation=observed(signal)),{observationTimeoutMs:30_000})!=='resolved')
         throw new Error('publication_activation_pending');}
@@ -594,14 +725,11 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       const pending=protectedUpload?await workspace.putArtifact(uploadBinding(),{kind:'publication',observedAt:now().toISOString()}):undefined;
       // One checkpoint binds the first possible CLI invocation to both its
       // exact publication claim and pending pin, never a preflight-only read.
-      await save({intent,publication,stage:'uploading'},owner,pending);
+      await save({intent,publication,stage:'uploading'},owner,pending?{publicationUploadPending:pending}:undefined);
       assertBuildSource(config.sourceRoot,config.codeSha);await workspace.assertHeld();
       // Intent is durable before the only upload CLI invocation (Wrangler may
       // internally retry immutable version POST). Duplicate tags stay pending.
-      try{await command({file:process.execPath,args:['node_modules/wrangler/bin/wrangler.js','versions','upload','--config',path.join(directory,'wrangler.json'),
-        '--outdir',path.join(runtime,'bundle'),'--tag',control.uploadMarker,'--message',`package:${control.packageSha256}`],cwd:config.sourceRoot,env:{...childEnv(),TMPDIR:path.join(runtime,'tmp'),
-        CLOUDFLARE_ACCOUNT_ID:config.accountId,CLOUDFLARE_API_TOKEN:options.credentials.cloudflareToken,
-        WRANGLER_LOG_PATH:path.join(runtime,'logs'),WRANGLER_OUTPUT_FILE_PATH:path.join(runtime,'upload.ndjson')},timeoutMs:300_000});}catch(error){
+      try{await runUpload();}catch(error){
         if(error instanceof PublicationUploadCommandError){
           const current=await workspace.readCheckpoint();if(!current)throw new Error('publication_checkpoint_missing');
           const review=await workspace.putArtifact({schemaVersion:1,code:error.code,releaseId:config.releaseId,
@@ -632,10 +760,10 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     assertBuildSource(config.sourceRoot,config.codeSha);
     await loadPackage(directory,config,control.packageSha256!,now());
     verifyUploadedVersion(await api.version(control.versionReference!),config,control.versionReference!,control);
-    await recordPublicationDispatch(db,sealed.snapshot,control.publication!,`version:${control.versionReference}`,now());
+    if(!reviewed)await recordPublicationDispatch(db,sealed.snapshot,control.publication!,`version:${control.versionReference}`,now());
     // Persist exact deployment intent BEFORE the D1 CAS and actual POST. A crash
     // after this point is reconciled from the exact claim, never automatically POSTed.
-    await save({stage:'activating'});
+    if(!reviewed)await save({stage:'activating'});
     const readPrior=async(signal:AbortSignal):Promise<DeploymentObservation>=>{
       signal.throwIfAborted();await workspace.assertHeld();signal.throwIfAborted();
       const deployed=await api.deployed(signal);signal.throwIfAborted();
@@ -661,13 +789,44 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       return{environment:config.environment,settled:true,active:identity(prior,config.prior.versionReference)};
     };
     let observation:Promise<DeploymentObservation>|undefined,permit:ActivationPermit;
-    try{permit=await beginBuildActivation(db,control.build,sealed.snapshot,control.publication!,control.versionReference!,
-      signal=>(observation=readPrior(signal)),now(),owner);}
+    try{
+      if(reviewed){
+        if(!retryRecord)throw new Error('publication_upload_retry_fenced');
+        const input:ReviewedUploadActivationInput={claim:control.build,publication:control.publication!,versionReference:control.versionReference!,
+          owner:retryRecord.owner,approval:reviewed.approval,original:retryRecord.original};
+        const pins=checkpoint!.checkpoint.pins,expected={schemaVersion:1,input,retryPending:pins.publicationUploadRetryPending,
+          retryAcknowledged:pins.publicationUploadRetryAcknowledged,configSha256};
+        const marked=pins.reviewedUploadActivationPending;
+        if(marked){
+          if(marked.sha256!==sha256(canonicalJson(expected)))throw new Error('publication_upload_retry_fenced');
+          permit=await readReviewedUploadActivation(db,input); // Never repeat a marked/missing/unknown CAS.
+        }else{
+          let dispatched=false;
+          try{permit=await beginReviewedUploadActivation(db,input,sealed.snapshot,signal=>(observation=(async()=>{
+            signal.throwIfAborted();await loadPackage(directory,config,control!.packageSha256!,now());signal.throwIfAborted();
+            verifyUploadedVersion(await api.version(control!.versionReference!),config,control!.versionReference!,control!);
+            await vectorProof(signal);signal.throwIfAborted();return readPrior(signal);
+          })()),async()=>{
+            await permanentProof(); // All rows/held/private/projection proof immediately precedes the action marker.
+            const marker=await workspace.putArtifact(expected,{kind:'publication',observedAt:now().toISOString()});
+            await save({},owner,{reviewedUploadActivationPending:marker});dispatched=true;
+          });}catch(error){
+            if(!dispatched)throw error;
+            permit=await readReviewedUploadActivation(db,input); // ACK loss: exact readback only, no write retry.
+          }
+        }
+      }else permit=await beginBuildActivation(db,control.build,sealed.snapshot,control.publication!,control.versionReference!,
+        signal=>(observation=readPrior(signal)),now(),owner);
+    }
     finally{if(observation){
       if(isAccountedPublicationFetch(observationSend)&&isCatalogD1Rest(db))await observation.catch(()=>{});
       else await drainDeploymentObservation(observation);}}
-    await save({permit},permit.mutationOwner!);
+    // CAS pending is NOT provider dispatch pending. A recovered permit may
+    // authorize its FIRST POST only while the original cutoff remains future.
+    if(reviewed&&now().toISOString()>=control.build.request.cutoff)throw new Error('publication_upload_retry_cutoff');
+    await save(reviewed?{stage:'activating',permit}:{permit},permit.mutationOwner!);
     await workspace.assertHeld(); // Exact owner fence immediately precedes real activation.
+    if(reviewed&&now().toISOString()>=control.build.request.cutoff)throw new Error('publication_upload_retry_cutoff');
     const deploymentId=await api.activate(control.versionReference!,control.deploymentMarker);
     await save({deploymentId});
     // One invocation performs the readback too; recursive entry only reuses the

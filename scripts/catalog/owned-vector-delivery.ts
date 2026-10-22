@@ -994,6 +994,25 @@ export async function readPermanentNativeProof(options:{db:CatalogD1;owner:Mutat
   return{environment:owner.environment,indexName:owner.indexName,settled:true,planSha256:sha256(canonicalJson(prunedVectorPlan(revision))),
     reference:`preserved-vectors:${revision.nativePreservation.source.deliveryId}`};
 }
+/** Concrete native/permit observation for callers that already own the complete
+ * permanent source/projection proof (receipt settlement or final resolution).
+ * This does not attest the remaining catalog rows; the default reader below does. */
+export function readActivatedPermanentCatalogNative(db:CatalogD1,permit:ActivationPermit,plan:ActivatedVectorPlan,
+  revision:PermanentCatalogRevision,adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>,
+  signal?:AbortSignal):Promise<PrunedVectorObservation>{return safe(async()=>{
+  const owner=permit.mutationOwner,expected=prunedVectorPlan(revision);
+  if(!owner||owner.phase!=='activating'||plan.catalogRevision!==expected.catalogRevision
+    ||plan.planSha256!==sha256(canonicalJson(expected))||canonicalJson([...plan.ids].sort())!==canonicalJson(prunedVectorIds(expected).sort()))
+    throw new Error('vector_plan_invalid');
+  const check=async()=>{signal?.throwIfAborted();await db.batch([mutationAssertion(db,owner,['activating']),assertion(db,`EXISTS(
+    SELECT 1 FROM catalog_mutation_scopes s JOIN catalog_build_requests b ON b.request_id=s.activation_request_id
+    WHERE s.environment=? AND s.index_name=? AND s.captured_at=? AND s.activation_request_id=? AND b.environment=s.environment
+    AND b.state='activating' AND b.lease_token=? AND b.run_reference=? AND b.release_id=? AND b.version_reference=?
+    AND json_extract(b.request_json,'$.sourceRevision')=? AND json_extract(b.request_json,'$.sourceDigest')=?)`,
+    [owner.environment,owner.indexName,owner.capturedAt,permit.requestId,permit.token,permit.runReference,permit.releaseId,permit.versionReference,
+      revision.snapshot.catalogRevision,revision.packet.receipt.snapshot_sha256])],{signal});signal?.throwIfAborted();};
+  await check();const observed=await readPermanentNativeProof({db,owner,revision,adapters,signal});await check();return observed;
+});}
 export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit,plan:ActivatedVectorPlan,
   adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>,
   options:{signal?:AbortSignal;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision}={}):Promise<PrunedVectorObservation> {
@@ -1011,7 +1030,7 @@ export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit
         ||canonicalJson([...plan.ids].sort())!==canonicalJson(prunedVectorIds(expected).sort()))throw new Error('vector_plan_invalid');
       const {assertPermanentCatalog}=await import('../../lib/catalog/freeze-permanent-catalog.ts');
       await assertPermanentCatalog(db,owner,revision,permit,signal);
-      const observed=await readPermanentNativeProof({db,owner,revision,adapters,signal});
+      const observed=await readActivatedPermanentCatalogNative(db,permit,plan,revision,adapters,signal);
       await assertPermanentCatalog(db,owner,revision,permit,signal);return observed;}
     adapterScope(owner,adapters);
     const check=async()=>{signal?.throwIfAborted();await db.batch([mutationAssertion(db,owner,['activating']),assertion(db,`EXISTS(

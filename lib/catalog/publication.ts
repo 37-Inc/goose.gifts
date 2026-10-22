@@ -75,6 +75,8 @@ function gate(snapshot: CatalogSnapshot, intent: PublicationIntent) {
       ...visible.params, snapshot.products.length, intent.catalogRevision, intent.vectorSyncWatermark,
       intent.catalogRevision, intent.nextExpiry, intent.nextExpiry, intent.priorReleaseId, intent.priorReleaseId] };
 }
+/** Same predicates for the explicit reviewed, original-token activation CAS. */
+export { gate as publicationActivationGate };
 async function preflight(db: CatalogD1, snapshot: CatalogSnapshot, intent: PublicationIntent, now: Date): Promise<void> {
   const earliest = earliestDisplayExpiry(snapshot.products);
   if (snapshot.dataKind !== 'catalog' || snapshot.catalogRevision !== intent.catalogRevision || intent.nextExpiry !== earliest
@@ -278,6 +280,15 @@ async function completeActivated(db: CatalogD1, revision: PrunedRevision, public
         :[JSON.stringify(revision.packet.rows),intent.catalogRevision,receipt.product_count]),...check.params]),
     ...(!bulk?pruningCurrentQueries(revision.sourceRows).map(query => assertion(`(${query.sql})=?`, [...query.params, query.count])):[])];
   const fullRows=async()=>{
+    // One cooperative owner excludes application catalog writers between pages.
+    // Repeating the full visibility scan in every byte-page is not a stronger
+    // fence; retain it at both boundaries and in the final receipt transaction.
+    const compact=()=>[mutationAssertion(db,owner,['activating']),assertion(`EXISTS(
+      SELECT 1 FROM catalog_mutation_scopes s JOIN catalog_build_requests b ON b.request_id=s.activation_request_id
+      WHERE s.environment=? AND s.index_name=? AND s.captured_at=? AND s.activation_request_id=?
+      AND b.state='activating' AND b.lease_token=? AND b.run_reference=? AND b.release_id=? AND b.version_reference=? AND b.request_json=?)`,
+      [owner.environment,owner.indexName,owner.capturedAt,permit.requestId,permit.token,permit.runReference,permit.releaseId,permit.versionReference,build.request_json])];
+    await db.batch(assertions());
     const queries=pruningCurrentQueries(revision.sourceRows).map(q=>({sql:`(${q.sql})=?`,params:[...q.params,q.count]}));
     const add=(rows:typeof revision.packet.rows)=>{
       const q={sql:`(SELECT count(*) FROM json_each(?) e JOIN catalog_public_products p ON p.catalog_revision=?
@@ -290,9 +301,9 @@ async function completeActivated(db: CatalogD1, revision: PrunedRevision, public
     // Same cooperative owner excludes application writers between bounded pages
     // and final compact receipt CAS. Privileged out-of-band SQL is not a barrier.
     let batch:typeof queries=[],bytes=0;
-    const flush=async()=>{await db.batch([...assertions(),...batch.map(q=>assertion(q.sql,q.params)),mutationAssertion(db,owner,['activating'])]);batch=[];bytes=0;};
+    const flush=async()=>{await db.batch([...compact(),...batch.map(q=>assertion(q.sql,q.params)),...compact()]);batch=[];bytes=0;};
     for(const q of queries){const n=new TextEncoder().encode(JSON.stringify(q)).length;if(batch.length>=40||bytes+n>400*1024)await flush();batch.push(q);bytes+=n;}
-    if(batch.length)await flush();
+    if(batch.length)await flush();await db.batch(assertions());
   };
   // Owner/source assertions run before the trusted provider read and again in
   // the final receipt transaction. There is no upload/activate/claim callback.
