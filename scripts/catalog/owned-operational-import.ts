@@ -144,6 +144,12 @@ function progressRows(plan:OwnedOperationalImportPlan,planSha256:string,complete
   scope.mutation_epoch=plan.owner.epoch+completed;return result;
 }
 
+/** Pure exact completed-union state, including genuine batch receipts and
+ * allocator/epoch changes. Reusers must compare every captured table. */
+export function expectedOwnedOperationalImportRows(plan:OwnedOperationalImportPlan,planSha256:string){
+  validate(plan,planSha256);return progressRows(plan,planSha256,plan.batches.length);
+}
+
 export interface OwnedImportSequenceRollback {
   planSha256:string;importedSequences:OwnedOperationalImportPlan['sequenceMapping'];
   nativeSequences:Array<{id:string;from:number;to:number}>;normalizedInputSha256:string;
