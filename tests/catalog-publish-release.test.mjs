@@ -7,6 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
 import { executePublication, validatePublicationConfig } from '../scripts/catalog/publish-release.ts';
+import { accountedPublicationUploadCommand, PublicationUploadCommandError } from '../scripts/catalog/publication-upload-command.ts';
 import { createProjectionPacket, importPublicProjection } from '../lib/catalog/d1.ts';
 import { enqueueBuildRequest, claimBuildRequest, beginBuildActivation } from '../lib/catalog/build-requests.ts';
 import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication, completeActivatedPublication } from '../lib/catalog/publication.ts';
@@ -26,7 +27,7 @@ import { guides } from '../static-site/lib/guides.ts';
 import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 import { openRunWorkspace } from '../scripts/catalog/run-workspace.ts';
 import { createCatalogD1Rest } from '../scripts/catalog/d1-write-rest.ts';
-import { accountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
+import { accountedPublicationFetch, accountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
 import safeCatalogPayload from '../static-site/public/safe/catalog.json' with {type:'json'};
 
 const AT=Date.parse('2026-10-19T12:00:00.000Z');
@@ -196,7 +197,7 @@ async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environmen
   };
   const execute=(database=db,dependencies={})=>executePublication({db:database,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
     credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock),...dependencies}});
-  return{db,sql,owner,revision,fetch,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,commandEnvironments,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
+  return{db,sql,owner,revision,fetch,command,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,commandEnvironments,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
     async nextRelease(){
       assert.equal((await readMutationOwner(db,scope)),null);
       const packageDirectory=path.join(workspace.directory,'packages',config.releaseId);
@@ -237,9 +238,9 @@ async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environmen
       active=true;
       await completePublication(db,snapshot,config.releaseId,publication.token,async()=>release.intent,()=>new Date(AT),permit.mutationOwner);
     },
-    async reopen(){const expectedManifestSha256=actualWorkspace.manifestSha256;await actualWorkspace.close();
+    async reopen({controlOnly=false}={}){const expectedManifestSha256=actualWorkspace.manifestSha256;await actualWorkspace.close();
       actualWorkspace=await openRunWorkspace({...workspaceOptions,mode:'resume',expectedManifestSha256});workspace=wrapActual();
-      const saved=await actualWorkspace.readCheckpoint();checkpoint={...saved.checkpoint,sha256:saved.sha256};},
+      const saved=await actualWorkspace.readCheckpoint({controlOnly});checkpoint={...saved.checkpoint,sha256:saved.sha256};},
     counts:()=>({uploadCalls,activateCalls,buildCalls,identityCalls,httpCalls}),vector};
 }
 
@@ -250,6 +251,125 @@ test('actual build/upload/activate/identity/native-proof/receipt/idle compositio
   assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
   assert.equal(f.checkpoint().state.driverState,'preserved');assert.doesNotMatch(JSON.stringify(f.checkpoint()),/PRIVATE|example.invalid|clockwork spoon/);
   assert.equal((await f.execute()).state,'published');assert.equal(f.counts().activateCalls,1);
+});
+
+test('protected upload refusal persists a body-free review gate that resume cannot bypass',async t=>{
+  const f=await setup(t,{real:true});
+  const result=await f.execute(f.db,{command:async command=>{
+    await f.command(command);
+    // Even an already-visible immutable version cannot waive the protected
+    // uploader's scope/accounting rejection or create activation permission.
+    if(command.args.includes('upload'))throw new PublicationUploadCommandError('publication_upload_scope_invalid');
+  }});
+  assert.equal(result.state,'pending');assert.equal(result.errorCode,'publication_upload_scope_invalid');
+  assert.equal(f.checkpoint().phase,'attention');assert.ok(f.checkpoint().pins.publicationUploadReview);
+  assert.equal(f.checkpoint().control.publication.stage,'uploading');
+  assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,0);
+  const before=f.counts();await f.reopen();
+  const retry=await f.execute();assert.equal(retry.state,'pending');assert.equal(retry.errorCode,'publication_upload_review_required');
+  assert.deepEqual(f.counts(),before);assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests').get().state,'building');
+  assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'freezing');
+});
+
+const protectedCommand=(f,run=f.command)=>accountedPublicationUploadCommand({workspace:f.workspace,
+  scope:{accountId:f.config.accountId,workerName:f.config.workerName},send:async()=>assert.fail('No remote upload in synthetic command fixture'),command:run});
+const protectedMac={skip:process.platform!=='darwin'};
+
+test('protected upload cannot enqueue intent or dispatch without a durable pending checkpoint',protectedMac,async t=>{
+  const f=await setup(t,{real:true}),write=f.workspace.writeCheckpoint;
+  f.workspace.writeCheckpoint=async(expected,value)=>{
+    if(value.pins.publicationUploadPending)throw new Error('Owned pending checkpoint write failed');
+    return write(expected,value);
+  };
+  assert.equal((await f.execute(f.db,{command:protectedCommand(f)})).state,'pending');
+  assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_outbox WHERE release_id=?').get(f.config.releaseId).n,0);
+});
+
+test('protected failed upload plus lost review checkpoint remains held after actual workspace reopen',protectedMac,async t=>{
+  const f=await setup(t,{real:true}),write=f.workspace.writeCheckpoint;let rejectedReview=false;
+  f.workspace.writeCheckpoint=async(expected,value)=>{
+    if(value.pins.publicationUploadReview){rejectedReview=true;throw new Error('Owned review checkpoint write failed');}
+    return write(expected,value);
+  };
+  f.mode.uploadLost=true;
+  const command=protectedCommand(f,async command=>{
+    if(command.args.includes('upload'))assert.ok(f.checkpoint().pins.publicationUploadPending);
+    await f.command(command);
+  });
+  assert.equal((await f.execute(f.db,{command})).state,'pending');assert.equal(rejectedReview,true);
+  assert.ok(f.checkpoint().pins.publicationUploadPending);assert.equal(f.checkpoint().pins.publicationUploadAcknowledged,undefined);
+  assert.equal(f.checkpoint().pins.publicationUploadReview,undefined);assert.equal(f.checkpoint().control.publication.stage,'uploading');
+  assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,0);
+  const before=f.counts();await f.reopen();
+  const retry=await f.execute({providerIdentity:f.db.providerIdentity,prepare(){assert.fail('Held resume must not read D1');},
+    batch(){assert.fail('Held resume must not mutate D1');}});assert.equal(retry.errorCode,'publication_upload_review_required');
+  assert.deepEqual(f.counts(),before);assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'freezing');
+});
+
+test('protected successful upload with lost acknowledgement checkpoint cannot reconcile a visible version',protectedMac,async t=>{
+  const f=await setup(t,{real:true}),write=f.workspace.writeCheckpoint;
+  f.workspace.writeCheckpoint=async(expected,value)=>{
+    if(value.pins.publicationUploadAcknowledged)throw new Error('Owned acknowledgement checkpoint write failed');
+    return write(expected,value);
+  };
+  assert.equal((await f.execute(f.db,{command:protectedCommand(f)})).state,'pending');
+  assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,0);
+  assert.ok(f.checkpoint().pins.publicationUploadPending);assert.equal(f.checkpoint().pins.publicationUploadAcknowledged,undefined);
+  const before=f.counts();await f.reopen();
+  assert.equal((await f.execute()).errorCode,'publication_upload_review_required');assert.deepEqual(f.counts(),before);
+});
+
+test('protected exact acknowledgement permits ordinary immutable-version reconciliation without another upload',protectedMac,async t=>{
+  const f=await setup(t,{real:true});f.mode.versionInvisible=true;
+  assert.equal((await f.execute(f.db,{command:protectedCommand(f)})).errorCode,'publication_upload_pending');
+  assert.ok(f.checkpoint().pins.publicationUploadPending);assert.ok(f.checkpoint().pins.publicationUploadAcknowledged);
+  await f.reopen();delete f.mode.versionInvisible;
+  assert.equal((await f.execute()).state,'published');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+});
+
+test('negative protected review always wins over an exact acknowledged upload',protectedMac,async t=>{
+  const f=await setup(t,{real:true});f.mode.versionInvisible=true;
+  await f.execute(f.db,{command:protectedCommand(f)});
+  const current=await f.workspace.readCheckpoint();assert.ok(current.checkpoint.pins.publicationUploadAcknowledged);
+  const review=await f.workspace.putArtifact({schemaVersion:1,code:'publication_upload_unknown',releaseId:f.config.releaseId},
+    {kind:'publication',observedAt:new Date(AT).toISOString()});
+  await f.workspace.writeCheckpoint(current.sha256,{...current.checkpoint,pins:{...current.checkpoint.pins,publicationUploadReview:review}});
+  const before=f.counts();await f.reopen();
+  assert.equal((await f.execute()).errorCode,'publication_upload_review_required');assert.deepEqual(f.counts(),before);
+});
+
+test('protected acknowledged upload resumes normally and settles accepted control after artifact expiry',protectedMac,async t=>{
+  const f=await setup(t,{real:true});let lost=false;
+  f.after(statements=>{if(!lost&&statements.some(s=>s.query.startsWith('INSERT INTO publication_receipts'))){lost=true;throw new Error('Owned lost receipt acknowledgement');}});
+  assert.equal((await f.execute(f.db,{command:protectedCommand(f)})).state,'pending');assert.equal(lost,true);
+  const pins=f.checkpoint().pins;assert.ok(pins.publicationUploadPending);assert.ok(pins.publicationUploadAcknowledged);
+  assert.equal(pins.publicationUploadReview,undefined);
+  f.advance(6*60000);f.mode.noRevision=true;
+  await f.workspace.purgeExpired();await f.reopen({controlOnly:true});
+  const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
+  assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);assert.equal(await readMutationOwner(f.db,scope),null);
+  assert.deepEqual(f.checkpoint().pins,pins);
+  await f.reopen({controlOnly:true});assert.equal((await f.execute()).state,'published');
+});
+
+test('mismatched or stale protected acknowledgement refuses before provider IO',protectedMac,async t=>{
+  for(const mismatch of ['pending','releaseId'])await t.test(mismatch,async sub=>{
+    const f=await setup(sub,{real:true}),write=f.workspace.writeCheckpoint;
+    f.workspace.writeCheckpoint=async(expected,value)=>{
+      if(value.pins.publicationUploadAcknowledged)throw new Error('Owned acknowledgement checkpoint write failed');
+      return write(expected,value);
+    };
+    await f.execute(f.db,{command:protectedCommand(f)});
+    const current=await f.workspace.readCheckpoint(),c=current.checkpoint.control.publication;
+    const body={schemaVersion:1,releaseId:f.config.releaseId,requestId:c.requestId,configSha256:sha(canonicalJson(f.config)),
+      packageSha256:c.packageSha256,uploadMarker:c.uploadMarker,pending:current.checkpoint.pins.publicationUploadPending};
+    if(mismatch==='pending')body.pending={...body.pending,sha256:'0'.repeat(64)};else body.releaseId='stale-release';
+    const acknowledged=await f.workspace.putArtifact(body,{kind:'publication',observedAt:new Date(AT).toISOString()});
+    await write(current.sha256,{...current.checkpoint,pins:{...current.checkpoint.pins,publicationUploadAcknowledged:acknowledged}});
+    const before=f.counts();await f.reopen();
+    assert.equal((await f.execute()).errorCode,'publication_upload_review_required');assert.deepEqual(f.counts(),before);
+  });
 });
 
 test('identity-only prior permits a fresh publication after a missed day/purged prior, without old asset reuse',async t=>{
@@ -684,7 +804,8 @@ test('outer resolve deadline aborts the owned chain before further reads, preser
   assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
 });
 test('preactivation and resolve timeouts drain the selected owned sender before exact once-only retry',async t=>{
-  for(const [identityOnlyPrior,phase]of [[false,'preactivation'],[true,'preactivation'],[true,'resolve']])await t.test(`${phase}/${identityOnlyPrior?'receipt':'retained'}`,async sub=>{
+  for(const [identityOnlyPrior,phase,general]of [[false,'preactivation'],[true,'preactivation'],[true,'resolve']]
+    .flatMap(([prior,phase])=>[[prior,phase,false],[prior,phase,true]]))await t.test(`${phase}/${identityOnlyPrior?'receipt':'retained'}/${general?'general':'read'}`,async sub=>{
     const f=await setup(sub,{identityOnlyPrior}),base=`https://api.cloudflare.com/client/v4/accounts/${f.config.accountId}/d1/database/${id}`;
     const db=await createCatalogD1Rest({accountId:f.config.accountId,databaseId:id,databaseName:f.config.database.name,token:'FIXTURE_ONLY',fetch:async(url,init)=>{
       if(url===base)return Response.json({success:true,result:{uuid:id,name:f.config.database.name,read_replication:{mode:'disabled'}}});
@@ -696,7 +817,7 @@ test('preactivation and resolve timeouts drain the selected owned sender before 
     }});
     let lateResponse,hold=true,readStarted;const events=[];let observed=0;
     const heldRead=new Promise(resolve=>{readStarted=resolve;});
-    const observationFetch=accountedPublicationReadFetch({async reserveBudget(){events.push('reserve');},async settleBudget(_id,value){
+    const observationFetch=(general?accountedPublicationFetch:accountedPublicationReadFetch)({async reserveBudget(){events.push('reserve');},async settleBudget(_id,value){
       if(value.status==='unknown')await new Promise(resolve=>setTimeout(resolve,200));events.push(value.status);
     }},async(url,init)=>{
       observed++;const response=await f.fetch(url,init);
@@ -717,7 +838,7 @@ test('preactivation and resolve timeouts drain the selected owned sender before 
       priorEvents=[...events],priorObserved=observed;lateResponse();
     await new Promise(resolve=>setTimeout(resolve,30));assert.deepEqual(events,priorEvents);assert.equal(observed,priorObserved);
     assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);assert.deepEqual(f.counts(),counts);assert.equal(f.checkpoint().sha256,checkpoint);
-    // The read-only sender never sees normal activation/mutation traffic.
+    // The selected observation sender never sees normal activation traffic.
     const retry=await f.execute(db,{observationFetch:accountedPublicationReadFetch({async reserveBudget(){},async settleBudget(){}},f.fetch,
       {accountId:f.config.accountId,databaseId:id,workerName:f.config.workerName,indexName:f.config.indexName,identityOrigin:f.config.identityOrigin})});
     assert.equal(retry.state,'published',JSON.stringify(retry));assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);

@@ -18,6 +18,20 @@ type Outbox = { intent_id: string; release_id: string; intent_json: string; stat
 const KEY = /^[a-zA-Z0-9._-]{1,200}$/;
 const DATABASE_NOW = "strftime('%Y-%m-%dT%H:%M:%fZ','now')";
 
+/** Explicit historical source + NEW code request; never an arbitrary owner-key
+ * override. Fixed canonical order is shared with the Node proof reader. */
+export interface PublishedCatalogBinding {
+  source:{releaseId:string;receiptSha256:string;deliveryId:string;deliverySha256:string}; request:CatalogBuildRequest;
+}
+export function encodePublishedCatalogBinding({source,request}:PublishedCatalogBinding):string {
+  if(!source||typeof source.releaseId!=='string'||!KEY.test(source.releaseId)
+    ||Object.keys(source).sort().join(',')!=='deliveryId,deliverySha256,receiptSha256,releaseId'
+    ||![source.receiptSha256,source.deliveryId,source.deliverySha256]
+    .every(value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value)))throw new Error('invalid_published_catalog_binding');
+  return JSON.stringify({kind:'published-catalog-read',request:encodeBuildRequest(request),schemaVersion:1,
+    source:{deliveryId:source.deliveryId,deliverySha256:source.deliverySha256,receiptSha256:source.receiptSha256,releaseId:source.releaseId}});
+}
+
 function encode(intent: PublicationIntent): string {
   if (!intent || typeof intent.releaseId !== 'string' || !KEY.test(intent.releaseId)
     || typeof intent.catalogRevision !== 'string' || !KEY.test(intent.catalogRevision)
@@ -182,14 +196,15 @@ export async function completePublication(db: CatalogD1, snapshot: CatalogSnapsh
  * takeover nor another deployment. This bounded path renews no lease or rights;
  * fresh original package/current-source/native proof is still mandatory. */
 export async function completeActivatedPublication(db: CatalogD1, revision: PrunedRevision, publication: PublicationClaim, permit: ActivationPermit,
-  readDeployed: (intent: PublicationIntent) => Promise<PublicationIntent>, now: () => Date = () => new Date()): Promise<void> {
-  ({ revision, publication, permit } = structuredClone({ revision, publication, permit }));
+  readDeployed: (intent: PublicationIntent) => Promise<PublicationIntent>, now: () => Date = () => new Date(), published?:PublishedCatalogBinding): Promise<void> {
+  ({ revision, publication, permit, published } = structuredClone({ revision, publication, permit, published }));
   const owner = permit.mutationOwner, snapshot = revision.snapshot, intent = publication.intent;
+  const operationKey=published?await digest(encodePublishedCatalogBinding(published)):revision.operationKey;
   if (!owner || owner.phase !== 'activating' || permit.releaseId !== intent.releaseId || snapshot.products.length > 10
     || revision.sourceRows.length > 20 || new Set(revision.sourceRows.map(row => row.public_id)).size !== revision.sourceRows.length
     || [...snapshot.products, ...snapshot.heldProducts].some(product => !revision.sourceRows.some(row => row.public_id === product.publicId))
     || revision.request.scope.environment !== owner.environment || revision.request.scope.indexName !== owner.indexName
-    || revision.operationKey !== owner.operationKey || !Number.isSafeInteger(revision.globalVectorWatermark) || revision.globalVectorWatermark < 0)
+    || operationKey !== owner.operationKey || !Number.isSafeInteger(revision.globalVectorWatermark) || revision.globalVectorWatermark < 0)
     throw new Error('publication_activation_fenced');
   mutationFenceQuery(owner, ['activating']); // Validate the full owner before any provider read.
   const value = await row(db, intent.releaseId);
@@ -202,6 +217,32 @@ export async function completeActivatedPublication(db: CatalogD1, revision: Prun
     || request.environment !== owner.environment || request.sourceRevision !== intent.catalogRevision || request.sourceDigest !== intent.catalogSnapshotSha256
     || request.codeSha !== intent.codeSha || request.priorReleaseId !== intent.priorReleaseId) throw new Error('publication_activation_fenced');
   const assertion = (sql: string, params: unknown[]) => db.prepare(`SELECT json(CASE WHEN ${sql} THEN 'true' ELSE 'publication_activation_fenced' END)`).bind(...params);
+  const historical:D1Statement[]=[];
+  if(published){
+    if(encodeBuildRequest(published.request)!==build.request_json)throw new Error('publication_activation_fenced');
+    const journal=(await db.prepare('SELECT * FROM catalog_vector_deliveries WHERE delivery_id=?').bind(published.source.deliveryId)
+      .all<Record<string,unknown>>()).results;
+    const receipts=(await db.prepare('SELECT * FROM publication_receipts WHERE release_id=?').bind(published.source.releaseId)
+      .all<Record<string,unknown>>()).results;
+    if(journal.length!==1||receipts.length!==1)throw new Error('publication_activation_fenced');
+    const prior=journal[0],receipt=receipts[0],captured=JSON.parse(String(prior.owner_json)),proof=JSON.parse(String(prior.request_json));
+    // These are flat D1 control rows. Hash/compare exact original bytes without
+    // importing Node code or rewriting the original captured revision.
+    const canonicalRow=(r:Record<string,unknown>)=>JSON.stringify(Object.fromEntries(Object.entries(r).sort(([a],[b])=>a.localeCompare(b))));
+    if(await digest(canonicalRow(prior))!==published.source.deliverySha256||await digest(canonicalRow(receipt))!==published.source.receiptSha256
+      ||prior.status!=='complete'||prior.disposition!=='verified'||proof.kind!=='approved-cohort-reuse'
+      ||proof.catalogRevision!==snapshot.catalogRevision||prior.environment!==owner.environment||prior.index_name!==owner.indexName
+      ||captured.operationKey!==revision.operationKey||captured.environment!==owner.environment||captured.indexName!==owner.indexName
+      ||captured.generation!==prior.generation||Number(prior.generation)>=owner.generation
+      ||receipt.catalog_revision!==snapshot.catalogRevision||receipt.code_sha!==revision.request.codeSha)
+      throw new Error('publication_activation_fenced');
+    for(const [table,r]of [['catalog_vector_deliveries',prior],['publication_receipts',receipt]] as const){
+      const keys=Object.keys(r);if(keys.length>65||keys.some(k=>!/^[a-z_][a-z0-9_]*$/.test(k)))throw new Error('publication_activation_fenced');
+      historical.push(assertion(`EXISTS(SELECT 1 FROM ${table} WHERE ${keys.map(k=>`${k} IS ?`).join(' AND ')})`,keys.map(k=>r[k])));
+    }
+    // Mandatory readDeployed below must still verify the exact original captured
+    // revision/current sources/native proof under the NEW permit before writes.
+  }
   const check = gate(snapshot, intent), receipt = revision.packet.receipt;
   if (receipt.catalog_revision !== intent.catalogRevision || receipt.snapshot_sha256 !== intent.catalogSnapshotSha256
     || receipt.source_export_sha256 !== revision.sourceDigest || receipt.product_count !== snapshot.products.length
@@ -210,7 +251,7 @@ export async function completeActivatedPublication(db: CatalogD1, revision: Prun
     throw new Error('publication_activation_fenced');
   const receiptColumns = ['catalog_revision','snapshot_sha256','projection_sha256','source_export_sha256','product_count','created_at'] as const;
   const projectionColumns = ['catalog_revision','public_id','product_id','slug','title','description','tags','source_facts_hash','eligible_until','public_display_json','display_sha256'];
-  const assertions = () => [mutationAssertion(db, owner, ['activating']),
+  const assertions = () => [mutationAssertion(db, owner, ['activating']),...historical,
     assertion(`EXISTS(SELECT 1 FROM catalog_mutation_scopes s JOIN catalog_build_requests b ON b.request_id=s.activation_request_id
       WHERE s.environment=? AND s.index_name=? AND s.captured_at=? AND s.activation_request_id=? AND b.environment=s.environment AND b.state='activating'
       AND b.lease_token=? AND b.lease_until IS ? AND b.run_reference=? AND b.release_id=? AND b.version_reference=? AND b.request_json=? AND b.source_revision=?)
