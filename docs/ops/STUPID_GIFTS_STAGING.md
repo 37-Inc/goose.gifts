@@ -29,6 +29,13 @@ and 12 results with limit 36. Retained public/static and browser QA receipts,
 including their exact file hashes, are in the newest `JOURNAL.md` entry.
 Runtime63 is the published package; later main UI/polish is not automatically live.
 
+**Daily D1 maintenance remains GATED (`roadmap-lbbz1.4`).** This completed
+one-time publication does not establish a normal daily/Monday run within the
+ordinary 800 HTTP / 1,200 SQL guards. Recurring capacity, successor/expiry
+recovery and the actual normal canary remain separate acceptance gates. Preserve
+today's remaining Free reserve; do not reuse the consumed migration allowance.
+Old Neon writers remain off, Pinterest paused and Vercel frozen.
+
 PR259 merged as `fe8272f`; reviewed toolchain43/helper `9a4c07b9…dd2c98`
 completed the SAME workspace/profile lineage. Additional publication cost was
 761 HTTP / 2,843 SQL / 557,220 known reads / 11 writes; final ledger is

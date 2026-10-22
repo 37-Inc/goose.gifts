@@ -64,8 +64,8 @@ Release `permanent-catalog-063d9a31ee4f` serves runtime source
 on Worker version `042acba2-5f3a-4d78-9b4e-72e885e1fc8f`.
 The actual receipt, resolved build and D1 idle owner were verified, separately
 from source/build checks. Public HTTP/body hashes and real browser/search checks
-passed. There are2,359 public gifts,1,024 intentional holds and3,383 preserved
-private products;31 substantive articles are indexable. Permanent bases have
+passed. There are 2,359 public gifts, 1,024 intentional holds and 3,383 preserved
+private products; 31 substantive articles are indexable. Permanent bases have
 no expiry. Eight optional photo overlays retain their original
 **2026-10-22T22:18:10.044Z** deadline; supplier rights were not renewed.
 The published runtime is not every later `main` UI/polish commit.
@@ -73,11 +73,11 @@ The published runtime is not every later `main` UI/polish commit.
 **Completed once-only continuation — do not replay or re-anchor.** PR259 merged
 as `fe8272f`; the actual operator used clean toolchain `43b229d` and reviewed
 helper `9a4c07b9…dd2c98`, on the SAME original workspace/ledger. Its scoped
-profile `cff4e8b4…a85a5923` was consumed once under the existing≤600k additional
+profile `cff4e8b4…a85a5923` was consumed once under the existing ≤600k additional
 reads/≥300k untouched Free allowance. All eight unknowns remain charged.
-Final ledger:3,615 HTTP /9,303 SQL /3,511,503 known reads /21,475 writes /8unknowns.
-Account-wide analytics at17:39:21.913Z reported4,655,902 reads /69,884 writes,
-leaving344,098 Free reads. This is dated evidence, not a new reservation or
+Final ledger: 3,615 HTTP / 9,303 SQL / 3,511,503 known reads / 21,475 writes / 8 unknowns.
+Account-wide analytics at 17:39:21.913Z reported 4,655,902 reads / 69,884 writes,
+leaving 344,098 Free reads. This is dated evidence, not a new reservation or
 routine budget. The immutable publication result and public QA file hashes,
 browser evidence and original failure history are in the newest `JOURNAL.md`
 entry. Do not repeat upload/activation or edit historical checkpoint owners to
@@ -99,8 +99,8 @@ persistent catalog separates product identity/editorial from expiring supplier
 display fields (`roadmap-lbbz1.3.2`); keep expiry-only pruning disabled. Expired supplier photography,
 pricing or API claims still cannot be relabeled as current: use a verified
 cleared-content fallback, not product deletion or a silently renewed deadline.
-The historical catalog is now reconciled and the cleared2,359-product slice is
-public; the1,024 holds are intentional, not expiry-driven deletion. Preserve all
+The historical catalog is now reconciled and the cleared 2,359-product slice is
+public; the 1,024 holds are intentional, not expiry-driven deletion. Preserve all
 identities, slugs, editorial, native embeddings and operational history.
 Private registered supplier-response expiry cleanup below is **not** permission
 to remove catalog records. The owner also retired Weird Gift Index and forbids
@@ -131,7 +131,7 @@ new sitemap (301, no query forwarding). Preserve these privacy controls until
 the broader old-domain redirect is verified. Do not restore Index or bylines.
 
 The October21 public launch used an eight-product reviewed cohort; the accepted
-October22 release now has2,359 public gifts on Cloudflare Free. Old Goose remains on
+October22 release now has 2,359 public gifts on Cloudflare Free. Old Goose remains on
 Vercel/Neon as rollback. On October 21 at 18:23 Pacific, Cameron authorized
 completing the new-site writer migration and disabling the old-site daily
 writer. The existing `goose-gifts-daily-ops` task is the sole operator: daily
@@ -190,8 +190,8 @@ rollback, never as a second scheduled writer.
 
 Registered-body expiry cleanup remains required. Future journal reads/purges
 MUST use the retained clean `43b229d628ca0be3aa181a3b10e1bb780080c452` toolchain
-at `stupid-reviewed-publication-window`, not superseded165/3bf/53/d38/994 or
-runtime63 readers. Preserve both frozen43 and63; do not relabel manifests.
+at `stupid-reviewed-publication-window`, not superseded 165/3bf/53/d38/994 or
+runtime 63 readers. Preserve both frozen 43 and 63; do not relabel manifests.
 The exact future cleanup invocation (not executed by these docs) is:
 
 ```sh
