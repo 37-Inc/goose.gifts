@@ -63,8 +63,8 @@ export function verifySiteOutputOrigins(html: string, sourceMode: SiteAssetManif
   return { canonical, openGraph };
 }
 
-async function main() {
-  const root = path.resolve(import.meta.dirname, '../..');
+/** Verify the actual runtime root, even when this verifier comes from a newer pinned toolchain. */
+export async function verifyStaticRelease(root: string) {
   const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
   if (git('status', '--porcelain')) throw new Error('Commit the reviewed source before deploying a staging release');
   const manifestBytes = await fs.readFile(path.join(root, 'build/stupid-gifts/asset-manifest.json'));
@@ -105,4 +105,4 @@ async function main() {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href)
-  await main();
+  await verifyStaticRelease(path.resolve(import.meta.dirname, '../..'));
