@@ -131,6 +131,41 @@ test('v2 rejects wrong prior approval, widened bindings and deadline; crossing t
   });
 });
 
+function currentGrant(input){
+  const priorApproval=structuredClone(input.approval),reviewedAt=new Date(Date.parse(input.claim.request.cutoff)+130*60000).toISOString();
+  return{...input,priorApproval,approval:{...priorApproval,schemaVersion:3,checkpointSha256:'b'.repeat(64),
+    reviewReference:'fixture:fresh-publication-authorization',priorApprovalSha256:sha256(encodeReviewedUploadActivationApproval(priorApproval)),
+    reviewedAt,authorizationSha256:sha256('synthetic direct current owner authorization'),
+    activationDeadline:new Date(Date.parse(reviewedAt)+40*60000).toISOString()}};
+}
+test('v3 fresh authorization dispatches after the unchanged v2 maximum and preserves every original byte',async t=>{
+  const f=await fixture(t),old=canonicalJson(f.input),input=currentGrant(f.input);
+  f.advance(Date.parse(input.approval.reviewedAt)-f.now().getTime());
+  const {reviewedAt,authorizationSha256,...oldShape}=input.approval;void reviewedAt;void authorizationSha256;
+  await assert.rejects(reviewedUploadActivationDeadline({...oldShape,schemaVersion:2},input.claim.request.cutoff,input.priorApproval));
+  const permit=await beginReviewedUploadActivation(f.db,input,f.snapshot,f.proof,marked);
+  const build=f.sql.prepare('SELECT * FROM catalog_build_requests WHERE request_id=?').get(input.claim.requestId);
+  for(const key of ['request_json','lease_token','run_reference','attempts','operator_recovery_json'])assert.equal(build[key],input.original.build[key]);
+  assert.equal(canonicalJson(f.input),old);assert.equal(f.inventory(),f.before);assert.equal(canonicalJson([...f.index]),f.native);
+  f.advance(Date.parse(input.approval.activationDeadline)-f.now().getTime()+1);same(await readReviewedUploadActivation(f.db,input),permit);
+});
+test('v3 rejects future review, expiry, wrong prior and wider fresh or hard-day windows without a write',async t=>{
+  for(const fault of ['future','expired','prior','overlong','hard-limit','authorization','late'])await t.test(fault,async t=>{
+    const f=await fixture(t),input=currentGrant(f.input);f.advance(Date.parse(input.approval.reviewedAt)-f.now().getTime());
+    if(fault==='future')input.approval.reviewedAt=new Date(f.now().getTime()+1).toISOString();
+    if(fault==='expired')f.advance(Date.parse(input.approval.activationDeadline)-f.now().getTime());
+    if(fault==='prior')input.approval.priorApprovalSha256='0'.repeat(64);
+    if(fault==='overlong')input.approval.activationDeadline=new Date(Date.parse(input.approval.reviewedAt)+2*3600000+1).toISOString();
+    if(fault==='hard-limit'){const day=input.claim.request.cutoff.slice(0,10);input.approval.reviewedAt=`${day}T20:00:00.000Z`;input.approval.activationDeadline=`${day}T21:00:00.001Z`;}
+    if(fault==='authorization')input.approval.authorizationSha256='not-a-hash';
+    let marks=0;await assert.rejects(beginReviewedUploadActivation(f.db,input,f.snapshot,f.proof,async()=>{marks++;
+      if(fault==='late')f.advance(Date.parse(input.approval.activationDeadline)-f.now().getTime());}));
+    same(f.sql.prepare('SELECT * FROM catalog_build_requests WHERE request_id=?').get(input.claim.requestId),input.original.build);
+    same(f.sql.prepare('SELECT * FROM publication_outbox WHERE intent_id=?').get(input.publication.intentId),input.original.publication);
+    assert.equal(marks,fault==='late'?1:0);
+  });
+});
+
 test('proof failures happen before durable marker; late owner/source/prior/row drift rolls back the whole CAS',async t=>{
   for(const fault of ['native','prior','source','token','outbox','cutoff','late-owner','late-source','late-prior','late-cutoff'])await t.test(fault,async t=>{
     const f=await fixture(t);let marks=0;

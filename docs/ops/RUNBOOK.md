@@ -57,18 +57,30 @@ Boundaries (always in force):
 
 ### Cloudflare migration boundary
 
-**October22 bounded recovery approval:** Cameron answered
+**October22 current focused goal — full prepared catalog live and verified:**
+Cameron explicitly renewed publication authorization after the prior17:00Z
+dispatch window expired. Use the separate reviewed v3 grant: actual fresh
+review time, current authorization hash and the unchanged original v1 grant;
+at most two hours after review and never beyond21:00Z that day. The concrete
+reviewed attempt targets19:00Z. This is source-only until actual publication
+and independent public verification; PR257/258 source merges are not release
+receipts. Original supplier expiry22:18:10.044Z is not renewed.
+
+**October22 bounded recovery approval remains unchanged:** Cameron answered
 `call_b300df69eace4f54b0282ecc87101d67` with “Allow bounded publication today;
 stay Free.” This authorizes at most600k additional reads while leaving at
 least300k untouched, retaining every prior charge/unknown. It does not authorize
 a paid plan, new merchant/model allowance, routine-writer enablement or an old
-helper retry. PR252/253/254/255 are combined for review, not a public release.
+helper retry. Reviewed source is merged through PR257/258, not a public release.
 Do not refresh/re-anchor old accounting. The approved continuation must retain
-all seven unknowns, prove the exact SQL/parameter/inventory batch bounds and
+all eight unknowns (the previous seven plus the failed read-only inventory GET),
+prove the exact SQL/parameter/inventory batch bounds and
 remaining whole-flow capacity, stop any shared-workspace new unknown, adopt its
 exact reviewed operator code, and separately bind valid dispatch authority.
-Normal daily caps/headroom are unchanged. Current offline evidence and draft
-references are in the newest `JOURNAL.md` entry; daily writes remain gated.
+Normal daily caps/headroom are unchanged. No prepared allowance existed before
+the eighth unknown; do not issue a second allowance or re-anchor any existing
+profile. Current evidence is in the newest `JOURNAL.md` entry; daily writes
+remain gated. Historical timed checkpoints below preserve their earlier counts.
 
 **October22 current checkpoint:** actual source/production union is reconciled
 across all 24 logical tables / 3,383 products; schema 0015, actual local native

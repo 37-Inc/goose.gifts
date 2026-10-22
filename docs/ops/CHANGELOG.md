@@ -31,29 +31,22 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **October22 resumed implementation — not a release** [owner+claude]:
-  Cameron subsequently approved the exact≤600k additional-read/≥300k untouched
-  Free-only allowance; this does not reset accounting or bypass final SQL-cost,
-  dispatch and publication checks. PR256 (`aba0ee2`) makes the existing
-  source-pinned Cloudflare build canonical; its actual2,359-product build and
-  release verifier pass without legacy Neon credentials. A fresh serial rerun
-  of PR255's affected integration pack now passes40/40, separately from the
-  original disk-space failure. PR252–255 are combined for final review, not live.
-  draft PR252 adds an explicit prior-approval-bound activation deadline and fixes
-  four equivalent BigInt literals; PR253 refines the actual 2,359-gift static UI
-  (compact honest no-photo cards, decorative placeholder alt, plain guide copy,
-  and a new original empty-prank-box disclosure without changing catalog data).
-  Draft PR254 adds an approval-bound, same-ledger publication allowance with
-  pre-dispatch SQL/cost admission, single-flight requests and durable over-bound
-  resume refusal. None grants budget or changes production. Daily retention/
-  full-catalog successor draft PR255 keeps cleared listings through stock/price
-  changes; source has independent review and focused integration proof. Broad
-  tests originally hit local ENOSPC; the later40/40 serial run is new evidence,
-  not a retroactive broad green. Public remains eight. The owner approval above
-  is received; no actual bounded-recovery attempt has run at this checkpoint.
-  Exact frozen SQL/parameter/inventory cost proof, final operator wiring,
-  canonical release/build checks, actual full publication and daily canary remain
-  required. Do not rerun the old helper or relabel a draft as live.
+- **October22 focused publication continuation — source only** [owner+claude]:
+  Cameron explicitly requested finishing the existing prepared 2,359-gift public
+  release, Free-only, rather than expanding the broad blocked goal. PR257/258
+  merged the reviewed build, retention and exact-next-batch budget source; none
+  is public acceptance. A fresh v3 dispatch grant binds current owner authority,
+  an actual review timestamp and the immutable original v1 grant. It permits at
+  most two hours after review and never beyond21:00Z that day; the concrete
+  reviewed attempt targets19:00Z. Original v1/v2 behavior is unchanged.
+  All eight actual unknown requests remain charged, including the failed
+  read-only inventory GET after the earlier seven. The approved≤600k additional
+  reads/≥300k untouched Free buffer, same workspace/ledger and original supplier
+  deadline22:18:10.044Z do not grow. The separate function-only operator is not
+  executed by this source change; current account admission, measured canary,
+  protected upload, activation and independent public verification remain.
+  Public remains eight until those actual checks pass; daily writes stay gated.
+  Historical checkpoint counts below retain their then-current seven unknowns.
 
 - **Full-catalog public release pending** [owner+claude]: actual all-24-table /
   3,383-product production union, schema 0015, local native rollback and permanent
@@ -312,6 +305,17 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-22 [owner+claude] — Bind a fresh finite publication authorization
+
+- Added explicit v3 reviewed dispatch authority for the existing prepared
+  package, preserving original requests, owner, tokens, counters, v1/v2 grants
+  and supplier expiry. Future reviews, wider windows, foreign prior grants and
+  expired dispatches refuse; accepted activation may still resolve read-only.
+- Source-only checkpoint `c56f36b`:32 core cases and the focused v2/v3 publisher
+  replay paths pass, including one upload/activation across reopen. The private
+  continuation retains all eight unknowns and the original600k/300k allowance;
+  no profile, canary or provider action is authorized by a test or source merge.
 
 ### 2026-10-22 [owner+claude] — Make the default build match Cloudflare
 
