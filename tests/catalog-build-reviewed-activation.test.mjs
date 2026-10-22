@@ -12,7 +12,7 @@ import { enqueuePublication,claimPublication,recordPublicationDispatch } from '.
 import { enqueueBuildRequest,claimBuildRequest,recoverUnstartedBuildRequest,beginBuildActivation,
   beginReviewedUploadActivation,readReviewedUploadActivation,encodeReviewedUploadActivationApproval } from '../lib/catalog/build-requests.ts';
 
-const hash='a'.repeat(64),version=uuid(990),same=(a,b)=>assert.equal(canonicalJson(a),canonicalJson(b));
+const hash='a'.repeat(64),version=uuid(990),same=(a,b)=>assert.equal(canonicalJson(a),canonicalJson(b)),marked=async()=>{};
 async function fixture(t,{wide=false,grantRelease='reviewed-release'}={}){
   const f=await setup(t);let snapshot=f.revision.snapshot,source=f.revision.packet.receipt.source_export_sha256;
   if(wide){
@@ -83,11 +83,11 @@ test('reviewed expired exact3+1/claimed tokens activate atomically across2359 li
 test('unknown atomic ACK reads exact permit only; missing grant never dispatches and duplicate write refuses',async t=>{
   const f=await fixture(t);let writes=0;
   f.setAfter(statements=>{if(statements.some(s=>s.query.startsWith('UPDATE publication_outbox'))){writes++;throw new Error('synthetic committed ACK loss');}});
-  await assert.rejects(beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof),/ACK loss/);
+  await assert.rejects(beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof,marked),/ACK loss/);
   const before=f.sql.prepare('SELECT total_changes() n').get().n;
   const permit=await readReviewedUploadActivation(f.db,f.input);assert.equal(permit.token,f.input.claim.token);
   assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,before);assert.equal(writes,1);
-  await assert.rejects(beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof));assert.equal(writes,1);
+  await assert.rejects(beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof,marked));assert.equal(writes,1);
   const g=await fixture(t);await assert.rejects(readReviewedUploadActivation(g.db,g.input));assert.equal(g.batches.length,0);
 });
 
@@ -121,17 +121,19 @@ test('proof failures happen before durable marker; late owner/source/prior/row d
 
 test('reviewed authority is exact-shaped, original-claim bound, and a timed-out observation never marks or writes',async t=>{
   const f=await fixture(t);
+  await assert.rejects(beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof),/reviewed_activation_invalid/);
+  assert.equal(f.batches.length,0);assert.equal(f.queries.length,0);
   for(const change of [{schemaVersion:2},{extra:true},{evidenceSha256:'not-a-hash'}])assert.throws(()=>encodeReviewedUploadActivationApproval({...f.input.approval,...change}));
   for(const change of [i=>i.approval.requestId=hash,i=>i.approval.packageSha256='b'.repeat(64),i=>i.owner.epoch++,i=>i.original.build.attempts=2,
     i=>i.original.publication.lease_until=f.now().toISOString(),i=>i.publication.token=uuid(999),
     i=>{const r=JSON.parse(i.original.build.operator_recovery_json);r.schemaVersion=2;i.original.build.operator_recovery_json=JSON.stringify(r);},
     i=>{const r=JSON.parse(i.original.build.operator_recovery_json);r.approval.extra=true;i.original.build.operator_recovery_json=JSON.stringify(r);}]){
-    const input=structuredClone(f.input);change(input);await assert.rejects(beginReviewedUploadActivation(f.db,input,f.snapshot,f.proof));}
+    const input=structuredClone(f.input);change(input);await assert.rejects(beginReviewedUploadActivation(f.db,input,f.snapshot,f.proof,marked));}
   let signal,marks=0;const timer=globalThis.setTimeout;
   t.mock.method(globalThis,'setTimeout',(fn,ms,...args)=>timer(fn,ms===30000?10:ms,...args));
   await assert.rejects(beginReviewedUploadActivation(f.db,f.input,f.snapshot,async value=>{signal=value;return new Promise(()=>{});},async()=>{marks++;}),/observation_failed/);
   assert.equal(signal.aborted,true);assert.equal(marks,0);assert.equal(f.batches.length,0);
   const foreign=await fixture(t,{grantRelease:'foreign-release'});
-  await assert.rejects(beginReviewedUploadActivation(foreign.db,foreign.input,foreign.snapshot,foreign.proof),/reviewed_activation_fenced/);
+  await assert.rejects(beginReviewedUploadActivation(foreign.db,foreign.input,foreign.snapshot,foreign.proof,marked),/reviewed_activation_fenced/);
   assert.equal(foreign.queries.length,0);
 });

@@ -346,7 +346,8 @@ function reviewedPermit(i:ReviewedUploadActivationInput):ActivationPermit{return
  * in readDeployment. Its beforeCommit hook MUST durably mark the one CAS; marked
  * retries call ONLY readReviewedUploadActivation. No provider dispatch is here. */
 export async function beginReviewedUploadActivation(db:CatalogD1,value:ReviewedUploadActivationInput,snapshotInput:CatalogSnapshot,
-  readDeployment:(signal:AbortSignal)=>Promise<DeploymentObservation>,beforeCommit?:()=>Promise<void>):Promise<ActivationPermit>{
+  readDeployment:(signal:AbortSignal)=>Promise<DeploymentObservation>,beforeCommit:()=>Promise<void>):Promise<ActivationPermit>{
+  if(typeof beforeCommit!=='function')throw new Error('build_reviewed_activation_invalid');
   const i=await reviewedInput(value),snapshot=structuredClone(snapshotInput),{claim:c,publication:p,owner:o}=i;
   const read=async(sql:string,params:unknown[]=[])=> (await db.prepare(sql).bind(...params).all<ReviewedRow>()).results;
   const b=await read('SELECT * FROM catalog_build_requests WHERE request_id=?',[c.requestId]);
@@ -381,7 +382,7 @@ export async function beginReviewedUploadActivation(db:CatalogD1,value:ReviewedU
       WHERE environment=? AND index_name=? AND ${fence.sql}`).bind(c.requestId,o.environment,o.indexName,...fence.params),
     reviewedExact(db,'catalog_build_requests',applied.build),reviewedExact(db,'publication_outbox',applied.publication),
     reviewedExact(db,'publication_receipts',prior[0]),...ready(),...reviewedOwner(db,i,true)];
-  await beforeCommit?.(); // No subsequent read/proof before the sole atomic CAS.
+  await beforeCommit(); // No subsequent read/proof before the sole atomic CAS.
   await db.batch(statements);return reviewedPermit(i);
 }
 /** Read-only exact applied-state recovery, even after cutoff; it is NOT authority
