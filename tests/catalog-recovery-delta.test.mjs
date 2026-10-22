@@ -39,7 +39,7 @@ function definition(table,index){
 }
 function empty(def){return Object.fromEntries(def.columns.map(c=>[c.name,c.nullable?null:c.type==='boolean'?false:c.type==='jsonb'?'{}':c.type.startsWith('timestamp')?'2026-10-20 10:00:00'+(c.type.endsWith('with time zone')?'+00':''):'TEST']));}
 function inventory(input){input.inventory=D1_RECOVERY_TABLES.map(table=>({table,rows:input.tables[table].length,sha256:sha256(canonicalJson(input.tables[table]))}));return input;}
-async function fixture({searches=0,ownedImport=false,cooperative=false}={}){
+async function fixture({searches=0,ownedImport=false,cooperative=false,heldControls=false}={}){
   const parent=await mkdtemp(join(process.env.CATALOG_RECOVERY_TEST_EVIDENCE_PARENT||tmpdir(),'sg-delta-fixture-'));
   const directory=join(parent,'baseline');await mkdir(directory,{mode:0o700});
   const tables=[products,catalogRuns,catalogRunItems,productSlugHistory,catalogEditorialEvents,searchQueries].map(definition);
@@ -88,6 +88,8 @@ async function fixture({searches=0,ownedImport=false,cooperative=false}={}){
   }
   input.tables.products[0]=maintain(input.tables.products[0],true);
   input.tables.products.push(maintain(input.tables.products[1],false,'TEST-3'));
+  if(heldControls)Object.assign(input.tables.products[1],{is_active:0,source_facts_hash:'d'.repeat(64),editorial_source_hash:'d'.repeat(64),
+    availability_checked_at:AT,last_verified_at:AT}); // Provenance still describes old raw naive source, not these current UTC instants.
   // The owned-union variant begins before the original legacy items have been
   // imported, so native allocations genuinely occupy their source sequences.
   if(ownedImport){
@@ -156,6 +158,32 @@ async function fixture({searches=0,ownedImport=false,cooperative=false}={}){
     plan(data=input){inventory(data);return prepareRollbackPacket(archive,manifest,data,sha256(canonicalJson(data)),owned);},
     async packet(){const bytes=canonicalJson(input)+(cooperative?'':'\n'),path=join(parent,'input.json');await writeFile(path,bytes,{mode:0o600});return writeRollbackPacket({archive:directory,baselineSha256,input:path,inputSha256:sha256(bytes),output:join(parent,'packet'),ownedImport:owned});}};
 }
+
+test('owned baseline held controls without maintenance semantics preserve exact inactive/hash controls and archived facts/native/time',async()=>{
+  const f=await fixture({ownedImport:true,cooperative:true,heldControls:true});try{
+    const packet=f.plan(),held=packet.changes.find(c=>c.key==='TEST-2'),old=f.archive.tables[0].rows[1];
+    assert.equal(held.after.is_active,false);assert.equal(held.after.source_facts_hash,'d'.repeat(64));assert.equal(held.after.editorial_source_hash,'d'.repeat(64));
+    for(const field of Object.keys(old).filter(k=>!['is_active','source_facts_hash','editorial_source_hash','availability_checked_at','last_verified_at'].includes(k)))assert.deepEqual(held.after[field],old[field]);
+    assert.equal(held.after.availability_checked_at,'2026-10-21 12:00:00.123456');assert.equal(held.after.last_verified_at,'2026-10-21 12:00:00.123456');
+    assert.equal(held.after.embedding,native);assert.ok(packet.transformations.some(t=>t.startsWith('1 exact owned-import baseline held')));
+    const written=await f.packet();await readCooperativeRollback(written.directory,written.packetSha256,f.archive,f.manifest,f.proof);
+    // Same current-looking controls without the exact baseline proof still
+    // refuse; arbitrary mutable fields, reactivation or grant/display cannot
+    // be smuggled through this narrow hold mapping.
+    for(const change of [i=>{i.tables.products[1].source_facts_hash='e'.repeat(64);},i=>{i.tables.products[1].is_active=1;},
+      i=>{i.tables.products[1].price_minor++;},i=>{i.tables.products[1].title='UNAPPROVED';},
+      i=>{i.tables.products[1].rights_json='{"new":true}';},i=>{i.tables.products[1].updated_at=LATER;}]){
+      const input=structuredClone(f.input);change(input);assert.throws(()=>f.plan(input));
+    }
+    assert.throws(()=>prepareRollbackPacket(f.archive,f.manifest,f.input,sha256(canonicalJson(f.input))));
+  }finally{await rm(f.parent,{recursive:true,force:true});}
+});
+
+test('unowned held controls and fresh-looking UTC verification cannot replace archived values without the owned baseline proof',async()=>{
+  const f=await fixture({heldControls:true});try{
+    assert.throws(()=>f.plan(),/incomplete, drifted or unsupported/);
+  }finally{await rm(f.parent,{recursive:true,force:true});}
+});
 
 test('cooperative LOCAL rollback opt-in binds both actual-store captures, complete24-table union, receipts and inverse/native bytes',async()=>{
   const f=await fixture({ownedImport:true,cooperative:true});try{
