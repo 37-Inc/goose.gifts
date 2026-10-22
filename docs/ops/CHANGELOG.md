@@ -260,7 +260,11 @@ documented all-branch `git.deploymentEnabled: false` fail-safe and regression
 test, and corrected current operator/release instructions. A main merge is not
 Cloudflare publication: source `9943718` is still the live Stupid Gifts build.
 No provider project, domain, database or deployment was deleted. Tracking:
-`roadmap-lbbz1.4.6`; full migration/publication remains open in `.4`.
+`roadmap-lbbz1.4.6`, PR #224; full migration/publication remains open in `.4`.
+Sixteen focused regressions, full lint and independent review pass. Cameron's
+renewed attended Keychain approval also passed source comparison and a fresh
+unchanged reader; the same task records that access is now verified for the
+current session without enabling the writer or changing limits.
 
 ### 2026-10-22 [owner+claude] — Harden credential and publication failure boundaries
 
