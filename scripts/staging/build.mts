@@ -57,8 +57,8 @@ export function assertBuildSource(root: string, expectedSha?: string): string {
   return codeSha;
 }
 
-async function main() {
-  const root = path.resolve(import.meta.dirname, '../..');
+/** Toolchain may be pinned separately; all runtime source/output and code guards use this root. */
+export async function buildStaticRelease(root: string) {
   const output = path.join(root, 'static-site/out');
   const generated = path.join(root, 'build/stupid-gifts');
   const source = path.resolve(process.env.CATALOG_SNAPSHOT_PATH || path.join(root, 'static-site/fixtures/catalog.snapshot.json'));
@@ -123,4 +123,5 @@ async function main() {
     nextExpiry: manifest.nextExpiry }));
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) await main();
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href)
+  await buildStaticRelease(path.resolve(import.meta.dirname, '../..'));

@@ -4,6 +4,7 @@ import type { CatalogAssetRoute, CatalogSnapshot, SiteAssetManifest } from "../.
 import { projectCard, validateCardShard } from "./card-shard";
 import safeCatalogPayload from "../public/safe/catalog.json";
 import { catalogDeadline, persistentPublicProduct } from "../../lib/catalog/display";
+import { PHOTO_PLACEHOLDER } from "./photo-shard";
 
 export const RETENTION_OVERLAP_MS = 15 * 60 * 1000;
 type SealedManifest = SiteAssetManifest & { catalogSnapshotSha256: string };
@@ -53,6 +54,9 @@ export function assertOwnedCodeSafe(bytes: Uint8Array, snapshots: CatalogSnapsho
   for (const snapshot of snapshots) for (const product of snapshot.products) {
     for (const field of ["title", "imageUrl", "affiliateUrl", "id", "publicId", "slug"] as const) {
       const literal = product[field];
+      // Shared owned UI asset, not embedded product/supplier data. No other
+      // field or local URL is exempt from the literal scan.
+      if (field === "imageUrl" && literal === PHOTO_PLACEHOLDER) continue;
       if (literal.length >= 8 && (code.includes(literal) || code.includes(JSON.stringify(literal).slice(1, -1)))) fail();
     }
   }

@@ -8,7 +8,8 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { assembleReleaseAssets, readPriorRelease, verifyRetainedAssets } from "../scripts/staging/retention.mts";
 import { validateBuildContext } from "../scripts/staging/build.mts";
-import { assetSha256 } from "../static-site/lib/retention.ts";
+import { assetSha256, assertOwnedCodeSafe } from "../static-site/lib/retention.ts";
+import { PHOTO_PLACEHOLDER } from "../static-site/lib/photo-shard.ts";
 import { createBrowseRelease } from "../static-site/lib/browse.ts";
 import { createOgRelease } from "../static-site/lib/og.ts";
 import { guides } from "../static-site/lib/guides.ts";
@@ -92,6 +93,85 @@ test("final packaging rejects personal identity in current assets and retained o
     assert.equal(cleared.retention, null);
     assert.equal(cleared.assets.has(oldPath), false);
   }
+});
+test("shared owned photo placeholder survives current and retained code; product/private literals still fail closed", () => {
+  const first = snapshot("placeholder-first"), second = snapshot("placeholder-second");
+  for (const input of [first, second]) for (const product of input.products)
+    Object.assign(product, { imageUrl: PHOTO_PLACEHOLDER, eligibleUntil: null, indexable: false });
+  const code = encode(`export const fallback=${JSON.stringify(PHOTO_PLACEHOLDER)};`);
+  const priorAssets = assets(first), currentAssets = assets(second);
+  const oldPath = "/_next/static/chunks/placeholder-first.js", currentPath = "/_next/static/chunks/placeholder-second.js";
+  priorAssets.set(oldPath, code); currentAssets.set(currentPath, code);
+  const prior = seal(first, context(first), priorAssets), ctx = context(second, prior);
+  const next = seal(second, ctx, currentAssets, prior);
+  assert.deepEqual(next.assets.get(oldPath), code); assert.deepEqual(next.assets.get(currentPath), code);
+  verifyRetainedAssets(second, next.assets, next.manifest, ctx, prior);
+  for (const marker of ["sourceFactsHash", "sourceFacts", "POSTGRES_URL", "DATABASE_URL", "AMAZON_SECRET", "privateRights"])
+    assert.throws(() => assertOwnedCodeSafe(encode(`${new TextDecoder().decode(code)}window.${marker}="private"`), [second]), /retention/);
+  for (const field of ["title", "affiliateUrl", "id", "publicId", "slug"])
+    assert.throws(() => assertOwnedCodeSafe(encode(JSON.stringify(second.products[0][field])), [second]), /retention/);
+  const sameValueOtherField = structuredClone(second); sameValueOtherField.products[0].title = PHOTO_PLACEHOLDER;
+  assert.throws(() => assertOwnedCodeSafe(code, [sameValueOtherField]), /retention/);
+  for (const imageUrl of ["/images/other-product.svg", `${PHOTO_PLACEHOLDER}?supplier=1`, "https://supplier.invalid/product-photo.jpg"])
+    assert.throws(() => assertOwnedCodeSafe(encode(JSON.stringify(imageUrl)), [{ ...second,
+      products: [{ ...second.products[0], imageUrl }] }]), /retention/);
+  const escaped = { ...second.products[0], title: 'Product-specific "quoted" \\ copy' };
+  assert.throws(() => assertOwnedCodeSafe(encode(JSON.stringify(escaped.title)), [{ ...second, products: [escaped] }]), /retention/);
+});
+test("exported build and verifier use the explicit clean runtime root, not the toolchain checkout (mock Next)", async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "static-release-runtime-root-"));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const git = (...args) => execFileSync("git", ["-c", "core.hooksPath=/dev/null", "-c", "user.name=Build fixture",
+    "-c", "user.email=build-fixture@example.invalid", ...args], { cwd: root, encoding: "utf8" }).trim();
+  const input = snapshot("explicit-runtime-root");
+  await fs.mkdir(path.join(root, "static-site/fixtures"), { recursive: true });
+  await fs.writeFile(path.join(root, ".gitignore"), "node_modules/\nbuild/\nstatic-site/out/\n");
+  await fs.writeFile(path.join(root, "source.txt"), "reviewed runtime source\n");
+  await fs.writeFile(path.join(root, "static-site/fixtures/catalog.snapshot.json"), JSON.stringify(input));
+  git("init", "--quiet"); git("add", "."); git("commit", "--quiet", "-m", "Reviewed runtime fixture");
+  const codeSha = git("rev-parse", "HEAD"), snapshotBytes = `${JSON.stringify(input)}\n`;
+  const ctx = { ...context(input), codeSha, catalogSnapshotSha256: assetSha256(encode(snapshotBytes)) };
+  const generated = path.join(root, "build/stupid-gifts"), contextPath = path.join(root, "build/reviewed-context.json");
+  await fs.mkdir(path.dirname(contextPath), { recursive: true });
+  await fs.writeFile(contextPath, JSON.stringify(ctx));
+  const nextPath = path.join(root, "node_modules/next/dist/bin/next");
+  await fs.mkdir(path.dirname(nextPath), { recursive: true });
+  await fs.writeFile(nextPath, `const fs=require('node:fs');
+    if(JSON.stringify(process.argv.slice(2))!==JSON.stringify(['build','static-site','--webpack']))throw Error('unexpected Next command');
+    fs.writeFileSync('build/next-observed.json',JSON.stringify({cwd:process.cwd(),snapshot:process.env.CATALOG_SNAPSHOT_PATH,mode:process.env.CATALOG_SITE_MODE}));`);
+  const files = assets(input), origin = siteIdentityFor("preview").origin;
+  for (const [name, bytes] of files) {
+    const target = path.join(root, "static-site/out", name.slice(1));
+    await fs.mkdir(path.dirname(target), { recursive: true });
+    await fs.writeFile(target, name.endsWith(".html") ? `<meta name="robots" content="noindex,nofollow"><link rel="canonical" href="${origin}/"><meta property="og:url" content="${origin}/">` : bytes);
+  }
+  const env = { ...process.env, CATALOG_SNAPSHOT_PATH: "", CATALOG_RELEASE_CONTEXT_PATH: contextPath,
+    CATALOG_SITE_MODE: "preview", NEXT_PUBLIC_STATIC_SITE_MODE: "preview", NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED: "false" };
+  delete env.CATALOG_PRIOR_RELEASE_PATH;
+  const invoke = (script, symbol) => spawnSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e",
+    `import { ${symbol} } from ${JSON.stringify(new URL(`../scripts/staging/${script}.mts`, import.meta.url).href)};await ${symbol}(process.argv[1]);`, root],
+  { cwd: path.resolve(import.meta.dirname, ".."), env, encoding: "utf8" });
+  const build = () => invoke("build", "buildStaticRelease"), verify = () => invoke("verify-release", "verifyStaticRelease");
+  const built = build(); assert.equal(built.status, 0, built.stderr);
+  assert.deepEqual(JSON.parse(await fs.readFile(path.join(root, "build/next-observed.json"), "utf8")),
+    { cwd: await fs.realpath(root), snapshot: path.join(generated, "catalog.snapshot.json"), mode: "preview" });
+  const manifest = JSON.parse(await fs.readFile(path.join(generated, "asset-manifest.json"), "utf8"));
+  assert.equal(manifest.codeSha, codeSha); assert.equal(manifest.catalogSnapshotSha256, ctx.catalogSnapshotSha256);
+  assert.notEqual(codeSha, execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim());
+  const verified = verify(); assert.equal(verified.status, 0, verified.stderr);
+  assert.equal(JSON.parse(verified.stdout).verified, true);
+  const repeat = build(); assert.equal(repeat.status, 1); assert.match(repeat.stderr, /already built/);
+  await fs.writeFile(path.join(root, "source.txt"), "unreviewed runtime source\n");
+  for (const result of [build(), verify()]) { assert.equal(result.status, 1); assert.match(result.stderr, /Commit the reviewed source/); }
+  await fs.writeFile(path.join(root, "source.txt"), "reviewed runtime source\n");
+  await fs.writeFile(contextPath, JSON.stringify({ ...ctx, codeSha: "f".repeat(40) }));
+  const wrongCode = build(); assert.equal(wrongCode.status, 1); assert.match(wrongCode.stderr, /context is malformed/);
+  const asset = path.join(root, "static-site/out/index.html"), original = await fs.readFile(asset);
+  await fs.appendFile(asset, "unsealed change");
+  const changed = verify(); assert.equal(changed.status, 1); assert.match(changed.stderr, /Asset checksum changed/);
+  await fs.writeFile(asset, original);
+  await fs.appendFile(path.join(generated, "catalog.snapshot.json"), " ");
+  const changedSnapshot = verify(); assert.equal(changedSnapshot.status, 1); assert.match(changedSnapshot.stderr, /Catalog snapshot changed/);
 });
 test("sealed current inventory recomputes exact two-release files/policy and cannot relabel old shards as current", () => {
   const { second, prior, ctx, next } = twoReleases();
