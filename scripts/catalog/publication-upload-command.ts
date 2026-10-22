@@ -11,8 +11,8 @@ import type { PublicationCommand } from './publish-release.ts';
 
 const API='https://api.cloudflare.com/client/v4';
 const SANDBOX='/usr/bin/sandbox-exec';
-// Sealed packages already have a128MiB total bound. Allow base64 and multipart
-// overhead without imposing the D1 JSON request bound on static assets.
+// Upload chunks have an independent per-request/concurrent-aggregate wire bound,
+// including base64/multipart overhead; this is not the sealed package total bound.
 const REQUEST_BYTES=2*128*1024*1024+1024*1024,RESPONSE_BYTES=512*1024,REQUEST_MS=30_000;
 const HOP=new Set(['connection','keep-alive','proxy-authenticate','proxy-authorization','te','trailer','transfer-encoding','upgrade','host','content-length']);
 type Scope={accountId:string;workerName:string};
