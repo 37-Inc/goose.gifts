@@ -4,7 +4,7 @@ import { mkdtemp, realpath, chmod, mkdir, readFile, writeFile, readdir, lstat, s
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
-import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS } from '../scripts/catalog/run-workspace.ts';
+import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS, assertPublicationCleanupEntryCount } from '../scripts/catalog/run-workspace.ts';
 import { canonicalJson, sha256 } from '../scripts/catalog/migration.ts';
 import { encodeBuildRequest } from '../lib/catalog/build-requests.ts';
 import { createCatalogProviderEvidence } from '../scripts/catalog/provider-evidence.ts';
@@ -331,6 +331,11 @@ async function publicationFixture(t){
   }
   return{...f,outputPaths,outputs};
 }
+
+test('combined publication cleanup has its own100k entry cap, independent of20k journal/upload limits',()=>{
+  for(const count of [0,20_000,7+17_680+27_993,100_000])assert.doesNotThrow(()=>assertPublicationCleanupEntryCount(count));
+  for(const count of [-1,1.5,NaN,Infinity,100_001])assert.throws(()=>assertPublicationCleanupEntryCount(count),/run_workspace_publication_tree/);
+});
 
 test('publication ownership covers interrupted/expired package+Next copies without deleting preexisting manual outputs',async t=>{
   const f=await publicationFixture(t),w=await f.open();

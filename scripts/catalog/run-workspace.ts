@@ -121,6 +121,7 @@ export interface RunWorkspace {
 const HASH=/^[a-f0-9]{64}$/;const KEY=/^[A-Za-z0-9._-]{1,100}$/;const REF=/^[A-Za-z0-9._:/-]{1,200}$/;
 const KINDS:Kind[]=['amazon-observation','embedding-response','phase','publication','checkpoint'];
 const MAX_JSON=512*1024, MAX_EVENTS=20_000, MAX_JOURNAL=32*1024*1024;
+const MAX_PUBLICATION_CLEANUP_ENTRIES=100_000;
 function fail(code:string):never {throw new Error(`run_workspace_${code}`);}
 const same=(a:unknown,b:unknown)=>canonicalJson(a)===canonicalJson(b);
 const hash=(value:unknown)=>typeof value==='string'&&HASH.test(value);
@@ -128,6 +129,10 @@ const byteHash=(value:Uint8Array)=>createHash('sha256').update(value).digest('he
 const key=(value:unknown)=>typeof value==='string'&&KEY.test(value)&&value!=='.'&&value!=='..';
 const refString=(value:unknown)=>typeof value==='string'&&REF.test(value);
 const integer=(value:unknown)=>Number.isSafeInteger(value)&&Number(value)>=0;
+/** Combined owned build/package/runtime trees, not journal, object or upload limits. */
+export function assertPublicationCleanupEntryCount(count:number):void {
+  if(!integer(count)||count>MAX_PUBLICATION_CLEANUP_ENTRIES)fail('publication_tree');
+}
 const exact=(value:unknown,keys:string[])=>!!value&&typeof value==='object'&&!Array.isArray(value)
   &&Object.keys(value).sort().join(',')===[...keys].sort().join(',');
 function json(value:unknown,max=MAX_JSON):Json {
@@ -399,9 +404,10 @@ function controlEvolution(old:CheckpointControl,next:CheckpointControl) {
   const a=old.control?.publication,b=next.control?.publication;if(!a)return;if(!b)fail('control_rewrite');
   // Shape permission only: the protected publisher separately proves actual
   // DB expiry, attempt increment and ownership. Never a control-only recovery.
-  const reclaimed=a.stage==='claimed'&&b.stage==='claimed'&&old.phase==='publishing'&&next.phase==='publishing'
+  const reclaimed=(a.stage==='claimed'||a.stage==='built')&&b.stage===a.stage&&old.phase==='publishing'&&next.phase==='publishing'
     &&old.owner?.phase==='freezing'&&same(old.owner,next.owner)&&same(old.pins,next.pins)&&same(old.phaseComplete,next.phaseComplete)
-    &&['publication','intent','permit','packageSha256','versionReference','deploymentId'].every(k=>a[k as keyof PublicationControl]===null&&b[k as keyof PublicationControl]===null)
+    &&['publication','intent','permit','versionReference','deploymentId'].every(k=>a[k as keyof PublicationControl]===null&&b[k as keyof PublicationControl]===null)
+    &&(a.stage==='claimed'?a.packageSha256===null:hash(a.packageSha256))&&a.packageSha256===b.packageSha256
     &&a.receiptSha256===undefined&&b.receiptSha256===undefined
     &&!['publicationUploadPending','publicationUploadAcknowledged','publicationUploadReview'].some(k=>old.pins[k]||next.pins[k])
     &&same({...a,build:b.build},b)&&same({...a.build,token:b.build.token,leaseUntil:b.build.leaseUntil},b.build)
@@ -594,7 +600,8 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       const entries:{path:string;directory:boolean;ino:number;dev:number;size:number;mtimeMs:number;ctimeMs:number}[]=[];
       async function visit(path:string){
         let stat;try{stat=await lstat(path);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return;throw error;}
-        if(entries.length>=MAX_EVENTS||stat.isSymbolicLink()||stat.uid!==process.getuid?.()||!stat.isFile()&&!stat.isDirectory()
+        assertPublicationCleanupEntryCount(entries.length+1);
+        if(stat.isSymbolicLink()||stat.uid!==process.getuid?.()||!stat.isFile()&&!stat.isDirectory()
           ||!stat.isDirectory()&&stat.nlink!==1)fail('publication_tree');
         const directory=stat.isDirectory();entries.push({path,directory,ino:stat.ino,dev:stat.dev,size:stat.size,mtimeMs:stat.mtimeMs,ctimeMs:stat.ctimeMs});
         if(directory)for(const name of (await readdir(path)).sort())await visit(join(path,name));
