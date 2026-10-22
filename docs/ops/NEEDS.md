@@ -5,7 +5,8 @@ Items move to "Received" when done.
 
 ## P0 — blocking autonomous operation
 
-None currently.
+Daily publication is safely held for the bounded recovery decision described
+below. No login, paid upgrade or additional merchant fetch is requested.
 
 ## P1 — needed within the first weeks
 
@@ -40,6 +41,14 @@ request, quota reset or paid upgrade. Pending an explicit decision and verified
 recovery, the existing daily task stops before another run. The original launch
 display deadline is October 22 at 22:18:10.044Z. The live page must not be
 called continuously refreshed until a real daily publication is verified.
+The guarded original-activation recovery implementation has been prepared and
+independently reviewed locally. No allowance has been applied and no expired
+lease/merchant deadline renewed. Local registered-body expiry cleanup continues
+while provider settlement waits; it does not permit another publication or run.
+The separate existing dependency-audit issue is `roadmap-lbbz1.4.5`. Cameron
+approved integrating the publisher fix independently and authorized straightforward
+dependency/toolchain remediation; no further security exception is being requested
+for this narrowly scoped publisher change.
 Immediate launch was authorized; a show date, another visual approval or a
 prelaunch seven-day wait is not required. Observation gates destructive
 retirement afterward. Remaining launch/migration follow-ups:

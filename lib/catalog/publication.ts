@@ -1,9 +1,13 @@
 import type { CatalogReleaseManifest, CatalogSnapshot } from './types.ts';
-import type { CatalogD1 } from './storage/d1.ts';
+import type { CatalogD1, D1Statement } from './storage/d1.ts';
 import { canonicalTime } from './snapshot.ts';
 import { rollbackPreflight, visibleRevisionCountQuery } from './d1.ts';
-import { legacyMutationBatch, mutationAssertion } from './mutation-fence.ts';
+import { legacyMutationBatch, mutationAssertion, mutationFenceQuery } from './mutation-fence.ts';
 import type { MutationOwner } from './mutation-fence.ts';
+import type { ActivationPermit, CatalogBuildRequest } from './build-requests.ts';
+import { encodeBuildRequest } from './build-requests.ts';
+import type { PrunedRevision } from './prune-existing-revision.ts';
+import { pruningCurrentQueries } from './pruning-current.ts';
 
 /** Compact identity of an independently verified immutable package, not another release registry. */
 export type PublicationIntent = Pick<CatalogReleaseManifest, 'releaseId' | 'codeSha' | 'catalogRevision'
@@ -66,6 +70,27 @@ async function preflight(db: CatalogD1, snapshot: CatalogSnapshot, intent: Publi
 function owned(value: Outbox | undefined, token: string, now: Date, state?: string): value is Outbox {
   return Boolean(value && value.lease_token === token && value.lease_until! > now.toISOString()
     && (state ? value.state === state : ['claimed', 'dispatched'].includes(value.state)));
+}
+function completionStatements(db: CatalogD1, snapshot: CatalogSnapshot, value: Outbox, token: string, at: Date, requireLease: boolean): D1Statement[] {
+  const intent = intentFrom(value), check = gate(snapshot, intent);
+  return [
+    db.prepare(`INSERT INTO publication_receipts(release_id,catalog_revision,code_sha,completed_at,manifest_json)
+      SELECT ?,?,?,${DATABASE_NOW},? WHERE EXISTS(SELECT 1 FROM publication_outbox WHERE intent_id=? AND lease_token=?
+        AND state='dispatched' ${requireLease ? `AND lease_until>${DATABASE_NOW}` : ''}) AND ${check.sql}`)
+      .bind(value.release_id, intent.catalogRevision, intent.codeSha, value.intent_json, value.intent_id, token, ...check.params),
+    db.prepare(`UPDATE catalog_revisions SET status='published' WHERE revision=? AND EXISTS(
+      SELECT 1 FROM publication_receipts WHERE release_id=? AND manifest_json=?)`).bind(intent.catalogRevision, value.release_id, value.intent_json),
+    db.prepare(`UPDATE publication_outbox SET state='verified',completed_token=?,lease_token=NULL,lease_until=NULL,error_code=NULL,updated_at=?
+      WHERE intent_id=? AND lease_token=? AND state='dispatched' AND EXISTS(
+        SELECT 1 FROM publication_receipts WHERE release_id=? AND manifest_json=?)`)
+      .bind(token, at.toISOString(), value.intent_id, token, value.release_id, value.intent_json),
+  ];
+}
+async function completed(db: CatalogD1, value: Outbox, token: string): Promise<void> {
+  const result = await db.prepare('SELECT completed_token FROM publication_outbox WHERE intent_id=?')
+    .bind(value.intent_id).all<{ completed_token: string | null }>();
+  if (result.results[0]?.completed_token !== token || (await publicationStatus(db, value.release_id)).state !== 'published')
+    throw new Error('publication_fenced_or_preflight_changed');
 }
 
 /** Historical completion state, not a claim that this release is still active/fresh. */
@@ -139,27 +164,70 @@ export async function completePublication(db: CatalogD1, snapshot: CatalogSnapsh
   if (encode(deployed) !== value.intent_json) throw new Error('publication_readback_mismatch');
   const at = now();
   await preflight(db, snapshot, intent, at);
-  const check = gate(snapshot, intent);
-  const statements = [
-    db.prepare(`INSERT INTO publication_receipts(release_id,catalog_revision,code_sha,completed_at,manifest_json)
-      SELECT ?,?,?,${DATABASE_NOW},? WHERE EXISTS(SELECT 1 FROM publication_outbox WHERE intent_id=? AND lease_token=?
-        AND state='dispatched' AND lease_until>${DATABASE_NOW}) AND ${check.sql}`)
-      .bind(releaseId, intent.catalogRevision, intent.codeSha, value.intent_json, value.intent_id, token, ...check.params),
-    db.prepare(`UPDATE catalog_revisions SET status='published' WHERE revision=? AND EXISTS(
-      SELECT 1 FROM publication_receipts WHERE release_id=? AND manifest_json=?)`).bind(intent.catalogRevision, releaseId, value.intent_json),
-    db.prepare(`UPDATE publication_outbox SET state='verified',completed_token=?,lease_token=NULL,lease_until=NULL,error_code=NULL,updated_at=?
-      WHERE intent_id=? AND lease_token=? AND state='dispatched' AND EXISTS(
-        SELECT 1 FROM publication_receipts WHERE release_id=? AND manifest_json=?)`)
-      .bind(token, at.toISOString(), value.intent_id, token, releaseId, value.intent_json),
-  ];
+  const statements = completionStatements(db, snapshot, value, token, at, true);
   if (mutationOwner) await db.batch([mutationAssertion(db, mutationOwner, ['activating']),
     db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM catalog_mutation_scopes s JOIN catalog_build_requests b
       ON b.request_id=s.activation_request_id WHERE s.environment=? AND s.index_name=? AND b.environment=s.environment
       AND b.state='activating' AND b.release_id=?) THEN 'true' ELSE 'mutation_fenced' END)`)
       .bind(mutationOwner.environment, mutationOwner.indexName, releaseId), ...statements]);
   else await legacyMutationBatch(db, statements);
-  const completed = await db.prepare('SELECT completed_token FROM publication_outbox WHERE intent_id=?')
-    .bind(value.intent_id).all<{ completed_token: string | null }>();
-  if (completed.results[0]?.completed_token !== token) throw new Error('publication_fenced_or_preflight_changed');
-  if ((await publicationStatus(db, releaseId)).state !== 'published') throw new Error('publication_fenced_or_preflight_changed');
+  await completed(db, value, token);
+}
+
+/** Settle ONLY an already independently observed original activation. Activation
+ * ownership does not expire: elapsed build/publication leases grant neither a
+ * takeover nor another deployment. This bounded path renews no lease or rights;
+ * fresh original package/current-source/native proof is still mandatory. */
+export async function completeActivatedPublication(db: CatalogD1, revision: PrunedRevision, publication: PublicationClaim, permit: ActivationPermit,
+  readDeployed: (intent: PublicationIntent) => Promise<PublicationIntent>, now: () => Date = () => new Date()): Promise<void> {
+  ({ revision, publication, permit } = structuredClone({ revision, publication, permit }));
+  const owner = permit.mutationOwner, snapshot = revision.snapshot, intent = publication.intent;
+  if (!owner || owner.phase !== 'activating' || permit.releaseId !== intent.releaseId || snapshot.products.length > 10
+    || revision.sourceRows.length > 20 || new Set(revision.sourceRows.map(row => row.public_id)).size !== revision.sourceRows.length
+    || [...snapshot.products, ...snapshot.heldProducts].some(product => !revision.sourceRows.some(row => row.public_id === product.publicId))
+    || revision.request.scope.environment !== owner.environment || revision.request.scope.indexName !== owner.indexName
+    || revision.operationKey !== owner.operationKey || !Number.isSafeInteger(revision.globalVectorWatermark) || revision.globalVectorWatermark < 0)
+    throw new Error('publication_activation_fenced');
+  mutationFenceQuery(owner, ['activating']); // Validate the full owner before any provider read.
+  const value = await row(db, intent.releaseId);
+  if (!value || value.state !== 'dispatched' || value.lease_token !== publication.token || value.lease_until !== publication.leaseUntil
+    || value.intent_id !== publication.intentId || value.intent_json !== encode(intent) || await digest(value.intent_json) !== value.intent_id
+    || value.dispatch_reference !== `version:${permit.versionReference}`) throw new Error('publication_activation_fenced');
+  const build = (await db.prepare('SELECT * FROM catalog_build_requests WHERE request_id=?').bind(permit.requestId).all<Record<string, unknown>>()).results[0];
+  const request = build && JSON.parse(String(build.request_json)) as CatalogBuildRequest;
+  if (!build || encodeBuildRequest(request) !== build.request_json || await digest(String(build.request_json)) !== permit.requestId
+    || request.environment !== owner.environment || request.sourceRevision !== intent.catalogRevision || request.sourceDigest !== intent.catalogSnapshotSha256
+    || request.codeSha !== intent.codeSha || request.priorReleaseId !== intent.priorReleaseId) throw new Error('publication_activation_fenced');
+  const assertion = (sql: string, params: unknown[]) => db.prepare(`SELECT json(CASE WHEN ${sql} THEN 'true' ELSE 'publication_activation_fenced' END)`).bind(...params);
+  const check = gate(snapshot, intent), receipt = revision.packet.receipt;
+  if (receipt.catalog_revision !== intent.catalogRevision || receipt.snapshot_sha256 !== intent.catalogSnapshotSha256
+    || receipt.source_export_sha256 !== revision.sourceDigest || receipt.product_count !== snapshot.products.length
+    || revision.packet.rows.length !== receipt.product_count || new Set(revision.packet.rows.map(row => row.public_id)).size !== receipt.product_count
+    || snapshot.products.some(product => !revision.packet.rows.some(row => row.public_id === product.publicId)))
+    throw new Error('publication_activation_fenced');
+  const receiptColumns = ['catalog_revision','snapshot_sha256','projection_sha256','source_export_sha256','product_count','created_at'] as const;
+  const projectionColumns = ['catalog_revision','public_id','product_id','slug','title','description','tags','source_facts_hash','eligible_until','public_display_json','display_sha256'];
+  const assertions = () => [mutationAssertion(db, owner, ['activating']),
+    assertion(`EXISTS(SELECT 1 FROM catalog_mutation_scopes s JOIN catalog_build_requests b ON b.request_id=s.activation_request_id
+      WHERE s.environment=? AND s.index_name=? AND s.captured_at=? AND s.activation_request_id=? AND b.environment=s.environment AND b.state='activating'
+      AND b.lease_token=? AND b.lease_until IS ? AND b.run_reference=? AND b.release_id=? AND b.version_reference=? AND b.request_json=? AND b.source_revision=?)
+      AND EXISTS(SELECT 1 FROM publication_outbox WHERE intent_id=? AND intent_json=? AND state='dispatched' AND lease_token=? AND lease_until=? AND dispatch_reference=?)
+      AND (SELECT coalesce(max(sequence),0) FROM vector_sync_outbox)=? AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE status!='complete')
+      AND EXISTS(SELECT 1 FROM catalog_projection_receipts WHERE ${receiptColumns.map(key => `${key} IS ?`).join(' AND ')})
+      AND (SELECT count(*) FROM catalog_public_products WHERE catalog_revision=?)=?
+      AND (SELECT count(*) FROM json_each(?) e JOIN catalog_public_products p ON p.catalog_revision=? AND p.public_id=json_extract(e.value,'$.public_id')
+        WHERE ${projectionColumns.map(key => `p.${key} IS json_extract(e.value,'$.${key}')`).join(' AND ')})=? AND ${check.sql}`,
+    [owner.environment, owner.indexName, owner.capturedAt, permit.requestId, permit.token, build.lease_until, permit.runReference, permit.releaseId, permit.versionReference, build.request_json, request.sourceRevision,
+      value.intent_id, value.intent_json, publication.token, publication.leaseUntil, value.dispatch_reference, revision.globalVectorWatermark,
+      ...receiptColumns.map(key => receipt[key]), intent.catalogRevision, receipt.product_count, JSON.stringify(revision.packet.rows), intent.catalogRevision, receipt.product_count, ...check.params]),
+    ...pruningCurrentQueries(revision.sourceRows).map(query => assertion(`(${query.sql})=?`, [...query.params, query.count]))];
+  // Owner/source assertions run before the trusted provider read and again in
+  // the final receipt transaction. There is no upload/activate/claim callback.
+  await db.batch(assertions());
+  let deployed: PublicationIntent;
+  try { deployed = await readDeployed(intent); } catch { throw new Error('publication_readback_failed'); }
+  if (encode(deployed) !== value.intent_json) throw new Error('publication_readback_mismatch');
+  const at = now(); await preflight(db, snapshot, intent, at);
+  await db.batch([...assertions(), ...completionStatements(db, snapshot, value, publication.token, at, false)]);
+  await completed(db, value, publication.token);
 }

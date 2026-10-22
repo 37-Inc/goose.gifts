@@ -24,6 +24,16 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
+- **Stupid Gifts publication recovery:** the new domain is live with eight
+  reviewed products, but the maintained release still needs final receipt/lock
+  settlement. Narrow original-activation recovery is prepared and locally
+  reviewed, not run. The one-time recovery allowance and future HTTP headroom
+  decisions remain pending; no new product/model fetch, paid upgrade or second
+  job is inferred. Local registered-body expiry cleanup continues while held.
+  Existing dependency-audit findings are separately tracked in
+  `roadmap-lbbz1.4.5`; Cameron approved merging the publisher fix separately and
+  asked us to take care of straightforward dependency/toolchain updates.
+
 - **D1-write rollback mechanism prepared** [owner+claude]: bounded offline
   reconstruction now binds frozen logical D1 rows to a native PG baseline,
   preserves current product/vector and finalized telemetry state, and retains
@@ -42,11 +52,12 @@ what's likely next.
   Domain registration is complete ($28.20/year, auto-renew enabled). Final
   review adds Pinterest app/profile and scheduler cutover, affiliate ownership
   verification, content-rights/expiry gates, and the `/howie` landing experience.
-  Correct Amazon account/site-list work is deferred to the final pre-launch
-  gate (`roadmap-lbbz1.8`), alongside the final-stage GA4/Search Console/
+  Correct Amazon account/site-list work was verified October21 under Riley's
+  store; broader provider follow-ups remain in `roadmap-lbbz1.8`, including GA4/Search Console/
   Google Cloud and remaining-provider rebrand checklist. Research/pricing
   integration is post-launch (`roadmap-mt1gp`). Implementation and staged
-  migration are now authorized and underway; no live rebrand/cutover yet.
+  migration are authorized and underway; stupid.gifts is now live on Cloudflare
+  Free with eight reviewed products. Full catalog/writer migration is not done.
   October21 owner approved using the existing Codex task for up to ten daily
   existing-product refreshes and weekly discovery. Finish private restart/
   cleanup and publication verification; hosted CI/Cloudflare Cron is deferred.
@@ -217,6 +228,22 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-21 [owner+claude] — Prepare original-activation recovery without resending
+
+Added exact original-owner/source/rights recovery for an already deployed release
+after its claim leases expire, plus a separately approved once-only journaled
+verification allowance. Ordinary completion remains lease-bound. A mechanical
+pure-CAS extraction preserves Worker compatibility; fault, accounting and browser
+bundle tests cover the change. No live grant or provider recovery has run.
+Original charges, merchant deadlines and the sole scheduled job remain intact.
+Root's full staging check passed691/709 with18 explicit optional skips; the
+eight-product local recovery proof used75 HTTP/67 SQL with no second deployment.
+The unchanged dependency audit has a separately tracked build-tool finding;
+Cameron explicitly approved [PR #217](https://github.com/37-Inc/goose.gifts/pull/217)
+integration while that cleanup proceeds separately. No major dependency upgrade
+is bundled in the publisher fix, and actual recovery still needs its own approval.
+See `JOURNAL.md`, `roadmap-lbbz1.4.3` and `roadmap-lbbz1.4.5`.
 
 ### 2026-10-21 [owner+claude] — Bind prospective launch copy review to original evidence
 

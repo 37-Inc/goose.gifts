@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS } from '../scripts/catalog/run-workspace.ts';
 import { canonicalJson, sha256 } from '../scripts/catalog/migration.ts';
+import { encodeBuildRequest } from '../lib/catalog/build-requests.ts';
 import { createCatalogProviderEvidence } from '../scripts/catalog/provider-evidence.ts';
 import { encodePgvectorSendBase64, decodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
 
@@ -129,6 +130,113 @@ function publication(){const request={schemaVersion:1,environment:'staging',sour
     permit:{requestId:'test-request',token:'test-token',runReference:'test/run',releaseId:'test-release',versionReference:'test-version'},
     vectorPlan:{catalogRevision:'test-revision',planSha256:HASH,ids:[]},packageSha256:HASH,uploadMarker:'test-upload',versionReference:'test-version',deploymentMarker:'test-deploy',deploymentId:null};}
 
+function recoveryCheckpoint(runId='test-run'){
+  const p=publication(),requestId=sha256(encodeBuildRequest(p.build.request));
+  const owner={environment:scope.environment,indexName:scope.indexName,token:'recovery-owner',generation:3,epoch:27,phase:'activating',
+    ownerReference:`${runId}:freeze`,operationKey:HASH,capturedAt:new Date(NOW).toISOString()};
+  Object.assign(p,{requestId,runReference:runId});Object.assign(p.build,{requestId,runReference:runId});
+  Object.assign(p.permit,{requestId,runReference:runId,mutationOwner:structuredClone(owner)});
+  return{...cp({private:'ORIGINAL BODY'}),phase:'attention',owner,control:{publication:p}};
+}
+const recoveryGrant=(checkpoint,allowance={httpRequests:2,sqlStatements:3})=>({expectedCheckpointSha256:checkpoint.sha256,approvalReference:'c'.repeat(64),allowance});
+
+test('explicit recovery grant fixes the ceiling at actual usage, keeps unknown charges, and resumes exactly once',async t=>{
+  const f=await fixture(t,{budgetCaps:{httpRequests:1,sqlStatements:100}}),w=await f.open();
+  assert.deepEqual(await w.budgetCeiling(),f.input.budgetCaps);
+  await w.reserveBudget(reservation('original-unknown',2));await w.settleBudget('original-unknown',{status:'unknown',usage:null});
+  const original=await w.writeCheckpoint(null,recoveryCheckpoint()),grant=recoveryGrant(original);
+  const manifestBytes=await readFile(join(w.directory,'manifest.json')),bodyBytes=await readFile(join(w.directory,'objects',`${original.sha256}.json`));
+  assert.deepEqual(await w.grantActivationRecoveryBudget(grant),{httpRequests:3,sqlStatements:5}); // NOT 100 + 3 SQL.
+  const grantFile=(await readdir(join(w.directory,'events'))).sort().at(-1);
+  const grantRecord=JSON.parse(await readFile(join(w.directory,'events',grantFile)));
+  assert.equal(grantRecord.event.grant.permitSha256,sha256(canonicalJson(original.checkpoint.control.publication.permit)));
+  assert.ok(!JSON.stringify(grantRecord).includes('ORIGINAL BODY'));assert.ok(!JSON.stringify(grantRecord).includes('recovery-owner'));
+  assert.deepEqual(await w.budget(),{httpRequests:1,sqlStatements:2,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:1});
+  const next=await w.writeControlCheckpoint(original.sha256,{phase:'attention',owner:original.checkpoint.owner,
+    control:{publication:{...original.checkpoint.control.publication,deploymentId:'observed-original-deployment'}}});
+  await w.reserveBudget(reservation('reconcile',3));await w.settleBudget('reconcile',{status:'known',usage:{rowsRead:4,rowsWritten:1}});
+  const events=await readdir(join(w.directory,'events'));
+  assert.deepEqual(await w.grantActivationRecoveryBudget(grant),{httpRequests:3,sqlStatements:5});
+  assert.deepEqual(await readdir(join(w.directory,'events')),events);
+  await assert.rejects(w.grantActivationRecoveryBudget({...grant,expectedCheckpointSha256:next.sha256}),/recovery_replay/);
+  await assert.rejects(w.grantActivationRecoveryBudget({...grant,approvalReference:HASH}),/recovery_replay/);
+  await assert.rejects(w.grantActivationRecoveryBudget({...grant,allowance:{httpRequests:3,sqlStatements:3}}),/recovery_replay/);
+  await assert.rejects(w.reserveBudget(reservation('sql-over',1)),/budget_exceeded/);
+  await w.reserveBudget(reservation('status-only',0));await assert.rejects(w.reserveBudget(reservation('http-over',0)),/budget_exceeded/);
+  assert.deepEqual(await readFile(join(w.directory,'manifest.json')),manifestBytes);
+  assert.deepEqual(await readFile(join(w.directory,'objects',`${original.sha256}.json`)),bodyBytes);
+  await w.close();const reopened=await f.open({mode:'resume',expectedManifestSha256:w.manifestSha256});
+  assert.deepEqual(await reopened.budgetCeiling(),{httpRequests:3,sqlStatements:5});
+  assert.deepEqual(await reopened.grantActivationRecoveryBudget(grant),{httpRequests:3,sqlStatements:5});
+  assert.equal((await reopened.budget()).unconfirmedRequests,2);
+  const status=await readRunWorkspace({...f.input,mode:'resume'});assert.deepEqual(status.budgetCeiling,{httpRequests:3,sqlStatements:5});
+  assert.equal(status.manifest.budgetCaps.sqlStatements,100);assert.equal(status.budget.sqlStatements,5);
+});
+
+test('recovery grant refuses missing/foreign/preactivation controls, mismatched permit owners, invalid allowances and stale CAS',async t=>{
+  const mutations={missing:c=>{delete c.control;},foreign:c=>{const p=c.control.publication;p.runReference=p.build.runReference=p.permit.runReference='foreign-run';},
+    ownerReference:c=>{c.owner.ownerReference='test-run:other';c.control.publication.permit.mutationOwner=structuredClone(c.owner);},
+    preactivation:c=>{c.control.publication.stage='uploaded';},published:c=>{c.control.publication.stage='published';c.control.publication.receiptSha256=HASH;},missingPermit:c=>{c.control.publication.permit=null;},
+    missingPermitOwner:c=>{delete c.control.publication.permit.mutationOwner;},
+    mismatch:c=>{c.control.publication.permit.mutationOwner.epoch++;},
+    wrongPhase:c=>{c.owner.phase='freezing';c.control.publication.permit.mutationOwner=structuredClone(c.owner);},
+    requestId:c=>{const p=c.control.publication;p.requestId=p.build.requestId=p.permit.requestId='not-the-request-digest';}};
+  for(const [name,mutate]of Object.entries(mutations))await t.test(name,async sub=>{
+    const f=await fixture(sub),w=await f.open(),value=recoveryCheckpoint();mutate(value);const saved=await w.writeCheckpoint(null,value);
+    await assert.rejects(w.grantActivationRecoveryBudget(recoveryGrant(saved)),/recovery_control/);
+    assert.deepEqual(await w.budgetCeiling(),f.input.budgetCaps);
+  });
+  const f=await fixture(t),w=await f.open();await assert.rejects(w.grantActivationRecoveryBudget(recoveryGrant({sha256:HASH})),/checkpoint_cas/);
+  const saved=await w.writeCheckpoint(null,recoveryCheckpoint());
+  await assert.rejects(w.grantActivationRecoveryBudget({...recoveryGrant(saved),expectedCheckpointSha256:HASH}),/checkpoint_cas/);
+  for(const bad of [{httpRequests:151,sqlStatements:3},{httpRequests:2,sqlStatements:301},{httpRequests:-1,sqlStatements:0},{httpRequests:1.5,sqlStatements:0}])
+    await assert.rejects(w.grantActivationRecoveryBudget(recoveryGrant(saved,bad)),/recovery_allowance/);
+  await assert.rejects(w.grantActivationRecoveryBudget({...recoveryGrant(saved),approvalReference:'unapproved'}),/recovery_allowance/);
+  await assert.rejects(w.grantActivationRecoveryBudget({...recoveryGrant(saved),extra:true}),/recovery_allowance/);
+  await assert.rejects(w.grantActivationRecoveryBudget(recoveryGrant(saved,{httpRequests:1,sqlStatements:1,extra:1})),/recovery_allowance/);
+  const grants=await Promise.allSettled([w.grantActivationRecoveryBudget(recoveryGrant(saved,{httpRequests:150,sqlStatements:300})),
+    w.grantActivationRecoveryBudget(recoveryGrant(saved,{httpRequests:149,sqlStatements:300}))]);
+  assert.equal(grants.filter(r=>r.status==='fulfilled').length,1);assert.deepEqual(await w.budgetCeiling(),{httpRequests:150,sqlStatements:300});
+});
+
+test('recovery allowance remains activation-bound and permits only exact published control reconciliation',async t=>{
+  const f=await fixture(t),w=await f.open(),saved=await w.writeCheckpoint(null,recoveryCheckpoint());
+  await w.grantActivationRecoveryBudget(recoveryGrant(saved));
+  const changed={...saved.checkpoint,owner:{...saved.checkpoint.owner,phase:'writing'}};
+  const writing=await w.writeCheckpoint(saved.sha256,changed);
+  await assert.rejects(w.reserveBudget(reservation('cannot-write',0)),/recovery_control/);
+  const restored=await w.writeCheckpoint(writing.sha256,saved.checkpoint);
+  const published={...saved.checkpoint.control.publication,stage:'published',deploymentId:'original-deployment'};
+  const noReceipt=await w.writeControlCheckpoint(restored.sha256,{phase:'attention',owner:saved.checkpoint.owner,control:{publication:published}});
+  await assert.rejects(w.reserveBudget(reservation('cannot-resolve-without-receipt',0)),/recovery_control/);
+  published.receiptSha256=HASH;
+  const accepted=await w.writeControlCheckpoint(noReceipt.sha256,{phase:'attention',owner:saved.checkpoint.owner,control:{publication:published}});
+  await w.reserveBudget(reservation('resolve-original-build-activation',0));
+  await w.settleBudget('resolve-original-build-activation',{status:'known',usage:{rowsRead:1,rowsWritten:1}});
+  await w.writeControlCheckpoint(accepted.sha256,{phase:'published',owner:null,control:{publication:published}});
+  await w.reserveBudget(reservation('final-read-only-confirmation',0));
+  assert.deepEqual(await w.grantActivationRecoveryBudget(recoveryGrant(saved)),{httpRequests:2,sqlStatements:3});
+  await assert.rejects(w.grantActivationRecoveryBudget({...recoveryGrant(restored),approvalReference:HASH}),/recovery_replay/);
+});
+
+test('recovery journal semantic replay rejects forged usage, permit, checkpoint and duplicate grants even with valid hash chain',async t=>{
+  for(const kind of ['usage','permit','checkpoint','duplicate','unknown'])await t.test(kind,async sub=>{
+    const f=await fixture(sub),w=await f.open(),saved=await w.writeCheckpoint(null,recoveryCheckpoint());
+    await w.reserveBudget(reservation('before-grant',2));await w.grantActivationRecoveryBudget(recoveryGrant(saved));await w.close();
+    const directory=join(w.directory,'events'),names=(await readdir(directory)).sort(),records=await Promise.all(names.map(async name=>JSON.parse(await readFile(join(directory,name)))));
+    const record=records.at(-1);
+    if(kind==='usage')record.event.grant.usage.sqlStatements=0;
+    if(kind==='permit')record.event.grant.permitSha256=HASH;
+    if(kind==='checkpoint')record.event.grant.expectedCheckpointSha256=HASH;
+    if(kind==='unknown')record.event.type='unknown-recovery-budget';
+    if(kind==='duplicate')records.push({...structuredClone(record),sequence:record.sequence+1});
+    for(const name of names)await unlink(join(directory,name));let parent=null;
+    for(const value of records){value.parent=parent;parent=sha256(canonicalJson(value));await tamper(join(directory,`${String(value.sequence).padStart(6,'0')}.${parent}.json`),value);}
+    await tamper(join(w.directory,'head.json'),{sequence:records.length,sha256:parent});
+    await assert.rejects(f.open({mode:'resume'}),/recovery_binding|checkpoint_cas|recovery_duplicate|run_workspace_event/);
+  });
+});
+
 test('expired control-only reconciliation preserves hidden state and all claims without content renewal',async t=>{
   const f=await fixture(t),w=await f.open();const first=await w.writeCheckpoint(null,{...cp({private:'OLD SEALED STATE'}),phase:'publishing',control:{publication:publication()}});
   f.setNow(LATER);const p={...publication(),stage:'published',deploymentId:'test-deployed',receiptSha256:HASH};
@@ -192,18 +300,20 @@ test('purge covers complete interrupted object temp envelopes and unregistered b
   await w.close();const resumed=await f.open({mode:'resume'});assert.deepEqual(await resumed.purgeExpired(),[]);
 });
 
-test('lost reserve/checkpoint head commits recover the durable trailing record, never refund or replay',async t=>{
-  for(const kind of ['reserve','checkpoint'])await t.test(kind,async sub=>{
+test('lost reserve/checkpoint/grant head commits recover the durable trailing record, never refund or replay',async t=>{
+  for(const kind of ['reserve','checkpoint','grant'])await t.test(kind,async sub=>{
     const f=await fixture(sub),w=await f.open();
     if(kind==='reserve')await w.reserveBudget(reservation('lost-ack',0));
-    else await w.writeCheckpoint(null,cp({fixture:'durable checkpoint'}));
+    else if(kind==='checkpoint')await w.writeCheckpoint(null,cp({fixture:'durable checkpoint'}));
+    else await w.grantActivationRecoveryBudget(recoveryGrant(await w.writeCheckpoint(null,recoveryCheckpoint())));
     await w.close();const eventNames=(await readdir(join(w.directory,'events'))).sort(),last=JSON.parse(await readFile(join(w.directory,'events',eventNames.at(-1))));
     const previous={sequence:last.sequence-1,sha256:last.parent};await tamper(join(w.directory,'head.json'),previous);
     const status=await readRunWorkspace({...f.input,mode:'resume'});
     assert.deepEqual(JSON.parse(await readFile(join(w.directory,'head.json'))),previous); // status never repairs
     const resumed=await f.open({mode:'resume'});
     if(kind==='reserve'){assert.equal(status.budget.unconfirmedRequests,1);await resumed.reserveBudget(reservation('lost-ack',0));assert.equal((await resumed.budget()).httpRequests,1);}
-    else {const checkpoint=await resumed.readCheckpoint();assert.equal(checkpoint.checkpoint.state.fixture,'durable checkpoint');assert.equal((await resumed.writeCheckpoint(null,cp({fixture:'durable checkpoint'}))).sha256,checkpoint.sha256);}
+    else if(kind==='checkpoint'){const checkpoint=await resumed.readCheckpoint();assert.equal(checkpoint.checkpoint.state.fixture,'durable checkpoint');assert.equal((await resumed.writeCheckpoint(null,cp({fixture:'durable checkpoint'}))).sha256,checkpoint.sha256);}
+    else {assert.deepEqual(await resumed.budgetCeiling(),{httpRequests:2,sqlStatements:3});await resumed.grantActivationRecoveryBudget(recoveryGrant(await resumed.readCheckpoint()));}
     assert.deepEqual(await readdir(join(w.directory,'events')),eventNames);
     assert.equal(JSON.parse(await readFile(join(w.directory,'head.json'))).sequence,last.sequence);
   });

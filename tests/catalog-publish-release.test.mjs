@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 import { executePublication, validatePublicationConfig } from '../scripts/catalog/publish-release.ts';
 import { createProjectionPacket, importPublicProjection } from '../lib/catalog/d1.ts';
 import { enqueueBuildRequest, claimBuildRequest, beginBuildActivation } from '../lib/catalog/build-requests.ts';
-import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication } from '../lib/catalog/publication.ts';
+import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication, completeActivatedPublication } from '../lib/catalog/publication.ts';
 import { claimMutationOwnership, readMutationOwner } from '../lib/catalog/mutation-fence.ts';
 import { prunedVectorPlan } from '../lib/catalog/prune-existing-revision.ts';
 import { canonicalJson } from '../scripts/catalog/migration.ts';
@@ -25,6 +25,7 @@ import { siteIdentityFor } from '../static-site/lib/site-identity.ts';
 import { guides } from '../static-site/lib/guides.ts';
 import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 import { openRunWorkspace } from '../scripts/catalog/run-workspace.ts';
+import { createCatalogD1Rest } from '../scripts/catalog/d1-write-rest.ts';
 import safeCatalogPayload from '../static-site/public/safe/catalog.json' with {type:'json'};
 
 const AT=Date.parse('2026-10-19T12:00:00.000Z');
@@ -98,8 +99,11 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
   const packet=await createProjectionPacket(snapshot,{[id]:'f'.repeat(64)},'b'.repeat(64),new Date(AT));await importPublicProjection(db,packet);
   sql.prepare('INSERT INTO catalog_mutation_scopes(environment,index_name) VALUES(?,?)').run(scope.environment,scope.indexName);
   const owner=await claimMutationOwnership(db,scope,{phase:'freezing',ownerReference:'fixture-run',operationKey:'d'.repeat(64)});
-  const revision={request:{previous:snapshot,scope},snapshot,packet,sourceRows:[{public_id:id,source_facts_hash:'f'.repeat(64),embedding_text_hash:null}],
-    vectorSyncWatermark:0,globalVectorWatermark:0};const plan=prunedVectorPlan(revision);
+  const current={...sql.prepare('SELECT * FROM products WHERE public_id=?').get(id)};
+  const sourceRow={...current,approved_product_json:canonicalJson(current),...Object.fromEntries(['id','public_id','source','availability_checked_at','last_verified_at']
+    .map(key=>[`archived_${key}`,JSON.parse(current.source_record_json)[key]??null]))};
+  const revision={request:{previous:snapshot,scope},snapshot,packet,sourceRows:[sourceRow],
+    sourceDigest:'b'.repeat(64),operationKey:owner.operationKey,vectorSyncWatermark:0,globalVectorWatermark:0};const plan=prunedVectorPlan(revision);
   const vector={id,values:Array(1536).fill(Math.fround(.1)),metadata:{catalogRevision:snapshot.catalogRevision,sourceFactsHash:'f'.repeat(64)}};vector.values[0]=-0;
   vector.metadata.vectorBytesSha256=nativeHash(vector.values);
   sql.prepare(`INSERT INTO catalog_vector_deliveries(delivery_id,environment,index_name,generation,prior_epoch,owner_json,request_json,product_json,
@@ -185,7 +189,7 @@ async function setup(t,{real=false,prior=true,environment='staging',semanticSear
         prior?[{id:priorDeployment,versions:[{version_id:activePriorVersion,percentage:100}],annotations:{'workers/message':'owned fixture prior'}}]:[]});
     }throw new Error(`Unexpected fixture HTTP ${url}`);
   };
-  const execute=()=>executePublication({db,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
+  const execute=(database=db)=>executePublication({db:database,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
     credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock)}});
   return{db,sql,owner,revision,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,commandEnvironments,checkpoint:()=>checkpoint,advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
     async nextRelease(){
@@ -318,12 +322,130 @@ test('readback/auth/native mismatch cannot publish; exact readback recovery does
     delete f.mode[key];assert.equal((await f.execute()).state,'published',key);assert.equal(f.counts().activateCalls,1);
   }
 });
-test('expired lease/content and source/rights drift never grant new publication',async t=>{
-  const expired=await setup(t);expired.mode.activationLost=true;await expired.execute();expired.advance(16*60000);
-  assert.equal((await expired.execute()).errorCode,'publication_fresh_evidence_required');assert.equal(expired.counts().activateCalls,1);
+test('expired original build/publication leases settle an independently active fresh package exactly once without renewing or redeploying',async t=>{
+  const f=await setup(t);f.mode.activationLost=true;assert.equal((await f.execute()).state,'pending');f.advance(16*60000);
+  const c=f.checkpoint().control.publication;assert.ok(c.build.leaseUntil<new Date(AT+16*60000).toISOString());
+  assert.ok(c.publication.leaseUntil<new Date(AT+16*60000).toISOString());
+  await assert.rejects(completePublication(f.db,f.revision.snapshot,f.config.releaseId,c.publication.token,async()=>c.intent,
+    ()=>new Date(AT+16*60000),c.permit.mutationOwner),/publication_fenced/); // Ordinary completion keeps its original lease rule.
+  f.mode.noRevision=true;assert.equal((await f.execute()).errorCode,'publication_fresh_evidence_required');delete f.mode.noRevision;
+  const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
+  assert.equal(await readMutationOwner(f.db,scope),null);assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests').get().state,'resolved');
+  assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
+  assert.equal(f.sql.prepare("SELECT attempts FROM publication_outbox WHERE release_id='fixture-release'").get().attempts,1);
+  assert.equal(f.checkpoint().control.publication.publication.leaseUntil,c.publication.leaseUntil);
+  assert.equal((await f.execute()).state,'published');assert.equal(f.counts().activateCalls,1);assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().buildCalls,1);
+});
+test('ten full source rows settle through actual bounded D1 REST plus existing executor/native/identity/idle checks under150HTTP300SQL',async t=>{
+  const f=await setup(t);f.mode.activationLost=true;await f.execute();f.advance(16*60000);
+  const original={...f.sql.prepare('SELECT * FROM products WHERE public_id=?').get(id)};
+  // Nine unchanged held baseline rows are private CAS inputs, never promoted.
+  for(let i=2;i<=10;i++){
+    const row={...original,id:`B${String(i).padStart(9,'0')}`,public_id:`00000000-0000-4000-8000-${String(i).padStart(12,'0')}`,
+      slug:`held-baseline-${i}`,is_active:0,public_display_json:null,source_record_json:JSON.stringify({fixtureOnly:'x'.repeat(4000)})};
+    const columns=Object.keys(row);f.sql.prepare(`INSERT INTO products(${columns.join(',')}) VALUES(${columns.map(()=>'?')})`).run(...columns.map(key=>row[key]));
+    f.revision.sourceRows.push({...row,approved_product_json:canonicalJson(row),...Object.fromEntries(['id','public_id','source','availability_checked_at','last_verified_at']
+      .map(key=>[`archived_${key}`,JSON.parse(row.source_record_json)[key]??null]))});
+  }
+  const heldBefore=f.sql.prepare('SELECT * FROM products WHERE is_active=0 ORDER BY id').all(),before=f.counts();
+  let maxRequest=0,maxResponse=0,maxParameters=0,maxStatements=0;
+  const base=`https://api.cloudflare.com/client/v4/accounts/${f.config.accountId}/d1/database/${f.config.database.id}`;
+  const transport=async(url,init)=>{
+    assert.ok(url===base||url===`${base}/query`);let result;
+    if(url===base)result={uuid:f.config.database.id,name:f.config.database.name,read_replication:{mode:'disabled'}};
+    else{
+      maxRequest=Math.max(maxRequest,Buffer.byteLength(init.body));const {batch}=JSON.parse(init.body);maxStatements=Math.max(maxStatements,batch.length);
+      assert.ok(batch.length<=50);result=[];f.sql.exec('BEGIN');
+      try{for(const query of batch){maxParameters=Math.max(maxParameters,query.params.length);assert.ok(query.params.length<=100);
+        const written=f.sql.prepare('SELECT total_changes() n').get().n;
+        const rows=f.sql.prepare(query.sql).all(...query.params).map(row=>({...row})),changes=f.sql.prepare('SELECT total_changes() n').get().n-written;
+        result.push({success:true,results:rows,meta:{served_by_primary:true,rows_read:rows.length,rows_written:changes,changes}});
+      }f.sql.exec('COMMIT');}catch(error){f.sql.exec('ROLLBACK');throw error;}
+    }
+    const response=JSON.stringify({success:true,result});maxResponse=Math.max(maxResponse,Buffer.byteLength(response));return new Response(response);
+  };
+  const db=await createCatalogD1Rest({accountId:f.config.accountId,databaseId:f.config.database.id,databaseName:f.config.database.name,
+    token:'FIXTURE_ONLY',fetch:transport,limits:{requests:150,statements:300}});
+  const result=await f.execute(db);assert.equal(result.state,'published',JSON.stringify(result));assert.equal(await readMutationOwner(db,scope),null);
+  assert.equal((await f.execute(db)).state,'published');
+  const metrics=db.metrics(),http=metrics.requests+f.counts().httpCalls-before.httpCalls;
+  assert.ok(http<=150);assert.ok(metrics.statements<=300);assert.equal(metrics.unconfirmedRequests,0);
+  assert.ok(maxRequest<=512*1024);assert.ok(maxResponse<=512*1024);
+  assert.equal(f.counts().activateCalls,before.activateCalls);assert.equal(f.counts().uploadCalls,before.uploadCalls);
+  assert.deepEqual(f.sql.prepare('SELECT * FROM products WHERE is_active=0 ORDER BY id').all(),heldBefore);
+  t.diagnostic(JSON.stringify({http,sql:metrics.statements,maxRequest,maxResponse,maxParameters,maxStatements,unknown:metrics.unconfirmedRequests}));
+});
+test('expired content and source/rights drift never grant new publication',async t=>{
+  const expired=await setup(t);expired.mode.activationLost=true;await expired.execute();expired.advance(27*3600000);
+  assert.equal((await expired.execute()).state,'pending');assert.equal(expired.counts().activateCalls,1);
+  assert.equal(expired.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,0);
   const changed=await setup(t);changed.mode.sourceDrift=true;assert.equal((await changed.execute()).state,'pending');assert.equal(changed.counts().activateCalls,0);
   const held=await setup(t);held.mode.activationLost=true;await held.execute();held.sql.prepare("UPDATE products SET rights_json='{}'").run();
   assert.equal((await held.execute()).state,'pending');assert.equal(held.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,0);
+});
+test('original-permit completion refuses every owner/build/publication identity substitution before independent readback',async t=>{
+  const f=await setup(t);f.mode.activationLost=true;await f.execute();f.advance(16*60000);const c=f.checkpoint().control.publication;
+  let calls=0;const read=async()=>{calls++;return c.intent;},now=()=>new Date(AT+16*60000);
+  for(const patch of [{requestId:'0'.repeat(64)},{token:'foreign'},{runReference:'foreign'},{releaseId:'foreign'},{versionReference:priorVersion},
+    ...[{token:'foreign'},{generation:c.permit.mutationOwner.generation+1},{epoch:c.permit.mutationOwner.epoch+1},{phase:'freezing'},
+      {ownerReference:'foreign'},{operationKey:'e'.repeat(64)},{environment:'production'},{indexName:'foreign'},{capturedAt:new Date(AT+1000).toISOString()}]
+      .map(patch=>({mutationOwner:{...c.permit.mutationOwner,...patch}}))])
+    await assert.rejects(completeActivatedPublication(f.db,f.revision,c.publication,{...c.permit,...patch},read,now));
+  for(const patch of [{token:'foreign'},{intentId:'0'.repeat(64)},{leaseUntil:new Date(AT+17*60000).toISOString()},
+    {intent:{...c.intent,manifestSha256:'e'.repeat(64)}}])
+    await assert.rejects(completeActivatedPublication(f.db,f.revision,{...c.publication,...patch},c.permit,read,now));
+  assert.equal(calls,0);assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,0);
+  await assert.rejects(completeActivatedPublication(f.db,f.revision,c.publication,c.permit,async()=>{throw new Error('PRIVATE');},now),/publication_readback_failed/);
+  await assert.rejects(completeActivatedPublication(f.db,f.revision,c.publication,c.permit,async()=>({...c.intent,manifestSha256:'e'.repeat(64)}),now),/publication_readback_mismatch/);
+});
+test('late owner/build/outbox/current/projection/global-vector/server-time drift atomically refuses original-permit settlement',async t=>{
+  const mutations=[
+    f=>f.sql.exec("UPDATE catalog_mutation_scopes SET owner_token='foreign'"),
+    f=>f.sql.exec('UPDATE catalog_mutation_scopes SET generation=generation+1'),
+    f=>f.sql.exec('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1'),
+    f=>f.sql.exec('UPDATE catalog_mutation_scopes SET external_pending=0'),
+    f=>f.sql.exec(`INSERT INTO catalog_build_requests(request_id,environment,source_revision,request_json)
+      SELECT '${'0'.repeat(64)}',environment,source_revision,request_json FROM catalog_build_requests WHERE state='activating';
+      UPDATE catalog_mutation_scopes SET activation_request_id='${'0'.repeat(64)}'`),
+    f=>f.sql.exec("UPDATE catalog_build_requests SET lease_token='foreign'"),
+    // Deliberately bypass the fixture CHECK to exercise the settlement CAS,
+    // rather than merely testing SQLite's activating lease=NULL constraint.
+    f=>f.sql.exec("PRAGMA ignore_check_constraints=ON; UPDATE catalog_build_requests SET lease_until='2026-10-19T12:01:00.000Z'"),
+    f=>f.sql.exec("UPDATE catalog_build_requests SET run_reference='foreign'"),
+    f=>f.sql.exec(`UPDATE catalog_build_requests SET version_reference='${priorVersion}'`),
+    f=>f.sql.exec("UPDATE catalog_build_requests SET state='resolved'"),
+    f=>f.sql.exec("UPDATE publication_outbox SET lease_token='foreign' WHERE release_id='fixture-release'"),
+    f=>f.sql.exec("UPDATE publication_outbox SET lease_until='2026-10-19T12:01:00.000Z' WHERE release_id='fixture-release'"),
+    f=>f.sql.exec("UPDATE publication_outbox SET dispatch_reference='version:foreign' WHERE release_id='fixture-release'"),
+    f=>f.sql.exec("DROP TRIGGER publication_intent_immutable; UPDATE publication_outbox SET intent_json=json_set(intent_json,'$.manifestSha256','foreign') WHERE release_id='fixture-release'"),
+    f=>f.sql.exec("UPDATE products SET title='unpublished typed field drift'"),
+    f=>f.sql.exec("UPDATE products SET rights_json='{}'"),
+    f=>f.sql.exec("DELETE FROM catalog_public_products WHERE catalog_revision='fixture-revision'"),
+    f=>f.sql.exec("DROP TRIGGER catalog_public_immutable; UPDATE catalog_public_products SET title='foreign indexed title' WHERE catalog_revision='fixture-revision'"),
+    f=>f.sql.exec(`DROP TRIGGER catalog_projection_receipt_immutable; UPDATE catalog_projection_receipts SET projection_sha256='${'e'.repeat(64)}' WHERE catalog_revision='fixture-revision'`),
+    ...['pending','complete'].map(status=>f=>f.sql.prepare(`INSERT INTO vector_sync_outbox(public_id,source_revision,embedding_text_hash,operation,status,created_at)
+      VALUES(?,?,?,?,?,?)`).run(id,'fixture-prior','f'.repeat(64),'upsert',status,new Date(AT).toISOString())),
+    f=>f.advance(27*3600000),
+  ];
+  for(const [index,mutate]of mutations.entries())await t.test(String(index),async sub=>{
+    const f=await setup(sub);f.mode.activationLost=true;await f.execute();f.advance(16*60000);const c=f.checkpoint().control.publication;
+    await assert.rejects(completeActivatedPublication(f.db,f.revision,c.publication,c.permit,async()=>{mutate(f);return c.intent;},()=>new Date(AT+16*60000)));
+    assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,0);
+    assert.equal(f.sql.prepare("SELECT status FROM catalog_revisions WHERE revision='fixture-revision'").get().status,'reconciled');
+    assert.equal(f.counts().activateCalls,1);assert.equal(f.counts().uploadCalls,1);
+  });
+});
+test('expired-lease completion acknowledgement loss resumes only its accepted receipt, even after original content expiry',async t=>{
+  for(const point of ['publication','resolve'])await t.test(point,async sub=>{
+    const f=await setup(sub);f.mode.activationLost=true;await f.execute();f.advance(16*60000);let lost=false;
+    f.after(statements=>{if(!lost&&statements.some(s=>point==='publication'?s.query.startsWith('INSERT INTO publication_receipts'):s.query.includes("SET state='resolved'"))){
+      lost=true;throw new Error('PRIVATE lost acknowledgement');}});
+    assert.equal((await f.execute()).state,'pending');assert.equal(lost,true);
+    f.advance(27*3600000);f.mode.noRevision=true;assert.equal((await f.execute()).state,'published');
+    assert.equal(await readMutationOwner(f.db,scope),null);
+    assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
+    assert.equal(f.counts().activateCalls,1);assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().buildCalls,1);
+  });
 });
 test('activation proof is read-only and bound to exact stored permit; no freezing/delivery phase coercion',async t=>{
   const f=await setup(t);f.mode.activationLost=true;await f.execute();const c=f.checkpoint().control.publication;

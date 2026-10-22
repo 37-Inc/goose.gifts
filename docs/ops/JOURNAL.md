@@ -5,6 +5,79 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-21 owner session — Original-activation recovery prepared, not executed
+
+The active maintained release and its 600 HTTP / 1,029 SQL ledger remain
+unchanged. No recovery allowance or future 800-HTTP guard is assumed approved.
+The original owner is still activating; no final publication receipt is claimed.
+
+The bounded recovery implementation now distinguishes an expired *claim lease*
+from expired *merchant rights*. It can acknowledge only the original deployed
+version under the exact original activating owner/build/publication identities,
+full current-source/projection CAS, native vector/readback and server-time rights
+checks. It never renews a lease or product deadline, claims a different owner, or
+uploads/activates again. Ordinary completion retains its lease requirement.
+Shared current-row CAS construction was mechanically extracted into a pure
+module; actual Worker browser bundles no longer import Node-only operator code.
+
+A separately approved, once-only workspace recovery grant can add at most
+150 HTTP / 300 SQL to **actual usage at the grant**, not to unused original
+capacity. Its hash-chained record binds the original checkpoint, permit and
+owner-approval reference; old charges/unknowns, manifest and retention remain
+unchanged. Old operator code deliberately rejects this new event. Keep release
+source `9943718` fixed; a separately pinned, reviewed new operator must handle
+any approved amended journal, including local expiry cleanup.
+
+The private one-off finalizer
+`finalize-active-launch-994371816d46.mts` has SHA-256
+`d423eb31c11582e86ce9757a63a9cd3307cd3ee9f336de4ded9665c2214927bb`.
+It requires an actual protected owner-decision file and clean committed operator
+source, preserves the original run/config, and denies new external dispatches.
+Its network guard accepts only read-only provider verification and canonical
+target-bound acknowledgement updates. Independent review caught and fixed
+stacked/broadened SQL and historical-receipt ordering; three pure guard tests and
+typecheck pass. Actual accepted D1 receipts are checked before expired bodies
+are required, so lost acknowledgement does not renew merchant rights.
+
+While publication is pending, local registered-body expiry cleanup still runs;
+do not stop privacy retention merely because provider settlement is unresolved.
+Twenty-two transient launch input files (2,143,574 bytes) were moved, not copied,
+under the already registered initial publication runtime. Every moved byte hash
+and the original October22 22:18:10.044Z expiry were preserved. Historical source
+archives and minimal recovery controls remain separate and untouched.
+
+This is preparation and local verification, not live settlement, a real daily
+canary or full migration. No new merchant/model call, provider mutation, paid
+upgrade, social/Slack post, second job or daily reservation reset was performed.
+
+Root's full Node22 staging regression passed **691 tests, 18 explicit optional
+skips, zero failures**; production build and lint pass. The separate local
+eight-ready/two-held recovery rehearsal also passed: one original activation
+followed by a lost identity read; 55 counted read-only fills reached 600 HTTP /
+963 SQL. After both original claim leases elapsed (product data still fresh),
+the synthetic once-only allowance produced a 750 HTTP / 1,263 SQL ceiling.
+Recovery plus idempotent replay consumed 75 HTTP / 67 SQL, finishing at
+675 / 1,030 with the original unknown charge retained. Exactly one build,
+upload and activation occurred in the entire fixture, with none during recovery;
+all ten product/native sidecar rows and both holds were unchanged. These are
+mocked fixture totals, **not the live run's 600 / 1,029 ledger**. The fixture's
+distinct catalog/release ID specialization is explicit. Private body-free review
+receipt `activation-recovery-local-proof-2026-10-22.json` SHA-256
+`3d6e57f2f8900e883f3d9f4cab6e6375c768b64f1e20db14bbac8e65a5850c73`.
+
+The unchanged lockfile's full
+`npm audit --audit-level=high` fails on seven inherited high build-tool findings
+rooted in `braces`; the official
+[advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) lists no patched
+version. Production-only audit exits0 at the high threshold, with one low
+DOMPurify finding under PostHog. No dependency was changed or advisory ignored.
+For [PR #217](https://github.com/37-Inc/goose.gifts/pull/217), Cameron explicitly
+approved merging the narrow publisher fix while tracking dependency cleanup
+separately, then authorized straightforward latest-dependency/toolchain fixes.
+`roadmap-lbbz1.4.5` remains open for that separate cleanup; this is not a claim
+of a clean full audit or a global exception for future releases. Actual recovery
+allowance/headroom decisions are still pending and remain independently gated.
+
 ## 2026-10-21 owner session — Maintained release active; settlement needs recovery
 
 Merged PRs #214 (`9156747`) and #215 (`9943718`) preserve all source/native
@@ -48,8 +121,10 @@ the existing 1,200-SQL/product/model limits unchanged. Neither is assumed grante
 
 The same task ID `goose-gifts-daily-ops` is now named **Stupid Gifts — Daily
 Catalog Care**. Its ACTIVE 08:30 Pacific cadence and all merchant/model/Free-plan
-limits are retained. A new first-step recovery gate stops before source advance,
-purge or another merchant allowance while this exact handoff is unresolved.
+limits are retained. A new first-step recovery gate stops before source advance
+or another merchant allowance while this exact handoff is unresolved. Local
+registered-body expiry cleanup remains permitted and required; unexpired inputs
+and minimal ownership controls are retained.
 The daily publisher has not been enabled. Next actual Neon canary, full catalog/
 writer cutover and provider/redirect/decommissioning gates remain open.
 

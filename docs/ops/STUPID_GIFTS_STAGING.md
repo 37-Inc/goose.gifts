@@ -27,6 +27,21 @@ Original merchant expiry remains October22 22:18:10.044Z; no fetch/model/paid
 upgrade was added. The historical launch and staging receipts below remain valid
 for their own releases, not substitutes for the pending maintained receipt.
 
+The narrow original-activation completion and once-only workspace recovery grant
+are now implemented for local review/testing. They preserve original ownership,
+charges, immutable manifest and rights; no live grant or settlement has occurred.
+Ordinary completion remains lease-bound. The separately pinned new operator can
+settle an elapsed claim only with fresh original evidence or reconcile an actual
+already-accepted historical receipt without content. Local registered expiry
+cleanup remains required while pending. See the newest journal entry for the
+private finalizer pin and its independently reviewed dispatch restrictions.
+Root's full staging suite passed691 with18 optional skips and zero failures;
+build/lint passed. The separate eight-ready/two-held local recovery passed at
+75 incremental HTTP / 67 SQL, no repeat dispatch, unchanged source/native data
+and retained unknown charge. Neither proof applied a real grant or completed
+the actual pending publication. Cameron approved narrow publisher integration
+with the existing dependency audit cleanup tracked separately in `.4.5`.
+
 ### Public production checkpoint — October 21, 23:06 UTC
 
 - `https://stupid.gifts/` is live on **Cloudflare Free**, not behind staging

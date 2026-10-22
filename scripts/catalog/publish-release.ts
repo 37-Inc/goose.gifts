@@ -12,7 +12,7 @@ import { prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { DeploymentIdentity, DeploymentObservation } from '../../lib/catalog/build-requests.ts';
 import { beginBuildActivation, claimBuildRequest, resolveBuildActivation } from '../../lib/catalog/build-requests.ts';
 import type { PublicationIntent } from '../../lib/catalog/publication.ts';
-import { claimPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
+import { claimPublication, completeActivatedPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
 import type { SiteAssetManifest } from '../../lib/catalog/types.ts';
 import type { ReleaseBuildContext } from '../staging/build.mts';
 import { assertBuildSource, validateBuildContext } from '../staging/build.mts';
@@ -360,12 +360,16 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         return{environment:config.environment,settled:true,active:identity(control!.intent!,control!.versionReference!)};
       };
       if((await publicationStatus(db,config.releaseId)).state!=='published'){
-        if(!revision||control.publication!.leaseUntil<=now().toISOString())throw new Error('publication_fresh_evidence_required');
+        if(!revision)throw new Error('publication_fresh_evidence_required');
         const sealed=await loadPackage(directory,config,control.packageSha256!,now());
-        if(canonicalJson(intentFrom(sealed.manifest,sealed.bytes))!==canonicalJson(control.intent))throw new Error('publication_package_changed');
-        await completePublication(db,sealed.snapshot,config.releaseId,control.publication!.token,async()=>{
+        if(canonicalJson(intentFrom(sealed.manifest,sealed.bytes))!==canonicalJson(control.intent)
+          ||canonicalJson(sealed.snapshot)!==canonicalJson(revision.snapshot))throw new Error('publication_package_changed');
+        const readDeployed=async()=>{
           await observed();return control!.intent!;
-        },now,owner);
+        };
+        if(control.publication!.leaseUntil<=now().toISOString())
+          await completeActivatedPublication(db,revision,control.publication!,control.permit,readDeployed,now);
+        else await completePublication(db,sealed.snapshot,config.releaseId,control.publication!.token,readDeployed,now,owner);
       }
       const proof=receipt();
       let ref={sha256:control.receiptSha256??sha256(canonicalJson(proof))};

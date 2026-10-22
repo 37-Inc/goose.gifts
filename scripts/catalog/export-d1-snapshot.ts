@@ -8,6 +8,8 @@ import { suppressNearDuplicateProducts } from '../../lib/db/product-scoring.ts';
 import { canonicalJson, canonicalTimestamp, sha256 } from './migration.ts';
 import { mutationFenceQuery } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner, MutationQuery } from '../../lib/catalog/mutation-fence.ts';
+import { pruningCurrentQueries, PRUNING_CURRENT_LIMITS, PRUNING_CURRENT_COLUMNS as CURRENT, PRUNING_ARCHIVE_TIMES as ARCHIVE_TIMES } from '../../lib/catalog/pruning-current.ts';
+export { pruningCurrentQueries } from '../../lib/catalog/pruning-current.ts';
 
 /** The sealed header/held/history/order are not versioned in D1. Supply these
  * from an independently reviewed, hash-pinned artifact, not mutable current rows.
@@ -25,7 +27,7 @@ export interface SnapshotReadContext {
 export type SnapshotReadResult = { status: 'ready'; snapshot: CatalogSnapshot; observedAt: string }
   | { status: 'held'; reason: string; requiresNewRevision: boolean };
 export const SNAPSHOT_READ_LIMITS = Object.freeze({ ready: 5000, held: 10000, slugs: 20000,
-  identities: 10000, rowBytes: 128 * 1024, resultBytes: 32 * 1024 * 1024, outboxSequence: 100000 });
+  identities: 10000, rowBytes: PRUNING_CURRENT_LIMITS.rowBytes, resultBytes: 32 * 1024 * 1024, outboxSequence: 100000 });
 type Row = Record<string, unknown>;
 type CaptureRow = { kind: string; identity: string; data: string };
 const HASH = /^[a-f0-9]{64}$/;
@@ -33,13 +35,8 @@ const KEY = /^[a-zA-Z0-9._-]{1,200}$/;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const PROJECTION = ['catalog_revision', 'public_id', 'product_id', 'slug', 'title', 'description', 'tags',
   'source_facts_hash', 'eligible_until', 'public_display_json', 'display_sha256'];
-const CURRENT = ['id', 'public_id', 'slug', 'source', 'quality_score', 'is_active', 'duplicate_of_product_id',
-  'editorial_status', 'availability_status', 'availability_checked_at', 'last_verified_at', 'source_facts_hash',
-  'editorial_source_hash', 'embedding_text_hash', 'eligible_until', 'public_display_json', 'rights_json', 'timestamp_provenance_json'];
 const jsonColumns = (alias: string, columns: string[], extra: Record<string, string> = {}) =>
   `json_object(${[...columns.map((key) => `'${key}',${alias}.${key}`), ...Object.entries(extra).map(([key, expression]) => `'${key}',${expression}`)].join(',')})`;
-const ARCHIVE_TIMES = Object.fromEntries(['id', 'public_id', 'source', 'availability_checked_at', 'last_verified_at']
-  .map((key) => [`archived_${key}`, `json_extract(p.source_record_json,'$.${key}')`]));
 
 /** One statement, bounded row-per-product output, not a giant aggregate JSON cell.
  * json_each of one bounded ID array avoids D1's100-parameter ceiling. Outbox
@@ -73,7 +70,7 @@ const CAPTURE_SQL = `WITH ids AS (SELECT value FROM json_each(?)),
 // Leave room for the REST result/usage envelope. Measure the OUTER escaped row
 // JSON in SQL, not only the inner data string. The transport independently caps
 // the complete wire response at512KiB and requires served_by_primary on EVERY read.
-const PAGE_BYTES = 384 * 1024;
+const PAGE_BYTES = PRUNING_CURRENT_LIMITS.pageBytes;
 const OPERATION = ['operation_id','input_sha256','run_id','catalog_revision','environment','index_name',
   'generation','prior_epoch','next_epoch','database_time','result_json','changes_json'];
 async function ownedPages(db: CatalogD1, owner: MutationOwner, ids: string[], select: string, params: unknown[] = [], fence?:MutationQuery) {
@@ -349,46 +346,6 @@ export async function readPruningSource(db: CatalogD1, snapshotInput: CatalogSna
     || identities.some(value => byId.get(value.publicId)?.id !== value.id || byId.get(value.publicId)?.slug !== value.slug))
     throw new Error('prune_identity_changed');
   return { ...state, snapshot, packet, facts, observedAt: canonicalTime(header.observedAt) };
-}
-
-/** Bounded exact current-field CAS fragments. A single-row fragment remains in
- * vector intent transactions; full-catalog validation uses the freezing barrier
- * below. No digest function is assumed in D1.
- */
-export function pruningCurrentQueries(rows: Row[]): Array<{ sql: string; params: unknown[]; count: number }> {
-  const chunks: Row[][] = []; let bytes = 0;
-  for (const row of rows) {
-    const size = Buffer.byteLength(JSON.stringify(row));
-    if (size > SNAPSHOT_READ_LIMITS.rowBytes) throw new Error('read_bounds');
-    if (!chunks.length || chunks.at(-1)!.length >= 80 || bytes + size > 256 * 1024) { chunks.push([]); bytes = 0; }
-    chunks.at(-1)!.push(row); bytes += size;
-  }
-  const comparisons = [...CURRENT.map(key => `p.${key} IS json_extract(e.value,'$.${key}')`),
-    ...Object.entries(ARCHIVE_TIMES).map(([key, expression]) => `${expression} IS json_extract(e.value,'$.${key}')`)];
-  function query(chunk: Row[]): { sql: string; params: unknown[]; count: number } {
-    const columns=[...new Set(chunk.flatMap(row=>row.approved_product_json ? Object.keys(JSON.parse(String(row.approved_product_json))) : []))];
-    if(columns.length>65||columns.some(key=>!/^[a-z_]+$/.test(key)))throw new Error('read_bounds');
-    const operationCas=['verification_operation_json','approval_operation_json'].map(field=>chunk.some(row=>row[field])
-      ? ` AND (json_extract(e.value,'$.${field}') IS NULL OR EXISTS(SELECT 1 FROM catalog_maintenance_operations o
-        WHERE o.operation_id=json_extract(json_extract(e.value,'$.${field}'),'$.operation_id')
-        AND ${['input_sha256','run_id','catalog_revision','environment','index_name','generation','prior_epoch','next_epoch','database_time','result_json','changes_json']
-          .map(key => `o.${key} IS json_extract(json_extract(e.value,'$.${field}'),'$.${key}')`).join(' AND ')}))` : '').join('');
-    return { sql: `SELECT count(*) FROM json_each(?) e CROSS JOIN products p
-      ON p.public_id=json_extract(e.value,'$.public_id') WHERE ${comparisons.join(' AND ')}${operationCas}${columns.length
-        ? ` AND (json_extract(e.value,'$.approved_product_json') IS NULL OR (${columns.map(key=>`p.${key} IS json_extract(json_extract(e.value,'$.approved_product_json'),'$.${key}')`).join(' AND ')}))` : ''}`,
-    params: [JSON.stringify(chunk)], count: chunk.length };
-  }
-  const output: Array<ReturnType<typeof query>> = [];
-  function bounded(chunk: Row[]) {
-    const value = query(chunk);
-    // The JSON param is escaped AGAIN by REST. Reserve room for the ownership
-    // assertion and the CAS wrapper, rather than treating raw row bytes as wire.
-    if (Buffer.byteLength(JSON.stringify({batch:[{sql:value.sql,params:value.params}]})) > PAGE_BYTES) {
-      if (chunk.length === 1) throw new Error('read_bounds');
-      const middle = Math.floor(chunk.length/2); bounded(chunk.slice(0,middle)); bounded(chunk.slice(middle));
-    } else output.push(value);
-  }
-  chunks.forEach(bounded); return output;
 }
 
 /** Internal read validation, NOT a reusable capability/waiver. The exact frozen
