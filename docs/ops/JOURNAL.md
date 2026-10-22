@@ -5,6 +5,49 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-21 owner session — Compatible dependency security updates
+
+Cameron approved the narrow publisher integration and then explicitly asked us
+to handle straightforward latest-dependency/toolchain fixes. Updated transitive
+DOMPurify `3.4.13 → 3.4.17` within the existing PostHog SDK range, and pinned
+`postcss-selector-parser` `7.1.7` through an exact override instead of retaining
+the vulnerable `6.1.4`. No SDK, Next, React or Tailwind major upgrade was made.
+
+Root independently verified zero production dependency audit findings, the
+complete env-in-child production build, lint and four focused parser/CSS tests.
+Independent peer review and 32 focused checks passed; the synthetic static
+preview webpack build exported111 routes. Root and peer independently compiled
+both complete actual stylesheets before/after the parser change, with zero
+warnings and identical output:
+
+- App:38,830 bytes, SHA-256
+  `5f28ded9c59e38a819cd1e02e06a5b9600d413d46b3586acb33fc6b5b62db554`.
+- Static site:49,953 bytes, SHA-256
+  `f7ea8d2da3bfa19fb41cd2d08cb3cb964662c6d242a8925efbb4d8e0da362d91`.
+
+`npm run test:security-toolchain` covers the override's current consumer APIs,
+generated variants, nesting, `@apply` and long selector serialization. No
+credential file or shared dependency installation was modified; the security
+checkout has its own install. The initial credential-free legacy prerender
+correctly refused without `POSTGRES_URL`; root's subsequent scoped build passed
+without copying credentials into the checkout.
+
+**Residual, not hidden:** full audit falls from10 findings to seven high
+development-package findings, all propagated from the single unpatched
+[`braces` advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
+Installed uses are build/lint/watch tools with trusted literal source globs;
+review found no request/search/merchant-input path to those patterns. The latest
+Next ESLint plugin still depends on `fast-glob → micromatch → braces`; a Tailwind4
+migration alone would not remove the finding and would change styling semantics.
+Do not describe the full audit as clean or add a silent ignore. The remaining
+upstream/toolchain work stays in `roadmap-lbbz1.4.5`.
+
+Normal Vercel deployment follows this dependency integration. The active
+Cloudflare package remains the pinned `9943718` release until the separately
+approved publisher recovery and next genuine publication; merging these files
+does not replace its already-built JavaScript. No merchant/model calls, live
+recovery grant, new publication, paid upgrade or scheduler change was made.
+
 ## 2026-10-21 owner session — Original-activation recovery prepared, not executed
 
 The active maintained release and its 600 HTTP / 1,029 SQL ledger remain

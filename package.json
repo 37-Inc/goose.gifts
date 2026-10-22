@@ -11,6 +11,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "test:security-toolchain": "node --test tests/security-toolchain.test.mjs",
     "test:ranking": "node --experimental-strip-types --test tests/product-scoring.test.mjs",
     "test:index": "node --experimental-strip-types --test tests/weird-gift-index.test.mjs",
     "test:robots": "node --test tests/robots.test.mjs",
@@ -97,7 +98,8 @@
   },
   "overrides": {
     "@esbuild-kit/esm-loader": "npm:tsx@4.23.12",
-    "glob": "13.0.6"
+    "glob": "13.0.6",
+    "postcss-selector-parser": "7.1.7"
   },
   "allowScripts": {
     "bufferutil@4.0.9": true,

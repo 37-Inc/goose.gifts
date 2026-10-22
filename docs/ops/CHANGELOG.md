@@ -33,6 +33,9 @@ what's likely next.
   Existing dependency-audit findings are separately tracked in
   `roadmap-lbbz1.4.5`; Cameron approved merging the publisher fix separately and
   asked us to take care of straightforward dependency/toolchain updates.
+  Compatible DOMPurify/parser patches are verified with a clean production
+  dependency audit and byte-identical app/static styles. The remaining unpatched
+  `braces` finding is development-only and stays tracked, not silently ignored.
 
 - **D1-write rollback mechanism prepared** [owner+claude]: bounded offline
   reconstruction now binds frozen logical D1 rows to a native PG baseline,
@@ -230,6 +233,17 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-21 [owner+claude] — Patch compatible security dependencies
+
+Updated DOMPurify within the existing SDK range and the CSS selector parser with
+a tested exact override. Production dependency audit now has zero findings;
+both complete generated stylesheets are unchanged. Root production build/lint
+and focused tests passed; independent review found no material blocker. Seven
+development-package findings remain from one unpatched `braces` advisory; newest
+tooling would still retain it, so no broad Tailwind migration was forced.
+Cloudflare's active prebuilt release is unchanged pending genuine publication.
+See `roadmap-lbbz1.4.5` and `JOURNAL.md` for evidence and remaining scope.
 
 ### 2026-10-21 [owner+claude] — Prepare original-activation recovery without resending
 
