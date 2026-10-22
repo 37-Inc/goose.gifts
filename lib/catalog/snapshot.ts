@@ -1,6 +1,7 @@
-import { getGiftPath, hasIndexableGiftEditorial } from '../gift-slugs.ts';
+import { getGiftPath, hasIndexableGiftEditorial, hasReviewedGiftEditorial, hasSubstantiveGiftEditorial } from '../gift-slugs.ts';
 import type { CatalogSnapshot, ContentRight, DisplayField, HeldReason, ProductRights,
-  PublicCatalogProduct, SafeHeldProduct, SnapshotProductInput } from './types.ts';
+  PersistentCatalogProduct, PersistentProductInput, PublicCatalogProduct,
+  SafeHeldProduct, SnapshotProductInput } from './types.ts';
 
 export const EDITORIAL_MAX_AGE_MS = 35 * 24 * 60 * 60 * 1000;
 const MERCHANT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -8,7 +9,7 @@ const HELD_TITLE = 'Gift currently unavailable';
 const HELD_DESCRIPTION = 'This gift is not currently available in the curated catalog. Browse other gifts instead.';
 const PUBLIC_FIELDS = ['id', 'publicId', 'slug', 'title', 'description', 'imageUrl', 'affiliateUrl',
   'source', 'currency', 'price', 'isActive', 'qualityScore', 'eligibleUntil', 'punnyTitle',
-  'wittyDescription', 'editorialWriteup', 'humorTags'];
+  'wittyDescription', 'editorialWriteup', 'humorTags', 'indexable', 'persistent'];
 const HELD_FIELDS = ['id', 'publicId', 'slug', 'path', 'title', 'description', 'reason', 'affiliateUrl'];
 const OPTIONAL_FIELDS: DisplayField[] = ['punnyTitle', 'wittyDescription', 'editorialWriteup', 'humorTags'];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -85,11 +86,17 @@ function approvedRight(right: ContentRight | undefined, value: string, now: numb
  */
 export function publicProductRightsExpiry(product: PublicCatalogProduct, rights: ProductRights, now: Date): number | null {
   if (!Number.isFinite(now.getTime())) return null;
-  const fields: DisplayField[] = ['title', 'description', 'imageUrl', 'affiliateUrl', 'editorialWriteup'];
+  if (product.persistent && (!rights.persistent
+    || publicProductRightsExpiry(product.persistent, rights.persistent, now) !== Infinity)) return null;
+  const permanent = product.eligibleUntil === null;
+  const fields: DisplayField[] = ['title', 'description', 'imageUrl', 'affiliateUrl'];
+  if (!permanent || product.editorialWriteup) fields.push('editorialWriteup');
   for (const field of OPTIONAL_FIELDS) if (field in product && !fields.includes(field)) fields.push(field);
   const expiries = fields.map((field) => {
     const value = field === 'humorTags' ? JSON.stringify(product.humorTags) : product[field];
-    return typeof value === 'string' && value.length ? approvedRight(rights[field], value, now.getTime()) : null;
+    const right = rights[field];
+    if (permanent && (!right || right.basis === 'merchant' || right.expiresAt)) return null;
+    return typeof value === 'string' && value.length ? approvedRight(right, value, now.getTime()) : null;
   });
   return expiries.some((value) => value === null) ? null : Math.min(...expiries as number[]);
 }
@@ -104,12 +111,51 @@ export function validatePublicCatalogProduct(input: unknown, now: Date = new Dat
     || value.price !== 0 || value.isActive !== true || typeof value.qualityScore !== 'number'
     || !Number.isFinite(value.qualityScore) || value.qualityScore < 0.55 || value.qualityScore > 1) fail('display fields');
   if (!fixture && !retailerIdentityUrl(String(value.affiliateUrl), String(value.id), String(value.source))) fail('retailer identity');
-  if (Date.parse(canonicalTime(value.eligibleUntil)) <= now.getTime()) fail('expired public product');
+  if ('indexable' in value && typeof value.indexable !== 'boolean') fail('indexability');
+  if (value.eligibleUntil === null) {
+    if (typeof value.indexable !== 'boolean' || !/^\/(?!\/)[a-zA-Z0-9/_\-.]+\.svg$/.test(String(value.imageUrl))
+      || String(value.imageUrl).split('/').some(part => part === '..' || part === '.')
+      || 'persistent' in value) fail('persistent display');
+    if (value.indexable && !hasSubstantiveGiftEditorial(value.editorialWriteup as string | undefined)) fail('persistent editorial');
+  } else canonicalTime(value.eligibleUntil);
   for (const field of ['punnyTitle', 'wittyDescription', 'editorialWriteup']) {
     if (field in value && !nonempty(value[field])) fail(field);
   }
   if ('humorTags' in value && (!Array.isArray(value.humorTags) || value.humorTags.some((tag) => !nonempty(tag)))) fail('tags');
+  if ('persistent' in value) {
+    const persistent = record(value.persistent);
+    if (persistent.eligibleUntil !== null || 'persistent' in persistent
+      || ['id', 'publicId', 'slug', 'source', 'currency'].some(field => persistent[field] !== value[field])) fail('persistent identity');
+    validatePublicCatalogProduct(persistent, now, fixture);
+  }
+  if (value.eligibleUntil !== null && Date.parse(String(value.eligibleUntil)) <= now.getTime()
+    && !value.persistent) fail('expired public product');
   return freeze(structuredClone(value) as unknown as PublicCatalogProduct);
+}
+
+/** No supplier freshness/availability claim is promoted to permanent content. */
+export function createPersistentCatalogProduct(input: PersistentProductInput, now: Date,
+  fixture = false): PersistentCatalogProduct | null {
+  const { product, rights } = input;
+  if (product.isActive === false || product.duplicateOfProductId || (product.qualityScore ?? 0) < 0.55
+    || ['blocked', 'needs_review'].includes(product.editorialStatus ?? '')) return null;
+  const result: PersistentCatalogProduct = { id: product.id, publicId: product.publicId, slug: product.slug,
+    source: product.source, currency: product.currency, title: product.title,
+    description: product.description || product.wittyDescription || product.title,
+    imageUrl: product.imageUrl, affiliateUrl: product.affiliateUrl, price: 0, isActive: true,
+    qualityScore: product.qualityScore!, eligibleUntil: null, indexable: hasReviewedGiftEditorial(product) };
+  for (const field of OPTIONAL_FIELDS) {
+    const value = field === 'humorTags' ? product.humorTags?.length ? JSON.stringify(product.humorTags) : undefined : product[field];
+    const right = rights[field];
+    if (!value || !right || right.basis === 'merchant' || right.expiresAt
+      || approvedRight(right, value, now.getTime()) !== Infinity) continue;
+    if (field === 'humorTags') result.humorTags = [...product.humorTags!];
+    else result[field] = value;
+  }
+  // A private editorial flag alone cannot make omitted/unproven copy indexable.
+  if (!result.editorialWriteup) result.indexable = false;
+  if (publicProductRightsExpiry(result, rights, now) !== Infinity) return null;
+  return validatePublicCatalogProduct(result, now, fixture) as PersistentCatalogProduct;
 }
 
 /** Validates the complete allowlist; callers cannot spread private DB records into public files. */
@@ -149,11 +195,25 @@ export function validateCatalogSnapshot(input: unknown, now: Date = new Date()):
 export function createCatalogSnapshot(products: SnapshotProductInput[], rightsById: Record<string, ProductRights>, options: {
   catalogRevision: string; now: Date; dataKind?: CatalogSnapshot['dataKind'];
   slugHistory?: CatalogSnapshot['slugHistory'];
+  persistentById?: Record<string, PersistentProductInput>;
 }): CatalogSnapshot {
   const now = options.now.getTime();
   const ready: PublicCatalogProduct[] = []; const held: SafeHeldProduct[] = [];
   for (const product of products) {
     const rights = rightsById[product.id] || {};
+    const persistentInput = options.persistentById?.[product.id];
+    if (persistentInput && ['id', 'publicId', 'slug', 'source', 'currency']
+      .some(field => persistentInput.product[field as keyof SnapshotProductInput] !== product[field as keyof SnapshotProductInput]))
+      fail('persistent identity');
+    // Clearance of presentation fields cannot override the source row's curation.
+    const persistent = persistentInput && !['blocked', 'needs_review'].includes(product.editorialStatus ?? '')
+      ? createPersistentCatalogProduct({ ...persistentInput,
+      product: { ...persistentInput.product, isActive: product.isActive,
+        duplicateOfProductId: product.duplicateOfProductId, qualityScore: product.qualityScore,
+        editorialStatus: persistentInput.product.editorialWriteup === product.editorialWriteup ? product.editorialStatus : 'pending',
+        editorialQualityScore: product.editorialQualityScore,
+        sourceFactsHash: product.sourceFactsHash, editorialSourceHash: product.editorialSourceHash } }, options.now,
+      options.dataKind === 'synthetic_fixture') : null;
     const values: Partial<Record<DisplayField, string>> = {
       title: product.title, description: product.description || product.wittyDescription,
       imageUrl: product.imageUrl, affiliateUrl: product.affiliateUrl,
@@ -173,6 +233,7 @@ export function createCatalogSnapshot(products: SnapshotProductInput[], rightsBy
     const expiries = required.map((field) => approvedRight(rights[field], values[field] || '', now));
     if (!reason && expiries.some((expiry) => expiry === null)) reason = 'rights_unverified';
     if (reason) {
+      if (persistent && reason !== 'inactive' && reason !== 'duplicate') { ready.push(persistent); continue; }
       // A held page never carries a merchant title, image, price or stale editorial.
       const safe: SafeHeldProduct = { id: product.id, publicId: product.publicId, slug: product.slug,
         path: getGiftPath(product.slug), title: HELD_TITLE, description: HELD_DESCRIPTION, reason };
@@ -196,6 +257,7 @@ export function createCatalogSnapshot(products: SnapshotProductInput[], rightsBy
       else display[field] = raw;
     }
     display.eligibleUntil = new Date(Math.min(editorialExpiry, ...(expiries as number[]))).toISOString();
+    if (persistent) display.persistent = persistent;
     ready.push(display);
   }
   return validateCatalogSnapshot({ schemaVersion: 1, dataKind: options.dataKind || 'catalog',

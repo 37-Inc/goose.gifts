@@ -69,31 +69,39 @@ function editorialWordCount(editorial: string): number {
   return editorial.split(/\s+/).filter(Boolean).length;
 }
 
+export function hasSubstantiveGiftEditorial(writeup?: string): boolean {
+  const editorial = writeup?.trim() || '';
+  return Array.from(editorial).length >= 500
+    && editorialWordCount(editorial) >= 90
+    && getEditorialParagraphs(editorial).length >= 2;
+}
+
 export function hasIndexableGiftEditorial(product: ProductEditorial, now: Date = new Date()): boolean {
-  const editorial = product.editorialWriteup?.trim() || '';
   const verifiedAt = product.availabilityCheckedAt || product.lastVerifiedAt;
   const verifiedTime = verifiedAt ? new Date(verifiedAt).getTime() : Number.NaN;
   const maxVerificationAgeMs = 35 * 24 * 60 * 60 * 1000;
   const freshVerification = Number.isFinite(verifiedTime)
     && now.getTime() - verifiedTime <= maxVerificationAgeMs;
+  return hasReviewedGiftEditorial(product)
+    && isPurchasableAvailability(product.availabilityStatus)
+    && freshVerification;
+}
+
+/** Editorial quality/provenance is separate from a current retailer offer. */
+export function hasReviewedGiftEditorial(product: ProductEditorial): boolean {
   const approved = INDEXABLE_EDITORIAL_STATUSES.includes(
     String(product.editorialStatus || '') as typeof INDEXABLE_EDITORIAL_STATUSES[number]
   );
   const reviewedQuality = Number(product.editorialQualityScore || 0) >= 0.8;
-  const substantive = Array.from(editorial).length >= 500
-    && editorialWordCount(editorial) >= 90
-    && getEditorialParagraphs(editorial).length >= 2;
   const currentFacts = Boolean(product.sourceFactsHash)
     && product.sourceFactsHash === product.editorialSourceHash;
 
   return product.isActive !== false
     && !product.duplicateOfProductId
-    && isPurchasableAvailability(product.availabilityStatus)
-    && freshVerification
     && approved
     && reviewedQuality
     && currentFacts
-    && substantive;
+    && hasSubstantiveGiftEditorial(product.editorialWriteup);
 }
 
 interface ProductEditorial {
