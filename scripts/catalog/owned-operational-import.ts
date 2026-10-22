@@ -6,6 +6,7 @@ import { D1_RECOVERY_TABLES } from './d1-logical-tables.ts';
 import type { FrozenD1RecoveryInput } from './recovery-delta.ts';
 import type { prepareOperationalPacket } from './prepare-operational.ts';
 import { decodePgvectorSendBase64 } from './pgvector-binary.ts';
+import type { CooperativeCaptureReceipt } from './capture-owned-d1.ts';
 
 type Row=Record<string,unknown>;
 type Packet=ReturnType<typeof prepareOperationalPacket>;
@@ -197,7 +198,7 @@ export function normalizeOwnedImportSequences(plan:OwnedOperationalImportPlan,pl
 
 /** Exact logical read bounded by SQLite's own serialized row sizes. Caller owns
  * the barrier; before/after assertions cannot replace gating every writer. */
-async function logicalRows(db:CatalogD1,owner:MutationOwner){
+export async function readOwnedLogicalRows(db:CatalogD1,owner:MutationOwner){
   await mutationAssertion(db,owner).all();
   const schemas=await db.batch(D1_RECOVERY_TABLES.map(t=>db.prepare(`PRAGMA table_info(${t})`))) as Array<{results:Array<{name:string}>}>;
   if(!Array.isArray(schemas)||schemas.length!==D1_RECOVERY_TABLES.length)refuse('schema');
@@ -229,19 +230,30 @@ async function inspect(db:CatalogD1,plan:OwnedOperationalImportPlan,planSha256:s
   const completed=actual.epoch-plan.owner.epoch;
   if(!Number.isSafeInteger(completed)||completed<0||completed>plan.batches.length||!sameOwner(actual,ownerAt(plan,completed))
     ||!(sameOwner(cursor,actual)||completed>0&&sameOwner(cursor,ownerAt(plan,completed-1))))refuse('owner');
-  const expected=progressRows(plan,planSha256,completed),rows=await logicalRows(db,actual);
+  const expected=progressRows(plan,planSha256,completed),rows=await readOwnedLogicalRows(db,actual);
   for(const table of D1_RECOVERY_TABLES)if(digest(rows[table])!==digest(expected[table]))refuse(`baseline_drift_${table}`);
   return{owner:actual,completed,rows};
 }
 
-/** No claim/release, schema changes, publication or vector work. Production
- * capture acceptance is deliberately absent until the concrete writer-barrier
- * producer is reviewed; an approval hash cannot supply that missing proof. */
+/** No claim/release, schema changes, publication or vector work. Non-synthetic
+ * input requires independently rechecked cooperative capture evidence; selecting
+ * a real database still requires the actual canary and reviewed writer stops. */
 export async function applyOwnedOperationalImport(options:{db:CatalogD1;plan:OwnedOperationalImportPlan;planSha256:string;
-  ownerCursor:{current:MutationOwner};checkpoint?:(owner:MutationOwner)=>Promise<void>}){
+  ownerCursor:{current:MutationOwner};checkpoint?:(owner:MutationOwner)=>Promise<void>;
+  cooperativeCapture?:{receipt:CooperativeCaptureReceipt;sha256:string}}){
   const {db,planSha256,ownerCursor}=options;const plan=structuredClone(options.plan);validate(plan,planSha256);
-  if(plan.provenance.kind!=='synthetic-fixture')refuse('capture_unverified');
+  if(plan.provenance.kind!=='synthetic-fixture'&&!options.cooperativeCapture)refuse('capture_unverified');
+  if(plan.provenance.kind==='synthetic-fixture'&&options.cooperativeCapture)refuse('capture_proof_kind');
+  const proof=options.cooperativeCapture?structuredClone(options.cooperativeCapture):undefined;
+  const validateCapture=proof?async(currentOwner:MutationOwner)=>{
+    // Deferred local import avoids a module-initialization cycle with the
+    // shared logical reader. No HTTP assertion/callback can supply this proof.
+    const {validateCooperativeCaptureReceipt}=await import('./capture-owned-d1.ts');
+    await validateCooperativeCaptureReceipt({db,originalOwner:plan.owner,currentOwner,baseline:plan.baseline,
+      provenance:plan.provenance,captureSha256:plan.captureSha256,proof});
+  }:undefined;
   const before=await inspect(db,plan,planSha256,ownerCursor.current);ownerCursor.current=before.owner;
+  await validateCapture?.(before.owner);
   for(let n=before.completed;n<plan.batches.length;n++){
     let uncertain=false;
     try{await db.batch(queries(plan,planSha256,n).map(q=>db.prepare(q.sql).bind(...q.params)));}
@@ -252,10 +264,12 @@ export async function applyOwnedOperationalImport(options:{db:CatalogD1;plan:Own
     await options.checkpoint?.(ownerCursor.current);
   }
   const final=await inspect(db,plan,planSha256,ownerCursor.current);
+  await validateCapture?.(final.owner);
   const foreign=(await db.prepare('PRAGMA foreign_key_check').all()).results;if(foreign.length)refuse('foreign_key');
   await db.batch([mutationAssertion(db,final.owner),db.prepare("INSERT INTO products_fts(products_fts) VALUES('integrity-check')"),
     db.prepare("INSERT INTO catalog_public_products_fts(catalog_public_products_fts) VALUES('integrity-check')"),mutationAssertion(db,final.owner)]);
   return{state:'reconciled' as const,owner:final.owner,planSha256,sourceManifestSha256:plan.sourceManifestSha256,
+    ...(proof?{cooperativeReceiptSha256:proof.sha256}:{}),
     sequenceMapping:plan.sequenceMapping,tables:D1_RECOVERY_TABLES.map(table=>({table,rows:final.rows[table].length,sha256:digest(final.rows[table])})),
     barrierVerified:false as const,publicationEmitted:false as const,vectorWorkEmitted:0};
 }
