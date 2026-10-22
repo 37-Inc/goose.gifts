@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { readFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { createD1CatalogMaintenanceStore, loadMaintenanceVectorPayload } from '../scripts/catalog/maintenance-d1.ts';
-import { maintenanceEmbeddingText, maintenanceSlugs, maintenanceTextArray } from '../scripts/catalog/maintenance-state.ts';
+import { maintenanceEmbeddingText, maintenanceSlugs, maintenanceState, maintenanceTextArray } from '../scripts/catalog/maintenance-state.ts';
 import { canonicalJson, canonicalTimestamp, convertSourceRow, sha256 } from '../scripts/catalog/migration.ts';
 import { mergeCatalogMaintenanceUpsert } from '../scripts/ops/catalog-maintenance-merge.mjs';
 import { editorialSourceHash } from '../scripts/ops/catalog-editorial-core.mjs';
@@ -288,6 +288,62 @@ test('daily selection prioritizes explicit featured then current published ahead
     assert.equal(f.epoch(),before);
     assert.equal((await f.store.getActiveCatalogIdentities()).some(p=>p.id===inactive.id),false);
     assert.equal((await f.store.getActiveCatalogIdentities({includeInactive:true})).some(p=>p.id===inactive.id),true);
+  }finally{f.close();}
+});
+
+test('compact catalog reads fail closed on oversized views and ownership changes, without returning a partial catalog',async()=>{
+  const oversized=await setup({products:[rawProduct(1,{title:'"\\'.repeat(70000)})]});
+  try{
+    const before=oversized.row(1);const epoch=oversized.epoch();
+    await assert.rejects(oversized.store.getActiveCatalogIdentities({includeInactive:true}),/maintenance_catalog_bound/);
+    assert.deepEqual(oversized.row(1),before);assert.equal(oversized.epoch(),epoch);
+  }finally{oversized.close();}
+  const f=await setup({products:[rawProduct(1)]});
+  try{
+    let changed=false;
+    const db={...f.db,prepare(sql){const statement=f.db.prepare(sql);return{
+      bind(...params){statement.bind(...params);return this;},run:()=>statement.run(),async all(){
+        const result=await statement.all();
+        if(sql.startsWith('WITH candidates')&&!changed){changed=true;
+          f.sqlite.prepare('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1').run();}
+        return result;
+      },
+    };}};
+    await assert.rejects(createD1CatalogMaintenanceStore({...f.options,db}).getActiveCatalogIdentities(),/maintenance_fenced/);
+    assert.equal(changed,true);
+  }finally{f.close();}
+  const drift=await setup({products:[rawProduct(1)]});
+  try{
+    await drift.store.upsertProduct(input(1),editorialSourceHash(input(1)));
+    drift.sqlite.prepare('UPDATE products SET quality_score=.99 WHERE id=?').run(id(1));
+    await assert.rejects(drift.store.getActiveCatalogIdentities(),/maintenance_current_state_drift/);
+  }finally{drift.close();}
+});
+
+test('compact keyset retry keeps every identity and selected full loads retain real tag/presence validation',async()=>{
+  const products=Array.from({length:140},(_,index)=>rawProduct(index+1));
+  const f=await setup({products});
+  try{
+    const pages=[];let lost=false;
+    const db={...f.db,prepare(sql){const statement=f.db.prepare(sql);let params;return{
+      bind(...values){params=values;statement.bind(...values);return this;},run:()=>statement.run(),async all(){
+        if(sql.startsWith('WITH candidates')){
+          pages.push([...params]);if(!lost){lost=true;throw new Error('catalog_d1_result_unknown');}
+        }
+        return statement.all();
+      },
+    };}};
+    const store=createD1CatalogMaintenanceStore({...f.options,db});
+    assert.deepEqual((await store.getActiveCatalogIdentities({includeInactive:true})).map(p=>p.id),products.map(p=>p.id));
+    assert.deepEqual(pages.slice(0,2),[['',128],['',64]]);
+    const malformed=createD1CatalogMaintenanceStore({...f.options,historical:{archiveSha256:'d'.repeat(64),
+      embeddingPresence:{[uuid(1)]:{present:true,sourceRecordSha256:'0'.repeat(64)}}}});
+    await assert.rejects(malformed.getProductsForRevalidation({daily:true,limit:1,featuredIds:[id(1)]}),/maintenance_embedding_inventory_mismatch/);
+    const preserved={...maintenanceState(f.row(1)),title:'TEST ONLY reviewed preserved title override'};
+    const override=createD1CatalogMaintenanceStore({...f.options,historical:{...f.options.historical,
+      overrides:{[id(1)]:{product:preserved,evidence:'test-only-independent-preserved-state'}}}});
+    assert.equal((await override.getActiveCatalogIdentities()).find(p=>p.id===id(1)).title,preserved.title);
+    assert.equal((await override.getProductsForRevalidation({daily:true,limit:1,featuredIds:[id(1)]}))[0].title,preserved.title);
   }finally{f.close();}
 });
 

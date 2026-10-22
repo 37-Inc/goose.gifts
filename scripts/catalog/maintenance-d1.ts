@@ -10,7 +10,7 @@ import type { ImmutableVectorPayload, VectorEvent } from './vector-outbox.ts';
 import { mergeCatalogMaintenanceUpsert } from '../ops/catalog-maintenance-merge.mjs';
 import { editorialSourceHash } from '../ops/catalog-editorial-core.mjs';
 import { explicitMaintenanceTime, maintenanceDigest, maintenanceEmbeddingText, maintenanceProjection,
-  maintenanceRow, maintenanceSlugs, maintenanceState, publishedMaintenanceProduct } from './maintenance-state.ts';
+  maintenanceRow, maintenanceSlugs, maintenanceState, publishedMaintenanceProduct, snake } from './maintenance-state.ts';
 import { maintenanceTimeOrder } from './maintenance-state.ts';
 import type { Row, SemanticProduct } from './maintenance-state.ts';
 
@@ -129,6 +129,53 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         values.push(decode(row));
       }
       if (rows.length < page) break; after = String(rows.at(-1)!.id);
+    }
+    await checkOwner(); return values;
+  };
+  // Read-only purpose projections, not persistence inputs. Keep the existing
+  // semantic/typed consistency checks, without shipping source facts, native
+  // vectors, rights or complete archive/current JSON for every identity.
+  const catalogView = async (fields: string[]) => {
+    const typed = ['id','public_id','slug','source','is_active','quality_score','source_facts_hash','editorial_source_hash',
+      'availability_status','editorial_status','duplicate_of_product_id','availability_checked_at','last_verified_at','created_at','updated_at'];
+    const semantic = [...new Set(['id','publicId','slug','source','isActive','qualityScore','sourceFactsHash','editorialSourceHash',
+      'availabilityStatus','editorialStatus','duplicateOfProductId','availabilityCheckedAt','lastVerifiedAt','createdAt','updatedAt',
+      'title','affiliateUrl',...fields])];
+    const archive = [...new Set(['id','public_id','slug','title','affiliate_url',...fields.map(snake)])];
+    const project = (column: string, keys: string[]) => `json_object(${keys.map(key => `'${key}',json(${column}->'$.${key}')`).join(',')})`;
+    const data = `json_object(${typed.map(key => `'${key}',p.${key}`).join(',')},
+      'archive',json(CASE WHEN s.semantic_json IS NULL THEN ${project('p.source_record_json',archive)} ELSE NULL END),
+      'semantic',json(CASE WHEN s.semantic_json IS NULL THEN NULL ELSE ${project('s.semantic_json',semantic)} END),
+      'invalidSemantic',s.semantic_json IS NOT NULL AND (${semantic.map(key => `json_type(s.semantic_json,'$.${key}') IS NULL`).join(' OR ')}))`;
+    await checkOwner(); const values: SemanticProduct[] = []; let after = ''; let bytes = 0; let page = 128;
+    for (;;) {
+      let rows: Row[];
+      try {
+        rows = await all(`WITH candidates AS MATERIALIZED (
+          SELECT p.id,${data} data FROM products p LEFT JOIN catalog_maintenance_products s ON s.product_id=p.id
+          WHERE p.id>? ORDER BY p.id LIMIT ?), sized AS MATERIALIZED (
+          SELECT id,data,length(CAST(json_quote(data) AS BLOB))+32 wire_bytes FROM candidates), bounded AS (
+          SELECT id,data,wire_bytes,sum(wire_bytes) OVER(ORDER BY id) total_bytes FROM sized)
+          SELECT CASE WHEN wire_bytes>256*1024 THEN '{"oversized":true}' ELSE data END data FROM bounded
+          WHERE total_bytes<=384*1024 OR id=(SELECT min(id) FROM candidates) ORDER BY id`,[after,page]);
+      } catch (error) {
+        if (error instanceof Error && error.message === 'catalog_d1_result_unknown' && page > 1) { page = Math.floor(page/2); continue; }
+        throw error;
+      }
+      if (!rows.length) break;
+      for (const row of rows) {
+        if (typeof row.data !== 'string') throw new Error('maintenance_catalog_bound');
+        bytes += Buffer.byteLength(row.data);
+        if (values.length >= 10000 || bytes > 64*1024*1024) throw new Error('maintenance_catalog_bound');
+        const view = JSON.parse(row.data);
+        if (view.oversized) throw new Error('maintenance_catalog_bound');
+        if (view.invalidSemantic) throw new Error('maintenance_current_state_drift');
+        // maintenanceState expects a PG text[] even though these views do not
+        // consume tags. Full selected point-loads still validate their real tags.
+        values.push(maintenanceState({...view,source_record_json:JSON.stringify({...view.archive,humor_tags:null}),
+          maintenance_semantic:view.semantic === null ? null : JSON.stringify(view.semantic)},options.historical?.overrides?.[String(view.id)]));
+      }
+      after = String(values.at(-1)!.id);
     }
     await checkOwner(); return values;
   };
@@ -357,10 +404,10 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         return {inserted:merged.inserted,slug:product.slug};
       }));
     },
-    getActiveCatalogIdentities: ({includeInactive=false}: {includeInactive?:boolean} = {}) => serialize(async () => (await catalog()).map(value => value.product).filter(p => includeInactive || p.isActive && p.title !== '')
+    getActiveCatalogIdentities: ({includeInactive=false}: {includeInactive?:boolean} = {}) => serialize(async () => (await catalogView(['imageUrl','reviewCount'])).filter(p => includeInactive || p.isActive && p.title !== '')
       .map(p => Object.fromEntries(['id','slug','title','imageUrl','affiliateUrl','qualityScore','availabilityStatus','availabilityCheckedAt',
         'lastVerifiedAt','editorialStatus','reviewCount'].map(key => [key,p[key]]))).map(p => ({...p,sourceFacts:null}))),
-    getExistingEditorialWriteups: (excludedIds: string[] = []) => serialize(async () => (await catalog()).map(value => value.product)
+    getExistingEditorialWriteups: (excludedIds: string[] = []) => serialize(async () => (await catalogView(['editorialWriteup']))
       .filter(p => ['generated_ready','manual_locked'].includes(p.editorialStatus) && p.editorialWriteup !== null && !excludedIds.includes(p.id))
       .map(p => p.editorialWriteup).filter(Boolean)),
     getAffiliateUrlMismatches: (tag: string) => serialize(async () => (await catalog()).map(value => value.product)
@@ -376,10 +423,14 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         const {limit,featuredIds=[]}=selection;
         if(!Number.isInteger(limit)||limit<1||limit>10||featuredIds.length>100||featuredIds.some(id=>!(/^[A-Z0-9]{10}$/).test(id)))throw new Error('daily_selection_invalid');
         const lane=(p:SemanticProduct)=>featuredIds.includes(p.id)?0:publishedMaintenanceProduct(p)?1:2;
-        return(await catalog()).filter(({product:p})=>p.source==='amazon'&&p.isActive&&(/^[A-Z0-9]{10}$/).test(p.id))
-          .sort(({product:a},{product:b})=>lane(a)-lane(b)||maintenanceTimeOrder(a.availabilityCheckedAt||a.lastVerifiedAt,b.availabilityCheckedAt||b.lastVerifiedAt,true)
-            ||maintenanceTimeOrder(a.updatedAt,b.updatedAt,false)||compare(a.id,b.id)).slice(0,limit)
-          .map(value=>({...maintenanceRow(value.product),has_embedding:value.present}));
+        const selected=(await catalogView(['imageUrl','editorialWriteup','editorialQualityScore']))
+          .filter(p=>p.source==='amazon'&&p.isActive&&(/^[A-Z0-9]{10}$/).test(p.id))
+          .sort((a,b)=>lane(a)-lane(b)||maintenanceTimeOrder(a.availabilityCheckedAt||a.lastVerifiedAt,b.availabilityCheckedAt||b.lastVerifiedAt,true)
+            ||maintenanceTimeOrder(a.updatedAt,b.updatedAt,false)||compare(a.id,b.id)).slice(0,limit);
+        const rows=[];
+        for(const p of selected){const full=await load(p.id);if(!full)throw new Error('maintenance_current_state_drift');
+          rows.push({...maintenanceRow(full.product),has_embedding:full.present});}
+        await checkOwner();return rows;
       }
       const {limit,staleDays,publishedStaleDays,publishedSlots,legacySlots} = selection;
       if (!Object.values(selection).every(Number.isInteger) || limit < 1 || limit > 100 || staleDays < 1 || publishedStaleDays < 1
