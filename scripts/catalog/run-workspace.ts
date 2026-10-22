@@ -346,7 +346,7 @@ function apply(state:State,event:Event,dry=false) {
     artifactRef(event.ref);checkpoint({...event.control,state:null});const old=state.checkpoint?.checkpoint;
     if(old){for(const [label,ref]of Object.entries(old.pins))if(!same(event.control.pins[label]||null,ref))fail('pin_rewrite');
       if(old.phaseComplete!==null&&!same(old.phaseComplete,event.control.phaseComplete))fail('phase_complete_rewrite');
-      controlEvolution(old.control,event.control.control);}
+      controlEvolution(old,event.control);}
     if(!dry){state.previous=event.previous;state.checkpoint={sha256:event.ref.sha256,checkpoint:event.control};state.body=event.ref;state.refs.set(event.ref.sha256,event.ref);}
   }else if(event.type==='control'){
     if(!exact(event,['type','sha256','previous','control'])||!state.checkpoint||event.previous!==state.checkpoint.sha256
@@ -395,10 +395,20 @@ function validateControlTransition(old:CheckpointControl,next:CheckpointControl)
     ||prior.deploymentId!==null&&prior.deploymentId!==current.deploymentId)fail('control_reconciliation');
   if(prior.receiptSha256!==undefined&&prior.receiptSha256!==current.receiptSha256)fail('control_reconciliation');
 }
-function controlEvolution(old:WorkspaceControl|undefined,next:WorkspaceControl|undefined) {
-  const a=old?.publication,b=next?.publication;if(!a)return;if(!b)fail('control_rewrite');
+function controlEvolution(old:CheckpointControl,next:CheckpointControl) {
+  const a=old.control?.publication,b=next.control?.publication;if(!a)return;if(!b)fail('control_rewrite');
+  // Shape permission only: the protected publisher separately proves actual
+  // DB expiry, attempt increment and ownership. Never a control-only recovery.
+  const reclaimed=a.stage==='claimed'&&b.stage==='claimed'&&old.phase==='publishing'&&next.phase==='publishing'
+    &&old.owner?.phase==='freezing'&&same(old.owner,next.owner)&&same(old.pins,next.pins)&&same(old.phaseComplete,next.phaseComplete)
+    &&['publication','intent','permit','packageSha256','versionReference','deploymentId'].every(k=>a[k as keyof PublicationControl]===null&&b[k as keyof PublicationControl]===null)
+    &&a.receiptSha256===undefined&&b.receiptSha256===undefined
+    &&!['publicationUploadPending','publicationUploadAcknowledged','publicationUploadReview'].some(k=>old.pins[k]||next.pins[k])
+    &&same({...a,build:b.build},b)&&same({...a.build,token:b.build.token,leaseUntil:b.build.leaseUntil},b.build)
+    &&a.build.token!==b.build.token&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(b.build.token)
+    &&b.build.leaseUntil>a.build.leaseUntil&&b.build.leaseUntil<=a.build.request.cutoff;
   for(const field of ['schemaVersion','configSha256','requestId','runReference','build','vectorPlan','uploadMarker','deploymentMarker'] as const)
-    if(!same(a[field],b[field]))fail('control_rewrite');
+    if(!(field==='build'&&reclaimed)&&!same(a[field],b[field]))fail('control_rewrite');
   for(const field of ['packageSha256','publication','intent','permit','versionReference','deploymentId','receiptSha256'] as const)
     if(a[field]!==null&&a[field]!==undefined&&!same(a[field],b[field]??null))fail('control_rewrite');
   const stages=['claimed','built','uploading','uploaded','activating','published'];if(stages.indexOf(b.stage)<stages.indexOf(a.stage))fail('control_rewrite');
