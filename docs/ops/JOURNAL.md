@@ -5,6 +5,43 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-21 owner session — Pinterest closeout and remaining cutover reconciled
+
+Cameron requested commit/push, completed Bead closure and reconciliation of the
+remaining Pinterest switch. PR204/206/218 were already merged/pushed; the
+canonical clean checkout was fast-forwarded through the other thread's PR219
+without changing its work. Production whoami still verifies the same
+Stupid.gifts BUSINESS account1107815345747925810/stupid_gifts,28 Pins/five
+boards and new profile website. Saved studio is PAUSED; no new creative,
+publication, account change or schedule change occurred.
+
+Closed **Refine Pinterest creative skill and goal workflow** (`roadmap-dfas`)
+against its actual historical acceptance: v5 first independent test, August25
+planning-only invocation, August28 v6 second test with exact source/concepts/
+prompt/full-resolution review and append-only causal corrections. V8 confirms
+diagnosed physical-contact revision evidence. Installed skill quick validation
+passes;940-event creative history and all16 creative/publisher tests pass.
+No new generation, paid tooling or acquisition result was needed to close it.
+
+Appended scoped evidence to the existing provider and launch Beads, preserving
+the migration thread's concurrent work. Provider task remains in progress;
+**Finish Pinterest publishing cutover without reopening v11**
+(`roadmap-lbbz1.8.1`) now owns the remaining Pinterest subset. Existing access
+and prior scheduler-recovery Beads stay closed, not reopened for the later
+owner-authorized pause. No duplicate migration or review automation created.
+
+Graphify was refreshed against current main, then source inspection confirmed
+the shortlist still uses legacy Postgres and hardcoded Goose product URLs;
+new-package guard still rejects Stupid.gifts intentionally. No legacy database
+shortlist job was run. A bounded HTTP GET check (not browser analytics QA)
+confirmed bowling's tracked old URL200/self-canonical versus the same Stupid
+path404; sheep200/self-canonical on both domains with query retained, but no
+Goose-to-Stupid redirect. This is a two-product sample, not all28 destinations.
+Keep old Pins/packages/receipts intact until corresponding-product handling
+and UTMs are verified. New-catalog receipt sourcing, tested guard/config,
+analytics attribution, exact-deadline pending v11 review and explicit new
+experiment/restart approval remain open. Avatar/icon cleanup is cosmetic.
+
 ## 2026-10-21 owner session — Compatible dependency security updates
 
 Cameron approved the narrow publisher integration and then explicitly asked us
