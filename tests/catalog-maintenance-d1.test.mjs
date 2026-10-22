@@ -90,7 +90,7 @@ async function setup({products=[],presence={},intent,revision='r-new'}={}) {
 
 const permanentArticle=Array(9).fill('Synthetic plastic button fixture provides clicking behavior for this owned test.').join(' ')+'\n\n'
   +Array(9).fill('Original crab button commentary checks factual persistence without any real merchant offer.').join(' ');
-async function permanentFixture({known=true,direct=false}={}) {
+async function permanentFixture({known=true,direct=false,preservePermanentListings=false}={}) {
   const p=input(1,{embedding:vectors,editorialWriteup:permanentArticle,
     sourceFacts:{material:'plastic',behavior:'clicking button fixture'}});
   const hash=editorialSourceHash(p);p.editorialSourceHash=hash;
@@ -114,7 +114,7 @@ async function permanentFixture({known=true,direct=false}={}) {
   f.sqlite.prepare("UPDATE vector_sync_outbox SET status='complete',completed_at=?").run(NOW);
   const owner=await readMutationOwner(f.db,f.owner);
   let intent={reviewedDeleteReference:'test/exact-changed-state-review'};
-  const store=createD1CatalogMaintenanceStore({...f.options,owner,runId:'test-refresh',catalogRevision:'r-refresh',intent:()=>intent});
+  const store=createD1CatalogMaintenanceStore({...f.options,owner,runId:'test-refresh',catalogRevision:'r-refresh',intent:()=>intent,preservePermanentListings});
   return {...f,p,hash,base,baseRights,supplierRights,store,useIntent(value){intent=value;}};
 }
 
@@ -134,6 +134,40 @@ test('fresh merchant projection carries only existing exact permanent clearance 
     assert.equal(f.events().filter(e=>e.status==='pending'&&e.operation==='upsert').length,1);
     const epoch=f.epoch();await f.store.upsertProduct(fresh,f.hash);assert.equal(f.epoch(),epoch);assert.deepEqual(f.row(1),after);
   }finally{f.close();}
+});
+test('D1 daily retailer stock/unknown/price eligibility never revokes an exact cleared listing or renews a supplier offer',async()=>{
+  for(const patch of [{availabilityStatus:'UNAVAILABLE'},{availabilityStatus:'UNKNOWN'},{price:999999}]){
+    const f=await permanentFixture({preservePermanentListings:true});try{
+      const before=f.row(1),native=f.state(1).embedding_native_base64;
+      f.setClock('2027-01-01T00:00:00.000Z');
+      const p={...f.p,...patch,title:'Fresh merchant title cannot rename a cleared listing',isActive:false,embedding:undefined};await f.store.upsertProduct(p,editorialSourceHash(p));
+      const row=f.row(1),display=JSON.parse(row.public_display_json);
+      assert.equal(row.is_active,1);assert.equal(display.eligibleUntil,null);assert.equal(display.title,f.base.title);
+      assert.equal(display.imageUrl,f.base.imageUrl);assert.equal(display.publicId,f.base.publicId);
+      assert.equal(f.state(1).product.supplierEligible,false);assert.equal(row.rights_json,before.rights_json);
+      assert.equal(row.source_record_json,before.source_record_json);assert.equal(f.state(1).embedding_native_base64,native);
+      assert.equal(f.events().filter(e=>e.status==='pending'&&e.operation==='upsert').length,0);
+      assert.equal((await f.store.getActiveCatalogIdentities({includeInactive:true}))[0].title,f.base.title);
+      assert.equal(f.state(1).product.title,p.title); // Source remains the actual merchant title.
+      await assert.rejects(f.store.deactivateConfirmedMissing([f.p.id],1),/permanent_deactivation_forbidden/);
+      assert.equal(f.row(1).is_active,1);
+    }finally{f.close();}
+  }
+});
+test('D1 daily retained listing policy never overrides explicit curation or invalid permanent rights',async()=>{
+  for(const patch of [{editorialStatus:'blocked'},{editorialStatus:'needs_review'},{duplicateOfProductId:'reviewed-winner'},{qualityScore:.4},{}]){
+    const f=await permanentFixture({preservePermanentListings:true});try{
+      if(Object.keys(patch).length){
+        const [key,value]=Object.entries(patch)[0];
+        f.sqlite.prepare(`UPDATE products SET ${snake(key)}=? WHERE id=?`).run(value,f.p.id);
+        f.sqlite.prepare('UPDATE catalog_maintenance_products SET semantic_json=? WHERE product_id=?')
+          .run(canonicalJson({...f.state(1).product,...patch}),f.p.id);
+      }
+      if(!Object.keys(patch).length)f.useIntent({rightsById:{[f.p.id]:{persistent:{}}},reviewedDeleteReference:'test/revoked'});
+      await f.store.upsertProduct({...f.p,...patch,isActive:false,embedding:undefined},f.hash);
+      assert.equal(f.row(1).public_display_json,null);assert.equal(f.row(1).is_active,0);
+    }finally{f.close();}
+  }
 });
 
 test('elapsed supplier and editorial windows keep a direct base and original grants with no expiry-only vector work',async()=>{

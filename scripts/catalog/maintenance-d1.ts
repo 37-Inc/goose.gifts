@@ -31,6 +31,8 @@ export interface MaintenanceD1Options {
   historical?: { archiveSha256: string; embeddingPresence: Record<string, { present: boolean; sourceRecordSha256: string }>;
     overrides?: Record<string, { product: SemanticProduct; evidence: string }> };
   newPublicId?: () => string;
+  /** D1 daily only. Retailer eligibility cannot revoke existing cleared curation. */
+  preservePermanentListings?: boolean;
 }
 type Loaded = { row: Row; product: SemanticProduct; version: number; present: boolean | null; native: string | null; provenance: Row;
   privateState: unknown[] };
@@ -76,7 +78,8 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
   const { db, runId, catalogRevision } = options;
   let owner = Object.freeze({ ...options.owner }); let tail: Promise<unknown> = Promise.resolve();
   if (!KEY.test(runId) || !KEY.test(catalogRevision) || catalogRevision.length > 64 || owner.phase !== 'writing'
-    || options.historical && !HASH.test(options.historical.archiveSha256)) throw new Error('maintenance_configuration');
+    || options.historical && !HASH.test(options.historical.archiveSha256)
+    || options.preservePermanentListings!==undefined&&typeof options.preservePermanentListings!=='boolean') throw new Error('maintenance_configuration');
   const prepare = (sql: string, params: unknown[] = []) => {
     if (params.length > 100 || params.some(value => typeof value === 'string' && Buffer.byteLength(value)>128*1024)) throw new Error('maintenance_parameter_bound');
     return db.prepare(sql).bind(...params);
@@ -135,7 +138,7 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
   // Read-only purpose projections, not persistence inputs. Keep the existing
   // semantic/typed consistency checks, without shipping source facts, native
   // vectors, rights or complete archive/current JSON for every identity.
-  const catalogView = async (fields: string[]) => {
+  const catalogView = async (fields: string[],preferBase=false) => {
     const typed = ['id','public_id','slug','source','is_active','quality_score','source_facts_hash','editorial_source_hash',
       'availability_status','editorial_status','duplicate_of_product_id','availability_checked_at','last_verified_at','created_at','updated_at'];
     const semantic = [...new Set(['id','publicId','slug','source','isActive','qualityScore','sourceFactsHash','editorialSourceHash',
@@ -144,6 +147,8 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
     const archive = [...new Set(['id','public_id','slug','title','affiliate_url',...fields.map(snake)])];
     const project = (column: string, keys: string[]) => `json_object(${keys.map(key => `'${key}',json(${column}->'$.${key}')`).join(',')})`;
     const data = `json_object(${typed.map(key => `'${key}',p.${key}`).join(',')},
+      'preferredTitle',${preferBase&&options.preservePermanentListings?`CASE WHEN json_type(p.public_display_json,'$.eligibleUntil')='null'
+        THEN json_extract(p.public_display_json,'$.title') ELSE json_extract(p.public_display_json,'$.persistent.title') END`:'NULL'},
       'archive',json(CASE WHEN s.semantic_json IS NULL THEN ${project('p.source_record_json',archive)} ELSE NULL END),
       'semantic',json(CASE WHEN s.semantic_json IS NULL THEN NULL ELSE ${project('s.semantic_json',semantic)} END),
       'invalidSemantic',s.semantic_json IS NOT NULL AND (${semantic.map(key => `json_type(s.semantic_json,'$.${key}') IS NULL`).join(' OR ')}))`;
@@ -172,8 +177,12 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         if (view.invalidSemantic) throw new Error('maintenance_current_state_drift');
         // maintenanceState expects a PG text[] even though these views do not
         // consume tags. Full selected point-loads still validate their real tags.
-        values.push(maintenanceState({...view,source_record_json:JSON.stringify({...view.archive,humor_tags:null}),
-          maintenance_semantic:view.semantic === null ? null : JSON.stringify(view.semantic)},options.historical?.overrides?.[String(view.id)]));
+        const product=maintenanceState({...view,source_record_json:JSON.stringify({...view.archive,humor_tags:null}),
+          maintenance_semantic:view.semantic === null ? null : JSON.stringify(view.semantic)},options.historical?.overrides?.[String(view.id)]);
+        // Discovery identity/family dedup only; never overwrite semantic source
+        // fields or use this read-only label as public clearance.
+        if(preferBase&&options.preservePermanentListings&&typeof view.preferredTitle==='string'&&view.preferredTitle.trim())product.title=view.preferredTitle;
+        values.push(product);
       }
       after = String(values.at(-1)!.id);
     }
@@ -193,7 +202,8 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
   async function write<T>(method: string, rawArgs: unknown[], build: (args: unknown[], intent: MaintenanceIntent, now: string,
     statements: D1Statement[], operationId: string, changes: Row[]) => Promise<T>): Promise<T> {
     const args = copy(rawArgs); const intent = copy(await options.intent?.(method, copy(args)) || {});
-    const inputHash = maintenanceDigest({ method, args, intent, runId, catalogRevision, environment: owner.environment, indexName: owner.indexName });
+    const inputHash = maintenanceDigest({ method, args, intent, runId, catalogRevision, environment: owner.environment, indexName: owner.indexName,
+      ...(options.preservePermanentListings?{listingPolicy:'permanent-base-v1'}:{}) });
     const operationId = sha256(`${runId}:${inputHash}`);
     const replay = await currentReceipt(operationId, inputHash); if (replay) return replay.result as T;
     await checkOwner();
@@ -285,7 +295,7 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         ? evidence.sourceFactsHash === product.sourceFactsHash ? evidence.observedAt || null : null
         : archivedFactsMatch ? verification : null
       : null) || (merchantVerification ? rights.imageUrl!.observedAt! : null);
-    const projection = maintenanceProjection(product,rights,catalogRevision,now,known && factsMatch && Boolean(observedVerification),observedVerification,old ?? undefined);
+    const projection = maintenanceProjection(product,rights,catalogRevision,now,known && factsMatch && Boolean(observedVerification),observedVerification,old ?? undefined,options.preservePermanentListings);
     if (projection.persistentBase) product.persistentBase=projection.persistentBase;
     const row: Row = { ...projection.row,embedding_text_hash:binding,timestamp_provenance_json:canonicalJson(timeProof),
       source_record_json: old?.row.source_record_json ?? canonicalJson({ kind:'maintenance_creation',schemaVersion:1,operationId,
@@ -401,6 +411,14 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         if (p.remotelyVerified === false && intent.verificationById?.[p.id]) throw new Error('maintenance_verification_proof');
         const merged = mergeCatalogMaintenanceUpsert(old?.product || null,p,{sourceFactsHash:args[1],databaseTime:now});
         const product = merged.product;
+        if(options.preservePermanentListings){
+          product.supplierEligible=product.isActive;
+          if(old?.product.isActive&&!product.isActive&&!['blocked','needs_review'].includes(old.product.editorialStatus)){
+            const candidate={...product,isActive:true},rights=intent.rightsById?.[product.id]??JSON.parse(String(old.row.rights_json));
+            const base=maintenanceProjection(candidate,rights,catalogRevision,now,false,null,old);
+            if(base.row.public_display_json!==null)product.isActive=true;
+          }
+        }
         if (args[2]) product.embedding = decodePgvectorSendBase64(args[2]);
         if (!old) {
           product.publicId = (options.newPublicId || randomUUID)().toLowerCase(); if (!UUID.test(product.publicId)) throw new Error('maintenance_public_id');
@@ -413,7 +431,7 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         return {inserted:merged.inserted,slug:product.slug};
       }));
     },
-    getActiveCatalogIdentities: ({includeInactive=false}: {includeInactive?:boolean} = {}) => serialize(async () => (await catalogView(['imageUrl','reviewCount'])).filter(p => includeInactive || p.isActive && p.title !== '')
+    getActiveCatalogIdentities: ({includeInactive=false}: {includeInactive?:boolean} = {}) => serialize(async () => (await catalogView(['imageUrl','reviewCount'],true)).filter(p => includeInactive || p.isActive && p.title !== '')
       .map(p => Object.fromEntries(['id','slug','title','imageUrl','affiliateUrl','qualityScore','availabilityStatus','availabilityCheckedAt',
         'lastVerifiedAt','editorialStatus','reviewCount'].map(key => [key,p[key]]))).map(p => ({...p,sourceFacts:null}))),
     getExistingEditorialWriteups: (excludedIds: string[] = []) => serialize(async () => (await catalogView(['editorialWriteup']))
@@ -456,6 +474,7 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
         .slice(0,limit).map(maintenanceRow);
     }),
     deactivateConfirmedMissing: (ids: string[],days: number) => serialize(() => {
+      if(options.preservePermanentListings)throw new Error('maintenance_permanent_deactivation_forbidden');
       if (!Number.isInteger(days) || days < 1) throw new Error('maintenance_deactivation_bound');
       return change('deactivateConfirmedMissing',[ids,days],(p,now) => {
         const time = p.lastVerifiedAt || p.createdAt;

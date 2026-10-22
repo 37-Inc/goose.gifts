@@ -21,6 +21,8 @@ export interface SemanticProduct {
   lastVerifiedAt: string | null; createdAt: string | null; updatedAt: string | null;
   /** Exact existing nonmerchant clearance, retained privately through curation holds. */
   persistentBase?: PersistentCatalogProduct;
+  /** D1 daily retailer eligibility is separate from cleared listing curation. */
+  supplierEligible?: boolean;
 }
 const FIELDS = ['id','title','price','currency','imageUrl','affiliateUrl','source','sourceQuery','humorTags','punnyTitle',
   'wittyDescription','qualityScore','rating','reviewCount','isActive','editorialWriteup','sourceFacts','sourceFactsHash',
@@ -68,6 +70,7 @@ export function maintenanceState(row: Row, override?: { product: SemanticProduct
       editorialSourceHash:'editorial_source_hash',availabilityCheckedAt:'availability_checked_at',lastVerifiedAt:'last_verified_at',
       createdAt:'created_at',updatedAt:'updated_at' };
     if (current.id !== row.id || current.isActive !== (row.is_active === 1)
+      || current.supplierEligible!==undefined&&typeof current.supplierEligible!=='boolean'
       || (current.qualityScore === null ? null : Number(current.qualityScore)) !== row.quality_score
       || Object.entries(typed).some(([key,column]) => current[key] !== row[column])) throw new Error('maintenance_current_state_drift');
     return current;
@@ -160,7 +163,7 @@ function retainedBase(previous: { row: Row; product: SemanticProduct } | undefin
   } catch { return null; } // Unknown/corrupt clearance never becomes a public grant.
 }
 export function maintenanceProjection(p: SemanticProduct, rights: ProductRights, revision: string, now: string,
-  provenInput: boolean, observedVerification: string | null, previous?: { row: Row; product: SemanticProduct }) {
+  provenInput: boolean, observedVerification: string | null, previous?: { row: Row; product: SemanticProduct }, allowApprovedBase=false) {
   const input = { ...p, price: Number(p.price), qualityScore: p.qualityScore === null ? undefined : Number(p.qualityScore),
     editorialQualityScore: p.editorialQualityScore === null ? undefined : Number(p.editorialQualityScore),
     // PG's mutation NOW is retained in the private/typed row, but publishing
@@ -169,11 +172,23 @@ export function maintenanceProjection(p: SemanticProduct, rights: ProductRights,
     humorTags: p.humorTags || undefined } as unknown as SnapshotProductInput;
   // A rights grant does not prove source facts or the vector's current input.
   let supplier;
-  if (provenInput && /^[a-f0-9]{64}$/.test(p.sourceFactsHash || '')) {
+  if (provenInput && p.supplierEligible!==false && /^[a-f0-9]{64}$/.test(p.sourceFactsHash || '')) {
     try { supplier=createCatalogSnapshot([input], { [p.id]: rights }, { catalogRevision: revision, now: new Date(now) }).products[0]; }
     catch { /* Invalid display data stays private/held; never rewrite the SQL semantic payload. */ }
   }
-  const base=retainedBase(previous,p,rights,new Date(now));
+  let base=retainedBase(previous,p,rights,new Date(now));
+  // D1-only positive approval. Root merchant grants/title are NEVER a fallback
+  // authority. Every presented value is independently checked by the canonical
+  // persistent constructor; the only image allowed here is our existing SVG.
+  if(!base&&allowApprovedBase&&rights.persistent){
+    const permission=rights.persistent;
+    try{
+      const product={...input,title:permission.title?.value,description:permission.description?.value,
+        imageUrl:'/images/gift-placeholder.svg',affiliateUrl:permission.affiliateUrl?.value} as SnapshotProductInput;
+      const display=createPersistentCatalogProduct({product,rights:permission},new Date(now));
+      if(display)base={saved:display,display,rights:permission};
+    }catch{ /* Supplied but invalid clearance remains held, never synthesized. */ }
+  }
   const display=supplier ? {...supplier,...(base?.display ? {persistent:base.display} : {})} : base?.display;
   // Preserve supplier evidence/deadlines even when only the permanent view is
   // displayable. Its independent exact grants remain in their existing lane.

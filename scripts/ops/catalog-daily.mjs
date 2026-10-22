@@ -146,8 +146,10 @@ export function dailyCatalogExecutor(cadence, execute = executeCatalog) {
   };
 }
 
-export async function runDailyCatalogWithBackend({ cadence, featuredIds = /** @type {string[]} */ ([]), execute = executeCatalog, ...backend }) {
-  const phases = await dailyCatalogPhases(cadence, featuredIds);
+export async function runDailyCatalogWithBackend({ cadence, featuredIds = /** @type {string[]} */ ([]), execute = executeCatalog,
+  preservePermanentListings = false, ...backend }) {
+  const phases = (await dailyCatalogPhases(cadence, featuredIds)).map(phase => preservePermanentListings
+    ? { ...phase,deactivateMissing:false } : phase);
   if (!phases.length) return { state: 'skipped', reason: 'cadence_already_reserved' };
   return runCatalogWithBackend(phases, { ...backend, mode: 'daily', trigger: 'scheduled', execute: dailyCatalogExecutor(cadence, execute) });
 }

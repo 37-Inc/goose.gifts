@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { canonicalJson } from '../../lib/catalog/canonical-json.ts';
+export { canonicalJson } from '../../lib/catalog/canonical-json.ts';
 import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import { legacyMutationBatch } from '../../lib/catalog/mutation-fence.ts';
 import type { ProductRights, PublicCatalogProduct } from '../../lib/catalog/types.ts';
@@ -24,17 +26,6 @@ export interface ConversionOptions {
 function requiredString(value: unknown, field: string): string {
   if (typeof value !== 'string' || !value.length) throw new Error(`Expected ${field}`);
   return value;
-}
-export function canonicalJson(value: unknown): string {
-  if (value === null || typeof value === 'boolean' || typeof value === 'string') return JSON.stringify(value);
-  if (typeof value === 'number' && Number.isFinite(value)) return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
-  if (value && typeof value === 'object') {
-    if (![Object.prototype, null].includes(Object.getPrototypeOf(value))) throw new Error('Source contains a driver-parsed non-JSON object');
-    return `{${Object.entries(value).sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, child]) => `${JSON.stringify(key)}:${canonicalJson(child)}`).join(',')}}`;
-  }
-  throw new Error('Non-JSON source value; export must encode dates/numerics as text');
 }
 
 export const TYPED_TIMESTAMP_COLUMNS: Record<string, string[]> = {

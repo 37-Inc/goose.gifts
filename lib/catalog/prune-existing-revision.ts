@@ -240,6 +240,34 @@ async function settle(db: CatalogD1, owner: MutationOwner, revision: PrunedRevis
   if (rebuilt.state === 'unchanged' || canonicalJson(rebuilt.revision) !== canonicalJson(revision)) throw new Error('prune_packet_changed');
   return settleCapturedRevision(db, owner, revision, readVectors);
 }
+/** Reference to the EXISTING immutable full-plan journal, not a new receipt or
+ * caller-selected timeout. The owned entry separately validates all source links;
+ * core reloads its exact revision/plan/owner binding before granting 30s. */
+type OwnedCohortProof = { deliveryId:string; requestSha256:string };
+async function observationTimeout(db:CatalogD1,owner:MutationOwner,revision:PrunedRevision,plan:PrunedVectorPlan,proof?:OwnedCohortProof){
+  if(proof===undefined)return 3000;
+  if(Object.keys(proof).sort().join(',')!=='deliveryId,requestSha256'||![proof.deliveryId,proof.requestSha256].every(v=>/^[a-f0-9]{64}$/.test(v)))
+    throw new Error('prune_owned_observation_invalid');
+  const gate=mutationFenceQuery(owner,['freezing']);
+  const row=(await db.prepare(`SELECT * FROM catalog_vector_deliveries WHERE delivery_id=? AND ${gate.sql}`)
+    .bind(proof.deliveryId,...gate.params).all<Row>()).results[0];
+  if(!row||typeof row.request_json!=='string'||sha256(row.request_json)!==proof.requestSha256)throw new Error('prune_owned_observation_invalid');
+  const request=JSON.parse(row.request_json),base=JSON.parse(String(row.owner_json));
+  if(request.schemaVersion!==1||request.kind!=='approved-cohort-plan'||request.catalogRevision!==plan.catalogRevision
+    ||request.planSha256!==sha256(canonicalJson(plan))||canonicalJson(request.plan)!==canonicalJson(plan)
+    ||request.revisionSha256!==sha256(canonicalJson(revision))||request.sourceRowsSha256!==sha256(canonicalJson(revision.sourceRows))
+    ||canonicalJson(request.projectionReceipt)!==canonicalJson(revision.packet.receipt)
+    ||base.phase!=='freezing'||canonicalJson({...owner,epoch:base.epoch})!==canonicalJson(base)||owner.epoch<base.epoch+1
+    ||row.environment!==owner.environment||row.index_name!==owner.indexName||row.generation!==base.generation||row.prior_epoch!==base.epoch
+    ||row.delivery_id!==sha256(canonicalJson({environment:base.environment,indexName:base.indexName,generation:base.generation,
+      operationKey:base.operationKey,identity:{kind:'approved-cohort-plan'}}))
+    ||row.status!=='complete'||row.disposition!=='verified'||row.attempts!==0||row.dispatch_token!==null||row.mutation_reference!==null
+    ||row.product_json!==canonicalJson({schemaVersion:1,kind:'approved-cohort-plan',revisionSha256:request.revisionSha256})
+    ||!Array.isArray(request.sources)||row.evidence_json!==canonicalJson([{state:'policy_and_source_verification',
+      sources:request.sources.map((s:{deliveryId:string;reference:string|null})=>({deliveryId:s.deliveryId,reference:s.reference}))}]))
+    throw new Error('prune_owned_observation_invalid');
+  return 30000;
+}
 /** Queue an already independently rebuilt exact seal. The policy-specific
  * entrypoints MUST reconstruct and compare it, or independently validate a
  * genuine immutable owned policy-rebuild receipt binding the FULL revision.
@@ -247,17 +275,18 @@ async function settle(db: CatalogD1, owner: MutationOwner, revision: PrunedRevis
  * current/projection/prior/watermark/cutoff/owner predicates remain mandatory.
  */
 export async function settleCapturedRevision(db: CatalogD1, owner: MutationOwner, revision: PrunedRevision,
-  readVectors: (plan: PrunedVectorPlan, signal: AbortSignal) => Promise<PrunedVectorObservation>) {
+  readVectors: (plan: PrunedVectorPlan, signal: AbortSignal) => Promise<PrunedVectorObservation>,ownedCohortProof?:OwnedCohortProof) {
   owner = structuredClone(owner); revision = structuredClone(revision);
   if (owner.phase !== 'freezing' || owner.operationKey !== revision.operationKey || owner.environment !== revision.request.scope.environment
     || owner.indexName !== revision.request.scope.indexName) throw new Error('prune_owner_mismatch');
   const plan = prunedVectorPlan(revision); let observed: PrunedVectorObservation;
+  const timeout=await observationTimeout(db,owner,revision,plan,ownedCohortProof);
   const controller = new AbortController(); let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     observed = await Promise.race([readVectors(structuredClone(plan), controller.signal), new Promise<never>((_, reject) => {
-      timer = setTimeout(() => { controller.abort(); reject(new Error('prune_vectors_unconfirmed')); }, 3000);
+      timer = setTimeout(() => { controller.abort(); reject(new Error('prune_vectors_unconfirmed')); }, timeout);
     })]);
-  } catch { throw new Error('prune_vectors_unconfirmed'); } finally { clearTimeout(timer); }
+  } catch { controller.abort(); throw new Error('prune_vectors_unconfirmed'); } finally { clearTimeout(timer); }
   if (!observed || observed.settled !== true || observed.environment !== owner.environment || observed.indexName !== owner.indexName
     || observed.planSha256 !== sha256(canonicalJson(plan)) || typeof observed.reference !== 'string'
     || !/^[a-zA-Z0-9._:/-]{1,200}$/.test(observed.reference)) throw new Error('prune_vectors_unconfirmed');

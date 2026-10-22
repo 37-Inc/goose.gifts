@@ -21,7 +21,7 @@ import { isAccountedPublicationFetch } from './publication-read-fetch.ts';
 import { isAccountedPublicationUploadCommand, PublicationUploadCommandError } from './publication-upload-command.ts';
 import { isCatalogD1Rest } from './d1-write-rest.ts';
 import type { PublicationIntent } from '../../lib/catalog/publication.ts';
-import { claimPublication, completeActivatedPublication, completeActivatedPermanentPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
+import { claimPublication, completeActivatedPublication, completeActivatedPermanentPublication, completeActivatedApprovedCatalogPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
 import type { SiteAssetManifest } from '../../lib/catalog/types.ts';
 import type { ReleaseBuildContext } from '../staging/build.mts';
 import { assertBuildSource, validateBuildContext } from '../staging/build.mts';
@@ -309,7 +309,7 @@ function intentFrom(manifest:SiteAssetManifest,bytes:Uint8Array):PublicationInte
  * publication predicates. Ambiguous external steps are reconciled, not resent.
  * Credentials never enter checkpoints, artifacts, command args or returned errors.
  */
-export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision;requestId:string;runReference:string;
+export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision;approvedCatalog?:ApprovedCohortRevision;requestId:string;runReference:string;
   workspace:PublicationWorkspace;config:PublicationConfig;credentials:{cloudflareToken:string;identityAuthorization?:string};dependencies?:Dependencies;buildRecovery?:BuildRecoveryApproval;
   reviewedUploadRetry?:{approval:ReviewedUploadActivationApproval;evidence:ArtifactRef;priorApproval?:ReviewedUploadActivationApprovalV1}}):Promise<PublicationResult>{
   const {db,workspace,revision}=options;const config=validatePublicationConfig(options.config);const now=options.dependencies?.now??(()=>new Date());
@@ -318,6 +318,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   if(reviewed)encodeReviewedUploadActivationApproval(reviewed.approval);
   if(options.permanent&&(options.published||!revision||canonicalJson(options.permanent)!==canonicalJson(revision))
     ||revision?.nativePreservation&&!options.permanent)throw new Error('publication_permanent_input_invalid');
+  if(options.approvedCatalog&&(options.permanent||options.published||!revision||canonicalJson(options.approvedCatalog)!==canonicalJson(revision)))
+    throw new Error('publication_approved_input_invalid');
   if(db.providerIdentity!==`cloudflare:${config.accountId}:${config.database.id}`)throw new Error('publication_database_scope_mismatch');
   await workspace.assertHeld();await workspace.assertScope({accountId:config.accountId,environment:config.environment,databaseId:config.database.id,
     databaseName:config.database.name,workerName:config.workerName,indexName:config.indexName});
@@ -637,8 +639,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         const readDeployed=async()=>{
           await observed();return control!.intent!;
         };
-        if(control.publication!.leaseUntil<=now().toISOString())
+        if(options.approvedCatalog||control.publication!.leaseUntil<=now().toISOString())
           if(options.permanent)await completeActivatedPermanentPublication(db,revision,control.publication!,control.permit,readDeployed,now);
+          else if(options.approvedCatalog)await completeActivatedApprovedCatalogPublication(db,revision,control.publication!,control.permit,readDeployed,now);
           else await completeActivatedPublication(db,revision,control.publication!,control.permit,readDeployed,now,options.published);
         else await completePublication(db,sealed.snapshot,config.releaseId,control.publication!.token,readDeployed,now,owner);
       }
@@ -664,6 +667,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     }
     if(config.prior===null)throw new Error('publication_bootstrap_required'); // Historical reconciliation only; never a new external action.
     if(!revision||owner.phase!=='freezing')throw new Error('publication_revision_required');
+    // The routine whole-catalog mode requires its genuine COMPLETE policy and
+    // every native/absence proof BEFORE a build/upload, not only at completion.
+    if(options.approvedCatalog)await vectorProof();
     assertBuildSource(config.sourceRoot,config.codeSha);
     if(control.stage==='claimed'){
       const context:ReleaseBuildContext={schemaVersion:1,sourceMode:config.sourceMode,releaseId:config.releaseId,codeSha:config.codeSha,

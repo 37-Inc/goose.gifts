@@ -2,6 +2,7 @@ import type { CatalogReleaseManifest, CatalogSnapshot } from './types.ts';
 import type { CatalogD1, D1Statement, D1ReadOptions } from './storage/d1.ts';
 import { earliestDisplayExpiry } from './display.ts';
 import { canonicalTime } from './snapshot.ts';
+import { canonicalJson } from './canonical-json.ts';
 import { rollbackPreflight, visibleRevisionCountQuery } from './d1.ts';
 import { legacyMutationBatch, mutationAssertion, mutationFenceQuery } from './mutation-fence.ts';
 import type { MutationOwner } from './mutation-fence.ts';
@@ -199,13 +200,15 @@ export async function completePublication(db: CatalogD1, snapshot: CatalogSnapsh
  * takeover nor another deployment. This bounded path renews no lease or rights;
  * fresh original package/current-source/native proof is still mandatory. */
 async function completeActivated(db: CatalogD1, revision: PrunedRevision, publication: PublicationClaim, permit: ActivationPermit,
-  readDeployed: (intent: PublicationIntent) => Promise<PublicationIntent>, now: () => Date, published?:PublishedCatalogBinding,bulk=false): Promise<void> {
+  readDeployed: (intent: PublicationIntent) => Promise<PublicationIntent>, now: () => Date, published?:PublishedCatalogBinding,bulk=false,approved=false): Promise<void> {
   ({ revision, publication, permit, published } = structuredClone({ revision, publication, permit, published }));
   const owner = permit.mutationOwner, snapshot = revision.snapshot, intent = publication.intent;
   const operationKey=published?await digest(encodePublishedCatalogBinding(published)):revision.operationKey;
-  if (!owner || owner.phase !== 'activating' || permit.releaseId !== intent.releaseId || snapshot.products.length > (bulk?CATALOG_IDENTITY_LIMITS.ready:10)
-    || revision.sourceRows.length > (bulk?CATALOG_IDENTITY_LIMITS.identities:20)
+  const streamed=bulk||approved;
+  if (!owner || owner.phase !== 'activating' || permit.releaseId !== intent.releaseId || snapshot.products.length > (streamed?CATALOG_IDENTITY_LIMITS.ready:10)
+    || revision.sourceRows.length > (streamed?CATALOG_IDENTITY_LIMITS.identities:20)
     ||bulk&&(!revision.nativePreservation||published||snapshot.products.length+snapshot.heldProducts.length!==revision.sourceRows.length)
+    ||approved&&(bulk||published||revision.nativePreservation||!('approval' in revision.request))
     || new Set(revision.sourceRows.map(row => row.public_id)).size !== revision.sourceRows.length
     || [...snapshot.products, ...snapshot.heldProducts].some(product => !revision.sourceRows.some(row => row.public_id === product.publicId))
     || revision.request.scope.environment !== owner.environment || revision.request.scope.indexName !== owner.indexName
@@ -223,6 +226,32 @@ async function completeActivated(db: CatalogD1, revision: PrunedRevision, public
     || request.codeSha !== intent.codeSha || request.priorReleaseId !== intent.priorReleaseId) throw new Error('publication_activation_fenced');
   const assertion = (sql: string, params: unknown[]) => db.prepare(`SELECT json(CASE WHEN ${sql} THEN 'true' ELSE 'publication_activation_fenced' END)`).bind(...params);
   const historical:D1Statement[]=[];
+  if(approved){
+    // Only the independently constructed immutable WHOLE policy receipt grants
+    // the streamed path. A caller hash/large snapshot alone grants nothing.
+    const deliveryId=await digest(canonicalJson({environment:owner.environment,indexName:owner.indexName,generation:owner.generation,
+      operationKey:owner.operationKey,identity:{kind:'approved-cohort-plan'}}));
+    const journals=(await db.prepare('SELECT * FROM catalog_vector_deliveries WHERE delivery_id=?')
+      .bind(deliveryId).all<Record<string,unknown>>()).results;
+    if(journals.length!==1)throw new Error('publication_activation_fenced');
+    const row=journals[0],proof=JSON.parse(String(row.request_json)),base=JSON.parse(String(row.owner_json));
+    if(proof.kind!=='approved-cohort-plan'||proof.schemaVersion!==1||proof.catalogRevision!==intent.catalogRevision
+      ||proof.revisionSha256!==await digest(canonicalJson(revision))||proof.sourceRowsSha256!==await digest(canonicalJson(revision.sourceRows))
+      ||canonicalJson(proof.projectionReceipt)!==canonicalJson(revision.packet.receipt)
+      ||canonicalJson(proof.approval)!==canonicalJson((revision.request as typeof revision.request&{approval:unknown}).approval)
+      ||proof.approvalSha256!==await digest(canonicalJson(proof.approval))
+      ||proof.approval.changes.length>30||proof.planSha256!==await digest(canonicalJson(proof.plan))
+      ||base.phase!=='freezing'||canonicalJson({...owner,phase:'freezing',epoch:base.epoch})!==canonicalJson(base)
+      ||owner.epoch<base.epoch+2||row.environment!==owner.environment||row.index_name!==owner.indexName
+      ||row.generation!==base.generation||row.prior_epoch!==base.epoch||row.status!=='complete'||row.disposition!=='verified'
+      ||row.attempts!==0||row.dispatch_token!==null||row.mutation_reference!==null
+      ||row.product_json!==canonicalJson({schemaVersion:1,kind:'approved-cohort-plan',revisionSha256:proof.revisionSha256})
+      ||row.evidence_json!==canonicalJson([{state:'policy_and_source_verification',
+        sources:proof.sources.map((s:{deliveryId:string;reference:string|null})=>({deliveryId:s.deliveryId,reference:s.reference}))}]))
+      throw new Error('publication_activation_fenced');
+    const keys=Object.keys(row);
+    historical.push(assertion(`EXISTS(SELECT 1 FROM catalog_vector_deliveries WHERE ${keys.map(k=>`${k} IS ?`).join(' AND ')})`,keys.map(k=>row[k])));
+  }
   if(published||bulk){
     if(published&&encodeBuildRequest(published.request)!==build.request_json)throw new Error('publication_activation_fenced');
     const binding=published?.source??revision.nativePreservation!.source;
@@ -269,16 +298,16 @@ async function completeActivated(db: CatalogD1, revision: PrunedRevision, public
       AND (SELECT coalesce(max(sequence),0) FROM vector_sync_outbox)=? AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE status!='complete')
       AND EXISTS(SELECT 1 FROM catalog_projection_receipts WHERE ${receiptColumns.map(key => `${key} IS ?`).join(' AND ')})
       AND (SELECT count(*) FROM catalog_public_products WHERE catalog_revision=?)=?
-      ${bulk?`AND (SELECT count(*) FROM products)=? AND EXISTS(SELECT 1 FROM publication_receipts WHERE release_id=? AND catalog_revision=?
+      ${streamed?`AND (SELECT count(*) FROM products)=? AND EXISTS(SELECT 1 FROM publication_receipts WHERE release_id=? AND catalog_revision=?
         AND code_sha=? AND completed_at IS ? AND manifest_json=?) AND (SELECT coalesce(max(rowid),0) FROM publication_receipts)=?`
         :`AND (SELECT count(*) FROM json_each(?) e JOIN catalog_public_products p ON p.catalog_revision=? AND p.public_id=json_extract(e.value,'$.public_id')
         WHERE ${projectionColumns.map(key => `p.${key} IS json_extract(e.value,'$.${key}')`).join(' AND ')})=?`} AND ${check.sql}`,
     [owner.environment, owner.indexName, owner.capturedAt, permit.requestId, permit.token, build.lease_until, permit.runReference, permit.releaseId, permit.versionReference, build.request_json, request.sourceRevision,
       value.intent_id, value.intent_json, publication.token, publication.leaseUntil, value.dispatch_reference, revision.globalVectorWatermark,
       ...receiptColumns.map(key => receipt[key]), intent.catalogRevision, receipt.product_count,
-      ...(bulk?[revision.sourceRows.length,...['release_id','catalog_revision','code_sha','completed_at','manifest_json'].map(k=>revision.priorRow[k]),revision.request.context.publicationReceiptWatermark]
+      ...(streamed?[revision.sourceRows.length,...['release_id','catalog_revision','code_sha','completed_at','manifest_json'].map(k=>revision.priorRow[k]),revision.request.context.publicationReceiptWatermark]
         :[JSON.stringify(revision.packet.rows),intent.catalogRevision,receipt.product_count]),...check.params]),
-    ...(!bulk?pruningCurrentQueries(revision.sourceRows).map(query => assertion(`(${query.sql})=?`, [...query.params, query.count])):[])];
+    ...(!streamed?pruningCurrentQueries(revision.sourceRows).map(query => assertion(`(${query.sql})=?`, [...query.params, query.count])):[])];
   const fullRows=async()=>{
     // One cooperative owner excludes application catalog writers between pages.
     // Repeating the full visibility scan in every byte-page is not a stronger
@@ -307,12 +336,12 @@ async function completeActivated(db: CatalogD1, revision: PrunedRevision, public
   };
   // Owner/source assertions run before the trusted provider read and again in
   // the final receipt transaction. There is no upload/activate/claim callback.
-  if(bulk)await fullRows();else await db.batch(assertions());
+  if(streamed)await fullRows();else await db.batch(assertions());
   let deployed: PublicationIntent;
   try { deployed = await readDeployed(intent); } catch { throw new Error('publication_readback_failed'); }
   if (encode(deployed) !== value.intent_json) throw new Error('publication_readback_mismatch');
   const at = now(); await preflight(db, snapshot, intent, at);
-  if(bulk)await fullRows();
+  if(streamed)await fullRows();
   await db.batch([...assertions(), ...completionStatements(db, snapshot, value, publication.token, at, false)]);
   await completed(db, value, publication.token);
 }
@@ -325,4 +354,10 @@ export function completeActivatedPublication(db:CatalogD1,revision:PrunedRevisio
 export function completeActivatedPermanentPublication(db:CatalogD1,revision:PrunedRevision,publication:PublicationClaim,permit:ActivationPermit,
   readDeployed:(intent:PublicationIntent)=>Promise<PublicationIntent>,now:()=>Date=()=>new Date()){
   return completeActivated(db,revision,publication,permit,readDeployed,now,undefined,true);
+}
+/** Routine full-catalog completion; authentic whole-plan attestation and fresh
+ * native coverage are mandatory. No installer proof or new delivery is inferred. */
+export function completeActivatedApprovedCatalogPublication(db:CatalogD1,revision:PrunedRevision,publication:PublicationClaim,permit:ActivationPermit,
+  readDeployed:(intent:PublicationIntent)=>Promise<PublicationIntent>,now:()=>Date=()=>new Date()){
+  return completeActivated(db,revision,publication,permit,readDeployed,now,undefined,false,true);
 }
