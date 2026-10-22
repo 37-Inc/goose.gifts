@@ -11,13 +11,15 @@ import {canonicalJson,convertSourceRow,sha256} from '../scripts/catalog/migratio
 import {validateRecoveryArchive} from '../scripts/catalog/recovery-archive.ts';
 import {encodePgvectorSendBase64} from '../scripts/catalog/pgvector-binary.ts';
 import {maintenanceState} from '../scripts/catalog/maintenance-state.ts';
-import {D1_RECOVERY_TABLES,prepareRollbackPacket,writeRollbackPacket,readRollbackFixture} from '../scripts/catalog/recovery-delta.ts';
+import {D1_RECOVERY_TABLES,prepareRollbackPacket,writeRollbackPacket,readRollbackFixture,readCooperativeRollback} from '../scripts/catalog/recovery-delta.ts';
 import {runNativeRecovery} from '../scripts/catalog/recovery-native.ts';
 import {createD1CatalogTelemetryStore} from '../scripts/catalog/telemetry-d1.ts';
 import {createD1CatalogMaintenanceStore} from '../scripts/catalog/maintenance-d1.ts';
 import {claimMutationOwnership} from '../lib/catalog/mutation-fence.ts';
 import {prepareOperationalPacket} from '../scripts/catalog/prepare-operational.ts';
 import {prepareOwnedOperationalImport,applyOwnedOperationalImport} from '../scripts/catalog/owned-operational-import.ts';
+import {captureOwnedD1} from '../scripts/catalog/capture-owned-d1.ts';
+import {createCatalogD1Rest} from '../scripts/catalog/d1-write-rest.ts';
 
 const AT='2026-10-21T12:00:00.123456Z';const LATER='2026-10-21T12:01:00.654321Z';
 const uuid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
@@ -37,7 +39,7 @@ function definition(table,index){
 }
 function empty(def){return Object.fromEntries(def.columns.map(c=>[c.name,c.nullable?null:c.type==='boolean'?false:c.type==='jsonb'?'{}':c.type.startsWith('timestamp')?'2026-10-20 10:00:00'+(c.type.endsWith('with time zone')?'+00':''):'TEST']));}
 function inventory(input){input.inventory=D1_RECOVERY_TABLES.map(table=>({table,rows:input.tables[table].length,sha256:sha256(canonicalJson(input.tables[table]))}));return input;}
-async function fixture({searches=0,ownedImport=false}={}){
+async function fixture({searches=0,ownedImport=false,cooperative=false}={}){
   const parent=await mkdtemp(join(process.env.CATALOG_RECOVERY_TEST_EVIDENCE_PARENT||tmpdir(),'sg-delta-fixture-'));
   const directory=join(parent,'baseline');await mkdir(directory,{mode:0o700});
   const tables=[products,catalogRuns,catalogRunItems,productSlugHistory,catalogEditorialEvents,searchQueries].map(definition);
@@ -97,7 +99,7 @@ async function fixture({searches=0,ownedImport=false}={}){
   }
   // Exercise the actual writer's raw/start/finish JSON, casing, defaults,
   // sequence allocation and typed overrides rather than hand-authoring them.
-  const sqlite=new DatabaseSync(':memory:');let owned;
+  const sqlite=new DatabaseSync(':memory:');let owned,proof;
   try{
     for(const name of (await readdir(new URL('../migrations/d1/',import.meta.url))).filter(n=>/^00\d\d_.*\.sql$/.test(n)).sort())
       sqlite.exec(await readFile(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
@@ -119,23 +121,89 @@ async function fixture({searches=0,ownedImport=false}={}){
     for(const name of ['catalog_runs','catalog_run_items','catalog_editorial_events','catalog_run_telemetry','catalog_mutation_scopes','catalog_maintenance_operations','sqlite_sequence'])
       input.tables[name]=sqlite.prepare(`SELECT * FROM ${name}`).all().map(r=>({...r}));
     if(ownedImport){
-      const captured=inventory({...input,tables:Object.fromEntries(D1_RECOVERY_TABLES.map(name=>[name,sqlite.prepare(`SELECT * FROM ${name}`).all().map(r=>({...r}))]))});
+      let actual=db,before;
+      if(cooperative){
+        const config={accountId:'a'.repeat(32),databaseId:uuid(901),databaseName:'cooperative-local-fixture',token:'LOCAL_FIXTURE_ONLY'};
+        const base=`https://api.cloudflare.com/client/v4/accounts/${config.accountId}/d1/database/${config.databaseId}`;
+        actual=await createCatalogD1Rest({...config,fetch:async(url,init)=>{
+          if(url===base)return Response.json({success:true,result:{uuid:config.databaseId,name:config.databaseName,read_replication:{mode:'disabled'}}});
+          assert.equal(url,base+'/query');const {batch}=JSON.parse(init.body);sqlite.exec('BEGIN');
+          try{const result=batch.map(q=>({success:true,results:sqlite.prepare(q.sql).all(...q.params).map(r=>({...r})),meta:{served_by_primary:true,rows_read:1,rows_written:0}}));
+            sqlite.exec('COMMIT');return Response.json({success:true,result});}catch{sqlite.exec('ROLLBACK');return Response.json({success:false,errors:[{message:'LOCAL_FIXTURE_SQL_REFUSED'}]},{status:400});}
+        }});
+        before=await captureOwnedD1({db:actual,owner:options.ownerCursor.current,reference:'local-only/cooperative-before',stoppedWriters:[
+          {id:'application-fixture',kind:'application',codePaths:['workers/site/index.ts'],reference:'Synthetic local store, no actual provider/writer-stop claim',stoppedAt:AT.slice(0,23)+'Z'},
+          {id:'operator-fixture',kind:'operator',codePaths:[],reference:'Synthetic local operator',stoppedAt:AT.slice(0,23)+'Z'}]});
+      }
+      const captured=before?.capture??inventory({...input,tables:Object.fromEntries(D1_RECOVERY_TABLES.map(name=>[name,sqlite.prepare(`SELECT * FROM ${name}`).all().map(r=>({...r}))]))});
       const preserved=captured.tables.products.filter(p=>p.id!=='TEST-3');
       const packet=prepareOperationalPacket(archive,{importedAt:'2026-10-21T12:02:00.000Z',unresolvedEvidence:'Controlled unresolved historical wall times',
         preserve:{rows:preserved,rowsFileSha256:sha256(canonicalJson(preserved)),evidenceSha256:sha256(canonicalJson(captured)),evidenceReference:'synthetic/actual-store-capture'}});
       const prepared=prepareOwnedOperationalImport({packet,capture:captured,captureSha256:sha256(canonicalJson(captured)),owner:options.ownerCursor.current});
       owned={plan:prepared.plan,sha256:prepared.sha256};
-      await applyOwnedOperationalImport({db,plan:owned.plan,planSha256:owned.sha256,ownerCursor:options.ownerCursor});
+      const result=await applyOwnedOperationalImport({db:actual,plan:owned.plan,planSha256:owned.sha256,ownerCursor:options.ownerCursor,
+        ...(before?{cooperativeCapture:{receipt:before.receipt,sha256:before.receiptSha256}}:{})});
       for(const name of D1_RECOVERY_TABLES)input.tables[name]=sqlite.prepare(`SELECT * FROM ${name}`).all().map(r=>({...r}));
+      if(before){const after=await captureOwnedD1({db:actual,owner:options.ownerCursor.current,reference:'local-only/cooperative-after',stoppedWriters:before.receipt.stoppedWriters});
+        Object.assign(input,after.capture);proof={kind:'local-cooperative-owned-union-drill',inputSha256:after.captureSha256,ownedImport:owned,
+          before:{receipt:before.receipt,sha256:before.receiptSha256},after:{receipt:after.receipt,sha256:after.receiptSha256},completion:{result,sha256:sha256(canonicalJson(result))}};}
     }
   }finally{sqlite.close();}
-  input.tables.search_diagnostics.push({id:uuid(99),query_hash:'a'.repeat(64),query_length:2,result_count:1,top_similarity:null,
+  if(!cooperative)input.tables.search_diagnostics.push({id:uuid(99),query_hash:'a'.repeat(64),query_length:2,result_count:1,top_similarity:null,
     match_type:'keyword',outcome:'ok',created_at:AT,expires_at:'2026-11-20T12:00:00.123456Z'});
   inventory(input);
-  return{parent,directory,archive,manifest,input,baselineSha256,auditPath,auditSha256:sha256(auditText),owned,
+  return{parent,directory,archive,manifest,input,baselineSha256,auditPath,auditSha256:sha256(auditText),owned,proof,
     plan(data=input){inventory(data);return prepareRollbackPacket(archive,manifest,data,sha256(canonicalJson(data)),owned);},
-    async packet(){const bytes=canonicalJson(input)+'\n',path=join(parent,'input.json');await writeFile(path,bytes,{mode:0o600});return writeRollbackPacket({archive:directory,baselineSha256,input:path,inputSha256:sha256(bytes),output:join(parent,'packet'),ownedImport:owned});}};
+    async packet(){const bytes=canonicalJson(input)+(cooperative?'':'\n'),path=join(parent,'input.json');await writeFile(path,bytes,{mode:0o600});return writeRollbackPacket({archive:directory,baselineSha256,input:path,inputSha256:sha256(bytes),output:join(parent,'packet'),ownedImport:owned});}};
 }
+
+test('cooperative LOCAL rollback opt-in binds both actual-store captures, complete24-table union, receipts and inverse/native bytes',async()=>{
+  const f=await fixture({ownedImport:true,cooperative:true});try{
+    const written=await f.packet(),read=()=>readCooperativeRollback(written.directory,written.packetSha256,f.archive,f.manifest,f.proof);
+    const packet=await read();assert.equal(packet.provenance.kind,'unverified-capture');assert.equal(packet.barrierVerified,false);
+    assert.equal(packet.changes.find(c=>c.key==='TEST-1').after.embedding,replacement);
+    assert.equal(packet.changes.find(c=>c.key==='TEST-3').after.embedding,native);
+    assert.equal(packet.ownedImportSequences.nativeSequences.length,1);assert.equal(f.proof.completion.result.tables.length,24);
+    await assert.rejects(readRollbackFixture(written.directory,written.packetSha256,f.archive,f.manifest,f.owned));
+    for(const change of [p=>{p.inputSha256='a'.repeat(64);},p=>{p.ownedImport.sha256='b'.repeat(64);},
+      p=>{p.before.receipt.ownerBefore.epoch++;p.before.sha256=sha256(canonicalJson(p.before.receipt));},
+      p=>{p.after.receipt.providerIdentity='cloudflare:'+'b'.repeat(32)+':'+uuid(901);p.after.sha256=sha256(canonicalJson(p.after.receipt));},
+      p=>{p.completion.result.tables[0].rows++;p.completion.sha256=sha256(canonicalJson(p.completion.result));},
+      p=>{p.completion.result.barrierVerified=true;p.completion.sha256=sha256(canonicalJson(p.completion.result));}]){
+      const proof=structuredClone(f.proof);change(proof);
+      await assert.rejects(readCooperativeRollback(written.directory,written.packetSha256,f.archive,f.manifest,proof));
+    }
+    // Even a freshly checksum-bound D1-only native/control change cannot hide
+    // behind matching runtime product rows or an alleged completed import.
+    const bytes=canonicalJson({...f.input,tables:{...f.input.tables,search_diagnostics:[{id:'unapproved'}]}});
+    const drift=JSON.parse(bytes);inventory(drift);const inputPath=join(f.parent,'drift.json');await writeFile(inputPath,canonicalJson(drift),{mode:0o600});
+    const altered=await writeRollbackPacket({archive:f.directory,baselineSha256:f.baselineSha256,input:inputPath,inputSha256:sha256(canonicalJson(drift)),output:join(f.parent,'drift-packet'),ownedImport:f.owned});
+    const proof=structuredClone(f.proof);proof.inputSha256=altered.packet.inputSha256;
+    await assert.rejects(readCooperativeRollback(altered.directory,altered.packetSha256,f.archive,f.manifest,proof),/incomplete, drifted or unsupported/);
+    await assert.rejects(runNativeRecovery({rollbackFixture:{},cooperativeRollback:{}}),/Choose one/);
+    const invalid=structuredClone(f.proof);invalid.ownedImport.sha256='b'.repeat(64);
+    // Complete validation occurs BEFORE mkdtemp/Docker endpoint/image/commands.
+    // No container exists or Docker daemon needs to be available for refusal.
+    await assert.rejects(runNativeRecovery({archive:f.directory,expectedManifestSha256:f.baselineSha256,audit:f.auditPath,
+      expectedAuditSha256:f.auditSha256,workParent:f.parent,cooperativeRollback:{directory:written.directory,expectedPacketSha256:written.packetSha256,proof:invalid}}));
+    assert.equal((await readdir(f.parent)).some(n=>n.startsWith('recovery-native-pg17-')),false);
+  }finally{await rm(f.parent,{recursive:true,force:true});}
+});
+
+test('optional cooperative local drill uses the same fresh network-none native restore, atomic failure/replay/allocator and owned cleanup',
+  {skip:process.env.CATALOG_RECOVERY_TEST_NATIVE!=='1'},async()=>{
+    const f=await fixture({ownedImport:true,cooperative:true});let passed=false;
+    try{const written=await f.packet();const result=await runNativeRecovery({archive:f.directory,expectedManifestSha256:f.baselineSha256,
+      audit:f.auditPath,expectedAuditSha256:f.auditSha256,workParent:f.parent,
+      cooperativeRollback:{directory:written.directory,expectedPacketSha256:written.packetSha256,proof:f.proof}});
+      assert.equal(result.receipt.status,'passed');assert.equal(result.receipt.resourcesRemoved,true);
+      assert.equal(result.receipt.vectorCount,2);assert.match(result.receipt.resourceLabel,/^goose\.catalog\.recovery=[a-f0-9-]{36}$/);
+      assert.equal(result.receipt.cooperativeRollbackProofSha256,sha256(canonicalJson(f.proof)));
+      assert.equal(result.receipt.rollbackFixture.provenance.kind,'unverified-capture');assert.equal(result.receipt.rollbackFixture.barrierVerified,false);
+      for(const k of ['lateFailureAtomic','identicalReplay','nextSequenceVerified'])assert.equal(result.receipt.rollbackFixture[k],true);
+      assert.ok(result.receipt.limitations.some(s=>s.includes('not a universal provider/ACL barrier')));passed=true;
+    }finally{if(passed&&process.env.CATALOG_RECOVERY_TEST_KEEP!=='1')await rm(f.parent,{recursive:true,force:true});}
+  });
 
 test('owned union rollback restores legacy sequences and explicitly reallocates colliding actual native telemetry',async()=>{
   const f=await fixture({ownedImport:true});try{

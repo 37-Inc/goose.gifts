@@ -10,7 +10,8 @@ import { canonicalJson } from './migration.ts';
 import { decodePgvectorSendBase64, PGVECTOR_BINARY_ENCODING } from './pgvector-binary.ts';
 import { validateRecoveryMetadata } from './recovery-metadata.ts';
 import type { RecoveryMetadata } from './recovery-metadata.ts';
-import { readRollbackFixture, rollbackLogicalRow, rollbackRowsHash } from './recovery-delta.ts';
+import { readRollbackFixture, readCooperativeRollback, rollbackLogicalRow, rollbackRowsHash } from './recovery-delta.ts';
+import type { CooperativeRollbackProof } from './recovery-delta.ts';
 import type { OwnedOperationalImportPlan } from './owned-operational-import.ts';
 
 // Maintainer-published 0.8.0-pg17 ARM64 manifest, independently inspected before use.
@@ -22,7 +23,7 @@ export interface NativeTable extends RecoveryTable {
 }
 interface Sequence { schemaname: string; sequencename: string; data_type: string; increment_by: string;
   min_value: string; max_value: string; start_value: string; cache_size: string; cycle: boolean; last_value: string | null }
-interface Audit { readOnly: boolean; isolation: string;
+interface Audit { observedAt?:string;readOnly: boolean; isolation: string;
   tables: Array<{ schema_name: string; relname: string; relkind: string; can_select: boolean; active_rls_for_export_role: boolean;
     relrowsecurity: boolean; relforcerowsecurity: boolean; relispartition: boolean; relhassubclass: boolean; inherits_from_parent: boolean }>;
   functions: Array<{ schema_name: string; proname: string; arguments: string; definition: string }>;
@@ -129,7 +130,11 @@ function schemaSql(table: NativeTable): string {
 export async function runNativeRecovery(options: { archive: string; expectedManifestSha256: string; audit: string;
   expectedAuditSha256: string; workParent: string; metadata?: string; expectedMetadataSha256?: string;
   /** Test-only: recomputed synthetic packet, fresh owned container only. No CLI/provider apply path. */
-  rollbackFixture?: {directory:string;expectedPacketSha256:string;ownedImport?:{plan:OwnedOperationalImportPlan;sha256:string}} }) {
+  rollbackFixture?: {directory:string;expectedPacketSha256:string;ownedImport?:{plan:OwnedOperationalImportPlan;sha256:string}};
+  /** Explicit cooperative LOCAL drill only; the same fresh network-none Docker
+   * path below is the sole destination. Never a DSN/provider/CLI apply option. */
+  cooperativeRollback?:{directory:string;expectedPacketSha256:string;proof:CooperativeRollbackProof} }) {
+  if(options.rollbackFixture&&options.cooperativeRollback)throw new Error('Choose one pinned local rollback input');
   const archive = await validateRecoveryArchive(options.archive, { expectedManifestSha256: options.expectedManifestSha256 });
   const manifest = await pinnedJson(join(archive.directory, 'manifest.json'), options.expectedManifestSha256) as { tables: NativeTable[]; sequences: Sequence[];
     settings: {database:string;snapshot:string;observedAt:string;serverVersion?:string}; recoveryMetadata?: RecoveryMetadata };
@@ -152,8 +157,10 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
   manifest.tables.forEach((t, i) => { nativeTableSql(t); nativeInsertSql(t, i); primaryKey(t); t.columns.filter((c) => c.default).forEach((c) => defaultSql(c.default!)); });
   manifest.sequences.forEach(s=>nativeSequenceSql(s,sequenceState(s)));
   if (manifest.sequences.some((s) => !['public', 'drizzle'].includes(s.schemaname))) throw new Error('Unexpected sequence schema');
-  const rollback = options.rollbackFixture ? await readRollbackFixture(options.rollbackFixture.directory,
-    options.rollbackFixture.expectedPacketSha256,archive,manifest,options.rollbackFixture.ownedImport) : null;
+  const rollback = options.cooperativeRollback?await readCooperativeRollback(options.cooperativeRollback.directory,
+    options.cooperativeRollback.expectedPacketSha256,archive,manifest,options.cooperativeRollback.proof)
+    :options.rollbackFixture ? await readRollbackFixture(options.rollbackFixture.directory,
+      options.rollbackFixture.expectedPacketSha256,archive,manifest,options.rollbackFixture.ownedImport) : null;
   const parent = await assertPrivateOutsideGit(options.workParent); const work = await mkdtemp(join(parent, 'recovery-native-pg17-'));
   const token = randomUUID(); const container = `sg-recovery-${token}`; const volume = `${container}-data`; const label = `goose.catalog.recovery=${token}`;
   const log = join(work, 'commands.log'); await writeFile(log, '', { mode: 0o600, flag: 'wx' });
@@ -342,14 +349,16 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
     } catch { failure ||= new Error('Only newly created recovery resources require manual cleanup'); }
   }
   const implementationSha256 = createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex');
-  const implementationFiles = Object.fromEntries(await Promise.all(['recovery-native.ts', 'recovery-archive.ts', 'recovery-metadata.ts', 'recovery-delta.ts', 'maintenance-state.ts', 'telemetry-d1.ts', 'migration.ts', 'pgvector-binary.ts'].map(async (file) => [file,
+  const implementationFiles = Object.fromEntries(await Promise.all(['recovery-native.ts', 'recovery-archive.ts', 'recovery-metadata.ts', 'recovery-delta.ts', 'owned-operational-import.ts', 'd1-logical-tables.ts', 'maintenance-state.ts', 'telemetry-d1.ts', 'migration.ts', 'pgvector-binary.ts'].map(async (file) => [file,
     createHash('sha256').update(await readFile(new URL(file, import.meta.url))).digest('hex')])));
   const sourceVersion=manifest.settings.serverVersion??null;
   const sourceMinor=sourceVersion?.match(/^(\d+)\.(\d+)/);const restoredMinor=String(settings?.serverVersion||'').match(/^(\d+)\.(\d+)/);
   const receipt = { schemaVersion: 1, status: failure ? 'failed' : 'passed', scope: 'native-typed-data-and-recorded-schema-not-full-cluster-recovery',
     generatedAt: new Date().toISOString(), image: NATIVE_IMAGE, implementationSha256, implementationFiles, settings, container, volume, resourceLabel: label, resourcesRemoved: cleaned, diagnosticsCollectionFailed,
     failureReason: failure instanceof Error ? failure.message : null,
-    archive: archive.directory, ...archive.summary, metadataAuditSha256: options.expectedAuditSha256, reconciledTables: reconciled,
+    archive: archive.directory, ...archive.summary, metadataAuditSha256: options.expectedAuditSha256,metadataAuditObservedAt:audit.observedAt??null,
+    cooperativeRollbackProofSha256:options.cooperativeRollback?createHash('sha256').update(canonicalJson(options.cooperativeRollback.proof)).digest('hex'):null,
+    reconciledTables: reconciled,
     functionsReconciled: failure ? null : audit.functions.length, triggersReconciled: failure ? null : audit.triggers.length,
     observedSequencesReconciled: failure ? null : manifest.sequences.length,
     versionComparison: {source:sourceVersion,restored:settings?.serverVersion??null,classification:!sourceMinor||!restoredMinor?'unknown'
@@ -363,7 +372,9 @@ export async function runNativeRecovery(options: { archive: string; expectedMani
     limitations: [metadata?'ACL/default-privilege and scoped settings evidence was captured, not replayed. Role attributes/ownership, permissions, collations, storage options, comments and extension ownership remain unverified.':'No full schema/grant dump was captured: owners, grants/default privileges, database/role settings, collations, table storage options, comments and extension ownership remain unverified.',
       metadata?'Sequence state/ownership restored to the explicitly dated metadata observation, not an atomic write barrier or in-flight session-cache recovery.':'Sequence last_value is a nontransactional observation; original is_called, sequence ownership and exact next-call state were not captured.',
       metadata?'Recorded trigger modes restored to the explicitly dated metadata observation; a later supplement is not original-snapshot evidence.':'Trigger enabled/replica/always modes were not captured. Recorded DDL restored with normal enabled defaults; original behavior beyond that remains unverified.',
-      'Source PG17 minor version may differ; source column/type OIDs are database-local and not preserved. Final write-barrier deltas and D1 recovery remain separate gates.'] };
+      'Source PG17 minor version may differ; source column/type OIDs are database-local and not preserved. Final write-barrier deltas and D1 recovery remain separate gates.',
+      'The pinned metadata audit is dated evidence, not a fresh source ACL/RLS/function/extension inventory or write barrier.',
+      ...(options.cooperativeRollback?['Real D1 provenance remains unverified-capture/barrierVerified:false; cooperative writer stops are not a universal provider/ACL barrier.']:[])] };
   const receiptPath = join(work, 'receipt.json'); await writeFile(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`, { mode: 0o600, flag: 'wx' });
   if (failure) throw new Error(`Native recovery failed; protected receipt: ${receiptPath}`);
   return { receiptPath, receipt };

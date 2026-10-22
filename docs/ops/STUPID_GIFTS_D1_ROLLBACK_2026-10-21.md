@@ -93,6 +93,26 @@ accepts **only synthetic-fixture provenance**. It uses the existing pinned cache
 ARM64 PG17/pgvector image, local Unix Docker endpoint, a fresh uniquely labeled
 container/volume, network none, no host mounts/ports and bounded resources.
 
+The separate function-only `cooperativeRollback` option permits an explicitly
+selected **local** drill of a real owned history union. It binds the exact
+source archive, input and union-plan checksums, both cooperative capture
+receipts and the completed union result. Before Docker is touched it recomputes
+all24 logical tables (including retained native/control/publication/history
+rows and batch receipts), the full rollback packet and inverse allocator map.
+The default fixture reader still refuses real captures; no CLI apply, provider
+destination, DSN or existing resource input is added. The cooperative option
+then uses precisely the same fresh network-none container/owned-cleanup path.
+Provenance remains `unverified-capture` and `barrierVerified:false`: checksums
+and known-writer stops do not establish a universal provider/ACL barrier.
+
+The pinned metadata audit's observation date is recorded separately from
+same-transaction source metadata. Matching table inventory, recorded schema,
+trigger definitions and native payloads permit a dated recorded-DDL rehearsal,
+not a claim of fresh source ACL/RLS/function/extension inventory or permission
+to restart the old app. ACL/default-privilege/settings evidence is not replayed.
+Actual complete-union native readback remains a separate operator-run gate;
+offline tests and optional skipped Docker fixtures do not satisfy it.
+
 The fixture first verifies ordinary native baseline restoration. It stages
 changed rows with the existing native binary COPY primitives and tests a late
 transaction failure, then successful apply and identical replay. The private

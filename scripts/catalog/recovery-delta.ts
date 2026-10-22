@@ -11,8 +11,10 @@ import type { Row } from './maintenance-state.ts';
 import { decodePgvectorSendBase64 } from './pgvector-binary.ts';
 import { decodeD1CatalogTelemetryRow } from './telemetry-d1.ts';
 import { D1_RECOVERY_TABLES } from './d1-logical-tables.ts';
-import { normalizeOwnedImportSequences } from './owned-operational-import.ts';
+import { normalizeOwnedImportSequences, expectedOwnedOperationalImportRows } from './owned-operational-import.ts';
 import type { OwnedOperationalImportPlan, OwnedImportSequenceRollback } from './owned-operational-import.ts';
+import type { applyOwnedOperationalImport } from './owned-operational-import.ts';
+import type { CooperativeCaptureReceipt } from './capture-owned-d1.ts';
 export { D1_RECOVERY_TABLES } from './d1-logical-tables.ts';
 
 // Logical application tables at0012. FTS/shadow tables are derived; provider
@@ -42,6 +44,14 @@ export interface RollbackPacket {
   transformations:string[];
   limitations:string[];
   ownedImportSequences?:OwnedImportSequenceRollback;
+}
+/** An explicit LOCAL native drill input, never provider apply permission. */
+export interface CooperativeRollbackProof {
+  kind:'local-cooperative-owned-union-drill';inputSha256:string;
+  ownedImport:{plan:OwnedOperationalImportPlan;sha256:string};
+  before:{receipt:CooperativeCaptureReceipt;sha256:string};
+  after:{receipt:CooperativeCaptureReceipt;sha256:string};
+  completion:{result:Awaited<ReturnType<typeof applyOwnedOperationalImport>>;sha256:string};
 }
 function refuse():never { throw new Error('Rollback input incomplete, drifted or unsupported; no source access attempted'); }
 function parse(value:unknown):Row {
@@ -282,12 +292,66 @@ export async function writeRollbackPacket(options:{archive:string;baselineSha256
   return{directory:options.output,packetSha256,manifestSha256:sha256(receiptText),packet};
 }
 /** Recompute from the pinned sidecar/baseline; a modified packet is not trusted. */
-export async function readRollbackFixture(directory:string,expectedPacketSha256:string,archive:Archive,manifest:Manifest,
+async function readRollback(directory:string,expectedPacketSha256:string,archive:Archive,manifest:Manifest,
   ownedImport?:{plan:OwnedOperationalImportPlan;sha256:string}){
   const p=await privateJson(join(directory,'rollback.json'),expectedPacketSha256);const packet=p.data as RollbackPacket;
   const input=await privateJson(join(directory,'d1-sidecar.json'),packet.inputSha256);
   const expected=prepareRollbackPacket(archive,manifest,input.data as FrozenD1RecoveryInput,packet.inputSha256,ownedImport);
-  if(packet.provenance.kind!=='synthetic-fixture'||canonicalJson(packet)!==canonicalJson(expected))refuse();return packet;
+  if(canonicalJson(packet)!==canonicalJson(expected))refuse();return{packet,input:input.data as FrozenD1RecoveryInput};
+}
+export async function readRollbackFixture(directory:string,expectedPacketSha256:string,archive:Archive,manifest:Manifest,
+  ownedImport?:{plan:OwnedOperationalImportPlan;sha256:string}){
+  const {packet}=await readRollback(directory,expectedPacketSha256,archive,manifest,ownedImport);
+  if(packet.provenance.kind!=='synthetic-fixture')refuse();return packet;
+}
+/** Recompute the exact completed union, retained native/control/history rows and
+ * inverse allocator mapping. Receipts remain cooperative, not a provider/ACL
+ * barrier; no live database is read and no caller callback supplies validation. */
+export async function readCooperativeRollback(directory:string,expectedPacketSha256:string,archive:Archive,manifest:Manifest,
+  supplied:CooperativeRollbackProof){
+  const proof=structuredClone(supplied);
+  const {packet,input}=await readRollback(directory,expectedPacketSha256,archive,manifest,proof.ownedImport);
+  const {plan,sha256:planSha}=proof.ownedImport;
+  if(proof.kind!=='local-cooperative-owned-union-drill'||packet.provenance.kind!=='unverified-capture'
+    ||proof.inputSha256!==packet.inputSha256||packet.baselineManifestSha256!==plan.sourceManifestSha256
+    ||sha256(canonicalJson(input))!==proof.inputSha256)refuse();
+  const expected=expectedOwnedOperationalImportRows(plan,planSha);
+  const digest=(rows:Row[])=>sha256(canonicalJson([...rows].sort((a,b)=>canonicalJson(a).localeCompare(canonicalJson(b)))));
+  const final={owner:{...plan.owner,epoch:plan.owner.epoch+plan.batches.length},tables:D1_RECOVERY_TABLES.map(table=>{
+    if(digest(input.tables[table])!==digest(expected[table]))refuse();
+    return{table,rows:input.tables[table].length,sha256:digest(input.tables[table])};
+  })};
+  const beforeInput:FrozenD1RecoveryInput={schemaVersion:1,scope:input.scope,provenance:plan.provenance,tables:plan.baseline,
+    inventory:D1_RECOVERY_TABLES.map(table=>({table,rows:plan.baseline[table].length,sha256:sha256(canonicalJson(plan.baseline[table]))}))};
+  if(sha256(canonicalJson(beforeInput))!==plan.captureSha256||plan.provenance.kind!=='unverified-capture')refuse();
+  const same=(a:unknown,b:unknown)=>canonicalJson(a)===canonicalJson(b);
+  for(const [capture,owner,p]of [[beforeInput,plan.owner,proof.before],[input,final.owner,proof.after]] as const){
+    const r=p.receipt,scope=capture.tables.catalog_mutation_scopes.filter(s=>s.environment===owner.environment&&s.index_name===owner.indexName);
+    if(!/^[a-f0-9]{64}$/.test(p.sha256)||sha256(canonicalJson(r))!==p.sha256||r.schemaVersion!==1
+      ||r.kind!=='cooperative-owned-d1-logical-capture'||!/^cloudflare:[a-f0-9]{32}:[a-f0-9-]{36}$/.test(r.providerIdentity??'')
+      ||r.captureSha256!==sha256(canonicalJson(capture))||!same(r.inventory,capture.inventory)
+      ||!same(r.ownerBefore,owner)||!same(r.ownerAfter,owner)||owner.phase!=='writing'||scope.length!==1
+      ||r.scopeRowSha256!==sha256(canonicalJson(scope[0]))||scope[0].external_pending!==0
+      ||!same([scope[0].owner_token,scope[0].generation,scope[0].mutation_epoch,scope[0].phase,scope[0].owner_reference,scope[0].operation_key,scope[0].captured_at],
+        [owner.token,owner.generation,owner.epoch,owner.phase,owner.ownerReference,owner.operationKey,owner.capturedAt])
+      ||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(r.startedAt)
+      ||new Date(r.startedAt).toISOString()!==r.startedAt||new Date(r.completedAt).toISOString()!==r.completedAt
+      ||owner.capturedAt>r.startedAt||r.completedAt<r.startedAt||r.stoppedWriters.length<2
+      ||!r.stoppedWriters.some(w=>w.kind==='application')||!r.stoppedWriters.some(w=>w.kind==='operator'))refuse();
+  }
+  if(proof.after.receipt.startedAt<proof.before.receipt.completedAt
+    ||!same(proof.before.receipt.schemas,proof.after.receipt.schemas)
+    ||proof.before.receipt.schemaSha256!==proof.after.receipt.schemaSha256
+    ||proof.before.receipt.providerIdentity!==proof.after.receipt.providerIdentity
+    ||!same(proof.before.receipt.stoppedWriters,proof.after.receipt.stoppedWriters)
+    ||!same(proof.before.receipt.outsideApplicationTables,['_cf_KV','d1_migrations'])
+    ||!same(proof.before.receipt.outsideApplicationTables,proof.after.receipt.outsideApplicationTables))refuse();
+  const result=proof.completion.result;
+  if(!/^[a-f0-9]{64}$/.test(proof.completion.sha256)||sha256(canonicalJson(result))!==proof.completion.sha256
+    ||!same(result,{state:'reconciled',owner:final.owner,planSha256:planSha,sourceManifestSha256:plan.sourceManifestSha256,
+      cooperativeReceiptSha256:proof.before.sha256,sequenceMapping:plan.sequenceMapping,tables:final.tables,
+      barrierVerified:false,publicationEmitted:false,vectorWorkEmitted:0}))refuse();
+  return packet;
 }
 
 async function main(argv:string[]){
