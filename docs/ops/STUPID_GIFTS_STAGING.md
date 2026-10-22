@@ -3,7 +3,7 @@
 This document retains protected-staging history and the separate production
 checkpoint below. The launch spec and `roadmap-lbbz1` remain authoritative.
 
-### Current production checkpoint — October 22, 01:44 UTC
+### Current production checkpoint — October 22, 02:24 UTC
 
 Public identity independently shows source `994371816d467892f1481c67b8d4ffce27ece11a`,
 release `stupid-launch-maintained-994371816d46`, catalog
@@ -17,38 +17,40 @@ The grant is applied once without changing the immutable manifest or old charges
 The actual D1 publication receipt now matches the original intent and reports
 published; local receipt SHA-256
 `0fbfd95a631fcbc3962e0b2289f299a6c64adc5f1ee452f2393060a012eccce0`.
-Latest accounted ledger: 663 HTTP / 1,084 SQL, 24,224 known rows read / 346 written,
-two unknown reservations retained, derived ceiling 750 HTTP / 1,329 SQL. The actual
-owner/build remain **activating**, generation 3 / epoch 27, external_pending 1,
-not idle or finalized. A three-second full-observation timeout and missing
-cancellation/drain are confirmed; a bounded fix is under test before another
-original-permit acknowledgement attempt. No new provider dispatch is allowed.
+Final accounted ledger: **702 HTTP / 1,116 SQL, 24,408 known rows read / 348 written**,
+two unknown reservations retained, derived ceiling 750 HTTP / 1,329 SQL. After
+PR #221 merged `39720bdaf3ac5023794780b22379f54b5e277f93`, one reviewed
+original-permit settlement verified the exact receipt, resolved build and actual
+owner **idle**, generation3 / epoch27, external_pending0. The immutable protected
+`launch-publication-handoff-994371816d46-published.json` has SHA-256
+`d952bf398d01bde420c57e5042f3ad46dd625720c2745b5e378f219067277520`.
+No repeat upload, activation, merchant/model request or product source write.
 
 Root and peer independently passed the prospective complete daily-wrapper
 fixture at 597 HTTP / 1,008 SQL using local SQLite and mocked provider/build
 transport, with exact receipt/pointer and idle assertions. It leaves only three
-HTTP calls for delays. The same scheduled task now stops before another
-allowance or source advance while this publication is unresolved. It explicitly
+HTTP calls for delays under its old600 guard; this is not current live run proof.
+The same scheduled task records finalized recovery and explicitly
 forbids the old Neon entry; the owner-approved new-site D1 writer transition
 remains to be verified, not inferred from an ACTIVE timer. See `JOURNAL.md` and
 `roadmap-lbbz1.4.3` for exact resume identity.
 Original merchant expiry remains October22 22:18:10.044Z; no fetch/model/paid
 upgrade was added. The historical launch and staging receipts below remain valid
-for their own releases, not substitutes for pending maintained build/owner finalization.
+for their own releases, not substitutes for a complete new-D1 daily canary.
 
 The narrow original-activation completion and once-only workspace recovery grant
 are merged and applied as described above. They preserve original ownership,
-charges, immutable manifest and rights; final owner/build settlement is pending.
+charges, immutable manifest and rights; final owner/build settlement is complete.
 Ordinary completion remains lease-bound. The separately pinned new operator can
 settle an elapsed claim only with fresh original evidence or reconcile an actual
 already-accepted historical receipt without content. Local registered expiry
 cleanup remains required while pending. See the newest journal entry for the
 private finalizer pin and its independently reviewed dispatch restrictions.
-Root's full staging suite passed691 with18 optional skips and zero failures;
+Root's final full staging suite passed704 with18 optional skips and zero failures;
 build/lint passed. The separate eight-ready/two-held local recovery passed at
 75 incremental HTTP / 67 SQL, no repeat dispatch, unchanged source/native data
-and retained unknown charge. Neither proof applied a real grant or completed
-the actual pending publication. Cameron approved narrow publisher integration
+and retained unknown charge. Those synthetic fixtures are separate from the
+actual completed settlement above. Cameron approved narrow publisher integration
 with the existing dependency audit cleanup tracked separately in `.4.5`.
 
 ### Public production checkpoint — October 21, 23:06 UTC

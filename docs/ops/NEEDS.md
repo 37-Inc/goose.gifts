@@ -5,9 +5,10 @@ Items move to "Received" when done.
 
 ## P0 — blocking autonomous operation
 
-Daily publication is held for the bounded recovery implementation described
-below, not an unanswered request-cap decision. No login, paid upgrade or
-additional merchant fetch is requested for that recovery.
+Original publication recovery is complete. New D1 daily publication still needs
+the tested writer/data/delta and same-response publication contract, plus
+owner-attended access to the existing project Keychain entries described below.
+There is no outstanding request-cap or paid-upgrade decision for this work.
 
 ## P1 — needed within the first weeks
 
@@ -45,21 +46,17 @@ Amazon navigation passed. GA4 and PostHog stored launch QA events; these are
 not evidence of acquired human traffic. The old Goose site remains on
 Vercel/Neon. This is **not** the full-catalog/writer/provider migration.
 
-The maintained `9943718` release is active. Its original receipt/lock settlement
-stopped at the internal 600-HTTP guard (not a Cloudflare Free-plan limit).
-The owner approved a separately journaled 150-HTTP / 300-SQL recovery
-allowance for that existing release and a future 800-HTTP / unchanged 1,200-SQL
-guard. The one-time grant is applied without changing original charges or the
-immutable manifest. It does not authorize another upload/activation, product/model
-request, quota reset or paid upgrade. The genuine D1 publication receipt now
-matches the original release, but its owner/build remain activating after a
-three-second observation timeout. Engineering is correcting cancellation and
-draining; the existing daily task stops before another run. The original launch
-display deadline is October 22 at 22:18:10.044Z. The live page must not be
-called continuously refreshed until a real daily publication is verified.
-The guarded original-activation recovery implementation is merged; no expired
-lease/merchant deadline was renewed. Local registered-body expiry cleanup continues
-while provider settlement waits; it does not permit another publication or run.
+The maintained `9943718` release is active and **finalized** after PR #221:
+original receipt verified, build resolved, owner idle generation3 / epoch27,
+external_pending0. Final retained accounting is 702 HTTP / 1,116 SQL with both
+unknown reads preserved. The approved one-time recovery did not repeat upload,
+activation, product/model requests or product source writes; original immutable
+manifest, charges and October22 22:18:10.044Z display deadline are unchanged.
+Future ordinary headroom is 800 HTTP / 1,200 SQL, not a paid Cloudflare plan.
+The same existing task is updated, old Neon entry disabled, but new D1 daily
+maintenance/publication remains gated. Do not call the site continuously
+refreshed until a genuine daily publication is verified. Local registered-body
+expiry cleanup continues; neither finalization nor cleanup renews content rights.
 The separate existing dependency-audit issue is `roadmap-lbbz1.4.5`. Cameron
 approved integrating the publisher fix independently and authorized straightforward
 dependency/toolchain remediation; no further security exception is being requested
@@ -127,8 +124,9 @@ but `/usr/bin/security` value readback timed out with no output. They are not
 verified usable. Preserve them: no reseeding, deletion, unlock or automated
 ACL/partition edits. A separate owner-attended, item-specific access approval
 may be needed; confirm the exact request before accepting it, then verify in a
-new reader process. Keep the existing Vercel/env/CSV bootstrap and live writer
-unchanged until this and the remaining migration gates pass. See
+new reader process. Keep the existing Vercel/env/CSV bootstrap protected for
+seeding/rollback only; the old scheduled Neon writer is disabled. Do not use an
+environment execution fallback to evade the Keychain gate. See
 `roadmap-lbbz1.4.4`; it remains open.
 See `STUPID_GIFTS_STAGING.md` and epic `roadmap-lbbz1`.
 

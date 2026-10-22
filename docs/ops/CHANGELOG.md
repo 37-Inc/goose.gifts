@@ -24,15 +24,15 @@ context: **what we've done, and where we're going.**
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **Stupid Gifts publication recovery:** the new domain is live with eight
-  reviewed products, but the maintained release still needs final build/lock
-  settlement. The one-time recovery allowance and future HTTP headroom are
-  approved; recovery saved the genuine original D1 receipt, but a three-second
-  full-proof timeout left its owner/build activating. A bounded cancellation/
-  drain fix is in progress before another acknowledgement-only attempt. No
-  new product/model fetch, paid upgrade or second job is inferred. The old
-  Neon entry is disabled; tested D1 daily/Monday activation remains open.
-  Local registered-body expiry cleanup continues while held.
+- **Stupid Gifts daily writer:** the eight-product maintained release is now
+  finalized: the actual build is resolved and its owner idle. PR #221 fixed
+  bounded verification/read-accounting; original-permit settlement did not
+  repeat upload, activation, merchant or model calls. The same existing task
+  forbids the old Neon entry and holds new D1 maintenance until the full data/
+  delta, credential and same-response publication gates pass. Compact D1 daily/
+  discovery reads now avoid transferring full archive/vector bodies for every
+  catalog identity; this is tested efficiency work, not a live daily canary.
+  Local registered-body expiry cleanup continues; original rights do not renew.
   Existing dependency-audit findings are separately tracked in
   `roadmap-lbbz1.4.5`; Cameron approved merging the publisher fix separately and
   asked us to take care of straightforward dependency/toolchain updates.
@@ -240,6 +240,25 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-22 [owner+claude] — Finalize existing release and reduce D1 maintenance reads
+
+PR #221 merged `39720bd`: bounded, cancellation-safe independent verification
+then finalized the original maintained Cloudflare release. Actual receipt/build/
+owner checks passed, with no repeat upload, activation, merchant or model call.
+The same catalog task records completion while keeping new-D1 daily maintenance
+gated and old-Neon maintenance disabled. The current Cloudflare assets still
+come from source994; recovery did not rebuild them with PR #219's dependency patch.
+
+Compact D1 selection/dedup/editorial views preserve full selected-product checks
+but avoid transferring every product's source/archive/vector bodies. The
+3,383-product REST fixture matches the previous results: daily selection46
+requests, inactive-inclusive dedup32, editorial comparison33, bounded wire bytes.
+Root48 targeted checks, peer26 checks and the broader74-test maintenance pack
+pass; build/lint pass. This is not a complete daily/publication budget or live
+canary. Original expiry/unknown charges, full-data migration, protected Keychain
+access and Pinterest PAUSE remain intact. See `JOURNAL.md` and
+`roadmap-lbbz1.4.3`.
 
 ### 2026-10-22 [owner+claude] — Apply approved recovery and retain exact provider identity
 
