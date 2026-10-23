@@ -5,6 +5,38 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23UTC / October22Pacific — Restore photo parity in final SQL publication gate
+
+The actual owner-authorized restoration installed all2,359 cache presentations
+and reconciled the complete3,383-product source/native history. Same new run
+`existing-display-20261023-v1` reached a sealed2,359-product snapshot with42
+existing reviewed articles, no merchant/model calls or native writes. Normal
+publication built its package but stopped at `publication_preflight_failed`
+before upload/activation. The original8-item/2359-placeholder release is still
+the live code; do not claim restored photos are live from the successful update.
+
+Cause: PR262 updated JS/Worker image validation but the SQL permanent-listing
+predicate still required localSVG. It therefore rejected the correctly licensed
+HTTPS photographs in both publication and keyword search. This fix changes only
+that SQL image lane, retaining exact projection/current-base/grant equality,
+curation holds, reviewed-copy rules and separate semantic freshness. HTTPS
+authorities reject embedded credentials/fragments; local raster/SVG paths stay
+bounded. SQL uses `char(63)` for query separators because the existing
+database-clock query builder replaces parameter question marks.
+
+Tests exercise real ID/keyword/visible-count/rollback queries for HTTPS, query
+strings, local raster/SVG and revoked/mismatched grants; full composed receipt/
+activation SQL still compiles at D1's expression-depth100. An offline replay of
+the actual restored source and immutable projection verifies3383 identities,
+2359 visible products, compatible rollback, a passing activation gate,60 mug
+and15 toilet results. It makes zero provider requests/production writes and does
+not alter the original ledger. Private evidence is
+`existing-display-restoration-20261022/full-sql-verification-1792715880687.json`.
+The failed undispatched build and its charges must be retained and closed under
+its exact owner before a separately pinned fixed-source release; no in-place
+config/source relabel, old allowance replay or supplier refetch. Daily writer
+remains gated and the catalog Bead remains open through actual live verification.
+
 ## 2026-10-22 — Existing catalog presentation restoration, source merged; publication pending
 
 Cameron explicitly confirmed permission for the existing catalog imagery and
