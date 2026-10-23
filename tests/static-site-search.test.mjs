@@ -34,7 +34,7 @@ function search(href, query = "desk", resultState) {
       return { ok: true, json: async () => ({ results: [] }) }; },
     document: { getElementById: () => ({ scrollIntoView() { scrolls++; } }) },
     window: {
-      location: { href, search: new URL(href).search },
+      location: { href, pathname: new URL(href).pathname, search: new URL(href).search },
       setTimeout: (fn) => { timers.set(++nextTimer, fn); return nextTimer; },
       clearTimeout: (id) => timers.delete(id),
       history: { pushState: (_state, _title, path) => pushed.push(path),

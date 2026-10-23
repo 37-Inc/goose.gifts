@@ -28,10 +28,12 @@ export function Search({ children }: { children?: ReactNode } = {}) {
     debounce.current = null;
     const q = value.trim().slice(0, 200);
     const url = new URL(window.location.href);
+    const hadQuery = url.searchParams.has("q");
     url.pathname = "/";
     if (q.length >= 2) url.searchParams.set("q", q);
     else url.searchParams.delete("q");
-    window.history[replace ? "replaceState" : "pushState"](null, "", `${url.pathname}${url.search}`);
+    if (`${url.pathname}${url.search}` !== `${window.location.pathname}${window.location.search}`)
+      window.history[replace && hadQuery ? "replaceState" : "pushState"](null, "", `${url.pathname}${url.search}`);
     if (q.length < 2) {
       controller.current?.abort();
       sequence.current++;

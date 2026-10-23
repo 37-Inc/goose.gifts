@@ -14,6 +14,7 @@ test('long queries discard conversational filler without losing literal short qu
   assert.deepEqual(catalogSearchTerms('gifts for her'), ['women']);
   assert.deepEqual(catalogSearchTerms('gifts'), ['gift']);
   assert.deepEqual(catalogSearchTerms('café'), ['café']);
+  assert.deepEqual(catalogSearchTerms('constructor'), ['constructor']);
   let params;
   const db = { prepare(sql) { assert.match(sql, /bm25/); return { bind(...args) { params = args; return this; }, async all() { return {results: []}; } }; } };
   await keywordSearchRevision(db, 'a gift for dad who likes golf', 36, new Date(), 'test');

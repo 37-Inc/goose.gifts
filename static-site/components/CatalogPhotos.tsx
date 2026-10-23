@@ -44,7 +44,7 @@ export function CatalogPhotos({ indexPath, photoSlots = [], editorialDisclosures
 
 export function CatalogTitle({ source, id, fallback }: { source: string; id: string; fallback: string }) {
   const titles = useContext(PhotoContext).cardTitles;
-  return source === "amazon" && titles[id] || fallback;
+  return source === "amazon" && Object.hasOwn(titles, id) ? titles[id] : fallback;
 }
 
 /** Independently authored site copy; never changes the supplied catalog product. */
