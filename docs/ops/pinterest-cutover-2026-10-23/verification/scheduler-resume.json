@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "operation": "resume-existing-heartbeat-measurement-only",
+  "ownerAuthorizationDate": "2026-10-23",
+  "integrationPullRequest": "https://github.com/37-Inc/goose.gifts/pull/270",
+  "mergedAt": "2026-10-23T19:18:07Z",
+  "mergeCommit": "1813b6840dca484eb751061cb97835628aad49c4",
+  "automation": {
+    "id": "goose-gifts-pinterest-growth-studio",
+    "kind": "heartbeat",
+    "name": "Stupid Gifts — Pinterest Measurement Studio",
+    "status": "ACTIVE",
+    "updatedAtUtc": "2026-10-23T19:18:28.086Z",
+    "originalCreatedAtPreserved": 1785302513637,
+    "targetThreadId": "019fdd0f-a56b-7450-bb56-340333ef2ed2",
+    "schedule": "Existing09:30 and16:30 America/Los_Angeles daily slots; unchanged",
+    "promptMatchesReviewedRepositoryText": true,
+    "normalization": "App strips one trailing newline; all instructions match measurement-task-prompt.txt",
+    "duplicateAutomationCreated": false
+  },
+  "runtime": {
+    "operatorCheckout": "/Users/cameronehrlich/.codex/worktrees/stupid-pinterest-cutover/goose.gifts",
+    "reviewedImplementation": "0bdf589e05148ee2e634117e43e1201acebff997",
+    "integratedHead": "73021723a04b5d80b28ee1a9e9d707de6f125f52",
+    "canonicalCheckoutUnchangedAt": "063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6"
+  },
+  "actualExecution": {
+    "kind": "Owner-authorized nonposting validation, not falsely claimed as a scheduled invocation",
+    "initialReceipt": "measurement-smoke.json",
+    "afterResumeReceipt": "measurement-after-resume.json",
+    "mode": "measurement_only",
+    "publicPinWrites": 0,
+    "catalogWrites": 0,
+    "posthogFollowup": "Unknown/unavailable on after-resume read; initial aggregate and stored QA reads succeeded. Gap is not zero, not a pause or posting exception."
+  },
+  "review": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "P": 6,
+    "F": 6,
+    "notBeforeUtc": "2026-10-31T16:44:52.279Z",
+    "expectedFirstRegularEligibleSlot": "2026-10-31 16:30 America/Los_Angeles",
+    "delivered": false,
+    "postingAfterDeadline": "Still prohibited until review and Cameron approval of a new experiment"
+  }
+}

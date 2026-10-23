@@ -2,6 +2,13 @@
 
 ## Current authority — October 23 measurement-only restart
 
+PR270 is merged. The same heartbeat is verified **ACTIVE** as **Stupid Gifts —
+Pinterest Measurement Studio** at2026-10-23T19:18:28.086Z, with original
+09:30/16:30Pacific slots/chat preserved. Saved prompt matches reviewed instructions;
+actual nonposting smoke/after-resume receipts are in the cutover directory.
+PostHog's follow-up read was unavailable (unknown, not zero); it does not disable
+the schedule or reopen posting. Historical PAUSED wording below is superseded.
+
 Cameron authorized finishing the Stupid.gifts integration PR and resuming the
 **same existing task in measurement-only mode**. This supersedes the historical
 publishing authority and October21 pause below. No new generation, approval,

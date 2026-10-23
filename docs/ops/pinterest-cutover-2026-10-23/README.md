@@ -89,9 +89,15 @@ No13th Pin or automatic new experiment, including after the deadline.
 
 The same heartbeat ID `goose-gifts-pinterest-growth-studio` and target chat
 `019fdd0f-a56b-7450-bb56-340333ef2ed2` retain09:30/16:30Pacific slots. The
-reviewed replacement prompt is `measurement-task-prompt.txt`; actual activation
-readback will be recorded after merge. A saved ACTIVE flag is not itself a
-completed run: the current smoke receipt is actual read-only execution.
+reviewed replacement prompt is `measurement-task-prompt.txt`. PR270 merged as
+1813b6840dca484eb751061cb97835628aad49c4 at19:18:07UTC; the same task was
+activated at **2026-10-23T19:18:28.086Z**, named **Stupid Gifts — Pinterest
+Measurement Studio**. Saved prompt matches reviewed text except one trimmed
+trailing newline. See `verification/scheduler-resume.json`. Actual smoke and
+after-resume execution both verify zero Pin writes and the unchanged cohort.
+The follow-up PostHog read is unknown/unavailable, not zero; its earlier aggregate
+and stored QA reads succeeded. GA4 remains measured. A saved ACTIVE flag and
+manual validation are not falsely presented as a completed scheduled invocation.
 
 Retain this managed checkout as the active Pinterest measurement operator:
 `/Users/cameronehrlich/.codex/worktrees/stupid-pinterest-cutover/goose.gifts`.
