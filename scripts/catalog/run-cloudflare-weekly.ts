@@ -18,7 +18,7 @@ import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS } from './run
 import type { ArtifactRef, RetentionPolicy, RunWorkspace, RunWorkspaceOptions, WorkspaceCheckpoint } from './run-workspace.ts';
 import { executePublication, validatePublicationConfig } from './publish-release.ts';
 import { accountedPublicationReadFetch, accountedPublicationFetch, isAccountedPublicationFetch } from './publication-read-fetch.ts';
-import { accountedPublicationUploadCommand } from './publication-upload-command.ts';
+import { accountedPublicationUploadCommand, isAccountedPublicationUploadCommand } from './publication-upload-command.ts';
 import { approvedRequestControl, hydrateApprovedRequest, approvedRevisionControl, hydrateApprovedRevision,
   approvedArtifactObservedAt, readApprovedPrior, createApprovedCatalogSeal } from './approved-catalog-seal.ts';
 import type { ApprovedCatalogSeal } from './approved-catalog-seal.ts';
@@ -40,7 +40,7 @@ export interface CloudflareWeeklyConfig {
   catalog:{associateTag:string;marketplace:'www.amazon.com'};backfillLimit:number;
   cadence?:{day:string;featuredIds:string[]};
   credentials:{cloudflare:CloudflareCredentialReference;amazonId:KeychainRef;amazonSecret:KeychainRef;amazonVersion:string;openai?:KeychainRef;stagingAuthSecret?:KeychainRef};
-  limits:{requests:number;statements:number};retention:RetentionPolicy;
+  limits:{requests:number;statements:number;reportedRowsRead?:number;reportedRowsWritten?:number};retention:RetentionPolicy;
   inputs:{previous:InputRef;context:InputRef;rights:InputRef;originalVectors?:InputRef};publication:PublicationConfig;
 }
 export const WEEKLY_RESUME_STATES=Object.freeze({
@@ -67,6 +67,7 @@ let executing=false; // Environment isolation across differing DB/workspace scop
 
 export function validateCloudflareWeeklyConfig(input:unknown):CloudflareWeeklyConfig {
   const c=input as CloudflareWeeklyConfig;
+  const rowBudget=c?.limits&&typeof c.limits==='object'&&('reportedRowsRead' in c.limits||'reportedRowsWritten' in c.limits);
   const credentialKeys=['amazonId','amazonSecret','amazonVersion','cloudflare',...(c?.credentials?.openai?['openai']:[]),...(c?.credentials?.stagingAuthSecret?['stagingAuthSecret']:[])].sort().join(',');
   if(!exact(c,['accountId','backfillLimit','catalog','catalogRevision','codeSha','credentials','database','environment','inputs','limits','publication','retention','runId','schemaVersion','vectorIndex',...(c?.cadence?['cadence']:[])].sort().join(','))
     ||c.schemaVersion!==1||!KEY.test(c.runId)||!KEY.test(c.catalogRevision)||c.catalogRevision.length>64||!/^[a-f0-9]{40}$/.test(c.codeSha)
@@ -75,8 +76,13 @@ export function validateCloudflareWeeklyConfig(input:unknown):CloudflareWeeklyCo
     ||c.environment==='staging'&&!c.credentials.stagingAuthSecret
     ||![c.credentials.amazonId,c.credentials.amazonSecret,...(c.credentials.openai?[c.credentials.openai]:[]),...(c.credentials.stagingAuthSecret?[c.credentials.stagingAuthSecret]:[])].every(keychain)
     ||!['2.1','2.2','2.3','3.1','3.2','3.3'].includes(c.credentials.amazonVersion)
-    ||!exact(c.limits,'requests,statements')||!Number.isInteger(c.limits.requests)||c.limits.requests<2||c.limits.requests>10000
+    ||!exact(c.limits,rowBudget
+      ?'reportedRowsRead,reportedRowsWritten,requests,statements':'requests,statements')
+    ||!Number.isInteger(c.limits.requests)||c.limits.requests<2||c.limits.requests>10000
     ||!Number.isInteger(c.limits.statements)||c.limits.statements<1||c.limits.statements>25000
+    ||rowBudget&&(!Number.isInteger(c.limits.reportedRowsRead)||!Number.isInteger(c.limits.reportedRowsWritten))
+    ||c.limits.reportedRowsRead!==undefined&&(!Number.isInteger(c.limits.reportedRowsRead)||c.limits.reportedRowsRead<1||c.limits.reportedRowsRead>2_000_000)
+    ||c.limits.reportedRowsWritten!==undefined&&(!Number.isInteger(c.limits.reportedRowsWritten)||c.limits.reportedRowsWritten<1||c.limits.reportedRowsWritten>50_000)
     ||!exact(c.inputs,c.inputs?.originalVectors?'context,originalVectors,previous,rights':'context,previous,rights'))throw new Error('weekly_configuration_invalid');
   if(c.cadence&&(!exact(c.cadence,'day,featuredIds')||!/^\d{4}-\d{2}-\d{2}$/.test(c.cadence.day)
     ||pacificCatalogCalendar(`${c.cadence.day}T12:00:00Z`).day!==c.cadence.day||c.backfillLimit!==0
@@ -212,7 +218,9 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
   // already-accounted sender may belong to another run; never double-charge or
   // silently adopt its workspace. The injection seam here is raw transport only.
   const observationSend=dependencies.publication?.observationFetch??dependencies.publication?.fetch??dependencies.fetch??fetch;
-  if(isAccountedPublicationFetch(observationSend))throw new Error('weekly_observation_fetch_already_accounted');
+  if([dependencies.fetch,dependencies.publication?.fetch,observationSend].some(isAccountedPublicationFetch))
+    throw new Error('weekly_observation_fetch_already_accounted');
+  if(isAccountedPublicationUploadCommand(dependencies.publication?.command))throw new Error('weekly_upload_command_already_accounted');
   if(executing)throw new Error('weekly_process_busy');executing=true;
   let workspace:RunWorkspace|undefined;
   try{
@@ -226,7 +234,8 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       databaseId:config.database.id,identityOrigin:config.publication.identityOrigin};
     const generalSend=accountedPublicationFetch(ws,dependencies.fetch??fetch,networkScope);
     const publication={...dependencies.publication,fetch:accountedPublicationFetch(ws,dependencies.publication?.fetch??dependencies.fetch??fetch,networkScope),
-      command:dependencies.publication?.command??accountedPublicationUploadCommand({workspace:ws,scope:networkScope}),
+      command:accountedPublicationUploadCommand({workspace:ws,scope:networkScope,
+        send:dependencies.publication?.fetch??dependencies.fetch,command:dependencies.publication?.command}),
       observationFetch:accountedPublicationReadFetch(ws,observationSend,networkScope)};
     await ws.purgeExpired();
     let saved=await ws.readCheckpoint({controlOnly:true});

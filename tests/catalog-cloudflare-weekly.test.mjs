@@ -3,7 +3,9 @@ import test from 'node:test';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync,execFile } from 'node:child_process';
+import {promisify} from 'node:util';
+import {fileURLToPath} from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { runCloudflareWeekly, validateCloudflareWeeklyConfig, weeklyCommandSummary, WEEKLY_RESUME_STATES, putOrdered, readOrdered } from '../scripts/catalog/run-cloudflare-weekly.ts';
 import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS } from '../scripts/catalog/run-workspace.ts';
@@ -30,15 +32,19 @@ import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 import { encodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
 import { withCatalogCadence } from '../scripts/ops/catalog-daily.mjs';
 import { accountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
+import {accountedPublicationUploadCommand} from '../scripts/catalog/publication-upload-command.ts';
 
 // Real composed stores/fence/evidence/driver/publisher/workspace over SQLite.
-// Only external Amazon/OpenAI/CF and Next compilation are mocked. Real package
+// Default cases mock external Amazon/OpenAI/CF and Next compilation. Capacity
+// cases use real isolated build/verifier/Wrangler with only external responses
+// simulated and child networking fenced. Real package
 // verification, upload intent, activation CAS, independent identity/native proof
 // and exact final telemetry remain in the call path. No network or live rights.
 // Whole-driver cap refusals are not permanent-native successor acceptance. Model
 // HTTP and merchant method calls are counted separately, never called CF-ledger
-// coverage; this command seam also mocks the protected Wrangler asset upload.
+// coverage; default command seams mock upload, explicit capacity probes do not.
 const NOW='2026-10-20T12:00:00.123Z',OLD='2026-07-01T00:00:00.000Z';
+const capacityCase={skip:process.env.CATALOG_FULL_CAPACITY==='1'?false:'Heavy real build/upload probe: run npm run test:catalog-capacity on the Mac operator'};
 const ID='B000000001',UUID='00000000-0000-4000-8000-000000000001';
 const VERSION='00000000-0000-4000-8000-000000000002',DEPLOY='00000000-0000-4000-8000-000000000003';
 const PRIOR_VERSION='00000000-0000-4000-8000-000000000004';
@@ -81,11 +87,17 @@ function sealedFixture(snapshot,context,prior=null){
     'release-context.json':`${JSON.stringify(context)}\n`,'release-identity.json':JSON.stringify(createReleaseIdentity(manifestBytes)),
     'site-identity.json':siteIdentityBytes('preview'),'feed-plan.json':JSON.stringify(createStaticFeedPlan(snapshot,sha256(`${JSON.stringify(snapshot)}\n`)))}};
 }
-async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,realTransport=false}={}){
+async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,realTransport=false,realUpload=false}={}){
   const NOW=at;
   const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-weekly-')));t.after(()=>fs.rm(directory,{recursive:true,force:true}));
-  const repo=path.join(directory,'source');await fs.mkdir(repo,{mode:0o700});await put(path.join(repo,'.gitignore'),'build/\nstatic-site/out/\n');
-  const git=(...args)=>execFileSync('git',args,{cwd:repo,encoding:'utf8'}).trim();git('init','-q');git('add','.gitignore');
+  const repo=path.join(directory,'source');await fs.mkdir(repo,{mode:0o700});await put(path.join(repo,'.gitignore'),'build/\nstatic-site/out/\nstatic-site/.next/\n*.tsbuildinfo\nnode_modules/\n.wrangler/\n');
+  if(realUpload){const root=fileURLToPath(new URL('..',import.meta.url));
+    for(const name of ['workers','lib','components','scripts/catalog','scripts/staging','static-site','content'])await fs.cp(path.join(root,name),path.join(repo,name),{recursive:true,
+      filter:source=>!['.next','out','node_modules'].includes(path.basename(source))&&!source.endsWith('.tsbuildinfo')});
+    for(const name of ['package.json','tsconfig.json'])await fs.copyFile(path.join(root,name),path.join(repo,name));
+    await fs.symlink(path.join(root,'node_modules'),path.join(repo,'node_modules'));
+  }
+  const git=(...args)=>execFileSync('git',args,{cwd:repo,encoding:'utf8'}).trim();git('init','-q');git('add','.');
   git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','Owned fixture');const codeSha=git('rev-parse','HEAD');
   const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
   for(const name of (await fs.readdir(new URL('../migrations/d1/',import.meta.url))).filter(n=>/^\d{4}.*\.sql$/.test(n)).sort())
@@ -195,7 +207,7 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
     scope:{...scope,accountId:config.accountId,databaseId:UUID,databaseName:config.database.name,workerName:config.publication.workerName},retention:config.retention,
     budgetCaps:{httpRequests:config.limits.requests,sqlStatements:config.limits.statements},now:()=>clock};
   const calls={getItems:0,search:0,chat:0,embedding:0,http:0,d1:0,sql:0,modelHttp:0,merchantAuthHttp:0,merchantApiHttp:0,merchantRetries:0,
-    upsert:0,activate:0,upload:0,build:0,finish:0};const index=new Map();let mutation,upload,manifest;
+    uploadHttp:0,assetAttempts:0,versionAttempts:0,upsert:0,activate:0,upload:0,build:0,finish:0};const index=new Map();let mutation,upload,manifest;
   let active=noPrior?false:{versions:[{version_id:PRIOR_VERSION,percentage:100}],annotations:{'workers/message':'verified-operator-prior'}};
   const mode={};let dropWrite=false;let queryTamper;let lostReleaseReadbacks=0,versionReads=0;
   amazonCreators.getItems=async(...args)=>{calls.getItems++;assert.equal(process.env.AMAZON_ASSOCIATE_TAG,'fixture-20');assert.equal(process.env.POSTGRES_URL,undefined);
@@ -209,7 +221,7 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
     ?[structuredClone(calls.search>1?{...p,title:'Changed contradictory listing',sourceFacts:{material:'plastic'}}:p)]:[];};
   const response=result=>Response.json({success:true,result});
   const vectorResponse=rows=>new Response(`{"success":true,"result":[${rows.map(v=>`{"id":${JSON.stringify(v.id)},"values":[${v.values.map(n=>Object.is(n,-0)?'-0':n).join(',')}],"metadata":${JSON.stringify(v.metadata)}}`).join(',')}]}`);
-  const fetch=async(input,init={})=>{
+  const dispatch=async(input,init={})=>{
     const url=new URL(typeof input==='string'?input:input.url||String(input));
     if(url.origin==='https://creatorsapi.auth.us-east-1.amazoncognito.com'){
       assert.equal(realTransport,true);assert.equal(init.method,'POST');calls.merchantAuthHttp++;
@@ -224,6 +236,7 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
     }
     if(url.origin==='https://api.openai.com'){
       calls.modelHttp++;
+      if(mode.modelTransientError){delete mode.modelTransientError;return Response.json({error:{message:'Synthetic transient',type:'server_error'}},{status:503});}
       const body=JSON.parse(init.body);assert.equal(init.headers.get?.('authorization')||init.headers.Authorization,'Bearer TEST_ONLY_openai');
       assert.ok(['gpt-4o-mini','text-embedding-3-small'].includes(body.model));
       if(url.pathname.endsWith('/embeddings')){calls.embedding++;return new Response(`{"model":"text-embedding-3-small","usage":{"prompt_tokens":8,"total_tokens":8},"data":[${body.input.map((_input,index)=>`{"index":${index},"embedding":[${values.map(n=>Object.is(n,-0)?'-0':n).join(',')}]}`).join(',')}]}`,{headers:{'content-type':'application/json'}});}
@@ -235,6 +248,23 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
       })})},finish_reason:'stop'}],usage:{prompt_tokens:10,completion_tokens:10,total_tokens:20}});
     }
     calls.http++;
+    if(realUpload&&(url.pathname.endsWith(`/workers/services/${config.publication.workerName}`)||url.pathname.endsWith('/secrets')
+      ||url.pathname.endsWith('/assets-upload-session')||url.pathname.includes('/workers/assets/upload')||url.pathname.endsWith('/versions')&&init.method==='POST')){
+      calls.uploadHttp++;const jwt=value=>`${Buffer.from('{}').toString('base64url')}.${Buffer.from(JSON.stringify({exp:Math.floor(Date.now()/1000)+3600,...value})).toString('base64url')}.SYNTHETIC`;
+      if(url.pathname.includes('/services/'))return response({default_environment:{script:{tag:'owned',tags:[],last_deployed_from:'wrangler'}}});
+      if(url.pathname.endsWith('/secrets'))return response([]);
+      if(url.pathname.endsWith('/assets-upload-session')){
+        // Real sessions partition cold-cache assets. A single giant synthetic
+        // bucket exceeds the protected wire bound and is not a valid probe.
+        const files=[...new Map(Object.values(JSON.parse(Buffer.from(init.body).toString('utf8')).manifest).map(v=>[v.hash,v])).values()],buckets=[];
+        let bucket=[],size=0;for(const file of files){if(bucket.length&&size+file.size>8*1024*1024){buckets.push(bucket);bucket=[];size=0;}
+          bucket.push(file.hash);size+=file.size;}if(bucket.length)buckets.push(bucket);
+        return response({jwt:jwt({wrangler_single_asset_uploads:false,edge_kv_upload_concurrency:1}),buckets});}
+      if(url.pathname.includes('/workers/assets/upload')){if(++calls.assetAttempts===1)return Response.json({success:false,errors:[{code:10000,message:'Synthetic retry'}]},{status:503,headers:{'Retry-After':'0'}});
+        return response({jwt:jwt({complete:true})});}
+      if(++calls.versionAttempts===1)return Response.json({success:false,errors:[{code:10000,message:'Synthetic retry'}]},{status:503,headers:{'Retry-After':'0'}});
+      return response({id:VERSION,startup_time_ms:1,metadata:{has_preview:false}});
+    }
     if(url.origin===config.publication.identityOrigin){const isTarget=active?.versions[0].version_id===VERSION;if(mode.identityFailure&&isTarget)return new Response('',{status:401});
       assert.equal(init.headers.Authorization,`Basic ${Buffer.from('staging:TEST_ONLY_staging').toString('base64')}`);
       return Response.json(createReleaseIdentity(isTarget?Buffer.from(`${JSON.stringify(manifest,null,2)}\n`):priorPackage.files['asset-manifest.json']));}
@@ -278,9 +308,26 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
       return response({deployments:active?[{id:DEPLOY,versions:active.versions,annotations:active.annotations}]:[]});
     }
     throw new Error('Unexpected test-only HTTP');
-  };route=fetch;
+  };
+  const wire=Object.fromEntries(['cloudflare','merchant','model'].map(key=>[key,{requests:0,requestBodyBytes:0,responseBodyBytes:0}]));
+  const fetch=async(input,init={})=>{if(!realUpload)return dispatch(input,init);
+    const url=new URL(typeof input==='string'?input:input.url||String(input)),category=url.origin==='https://api.cloudflare.com'||url.origin===config.publication.identityOrigin?'cloudflare'
+      :url.origin==='https://api.openai.com'?'model':'merchant',meter=wire[category];meter.requests++;
+    meter.requestBodyBytes+=init.body?Buffer.byteLength(init.body instanceof URLSearchParams?init.body.toString():init.body):0;
+    const response=await dispatch(input,init),bytes=await response.arrayBuffer();meter.responseBodyBytes+=bytes.byteLength;
+    return new Response(bytes,{status:response.status,headers:response.headers});};route=fetch;
   const command=async c=>{
-    if(c.args.includes('upload')){calls.upload++;upload={tag:c.args[c.args.indexOf('--tag')+1],message:c.args[c.args.indexOf('--message')+1]};return;}
+    if(c.args.includes('upload')){calls.upload++;upload={tag:c.args[c.args.indexOf('--tag')+1],message:c.args[c.args.indexOf('--message')+1]};
+      if(realUpload)await promisify(execFile)(c.file,c.args,{cwd:c.cwd,env:c.env,timeout:c.timeoutMs,maxBuffer:1024*1024});
+      return;}
+    if(realUpload){
+      if(c.args.includes('scripts/staging/build.mts'))calls.build++;
+      try{await promisify(execFile)('/usr/bin/sandbox-exec',['-p','(version 1)(allow default)(deny network-outbound)(allow network-outbound (remote tcp4 "localhost:*"))(allow network-outbound (remote unix-socket))',c.file,...c.args],
+        {cwd:c.cwd,env:{...c.env,NEXT_TELEMETRY_DISABLED:'1'},timeout:c.timeoutMs,maxBuffer:4*1024*1024});}
+      catch(error){console.error('Synthetic build/verify diagnostic:',String(error.stderr||error.message).slice(-4000));throw error;}
+      if(c.args.includes('scripts/staging/build.mts'))manifest=JSON.parse(await fs.readFile(path.join(repo,'build/stupid-gifts/asset-manifest.json')));
+      return;
+    }
     if(!c.args.includes('scripts/staging/build.mts'))return;
     calls.build++;const context=JSON.parse(await fs.readFile(c.env.CATALOG_RELEASE_CONTEXT_PATH));const snapshot=JSON.parse(await fs.readFile(c.env.CATALOG_SNAPSHOT_PATH));
     const sealed=sealedFixture(snapshot,context,await readPriorRelease(context,config.publication.prior?.directory));manifest=sealed.manifest;
@@ -289,7 +336,7 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
   };
   const dependencies={repository:repo,fetch,resolveToken:async ref=>`TEST_ONLY_${ref.service.split('.').at(-1)}`,now:()=>clock,publication:{fetch,command,now:()=>new Date(clock)}};
   const options={configPath,configSha256,workspace};
-  return{sql,local,previous,packet,config,options,dependencies,mode,calls,index,workspaceOptions,now:()=>clock,advance(ms){clock=new Date(Date.parse(clock)+ms).toISOString();},
+  return{sql,local,previous,packet,config,options,dependencies,mode,calls,wire,index,workspaceOptions,now:()=>clock,advance(ms){clock=new Date(Date.parse(clock)+ms).toISOString();},
     loseWrite(){dropWrite=true;},tamper(fn){queryTamper=fn;},
     async run(command,approval){route=fetch;return runCloudflareWeekly({...options,command,...(approval?{approval}:{})},dependencies);},
     async approve(){
@@ -391,6 +438,41 @@ test('real merchant client counts cold authorization and its single401 refresh w
   assert.equal(f.calls.merchantAuthHttp,2);assert.equal(f.calls.merchantApiHttp,2);assert.equal(f.calls.merchantRetries,1);
   const paid=structuredClone(f.calls);assert.equal((await f.run('resume')).reason,'awaiting_reviewed_approval');
   for(const key of ['getItems','search','modelHttp','merchantAuthHttp','merchantApiHttp','merchantRetries'])assert.equal(f.calls[key],paid[key]);
+});
+
+test('SMALL actual build and upload capacity harness',capacityCase,async t=>{
+  const f=await setup(t,{permanent:1,held:1,realTransport:true,realUpload:true});f.config.cadence={day:'2026-10-20',featuredIds:[ID]};
+  f.config.backfillLimit=0;delete f.config.credentials.openai;
+  f.config.limits={requests:5000,statements:15000,reportedRowsRead:1_000_000,reportedRowsWritten:50_000};
+  await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));f.workspaceOptions.configSha256=f.options.configSha256;
+  f.workspaceOptions.budgetCaps={httpRequests:5000,sqlStatements:15000};
+  assert.equal((await f.run('start')).reason,'awaiting_reviewed_approval');const result=await f.run('resume',await f.approve());
+  t.diagnostic(JSON.stringify({result:weeklyCommandSummary(result),calls:f.calls,wire:f.wire}));assert.equal(result.state,'finalized',JSON.stringify(weeklyCommandSummary(result)));
+});
+
+for(const monday of [false,true])test(`SUCCESS capacity probe full2359 ${monday?'Monday10+20':'daily10'} actual upload/client transport`,capacityCase,async t=>{
+  const f=await setup(t,{permanent:2359,held:1024,discovered:monday?20:0,realTransport:true,realUpload:true,at:monday?'2026-10-19T18:00:00.000Z':NOW});
+  f.config.cadence={day:monday?'2026-10-19':'2026-10-20',featuredIds:Array.from({length:10},(_,i)=>`B${String(i+1).padStart(9,'0')}`)};
+  f.config.backfillLimit=0;f.config.limits={requests:5000,statements:15000,reportedRowsRead:1_000_000,reportedRowsWritten:50_000};
+  f.mode.merchantUnauthorized=true;if(monday)f.mode.modelTransientError=true;
+  if(!monday)delete f.config.credentials.openai;
+  await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+  f.workspaceOptions.configSha256=f.options.configSha256;f.workspaceOptions.budgetCaps={httpRequests:5000,sqlStatements:15000};
+  const initial=f.previous.products.map(p=>p.publicId),beforeHold=sha256(canonicalJson(f.sql.prepare('SELECT * FROM products WHERE is_active=0 ORDER BY public_id').all()));
+  const start=await f.run('start');assert.equal(start.reason,'awaiting_reviewed_approval',JSON.stringify(start));
+  const approval=await f.approve();assert.equal(JSON.parse(await fs.readFile(approval.path)).changes.length,monday?30:10);
+  const result=await f.run('resume',approval);
+  t.diagnostic(JSON.stringify({scenario:monday?'successful Monday10+20/full2359':'successful daily10/full2359',result:weeklyCommandSummary(result),calls:f.calls,wire:f.wire,
+    prior:'Generic permanent display prior; NOT genuine permanent native predecessor acceptance',rowCost:'Synthetic returned/SQLite rows, NOT billed D1 scans/index writes'}));
+  assert.equal(result.state,'finalized',JSON.stringify(weeklyCommandSummary(result)));assert.equal(f.calls.build,1);assert.equal(f.calls.upload,1);assert.equal(f.calls.activate,1);
+  assert.ok(f.calls.assetAttempts>=2);assert.equal(f.calls.versionAttempts,2);assert.equal(f.calls.uploadHttp,5+f.calls.assetAttempts);
+  assert.equal(result.budget.httpRequests,f.calls.http);assert.equal(result.budget.sqlStatements,f.calls.sql);assert.equal(result.budget.unconfirmedRequests,0);
+  assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
+  const published=JSON.parse((await fs.readFile(f.config.inputs.previous.path)).toString());assert.deepEqual(published.products.map(p=>p.publicId),initial);
+  const projections=f.sql.prepare('SELECT public_id FROM catalog_public_products WHERE catalog_revision=? ORDER BY public_id').all(f.config.catalogRevision);
+  assert.equal(projections.length,2359+(monday?20:0));for(const id of initial)assert.ok(projections.some(p=>p.public_id===id));
+  assert.equal(sha256(canonicalJson(f.sql.prepare('SELECT * FROM products WHERE is_active=0 ORDER BY public_id').all())),beforeHold);
+  const paid=structuredClone(f.calls);assert.equal((await f.run('resume')).state,'finalized');assert.deepEqual(f.calls,paid);
 });
 
 test('phase budget exhaustion checkpoints attention locally without a diagnostic D1 read or paid replay',async t=>{
@@ -562,9 +644,30 @@ test('driver rejects an already-accounted publication sender before opening or a
   for(const key of ['observationFetch','fetch'])await assert.rejects(runCloudflareWeekly({...f.options,command:'start'},
     {...f.dependencies,publication:{...f.dependencies.publication,[key]:owned},resolveToken:async()=>{resolved++;return'FIXTURE_ONLY';}}),
     /weekly_observation_fetch_already_accounted/);
+  for(const dependencies of [{...f.dependencies,fetch:owned},{...f.dependencies,
+    publication:{...f.dependencies.publication,fetch:owned,observationFetch:f.dependencies.fetch}}])
+    await assert.rejects(runCloudflareWeekly({...f.options,command:'start'},dependencies),/weekly_observation_fetch_already_accounted/);
   await assert.rejects(fs.stat(f.options.workspace),{code:'ENOENT'});
   assert.equal(reserved+settled+resolved+f.calls.http,0);
   assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
+});
+
+test('driver accepts explicit finite row ceilings only as a complete immutable configuration, without changing defaults',async t=>{
+  const f=await setup(t),limits={requests:3000,statements:12000,reportedRowsRead:2_000_000,reportedRowsWritten:35_000};
+  assert.deepEqual(validateCloudflareWeeklyConfig({...f.config,limits}).limits,limits);
+  for(const invalid of [{...limits,reportedRowsRead:2_000_001},{...limits,reportedRowsWritten:50_001},
+    {...limits,reportedRowsRead:0},{requests:3000,statements:12000,reportedRowsRead:2_000_000},
+    {...limits,reportedRowsWritten:NaN},{...limits,reportedRowsWritten:undefined},{...limits,unbounded:true},null,1,[]])
+    assert.throws(()=>validateCloudflareWeeklyConfig({...f.config,limits:invalid}),/weekly_configuration_invalid/);
+  assert.deepEqual(f.config.limits,{requests:1000,statements:4000});
+});
+
+test('driver never adopts a separately accounted uploader or foreign ledger',async t=>{
+  const f=await setup(t),before=structuredClone(f.calls);
+  const command=accountedPublicationUploadCommand({workspace:{async assertHeld(){},async reserveBudget(){assert.fail('Foreign reservation');},async settleBudget(){assert.fail('Foreign settlement');}},
+    scope:{accountId:f.config.accountId,workerName:f.config.publication.workerName},send:async()=>assert.fail('No send'),command:async()=>assert.fail('No child')});
+  await assert.rejects(runCloudflareWeekly({...f.options,command:'start'},{...f.dependencies,publication:{...f.dependencies.publication,command}}),/weekly_upload_command_already_accounted/);
+  assert.deepEqual(f.calls,before);await assert.rejects(fs.access(f.options.workspace));
 });
 for(const credential of ['amazon-id','amazon-secret','openai'])test(`unreadable ${credential} stops before writer/cadence/merchant work and permits a safe initial resume`,async t=>{
   const monday=credential==='openai';

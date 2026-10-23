@@ -180,6 +180,63 @@ and unchanged10/day + Monday≤20 policies. A complete normal-run capacity proof
 permanent predecessor/successor acceptance, reviewed integration and later
 fresh-account/Pacific-day canary remain gates; no writer or schedule is enabled.
 
+**Internal-cap clarification (owner authorization already exists).** The800HTTP/
+1200SQL guard and default10,000 reported writes are our own conservative limits,
+NOT Cloudflare Free allowances and not a new owner-approval requirement. Cameron
+already authorized lifting our request cap and new-site daily/enrichment. Keep
+the old expected-refusal fixtures as historical evidence, but select a justified
+finite routine profile from successful whole-flow measurements, rather than
+treating800/1200 as a provider limit. The client defaults remain unchanged; an
+explicit immutable config may supply both `reportedRowsRead` and
+`reportedRowsWritten`, bounded above by2M/50k (below the recorded Free5M/100k
+account allowances). These are maximum client ceilings,
+not evidence of current shared-account headroom. No live profile is changed by
+offline tests, and the consumed one-time600k grant is never routine capacity.
+
+There is a separate technical gap: the driver reads a `permanent-catalog-seal`
+through the generic projection reader, not `readPermanentCatalogPrior`; its
+approved successor seal retains neither the full private-source inventory nor
+the historical-native binding. `prunedVectorPlan`'s current permanent mode is
+preservation-only, not a union of unchanged historical members with new approved
+native mutations. A successful generic-prior fixture does not solve this.
+Finish one authenticated predecessor→current-operation→mixed-native-proof→actual
+publication→body-free-successor chain, then consume that successor on another
+day after old workspace expiry. Preserve original encodings, all prior holds,
+signed-zero bytes, immutable charges and exact owner/cutoff checks. This is
+engineering work, not a credential, paid-plan or renewed permission gate.
+
+Successful offline generic-prior workloads (real static build/verifier/Worker
+bundle and protected Wrangler upload, only external responses simulated):
+
+| Workload | CF/verification HTTP | SQL | Merchant HTTP | Model HTTP |
+| --- | ---: | ---: | ---: | ---: |
+| Daily10,2359 public +1024 held | 1196 | 4712 | 4 | 0 |
+| Monday10+20, same full prior | 1843 | 5874 | 10 | 23 |
+
+Both finalize with one build/upload/activation, actual SQLite publication
+receipt/resolved build/idle scope, zero unknowns, all original public IDs/holds,
+and no provider-phase replay. Each includes37 upload HTTP attempts, including
+asset/version503 retries; merchant counts include a401 refresh and Monday
+includes one model503. Cold-cache sessions use8MiB raw-asset buckets. Request
+body totals are439.1MB/448.7MB; this is synthetic publishing traffic, NOT actual
+site traffic or a universal vendor bucket-layout bound. SQLite changes are
+21,895/22,348 and returned rows39,142/53,643, NOT billed D1 scans/index writes.
+Observed concurrent local runtimes were15.6/16.5minutes, dominated by protected
+file handling; the fixed synthetic DB clock is not live latency/lease admission.
+
+Candidate routine guard:3000HTTP/12000SQL, with explicit≤2M reported reads and
+≤50k reported writes. The measured generic workloads fit with margin; actual
+row billing/shared Free headroom and the genuine permanent/native chain above
+remain unaccepted. This is not a live allowance or a reason to ask the owner
+again about an arbitrary request cap. No live config/timer/gate has changed.
+
+On the Mac operator, Node22 `npm run test:catalog-capacity` explicitly runs the
+heavy small + full daily/Monday cases with outbound-fenced build/upload children
+and fake external transports. They are opt-in to avoid adding half an hour to
+every staging sweep. A skipped case is never capacity evidence. Keep the
+ordinary800/1200 refusal fixtures and actual mixed-native successor acceptance
+separate; no passing generic case enables the writer.
+
 **October22 owner correction — catalog preservation and privacy:** Never
 delete or deactivate a gift, remove its search-index/native-vector entry, or
 shrink the catalog solely because a refresh deadline elapsed. The accepted
