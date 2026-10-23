@@ -65,6 +65,14 @@ F explicit page-view/retailer requests also returned GA4 204. Generic/automatic
 provider collection is not per-Pin acquisition proof. The existing privacy
 audit remains separate; raw browser/client identifiers are not retained here.
 
+GA4 metadata confirms event-level custom traffic dimensions are not registered.
+Its exclusion uses session campaign/medium: an existing direct/operator session
+cannot be cleanly reclassified from the unregistered event traffic_campaign.
+Do not label remaining direct rows as qualified customers. PostHog's explicit
+campaign/QA-identity exclusion is separately verified. No collection/custom
+dimension changes were made. `verification/validation.json` records the exact
+38-test, lint, clean build and independent verifier acceptance at source0bdf589.
+
 ## Frozen cohort and scheduler
 
 No new public Pin was created. v11 remains P6/F6. At the smoke read, P has

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "testedSource": "0bdf589e05148ee2e634117e43e1201acebff997",
+  "node": "22.23.1",
+  "dependencies": "Own npm ci --ignore-scripts --no-audit --no-fund; no legacy env pull",
+  "focusedTests": {
+    "files": ["tests/pinterest-cutover.test.mjs","tests/pinterest-publishing.test.mjs","tests/creative-experiments.test.mjs","tests/analytics-contract.test.mjs","tests/static-site-analytics.test.mjs"],
+    "pass": 38,
+    "fail": 0,
+    "skip": 0
+  },
+  "creativeLog": {"events":953,"experiments":8,"candidates":37,"valid":true},
+  "installedSkill": {"valid":true,"change":"Narrow Stupid.gifts integration-reference update; taste/prompt rules unchanged"},
+  "lint": {"errors":0,"existingWarnings":25,"warningFile":"tests/catalog-published-vector-proof.test.mjs"},
+  "build": {
+    "command":"npm run build",
+    "cleanCommittedSource":true,
+    "snapshot":"static-site/fixtures/catalog.snapshot.json",
+    "dataKind":"synthetic_fixture",
+    "sourceMode":"stupid-production",
+    "analyticsEnabled":false,
+    "releaseId":"synthetic-pinterest-cutover-0bdf589e0514",
+    "productCount":3,
+    "assets":393,
+    "guardedRoutes":372,
+    "nextExpiry":"2026-11-19T00:00:00.000Z",
+    "independentVerifierPassed":true,
+    "deployed":false
+  },
+  "preservedUnchangedFromBase": [
+    "docs/ops/pinterest-approved-pins.json",
+    "docs/ops/pinterest-publication-receipts.jsonl",
+    "docs/ops/pinterest-creative-lab/v34-concepts/verification/full-cohort-operating-ledger.json"
+  ],
+  "ga4MetadataRead": {
+    "propertyId":"507421709",
+    "httpStatus":200,
+    "customTrafficDimensionsRegistered":false,
+    "limitation":"QA filters use GA4 session campaign/medium. Untagged existing-session/operator activity cannot be separated through unregistered event traffic_campaign; direct rows are not qualified acquisition proof. No custom dimension or collection change was made."
+  },
+  "scope":"Offline build/tests plus bounded read-only provider/source checks and tagged QA only. No public Pin, image, account/collection change, catalog job, paid action or site deployment. Later commits add evidence/docs only."
+}
