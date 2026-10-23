@@ -1,0 +1,892 @@
+{
+  "generatedAt": "2026-10-23T19:01:24.628Z",
+  "source": "live Stupid.gifts publication-bound D1 catalog; read-only; not permission to generate or publish",
+  "catalogEvidence": {
+    "identity": {
+      "release_id": "existing-restore-6856584cbd6a",
+      "code_sha": "6856584cbd6a17358963421ae73474d5575e443c",
+      "catalog_revision": "stupid-restored-catalog-20261023-sql",
+      "catalog_snapshot_sha256": "182f52f474d6788da23b40035df4de07ef92ba448dda0420672ea02e91ab367a",
+      "manifest_sha256": "5d64c77465da9e1eee065232d256172c7906a22505c9d6f2e8ae2c0fe28ef792"
+    },
+    "publicationReceipt": {
+      "release_id": "existing-restore-6856584cbd6a",
+      "catalog_revision": "stupid-restored-catalog-20261023-sql",
+      "code_sha": "6856584cbd6a17358963421ae73474d5575e443c",
+      "completed_at": "2026-10-23T02:02:03.933Z",
+      "manifest_json": "{\"releaseId\":\"existing-restore-6856584cbd6a\",\"codeSha\":\"6856584cbd6a17358963421ae73474d5575e443c\",\"catalogRevision\":\"stupid-restored-catalog-20261023-sql\",\"catalogSnapshotSha256\":\"182f52f474d6788da23b40035df4de07ef92ba448dda0420672ea02e91ab367a\",\"manifestSha256\":\"5d64c77465da9e1eee065232d256172c7906a22505c9d6f2e8ae2c0fe28ef792\",\"vectorSyncWatermark\":0,\"priorReleaseId\":\"permanent-catalog-063d9a31ee4f\",\"nextExpiry\":null}"
+    },
+    "bounds": {
+      "sourceRows": 500,
+      "runItems": 501,
+      "sourceRowsTruncated": false,
+      "runItemsTruncated": false,
+      "requests": 4,
+      "statements": 4,
+      "reportedRowsWritten": 0
+    },
+    "caveat": "Completed imported enrichment history is provenance, not proof that the new daily writer is enabled. Reverify exact source listing before any future creative."
+  },
+  "latestCatalogRun": {
+    "id": "11928e5b-6199-4f8e-8e71-9a33192b33c0",
+    "mode": "weekly",
+    "status": "completed",
+    "started_at": "2026-10-19T15:29:22.571640Z",
+    "completed_at": "2026-10-19T15:32:09.255346Z"
+  },
+  "alreadyPublishedProductIds": [
+    "0762459816",
+    "0762462876",
+    "B000L70MQO",
+    "B001XSFW42",
+    "B005UGWDAE",
+    "B008VVUWQC",
+    "B01JQMNHNY",
+    "B01KR3SAIS",
+    "B074J425V7",
+    "B0757WW6KB",
+    "B075S2ZCYQ",
+    "B07H75BJWW",
+    "B07KGJS2F3",
+    "B07VLBVQBP",
+    "B081KFS7QW",
+    "B082PSJYYP",
+    "B08BC25ZTP",
+    "B0BBCHQJSN",
+    "B0BGXLMHRV",
+    "B0C7J5SMPK",
+    "B0CGXSKGXL",
+    "B0CRRWZHK1",
+    "B0CYKK1167",
+    "B0D57DDDM1",
+    "B0DFW4V57B",
+    "B0DMFBG69H",
+    "B0F88FJ56K",
+    "B0F9DZMQBL",
+    "B0FNNBK8Q6",
+    "B0FR5J39PR",
+    "B0G9M9XPSX",
+    "B0GSW1X3P4",
+    "B0H3P21YPW",
+    "B0HGF6KG81"
+  ],
+  "candidates": [
+    {
+      "productId": "B0FFC73Y5L",
+      "title": "Hogg Sarcastic Ceramic Coffee Mugs with Funny Quotes, Coffee Mugs for Men, Dark Humor, Funny Cups for Men, 15oz Ceramic Novelty Gag Gift for Office Coworker, Birthday Gift for Boss",
+      "productPage": "https://stupid.gifts/gifts/grumpy-mug-for-those-who-keep-it-real",
+      "sourceImage": "https://m.media-amazon.com/images/I/41l8o7EtGWL._SL500_.jpg",
+      "price": 14.99,
+      "qualityScore": 0.7,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 100,
+      "seenInLatestCatalogRun": true,
+      "lastVerifiedAt": "2026-10-19T15:31:56.688Z",
+      "editorialGeneratedAt": "2026-10-19T08:30:58.251Z",
+      "humorTags": [
+        "sarcastic-mug",
+        "office-gag",
+        "coffee",
+        "office-safe",
+        "desk"
+      ],
+      "sourceFacts": {
+        "size": "15 Ounces",
+        "brand": "Hogg",
+        "color": "Stupid People",
+        "features": [
+          "【FUNNY COFFEE MUG】This sarcastic coffee mug is a top pick among funny coffee mugs for men, great as a large coffee mug for men or big coffee mug for men on the desk at home or office.",
+          "【FUNNY SARCASTIC MUG】One of the coffee mugs with sayings shoppers love - a funny sarcastic novelty mug with humorous sayings, grumpy coffee mug, and big coffee cup for funny coffee mugs for adults.",
+          "【PREMIUM QUALITY】Our 0 days without sarcasm coffee mug is made of BPA Free, Eco-Friendly Ceramic for quality heat retention for your morning cup of Joe.",
+          "【WHAT'S INCLUDED】Each order includes one 15oz ceramic mug - a fun funny coffee mug for men pick, great as a coffee cup for him birthday gift or office gag gift for coworkers.",
+          "【HOGG OUTFITTERS】Wholesale Tumblers, Coolers, and Supplies for DIY projects and customized cups. Providing quality tumblers since 2016. Our tumblers don't sweat!"
+        ],
+        "unitCount": 1,
+        "manufacturer": "HOGG Outfitters",
+        "productGroup": "Kitchen",
+        "itemDimensions": {
+          "width": "5.13 inches",
+          "height": "4.63 inches",
+          "length": "5.13 Inches"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B074G4Z4Q5",
+      "title": "Rogue River Tactical Funny Novelty Coffee Mug - And Yet Despite the Look on My Face You Are Still Talking Cup, Sarcastic Gift for Work, Office, 11 Oz, White",
+      "productPage": "https://stupid.gifts/gifts/rogue-river-tactical-funny-novelty-coffee-mug-and-yet-despite-the-look-on",
+      "sourceImage": "https://m.media-amazon.com/images/I/41MXcieQPKL._SL500_.jpg",
+      "price": 12.95,
+      "qualityScore": 0.7,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 92,
+      "seenInLatestCatalogRun": true,
+      "lastVerifiedAt": "2026-10-04T04:08:06.642Z",
+      "editorialGeneratedAt": "2026-09-07T08:34:14.244Z",
+      "humorTags": [
+        "office-gag",
+        "sarcasm",
+        "white-elephant",
+        "party",
+        "office-safe"
+      ],
+      "sourceFacts": {
+        "size": "11 Ounces",
+        "brand": "Rogue River Tactical",
+        "color": "White",
+        "binding": "Kitchen",
+        "features": [
+          "Funny Coffee Mug Great Gift Idea For A Sarcastic Person Work Home or Office",
+          "Funny Coffee Cup Makes a Great Gag Gift For Friend Or Co worker Boss or Employee",
+          "Any Yet Despite The Look On My face You Are Still Talking Funny Coffee Mug",
+          "This Funny Novelty Coffee Mug Is Microwave and Dishwasher Safe",
+          "Standard Size 11oz Coffee Mug"
+        ],
+        "unitCount": 1,
+        "manufacturer": "Rogue River",
+        "productGroup": "Kitchen",
+        "itemDimensions": {
+          "width": "4.9999999949 inches",
+          "height": "3.99999999592 inches",
+          "length": "4.9999999949 inches",
+          "weight": "0.75 Pounds"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B09HT6ZC7K",
+      "title": "KUMLENMO fuck jar（5oz） Gift Jar,Fucks to Give,Fuck Wooden Cutout Letter Piece Bad Mood Vent Spoof Birthday Day,Holiday, Thanksgiving Christmas Gifts to Friend,Gag Funny Gift",
+      "productPage": "https://stupid.gifts/gifts/the-f-cks-jar-count-your-vents-not-your-regrets",
+      "sourceImage": "https://m.media-amazon.com/images/I/41buvZyFXPL._SL500_.jpg",
+      "price": 11.99,
+      "qualityScore": 0.75,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 87,
+      "seenInLatestCatalogRun": true,
+      "lastVerifiedAt": "2026-10-19T15:31:58.350Z",
+      "editorialGeneratedAt": "2026-10-19T08:31:55.587Z",
+      "humorTags": [
+        "prank",
+        "gag",
+        "birthday",
+        "holiday"
+      ],
+      "sourceFacts": {
+        "size": "5 Ounces",
+        "brand": "KUMLENMO",
+        "features": [
+          "Fuck gift:Prepare this great birthday or holiday spoof gift for your boyfriend or girlfriend, son, husband, wife, friend, colleague",
+          "Product material:Our choice of wood is use non-endangered tree species.Because we only have one Earth,so let's take good care of it.",
+          "Product attribute: Size 4.4 * 2.3 * 2.3in Weight: 5oz For each product, we use soft foam packing safety and shipping in cardboard boxes",
+          "Scope of application: Can be placed on the desk, bookshelf, bedroom always remind yourself that fuc k is a valuable asset. Don't let things and life or love bring you negative energy.",
+          "Each bottle contains 100pcs fuc ks, enough to last for about a year. If you need it, please purchase it immediately, it will be a good gift for you.（If there is any problem with the product, please contact us to solve it for you）"
+        ],
+        "unitCount": 1,
+        "productGroup": "Guild",
+        "isAdultProduct": false,
+        "itemDimensions": {
+          "width": "2.3 Inches",
+          "length": "4.4 Inches"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B07T8M7BLW",
+      "title": "Retreez Funny I Cannot Be Held Responsible For What My Face Does 11 Oz Mugs | Funny Ceramic Coffee Tea Mugs, Sarcasm, Sarcastic, birthday gifts for friends, coworkers, sister, brother",
+      "productPage": "https://stupid.gifts/gifts/mug-shot-my-face-and-i-don-t-get-along",
+      "sourceImage": "https://m.media-amazon.com/images/I/41An77aLfSL._SL500_.jpg",
+      "price": 13.88,
+      "qualityScore": 0.75,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 87,
+      "seenInLatestCatalogRun": true,
+      "lastVerifiedAt": "2026-10-19T15:31:56.838Z",
+      "editorialGeneratedAt": "2026-10-19T08:31:25.400Z",
+      "humorTags": [
+        "sarcasm",
+        "coffee-fun",
+        "office-safe",
+        "desk",
+        "kitchen"
+      ],
+      "sourceFacts": {
+        "size": "11 Ounces",
+        "brand": "Retreez",
+        "color": "White",
+        "binding": "Kitchen",
+        "features": [
+          "11-Ounce White Ceramic Mugs.",
+          "Printed on both sides.",
+          "Safe for Microwave and dishwasher.",
+          "Packaged in a gift box.",
+          "Treat yourself or give as a gift to someone special. This represents an affordable novelty they will appreciate for years."
+        ],
+        "unitCount": 1,
+        "parentAsin": "B0BW7NKSWS",
+        "manufacturer": "Retreez",
+        "productGroup": "Kitchen",
+        "itemDimensions": {
+          "weight": "0.6875 Pounds"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B0F95X117Q",
+      "title": "Hogg Fuck This Shit Mugs, Fuck This Shit Coffee Mug, FTS Coffee Cup, Gag Gifts for Adults, Funny Birthday Presents, Hidden Message Cups, 15oz Ceramic BPA Free Dishwasher Safe Drinkware",
+      "productPage": "https://stupid.gifts/gifts/hogg-f-this-shit-mug-stir-ingly-honest",
+      "sourceImage": "https://m.media-amazon.com/images/I/41b2B1NcchL._SL500_.jpg",
+      "price": 8.99,
+      "qualityScore": 0.75,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 87,
+      "seenInLatestCatalogRun": true,
+      "lastVerifiedAt": "2026-10-19T15:31:56.538Z",
+      "editorialGeneratedAt": "2026-10-19T08:30:58.243Z",
+      "humorTags": [
+        "prank-mug",
+        "sarcastic",
+        "kitchen",
+        "coffee",
+        "prank"
+      ],
+      "sourceFacts": {
+        "size": "15 Ounces",
+        "brand": "Hogg",
+        "color": "Hidden Message",
+        "binding": "Kitchen",
+        "features": [
+          "【COFFEE MUG FUCK THIS SHIT】This fuck this shit cup doubles as a secret mug - tilt it to reveal the fuck this shit coffee cup message hidden inside. A hidden message mug perfect for gag gifts.",
+          "【FUCK THIS SHIT COFFE MUG】This fuck this shit secret mug is one of the best secret mugs with secret messages around, a funny coffee mug and novelty coffee mug that makes funny birthday gifts for women.",
+          "【PREMIUM QUALITY】Our hidden message secret mug is made of BPA Free, Eco-Friendly Ceramic for quality heat retention for your morning cup of Joe.",
+          "【WHAT'S INCLUDED】One 15oz ceramic secret message mug, microwave safe and dishwasher safe on low heat - the perfect gag gift for white elephant exchange or office pranks.",
+          "【HOGG OUTFITTERS】Wholesale Tumblers, Coolers, and Supplies for DIY projects and customized cups. Providing quality tumblers since 2016. Our tumblers don't sweat!"
+        ],
+        "unitCount": 1,
+        "manufacturer": "HOGG Outfitters",
+        "productGroup": "Kitchen",
+        "itemDimensions": {
+          "width": "5.13 inches",
+          "height": "4.63 inches",
+          "length": "5.13 Inches",
+          "weight": "1.10010668738 pounds"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B0DBQV8X25",
+      "title": "MBL Funny Gag Gifts for Christmas - White Elephant Gifts for Adults",
+      "productPage": "https://stupid.gifts/gifts/desk-shenanigans-office-gag-decor-to-keep-it-fun",
+      "sourceImage": "https://m.media-amazon.com/images/I/41CjMpjYauL._SL500_.jpg",
+      "price": 8.99,
+      "qualityScore": 0.72,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 85,
+      "seenInLatestCatalogRun": false,
+      "lastVerifiedAt": "2026-10-12T15:36:02.728Z",
+      "editorialGeneratedAt": "2026-10-12T08:35:25.712Z",
+      "humorTags": [
+        "office-humor",
+        "funny-gift",
+        "coworker-joke",
+        "white-elephant",
+        "party"
+      ],
+      "sourceFacts": {
+        "size": "6.3 inches x 3.9 inches",
+        "brand": "MBL",
+        "color": "Yellow",
+        "binding": "Unknown Binding",
+        "features": [
+          "Team Gifts for Women: This desk sign, styled like a caution sign, is a hilarious gift for boss, colleague, and friend. It's a fun way to show appreciation and convey your lighthearted affection.",
+          "Funny Gift for Coworker: The “Answer Desk Rates” desk sign and office decor humor are sure to add fun and laughter to any space! This funny office decor is the perfect humorous touch to your office.",
+          "Gag Gift for Colleague: This desk sign, designed in a warning sign style, is a funny gift for bosses, colleagues, and friends. The bright yellow design makes these amusing office signs highly noticeable to everyone.",
+          "Funny Gift for Bosses Day: You can’t go wrong with this funny tabletop sign. These funny coworker gifts would also make excellent presents for friends, family, coworkers, colleagues, or bosses for birthdays, Christmas, Thanksgiving, or any other occasion!",
+          "Office Humor Gift: This desk sign is a delightful way to share some laughs. Made from high-quality acrylic and measuring 3.9 x 6.3 inches, it's a fun and eye-catching addition to any desk. Gift this to bring some cheerful vibes to their workspace!"
+        ],
+        "parentAsin": "B0DTJFNT3Z",
+        "manufacturer": "MBL",
+        "productGroup": "Home",
+        "itemDimensions": {
+          "width": "0.2 inches",
+          "height": "6.3 inches",
+          "length": "3.9 inches",
+          "weight": "0.13007273458 pounds"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B0F8HFT26Y",
+      "title": "Fatbaby Funny Coffee Mug For Women Men, Sarcastic Gifts For Coworker Office, Gag Gifts For Friends Tea Cup 11 OZ",
+      "productPage": "https://stupid.gifts/gifts/fatbaby-funny-coffee-mug-for-women-men-sarcastic-gifts-for-coworker-office",
+      "sourceImage": "https://m.media-amazon.com/images/I/410r338UiOL._SL500_.jpg",
+      "price": 13.99,
+      "qualityScore": 0.72,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 85,
+      "seenInLatestCatalogRun": false,
+      "lastVerifiedAt": "2026-10-04T04:08:02.216Z",
+      "editorialGeneratedAt": "2026-08-24T08:34:27.294Z",
+      "humorTags": [
+        "sarcastic-mug",
+        "gag-gift",
+        "office-humor",
+        "office-safe",
+        "desk"
+      ],
+      "sourceFacts": {
+        "size": "11 Ounces",
+        "brand": "Fatbaby",
+        "color": "I'm Sorry I Offended You",
+        "binding": "Kitchen",
+        "features": [
+          "Funny Gifts Idea: This 11 oz coffee mug is a funny gift for men. It will make him smile and think of you everytime they use it",
+          "Gift For Many Occasion: Perfect for gifting dad mom coworker manager on Birthday Mother’s Day Thanksgiving Christmas Day and so on",
+          "Top Quality: Made of high-quality ceramic materials with smooth surface. Comfortable to hold",
+          "Unique Design: Microwave and Dishwasher safe.Durable construction allows for easy use and pattern will never fade",
+          "Safety Package: Each sarcastic cup is carefully packaged in an exquisite gift box"
+        ],
+        "unitCount": 1,
+        "parentAsin": "B0FHH47328",
+        "manufacturer": "Fatbaby Mug Store",
+        "productGroup": "Kitchen",
+        "itemDimensions": {
+          "width": "5 inches",
+          "height": "4 inches",
+          "length": "5 Inches",
+          "weight": "0.7 Pounds"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B0FHKFPH5V",
+      "title": "Funny Middle Finger Venus Statue – Bold Greek Goddess Aphrodite Resin Figurine, Roman-Style Venus Bust Sculpture with Attitude, Unique Home & Office Shelf Decor, Rebellious Gift for Women & Men",
+      "productPage": "https://stupid.gifts/gifts/venus-with-attitude-middle-finger-statue",
+      "sourceImage": "https://m.media-amazon.com/images/I/41Nzot0NHbL._SL500_.jpg",
+      "price": 8.99,
+      "qualityScore": 0.72,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 77,
+      "seenInLatestCatalogRun": false,
+      "lastVerifiedAt": "2026-10-05T15:35:44.871Z",
+      "editorialGeneratedAt": "2026-09-07T08:41:59.035Z",
+      "humorTags": [
+        "dad-joke",
+        "weird",
+        "novelty",
+        "office-safe",
+        "desk"
+      ],
+      "sourceFacts": {
+        "brand": "Generic",
+        "color": "Style C 1pcs",
+        "binding": "Kitchen",
+        "features": [
+          "【EXQUISITE CLASSICAL DETAIL】Classic Venus goddess bust with realistic craftsmanship; captures the elegance and attitude of ancient Greek sculpture with a humorous twist",
+          "【PREMIUM RESIN MATERIAL】Made of high-density eco-friendly resin; odorless, wear-resistant, and long-lasting without fading or cracking; suitable for indoor and outdoor display",
+          "【BOLD AND FUNNY DESIGN】Features a defiant middle finger pose that adds rebellious charm; a bold statement piece for feminists, art lovers, or anyone with a sense of humor",
+          "【MULTI-SCENE DECOR】Perfect for home, office, desk, shelf, living room, study, or garden; adds a touch of modern satire and Greek mythology to any setting",
+          "【UNIQUE GIFT IDEA】Great for birthdays, holidays, housewarmings, or graduations; ideal gift for women, men, friends, or art enthusiasts who appreciate edgy and artistic decor"
+        ],
+        "parentAsin": "B0FHJ2ZMFR",
+        "manufacturer": "Generic",
+        "productGroup": "Home",
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B0DCNB17CD",
+      "title": "Putuo Decor Gothic Wall Decor Stay Weird Hanging Plaque, Whimsygoth Decor | Antique Gothic Wooden Wall Art Dark Academia Decor Creepy Art Prints Scary Picture Witch Decoration For Bedroom",
+      "productPage": "https://stupid.gifts/gifts/stay-weird-with-gothic-flair",
+      "sourceImage": "https://m.media-amazon.com/images/I/51yCzwv86VL._SL500_.jpg",
+      "price": 8.99,
+      "qualityScore": 0.68,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 75,
+      "seenInLatestCatalogRun": true,
+      "lastVerifiedAt": "2026-10-19T15:31:57.899Z",
+      "editorialGeneratedAt": "2026-10-19T08:31:40.801Z",
+      "humorTags": [
+        "gothic-decor",
+        "weird-gift",
+        "weird",
+        "novelty"
+      ],
+      "sourceFacts": {
+        "size": "1\"L x 1\"W",
+        "brand": "Putuo Decor",
+        "color": "Stay Weird",
+        "binding": "Unknown Binding",
+        "features": [
+          "DARK ACADEMIA DECOR: Gothic decor posters emblazoned with red roses and the words \"Stay Weird\" feature dark elements to give your room an aesthetic and vintage feel. They would certainly add interest to a white wall.",
+          "Dimensional details: This 11.8-inch round aesthetic Gothic trim comes with metal hooks for a wide range of walls. You can choose a frame that fits just right into the Gothic room decor, or use a larger frame that leaves gaps around the edges.",
+          "Premium material: Made from premium MDF, this dark academic wall trim sets waterproof and durable. It features high quality green painting, presented at high resolution, reflecting the dark and melancholic atmosphere of retro Halloween Gothic wall decorations.",
+          "Wide range of applications: This wood Gothic art wall decoration can be applied to a variety of occasions, such as bedrooms, bathrooms, living rooms, parties and so on. Those Gothic bedroom decorated canvas wall art can create aesthetics and improve the look of the entire room.",
+          "Excellent gift ideas: High quality and gothic in design, this Victorian wall decoration is a great gift choice for a new house or office."
+        ],
+        "unitCount": 1,
+        "parentAsin": "B0DCNRS5T5",
+        "manufacturer": "Putuo Decor",
+        "productGroup": "Home",
+        "itemDimensions": {
+          "width": "1 inches",
+          "height": "0.1968503935 inches",
+          "length": "1 inches",
+          "weight": "0.2 Pounds"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B0CCVQTZJH",
+      "title": "Middle Finger Duck You Statue – Funny Resin Figurine for Desk Decor",
+      "productPage": "https://stupid.gifts/gifts/duck-you-figurine-a-quacky-prank-for-your-desk",
+      "sourceImage": "https://m.media-amazon.com/images/I/41taE1kWbnL._SL500_.jpg",
+      "price": 9.99,
+      "qualityScore": 0.68,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 75,
+      "seenInLatestCatalogRun": false,
+      "lastVerifiedAt": "2026-10-12T15:36:03.328Z",
+      "editorialGeneratedAt": "2026-10-12T08:35:41.000Z",
+      "humorTags": [
+        "desk-decor",
+        "office-pranks",
+        "funny-gifts",
+        "office-safe",
+        "desk"
+      ],
+      "sourceFacts": {
+        "size": "Universal",
+        "brand": "Auetrcls",
+        "color": "White",
+        "binding": "Home",
+        "features": [
+          "The middle finger duck you figurine statue features a very humorous finger gesture, which is sure to entertain your friends, co-workers, and other family members when you put it in your home, office or any other places.",
+          "Whether the little duck is placed in your home or office, your family members or colleagues will definitely burst into laughter. Compliment will be guaranteed.",
+          "The cool prank duck statue is well crafted and polished. Its sturdy construction will make sure that it will not break even when get seriousely bumped. It will definitely increase your happiness for many years to come.",
+          "This duck you figurine deocr is made of top quality resin material, which is durable and environmental friendly.",
+          "Bring humor back to your life with this funny home decor. This duckling sculpture will be the perfect prank Christmas and birthday gift. They will burst into laughter when they receive it as a gift."
+        ],
+        "unitCount": 1,
+        "parentAsin": "B0HCVFSCDV",
+        "manufacturer": "Auetrcls",
+        "productGroup": "Home",
+        "isAdultProduct": false,
+        "itemDimensions": {
+          "width": "3.2 inches",
+          "height": "6.7 inches",
+          "length": "3.2 Inches",
+          "weight": "0.65918216338 pounds"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B0DT9KL81L",
+      "title": "Middle Finger Gnome Mini 3.5in,Double Bird Gnome - Naughty Funny Outdoor Decoration for Yard Patio Lawn Ornament and Home Decor,Fairy Garden",
+      "productPage": "https://stupid.gifts/gifts/gnome-more-mr-nice-guy-middle-finger-gnome",
+      "sourceImage": "https://m.media-amazon.com/images/I/513J9WtRpkL._SL500_.jpg",
+      "price": 9.99,
+      "qualityScore": 0.68,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 75,
+      "seenInLatestCatalogRun": false,
+      "lastVerifiedAt": "2026-10-05T15:35:44.797Z",
+      "editorialGeneratedAt": "2026-09-07T08:41:33.081Z",
+      "humorTags": [
+        "gnome-joke",
+        "garden-decor",
+        "pets",
+        "weird",
+        "novelty"
+      ],
+      "sourceFacts": {
+        "size": "3.5in Male",
+        "brand": "Generic",
+        "color": "Red",
+        "binding": "Kitchen",
+        "features": [
+          "Middle Finger Gnome 3.5\" inches - Funny Garden Gnome Statue for Lawn, Desk or Home Decor",
+          "Naughty Gnome: He's a bit rude, some would say a naughty gnome! Interesting appearance!",
+          "Retro vintage color, Made from Poly Resin and Weather Resistant",
+          "Awesome Decoration: Hilarious addition to your garden, porch, yard, home or office or anywhere you think is appropriate! | Makes a funny gag gift idea for men and women, just about adult with a sense of humor will laugh at this angry inappropriate gnome!",
+          "Safety Tested: Certified Lead Free Paint. Gnome Sculpture is hand painted with detailed accents."
+        ],
+        "parentAsin": "B0DYJYGR9Q",
+        "manufacturer": "WSHMZY",
+        "productGroup": "Home",
+        "itemDimensions": {
+          "width": "1.8 inches",
+          "height": "3.5 inches",
+          "length": "1.8 inches"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B07B4PP1BB",
+      "title": "Bizarre Boy with Giant Chicken Oddities and Curiosities Home Decor Poster - 11x14 Unframed Vintage Wall Art Weird Decor Print - Unusual Strange Goth Decor for Home, Bathroom Goth Room Decor",
+      "productPage": "https://stupid.gifts/gifts/cluck-this-bizarre-boy-giant-chicken-home-decor-poster",
+      "sourceImage": "https://m.media-amazon.com/images/I/51dhPahOsHL._SL500_.jpg",
+      "price": 11.99,
+      "qualityScore": 0.65,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 74,
+      "seenInLatestCatalogRun": true,
+      "lastVerifiedAt": "2026-10-19T15:31:57.595Z",
+      "editorialGeneratedAt": "2026-10-19T08:31:40.783Z",
+      "humorTags": [
+        "quirky-decor",
+        "weird-gift",
+        "weird",
+        "novelty"
+      ],
+      "sourceFacts": {
+        "size": "14\"L x 11\"W",
+        "brand": "Lone Star Art",
+        "color": "Sepia, Cream, Ivory, Black, Gray, Brown",
+        "binding": "Kitchen",
+        "features": [
+          "[HOW FUN] - These oddities and curiosities prints are sure to be a great addition to any room.",
+          "[READY TO FRAME] - You get one 11\" x 14\" prints. 11\" x 14\" frames are super easy to buy here on Amazon or at any department or craft store. Choose the frames that work with your decor.",
+          "[MADE TO LAST] This oddities and curiosities art is printed on semi-matte archival paper to last a lifetime. PROUDLY MADE IN THE USA - All of my designs are printed here in the good old USA and packaged at our studio in Tomball, TX",
+          "[WHAT YOU WANT] Are you looking for? Fairycore room decor, creepy decor, witchy decor aesthetic, pagan decor, whimsigothic decor, witchy wall decor, witchcraft decor, apothecary decor, occult decor, quirky home decor we have it."
+        ],
+        "unitCount": 1,
+        "parentAsin": "B0H8PJ74TW",
+        "manufacturer": "Lone Star Art",
+        "productGroup": "Home",
+        "itemDimensions": {
+          "width": "14 inches",
+          "height": "0.1 inches",
+          "length": "11 inches",
+          "weight": "0.05625 Pounds"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B0D9GBGSMZ",
+      "title": "Gag Gifts - White Elephant Gag Gifts Calendar 2027, Nature Butts Calendar 2027 from January to December, 11'' x 8.5'', Gag Gift for White Elephant",
+      "productPage": "https://stupid.gifts/gifts/nature-butts-calendar-a-cheeky-year-ahead",
+      "sourceImage": "https://m.media-amazon.com/images/I/51DYEsHeOyL._SL500_.jpg",
+      "price": 9.99,
+      "qualityScore": 0.66,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 74,
+      "seenInLatestCatalogRun": false,
+      "lastVerifiedAt": "2026-10-12T15:36:02.137Z",
+      "editorialGeneratedAt": "2026-10-12T08:34:50.061Z",
+      "humorTags": [
+        "white-elephant",
+        "prank",
+        "gag",
+        "party"
+      ],
+      "sourceFacts": {
+        "brand": "Urneeds",
+        "binding": "Unknown Binding",
+        "features": [
+          "2027 Wall Calendar : The wall calendar is from January to December 2027. These natural funny pictures of the calendar 2027 are perfect for you or your friends who like humorous things. The 2027 calendar must be a special white elephant gag gift that you can share with them.",
+          "High-Quality Wall Calendar 2027 : The calendar 2027 is very sturdy. The wall calendar is made of thick paper, thick staples and good quality ink. The hanging hole is particularly durable, so you don't have to worry about it getting torn. In addition to the 12 months of 2027, we've included additional calendar pages from July to December 2026 in this 2027 calendar, allowing you to start using the calendar even earlier.",
+          "Monthly calendar 2027 : The 2027 wall calendar is 11in * 8.5in(closed), 11.6in * 17in(open). Marking holidays reminds you of important dates, and the large daily blocks provide plenty of writing space. The 2027 calendar gives you more rooms to complete all important tasks and appointments.",
+          "Functional Designs : 2027 Calendar from January to December + Hanging Hole + Water-Proof Cover + High Quality Thick Paper + Daily Blocks + Highlighted Holidays + Reference Calendars + Different Patterns + Humorous Natural Butts Images + White Elephant Gag Gift Calendar 2027",
+          "Best Funny Gift : The calendar is a funny gag gift for your friends, colleagues. Ideal for offices, schools, or anywhere you want a little fun. Hope you have a good plan for your future life."
+        ],
+        "manufacturer": "Urneeds",
+        "productGroup": "Office Product",
+        "itemDimensions": {
+          "width": "11 inches",
+          "height": "9 inches",
+          "length": "11 Inches"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B09PY9LTCW",
+      "title": "Prime Greetings Funny Cat Pun Valentine's Day Card, Made in America, Eco-Friendly, Thick Card Stock with Premium Envelope 5in x 7.75in, Packaged in Protective Mailer",
+      "productPage": "https://stupid.gifts/gifts/cat-pun-valentine-s-card-purrfect-romance",
+      "sourceImage": "https://m.media-amazon.com/images/I/41uArFk2vDL._SL500_.jpg",
+      "price": 5.99,
+      "qualityScore": 0.72,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 73,
+      "seenInLatestCatalogRun": true,
+      "lastVerifiedAt": "2026-10-19T15:30:25.983Z",
+      "editorialGeneratedAt": "2026-10-19T08:30:23.230Z",
+      "humorTags": [
+        "cat-pun",
+        "valentines-day",
+        "pets",
+        "novelty"
+      ],
+      "sourceFacts": {
+        "size": "5 x 7.75 inches",
+        "brand": "Prime Greetings",
+        "color": "Cat",
+        "binding": "Unknown Binding",
+        "features": [
+          "MADE IN AMERICA: Premium Envelope Included, Printed on Thick, Premium, Glossy Finished Card Stock Using Proprietary Process",
+          "ECO-FRIENDLY PAPER: Promoting Sustainable Forest Management and Responsible Forestry From American Paper Mills. Card Size: 5 Inches Wide and 7.75 Inches Long",
+          "FRONT MESSAGE: You've got me feline fine, my valentine!",
+          "INSIDE MESSAGE: I love you meow and forever.",
+          "PRIME GREETINGS is a boutique greeting card studio located in Metro Detroit. We offer personalized, imaginative, and one-of-a-kind greeting cards for every special person in your life. We are honored and love the fact our cards are used every day for the special moments in your life."
+        ],
+        "unitCount": 1,
+        "manufacturer": "Prime Greetings",
+        "productGroup": "Office Product",
+        "itemDimensions": {
+          "width": "5 inches",
+          "height": "0.0393700787 inches",
+          "length": "7.75 inches"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B0BL16BRNH",
+      "title": "Ulbemoll Cute Sleeping Mask, White Dog Soft Plush Fluffy Sleep Mask Men Cartoon Puppy Blindfold Novelty Eye Cover Eyeshade Shade for Girls and Adult Travel (White, Dog)",
+      "productPage": "https://stupid.gifts/gifts/paw-sitively-adorable-dog-sleep-mask",
+      "sourceImage": "https://m.media-amazon.com/images/I/31Ei9-33diL._SL500_.jpg",
+      "price": 9.99,
+      "qualityScore": 0.65,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 70,
+      "seenInLatestCatalogRun": true,
+      "lastVerifiedAt": "2026-10-19T15:30:26.204Z",
+      "editorialGeneratedAt": "2026-10-19T08:30:23.248Z",
+      "humorTags": [
+        "dog-lovers",
+        "nap-time",
+        "pet-lovers",
+        "snug-as-a-bug",
+        "white-elephant"
+      ],
+      "sourceFacts": {
+        "size": "1 Count (Pack of 1)",
+        "brand": "Ulbemoll",
+        "color": "White Dog",
+        "binding": "Unknown Binding",
+        "features": [
+          "【Soft and Comfortable】: the cartoon animal eye masks are mainly made of quality fuzzy material and they are exquisitely designed and crafted, which are soft and skin friendly, comfortable to wear and sturdy for long term use",
+          "【Super cosy and cute eyemask for sleeping】: Prevent pressure on eyes, help relieve eye nerve and vascular pressure, help to eliminate fatigue, improve sleep environment",
+          "【Extensive Applications】: the cute animal sleep masks are ideal choices for your home use, lunch break at the office, traveling, business trips, flights, trains, camping and other occasions you want to have a good rest",
+          "【Proper in Size】: the funny animal sleeping masks measure approx. 19 x 10 cm/ 7.48 x 3.94 inches, the proper size and elastic design make them suitable for most women, men; And they are lightweight and easy to pack in your bag, backpack or suitcase, which will not take up much space",
+          "【Great Present】Our fruit eye cover shade, with its cute look and unique design, is very popular with her or him. It is the best gift for family, friends. which help you enjoy a great sleep anywhere, anytime as long as you want. It can also be used as a prop for cosplay costume / role playing / theme party"
+        ],
+        "unitCount": 1,
+        "parentAsin": "B0BKZWMG6V",
+        "manufacturer": "Ulbemoll",
+        "productGroup": "Drugstore",
+        "itemDimensions": {
+          "width": "3 inches",
+          "height": "0.3 inches",
+          "length": "7.8 inches"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B08KG6XHN1",
+      "title": "AnnoyingPCB - Cricket Noise Maker Prank - The Prank Device that Won’t Stop Beeping for 3 Years",
+      "productPage": "https://stupid.gifts/gifts/the-annoying-cricket-prank-3-years-of-eternal-beeping-fun",
+      "sourceImage": "https://m.media-amazon.com/images/I/513O6orIudL._SL500_.jpg",
+      "price": 13.97,
+      "qualityScore": 0.75,
+      "editorialQualityScore": 0.83,
+      "pinterestScore": 70,
+      "seenInLatestCatalogRun": false,
+      "lastVerifiedAt": "2026-10-04T04:07:59.347Z",
+      "editorialGeneratedAt": "2026-08-07T20:54:07.958Z",
+      "humorTags": [
+        "prank",
+        "sound",
+        "office",
+        "office-prank",
+        "gag-gift"
+      ],
+      "sourceFacts": {
+        "size": "Small",
+        "brand": "AnnoyingPCB",
+        "color": "Blue",
+        "binding": "Toy",
+        "features": [
+          "ONE DEVICE, UNLIMITED CHAOS: AnnoyingPCB is the ultimate gag gift or revenge pranks. Simply activate the noise maker and hide it. It will beep, screech, or make a cricket sound at random intervals of 5 to 45 minutes. Perfect April Fools Day prank for your friends or coworkers!",
+          "COMPACT AND LIGHTWEIGHT: This super small annoying sound device can hide easily in most places. This little noise prank is inconspicuous and hard to find. It is light enough for off-brand tape or a magnet to hold it in place.",
+          "BATTERY LASTS 3 YEARS: No short gags here, we're in it for the long con. The included battery won't die in a few days, it will randomly beep for three years! Rest assured your victims sanity will fail long before AnnoyingPCB runs out of juice.",
+          "UNIQUE SOUNDS: You're not stuck with just one choice of annoying sounds. With the press of a button, you can easily change the sound. Noises include: a normal beep, a high pitch screech, and a cricket chirping. Take the crown as funniest prankster on April Fools.",
+          "HIDING INSPIRATION: Prank your friends, neighbors, or co-workers and drive them insane! Conceal it inside a drawer with stuff in it or a cupboard near other appliances that already beep. Affix it underneath a desk, behind a monitor, inside a tissue box, or in a drop ceiling. No one is safe with the AnnoyingPCB in your prank kit."
+        ],
+        "parentAsin": "B0H9W4Y8TX",
+        "manufacturer": "AnnoyingPCB",
+        "productGroup": "Toy",
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B07W46L7HH",
+      "title": "Miracu Funny Cooking Aprons for Men Women, Dad Gifts for Mens Father Mom",
+      "productPage": "https://stupid.gifts/gifts/apron-of-puns-cooking-laughing",
+      "sourceImage": "https://m.media-amazon.com/images/I/41oy8wdpxBL._SL500_.jpg",
+      "price": 14.99,
+      "qualityScore": 0.72,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 69,
+      "seenInLatestCatalogRun": false,
+      "lastVerifiedAt": "2026-10-12T15:36:04.212Z",
+      "editorialGeneratedAt": "2026-10-12T08:36:01.340Z",
+      "humorTags": [
+        "dad-joke"
+      ],
+      "sourceFacts": {
+        "size": "One Size",
+        "brand": "Miracu",
+        "color": "Black",
+        "binding": "Unknown Binding",
+        "features": [
+          "Funny chef aprons for men or women who love to cook; Great for cooking, grilling, picnics, parties, BBQ, camping and more",
+          "Functional; Covers the entire front so that you won’t get messy while cooking; Features three deep pockets; Spacious enough to put eggs, tongs, spatulas and more",
+          "Durable and versatile; Made from heavy-duty thick cotton; Easy to wash; Use of dryer, spin-dry or dry-clean is not recommended",
+          "One size fits all; Suitable for both men and women; Measures 27 by 29 inches; Features an adjustable neck strap and 45 inches waist strap",
+          "Funny gifts for all occasions; Funny Fathers Day gifts for dad, dad gifts; Christmas, Thanksgiving, Mothers Day, Valentines Day, Grilling birthday gifts for men, brother, son, husband"
+        ],
+        "unitCount": 1,
+        "manufacturer": "Miracu",
+        "productGroup": "Kitchen",
+        "isAdultProduct": false,
+        "itemDimensions": {
+          "width": "27 inches",
+          "height": "0.1 inches",
+          "length": "29 inches"
+        },
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B0B92V9MTT",
+      "title": "PAWSITIVELY PURRFECT CAT JOKES. 230+ Ridiculous CAT JOKES AND PUNS - Purrfect for THE ENTIRE FAMILY!: Good, clean humor for kids and cat lovers of all ages. A perfect gift!",
+      "productPage": "https://stupid.gifts/gifts/pawsitively-hilarious-cat-jokes-for-everyone",
+      "sourceImage": "https://m.media-amazon.com/images/I/41eeTKpTF7L._SL500_.jpg",
+      "price": 12.99,
+      "qualityScore": 0.72,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 69,
+      "seenInLatestCatalogRun": false,
+      "lastVerifiedAt": "2026-10-03T04:16:31.138Z",
+      "editorialGeneratedAt": "2026-10-02T21:14:36.869Z",
+      "humorTags": [
+        "cat-joke",
+        "puns",
+        "family-fun",
+        "pets",
+        "weird"
+      ],
+      "sourceFacts": {
+        "brand": "Majosta",
+        "binding": "Paperback",
+        "languages": [
+          "[object Object]",
+          "[object Object]",
+          "[object Object]"
+        ],
+        "manufacturer": "Independently published",
+        "productGroup": "Book",
+        "isAdultProduct": false,
+        "itemDimensions": {
+          "width": "0.21 inches",
+          "height": "9 inches",
+          "length": "6 inches",
+          "weight": "0.31 pounds"
+        },
+        "offerCondition": "New",
+        "publicationDate": "2022-08-14T00:00:01Z"
+      }
+    },
+    {
+      "productId": "B08KRVMM1J",
+      "title": "Trump Grandpa Mug You are A Great Grandpa Funny 11 or 15 Ounce White Ceramic Coffee Cup for Men",
+      "productPage": "https://stupid.gifts/gifts/greatest-grandpa-mug-redefining-awesome",
+      "sourceImage": "https://m.media-amazon.com/images/I/41F5hmnFzNL._SL500_.jpg",
+      "price": 19.97,
+      "qualityScore": 0.72,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 65,
+      "seenInLatestCatalogRun": false,
+      "lastVerifiedAt": "2026-10-04T04:08:01.264Z",
+      "editorialGeneratedAt": "2026-08-10T17:53:29.068Z",
+      "humorTags": [
+        "dad-joke",
+        "kitchen",
+        "coffee"
+      ],
+      "sourceFacts": {
+        "size": "15 Ounces",
+        "brand": "The Improper Mug",
+        "color": "White",
+        "binding": "Kitchen",
+        "features": [
+          "High quality mug makes the perfect gift for everyone.",
+          "Printed on only the highest quality mugs. The print will never fade no matter how many times it is washed.",
+          "Packaged, and shipped from the USA.",
+          "Dishwasher and Microwave safe.",
+          "Shipped in a custom made styrofoam package to ensure it arrives perfect. GUARANTEED."
+        ],
+        "unitCount": 1,
+        "manufacturer": "Gearbubble",
+        "productGroup": "Kitchen",
+        "offerCondition": "New"
+      }
+    },
+    {
+      "productId": "B00KJJOWZG",
+      "title": "Talkie Toys Products Blah Button - 12 Funny Blah Sayings",
+      "productPage": "https://stupid.gifts/gifts/blah-button-express-your-inner-blah",
+      "sourceImage": "https://m.media-amazon.com/images/I/41SeMcC8YDL._SL500_.jpg",
+      "price": 14.89,
+      "qualityScore": 0.7,
+      "editorialQualityScore": 0.88,
+      "pinterestScore": 64,
+      "seenInLatestCatalogRun": false,
+      "lastVerifiedAt": "2026-10-05T15:36:53.992Z",
+      "editorialGeneratedAt": "2026-10-05T08:36:52.341Z",
+      "humorTags": [
+        "gag-gifts",
+        "funny-button",
+        "novelty"
+      ],
+      "sourceFacts": {
+        "size": "Small",
+        "brand": "Talkie Toys Products",
+        "color": "Yellow",
+        "binding": "Unknown Binding",
+        "features": [
+          "12 FUNNY \"BLAH\" SAYINGS: Plays 12 different, hilarious \"Blah Blah Blah\" voices every time you press it; gives you an instant, funny comeback whenever someone is talking too much, venting, or rambling on",
+          "PERFECT GAG GIFT & STOCKING STUFFER: Awesome novelty gift for friends, coworkers, teens, roommates, and anyone who loves sarcasm; ideal for birthdays, white elephant gift parties, Secret Santa, and holiday stockings",
+          "FUN TOY & ICEBREAKER: Simple push-down button makes it easy to get everyone laughing; great for hanging out with friends, gaming nights, family dinners, or breaking the ice at work",
+          "BATTERIES INCLUDED: Ready to go right out of the box; includes 2 AAA batteries so you can start pressing the button and getting laughs right away"
+        ],
+        "languages": [
+          "[object Object]"
+        ],
+        "manufacturer": "Talkie Toys",
+        "productGroup": "Toy",
+        "isAdultProduct": false,
+        "itemDimensions": {
+          "width": "1.7 inches",
+          "height": "3.5 inches",
+          "length": "3.5 inches",
+          "weight": "0.2 Pounds"
+        },
+        "offerCondition": "New"
+      }
+    }
+  ]
+}

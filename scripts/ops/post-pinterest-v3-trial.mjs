@@ -2,8 +2,10 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { assertStudioCommandAllowed } from './pinterest-studio-policy.mjs';
 
 const root = process.cwd();
+assertStudioCommandAllowed('trial-post', { root });
 const args = new Set(process.argv.slice(2));
 const production = args.has('--production');
 const dryRun = args.has('--dry-run');

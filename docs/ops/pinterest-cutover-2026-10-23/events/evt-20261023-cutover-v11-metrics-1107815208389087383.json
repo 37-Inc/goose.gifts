@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261023-cutover-v11-metrics-1107815208389087383",
+  "type": "metrics.recorded",
+  "recordedAt": "2026-10-23T19:12:57.369Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "candidateId": "cand-v11-desktop-therapist-field-note",
+    "checkpointAt": "2026-10-23T19:01:21.762Z",
+    "cohort": "public",
+    "source": "Production Pinterest API lifetime metrics; docs/ops/pinterest-cutover-2026-10-23/verification/measurement-smoke.json",
+    "metrics": {
+      "impressions": 21,
+      "saves": 0,
+      "pinClicks": 0,
+      "outboundClicks": 0,
+      "siteSessions": null,
+      "affiliateClicks": null,
+      "revenueCents": null
+    },
+    "caveats": [
+      "Actual cutover smoke observation after owner-authorized pause; late checkpoints are not reconstructed equal-age history.",
+      "Native Pinterest outbound is not a verified Goose/Stupid session or retailer action. Downstream per-Pin attribution unknown; QA/operator excluded.",
+      "Historical Goose destinations unchanged; rebrand/redirect intervention is not an unchanged experiment."
+    ]
+  }
+}

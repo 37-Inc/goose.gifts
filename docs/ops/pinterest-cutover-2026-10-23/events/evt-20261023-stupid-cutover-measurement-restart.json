@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261023-stupid-cutover-measurement-restart",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-23T19:13:35.653Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "Owner authorized finishing the Stupid.gifts integration and resuming only the existing measurement task. Actual smoke verifies same BUSINESS account,28 retained Pins,P6/F6 and receipt-derived2026-10-31T16:44:52.279Z deadline. P1420 impressions/22Pin clicks/3saves/2native outbound,F336/5/1/0; bowling97.1%P exposure. No demonstrated format/qualified-conversion winner. New-site P/F tagged page/retailer QA is stored in PostHog; F explicit GA4 page/outbound delivery204. QA is excluded,not customer acquisition; per-Pin downstream remains unknown. All28 approved links remain unchanged;26 old/new retailer IDs match,legacy dog-toy comparison unavailable,tube-guy intentionally held. No old Goose link redirects yet. Read-only D1 source verifies actual live publication and October19 completed enrichment,not failed canary; no catalog maintenance. See docs/ops/pinterest-cutover-2026-10-23/README.md and durable verification receipts.",
+    "evidenceEventIds": [
+      "evt-20261023-cutover-v11-metrics-1107815208389000013",
+      "evt-20261023-cutover-v11-metrics-1107815208389027583",
+      "evt-20261017-am-v11-cohort-complete-deadline"
+    ],
+    "decision": "Resume same cadence only for measurement after PR integration,with machine-blocked production/Sandbox writes and no generation. Preserve historical packages,site/catalog pins and actual evidence gaps. Final review not yet due/delivered; no new experiment or spend.",
+    "nextAction": "Record actual saved scheduler activation after reviewed integration. Deliver full six-P-versus-six-F review once at/after receipt-derived deadline; expected regular slotOct31 16:30Pacific. Keep posting off even afterward until Cameron explicitly approves a new experiment."
+  }
+}
