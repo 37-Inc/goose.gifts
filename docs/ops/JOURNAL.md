@@ -5,6 +5,84 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 — Complete corrected full-suite gate is green
+
+Exact clean tested fix is `523252cec427b87987d6b32d36561dfd8ea3964f` in PR268
+(https://github.com/37-Inc/goose.gifts/pull/268). Node22.23.1, own dependencies
+and scrubbed credential-free environment. Clean synthetic build and independent
+verifier pass393 assets/372 guarded routes; three fictional products, no upload.
+Both staging/Worker strict typechecks pass. The entire `npm run test:staging`
+gate exits0 with its exported fixture present:
+
+- Parallel lane:1,141 passes/0 failures/18 standard skips of1,159 tests;
+  1,464,466.192542ms.
+- Final durable publication lane:8 passes/0 failures/skips;68,222.829167ms.
+  Normal/lost-read/expired-lease executions all finish once with unchanged source/
+  native state, exact accounting and one build/upload/activation. The expired
+  case retains its sole original unknown,157 HTTP/228 SQL andzero native writes.
+- Every other offline test file:170 passes/0 failures/skips;19,651.798ms.
+  Combined coverage is all109 files,1,319 passes/0 failures/18 standard skips of
+  1,337 tests. Focused11-test correction check separately passes as well.
+- Lint exits0:0 errors/25 existing warnings, all in an unchanged test file.
+
+The18 unchanged skips are five opt-in heavy build/upload probes, six optional
+native PostgreSQL fixtures/unavailable pinned image, one private-source migration
+fixture andsix optional builder/large-export variants. Building the ordinary
+fixture enabled eight checks skipped on the first clean run. No new skip/retry,
+test-name filter or production timeout/guard relaxation was introduced. The
+separate already-accepted heavy capacity proof is preserved, not rerun or
+recharacterized. This is ordinary offline validation, not live canary acceptance.
+
+`google-custom-search-retirement-2026-10-22/full-suite-2026-10-23.json` records the
+exact code/source, phase counts, durations and original two failures. Complete
+initial/final/supplemental TAP logs are committed as small reproducible gzip
+artifacts with uncompressed SHA256/byte counts. No secret-like content was found;
+only synthetic fixtures were executed. October22 receipts remain untouched.
+Final receipt/log additions are documentation/evidence only. No runtime source,
+provider/account/API, live catalog, allowance, deployment, schedule or Pinterest
+change; canonical/pinned checkouts remain untouched. Re-close/sync the existing
+retirement issue after exact-head PR integration; broader provider work remains
+separate.
+
+## 2026-10-23 — Full-suite retirement closeout: reproduce and repair
+
+Reopened the existing Custom Search retirement issue `roadmap-lbbz1.8.2` under
+direct owner authority to rerun all tests and fix remaining failures. Fresh
+isolated branch `codex/stupid-full-test-closeout` starts from merged main
+`f03b334df1df4ac95aa6d5e0264f0cdf7b708691`; canonical and other pinned runtime/
+operator checkouts are untouched. The previous cleanup checkout is now confirmed
+archived by app artifact inventory. Node22.23.1, own lockfile install, no env file
+or credentials, and a scrubbed test environment. No live provider/canary/catalog,
+deployment, API/account mutation or Pinterest operation.
+
+The unmodified full `npm run test:staging` completed in1,163,890.445167ms:
+1,166 tests,1,138 pass,two fail,26 existing opt-in/build-dependent skips. Full TAP
+is retained locally at `/tmp/stupid-full-test-closeout.6px6vn/full-staging-initial.log`.
+All21 additional offline test files passed169 tests,0 failures/skips. Lint passes
+with0 errors/25 existing unused-import warnings in published-vector-proof tests.
+
+Failures and bounded corrections:
+
+- Migration-budget test still expected explicit10,001 reported writes to refuse.
+  PR267 deliberately permits a finite explicit50k profile, while the default is
+  still10k. Test now proves the default actually stops after a12,001-write reply,
+  retains that cost and refuses later IO; explicit50k accepts that same reply;
+  50,001 refuses before IO. The separate dedicated20k migration profile retains
+  all ledger/known-cost/no-refund assertions. No production limit changed.
+- Expired-lease same-catalog publication returned `pending/publication_pending`
+  under the parallel full-suite filesystem load. The exact unchanged case passed
+  in isolation:46,539.251916ms test/47,170.188791ms runner,157 accounted HTTP,
+  228 SQL,one retained unknown,one build/upload/activation,zero native writes.
+  Move that whole durable-I/O proof file to the final `test:staging:durable` phase
+  of the SAME standard gate, after the parallel fixtures finish. No test filter,
+  retry, added skip, mocked ledger, timeout relaxation or publisher change.
+  Release-target regression ensures it runs exactly once and is not accidentally
+  included in the parallel glob lane. Production timeout tests stay unchanged.
+
+Focused corrections pass; subsequent entry records the completed full corrected
+gate, exported fixture assertions, clean-source build/verifier and final receipt.
+Preserve the October22 receipt as history rather than relabeling its failed run.
+
 ## 2026-10-23 — Repository review/integration candidate PR267
 
 The explicit continuation authorizes Git/GitHub review/integration only, not
