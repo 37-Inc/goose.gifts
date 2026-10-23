@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "acceptedRuntimeSource": "f731dd58b5f8cff0491b46b79c7747d035d3278c",
+  "mergedImplementationPr": "https://github.com/37-Inc/goose.gifts/pull/269",
+  "implementationMerge": "4355de83450f4a06d3f8079c933802b579a4334a",
+  "live": {
+    "source": "f731dd58b5f8cff0491b46b79c7747d035d3278c",
+    "identity": {
+      "release_id": "recorded-canary-20261023-f731dd58",
+      "code_sha": "f731dd58b5f8cff0491b46b79c7747d035d3278c",
+      "catalog_revision": "recorded-canary-20261023-f731dd58",
+      "catalog_snapshot_sha256": "d0e3a287af638154e3b99a16aa67c0cc82d3b8d98eee4befdba217e893154c0f",
+      "manifest_sha256": "1123475aeb4d57cea44342bf3093001081521a9e01b361defb444f5ce3de28e7"
+    },
+    "controlSha256": "989e76981697652bd9d2b0cc3a463f97e28a9a7b68511d7ab78455f22f39d2dd",
+    "summary": {
+      "state": "finalized",
+      "runId": "recorded-canary-20261023-f731dd58",
+      "releaseId": "recorded-canary-20261023-f731dd58",
+      "receiptSha256": "55c61b46940f05add6c66f356eca782b3be1894fb8f701d755056c2a99c2848b",
+      "budget": {
+        "httpRequests": 3770,
+        "sqlStatements": 7648,
+        "knownRowsRead": 1431936,
+        "knownRowsWritten": 14217,
+        "unconfirmedRequests": 0
+      }
+    },
+    "products": 2359,
+    "held": 1024,
+    "allOriginalImagesAndDescriptions": true,
+    "originalObservedAt": "2026-10-23T16:40:20.383000Z",
+    "merchantRequests": 0,
+    "modelRequests": 0
+  },
+  "provider": {
+    "phase": "provider_control_verified",
+    "versionReference": "b2c6f47c-67bd-4338-a39d-f8e4cab930af",
+    "deploymentId": "7c00837f-37c0-411a-931b-542aa62287fc",
+    "d1ReceiptSha256": "203e482e0a2e16886955c6a2abc502cb6b73c0a0caf7c10f6b5bba0e1d885800",
+    "build": {
+      "state": "resolved",
+      "release_id": "recorded-canary-20261023-f731dd58",
+      "version_reference": "b2c6f47c-67bd-4338-a39d-f8e4cab930af",
+      "attempts": 2
+    },
+    "owner": {
+      "phase": "idle",
+      "generation": 15,
+      "mutation_epoch": 425,
+      "external_pending": 0
+    },
+    "independentReadbackMetrics": {
+      "requests": 3,
+      "statements": 5,
+      "reportedRowsRead": 4,
+      "reportedRowsWritten": 0,
+      "unconfirmedRequests": 0
+    }
+  },
+  "public": {
+    "verifiedAt": "2026-10-23T20:18:20.363Z",
+    "bodies": [
+      {
+        "pathname": "/",
+        "status": 200,
+        "sha256": "1febf94c6b2983904e99a8dba1ef1f12b31180eecc2406d324f14eeecca982e8",
+        "matchesPackage": true
+      },
+      {
+        "pathname": "/gifts/the-dockfather-dangerously-funny",
+        "status": 200,
+        "sha256": "5dbb0931f30930573503f4fa6f289bf9899e44d1fb522014cf763414db5143c8",
+        "matchesPackage": true
+      },
+      {
+        "pathname": "/privacy",
+        "status": 200,
+        "sha256": "3ba3997339b0f277e8bf00b2872b9483dbdc1d3a8345af2ccecf427b2f0a5b05",
+        "matchesPackage": true
+      }
+    ],
+    "sitemap": {
+      "status": 200,
+      "generatedByWorker": true,
+      "canonicalUrls": 184,
+      "retiredIndexOrBundles": 0,
+      "sha256": "aa257cffa41cf2021324ef991be66320249f1cf269af0ccab7a25440c28fd2be"
+    }
+  },
+  "qa": {
+    "desktopWidth": 1280,
+    "mobileWidth": 390,
+    "mobileHeight": 844,
+    "initialCards": 24,
+    "loadMoreCards": 48,
+    "uniqueCardsAfterLoadMore": 48,
+    "debounceWorks": true,
+    "query": "dad who loves grilling",
+    "relevantFirstResult": "Barbecue Grill Spatula (Best Flippin' Dad)",
+    "resultCount": 36,
+    "unrelatedBrowseHidden": true,
+    "clearAndHistory": true,
+    "emptyStateNoBrowse": true,
+    "mobileCatSearch": true,
+    "horizontalOverflow": false,
+    "brokenLoadedPhotos": 0,
+    "actualChangedProductRendered": true,
+    "affiliateTag": "goose-gifts-37-20",
+    "personalNameOnCheckedProduct": false,
+    "campaignMedium": "qa",
+    "campaign": "qa_catalog_simplification_20261023"
+  },
+  "validation": {
+    "node": "22.23.1",
+    "mainSuite": {
+      "pass": 1152,
+      "fail": 0,
+      "skip": 18
+    },
+    "durableSuite": {
+      "pass": 8,
+      "fail": 0,
+      "skip": 0
+    },
+    "additionalTests": 22,
+    "canonicalOperatorTests": 7,
+    "strictTypes": true,
+    "lintErrors": 0,
+    "preExistingLintWarnings": 25,
+    "fullAuditFindings": 0,
+    "productionAuditFindings": 0,
+    "syntheticBuildVerified": {
+      "assets": 393,
+      "guardedRoutes": 372
+    }
+  },
+  "remaining": {
+    "semanticParityBead": "roadmap-lbbz1.4.7",
+    "semanticServingEnabled": false,
+    "bulkAiRewriteEnabled": false
+  },
+  "capacity": {"observedAt":"2026-10-23T20:19:26.301Z","utcDay":"2026-10-23","rowsRead":4011840,"rowsWritten":50072,"unknownReadReserve":500000,"unknownWriteReserve":5000,"untouchedReads":300000,"untouchedWrites":10000},
+  "catalogCounts": {"identities":3383,"public":2359,"intentionalHolds":1024,"substantiveArticles":42,"indexableProducts":42},
+  "independentFirstProbe": {"metricsUnreported":true,"retainedReadCeiling":2000,"sqlWrites":0,"reason":"Verifier route-classification error only; original diagnostic and bounded uncertainty retained."},
+  "scheduler": {
+    "id": "goose-gifts-daily-ops",
+    "writerInstructionsUpdated": true,
+    "kind": "heartbeat",
+    "status": "ACTIVE",
+    "dailyPacificTime": "08:30",
+    "idPreserved": true,
+    "targetThreadPreserved": true,
+    "additionalJobCreated": false,
+    "updatedAt": "2026-10-23T20:21:14.609Z",
+    "promptSha256": "7a87ed6e76c00f5c61abdcbcc3bc38b81ef92a8059d388614bf209f8524d2779",
+    "operatorCheckout": "/Users/cameronehrlich/.codex/worktrees/stupid-catalog-care/goose.gifts",
+    "operatorPinsCleanCurrentHead": true,
+    "operatorRuntimeEquivalentToAcceptedSource": true,
+    "todayPreparation": {"state":"skipped","reason":"daily_already_reserved"}
+  }
+}

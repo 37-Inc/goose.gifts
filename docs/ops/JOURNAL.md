@@ -40,6 +40,115 @@ Canonical/catalog pins untouched. Final review still false/not due until exact
 Leave the same ACTIVE metric-only cadence unchanged and posting off even after
 review until explicit owner approval. Routine unchanged results need no alert.
 
+## 2026-10-23 — Simplification release and real one-product validation accepted
+
+PR269 merged4355de8; reviewed runtimef731dd58 is live on Cloudflare Free as
+`recorded-canary-20261023-f731dd58`. Version
+`b2c6f47c-67bd-4338-a39d-f8e4cab930af`, deployment
+`7c00837f-37c0-411a-931b-542aa62287fc`; D1 receipt
+`203e482e0a2e16886955c6a2abc502cb6b73c0a0caf7c10f6b5bba0e1d885800`.
+Actual build is resolved; owner idle generation15/epoch425/external_pending0.
+All3383 identities,2359 public gifts,1024 intentional holds and42 original
+articles remain. Full local snapshot comparison preserves every original image,
+description and article. No extra Amazon/model request, paid upgrade, Vercel,
+social or Slack action. The one real update reused0736991379's original
+16:40:20.383000Z observation; today's original ten-product reservation remains.
+
+The full test gate passes1152 main tests plus8 durable-publication tests, zero
+failures/18 standard optional skips;22 additional tests, both strict types,
+lint0errors/25 old warnings, explicit build/verifier and both zero-finding audits
+pass. The new retained operator separately passes7 operator/security tests.
+Live1280px/390px QA verifies24→48 unique browse cards,400ms search without Submit,
+relevant grilling/cat matches, results-only/empty states, Clear/Back, no horizontal
+overflow or broken loaded photos, actual changed-product rendering and the
+`goose-gifts-37-20` retailer tag. Homepage/product/privacy body hashes match the
+package; the Worker-generated sitemap has184 canonical URLs and no retired Index
+or bundles. QA is tagged, not acquisition traffic. Semantic parity remains
+separate in roadmap-lbbz1.4.7; the current keyword path has no D1 query writes/reads.
+
+Normal final ledger3770HTTP/7648SQL/1,431,936reads/14,217writes/0unknown is retained,
+including the undispatched fixture-output waits; no counter or charge reset.
+Original one-off assertion counted telemetry as another product mutation; an
+exact same-owner/epoch/receipt reconciliation completed its checkpoint without
+replaying the write. Synthetic build outputs were preserved outside the operator
+before registered publication. One post-publication verifier misclassified privacy
+and dynamic sitemap; corrected readback, not production changes, verified them.
+Independent control readback cost3HTTP/5SQL/4reads/0writes; the initial unreported
+probe retains its separate2000-read upper bound. Fresh account totals at20:19:26Z
+are4,011,840/5M reads and50,072/100k writes. This day's migration/testing can trigger
+the80% notice, but stays within Free and all reserves. Current three credential
+references are readable; future locking/logout is still a real access condition.
+
+The existing `goose-gifts-daily-ops` task was updated in place at20:21:14Z:
+same ACTIVE heartbeat,0830Pacific schedule and target chat; no new job. Saved
+prompt SHA7a87ed6e76c00f5c61abdcbcc3bc38b81ef92a8059d388614bf209f8524d2779
+was independently read back with enabled writer, retained operator and limits.
+The clean care checkout's normal prepare correctly returns `daily_already_reserved`
+today, without a new fetch; the next scheduled normal batch is October24.
+Routine logs belong in protected care receipts, not daily source-changing commits.
+Historical f731 canary inputs/sources and older rollback remain retained; never
+replay completed migrations/recoveries. No blanket catalog rewrite is enabled.
+
+## 2026-10-23 — Simplify routine care and restore product-led browsing
+
+Owner requested removal of unnecessary migration rules, homepage/search
+regression repair, preservation of the full catalog and Free-only operation.
+Work is isolated on `codex/stupid-catalog-simplify-20261023`, based on PR268.
+No retained historical operator or shared checkout was changed.
+
+- The first actual daily attempt on merged PR267 fetched ten products, then
+  failed `maintenance_delete_review_required` before any product operation.
+  Accounted diagnostics proved zero product/native changes; normal owner release
+  verified idle generation12/epoch419. The failed ledger remains112HTTP/150SQL/
+  34,072 known reads/68 writes/zero unknowns. Its reservation and failed telemetry
+  are retained. The owner did NOT grant an additional fetch. All ten actual UUIDs
+  were independently absent from Vectorize.
+- Fixed the cause rather than adding a review-label workaround: only positive
+  native presence or an actual embedding binding can queue deletion work.
+  Public display/unknown historical presence is not evidence of a vector.
+  Known unbound-vector deletion still retains its explicit review boundary;
+  expiry alone never removes a product or native entry. New regressions cover
+  changed absent/unknown legacy rows without a review string or index mutation.
+- Restored build-time quality/diversity ranking after the reviewed opening
+  cohort. All public feed identities are retained, including weaker products
+  and variants farther down. Eight factual card labels and less repetitive card
+  copy let the objects carry the joke; full original descriptions stay in the
+  catalog and product pages. Desktop1280 and mobile390 visual checks passed on
+  the actual restored2359-product snapshot.
+- Search is above the gifts, debounced400ms, cancellable, clearable and hides
+  unrelated browse results. Shared meaningful-term/prefix matching improves
+  conversational queries. The published all-cleared catalog is indexed once
+  in Worker memory, with no D1 query/diagnostic calls on this keyword path.
+  Existing explicit GA4/PostHog events remain. Finite/mixed catalogs retain the
+  existing database/expiry adapter. Semantic search is deliberately NOT enabled
+  against the eight-vector launch index or misrepresented as complete parity.
+- Replaced private per-source routine helper copies with tracked
+  `scripts/catalog/daily-operator.mjs` / `catalog:care`. It pins its own clean
+  source and daily inputs automatically, uses the existing workspace/lock and
+  reviewed provider references, and keeps the same ten/day/Monday/model-free
+  policies and finite Free profile. Removed the redundant SQL cohort selector
+  that forced ten alphabetically early legacy books ahead of the existing
+  featured/published freshness policy. No timer activation yet.
+- Archived the contradictory migration-era runbook, retaining its history;
+  the active runbook now explains only current operation and essential guards.
+- Fresh audit identified new Next advisories published October22. Updated
+  Next and its ESLint config to16.4.3, installed the locked dependencies in this
+  checkout only, and independently verified full and production audits both
+  zero. Four existing CSS/security regressions pass. The static public Worker
+  does not host the affected Next server endpoints. No Vercel deployment.
+- The first unbounded-parallel wider test run hit an authentic publication
+  timing failure under local CPU contention; it was stopped and is NOT a green
+  gate. Ordinary test concurrency is now bounded to two, without changing
+  production timeouts, deleting tests or weakening publication checks. Ranking-
+  sensitive retention fixtures now target actual shard members and preserve
+  their original revocation/expiry assertions. Fresh final validation and actual
+  publication/canary remain required before enabling the daily writer.
+
+The intended live canary reuses an already captured real observation rather
+than fetching again; it must preserve its original observation time, retain the
+old failure/charges, and prove one actual product update plus normal publication.
+Until that succeeds, existing restoration release685 remains the serving source.
+
 ## 2026-10-23 — Pinterest cutover and bounded measurement execution
 
 Direct owner instruction: finish the focused cutover PR, then resume the same

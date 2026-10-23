@@ -332,10 +332,12 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
       'availabilityStatus','editorialStatus','editorialQualityScore','editorialBlockReason','duplicateOfProductId']
       .every(key=>canonicalJson(product[key] ?? null)===canonicalJson(old.product[key] ?? null))
       && canonicalJson({...rights,persistent:null})===canonicalJson({...JSON.parse(String(old.row.rights_json)),persistent:null});
-    // Time passing alone cannot authorize vector deletion. Candidate eligibility
-    // remains strict; permanent display is never proof of a current native input.
+    // Only positive native evidence can require index work. A public listing or
+    // unknown historical presence is not a vector: ordinary refreshes must not
+    // queue speculative deletes (or require a deletion review) for those rows.
+    // Time passing alone still cannot authorize vector deletion.
     const needsDelete = !projection.semanticEligible && !unchanged
-      && Boolean(old && (old.present !== false || old.row.embedding_text_hash || old.row.public_display_json));
+      && Boolean(old && (old.present === true || old.row.embedding_text_hash));
     const operation = projection.semanticEligible ? 'upsert' : needsDelete ? 'delete' : null;
     if (operation) {
       let payload: Row; let deleteHash: string | null = null;

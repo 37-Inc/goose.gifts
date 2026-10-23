@@ -13,7 +13,7 @@ const require = createRequire(import.meta.url);
 function load(file, overrides = {}) {
   const source = fs.readFileSync(new URL(`../static-site/${file}`, import.meta.url), "utf8");
   const { outputText } = ts.transpileModule(source, { compilerOptions: {
-    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX,
+    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
   } });
   const commonJs = { exports: {} };
   vm.runInNewContext(outputText, { module: commonJs, exports: commonJs.exports, AbortController,
@@ -38,7 +38,7 @@ test("each published guide has an intentional, accessible line icon instead of a
 
 test("real gift cards have no repeated collection label or Unicode arrow; fixtures stay clearly labeled", () => {
   const { ProductCard } = load("components/ProductCard.tsx", {
-    "./CatalogPhotos": { CatalogCardArt: () => null, CatalogDisclosure: () => null },
+    "./CatalogPhotos": { CatalogCardArt: () => null, CatalogDisclosure: () => null, CatalogTitle: ({ fallback }) => fallback },
     "../lib/selection": { isIllustrative: () => false },
   });
   const product = { id: "owned-test", slug: "owned-test", source: "amazon", title: "Owned test gift",

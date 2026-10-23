@@ -67,6 +67,7 @@ function component(relative, config, fixture = false) {
     "../lib/catalog": { isFixtureRelease: fixture, photos: { indexPath: null, index: { products: {} } } },
     "../components/CatalogPhotos": { CatalogPhotos: ({ children }) => children },
     "../lib/site-editorial": { siteEditorialDisclosures: {} },
+    "../../content/homepage.json": { default: { cardTitles: {} } },
     "./CatalogPhotos": { CatalogImage: () => React.createElement("img", { alt: "Controlled fixture" }) },
     "../lib/metadata": { previewMetadata: () => ({}) },
     "../lib/show-data": { show: { latest: null } },

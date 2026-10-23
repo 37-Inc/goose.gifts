@@ -525,8 +525,9 @@ test('body-free published bulk seal survives old body expiry; empty/one/thirty c
       for(let index=11;index<11+changed;index++){
         await store.markCatalogDuplicate(`B${String(index).padStart(9,'0')}`,'B000000001','Synthetic explicit duplicate review');
         const event=f.sql.prepare("SELECT sequence FROM vector_sync_outbox WHERE source_revision='future-day' AND status='pending' ORDER BY sequence LIMIT 1").get();
-        for(let n=0;n<2;n++){const delivered=await deliverOwnedOutboxEvent({db:f.db,owner:cursor.current,sequence:event.sequence,catalogRevision:'future-day',adapters:f.adapters,loadPayload:e=>loadMaintenanceVectorPayload(f.db,e)});
-          cursor.current=delivered.owner;if(delivered.state==='complete')break;}
+        // These identities have no native entry (the original eight are left
+        // untouched). A genuine curation change must not fabricate a DELETE.
+        assert.equal(event,undefined);
         const product={...f.sql.prepare('SELECT * FROM products WHERE public_id=?').get(uuid(index))},operation=f.sql.prepare("SELECT * FROM catalog_maintenance_operations WHERE run_id='future-day' ORDER BY next_epoch DESC LIMIT 1").get();
         changes.push({publicId:uuid(index),operationId:operation.operation_id,inputSha256:operation.input_sha256,productSha256:sha256(canonicalJson(product)),displaySha256:sha256(product.public_display_json??'null')});}}
     await releaseMutationOwnership(f.db,cursor.current);
