@@ -5,7 +5,9 @@ import { ProductImage } from "@/components/ProductImage";
 import { PHOTO_PLACEHOLDER, photoVersion, validatePhotoIndex, validatePhotoShard } from "../lib/photo-shard";
 import { Icon } from "./Icon";
 
-const PhotoContext = createContext<{ indexPath: string | null; photoSlots: readonly string[]; editorialDisclosures: Readonly<Record<string, string>> }>({ indexPath: null, photoSlots: [], editorialDisclosures: {} });
+const PhotoContext = createContext<{ indexPath: string | null; photoSlots: readonly string[];
+  editorialDisclosures: Readonly<Record<string, string>>; cardTitles: Readonly<Record<string, string>>
+}>({ indexPath: null, photoSlots: [], editorialDisclosures: {}, cardTitles: {} });
 const pending = new Map<string, Promise<unknown>>();
 async function read(path: string, validate: (value: unknown) => unknown): Promise<unknown> {
   const existing = pending.get(path);
@@ -33,10 +35,16 @@ async function read(path: string, validate: (value: unknown) => unknown): Promis
   return request;
 }
 
-export function CatalogPhotos({ indexPath, photoSlots = [], editorialDisclosures = {}, children }: {
-  indexPath: string | null; photoSlots?: readonly string[]; editorialDisclosures?: Readonly<Record<string, string>>; children: React.ReactNode;
+export function CatalogPhotos({ indexPath, photoSlots = [], editorialDisclosures = {}, cardTitles = {}, children }: {
+  indexPath: string | null; photoSlots?: readonly string[]; editorialDisclosures?: Readonly<Record<string, string>>;
+  cardTitles?: Readonly<Record<string, string>>; children: React.ReactNode;
 }) {
-  return <PhotoContext.Provider value={{ indexPath, photoSlots, editorialDisclosures }}>{children}</PhotoContext.Provider>;
+  return <PhotoContext.Provider value={{ indexPath, photoSlots, editorialDisclosures, cardTitles }}>{children}</PhotoContext.Provider>;
+}
+
+export function CatalogTitle({ source, id, fallback }: { source: string; id: string; fallback: string }) {
+  const titles = useContext(PhotoContext).cardTitles;
+  return source === "amazon" && titles[id] || fallback;
 }
 
 /** Independently authored site copy; never changes the supplied catalog product. */

@@ -155,6 +155,7 @@ nav .nav-search {
   display: grid;
   grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
   gap: 28px;
+  margin-top: 28px;
 }
 .product-card {
   min-width: 0;
@@ -235,13 +236,11 @@ nav .nav-search {
   letter-spacing: 0.08em;
 }
 .search-section {
-  padding-top: 50px;
-  margin-top: 45px;
-  border-top: 1px solid var(--line);
+  scroll-margin-top: 20px;
 }
 .search-form {
   display: flex;
-  max-width: 850px;
+  max-width: none;
   gap: 12px;
   margin: 0 auto;
 }
@@ -277,6 +276,17 @@ nav .nav-search {
 .search-form button:hover,
 .button:hover {
   background: #46483d;
+}
+.search-form .clear-search {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+}
+.product-card h2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 .search-status {
   padding: 22px 0;
@@ -1029,8 +1039,8 @@ body:has(.presentation-main) > .preview-notice {
     font-size: 20px;
   }
   .search-section {
-    margin-top: 34px;
-    padding-top: 26px;
+    margin-top: 0;
+    padding-top: 0;
   }
   .search-form {
     gap: 8px;

@@ -5,6 +5,66 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 — Simplify routine care and restore product-led browsing
+
+Owner requested removal of unnecessary migration rules, homepage/search
+regression repair, preservation of the full catalog and Free-only operation.
+Work is isolated on `codex/stupid-catalog-simplify-20261023`, based on PR268.
+No retained historical operator or shared checkout was changed.
+
+- The first actual daily attempt on merged PR267 fetched ten products, then
+  failed `maintenance_delete_review_required` before any product operation.
+  Accounted diagnostics proved zero product/native changes; normal owner release
+  verified idle generation12/epoch419. The failed ledger remains112HTTP/150SQL/
+  34,072 known reads/68 writes/zero unknowns. Its reservation and failed telemetry
+  are retained. The owner did NOT grant an additional fetch. All ten actual UUIDs
+  were independently absent from Vectorize.
+- Fixed the cause rather than adding a review-label workaround: only positive
+  native presence or an actual embedding binding can queue deletion work.
+  Public display/unknown historical presence is not evidence of a vector.
+  Known unbound-vector deletion still retains its explicit review boundary;
+  expiry alone never removes a product or native entry. New regressions cover
+  changed absent/unknown legacy rows without a review string or index mutation.
+- Restored build-time quality/diversity ranking after the reviewed opening
+  cohort. All public feed identities are retained, including weaker products
+  and variants farther down. Eight factual card labels and less repetitive card
+  copy let the objects carry the joke; full original descriptions stay in the
+  catalog and product pages. Desktop1280 and mobile390 visual checks passed on
+  the actual restored2359-product snapshot.
+- Search is above the gifts, debounced400ms, cancellable, clearable and hides
+  unrelated browse results. Shared meaningful-term/prefix matching improves
+  conversational queries. The published all-cleared catalog is indexed once
+  in Worker memory, with no D1 query/diagnostic calls on this keyword path.
+  Existing explicit GA4/PostHog events remain. Finite/mixed catalogs retain the
+  existing database/expiry adapter. Semantic search is deliberately NOT enabled
+  against the eight-vector launch index or misrepresented as complete parity.
+- Replaced private per-source routine helper copies with tracked
+  `scripts/catalog/daily-operator.mjs` / `catalog:care`. It pins its own clean
+  source and daily inputs automatically, uses the existing workspace/lock and
+  reviewed provider references, and keeps the same ten/day/Monday/model-free
+  policies and finite Free profile. Removed the redundant SQL cohort selector
+  that forced ten alphabetically early legacy books ahead of the existing
+  featured/published freshness policy. No timer activation yet.
+- Archived the contradictory migration-era runbook, retaining its history;
+  the active runbook now explains only current operation and essential guards.
+- Fresh audit identified new Next advisories published October22. Updated
+  Next and its ESLint config to16.4.3, installed the locked dependencies in this
+  checkout only, and independently verified full and production audits both
+  zero. Four existing CSS/security regressions pass. The static public Worker
+  does not host the affected Next server endpoints. No Vercel deployment.
+- The first unbounded-parallel wider test run hit an authentic publication
+  timing failure under local CPU contention; it was stopped and is NOT a green
+  gate. Ordinary test concurrency is now bounded to two, without changing
+  production timeouts, deleting tests or weakening publication checks. Ranking-
+  sensitive retention fixtures now target actual shard members and preserve
+  their original revocation/expiry assertions. Fresh final validation and actual
+  publication/canary remain required before enabling the daily writer.
+
+The intended live canary reuses an already captured real observation rather
+than fetching again; it must preserve its original observation time, retain the
+old failure/charges, and prove one actual product update plus normal publication.
+Until that succeeds, existing restoration release685 remains the serving source.
+
 ## 2026-10-23 — Complete corrected full-suite gate is green
 
 Exact clean tested fix is `523252cec427b87987d6b32d36561dfd8ea3964f` in PR268

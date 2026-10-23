@@ -1,4 +1,4 @@
-import { CatalogCardArt, CatalogDisclosure } from "./CatalogPhotos";
+import { CatalogCardArt, CatalogDisclosure, CatalogTitle } from "./CatalogPhotos";
 import type { PublicCatalogProduct } from "../../lib/catalog/types";
 import type { CatalogCard } from "../lib/card-shard";
 import { isIllustrative } from "../lib/selection";
@@ -45,12 +45,10 @@ export function ProductCard({
         {illustrative && <p className="eyebrow">Illustrative fixture · not for sale</p>}
         <h2>
           <a data-analytics-product-link="" href={`/gifts/${product.slug}`}>
-            {product.punnyTitle || product.title}
+            <CatalogTitle source={product.source} id={product.id} fallback={product.title} />
           </a>
         </h2>
         {!illustrative && <CatalogDisclosure source={product.source} id={product.id} />}
-        {(product.wittyDescription || product.description) !== (product.punnyTitle || product.title) &&
-          <p>{product.wittyDescription || product.description}</p>}
         <a data-analytics-product-link="" className="text-action" href={`/gifts/${product.slug}`}>
           {illustrative ? "Explore the example" : "View gift"}
         </a>

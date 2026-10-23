@@ -6,11 +6,13 @@ import vm from "node:vm";
 import ts from "typescript";
 
 const require = createRequire(import.meta.url);
-function search(href, query = "desk") {
+function search(href, query = "desk", resultState) {
   const effects = [];
   const events = new Map();
   const pushed = [];
   const requests = [];
+  const timers = new Map();
+  let nextTimer = 0;
   let scrolls = 0;
   const source = fs.readFileSync(new URL("../static-site/components/Search.tsx", import.meta.url), "utf8");
   const { outputText } = ts.transpileModule(source, { compilerOptions: {
@@ -21,7 +23,7 @@ function search(href, query = "desk") {
     module: commonJs, exports: commonJs.exports, URL, URLSearchParams, AbortController, Event,
     require(name) {
       if (name === "react") return {
-        useState: (initial) => [typeof initial === "string" ? query : initial, () => {}],
+        useState: (initial) => [typeof initial === "string" ? query : resultState || initial, () => {}],
         useRef: (initial) => ({ current: initial }), useEffect: (effect) => effects.push(effect),
       };
       if (name === "./ProductCard") return { ProductCard: () => null };
@@ -33,14 +35,17 @@ function search(href, query = "desk") {
     document: { getElementById: () => ({ scrollIntoView() { scrolls++; } }) },
     window: {
       location: { href, search: new URL(href).search },
-      history: { pushState: (_state, _title, path) => pushed.push(path) },
+      setTimeout: (fn) => { timers.set(++nextTimer, fn); return nextTimer; },
+      clearTimeout: (id) => timers.delete(id),
+      history: { pushState: (_state, _title, path) => pushed.push(path),
+        replaceState: (_state, _title, path) => pushed.push(path) },
       dispatchEvent: () => {},
       addEventListener: (name, listener) => events.set(name, listener),
       removeEventListener: (name) => events.delete(name),
     },
   });
-  const view = commonJs.exports.Search();
-  return { view, effects, events, pushed, requests, scrolls: () => scrolls };
+  const view = commonJs.exports.Search({ children: "NORMAL BROWSE" });
+  return { view, effects, events, pushed, requests, timers, scrolls: () => scrolls };
 }
 
 test("bookmarked queries and history reveal search; short queries do not move the product-first homepage", async () => {
@@ -56,6 +61,27 @@ test("bookmarked queries and history reveal search; short queries do not move th
     if (query.length >= 2) assert.equal(ui.requests[0].signal.aborted, true);
     cleanup();
     assert.equal(ui.events.size, 0);
+  }
+});
+
+test("search-as-you-type debounces, submit cancels pending work, and clear returns to browse", () => {
+  const ui = search("https://example.invalid/", "mug");
+  const form = ui.view.props.children[0];
+  const [label, input, submit, clear] = form.props.children;
+  assert.equal(label.type, "label"); assert.equal(submit.type, "button");
+  input.props.onChange({ target: { value: "mu" } });
+  input.props.onChange({ target: { value: "mug" } });
+  assert.equal(ui.timers.size, 1); assert.equal(ui.pushed.length, 0);
+  form.props.onSubmit({ preventDefault() {} });
+  assert.equal(ui.timers.size, 0); assert.deepEqual(ui.pushed, ["/?q=mug"]);
+  clear.props.onClick();
+  assert.deepEqual(ui.pushed, ["/?q=mug", "/"]);
+});
+
+test("loading, results, empty, and error states never display an unrelated homepage feed", () => {
+  for (const status of ["idle", "loading", "ready", "unavailable"]) {
+    const ui = search("https://example.invalid/", "mug", { status, products: [] });
+    assert.equal(ui.view.props.children.includes("NORMAL BROWSE"), status === "idle");
   }
 });
 

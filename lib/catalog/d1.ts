@@ -3,6 +3,7 @@ import type { CatalogD1 } from './storage/d1.ts';
 import { validateCatalogSnapshot, validatePublicCatalogProduct } from './snapshot.ts';
 import { legacyMutationBatch } from './mutation-fence.ts';
 import { resolvePublicProduct, persistentPublicProduct } from './display.ts';
+import { catalogSearchTerms } from './search-terms.ts';
 
 type Row = Record<string, string | number | null>;
 export interface ProjectionReceipt extends Row {
@@ -249,13 +250,13 @@ export async function keywordSearchRevision(db: CatalogD1, query: string, limit:
   const normalized = query.normalize('NFKC').trim();
   if (!revision || !Number.isInteger(limit) || limit < 1 || limit > 240) throw new Error('Revision and 1..240 candidate limit required');
   if (normalized.length < 2 || normalized.length > 200) return [];
-  const words = normalized.match(/[\p{L}\p{N}]+/gu)?.slice(0, 20) || [];
+  const words = catalogSearchTerms(normalized);
   if (!words.length) return [];
   const result = await db.prepare(`SELECT ${LISTED_DISPLAY} public_display_json FROM catalog_public_products_fts
     CROSS JOIN catalog_public_products v ON v.rowid=catalog_public_products_fts.rowid ${JOIN}
     WHERE catalog_public_products_fts MATCH ? AND v.catalog_revision=? AND ${LISTED}
-    ORDER BY bm25(catalog_public_products_fts),v.public_id LIMIT ?`)
-    .bind(words.map((word) => `"${word}"`).join(' OR '), revision,
+    ORDER BY bm25(catalog_public_products_fts,4,1,2),v.public_id LIMIT ?`)
+    .bind(words.map((word) => `"${word}"*`).join(' OR '), revision,
       now.toISOString(),now.toISOString(),now.toISOString(),limit)
     .all<{ public_display_json: string }>();
   return publicRows(result.results, now);

@@ -4,6 +4,7 @@ import type { ProductSearchResult } from '../../lib/types.ts';
 import { isCatalogDisplayEligibleProduct, suppressNearDuplicateProducts } from '../../lib/db/product-scoring.ts';
 import type { SearchAdapters, SemanticBudgetScope, SiteEnv } from './bindings.ts';
 import { semanticBudgetConfig, semanticTokenUpperBound } from './semantic-budget.ts';
+import { catalogSearchTerms } from '../../lib/catalog/search-terms.ts';
 
 export const EMBEDDING_MODEL = 'text-embedding-3-small';
 export const EMBEDDING_DIMENSIONS = 1536;
@@ -71,7 +72,11 @@ function keywordSimilarity(product: PublicCatalogProduct, query: string): number
   if (product.title.toLowerCase().includes(needle)) return 0.74;
   if (product.wittyDescription?.toLowerCase().includes(needle)) return 0.68;
   if (product.humorTags?.join(' ').toLowerCase().includes(needle)) return 0.62;
-  return 0.48;
+  const terms = catalogSearchTerms(query);
+  const coverage = (text: string) => terms.filter(term => text.toLowerCase().includes(term)).length / Math.max(1, terms.length);
+  return 0.48 + coverage(product.title) * 0.28
+    + coverage(product.humorTags?.join(' ') || '') * 0.1
+    + coverage(product.description) * 0.06;
 }
 
 function select(candidates: SearchResult[], limit: number, now: number,semanticDeadlines?:ReadonlyMap<string,number>): SearchResult[] {
@@ -183,7 +188,8 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
         const keywords = products.slice(0, candidateLimit - vectorCount)
           .filter((product) => !semanticIds.has(product.id))
           .map((product) => result(product, keywordSimilarity(product, query), 'keyword'))
-          .sort((a, b) => b.rankScore - a.rankScore || a.id.localeCompare(b.id));
+          // Stable ties retain the indexed full-text relevance order.
+          .sort((a, b) => b.rankScore - a.rankScore);
         results = select([...results, ...keywords], limit, now(),semanticDeadlines);
       }
       // Recheck deadlines after all I/O, and cap cache at the earliest result expiry.

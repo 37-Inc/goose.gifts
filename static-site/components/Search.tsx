@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import type { PublicCatalogProduct } from "../../lib/catalog/types";
 import { ProductCard } from "./ProductCard";
 import { captureRenderedLists, captureStaticSearch } from "../lib/analytics";
@@ -12,7 +13,7 @@ type SearchState = {
   products: PublicCatalogProduct[];
 };
 
-export function Search() {
+export function Search({ children }: { children?: ReactNode } = {}) {
   const [query, setQuery] = useState("");
   const [state, setState] = useState<SearchState>({
     status: "idle",
@@ -20,10 +21,31 @@ export function Search() {
   });
   const controller = useRef<AbortController | null>(null);
   const sequence = useRef(0);
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function navigate(value: string, replace = false) {
+    if (debounce.current !== null) window.clearTimeout(debounce.current);
+    debounce.current = null;
+    const q = value.trim().slice(0, 200);
+    const url = new URL(window.location.href);
+    url.pathname = "/";
+    if (q.length >= 2) url.searchParams.set("q", q);
+    else url.searchParams.delete("q");
+    window.history[replace ? "replaceState" : "pushState"](null, "", `${url.pathname}${url.search}`);
+    if (q.length < 2) {
+      controller.current?.abort();
+      sequence.current++;
+      setState({ status: "idle", products: [] });
+      return;
+    }
+    window.dispatchEvent(new Event("catalog-search"));
+  }
 
   useEffect(() => {
     let active = true;
     const search = async () => {
+      if (debounce.current !== null) window.clearTimeout(debounce.current);
+      debounce.current = null;
       const q = (new URLSearchParams(window.location.search).get("q") || "")
         .trim()
         .slice(0, 200);
@@ -76,6 +98,7 @@ export function Search() {
     return () => {
       active = false;
       controller.current?.abort();
+      if (debounce.current !== null) window.clearTimeout(debounce.current);
       window.removeEventListener("popstate", search);
       window.removeEventListener("catalog-search", search);
     };
@@ -115,15 +138,7 @@ export function Search() {
         method="get"
         onSubmit={(event) => {
           event.preventDefault();
-          const q = query.trim().slice(0, 200);
-          const url = new URL(window.location.href);
-          // Safe content can also be served at an expired product/guide URL.
-          // Search bookmarks always belong to the maintained root route.
-          url.pathname = "/";
-          if (q) url.searchParams.set("q", q);
-          else url.searchParams.delete("q");
-          window.history.pushState(null, "", `${url.pathname}${url.search}`);
-          window.dispatchEvent(new Event("catalog-search"));
+          navigate(query);
         }}
       >
         <label className="sr-only" htmlFor="gift-query">
@@ -133,15 +148,24 @@ export function Search() {
           id="gift-query"
           name="q"
           type="search"
-          placeholder="Search gifts"
+          placeholder="Find something stupid"
           value={query}
           minLength={2}
           maxLength={200}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            const value = event.target.value;
+            setQuery(value);
+            controller.current?.abort();
+            sequence.current++;
+            if (debounce.current !== null) window.clearTimeout(debounce.current);
+            debounce.current = window.setTimeout(() => navigate(value, true), 400);
+          }}
         />
         <button type="submit">
           Search
         </button>
+        {hasQuery && <button type="button" className="clear-search"
+          onClick={() => { setQuery(""); navigate(""); }}>Clear</button>}
       </form>
       <div role="status" aria-live="polite">
         {state.status === "loading" && (
@@ -171,6 +195,7 @@ export function Search() {
           ))}
         </div>
       )}
+      {state.status === "idle" && children}
     </section>
   );
 }

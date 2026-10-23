@@ -101,10 +101,12 @@ test("retention deadline survives release chains and drops at the original bound
 });
 test("held, changed or retired products never survive in historical shard bytes", () => {
   const prior = release(snapshot());
+  const target = prior.browse.shards[0].payload.products[3].id;
+  const position = s => s.products.findIndex(p => p.id === target);
   for (const mutate of [
-    (s) => s.products.splice(INITIAL_BROWSE_COUNT + 3, 1),
-    (s) => { s.products[INITIAL_BROWSE_COUNT + 3].title = "New approved display copy"; },
-    (s) => { const p = s.products.splice(INITIAL_BROWSE_COUNT + 3, 1)[0]; s.heldProducts.push({ id: p.id, publicId: p.publicId,
+    (s) => s.products.splice(position(s), 1),
+    (s) => { s.products[position(s)].title = "New approved display copy"; },
+    (s) => { const p = s.products.splice(position(s), 1)[0]; s.heldProducts.push({ id: p.id, publicId: p.publicId,
       slug: p.slug, path: `/gifts/${p.slug}`, title: "Gift currently unavailable",
       description: "This gift is not currently available in the curated catalog. Browse other gifts instead.", reason: "editorial_hold" }); },
   ]) {
@@ -120,11 +122,12 @@ test("held, changed or retired products never survive in historical shard bytes"
   }
 });
 test("original and current rights cap overlap; expiry never copies stale merchant bytes", () => {
-  const old = snapshot(); old.products[INITIAL_BROWSE_COUNT + 3].eligibleUntil = iso(3);
+  const old = snapshot(), target = createBrowseRelease(old).shards[0].payload.products[3].id;
+  old.products.find(p => p.id === target).eligibleUntil = iso(3);
   const prior = release(old);
   const renewed = run(prior);
   assert.equal(renewed.routes[prior.browse.shards[0].path].eligibleUntil, iso(3));
-  const shortened = snapshot("two"); shortened.products[INITIAL_BROWSE_COUNT + 3].eligibleUntil = iso(1);
+  const shortened = snapshot("two"); shortened.products.find(p => p.id === target).eligibleUntil = iso(1);
   assert.equal(run(prior, shortened).routes[prior.browse.shards[0].path].eligibleUntil, iso(1));
   const expired = run(prior, snapshot("two", iso(4)), iso(5));
   assert.equal(expired.files.has(prior.browse.shards[0].path), false);

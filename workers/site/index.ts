@@ -3,6 +3,7 @@ import { catalogDeadline, persistentPublicProduct, resolvePublicProduct } from '
 import type { SearchAdapters, SemanticBudgetScope, SiteEnv } from './bindings.ts';
 import { prepareStaticFeed } from './feed.ts';
 import { createSearchHandler, json, sha256 } from './search.ts';
+import { snapshotKeywordSearch } from './snapshot-search.ts';
 
 export type { SiteEnv, SearchAdapters, SearchStorage, SemanticBudgetScope } from './bindings.ts';
 export interface SiteReleaseIdentity {
@@ -149,8 +150,15 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
     || options.canonicalOrigin === 'https://www.goose.gifts' ? options.canonicalOrigin : undefined;
   const productionHost = productionOrigin ? new URL(productionOrigin).hostname : undefined;
   const productionAlias = productionHost?.startsWith('www.') ? productionHost.slice(4) : productionHost ? `www.${productionHost}` : undefined;
-  const search = options.searchAdapters ? createSearchHandler({
-    catalogRevision: manifest.catalogRevision, adapters: options.searchAdapters, now, semanticBudgetScope: options.semanticBudgetScope,
+  const localKeyword = snapshotKeywordSearch(snapshot);
+  const adapters = options.searchAdapters;
+  const search = adapters ? createSearchHandler({
+    catalogRevision: manifest.catalogRevision, adapters: localKeyword ? {
+      ...adapters, storage: env => ({ ...adapters.storage(env), keyword: localKeyword }),
+      // Explicit GA4/PostHog search events already cover the public interaction.
+      // Do not write a redundant D1 diagnostic for immutable keyword results.
+      diagnostic: undefined,
+    } : adapters, now, semanticBudgetScope: options.semanticBudgetScope,
   }) : undefined;
 
   function finish(response: Response, env: Env, request: Request): Response {
