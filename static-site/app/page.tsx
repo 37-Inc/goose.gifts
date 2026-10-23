@@ -22,12 +22,12 @@ export default function Home() {
           Stupid gifts. <span>Excellent taste.</span>
         </h1>
       </div>
+      <Search>
       <div className="opening-grid">
         {browse.opening.map((product, index) => (
           <ProductCard key={product.id} product={product} lead={index === 0} context="home_opening" />
         ))}
       </div>
-      <Search />
       <CatalogFeed
         initial={browse.feed.initial}
         next={browse.feed.next}
@@ -53,6 +53,7 @@ export default function Home() {
           </a>
         </div>
       </section>
+      </Search>
     </main>
   );
 }

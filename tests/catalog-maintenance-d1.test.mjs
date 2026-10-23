@@ -572,6 +572,24 @@ test('invalid proofs/naive new editorial times/missing delete review or editoria
   try {await assert.rejects(g.store.upsertProduct(p,hash),/embedding_proof/);assert.equal(g.epoch(),0);}finally{g.close();}
 });
 
+test('ordinary changed legacy listings need no deletion review when native presence is absent or unknown',async () => {
+  for (const knownAbsent of [true, false]) {
+    const p=rawProduct(1,{sourceFacts:{fixture:'old'},editorialStatus:'pending',editorialWriteup:null});
+    const f=await setup({products:[p],presence:knownAbsent?{[uuid(1)]:false}:{},intent:()=>({})});
+    try {
+      const before=f.row(1).source_record_json;
+      // Public display is NOT evidence that a native vector exists.
+      f.sqlite.prepare('UPDATE products SET public_display_json=? WHERE id=?').run('{}',p.id);
+      const fresh=input(1,{title:'Changed fixture title',sourceFacts:{fixture:'fresh'},editorialStatus:'pending',editorialWriteup:null});
+      await f.store.upsertProduct(fresh,editorialSourceHash(fresh));
+      assert.equal(f.state(1).product.title,fresh.title);
+      assert.equal(f.row(1).source_record_json,before);
+      assert.deepEqual(f.events(),[]);
+      assert.equal(f.sqlite.prepare('SELECT count(*) n FROM vector_delete_mutations').get().n,0);
+    } finally { f.close(); }
+  }
+});
+
 test('private text-array decoding preserves native NULL/empty/quotes/backslashes instead of coercing absence',() => {
   assert.equal(maintenanceTextArray(null),null);assert.deepEqual(maintenanceTextArray('{}'),[]);
   assert.deepEqual(maintenanceTextArray('{NULL,"NULL","","comma,tag","quote\\\"tag","slash\\\\tag"}'),[null,'NULL','','comma,tag','quote"tag','slash\\tag']);

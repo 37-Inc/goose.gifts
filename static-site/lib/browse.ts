@@ -1,14 +1,36 @@
 import { createHash } from "node:crypto";
 import type { CatalogSnapshot } from "../../lib/catalog/types";
 import { readySnapshotProducts, RANDOM_POOL_LIMIT } from "./selection";
+import { isCatalogDisplayEligibleProduct, limitProductTypeDiversity,
+  scoreProductForFeed, suppressNearDuplicateProducts } from "../../lib/db/product-scoring";
+import homepage from "../../content/homepage.json";
 import { projectCard } from "./card-shard";
 import type { CardShard } from "./card-shard";
 import { earliestCatalogExpiry } from "../../lib/catalog/display";
 
 export const INITIAL_BROWSE_COUNT = 24;
 export const FEED_SHARD_SIZE = 24;
+
+/** Build-only ranking. Curate the first batch without dropping any gifts;
+ * weaker matches/variants remain in subsequent static batches. */
+export function rankedBrowseProducts(snapshot: CatalogSnapshot) {
+  const seed = snapshot.generatedAt.slice(0, 10);
+  const ranked = readySnapshotProducts(snapshot).map(product => ({ product,
+    fit: isCatalogDisplayEligibleProduct(product, { asOf: new Date(snapshot.generatedAt) }),
+    score: scoreProductForFeed(product, seed),
+  })).sort((a, b) => Number(b.fit) - Number(a.fit) || b.score - a.score
+    || a.product.id.localeCompare(b.product.id));
+  const featured = homepage.featuredIds.flatMap(id => ranked.find(p => p.product.id === id)?.product || []);
+  const featuredIds = new Set(featured.map(p => p.id));
+  const opening = [...featured, ...limitProductTypeDiversity(
+    suppressNearDuplicateProducts(ranked.filter(p => p.fit && !featuredIds.has(p.product.id)).map(p => p.product), 96),
+    INITIAL_BROWSE_COUNT - featured.length, 2)];
+  const selected = new Set(opening.map(p => p.id));
+  return [...opening, ...ranked.filter(p => !selected.has(p.product.id)).map(p => p.product)];
+}
+
 export function createBrowseRelease(snapshot: CatalogSnapshot) {
-  const cards = readySnapshotProducts(snapshot).map(projectCard);
+  const cards = rankedBrowseProducts(snapshot).map(projectCard);
   const version = createHash("sha256")
     .update(
       JSON.stringify({

@@ -14,6 +14,7 @@ const hasProductRoutes = snapshot.products.length > 0;
 
 // Deliberately separate from the still-live Vercel app and its build settings.
 const config: NextConfig = {
+  agentRules: false,
   output: "export",
   images: { unoptimized: true },
   poweredByHeader: false,

@@ -32,6 +32,12 @@ context: **what we've done, and where we're going.**
 
 ## Upcoming / planned
 
+- [owner+codex, 2026-10-23] Simplification is in review: no speculative native
+  deletes for ordinary legacy refreshes; tracked daily operator; shorter active
+  runbook; product-led homepage and database-free cleared-catalog keyword search.
+  Full catalog retained. Next16.4.3 audits clean. Live canary/publication and
+  existing-task activation are still pending; no extra merchant fetch approved.
+
 - [owner+codex, 2026-10-23] The complete authentic offline recurring flow is
   implemented at `fb4fff2`/`89dffd6` on the same readiness branch: full inventory,
   native history/current deltas, runner, real build/verifier/protected upload,
