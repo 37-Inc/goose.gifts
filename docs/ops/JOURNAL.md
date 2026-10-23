@@ -5,6 +5,75 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 UTC — Offline recurring readiness reconciled; no live execution
+
+Local branch `codex/stupid-daily-readiness-offline-20261022`, implementation
+`35ae309c112a40a9a31cdf2470f6166ad6900eda`, starts at the audited PR266 head
+`deb5cbc`. No remote fetch, provider/merchant/model call, credential read,
+upload, activation, scheduling change, allowance or paid upgrade occurred in
+this pass. The accepted restoration below is unchanged; its goal and
+`roadmap-lbbz1.3.2` remain complete. Old Neon writers stay off and Pinterest paused.
+
+Reconciled earlier unmerged8b1a205/4b0920e/5d322fb fixes against the released
+PR265 control evolution:30 approved changes (not a widened20-native proof
+batch), local budget-failure attention without an extra diagnostic read, and
+append-only body-free successful-publication evidence plus registered cleanup.
+The explicit completion observer needs a separately admitted oneHTTP/threeSQL
+actual receipt/resolved-build/idle read. It provides no allowance or replay
+right; no historical live workspace was reopened or resealed. Terminal success
+pins the entire original ledger/journal and recovery-bound inventory; drift,
+unknown files or late charges refuse, and expiry cleanup preserves controls,
+locks/metadata and historical unknowns. Added its tests to the normal scripts.
+
+The ordinary permanent executor now performs full source/projection CAS outside
+the short native/provider resolver for all permanent releases. Receipt readback
+retains checks before/after its observation; final resolution freshly checks
+all rows under the same original activating owner before its timed native-only
+observation. No cross-invocation proof caching or deadline/owner changes. The
+actual executor3383-identity fixture passes:196 full-check queries outside the
+short window, four native readbacks/25SQL inside, exact signed-zero bytes and
+normal receipt/resolved-build/idle completion. Source/held/projection/prior/
+native/owner negative cases all remain fenced. These are synthetic local
+SQLite/REST fixtures, not actual D1 billing or a routine provider canary.
+
+The full2359 daily fixture reaches its unchanged guard at545HTTP/1174SQL,
+210 new projection rows,10 changed products, zero unknowns and no build/upload/
+activation. The real Amazon client adds one auth + one product HTTP request,
+zero model HTTP:547 observed requests total. The Monday fixture makes one auth
+and seven API requests and22 model HTTP requests before refusing at675CF-HTTP/
+1200SQL:705 observed requests,25 actually persisted changes, zero projection/
+build/upload/activation/unknowns. All original2359 permanent bases and1024
+curation holds remain exact; optional refreshed overlays never replace the
+persistent base. Six themes offer20 eligible discoveries, but the failed run
+must NOT be called a completed10+20 run. Single401 refresh is independently
+tested with two auth/two API attempts and no second reserved phase. Retry
+charges are never refunded or replayed. Model/merchant counters are separate
+from the CF workspace ledger. Returned rows/SQLite writes are not billed D1
+scans/index writes; mock compilation/upload transport is expressly unmeasured.
+
+Validation:261/261 driver/permanent/executor sweep passed before final transport
+fixture edits; the changed full daily/Monday,3383 resolver, six drift and401
+fixtures were then independently rerun. `test:catalog-ops`:118pass/one explicit
+PG17-image-unavailable skip (no image pull);89 accounting/read/workspace tests
+and14 actual self-sandboxed upload/asset-retry tests pass. Main/staging/Worker
+types pass; lint has zero errors/25 existing warnings. Source-pinned synthetic
+`npm run build` and release verification pass at35ae309:three fixture products,
+393 assets/372 guarded routes, no deploy. Initial harness refusals are retained:
+six local-Postgres tests needed Unix-socket permission while external networking
+stayed denied; four nested Seatbelt child tests pass when run under their own
+exact-port sandbox. An initial assertion incorrectly required an optional
+overlay's top-level deadline to be null; the corrected stronger assertion
+compares every permanent-base field with the original snapshot. No production
+behavior was changed to satisfy those harness/assertion corrections.
+
+Remaining `.4.3.1` gates: bounded complete routine work (ordinary800/1200 still
+refuses), authentic permanent predecessor/successor/native maintenance wiring,
+whole packaging/upload transport accounting, reviewed integration and a later
+separately admitted fresh-account/Pacific-day live canary. Keep the writer gated
+and all historical charges/rollback intact. No owner credential action is
+needed for further offline engineering. This branch is local/unpushed; offline
+Beads notes are not a remote synchronization or a release.
+
 ## 2026-10-23 UTC — Existing images/descriptions live, receipt finalized, catalog acceptance complete
 
 Cameron's confirmed existing-dataset presentation is restored faithfully:2,359

@@ -21,6 +21,14 @@ context: **what we've done, and where we're going.**
 
 ## Upcoming / planned
 
+- [owner+codex, 2026-10-23] Offline publisher/cleanup follow-up is implemented
+  locally at `35ae309`:full-catalog checks now sit outside the short native
+  resolver; terminal success/registered expiry cleanup and real merchant
+  transport counting are tested. It is not merged or deployed. The ordinary
+  full daily/Monday run still exceeds800HTTP/1200SQL, so finish bounded routine
+  capacity/permanent-successor acceptance before a separately admitted canary.
+  No schedule, credential, provider allowance or live catalog changed.
+
 - [owner+codex] Faithful presentation restoration is complete and verified on
   `existing-restore-6856584cbd6a`:2,359 original public photos/descriptions,
   3,383 identities/1,024 holds and42 substantive articles. Actual receipt,
