@@ -22,11 +22,13 @@ context: **what we've done, and where we're going.**
 ## Upcoming / planned
 
 - [owner+codex, 2026-10-23] Offline publisher/cleanup follow-up is implemented
-  locally at `35ae309`:full-catalog checks now sit outside the short native
-  resolver; terminal success/registered expiry cleanup and real merchant
-  transport counting are tested. It is not merged or deployed. The ordinary
-  full daily/Monday run still exceeds800HTTP/1200SQL, so finish bounded routine
-  capacity/permanent-successor acceptance before a separately admitted canary.
+  locally at `35ae309`/`89e620a`:full-catalog checks sit outside the short native
+  resolver and terminal success/cleanup is tested. Successful full generic-prior
+  daily/Monday flows now include real build/upload/retry accounting:
+  1196HTTP/4712SQL and1843HTTP/5874SQL. A finite3000/12000 candidate fits those
+  measurements;800/1200 is an internal guard, not a new approval requirement.
+  Next finish the genuine permanent/private-inventory/native successor chain
+  and actual row/headroom acceptance before the live canary. Unmerged/unpublished.
   No schedule, credential, provider allowance or live catalog changed.
 
 - [owner+codex] Faithful presentation restoration is complete and verified on

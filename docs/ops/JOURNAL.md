@@ -5,6 +5,89 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 UTC — Successful complete offline workloads measured; native successor wiring remains
+
+Continued the SAME local branch, implementation
+`89e620a86e11a4a00de1bbc4ea9dbe2afaf1da64`. No live provider/merchant/model call,
+credential read, live gate/config/schedule change, paid upgrade, remote fetch,
+push/PR/merge/deploy, real catalog write or restoration replay. Old Neon stays
+off, Pinterest paused and the accepted public catalog unchanged by this work.
+
+Authority correction:800HTTP/1200SQL and the10k-write default are INTERNAL
+guards, not provider Free allowances or a reason to ask for permission again.
+The owner already authorized lifting our request cap and new-site daily care
+on October21. Defaults remain unchanged. Explicit immutable config may now
+select a complete read/write pair, at most2M reported reads/50k reported writes,
+below the recorded account-wide Free5M/100k allowances. No live profile was
+changed; shared headroom is not implied and the consumed600k grant is unrelated.
+
+The driver now owns the protected uploader even when injecting a raw test
+command/transport, using the SAME ledger as D1/Vectorize/identity. Already
+accounted senders/uploaders from another ledger are rejected before workspace
+adoption. Real build, verifier, Worker bundling and Wrangler asset/version
+upload replace the old mock command in the explicit capacity cases. Children
+have outbound denial (upload permits only the exact local bridge); all vendor
+responses are local synthetic data, with no usable credentials.
+
+| Successful generic-prior flow | CF/verification HTTP | D1 HTTP | SQL | Merchant HTTP | Model HTTP |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Daily10 /2359 public+1024 held | 1196 | 1130 | 4712 | 4 | 0 |
+| Monday10+20 /same full prior | 1843 | 1769 | 5874 | 10 | 23 |
+
+Both reach FINALIZED, one build/upload/activation, an actual local SQLite
+publication receipt and resolved build, final idle scope and zero unknowns.
+All2359 original public IDs and1024 held rows survive exactly; Monday publishes
+all20 newly admitted identities. Resume does not repeat paid phases or publish.
+Both include one401 refresh, one asset503 and one version503; Monday also
+includes one model503. Daily is model-free; Monday has16 successful chat +six
+embedding calls and one retry. Every one of37 actual upload HTTP attempts
+(32 asset attempts, two version attempts, three metadata requests) is charged
+to the same private workspace. Cold-cache sessions partition assets into8MiB
+raw buckets; this is a declared fixture layout, not a universal vendor bound.
+
+CF request/response body bytes:439108126/42224843 daily,
+448747080/62636579 Monday. These are synthetic publication bodies, not actual
+site traffic or bandwidth billing. Mock returned rows39142/53643 and SQLite
+changes21895/22348 are NOT D1 scanned/index-inclusive billing. Concurrent local
+wall times938.3s/989.5s expose the substantial protected filesystem work; the
+synthetic server clock is fixed, so this is not a live latency/lease/rate proof.
+
+The measured generic workload fits a candidate3000HTTP/12000SQL profile with
+margin, and explicit≤2M reported reads/≤50k writes. Actual D1 row billing,
+current shared-account headroom, provider pacing/latency and the production
+permanent/native chain still require acceptance. Do not call this a successful
+production-shaped native canary or enable the timer's writer from these numbers.
+
+Exact remaining technical gap: `run-cloudflare-weekly.ts` reads a permanent seal
+through generic `readApprovedPrior`, never `readPermanentCatalogPrior`.
+`createApprovedCatalogSeal` retains no full private-source inventory/historical
+native binding. `prunedVectorPlan` treats permanent preservation as an exclusive
+mode, not a union with new approved native deltas, and the publisher treats its
+permanent/approved inputs as mutually exclusive. Next extend the EXISTING
+seal/plan contract: authenticated predecessor → actual bounded maintenance ops →
+unchanged historical + current approved native union → actual publication →
+body-free current successor; consume it on a second day after old workspace
+expiry. Preserve full3383 identity/private-hash coverage, all original holds,
+current-owner/CAS/cutoff checks, signed-zero bytes and every old unknown. No new
+framework/service, owner credential action or renewed request-cap approval is
+needed for that offline engineering. `.4.3.1` therefore remains IN_PROGRESS.
+
+Validation: both full cases PASS; opt-in small real build/upload PASS;16 D1
+client/accounting and three final config/foreign-ledger cases PASS; three
+existing driver compatibility cases PASS. Strict staging types and lint
+(zero errors/25 existing warnings) pass. Clean committed89e620 root synthetic
+build + verifier pass:three products,393 assets/372 routes, not deployed.
+`npm run test:catalog-capacity` is the explicit heavy Mac command; cases were
+executed before opt-in registration was added, then the small opt-in case was
+rerun. Default skips are not acceptance. Retained red/partial logs document
+fixture-only missing copied build dependencies, Uint8Array JSON decoding and
+an oversized one-bucket mock; the production wire bound was NOT loosened.
+The obsolete v3 probe was interrupted after that known fixture issue; final v4
+cases independently pass without erasing live charges or using any old grant.
+Private receipt/logs: `offline-recurring-capacity-20261023/` under the protected
+Goose migration directory. All changes remain local/unpushed, no remote Beads
+synchronization or integration/publication is claimed.
+
 ## 2026-10-23 UTC — Offline recurring readiness reconciled; no live execution
 
 Local branch `codex/stupid-daily-readiness-offline-20261022`, implementation
