@@ -21,24 +21,30 @@ context: **what we've done, and where we're going.**
 
 ## Upcoming / planned
 
-- [owner+codex, 2026-10-23] The offline permanent-to-recurring successor chain
-  is now implemented at `fb4fff2` on `codex/stupid-daily-readiness-offline-20261022`:
-  full private inventory, immutable historical/current native union, actual
-  publication anchors and body-free next-day seals. The genuine3,383-identity
-  fixture publishes10+20 then10 after registered workspace expiry, retaining
-  all1,024 holds, exact native bits and the prior unknown charge. This is local,
-  not integrated/deployed or a writer-enable. Remaining: complete authentic
-  runner/build/upload capacity, reviewed integration and actual D1/headroom
-  acceptance. No credentials, schedules, live gates or allowances changed.
+- [owner+codex, 2026-10-23] The complete authentic offline recurring flow is
+  implemented at `fb4fff2`/`89dffd6` on the same readiness branch: full inventory,
+  native history/current deltas, runner, real build/verifier/protected upload,
+  publication receipt and body-free next-day successor after purge/reopen.
+  Exact finite-profile validation at `076bc07` PASSES under the active
+  5,000HTTP/12,000SQL/2M reported reads/50k writes limits: Monday3,106HTTP/7,368SQL,
+  next day2,314/5,909. Both finalize once; original unknown/holds/native bits
+  survive purge/reopen, and Tuesday makes no model calls. This is direct bounded
+  execution, not inference from the older larger probe. Source review and164
+  focused regressions pass. Exact receipt is in `docs/ops/evidence/`.
+  Remaining live boundary: coordinator integration/review, actual indexed D1
+  billing, fresh shared Free headroom and real-time lease/pacing/live canary,
+  then existing scheduler activation. No credentials, live gates or allowances
+  changed; old Neon OFF, new writer GATED, Pinterest PAUSED.
 
-- [owner+codex, 2026-10-23] Offline publisher/cleanup follow-up is implemented
-  locally at `35ae309`/`89e620a`:full-catalog checks sit outside the short native
+- [owner+codex, 2026-10-23] Historical generic-prior publisher/cleanup proof
+  remains at `35ae309`/`89e620a`:full-catalog checks sit outside the short native
   resolver and terminal success/cleanup is tested. Successful full generic-prior
   daily/Monday flows now include real build/upload/retry accounting:
   1196HTTP/4712SQL and1843HTTP/5874SQL. A finite3000/12000 candidate fits those
   measurements;800/1200 is an internal guard, not a new approval requirement.
-  The successor implementation below supersedes the former missing-chain gap;
-  actual whole-run/row/headroom acceptance is still needed before a live canary.
+  The complete authentic successor fixture above supersedes the missing-chain
+  gap and the generic3,000-request candidate; do not add these older counters
+  to the integrated totals. Actual row/headroom acceptance remains separate.
   Unmerged/unpublished.
   No schedule, credential, provider allowance or live catalog changed.
 
@@ -299,6 +305,21 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-23 [owner+codex] — Complete the finite offline recurring-maintenance handoff
+
+The authentic 3,383-identity Monday ten-plus-twenty and next-day ten flow passes
+with real local build/verifier/protected upload under the exact 5,000HTTP /
+12,000SQL /2M reported-read /50k reported-write profile. Test commit `076bc07`
+adds direct cap assertions and selects only this full two-day reproduction;
+implementation/harness `fb4fff2`/`89dffd6` remain unchanged. Both final receipts,
+original1,024 holds/native bits and first-day unknown survive actual purge/reopen.
+Local source review,164 targeted regressions, both strict type checks and lint
+pass (25 existing warnings). The receipt preserves the earlier larger probe;
+the runbook removes the obsolete missing-successor diagnosis. No live/API,
+credential, remote Git/Dolt, deployment, schedule/gate or paid-plan change.
+Actual D1 billing/shared headroom and real-time live canary remain separate;
+new writer stays gated. This branch is local and awaiting coordinator integration.
 
 ### 2026-10-23 [owner+codex] — Original catalog presentation restored on Cloudflare
 

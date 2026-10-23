@@ -135,125 +135,105 @@ make them appear idle: the publisher's final D1 owner read was already null.
 
 **Daily D1 maintenance stays GATED (`roadmap-lbbz1.4`).** A 2,359-product immutable
 projection alone exceeds ordinary 1,200 SQL / 10k-write guards; 800 HTTP is not an
-accepted whole-run measurement. Finish a scoped fresh-account verified-Free
-routine profile, bounded prior/vector proof and current semantic evidence,
-body-free successor seal and actual normal daily canary before enabling it.
+accepted whole-run measurement. Offline successor/runner/build/upload proof is
+recorded below, not permission to dispatch. Integrate the reviewed source and
+verify a scoped actual-D1/Free-headroom profile and normal daily canary before
+enabling it.
 Do not raise global limits, label a routine run as migration, reset a journal,
 or change the existing ten/day and Monday policies to make it pass. Pinterest
 remains paused, Vercel frozen, Neon retained and the old Neon writer off.
 
-**October23 offline readiness branch — not integrated or deployed.**
-The SAME branch now implements the permanent-to-recurring successor chain.
-The runner pins the actual permanent/recurring predecessor; the approved policy
-authenticates full private inventory and current operation links, preserves a
-flat disjoint historical/native-delta union, and emits a body-free seal anchored
-to the actual resolved publication/verified outbox/idle generation. The successor
-is strict technical metadata in bounded immutable journal parts, not an expiring
-artifact; `catalogSuccessor()` reads it after purge/reopen. Full private inventory
-is checked outside short publisher observations. Registered workspace expiry/
-purge does not remove the successor or reset prior charges/unknowns.
-The genuine3,383-identity offline test publishes10 refreshes+20 additions, then
-10 refreshes after the old workspace expires, keeping all1,024 holds. Reproduce
-with Node22 and `node --import tsx --test --test-name-pattern='authentic permanent
-successor' tests/catalog-permanent-freeze.test.mjs` (one command, pattern on one
-line). See newest journal entry for exact fixture boundaries and retained gaps.
-This supersedes the former missing successor-wiring diagnosis, NOT the live
-writer gate: full authentic runner/build/upload capacity and actual D1 account
-headroom/billing remain unaccepted. Do not execute it live or change the timer.
+**October23 offline recurring-maintenance handoff — not integrated or deployed.**
+Work only on `codex/stupid-daily-readiness-offline-20261022`, based on the
+locally audited PR266 tree `deb5cbc`. Implementation `fb4fff2` carries the
+authentic permanent/recurring predecessor, full private inventory and current
+operation links through a flat, disjoint historical/current-native union.
+Full source/projection comparisons remain outside short native/provider
+observations; exact owner, publication, cutoff and cancellation/drain checks
+remain in force. The body-free successor is strict technical metadata in bounded
+immutable journal parts, not an expiring product/provider artifact.
+`catalogSuccessor()` survives registered-body purge and workspace reopen
+without resetting the original manifest, charges or unknowns.
 
-`codex/stupid-daily-readiness-offline-20261022` starts from the audited PR266
-tree (`deb5cbc`); no fresh remote state was fetched during this offline pass.
-The ordinary permanent executor now places full source/projection CAS outside
-the short resolver observation, for all permanent releases, not only reviewed
-upload recovery. Receipt readback still has full checks before/after its native
-observation; final resolution has a fresh full check under the exact same
-activating owner before native/provider-only timed observation. No proof is
-reused across invocation/owner changes. Provider identity before/after,
-signed-zero vectors, cancellation/drain and the final receipt/owner CAS remain.
+The complete integrated fixture at `89dffd6` uses 3,383 private identities,
+2,359 public products, 1,024 original full held rows and eight historical native
+vectors. Monday refreshes ten existing products and admits twenty approved
+discoveries; the next day refreshes ten after actual prior-workspace purge and
+reopen, consuming only the durable successor. It includes the real runner,
+merchant/model clients with synthetic HTTP, branded D1 REST over SQLite, Next
+build/verifier, Worker bundle, protected Wrangler upload, actual local publication
+receipts, resolved builds and idle owners. No live service or credential is used.
 
-The branch also reconciles the previously unmerged30-change approval boundary,
-budget-exhaustion checkpointing and body-free successful-publication cleanup.
-`recordSuccessfulPublication` is an explicit observer API, NOT invoked by the
-cleanup CLI. It requires a separately admitted, accounted one-request/three-SQL
-read of the exact actual receipt, resolved build and same-generation/epoch idle
-scope. It appends one terminal success event bound to the checkpoint, config,
-package, full ledger and exact journal head; old controls/unknowns/deadlines are
-not rewritten. The verified inventory of registered recovery-bound metadata
-remains after expiry cleanup; unknown/unregistered files or drift hold cleanup.
-No completed live workspace has been reopened or sealed by this offline pass.
-Do not run this new observer against a consumed historical allowance.
+The exact finite-profile rerun at `076bc07` finalized both days (one test PASS,
+zero failures/skips, 1,700,257ms for the complete two-day case):
 
-Reproduce locally with Node22 from that branch, under external-network denial:
-`node --import tsx --test tests/catalog-permanent-freeze.test.mjs
-tests/catalog-cloudflare-weekly.test.mjs tests/catalog-workspace-successor.test.mjs
-tests/catalog-purge-workspaces.test.mjs tests/catalog-run-workspace.test.mjs
-tests/catalog-publish-release.test.mjs` (one shell command). The fixtures route
-HTTP locally; the merchant transport cases use the real client with synthetic
-responses, including authorization and401 refresh. Workspace CF charges,
-merchant auth/API attempts and model HTTP remain distinct counters. Synthetic
-returned rows/SQLite writes are not index-inclusive D1 billing. Compilation and
-upload are mocked in the driver fixtures; their internal transport is not
-claimed as measured. Keep800HTTP/1200SQL expected refusals, all original holds
-and unchanged10/day + Monday≤20 policies. A complete normal-run capacity proof,
-permanent predecessor/successor acceptance, reviewed integration and later
-fresh-account/Pacific-day canary remain gates; no writer or schedule is enabled.
+| Workload | CF/verifier HTTP | SQL | Returned rows | SQLite changes | Unknowns |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Monday ten + twenty new | 3,106 | 7,368 | 97,179 | 22,425 | 1 |
+| Next-day ten after purge/reopen | 2,314 | 5,909 | 82,951 | 21,970 | 0 new |
 
-**Internal-cap clarification (owner authorization already exists).** The800HTTP/
-1200SQL guard and default10,000 reported writes are our own conservative limits,
-NOT Cloudflare Free allowances and not a new owner-approval requirement. Cameron
-already authorized lifting our request cap and new-site daily/enrichment. Keep
-the old expected-refusal fixtures as historical evidence, but select a justified
-finite routine profile from successful whole-flow measurements, rather than
-treating800/1200 as a provider limit. The client defaults remain unchanged; an
-explicit immutable config may supply both `reportedRowsRead` and
-`reportedRowsWritten`, bounded above by2M/50k (below the recorded Free5M/100k
-account allowances). These are maximum client ceilings,
-not evidence of current shared-account headroom. No live profile is changed by
-offline tests, and the consumed one-time600k grant is never routine capacity.
+The offline-tested finite profile is **5,000 CF/verifier HTTP / 12,000 SQL /
+2,000,000 reported reads / 50,000 reported writes**. Commit `076bc07` changes
+the full-cycle test to enforce that exact profile on both days and asserts
+configured/workspace caps and measured totals. These were active during the
+successful test, not inferred afterwards from the earlier 8,000/22,000 probe.
+That initial result is retained separately in the machine-readable receipt:
+`docs/ops/evidence/2026-10-23-offline-successor-capacity.json`.
 
-There is a separate technical gap: the driver reads a `permanent-catalog-seal`
-through the generic projection reader, not `readPermanentCatalogPrior`; its
-approved successor seal retains neither the full private-source inventory nor
-the historical-native binding. `prunedVectorPlan`'s current permanent mode is
-preservation-only, not a union of unchanged historical members with new approved
-native mutations. A successful generic-prior fixture does not solve this.
-Finish one authenticated predecessor→current-operation→mixed-native-proof→actual
-publication→body-free-successor chain, then consume that successor on another
-day after old workspace expiry. Preserve original encodings, all prior holds,
-signed-zero bytes, immutable charges and exact owner/cutoff checks. This is
-engineering work, not a credential, paid-plan or renewed permission gate.
+On the Mac operator with Node22, `npm run test:catalog-successor-capacity` now
+selects only the full authentic two-day case. Run with a scrubbed environment;
+the parent substitutes synthetic responses and rejects unexpected destinations.
+Build/verifier children deny external networking; the protected Wrangler child
+can reach only its exact ephemeral local bridge. Do not wrap the real-Wrangler
+case in an additional Seatbelt sandbox; nested Seatbelt execution is unsupported.
+Ordinary component tests can run under a localhost-only outbound sandbox.
+These heavy tests are opt-in; a skip is never acceptance evidence.
 
-Successful offline generic-prior workloads (real static build/verifier/Worker
-bundle and protected Wrangler upload, only external responses simulated):
+Each integrated day counts one build/upload/activation/finish and all retries
+in the SAME workspace ledger; merchant/model HTTP remain separate counters.
+The Monday lost finalization-read response stays unknown and charged after
+resume, purge/reopen and day two. Finalized replay makes no further provider
+calls. All original identities/holds and exact historical float32/signed-zero
+bits survive; a current approved native delta is checked without rewriting
+unchanged history. This does not make every new keyword listing semantically
+eligible. The initial genuine fixture publication and reviewed-input construction
+precede, and are not charged to, the measured routine ledgers.
 
-| Workload | CF/verification HTTP | SQL | Merchant HTTP | Model HTTP |
-| --- | ---: | ---: | ---: | ---: |
-| Daily10,2359 public +1024 held | 1196 | 4712 | 4 | 0 |
-| Monday10+20, same full prior | 1843 | 5874 | 10 | 23 |
+**Offline proof is not provider admission.** Returned SQLite rows and
+`total_changes()` are NOT actual D1 billed scans/index-inclusive writes.
+Wire counters are body bytes, not invoice totals. The fixed fixture clock and
+explicit 25-hour step test expiry, not actual latency, rate limits, build leases
+or pacing. Reported-row ceilings stop subsequent calls after a metered response;
+they are not prepaid per-query cost guarantees. Before scheduler activation,
+the coordinator must integrate/review this local branch, then separately verify
+actual indexed D1 cost (including
+unknown-request reserves), fresh account-wide Free headroom, and real-time
+lease/pacing plus one bounded live canary. Pin the exact clean operator/config,
+single protected workspace/lock, source/publication receipt and final idle owner.
+No live profile, timer or gate is changed here; old Neon is OFF, the new writer
+GATED and Pinterest PAUSED. No owner credential action is needed offline.
 
-Both finalize with one build/upload/activation, actual SQLite publication
-receipt/resolved build/idle scope, zero unknowns, all original public IDs/holds,
-and no provider-phase replay. Each includes37 upload HTTP attempts, including
-asset/version503 retries; merchant counts include a401 refresh and Monday
-includes one model503. Cold-cache sessions use8MiB raw-asset buckets. Request
-body totals are439.1MB/448.7MB; this is synthetic publishing traffic, NOT actual
-site traffic or a universal vendor bucket-layout bound. SQLite changes are
-21,895/22,348 and returned rows39,142/53,643, NOT billed D1 scans/index writes.
-Observed concurrent local runtimes were15.6/16.5minutes, dominated by protected
-file handling; the fixed synthetic DB clock is not live latency/lease admission.
+The 800 HTTP / 1,200 SQL/default 10k-write values are INTERNAL conservative
+guards, not provider Free allowances or a new owner-approval requirement.
+Defaults and historical expected-refusal tests remain unchanged. A justified
+finite immutable routine config may use the explicit reported-read/write pair,
+at most 2M/50k; this never implies shared-account headroom or another
+merchant/model allowance. Ten existing refreshes per Pacific day across retries,
+Monday at most twenty approved additions, and model-free Tuesday–Sunday stay
+unchanged. Do not reuse any consumed migration/recovery allowance.
 
-Candidate routine guard:3000HTTP/12000SQL, with explicit≤2M reported reads and
-≤50k reported writes. The measured generic workloads fit with margin; actual
-row billing/shared Free headroom and the genuine permanent/native chain above
-remain unaccepted. This is not a live allowance or a reason to ask the owner
-again about an arbitrary request cap. No live config/timer/gate has changed.
+Earlier generic-prior/component results and their provisional 3,000-HTTP
+candidate remain historical evidence in `JOURNAL.md`; do not substitute them
+for, or add them to, these integrated totals. The former missing-successor
+diagnosis is superseded by `fb4fff2`, not an outstanding credential gate.
 
-On the Mac operator, Node22 `npm run test:catalog-capacity` explicitly runs the
-heavy small + full daily/Monday cases with outbound-fenced build/upload children
-and fake external transports. They are opt-in to avoid adding half an hour to
-every staging sweep. A skipped case is never capacity evidence. Keep the
-ordinary800/1200 refusal fixtures and actual mixed-native successor acceptance
-separate; no passing generic case enables the writer.
+`recordSuccessfulPublication` is a separate explicit observer API, never
+invoked by the cleanup CLI. It requires an independently admitted, accounted
+one-request/three-SQL exact receipt/resolved-build/same-generation idle read,
+then binds terminal metadata to the checkpoint, config, package, complete ledger
+and journal head. Registered recovery-bound metadata is independently validated
+and retained; unknown/unregistered files or drift hold cleanup. This offline
+handoff never reopens or seals a consumed live workspace.
 
 **October22 owner correction — catalog preservation and privacy:** Never
 delete or deactivate a gift, remove its search-index/native-vector entry, or

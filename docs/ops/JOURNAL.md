@@ -5,6 +5,90 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 — Complete authentic recurring flow passes the finite profile itself
+
+Finished only the offline handoff on the SAME
+`codex/stupid-daily-readiness-offline-20261022` worktree, with unchanged agent
+model/settings. Starting harness89dffd6 already passed under8,000HTTP/22,000SQL;
+that did not directly test the proposed lower profile. One specifically requested
+rerun therefore used committed test source
+`076bc0795e1d33c18ac23bafa7e0d4096396e37e`, enforcing **5,000 CF/verifier HTTP /
+12,000 SQL /2,000,000 reported reads /50,000 reported writes** for BOTH days.
+Configured limits, durable workspace caps and measured totals are asserted.
+Production code was not changed in this follow-up; the existing authenticated
+successor implementation isfb4fff2. The npm reproduction now selects only the
+full authentic case rather than needlessly running the smaller probe too.
+
+`AUTHENTIC full complete Monday daily build upload shared-ledger successor`
+PASS:1 test,0 failures,0 skips; case1,700,257.209791ms, whole runner
+1,700,601.462375ms. Unified exec session1759. The scrubbed Node22 parent routes
+all provider/merchant/model responses synthetically; build/verifier children
+deny external networking and the real protected Wrangler child can reach only
+its local bridge. Zero external calls, credential reads, account inspection,
+deployment, remote Git/Dolt sync, schedule/live-gate changes, restoration checks,
+paid upgrades or historical allowance reuse occurred in this continuation.
+
+| Complete measured day | CF/verifier HTTP | SQL | Returned rows | SQLite changes | Unknowns |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Monday10 existing +20 new | 3,106 | 7,368 | 97,179 | 22,425 | 1 retained |
+| Next-day10 after expiry/reopen | 2,314 | 5,909 | 82,951 | 21,970 | 0 new |
+
+Actual local publication receipt digests:
+
+- Monday: `57b6fb4f673a31d0f25b9517f8043b0759705ec8a0b7c0f420f5668915862884`.
+- Next day: `08b9fb4999d219d5582a5229528b101ede53e96672ac8426d1e69b04781ae096`.
+
+Both days resolve their actual build and finish IDLE with exactly one real local
+build, protected upload, activation and finish. Each includes34 upload HTTP
+attempts (29 asset attempts/two version attempts), the asset/version503 retry
+and merchant401/cold-auth refresh. Monday separately counts10 merchant HTTP and
+23 model HTTP (including one503); next day4 merchant andZERO model HTTP. All
+current-run CF/D1/native/verifier/upload requests match the same workspace ledger;
+SQL totals match exactly. Merchant/model HTTP are separate, not hidden CF charges.
+The original genuine predecessor/bootstrap and reviewed-input construction are
+outside these routine ledgers, never silently added to their acceptance claims.
+
+All3,383 original identities,2,359 public IDs and1,024 exact full held rows survive;
+twenty quality/dedup-approved additions leave3,403 private/2,379 public. Original
+eight native vectors and current approved deltas retain exact metadata/float32
+hashes including signed zero. There is one native upsert and zero deletes per
+day; this does not claim every new keyword listing has native semantic eligibility.
+Monday's lost finalization-read ACK resumes without another paid phase, build,
+upload or activation. After25 fixture hours, actual registered-body purge and
+workspace close/reopen recover only the durable successor; the old manifest,
+all charges and its unknown remain exact after day two. Day two rebuilds without
+retaining the expired prior package. Finalized replay makes no further calls.
+
+Local review found no additional production-code fix. It corrected the finite
+test envelope/reproduction and superseded stale operator text, without changing
+defaults or proof/cadence contracts. Current regressions:140 workspace/successor/
+cleanup/D1/read-transport,15 permanent/source/native/preflight,5 approval-bound/
+cancellation/native-drift, and4 budget/foreign-accounting refusals all PASS
+(164 total,0 failures/skips). Strict operator/staging and Worker TypeScript pass;
+full ESLint exits0 with0 errors/25 pre-existing warnings. Graphify was rebuilt
+locally at076bc07; missing optional SQL extraction is unchanged and no extractor
+was installed. Direct SQL/source review and executable fixtures remain the proof.
+
+Committed evidence is `docs/ops/evidence/2026-10-23-offline-successor-capacity.json`.
+It includes exact configured limits, per-run receipts/budgets/SDK counters/body
+bytes, review/regressions and the ORIGINAL larger-envelope probe as history.
+Node22 `npm run test:catalog-successor-capacity` reproduces only this full case.
+Do not repeat the successful heavy run absent a relevant change/failure.
+
+**Remaining boundary, not executed here:** coordinator review/integration of
+this local branch, then actual indexed D1 billed reads/writes with conservative
+unknown-request reserves, fresh shared-account Free headroom and real-time
+lease/pacing acceptance plus one bounded live canary. SQLite returned rows/
+`total_changes()` are NOT D1 scanned/index billing, body bytes are NOT an invoice,
+and the fixed per-step clock/25-hour expiry step is NOT real-time admission.
+Reported-row caps are post-response stop conditions, not prepaid query guarantees.
+Only afterwards pin the exact clean operator/config/workspace/lock and update
+the EXISTING scheduler gate in place. Keep old Neon OFF/new writer GATED/
+Pinterest PAUSED, ten existing/day across retries, Monday at most twenty new,
+model-free Tuesday–Sunday, historical unknowns and consumed grants unchanged.
+No owner credential action is needed for this completed offline engineering.
+Canonical Beads notes are reconciled locally only; remote sync remains deferred.
+
 ## 2026-10-23 UTC — Offline authenticated recurring successor implemented
 
 Continued only `codex/stupid-daily-readiness-offline-20261022`, on top of
