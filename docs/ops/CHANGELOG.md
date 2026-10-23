@@ -314,9 +314,14 @@ additional169 offline tests and lint passed. Corrected the stale migration test
 to cover the unchanged10k default, explicit finite50k profile and50,001 refusal.
 The unchanged expired-lease proof passed in isolation; run its real durable-I/O
 file once after the parallel staging fixtures, retaining all tests and production
-deadlines. A harness regression checks that separation. No production code,
-budget, provider/API, catalog, publication or scheduler change. Complete rerun,
-synthetic build and final receipts are pending in `roadmap-lbbz1.8.2`.
+deadlines. A harness regression checks that separation. Complete corrected gate
+on `523252c` passes1,149 tests/0 failures/18 standard skips, plus170 supplemental
+tests/0 failures/skips: all109 offline test files covered. Both strict typechecks,
+lint and clean-source synthetic build/verifier pass. Full initial/final TAP logs
+and exact counts are retained in the retirement folder's October23 receipt.
+PR268: https://github.com/37-Inc/goose.gifts/pull/268. No production code, budget,
+provider/API, catalog, publication or scheduler change; `roadmap-lbbz1.8.2` owns
+the final closeout.
 
 ### 2026-10-23 [owner+codex] — Take the completed offline implementation through PR267
 

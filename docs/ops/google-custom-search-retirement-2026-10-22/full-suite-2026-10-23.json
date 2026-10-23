@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-23T17:28:07.000Z",
+  "issue": "roadmap-lbbz1.8.2",
+  "pullRequest": "https://github.com/37-Inc/goose.gifts/pull/268",
+  "baselineCommit": "f03b334df1df4ac95aa6d5e0264f0cdf7b708691",
+  "testedFixCommit": "523252cec427b87987d6b32d36561dfd8ea3964f",
+  "runtime": "Node 22.23.1, isolated checkout, own npm ci, scrubbed env without credentials",
+  "fullStandardGate": {
+    "command": "npm run test:staging",
+    "exitCode": 0,
+    "stagingAndWorkerTypeChecks": "passed",
+    "exportedSyntheticFixturePresent": true,
+    "parallelPhase": { "tests": 1159, "passed": 1141, "failed": 0, "skipped": 18, "cancelled": 0, "durationMs": 1464466.192542 },
+    "durablePhase": { "tests": 8, "passed": 8, "failed": 0, "skipped": 0, "cancelled": 0, "durationMs": 68222.829167 },
+    "total": { "tests": 1167, "passed": 1149, "failed": 0, "skipped": 18, "cancelled": 0 },
+    "noNewSkipsRetriesOrDeadlineRelaxations": true
+  },
+  "supplementalOfflineTests": {
+    "scope": "Every tests/*.test.mjs file not matched by either staging phase; Node test concurrency 2",
+    "repositoryTestFiles": 109,
+    "stagingTestFiles": 88,
+    "supplementalTestFiles": 21,
+    "tests": 170, "passed": 170, "failed": 0, "skipped": 0, "cancelled": 0, "durationMs": 19651.798,
+    "exitCode": 0
+  },
+  "combined": { "tests": 1337, "passed": 1319, "failed": 0, "skipped": 18, "cancelled": 0 },
+  "lint": { "exitCode": 0, "errors": 0, "warnings": 25, "warningScope": "Existing unused imports in unchanged published-vector-proof test file" },
+  "syntheticBuild": {
+    "exitCode": 0,
+    "cleanCommittedSource": "523252cec427b87987d6b32d36561dfd8ea3964f",
+    "releaseId": "synthetic-full-test-closeout-523252c",
+    "catalogRevision": "illustrative-layout-proof-v1",
+    "snapshotSha256": "1ba3f807080a670a7143f007c321c29951f80548b2d697f97b3d8ac4e42a8859",
+    "products": 3, "assets": 393, "guardedRoutes": 372,
+    "nextExpiry": "2026-11-19T00:00:00.000Z",
+    "independentReleaseVerifier": "passed",
+    "publicDeployment": false
+  },
+  "reproducedBaseline": { "tests": 1166, "passed": 1138, "failed": 2, "skipped": 26, "durationMs": 1163890.445167 },
+  "corrections": [
+    "Test the unchanged ordinary 10k write default, already-approved explicit finite 50k profile, and 50,001 refusal; preserve dedicated migration-ledger checks. Production limits unchanged.",
+    "Run the same complete durable-I/O publication proof file once after parallel fixtures finish, under the same standard gate. Unchanged expired-lease case first passed in isolation, then all eight durable tests passed in the complete corrected gate. No retry, test omission, mocked ledger, deadline increase or production behavior change."
+  ],
+  "standardSkipReasons": {
+    "heavyBuildUploadCapacityProbes": 5,
+    "optionalNativePostgresFixturesOrUnavailablePinnedImage": 6,
+    "privateMigrationSourceFixture": 1,
+    "optionalBuilderOrLargeExportVariants": 6,
+    "note": "These retain their existing opt-in/resource gates. Building the ordinary fixture enabled eight checks skipped in the initial clean checkout. The separate accepted capacity run is not repeated or relabeled."
+  },
+  "completeLogs": [
+    { "file": "full-suite-2026-10-23-initial.tap.gz", "uncompressedBytes": 300571, "uncompressedSha256": "c8223a7e3b6b25e9a7ad67db0d6be2c78551cb91d232b4ac0db64130a8b83af6" },
+    { "file": "full-suite-2026-10-23-fixed.tap.gz", "uncompressedBytes": 299645, "uncompressedSha256": "e1fb1f88a4b0709f775bd983b141b6b4823f5b44897afbdc9e0f0f7bafbb1d79" },
+    { "file": "full-suite-2026-10-23-supplemental.tap.gz", "uncompressedBytes": 39157, "uncompressedSha256": "6788a0f3e7dcdcbcbd66681a6d4efc03d6d03ab7fca8a61d2b118d498fab5716" }
+  ],
+  "boundaries": [
+    "No production code, limit, deadline, retry, credential, provider/account/API, catalog, public deployment, scheduler or Pinterest change.",
+    "Canonical and other pinned production/operator checkouts preserved.",
+    "October 22 evidence remains unchanged; this is the separately completed full-suite follow-up, not a relabeled failed run."
+  ]
+}
