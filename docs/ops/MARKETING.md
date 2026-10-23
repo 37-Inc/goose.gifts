@@ -44,27 +44,28 @@ or intriguing first impression followed by a funny double take.
 
 ## Current channel priorities
 
-**Current scheduler state (2026-10-21 owner instruction): PAUSED for the
-Stupid.gifts migration.** The scheduler confirmed PAUSED at19:53:16.023UTC;
-saved cadence/chat are preserved, with no duplicate task or catalog-job change.
-No automatic checkpoints or October31 review will run while paused. Review
-remains pending; restart gates and rebrand-intervention handling are in
-`PINTEREST_STUDIO.md`. The existing account/app are now **Stupid.gifts**;
+**Current scheduler state (October23 owner instruction): ACTIVE, measurement
+only.** PR270/271 integrated the cutover and saved restart; the first actual
+scheduled run completed at23:30:08.162UTC. Original slots/chat and frozen v11
+remain unchanged. No generation/publication, including after the October31
+review, without explicit owner approval of a next experiment. The October21
+pause remains historical evidence, superseded by the documented restart in
+`PINTEREST_STUDIO.md`. The existing account/app are **Stupid.gifts**;
 owner-selected handle **stupid_gifts**, same account/app IDs and Standard access.
 28 Pins/five boards are retained. The new domain is now TXT-verified/claimed,
 selected on the public profile, and saved in app website/privacy metadata;
-Goose's claim and all old Pin links remain. Publication, product-redirect,
-catalog-source and analytics gates are not reopened. See
+Goose's claim and all old Pin links remain. Source/guard/measurement integration
+is verified, not approval to post; old-product redirects and current catalog
+writer enablement are separate boundaries. See
 `pinterest-rebrand-2026-10-21/domain-receipt.json`. The following metrics are the dated
-October21 morning baseline, not a new migration measurement.
+October21 morning baseline; the current scheduled snapshot is recorded below.
 
 The birthday-hat poster `1107815208391368990` completes v11 at P 6/6, F 6/6,
 twelve of twelve. Generation and public posting are disabled for this cohort;
 no new creative or publication, even after review, without a new explicit owner
-experiment. The two saved daily slots remain unchanged but inactive. The exact receipt-derived
+experiment. The two daily slots are ACTIVE for measurement only. The exact receipt-derived
 full-cohort review deadline is **2026-10-31T16:44:52.279Z**; first regular
-eligible slot would be October31 at4:30PM Pacific if resumed; it is not currently
-scheduled to execute while PAUSED. All twelve membership/receipt records
+eligible slot is October31 at4:30PM Pacific. All twelve membership/receipt records
 and one-time review-delivery state are linked from `PINTEREST_STUDIO.md`.
 Current retained profile:28 verified public Pins,3,651 impressions,56 opens,
 eight saves,two native outbound. P1395/22/3/2 and F310/5/1/0
@@ -107,6 +108,21 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 `docs/ops/ACQUISITION.md`.
 
 ## Pinterest Creative Lab
+
+### 2026-10-23 afternoon — resumed scheduled measurement, no acquisition delta
+
+Actual snapshot23:30:08.162UTC verifies stupid_gifts BUSINESS and28 public Pins.
+Profile3805impressions/60opens/8saves/2outbound; P1420/22/3/2,F336/5/1/0,
+unchanged from today's cutover smoke. Bowling supplies97.1%P exposure and both
+native clicks; no demonstrated format or corroborated site/retailer winner.
+Per-Pin downstream remains unknown. Explicit GA4/PostHog reads succeed with
+QA/operator exclusions and existing attribution/privacy caveats; the prior
+PostHog504 remains a gap, not zero. Three delayed seven-day learnings for
+spider/belly/frog use the actual current lifetime snapshot; opossum/hat are not
+closed early. Twelve public observations plus four validated learnings preserve
+the freeze, original membership and exact pending October31 review. No new
+public Pin or creative, and no catalog/site/account/Pin/scheduler/Bead mutation.
+[Evidence and checkpoint timings](pinterest-measurements/2026-10-23-pm/README.md).
 
 ### 2026-10-21 morning — routine measurement; seven-day gates not yet due
 

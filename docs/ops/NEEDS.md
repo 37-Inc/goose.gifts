@@ -19,28 +19,36 @@ Ordinary daily-writer readiness remains separate engineering.
 
 ### Stupid Gifts launch — deferred owner decisions
 
-**Pinterest handoff, October21:** the account/app rename is complete, not an
+**Pinterest handoff, updated October23 PM:** the account/app rename is complete, not an
 authentication blocker. Both are **Stupid.gifts**, owner-selected handle
 **stupid_gifts**; production API/portal verify the same BUSINESS account/app
-IDs,28 Pins/five boards and Standard access active. Scheduler PAUSED remains
-verified; the separate catalog job is unchanged. New-domain claim is now fixed:
+IDs,28 Pins/five boards and Standard access active. The same studio is now
+ACTIVE in measurement-only mode under explicit October23 authority; no new
+creative/posting before review AND next-experiment approval. First actual
+scheduled read at23:30:08.162UTC verifies28 Pins and unchanged P6/F6. The separate
+catalog job is unchanged by this studio. New-domain claim is fixed:
 the exact apex TXT resolves, Pinterest shows Connected and sent Website
 claimed!, and profile/app website/privacy metadata use stupid.gifts. Goose's
 claim is retained. See `pinterest-rebrand-2026-10-21/domain-receipt.json`.
-Existing Pin destinations, enrichment source, analytics and publishing restart
-remain separate gates; no owner DNS/authentication action remains for this claim.
-The receipt-derived
-October31 v11 review remains pending and will not run automatically while the
-studio is paused. See `PINTEREST_STUDIO.md` for the restart contract.
+No owner DNS/authentication action remains for this claim. PR270/271 verified
+the new source/guard/measurement integration and same-task restart; this is not
+approval to post. Original Goose destinations/redirects and separate catalog
+writer enablement remain independent. The receipt-derived October31 v11 review
+is pending and will run at the first eligible existing slot (16:30Pacific).
+See `PINTEREST_STUDIO.md` for the measurement-only contract and
+`pinterest-measurements/2026-10-23-pm/` for actual scheduled execution.
 
 Owner-requested closeout reconciled the central tracker: the older creative
 skill-forward-test task is closed from its existing v5/v6/planning evidence;
 the existing provider task stays in progress. Its single Pinterest child,
 **Finish Pinterest publishing cutover without reopening v11**
 (`roadmap-lbbz1.8.1`), owns the remaining source/guard/redirect/measurement and
-review/restart gates. This is engineering coordination, not a new DNS/login
-request. Fresh sample: bowling works on Goose but the same Stupid path is 404;
-sheep works on both, without an old-to-new redirect. Do not bulk-swap Pin URLs.
+review/destination boundaries. This is engineering coordination, not a new
+DNS/login request. The old sampled bowling404 was superseded by the October23
+full audit: all28 new paths return200, but one is a deliberate tube-guy hold,
+and the legacy dog-toy retailer comparison is unavailable.26 exact retailer
+matches and UTMs are verified; Goose still does not redirect. Do not bulk-swap
+Pin URLs, remove holds or substitute the homepage.
 
 **Historical public launch, October21:** the original launch served eight reviewed,
 fresh products from Cloudflare Free. Production Worker version

@@ -2,6 +2,13 @@
 
 ## October 23 — Pinterest cutover boundary
 
+PM scheduled observation23:30:08.162UTC: P1420/22opens/3saves/2native outbound,
+F336/5/1/0, unchanged from today's smoke. No attributable Pinterest/site/retailer
+action or demonstrated format winner. PostHog550427 read recovered; GA4 hosts
+remain separated, and per-Pin downstream remains unknown. See the
+[scheduled receipt](pinterest-measurements/2026-10-23-pm/README.md). New posting
+remains disabled; the October31 review is not yet due/delivered.
+
 The [Stupid.gifts studio contract](PINTEREST_STUDIO.md) now authorizes only
 measurement. The smoke command explicitly reads GA4 property507421709 and
 PostHog550427 with bounded QA/operator exclusions, separates GA4 old/new hosts,

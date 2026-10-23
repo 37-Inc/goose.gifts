@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261023-pm-v11-belly-late-7day-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-23T23:32:17.243Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "candidateId": "cand-v11-belly-bag-poster",
+    "scope": "candidate",
+    "statement": "Late seven-day lifetime observation completed at2026-10-23T23:30:08.162Z, exact gate2026-10-21T23:40:30.593Z, late172177569ms. Current native2impressions/0Pin clicks/0saves/0outbound. The scheduled migration pause/missed exact-age checkpoint is not reconstructed history; earlier October23 smoke is retained separately and did not record a dedicated seven-day learning. Durable successful publication receipt remains valid. Per-Pin site/retailer attribution unknown.",
+    "evidenceEventIds": [
+      "evt-20261023-pm-v11-metrics-1107815208391132026",
+      "evt-20261014-v11-belly-created"
+    ],
+    "decision": "Keep original public Pin and measuring lifecycle in frozen v11; no deletion, replacement, requeue, new creative or format verdict.",
+    "nextAction": "Preserve actual observation for October31 full-cohort review; capture28day only at/after2026-11-11T23:40:30.593Z."
+  }
+}

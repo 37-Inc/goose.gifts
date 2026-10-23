@@ -1,5 +1,16 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-23 PM — resumed Pinterest task executes measurements only
+
+[daily-ops] First resumed scheduled read completed23:30:08.162UTC:28 public Pins,
+v11P6/F6, unchanged native outbound2P/0F and unknown attributable downstream.
+GA4/PostHog bounded reads succeed; previous504 remains a recorded gap. Added
+three honest late seven-day learnings (spider/belly/frog), with opossum/hat gates
+not closed early.16 validated append-only events and full run receipt are in
+`pinterest-measurements/2026-10-23-pm/`. No public Pin, creative, site/catalog/
+account/schedule/Bead mutation or spend. Existing task stays ACTIVE for metrics;
+review/posting freeze unchanged. Current channel wording now reflects restart.
+
 ## 2026-10-23 — Pinterest Stupid.gifts integration; measurement-only restart
 
 [owner+codex] Read-only publication-bound D1 candidate source replaces retired

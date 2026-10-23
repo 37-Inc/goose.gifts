@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261023-pm-v11-frog-late-7day-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-23T23:32:17.243Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "candidateId": "cand-v11-grumpy-frog-poster",
+    "scope": "candidate",
+    "statement": "Late seven-day lifetime observation completed at2026-10-23T23:30:08.162Z, exact gate2026-10-22T16:44:52.032Z, late110716130ms. Current native2impressions/0Pin clicks/0saves/0outbound. The scheduled migration pause/missed exact-age checkpoint is not reconstructed history; earlier October23 smoke is retained separately and did not record a dedicated seven-day learning. Durable successful publication receipt remains valid. Per-Pin site/retailer attribution unknown.",
+    "evidenceEventIds": [
+      "evt-20261023-pm-v11-metrics-1107815208391186516",
+      "evt-20261015-v11-frog-created"
+    ],
+    "decision": "Keep original public Pin and measuring lifecycle in frozen v11; no deletion, replacement, requeue, new creative or format verdict.",
+    "nextAction": "Preserve actual observation for October31 full-cohort review; capture28day only at/after2026-11-12T16:44:52.032Z."
+  }
+}
