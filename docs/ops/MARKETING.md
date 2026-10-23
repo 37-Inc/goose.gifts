@@ -1,5 +1,20 @@
 # goose.gifts Marketing Plan and Experiment Log
 
+## October 23 — Stupid.gifts measurement-only cutover
+
+Current owner authority supersedes historical publishing plans: finish integration
+and resume the existing studio only for measurement. v11 remains P6/F6; no new
+creative, approval, post or experiment before the October31 review AND explicit
+new owner approval. See [current operating contract](PINTEREST_STUDIO.md) and
+[cutover evidence](pinterest-cutover-2026-10-23/README.md). New-package validation
+uses Stupid.gifts; historical Goose links/packages remain intact. A fail-closed
+policy blocks production/Sandbox writes, even after the measurement deadline.
+
+Smoke read: P1,420impressions/2native outbound clicks, F336/0. Bowling holds97.1%
+of P exposure; site/retailer attribution remains unknown. This is not a format
+winner. New-site tagged QA delivery is verified and excluded, not conversions.
+The next action is the full receipt-timed cohort review, not more creative.
+
 This is the durable marketing strategy, creative standard, experiment backlog,
 and learning log for goose.gifts. Update it whenever an experiment is proposed,
 prepared, launched, measured, or retired. The roadmap says where marketing fits

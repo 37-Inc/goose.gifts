@@ -1,0 +1,1297 @@
+{
+  "auditedAt": "2026-10-23T19:05:51.240Z",
+  "count": 28,
+  "publicWrites": 0,
+  "summary": {
+    "oldSite200": 28,
+    "newSite200": 28,
+    "oldSiteRedirectsToNewSite": 0,
+    "matchingProducts": 26,
+    "unchangedApprovedLinks": 28
+  },
+  "items": [
+    {
+      "pinId": "1107815208387225923",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+        "finalUrl": "https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0G9M9XPSX",
+        "robots": "noindex, follow",
+        "title": "Poultry in Motion: The Raw Chicken Vase… | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+        "finalUrl": "https://stupid.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0G9M9XPSX",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B0G9M9XPSX",
+        "robots": "noindex, follow, noarchive",
+        "title": "Quirky Pink Ceramic Raw Chicken Vase - Funny Uncooked Turkey Planter, Whimsical Dopamine Decor for Home &amp; Office, Hilarious White Elephant Gag Gift, Unique Conversation Starter — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208387477273",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+        "finalUrl": "https://www.goose.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B08BC25ZTP",
+        "robots": "noindex, follow",
+        "title": "The Butt Station Tape Dispenser | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+        "finalUrl": "https://stupid.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B08BC25ZTP",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B08BC25ZTP",
+        "robots": "noindex, follow, noarchive",
+        "title": "The Butt Tape Dispenser – Funny Blue Desk Accessories, Office Gag Gift — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208387553278",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+        "finalUrl": "https://www.goose.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B081KFS7QW",
+        "robots": "noindex, follow",
+        "title": "Paw-sitively Hilarious Cat Brush | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+        "finalUrl": "https://stupid.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B081KFS7QW",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B081KFS7QW",
+        "robots": "noindex, follow, noarchive",
+        "title": "Lick&#x27;em Tongue Cat Brush – Funny Novelty White Elephant Gag Gift for Cat Lovers — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208387630624",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+        "finalUrl": "https://www.goose.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B001XSFW42",
+        "robots": "noindex, follow",
+        "title": "Pizza Boss 3000 | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+        "finalUrl": "https://stupid.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B001XSFW42",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B001XSFW42",
+        "robots": "noindex, follow, noarchive",
+        "title": "Genuine Fred PIZZA BOSS Circular Saw Pizza Cutter with Removable Shield — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208387654951",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+        "finalUrl": "https://www.goose.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/bullshit-button-hit-for-instant-hilarity",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B000L70MQO",
+        "robots": "index, follow",
+        "title": "Call BS on Boring Gifts with the Bullshit… | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+        "finalUrl": "https://stupid.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/bullshit-button-hit-for-instant-hilarity",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B000L70MQO",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B000L70MQO",
+        "robots": "index, follow",
+        "title": "Bullshit Button – The Official Hilarious BS Button with Sound Effects &amp; Flashing Light – Perfect Gag Gift for Friends, Family, and Co-workers - Batteries Included — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208387708056",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+        "finalUrl": "https://www.goose.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0BBCHQJSN",
+        "robots": "noindex, follow",
+        "title": "Toilet Golf: Tee Time for Your Throne! | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+        "finalUrl": "https://stupid.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0BBCHQJSN",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B0BBCHQJSN",
+        "robots": "noindex, follow, noarchive",
+        "title": "GOODLYSPORTS Toilet Golf Gag Gifts for Men, White Elephant Gifts for Adults — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208387734801",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+        "finalUrl": "https://www.goose.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/give-the-finger-office-edition",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0C7J5SMPK",
+        "robots": "index, follow",
+        "title": "Give Someone the Finger (in a Fun Way!) | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+        "finalUrl": "https://stupid.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/give-the-finger-office-edition",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0C7J5SMPK",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B0C7J5SMPK",
+        "robots": "index, follow",
+        "title": "Junwait Funny Smiling Middle Finger Statue Ornaments, Novelty Resin Finger Man Sculpture Decorations, Quirky Middle Finger Hand Statue for Table Shelf Office Desktop Decoration — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208387789981",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+        "finalUrl": "https://www.goose.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0GSW1X3P4",
+        "robots": "index, follow",
+        "title": "A Purr-fectly Medieval Cat Tapestry! | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+        "finalUrl": "https://stupid.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0GSW1X3P4",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B0GSW1X3P4",
+        "robots": "index, follow",
+        "title": "FoxUncle Weird Medieval Cat Tapestry Vintage Medieval Cat Aesthetic Wall Art Funny Quirky Animal Wall Decor 40 x 60 inches Home Decor for Living Room Hallway Bedroom — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208387817822",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+        "finalUrl": "https://www.goose.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": null,
+        "robots": "noindex, follow",
+        "title": "Wacky Waving Inflatable Tube Guy: A… | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+        "finalUrl": "https://stupid.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+        "status": 200,
+        "canonical": null,
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": null,
+        "robots": "noindex, follow, noarchive",
+        "title": "Selection unavailable — Stupid Gifts"
+      },
+      "matchingProduct": null
+    },
+    {
+      "pinId": "1107815208387877454",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+        "finalUrl": "https://www.goose.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/the-gratiator-grate-expectations",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B074J425V7",
+        "robots": "noindex, follow",
+        "title": "Grate Expectations: One-Handed Cheese Grater | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+        "finalUrl": "https://stupid.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/the-gratiator-grate-expectations",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B074J425V7",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B074J425V7",
+        "robots": "noindex, follow, noarchive",
+        "title": "PELEG DESIGN Handheld Cheese Grater Durable Rust-Proof Metal (Gratiator) — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208387907452",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+        "finalUrl": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0DFW4V57B",
+        "robots": "noindex, follow",
+        "title": "The Shark-in-a-Mug Mug | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+        "finalUrl": "https://stupid.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0DFW4V57B",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B0DFW4V57B",
+        "robots": "noindex, follow, noarchive",
+        "title": "Glazery 13.5 oz Funny 3D Shark Ceramic Coffee Mug, Cute Gray White Cartoon Handmade Figurine Tea Cup Novelty Coffee Cup with Handle for Shark Lovers Holiday Birthday Gifts for Women Men Mom Dad — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208387966131",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+        "finalUrl": "https://www.goose.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": null,
+        "robots": "noindex, follow",
+        "title": "Designer Dog Toy for the Haute Pooch | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+        "finalUrl": "https://stupid.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0FNNBK8Q6",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B0FNNBK8Q6",
+        "robots": "index, follow",
+        "title": "Fresh Memes Designer Dog Toy | Funny Novelty Squeaky Chew Toy for Pets | Unique Gift for Dog Owners (Medium, ChewyV) — Stupid Gifts"
+      },
+      "matchingProduct": null
+    },
+    {
+      "pinId": "1107815208387994026",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+        "finalUrl": "https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0757WW6KB",
+        "robots": "index, follow",
+        "title": "Firestarter Gag Box: Turn Your Gift into a… | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+        "finalUrl": "https://stupid.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/my-first-fire-not-what-you-think-it-is",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0757WW6KB",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B0757WW6KB",
+        "robots": "index, follow",
+        "title": "Prank-O My First Fire Prank Gift Box – Funny Empty Gag Gift Packaging for White Elephant, Christmas &amp; Office Parties, Hilarious Joke Gift Box to Hide Real Presents for Friends &amp; Family — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208388049691",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+        "finalUrl": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0CGXSKGXL",
+        "robots": "index, follow",
+        "title": "OMG! That Wiener Lights Up the Night! | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+        "finalUrl": "https://stupid.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/wiener-switch-light-up-your-night-with-laughter",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0CGXSKGXL",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B0CGXSKGXL",
+        "robots": "index, follow",
+        "title": "AIVXV OMG that Wiener Switch! White Elephant Gifts for Adults, Funny Anniversary Birthday Gag Gifts, Bedside Night Light, Gifts for Men Women Boyfriend Girlfriend Christmas, Mens Gifts — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208388077586",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+        "finalUrl": "https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0CYKK1167",
+        "robots": "index, follow",
+        "title": "Pickle Your Future: Mystic Prediction Gift | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+        "finalUrl": "https://stupid.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0CYKK1167",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0757WW6KB"
+        ],
+        "retailerProductId": "B0CYKK1167",
+        "robots": "index, follow",
+        "title": "DR DINGUS Mystic Pickle | 100 Responses | Magic Fortune Teller Novelty Gift | Ask - Press - Laugh | Answers Any Yes-or-No Question | Funny Novelty Gag Gift — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208388134634",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+        "finalUrl": "https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B07KGJS2F3",
+        "robots": "index, follow",
+        "title": "The American Mustache: A Hairy Tale of… | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+        "finalUrl": "https://stupid.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/coffee-table-book-a-jolly-mustache-affair",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B07KGJS2F3",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B07KGJS2F3",
+        "robots": "index, follow",
+        "title": "The American Mustache - Funny Hardcover Coffee Table Book Featuring Hilarious Mustache Photos, Americana Humor, Customizable Pages - Unique Gag Gift for Men, Brothers, and Dads — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208388715714",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+        "finalUrl": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B07VLBVQBP",
+        "robots": "index, follow",
+        "title": "Red Hot Crab Spoon Rest: A &#x27;Claw-some&#x27;… | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+        "finalUrl": "https://stupid.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B07VLBVQBP",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B07VLBVQBP",
+        "robots": "index, follow",
+        "title": "OTOTO 2 in 1 Silicone Spoon Rest &amp; Steam Releaser - Large Spoon Holder for Stove Top - Unique and Useful Gift for Cooking - Heat Resistant Utensil Rest, Kitchen Gadgets, Red Gift (Red the Crab) — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208388765155",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+        "finalUrl": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B01KR3SAIS",
+        "robots": "index, follow",
+        "title": "Farting Ring Box: Pop the Question with a… | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+        "finalUrl": "https://stupid.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B01KR3SAIS",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B01KR3SAIS",
+        "robots": "index, follow",
+        "title": "The Moon Ring®© &quot;It Farts When You Open it! Prank Gag Gift (Ring Box with Farting Butt, no Ring) AS SEEN ON THE Bachelorette, Handmade in the USA — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208388788830",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+        "finalUrl": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B008VVUWQC",
+        "robots": "noindex, follow",
+        "title": "Gnome Pun Intended: The Chia Pet Edition | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+        "finalUrl": "https://stupid.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/gnome-pun-intended-the-chia-pet-edition",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B008VVUWQC",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B008VVUWQC",
+        "robots": "noindex, follow, noarchive",
+        "title": "Chia Pet Classic Gnome Terracotta Planter with Seed Pack — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208389000013",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+        "finalUrl": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B082PSJYYP",
+        "robots": "noindex, follow",
+        "title": "Bowling You Over with Mini Desk Fun | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+        "finalUrl": "https://stupid.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/bowling-mini-toys-strike-up-some-fun",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B082PSJYYP",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B082PSJYYP",
+        "robots": "noindex, follow, noarchive",
+        "title": "Table Top Mini Bowling Game Set-Tabletop Wooden Board Mini Arcade Desktop Tiny Bowling Shooting Alley Office Desk Stress Relief Gadgets Small Finger Toys Fun Gag Gifts for MenWomen Kids Teens Boys — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208389027583",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+        "finalUrl": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0F88FJ56K",
+        "robots": "index, follow",
+        "title": "A Toast for Your Birthday! Literally. | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+        "finalUrl": "https://stupid.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0F88FJ56K",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B0F88FJ56K",
+        "robots": "index, follow",
+        "title": "A little Birthday Toast to you - Funny Happy Birthday Gifts for Women, Men, Mom, Dad, Sister, Best Friend - Unique Birthday Decorations Crochet Toast Gift Card for Her Him Coworker Gifts Ideas — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208389087383",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+        "finalUrl": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0BGXLMHRV",
+        "robots": "index, follow",
+        "title": "Desktop Therapist: Your Sound Advice in a Box | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+        "finalUrl": "https://stupid.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0BGXLMHRV",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B0BGXLMHRV",
+        "robots": "index, follow",
+        "title": "NPW Desktop Therapist Novelty Sound Machine – Funny Office Desk Toy, Stress Relief Prank Gift for Work &amp; Home (16 Sound Phrases) — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208391037211",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+        "finalUrl": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0CRRWZHK1",
+        "robots": "index, follow",
+        "title": "Shear-ly the Best Toilet Roll Holder | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+        "finalUrl": "https://stupid.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/shear-ly-the-best-toilet-roll-holder",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167",
+          "B0757WW6KB"
+        ],
+        "retailerProductId": "B0CRRWZHK1",
+        "robots": "index, follow",
+        "title": "VELENTI Sheep Toilet Roll Holder - Funny Toilet Paper Holders Free Standing Cute Bathroom Decor - Premium 3D Printed Black Sheep Loo Rolls Holder - Hilarious Tissue Paper Roll Storage - Set of 3 — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208391104701",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+        "finalUrl": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B07H75BJWW",
+        "robots": "index, follow",
+        "title": "Spider&#x27;s Surprise: Prank Box of Jumps! | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+        "finalUrl": "https://stupid.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/spider-prank-box-a-hauntingly-good-time",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B07H75BJWW",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B07H75BJWW",
+        "robots": "index, follow",
+        "title": "FunFamz Original Spider Prank Box with Hidden Gift Card Compartment | Wooden Prank Toy, Jump Scare Prank Gift &amp; Realistic Jumping Spider Surprise, Funny Toy for Kids, Adults, Parties &amp; Office Fun — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208391132026",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+        "finalUrl": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B075S2ZCYQ",
+        "robots": "index, follow",
+        "title": "Belly Bag: Carry Your Gut with Pride! | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+        "finalUrl": "https://stupid.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B075S2ZCYQ",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B075S2ZCYQ",
+        "robots": "index, follow",
+        "title": "Fandicto White Elephant Gifts Funny Belly Bag Fanny Pack for Men Women | Gag gifts Christmas Gift Exchange,Fake Beer Belly Waist Pack,Dadbod Dad Bag,PU Leather,Large Capacity,Adjustable Waist — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208391186516",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+        "finalUrl": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0FR5J39PR",
+        "robots": "index, follow",
+        "title": "Frogot This Grumpy Face on My Desk! | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+        "finalUrl": "https://stupid.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0FR5J39PR",
+          "B0CRRWZHK1",
+          "B0CYKK1167",
+          "B0757WW6KB"
+        ],
+        "retailerProductId": "B0FR5J39PR",
+        "robots": "index, follow",
+        "title": "KYVANDO Grumpy Frog Statue, Frog Decor Figurine for Desk &amp; Home, Weird Angry Frog Sculpture, Mini Frog Ornament, Unique Frog Gift with Box, 1pcs — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208391305222",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+        "finalUrl": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B0H3P21YPW",
+        "robots": "index, follow",
+        "title": "Opossum-it&#x27;s So Funny: Vintage Wall Art | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+        "finalUrl": "https://stupid.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B0H3P21YPW",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B0H3P21YPW",
+        "robots": "index, follow",
+        "title": "Vintage Gold Framed Funny Opossum Wall Art, Whimsical Possum Pictures Wall Decor, Quirky Animal Painting Canvas Prints Unique Home Decor for Living Room Bedroom Office Bar 8x10 Inch — Stupid Gifts"
+      },
+      "matchingProduct": true
+    },
+    {
+      "pinId": "1107815208391368990",
+      "packageLinkMatches": true,
+      "oldSite": {
+        "requested": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+        "finalUrl": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+        "status": 200,
+        "canonical": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+        "hops": [
+          {
+            "url": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [],
+        "retailerProductId": "B01JQMNHNY",
+        "robots": "index, follow",
+        "title": "Birthday Banter: The Hat That Says &#x27;Let’s… | goose.gifts"
+      },
+      "newSite": {
+        "requested": "https://stupid.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+        "finalUrl": "https://stupid.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+        "status": 200,
+        "canonical": "https://stupid.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+        "hops": [
+          {
+            "url": "https://stupid.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+            "status": 200
+          }
+        ],
+        "utmPreserved": true,
+        "samePath": true,
+        "productIds": [
+          "B01JQMNHNY",
+          "B0CRRWZHK1",
+          "B0FR5J39PR",
+          "B0CYKK1167"
+        ],
+        "retailerProductId": "B01JQMNHNY",
+        "robots": "index, follow",
+        "title": "Sterling James Co. Funny Happy Birthday Novelty Trucker Hat - Funny Birthday Gifts for Him or Her - Birthday Party Decorations and Supplies for Men and Women Multi — Stupid Gifts"
+      },
+      "matchingProduct": true
+    }
+  ]
+}

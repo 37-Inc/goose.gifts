@@ -1,0 +1,29 @@
+{
+  "dryRun": true,
+  "environment": "production",
+  "draft": "editorial-mini-bowling-boardroom-poster-20260919-am",
+  "publishable": false,
+  "studioMode": "measurement_only",
+  "destinationPreview": true,
+  "historicalPackageChanged": false,
+  "board": {
+    "id": "1107815277030422225",
+    "name": "Novelty Desk Toys"
+  },
+  "guardState": {
+    "candidateId": "cand-v11-mini-bowling-poster",
+    "approvalEventId": "evt-20260919-v11-mini-bowling-approved"
+  },
+  "payload": {
+    "board_id": "1107815277030422225",
+    "title": "Mini Tabletop Bowling Game for Office Desks",
+    "description": "This compact wooden tabletop bowling game uses a tiny silver-colored ball and wood launcher on a roughly 12-inch set with inset gutters and miniature pins. It turns a desk, break-room table, or coffee table into a funny office, white elephant, or bowler gift. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.",
+    "alt_text": "Small wooden tabletop bowling lane with eight white pins, a silver-colored ball, and a wood launcher on an after-hours conference table beneath the words “The break room has lanes.”",
+    "link": "https://stupid.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+    "media_source": {
+      "source_type": "image_base64",
+      "content_type": "image/png",
+      "data": "[base64 2870296 chars]"
+    }
+  }
+}

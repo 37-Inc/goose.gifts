@@ -1,5 +1,16 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-23 — Pinterest Stupid.gifts integration; measurement-only restart
+
+[owner+codex] Read-only publication-bound D1 candidate source replaces retired
+Postgres; future canonical product-package validation targets Stupid.gifts while
+preserving historical Goose packages/receipts. Added fail-closed production/
+Sandbox freeze, bounded GA4/PostHog measurement, null-safe native metrics and
+receipt-derived review timing. Actual account/catalog/dry-run, all28 destinations
+and tagged QA receipts are in `pinterest-cutover-2026-10-23/`. The same task/cadence
+resumes measurement only after merge; no image, Pin, deployment, catalog job or
+provider-setting mutation. v11 stays P6/F6 until review and new owner approval.
+
 A running, human-readable log of the meaningful changes made to goose.gifts and
 what's planned next. Its job is to give Cameron and any Claude session shared
 context: **what we've done, and where we're going.**

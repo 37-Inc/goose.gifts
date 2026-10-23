@@ -1,5 +1,19 @@
 # Pinterest API — Standard Access application package
 
+## Current integration — October 23
+
+Standard access remains on app1588384 and BUSINESS account1107815345747925810,
+now `stupid_gifts` / Stupid.gifts. New future packages require canonical
+`https://stupid.gifts/gifts/<slug>`; already public Goose packages retain their
+exact historical destinations and approval/readback history. Do not mass-repoint
+them or loosen validation. The current [studio policy](pinterest-studio-policy.json)
+allows measurement only, not public or Sandbox writes. A production nonposting
+preview is available as `npm run pinterest:create-pin -- --draft
+editorial-mini-bowling-boardroom-poster-20260919-am --dry-run
+--destination-preview`; it verifies account/board/artifact/URL and returns
+`publishable:false`. No candidate approval is inferred or changed.
+See [cutover evidence and scheduler contract](pinterest-cutover-2026-10-23/README.md).
+
 Original submission package for the `Goose.gifts` app, now renamed in place to
 **Stupid.gifts** on October21. App ID `1588384` and Standard access are retained.
 Current facts and migration gates are below; submission-era descriptions and

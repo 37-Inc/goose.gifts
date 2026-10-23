@@ -1,5 +1,12 @@
 # Creative experiment learning loop
 
+Current Stupid.gifts authority is **measurement only** under
+[PINTEREST_STUDIO.md](../PINTEREST_STUDIO.md). v11's12-Pin cohort is frozen;
+older experiment authorizations do not reopen generation or posting. Record
+bounded public measurements/learning normally, using null for missing downstream
+attribution and excluding QA. The October31 review must be recorded as delivered
+only after the actual deadline, not during this integration or schedule restart.
+
 `events.jsonl` is the canonical, append-only history of creative work. One line
 is one event conforming to `event.schema.json`. Never rewrite an earlier event
 to make a result look cleaner; add a correction, status change, review, or

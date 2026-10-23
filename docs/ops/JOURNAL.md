@@ -5,6 +5,41 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 — Pinterest cutover and bounded measurement execution
+
+Direct owner instruction: finish the focused cutover PR, then resume the same
+scheduled task in measurement-only mode. Branch `codex/stupid-pinterest-cutover`
+starts at 31c2148. Canonical production/catalog pins were not advanced or reset;
+this managed checkout stays active as the measurement operator through review.
+
+Read-only live-release/publication-receipt-bound D1 sourcing replaces Postgres.
+New canonical Stupid product packages retain the independent account, exact
+approval/state/artifact/receipt/idempotency checks; historical Goose packages
+remain untouched. Machine policy blocks production/Sandbox writes and legacy
+generation/preparation scripts before credentials. New-domain dry-run is only
+an in-memory preview, not approval or publication. Actual evidence is under
+`pinterest-cutover-2026-10-23/verification/`.
+
+Smoke execution verifies stupid_gifts BUSINESS, 28 retained Pins/five boards,
+v11 P6/F6 and the actual receipt-derived October31 16:44:52.279UTC deadline.
+P has 1,420 impressions/22 opens/3 saves/2 outbound; F 336/5/1/0. Bowling holds
+97.1% of P exposure. No format adoption; attributable site/retailer totals remain
+unknown. Explicit-ID GA4/PostHog queries exclude QA/operator traffic and label
+distinct provider windows. Missing/billing-gapped/unattributable data stays null.
+
+P/F tagged Stupid product landings and retailer actions are stored in PostHog;
+F explicit page/outbound requests returned GA4 204 and PostHog 200. QA is not
+acquisition. Provider Enhanced Measurement privacy remains a separate existing
+audit; no raw browser identities or credentials are committed.
+
+All 28 approved links are unchanged; 56 old/new requests retain path and UTMs.
+All return 200, but tube-guy is intentionally unavailable on Stupid. There are
+26 exact primary retailer matches and an unavailable legacy dog-toy comparison
+(new B0FNNBK8Q6 is exposed). No Goose-to-Stupid redirects exist yet. No Pin,
+hold, site deployment or catalog job changed. Source provenance identifies the
+October19 completed enrichment, not today's failed canary. Final review remains
+undelivered; actual scheduler activation is recorded separately after merge.
+
 ## 2026-10-23 — Complete corrected full-suite gate is green
 
 Exact clean tested fix is `523252cec427b87987d6b32d36561dfd8ea3964f` in PR268

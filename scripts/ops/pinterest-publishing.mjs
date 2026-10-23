@@ -29,7 +29,7 @@ export function excludeDeletedProductionPins(pins, receipts) {
   return pins.filter((pin) => !deletedIds.has(pin.id));
 }
 
-export function validateDraftPackage(draft, { root, requireApproval = true } = {}) {
+export function validateDraftPackage(draft, { root, requireApproval = true, historicalReadback = false } = {}) {
   const required = requireApproval
     ? REQUIRED_DRAFT_FIELDS
     : REQUIRED_DRAFT_FIELDS.filter((field) => !['candidateId', 'approvalEventId'].includes(field));
@@ -43,11 +43,14 @@ export function validateDraftPackage(draft, { root, requireApproval = true } = {
   if (target.protocol !== 'https:' || tracking.protocol !== 'https:') {
     throw new Error(`Draft ${draft.id} targetPage and trackingUrl must use HTTPS.`);
   }
-  if (!['goose.gifts', 'www.goose.gifts'].includes(target.hostname)) {
-    throw new Error(`Draft ${draft.id} targetPage must be on goose.gifts.`);
+  if (historicalReadback && !draft.livePinUrl) throw new Error('Historical validation requires an already published package.');
+  if (target.username || target.password || target.port || target.hash || tracking.username || tracking.password || tracking.port || tracking.hash
+    || (historicalReadback ? !['goose.gifts', 'www.goose.gifts', 'stupid.gifts'].includes(target.hostname)
+      : target.hostname !== 'stupid.gifts' || !/^\/gifts\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(target.pathname))) {
+    throw new Error(`Draft ${draft.id} targetPage must be a canonical https://stupid.gifts/gifts/<slug> product page (historical readbacks are separate).`);
   }
   if (tracking.hostname !== target.hostname || tracking.pathname !== target.pathname) {
-    throw new Error(`Draft ${draft.id} trackingUrl must point to the same Goose Gifts page as targetPage.`);
+    throw new Error(`Draft ${draft.id} trackingUrl must point to the same product page as targetPage.`);
   }
   for (const [key, value] of target.searchParams) {
     if (!key.startsWith('utm_') && tracking.searchParams.get(key) !== value) {

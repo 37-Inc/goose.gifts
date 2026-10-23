@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-23",
+  "purpose": "Bounded Stupid.gifts Pinterest/arm landing and retailer-event verification, not acquired traffic",
+  "productionRelease": "existing-restore-6856584cbd6a",
+  "ga4": {
+    "propertyId": "507421709",
+    "measurementId": "G-6RR3HPR747",
+    "fieldNoteNetworkReadback": {
+      "page_view": 204,
+      "conversion_event_outbound_click": 204,
+      "traffic_source": "pinterest",
+      "traffic_medium": "qa",
+      "traffic_campaign": "qa_pinterest_cutover_f_20261023",
+      "pathname": "/gifts/shear-ly-the-best-toilet-roll-holder",
+      "retailerProductId": "B0CRRWZHK1"
+    },
+    "storedCampaignReport": "Not yet claimed; normal GA4 reporting latency. Network acknowledgement is delivery proof, not stored attribution or customer acquisition.",
+    "privacyCaveat": "Existing Enhanced Measurement also emitted automatic click/full tagged URL. Provider privacy audit remains separate; this cutover changed no collection settings. Raw client/session identifiers are not retained here."
+  },
+  "posthog": {
+    "projectId": 550427,
+    "queryHttpStatus": 200,
+    "fieldNotePageViewHttpStatus": 200,
+    "fieldNoteRetailerHttpStatus": 200,
+    "storedRows": [
+      {"event":"page_view","source":"pinterest","medium":"qa","campaign":"qa_pinterest_cutover_p_20261023","pathname":"/gifts/bowling-mini-toys-strike-up-some-fun","count":1},
+      {"event":"conversion_event_outbound_click","source":"pinterest","medium":"qa","campaign":"qa_pinterest_cutover_p_20261023","pathname":"/gifts/bowling-mini-toys-strike-up-some-fun","productId":"B082PSJYYP","count":1},
+      {"event":"page_view","source":"pinterest","medium":"qa","campaign":"qa_pinterest_cutover_f_20261023","pathname":"/gifts/shear-ly-the-best-toilet-roll-holder","count":1},
+      {"event":"conversion_event_outbound_click","source":"pinterest","medium":"qa","campaign":"qa_pinterest_cutover_f_20261023","pathname":"/gifts/shear-ly-the-best-toilet-roll-holder","productId":"B0CRRWZHK1","count":1}
+    ],
+    "perPinUtmContent": "Not collected by the existing privacy allowlist; unknown, not zero. Arm-specific QA is proven through explicit campaign names, not invented per-Pin analytics."
+  },
+  "exclusion": "Both qa_pinterest_cutover_* campaigns and their PostHog temporary identities are excluded by pinterest:measure; GA4 excludes QA medium/campaigns.",
+  "publicPinWrites": 0,
+  "purchases": 0
+}
