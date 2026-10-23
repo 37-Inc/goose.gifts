@@ -5,6 +5,55 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 — Simplification release and real one-product validation accepted
+
+PR269 merged4355de8; reviewed runtimef731dd58 is live on Cloudflare Free as
+`recorded-canary-20261023-f731dd58`. Version
+`b2c6f47c-67bd-4338-a39d-f8e4cab930af`, deployment
+`7c00837f-37c0-411a-931b-542aa62287fc`; D1 receipt
+`203e482e0a2e16886955c6a2abc502cb6b73c0a0caf7c10f6b5bba0e1d885800`.
+Actual build is resolved; owner idle generation15/epoch425/external_pending0.
+All3383 identities,2359 public gifts,1024 intentional holds and42 original
+articles remain. Full local snapshot comparison preserves every original image,
+description and article. No extra Amazon/model request, paid upgrade, Vercel,
+social or Slack action. The one real update reused0736991379's original
+16:40:20.383000Z observation; today's original ten-product reservation remains.
+
+The full test gate passes1152 main tests plus8 durable-publication tests, zero
+failures/18 standard optional skips;22 additional tests, both strict types,
+lint0errors/25 old warnings, explicit build/verifier and both zero-finding audits
+pass. The new retained operator separately passes7 operator/security tests.
+Live1280px/390px QA verifies24→48 unique browse cards,400ms search without Submit,
+relevant grilling/cat matches, results-only/empty states, Clear/Back, no horizontal
+overflow or broken loaded photos, actual changed-product rendering and the
+`goose-gifts-37-20` retailer tag. Homepage/product/privacy body hashes match the
+package; the Worker-generated sitemap has184 canonical URLs and no retired Index
+or bundles. QA is tagged, not acquisition traffic. Semantic parity remains
+separate in roadmap-lbbz1.4.7; the current keyword path has no D1 query writes/reads.
+
+Normal final ledger3770HTTP/7648SQL/1,431,936reads/14,217writes/0unknown is retained,
+including the undispatched fixture-output waits; no counter or charge reset.
+Original one-off assertion counted telemetry as another product mutation; an
+exact same-owner/epoch/receipt reconciliation completed its checkpoint without
+replaying the write. Synthetic build outputs were preserved outside the operator
+before registered publication. One post-publication verifier misclassified privacy
+and dynamic sitemap; corrected readback, not production changes, verified them.
+Independent control readback cost3HTTP/5SQL/4reads/0writes; the initial unreported
+probe retains its separate2000-read upper bound. Fresh account totals at20:19:26Z
+are4,011,840/5M reads and50,072/100k writes. This day's migration/testing can trigger
+the80% notice, but stays within Free and all reserves. Current three credential
+references are readable; future locking/logout is still a real access condition.
+
+The existing `goose-gifts-daily-ops` task was updated in place at20:21:14Z:
+same ACTIVE heartbeat,0830Pacific schedule and target chat; no new job. Saved
+prompt SHA7a87ed6e76c00f5c61abdcbcc3bc38b81ef92a8059d388614bf209f8524d2779
+was independently read back with enabled writer, retained operator and limits.
+The clean care checkout's normal prepare correctly returns `daily_already_reserved`
+today, without a new fetch; the next scheduled normal batch is October24.
+Routine logs belong in protected care receipts, not daily source-changing commits.
+Historical f731 canary inputs/sources and older rollback remain retained; never
+replay completed migrations/recoveries. No blanket catalog rewrite is enabled.
+
 ## 2026-10-23 — Simplify routine care and restore product-led browsing
 
 Owner requested removal of unnecessary migration rules, homepage/search

@@ -42,9 +42,19 @@ batch after a failure.
 
 ## Operator
 
-**Activation status: pending the live canary for the simplification release.**
-Do not infer readiness from the timer's ACTIVE label or a PR merge. The accepted
-clean checkout and live receipt will be recorded in the journal after validation.
+**Daily writer enabled after live validation, October23.** The one existing
+task runs at08:30 Pacific, with no additional Cron or scheduler. Release
+`recorded-canary-20261023-f731dd58` is live, with exact receipt, resolved build,
+idle owner and desktop/mobile QA verified. See
+`evidence/2026-10-23-catalog-care-accepted.json` for actual task-installation
+state and evidence; an ACTIVE timer alone is never proof of writer readiness.
+
+The retained execution checkout is
+`/Users/cameronehrlich/.codex/worktrees/stupid-catalog-care/goose.gifts`.
+It uses the reviewed runtime from PR269 plus documentation-only closeout commits.
+Keep the historical canary checkout unchanged. Never blindly pull or republish
+an older runtime over a newer live release; integrate/test genuine code changes
+deliberately before switching the operator.
 
 The maintained entry point is `scripts/catalog/daily-operator.mjs` (`catalog:care`),
 not a growing collection of manually patched private helper copies. It discovers
@@ -89,8 +99,11 @@ run-specific readers remain retained; do not replay completed migration helpers.
 5. Read the live `/.well-known/catalog-release.json`, homepage, a changed product,
    search, Load more and one affiliate destination. Check original content and
    the tag. Do not announce success from a cache 200 or merge alone.
-6. Reconcile Beads and log a concise result here. Stay quiet for an unchanged
-   healthy skip; report meaningful completion, failure or exact owner action.
+6. Keep routine receipts in the protected care directory and reconcile Beads
+   when the operating state materially changes. Do not dirty the retained
+   execution checkout with daily log commits. Release-level journal/docs edits
+   use a separate reviewed branch. Healthy maintenance and skips stay quiet;
+   report material catalog changes, failures or exact required owner action.
 
 ## Site quality and code changes
 
@@ -107,7 +120,9 @@ privacy-safe product/search events. No paid analytics or per-query generation.
 
 For code changes: use an isolated branch, review/simplify the diff, run focused
 tests, both strict typechecks, lint, security audits and an explicit-context static
-build. Include the new regression tests in the normal gate. Browser-check desktop
+build. Keep synthetic build outputs outside the retained execution checkout, or
+archive only your own reproducible QA output before publication. Never adopt or
+remove another run's registered output. Include new regressions in the normal gate. Browser-check desktop
 and mobile, loading/empty/error states and history/clear behavior. Open/review/merge
 one logical PR, publish through the normal Cloudflare contract and live-verify.
 Keep source integration separate from production publication in every status.
