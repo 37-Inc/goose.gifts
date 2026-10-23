@@ -287,6 +287,14 @@ test('sealed built package resumes with only exact expired lease reclaimed, with
     assert.equal(canonicalJson(f.sql.prepare('SELECT * FROM products').all()),products);
   });
 });
+test('cleanup that consumes the build lease reclaims before the sole upload',async t=>{
+  const f=await setup(t,{real:true,retentionMs:3600000}),clean=f.workspace.cleanPublicationBuild;
+  let cleaned=false;f.workspace.cleanPublicationBuild=async(...args)=>{await clean(...args);if(!cleaned){cleaned=true;f.advance(11*60000);}};
+  const result=await f.execute();assert.equal(result.state,'published',JSON.stringify(result));
+  assert.equal(f.sql.prepare('SELECT attempts FROM catalog_build_requests').get().attempts,2);
+  assert.equal(f.counts().buildCalls,1);assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+  assert.equal(await readMutationOwner(f.db,scope),null);
+});
 test('expired built reclaim validates package and rejects owner, dispatch, external pins and receipt drift before claim',async t=>{
   const faults={
     package:async({packageDirectory})=>fs.appendFile(path.join(packageDirectory,'assets/index.html'),'unsealed bytes'),
