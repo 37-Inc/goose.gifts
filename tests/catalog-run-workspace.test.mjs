@@ -140,6 +140,18 @@ function recoveryCheckpoint(runId='test-run'){
 }
 const recoveryGrant=(checkpoint,allowance={httpRequests:2,sqlStatements:3})=>({expectedCheckpointSha256:checkpoint.sha256,approvalReference:'c'.repeat(64),allowance});
 
+test('catalog-sized technical vector coverage survives reopen; over-bound and duplicate IDs still refuse without native calls',async t=>{
+  const f=await fixture(t),w=await f.open(),value=recoveryCheckpoint();
+  value.control.publication.vectorPlan.ids=Array.from({length:10000},(_,i)=>`00000000-0000-4000-8000-${String(i).padStart(12,'0')}`);
+  const bad=structuredClone(value);bad.control.publication.vectorPlan.ids.push('00000000-0000-4000-8000-999999999999');
+  await assert.rejects(w.writeCheckpoint(null,bad),/control/);
+  const duplicate=structuredClone(value);duplicate.control.publication.vectorPlan.ids[9999]=duplicate.control.publication.vectorPlan.ids[0];
+  await assert.rejects(w.writeCheckpoint(null,duplicate),/control/);
+  await w.writeCheckpoint(null,value);await w.close();const reopened=await f.open({mode:'resume'});
+  assert.equal((await reopened.readCheckpoint({controlOnly:true})).checkpoint.control.publication.vectorPlan.ids.length,10000);
+  assert.equal((await reopened.budget()).httpRequests,0);
+});
+
 test('reviewed unactivated upload can adopt capped replacement claims, never a different package/version/permit',async t=>{
   const f=await fixture(t),w=await f.open(),value=recoveryCheckpoint();value.phase='publishing';value.owner.phase='freezing';
   const p=value.control.publication;p.permit=null;p.build.leaseUntil=p.publication.leaseUntil='2026-10-20T12:10:00.000Z';

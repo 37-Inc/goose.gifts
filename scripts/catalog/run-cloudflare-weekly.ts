@@ -20,7 +20,9 @@ import { executePublication, validatePublicationConfig } from './publish-release
 import { accountedPublicationReadFetch, accountedPublicationFetch, isAccountedPublicationFetch } from './publication-read-fetch.ts';
 import { accountedPublicationUploadCommand, isAccountedPublicationUploadCommand } from './publication-upload-command.ts';
 import { approvedRequestControl, hydrateApprovedRequest, approvedRevisionControl, hydrateApprovedRevision,
-  approvedArtifactObservedAt, readApprovedPrior, createApprovedCatalogSeal } from './approved-catalog-seal.ts';
+  approvedArtifactObservedAt, readApprovedPrior, createPublishedApprovedCatalogSeal } from './approved-catalog-seal.ts';
+import {isPersistentCatalogSeal,reconstructPermanentSnapshot} from './permanent-catalog-seal.ts';
+import type {PermanentCatalogSeal} from './permanent-catalog-seal.ts';
 import type { ApprovedCatalogSeal } from './approved-catalog-seal.ts';
 import type { PublicationConfig } from './publish-release.ts';
 import { claimMutationOwnership, releaseMutationOwnership } from '../../lib/catalog/mutation-fence.ts';
@@ -241,7 +243,8 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     let saved=await ws.readCheckpoint({controlOnly:true});
     if(saved&&['phases_running','phase_failed','attention','finalized'].includes(saved.checkpoint.phase)
       &&!(saved.checkpoint.phase==='attention'&&resolving(saved.checkpoint)))
-      return{state:saved.checkpoint.phase==='finalized'?'finalized':'attention',phase:saved.checkpoint.phase,budget:await ws.budget()};
+      return{state:saved.checkpoint.phase==='finalized'?'finalized':'attention',phase:saved.checkpoint.phase,
+        ...(saved.checkpoint.phase==='finalized'?{catalogSeal:await ws.catalogSuccessor()??undefined}:{}),budget:await ws.budget()};
     const token=await resolveCloudflareCredential(config.credentials.cloudflare,resolveToken,dependencies.resolveWranglerOAuth);
     const identityAuthorization=async()=>config.credentials.stagingAuthSecret
       ?`Basic ${Buffer.from(`staging:${await resolveToken(config.credentials.stagingAuthSecret)}`).toString('base64')}`:undefined;
@@ -357,11 +360,13 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
         }
         if(n===199)throw new Error('weekly_outbox_bound');
       }
-      const prior=await readOrdered(ws,cp.pins.previous) as ApprovedCatalogSeal;
+      const prior=await readOrdered(ws,cp.pins.previous) as ApprovedCatalogSeal|PermanentCatalogSeal;
       const context=await ws.readArtifact(cp.pins.context) as unknown as ApprovedCohortRequest['context'];
-      const previous=['approved-catalog-seal','permanent-catalog-seal'].includes(prior.kind)
+      const previous=prior.kind==='permanent-catalog-seal'?await reconstructPermanentSnapshot(db,cp.owner!,prior)
+        :['approved-catalog-seal'].includes(prior.kind)
         ?await readApprovedPrior(db,cp.owner!,prior,context):prior as unknown as ApprovedCohortRequest['previous'];
       const request={previous,context,scope,codeSha:config.codeSha,
+        ...(isPersistentCatalogSeal(prior)?{predecessor:prior}:{}),
         approval:await ws.readArtifact(cp.pins.approval),approvalSha256:cp.pins.approval.sha256} as unknown as ApprovedCohortRequest;
       approvedCohortOperationKey(request);
       const pin=await putOrdered(ws,approvedRequestControl(request),now());await write({phase:'freezing',pins:{...cp.pins,request:pin}});
@@ -417,9 +422,10 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       if(result.state!=='published')return{...result,phase:cp.phase,budget:await ws.budget()};
       const actual=(await db.prepare('SELECT * FROM publication_receipts WHERE release_id=?').bind(result.releaseId).all()).results;
       if(actual.length!==1)throw new Error('weekly_publication_receipt_missing');
-      const seal=createApprovedCatalogSeal(revision,{releaseId:result.releaseId,receiptSha256:sha256(canonicalJson(actual[0]))});
-      const pin=await ws.putArtifact(result,{kind:'publication',observedAt:now()}),sealPin=await putOrdered(ws,seal,now());
-      await write({phase:'published',owner:null,pins:{...cp.pins,published:pin,publishedSeal:sealPin}});
+      const seal=await createPublishedApprovedCatalogSeal(db,revision,{releaseId:result.releaseId,receiptSha256:sha256(canonicalJson(actual[0]))});
+      if(revision.persistent)await ws.recordCatalogSuccessor(seal);
+      const pin=await ws.putArtifact(result,{kind:'publication',observedAt:now()}),sealPin=revision.persistent?null:await putOrdered(ws,seal,now());
+      await write({phase:'published',owner:null,pins:{...cp.pins,published:pin,...(sealPin?{publishedSeal:sealPin}:{})}});
     }
     if(cp.phase==='published'){
       const receipt=await ws.readArtifact(cp.pins.published) as Record<string,unknown>;
@@ -432,7 +438,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       if(actual?.run.id!==config.runId||actual.run.status!=='completed'||canonicalJson(actual.run.counts)!==canonicalJson(input.counts))throw new Error('weekly_finalization_mismatch');
       await write({owner:cursor.current});await releaseExact(db,cursor.current);await write({phase:'finalized',owner:null});
       return{state:'finalized',runId:config.runId,releaseId:receipt.releaseId,receiptSha256:receipt.receiptSha256,
-        catalogSeal:cp.pins.publishedSeal?await readOrdered(ws,cp.pins.publishedSeal):undefined,budget:await ws.budget()};
+        catalogSeal:await ws.catalogSuccessor()??(cp.pins.publishedSeal?await readOrdered(ws,cp.pins.publishedSeal):undefined),budget:await ws.budget()};
     }
     throw new Error('weekly_checkpoint_phase');
   }finally{try{await workspace?.close();}finally{executing=false;}}

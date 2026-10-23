@@ -10,6 +10,10 @@ import { checkCurrent, readApprovedCurrentRows, readPruningSource, SNAPSHOT_READ
 import { canonicalJson, sha256 } from '../../scripts/catalog/migration.ts';
 import { pruneOperationKey, prunedVectorPlan, sealCapturedRevision, settleCapturedRevision } from './prune-existing-revision.ts';
 import type { PruneRequest, PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from './prune-existing-revision.ts';
+import type { NativeHistoryBinding } from './prune-existing-revision.ts';
+import type { PermanentCatalogSeal } from '../../scripts/catalog/permanent-catalog-seal.ts';
+import type { ApprovedCatalogSeal } from '../../scripts/catalog/approved-catalog-seal.ts';
+import type { permanentSourceInventory } from './freeze-permanent-catalog.ts';
 
 type Row = Record<string, unknown>;
 const HASH = /^[a-f0-9]{64}$/;
@@ -28,8 +32,12 @@ export interface ApprovedCohortEnvelope {
 }
 export interface ApprovedCohortRequest extends PruneRequest {
   approval: ApprovedCohortEnvelope; approvalSha256: string;
+  predecessor?: PermanentCatalogSeal | ApprovedCatalogSeal;
 }
-export interface ApprovedCohortRevision extends PrunedRevision { request: ApprovedCohortRequest }
+export interface PersistentCohortState {
+  generation:number; inventory:ReturnType<typeof permanentSourceInventory>; nativeHistory:NativeHistoryBinding[];
+}
+export interface ApprovedCohortRevision extends PrunedRevision { request: ApprovedCohortRequest; persistent?:PersistentCohortState }
 export function approvedCohortOperationKey(request: ApprovedCohortRequest): string {
   pruneOperationKey(request); // Shared scope/code/cutoff validation, NOT subset policy.
   const envelope = request.approval;
@@ -42,7 +50,8 @@ export function approvedCohortOperationKey(request: ApprovedCohortRequest): stri
       || !UUID.test(value.publicId) || ![value.operationId,value.inputSha256,value.productSha256,value.displaySha256].every(hash => HASH.test(hash)))
     || !HASH.test(request.approvalSha256) || sha256(canonicalJson(envelope)) !== request.approvalSha256)
     throw new Error('cohort_approval_invalid');
-  return sha256(canonicalJson({ kind:'approved-cohort', previous:pruneOperationKey(request), approvalSha256:request.approvalSha256 }));
+  return sha256(canonicalJson({ kind:'approved-cohort', previous:pruneOperationKey(request), approvalSha256:request.approvalSha256,
+    ...(request.predecessor?{predecessorSha256:sha256(canonicalJson(request.predecessor))}:{}) }));
 }
 function held(value: { id: string; publicId: string; slug: string }, reason: SafeHeldProduct['reason']): SafeHeldProduct {
   return { id:value.id,publicId:value.publicId,slug:value.slug,path:`/gifts/${value.slug}`,title:'Gift currently unavailable',
@@ -54,6 +63,10 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   if (owner.phase !== 'freezing' || owner.operationKey !== operationKey || owner.environment !== request.scope.environment
     || owner.indexName !== request.scope.indexName) throw new Error('cohort_owner_mismatch');
   await db.batch([mutationAssertion(db,owner,['freezing'])]);
+  // Reconstruct from immutable D1, never from an expired workspace body. This
+  // independently authenticates every private identity, not just visible rows.
+  const predecessor=request.predecessor?await (await import('../../scripts/catalog/permanent-catalog-seal.ts')).readCatalogPredecessor({
+    db,owner,seal:request.predecessor,approval:request.approval,approvalSha256:request.approvalSha256}):undefined;
   const source = await readPruningSource(db,request.previous,request.context,owner);
   const now = new Date(source.observedAt); const cutoff = Date.parse(request.context.cutoff);
   if (now.getTime() < Date.parse(owner.capturedAt) || cutoff <= now.getTime()
@@ -130,8 +143,14 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
     safeHeld.push(held(value,'duplicate'));return false; });
   const readyIds = new Set(ready.map(value => value.publicId));
   const removed = source.snapshot.products.filter(value => !readyIds.has(value.publicId));
-  const additionalAbsentIds = request.approval.changes.filter(value => !readyIds.has(value.publicId)).map(value => value.publicId);
-  const semantic = ready.filter(value => value.eligibleUntil !== null && Date.parse(value.eligibleUntil) > cutoff);
+  const semantic = ready.filter(value => value.eligibleUntil !== null && Date.parse(value.eligibleUntil) > cutoff
+    &&(!predecessor||changed.has(value.publicId)));
+  const priorNative=new Set(predecessor?.priorNativeIds??[]);
+  const additionalAbsentIds = request.approval.changes.filter(value => !readyIds.has(value.publicId)
+    ||priorNative.has(value.publicId)&&!semantic.some(p=>p.publicId===value.publicId)).map(value => value.publicId);
+  const targetIds=new Set([...semantic.map(p=>p.publicId),...removed.map(p=>p.publicId),...additionalAbsentIds]);
+  const nativeHistory=predecessor?.nativeHistory.map(group=>({...group,ids:group.ids.filter(id=>!targetIds.has(id))})).filter(group=>group.ids.length);
+  const persistent=predecessor?{generation:owner.generation,inventory:predecessor.inventory,nativeHistory:nativeHistory!}:undefined;
   if (semantic.length + new Set([...removed.map(value=>value.publicId),...additionalAbsentIds]).size > SNAPSHOT_READ_LIMITS.identities) throw new Error('cohort_vector_proof_bound');
   const revision = request.approval.catalogRevision;
   const existing = (await db.prepare('SELECT created_at FROM catalog_revisions WHERE revision=?').bind(revision).all()).results[0];
@@ -142,11 +161,13 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   // the reviewed prior/envelope; private digest/CAS rows have a separate stable order.
   const sourceRows = [...current.values()].sort((a,b)=>String(a.public_id).localeCompare(String(b.public_id)));
   const globalVectorWatermark = Number(source.header.globalWatermark);
-  const sourceDigest = sha256(canonicalJson({ operationKey,generatedAt,globalVectorWatermark,current:sourceRows,prior:source.header.prior }));
+  const sourceDigest = sha256(canonicalJson({ operationKey,generatedAt,globalVectorWatermark,
+    ...(persistent?{currentSha256:sha256(canonicalJson(sourceRows)),persistent}:{current:sourceRows}),prior:source.header.prior }));
   const facts = Object.fromEntries(sourceRows.map(row => [String(row.public_id),row.source_facts_hash===null?null:String(row.source_facts_hash)]));
   const packet = await createProjectionPacket(snapshot,facts,sourceDigest,now);
   const sealed = await sealCapturedRevision(db,owner,{request,snapshot,packet,sourceRows,priorRow:source.header.prior as Row,
-    sourceDigest,globalVectorWatermark,vectorSyncWatermark:0,operationKey,additionalAbsentIds});
+    sourceDigest,globalVectorWatermark,vectorSyncWatermark:0,operationKey,additionalAbsentIds,
+    ...(persistent?{persistent,nativeHistory}: {})} as ApprovedCohortRevision);
   return { state:ready.length ? 'prepared' as const : 'all_held' as const,owner:sealed.owner,
     revision:{...sealed.revision,request} as ApprovedCohortRevision };
 }

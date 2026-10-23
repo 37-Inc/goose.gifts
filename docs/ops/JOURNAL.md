@@ -5,6 +5,85 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 UTC — Offline authenticated recurring successor implemented
+
+Continued only `codex/stupid-daily-readiness-offline-20261022`, on top of
+`3d652dc`. Restoration was not replayed or used as substitute evidence. There
+were zero live provider/merchant/model calls, credential reads, deployments,
+remote Git/Dolt operations, schedule/gate changes, paid upgrades or new model/
+merchant allowances. Old Neon is off, the new writer gated and Pinterest paused.
+
+The existing contracts now carry the complete missing chain:
+
+- `run-cloudflare-weekly.ts` distinguishes the authentic permanent predecessor,
+  pins it in the existing request control, and creates the successor only from
+  an actual resolved publication/verified outbox/idle generation.
+- `permanent-catalog-seal.ts` authenticates the prior projection/publication,
+  every full private-source hash and held identity, plus each independently
+  approved current operation chain. Both original and recurring seals are
+  supported; source-only verification is explicitly NOT native verification.
+- `freeze-approved-cohort.ts` binds that inventory to the current source digest.
+  Unchanged native members remain historical, including still-fresh overlays;
+  approved current native deltas/absence are a separate disjoint set.
+- `owned-vector-delivery.ts` verifies a flat, identity-bounded union through
+  immutable actual source journals and resolved publication receipts, exact
+  metadata/float32 bits and current-owner CAS. It never recursively reads old
+  workspace bodies or rewrites unchanged vectors. The20-item ordinary proof/
+  transport bound is unchanged; the existing approval envelope remains30.
+- `approved-catalog-seal.ts` retains only inventory hashes, technical projection/
+  request metadata and native receipt pointers. It can be consumed after prior
+  bodies expire; no supplier observation/deadline or grant is renewed.
+- `run-workspace.ts` retains this exact allowlisted successor in bounded,
+  hash-linked64KiB journal parts, not an expiring content artifact. Interrupted
+  recording resumes only identical parts; rewrite and arbitrary provider-body
+  fields refuse. It survives actual purge, close and reopen, without altering
+  the manifest, original charges or unknowns. The normal driver and finalized
+  resume return it through this durable reader. Technical vector-ID control is
+  bounded by the existing10,000-identity catalog/512KiB JSON ceiling rather than
+  an unrelated100-ID/8KiB ceiling; transport/proof and merchant/model bounds
+  stay unchanged. A10,000-ID reopen/over-bound/duplicate test passes with no calls.
+- `publish-release.ts` accepts the union only through the authenticated approved
+  input, retains the permanent/approved exclusivity guard, and runs full private
+  inventory checks outside short native/provider observations. The logical
+  reader has explicit bounded table selection and cancellable SELECT-only
+  observation queries; its historical default wire behavior is unchanged.
+
+New positive tests in `catalog-permanent-freeze.test.mjs` start from a genuine
+installed/published permanent seal, execute real local maintenance/outbox/policy/
+native checks, and resolve TWO normal publisher invocations to real local
+publication receipts, resolved builds and idle owners. Small12 and full3,383
+fixtures pass. Full day1 refreshes10 and admits20 exact approved additions;
+day2 refreshes10 and consumes only the body-free successor after the registered
+day1 workspace is actually purged. Its immutable manifest and unknown charge
+remain exact. All3,383 old identities,1,024 complete held rows and approved new
+IDs survive, leaving2,379 public/3,403 private. Signed-zero corruption is refused
+for BOTH original historical vectors and the preceding day's newly added native
+members. Inventory/held/private-sidecar and omitted/forged successor drift also
+refuse. Cancellation of the historical source read aborts and joins without
+late queries; every added source query inside the native window is SELECT-only
+and receives the same abort signal. The quality gate correctly rejected a fixture family duplicate; the
+synthetic candidate was corrected rather than weakening deduplication.
+
+Observed full fixture D1 metrics (INCLUDING hydration/adversarial proof reads):
+day1 3,356 requests/7,905 SQL/89,982 returned rows/22,686 SQLite changes;
+day2 2,786/6,384/95,315/22,165. Both have zero new unknowns. These are NOT a
+whole-run budget, new build/upload measurement, D1 scan/index billing or live
+headroom proof. Do not sum them blindly with the accepted generic-prior capacity
+probe or treat its provisional3,000-request profile as accepted for this path.
+
+Reproduce with Node22 under outbound-network denial:
+`node --import tsx --test --test-name-pattern='authentic permanent successor'
+tests/catalog-permanent-freeze.test.mjs` (one shell command). All HTTP in these
+fixtures is synthetic/local. The static-build/upload generic-prior evidence
+remains separate; skipped heavy capacity cases are not additional acceptance.
+Two obsolete refusal assertions in the older approved-cohort suite were
+reconciled with the already-existing30-change and whole-plan contracts; no
+production cap was raised. Final regression/type/lint/build results are recorded
+with the implementation receipt/Bead. `roadmap-lbbz1.4.3.1` stays in progress:
+complete authentic runner+build/upload accounting, reviewed integration,
+actual index-inclusive billing/headroom and later canary remain unaccepted.
+No owner credential action is needed for the remaining offline engineering.
+
 ## 2026-10-23 UTC — Successful complete offline workloads measured; native successor wiring remains
 
 Continued the SAME local branch, implementation

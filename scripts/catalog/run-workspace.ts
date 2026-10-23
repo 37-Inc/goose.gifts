@@ -10,6 +10,7 @@ import type { MutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import { encodeBuildRequest } from '../../lib/catalog/build-requests.ts';
 import type { CatalogBuildClaim, ActivationPermit } from '../../lib/catalog/build-requests.ts';
 import type { PublicationClaim, PublicationIntent } from '../../lib/catalog/publication.ts';
+import type {ApprovedCatalogSeal} from './approved-catalog-seal.ts';
 import { encodePublicationIntent } from '../../lib/catalog/publication.ts';
 import type { ProviderReceipt } from './provider-evidence.ts';
 
@@ -89,9 +90,11 @@ type Event = {type:'artifact';ref:ArtifactRef} | {type:'checkpoint';ref:Artifact
   | {type:'publication-purged';releaseId:string;purgedAt:string}
   | {type:'activation-recovery-budget';grant:RecoveryGrant}
   | {type:'publication-success';proof:PublicationSuccess}
+  | {type:'catalog-successor-part';sha256:string;index:number;count:number;data:string}
   | {type:'reserve';reservation:BudgetReservation} | {type:'settle';id:string;settlement:BudgetSettlement};
 type RecordFile = {schemaVersion:1;sequence:number;parent:string|null;event:Event};
 type State = {manifest:WorkspaceManifest;recovery:RecoveryGrant|null;success:PublicationSuccess|null;head:string|null;count:number;bytes:number;checkpoint:CheckpointView|null;body:ArtifactRef|null;previous:string|null;totals:BudgetTotals;
+  successor:{sha256:string;count:number;parts:string[]}|null;
   refs:Map<string,ArtifactRef>;purged:Map<string,PurgedArtifact>;
   publications:Map<string,{retention:PublicationDirectories;buildCleaned:boolean;purged:boolean}>;
   reservations:Map<string,{reservation:BudgetReservation;settlement?:BudgetSettlement}>};
@@ -107,6 +110,9 @@ export interface RunWorkspace {
   readArtifact(ref:ArtifactRef):Promise<Json>;
   putBlob(bytes:Uint8Array,options:{kind:'phase'|'publication';observedAt:string}):Promise<ArtifactRef>;
   readBlob(ref:ArtifactRef):Promise<Uint8Array>;
+  /** Immutable body-free catalog control, retained in the existing journal. */
+  recordCatalogSuccessor(seal:ApprovedCatalogSeal):Promise<void>;
+  catalogSuccessor():Promise<ApprovedCatalogSeal|null>;
   saveReceipt(input:Readonly<{sha256:string;receipt:ProviderReceipt}>):Promise<ArtifactRef>;
   readReceipt(ref:ArtifactRef):Promise<ProviderReceipt>;
   readCheckpoint(options?:{controlOnly?:false}):Promise<{sha256:string;checkpoint:WorkspaceCheckpoint}|null>;
@@ -214,7 +220,7 @@ function control(value:WorkspaceControl|undefined) {
   if(value===undefined)return;
   if(!exact(value,value.publication===undefined?[]:['publication']))fail('control');
   if(!value.publication)return;
-  json(value,8192);const p=value.publication;
+  json(value,MAX_JSON);const p=value.publication;
   if(!exact(p,['schemaVersion','configSha256','requestId','runReference','stage','build','publication','intent','permit','vectorPlan','packageSha256','uploadMarker','versionReference','deploymentMarker','deploymentId',...(p.receiptSha256===undefined?[]:['receiptSha256'])])
     ||p.schemaVersion!==1||!hash(p.configSha256)||!key(p.requestId)||!refString(p.runReference)
     ||!['claimed','built','uploading','uploaded','activating','published'].includes(p.stage)
@@ -227,7 +233,7 @@ function control(value:WorkspaceControl|undefined) {
       ||![q.requestId,q.token,q.releaseId].every(key)||![q.runReference,q.versionReference].every(refString))fail('control');
     if(q.mutationOwner)owner(q.mutationOwner);}
   if(!exact(p.vectorPlan,['catalogRevision','planSha256','ids'])||!key(p.vectorPlan.catalogRevision)||!hash(p.vectorPlan.planSha256)
-    ||!Array.isArray(p.vectorPlan.ids)||p.vectorPlan.ids.length>100||p.vectorPlan.ids.some(id=>typeof id!=='string'||!/^[a-f0-9-]{36}$/.test(id))
+    ||!Array.isArray(p.vectorPlan.ids)||p.vectorPlan.ids.length>10000||p.vectorPlan.ids.some(id=>typeof id!=='string'||!/^[a-f0-9-]{36}$/.test(id))
     ||new Set(p.vectorPlan.ids).size!==p.vectorPlan.ids.length||p.packageSha256!==null&&!hash(p.packageSha256)
     ||![p.uploadMarker,p.deploymentMarker].every(refString)||[p.versionReference,p.deploymentId].some(v=>v!==null&&!refString(v))
     ||p.receiptSha256!==undefined&&!hash(p.receiptSha256))fail('control');
@@ -342,7 +348,7 @@ async function loadStored(directory:string,ref:ArtifactRef,manifest:WorkspaceMan
   return value;
 }
 function fresh(value:Stored,now:string) {if(Date.parse(value.observedAt)>Date.parse(now)||Date.parse(value.expiresAt)<=Date.parse(now))fail('expired');}
-const empty=(manifest:WorkspaceManifest):State=>({manifest,recovery:null,success:null,head:null,count:0,bytes:0,checkpoint:null,body:null,previous:null,
+const empty=(manifest:WorkspaceManifest):State=>({manifest,recovery:null,success:null,successor:null,head:null,count:0,bytes:0,checkpoint:null,body:null,previous:null,
   totals:{httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0},refs:new Map(),purged:new Map(),publications:new Map(),reservations:new Map()});
 function publicationSuccess(state:State,p:PublicationSuccess) {
   const cp=state.checkpoint,c=cp?.checkpoint.control?.publication,o=c?.permit?.mutationOwner;
@@ -436,6 +442,15 @@ function apply(state:State,event:Event,dry=false) {
     if(!hash(permitSha256)||permitSha256!==sha256(canonicalJson(recoveryPermit(state)))||!same(usage,totals(state)))fail('recovery_binding');
     if(!integer(usage.httpRequests+input.allowance.httpRequests)||!integer(usage.sqlStatements+input.allowance.sqlStatements))fail('budget_overflow');
     if(!dry)state.recovery=event.grant;
+  }else if(event.type==='catalog-successor-part'){
+    const prior=state.successor;
+    if(!exact(event,['type','sha256','index','count','data'])||!hash(event.sha256)||!integer(event.index)||!integer(event.count)
+      ||event.count<1||event.count>128||event.index>=event.count||typeof event.data!=='string'||event.data.length>87384
+      ||Buffer.from(event.data,'base64').toString('base64')!==event.data||Buffer.from(event.data,'base64').length>65536
+      ||event.index!==(prior?.parts.length??0)||prior&&(prior.sha256!==event.sha256||prior.count!==event.count))fail('catalog_successor');
+    const parts=[...(prior?.parts??[]),event.data];
+    if(parts.length===event.count&&byteHash(Buffer.concat(parts.map(p=>Buffer.from(p,'base64'))))!==event.sha256)fail('catalog_successor');
+    if(!dry)state.successor={sha256:event.sha256,count:event.count,parts};
   }else if(event.type==='publication-success'){
     if(!exact(event,['type','proof']))fail('publication_success');publicationSuccess(state,event.proof);
     if(!dry)state.success=event.proof;
@@ -663,6 +678,12 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       }catch(error){poisoned=true;throw error;}
       apply(state,event);state.count=next.sequence;state.head=digest;state.bytes+=bytes;
     }
+    async function catalogSuccessor(){
+      const saved=state.successor;if(!saved)return null;if(saved.parts.length!==saved.count)fail('catalog_successor_incomplete');
+      const bytes=Buffer.concat(saved.parts.map(p=>Buffer.from(p,'base64'))),value=JSON.parse(bytes.toString('utf8')) as ApprovedCatalogSeal;
+      const encoded=(await import('./approved-catalog-seal.ts')).catalogSuccessorBytes(value);
+      if(byteHash(encoded)!==saved.sha256||!encoded.equals(bytes))fail('catalog_successor');return value;
+    }
     async function put(value:unknown,kind:Kind,observedAt:string,reuseOriginal=false){
       if(state.success)fail('publication_completed');
       const ref=refFor(value);let sealed=stored(value,kind,observedAt,manifest);
@@ -811,6 +832,15 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
         await usable();return put(o.receipt,o.receipt.kind,o.receipt.observedAt);}),
       readReceipt:(ref:ArtifactRef)=>serial(async()=>{const v=await read(ref);if(!['amazon-observation','embedding-response'].includes(v.kind))fail('kind');
         receipt(v.value as unknown as ProviderReceipt);return structuredClone(v.value) as unknown as ProviderReceipt;}),
+      catalogSuccessor:()=>serial(catalogSuccessor),
+      recordCatalogSuccessor:(value:ApprovedCatalogSeal)=>serial(async()=>{
+        const bytes=(await import('./approved-catalog-seal.ts')).catalogSuccessorBytes(value),digest=byteHash(bytes),count=Math.ceil(bytes.length/65536);
+        if(value.persistent!.request.environment!==manifest.scope.environment||value.persistent!.request.codeSha!==manifest.codeSha)fail('catalog_successor_scope');
+        if(state.successor&&(state.successor.sha256!==digest||state.successor.count!==count))fail('catalog_successor_rewrite');
+        for(let index=state.successor?.parts.length??0;index<count;index++)await append({type:'catalog-successor-part',sha256:digest,index,count,
+          data:bytes.subarray(index*65536,(index+1)*65536).toString('base64')});
+        if(!same(await catalogSuccessor(),value))fail('catalog_successor');
+      }),
       readCheckpoint:(o?:{controlOnly?:boolean})=>serial(async()=>{if(!state.checkpoint)return null;
         if(o?.controlOnly===true)return structuredClone(state.checkpoint);await usable();
         const v=await read(state.body!);

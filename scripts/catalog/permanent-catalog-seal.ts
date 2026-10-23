@@ -7,11 +7,14 @@ import {validateCatalogSnapshot,canonicalTime} from '../../lib/catalog/snapshot.
 import {permanentCatalogBinding,permanentSourceRows,permanentSourceInventory,permanentSourceDigest} from '../../lib/catalog/freeze-permanent-catalog.ts';
 import type {PermanentCatalogRevision} from '../../lib/catalog/freeze-permanent-catalog.ts';
 import type {ApprovedCohortEnvelope} from '../../lib/catalog/freeze-approved-cohort.ts';
+import type {ApprovedCohortRevision} from '../../lib/catalog/freeze-approved-cohort.ts';
+import type {NativeHistoryBinding} from '../../lib/catalog/prune-existing-revision.ts';
+import type {ApprovedCatalogSeal} from './approved-catalog-seal.ts';
 import {canonicalJson,sha256} from './migration.ts';
 import {createSealedSnapshotEnvelope,readOwnedProjection,SNAPSHOT_READ_LIMITS} from './export-d1-snapshot.ts';
 import {readOwnedLogicalRows} from './owned-operational-import.ts';
 import {isCatalogD1Rest} from './d1-write-rest.ts';
-import {readHistoricalNativePreservation} from './owned-vector-delivery.ts';
+import {readNativeHistory,validateNativeHistory} from './owned-vector-delivery.ts';
 import type {OwnedVectorAdapters} from './owned-vector-delivery.ts';
 
 type Row=Record<string,unknown>;
@@ -61,26 +64,55 @@ export async function reconstructPermanentSnapshot(db:CatalogD1,owner:MutationOw
  * maintenance changes are linked from the old product hash through actual
  * operations; they are excluded from the OLD native-preservation claim. The
  * target's ordinary proof must separately verify their current vectors. */
-export async function readPermanentCatalogPrior(options:{db:CatalogD1;owner:MutationOwner;seal:PermanentCatalogSeal;
-  approval:ApprovedCohortEnvelope;approvalSha256:string;adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>}){
-  const {db,owner,seal,approval,adapters}=options,envelope=validate(seal);
+function predecessor(seal:PermanentCatalogSeal|ApprovedCatalogSeal){
+  if(seal.kind==='permanent-catalog-seal'){
+    const envelope=validate(seal),native=seal.control.native;
+    return{envelope,inventory:seal.inventory,generation:seal.control.installationOwner.generation+1,request:seal.request,
+      nativeHistory:[{source:native.source,revisionSha256:native.revisionSha256,planSha256:sha256(canonicalJson(native.plan)),
+        ids:[...native.plan.products.map(p=>p.publicId),...native.plan.absentIds]}] as NativeHistoryBinding[]};
+  }
+  const p=seal.persistent,envelope=JSON.parse(seal.envelopeJson),ids=[...envelope.products,...envelope.heldProducts.map((r:Row)=>r.publicId)];
+  if(seal.schemaVersion!==1||seal.kind!=='approved-catalog-seal'||!p||!seal.currentNative||!Number.isSafeInteger(p.generation)||p.generation<1
+    ||ids.length>SNAPSHOT_READ_LIMITS.identities||new Set(ids).size!==ids.length||ids.some(id=>!UUID.test(id))
+    ||p.inventory.length!==ids.length||new Set(p.inventory.map(r=>r.publicId)).size!==ids.length
+    ||p.inventory.some(r=>!ids.includes(r.publicId)||![r.sourceRowSha256,r.productSha256,r.privateStateSha256].every(h=>HASH.test(h)))
+    ||!HASH.test(p.operationKey)||!HASH.test(p.sourceRowsSha256)||!HASH.test(seal.publication.receiptSha256)
+    ||p.request.sourceRevision!==envelope.catalogRevision||p.request.sourceDigest!==seal.snapshotSha256
+    ||seal.projectionReceipt.snapshot_sha256!==seal.snapshotSha256||seal.projectionReceipt.catalog_revision!==envelope.catalogRevision
+    ||sha256(canonicalJson({operationKey:p.operationKey,generatedAt:envelope.generatedAt,globalVectorWatermark:p.globalVectorWatermark,
+      currentSha256:p.sourceRowsSha256,persistent:{generation:p.generation,inventory:p.inventory,nativeHistory:p.nativeHistory},prior:p.priorRow}))!==seal.projectionReceipt.source_export_sha256)fail();
+  return{envelope,inventory:p.inventory,generation:p.generation,request:p.request,
+    nativeHistory:[...p.nativeHistory,...(seal.currentNative.ids.length?[seal.currentNative]:[])]};
+}
+export function isPersistentCatalogSeal(seal:{kind?:string;persistent?:unknown}){
+  return seal.kind==='permanent-catalog-seal'||seal.kind==='approved-catalog-seal'&&Boolean(seal.persistent);
+}
+export async function readCatalogPredecessor(options:{db:CatalogD1;owner:MutationOwner;seal:PermanentCatalogSeal|ApprovedCatalogSeal;
+  approval:ApprovedCohortEnvelope;approvalSha256:string;adapters?:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>}){
+  const {db,owner,seal,approval,adapters}=options,prior=predecessor(seal),{envelope}=prior;
+  validateNativeHistory(prior.nativeHistory);
+  if(prior.nativeHistory.some(group=>group.ids.some(id=>!prior.inventory.some(row=>row.publicId===id))))fail();
   if(owner.phase!=='freezing'||sha256(canonicalJson(approval))!==options.approvalSha256||approval.schemaVersion!==1
     ||approval.changes.length>30||new Set(approval.changes.map(c=>c.publicId)).size!==approval.changes.length)fail();
-  await reconstructPermanentSnapshot(db,owner,seal);
-  const actual=await readOwnedLogicalRows(db,owner,{phase:'freezing'}),current=permanentSourceRows(actual),inventory=permanentSourceInventory(current);
-  const old=new Map(seal.inventory.map(r=>[r.publicId,r])),changes=new Map(approval.changes.map(c=>[c.publicId,c])),changed:string[]=[];
+  if(seal.kind==='permanent-catalog-seal')await reconstructPermanentSnapshot(db,owner,seal);
+  else await (await import('./approved-catalog-seal.ts')).readApprovedPrior(db,owner,seal,{envelopeSha256:sha256(seal.envelopeJson+'\n'),
+    snapshotSha256:seal.snapshotSha256,projectionSha256:seal.projectionReceipt.projection_sha256,sourceExportSha256:seal.projectionReceipt.source_export_sha256,
+    cutoff:owner.capturedAt,vectorSyncWatermark:0,publicationReceiptWatermark:0,priorPublication:seal.publication});
+  const capture=()=>readOwnedLogicalRows(db,owner,{phase:'freezing',tables:['products','catalog_maintenance_products','catalog_maintenance_operations']});
+  const actual=await capture(),current=permanentSourceRows(actual),inventory=permanentSourceInventory(current);
+  const old=new Map(prior.inventory.map(r=>[r.publicId,r])),changes=new Map(approval.changes.map(c=>[c.publicId,c])),changed:string[]=[];
   const products=new Map(actual.products.map(p=>[p.public_id,p]));
   for(const change of approval.changes){const product=products.get(change.publicId),ops=actual.catalog_maintenance_operations.filter(op=>op.operation_id===change.operationId),op=ops[0];
     if(!product||ops.length!==1||product.catalog_revision!==approval.catalogRevision||sha256(canonicalJson(product))!==change.productSha256
       ||sha256(String(product.public_display_json??'null'))!==change.displaySha256||op.input_sha256!==change.inputSha256||op.run_id!==approval.runId
       ||op.catalog_revision!==approval.catalogRevision||op.environment!==owner.environment||op.index_name!==owner.indexName
       ||!JSON.parse(String(op.changes_json)).some((c:Row)=>c.productId===product.id&&c.afterSha256===change.productSha256))fail();}
-  if(current.length<old.size||new Set(current.map(r=>r.public_id)).size!==current.length||seal.inventory.some(p=>!inventory.some(r=>r.publicId===p.publicId)))fail();
+  if(current.length<old.size||new Set(current.map(r=>r.public_id)).size!==current.length||prior.inventory.some(p=>!inventory.some(r=>r.publicId===p.publicId)))fail();
   for(const row of inventory){const before=old.get(row.publicId);if(before&&same(row,before))continue;
     const approved=changes.get(row.publicId);if(!approved||approved.productSha256!==row.productSha256)fail();
     const product=current.find(p=>p.public_id===row.publicId)!;let hash:string|null=before?.productSha256??null,steps=0,last='';
     const links=actual.catalog_maintenance_operations.filter(op=>op.run_id===approval.runId&&op.environment===owner.environment&&op.index_name===owner.indexName
-      &&Number(op.generation)>seal.control.installationOwner.generation+1&&Number(op.generation)<owner.generation
+      &&Number(op.generation)>prior.generation&&Number(op.generation)<owner.generation
       &&String(op.database_time)>=envelope.generatedAt&&String(op.database_time)<=owner.capturedAt)
       .flatMap(op=>(JSON.parse(String(op.changes_json)) as Row[]).filter(c=>c.productId===product.id).map(c=>({op,c})));
     while(hash!==row.productSha256){const matches=links.filter(l=>l.c.beforeSha256===hash);if(matches.length!==1||++steps>4)fail();
@@ -95,25 +127,54 @@ export async function readPermanentCatalogPrior(options:{db:CatalogD1;owner:Muta
   const builds=(await db.prepare("SELECT * FROM catalog_build_requests WHERE release_id=? AND state='resolved' LIMIT 2").bind(seal.publication.releaseId).all<Row>()).results;
   const outbox=(await db.prepare("SELECT * FROM publication_outbox WHERE release_id=? AND state='verified' LIMIT 2").bind(seal.publication.releaseId).all<Row>()).results;
   if(receipts.length!==1||builds.length!==1||outbox.length!==1||sha256(canonicalJson(receipts[0]))!==seal.publication.receiptSha256
-    ||builds[0].request_json!==encodeBuildRequest(seal.request)||builds[0].request_id!==sha256(encodeBuildRequest(seal.request))
+    ||builds[0].request_json!==encodeBuildRequest(prior.request)||builds[0].request_id!==sha256(encodeBuildRequest(prior.request))
     ||builds[0].environment!==owner.environment||builds[0].source_revision!==envelope.catalogRevision
     ||!builds[0].lease_token||!builds[0].run_reference||!builds[0].version_reference||!outbox[0].completed_token
     ||outbox[0].dispatch_reference!==`version:${builds[0].version_reference}`)fail();
   const intent=JSON.parse(String(receipts[0].manifest_json));
   if(encodePublicationIntent(intent)!==receipts[0].manifest_json||outbox[0].intent_json!==receipts[0].manifest_json
-    ||intent.releaseId!==seal.publication.releaseId||intent.catalogRevision!==envelope.catalogRevision||intent.codeSha!==seal.request.codeSha
+    ||intent.releaseId!==seal.publication.releaseId||intent.catalogRevision!==envelope.catalogRevision||intent.codeSha!==prior.request.codeSha
     ||receipts[0].catalog_revision!==intent.catalogRevision||receipts[0].code_sha!==intent.codeSha
     ||intent.catalogSnapshotSha256!==seal.snapshotSha256)fail();
+  if(seal.kind==='approved-catalog-seal'){
+    const p=seal.persistent!,native=seal.currentNative!;
+    const saved=(await db.prepare('SELECT * FROM catalog_vector_deliveries WHERE delivery_id=?').bind(native.source.deliveryId).all<Row>()).results;
+    const proof=saved[0]&&JSON.parse(String(saved[0].request_json));
+    if(saved.length!==1||sha256(canonicalJson(saved[0]))!==native.source.deliverySha256||!same(native.source.releaseId,seal.publication.releaseId)
+      ||native.source.receiptSha256!==seal.publication.receiptSha256||saved[0].generation!==p.generation
+      ||proof.kind!=='approved-cohort-plan'||proof.revisionSha256!==native.revisionSha256||proof.sourceRowsSha256!==p.sourceRowsSha256
+      ||proof.planSha256!==native.planSha256||sha256(canonicalJson(proof.plan))!==native.planSha256
+      ||proof.plan.catalogRevision!==envelope.catalogRevision||proof.plan.snapshotSha256!==seal.snapshotSha256
+      ||!same(proof.plan.history,p.nativeHistory)||!same(native.ids,[...proof.plan.products.map((r:Row)=>r.publicId),...proof.plan.absentIds]))fail();
+  }
   const check=async()=>{await db.batch([mutationAssertion(db,owner,['freezing']),exact('publication_receipts',receipts[0]),
     exact('catalog_build_requests',builds[0]),exact('publication_outbox',outbox[0]),exact('catalog_projection_receipts',seal.projectionReceipt),
     db.prepare("SELECT json(CASE WHEN NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE status!='complete') THEN 'true' ELSE 'permanent_seal_changed' END)"),
     db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM catalog_revisions WHERE revision=? AND status='published' AND source_export_sha256=?)
       AND (SELECT release_id FROM publication_receipts ORDER BY rowid DESC LIMIT 1)=? THEN 'true' ELSE 'permanent_seal_changed' END)`)
-      .bind(seal.request.sourceRevision,seal.projectionReceipt.source_export_sha256,seal.publication.releaseId),
+      .bind(prior.request.sourceRevision,seal.projectionReceipt.source_export_sha256,seal.publication.releaseId),
     mutationAssertion(db,owner,['freezing'])]);};
-  await check();const preservedIds=await readHistoricalNativePreservation({db,owner,native:seal.control.native,current,changedIds:changed,adapters});
+  const nativeHistory=prior.nativeHistory.map(group=>({...group,ids:group.ids.filter(id=>!changed.includes(id))})).filter(group=>group.ids.length);
+  await check();const preservedIds=adapters?await readNativeHistory({db,owner,history:nativeHistory,adapters}):[];
   await check();
   // Re-read the whole current capture, not an old source body from a workspace.
-  if(!same(permanentSourceInventory(permanentSourceRows(await readOwnedLogicalRows(db,owner,{phase:'freezing'}))),inventory))fail();
-  return{state:'verified' as const,snapshotSha256:seal.snapshotSha256,preservedIds,changedIds:changed};
+  if(!same(permanentSourceInventory(permanentSourceRows(await capture())),inventory))fail();
+  return{state:adapters?'verified' as const:'source_verified' as const,snapshotSha256:seal.snapshotSha256,preservedIds,changedIds:changed,inventory,nativeHistory,
+    priorNativeIds:prior.nativeHistory.flatMap(group=>group.ids)};
+}
+export function readPermanentCatalogPrior(options:Parameters<typeof readCatalogPredecessor>[0]&{seal:PermanentCatalogSeal;
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>}){
+  return readCatalogPredecessor(options);
+}
+/** Full private-source CAS outside short native/provider observations. */
+export async function assertApprovedCatalogInventory(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision,signal?:AbortSignal){
+  if(!revision.persistent)return;
+  signal?.throwIfAborted();
+  if(owner.generation!==revision.persistent.generation||owner.operationKey!==revision.operationKey
+    ||!same(revision.nativeHistory,revision.persistent.nativeHistory)
+    ||!['freezing','activating'].includes(owner.phase))fail();
+  const actual=await readOwnedLogicalRows(db,owner,{phase:owner.phase as 'freezing'|'activating',signal,
+    tables:['products','catalog_maintenance_products','catalog_maintenance_operations']});
+  if(!same(permanentSourceInventory(permanentSourceRows(actual)),revision.persistent.inventory))fail();
+  await mutationAssertion(db,owner,[owner.phase]).all({signal});
 }

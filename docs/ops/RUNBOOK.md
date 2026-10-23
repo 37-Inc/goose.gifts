@@ -143,6 +143,24 @@ or change the existing ten/day and Monday policies to make it pass. Pinterest
 remains paused, Vercel frozen, Neon retained and the old Neon writer off.
 
 **October23 offline readiness branch — not integrated or deployed.**
+The SAME branch now implements the permanent-to-recurring successor chain.
+The runner pins the actual permanent/recurring predecessor; the approved policy
+authenticates full private inventory and current operation links, preserves a
+flat disjoint historical/native-delta union, and emits a body-free seal anchored
+to the actual resolved publication/verified outbox/idle generation. The successor
+is strict technical metadata in bounded immutable journal parts, not an expiring
+artifact; `catalogSuccessor()` reads it after purge/reopen. Full private inventory
+is checked outside short publisher observations. Registered workspace expiry/
+purge does not remove the successor or reset prior charges/unknowns.
+The genuine3,383-identity offline test publishes10 refreshes+20 additions, then
+10 refreshes after the old workspace expires, keeping all1,024 holds. Reproduce
+with Node22 and `node --import tsx --test --test-name-pattern='authentic permanent
+successor' tests/catalog-permanent-freeze.test.mjs` (one command, pattern on one
+line). See newest journal entry for exact fixture boundaries and retained gaps.
+This supersedes the former missing successor-wiring diagnosis, NOT the live
+writer gate: full authentic runner/build/upload capacity and actual D1 account
+headroom/billing remain unaccepted. Do not execute it live or change the timer.
+
 `codex/stupid-daily-readiness-offline-20261022` starts from the audited PR266
 tree (`deb5cbc`); no fresh remote state was fetched during this offline pass.
 The ordinary permanent executor now places full source/projection CAS outside

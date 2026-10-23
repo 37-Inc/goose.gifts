@@ -29,6 +29,12 @@ export interface PrunedRevision {
   additionalAbsentIds?: string[];
   /** One-time migration reads old native bytes/metadata, never promotes them. */
   nativePreservation?: HistoricalNativeBinding;
+  /** Disjoint historical members authenticated by immutable published journals.
+   * Unlike the one-time preservation mode, these coexist with current deltas. */
+  nativeHistory?: NativeHistoryBinding[];
+}
+export interface NativeHistoryBinding {
+  source: PublishedCatalogBinding['source']; revisionSha256: string; planSha256: string; ids: string[];
 }
 export interface HistoricalNativeBinding {
   source:PublishedCatalogBinding['source'];revisionSha256:string;plan:Omit<PrunedVectorPlan,'preserved'>;
@@ -38,10 +44,12 @@ export interface PrunedVectorPlan extends MutationScope {
   products: Array<{ publicId: string; sourceFactsHash: string; embeddingTextHash: string | null }>;
   absentIds: string[];
   preserved?:HistoricalNativeBinding;
+  history?:NativeHistoryBinding[];
 }
 export function prunedVectorIds(plan:PrunedVectorPlan):string[]{
   return [...new Set([...plan.products.map(p=>p.publicId),...plan.absentIds,
-    ...(plan.preserved?[...plan.preserved.plan.products.map(p=>p.publicId),...plan.preserved.plan.absentIds]:[])])];
+    ...(plan.preserved?[...plan.preserved.plan.products.map(p=>p.publicId),...plan.preserved.plan.absentIds]:[]),
+    ...(plan.history??[]).flatMap(group=>group.ids)])];
 }
 /** Trusted read-only orchestration, not an HTTP body asserting success. It must
  * prove all in-flight index writers settled, exact UUID coverage, target revision
@@ -212,7 +220,8 @@ export function prunedVectorPlan(revision: PrunedRevision): PrunedVectorPlan {
   const ready = new Set(revision.snapshot.products.map(product => product.publicId));
   // Permanent keyword/listing clearance is not an embedding-input or supplier
   // observation grant. Only the finite semantic lane needs revision promotion.
-  const semantic = revision.snapshot.products.filter(product => product.eligibleUntil !== null
+  const historical=new Set((revision.nativeHistory??[]).flatMap(group=>group.ids));
+  const semantic = revision.snapshot.products.filter(product => !historical.has(product.publicId)&&product.eligibleUntil !== null
     && (!revision.request.context||Date.parse(product.eligibleUntil)>Date.parse(revision.request.context.cutoff)));
   const absent = revision.request.previous.products.filter(product => !ready.has(product.publicId)).map(product => product.publicId);
   if (semantic.some(product => {
@@ -224,7 +233,8 @@ export function prunedVectorPlan(revision: PrunedRevision): PrunedVectorPlan {
     products: semantic.map(product => ({ publicId: product.publicId,
       sourceFactsHash: String(rows.get(product.publicId)!.source_facts_hash),
       embeddingTextHash: typeof rows.get(product.publicId)!.embedding_text_hash === 'string' ? String(rows.get(product.publicId)!.embedding_text_hash) : null })),
-    absentIds: [...absent, ...(revision.additionalAbsentIds || []).filter(id => !absent.includes(id))] };
+    absentIds: [...absent, ...(revision.additionalAbsentIds || []).filter(id => !absent.includes(id))],
+    ...(revision.nativeHistory?{history:structuredClone(revision.nativeHistory)}:{}) };
 }
 /** Only independent settled index readback permits reconciling the new revision
  * and queuing its real build request. Stable-UUID promotion can temporarily force

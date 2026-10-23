@@ -21,14 +21,25 @@ context: **what we've done, and where we're going.**
 
 ## Upcoming / planned
 
+- [owner+codex, 2026-10-23] The offline permanent-to-recurring successor chain
+  is now implemented on `codex/stupid-daily-readiness-offline-20261022`:
+  full private inventory, immutable historical/current native union, actual
+  publication anchors and body-free next-day seals. The genuine3,383-identity
+  fixture publishes10+20 then10 after registered workspace expiry, retaining
+  all1,024 holds, exact native bits and the prior unknown charge. This is local,
+  not integrated/deployed or a writer-enable. Remaining: complete authentic
+  runner/build/upload capacity, reviewed integration and actual D1/headroom
+  acceptance. No credentials, schedules, live gates or allowances changed.
+
 - [owner+codex, 2026-10-23] Offline publisher/cleanup follow-up is implemented
   locally at `35ae309`/`89e620a`:full-catalog checks sit outside the short native
   resolver and terminal success/cleanup is tested. Successful full generic-prior
   daily/Monday flows now include real build/upload/retry accounting:
   1196HTTP/4712SQL and1843HTTP/5874SQL. A finite3000/12000 candidate fits those
   measurements;800/1200 is an internal guard, not a new approval requirement.
-  Next finish the genuine permanent/private-inventory/native successor chain
-  and actual row/headroom acceptance before the live canary. Unmerged/unpublished.
+  The successor implementation below supersedes the former missing-chain gap;
+  actual whole-run/row/headroom acceptance is still needed before a live canary.
+  Unmerged/unpublished.
   No schedule, credential, provider allowance or live catalog changed.
 
 - [owner+codex] Faithful presentation restoration is complete and verified on
