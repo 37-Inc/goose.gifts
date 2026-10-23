@@ -12,6 +12,7 @@ import type { PrunedRevision } from '../../lib/catalog/prune-existing-revision.t
 import { prunedVectorIds, prunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PermanentCatalogRevision } from '../../lib/catalog/freeze-permanent-catalog.ts';
 import { assertPermanentCatalog } from '../../lib/catalog/freeze-permanent-catalog.ts';
+import {assertApprovedCatalogInventory} from './permanent-catalog-seal.ts';
 import type { ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
 import type { ActivationPermit, DeploymentIdentity, DeploymentObservation, BuildRecoveryApproval, ReviewedUploadActivationApproval, ReviewedUploadActivationApprovalV1, ReviewedUploadActivationInput } from '../../lib/catalog/build-requests.ts';
 import { beginBuildActivation, claimBuildRequest, encodeBuildRequest, resolveBuildActivation, drainDeploymentObservation,
@@ -320,6 +321,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     ||revision?.nativePreservation&&!options.permanent)throw new Error('publication_permanent_input_invalid');
   if(options.approvedCatalog&&(options.permanent||options.published||!revision||canonicalJson(options.approvedCatalog)!==canonicalJson(revision)))
     throw new Error('publication_approved_input_invalid');
+  if(revision?.nativeHistory&&(!options.approvedCatalog?.persistent
+    ||canonicalJson(revision.nativeHistory)!==canonicalJson(options.approvedCatalog.persistent.nativeHistory)))
+    throw new Error('publication_approved_input_invalid');
   if(db.providerIdentity!==`cloudflare:${config.accountId}:${config.database.id}`)throw new Error('publication_database_scope_mismatch');
   await workspace.assertHeld();await workspace.assertScope({accountId:config.accountId,environment:config.environment,databaseId:config.database.id,
     databaseName:config.database.name,workerName:config.workerName,indexName:config.indexName});
@@ -468,11 +472,12 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     // Full-catalog scans are sequential owned D1 reads, not a short provider
     // observation. No proof survives this invocation or crosses an owner change.
     const permanentProof=async()=>{
-      if(!options.permanent)return;
+      if(!options.permanent&&!options.approvedCatalog?.persistent)return;
       const controller=new AbortController(),remaining=control!.permit?120_000:Date.parse(activationDeadline??control!.build.request.cutoff)-now().getTime();
       if(remaining<=0)throw new Error('publication_upload_retry_cutoff');
       const timer=setTimeout(()=>controller.abort(),Math.min(120_000,remaining));
-      try{await assertPermanentCatalog(db,owner,options.permanent,control!.permit??undefined,controller.signal);}
+      try{if(options.permanent)await assertPermanentCatalog(db,owner,options.permanent,control!.permit??undefined,controller.signal);
+        else await assertApprovedCatalogInventory(db,owner,options.approvedCatalog!,controller.signal);}
       finally{clearTimeout(timer);} // The concrete D1 sender joins its own ledger before returning.
     };
     if(reviewed&&!retryRecord&&!control.permit){
@@ -624,7 +629,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         if(!matchesIdentity(await api.identity(signal),control!.intent!))throw new Error('publication_identity_mismatch');signal?.throwIfAborted();
         const adapters=createVectorizeRestAdapters({environment:config.environment,indexName:config.indexName,accountId:config.accountId,
           token:options.credentials.cloudflareToken,fetch:observationSend});
-        if(reviewed&&options.permanent)await readActivatedPermanentCatalogNative(db,control!.permit!,control!.vectorPlan,options.permanent,adapters,signal);
+        if(options.permanent)await readActivatedPermanentCatalogNative(db,control!.permit!,control!.vectorPlan,options.permanent,adapters,signal);
         else await readActivatedCatalogVectors(db,control!.permit!,control!.vectorPlan,adapters,
           {signal,published:options.published,permanent:options.permanent});signal?.throwIfAborted();
         // Re-read deployment after independent identity/vector reads. Never infer
@@ -638,7 +643,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         if(canonicalJson(intentFrom(sealed.manifest,sealed.bytes))!==canonicalJson(control.intent)
           ||canonicalJson(sealed.snapshot)!==canonicalJson(revision.snapshot))throw new Error('publication_package_changed');
         const readDeployed=async()=>{
-          await observed();return control!.intent!;
+          await permanentProof();await observed();await permanentProof();return control!.intent!;
         };
         if(options.approvedCatalog||control.publication!.leaseUntil<=now().toISOString())
           if(options.permanent)await completeActivatedPermanentPublication(db,revision,control.publication!,control.permit,readDeployed,now);
@@ -655,7 +660,10 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
           // that digest in the protected control journal, never renew content.
         }}
       await save({stage:'published',receiptSha256:ref.sha256});
-      if(reviewed&&options.permanent)await permanentProof();
+      // Every permanent path, not only reviewed-upload recovery, must prove all
+      // source/projection rows before the short native/provider observation.
+      // The proof is invocation-local and retains the exact activating owner.
+      await permanentProof();
       let observation:Promise<DeploymentObservation>|undefined;
       try{if(await resolveBuildActivation(db,control.permit,signal=>(observation=observed(signal)),{observationTimeoutMs:30_000})!=='resolved')
         throw new Error('publication_activation_pending');}

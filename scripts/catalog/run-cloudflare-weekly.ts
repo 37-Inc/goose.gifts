@@ -18,9 +18,11 @@ import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS } from './run
 import type { ArtifactRef, RetentionPolicy, RunWorkspace, RunWorkspaceOptions, WorkspaceCheckpoint } from './run-workspace.ts';
 import { executePublication, validatePublicationConfig } from './publish-release.ts';
 import { accountedPublicationReadFetch, accountedPublicationFetch, isAccountedPublicationFetch } from './publication-read-fetch.ts';
-import { accountedPublicationUploadCommand } from './publication-upload-command.ts';
+import { accountedPublicationUploadCommand, isAccountedPublicationUploadCommand } from './publication-upload-command.ts';
 import { approvedRequestControl, hydrateApprovedRequest, approvedRevisionControl, hydrateApprovedRevision,
-  approvedArtifactObservedAt, readApprovedPrior, createApprovedCatalogSeal } from './approved-catalog-seal.ts';
+  approvedArtifactObservedAt, readApprovedPrior, createPublishedApprovedCatalogSeal } from './approved-catalog-seal.ts';
+import {isPersistentCatalogSeal,reconstructPermanentSnapshot} from './permanent-catalog-seal.ts';
+import type {PermanentCatalogSeal} from './permanent-catalog-seal.ts';
 import type { ApprovedCatalogSeal } from './approved-catalog-seal.ts';
 import type { PublicationConfig } from './publish-release.ts';
 import { claimMutationOwnership, releaseMutationOwnership } from '../../lib/catalog/mutation-fence.ts';
@@ -40,7 +42,7 @@ export interface CloudflareWeeklyConfig {
   catalog:{associateTag:string;marketplace:'www.amazon.com'};backfillLimit:number;
   cadence?:{day:string;featuredIds:string[]};
   credentials:{cloudflare:CloudflareCredentialReference;amazonId:KeychainRef;amazonSecret:KeychainRef;amazonVersion:string;openai?:KeychainRef;stagingAuthSecret?:KeychainRef};
-  limits:{requests:number;statements:number};retention:RetentionPolicy;
+  limits:{requests:number;statements:number;reportedRowsRead?:number;reportedRowsWritten?:number};retention:RetentionPolicy;
   inputs:{previous:InputRef;context:InputRef;rights:InputRef;originalVectors?:InputRef};publication:PublicationConfig;
 }
 export const WEEKLY_RESUME_STATES=Object.freeze({
@@ -67,6 +69,7 @@ let executing=false; // Environment isolation across differing DB/workspace scop
 
 export function validateCloudflareWeeklyConfig(input:unknown):CloudflareWeeklyConfig {
   const c=input as CloudflareWeeklyConfig;
+  const rowBudget=c?.limits&&typeof c.limits==='object'&&('reportedRowsRead' in c.limits||'reportedRowsWritten' in c.limits);
   const credentialKeys=['amazonId','amazonSecret','amazonVersion','cloudflare',...(c?.credentials?.openai?['openai']:[]),...(c?.credentials?.stagingAuthSecret?['stagingAuthSecret']:[])].sort().join(',');
   if(!exact(c,['accountId','backfillLimit','catalog','catalogRevision','codeSha','credentials','database','environment','inputs','limits','publication','retention','runId','schemaVersion','vectorIndex',...(c?.cadence?['cadence']:[])].sort().join(','))
     ||c.schemaVersion!==1||!KEY.test(c.runId)||!KEY.test(c.catalogRevision)||c.catalogRevision.length>64||!/^[a-f0-9]{40}$/.test(c.codeSha)
@@ -75,8 +78,13 @@ export function validateCloudflareWeeklyConfig(input:unknown):CloudflareWeeklyCo
     ||c.environment==='staging'&&!c.credentials.stagingAuthSecret
     ||![c.credentials.amazonId,c.credentials.amazonSecret,...(c.credentials.openai?[c.credentials.openai]:[]),...(c.credentials.stagingAuthSecret?[c.credentials.stagingAuthSecret]:[])].every(keychain)
     ||!['2.1','2.2','2.3','3.1','3.2','3.3'].includes(c.credentials.amazonVersion)
-    ||!exact(c.limits,'requests,statements')||!Number.isInteger(c.limits.requests)||c.limits.requests<2||c.limits.requests>10000
+    ||!exact(c.limits,rowBudget
+      ?'reportedRowsRead,reportedRowsWritten,requests,statements':'requests,statements')
+    ||!Number.isInteger(c.limits.requests)||c.limits.requests<2||c.limits.requests>10000
     ||!Number.isInteger(c.limits.statements)||c.limits.statements<1||c.limits.statements>25000
+    ||rowBudget&&(!Number.isInteger(c.limits.reportedRowsRead)||!Number.isInteger(c.limits.reportedRowsWritten))
+    ||c.limits.reportedRowsRead!==undefined&&(!Number.isInteger(c.limits.reportedRowsRead)||c.limits.reportedRowsRead<1||c.limits.reportedRowsRead>2_000_000)
+    ||c.limits.reportedRowsWritten!==undefined&&(!Number.isInteger(c.limits.reportedRowsWritten)||c.limits.reportedRowsWritten<1||c.limits.reportedRowsWritten>50_000)
     ||!exact(c.inputs,c.inputs?.originalVectors?'context,originalVectors,previous,rights':'context,previous,rights'))throw new Error('weekly_configuration_invalid');
   if(c.cadence&&(!exact(c.cadence,'day,featuredIds')||!/^\d{4}-\d{2}-\d{2}$/.test(c.cadence.day)
     ||pacificCatalogCalendar(`${c.cadence.day}T12:00:00Z`).day!==c.cadence.day||c.backfillLimit!==0
@@ -212,7 +220,9 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
   // already-accounted sender may belong to another run; never double-charge or
   // silently adopt its workspace. The injection seam here is raw transport only.
   const observationSend=dependencies.publication?.observationFetch??dependencies.publication?.fetch??dependencies.fetch??fetch;
-  if(isAccountedPublicationFetch(observationSend))throw new Error('weekly_observation_fetch_already_accounted');
+  if([dependencies.fetch,dependencies.publication?.fetch,observationSend].some(isAccountedPublicationFetch))
+    throw new Error('weekly_observation_fetch_already_accounted');
+  if(isAccountedPublicationUploadCommand(dependencies.publication?.command))throw new Error('weekly_upload_command_already_accounted');
   if(executing)throw new Error('weekly_process_busy');executing=true;
   let workspace:RunWorkspace|undefined;
   try{
@@ -226,13 +236,15 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       databaseId:config.database.id,identityOrigin:config.publication.identityOrigin};
     const generalSend=accountedPublicationFetch(ws,dependencies.fetch??fetch,networkScope);
     const publication={...dependencies.publication,fetch:accountedPublicationFetch(ws,dependencies.publication?.fetch??dependencies.fetch??fetch,networkScope),
-      command:dependencies.publication?.command??accountedPublicationUploadCommand({workspace:ws,scope:networkScope}),
+      command:accountedPublicationUploadCommand({workspace:ws,scope:networkScope,
+        send:dependencies.publication?.fetch??dependencies.fetch,command:dependencies.publication?.command}),
       observationFetch:accountedPublicationReadFetch(ws,observationSend,networkScope)};
     await ws.purgeExpired();
     let saved=await ws.readCheckpoint({controlOnly:true});
     if(saved&&['phases_running','phase_failed','attention','finalized'].includes(saved.checkpoint.phase)
       &&!(saved.checkpoint.phase==='attention'&&resolving(saved.checkpoint)))
-      return{state:saved.checkpoint.phase==='finalized'?'finalized':'attention',phase:saved.checkpoint.phase,budget:await ws.budget()};
+      return{state:saved.checkpoint.phase==='finalized'?'finalized':'attention',phase:saved.checkpoint.phase,
+        ...(saved.checkpoint.phase==='finalized'?{catalogSeal:await ws.catalogSuccessor()??undefined}:{}),budget:await ws.budget()};
     const token=await resolveCloudflareCredential(config.credentials.cloudflare,resolveToken,dependencies.resolveWranglerOAuth);
     const identityAuthorization=async()=>config.credentials.stagingAuthSecret
       ?`Basic ${Buffer.from(`staging:${await resolveToken(config.credentials.stagingAuthSecret)}`).toString('base64')}`:undefined;
@@ -307,12 +319,18 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
         else await runWeeklyCatalogWithBackend(backend);
       });}catch(error){
         const durable=await ws.readCheckpoint();if(durable){saved=durable;cp=durable.checkpoint;}
+        // Exhaustion can also be the accounting half of the backend's paired
+        // phase/finalization failure. Do not spend another D1 read to diagnose
+        // it or leave phases_running as if the merchant batch could be retried.
+        const budgetError=[error,...(error instanceof AggregateError?error.errors:[])].find(value=>value instanceof Error
+          &&['catalog_d1_budget_exhausted','catalog_d1_reported_usage_exceeded'].includes(value.message)) as Error|undefined;
+        const errorCode=budgetError?.message??safeCode(error);
         if(cp.phase==='phases_running'){
-          const row=await telemetry.loadCatalogRun(config.runId);
+          const row=budgetError?null:await telemetry.loadCatalogRun(config.runId);
           await write({phase:row&&['partial','failed'].includes(String(row.run.status))?'phase_failed':'attention',owner:cursor.current,
-            state:{errorCode:safeCode(error)}});
+            state:{errorCode}});
         }
-        return{state:'attention',phase:cp.phase,errorCode:safeCode(error),budget:await ws.budget()};
+        return{state:'attention',phase:cp.phase,errorCode,budget:await ws.budget()};
       }
     }
     const adapters=createVectorizeRestAdapters({...scope,accountId:config.accountId,token,fetch:generalSend});
@@ -342,11 +360,13 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
         }
         if(n===199)throw new Error('weekly_outbox_bound');
       }
-      const prior=await readOrdered(ws,cp.pins.previous) as ApprovedCatalogSeal;
+      const prior=await readOrdered(ws,cp.pins.previous) as ApprovedCatalogSeal|PermanentCatalogSeal;
       const context=await ws.readArtifact(cp.pins.context) as unknown as ApprovedCohortRequest['context'];
-      const previous=['approved-catalog-seal','permanent-catalog-seal'].includes(prior.kind)
+      const previous=prior.kind==='permanent-catalog-seal'?await reconstructPermanentSnapshot(db,cp.owner!,prior)
+        :['approved-catalog-seal'].includes(prior.kind)
         ?await readApprovedPrior(db,cp.owner!,prior,context):prior as unknown as ApprovedCohortRequest['previous'];
       const request={previous,context,scope,codeSha:config.codeSha,
+        ...(isPersistentCatalogSeal(prior)?{predecessor:prior}:{}),
         approval:await ws.readArtifact(cp.pins.approval),approvalSha256:cp.pins.approval.sha256} as unknown as ApprovedCohortRequest;
       approvedCohortOperationKey(request);
       const pin=await putOrdered(ws,approvedRequestControl(request),now());await write({phase:'freezing',pins:{...cp.pins,request:pin}});
@@ -402,9 +422,10 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       if(result.state!=='published')return{...result,phase:cp.phase,budget:await ws.budget()};
       const actual=(await db.prepare('SELECT * FROM publication_receipts WHERE release_id=?').bind(result.releaseId).all()).results;
       if(actual.length!==1)throw new Error('weekly_publication_receipt_missing');
-      const seal=createApprovedCatalogSeal(revision,{releaseId:result.releaseId,receiptSha256:sha256(canonicalJson(actual[0]))});
-      const pin=await ws.putArtifact(result,{kind:'publication',observedAt:now()}),sealPin=await putOrdered(ws,seal,now());
-      await write({phase:'published',owner:null,pins:{...cp.pins,published:pin,publishedSeal:sealPin}});
+      const seal=await createPublishedApprovedCatalogSeal(db,revision,{releaseId:result.releaseId,receiptSha256:sha256(canonicalJson(actual[0]))});
+      if(revision.persistent)await ws.recordCatalogSuccessor(seal);
+      const pin=await ws.putArtifact(result,{kind:'publication',observedAt:now()}),sealPin=revision.persistent?null:await putOrdered(ws,seal,now());
+      await write({phase:'published',owner:null,pins:{...cp.pins,published:pin,...(sealPin?{publishedSeal:sealPin}:{})}});
     }
     if(cp.phase==='published'){
       const receipt=await ws.readArtifact(cp.pins.published) as Record<string,unknown>;
@@ -417,7 +438,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       if(actual?.run.id!==config.runId||actual.run.status!=='completed'||canonicalJson(actual.run.counts)!==canonicalJson(input.counts))throw new Error('weekly_finalization_mismatch');
       await write({owner:cursor.current});await releaseExact(db,cursor.current);await write({phase:'finalized',owner:null});
       return{state:'finalized',runId:config.runId,releaseId:receipt.releaseId,receiptSha256:receipt.receiptSha256,
-        catalogSeal:cp.pins.publishedSeal?await readOrdered(ws,cp.pins.publishedSeal):undefined,budget:await ws.budget()};
+        catalogSeal:await ws.catalogSuccessor()??(cp.pins.publishedSeal?await readOrdered(ws,cp.pins.publishedSeal):undefined),budget:await ws.budget()};
     }
     throw new Error('weekly_checkpoint_phase');
   }finally{try{await workspace?.close();}finally{executing=false;}}

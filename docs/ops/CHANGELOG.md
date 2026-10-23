@@ -21,6 +21,33 @@ context: **what we've done, and where we're going.**
 
 ## Upcoming / planned
 
+- [owner+codex, 2026-10-23] The complete authentic offline recurring flow is
+  implemented at `fb4fff2`/`89dffd6` on the same readiness branch: full inventory,
+  native history/current deltas, runner, real build/verifier/protected upload,
+  publication receipt and body-free next-day successor after purge/reopen.
+  Exact finite-profile validation at `076bc07` PASSES under the active
+  5,000HTTP/12,000SQL/2M reported reads/50k writes limits: Monday3,106HTTP/7,368SQL,
+  next day2,314/5,909. Both finalize once; original unknown/holds/native bits
+  survive purge/reopen, and Tuesday makes no model calls. This is direct bounded
+  execution, not inference from the older larger probe. Source review and164
+  focused regressions pass. Exact receipt is in `docs/ops/evidence/`.
+  Repository review/integration is tracked in PR267. Remaining live boundary: actual indexed D1
+  billing, fresh shared Free headroom and real-time lease/pacing/live canary,
+  then existing scheduler activation. No credentials, live gates or allowances
+  changed; old Neon OFF, new writer GATED, Pinterest PAUSED.
+
+- [owner+codex, 2026-10-23] Historical generic-prior publisher/cleanup proof
+  remains at `35ae309`/`89e620a`:full-catalog checks sit outside the short native
+  resolver and terminal success/cleanup is tested. Successful full generic-prior
+  daily/Monday flows now include real build/upload/retry accounting:
+  1196HTTP/4712SQL and1843HTTP/5874SQL. A finite3000/12000 candidate fits those
+  measurements;800/1200 is an internal guard, not a new approval requirement.
+  The complete authentic successor fixture above supersedes the missing-chain
+  gap and the generic3,000-request candidate; do not add these older counters
+  to the integrated totals. Actual row/headroom acceptance remains separate.
+  Unmerged/unpublished.
+  No schedule, credential, provider allowance or live catalog changed.
+
 - [owner+codex] Faithful presentation restoration is complete and verified on
   `existing-restore-6856584cbd6a`:2,359 original public photos/descriptions,
   3,383 identities/1,024 holds and42 substantive articles. Actual receipt,
@@ -278,6 +305,32 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-23 [owner+codex] — Take the completed offline implementation through PR267
+
+Opened PR267 for the existing tested branch after checking for duplicate PRs,
+deployment workflows/hooks and merge requirements. Current main's PR266 squash
+has the exact original base tree; merge9a5f6c2 preserves every tested commit and
+the unchanged evidence hash. Requested the configured Codex GitHub review;
+actual review/merge results are recorded in that PR and canonical Beads, not
+inferred from local commits. A branch-wide whitespace check found one extra
+blank line in the extracted test helper; removed it without changing behavior.
+No production, catalog, credential, cadence, paid-plan or live-gate change.
+
+### 2026-10-23 [owner+codex] — Complete the finite offline recurring-maintenance handoff
+
+The authentic 3,383-identity Monday ten-plus-twenty and next-day ten flow passes
+with real local build/verifier/protected upload under the exact 5,000HTTP /
+12,000SQL /2M reported-read /50k reported-write profile. Test commit `076bc07`
+adds direct cap assertions and selects only this full two-day reproduction;
+implementation/harness `fb4fff2`/`89dffd6` remain unchanged. Both final receipts,
+original1,024 holds/native bits and first-day unknown survive actual purge/reopen.
+Local source review,164 targeted regressions, both strict type checks and lint
+pass (25 existing warnings). The receipt preserves the earlier larger probe;
+the runbook removes the obsolete missing-successor diagnosis. No live/API,
+credential, remote Git/Dolt, deployment, schedule/gate or paid-plan change.
+Actual D1 billing/shared headroom and real-time live canary remain separate;
+new writer stays gated. This branch is local and awaiting coordinator integration.
 
 ### 2026-10-23 [owner+codex] — Original catalog presentation restored on Cloudflare
 

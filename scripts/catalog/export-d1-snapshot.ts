@@ -74,18 +74,19 @@ const CAPTURE_SQL = `WITH ids AS (SELECT value FROM json_each(?)),
 const PAGE_BYTES = PRUNING_CURRENT_LIMITS.pageBytes;
 const OPERATION = ['operation_id','input_sha256','run_id','catalog_revision','environment','index_name',
   'generation','prior_epoch','next_epoch','database_time','result_json','changes_json'];
-async function ownedPages(db: CatalogD1, owner: MutationOwner, ids: string[], select: string, params: unknown[] = [], fence?:MutationQuery) {
+async function ownedPages(db: CatalogD1, owner: MutationOwner, ids: string[], select: string, params: unknown[] = [], fence?:MutationQuery,signal?:AbortSignal) {
   const gate = fence??mutationFenceQuery(owner, ['freezing']); const output: Row[] = [];
   if (ids.length > SNAPSHOT_READ_LIMITS.identities || new Set(ids).size !== ids.length) throw new Error('read_bounds');
   let bytes = 0;
   for (let offset = 0; offset < ids.length; offset += 80) {
     const window = ids.slice(offset, offset + 80); let position = 0;
     while (position < window.length) {
-      const rows = (await db.prepare(`WITH requested AS (SELECT key ordinal,value FROM json_each(?)),
+      signal?.throwIfAborted();const sql=`WITH requested AS (SELECT key ordinal,value FROM json_each(?)),
         captured AS (${select}), sized AS (SELECT *,sum(length(CAST(json_object('identity',identity,'data',data||'') AS BLOB)))
           OVER (ORDER BY ordinal) wire_bytes FROM captured)
-        SELECT identity,data FROM sized WHERE ${gate.sql} AND wire_bytes<=? ORDER BY ordinal`)
-        .bind(JSON.stringify(window.slice(position)), ...params, ...gate.params, PAGE_BYTES).all<{ identity: string; data: string }>()).results;
+        SELECT identity,data FROM sized WHERE ${gate.sql} AND wire_bytes<=? ORDER BY ordinal`;
+      const rows = (await db.prepare(signal?`SELECT * FROM (${sql})`:sql)
+        .bind(JSON.stringify(window.slice(position)), ...params, ...gate.params, PAGE_BYTES).all<{ identity: string; data: string }>({signal})).results;
       if (!rows.length || rows.length > window.length-position || Buffer.byteLength(JSON.stringify(rows)) > PAGE_BYTES + 81)
         throw new Error('read_bounds');
       for (const [index,row] of rows.entries()) {
@@ -190,7 +191,7 @@ async function capture(db: CatalogD1, envelope: SealedSnapshotEnvelope, context:
  * SQL write time. Old migration-only databases do not have this table. The
  * receipt bytes are included in the final current-state CAS when present.
  */
-async function bindMaintenanceObservations(db: CatalogD1, rows: Row[], owner?: MutationOwner, fence?:MutationQuery) {
+async function bindMaintenanceObservations(db: CatalogD1, rows: Row[], owner?: MutationOwner, fence?:MutationQuery,signal?:AbortSignal) {
   const wanted = rows.flatMap(row => {
     const proof = JSON.parse(String(row.timestamp_provenance_json));
     const field = row.availability_checked_at !== null ? 'availability_checked_at' : 'last_verified_at';
@@ -201,7 +202,7 @@ async function bindMaintenanceObservations(db: CatalogD1, rows: Row[], owner?: M
   const ids = [...new Set(wanted)];
   if (ids.length > SNAPSHOT_READ_LIMITS.identities) throw new Error('read_bounds');
   const operations:Row[]=owner ? await ownedPages(db, owner, ids.sort(), `SELECT ids.ordinal,ids.value identity,
-    ${jsonColumns('o', OPERATION)} data FROM requested ids CROSS JOIN catalog_maintenance_operations o ON o.operation_id=ids.value`,[],fence) : [];
+    ${jsonColumns('o', OPERATION)} data FROM requested ids CROSS JOIN catalog_maintenance_operations o ON o.operation_id=ids.value`,[],fence,signal) : [];
   let bytes=0;
   for(let offset=0;!owner && offset<ids.length;offset+=20){
     const chunk=(await db.prepare(`SELECT o.* FROM json_each(?) ids CROSS JOIN catalog_maintenance_operations o
@@ -248,21 +249,21 @@ export async function readJournaledPruneDeleteSource(db:CatalogD1,owner:Mutation
  * approval source. Complete row bytes bind the maintenance operation receipt;
  * the narrow captured fields reuse the final pruning CAS and archived aliases.
  */
-export async function readApprovedCurrentRows(db: CatalogD1, ids: string[], owner: MutationOwner,approvedRecovery=false) {
+export async function readApprovedCurrentRows(db: CatalogD1, ids: string[], owner: MutationOwner,approvedRecovery=false,signal?:AbortSignal) {
   owner = structuredClone(owner); ids = [...ids];
   if (ids.length > 30 || new Set(ids).size !== ids.length || ids.some(id => !UUID.test(id))) throw new Error('read_bounds');
   const gate = approvedRecovery?approvedRevisionReadFence(owner):mutationFenceQuery(owner, ['freezing']);
-  const columns = (await db.prepare(`SELECT name FROM pragma_table_info('products') WHERE ${gate.sql}`).bind(...gate.params).all<{name:string}>()).results.map(row=>row.name);
+  const columns = (await db.prepare(`SELECT name FROM pragma_table_info('products') WHERE ${gate.sql}`).bind(...gate.params).all<{name:string}>({signal})).results.map(row=>row.name);
   if (!columns.length || columns.length > 65 || columns.some(key=>!/^[a-z_]+$/.test(key))) throw new Error('read_bounds');
   const rows = await ownedPages(db, owner, [...ids].sort(), `SELECT ids.ordinal,ids.value identity,${jsonColumns('p', columns)} data
-    FROM requested ids CROSS JOIN products p ON p.public_id=ids.value`,[],gate);
+    FROM requested ids CROSS JOIN products p ON p.public_id=ids.value`,[],gate,signal);
   if (rows.length !== ids.length || rows.some(row => Buffer.byteLength(canonicalJson(row)) > SNAPSHOT_READ_LIMITS.rowBytes)) throw new Error('approved_identity_missing');
   const current:Row[] = rows.map(row => {
     const archive = JSON.parse(String(row.source_record_json));
     return { ...Object.fromEntries(CURRENT.map(key => [key, row[key]])), approved_product_json:canonicalJson(row),
       ...Object.fromEntries(['id','public_id','source','availability_checked_at','last_verified_at'].map(key => [`archived_${key}`, archive[key] ?? null])) };
   });
-  await bindMaintenanceObservations(db, current, owner,gate);
+  await bindMaintenanceObservations(db, current, owner,gate,signal);
   return { rows, current };
 }
 /** Read-only hydration of an EXISTING seal, including a genuinely journaled

@@ -1,0 +1,395 @@
+{
+  "schemaVersion": 1,
+  "kind": "offline-authentic-successor-capacity",
+  "datePacific": "2026-10-23",
+  "implementationCommit": "076bc0795e1d33c18ac23bafa7e0d4096396e37e",
+  "successorImplementationCommit": "fb4fff264b674f1067c6d63fe5bfec7c526ee22b",
+  "branch": "codex/stupid-daily-readiness-offline-20261022",
+  "test": "AUTHENTIC full complete Monday daily build upload shared-ledger successor",
+  "exitCode": 0,
+  "durationMs": 1700257.209791,
+  "executionReference": "unified-exec-session-1759",
+  "reproduce": "npm run test:catalog-successor-capacity",
+  "doNotRepeatWithoutRelevantChange": true,
+  "realLocalComponents": [
+    "authentic permanent installer, private source inventory and published native predecessor",
+    "normal runCloudflareWeekly and daily cadence ledger",
+    "Amazon client and OpenAI SDK with synthetic HTTP responses",
+    "SQLite behind branded primary D1 REST and the run workspace accounting adapter",
+    "Next static build and independent release verifier",
+    "Worker bundling and protected real Wrangler upload client",
+    "same-ledger asset, version, identity, D1 and native observations",
+    "publication receipt, resolved build and idle owner",
+    "durable successor journal and next-day consumption after actual purge/reopen"
+  ],
+  "initialCatalog": {
+    "privateIdentities": 3383,
+    "publicProducts": 2359,
+    "heldProducts": 1024,
+    "historicalNativeVectors": 8
+  },
+  "finalCatalog": {
+    "privateIdentities": 3403,
+    "publicProducts": 2379,
+    "originalHeldProducts": 1024
+  },
+  "finiteProfileVerification": {
+    "state": "passed",
+    "implementationCommit": "076bc0795e1d33c18ac23bafa7e0d4096396e37e",
+    "executionReference": "unified-exec-session-1759",
+    "limits": {
+      "requests": 5000,
+      "statements": 12000,
+      "reportedRowsRead": 2000000,
+      "reportedRowsWritten": 50000
+    },
+    "reproduce": "npm run test:catalog-successor-capacity",
+    "reasonForRerun": "The prior larger-envelope pass did not directly exercise the proposed finite profile; this one relevant rerun does",
+    "exitCode": 0,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 1700257.209791,
+    "runnerDurationMs": 1700601.462375,
+    "configuredAndWorkspaceCapsAsserted": true,
+    "reportedUsageBoundsAsserted": true
+  },
+  "followupReview": {
+    "scope": "Local source review of deb5cbc through 076bc07; no peer or live provider acceptance is implied",
+    "corrections": [
+      "Use 5000 HTTP / 12000 SQL / 2000000 reported reads / 50000 reported writes in both full-cycle days, asserting exact configured and workspace caps plus final measured bounds",
+      "The documented npm reproduction now selects only the full authentic two-day capacity case, not an unnecessary smaller duplicate"
+    ],
+    "unchangedContracts": [
+      "Full private inventory/source and publication bindings; historical-native and approved-current disjoint membership",
+      "Exact signed-zero vector bits, original identities/holds and durable successor after registered-body expiry",
+      "Same-workspace reservations and unknown accounting; finalized resume has no further provider work",
+      "Client defaults, ten-per-day and Monday twenty-new limits, actual credentials and every live gate remain unchanged"
+    ],
+    "checks": [
+      {
+        "name": "workspace, successor, purge, D1 accounting/transport and publication read transport",
+        "passed": 140,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "name": "permanent drift/readback, signed zero, body-free prior and daily preflight",
+        "passed": 15,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "name": "approval30 bound, cancellation settlement, source/native drift and permanent membership",
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "name": "driver budget-exhaustion, reported-usage and foreign-accounting refusal",
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "name": "strict staging/operator TypeScript",
+        "exitCode": 0
+      },
+      {
+        "name": "strict Worker TypeScript",
+        "exitCode": 0
+      },
+      {
+        "name": "full ESLint",
+        "exitCode": 0,
+        "errors": 0,
+        "preExistingWarnings": 25
+      }
+    ],
+    "state": "complete",
+    "productionChangesThisFollowup": 0,
+    "targetedRegressionPasses": 164,
+    "graphBuiltAtCommit": "076bc0795e1d33c18ac23bafa7e0d4096396e37e"
+  },
+  "runs": [
+    {
+      "scenario": "Monday10+20",
+      "state": "finalized",
+      "runId": "test-weekly",
+      "releaseId": "test-release",
+      "receiptSha256": "57b6fb4f673a31d0f25b9517f8043b0759705ec8a0b7c0f420f5668915862884",
+      "configuredLimits": {
+        "requests": 5000,
+        "statements": 12000,
+        "reportedRowsRead": 2000000,
+        "reportedRowsWritten": 50000
+      },
+      "budget": {
+        "httpRequests": 3106,
+        "sqlStatements": 7368,
+        "knownRowsRead": 97179,
+        "knownRowsWritten": 22425,
+        "unconfirmedRequests": 1
+      },
+      "calls": {
+        "getItems": 1,
+        "search": 6,
+        "chat": 16,
+        "embedding": 6,
+        "cloudflareHttp": 3106,
+        "d1Http": 3014,
+        "sql": 7368,
+        "modelHttp": 23,
+        "merchantAuthHttp": 2,
+        "merchantApiHttp": 8,
+        "merchantRetries": 1,
+        "uploadHttp": 34,
+        "assetAttempts": 29,
+        "versionAttempts": 2,
+        "nativeUpsert": 1,
+        "nativeDelete": 0,
+        "build": 1,
+        "upload": 1,
+        "activation": 1,
+        "finish": 1
+      },
+      "wireBodyBytes": {
+        "cloudflare": {
+          "requests": 3106,
+          "request": 447053118,
+          "response": 173612957
+        },
+        "merchant": {
+          "requests": 10,
+          "request": 4158,
+          "response": 16462
+        },
+        "model": {
+          "requests": 23,
+          "request": 101247,
+          "response": 190998
+        }
+      },
+      "recovery": "One actual fixture finalization read response was lost; resume retained its charge and did not repeat merchant/model/build/upload/activation work"
+    },
+    {
+      "scenario": "Next-day10 after expiry",
+      "state": "finalized",
+      "runId": "test-weekly-day2",
+      "releaseId": "test-release-day2",
+      "receiptSha256": "08b9fb4999d219d5582a5229528b101ede53e96672ac8426d1e69b04781ae096",
+      "configuredLimits": {
+        "requests": 5000,
+        "statements": 12000,
+        "reportedRowsRead": 2000000,
+        "reportedRowsWritten": 50000
+      },
+      "budget": {
+        "httpRequests": 2314,
+        "sqlStatements": 5909,
+        "knownRowsRead": 82951,
+        "knownRowsWritten": 21970,
+        "unconfirmedRequests": 0
+      },
+      "calls": {
+        "getItems": 1,
+        "search": 0,
+        "chat": 0,
+        "embedding": 0,
+        "cloudflareHttp": 2314,
+        "d1Http": 2232,
+        "sql": 5909,
+        "modelHttp": 0,
+        "merchantAuthHttp": 2,
+        "merchantApiHttp": 2,
+        "merchantRetries": 1,
+        "uploadHttp": 34,
+        "assetAttempts": 29,
+        "versionAttempts": 2,
+        "nativeUpsert": 1,
+        "nativeDelete": 0,
+        "build": 1,
+        "upload": 1,
+        "activation": 1,
+        "finish": 1
+      },
+      "wireBodyBytes": {
+        "cloudflare": {
+          "requests": 2314,
+          "request": 439479908,
+          "response": 161392474
+        },
+        "merchant": {
+          "requests": 4,
+          "request": 1334,
+          "response": 5221
+        },
+        "model": {
+          "requests": 0,
+          "request": 0,
+          "response": 0
+        }
+      },
+      "recovery": "Monday workspace bodies were purged after 25 fixture hours and reopened; successor, original manifest, original budget and the original unknown remained exact"
+    }
+  ],
+  "assertions": [
+    "Every current-run Cloudflare/verifier request equals the same durable workspace HTTP total; D1 SQL totals match exactly",
+    "Merchant and model HTTP are separately metered, never hidden inside Cloudflare totals",
+    "All original public IDs and complete held rows survive; only approved new identities enter the private inventory",
+    "Historical native vectors remain byte/metadata exact, signed zero survives, and all resulting native hashes match",
+    "Asset and version retries, cold merchant authorization/401 refresh and Monday model503 retry are counted",
+    "Each run has exactly one build, protected upload, activation, finish and actual local publication receipt, with resolved build and idle owner",
+    "Finalized replay performs no further provider work and returns the durable successor",
+    "The first unknown and all old charges remain in the first ledger after second-day completion"
+  ],
+  "simulationLimits": [
+    "All external HTTP responses and credentials are synthetic; zero live provider, merchant or model API calls",
+    "Returned SQLite rows and total_changes are not billed D1 scanned rows or index-inclusive writes",
+    "Reported-row ceilings stop subsequent calls after the response, not prepaid per-query cost guarantees; live admission must reserve unresolved request cost separately",
+    "Fixed per-step fixture database time is explicitly advanced for expiry; this is not real provider latency, rate-limit or lease-expiry acceptance",
+    "Body byte counters are not network protocol overhead or a provider invoice",
+    "The initial published fixture and reviewed input/context construction precede the measured normal-run ledgers",
+    "Day2 explicitly rebuilds without retaining expired package bodies; the prior release identity, receipt and native history remain authenticated",
+    "One admissible native upsert occurs per run; this does not claim every newly listed keyword product gains native semantic eligibility",
+    "The smaller 24-identity run had zero discoveries and is separate supporting evidence, never substituted for the full 20-new-product result"
+  ],
+  "liveState": {
+    "oldNeonWriter": "off",
+    "newWriter": "gated",
+    "pinterest": "paused",
+    "deployments": 0,
+    "scheduleChanges": 0,
+    "credentialReads": 0,
+    "paidUpgrades": 0,
+    "remoteSync": false
+  },
+  "nextBoundary": "Coordinator review and normal integration, then a separately admitted actual indexed D1 billing/headroom and real-time canary; no additional owner credential action is requested for offline work",
+  "harnessImplementationCommit": "89dffd65be9f9bf5cecdab7cfd434dd2076e1cf0",
+  "runnerDurationMs": 1700601.462375,
+  "profileLimits": {
+    "cloudflareHttpRequests": 5000,
+    "sqlStatements": 12000,
+    "reportedRowsRead": 2000000,
+    "reportedRowsWritten": 50000
+  },
+  "profileStatus": "Directly enforced and passed in both complete authentic runner/build/verifier/protected-upload days, with same-ledger recovery and purge/reopen; not a live profile or actual D1/Free-headroom acceptance",
+  "historicalLargerEnvelopeProbe": {
+    "implementationCommit": "89dffd65be9f9bf5cecdab7cfd434dd2076e1cf0",
+    "exitCode": 0,
+    "durationMs": 1795416.37675,
+    "executionReference": "exec-f96ce361-f907-4fe3-bad2-1de0dcbfcf12",
+    "limits": {
+      "cloudflareHttpRequests": 8000,
+      "sqlStatements": 22000,
+      "reportedRowsRead": 2000000,
+      "reportedRowsWritten": 50000
+    },
+    "runs": [
+      {
+        "scenario": "Monday10+20",
+        "state": "finalized",
+        "releaseId": "test-release",
+        "receiptSha256": "bc298f127bba30557d20c207e98db3b01fc754f95b00098c083ba3f5cf965e0c",
+        "budget": {
+          "httpRequests": 3106,
+          "sqlStatements": 7368,
+          "knownRowsRead": 97179,
+          "knownRowsWritten": 22425,
+          "unconfirmedRequests": 1
+        },
+        "calls": {
+          "getItems": 1,
+          "search": 6,
+          "chat": 16,
+          "embedding": 6,
+          "cloudflareHttp": 3106,
+          "d1Http": 3014,
+          "modelHttp": 23,
+          "merchantAuthHttp": 2,
+          "merchantApiHttp": 8,
+          "merchantRetries": 1,
+          "uploadHttp": 34,
+          "assetAttempts": 29,
+          "versionAttempts": 2,
+          "nativeUpsert": 1,
+          "nativeDelete": 0,
+          "build": 1,
+          "upload": 1,
+          "activation": 1,
+          "finish": 1
+        },
+        "wireBodyBytes": {
+          "cloudflare": {
+            "requests": 3106,
+            "request": 447036375,
+            "response": 173612957
+          },
+          "merchant": {
+            "requests": 10,
+            "request": 4158,
+            "response": 16462
+          },
+          "model": {
+            "requests": 23,
+            "request": 101247,
+            "response": 190998
+          }
+        },
+        "recovery": "One actual fixture finalization read response was lost; resume retained its charge and did not repeat merchant/model/build/upload/activation work"
+      },
+      {
+        "scenario": "Next-day10 after expiry",
+        "state": "finalized",
+        "releaseId": "test-release-day2",
+        "receiptSha256": "8464fe31c8a43796fce14b7d1fef93c092367f439b1acea030eb72d596ae06e4",
+        "budget": {
+          "httpRequests": 2314,
+          "sqlStatements": 5909,
+          "knownRowsRead": 82951,
+          "knownRowsWritten": 21970,
+          "unconfirmedRequests": 0
+        },
+        "calls": {
+          "getItems": 1,
+          "search": 0,
+          "chat": 0,
+          "embedding": 0,
+          "cloudflareHttp": 2314,
+          "d1Http": 2232,
+          "modelHttp": 0,
+          "merchantAuthHttp": 2,
+          "merchantApiHttp": 2,
+          "merchantRetries": 1,
+          "uploadHttp": 34,
+          "assetAttempts": 29,
+          "versionAttempts": 2,
+          "nativeUpsert": 1,
+          "nativeDelete": 0,
+          "build": 1,
+          "upload": 1,
+          "activation": 1,
+          "finish": 1
+        },
+        "wireBodyBytes": {
+          "cloudflare": {
+            "requests": 2314,
+            "request": 439472836,
+            "response": 161392474
+          },
+          "merchant": {
+            "requests": 4,
+            "request": 1334,
+            "response": 5221
+          },
+          "model": {
+            "requests": 0,
+            "request": 0,
+            "response": 0
+          }
+        },
+        "recovery": "Monday workspace bodies were purged after 25 fixture hours and reopened; successor, original manifest, original budget and the original unknown remained exact"
+      }
+    ]
+  }
+}

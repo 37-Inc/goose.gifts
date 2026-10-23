@@ -204,24 +204,27 @@ export function normalizeOwnedImportSequences(plan:OwnedOperationalImportPlan,pl
 
 /** Exact logical read bounded by SQLite's own serialized row sizes. Caller owns
  * the barrier; before/after assertions cannot replace gating every writer. */
-export async function readOwnedLogicalRows(db:CatalogD1,owner:MutationOwner,options:{phase?:'freezing'}={}){
+export async function readOwnedLogicalRows(db:CatalogD1,owner:MutationOwner,options:{phase?:'freezing'|'activating';signal?:AbortSignal;tables?:typeof D1_RECOVERY_TABLES[number][]}={}){
   const phase=options.phase??'writing';if(owner.phase!==phase)refuse('owner');
-  await mutationAssertion(db,owner,[phase]).all();
-  const schemas=await db.batch(D1_RECOVERY_TABLES.map(t=>db.prepare(`PRAGMA table_info(${t})`))) as Array<{results:Array<{name:string}>}>;
-  if(!Array.isArray(schemas)||schemas.length!==D1_RECOVERY_TABLES.length)refuse('schema');
+  const tables=options.tables??D1_RECOVERY_TABLES;
+  if(!tables.length||new Set(tables).size!==tables.length||tables.some(t=>!D1_RECOVERY_TABLES.includes(t)))refuse('schema');
+  options.signal?.throwIfAborted();await mutationAssertion(db,owner,[phase]).all({signal:options.signal});
+  const schemas=await db.batch(tables.map(t=>db.prepare(options.signal?`SELECT name FROM pragma_table_info('${t}')`:`PRAGMA table_info(${t})`)),{signal:options.signal}) as Array<{results:Array<{name:string}>}>;
+  if(!Array.isArray(schemas)||schemas.length!==tables.length)refuse('schema');
   const result:Record<string,Row[]>={};
-  for(const [i,table] of D1_RECOVERY_TABLES.entries()){
+  for(const [i,table] of tables.entries()){
     const columns=schemas[i].results.map(r=>r.name);if(!columns.length||columns.some(c=>!/^[_a-z][_a-z0-9]*$/.test(c)||['_cursor','_bytes','_total','rowid'].includes(c))
       ||TABLES.includes(table as Table)&&[...columns].sort().join(',')!==[...COLUMNS[table as Table]].sort().join(','))refuse('schema');
     const list=columns.join(','),size=`length(CAST(json_object(${columns.flatMap(c=>[`'${c}'`,c]).join(',')}) AS BLOB))`;
     const rows:Row[]=[];let cursor:string|undefined;
     for(;;){
-      const page=(await db.prepare(`WITH bounded AS (SELECT rowid _cursor,${list},${size} _bytes FROM ${table}
+      const sql=`WITH bounded AS (SELECT rowid _cursor,${list},${size} _bytes FROM ${table}
         ${cursor===undefined?'':'WHERE rowid>CAST(? AS INTEGER)'} ORDER BY rowid LIMIT 40), sized AS
         (SELECT *,sum(_bytes) OVER(ORDER BY _cursor) _total FROM bounded)
         SELECT CAST(_cursor AS TEXT) _cursor,${list} FROM sized
-        WHERE CASE WHEN _bytes>393216 THEN json('owned_import_read_bounds') ELSE _total<=393216 END ORDER BY sized._cursor`)
-        .bind(...(cursor===undefined?[]:[cursor])).all<Row>()).results;
+        WHERE CASE WHEN _bytes>393216 THEN json('owned_import_read_bounds') ELSE _total<=393216 END ORDER BY sized._cursor`;
+      const page=(await db.prepare(options.signal?`SELECT * FROM (${sql})`:sql)
+        .bind(...(cursor===undefined?[]:[cursor])).all<Row>({signal:options.signal})).results;
       // Every bounded nonempty input has a fitting first row or throws above;
       // an empty result is therefore EOF, never an oversized hidden record.
       if(!page.length)break;
@@ -229,7 +232,7 @@ export async function readOwnedLogicalRows(db:CatalogD1,owner:MutationOwner,opti
     }
     result[table]=rows;
   }
-  await mutationAssertion(db,owner,[phase]).all();return result;
+  await mutationAssertion(db,owner,[phase]).all({signal:options.signal});return result;
 }
 
 async function inspect(db:CatalogD1,plan:OwnedOperationalImportPlan,planSha256:string,cursor:MutationOwner){

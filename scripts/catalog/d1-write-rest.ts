@@ -18,7 +18,10 @@ export function isCatalogD1Rest(db:CatalogD1):boolean{return ownedClients.has(db
 export const CATALOG_D1_REST_LIMITS = Object.freeze({ requests:600,statements:1200,batchStatements:50,parameters:100,
   requestBytes:512*1024,responseBytes:512*1024,timeoutMs:10_000,reportedRowsRead:1_000_000,reportedRowsWritten:10_000 });
 // Explicit whole-client allowance only; defaults never grow automatically.
-const HARD_LIMITS=Object.freeze({...CATALOG_D1_REST_LIMITS,requests:10_000,statements:25_000});
+// Defaults stay conservative. An explicit immutable operator config may select
+// a larger finite workload; these ceilings never represent shared-account headroom.
+const HARD_LIMITS=Object.freeze({...CATALOG_D1_REST_LIMITS,requests:10_000,statements:25_000,
+  reportedRowsRead:2_000_000,reportedRowsWritten:50_000});
 type Limits = { [K in keyof typeof CATALOG_D1_REST_LIMITS]:number };
 type Param = string | number | null;
 type Query = { sql:string;params:readonly Param[] };

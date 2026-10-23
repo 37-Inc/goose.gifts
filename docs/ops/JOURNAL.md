@@ -5,6 +5,365 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 — Repository review/integration candidate PR267
+
+The explicit continuation authorizes Git/GitHub review/integration only, not
+live catalog/provider/merchant/model execution, deployment or job activation.
+Inspected the clean completed branch, existing PRs and current main: no duplicate
+or competing open PR. Main64b26ce is the PR266 squash of original basedeb5cbc,
+with an exactly equal tree. Merge9a5f6c2 resolves only documentation conflicts
+by retaining the identical completed ebb4294 tree; every evidence/source commit
+is preserved. No Actions workflows, active repository webhooks, branch protection
+or required checks/reviews were configured; vercel.json still disables Git
+deployments. No deployment commands or provider-account operations were invoked.
+
+PR: https://github.com/37-Inc/goose.gifts/pull/267.
+Configured Codex review request:
+https://github.com/37-Inc/goose.gifts/pull/267#issuecomment-6362728893.
+Review status/comment:
+https://github.com/37-Inc/goose.gifts/pull/267#issuecomment-6362733832.
+This entry records the candidate, not a claim of completed review or integration;
+use the exact final PR merge/head and Beads receipt for that outcome.
+
+Full branch diff-check caught an extra EOF blank line in the extracted fixture;
+removed it. This is formatting only, not a reason to repeat the accepted 28-minute
+capacity run. The authoritative JSON remains byte-identical, SHA256
+234fc82d37bf07cd2b942f65a04ff726b063d1c377c8f4600f8aa4b122009c70.
+The PR attachment tool was attempted but refused with “thread attachment identity
+count exceeds100”; do not unlink unrelated old artifacts to work around it.
+The PR link above is the durable accessible reference. Old Neon stays OFF,
+new writer GATED, Pinterest PAUSED; actual D1 cost/headroom/real-time canary and
+the exact existing scheduler activation remain separately unexecuted boundaries.
+
+## 2026-10-23 — Complete authentic recurring flow passes the finite profile itself
+
+Finished only the offline handoff on the SAME
+`codex/stupid-daily-readiness-offline-20261022` worktree, with unchanged agent
+model/settings. Starting harness89dffd6 already passed under8,000HTTP/22,000SQL;
+that did not directly test the proposed lower profile. One specifically requested
+rerun therefore used committed test source
+`076bc0795e1d33c18ac23bafa7e0d4096396e37e`, enforcing **5,000 CF/verifier HTTP /
+12,000 SQL /2,000,000 reported reads /50,000 reported writes** for BOTH days.
+Configured limits, durable workspace caps and measured totals are asserted.
+Production code was not changed in this follow-up; the existing authenticated
+successor implementation isfb4fff2. The npm reproduction now selects only the
+full authentic case rather than needlessly running the smaller probe too.
+
+`AUTHENTIC full complete Monday daily build upload shared-ledger successor`
+PASS:1 test,0 failures,0 skips; case1,700,257.209791ms, whole runner
+1,700,601.462375ms. Unified exec session1759. The scrubbed Node22 parent routes
+all provider/merchant/model responses synthetically; build/verifier children
+deny external networking and the real protected Wrangler child can reach only
+its local bridge. Zero external calls, credential reads, account inspection,
+deployment, remote Git/Dolt sync, schedule/live-gate changes, restoration checks,
+paid upgrades or historical allowance reuse occurred in this continuation.
+
+| Complete measured day | CF/verifier HTTP | SQL | Returned rows | SQLite changes | Unknowns |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Monday10 existing +20 new | 3,106 | 7,368 | 97,179 | 22,425 | 1 retained |
+| Next-day10 after expiry/reopen | 2,314 | 5,909 | 82,951 | 21,970 | 0 new |
+
+Actual local publication receipt digests:
+
+- Monday: `57b6fb4f673a31d0f25b9517f8043b0759705ec8a0b7c0f420f5668915862884`.
+- Next day: `08b9fb4999d219d5582a5229528b101ede53e96672ac8426d1e69b04781ae096`.
+
+Both days resolve their actual build and finish IDLE with exactly one real local
+build, protected upload, activation and finish. Each includes34 upload HTTP
+attempts (29 asset attempts/two version attempts), the asset/version503 retry
+and merchant401/cold-auth refresh. Monday separately counts10 merchant HTTP and
+23 model HTTP (including one503); next day4 merchant andZERO model HTTP. All
+current-run CF/D1/native/verifier/upload requests match the same workspace ledger;
+SQL totals match exactly. Merchant/model HTTP are separate, not hidden CF charges.
+The original genuine predecessor/bootstrap and reviewed-input construction are
+outside these routine ledgers, never silently added to their acceptance claims.
+
+All3,383 original identities,2,359 public IDs and1,024 exact full held rows survive;
+twenty quality/dedup-approved additions leave3,403 private/2,379 public. Original
+eight native vectors and current approved deltas retain exact metadata/float32
+hashes including signed zero. There is one native upsert and zero deletes per
+day; this does not claim every new keyword listing has native semantic eligibility.
+Monday's lost finalization-read ACK resumes without another paid phase, build,
+upload or activation. After25 fixture hours, actual registered-body purge and
+workspace close/reopen recover only the durable successor; the old manifest,
+all charges and its unknown remain exact after day two. Day two rebuilds without
+retaining the expired prior package. Finalized replay makes no further calls.
+
+Local review found no additional production-code fix. It corrected the finite
+test envelope/reproduction and superseded stale operator text, without changing
+defaults or proof/cadence contracts. Current regressions:140 workspace/successor/
+cleanup/D1/read-transport,15 permanent/source/native/preflight,5 approval-bound/
+cancellation/native-drift, and4 budget/foreign-accounting refusals all PASS
+(164 total,0 failures/skips). Strict operator/staging and Worker TypeScript pass;
+full ESLint exits0 with0 errors/25 pre-existing warnings. Graphify was rebuilt
+locally at076bc07; missing optional SQL extraction is unchanged and no extractor
+was installed. Direct SQL/source review and executable fixtures remain the proof.
+
+Committed evidence is `docs/ops/evidence/2026-10-23-offline-successor-capacity.json`.
+It includes exact configured limits, per-run receipts/budgets/SDK counters/body
+bytes, review/regressions and the ORIGINAL larger-envelope probe as history.
+Node22 `npm run test:catalog-successor-capacity` reproduces only this full case.
+Do not repeat the successful heavy run absent a relevant change/failure.
+
+**Remaining boundary, not executed here:** coordinator review/integration of
+this local branch, then actual indexed D1 billed reads/writes with conservative
+unknown-request reserves, fresh shared-account Free headroom and real-time
+lease/pacing acceptance plus one bounded live canary. SQLite returned rows/
+`total_changes()` are NOT D1 scanned/index billing, body bytes are NOT an invoice,
+and the fixed per-step clock/25-hour expiry step is NOT real-time admission.
+Reported-row caps are post-response stop conditions, not prepaid query guarantees.
+Only afterwards pin the exact clean operator/config/workspace/lock and update
+the EXISTING scheduler gate in place. Keep old Neon OFF/new writer GATED/
+Pinterest PAUSED, ten existing/day across retries, Monday at most twenty new,
+model-free Tuesday–Sunday, historical unknowns and consumed grants unchanged.
+No owner credential action is needed for this completed offline engineering.
+Canonical Beads notes are reconciled locally only; remote sync remains deferred.
+
+## 2026-10-23 UTC — Offline authenticated recurring successor implemented
+
+Continued only `codex/stupid-daily-readiness-offline-20261022`, on top of
+`3d652dc`. Restoration was not replayed or used as substitute evidence. There
+were zero live provider/merchant/model calls, credential reads, deployments,
+remote Git/Dolt operations, schedule/gate changes, paid upgrades or new model/
+merchant allowances. Old Neon is off, the new writer gated and Pinterest paused.
+
+The existing contracts now carry the complete missing chain:
+
+- `run-cloudflare-weekly.ts` distinguishes the authentic permanent predecessor,
+  pins it in the existing request control, and creates the successor only from
+  an actual resolved publication/verified outbox/idle generation.
+- `permanent-catalog-seal.ts` authenticates the prior projection/publication,
+  every full private-source hash and held identity, plus each independently
+  approved current operation chain. Both original and recurring seals are
+  supported; source-only verification is explicitly NOT native verification.
+- `freeze-approved-cohort.ts` binds that inventory to the current source digest.
+  Unchanged native members remain historical, including still-fresh overlays;
+  approved current native deltas/absence are a separate disjoint set.
+- `owned-vector-delivery.ts` verifies a flat, identity-bounded union through
+  immutable actual source journals and resolved publication receipts, exact
+  metadata/float32 bits and current-owner CAS. It never recursively reads old
+  workspace bodies or rewrites unchanged vectors. The20-item ordinary proof/
+  transport bound is unchanged; the existing approval envelope remains30.
+- `approved-catalog-seal.ts` retains only inventory hashes, technical projection/
+  request metadata and native receipt pointers. It can be consumed after prior
+  bodies expire; no supplier observation/deadline or grant is renewed.
+- `run-workspace.ts` retains this exact allowlisted successor in bounded,
+  hash-linked64KiB journal parts, not an expiring content artifact. Interrupted
+  recording resumes only identical parts; rewrite and arbitrary provider-body
+  fields refuse. It survives actual purge, close and reopen, without altering
+  the manifest, original charges or unknowns. The normal driver and finalized
+  resume return it through this durable reader. Technical vector-ID control is
+  bounded by the existing10,000-identity catalog/512KiB JSON ceiling rather than
+  an unrelated100-ID/8KiB ceiling; transport/proof and merchant/model bounds
+  stay unchanged. A10,000-ID reopen/over-bound/duplicate test passes with no calls.
+- `publish-release.ts` accepts the union only through the authenticated approved
+  input, retains the permanent/approved exclusivity guard, and runs full private
+  inventory checks outside short native/provider observations. The logical
+  reader has explicit bounded table selection and cancellable SELECT-only
+  observation queries; its historical default wire behavior is unchanged.
+
+New positive tests in `catalog-permanent-freeze.test.mjs` start from a genuine
+installed/published permanent seal, execute real local maintenance/outbox/policy/
+native checks, and resolve TWO normal publisher invocations to real local
+publication receipts, resolved builds and idle owners. Small12 and full3,383
+fixtures pass. Full day1 refreshes10 and admits20 exact approved additions;
+day2 refreshes10 and consumes only the body-free successor after the registered
+day1 workspace is actually purged. Its immutable manifest and unknown charge
+remain exact. All3,383 old identities,1,024 complete held rows and approved new
+IDs survive, leaving2,379 public/3,403 private. Signed-zero corruption is refused
+for BOTH original historical vectors and the preceding day's newly added native
+members. Inventory/held/private-sidecar and omitted/forged successor drift also
+refuse. Cancellation of the historical source read aborts and joins without
+late queries; every added source query inside the native window is SELECT-only
+and receives the same abort signal. The quality gate correctly rejected a fixture family duplicate; the
+synthetic candidate was corrected rather than weakening deduplication.
+
+Observed full fixture D1 metrics (INCLUDING hydration/adversarial proof reads):
+day1 3,356 requests/7,905 SQL/89,982 returned rows/22,686 SQLite changes;
+day2 2,786/6,384/95,315/22,165. Both have zero new unknowns. These are NOT a
+whole-run budget, new build/upload measurement, D1 scan/index billing or live
+headroom proof. Do not sum them blindly with the accepted generic-prior capacity
+probe or treat its provisional3,000-request profile as accepted for this path.
+
+Reproduce with Node22 under outbound-network denial:
+`node --import tsx --test --test-name-pattern='authentic permanent successor'
+tests/catalog-permanent-freeze.test.mjs` (one shell command). All HTTP in these
+fixtures is synthetic/local. The static-build/upload generic-prior evidence
+remains separate; skipped heavy capacity cases are not additional acceptance.
+Two obsolete refusal assertions in the older approved-cohort suite were
+reconciled with the already-existing30-change and whole-plan contracts; no
+production cap was raised. Final regression/type/lint/build results are recorded
+with the implementation receipt/Bead. `roadmap-lbbz1.4.3.1` stays in progress:
+complete authentic runner+build/upload accounting, reviewed integration,
+actual index-inclusive billing/headroom and later canary remain unaccepted.
+No owner credential action is needed for the remaining offline engineering.
+
+Implementation receipt: local commit
+`fb4fff264b674f1067c6d63fe5bfec7c526ee22b`. Final successor pair passes after
+durable journal reopen and cancellable-source hardening; workspace/purge/
+successor regression117/117 and the10,000-ID boundary/reopen case pass.
+During the pass, approved/permanent regression56/56 and driver/publication/
+operational-import/successor287 passes plus3 explicit opt-in skips were green;
+the heavy generic build/upload probes were not rerun or counted as new evidence.
+Strict operator/Worker types and full lint pass (25 pre-existing warnings).
+Clean committedfb4fff2 static build and independent release verification pass:
+`offline-successor-fb4fff2`, THREE synthetic preview products,393 assets and372
+guarded routes. This is compile/package verification, NOT a new public release
+or a full authentic successor upload/capacity measurement. Local canonical Beads
+child/parent notes were appended under `bd --sandbox`; no Dolt/Git remote sync.
+
+## 2026-10-23 UTC — Successful complete offline workloads measured; native successor wiring remains
+
+Continued the SAME local branch, implementation
+`89e620a86e11a4a00de1bbc4ea9dbe2afaf1da64`. No live provider/merchant/model call,
+credential read, live gate/config/schedule change, paid upgrade, remote fetch,
+push/PR/merge/deploy, real catalog write or restoration replay. Old Neon stays
+off, Pinterest paused and the accepted public catalog unchanged by this work.
+
+Authority correction:800HTTP/1200SQL and the10k-write default are INTERNAL
+guards, not provider Free allowances or a reason to ask for permission again.
+The owner already authorized lifting our request cap and new-site daily care
+on October21. Defaults remain unchanged. Explicit immutable config may now
+select a complete read/write pair, at most2M reported reads/50k reported writes,
+below the recorded account-wide Free5M/100k allowances. No live profile was
+changed; shared headroom is not implied and the consumed600k grant is unrelated.
+
+The driver now owns the protected uploader even when injecting a raw test
+command/transport, using the SAME ledger as D1/Vectorize/identity. Already
+accounted senders/uploaders from another ledger are rejected before workspace
+adoption. Real build, verifier, Worker bundling and Wrangler asset/version
+upload replace the old mock command in the explicit capacity cases. Children
+have outbound denial (upload permits only the exact local bridge); all vendor
+responses are local synthetic data, with no usable credentials.
+
+| Successful generic-prior flow | CF/verification HTTP | D1 HTTP | SQL | Merchant HTTP | Model HTTP |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Daily10 /2359 public+1024 held | 1196 | 1130 | 4712 | 4 | 0 |
+| Monday10+20 /same full prior | 1843 | 1769 | 5874 | 10 | 23 |
+
+Both reach FINALIZED, one build/upload/activation, an actual local SQLite
+publication receipt and resolved build, final idle scope and zero unknowns.
+All2359 original public IDs and1024 held rows survive exactly; Monday publishes
+all20 newly admitted identities. Resume does not repeat paid phases or publish.
+Both include one401 refresh, one asset503 and one version503; Monday also
+includes one model503. Daily is model-free; Monday has16 successful chat +six
+embedding calls and one retry. Every one of37 actual upload HTTP attempts
+(32 asset attempts, two version attempts, three metadata requests) is charged
+to the same private workspace. Cold-cache sessions partition assets into8MiB
+raw buckets; this is a declared fixture layout, not a universal vendor bound.
+
+CF request/response body bytes:439108126/42224843 daily,
+448747080/62636579 Monday. These are synthetic publication bodies, not actual
+site traffic or bandwidth billing. Mock returned rows39142/53643 and SQLite
+changes21895/22348 are NOT D1 scanned/index-inclusive billing. Concurrent local
+wall times938.3s/989.5s expose the substantial protected filesystem work; the
+synthetic server clock is fixed, so this is not a live latency/lease/rate proof.
+
+The measured generic workload fits a candidate3000HTTP/12000SQL profile with
+margin, and explicit≤2M reported reads/≤50k writes. Actual D1 row billing,
+current shared-account headroom, provider pacing/latency and the production
+permanent/native chain still require acceptance. Do not call this a successful
+production-shaped native canary or enable the timer's writer from these numbers.
+
+Exact remaining technical gap: `run-cloudflare-weekly.ts` reads a permanent seal
+through generic `readApprovedPrior`, never `readPermanentCatalogPrior`.
+`createApprovedCatalogSeal` retains no full private-source inventory/historical
+native binding. `prunedVectorPlan` treats permanent preservation as an exclusive
+mode, not a union with new approved native deltas, and the publisher treats its
+permanent/approved inputs as mutually exclusive. Next extend the EXISTING
+seal/plan contract: authenticated predecessor → actual bounded maintenance ops →
+unchanged historical + current approved native union → actual publication →
+body-free current successor; consume it on a second day after old workspace
+expiry. Preserve full3383 identity/private-hash coverage, all original holds,
+current-owner/CAS/cutoff checks, signed-zero bytes and every old unknown. No new
+framework/service, owner credential action or renewed request-cap approval is
+needed for that offline engineering. `.4.3.1` therefore remains IN_PROGRESS.
+
+Validation: both full cases PASS; opt-in small real build/upload PASS;16 D1
+client/accounting and three final config/foreign-ledger cases PASS; three
+existing driver compatibility cases PASS. Strict staging types and lint
+(zero errors/25 existing warnings) pass. Clean committed89e620 root synthetic
+build + verifier pass:three products,393 assets/372 routes, not deployed.
+`npm run test:catalog-capacity` is the explicit heavy Mac command; cases were
+executed before opt-in registration was added, then the small opt-in case was
+rerun. Default skips are not acceptance. Retained red/partial logs document
+fixture-only missing copied build dependencies, Uint8Array JSON decoding and
+an oversized one-bucket mock; the production wire bound was NOT loosened.
+The obsolete v3 probe was interrupted after that known fixture issue; final v4
+cases independently pass without erasing live charges or using any old grant.
+Private receipt/logs: `offline-recurring-capacity-20261023/` under the protected
+Goose migration directory. All changes remain local/unpushed, no remote Beads
+synchronization or integration/publication is claimed.
+
+## 2026-10-23 UTC — Offline recurring readiness reconciled; no live execution
+
+Local branch `codex/stupid-daily-readiness-offline-20261022`, implementation
+`35ae309c112a40a9a31cdf2470f6166ad6900eda`, starts at the audited PR266 head
+`deb5cbc`. No remote fetch, provider/merchant/model call, credential read,
+upload, activation, scheduling change, allowance or paid upgrade occurred in
+this pass. The accepted restoration below is unchanged; its goal and
+`roadmap-lbbz1.3.2` remain complete. Old Neon writers stay off and Pinterest paused.
+
+Reconciled earlier unmerged8b1a205/4b0920e/5d322fb fixes against the released
+PR265 control evolution:30 approved changes (not a widened20-native proof
+batch), local budget-failure attention without an extra diagnostic read, and
+append-only body-free successful-publication evidence plus registered cleanup.
+The explicit completion observer needs a separately admitted oneHTTP/threeSQL
+actual receipt/resolved-build/idle read. It provides no allowance or replay
+right; no historical live workspace was reopened or resealed. Terminal success
+pins the entire original ledger/journal and recovery-bound inventory; drift,
+unknown files or late charges refuse, and expiry cleanup preserves controls,
+locks/metadata and historical unknowns. Added its tests to the normal scripts.
+
+The ordinary permanent executor now performs full source/projection CAS outside
+the short native/provider resolver for all permanent releases. Receipt readback
+retains checks before/after its observation; final resolution freshly checks
+all rows under the same original activating owner before its timed native-only
+observation. No cross-invocation proof caching or deadline/owner changes. The
+actual executor3383-identity fixture passes:196 full-check queries outside the
+short window, four native readbacks/25SQL inside, exact signed-zero bytes and
+normal receipt/resolved-build/idle completion. Source/held/projection/prior/
+native/owner negative cases all remain fenced. These are synthetic local
+SQLite/REST fixtures, not actual D1 billing or a routine provider canary.
+
+The full2359 daily fixture reaches its unchanged guard at545HTTP/1174SQL,
+210 new projection rows,10 changed products, zero unknowns and no build/upload/
+activation. The real Amazon client adds one auth + one product HTTP request,
+zero model HTTP:547 observed requests total. The Monday fixture makes one auth
+and seven API requests and22 model HTTP requests before refusing at675CF-HTTP/
+1200SQL:705 observed requests,25 actually persisted changes, zero projection/
+build/upload/activation/unknowns. All original2359 permanent bases and1024
+curation holds remain exact; optional refreshed overlays never replace the
+persistent base. Six themes offer20 eligible discoveries, but the failed run
+must NOT be called a completed10+20 run. Single401 refresh is independently
+tested with two auth/two API attempts and no second reserved phase. Retry
+charges are never refunded or replayed. Model/merchant counters are separate
+from the CF workspace ledger. Returned rows/SQLite writes are not billed D1
+scans/index writes; mock compilation/upload transport is expressly unmeasured.
+
+Validation:261/261 driver/permanent/executor sweep passed before final transport
+fixture edits; the changed full daily/Monday,3383 resolver, six drift and401
+fixtures were then independently rerun. `test:catalog-ops`:118pass/one explicit
+PG17-image-unavailable skip (no image pull);89 accounting/read/workspace tests
+and14 actual self-sandboxed upload/asset-retry tests pass. Main/staging/Worker
+types pass; lint has zero errors/25 existing warnings. Source-pinned synthetic
+`npm run build` and release verification pass at35ae309:three fixture products,
+393 assets/372 guarded routes, no deploy. Initial harness refusals are retained:
+six local-Postgres tests needed Unix-socket permission while external networking
+stayed denied; four nested Seatbelt child tests pass when run under their own
+exact-port sandbox. An initial assertion incorrectly required an optional
+overlay's top-level deadline to be null; the corrected stronger assertion
+compares every permanent-base field with the original snapshot. No production
+behavior was changed to satisfy those harness/assertion corrections.
+
+Remaining `.4.3.1` gates: bounded complete routine work (ordinary800/1200 still
+refuses), authentic permanent predecessor/successor/native maintenance wiring,
+whole packaging/upload transport accounting, reviewed integration and a later
+separately admitted fresh-account/Pacific-day live canary. Keep the writer gated
+and all historical charges/rollback intact. No owner credential action is
+needed for further offline engineering. This branch is local/unpushed; offline
+Beads notes are not a remote synchronization or a release.
+
 ## 2026-10-23 UTC — Existing images/descriptions live, receipt finalized, catalog acceptance complete
 
 Cameron's confirmed existing-dataset presentation is restored faithfully:2,359

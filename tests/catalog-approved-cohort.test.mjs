@@ -501,14 +501,14 @@ test('all2359 permanent identities/order survive ten D1 stockout/title/facts/pri
   assert.equal(f.sql.prepare('SELECT count(*) n FROM products').get().n,3384);
   assert.equal(approvedCohortVectorPlan(prepared.revision).products.length,0);
 });
-test('one approved change cannot make unrelated permanent identities disappear or raise the20-change contract',async t=>{
+test('one approved change cannot make unrelated permanent identities disappear or raise the30-change contract',async t=>{
   const f=await setup(t,{permanent:2359}),unchanged=f.previous.products.filter(p=>p.eligibleUntil===null);
   await f.upsert(product(1,{sourceFacts:{fixture:1,new:true}}));await f.drain();
   const claim=await f.freeze([uuid(1)]),prepared=await prepareApprovedCohort(f.db,claim.owner,claim.request);
   assert.equal(prepared.revision.snapshot.products.length,2361);
   assert.equal(sha256(canonicalJson(prepared.revision.snapshot.products.filter(p=>p.eligibleUntil===null))),sha256(canonicalJson(unchanged)));
   assert.equal(approvedCohortVectorPlan(prepared.revision).products.length,2);
-  const excessive=structuredClone(claim.request);excessive.approval.changes=Array.from({length:21},(_,n)=>({...claim.request.approval.changes[0],publicId:uuid(n+1)}));
+  const excessive=structuredClone(claim.request);excessive.approval.changes=Array.from({length:31},(_,n)=>({...claim.request.approval.changes[0],publicId:uuid(n+1)}));
   excessive.approvalSha256=sha256(canonicalJson(excessive.approval));assert.throws(()=>approvedCohortOperationKey(excessive),/approval_invalid/);
 });
 test('changed candidates still face family rejection against every preserved permanent member',async t=>{
@@ -735,7 +735,7 @@ test('expired source observations or short current rights never renew; all-held 
   await short.upsert(product(4));await short.drain();const next=await short.freeze([uuid(4)]);
   assert.ok((await prepareApprovedCohort(short.db,next.owner,next.request)).revision.snapshot.heldProducts.some(p=>p.publicId===uuid(4)));
 });
-test('approval hashes/receipts, global pending work, wrong owner and the 20 union bound fail closed',async t=>{
+test('approval hashes/receipts, global pending work and wrong owner fail closed; whole plans may exceed20 members',async t=>{
   const f=await setup(t);await f.upsert(product(4));
   const unfinished=await f.freeze([uuid(4)]);
   await assert.rejects(prepareApprovedCohort(f.db,unfinished.owner,unfinished.request),/unsettled/);
@@ -746,8 +746,10 @@ test('approval hashes/receipts, global pending work, wrong owner and the 20 unio
   g.sql.prepare("UPDATE products SET rights_json='{}' WHERE public_id=?").run(uuid(4));
   await assert.rejects(prepareApprovedCohort(g.db,owner,request),/approval_changed/);
   const big=await setup(t,{initial:21});const before=big.calls();const next=await big.freeze();
-  await assert.rejects(prepareApprovedCohort(big.db,next.owner,next.request),/vector_proof_bound/);assert.equal(big.calls(),before);
-  assert.equal(big.sql.prepare('SELECT count(*) n FROM catalog_projection_receipts').get().n,1);
+  const prepared=await prepareApprovedCohort(big.db,next.owner,next.request);
+  const plan=approvedCohortVectorPlan(prepared.revision);
+  assert.equal(plan.products.length+plan.absentIds.length,21);assert.equal(big.calls(),before);
+  assert.equal(big.sql.prepare('SELECT count(*) n FROM catalog_projection_receipts').get().n,2);
 });
 test('lost seal/settlement responses restart from exact receipts; drift and unknown provider keep ownership',async t=>{
   const f=await setup(t);await f.upsert(product(4));await f.drain();const {owner,request}=await f.freeze([uuid(4)]);
