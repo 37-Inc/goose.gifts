@@ -21,8 +21,8 @@ const draft = {
   approvalEventId: 'evt-test-approved',
   board: 'Weird Kitchen Gadgets',
   assetPath: 'docs/example.png',
-  targetPage: 'https://www.goose.gifts/gifts/funny-pizza-saw',
-  trackingUrl: 'https://www.goose.gifts/gifts/funny-pizza-saw?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=pizza_saw',
+  targetPage: 'https://stupid.gifts/gifts/funny-pizza-saw',
+  trackingUrl: 'https://stupid.gifts/gifts/funny-pizza-saw?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=pizza_saw',
   title: 'A Circular Saw for Pizza Night',
   description: 'A kitchen scene built around the exact pizza cutter. AI-modified image. Affiliate disclosure: goose.gifts may earn from qualifying purchases.',
   altText: 'Circular-saw-shaped pizza cutter beside a sliced pizza.',
@@ -58,18 +58,18 @@ test('publishing package requires owner approval metadata, tracking, and visible
   assert.throws(
     () => validateDraftPackage({
       ...draft,
-      targetPage: 'https://www.goose.gifts/random-gift?gift=B001XSFW42',
-      trackingUrl: 'https://www.goose.gifts/random-gift?gift=B005UGWDAE&utm_source=pinterest&utm_medium=organic_social&utm_campaign=x&utm_content=y',
+      targetPage: `${draft.targetPage}?gift=B001XSFW42`,
+      trackingUrl: `${draft.trackingUrl}&gift=B005UGWDAE`,
     }),
     /preserve targetPage query parameter gift/,
   );
   assert.throws(
     () => validateDraftPackage({
       ...draft,
-      targetPage: 'https://stupid.gifts/gifts/funny-pizza-saw',
-      trackingUrl: draft.trackingUrl.replace('www.goose.gifts', 'stupid.gifts'),
+      targetPage: 'https://www.goose.gifts/gifts/funny-pizza-saw',
+      trackingUrl: draft.trackingUrl.replace('stupid.gifts', 'www.goose.gifts'),
     }),
-    /targetPage must be on goose.gifts/,
+    /canonical https:\/\/stupid.gifts/,
   );
 });
 

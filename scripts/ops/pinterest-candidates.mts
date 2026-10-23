@@ -2,8 +2,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import dotenv from 'dotenv';
-import { sql } from '@vercel/postgres';
+import { readPinterestCatalog } from './pinterest-catalog.mts';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   areNearDuplicateTitles,
@@ -15,11 +14,8 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const manifestPath = path.join(root, 'docs/ops/pinterest-approved-pins.json');
 const creativeEventsPath = path.join(root, 'docs/ops/marketing-experiments/events.jsonl');
-const ASIN_PATTERN = /\b[A-Z0-9]{10}\b/g;
+const ASIN_PATTERN = /\b(?=[A-Z0-9]{10}\b)(?=[A-Z0-9]*\d)[A-Z0-9]{10}\b/g;
 const PURCHASABLE = new Set(['IN_STOCK', 'IN_STOCK_SCARCE', 'INSTOCKSCARCE', 'AVAILABLE_DATE', 'LEADTIME', 'PREORDER']);
-
-dotenv.config({ path: path.join(root, '.env.local'), quiet: true });
-dotenv.config({ path: path.join(root, '.env'), quiet: true });
 
 export function usedPinterestProductIds({ manifest, events }) {
   const ids = new Set<string>();
@@ -90,6 +86,7 @@ export function selectPinterestSourceCandidates(
       && row.source_facts_hash === row.editorial_source_hash
       && PURCHASABLE.has(String(row.availability_status || '').toUpperCase())
       && Number.isFinite(verifiedAt)
+      && verifiedAt <= now.getTime()
       && now.getTime() - verifiedAt <= maxAgeMs
       && !title.includes('...')
       && !title.includes('…')
@@ -142,53 +139,12 @@ function loadJsonLines(filePath: string) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
-  if (!process.env.POSTGRES_URL) throw new Error('POSTGRES_URL is required. Run scripts/ops/pull-env.sh first.');
-
-  const [{ rows }, latestRun] = await Promise.all([
-    sql.query(`
-      SELECT id, slug, title, price, currency, image_url, affiliate_url, source,
-             source_query, humor_tags, rating, review_count, quality_score,
-             is_active, source_facts,
-             source_facts_hash, editorial_source_hash, availability_status,
-             availability_checked_at, last_verified_at, editorial_status,
-             editorial_quality_score, editorial_generated_at,
-             duplicate_of_product_id
-      FROM products
-      WHERE is_active = true
-        AND source = 'amazon'
-        AND image_url IS NOT NULL
-        AND affiliate_url IS NOT NULL
-        AND duplicate_of_product_id IS NULL
-        AND quality_score >= 0.65
-        AND editorial_status IN ('generated_ready', 'manual_locked')
-        AND editorial_quality_score >= 0.8
-        AND source_facts_hash IS NOT NULL
-        AND source_facts_hash = editorial_source_hash
-        AND COALESCE(availability_checked_at, last_verified_at) >= NOW() - INTERVAL '35 days'
-      ORDER BY editorial_generated_at DESC NULLS LAST, quality_score DESC, id ASC
-      LIMIT 500
-    `),
-    sql.query(`
-      SELECT id, mode, status, started_at, completed_at, counts
-      FROM catalog_runs
-      WHERE dry_run = false
-      ORDER BY started_at DESC
-      LIMIT 1
-    `),
-  ]);
+  const { rows, latestCatalogRun, latestRunIds, ...catalogEvidence } = await readPinterestCatalog();
 
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   const events = loadJsonLines(creativeEventsPath);
   const usedIds = usedPinterestProductIds({ manifest, events });
   const usedTitles = usedPinterestProductTitles(events);
-  const latestCatalogRun = latestRun.rows[0] || null;
-  const latestRunItems = latestCatalogRun
-    ? await sql.query(
-      'SELECT DISTINCT COALESCE(product_id, external_id) AS product_id FROM catalog_run_items WHERE run_id = $1',
-      [latestCatalogRun.id],
-    )
-    : { rows: [] };
-  const latestRunIds = new Set<string>(latestRunItems.rows.map((row) => row.product_id).filter(Boolean));
   const candidates = selectPinterestSourceCandidates(
     rows,
     usedIds,
@@ -199,7 +155,7 @@ async function main() {
   ).map((row) => ({
     productId: row.id,
     title: row.title,
-    productPage: `https://www.goose.gifts/gifts/${row.slug}`,
+    productPage: `https://stupid.gifts/gifts/${row.slug}`,
     sourceImage: row.image_url,
     price: Number(row.price || 0),
     qualityScore: Number(row.quality_score || 0),
@@ -213,7 +169,8 @@ async function main() {
   }));
   const payload = {
     generatedAt: new Date().toISOString(),
-    source: 'current verified and enriched catalog; read-only',
+    source: 'live Stupid.gifts publication-bound D1 catalog; read-only; not permission to generate or publish',
+    catalogEvidence,
     latestCatalogRun,
     alreadyPublishedProductIds: [...usedIds].sort(),
     candidates,

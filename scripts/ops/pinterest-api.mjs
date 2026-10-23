@@ -4,6 +4,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { loadEvents, validateAndFold } from './creative-experiments.mjs';
+import { assertStudioCommandAllowed, publicMetric } from './pinterest-studio-policy.mjs';
 import {
   assertCandidateReadyForPublication,
   assertPinterestAccount,
@@ -16,12 +17,13 @@ import {
   validatePinReadback,
 } from './pinterest-publishing.mjs';
 
-const APP_ID = process.env.PINTEREST_APP_ID || readKeychain('goose.gifts.PINTEREST_APP_ID') || '1588384';
-const APP_SECRET = process.env.PINTEREST_APP_SECRET || readKeychain('goose.gifts.PINTEREST_APP_SECRET');
 const command = process.argv[2] || 'whoami';
 const sandbox = process.argv.includes('--sandbox');
 const apiBase = sandbox ? 'https://api-sandbox.pinterest.com/v5' : 'https://api.pinterest.com/v5';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+assertStudioCommandAllowed(command, { root, dryRun: process.argv.includes('--dry-run'), preview: process.argv.includes('--destination-preview') });
+const APP_ID = process.env.PINTEREST_APP_ID || readKeychain('goose.gifts.PINTEREST_APP_ID') || '1588384';
+const APP_SECRET = process.env.PINTEREST_APP_SECRET || readKeychain('goose.gifts.PINTEREST_APP_SECRET');
 const approvedPinDraftsPath = path.join(root, 'docs/ops/pinterest-approved-pins.json');
 const legacyPublicWebResultsPath = path.join(root, 'docs/ops/pinterest-assets/batch-1-v3/manual-post-results.json');
 const creativeEventsPath = path.join(root, 'docs/ops/marketing-experiments/events.jsonl');
@@ -103,10 +105,12 @@ async function getPublicPinMetrics() {
       ...pin,
       title: data.title || pin.title,
       createdAt: data.created_at,
-      impressions: Number(lifetime.impression || 0),
-      pinClicks: Number(lifetime.pin_click || 0),
-      outboundClicks: Number(lifetime.outbound_click || 0),
-      saves: Number(lifetime.save || 0),
+      link: data.link || null,
+      boardId: data.board_id || null,
+      impressions: publicMetric(lifetime.impression),
+      pinClicks: publicMetric(lifetime.pin_click),
+      outboundClicks: publicMetric(lifetime.outbound_click),
+      saves: publicMetric(lifetime.save),
       lastUpdated: lifetime.last_updated || null,
     };
   }));
@@ -122,10 +126,9 @@ async function getPublicPinMetrics() {
     };
     const summary = byCohort[pin.cohort];
     summary.pins += 1;
-    summary.impressions += pin.impressions;
-    summary.pinClicks += pin.pinClicks;
-    summary.outboundClicks += pin.outboundClicks;
-    summary.saves += pin.saves;
+    for (const key of ['impressions', 'pinClicks', 'outboundClicks', 'saves']) {
+      summary[key] = summary[key] === null || pin[key] === null ? null : summary[key] + pin[key];
+    }
     return byCohort;
   }, {}));
 
@@ -157,17 +160,18 @@ function readPublishedCreativePins() {
   return published;
 }
 
-async function apiGet(path, { sandbox }) {
+async function apiGet(path, { sandbox, refreshed = false }) {
   const token = await getAccessToken({ sandbox });
   const response = await fetch(`${apiBase}${path}`, {
+    signal: AbortSignal.timeout(15000),
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
-  if (response.status === 401) {
+  if (response.status === 401 && !refreshed) {
     await refreshAccessToken({ sandbox });
-    return apiGet(path, { sandbox });
+    return apiGet(path, { sandbox, refreshed: true });
   }
 
   if (!response.ok) {
@@ -293,9 +297,17 @@ async function createPinFromArgs({ sandbox }) {
     throw new Error('Missing --draft <id>. Run `npm run pinterest:approved-pins` to list available drafts.');
   }
 
-  const draft = readApprovedPinDrafts().pins.find((pin) => pin.id === draftId);
+  let draft = readApprovedPinDrafts().pins.find((pin) => pin.id === draftId);
   if (!draft) {
     throw new Error(`Unknown approved Pin draft: ${draftId}`);
+  }
+  const destinationPreview = process.argv.includes('--destination-preview');
+  if (destinationPreview) {
+    const url = new URL(draft.targetPage);
+    if (!/^\/gifts\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(url.pathname)) throw new Error('Preview needs an exact product destination.');
+    const tracking = new URL(draft.trackingUrl);
+    url.hostname = 'stupid.gifts'; tracking.hostname = 'stupid.gifts';
+    draft = { ...draft, targetPage: url.href, trackingUrl: tracking.href };
   }
   if (!sandbox && !dryRun && draft.livePinUrl) {
     throw new Error(
@@ -304,7 +316,7 @@ async function createPinFromArgs({ sandbox }) {
   }
 
   const packageValidation = draft.candidateId
-    ? validateDraftPackage(draft, { root })
+    ? validateDraftPackage(draft, { root, historicalReadback: dryRun && !destinationPreview && Boolean(draft.livePinUrl) })
     : null;
 
   let publicationContext = null;
@@ -357,10 +369,15 @@ async function createPinFromArgs({ sandbox }) {
   const payload = buildPinPayload(draft, board.id);
 
   if (dryRun) {
+    if (!sandbox) assertPinterestAccount(await apiGet('/user_account', { sandbox: false }));
     return {
       dryRun: true,
       environment: sandbox ? 'sandbox' : 'production',
       draft: draft.id,
+      publishable: false,
+      studioMode: 'measurement_only',
+      destinationPreview,
+      historicalPackageChanged: false,
       board: { id: board.id, name: board.name },
       guardState: draft.candidateId
         ? { candidateId: draft.candidateId, approvalEventId: draft.approvalEventId }
@@ -632,7 +649,7 @@ function readKeychain(service) {
     '-s',
     service,
     '-w',
-  ], { encoding: 'utf8' });
+  ], { encoding: 'utf8', timeout: 3000, maxBuffer: 8192 });
 
   return result.status === 0 ? result.stdout.trim() : '';
 }

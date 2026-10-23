@@ -2,8 +2,10 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { assertStudioCommandAllowed } from './pinterest-studio-policy.mjs';
 
 const root = process.cwd();
+assertStudioCommandAllowed('generate', { root });
 const outputDir = path.join(root, 'docs/ops/pinterest-assets/batch-1-v3');
 const logoPath = path.join(root, 'public/sillygoose.png');
 const rsvg = '/opt/homebrew/bin/rsvg-convert';

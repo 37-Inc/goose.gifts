@@ -1,5 +1,35 @@
 # Pinterest studio — operating contract and recovery
 
+## Current authority — October 23 measurement-only restart
+
+Cameron authorized finishing the Stupid.gifts integration PR and resuming the
+**same existing task in measurement-only mode**. This supersedes the historical
+publishing authority and October21 pause below. No new generation, approval,
+production/Sandbox posting, Pin rewrite/deletion, catalog maintenance, account
+mutation or spend. Neither the October31 deadline nor a saved ACTIVE flag unlocks
+posting: review first, then explicit owner approval of a new experiment.
+
+The [cutover receipt](pinterest-cutover-2026-10-23/README.md) and
+[replacement task prompt](pinterest-cutover-2026-10-23/measurement-task-prompt.txt)
+are controlling. `pinterest-studio-policy.json` machine-blocks mutating entrypoints.
+Use `npm run pinterest:measure` in the reviewed dedicated operator checkout
+`/Users/cameronehrlich/.codex/worktrees/stupid-pinterest-cutover/goose.gifts`.
+Canonical and catalog checkouts are independently production-pinned; do not
+fast-forward or reset them to run the studio. Node22.23.1 is installed under
+`/Users/cameronehrlich/.nvm/versions/node/v22.23.1/bin`.
+
+Keep heartbeat `goose-gifts-pinterest-growth-studio`, original target chat and
+09:30/16:30 Pacific slots; do not create a new job. v11 is P6/F6, all12 receipts
+preserved. Exact review deadline: **2026-10-31T16:44:52.279Z**; first eligible
+regular slot is October31 **16:30 Pacific** (09:30 is too early). Deliver/record
+the final review once; remain metric-only after it until new owner authority.
+Missing native/site metrics are unknown, not zero; exclude QA/operator traffic.
+Old Goose Pin destinations remain unchanged and do not redirect to Stupid yet.
+The current audit documents26 exact retailer matches, a legacy dog-toy comparison
+gap and an intentional tube-guy hold. Do not replace either with a homepage or
+claim complete historical traffic migration. These are not reasons to reopen
+posting or mutate the separate site/catalog workstream.
+
 ## Scheduler
 
 ### Owner closeout and tracker reconciliation — October 21

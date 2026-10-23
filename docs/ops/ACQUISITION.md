@@ -1,5 +1,22 @@
 # goose.gifts Acquisition and Link-Earning Plan
 
+## October 23 — Pinterest cutover boundary
+
+The [Stupid.gifts studio contract](PINTEREST_STUDIO.md) now authorizes only
+measurement. The smoke command explicitly reads GA4 property507421709 and
+PostHog550427 with bounded QA/operator exclusions, separates GA4 old/new hosts,
+and keeps missing/unattributable per-Pin downstream results unknown. It does not
+query retired detailed DB clicks or Vercel analytics. PostHog intentionally lacks
+host/full URL/per-Pin utm_content; do not filter absent fields or call its browser
+IDs sessions. Tagged QA page/retailer events are delivery proof, not acquisition.
+
+All28 public Pin URLs/packages remain unchanged. No old Goose destination yet
+redirects to Stupid; current new-site routing includes an intentional tube-guy
+hold. The [complete audit](pinterest-cutover-2026-10-23/verification/retained-destinations.json)
+must accompany the eventual cohort review. Native Pinterest outbound counts
+cannot be equated with new-site sessions or retailer actions. No outreach,
+redirect implementation, account change, paid promotion or new posting occurred.
+
 This is the durable plan for earning qualified referral traffic and legitimate
 links. It is not a mandate to drop links, automate replies, mass-email people,
 or submit the site to low-quality directories.

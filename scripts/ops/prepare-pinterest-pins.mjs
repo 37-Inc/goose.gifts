@@ -2,8 +2,10 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { assertStudioCommandAllowed } from './pinterest-studio-policy.mjs';
 
 const root = process.cwd();
+assertStudioCommandAllowed('prepare', { root });
 const siteUrl = 'https://www.goose.gifts';
 const assetDir = path.join(root, 'docs/ops/pinterest-assets/batch-1-v2');
 const manifestPath = path.join(assetDir, 'pins-manifest.json');
