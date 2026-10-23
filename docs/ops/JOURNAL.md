@@ -44,8 +44,12 @@ are4,011,840/5M reads and50,072/100k writes. This day's migration/testing can tr
 the80% notice, but stays within Free and all reserves. Current three credential
 references are readable; future locking/logout is still a real access condition.
 
-The existing task is ready for its in-place prompt update after this clean
-operator receipt; actual installation is recorded in the evidence and Bead.
+The existing `goose-gifts-daily-ops` task was updated in place at20:21:14Z:
+same ACTIVE heartbeat,0830Pacific schedule and target chat; no new job. Saved
+prompt SHA7a87ed6e76c00f5c61abdcbcc3bc38b81ef92a8059d388614bf209f8524d2779
+was independently read back with enabled writer, retained operator and limits.
+The clean care checkout's normal prepare correctly returns `daily_already_reserved`
+today, without a new fetch; the next scheduled normal batch is October24.
 Routine logs belong in protected care receipts, not daily source-changing commits.
 Historical f731 canary inputs/sources and older rollback remain retained; never
 replay completed migrations/recoveries. No blanket catalog rewrite is enabled.

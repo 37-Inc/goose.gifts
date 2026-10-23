@@ -42,7 +42,8 @@ batch after a failure.
 
 ## Operator
 
-**Live validation accepted, October23.** Release
+**Daily writer enabled after live validation, October23.** The one existing
+task runs at08:30 Pacific, with no additional Cron or scheduler. Release
 `recorded-canary-20261023-f731dd58` is live, with exact receipt, resolved build,
 idle owner and desktop/mobile QA verified. See
 `evidence/2026-10-23-catalog-care-accepted.json` for actual task-installation

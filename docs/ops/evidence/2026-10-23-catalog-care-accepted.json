@@ -145,6 +145,18 @@
   "independentFirstProbe": {"metricsUnreported":true,"retainedReadCeiling":2000,"sqlWrites":0,"reason":"Verifier route-classification error only; original diagnostic and bounded uncertainty retained."},
   "scheduler": {
     "id": "goose-gifts-daily-ops",
-    "writerInstructionsUpdated": false
+    "writerInstructionsUpdated": true,
+    "kind": "heartbeat",
+    "status": "ACTIVE",
+    "dailyPacificTime": "08:30",
+    "idPreserved": true,
+    "targetThreadPreserved": true,
+    "additionalJobCreated": false,
+    "updatedAt": "2026-10-23T20:21:14.609Z",
+    "promptSha256": "7a87ed6e76c00f5c61abdcbcc3bc38b81ef92a8059d388614bf209f8524d2779",
+    "operatorCheckout": "/Users/cameronehrlich/.codex/worktrees/stupid-catalog-care/goose.gifts",
+    "operatorPinsCleanCurrentHead": true,
+    "operatorRuntimeEquivalentToAcceptedSource": true,
+    "todayPreparation": {"state":"skipped","reason":"daily_already_reserved"}
   }
 }
