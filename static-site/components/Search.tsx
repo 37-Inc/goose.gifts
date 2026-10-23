@@ -21,7 +21,7 @@ export function Search({ children }: { children?: ReactNode } = {}) {
   });
   const controller = useRef<AbortController | null>(null);
   const sequence = useRef(0);
-  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounce = useRef<number | null>(null);
 
   function navigate(value: string, replace = false) {
     if (debounce.current !== null) window.clearTimeout(debounce.current);
