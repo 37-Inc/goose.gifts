@@ -195,9 +195,10 @@ test('canonical timestamp permission checks avoid D1 long-pattern limits and acc
   // accepted it. Exercise the real predicate, not a duplicate date formatter.
   const sql=visibleRevisionCountQuery('r1',NOW).sql;
   const patterns=[...sql.matchAll(/\bGLOB\s+'([^']*)'/gi)].map(match=>match[1]);
-  assert.ok(patterns.length>0);assert.ok(patterns.every(pattern=>pattern==='*[^a-f0-9]*'&&pattern.length<32));
+  const boundedPatterns=new Set(['*[^a-f0-9]*','*[^a-zA-Z0-9/_.-]*',...['svg','png','jpg','jpeg','webp','avif'].map(ext=>`*.${ext}`)]);
+  assert.ok(patterns.length>0);assert.ok(patterns.every(pattern=>boundedPatterns.has(pattern)&&pattern.length<32));
   const factualGuard=sql.match(/typeof\(p.source_facts_hash\)='text' AND length\(p.source_facts_hash\)=64 AND p.source_facts_hash NOT GLOB '\*\[\^a-f0-9\]\*'/)?.[0];
-  assert.ok(factualGuard,'only the bounded hexadecimal guard may use GLOB, never timestamp matching');
+  assert.ok(factualGuard,'bounded hexadecimal/image guards may use GLOB, never timestamp matching');
   for (const expiresAt of ['2028-02-29T12:00:00.000Z', '2028-02-29T23:59:59.999Z']) {
     const f = await setup();
     try {
@@ -273,14 +274,44 @@ function persistentProduct(){
     title:'Desk sound maker',description:'Independently cleared description of a desk sound maker.',
     imageUrl:'/brand/product.svg',affiliateUrl:old.affiliateUrl,price:0,isActive:true,qualityScore:.8,eligibleUntil:null,indexable:false};
 }
-async function persistentSetup({standalone=false,indexable=false}={}){
-  const f=await setup(),base={...persistentProduct(),indexable},value=snapshot('persistent');
+async function persistentSetup({standalone=false,indexable=false,imageUrl='/brand/product.svg'}={}){
+  const f=await setup(),base={...persistentProduct(),indexable,imageUrl},value=snapshot('persistent');
   value.products=standalone?[base]:[{...value.products[0],persistent:base}];
   const grants=standalone?rights(base):{...rights(value.products[0]),persistent:rights(base)};
   f.sqlite.prepare('UPDATE products SET public_display_json=?,rights_json=?,eligible_until=?')
     .run(JSON.stringify(value.products[0]),JSON.stringify(grants),value.products[0].eligibleUntil);
   await importPublicProjection(f.db,await packet(value));return{...f,value,base,grants};
 }
+test('licensed HTTPS and local raster photos pass actual search, listing and publication SQL without supplier freshness',async()=>{
+  for(const imageUrl of ['https://m.media-amazon.com/images/I/original.jpg','https://images.example.invalid/photo%20one.jpg?size=large',
+    'https://images.example.invalid/path/@2x.jpg','HTTPS://images.example.invalid/photo.jpg',
+    '/images/original.jpg','/images/original.png','/images/original.jpeg','/images/original.webp','/images/original.avif','/brand/product.svg']){
+    const f=await persistentSetup({standalone:true,imageUrl});try{
+      f.sqlite.exec("UPDATE products SET availability_status='UNKNOWN',availability_checked_at=NULL,last_verified_at=NULL,editorial_status='pending',editorial_source_hash=NULL");
+      const late=new Date(NOW.getTime()+40*86400_000);
+      assert.deepEqual(await keywordSearchRevision(f.db,'sound maker',60,late,'persistent'),[f.base],imageUrl);
+      assert.deepEqual(await getListedRevisionProductsByPublicIds(f.db,[PUBLIC_ID],late,'persistent'),[f.base],imageUrl);
+      assert.equal((await rollbackPreflight(f.db,f.value,late)).ok,true,imageUrl);
+      const q=visibleRevisionCountQuery('persistent',late);assert.equal(Object.values(f.sqlite.prepare(q.sql).get(...q.params))[0],1,imageUrl);
+      assert.deepEqual(await getRevisionProductsByPublicIds(f.db,[PUBLIC_ID],late,'persistent'),[],imageUrl);
+      const permission=JSON.parse(f.sqlite.prepare('SELECT rights_json FROM products').get().rights_json);delete permission.imageUrl;
+      f.sqlite.prepare('UPDATE products SET rights_json=?').run(JSON.stringify(permission));
+      assert.equal((await rollbackPreflight(f.db,f.value,late)).ok,false,imageUrl);
+    }finally{f.close();}
+  }
+});
+test('permanent image SQL still rejects unsafe schemes, authorities, fragments and local traversal with matching grants',async()=>{
+  for(const imageUrl of ['http://images.example.invalid/photo.jpg','https://user:secret@images.example.invalid/photo.jpg',
+    'https://images.example.invalid/photo.jpg#fragment','https:///photo.jpg','//images.example.invalid/photo.jpg',
+    '/images/../photo.jpg','/images/./photo.jpg','/images/photo.jpg?private=1','/images/private.json','javascript:alert(1)']){
+    const f=await persistentSetup({standalone:true});try{
+      const product={...f.base,imageUrl};f.sqlite.exec('DROP TRIGGER catalog_public_immutable');
+      f.sqlite.prepare('UPDATE products SET public_display_json=?,rights_json=?').run(JSON.stringify(product),JSON.stringify(rights(product)));
+      f.sqlite.prepare("UPDATE catalog_public_products SET public_display_json=? WHERE catalog_revision='persistent'").run(JSON.stringify(product));
+      const q=visibleRevisionCountQuery('persistent',NOW);assert.equal(Object.values(f.sqlite.prepare(q.sql).get(...q.params))[0],0,imageUrl);
+    }finally{f.close();}
+  }
+});
 test('permanent listing survives supplier expiry/unknown availability without renewing semantic eligibility',async()=>{
   for(const standalone of [false,true]){
     const f=await persistentSetup({standalone});try{

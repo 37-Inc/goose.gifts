@@ -82,6 +82,20 @@ function allOf(parts: string[]): string {
   const middle = Math.floor(parts.length / 2);
   return `(${allOf(parts.slice(0, middle))} AND ${allOf(parts.slice(middle))})`;
 }
+// The immutable projection is JS-validated before insertion, and its exact
+// image value must still match the current base and field grant below. Admit
+// the same HTTPS/local-image lanes here instead of retaining the old SVG-only
+// restriction in keyword search and the final publication transaction.
+const image=`json_extract(${V_BASE},'$.imageUrl')`;
+const authority=`substr(replace(substr(${image},9),char(63),'/'),1,instr(replace(substr(${image},9),char(63),'/')||'/','/')-1)`;
+const persistentImage=`(${allOf([
+  `substr(${image},1,1)='/'`, `substr(${image},2,1)!='/'`,
+  `${image} NOT GLOB '*[^a-zA-Z0-9/_.-]*'`, `instr(${image},'/./')=0`, `instr(${image},'/../')=0`,
+  `(${['svg','png','jpg','jpeg','webp','avif'].map(ext=>`(${image} GLOB '*.${ext}' AND length(${image})>${ext.length+2})`).join(' OR ')})`,
+])} OR ${allOf([
+  `lower(substr(${image},1,8))='https://'`, `length(${authority})>0`, `instr(${authority},'@')=0`,
+  `instr(${image},'#')=0`, `instr(${image},'\\')=0`,
+])})`;
 const PERSISTENT_VISIBLE=`coalesce(${allOf([
   'p.is_active=1', 'p.duplicate_of_product_id IS NULL', 'p.quality_score>=0.55',
   "p.editorial_status NOT IN ('blocked','needs_review')",
@@ -92,10 +106,7 @@ const PERSISTENT_VISIBLE=`coalesce(${allOf([
   `json_extract(${V_BASE},'$.id')=v.product_id`, `json_extract(${V_BASE},'$.publicId')=v.public_id`,
   `json_extract(${V_BASE},'$.slug')=v.slug`, `json_extract(${V_BASE},'$.source')=p.source`,
   `json_extract(${V_BASE},'$.currency')=p.currency`,
-  `json_extract(${V_BASE},'$.imageUrl') LIKE '/%.svg'`, `json_extract(${V_BASE},'$.imageUrl') NOT LIKE '//%'`,
-  `instr(json_extract(${V_BASE},'$.imageUrl'),'..')=0`, `instr(json_extract(${V_BASE},'$.imageUrl'),'%')=0`,
-  `instr(json_extract(${V_BASE},'$.imageUrl'),char(63))=0`, `instr(json_extract(${V_BASE},'$.imageUrl'),'#')=0`,
-  `instr(json_extract(${V_BASE},'$.imageUrl'),'\\')=0`,
+  persistentImage,
   // Identical JSON necessarily has identical trees. CASE is lazy in SQLite:
   // avoid four virtual tree scans per identical base, keeping the exact old
   // symmetric comparison for different bytes (including reordered keys).

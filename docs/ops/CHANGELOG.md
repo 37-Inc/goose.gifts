@@ -29,6 +29,10 @@ context: **what we've done, and where we're going.**
   native-preservation regression is fixed. Fresh Free-capacity admission and
   verified Cloudflare content publication remain before calling this shipped.
   Daily publishing remains separate and gated.
+  The first real preflight exposed one remaining SVG-only SQL predicate; it is
+  fixed and the actual restored dataset now passes offline search/publication
+  gates for all2,359 gifts. The undispatched attempt is retained, not presented
+  as a successful deployment.
 
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
