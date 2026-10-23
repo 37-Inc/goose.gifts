@@ -52,6 +52,7 @@
     "catalog:keychain": "node --import tsx scripts/ops/bootstrap-catalog-keychain.mjs",
     "test:catalog-keychain": "node --import tsx --test tests/catalog-keychain-bootstrap.test.mjs",
     "test:catalog-capacity": "CATALOG_FULL_CAPACITY=1 node --import tsx --test --test-name-pattern='SMALL actual build|SUCCESS capacity probe' tests/catalog-cloudflare-weekly.test.mjs",
+    "test:catalog-successor-capacity": "CATALOG_FULL_CAPACITY=1 node --import tsx --test --test-name-pattern='AUTHENTIC (small complete|full complete)' tests/catalog-cloudflare-weekly.test.mjs",
     "catalog:report": "node scripts/ops/catalog-report.mjs",
     "catalog:review-queue": "node scripts/ops/catalog-report.mjs --latest --manual-review",
     "catalog:audit-guides": "node --experimental-strip-types scripts/ops/audit-gift-guides.mjs",

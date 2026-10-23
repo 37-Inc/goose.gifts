@@ -33,6 +33,13 @@ import { encodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts'
 import { withCatalogCadence } from '../scripts/ops/catalog-daily.mjs';
 import { accountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
 import {accountedPublicationUploadCommand} from '../scripts/catalog/publication-upload-command.ts';
+import {permanentCatalogFixture} from './helpers/permanent-catalog-fixture.mjs';
+import {preparePermanentCatalog,settlePermanentCatalog} from '../lib/catalog/freeze-permanent-catalog.ts';
+import {prunedVectorPlan,prunedVectorIds} from '../lib/catalog/prune-existing-revision.ts';
+import {readActivatedCatalogVectors} from '../scripts/catalog/owned-vector-delivery.ts';
+import {createPermanentCatalogSeal} from '../scripts/catalog/permanent-catalog-seal.ts';
+import {earliestDisplayExpiry} from '../lib/catalog/display.ts';
+import {createPhotoRelease} from '../static-site/lib/photos.ts';
 
 // Real composed stores/fence/evidence/driver/publisher/workspace over SQLite.
 // Default cases mock external Amazon/OpenAI/CF and Next compilation. Capacity
@@ -78,16 +85,19 @@ function sealedFixture(snapshot,context,prior=null){
   assets.set('/safe/catalog.json',safeCatalogPayload);
   for(const suffix of ['.txt','/__next._full.txt','/__next._tree.txt','/__next.safe.product.__PAGE__.txt'])assets.set(`/safe/product${suffix}`,Buffer.from('Owned safe RSC'));
   for(const shard of createBrowseRelease(snapshot).shards)assets.set(shard.path,Buffer.from(JSON.stringify(shard.payload)));
+  const photos=createPhotoRelease(snapshot);if(photos.indexPath){assets.set(photos.indexPath,Buffer.from(JSON.stringify(photos.index)));
+    assets.set('/safe/photos.json',Buffer.from('{"schemaVersion":1,"products":[]}'));
+    for(const shard of photos.shards)assets.set(shard.path,Buffer.from(JSON.stringify(shard.payload)));}
   for(const name of createOgRelease(snapshot,siteIdentityFor('preview')).byPath.keys())assets.set(name,Buffer.from('Owned PNG fixture'));
   const assembled=assembleReleaseAssets(snapshot,assets,context,prior);const {retainedManifestSha256,...rest}=context;void retainedManifestSha256;
-  const manifest={...rest,dataKind:'catalog',siteIdentitySha256:sha256(siteIdentityBytes('preview')),nextExpiry:snapshot.products.map(p=>p.eligibleUntil).sort()[0]||null,
+  const manifest={...rest,dataKind:'catalog',siteIdentitySha256:sha256(siteIdentityBytes('preview')),nextExpiry:earliestDisplayExpiry(snapshot.products),
     productCount:snapshot.products.length,slugCount:snapshot.products.length+snapshot.heldProducts.length,checksums:Object.fromEntries([...assembled.assets].map(([p,b])=>[p,sha256(b)])),routes:assembled.routes,retention:assembled.retention};
   const manifestBytes=Buffer.from(`${JSON.stringify(manifest,null,2)}\n`);
   return{manifest,assets:assembled.assets,files:{'asset-manifest.json':manifestBytes,'catalog.snapshot.json':`${JSON.stringify(snapshot)}\n`,
     'release-context.json':`${JSON.stringify(context)}\n`,'release-identity.json':JSON.stringify(createReleaseIdentity(manifestBytes)),
     'site-identity.json':siteIdentityBytes('preview'),'feed-plan.json':JSON.stringify(createStaticFeedPlan(snapshot,sha256(`${JSON.stringify(snapshot)}\n`)))}};
 }
-async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,realTransport=false,realUpload=false}={}){
+async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,realTransport=false,realUpload=false,authenticPrior=false}={}){
   const NOW=at;
   const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-weekly-')));t.after(()=>fs.rm(directory,{recursive:true,force:true}));
   const repo=path.join(directory,'source');await fs.mkdir(repo,{mode:0o700});await put(path.join(repo,'.gitignore'),'build/\nstatic-site/out/\nstatic-site/.next/\n*.tsbuildinfo\nnode_modules/\n.wrangler/\n');
@@ -99,14 +109,14 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
   }
   const git=(...args)=>execFileSync('git',args,{cwd:repo,encoding:'utf8'}).trim();git('init','-q');git('add','.');
   git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','Owned fixture');const codeSha=git('rev-parse','HEAD');
-  const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
+  let sql=new DatabaseSync(':memory:');t.after(()=>{if(!authenticPrior)sql.close();});sql.exec('PRAGMA foreign_keys=ON');
   for(const name of (await fs.readdir(new URL('../migrations/d1/',import.meta.url))).filter(n=>/^\d{4}.*\.sql$/.test(n)).sort())
     sql.exec(await fs.readFile(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
   let clock=OLD;sql.function('strftime',(format,instant)=>{assert.equal(format,'%Y-%m-%dT%H:%M:%fZ');return instant==='now'?clock:new Date(instant).toISOString();});
   const local={prepare(q){let params=[];return{bind(...v){params=v;return this;},async all(){return{results:sql.prepare(q).all(...params).map(r=>({...r}))};},
     async run(){return sql.prepare(q).run(...params);},execute(){return sql.prepare(q).all(...params);}};},async batch(queries){sql.exec('BEGIN');
     try{for(const q of queries)q.execute();sql.exec('COMMIT');}catch(e){sql.exec('ROLLBACK');throw e;}}};
-  const scope={environment:'staging',indexName:'test-weekly-index'};
+  let scope={environment:'staging',indexName:'test-weekly-index'};
   sql.prepare('INSERT INTO catalog_mutation_scopes(environment,index_name) VALUES(?,?)').run(scope.environment,scope.indexName);
   const owner=await claimMutationOwnership(local,scope,{phase:'writing',ownerReference:'seed',operationKey:'a'.repeat(64)});
   const seed=createD1CatalogMaintenanceStore({db:local,owner,runId:'seed',catalogRevision:'prior-r',newPublicId:()=>UUID});
@@ -127,7 +137,7 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
     'Hyacinth sundial','Indigo metronome','Jade kaleidoscope','Kestrel abacus','Lilac astrolabe','Magenta terrarium','Nectar pendulum',
     'Ochre sextant','Periwinkle barometer','Quartz telescope','Russet ocarina','Saffron harmonica','Teal periscope'];
   const discoveries=Array.from({length:discovered},(_,i)=>({...observedProduct(5000+i),title:`Novelty ${discoveryNames[i]}`,humorTags:[`fixture-${i}`]}));
-  if(permanent){
+  if(permanent&&!authenticPrior){
     // A pre-existing private full catalog, not 2,359 fresh supplier fetches or
     // native writes. The real current driver will update only its reserved ten.
     sql.prepare('DELETE FROM catalog_maintenance_products WHERE product_id=?').run(ID);
@@ -149,65 +159,80 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
         source:'amazon',affiliate_url:`https://www.amazon.com/dp/${asin(n)}?tag=fixture-20`,humor_tags:[]}));
   }
   await releaseMutationOwnership(local,await readMutationOwner(local,scope));
-  clock=NOW;
+  let authentic;
+  if(authenticPrior){sql.close();const fixture=await permanentCatalogFixture(t,{count:permanent+held,publicCount:permanent,initialTime:Date.parse(NOW)-86400000});
+    sql=fixture.sql;scope=fixture.scope;const prepared=await preparePermanentCatalog(fixture.db,fixture.owner,fixture.request);
+    const queued=await settlePermanentCatalog(fixture.db,prepared.owner,prepared.revision,fixture.adapters);
+    authentic={fixture,revision:prepared.revision,queued};clock=fixture.now().toISOString();
+    sql.function('strftime',(format,instant)=>{assert.equal(format,'%Y-%m-%dT%H:%M:%fZ');return instant==='now'?clock:new Date(instant).toISOString();});
+  }else clock=NOW;
   const baseline=sql.prepare('SELECT * FROM products ORDER BY public_id').all();
-  const previous={schemaVersion:1,dataKind:'catalog',catalogRevision:'prior-r',generatedAt:NOW,
+  const previous=authentic?.revision.snapshot??{schemaVersion:1,dataKind:'catalog',catalogRevision:'prior-r',generatedAt:NOW,
     products:baseline.filter(r=>r.public_display_json).map(r=>JSON.parse(r.public_display_json)),heldProducts:baseline.filter(r=>!r.public_display_json).map(r=>({id:r.id,publicId:r.public_id,
       slug:r.slug,path:`/gifts/${r.slug}`,title:'Gift currently unavailable',description:'This gift is not currently available in the curated catalog. Browse other gifts instead.',reason:'editorial_hold'})),slugHistory:[]};
-  const packet=await createProjectionPacket(previous,Object.fromEntries(baseline.map(r=>[r.public_id,r.source_facts_hash])),'b'.repeat(64),new Date(NOW));
-  sql.prepare('INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES(?,?,?,?)').run('prior-r',NOW,'b'.repeat(64),'reconciled');
-  for(const q of projectionQueries(packet))sql.prepare(q.sql).run(...q.params);
+  const packet=authentic?.revision.packet??await createProjectionPacket(previous,Object.fromEntries(baseline.map(r=>[r.public_id,r.source_facts_hash])),'b'.repeat(64),new Date(NOW));
+  if(!authentic){sql.prepare('INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES(?,?,?,?)').run('prior-r',NOW,'b'.repeat(64),'reconciled');
+    for(const q of projectionQueries(packet))sql.prepare(q.sql).run(...q.params);}
   // Explicit owned already-deployed catalog fixture, not an automatic first
   // Worker deployment. Its bytes, D1 receipt and provider identity agree.
-  const priorContext={schemaVersion:1,sourceMode:'preview',releaseId:'prior-release',codeSha,catalogRevision:previous.catalogRevision,
-    catalogSnapshotSha256:packet.receipt.snapshot_sha256,generatedAt:NOW,vectorSyncWatermark:0,priorReleaseId:null,retainedManifestSha256:null};
+  const priorReleaseId=authentic?'permanent-prior-release':'prior-release';
+  const priorContext={schemaVersion:1,sourceMode:'preview',releaseId:priorReleaseId,codeSha:authentic?.revision.request.codeSha??codeSha,catalogRevision:previous.catalogRevision,
+    catalogSnapshotSha256:packet.receipt.snapshot_sha256,generatedAt:previous.generatedAt,vectorSyncWatermark:0,
+    priorReleaseId:authentic?'original-release':null,retainedManifestSha256:null};
   const priorPackage=sealedFixture(previous,priorContext);const priorDirectory=path.join(directory,'verified-prior');
   for(const [name,value]of Object.entries(priorPackage.files))await put(path.join(priorDirectory,name),value);
   for(const [name,value]of priorPackage.assets)await put(path.join(priorDirectory,'assets',name.slice(1)),value);
   const priorManifestSha256=sha256(priorPackage.files['asset-manifest.json']);
-  const priorIntent={releaseId:'prior-release',codeSha,catalogRevision:previous.catalogRevision,catalogSnapshotSha256:packet.receipt.snapshot_sha256,
-    manifestSha256:priorManifestSha256,vectorSyncWatermark:0,priorReleaseId:null,nextExpiry:null};
+  const priorIntent={releaseId:priorReleaseId,codeSha:priorContext.codeSha,catalogRevision:previous.catalogRevision,catalogSnapshotSha256:packet.receipt.snapshot_sha256,
+    manifestSha256:priorManifestSha256,vectorSyncWatermark:0,priorReleaseId:priorContext.priorReleaseId,nextExpiry:earliestDisplayExpiry(previous.products)};
   let priorReceipt;
   if(!noPrior){
     // Separate synthetic operator bootstrap through the real publication/CAS
     // APIs; the weekly executor must never perform this initial deployment.
-    const priorOwner=await claimMutationOwnership(local,scope,{phase:'freezing',ownerReference:'test-only-operator-bootstrap',operationKey:'f'.repeat(64)});
-    const {requestId}=await enqueueBuildRequest(local,{schemaVersion:1,environment:scope.environment,sourceRevision:previous.catalogRevision,
+    const priorOwner=authentic?.queued.owner??await claimMutationOwnership(local,scope,{phase:'freezing',ownerReference:'test-only-operator-bootstrap',operationKey:'f'.repeat(64)});
+    const {requestId}=authentic?.queued??await enqueueBuildRequest(local,{schemaVersion:1,environment:scope.environment,sourceRevision:previous.catalogRevision,
       sourceDigest:packet.receipt.snapshot_sha256,codeSha,priorReleaseId:null,capturedAt:NOW,cutoff:new Date(Date.parse(NOW)+3600000).toISOString()});
-    const build=await claimBuildRequest(local,requestId,'test-only-operator-bootstrap',new Date(NOW));
-    await enqueuePublication(local,previous,priorIntent,new Date(NOW));const publication=await claimPublication(local,previous,priorIntent.releaseId,new Date(NOW));
-    await recordPublicationDispatch(local,previous,publication,`version:${PRIOR_VERSION}`,new Date(NOW));
+    const build=await claimBuildRequest(local,requestId,'test-only-operator-bootstrap',new Date(clock));
+    await enqueuePublication(local,previous,priorIntent,new Date(clock));const publication=await claimPublication(local,previous,priorIntent.releaseId,new Date(clock));
+    await recordPublicationDispatch(local,previous,publication,`version:${PRIOR_VERSION}`,new Date(clock));
     const permit=await beginBuildActivation(local,build,previous,publication,PRIOR_VERSION,
-      async()=>({environment:scope.environment,settled:true,active:null}),new Date(NOW),priorOwner);
-    await completePublication(local,previous,priorIntent.releaseId,publication.token,async()=>priorIntent,()=>new Date(NOW),permit.mutationOwner);
-    await resolveBuildActivation(local,permit,async()=>({environment:scope.environment,settled:true,active:{releaseId:priorIntent.releaseId,codeSha,
-      catalogRevision:previous.catalogRevision,catalogSnapshotSha256:packet.receipt.snapshot_sha256,manifestSha256:priorManifestSha256,versionReference:PRIOR_VERSION}}));
+      async()=>({environment:scope.environment,settled:true,active:authentic?{...authentic.fixture.original.intent,
+        versionReference:authentic.fixture.original.permit.versionReference}:null}),new Date(clock),priorOwner);
+    const prove=async()=>{if(authentic){const plan=prunedVectorPlan(authentic.revision);await readActivatedCatalogVectors(authentic.fixture.db,permit,
+      {catalogRevision:plan.catalogRevision,planSha256:sha256(canonicalJson(plan)),ids:prunedVectorIds(plan)},authentic.fixture.adapters,{permanent:authentic.revision});}};
+    await completePublication(local,previous,priorIntent.releaseId,publication.token,async()=>{await prove();return priorIntent;},()=>new Date(clock),permit.mutationOwner);
+    await resolveBuildActivation(local,permit,async()=>{await prove();return{environment:scope.environment,settled:true,active:{...priorIntent,versionReference:PRIOR_VERSION}};});
     priorReceipt={...sql.prepare('SELECT * FROM publication_receipts WHERE release_id=?').get(priorIntent.releaseId)};
   }
+  const previousInput=authentic?createPermanentCatalogSeal(authentic.revision,{releaseId:priorReceipt.release_id,receiptSha256:sha256(canonicalJson(priorReceipt))}):previous;
+  clock=NOW;const databaseId=authentic?.fixture.databaseId??UUID;
   const context={envelopeSha256:sha256(`${JSON.stringify(createSealedSnapshotEnvelope(previous))}\n`),snapshotSha256:packet.receipt.snapshot_sha256,
-    projectionSha256:packet.receipt.projection_sha256,sourceExportSha256:'b'.repeat(64),vectorSyncWatermark:0,publicationReceiptWatermark:noPrior?0:1,
+    projectionSha256:packet.receipt.projection_sha256,sourceExportSha256:packet.receipt.source_export_sha256,vectorSyncWatermark:0,
+    publicationReceiptWatermark:sql.prepare('SELECT coalesce(max(rowid),0) n FROM publication_receipts').get().n,
     priorPublication:noPrior?null:{releaseId:priorReceipt.release_id,receiptSha256:sha256(canonicalJson(priorReceipt))},cutoff:new Date(Date.parse(NOW)+3600000).toISOString()};
-  const inputs={};for(const [name,value]of Object.entries({previous,context,rights:{rightsById:permanent
-    ?Object.fromEntries([...Array.from({length:10},(_,i)=>observedProduct(i+1)),...discoveries].map(product=>[product.id,{...grants(product),
+  const inputs={};for(const [name,value]of Object.entries({previous:previousInput,context,rights:{rightsById:permanent
+    ?Object.fromEntries([...Array.from({length:10},(_,i)=>observedProduct(i+(authentic?11:1))),...discoveries].map(product=>[product.id,{...grants(product),
       ...(discoveries.some(p=>p.id===product.id)?{persistent:Object.fromEntries(Object.entries({title:product.title,description:product.wittyDescription,
         imageUrl:'/images/gift-placeholder.svg',affiliateUrl:product.affiliateUrl}).map(([field,value])=>[field,{basis:'owned',reference:'test-only independently cleared discovery base',value}]))}:{})}])):{[ID]:rights},reviewedDeleteReference:'test-only/delete'}})){
     const file=path.join(directory,`${name}.json`);await put(file,value);inputs[name]={path:file,sha256:sha256(await fs.readFile(file)),observedAt:NOW};}
   const ref=name=>({service:`goose.gifts.test.${name}`,account:'fixture'});
   const config={schemaVersion:1,runId:'test-weekly',catalogRevision:'weekly-r',codeSha,environment:scope.environment,accountId:'a'.repeat(32),
-    database:{id:UUID,name:'test-weekly-db'},vectorIndex:{name:scope.indexName,dimensions:1536,metric:'cosine'},catalog:{associateTag:'fixture-20',marketplace:'www.amazon.com'},
+    database:{id:databaseId,name:authentic?'permanent-freeze':'test-weekly-db'},vectorIndex:{name:scope.indexName,dimensions:1536,metric:'cosine'},catalog:{associateTag:'fixture-20',marketplace:'www.amazon.com'},
     credentials:{cloudflare:ref('cloudflare'),amazonId:ref('amazon-id'),amazonSecret:ref('amazon-secret'),amazonVersion:'2.1',openai:ref('openai'),stagingAuthSecret:ref('staging')},
     limits:{requests:1000,statements:4000},backfillLimit:1,inputs,
     retention:{reviewReference:'test-only/owned-retention',rules:Object.fromEntries(['amazon-observation','embedding-response','phase','publication','checkpoint']
       .map(kind=>[kind,{maxAgeMs:86400000,notAfter:new Date(Date.parse(NOW)+86400000).toISOString()}]))},
-    publication:{schemaVersion:1,environment:scope.environment,accountId:'a'.repeat(32),workerName:'test-weekly-worker',database:{id:UUID,name:'test-weekly-db'},indexName:scope.indexName,
+    publication:{schemaVersion:1,environment:scope.environment,accountId:'a'.repeat(32),workerName:'test-weekly-worker',database:{id:databaseId,name:authentic?'permanent-freeze':'test-weekly-db'},indexName:scope.indexName,
       codeSha,sourceMode:'preview',sourceRoot:repo,releaseId:'test-release',identityOrigin:'https://test-weekly-worker.example.invalid',compatibilityDate:'2026-10-20',
-      prior:noPrior?null:{directory:priorDirectory,manifestSha256:priorManifestSha256,releaseId:'prior-release',versionReference:PRIOR_VERSION}}};
+      prior:noPrior?null:{directory:priorDirectory,manifestSha256:priorManifestSha256,releaseId:priorReleaseId,versionReference:PRIOR_VERSION}}};
   const configPath=path.join(directory,'config.json');await put(configPath,config);const configSha256=sha256(await fs.readFile(configPath));
   const workspace=path.join(directory,'runs');const workspaceOptions={directory:workspace,repository:repo,mode:'resume',runId:config.runId,configSha256,codeSha,
-    scope:{...scope,accountId:config.accountId,databaseId:UUID,databaseName:config.database.name,workerName:config.publication.workerName},retention:config.retention,
+    scope:{...scope,accountId:config.accountId,databaseId:databaseId,databaseName:config.database.name,workerName:config.publication.workerName},retention:config.retention,
     budgetCaps:{httpRequests:config.limits.requests,sqlStatements:config.limits.statements},now:()=>clock};
   const calls={getItems:0,search:0,chat:0,embedding:0,http:0,d1:0,sql:0,modelHttp:0,merchantAuthHttp:0,merchantApiHttp:0,merchantRetries:0,
-    uploadHttp:0,assetAttempts:0,versionAttempts:0,upsert:0,activate:0,upload:0,build:0,finish:0};const index=new Map();let mutation,upload,manifest;
+    uploadHttp:0,assetAttempts:0,versionAttempts:0,upsert:0,delete:0,activate:0,upload:0,build:0,finish:0};const index=authentic?.fixture.index??new Map();let mutation,upload,manifest;
+  let targetVersion=VERSION,activeDeployment=DEPLOY,assetAttemptBase=0,versionAttemptBase=0;
+  let priorIdentity=createReleaseIdentity(priorPackage.files['asset-manifest.json']);
   let active=noPrior?false:{versions:[{version_id:PRIOR_VERSION,percentage:100}],annotations:{'workers/message':'verified-operator-prior'}};
   const mode={};let dropWrite=false;let queryTamper;let lostReleaseReadbacks=0,versionReads=0;
   amazonCreators.getItems=async(...args)=>{calls.getItems++;assert.equal(process.env.AMAZON_ASSOCIATE_TAG,'fixture-20');assert.equal(process.env.POSTGRES_URL,undefined);
@@ -260,16 +285,16 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
         let bucket=[],size=0;for(const file of files){if(bucket.length&&size+file.size>8*1024*1024){buckets.push(bucket);bucket=[];size=0;}
           bucket.push(file.hash);size+=file.size;}if(bucket.length)buckets.push(bucket);
         return response({jwt:jwt({wrangler_single_asset_uploads:false,edge_kv_upload_concurrency:1}),buckets});}
-      if(url.pathname.includes('/workers/assets/upload')){if(++calls.assetAttempts===1)return Response.json({success:false,errors:[{code:10000,message:'Synthetic retry'}]},{status:503,headers:{'Retry-After':'0'}});
+      if(url.pathname.includes('/workers/assets/upload')){if(++calls.assetAttempts-assetAttemptBase===1)return Response.json({success:false,errors:[{code:10000,message:'Synthetic retry'}]},{status:503,headers:{'Retry-After':'0'}});
         return response({jwt:jwt({complete:true})});}
-      if(++calls.versionAttempts===1)return Response.json({success:false,errors:[{code:10000,message:'Synthetic retry'}]},{status:503,headers:{'Retry-After':'0'}});
-      return response({id:VERSION,startup_time_ms:1,metadata:{has_preview:false}});
+      if(++calls.versionAttempts-versionAttemptBase===1)return Response.json({success:false,errors:[{code:10000,message:'Synthetic retry'}]},{status:503,headers:{'Retry-After':'0'}});
+      return response({id:targetVersion,startup_time_ms:1,metadata:{has_preview:false}});
     }
-    if(url.origin===config.publication.identityOrigin){const isTarget=active?.versions[0].version_id===VERSION;if(mode.identityFailure&&isTarget)return new Response('',{status:401});
+    if(url.origin===config.publication.identityOrigin){const isTarget=active?.versions[0].version_id===targetVersion;if(mode.identityFailure&&isTarget)return new Response('',{status:401});
       assert.equal(init.headers.Authorization,`Basic ${Buffer.from('staging:TEST_ONLY_staging').toString('base64')}`);
-      return Response.json(createReleaseIdentity(isTarget?Buffer.from(`${JSON.stringify(manifest,null,2)}\n`):priorPackage.files['asset-manifest.json']));}
+      return Response.json(isTarget?createReleaseIdentity(Buffer.from(`${JSON.stringify(manifest,null,2)}\n`)):priorIdentity);}
     assert.equal(url.origin,'https://api.cloudflare.com');
-    if(url.pathname.endsWith(`/d1/database/${UUID}`))return response({uuid:UUID,name:config.database.name,read_replication:{mode:'disabled'}});
+    if(url.pathname.endsWith(`/d1/database/${databaseId}`))return response({uuid:databaseId,name:config.database.name,read_replication:{mode:'disabled'}});
     if(url.pathname.endsWith('/query')){
       const queries=JSON.parse(init.body).batch;calls.d1++;calls.sql+=queries.length;const result=[];sql.exec('BEGIN');
       try{for(const q of queries){const before=sql.prepare('SELECT total_changes() n').get().n;const rows=sql.prepare(q.sql).all(...q.params).map(r=>({...r}));
@@ -292,20 +317,22 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
     }
     if(url.pathname.endsWith(`/indexes/${scope.indexName}`))return response({name:scope.indexName,config:{dimensions:1536,metric:'cosine'}});
     if(url.pathname.endsWith('/upsert')){calls.upsert++;const v=JSON.parse(init.body);index.set(v.id,v);mutation=`00000000-0000-4000-8000-${String(100+calls.upsert).padStart(12,'0')}`;return response({mutationId:mutation});}
+    if(url.pathname.endsWith('/delete_by_ids')){calls.delete++;for(const id of JSON.parse(init.body).ids)index.delete(id);
+      mutation=`00000000-0000-4000-8000-${String(100000+calls.delete).padStart(12,'0')}`;return response({mutationId:mutation});}
     if(url.pathname.endsWith('/info'))return response({dimensions:1536,processedUpToMutation:mutation});
     if(url.pathname.endsWith('/get_by_ids'))return vectorResponse(JSON.parse(init.body).ids.flatMap(id=>index.has(id)?[index.get(id)]:[]));
-    if(url.pathname.endsWith('/versions'))return response({items:upload?[{id:VERSION}]:[]});
-    if(url.pathname.endsWith(`/versions/${VERSION}`)){
+    if(url.pathname.endsWith('/versions'))return response({items:upload?[{id:targetVersion}]:[]});
+    if(url.pathname.endsWith(`/versions/${targetVersion}`)){
       if(mode.stopAfterUpload&&++versionReads===3){mode.stopAfterUpload=false;throw new Error('TEST ONLY uploaded-stage interruption');}
-      return response({id:VERSION,annotations:{'workers/tag':upload.tag,'workers/message':upload.message},
-      resources:{script_runtime:{compatibility_date:config.publication.compatibilityDate},bindings:[{name:'DB',type:'d1',id:UUID},
+      return response({id:targetVersion,annotations:{'workers/tag':upload.tag,'workers/message':upload.message},
+      resources:{script_runtime:{compatibility_date:config.publication.compatibilityDate},bindings:[{name:'DB',type:'d1',id:databaseId},
         {name:'VECTORIZE',type:'vectorize',index_name:scope.indexName},{name:'ASSETS',type:'assets'},
         {name:'ENVIRONMENT',type:'plain_text',text:'staging'},{name:'SEMANTIC_SEARCH_ENABLED',type:'plain_text',text:'false'},
         {name:'SEMANTIC_SEARCH_DAILY_REQUEST_CAP',type:'plain_text',text:'50'},{name:'SEMANTIC_SEARCH_DAILY_TOKEN_CAP',type:'plain_text',text:'32768'},
         {name:'STAGING_AUTH_SECRET',type:'secret_text'}]}});}
     if(url.pathname.endsWith('/deployments')){
-      if(init.method==='POST'){calls.activate++;active=JSON.parse(init.body);if(mode.activationLost)throw new Error('TEST ONLY consumed activation response');return response({id:DEPLOY});}
-      return response({deployments:active?[{id:DEPLOY,versions:active.versions,annotations:active.annotations}]:[]});
+      if(init.method==='POST'){calls.activate++;active=JSON.parse(init.body);activeDeployment=targetVersion===VERSION?DEPLOY:'00000000-0000-4000-8000-000000000006';if(mode.activationLost)throw new Error('TEST ONLY consumed activation response');return response({id:activeDeployment});}
+      return response({deployments:active?[{id:activeDeployment,versions:active.versions,annotations:active.annotations}]:[]});
     }
     throw new Error('Unexpected test-only HTTP');
   };
@@ -314,7 +341,8 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
     const url=new URL(typeof input==='string'?input:input.url||String(input)),category=url.origin==='https://api.cloudflare.com'||url.origin===config.publication.identityOrigin?'cloudflare'
       :url.origin==='https://api.openai.com'?'model':'merchant',meter=wire[category];meter.requests++;
     meter.requestBodyBytes+=init.body?Buffer.byteLength(init.body instanceof URLSearchParams?init.body.toString():init.body):0;
-    const response=await dispatch(input,init),bytes=await response.arrayBuffer();meter.responseBodyBytes+=bytes.byteLength;
+    const response=await dispatch(input,init);
+    const bytes=await response.arrayBuffer();meter.responseBodyBytes+=bytes.byteLength;
     return new Response(bytes,{status:response.status,headers:response.headers});};route=fetch;
   const command=async c=>{
     if(c.args.includes('upload')){calls.upload++;upload={tag:c.args[c.args.indexOf('--tag')+1],message:c.args[c.args.indexOf('--message')+1]};
@@ -337,6 +365,37 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
   const dependencies={repository:repo,fetch,resolveToken:async ref=>`TEST_ONLY_${ref.service.split('.').at(-1)}`,now:()=>clock,publication:{fetch,command,now:()=>new Date(clock)}};
   const options={configPath,configSha256,workspace};
   return{sql,local,previous,packet,config,options,dependencies,mode,calls,wire,index,workspaceOptions,now:()=>clock,advance(ms){clock=new Date(Date.parse(clock)+ms).toISOString();},
+    async configure(){await put(options.configPath,config);options.configSha256=sha256(await fs.readFile(options.configPath));
+      Object.assign(workspaceOptions,{runId:config.runId,configSha256:options.configSha256,retention:config.retention,
+        budgetCaps:{httpRequests:config.limits.requests,sqlStatements:config.limits.statements}});},
+    async nextDayAfterExpiry(){
+      const oldOptions={...workspaceOptions,retention:structuredClone(workspaceOptions.retention),budgetCaps:{...workspaceOptions.budgetCaps}};
+      const old=await openRunWorkspace(oldOptions),budget=await old.budget(),manifestBytes=await fs.readFile(path.join(old.directory,'manifest.json'));
+      clock=new Date(Date.parse(clock)+25*3600000).toISOString();const expired=await old.purgeExpired();assert.ok(expired.length>0);
+      await assert.rejects(old.readCheckpoint(),/expired/);await old.close();
+      const reopened=await openRunWorkspace(oldOptions);let seal;try{seal=await reopened.catalogSuccessor();assert.ok(seal?.persistent);
+        assert.deepEqual(await reopened.budget(),budget);assert.deepEqual(await fs.readFile(path.join(reopened.directory,'manifest.json')),manifestBytes);
+      }finally{await reopened.close();}
+      priorIdentity=createReleaseIdentity(Buffer.from(`${JSON.stringify(manifest,null,2)}\n`));
+      const previousVersion=targetVersion;targetVersion='00000000-0000-4000-8000-000000000005';
+      assetAttemptBase=calls.assetAttempts;versionAttemptBase=calls.versionAttempts;upload=null;
+      config.runId='test-weekly-day2';config.catalogRevision='weekly-r-day2';config.publication.releaseId='test-release-day2';
+      config.publication.prior={directory:null,manifestSha256:priorIdentity.manifest_sha256,releaseId:seal.publication.releaseId,versionReference:previousVersion};
+      config.cadence.day=clock.slice(0,10);delete config.credentials.openai;
+      config.retention={reviewReference:'test-only/next-day-retention',rules:Object.fromEntries(Object.keys(config.retention.rules)
+        .map(kind=>[kind,{maxAgeMs:86400000,notAfter:new Date(Date.parse(clock)+86400000).toISOString()}]))};
+      const nextContext={envelopeSha256:sha256(seal.envelopeJson+'\n'),snapshotSha256:seal.snapshotSha256,
+        projectionSha256:seal.projectionReceipt.projection_sha256,sourceExportSha256:seal.projectionReceipt.source_export_sha256,
+        vectorSyncWatermark:sql.prepare('SELECT coalesce(max(sequence),0) n FROM vector_sync_outbox WHERE source_revision=?').get(JSON.parse(seal.envelopeJson).catalogRevision).n,
+        publicationReceiptWatermark:sql.prepare('SELECT max(rowid) n FROM publication_receipts').get().n,priorPublication:seal.publication,
+        cutoff:new Date(Date.parse(clock)+3600000).toISOString()};
+      for(const [name,value]of Object.entries({previous:seal,context:nextContext})){const file=path.join(directory,`${config.runId}-${name}.json`);await put(file,value);
+        config.inputs[name]={path:file,sha256:sha256(await fs.readFile(file)),observedAt:clock};}
+      config.inputs.rights={...config.inputs.rights,observedAt:clock};options.configPath=path.join(directory,'config-day2.json');
+      await put(options.configPath,config);options.configSha256=sha256(await fs.readFile(options.configPath));
+      Object.assign(workspaceOptions,{runId:config.runId,configSha256:options.configSha256,retention:config.retention});
+      return{oldOptions,budget,manifestBytes,seal};
+    },
     loseWrite(){dropWrite=true;},tamper(fn){queryTamper=fn;},
     async run(command,approval){route=fetch;return runCloudflareWeekly({...options,command,...(approval?{approval}:{})},dependencies);},
     async approve(){
@@ -347,9 +406,74 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
         return{publicId:row.public_id,operationId:op.operation_id,inputSha256:op.input_sha256,
           productSha256:sha256(canonicalJson({...row})),displaySha256:sha256(row.public_display_json??'null')};});
       const approval={schemaVersion:1,runId:config.runId,catalogRevision:config.catalogRevision,changes};
-      const file=path.join(directory,'explicit-reviewed-postphase.json');await put(file,approval);return{path:file,sha256:sha256(await fs.readFile(file))};
+      const file=path.join(directory,`${config.runId}-explicit-reviewed-postphase.json`);await put(file,approval);return{path:file,sha256:sha256(await fs.readFile(file))};
     }};
 }
+
+test('AUTHENTIC small whole runner consumes genuine permanent native predecessor and journals its successor',async t=>{
+  const f=await setup(t,{permanent:22,held:2,authenticPrior:true,realTransport:true,at:'2026-10-19T18:00:00.000Z'});
+  f.config.cadence={day:'2026-10-19',featuredIds:Array.from({length:10},(_,i)=>`B${String(11+i).padStart(9,'0')}`)};f.config.backfillLimit=0;
+  f.config.limits={requests:5000,statements:15000,reportedRowsRead:2000000,reportedRowsWritten:50000};
+  await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+  f.workspaceOptions.configSha256=f.options.configSha256;f.workspaceOptions.budgetCaps={httpRequests:5000,sqlStatements:15000};
+  const native=new Map([...f.index].map(([id,v])=>[id,structuredClone(v)]));
+  assert.equal((await f.run('start')).reason,'awaiting_reviewed_approval');
+  const result=await f.run('resume',await f.approve());
+  t.diagnostic(JSON.stringify({scenario:'authentic-small',result:weeklyCommandSummary(result),calls:f.calls}));
+  assert.equal(result.state,'finalized',JSON.stringify(result));assert.ok(result.catalogSeal.persistent);
+  assert.equal(result.catalogSeal.persistent.inventory.length,24);
+  for(const [id,v]of native)assert.deepEqual(f.index.get(id),v);
+  const ws=await openRunWorkspace(f.workspaceOptions);try{assert.deepEqual(await ws.catalogSuccessor(),result.catalogSeal);}finally{await ws.close();}
+});
+
+async function authenticCycle(t,{full=false,realUpload=true}={}){
+  const f=await setup(t,{permanent:full?2359:22,held:full?1024:2,discovered:full?20:0,authenticPrior:true,
+    realTransport:true,realUpload,at:'2026-10-19T18:00:00.000Z'});
+  f.config.cadence={day:'2026-10-19',featuredIds:Array.from({length:10},(_,i)=>`B${String(11+i).padStart(9,'0')}`)};
+  f.config.backfillLimit=0;f.config.limits={requests:8000,statements:22000,reportedRowsRead:2000000,reportedRowsWritten:50000};await f.configure();
+  const held=canonicalJson(f.sql.prepare('SELECT * FROM products WHERE is_active=0 ORDER BY public_id').all());
+  const ids=f.previous.products.map(p=>p.publicId),native=new Map([...f.index].map(([id,v])=>[id,structuredClone(v)]));
+  let previous;
+  for(let day=1;day<=2;day++){
+    amazonCreators.clearToken();f.mode.merchantUnauthorized=true;if(day===1)f.mode.modelTransientError=true;
+    const before=structuredClone(f.calls),wireBefore=structuredClone(f.wire),start=await f.run('start');
+    assert.equal(start.reason,'awaiting_reviewed_approval',JSON.stringify(start));const approval=await f.approve();
+    assert.equal(JSON.parse(await fs.readFile(approval.path)).changes.length,day===1&&full?30:10);
+    let result;if(day===1){f.mode.loseFinishReadback=true;await assert.rejects(f.run('resume',approval),/catalog_d1_result_unknown/);
+      const paid=structuredClone(f.calls);result=await f.run('resume');
+      for(const key of ['getItems','search','modelHttp','upsert','activate','upload','build'])assert.equal(f.calls[key],paid[key]);
+    }else result=await f.run('resume',approval);
+    const delta=Object.fromEntries(Object.keys(before).map(k=>[k,f.calls[k]-before[k]]));
+    const wire=Object.fromEntries(Object.keys(wireBefore).map(category=>[category,Object.fromEntries(Object.keys(wireBefore[category])
+      .map(k=>[k,f.wire[category][k]-wireBefore[category][k]]))]));
+    t.diagnostic(JSON.stringify({scenario:`AUTHENTIC ${full?'full3383':'small24'} ${day===1?(full?'Monday10+20':'Monday10+0'):'daily10 after expiry'}`,
+      result:weeklyCommandSummary(result),budget:result.budget,calls:delta,wire,
+      rowCost:'Synthetic returned rows/SQLite changes, NOT D1 billed scans/index writes; no live headroom assertion'}));
+    assert.equal(result.state,'finalized',JSON.stringify(weeklyCommandSummary(result)));
+    assert.equal(result.budget.httpRequests,delta.http);assert.equal(result.budget.sqlStatements,delta.sql);
+    assert.equal(result.budget.unconfirmedRequests,day===1?1:0);assert.equal(wire.cloudflare.requests,delta.http);
+    assert.equal(delta.build,1);assert.equal(delta.upload,1);assert.equal(delta.activate,1);assert.equal(delta.finish,1);
+    if(realUpload){assert.ok(delta.assetAttempts>=2);assert.equal(delta.versionAttempts,2);assert.equal(delta.uploadHttp,5+delta.assetAttempts);}
+    assert.equal(delta.merchantRetries,1);assert.equal(delta.merchantAuthHttp,2);
+    if(day===2)assert.equal(delta.modelHttp+delta.search,0);
+    assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
+    assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests WHERE release_id=?').get(f.config.publication.releaseId).state,'resolved');
+    assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts WHERE release_id=?').get(f.config.publication.releaseId).n,1);
+    assert.equal(canonicalJson(f.sql.prepare('SELECT * FROM products WHERE is_active=0 ORDER BY public_id').all()),held);
+    assert.equal(result.catalogSeal.persistent.inventory.length,(full?3383:24)+(full?20:0));
+    const publicIds=f.sql.prepare('SELECT public_id FROM catalog_public_products WHERE catalog_revision=?').all(f.config.catalogRevision).map(p=>p.public_id);
+    assert.equal(publicIds.length,(full?2359:22)+(full?20:0));for(const id of ids)assert.ok(publicIds.includes(id));
+    for(const [id,v]of native){assert.deepEqual(f.index.get(id),v);assert.ok(Object.is(f.index.get(id).values[0],-0));}
+    for(const vector of f.index.values()){assert.ok(Object.is(vector.values[0],-0));assert.equal(nativeHash(vector.values),vector.metadata.vectorBytesSha256);}
+    const paid=structuredClone(f.calls),again=await f.run('resume');assert.equal(again.state,'finalized');assert.deepEqual(again.catalogSeal,result.catalogSeal);assert.deepEqual(f.calls,paid);
+    if(day===1){previous=await f.nextDayAfterExpiry();assert.equal(previous.budget.unconfirmedRequests,1);}
+    else{const old=await openRunWorkspace(previous.oldOptions);try{assert.deepEqual(await old.budget(),previous.budget);
+      assert.deepEqual(await old.catalogSuccessor(),previous.seal);assert.deepEqual(await fs.readFile(path.join(old.directory,'manifest.json')),previous.manifestBytes);
+    }finally{await old.close();}}
+  }
+}
+test('AUTHENTIC small complete build upload successor and next-day runner',capacityCase,t=>authenticCycle(t));
+test('AUTHENTIC full complete Monday daily build upload shared-ledger successor',capacityCase,t=>authenticCycle(t,{full:true}));
 
 test('pinned daily D1 uses one existing refresh with no model credential, then waits for real publication and does not repeat',async t=>{
   const f=await setup(t);

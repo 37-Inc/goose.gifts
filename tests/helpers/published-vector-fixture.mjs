@@ -28,11 +28,12 @@ export function product(n,fresh=false){return{id:`B${String(n).padStart(9,'0')}`
 export const rights=p=>Object.fromEntries(Object.entries({title:p.title,description:p.wittyDescription,imageUrl:p.imageUrl,affiliateUrl:p.affiliateUrl,
   wittyDescription:p.wittyDescription,editorialWriteup:p.editorialWriteup,humorTags:JSON.stringify(p.humorTags)})
   .map(([k,value])=>[k,{basis:'owned',reference:`test-only/${p.id}/${k}`,value}]));
-export async function setup(t,{providerIdentity='fixture:published-index',codeSha='f'.repeat(40),originalVersion,migrationThrough=99,merchant=false}={}){
+export async function setup(t,{providerIdentity='fixture:published-index',codeSha='f'.repeat(40),originalVersion,migrationThrough=99,merchant=false,initialTime=AT}={}){
+  const at=ms=>new Date(initialTime+ms).toISOString();
   const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
   for(const name of(await readdir(new URL('../../migrations/d1/',import.meta.url))).filter(n=>/^\d{4}.*\.sql$/.test(n)&&Number(n.slice(0,4))<=migrationThrough).sort())
     sql.exec(await readFile(new URL(`../../migrations/d1/${name}`,import.meta.url),'utf8'));
-  let clock=AT,proofOnly=false;const metrics={statements:0,maxParams:0,maxRequest:0,maxResponse:0};
+  let clock=initialTime,proofOnly=false;const metrics={statements:0,maxParams:0,maxRequest:0,maxResponse:0};
   sql.function('strftime',(format,instant)=>{assert.equal(format,'%Y-%m-%dT%H:%M:%fZ');assert.equal(instant,'now');return new Date(clock).toISOString();});
   const db={prepare(query){let params=[];return{query,wire(){return{sql:query,params};},bind(...args){assert.ok(args.length<=100);metrics.maxParams=Math.max(metrics.maxParams,args.length);params=args;return this;},
     execute(){if(proofOnly)assert.match(query,/^SELECT /);metrics.statements++;
