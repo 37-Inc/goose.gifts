@@ -1168,7 +1168,7 @@ export function readHistoricalNativePreservation(options:{db:CatalogD1;owner:Mut
 }):Promise<string[]>{return safe(async()=>{
   const {db,adapters,signal}=options,owner=structuredClone(options.owner),binding=structuredClone(options.native),changed=new Set(options.changedIds??[]);
   signal?.throwIfAborted();adapterScope(owner,adapters);
-  if(!binding||!['freezing','activating'].includes(owner.phase)||changed.size>20||[...changed].some(id=>!UUID.test(id)))throw new Error('vector_preserved_input_invalid');
+  if(!binding||!['freezing','activating'].includes(owner.phase)||changed.size>30||[...changed].some(id=>!UUID.test(id)))throw new Error('vector_preserved_input_invalid');
   const read=async(sql:string,params:unknown[])=>{signal?.throwIfAborted();
     const rows=(await db.prepare(sql).bind(...params).all<Row>({signal})).results;signal?.throwIfAborted();return rows;};
   const exact=(table:string,row:Row)=>{const keys=Object.keys(row);

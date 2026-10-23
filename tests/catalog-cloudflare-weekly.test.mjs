@@ -22,6 +22,7 @@ import { siteIdentityBytes } from '../scripts/staging/build.mts';
 import { assembleReleaseAssets, readPriorRelease } from '../scripts/staging/retention.mts';
 import { createStaticFeedPlan } from '../workers/site/feed.ts';
 import { createBrowseRelease } from '../static-site/lib/browse.ts';
+import { directoryPages, directoryPath } from '../static-site/lib/directory.ts';
 import { createOgRelease } from '../static-site/lib/og.ts';
 import { siteIdentityFor } from '../static-site/lib/site-identity.ts';
 import { guides } from '../static-site/lib/guides.ts';
@@ -34,6 +35,9 @@ import { accountedPublicationReadFetch } from '../scripts/catalog/publication-re
 // Only external Amazon/OpenAI/CF and Next compilation are mocked. Real package
 // verification, upload intent, activation CAS, independent identity/native proof
 // and exact final telemetry remain in the call path. No network or live rights.
+// Whole-driver cap refusals are not permanent-native successor acceptance. Model
+// HTTP and merchant method calls are counted separately, never called CF-ledger
+// coverage; this command seam also mocks the protected Wrangler asset upload.
 const NOW='2026-10-20T12:00:00.123Z',OLD='2026-07-01T00:00:00.000Z';
 const ID='B000000001',UUID='00000000-0000-4000-8000-000000000001';
 const VERSION='00000000-0000-4000-8000-000000000002',DEPLOY='00000000-0000-4000-8000-000000000003';
@@ -52,11 +56,17 @@ const original={fetch:globalThis.fetch,getItems:amazonCreators.getItems,searchIt
 const safeCatalogPayload=await fs.readFile(new URL('../static-site/public/safe/catalog.json',import.meta.url));
 let route;globalThis.fetch=(...args)=>{if(!route)throw new Error('Live network forbidden');return route(...args);};
 test.after(()=>{globalThis.fetch=original.fetch;amazonCreators.getItems=original.getItems;amazonCreators.searchItems=original.searchItems;});
+test.beforeEach(t=>{
+  // Skip ONLY mock provider pacing; retain proof/abort/lease/accounting timers.
+  const timer=globalThis.setTimeout;t.mock.method(globalThis,'setTimeout',(callback,ms,...args)=>timer(callback,[1100,1200,2000].includes(ms)?0:ms,...args));
+});
 async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true,mode:0o700});await fs.writeFile(file,
   typeof value==='string'||value instanceof Uint8Array?value:`${JSON.stringify(value)}\n`,{mode:0o600});}
+async function fullCheckpoint(options){const workspace=await openRunWorkspace(options);
+  try{return await workspace.readCheckpoint();}finally{await workspace.close();}}
 function sealedFixture(snapshot,context,prior=null){
   const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
-    ...snapshot.products.map(p=>`/gifts/${p.slug}`)];
+    ...directoryPages(snapshot).map(page=>directoryPath(page.page)),...snapshot.products.map(p=>`/gifts/${p.slug}`)];
   const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,Buffer.from('Owned fixture HTML')]));
   for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/asset.txt'])assets.set(name,Buffer.from('Owned unavailable'));
   assets.set('/safe/catalog.json',safeCatalogPayload);
@@ -71,7 +81,7 @@ function sealedFixture(snapshot,context,prior=null){
     'release-context.json':`${JSON.stringify(context)}\n`,'release-identity.json':JSON.stringify(createReleaseIdentity(manifestBytes)),
     'site-identity.json':siteIdentityBytes('preview'),'feed-plan.json':JSON.stringify(createStaticFeedPlan(snapshot,sha256(`${JSON.stringify(snapshot)}\n`)))}};
 }
-async function setup(t,{noPrior=false,at=NOW}={}){
+async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,realTransport=false}={}){
   const NOW=at;
   const directory=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'goose-weekly-')));t.after(()=>fs.rm(directory,{recursive:true,force:true}));
   const repo=path.join(directory,'source');await fs.mkdir(repo,{mode:0o700});await put(path.join(repo,'.gitignore'),'build/\nstatic-site/out/\n');
@@ -89,11 +99,50 @@ async function setup(t,{noPrior=false,at=NOW}={}){
   const owner=await claimMutationOwnership(local,scope,{phase:'writing',ownerReference:'seed',operationKey:'a'.repeat(64)});
   const seed=createD1CatalogMaintenanceStore({db:local,owner,runId:'seed',catalogRevision:'prior-r',newPublicId:()=>UUID});
   await seed.upsertProduct({...p,remotelyVerified:false,embedding:null},editorialSourceHash(p));
-  const row=sql.prepare('SELECT * FROM products').get();await releaseMutationOwnership(local,await readMutationOwner(local,scope));
+  const asin=n=>`B${String(n).padStart(9,'0')}`,publicId=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+  const rawItem=product=>({asin:product.id,itemInfo:{title:{displayValue:product.title},features:{displayValues:['Novelty brass lobster desk bell','Synthetic fixture '+product.id]}},
+    images:{primary:{large:{url:product.imageUrl}}},detailPageURL:product.affiliateUrl,
+    offersV2:{listings:[{availability:{type:'IN_STOCK'},price:{money:{amount:product.price,currency:'USD'}}}]},
+    customerReviews:{starRating:{value:product.rating},count:product.reviewCount}});
+  const observedProduct=n=>{const product={...structuredClone(p),id:asin(n),title:`${String.fromCharCode(65+Math.floor(n/26))}${String.fromCharCode(65+n%26)} test-only brass fixture`,
+    affiliateUrl:`https://www.amazon.com/dp/${asin(n)}?tag=fixture-20`,sourceFacts:{fixture:n,material:'brass',shape:'lobster'}};
+    return realTransport?{...product,...amazonCreators.mapItem(rawItem(product))}:product;};
+  const grants=product=>Object.fromEntries(Object.entries({title:product.title,description:product.wittyDescription,imageUrl:product.imageUrl,
+    affiliateUrl:product.affiliateUrl,punnyTitle:product.punnyTitle,wittyDescription:product.wittyDescription,
+    editorialWriteup:product.editorialWriteup,humorTags:JSON.stringify(product.humorTags)})
+    .map(([field,value])=>[field,{basis:'owned',reference:'test-only exact independent clearance',value}]));
+  const discoveryNames=['Amethyst zephyr','Borealis quince','Crimson tundra','Dahlia compass','Emerald quill','Fuchsia gyroscope','Garnet prism',
+    'Hyacinth sundial','Indigo metronome','Jade kaleidoscope','Kestrel abacus','Lilac astrolabe','Magenta terrarium','Nectar pendulum',
+    'Ochre sextant','Periwinkle barometer','Quartz telescope','Russet ocarina','Saffron harmonica','Teal periscope'];
+  const discoveries=Array.from({length:discovered},(_,i)=>({...observedProduct(5000+i),title:`Novelty ${discoveryNames[i]}`,humorTags:[`fixture-${i}`]}));
+  if(permanent){
+    // A pre-existing private full catalog, not 2,359 fresh supplier fetches or
+    // native writes. The real current driver will update only its reserved ten.
+    sql.prepare('DELETE FROM catalog_maintenance_products WHERE product_id=?').run(ID);
+    sql.prepare('DELETE FROM products WHERE id=?').run(ID);
+    for(let n=1;n<=permanent;n++){
+      const copy=observedProduct(n),base={id:copy.id,publicId:publicId(n),slug:`cleared-object-${n}`,title:`Independently cleared object ${n}`,
+        description:`Independently cleared object ${n}`,imageUrl:'/images/gift-placeholder.svg',affiliateUrl:copy.affiliateUrl,
+        source:'amazon',currency:'USD',price:0,isActive:true,qualityScore:.85,eligibleUntil:null,indexable:false};
+      const baseRights=Object.fromEntries(['title','description','imageUrl','affiliateUrl'].map(field=>[field,{basis:'owned',reference:'test-only exact permanent clearance',value:base[field]}]));
+      sql.prepare(`INSERT INTO products(id,public_id,slug,source,title,description,tags,currency,quality_score,is_active,editorial_status,
+        source_facts_hash,catalog_revision,public_display_json,rights_json,source_record_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+        .run(base.id,base.publicId,base.slug,base.source,base.title,base.description,'',base.currency,.85,1,'pending',editorialSourceHash(copy),'prior-r',
+          JSON.stringify(base),JSON.stringify(baseRights),JSON.stringify({...Object.fromEntries(Object.entries(copy)
+            .map(([key,value])=>[key.replace(/[A-Z]/g,letter=>`_${letter.toLowerCase()}`),value])),public_id:base.publicId,slug:base.slug}));
+    }
+    for(let n=3000;n<3000+held;n++)sql.prepare(`INSERT INTO products(id,public_id,slug,source,title,currency,quality_score,is_active,editorial_status,
+      catalog_revision,rights_json,source_record_json) VALUES(?,?,?,?,?,'USD',.4,0,'pending','prior-r','{}',?)`)
+      .run(asin(n),publicId(n),`held-${n}`,'amazon',`Funny dormant mariner compass ${n}`,JSON.stringify({id:asin(n),public_id:publicId(n),slug:`held-${n}`,title:`Funny dormant mariner compass ${n}`,
+        source:'amazon',affiliate_url:`https://www.amazon.com/dp/${asin(n)}?tag=fixture-20`,humor_tags:[]}));
+  }
+  await releaseMutationOwnership(local,await readMutationOwner(local,scope));
   clock=NOW;
-  const previous={schemaVersion:1,dataKind:'catalog',catalogRevision:'prior-r',generatedAt:NOW,products:[],heldProducts:[{id:ID,publicId:UUID,
-    slug:row.slug,path:`/gifts/${row.slug}`,title:'Gift currently unavailable',description:'This gift is not currently available in the curated catalog. Browse other gifts instead.',reason:'editorial_hold'}],slugHistory:[]};
-  const packet=await createProjectionPacket(previous,{[UUID]:row.source_facts_hash},'b'.repeat(64),new Date(NOW));
+  const baseline=sql.prepare('SELECT * FROM products ORDER BY public_id').all();
+  const previous={schemaVersion:1,dataKind:'catalog',catalogRevision:'prior-r',generatedAt:NOW,
+    products:baseline.filter(r=>r.public_display_json).map(r=>JSON.parse(r.public_display_json)),heldProducts:baseline.filter(r=>!r.public_display_json).map(r=>({id:r.id,publicId:r.public_id,
+      slug:r.slug,path:`/gifts/${r.slug}`,title:'Gift currently unavailable',description:'This gift is not currently available in the curated catalog. Browse other gifts instead.',reason:'editorial_hold'})),slugHistory:[]};
+  const packet=await createProjectionPacket(previous,Object.fromEntries(baseline.map(r=>[r.public_id,r.source_facts_hash])),'b'.repeat(64),new Date(NOW));
   sql.prepare('INSERT INTO catalog_revisions(revision,created_at,source_export_sha256,status) VALUES(?,?,?,?)').run('prior-r',NOW,'b'.repeat(64),'reconciled');
   for(const q of projectionQueries(packet))sql.prepare(q.sql).run(...q.params);
   // Explicit owned already-deployed catalog fixture, not an automatic first
@@ -126,7 +175,10 @@ async function setup(t,{noPrior=false,at=NOW}={}){
   const context={envelopeSha256:sha256(`${JSON.stringify(createSealedSnapshotEnvelope(previous))}\n`),snapshotSha256:packet.receipt.snapshot_sha256,
     projectionSha256:packet.receipt.projection_sha256,sourceExportSha256:'b'.repeat(64),vectorSyncWatermark:0,publicationReceiptWatermark:noPrior?0:1,
     priorPublication:noPrior?null:{releaseId:priorReceipt.release_id,receiptSha256:sha256(canonicalJson(priorReceipt))},cutoff:new Date(Date.parse(NOW)+3600000).toISOString()};
-  const inputs={};for(const [name,value]of Object.entries({previous,context,rights:{rightsById:{[ID]:rights},reviewedDeleteReference:'test-only/delete'}})){
+  const inputs={};for(const [name,value]of Object.entries({previous,context,rights:{rightsById:permanent
+    ?Object.fromEntries([...Array.from({length:10},(_,i)=>observedProduct(i+1)),...discoveries].map(product=>[product.id,{...grants(product),
+      ...(discoveries.some(p=>p.id===product.id)?{persistent:Object.fromEntries(Object.entries({title:product.title,description:product.wittyDescription,
+        imageUrl:'/images/gift-placeholder.svg',affiliateUrl:product.affiliateUrl}).map(([field,value])=>[field,{basis:'owned',reference:'test-only independently cleared discovery base',value}]))}:{})}])):{[ID]:rights},reviewedDeleteReference:'test-only/delete'}})){
     const file=path.join(directory,`${name}.json`);await put(file,value);inputs[name]={path:file,sha256:sha256(await fs.readFile(file)),observedAt:NOW};}
   const ref=name=>({service:`goose.gifts.test.${name}`,account:'fixture'});
   const config={schemaVersion:1,runId:'test-weekly',catalogRevision:'weekly-r',codeSha,environment:scope.environment,accountId:'a'.repeat(32),
@@ -142,22 +194,45 @@ async function setup(t,{noPrior=false,at=NOW}={}){
   const workspace=path.join(directory,'runs');const workspaceOptions={directory:workspace,repository:repo,mode:'resume',runId:config.runId,configSha256,codeSha,
     scope:{...scope,accountId:config.accountId,databaseId:UUID,databaseName:config.database.name,workerName:config.publication.workerName},retention:config.retention,
     budgetCaps:{httpRequests:config.limits.requests,sqlStatements:config.limits.statements},now:()=>clock};
-  const calls={getItems:0,search:0,chat:0,embedding:0,http:0,upsert:0,activate:0,upload:0,build:0,finish:0};const index=new Map();let mutation,upload,manifest;
+  const calls={getItems:0,search:0,chat:0,embedding:0,http:0,d1:0,sql:0,modelHttp:0,merchantAuthHttp:0,merchantApiHttp:0,merchantRetries:0,
+    upsert:0,activate:0,upload:0,build:0,finish:0};const index=new Map();let mutation,upload,manifest;
   let active=noPrior?false:{versions:[{version_id:PRIOR_VERSION,percentage:100}],annotations:{'workers/message':'verified-operator-prior'}};
   const mode={};let dropWrite=false;let queryTamper;let lostReleaseReadbacks=0,versionReads=0;
-  amazonCreators.getItems=async()=>{calls.getItems++;assert.equal(process.env.AMAZON_ASSOCIATE_TAG,'fixture-20');assert.equal(process.env.POSTGRES_URL,undefined);
-    assert.equal(process.env.CATALOG_DISCOVERY_THEMES,undefined);return[structuredClone(p)];};
-  amazonCreators.searchItems=async()=>{calls.search++;return mode.superseded
+  amazonCreators.getItems=async(...args)=>{calls.getItems++;assert.equal(process.env.AMAZON_ASSOCIATE_TAG,'fixture-20');assert.equal(process.env.POSTGRES_URL,undefined);
+    assert.equal(process.env.CATALOG_DISCOVERY_THEMES,undefined);if(realTransport)return original.getItems(...args);
+    const [ids]=args;return permanent?ids.map(id=>({...observedProduct(Number(id.slice(1))),
+      title:'Supplier changed title does not replace permanent clearance',availabilityStatus:'OUT_OF_STOCK'})):[structuredClone(p)];};
+  const discoveryResponses=discovered?[[...discoveries.slice(0,9),{...observedProduct(3000),title:'Funny dormant mariner compass 3000'}],discoveries.slice(9,19),
+    [discoveries[19],{...observedProduct(6000),title:'Funny dormant mariner compass 3000'}]]:[];
+  amazonCreators.searchItems=async(...args)=>{calls.search++;if(realTransport)return original.searchItems(...args);
+    if(discovered)return structuredClone(discoveryResponses[calls.search-1]||[]);return mode.superseded
     ?[structuredClone(calls.search>1?{...p,title:'Changed contradictory listing',sourceFacts:{material:'plastic'}}:p)]:[];};
   const response=result=>Response.json({success:true,result});
   const vectorResponse=rows=>new Response(`{"success":true,"result":[${rows.map(v=>`{"id":${JSON.stringify(v.id)},"values":[${v.values.map(n=>Object.is(n,-0)?'-0':n).join(',')}],"metadata":${JSON.stringify(v.metadata)}}`).join(',')}]}`);
   const fetch=async(input,init={})=>{
     const url=new URL(typeof input==='string'?input:input.url||String(input));
+    if(url.origin==='https://creatorsapi.auth.us-east-1.amazoncognito.com'){
+      assert.equal(realTransport,true);assert.equal(init.method,'POST');calls.merchantAuthHttp++;
+      return Response.json({access_token:'SYNTHETIC_TOKEN_'+calls.merchantAuthHttp,expires_in:3600});
+    }
+    if(url.origin==='https://creatorsapi.amazon'){
+      assert.equal(realTransport,true);assert.equal(init.method,'POST');calls.merchantApiHttp++;
+      const body=JSON.parse(init.body);assert.equal(body.partnerTag,'fixture-20');
+      if(mode.merchantUnauthorized){delete mode.merchantUnauthorized;calls.merchantRetries++;return Response.json({errors:[{code:'Unauthorized'}]},{status:401});}
+      if(url.pathname.endsWith('/getItems'))return Response.json({itemsResult:{items:body.itemIds.map(id=>rawItem(observedProduct(Number(id.slice(1)))))}});
+      assert.ok(url.pathname.endsWith('/searchItems'));return Response.json({searchResult:{items:(discoveryResponses[calls.search-1]||[]).map(rawItem)}});
+    }
     if(url.origin==='https://api.openai.com'){
+      calls.modelHttp++;
       const body=JSON.parse(init.body);assert.equal(init.headers.get?.('authorization')||init.headers.Authorization,'Bearer TEST_ONLY_openai');
       assert.ok(['gpt-4o-mini','text-embedding-3-small'].includes(body.model));
-      if(url.pathname.endsWith('/embeddings')){calls.embedding++;return new Response(`{"model":"text-embedding-3-small","usage":{"prompt_tokens":8,"total_tokens":8},"data":[{"index":0,"embedding":[${values.map(n=>Object.is(n,-0)?'-0':n).join(',')}]}]}`,{headers:{'content-type':'application/json'}});}
-      calls.chat++;return Response.json({choices:[{message:{content:JSON.stringify({products:[{id:ID,approved:true,qualityScore:.95,reasons:[],correctedEditorial:null}]})},finish_reason:'stop'}],usage:{prompt_tokens:10,completion_tokens:10,total_tokens:20}});
+      if(url.pathname.endsWith('/embeddings')){calls.embedding++;return new Response(`{"model":"text-embedding-3-small","usage":{"prompt_tokens":8,"total_tokens":8},"data":[${body.input.map((_input,index)=>`{"index":${index},"embedding":[${values.map(n=>Object.is(n,-0)?'-0':n).join(',')}]}`).join(',')}]}`,{headers:{'content-type':'application/json'}});}
+      calls.chat++;const prompt=body.messages.at(-1).content,items=JSON.parse(prompt.slice(prompt.lastIndexOf('\n[')+1));
+      return Response.json({choices:[{message:{content:JSON.stringify({products:items.map(item=>{
+        const product=discoveries.find(p=>p.id===item.id)||p;
+        return prompt.includes('Drafts:')?{id:item.id,approved:true,qualityScore:.95,reasons:[],correctedEditorial:null}
+          :{id:item.id,punnyTitle:product.punnyTitle,wittyDescription:product.wittyDescription,humorTags:product.humorTags,qualityScore:product.qualityScore,isActive:true,editorialWriteup:product.editorialWriteup};
+      })})},finish_reason:'stop'}],usage:{prompt_tokens:10,completion_tokens:10,total_tokens:20}});
     }
     calls.http++;
     if(url.origin===config.publication.identityOrigin){const isTarget=active?.versions[0].version_id===VERSION;if(mode.identityFailure&&isTarget)return new Response('',{status:401});
@@ -166,9 +241,11 @@ async function setup(t,{noPrior=false,at=NOW}={}){
     assert.equal(url.origin,'https://api.cloudflare.com');
     if(url.pathname.endsWith(`/d1/database/${UUID}`))return response({uuid:UUID,name:config.database.name,read_replication:{mode:'disabled'}});
     if(url.pathname.endsWith('/query')){
-      const queries=JSON.parse(init.body).batch;const result=[];sql.exec('BEGIN');
+      const queries=JSON.parse(init.body).batch;calls.d1++;calls.sql+=queries.length;const result=[];sql.exec('BEGIN');
       try{for(const q of queries){const before=sql.prepare('SELECT total_changes() n').get().n;const rows=sql.prepare(q.sql).all(...q.params).map(r=>({...r}));
-        queryTamper?.(q,rows);const writes=sql.prepare('SELECT total_changes() n').get().n-before;result.push({success:true,results:rows,meta:{served_by_primary:true,rows_read:rows.length,rows_written:writes,changes:writes}});
+        queryTamper?.(q,rows);const writes=sql.prepare('SELECT total_changes() n').get().n-before;
+        const exceeded=mode.reportedUsageExceeded&&q.sql.startsWith('SELECT r.*,t.start_json,t.finish_json');if(exceeded)mode.reportedUsageExceeded=false;
+        result.push({success:true,results:rows,meta:{served_by_primary:true,rows_read:exceeded?1_000_001:rows.length,rows_written:writes,changes:writes}});
       }sql.exec('COMMIT');}catch(error){sql.exec('ROLLBACK');throw error;}
       calls.finish+=queries.filter(q=>q.sql.startsWith('UPDATE catalog_run_telemetry SET finish_json=')).length;
       if(dropWrite&&queries.some(q=>q.sql.startsWith('INSERT INTO catalog_maintenance_products'))){dropWrite=false;throw new Error('TEST ONLY committed response loss');}
@@ -216,9 +293,13 @@ async function setup(t,{noPrior=false,at=NOW}={}){
     loseWrite(){dropWrite=true;},tamper(fn){queryTamper=fn;},
     async run(command,approval){route=fetch;return runCloudflareWeekly({...options,command,...(approval?{approval}:{})},dependencies);},
     async approve(){
-      const row={...sql.prepare('SELECT * FROM products').get()};const op=sql.prepare("SELECT * FROM catalog_maintenance_operations WHERE run_id='test-weekly' AND json_array_length(changes_json)>0 ORDER BY next_epoch DESC LIMIT 1").get();
-      const approval={schemaVersion:1,runId:config.runId,catalogRevision:config.catalogRevision,changes:[{publicId:row.public_id,operationId:op.operation_id,
-        inputSha256:op.input_sha256,productSha256:sha256(canonicalJson(row)),displaySha256:sha256(row.public_display_json??'null')}]};
+      const changes=sql.prepare('SELECT * FROM products WHERE catalog_revision=? ORDER BY public_id').all(config.catalogRevision).map(row=>{
+        const op=sql.prepare(`SELECT * FROM catalog_maintenance_operations WHERE run_id=? AND EXISTS(
+          SELECT 1 FROM json_each(changes_json) c WHERE json_extract(c.value,'$.productId')=?) ORDER BY next_epoch DESC LIMIT 1`).get(config.runId,row.id);
+        assert.ok(op,'Approval requires an actual immutable operation for every complete current row');
+        return{publicId:row.public_id,operationId:op.operation_id,inputSha256:op.input_sha256,
+          productSha256:sha256(canonicalJson({...row})),displaySha256:sha256(row.public_display_json??'null')};});
+      const approval={schemaVersion:1,runId:config.runId,catalogRevision:config.catalogRevision,changes};
       const file=path.join(directory,'explicit-reviewed-postphase.json');await put(file,approval);return{path:file,sha256:sha256(await fs.readFile(file))};
     }};
 }
@@ -240,6 +321,128 @@ test('pinned daily D1 uses one existing refresh with no model credential, then w
   f.config.runId='same-day-other-run';await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
   assert.equal((await runCloudflareWeekly({...f.options,command:'start',cadenceOnly:true},dependencies)).state,'skipped');
   assert.equal(f.calls.getItems,1);
+});
+
+for(const monday of [false,true])test(`full2359 ${monday?'Monday ten plus20 discoveries':'daily ten'} current driver retains catalog but refuses ordinary whole-run budget`,async t=>{
+  const f=await setup(t,{permanent:2359,held:1024,discovered:monday?20:0,realTransport:true,at:monday?'2026-10-19T18:00:00.000Z':NOW});
+  f.config.cadence={day:monday?'2026-10-19':'2026-10-20',featuredIds:Array.from({length:10},(_,i)=>`B${String(i+1).padStart(9,'0')}`)};
+  f.config.backfillLimit=0;f.config.limits={requests:800,statements:1200};if(!monday)delete f.config.credentials.openai;
+  await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+  f.workspaceOptions.configSha256=f.options.configSha256;f.workspaceOptions.budgetCaps={httpRequests:800,sqlStatements:1200};
+  const before=f.previous.products.map(p=>p.publicId),beforeDisplays=new Map(f.previous.products.map(p=>[p.publicId,p])),
+    heldRows=()=>f.sql.prepare('SELECT * FROM products WHERE is_active=0 ORDER BY public_id').all().map(r=>({...r})),
+    heldBefore=sha256(canonicalJson(heldRows()));
+  const capture=async(command,approval)=>{try{return await f.run(command,approval);}catch(error){return{state:'refused',reason:error.message};}};
+  const start=await capture('start');
+  if(!monday)assert.equal(start.reason,'awaiting_reviewed_approval',JSON.stringify(start));
+  assert.equal(f.calls.getItems,1);assert.equal(f.calls.search,monday?6:0);
+  assert.equal(f.calls.merchantAuthHttp,1);assert.equal(f.calls.merchantApiHttp,monday?7:1);assert.equal(f.calls.merchantRetries,0);
+  if(!monday)assert.equal(f.calls.chat+f.calls.embedding,0);
+  const current=f.sql.prepare("SELECT * FROM products WHERE catalog_revision='weekly-r' ORDER BY public_id").all();
+  if(start.reason==='awaiting_reviewed_approval')assert.equal(current.length,monday?30:10,'No completed daily/Monday phase is silently truncated');
+  else{assert.equal(monday,true);assert.equal(start.errorCode||start.reason,'catalog_d1_budget_exhausted');assert.ok(current.length>=10&&current.length<=30);}
+  assert.equal(sha256(canonicalJson(heldRows())),heldBefore,'Discovery cannot reactivate/rewrite an inactive same-ASIN or family');
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM products WHERE id=?').get('B000006000').n,0);
+  for(const id of before){const row=f.sql.prepare('SELECT * FROM products WHERE public_id=?').get(id);
+    assert.equal(row.is_active,1);assert.ok(row.public_display_json);const display=JSON.parse(row.public_display_json),base=display.persistent??display;
+    assert.deepEqual(base,beforeDisplays.get(id),'A refreshed optional overlay must retain every exact permanent catalog field');}
+  if(monday)for(const row of current.filter(row=>!before.includes(row.public_id))){
+    const display=JSON.parse(row.public_display_json),base=display.eligibleUntil===null?display:display.persistent;
+    assert.ok(base,'All20 strong discoveries have explicit independent permanent clearance, not merchant-derived fallback rights');
+    assert.equal(base.eligibleUntil,null);assert.equal(base.imageUrl,'/images/gift-placeholder.svg');
+    assert.ok(JSON.parse(row.rights_json).persistent);}
+  const approval=start.reason==='awaiting_reviewed_approval'?await f.approve():undefined;
+  if(approval)assert.equal(JSON.parse(await fs.readFile(approval.path)).changes.length,monday?30:10);
+  const paid=Object.fromEntries(['getItems','search','chat','embedding','merchantAuthHttp','merchantApiHttp','merchantRetries'].map(k=>[k,f.calls[k]]));
+  const resume=()=>capture('resume',approval),result=approval?await resume():start,report=await readRunWorkspace(f.workspaceOptions);
+  assert.notEqual(result.state,'finalized');assert.ok((approval?['freezing']:['attention'])
+    .includes(report.checkpoint.checkpoint.phase),JSON.stringify(result));
+  assert.ok(report.budget.sqlStatements<=1200);assert.equal(report.budget.unconfirmedRequests,0);
+  assert.equal(f.calls.build+f.calls.upload+f.calls.activate,0,'Budget refusal cannot deploy a partial/empty catalog');
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,1);
+  assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,approval?'freezing':'writing');
+  const charged=structuredClone(report.budget),http=f.calls.http,sql=f.calls.sql,
+    projectionRows=f.sql.prepare("SELECT count(*) n FROM catalog_public_products WHERE catalog_revision='weekly-r'").get().n;
+  assert.ok(projectionRows<2359);if(approval)assert.ok(charged.sqlStatements+Math.min(35,2359-projectionRows)+1>1200,
+    'The next unchanged bounded projection chunk cannot fit the ordinary statement cap');
+  assert.equal(charged.httpRequests,http,'Every mocked CF/Vectorize/identity request is in the shared ledger');
+  assert.equal(charged.sqlStatements,sql,'Every dispatched SQL statement is in the shared ledger');
+  await resume();const again=await readRunWorkspace(f.workspaceOptions);
+  for(const key of ['httpRequests','sqlStatements','knownRowsRead','knownRowsWritten','unconfirmedRequests'])assert.ok(again.budget[key]>=charged[key],key);
+  assert.deepEqual(Object.fromEntries(Object.keys(paid).map(k=>[k,f.calls[k]])),paid,'Restart cannot rerun merchant/model phases');
+  assert.equal(f.calls.build+f.calls.upload+f.calls.activate,0);
+  t.diagnostic(JSON.stringify({scenario:monday?'Monday10+20/full2359':'daily10/full2359',result,phase:report.checkpoint.checkpoint.phase,
+    budget:charged,modelHttpOutsideWorkspace:f.calls.modelHttp,merchantMethodCalls:f.calls.getItems+f.calls.search,
+    merchantTransport:{auth:f.calls.merchantAuthHttp,api:f.calls.merchantApiHttp,retries:f.calls.merchantRetries},
+    allObservedHttp:charged.httpRequests+f.calls.modelHttp+f.calls.merchantAuthHttp+f.calls.merchantApiHttp,
+    omittedTransport:'Mock compilation/upload command, not an authentic full publisher/canary or D1 billed-row proof',
+    projectionRows,actualChangedProducts:current.length,fullyCompletedProviderPhase:Boolean(approval),
+    capacityAccepted:false,prior:'reviewed snapshot/genuine generic receipt, NOT permanent successor/native-anchor acceptance',
+    rowsReadMeaning:'mock returned rows, NOT index-inclusive D1 billing'}));
+});
+
+test('real merchant client counts cold authorization and its single401 refresh without repeating the reserved daily phase',async t=>{
+  const f=await setup(t,{permanent:1,realTransport:true});f.config.cadence={day:'2026-10-20',featuredIds:[ID]};
+  f.config.backfillLimit=0;delete f.config.credentials.openai;f.mode.merchantUnauthorized=true;
+  await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+  f.workspaceOptions.configSha256=f.options.configSha256;
+  const result=await f.run('start');assert.equal(result.reason,'awaiting_reviewed_approval',JSON.stringify(result));
+  assert.equal(f.calls.getItems,1);assert.equal(f.calls.search+f.calls.modelHttp,0);
+  assert.equal(f.calls.merchantAuthHttp,2);assert.equal(f.calls.merchantApiHttp,2);assert.equal(f.calls.merchantRetries,1);
+  const paid=structuredClone(f.calls);assert.equal((await f.run('resume')).reason,'awaiting_reviewed_approval');
+  for(const key of ['getItems','search','modelHttp','merchantAuthHttp','merchantApiHttp','merchantRetries'])assert.equal(f.calls[key],paid[key]);
+});
+
+test('phase budget exhaustion checkpoints attention locally without a diagnostic D1 read or paid replay',async t=>{
+  const f=await setup(t,{permanent:1});f.config.cadence={day:'2026-10-20',featuredIds:[ID]};
+  f.config.backfillLimit=0;f.config.limits={requests:800,statements:40};delete f.config.credentials.openai;
+  await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+  f.workspaceOptions.configSha256=f.options.configSha256;f.workspaceOptions.budgetCaps={httpRequests:800,sqlStatements:40};
+  const result=await f.run('start');assert.equal(result.state,'attention');assert.equal(result.phase,'attention');
+  assert.equal(result.errorCode,'catalog_d1_budget_exhausted');
+  const report=await readRunWorkspace(f.workspaceOptions);assert.equal((await fullCheckpoint(f.workspaceOptions)).checkpoint.state.errorCode,'catalog_d1_budget_exhausted');
+  assert.equal(report.checkpoint.checkpoint.owner.phase,'writing');assert.equal(report.budget.httpRequests,f.calls.http);
+  assert.equal(report.budget.sqlStatements,f.calls.sql);assert.equal(report.budget.unconfirmedRequests,0);
+  const calls=structuredClone(f.calls),budget=structuredClone(report.budget),owner={...f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get()};
+  assert.equal((await f.run('resume')).state,'attention');assert.deepEqual(f.calls,calls);
+  assert.deepEqual((await readRunWorkspace(f.workspaceOptions)).budget,budget);
+  assert.deepEqual({...f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get()},owner);
+  assert.equal(f.calls.upload+f.calls.activate,0);
+});
+
+test('reported D1 usage excess retains the known cost and checkpoints attention without another diagnostic read',async t=>{
+  const f=await setup(t);f.mode.reportedUsageExceeded=true;
+  const result=await f.run('start');assert.equal(result.state,'attention');assert.equal(result.phase,'attention');
+  assert.equal(result.errorCode,'catalog_d1_reported_usage_exceeded');
+  const report=await readRunWorkspace(f.workspaceOptions);assert.equal((await fullCheckpoint(f.workspaceOptions)).checkpoint.state.errorCode,result.errorCode);
+  assert.ok(report.budget.knownRowsRead>1_000_000);assert.equal(report.budget.unconfirmedRequests,0);
+  assert.equal(report.budget.httpRequests,f.calls.http);assert.equal(report.budget.sqlStatements,f.calls.sql);
+  const calls=structuredClone(f.calls),budget=structuredClone(report.budget);
+  assert.equal((await f.run('resume')).state,'attention');assert.deepEqual(f.calls,calls);
+  assert.deepEqual((await readRunWorkspace(f.workspaceOptions)).budget,budget);
+  assert.equal(f.calls.getItems+f.calls.search+f.calls.chat+f.calls.embedding+f.calls.build+f.calls.upload+f.calls.activate,0);
+});
+
+test('small permanent daily composes actual package verification through receipt/readback with model-free cadence and shared CF accounting',async t=>{
+  const f=await setup(t,{permanent:1,held:1});f.config.cadence={day:'2026-10-20',featuredIds:[ID]};
+  f.config.backfillLimit=0;f.config.limits={requests:800,statements:1200};delete f.config.credentials.openai;
+  await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
+  f.workspaceOptions.configSha256=f.options.configSha256;f.workspaceOptions.budgetCaps={httpRequests:800,sqlStatements:1200};
+  const start=await f.run('start');assert.equal(start.reason,'awaiting_reviewed_approval');
+  const result=await f.run('resume',await f.approve());assert.equal(result.state,'finalized',JSON.stringify(result));
+  assert.equal(f.calls.getItems,1);assert.equal(f.calls.search+f.calls.chat+f.calls.embedding,0);
+  assert.equal(f.calls.build,1);assert.equal(f.calls.upload,1);assert.equal(f.calls.activate,1);
+  const request=f.sql.prepare('SELECT * FROM catalog_build_requests WHERE release_id=?').get(f.config.publication.releaseId);
+  assert.equal(request.state,'resolved');assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
+  assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,2);
+  // Executor deliberately cleans its owned build tree after verified receipt.
+  const projected=f.sql.prepare("SELECT public_id,public_display_json FROM catalog_public_products WHERE catalog_revision='weekly-r' ORDER BY public_id").all();
+  assert.deepEqual(projected.map(p=>p.public_id),[UUID]);assert.equal(JSON.parse(projected[0].public_display_json).eligibleUntil,null);
+  assert.equal(result.budget.httpRequests,f.calls.http);assert.equal(result.budget.sqlStatements,f.calls.sql);
+  const calls=structuredClone(f.calls);assert.equal((await f.run('resume')).state,'finalized');assert.deepEqual(f.calls,calls);
+  t.diagnostic(JSON.stringify({scenario:'small permanent daily executor',budget:result.budget,providerCalls:f.calls,
+    compilation:'mock',uploadCommand:'mock (protected bridge/asset HTTP tested separately, not part of this capacity proof)',
+    full2359CapacityAccepted:false,rowsReadMeaning:'mock returned rows, NOT index-inclusive D1 billing'}));
 });
 
 test('daily entry point rejects a legacy weekly config before paid calls or workspace creation',async t=>{

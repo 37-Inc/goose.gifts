@@ -10,6 +10,7 @@ import type { MutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import { encodeBuildRequest } from '../../lib/catalog/build-requests.ts';
 import type { CatalogBuildClaim, ActivationPermit } from '../../lib/catalog/build-requests.ts';
 import type { PublicationClaim, PublicationIntent } from '../../lib/catalog/publication.ts';
+import { encodePublicationIntent } from '../../lib/catalog/publication.ts';
 import type { ProviderReceipt } from './provider-evidence.ts';
 
 type Json = null | boolean | number | string | Json[] | { [key:string]:Json };
@@ -39,6 +40,14 @@ export type CheckpointControl = Omit<WorkspaceCheckpoint,'state'>;
 export interface BudgetTotals {
   httpRequests:number; sqlStatements:number; knownRowsRead:number; knownRowsWritten:number; unconfirmedRequests:number;
 }
+/** Body-free successor evidence. Historical checkpoints/markers are not changed.
+ * Only the accounted DB observer in purge-workspaces should create this input. */
+export interface PublicationSuccessInput {
+  schemaVersion:1;checkpointSha256:string;receiptSha256:string;configSha256:string;packageSha256:string;usage:BudgetTotals;
+  journal:{sequence:number;sha256:string};
+  receipt:Record<string,unknown>;build:Record<string,unknown>;scope:Record<string,unknown>;
+}
+export interface PublicationSuccess extends PublicationSuccessInput {recoveryBounds:{count:number;sha256:string}}
 export interface BudgetCeiling { httpRequests:number; sqlStatements:number }
 export interface ActivationRecoveryBudget {
   expectedCheckpointSha256:string; approvalReference:string; allowance:BudgetCeiling;
@@ -79,15 +88,17 @@ type Event = {type:'artifact';ref:ArtifactRef} | {type:'checkpoint';ref:Artifact
   | {type:'publication-build-cleaned';releaseId:string}
   | {type:'publication-purged';releaseId:string;purgedAt:string}
   | {type:'activation-recovery-budget';grant:RecoveryGrant}
+  | {type:'publication-success';proof:PublicationSuccess}
   | {type:'reserve';reservation:BudgetReservation} | {type:'settle';id:string;settlement:BudgetSettlement};
 type RecordFile = {schemaVersion:1;sequence:number;parent:string|null;event:Event};
-type State = {manifest:WorkspaceManifest;recovery:RecoveryGrant|null;head:string|null;count:number;bytes:number;checkpoint:CheckpointView|null;body:ArtifactRef|null;previous:string|null;totals:BudgetTotals;
+type State = {manifest:WorkspaceManifest;recovery:RecoveryGrant|null;success:PublicationSuccess|null;head:string|null;count:number;bytes:number;checkpoint:CheckpointView|null;body:ArtifactRef|null;previous:string|null;totals:BudgetTotals;
   refs:Map<string,ArtifactRef>;purged:Map<string,PurgedArtifact>;
   publications:Map<string,{retention:PublicationDirectories;buildCleaned:boolean;purged:boolean}>;
   reservations:Map<string,{reservation:BudgetReservation;settlement?:BudgetSettlement}>};
 export interface WorkspaceStatus {
   directory:string;manifest:WorkspaceManifest;manifestSha256:string;checkpoint:CheckpointView|null;budget:BudgetTotals;budgetCeiling:BudgetCeiling;
   expired:{reference:string;kind:Kind;expiresAt:string}[];
+  successfulPublication:PublicationSuccess|null;
 }
 export interface RunWorkspace {
   readonly directory:string;readonly repository:string;readonly manifest:WorkspaceManifest;readonly manifestSha256:string;
@@ -109,6 +120,10 @@ export interface RunWorkspace {
    * old charges, claims, leases or retention. Requires separately approved NEW
    * operator code; old readers deliberately reject its unknown journal event. */
   grantActivationRecoveryBudget(input:ActivationRecoveryBudget):Promise<BudgetCeiling>;
+  /** Append once after an accounted actual receipt/resolved-build/idle snapshot.
+   * Seals this run against any later charge or execution; never renews bodies. */
+  recordPublicationSuccess(input:PublicationSuccessInput):Promise<PublicationSuccess>;
+  publicationSuccess():Promise<PublicationSuccess|null>;
   budget():Promise<BudgetTotals>;budgetCeiling():Promise<BudgetCeiling>;close():Promise<void>;
   /** Claims only absent exact package/build-output paths before generation. */
   preparePublicationDirectories(releaseId:string,observedAt:string,nextExpiry:string|null):Promise<void>;
@@ -327,9 +342,64 @@ async function loadStored(directory:string,ref:ArtifactRef,manifest:WorkspaceMan
   return value;
 }
 function fresh(value:Stored,now:string) {if(Date.parse(value.observedAt)>Date.parse(now)||Date.parse(value.expiresAt)<=Date.parse(now))fail('expired');}
-const empty=(manifest:WorkspaceManifest):State=>({manifest,recovery:null,head:null,count:0,bytes:0,checkpoint:null,body:null,previous:null,
+const empty=(manifest:WorkspaceManifest):State=>({manifest,recovery:null,success:null,head:null,count:0,bytes:0,checkpoint:null,body:null,previous:null,
   totals:{httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0},refs:new Map(),purged:new Map(),publications:new Map(),reservations:new Map()});
+function publicationSuccess(state:State,p:PublicationSuccess) {
+  const cp=state.checkpoint,c=cp?.checkpoint.control?.publication,o=c?.permit?.mutationOwner;
+  if(!exact(p,['schemaVersion','checkpointSha256','receiptSha256','configSha256','packageSha256','usage','journal','receipt','build','scope','recoveryBounds'])||p.schemaVersion!==1
+    ||!cp||p.checkpointSha256!==cp.sha256||!c||c.stage!=='published'||!hash(c.receiptSha256)||!c.intent||!c.permit||!o||o.phase!=='activating'
+    ||!c.packageSha256||!c.versionReference||p.packageSha256!==c.packageSha256||p.configSha256!==c.configSha256
+    ||!hash(p.receiptSha256)||p.receiptSha256!==sha256(canonicalJson(p.receipt))||!same(p.usage,totals(state))
+    ||!exact(p.journal,['sequence','sha256'])||p.journal.sequence!==state.count||p.journal.sha256!==state.head
+    ||[...state.reservations.values()].some(r=>!r.settlement)
+    ||!exact(p.recoveryBounds,['count','sha256'])||!integer(p.recoveryBounds.count)||p.recoveryBounds.count>MAX_EVENTS||!hash(p.recoveryBounds.sha256))fail('publication_success');
+  const r=p.receipt,b=p.build,s=p.scope;
+  const completedAt=Date.parse(time(r.completed_at)),observedAt=Date.parse(time(s.observed_at));
+  if(c.receiptSha256!==sha256(canonicalJson({schemaVersion:1,environment:state.manifest.scope.environment,
+    accountId:state.manifest.scope.accountId,workerName:state.manifest.scope.workerName,releaseId:c.intent.releaseId,
+    versionReference:c.versionReference,requestId:c.requestId,intent:c.intent}))
+    ||c.build.request.sourceRevision!==c.intent.catalogRevision||c.build.request.sourceDigest!==c.intent.catalogSnapshotSha256
+    ||c.build.request.codeSha!==c.intent.codeSha)fail('publication_success');
+  if(!exact(r,['release_id','catalog_revision','code_sha','completed_at','manifest_json'])
+    ||r.release_id!==c.intent.releaseId||r.catalog_revision!==c.intent.catalogRevision||r.code_sha!==c.intent.codeSha
+    ||r.manifest_json!==encodePublicationIntent(c.intent)
+    ||!exact(b,['request_id','environment','source_revision','request_json','state','lease_token','lease_until','run_reference','release_id','version_reference','error_code'])
+    ||b.request_id!==c.requestId||b.environment!==state.manifest.scope.environment||b.source_revision!==c.intent.catalogRevision
+    ||b.request_json!==encodeBuildRequest(c.build.request)||c.requestId!==sha256(encodeBuildRequest(c.build.request))
+    ||b.state!=='resolved'||b.lease_token!==c.permit.token||b.lease_until!==null||b.run_reference!==c.permit.runReference
+    ||b.release_id!==c.permit.releaseId||b.version_reference!==c.permit.versionReference||b.error_code!==null
+    ||!exact(s,['environment','index_name','generation','mutation_epoch','phase','owner_token','owner_reference','operation_key','captured_at','external_pending','activation_request_id','observed_at'])
+    ||s.environment!==state.manifest.scope.environment||s.index_name!==state.manifest.scope.indexName||s.generation!==o.generation||s.mutation_epoch!==o.epoch
+    ||s.phase!=='idle'||s.external_pending!==0||['owner_token','owner_reference','operation_key','captured_at','activation_request_id'].some(k=>s[k]!==null)
+    ||completedAt>observedAt||completedAt<Date.parse(c.build.request.capturedAt)||observedAt<Date.parse(o.capturedAt))fail('publication_success');
+}
+/** This directory is body-free but not trusted by its name. Bind every exact
+ * immutable wrapper to its real reservation/known cost, then pin the inventory. */
+async function recoveryBoundsInventory(directory:string,state:State) {
+  const root=join(directory,'publication-recovery-bounds'),inventory=[];
+  try{await protectedStat(root,true);await pathWithoutLinks(root);}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return{count:0,sha256:sha256(canonicalJson([]))};throw e;}
+  const names=(await readdir(root)).sort();if(names.length>MAX_EVENTS)fail('publication_success_metadata');
+  for(const name of names){
+    if(!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}\.json$/.test(name))fail('publication_success_metadata');
+    const v=await readJson(join(root,name),16*1024) as {schemaVersion:number;kind:string;recoveryBudgetSha256:string;helperSha256:string;bound:{id:string;requestSha256:string;sqlStatements:number;statementSha256s:string[];rowsReadBound:number;rowsWrittenBound:number}};
+    if(!exact(v,['schemaVersion','kind','recoveryBudgetSha256','helperSha256','bound']))fail('publication_success_metadata');
+    const b=v.bound,r=state.reservations.get(name.slice(0,-5));
+    if(v.schemaVersion!==1||v.kind!=='publication-recovery-reservation-bound'
+      ||!hash(v.recoveryBudgetSha256)||!hash(v.helperSha256)||!exact(b,['id','requestSha256','sqlStatements','statementSha256s','rowsReadBound','rowsWrittenBound'])
+      ||!r?.settlement||b.id!==name.slice(0,-5)||b.requestSha256!==r.reservation.requestSha256||b.sqlStatements!==r.reservation.units.sqlStatements
+      ||!Array.isArray(b.statementSha256s)||b.statementSha256s.length!==b.sqlStatements||!b.statementSha256s.every(hash)
+      ||!integer(b.rowsReadBound)||b.rowsReadBound>80000||!integer(b.rowsWrittenBound)||b.rowsWrittenBound>1000
+      ||!b.sqlStatements&&(b.rowsReadBound!==0||b.rowsWrittenBound!==0)
+      ||r.settlement.status==='known'&&(r.settlement.usage.rowsRead>b.rowsReadBound||r.settlement.usage.rowsWritten>b.rowsWrittenBound))fail('publication_success_metadata');
+    inventory.push({name,sha256:sha256(canonicalJson(v))});
+  }
+  return{count:inventory.length,sha256:sha256(canonicalJson(inventory))};
+}
+async function verifySuccessMetadata(directory:string,state:State){
+  if(state.success&&!same(state.success.recoveryBounds,await recoveryBoundsInventory(directory,state)))fail('publication_success_metadata');
+}
 function apply(state:State,event:Event,dry=false) {
+  if(state.success&&!['purge','publication-build-cleaned','publication-purged'].includes(event.type))fail('publication_completed');
   if(event.type==='artifact'){if(!exact(event,['type','ref']))fail('event');artifactRef(event.ref);if(!dry)state.refs.set(event.ref.sha256,event.ref);}
   else if(event.type==='purge'){
     if(!exact(event,['type','artifact','purgedAt'])||Date.parse(time(event.purgedAt))<Date.parse(event.artifact.expiresAt)
@@ -366,6 +436,9 @@ function apply(state:State,event:Event,dry=false) {
     if(!hash(permitSha256)||permitSha256!==sha256(canonicalJson(recoveryPermit(state)))||!same(usage,totals(state)))fail('recovery_binding');
     if(!integer(usage.httpRequests+input.allowance.httpRequests)||!integer(usage.sqlStatements+input.allowance.sqlStatements))fail('budget_overflow');
     if(!dry)state.recovery=event.grant;
+  }else if(event.type==='publication-success'){
+    if(!exact(event,['type','proof']))fail('publication_success');publicationSuccess(state,event.proof);
+    if(!dry)state.success=event.proof;
   } else if(event.type==='reserve'){
     if(!exact(event,['type','reservation']))fail('event');reservation(event.reservation);
     if(state.reservations.has(event.reservation.id))fail('budget_duplicate');
@@ -527,9 +600,10 @@ export async function readRunWorkspace(input:RunWorkspaceOptions):Promise<Worksp
   input={...input,scope:structuredClone(input.scope),retention:structuredClone(input.retention),budgetCaps:structuredClone(input.budgetCaps)};
   const directory=await location({...input,mode:'resume'},false);const info=await readManifest(directory,input);
   const before=(await readdir(join(directory,'events'))).sort();const state=await loadState(directory,info.manifest);
+  await verifySuccessMetadata(directory,state);
   const expiredRefs=await expired(directory,state,info.manifest,time((input.now||(()=>new Date().toISOString()))()));
   if(!same(before,(await readdir(join(directory,'events'))).sort()))fail('concurrent_read');
-  return{directory,...info,checkpoint:state.checkpoint,budget:totals(state),budgetCeiling:ceiling(state),expired:expiredRefs};
+  return{directory,...info,checkpoint:state.checkpoint,budget:totals(state),budgetCeiling:ceiling(state),expired:expiredRefs,successfulPublication:structuredClone(state.success)};
 }
 /** Host-local resource locks (D1 + Worker + build checkout), sorted to avoid lock-order
  * deadlocks across run IDs IN THE SAME CANONICAL WORKSPACE ROOT. Separate roots
@@ -563,6 +637,7 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
     // Runtime freeze prevents accidental caller scope/policy mutation.
     const freeze=(v:unknown):void=>{if(v&&typeof v==='object'){Object.values(v).forEach(freeze);Object.freeze(v);}};freeze(manifest);
     const state=await loadState(directory,manifest,true);let closed=false,poisoned=false;let queue:Promise<unknown>=Promise.resolve();
+    await verifySuccessMetadata(directory,state);
     for(const p of state.publications.values())if(p.retention.sourceRoot!==repository)fail('publication_scope');
     let usableUntil=Infinity,usableAfter=-Infinity;
     // Verify every registered body once on open; held-lock operations retain
@@ -589,6 +664,7 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       apply(state,event);state.count=next.sequence;state.head=digest;state.bytes+=bytes;
     }
     async function put(value:unknown,kind:Kind,observedAt:string,reuseOriginal=false){
+      if(state.success)fail('publication_completed');
       const ref=refFor(value);let sealed=stored(value,kind,observedAt,manifest);
       if(reuseOriginal)try{const previous=await loadStored(directory,ref,manifest);if(previous.kind!==kind)fail('kind');sealed=previous;}
       catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
@@ -603,6 +679,7 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
     const runtimePath=(releaseId:string)=>join(directory,'publication-runtime',releaseId);
     async function absent(path:string){try{await lstat(path);fail('publication_path_exists');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}}
     async function preparePublicationDirectories(releaseId:string,observedAt:string,nextExpiry:string|null){
+      if(state.success)fail('publication_completed');
       await usable();const retention=publicationDirectories(releaseId,repository,observedAt,nextExpiry,manifest),prior=state.publications.get(releaseId);
       if(prior){if(!same(prior.retention,retention)||prior.purged)fail('publication_directories');}
       if(Date.parse(retention.expiresAt)<=Date.parse(now())||Date.parse(retention.observedAt)>Date.parse(now()))fail('expired');
@@ -772,6 +849,14 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
         if(state.checkpoint?.sha256!==input.expectedCheckpointSha256)fail('checkpoint_cas');
         const grant={...structuredClone(input),permitSha256:sha256(canonicalJson(recoveryPermit(state))),usage:totals(state)};
         await append({type:'activation-recovery-budget',grant});return ceiling(state);
+      }),
+      publicationSuccess:()=>serial(async()=>{await verifySuccessMetadata(directory,state);return structuredClone(state.success);}),
+      recordPublicationSuccess:(value:PublicationSuccessInput)=>serial(async()=>{
+        const proof:PublicationSuccess={...structuredClone(value),recoveryBounds:await recoveryBoundsInventory(directory,state)};
+        if(state.success){if(!same(state.success,proof))fail('publication_completed');return structuredClone(state.success);}
+        const age=Date.parse(now())-Date.parse(time(value.scope.observed_at));
+        if(age<0||age>30_000)fail('publication_success_stale');
+        await append({type:'publication-success',proof});return structuredClone(proof);
       }),
       budget:()=>serial(async()=>totals(state)),budgetCeiling:()=>serial(async()=>ceiling(state)),
       preparePublicationDirectories:(releaseId:string,observedAt:string,nextExpiry:string|null)=>serial(()=>preparePublicationDirectories(releaseId,observedAt,nextExpiry)),

@@ -307,12 +307,18 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
         else await runWeeklyCatalogWithBackend(backend);
       });}catch(error){
         const durable=await ws.readCheckpoint();if(durable){saved=durable;cp=durable.checkpoint;}
+        // Exhaustion can also be the accounting half of the backend's paired
+        // phase/finalization failure. Do not spend another D1 read to diagnose
+        // it or leave phases_running as if the merchant batch could be retried.
+        const budgetError=[error,...(error instanceof AggregateError?error.errors:[])].find(value=>value instanceof Error
+          &&['catalog_d1_budget_exhausted','catalog_d1_reported_usage_exceeded'].includes(value.message)) as Error|undefined;
+        const errorCode=budgetError?.message??safeCode(error);
         if(cp.phase==='phases_running'){
-          const row=await telemetry.loadCatalogRun(config.runId);
+          const row=budgetError?null:await telemetry.loadCatalogRun(config.runId);
           await write({phase:row&&['partial','failed'].includes(String(row.run.status))?'phase_failed':'attention',owner:cursor.current,
-            state:{errorCode:safeCode(error)}});
+            state:{errorCode}});
         }
-        return{state:'attention',phase:cp.phase,errorCode:safeCode(error),budget:await ws.budget()};
+        return{state:'attention',phase:cp.phase,errorCode,budget:await ws.budget()};
       }
     }
     const adapters=createVectorizeRestAdapters({...scope,accountId:config.accountId,token,fetch:generalSend});

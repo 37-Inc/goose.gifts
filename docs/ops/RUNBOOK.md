@@ -142,6 +142,44 @@ Do not raise global limits, label a routine run as migration, reset a journal,
 or change the existing ten/day and Monday policies to make it pass. Pinterest
 remains paused, Vercel frozen, Neon retained and the old Neon writer off.
 
+**October23 offline readiness branch — not integrated or deployed.**
+`codex/stupid-daily-readiness-offline-20261022` starts from the audited PR266
+tree (`deb5cbc`); no fresh remote state was fetched during this offline pass.
+The ordinary permanent executor now places full source/projection CAS outside
+the short resolver observation, for all permanent releases, not only reviewed
+upload recovery. Receipt readback still has full checks before/after its native
+observation; final resolution has a fresh full check under the exact same
+activating owner before native/provider-only timed observation. No proof is
+reused across invocation/owner changes. Provider identity before/after,
+signed-zero vectors, cancellation/drain and the final receipt/owner CAS remain.
+
+The branch also reconciles the previously unmerged30-change approval boundary,
+budget-exhaustion checkpointing and body-free successful-publication cleanup.
+`recordSuccessfulPublication` is an explicit observer API, NOT invoked by the
+cleanup CLI. It requires a separately admitted, accounted one-request/three-SQL
+read of the exact actual receipt, resolved build and same-generation/epoch idle
+scope. It appends one terminal success event bound to the checkpoint, config,
+package, full ledger and exact journal head; old controls/unknowns/deadlines are
+not rewritten. The verified inventory of registered recovery-bound metadata
+remains after expiry cleanup; unknown/unregistered files or drift hold cleanup.
+No completed live workspace has been reopened or sealed by this offline pass.
+Do not run this new observer against a consumed historical allowance.
+
+Reproduce locally with Node22 from that branch, under external-network denial:
+`node --import tsx --test tests/catalog-permanent-freeze.test.mjs
+tests/catalog-cloudflare-weekly.test.mjs tests/catalog-workspace-successor.test.mjs
+tests/catalog-purge-workspaces.test.mjs tests/catalog-run-workspace.test.mjs
+tests/catalog-publish-release.test.mjs` (one shell command). The fixtures route
+HTTP locally; the merchant transport cases use the real client with synthetic
+responses, including authorization and401 refresh. Workspace CF charges,
+merchant auth/API attempts and model HTTP remain distinct counters. Synthetic
+returned rows/SQLite writes are not index-inclusive D1 billing. Compilation and
+upload are mocked in the driver fixtures; their internal transport is not
+claimed as measured. Keep800HTTP/1200SQL expected refusals, all original holds
+and unchanged10/day + Monday≤20 policies. A complete normal-run capacity proof,
+permanent predecessor/successor acceptance, reviewed integration and later
+fresh-account/Pacific-day canary remain gates; no writer or schedule is enabled.
+
 **October22 owner correction — catalog preservation and privacy:** Never
 delete or deactivate a gift, remove its search-index/native-vector entry, or
 shrink the catalog solely because a refresh deadline elapsed. The accepted

@@ -60,12 +60,12 @@ export async function reconstructPermanentSnapshot(db:CatalogD1,owner:MutationOw
 /** Prior proof only, NOT a target vector settlement receipt. Genuine approved
  * maintenance changes are linked from the old product hash through actual
  * operations; they are excluded from the OLD native-preservation claim. The
- * target's ordinary <=20 proof must separately verify their current vectors. */
+ * target's ordinary proof must separately verify their current vectors. */
 export async function readPermanentCatalogPrior(options:{db:CatalogD1;owner:MutationOwner;seal:PermanentCatalogSeal;
   approval:ApprovedCohortEnvelope;approvalSha256:string;adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>}){
   const {db,owner,seal,approval,adapters}=options,envelope=validate(seal);
   if(owner.phase!=='freezing'||sha256(canonicalJson(approval))!==options.approvalSha256||approval.schemaVersion!==1
-    ||approval.changes.length>20||new Set(approval.changes.map(c=>c.publicId)).size!==approval.changes.length)fail();
+    ||approval.changes.length>30||new Set(approval.changes.map(c=>c.publicId)).size!==approval.changes.length)fail();
   await reconstructPermanentSnapshot(db,owner,seal);
   const actual=await readOwnedLogicalRows(db,owner,{phase:'freezing'}),current=permanentSourceRows(actual),inventory=permanentSourceInventory(current);
   const old=new Map(seal.inventory.map(r=>[r.publicId,r])),changes=new Map(approval.changes.map(c=>[c.publicId,c])),changed:string[]=[];
