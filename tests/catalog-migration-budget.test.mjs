@@ -72,10 +72,21 @@ test('profile tampering, wrong day and invalid clock refuse without renewal or a
   assertOneTimeMigrationBudget(b.profile,b.sha256,new Date('2026-10-22T23:59:59.999Z'));
 });
 
-test('only the dedicated factory permits larger reported writes; ordinary defaults and bounds are unchanged',async()=>{
-  const send=transport(),a=accounting(),b=budget();
-  await assert.rejects(createCatalogD1Rest({...config,fetch:send.send,limits:{reportedRowsWritten:10001}}),/configuration_invalid/);
+test('ordinary write default stays10k; an explicit finite50k profile is allowed, never selected automatically',async()=>{
+  const send=transport();
+  await assert.rejects(createCatalogD1Rest({...config,fetch:send.send,limits:{reportedRowsWritten:50001}}),/configuration_invalid/);
   assert.equal(send.calls(),0);assert.equal(CATALOG_D1_REST_LIMITS.reportedRowsWritten,10000);
+  const ordinary=await createCatalogD1Rest({...config,fetch:send.send});
+  await assert.rejects(ordinary.prepare('INSERT INTO fixture VALUES(1)').run(),/reported_usage_exceeded/);
+  assert.equal(ordinary.metrics().reportedRowsWritten,12001);const calls=send.calls();
+  await assert.rejects(ordinary.prepare('SELECT 1').all(),/budget_exhausted/);assert.equal(send.calls(),calls);
+  const explicit=await createCatalogD1Rest({...config,fetch:send.send,limits:{reportedRowsWritten:50000}});
+  await explicit.prepare('INSERT INTO fixture VALUES(1)').run();assert.equal(explicit.metrics().reportedRowsWritten,12001);
+  assert.equal(CATALOG_D1_REST_LIMITS.reportedRowsWritten,10000);
+});
+
+test('dedicated migration factory enforces its reviewed20k profile and durable accounting',async()=>{
+  const send=transport(),a=accounting(),b=budget();
   const db=await createCatalogD1MigrationRest({...config,budget:b,ledger:zero(),accounting:a.value,fetch:send.send,now:()=>new Date(AT)});
   await db.prepare('INSERT INTO fixture VALUES(1)').run();assert.equal(db.metrics().reportedRowsWritten,12001);
   assert.equal(a.state.knownRowsWritten,12001);assert.equal(a.state.httpRequests,send.calls());

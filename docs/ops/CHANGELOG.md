@@ -306,6 +306,18 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-23 [owner+claude] — Repair the two full-suite closeout failures
+
+Owner requested a complete rerun after PR261. Current main `f03b334` reported
+1,138 passes, two failures and26 standard opt-in/build-dependent skips; the
+additional169 offline tests and lint passed. Corrected the stale migration test
+to cover the unchanged10k default, explicit finite50k profile and50,001 refusal.
+The unchanged expired-lease proof passed in isolation; run its real durable-I/O
+file once after the parallel staging fixtures, retaining all tests and production
+deadlines. A harness regression checks that separation. No production code,
+budget, provider/API, catalog, publication or scheduler change. Complete rerun,
+synthetic build and final receipts are pending in `roadmap-lbbz1.8.2`.
+
 ### 2026-10-23 [owner+codex] — Take the completed offline implementation through PR267
 
 Opened PR267 for the existing tested branch after checking for duplicate PRs,
