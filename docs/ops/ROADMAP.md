@@ -1,6 +1,18 @@
 # goose.gifts — Strategy & Roadmap
 
-## Current priority as of October 19 2026
+## Current checkpoint — October23 2026
+
+Full catalog presentation restoration is accepted on actual Cloudflare release
+`existing-restore-6856584cbd6a`:2,359 existing images/descriptions,3,383 identities,
+1,024 preserved holds and42 original substantive articles. Actual receipt,
+resolved build, idle owner and desktop/mobile/product/search checks pass.
+See RUNBOOK/JOURNAL for immutable identities and retained charges; never replay
+the completed publication. No paid upgrade or new merchant/model generation.
+The next separate engineering work is the gated daily writer/read-budget and
+whole-catalog final-resolver contract (`roadmap-lbbz1.4.3/.4.3.1`). Pinterest and
+provider shutdown retain their separate gates; they are not restoration blockers.
+
+## Historical launch priorities — October19–22 2026
 
 October22 owner correction: complete the full catalog migration, preserving
 all identities/editorial/history independently of supplier refresh clocks.
