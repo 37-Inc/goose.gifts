@@ -13,6 +13,12 @@ function search(href, query = "desk", resultState) {
   const requests = [];
   const timers = new Map();
   let nextTimer = 0;
+  const location = { href, pathname: new URL(href).pathname, search: new URL(href).search };
+  const remember = (_state, _title, path) => {
+    pushed.push(path);
+    const url = new URL(path, location.href);
+    Object.assign(location, { href: url.href, pathname: url.pathname, search: url.search });
+  };
   let scrolls = 0;
   const source = fs.readFileSync(new URL("../static-site/components/Search.tsx", import.meta.url), "utf8");
   const { outputText } = ts.transpileModule(source, { compilerOptions: {
@@ -34,11 +40,10 @@ function search(href, query = "desk", resultState) {
       return { ok: true, json: async () => ({ results: [] }) }; },
     document: { getElementById: () => ({ scrollIntoView() { scrolls++; } }) },
     window: {
-      location: { href, pathname: new URL(href).pathname, search: new URL(href).search },
+      location,
       setTimeout: (fn) => { timers.set(++nextTimer, fn); return nextTimer; },
       clearTimeout: (id) => timers.delete(id),
-      history: { pushState: (_state, _title, path) => pushed.push(path),
-        replaceState: (_state, _title, path) => pushed.push(path) },
+      history: { pushState: remember, replaceState: remember },
       dispatchEvent: () => {},
       addEventListener: (name, listener) => events.set(name, listener),
       removeEventListener: (name) => events.delete(name),
