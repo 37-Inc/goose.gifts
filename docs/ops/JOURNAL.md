@@ -5,6 +5,36 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 — Repository review/integration candidate PR267
+
+The explicit continuation authorizes Git/GitHub review/integration only, not
+live catalog/provider/merchant/model execution, deployment or job activation.
+Inspected the clean completed branch, existing PRs and current main: no duplicate
+or competing open PR. Main64b26ce is the PR266 squash of original basedeb5cbc,
+with an exactly equal tree. Merge9a5f6c2 resolves only documentation conflicts
+by retaining the identical completed ebb4294 tree; every evidence/source commit
+is preserved. No Actions workflows, active repository webhooks, branch protection
+or required checks/reviews were configured; vercel.json still disables Git
+deployments. No deployment commands or provider-account operations were invoked.
+
+PR: https://github.com/37-Inc/goose.gifts/pull/267.
+Configured Codex review request:
+https://github.com/37-Inc/goose.gifts/pull/267#issuecomment-6362728893.
+Review status/comment:
+https://github.com/37-Inc/goose.gifts/pull/267#issuecomment-6362733832.
+This entry records the candidate, not a claim of completed review or integration;
+use the exact final PR merge/head and Beads receipt for that outcome.
+
+Full branch diff-check caught an extra EOF blank line in the extracted fixture;
+removed it. This is formatting only, not a reason to repeat the accepted 28-minute
+capacity run. The authoritative JSON remains byte-identical, SHA256
+234fc82d37bf07cd2b942f65a04ff726b063d1c377c8f4600f8aa4b122009c70.
+The PR attachment tool was attempted but refused with “thread attachment identity
+count exceeds100”; do not unlink unrelated old artifacts to work around it.
+The PR link above is the durable accessible reference. Old Neon stays OFF,
+new writer GATED, Pinterest PAUSED; actual D1 cost/headroom/real-time canary and
+the exact existing scheduler activation remain separately unexecuted boundaries.
+
 ## 2026-10-23 — Complete authentic recurring flow passes the finite profile itself
 
 Finished only the offline handoff on the SAME

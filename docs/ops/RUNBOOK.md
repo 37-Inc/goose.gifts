@@ -136,15 +136,15 @@ make them appear idle: the publisher's final D1 owner read was already null.
 **Daily D1 maintenance stays GATED (`roadmap-lbbz1.4`).** A 2,359-product immutable
 projection alone exceeds ordinary 1,200 SQL / 10k-write guards; 800 HTTP is not an
 accepted whole-run measurement. Offline successor/runner/build/upload proof is
-recorded below, not permission to dispatch. Integrate the reviewed source and
+recorded below, not permission to dispatch. Code integration is tracked in PR267;
 verify a scoped actual-D1/Free-headroom profile and normal daily canary before
 enabling it.
 Do not raise global limits, label a routine run as migration, reset a journal,
 or change the existing ten/day and Monday policies to make it pass. Pinterest
 remains paused, Vercel frozen, Neon retained and the old Neon writer off.
 
-**October23 offline recurring-maintenance handoff — not integrated or deployed.**
-Work only on `codex/stupid-daily-readiness-offline-20261022`, based on the
+**October23 offline-tested recurring implementation — PR267, not a production release.**
+The original offline work used `codex/stupid-daily-readiness-offline-20261022`, based on the
 locally audited PR266 tree `deb5cbc`. Implementation `fb4fff2` carries the
 authentic permanent/recurring predecessor, full private inventory and current
 operation links through a flat, disjoint historical/current-native union.
@@ -204,9 +204,9 @@ precede, and are not charged to, the measured routine ledgers.
 Wire counters are body bytes, not invoice totals. The fixed fixture clock and
 explicit 25-hour step test expiry, not actual latency, rate limits, build leases
 or pacing. Reported-row ceilings stop subsequent calls after a metered response;
-they are not prepaid per-query cost guarantees. Before scheduler activation,
-the coordinator must integrate/review this local branch, then separately verify
-actual indexed D1 cost (including
+they are not prepaid per-query cost guarantees. PR267 is the repository review/
+integration record; its actual merge state, not local commits, establishes code
+integration. Before scheduler activation, separately verify actual indexed D1 cost (including
 unknown-request reserves), fresh account-wide Free headroom, and real-time
 lease/pacing plus one bounded live canary. Pin the exact clean operator/config,
 single protected workspace/lock, source/publication receipt and final idle owner.

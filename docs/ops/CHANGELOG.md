@@ -31,7 +31,7 @@ context: **what we've done, and where we're going.**
   survive purge/reopen, and Tuesday makes no model calls. This is direct bounded
   execution, not inference from the older larger probe. Source review and164
   focused regressions pass. Exact receipt is in `docs/ops/evidence/`.
-  Remaining live boundary: coordinator integration/review, actual indexed D1
+  Repository review/integration is tracked in PR267. Remaining live boundary: actual indexed D1
   billing, fresh shared Free headroom and real-time lease/pacing/live canary,
   then existing scheduler activation. No credentials, live gates or allowances
   changed; old Neon OFF, new writer GATED, Pinterest PAUSED.
@@ -305,6 +305,17 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-23 [owner+codex] — Take the completed offline implementation through PR267
+
+Opened PR267 for the existing tested branch after checking for duplicate PRs,
+deployment workflows/hooks and merge requirements. Current main's PR266 squash
+has the exact original base tree; merge9a5f6c2 preserves every tested commit and
+the unchanged evidence hash. Requested the configured Codex GitHub review;
+actual review/merge results are recorded in that PR and canonical Beads, not
+inferred from local commits. A branch-wide whitespace check found one extra
+blank line in the extracted test helper; removed it without changing behavior.
+No production, catalog, credential, cadence, paid-plan or live-gate change.
 
 ### 2026-10-23 [owner+codex] — Complete the finite offline recurring-maintenance handoff
 

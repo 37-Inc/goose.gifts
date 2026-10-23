@@ -86,4 +86,3 @@ export async function permanentCatalogFixture(t,{count=12,afterExpiry=false,merc
   const metrics=()=>({requests,statements,maxRequest,maxResponse});
   return{...f,scope,accountId,databaseId,db,makeDb,makeNextDayDb,request,owner:freezing,metrics,queryText,queryWire,inspect(fn){inspect=fn;},loseSeal(){loseSeal=true;}};
 }
-
