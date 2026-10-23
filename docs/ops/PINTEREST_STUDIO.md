@@ -9,6 +9,13 @@ actual nonposting smoke/after-resume receipts are in the cutover directory.
 PostHog's follow-up read was unavailable (unknown, not zero); it does not disable
 the schedule or reopen posting. Historical PAUSED wording below is superseded.
 
+The first actual resumed scheduled heartbeat completed its read-only snapshot
+at2026-10-23T23:30:08.162Z: P1420/22Pin clicks/3saves/2outbound,F336/5/1/0,
+unchanged from the cutover smoke. Both analytics reads succeeded; per-Pin
+downstream remains unknown. Three late seven-day learnings retain actual times,
+not reconstructed history. No public Pin was created. The [scheduled receipt](pinterest-measurements/2026-10-23-pm/README.md)
+is execution evidence beyond the earlier saved ACTIVE/manual-smoke proof.
+
 Cameron authorized finishing the Stupid.gifts integration PR and resuming the
 **same existing task in measurement-only mode**. This supersedes the historical
 publishing authority and October21 pause below. No new generation, approval,

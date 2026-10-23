@@ -5,6 +5,41 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 PM — first resumed scheduled measurement-only run
+
+Heartbeat trigger23:28:49.325UTC; actual observation23:30:08.162UTC in the
+dedicated reviewed operator. Account1107815345747925810/stupid_gifts/BUSINESS,
+28 public Pins/five boards. Native profile3805impressions/60opens/8saves/2outbound;
+P1420/22/3/2,F336/5/1/0, unchanged from today's cutover smoke. Bowling1379 supplies
+97.1%P exposure/both outbound; Toast274 supplies81.5%F. Excluding dominant Pins
+P41/2/0/0,F62/2/0/0. No new native click or acquisition/format winner; per-arm
+site/retailer unknown. Public v3/Sandbox and retired DB/Vercel are excluded.
+
+GA4property507421709 October16–23Pacific partial: Goose644direct+1not-set
+sessions,Stupid28direct+4amazon+1not-set;2Stupid/1Goose unassigned retailer rows,
+not Pinterest conversion evidence. Session QA filters do not establish removal
+of already-direct operator sessions; no unregistered custom dimension invented.
+PostHog550427 bounded rollingUTC recovered:38page/64list/6search/3select,no
+attributed Pinterest/retailer row, whole-QA-identity/campaign exclusions. Earlier
+HTTP504 stays a gap; absent host/fullURL/per-Pin fields remain unknown.
+
+No unresolved v11 publication receipt. Three late7day observations record current
+2impressions/zero native actions each: spider197234446ms,belly172177569ms,
+frog110716130ms beyond their exact gates. This does not reconstruct missed
+equal-age history or pretend today's earlier smoke was an exact seven-day check.
+Opossum7day23:36:45.613UTC is397451ms after this snapshot; hatOct24
+16:44:52.279UTC also not due. Six prior archived creative lifecycles remain public;
+no new28day archive.12 metrics+3candidate learnings+1run learning appended only
+through validated creative:record;969events/8experiments/37candidates.
+
+Full JSON and timing/limits are in `pinterest-measurements/2026-10-23-pm/`.
+No new Pin, creative, shortlist, approval, public/Sandbox mutation, account change,
+site/catalog maintenance, deployment, scheduler change, Bead mutation or spend.
+Canonical/catalog pins untouched. Final review still false/not due until exact
+2026-10-31T16:44:52.279Z; first expected eligible regular slotOct31 16:30Pacific.
+Leave the same ACTIVE metric-only cadence unchanged and posting off even after
+review until explicit owner approval. Routine unchanged results need no alert.
+
 ## 2026-10-23 — Simplification release and real one-product validation accepted
 
 PR269 merged4355de8; reviewed runtimef731dd58 is live on Cloudflare Free as

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261023-pm-v11-scheduled-measurement-noop",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-23T23:32:17.243Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "First resumed scheduled measurement-only heartbeat: verified stupid_gifts BUSINESS account1107815345747925810,28 retained public Pins and actual v11P6/F6 receipts. Native totals unchanged from today cutover smoke: P1420impressions/22Pin clicks/3saves/2outbound,F336/5/1/0; profile3805/60/8/2. Bowling1379impressions and both outbound supplies97.1percentP exposure; toast274supplies81.5percentF. No new native outbound or attributable Pinterest/site/retailer action. GA4Oct16–23Pacific partial: Goose644direct+1not-set sessions,Stupid28direct+4amazon+1not-set; unassigned retailer rows2Stupid/1Goose are not Pinterest conversions. PostHog550427 bounded rollingUTC measured38page/64list/6search/3select,no attributed Pinterest/outbound row; earlier504gap remains historical. QA/operator exclusions and host/privacy limitations remain. Spider/belly/frog late7day observations recorded at actual23:30:08.162UTC; opossum7day23:36:45.613UTC and hatOct24T16:44:52.279Z are not yet due at this snapshot. Six prior archived lifecycles remain public; no new28day archive due. Final review deadline unchanged/not due/delivered.",
+    "evidenceEventIds": [
+      "evt-20261023-stupid-cutover-measurement-restart",
+      "evt-20261023-pm-v11-metrics-1107815208389000013",
+      "evt-20261023-pm-v11-spider-late-7day-learning",
+      "evt-20261023-pm-v11-belly-late-7day-learning",
+      "evt-20261023-pm-v11-frog-late-7day-learning"
+    ],
+    "decision": "Routine measurement-only no-op; no new public Pin, creative, approval, catalog/site/account/Pin write, spend, format adoption, schedule/Bead mutation or duplicate job. Provider recovery without an acquisition change needs no owner notification.",
+    "nextAction": "Leave existing ACTIVE09:30/16:30Pacific schedule intact. Capture opossum/hat seven-day only at an actually eligible observation; full cohort review once at/after2026-10-31T16:44:52.279Z, expected regular slotOct31 16:30Pacific. No generation/posting even afterward without review and explicit owner approval of a next experiment."
+  }
+}
