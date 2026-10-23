@@ -727,6 +727,10 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     // The independently verified private package is sufficient for upload and
     // restart. Drop owned source intermediates now so tomorrow's run can build.
     await workspace.cleanPublicationBuild(config.releaseId);
+    // A large static build/guarded cleanup may outlive its original lease.
+    // Re-enter the existing capped, fenced built-stage reclaim BEFORE upload.
+    if(control.stage==='built'&&control.build.leaseUntil<=now().toISOString())
+      return executePublication({...options,owner,dependencies:options.dependencies});
     const intent=intentFrom(sealed.manifest,sealed.bytes);
     if(control.intent&&canonicalJson(control.intent)!==canonicalJson(intent))throw new Error('publication_package_changed');
     if(control.stage==='built'){

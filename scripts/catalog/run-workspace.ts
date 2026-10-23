@@ -414,10 +414,27 @@ function controlEvolution(old:CheckpointControl,next:CheckpointControl) {
     &&same({...a,build:b.build},b)&&same({...a.build,token:b.build.token,leaseUntil:b.build.leaseUntil},b.build)
     &&a.build.token!==b.build.token&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(b.build.token)
     &&b.build.leaseUntil>a.build.leaseUntil&&b.build.leaseUntil<=a.build.request.cutoff;
+  // Shape permission for an explicitly reviewed, proven UNACTIVATED upload.
+  // The protected operator verifies actual idle provider/freezing D1 state,
+  // original full rows and capped normal reclaims before acknowledging. This
+  // never authorizes another upload, a new version or an activating permit.
+  const uploadedReclaim=a.stage==='activating'&&b.stage===a.stage&&old.phase==='publishing'&&next.phase==='publishing'
+    &&old.owner?.phase==='freezing'&&same(old.owner,next.owner)&&same(old.phaseComplete,next.phaseComplete)
+    &&!!old.pins.publicationUploadAcknowledged&&!!old.pins.leaseRecoveryPending&&!old.pins.leaseRecoveryAcknowledged
+    &&!!next.pins.leaseRecoveryAcknowledged&&same({...old.pins,leaseRecoveryAcknowledged:next.pins.leaseRecoveryAcknowledged},next.pins)
+    &&a.permit===null&&b.permit===null&&a.deploymentId===null&&b.deploymentId===null&&a.receiptSha256===undefined&&b.receiptSha256===undefined
+    &&!!a.versionReference&&hash(a.packageSha256)&&!!a.publication&&!!b.publication
+    &&same({...a,build:b.build,publication:b.publication},b)
+    &&same({...a.build,token:b.build.token,leaseUntil:b.build.leaseUntil},b.build)
+    &&same({...a.publication,token:b.publication.token,leaseUntil:b.publication.leaseUntil},b.publication)
+    &&a.build.token!==b.build.token&&a.publication.token!==b.publication.token
+    &&[b.build.token,b.publication.token].every(v=>/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(v))
+    &&b.build.leaseUntil>a.build.leaseUntil&&b.publication.leaseUntil>a.publication.leaseUntil
+    &&b.build.leaseUntil<=a.build.request.cutoff&&b.publication.leaseUntil<=a.build.request.cutoff;
   for(const field of ['schemaVersion','configSha256','requestId','runReference','build','vectorPlan','uploadMarker','deploymentMarker'] as const)
-    if(!(field==='build'&&reclaimed)&&!same(a[field],b[field]))fail('control_rewrite');
+    if(!(field==='build'&&(reclaimed||uploadedReclaim))&&!same(a[field],b[field]))fail('control_rewrite');
   for(const field of ['packageSha256','publication','intent','permit','versionReference','deploymentId','receiptSha256'] as const)
-    if(a[field]!==null&&a[field]!==undefined&&!same(a[field],b[field]??null))fail('control_rewrite');
+    if(!(field==='publication'&&uploadedReclaim)&&a[field]!==null&&a[field]!==undefined&&!same(a[field],b[field]??null))fail('control_rewrite');
   const stages=['claimed','built','uploading','uploaded','activating','published'];if(stages.indexOf(b.stage)<stages.indexOf(a.stage))fail('control_rewrite');
 }
 function bindCheckpoint(value:CheckpointControl,manifest:WorkspaceManifest) {

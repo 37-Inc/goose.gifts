@@ -5,6 +5,35 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 UTC — Preserve the uploaded restoration across build-lease expiry
+
+The exact2,359-photo/description restoration is installed and its static package
+is verified (15,118 assets,42 existing substantive articles). V2 uploaded immutable
+version `1924de55-cc4b-46a9-8ca9-e30f21ea5028`, but guarded local build cleanup
+outlived the original ten-minute build lease. The activation transaction failed
+closed; independent provider/D1 inspection proves the original version still
+serves, owner is freezing, build remains building and no new receipt exists.
+The failed four-statement request exactly matches the original activation CAS.
+Both unknowns and all charges remain in the same Free-only workspace/profile.
+
+The normal publisher now re-enters its existing capped built-stage reclaim after
+cleanup and BEFORE the first upload if its lease expired. For this already
+uploaded case, an explicit private operator verifies exact provider, original
+rows and no permit before normal capped build/publication reclaims. Workspace
+control permits adopting those acknowledged replacement claims only with the
+original upload ACK, pending/ack review pins, unchanged freezing owner, intent,
+package, version, original cutoff and no activation permit. It cannot authorize
+a second upload, change content, reset attempts, extend rights or grant budget.
+Original upload/runtime/config remain6856584, not this separate operator source.
+The record/adoption step was previously rejected locally as control_rewrite;
+actual replacement claims and their ACK remain retained, never re-claimed.
+
+Focused real-workspace tests cover cleanup lease expiry, normal bounded reclaim,
+acknowledged same-upload adoption, restart and wrong-owner/source/intent/version/
+package/cutoff/permit rejection. Full driver/workspace checks are required before
+the reviewed operator records the existing ACK and resumes normal publication.
+This is not yet a live-content success claim; daily writer stays gated.
+
 ## 2026-10-23UTC / October22Pacific — Restore photo parity in final SQL publication gate
 
 The actual owner-authorized restoration installed all2,359 cache presentations

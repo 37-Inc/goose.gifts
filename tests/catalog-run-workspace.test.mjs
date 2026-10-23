@@ -140,6 +140,25 @@ function recoveryCheckpoint(runId='test-run'){
 }
 const recoveryGrant=(checkpoint,allowance={httpRequests:2,sqlStatements:3})=>({expectedCheckpointSha256:checkpoint.sha256,approvalReference:'c'.repeat(64),allowance});
 
+test('reviewed unactivated upload can adopt capped replacement claims, never a different package/version/permit',async t=>{
+  const f=await fixture(t),w=await f.open(),value=recoveryCheckpoint();value.phase='publishing';value.owner.phase='freezing';
+  const p=value.control.publication;p.permit=null;p.build.leaseUntil=p.publication.leaseUntil='2026-10-20T12:10:00.000Z';
+  const pending=await w.putArtifact({fixture:'independent unactivated/provider and original-row proof'},{kind:'phase',observedAt:NOW});
+  value.pins={publicationUploadAcknowledged:pending,leaseRecoveryPending:pending};
+  const saved=await w.writeCheckpoint(null,value),ack=await w.putArtifact({fixture:'normal capped replacement claims'},{kind:'phase',observedAt:NOW});
+  const next=structuredClone(value);next.pins.leaseRecoveryAcknowledged=ack;
+  next.control.publication.build={...p.build,token:'00000000-0000-4000-8000-000000000001',leaseUntil:'2026-10-20T12:25:00.000Z'};
+  next.control.publication.publication={...p.publication,token:'00000000-0000-4000-8000-000000000002',leaseUntil:'2026-10-20T12:25:00.000Z'};
+  const faults=[c=>{delete c.pins.leaseRecoveryAcknowledged;},c=>{c.control.publication.versionReference='another-version';},
+    c=>{c.control.publication.packageSha256='d'.repeat(64);},c=>{c.control.publication.build.request.codeSha='e'.repeat(40);},
+    c=>{c.control.publication.build.leaseUntil='2026-10-20T15:00:00.000Z';},c=>{c.owner.epoch++;},
+    c=>{c.control.publication.publication.intent.releaseId='different-release';},c=>{c.control.publication.permit=p.permit??publication().permit;}];
+  for(const mutate of faults){const bad=structuredClone(next);mutate(bad);await assert.rejects(w.writeCheckpoint(saved.sha256,bad),/control|pin/);}
+  const adopted=await w.writeCheckpoint(saved.sha256,next);await w.close();const resumed=await f.open({mode:'resume'});
+  assert.deepEqual((await resumed.readCheckpoint()).checkpoint,adopted.checkpoint);
+  assert.equal((await resumed.budget()).httpRequests,0);
+});
+
 test('explicit recovery grant fixes the ceiling at actual usage, keeps unknown charges, and resumes exactly once',async t=>{
   const f=await fixture(t,{budgetCaps:{httpRequests:1,sqlStatements:100}}),w=await f.open();
   assert.deepEqual(await w.budgetCeiling(),f.input.budgetCaps);

@@ -284,6 +284,15 @@ what's likely next.
 
 ## Changelog
 
+### 2026-10-23 [owner+codex] — Keep the verified upload through lease recovery
+
+The faithful2,359-product image/description package is built and uploaded; actual
+activation is still pending, not claimed complete. Guarded build cleanup exposed
+the original ten-minute build lease. Reclaim that lease before future uploads;
+permit an explicitly reviewed, ACK-bound same-upload claim adoption for this
+unactivated version. No re-upload, changed source/intent, renewed rights, budget
+reset or paid plan. Daily maintenance remains separately gated.
+
 ### 2026-10-22 [owner+claude] — Retire the unused Google Custom Search fallback
 
 Cameron asked to remove the old Programmable Search integration after Google's
