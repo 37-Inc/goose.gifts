@@ -22,7 +22,7 @@ context: **what we've done, and where we're going.**
 ## Upcoming / planned
 
 - [owner+codex, 2026-10-23] The offline permanent-to-recurring successor chain
-  is now implemented on `codex/stupid-daily-readiness-offline-20261022`:
+  is now implemented at `fb4fff2` on `codex/stupid-daily-readiness-offline-20261022`:
   full private inventory, immutable historical/current native union, actual
   publication anchors and body-free next-day seals. The genuine3,383-identity
   fixture publishes10+20 then10 after registered workspace expiry, retaining

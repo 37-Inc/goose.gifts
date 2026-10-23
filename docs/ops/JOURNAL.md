@@ -84,6 +84,20 @@ complete authentic runner+build/upload accounting, reviewed integration,
 actual index-inclusive billing/headroom and later canary remain unaccepted.
 No owner credential action is needed for the remaining offline engineering.
 
+Implementation receipt: local commit
+`fb4fff264b674f1067c6d63fe5bfec7c526ee22b`. Final successor pair passes after
+durable journal reopen and cancellable-source hardening; workspace/purge/
+successor regression117/117 and the10,000-ID boundary/reopen case pass.
+During the pass, approved/permanent regression56/56 and driver/publication/
+operational-import/successor287 passes plus3 explicit opt-in skips were green;
+the heavy generic build/upload probes were not rerun or counted as new evidence.
+Strict operator/Worker types and full lint pass (25 pre-existing warnings).
+Clean committedfb4fff2 static build and independent release verification pass:
+`offline-successor-fb4fff2`, THREE synthetic preview products,393 assets and372
+guarded routes. This is compile/package verification, NOT a new public release
+or a full authentic successor upload/capacity measurement. Local canonical Beads
+child/parent notes were appended under `bd --sandbox`; no Dolt/Git remote sync.
+
 ## 2026-10-23 UTC — Successful complete offline workloads measured; native successor wiring remains
 
 Continued the SAME local branch, implementation
