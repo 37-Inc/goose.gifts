@@ -10,6 +10,10 @@ the tested writer/data/delta and same-response publication contract. October22
 owner-attended Keychain approval and a fresh unchanged reader both passed;
 there is no current credential-access request outstanding.
 There is no outstanding request-cap or paid-upgrade decision for this work.
+October23: full presentation restoration is complete:2,359 existing public
+images/descriptions, actual Cloudflare receipt/resolved build/idle owner and
+browser/search verified. No owner action is needed for that restoration.
+Ordinary daily-writer readiness remains separate engineering.
 
 ## P1 — needed within the first weeks
 
@@ -38,7 +42,7 @@ review/restart gates. This is engineering coordination, not a new DNS/login
 request. Fresh sample: bowling works on Goose but the same Stupid path is 404;
 sheep works on both, without an old-to-new redirect. Do not bulk-swap Pin URLs.
 
-**Public launch, October 21:** `https://stupid.gifts/` now serves eight reviewed,
+**Historical public launch, October21:** the original launch served eight reviewed,
 fresh products from Cloudflare Free. Production Worker version
 `78278d59-a380-43fa-8227-228028e1fd53` and deployment
 `4d32fdae-d749-4ea4-a3a0-f20b5abeb32c` match the sealed launch receipt.
@@ -64,8 +68,8 @@ Matching receipt, resolved build and idle owner were verified with 148 HTTP /
 186 SQL and zero unknowns; no merchant/model/product/native writes or deadline
 renewal. Both completed publications must not be rerun. UI/privacy tasks are
 closed, including old-domain Index retirement and clean sitemap redirection.
-Full catalog `.3.2`, persistent product/supplier-field separation and the
-gated daily D1 writer are still engineering work, not another owner login ask.
+Full catalog/presentation `.3.2` is now verified complete. The gated daily D1
+writer remains engineering work, not another owner login ask.
 The separate existing dependency-audit issue is `roadmap-lbbz1.4.5`. Cameron
 approved integrating the publisher fix independently and authorized straightforward
 dependency/toolchain remediation; no further security exception is being requested

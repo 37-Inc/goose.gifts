@@ -21,23 +21,18 @@ context: **what we've done, and where we're going.**
 
 ## Upcoming / planned
 
-- [owner+codex] Restore the existing catalog's images and descriptions faithfully.
-  Owner permission is confirmed; all 2,359 public image URLs and blurbs are now
-  prepared locally from the preserved dataset. No regenerated copy, product
-  deletion, supplier refetch or paid upgrade. Source support is merged in PR262;
-  rendering, guarded-install tests and the full static build pass. A follow-up
-  native-preservation regression is fixed. Fresh Free-capacity admission and
-  verified Cloudflare content publication remain before calling this shipped.
-  Daily publishing remains separate and gated.
-  The first real preflight exposed one remaining SVG-only SQL predicate; it is
-  fixed and the actual restored dataset now passes offline search/publication
-  gates for all2,359 gifts. The undispatched attempt is retained, not presented
-  as a successful deployment.
+- [owner+codex] Faithful presentation restoration is complete and verified on
+  `existing-restore-6856584cbd6a`:2,359 original public photos/descriptions,
+  3,383 identities/1,024 holds and42 substantive articles. Actual receipt,
+  resolved build, idle owner, browser/mobile and keyword search pass. All prior
+  failures/charges remain; no replay, generation, refetch or paid upgrade.
+  Next separate work is ordinary daily-writer/bulk-resolver readiness; keep it
+  gated. Pinterest restart and provider retirement remain separate.
 
 Living list; reorder as priorities shift. Not a commitment, a shared view of
 what's likely next.
 
-- **Full prepared catalog is live — preserve the receipt** [owner+claude]:
+- **Historical first full-catalog release — preserve its receipt** [owner+claude]:
   `permanent-catalog-063d9a31ee4f` now serves 2,359 gifts, with 1,024 intentional
   holds and all 3,383 private products preserved. Actual receipt, resolved build,
   idle D1 owner, public body hashes and browser/search checks passed. Runtime is
@@ -283,6 +278,16 @@ what's likely next.
 ---
 
 ## Changelog
+
+### 2026-10-23 [owner+codex] — Original catalog presentation restored on Cloudflare
+
+All2,359 public image URLs/descriptions are restored as-is and actually live;
+3,383 identities/1,024 intentional holds preserved,42 original articles remain.
+Verified exact live package bodies, loaded photos,24→48 distinct cards, mobile390,
+deep products, affiliate tags, sitemap/Index404 and keyword search. Real receipt,
+resolved build and idle owner close the catalog restoration. No new models,
+supplier fetches, deletion or paid upgrade. All four unknowns remain charged;
+exact evidence is in JOURNAL. Daily maintenance remains separately gated.
 
 ### 2026-10-23 [owner+codex] — Keep the verified upload through lease recovery
 

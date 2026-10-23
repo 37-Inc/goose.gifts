@@ -3,7 +3,26 @@
 This document retains protected-staging history and the separate production
 checkpoint below. The launch spec and `roadmap-lbbz1` remain authoritative.
 
-### October 22 current checkpoint — full prepared catalog live and verified
+### October23 current checkpoint — faithful catalog presentation finalized
+
+Release `existing-restore-6856584cbd6a`, runtime6856584cbd6a17358963421ae73474d5575e443c,
+snapshot182f52f474d6788da23b40035df4de07ef92ba448dda0420672ea02e91ab367a,
+manifest5d64c77465da9e1eee065232d256172c7906a22505c9d6f2e8ae2c0fe28ef792,
+version1924de55-cc4b-46a9-8ca9-e30f21ea5028 and deployment
+997b3770-47ef-416e-96e4-8910fe5642f9 are actually live. D1 receipt
+39efb0e728bc05d7d180eaa4d765b484960641f3a57a8ef3820b20b6f2d0ffdf,
+resolved build and idle owner are verified. All2,359 original public photos and
+descriptions match the prepared dataset, with3,383 identities/1,024 holds
+preserved and42 existing substantive articles indexable. No expiry/paid upgrade.
+
+Actual package:15,118 assets/23,687 guarded routes. Public body hashes, sitemap,
+Index404 and keyword mug36/toilet14 pass. Chrome24→48 distinct, loaded photos,
+mobile390/no overflow and original sheep/deep waffle photo/copy/tag pass.
+JOURNAL records exact control/QA evidence and all four retained unknowns.
+V1/V2 are complete and must not replay. Daily writer remains GATED; ordinary
+whole-catalog resolver timing stays in `.4.3.1`, not falsely claimed fixed.
+
+### Historical October22 checkpoint — superseded by restoration above
 
 Release `permanent-catalog-063d9a31ee4f` serves source
 `063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6`, snapshot

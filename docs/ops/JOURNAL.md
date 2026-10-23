@@ -5,6 +5,70 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 UTC — Existing images/descriptions live, receipt finalized, catalog acceptance complete
+
+Cameron's confirmed existing-dataset presentation is restored faithfully:2,359
+public HTTPS image URLs and descriptions,3,383 preserved identities,1,024
+unchanged intentional holds,42 existing substantive articles/indexable pages.
+No new copy generation, supplier fetch, native rewrite, catalog deletion or paid
+upgrade. The exact prepared-field comparison passes for every public product.
+
+Actual release `existing-restore-6856584cbd6a`, runtime
+`6856584cbd6a17358963421ae73474d5575e443c`, snapshot
+`182f52f474d6788da23b40035df4de07ef92ba448dda0420672ea02e91ab367a`,
+manifest `5d64c77465da9e1eee065232d256172c7906a22505c9d6f2e8ae2c0fe28ef792`,
+version `1924de55-cc4b-46a9-8ca9-e30f21ea5028`, deployment
+`997b3770-47ef-416e-96e4-8910fe5642f9`. D1 receipt row SHA
+`39efb0e728bc05d7d180eaa4d765b484960641f3a57a8ef3820b20b6f2d0ffdf`,
+resolved build and actual idle owner are independently verified. Actual package
+has15,118 assets/23,687 guarded routes and no expiry. PR262/263/264 restored the
+presentation/native/SQL gates; PR265 fixed cleanup lease handling. Runtime685
+is the serving package; later operator/docs commits are not a different deploy.
+
+V1's undispatched SVG-only-SQL failure was closed under its original owner;
+its2782HTTP/6234SQL/605834reads/21580writes/zero-unknown ledger is retained.
+V2 used the same installed data (zero further product patches), normal capped
+lease reclaims and the same acknowledged uploaded version. No upload/activation
+was repeated. The final ordinary resolver tried to repeat whole-catalog proof
+inside a30second observation window. The reviewed original-permit operator
+instead performed fresh full source/projection CAS outside that window, then
+the existing exact native-only/provider observation and normal resolver. Build
+resolved and owner released normally; no proof was discarded or deadline renewed.
+The ordinary bulk resolver optimization remains in `.4.3.1`; daily writer gated.
+
+Final V2 ledger:5332HTTP/13205SQL/1892562 known reads/14192writes/four retained
+unknowns. Their reviewed500k-read/100-write reserve remains within the ORIGINAL
+2.5m-read/25k-write Free profile. Unknowns are one product-CAS read, the rejected
+expired-lease activation transaction, a deployment GET and a database-identity
+GET. Preserve all charges, manifests and failure history; do not replay V1/V2.
+
+Private evidence under `~/.codex/private/goose-gifts-migration/`:
+
+- `existing-display-20261023-v2/receipt.json`: file SHA
+  `ae411bbea8e38f90bd168309fd3f69bd6f5edda58022d3c7b559df108d237324`.
+- `existing-display-20261023-v2/catalog-control.json`: file SHA
+  `434c960466f42f71acce83b037a8a23cefef18e7f02d0a2f111c2a99e3a311e1`.
+- `existing-display-restoration-20261022/live-http-verification-1792721492446.json`:
+  SHA `280a3942687959420a0a35f07c954edce441abe847d2a3f70c9e18608b40901c`.
+  Home/four widely separated products/guide/howie/random/privacy bodies exactly
+  match the package; sitemap matches all42 indexable products; Index404 passes.
+  Keyword mug36/toilet14 return original images/descriptions; semantic stays off.
+- Same packet's desktop/mobile PNGs have SHA
+  `9e2e1a375363969222db9bab7028c92df6f0bae744a8b0399c3b0a0ed11fe610` /
+  `71b1d26c5e221bea70259d12ff669c07e5764a55949c611a43c8fb0136e67ccf`.
+  Chrome24→48 distinct,15 loaded photos/zero broken,390px/no overflow, primary
+  sheep and deep-catalog waffle photo/copy/tag, zero console errors/warnings.
+  All2,359 affiliate tags are `goose-gifts-37-20`. These are QA, not human traffic.
+
+Frozen cleanup/operator1e4b170f6f6550cdfcebef2ff267175f7fb4d8ab and runtime685
+remain retained. Final resolver helper
+`resolve-restoration-native-only-v2-20261023.mts` SHA
+`a600235bb78d221eeb821fad9babc1fddeef4b508e9d130b1c3ac891044e46ef`
+forbids upload commands and uses a strictly read-only provider sender. Full
+workspace/publisher suite295/295, separate workspace79/79, scoped types and
+lint0errors/25 unchanged warnings pass. The catalog restoration acceptance is
+complete; recurring writer, Pinterest restart and provider retirement are not.
+
 ## 2026-10-23 UTC — Preserve the uploaded restoration across build-lease expiry
 
 The exact2,359-photo/description restoration is installed and its static package

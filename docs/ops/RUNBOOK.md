@@ -57,6 +57,37 @@ Boundaries (always in force):
 
 ### Cloudflare migration boundary
 
+**October23 current release — original images/descriptions restored and verified.**
+`existing-restore-6856584cbd6a` serves runtime
+`6856584cbd6a17358963421ae73474d5575e443c`, snapshot
+`182f52f474d6788da23b40035df4de07ef92ba448dda0420672ea02e91ab367a`,
+manifest `5d64c77465da9e1eee065232d256172c7906a22505c9d6f2e8ae2c0fe28ef792`,
+version `1924de55-cc4b-46a9-8ca9-e30f21ea5028`, deployment
+`997b3770-47ef-416e-96e4-8910fe5642f9`. Actual D1 receipt
+`39efb0e728bc05d7d180eaa4d765b484960641f3a57a8ef3820b20b6f2d0ffdf`,
+resolved build and idle owner are verified. All2,359 public gifts have their
+exact existing image URLs/descriptions;3,383 identities/1,024 intentional holds
+are preserved and42 original articles are indexable. Live bodies, sitemap,
+browser24→48/mobile390/photos/product/tag and keyword search pass. No expiry,
+new merchant/model/native writes or paid upgrade. Daily writer stays gated.
+
+Do not rerun restoration V1/V2, uploads, claims, activation or finalization.
+V1's undispatched failure and all V2 charges remain retained. Final V2 ledger:
+5,332HTTP/13,205SQL/1,892,562 known reads/14,192 writes/four unknowns, with the
+500k-read/100-write uncertainty reserve inside the original Free profile.
+Keep runtime685 and the separate operator at
+`/Users/cameronehrlich/.codex/worktrees/stupid-publisher-cleanup-lease/goose.gifts`
+frozen at `1e4b170f6f6550cdfcebef2ff267175f7fb4d8ab` (PR265).
+Full source/projection CAS preceded the short native-only original-permit
+resolver. Ordinary bulk resolver/read-budget work remains in `.4.3.1`.
+For restoration retention cleanup use this NEW reader, not old43: it understands
+the reviewed same-upload ACK control. The existing purge command below applies,
+substituting this operator's script/tsx path and the exact matching repository:
+`stupid-recurring-offline/goose.gifts` for V1, `stupid-persistent-photo-sql/goose.gifts`
+for V2; the historical permanent run retains `stupid-persistent-catalog/goose.gifts`.
+All are under `/Users/cameronehrlich/.codex/worktrees/`. Keep original deadlines,
+locks and unknowns; `source_checkout_review` for other roots never permits adoption.
+
 **October22 owner clarification — restore the existing presentation.** Cameron
 expressly confirmed permission for the imagery in the existing catalog and
 requested migration of those images and descriptions as-is. Treat that owner
@@ -66,9 +97,9 @@ solely because the old API grant expired. Preserve original supplier grants,
 observations and clocks privately, rather than relabeling them. This restoration
 does not authorize new copy generation, a paid plan, reactivation of curation
 holds, native-vector changes or replay of the consumed publication allowance.
-The local prepared restoration has all 2,359 public image URLs/descriptions,
-3,383 preserved identities, unchanged 1,024 holds and 31 indexable pages. It is
-NOT deployed merely because its snapshot or local build is ready. The
+The accepted restoration has all2,359 public image URLs/descriptions,
+3,383 identities, unchanged1,024 holds and42 indexable pages. Its actual
+deployment is verified above, separately from the static build. The
 `existingDisplayReference` mode binds current exact dataset values to explicit
 owner-referenced grants. Permanent image validation supports HTTPS and local
 raster imagery through the same field-level approval contract. Follow-up D1
@@ -76,7 +107,7 @@ installation starts from a fresh cooperative capture and exact latest
 publication receipt, not the old completed import. Verify current Free capacity
 before any new publication; do not consume the old grant again.
 
-**October22 accepted release — full prepared catalog is live and verified.**
+**Historical October22 accepted release — superseded by restoration above.**
 Release `permanent-catalog-063d9a31ee4f` serves runtime source
 `063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6`, snapshot
 `a78d97dcea9302c1be4609febd42260c5a774e7cd791e75d0120d7d8124f3da7`,
@@ -136,7 +167,7 @@ deployment, domains, configuration and Neon data; this reversible release freeze
 is not provider retirement. A Vercel deployment/status is not evidence that
 Cloudflare changed. Verify the Cloudflare immutable deployment, actual
 `/.well-known/catalog-release.json`, catalog receipt and idle owner separately.
-The current accepted release is `permanent-catalog-063d9a31ee4f` above. Earlier
+The current accepted release is `existing-restore-6856584cbd6a` above. Earlier
 `homepage-code-82efb2100d66` and `9943718` releases remain completed historical
 receipts, not rerunnable recovery steps. See `STUPID_GIFTS_STAGING.md` and
 `JOURNAL.md`; daily writer `.4` remains gated independently of public acceptance.
@@ -208,13 +239,12 @@ or a changed backend flag as a successful daily canary. Preserve old Goose as
 rollback, never as a second scheduled writer.
 
 Registered-body expiry cleanup remains required. Future journal reads/purges
-MUST use the retained clean `43b229d628ca0be3aa181a3b10e1bb780080c452` toolchain
-at `stupid-reviewed-publication-window`, not superseded 165/3bf/53/d38/994 or
-runtime 63 readers. Preserve both frozen 43 and 63; do not relabel manifests.
+use the clean1e4 operator and matching repositories above, not old readers.
+Retain historical43/63 and all restoration sources; do not relabel manifests.
 The exact future cleanup invocation (not executed by these docs) is:
 
 ```sh
-/Users/cameronehrlich/.nvm/versions/node/v22.23.1/bin/node --import /Users/cameronehrlich/.codex/worktrees/stupid-reviewed-publication-window/goose.gifts/node_modules/tsx/dist/loader.mjs /Users/cameronehrlich/.codex/worktrees/stupid-reviewed-publication-window/goose.gifts/scripts/catalog/purge-workspaces.ts --workspace /Users/cameronehrlich/.codex/private/goose-gifts-migration/weekly-runs --repository /Users/cameronehrlich/.codex/worktrees/stupid-persistent-catalog/goose.gifts
+/Users/cameronehrlich/.nvm/versions/node/v22.23.1/bin/node --import /Users/cameronehrlich/.codex/worktrees/stupid-publisher-cleanup-lease/goose.gifts/node_modules/tsx/dist/loader.mjs /Users/cameronehrlich/.codex/worktrees/stupid-publisher-cleanup-lease/goose.gifts/scripts/catalog/purge-workspaces.ts --workspace /Users/cameronehrlich/.codex/private/goose-gifts-migration/weekly-runs --repository /Users/cameronehrlich/.codex/worktrees/stupid-persistent-catalog/goose.gifts
 ```
 
 `review`/`busy` reports are not permission to clear controls or locks. The
