@@ -185,11 +185,11 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
       if (results.length < limit && vectorCount < candidateLimit) {
         const products = await bounded(() => storage.keyword(query, candidateLimit - vectorCount, new Date(now()), options.catalogRevision), timeout);
         const semanticIds = new Set(results.map((product) => product.id));
+        // Storage already ranks by full-text relevance. Re-sorting these by
+        // optimistic copy/quality can bury the best actual query matches.
         const keywords = products.slice(0, candidateLimit - vectorCount)
           .filter((product) => !semanticIds.has(product.id))
-          .map((product) => result(product, keywordSimilarity(product, query), 'keyword'))
-          // Stable ties retain the indexed full-text relevance order.
-          .sort((a, b) => b.rankScore - a.rankScore);
+          .map((product) => result(product, keywordSimilarity(product, query), 'keyword'));
         results = select([...results, ...keywords], limit, now(),semanticDeadlines);
       }
       // Recheck deadlines after all I/O, and cap cache at the earliest result expiry.

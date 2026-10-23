@@ -32,6 +32,15 @@ test('permanent keyword results/cache preserve identities without supplier bytes
   assert.equal(after.searchId,null);assert.deepEqual(after.results,before.results);assert.equal(after.results[0].id,base.id);
   assert.doesNotMatch(JSON.stringify(after),/SUPPLIER|supplier\.jpg|persistent/);
 });
+
+test('keyword results preserve adapter relevance instead of re-sorting by optimistic copy and quality',async()=>{
+  const f=setup({storage:{async keyword(){return[
+    product('best',{title:'Funny BBQ Apron',humorTags:['dad','grill'],qualityScore:.6}),
+    product('weak',{title:'Funny Birthday Gift',punnyTitle:'dad who loves grilling',qualityScore:1}),
+  ];}}});f.env.SEMANTIC_SEARCH_ENABLED='false';
+  const body=await(await f.request('dad who loves grilling')).json();
+  assert.deepEqual(body.results.map(p=>p.id),['best','weak']);assert.equal(f.calls.embed,0);
+});
 test('a persistent listing never extends cached semantic proof beyond original native eligibility',async()=>{
   const base=product('one',{title:'Independent desk object',eligibleUntil:null,indexable:false});
   const outer={...base,eligibleUntil:new Date(NOW+5).toISOString(),persistent:base};
