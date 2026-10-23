@@ -427,14 +427,17 @@ test('AUTHENTIC small whole runner consumes genuine permanent native predecessor
 });
 
 async function authenticCycle(t,{full=false,realUpload=true}={}){
+  const limits={requests:5000,statements:12000,reportedRowsRead:2000000,reportedRowsWritten:50000};
   const f=await setup(t,{permanent:full?2359:22,held:full?1024:2,discovered:full?20:0,authenticPrior:true,
     realTransport:true,realUpload,at:'2026-10-19T18:00:00.000Z'});
   f.config.cadence={day:'2026-10-19',featuredIds:Array.from({length:10},(_,i)=>`B${String(11+i).padStart(9,'0')}`)};
-  f.config.backfillLimit=0;f.config.limits={requests:8000,statements:22000,reportedRowsRead:2000000,reportedRowsWritten:50000};await f.configure();
+  f.config.backfillLimit=0;f.config.limits={...limits};await f.configure();
   const held=canonicalJson(f.sql.prepare('SELECT * FROM products WHERE is_active=0 ORDER BY public_id').all());
   const ids=f.previous.products.map(p=>p.publicId),native=new Map([...f.index].map(([id,v])=>[id,structuredClone(v)]));
   let previous;
   for(let day=1;day<=2;day++){
+    assert.deepEqual(f.config.limits,limits);
+    assert.deepEqual(f.workspaceOptions.budgetCaps,{httpRequests:limits.requests,sqlStatements:limits.statements});
     amazonCreators.clearToken();f.mode.merchantUnauthorized=true;if(day===1)f.mode.modelTransientError=true;
     const before=structuredClone(f.calls),wireBefore=structuredClone(f.wire),start=await f.run('start');
     assert.equal(start.reason,'awaiting_reviewed_approval',JSON.stringify(start));const approval=await f.approve();
@@ -447,10 +450,12 @@ async function authenticCycle(t,{full=false,realUpload=true}={}){
     const wire=Object.fromEntries(Object.keys(wireBefore).map(category=>[category,Object.fromEntries(Object.keys(wireBefore[category])
       .map(k=>[k,f.wire[category][k]-wireBefore[category][k]]))]));
     t.diagnostic(JSON.stringify({scenario:`AUTHENTIC ${full?'full3383':'small24'} ${day===1?(full?'Monday10+20':'Monday10+0'):'daily10 after expiry'}`,
-      result:weeklyCommandSummary(result),budget:result.budget,calls:delta,wire,
+      limits,result:weeklyCommandSummary(result),budget:result.budget,calls:delta,wire,
       rowCost:'Synthetic returned rows/SQLite changes, NOT D1 billed scans/index writes; no live headroom assertion'}));
     assert.equal(result.state,'finalized',JSON.stringify(weeklyCommandSummary(result)));
     assert.equal(result.budget.httpRequests,delta.http);assert.equal(result.budget.sqlStatements,delta.sql);
+    assert.ok(result.budget.httpRequests<=limits.requests);assert.ok(result.budget.sqlStatements<=limits.statements);
+    assert.ok(result.budget.knownRowsRead<=limits.reportedRowsRead);assert.ok(result.budget.knownRowsWritten<=limits.reportedRowsWritten);
     assert.equal(result.budget.unconfirmedRequests,day===1?1:0);assert.equal(wire.cloudflare.requests,delta.http);
     assert.equal(delta.build,1);assert.equal(delta.upload,1);assert.equal(delta.activate,1);assert.equal(delta.finish,1);
     if(realUpload){assert.ok(delta.assetAttempts>=2);assert.equal(delta.versionAttempts,2);assert.equal(delta.uploadHttp,5+delta.assetAttempts);}
