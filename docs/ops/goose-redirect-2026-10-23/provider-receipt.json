@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-10-24T04:59:00.000Z",
+  "recordedAt": "2026-10-24T05:02:49.000Z",
   "cloudflare": {
     "accountId": "7f05a1dcb6e16f9c239564a0293bbe74",
     "accountName": "37.technology",
@@ -8,6 +8,8 @@
     "zoneName": "goose.gifts",
     "plan": "Free",
     "redirectRuleName": "Goose Gifts to Stupid Gifts permanent domain move",
+    "redirectRuleId": "aa073df214694e31baf763ba8e42ec8e",
+    "exactSettingsReadback": "http.host in {\"goose.gifts\" \"www.goose.gifts\"}; Dynamic concat(\"https://stupid.gifts\", http.request.uri.path);301;preserve query enabled;First",
     "ruleEnabled": true,
     "ruleOrder": "first",
     "priorSitemapRuleRetained": "a673acb1b1ba47569b213780657b4407",

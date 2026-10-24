@@ -20,6 +20,9 @@ cleanup rule (`a673acb1b1ba47569b213780657b4407`) is retained as the second rule
 The apex A record's proxy flag was enabled without changing `216.198.79.1`;
 www remains proxied with CNAME `26e4789c6f2426bd.vercel-dns-017.com`.
 The original Google verification TXT and both origin values are preserved.
+Actual new rule ID is `aa073df214694e31baf763ba8e42ec8e`; its edit/readback
+independently matches the reviewed expression,301,query flag and first order.
+See `cloudflare-redirect-enabled.png`. No further Save was invoked on readback.
 
 Redirects execute at Cloudflare's Rules phase before origin access, with no
 Worker, D1 or Neon request. The origin values are rollback configuration, not
