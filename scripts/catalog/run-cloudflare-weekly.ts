@@ -35,6 +35,7 @@ import amazonCreators from '../../lib/amazon-creators.js';
 import { dailyCatalogPhases, pacificCatalogCalendar, runDailyCatalogWithBackend, withCatalogCadence } from '../ops/catalog-daily.mjs';
 import {validateExecutionAdoption,validateExecutionAdoptionConfigs} from './execution-adoption.ts';
 import type {ExecutionAdoption} from './execution-adoption.ts';
+import {encodeReviewedUploadActivationApproval} from '../../lib/catalog/build-requests.ts';
 
 type KeychainRef={service:string;account:string};
 type InputRef={path:string;sha256:string;observedAt:string};
@@ -67,6 +68,23 @@ const keychain=(r:KeychainRef)=>r&&exact(r,'account,service')&&/^goose\.gifts\.[
 const safeCode=(error:unknown)=>error instanceof Error&&/^[a-z][a-z0-9_]{1,100}$/.test(error.message)?error.message:'weekly_requires_review';
 const resolving=(checkpoint:{control?:WorkspaceCheckpoint['control']})=>Boolean(checkpoint.control?.publication
   &&(checkpoint.control.publication.permit||checkpoint.control.publication.stage==='activating'));
+/** Only an exact separately approved upload continuation can leave attention.
+ * The publisher still authenticates its journal, claims, owner and provider. */
+export function reviewedUploadResume(saved:{sha256:string;checkpoint:Omit<WorkspaceCheckpoint,'state'>}|null,
+  retry:Parameters<typeof executePublication>[0]['reviewedUploadRetry']):boolean {
+  if(!saved||!retry||!exact(retry,'approval,evidence')||!exact(retry.evidence,'reference,sha256')
+    ||retry.evidence.reference!==`objects/${retry.evidence.sha256}.json`)return false;
+  try{encodeReviewedUploadActivationApproval(retry.approval);}catch{return false;}
+  const cp=saved.checkpoint,c=cp.control?.publication,a=retry.approval,p=cp.pins;
+  if(a.schemaVersion!==4||cp.phase!=='attention'||cp.owner?.phase!=='freezing'||!c||c.permit||c.deploymentId
+    ||!p.publicationUploadPending||!p.publicationUploadReview||p.publicationUploadAcknowledged
+    ||p.publicationUploadRetryAcknowledged&&!p.publicationUploadRetryPending
+    ||a.requestId!==c.requestId||a.packageSha256!==c.packageSha256||a.configSha256!==c.configSha256
+    ||a.reviewPinSha256!==p.publicationUploadReview.sha256||a.evidenceSha256!==retry.evidence?.sha256)return false;
+  return p.publicationUploadRetryPending
+    ?!!p.publicationUploadRetryAcknowledged&&['uploading','uploaded'].includes(c.stage)
+    :saved.sha256===a.checkpointSha256&&c.stage==='uploading'&&c.versionReference===null;
+}
 let executing=false; // Environment isolation across differing DB/workspace scopes in ONE process.
 
 export function validateCloudflareWeeklyConfig(input:unknown):CloudflareWeeklyConfig {
@@ -181,6 +199,8 @@ export interface WeeklyDriverOptions {
   /** Explicit already-recorded same-run recovery; never an implicit new run. */
   recovery?:{path:string;sha256:string;configPath:string;configSha256:string};
   approval?:{path:string;sha256:string};
+  /** Separately reviewed continuation of one retained, failed upload. */
+  reviewedUploadRetry?:{path:string;sha256:string};
   cadenceOnly?:boolean;
 }
 type Dependencies={repository?:string;fetch?:typeof fetch;resolveToken?:(ref:KeychainRef)=>Promise<string>;resolveWranglerOAuth?:()=>Promise<string>;now?:()=>string;
@@ -207,6 +227,9 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
   if(config.cadence&&['start','resume'].includes(options.command)&&!dependencies.cadence)
     return withCatalogCadence({workspace:options.workspace,repository:repo,now},(cadence:Dependencies['cadence'])=>runCloudflareWeekly(options,{...dependencies,cadence}));
   if(options.approval&&options.command!=='resume')throw new Error('weekly_approval_requires_phase_resume');
+  if(options.reviewedUploadRetry&&options.command!=='resume')throw new Error('weekly_upload_retry_requires_resume');
+  const reviewedUploadRetry=options.reviewedUploadRetry
+    ?await reviewed(options.reviewedUploadRetry.path,options.reviewedUploadRetry.sha256,repo) as Parameters<typeof executePublication>[0]['reviewedUploadRetry']:undefined;
   const scope={environment:config.environment,indexName:config.vectorIndex.name};const resolveToken=dependencies.resolveToken||resolveReadToken;
   const workspaceOptions:RunWorkspaceOptions={directory:options.workspace,repository:adoption?original.publication.sourceRoot:repo,mode:options.command==='start'?'create':'resume',
     runId:original.runId,configSha256:options.configSha256,codeSha:original.codeSha,
@@ -266,7 +289,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     await ws.purgeExpired();
     let saved=await ws.readCheckpoint({controlOnly:true});
     if(saved&&['phases_running','phase_failed','attention','finalized'].includes(saved.checkpoint.phase)
-      &&!(saved.checkpoint.phase==='attention'&&resolving(saved.checkpoint)))
+      &&!(saved.checkpoint.phase==='attention'&&(resolving(saved.checkpoint)||reviewedUploadResume(saved,reviewedUploadRetry))))
       return{state:saved.checkpoint.phase==='finalized'?'finalized':'attention',phase:saved.checkpoint.phase,
         ...(saved.checkpoint.phase==='finalized'?{catalogSeal:await ws.catalogSuccessor()??undefined}:{}),budget:await ws.budget()};
     const token=await resolveCloudflareCredential(config.credentials.cloudflare,resolveToken,dependencies.resolveWranglerOAuth);
@@ -283,13 +306,13 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       if(!saved||!resolving(saved.checkpoint)||!saved.checkpoint.owner)throw error;
       const result=await executePublication({db,owner:saved.checkpoint.owner,revision:null,requestId:saved.checkpoint.control!.publication!.requestId,
         runReference:saved.checkpoint.control!.publication!.runReference,workspace:ws,config:config.publication,credentials:{cloudflareToken:token,
-          identityAuthorization:await identityAuthorization()},dependencies:publication});
+          identityAuthorization:await identityAuthorization()},dependencies:publication,reviewedUploadRetry});
       return result.state==='published'?{state:'attention',phase:'published',reason:'finalization_requires_review',releaseId:result.releaseId,
         receiptSha256:result.receiptSha256,budget:await ws.budget()}:{...result,budget:await ws.budget()};
     }
     const write=async(patch:Partial<WorkspaceCheckpoint>)=>{const value={...cp,...patch};const next=await ws.writeCheckpoint(saved?.sha256||null,value);
       saved=next;cp=next.checkpoint;};
-    if(cp.phase==='attention'&&resolving(cp))cp={...cp,phase:'publishing'};
+    if(cp.phase==='attention'&&(resolving(cp)||reviewedUploadResume(saved,reviewedUploadRetry)))cp={...cp,phase:'publishing'};
     const state=()=>cp.state as Record<string,unknown>;
     if(!saved){
       if(options.command!=='start')throw new Error('weekly_checkpoint_missing');
@@ -441,7 +464,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     if(cp.phase==='publishing'){
       revision=revision||await hydrateApprovedRevision(db,cp.owner!,await readOrdered<ReturnType<typeof approvedRevisionControl>>(ws,cp.pins.revision));
       const result=await executePublication({db,owner:cp.owner!,revision,approvedCatalog:revision,requestId:String(state().requestId),runReference:config.runId,workspace:ws,
-        config:config.publication,credentials:{cloudflareToken:token,identityAuthorization:await identityAuthorization()},dependencies:publication});
+        config:config.publication,credentials:{cloudflareToken:token,identityAuthorization:await identityAuthorization()},dependencies:publication,reviewedUploadRetry});
       const changed=await ws.readCheckpoint();if(!changed)throw new Error('weekly_checkpoint_missing');saved=changed;cp=changed.checkpoint;
       if(result.state!=='published')return{...result,phase:cp.phase,budget:await ws.budget()};
       const actual=(await db.prepare('SELECT * FROM publication_receipts WHERE release_id=?').bind(result.releaseId).all()).results;

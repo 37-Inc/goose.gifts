@@ -21,6 +21,8 @@ import { beginBuildActivation, claimBuildRequest, encodeBuildRequest, resolveBui
 import { isAccountedPublicationFetch } from './publication-read-fetch.ts';
 import { isAccountedPublicationUploadCommand, PublicationUploadCommandError } from './publication-upload-command.ts';
 import { isCatalogD1Rest } from './d1-write-rest.ts';
+import {readOnlyUploadEvidence} from './upload-preflight-proof.ts';
+import type {ReadOnlyUploadEvidence} from './upload-preflight-proof.ts';
 import type { PublicationIntent } from '../../lib/catalog/publication.ts';
 import { claimPublication, completeActivatedPublication, completeActivatedPermanentPublication, completeActivatedApprovedCatalogPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
 import type { SiteAssetManifest } from '../../lib/catalog/types.ts';
@@ -131,7 +133,14 @@ export interface ReviewedUploadRetryEvidence {
 }
 type RetryRecord={schemaVersion:1;approval:ReviewedUploadActivationApproval;evidence:ArtifactRef;oldPending:ArtifactRef;oldReview:ArtifactRef;
   owner:MutationOwner;control:PublicationControl;original:ReviewedUploadActivationInput['original'];priorApproval?:ReviewedUploadActivationApprovalV1};
-function reviewedEvidence(value:unknown,config:PublicationConfig):asserts value is ReviewedUploadRetryEvidence {
+async function reviewedEvidence(value:unknown,config:PublicationConfig,w:RunWorkspace,pending:ArtifactRef,review:ArtifactRef,approval:ReviewedUploadActivationApproval) {
+  if(approval.schemaVersion===4){
+    const e=value as ReadOnlyUploadEvidence;
+    if(e?.schemaVersion!==2||e.kind!=='read-only-preflight-failure'||e.checkpointSha256!==approval.checkpointSha256||!e.journal?.through
+      ||canonicalJson(await readOnlyUploadEvidence(w,pending,review,e.journal.through))!==canonicalJson(e))
+      throw new Error('publication_upload_retry_evidence_invalid');
+    return;
+  }
   const e=value as ReviewedUploadRetryEvidence,d=e?.diagnostic,base=`https://api.cloudflare.com/client/v4/accounts/${config.accountId}`;
   if(!e||!exact(e,'assetContentRequests,diagnostic,kind,logSha256,requests,schemaVersion,versionPosts')||e.schemaVersion!==1
     ||e.kind!=='metadata-only-session-failure'||!HASH.test(e.logSha256)||e.assetContentRequests!==0||e.versionPosts!==0
@@ -336,7 +345,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   const command=options.dependencies?.command??commandDefault;const configSha256=sha256(canonicalJson(config));
   let checkpoint=await workspace.readCheckpoint({controlOnly:true});let control=checkpoint?.checkpoint.control?.publication;
   let owner=options.owner;const directory=path.join(workspace.directory,'packages',config.releaseId);
-  const runtime=path.join(workspace.directory,'publication-runtime',config.releaseId);
+  // Preserve the original failed command's logs/output byte-for-byte. The
+  // continuation remains inside the already registered retention directory.
+  const runtime=path.join(workspace.directory,'publication-runtime',config.releaseId,...(reviewed?.approval.schemaVersion===4?['read-only-retry']:[]));
   const uploadBinding=()=>({schemaVersion:1,releaseId:config.releaseId,requestId:options.requestId,configSha256,
     packageSha256:control!.packageSha256,uploadMarker:control!.uploadMarker});
   let retryRecord:RetryRecord|undefined,activationDeadline:string|undefined;
@@ -383,21 +394,21 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         ||marker&&(!ack||ack.sha256!==sha256(canonicalJson(retryAck(marker))))||!marker&&ack)
         throw new Error('publication_upload_review_required');
       activationDeadline=await reviewedUploadActivationDeadline(a,control.build.request.cutoff,reviewed.priorApproval);
-      if(a.schemaVersion===3&&now().toISOString()<a.reviewedAt)throw new Error('publication_upload_retry_cutoff');
+      if((a.schemaVersion===3||a.schemaVersion===4)&&now().toISOString()<a.reviewedAt)throw new Error('publication_upload_retry_cutoff');
       if(!control.permit&&!marker&&now().toISOString()>=activationDeadline)throw new Error('publication_upload_retry_cutoff');
       // A marker without genuine command ACK is ALWAYS held before provider IO;
       // a visible version can never mint that acknowledgement on resume.
       if(!control.permit){
-        const e=await workspace.readArtifact(reviewed.evidence);reviewedEvidence(e,config);
+        const e=await workspace.readArtifact(reviewed.evidence);await reviewedEvidence(e,config,workspace,pendingUpload,pins.publicationUploadReview,a);
         if(!marker){
           if(control.stage!=='uploading'||checkpoint.sha256!==a.checkpointSha256||control.versionReference!==null||control.permit!==null
             ||control.deploymentId!==null||control.receiptSha256!==undefined||owner.phase!=='freezing')throw new Error('publication_upload_retry_fenced');
           const review=await workspace.readArtifact(pins.publicationUploadReview) as Record<string,unknown>;
-          if(review.code!=='publication_upload_unknown'||review.requestId!==control.requestId||review.releaseId!==config.releaseId
+          if(review.code!==(a.schemaVersion===4?'publication_upload_command_failed':'publication_upload_unknown')||review.requestId!==control.requestId||review.releaseId!==config.releaseId
             ||review.configSha256!==configSha256)throw new Error('publication_upload_retry_fenced');
         }else{
           retryRecord=await workspace.readArtifact(marker) as unknown as RetryRecord;
-          if(!exact(retryRecord,`approval,control,evidence,oldPending,oldReview,original,owner,${a.schemaVersion!==1?'priorApproval,':''}schemaVersion`)||retryRecord.schemaVersion!==1
+          if(!exact(retryRecord,`approval,control,evidence,oldPending,oldReview,original,owner,${[2,3].includes(a.schemaVersion)?'priorApproval,':''}schemaVersion`)||retryRecord.schemaVersion!==1
             ||encodeReviewedUploadActivationApproval(retryRecord.approval)!==encodeReviewedUploadActivationApproval(a)
             ||canonicalJson(retryRecord.priorApproval??null)!==canonicalJson(reviewed.priorApproval??null)
             ||canonicalJson(retryRecord.evidence)!==canonicalJson(reviewed.evidence)||canonicalJson(retryRecord.oldPending)!==canonicalJson(pendingUpload)
@@ -482,19 +493,46 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         else await assertApprovedCatalogInventory(db,owner,options.approvedCatalog!,controller.signal);}
       finally{clearTimeout(timer);} // The concrete D1 sender joins its own ledger before returning.
     };
+    const readPrior=async(signal:AbortSignal):Promise<DeploymentObservation>=>{
+      signal.throwIfAborted();await workspace.assertHeld();signal.throwIfAborted();
+      const deployed=await api.deployed(signal);signal.throwIfAborted();
+      if(config.prior===null)throw new Error('publication_bootstrap_required');
+      if(deployed?.version!==config.prior.versionReference)throw new Error('publication_prior_changed');
+      let prior:PublicationIntent;
+      if(config.prior.directory!==null){
+        const priorBytes=await fs.readFile(path.join(config.prior.directory,'asset-manifest.json'),{signal});signal.throwIfAborted();
+        if(sha256(priorBytes)!==config.prior.manifestSha256)throw new Error('publication_prior_changed');
+        prior=intentFrom(JSON.parse(priorBytes.toString()),priorBytes);
+      }else{
+        if((await publicationStatus(db,config.prior.releaseId,{signal})).state!=='published')throw new Error('publication_prior_changed');signal.throwIfAborted();
+        const row=(await db.prepare('SELECT manifest_json FROM publication_receipts WHERE release_id=?')
+          .bind(config.prior.releaseId).all<{manifest_json:string}>({signal})).results[0];signal.throwIfAborted();
+        if(!row)throw new Error('publication_prior_changed');
+        prior=JSON.parse(row.manifest_json);
+        if(encodePublicationIntent(prior)!==row.manifest_json||prior.manifestSha256!==config.prior.manifestSha256)throw new Error('publication_prior_changed');
+      }
+      if(prior.releaseId!==config.prior.releaseId||!matchesIdentity(await api.identity(signal),prior))throw new Error('publication_prior_changed');signal.throwIfAborted();
+      return{environment:config.environment,settled:true,active:identity(prior,config.prior.versionReference)};
+    };
     if(reviewed&&!retryRecord&&!control.permit){
       if(!revision||!control.publication||!control.intent||owner.phase!=='freezing'||canonicalJson(actual)!==canonicalJson(owner))throw new Error('publication_upload_retry_fenced');
       const publication=(await db.prepare('SELECT * FROM publication_outbox WHERE intent_id=?').bind(control.publication.intentId).all<Record<string,unknown>>()).results[0];
       const b=control.build,p=control.publication;
-      let operator;
-      try{operator=JSON.parse(String(buildRow?.operator_recovery_json));encodeBuildRecoveryApproval(operator.approval);}
-      catch{throw new Error('publication_upload_retry_fenced');}
+      let originalClaim=false;
+      if(reviewed.approval.schemaVersion===4){
+        originalClaim=!!buildRow&&buildRow.operator_recovery_json===null&&Number.isInteger(buildRow.attempts)
+          &&Number(buildRow.attempts)>=1&&Number(buildRow.attempts)<=3;
+      }else{
+        try{const operator=JSON.parse(String(buildRow?.operator_recovery_json));encodeBuildRecoveryApproval(operator.approval);
+          originalClaim=buildRow?.attempts===3&&operator.schemaVersion===1&&operator.kind==='unstarted-build-operator-recovery'
+            &&operator.normalAttempts===3&&operator.operatorAttempts===1&&operator.totalAttempts===4&&operator.releaseId===config.releaseId
+            &&operator.token===b.token&&operator.leaseUntil===b.leaseUntil&&canonicalJson(operator.owner)===canonicalJson(owner)
+            &&operator.approval.requestId===b.requestId&&operator.approval.packageSha256===control.packageSha256;
+        }catch{throw new Error('publication_upload_retry_fenced');}
+      }
       if(!buildRow||!publication||buildRow.state!=='building'||buildRow.lease_token!==b.token||buildRow.lease_until!==b.leaseUntil
         ||typeof buildRow.observed_at!=='string'||b.leaseUntil>buildRow.observed_at||p.leaseUntil>buildRow.observed_at
-        ||buildRow.attempts!==3||operator.schemaVersion!==1||operator.kind!=='unstarted-build-operator-recovery'
-        ||operator.normalAttempts!==3||operator.operatorAttempts!==1||operator.totalAttempts!==4||operator.releaseId!==config.releaseId
-        ||operator.token!==b.token||operator.leaseUntil!==b.leaseUntil||canonicalJson(operator.owner)!==canonicalJson(owner)
-        ||operator.approval.requestId!==b.requestId||operator.approval.packageSha256!==control.packageSha256
+        ||!originalClaim
         ||buildRow.request_json!==encodeBuildRequest(b.request)||buildRow.run_reference!==b.runReference||buildRow.release_id!==null||buildRow.version_reference!==null
         ||buildRow.dispatch_reference!==null||buildRow.error_code!==null||publication.state!=='claimed'||publication.lease_token!==p.token
         ||publication.lease_until!==p.leaseUntil||publication.intent_json!==encodePublicationIntent(p.intent)||publication.release_id!==config.releaseId
@@ -506,6 +544,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       await verifyBuiltPackage();if(!(await rollbackPreflight(db,revision.snapshot,now())).ok)throw new Error('publication_upload_retry_fenced');
       await vectorProof();if(await api.findVersion(control.uploadMarker)!==null)throw new Error('publication_upload_review_required');
       await permanentProof();
+      // The original live prior must still be active BEFORE the retry upload,
+      // not merely when the final atomic activation is considered.
+      if(reviewed.approval.schemaVersion===4)await readPrior(AbortSignal.timeout(30_000));
       const exactRow=(table:string,row:Record<string,unknown>)=>{
         const keys=Object.keys(row).sort();if(keys.some(k=>!/^[_a-z][_a-z0-9]*$/.test(k)))throw new Error('publication_upload_retry_fenced');
         return db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM ${table} WHERE ${keys.map(k=>`${k} IS ?`).join(' AND ')})
@@ -515,6 +556,10 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       await db.batch([mutationAssertion(db,owner,['freezing']),exactRow('catalog_build_requests',build),exactRow('publication_outbox',publication),mutationAssertion(db,owner,['freezing'])]);
       const current=await workspace.readCheckpoint();if(current?.sha256!==reviewed.approval.checkpointSha256)throw new Error('publication_upload_retry_fenced');
       assertBuildSource(config.sourceRoot,config.codeSha);
+      if(reviewed.approval.schemaVersion===4){
+        await fs.mkdir(path.join(runtime,'tmp'),{recursive:true,mode:0o700});
+        await privateDirectories(path.join(runtime,'tmp'),workspace.directory);
+      }
       const marker=await workspace.putArtifact(retryRecord,{kind:'publication',observedAt:now().toISOString()});
       await save({},owner,{publicationUploadRetryPending:marker});
       await workspace.assertHeld();await runUpload(); // Genuine factory success is required; no unknown reconciliation can create this ACK.
@@ -789,30 +834,6 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     // Persist exact deployment intent BEFORE the D1 CAS and actual POST. A crash
     // after this point is reconciled from the exact claim, never automatically POSTed.
     if(!reviewed)await save({stage:'activating'});
-    const readPrior=async(signal:AbortSignal):Promise<DeploymentObservation>=>{
-      signal.throwIfAborted();await workspace.assertHeld();signal.throwIfAborted();
-      const deployed=await api.deployed(signal);signal.throwIfAborted();
-      if(config.prior===null)throw new Error('publication_bootstrap_required');
-      if(deployed?.version!==config.prior.versionReference)throw new Error('publication_prior_changed');
-      let prior:PublicationIntent;
-      if(config.prior.directory!==null){
-        const priorBytes=await fs.readFile(path.join(config.prior.directory,'asset-manifest.json'),{signal});signal.throwIfAborted();
-        if(sha256(priorBytes)!==config.prior.manifestSha256)throw new Error('publication_prior_changed');
-        prior=intentFrom(JSON.parse(priorBytes.toString()),priorBytes);
-      }else{
-        // Prior receipts are non-content historical identities, not permission
-        // to retain/reuse expired assets. Verify both the D1 journal and the
-        // provider's exact active version/identity before granting activation.
-        if((await publicationStatus(db,config.prior.releaseId,{signal})).state!=='published')throw new Error('publication_prior_changed');signal.throwIfAborted();
-        const row=(await db.prepare('SELECT manifest_json FROM publication_receipts WHERE release_id=?')
-          .bind(config.prior.releaseId).all<{manifest_json:string}>({signal})).results[0];signal.throwIfAborted();
-        if(!row)throw new Error('publication_prior_changed');
-        prior=JSON.parse(row.manifest_json);
-        if(encodePublicationIntent(prior)!==row.manifest_json||prior.manifestSha256!==config.prior.manifestSha256)throw new Error('publication_prior_changed');
-      }
-      if(prior.releaseId!==config.prior.releaseId||!matchesIdentity(await api.identity(signal),prior))throw new Error('publication_prior_changed');signal.throwIfAborted();
-      return{environment:config.environment,settled:true,active:identity(prior,config.prior.versionReference)};
-    };
     let observation:Promise<DeploymentObservation>|undefined,permit:ActivationPermit;
     try{
       if(reviewed){

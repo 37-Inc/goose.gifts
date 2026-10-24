@@ -1,10 +1,22 @@
 # Stupid Gifts — Same-run editorial recovery
 
-Status: **offline implementation; live recovery is not authorized or complete**.
+Status: **live recovery authorized; eight-row repair and full build complete;
+publication not yet complete**. See the newer October24 changelog entry and
+canonical Bead for current evidence. Historical preparation below is retained.
 `roadmap-lbbz1.4.9` remains open. Do not start another batch, change the timer,
 release the retained owner, or run the original daily publish command. This
 procedure supersedes the visible42/indexable34 proposal in local commits
 `f81e8d04`/`43482e1`; their historical evidence is unchanged.
+
+The accepted frozen runtime is `1e3b505eb0afc644b84de4e0cadcaa53daeb3f86`.
+The same private package must not be rebuilt or relabeled. Its first upload
+failed with two known read-only metadata requests and no POST; the new
+`editorial-upload-continuation.mts` controller is separately pinned and uses
+the original23:00UTC cutoff, retained workspace and direct owner authorization.
+It has no batch-start, ownership-reset, budget-reset or deadline-extension path.
+Its immutable preparation intent keeps the original evidence/time across local
+ACK loss. A retry requires real upload ACK, unchanged provider prior and final
+atomic source/native/receipt proof; a second upload is never inferred safe.
 
 ## Cause and correction
 

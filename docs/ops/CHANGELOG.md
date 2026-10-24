@@ -1,5 +1,19 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-24 — authorized repair and read-only upload continuation
+
+[owner+codex] Executed the approved same-run eight-row article repair and
+verified a complete static package:2359 public/1024 held products, all original
+photos/descriptions and42 substantive/indexable articles retained. The initial
+protected upload failed after exactly two known read-only metadata GETs, before
+any asset/version POST. Production is not yet changed. Added separately pinned
+V4 continuation support that reconstructs actual journal/log evidence, retains
+original claims/tokens/attempts/deadlines/accounting, verifies the live prior
+before upload, and requires a genuine command ACK plus atomic activation.
+Original failure logs stay untouched in their registered retention directory.
+The existing daily publication hold and `roadmap-lbbz1.4.9` remain open until
+actual publication, receipt/build/idle-owner/public QA and successor handoff.
+
 ## 2026-10-24 — offline same-run adoption and original article proof
 
 [owner+codex] Added one append-only execution/publication-context adoption and

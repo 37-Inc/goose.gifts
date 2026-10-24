@@ -29,6 +29,7 @@ import { nativeHash } from '../scripts/catalog/vector-outbox.ts';
 import { openRunWorkspace } from '../scripts/catalog/run-workspace.ts';
 import { createCatalogD1Rest } from '../scripts/catalog/d1-write-rest.ts';
 import { accountedPublicationFetch, accountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
+import {readOnlyUploadEvidence} from '../scripts/catalog/upload-preflight-proof.ts';
 import { readOwnedLogicalRows } from '../scripts/catalog/owned-operational-import.ts';
 import safeCatalogPayload from '../static-site/public/safe/catalog.json' with {type:'json'};
 
@@ -156,7 +157,8 @@ async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environmen
       if(mode.buildLost){delete mode.buildLost;throw new Error('PRIVATE build interrupted after output');}
     }else if(command.args.includes('upload')){
       uploadCalls++;const cfg=JSON.parse(await fs.readFile(command.args[command.args.indexOf('--config')+1]));assert.equal(cfg.name,config.workerName);
-      const runtime=path.join(workspace.directory,'publication-runtime',config.releaseId);
+      const base=path.join(workspace.directory,'publication-runtime',config.releaseId);
+      const runtime=command.env.WRANGLER_LOG_PATH===path.join(base,'read-only-retry','logs')?path.join(base,'read-only-retry'):base;
       assert.equal(command.args[command.args.indexOf('--outdir')+1],path.join(runtime,'bundle'));
       assert.equal(command.env.TMPDIR,path.join(runtime,'tmp'));assert.equal(command.env.WRANGLER_LOG_PATH,path.join(runtime,'logs'));
       uploadedConfigs.push(cfg);assert.equal(command.env.NEXT_PUBLIC_STATIC_ANALYTICS_ENABLED,'false');
@@ -456,6 +458,55 @@ test('protected upload refusal persists a body-free review gate that resume cann
 const protectedCommand=(f,run=f.command)=>accountedPublicationUploadCommand({workspace:f.workspace,
   scope:{accountId:f.config.accountId,workerName:f.config.workerName},send:async()=>assert.fail('No remote upload in synthetic command fixture'),command:run});
 const protectedMac={skip:process.platform!=='darwin'};
+
+async function readOnlyRetryFixture(t){
+  const f=await setup(t,{real:true,retentionMs:3600000});f.config.releaseId='fixture-run';
+  const command=accountedPublicationUploadCommand({workspace:f.workspace,scope:{accountId:f.config.accountId,workerName:f.config.workerName},
+    send:async()=>Response.json({success:true,result:{}}),command:async wrapped=>{
+      if(!wrapped.args.includes('upload'))return f.command(wrapped);
+      for(const suffix of [`/services/${f.config.workerName}`,`/scripts/${f.config.workerName}/secrets`])
+        await(await fetch(`${wrapped.env.CLOUDFLARE_API_BASE_URL}/accounts/${f.config.accountId}/workers${suffix}`)).arrayBuffer();
+      const log=path.join(wrapped.env.WRANGLER_LOG_PATH,'wrangler-2026-10-19_12-00-00_000.log');
+      await fs.mkdir(path.dirname(log),{recursive:true,mode:0o700});await fs.writeFile(log,'Retained original preflight\n',{mode:0o600});
+      await fs.writeFile(wrapped.env.WRANGLER_OUTPUT_FILE_PATH,
+        JSON.stringify({type:'wrangler-session',log_file_path:log,command_line_args:wrapped.args})+'\n'+
+        JSON.stringify({type:'command-failed',message:'fetch failed'})+'\n',{mode:0o600});
+      throw Error('Synthetic child exited before POST');
+    }});
+  assert.equal((await f.execute(f.db,{command})).errorCode,'publication_upload_command_failed');
+  const cp=await f.workspace.readCheckpoint(),proof=await readOnlyUploadEvidence(f.workspace,cp.checkpoint.pins.publicationUploadPending,cp.checkpoint.pins.publicationUploadReview);
+  const evidence=await f.workspace.putArtifact(proof,{kind:'publication',observedAt:f.now().toISOString()});
+  const c=cp.checkpoint.control.publication,approval={schemaVersion:4,requestId:c.requestId,packageSha256:c.packageSha256,
+    configSha256:c.configSha256,checkpointSha256:cp.sha256,reviewPinSha256:cp.checkpoint.pins.publicationUploadReview.sha256,
+    evidenceSha256:evidence.sha256,reviewReference:'fixture/exact-two-known-preflight-gets',reviewedAt:f.now().toISOString(),authorizationSha256:sha('direct owner authorization')};
+  f.advance(16*60000);const retry={approval,evidence};
+  return{f,retry,proof,run:(dependencies={})=>f.execute(f.db,{command:protectedCommand(f),...dependencies},undefined,retry)};
+}
+test('reviewed v4 real read-only journal proof preserves normal claims, original logs and one upload across replay',protectedMac,async t=>{
+  const {f,run}=await readOnlyRetryFixture(t),before={...f.sql.prepare('SELECT * FROM catalog_build_requests').get()},budget=await f.workspace.budget();
+  const log=path.join(f.workspace.directory,'publication-runtime','fixture-run','upload.ndjson'),original=await fs.readFile(log);
+  assert.equal(before.attempts,1);assert.equal(before.operator_recovery_json,null);
+  const result=await run();assert.equal(result.state,'published',JSON.stringify(result));
+  assert.equal(f.counts().buildCalls,1);assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+  const after=f.sql.prepare('SELECT * FROM catalog_build_requests').get();
+  for(const key of ['request_json','lease_token','run_reference','attempts','operator_recovery_json'])assert.equal(after[key],before[key]);
+  assert.deepEqual(await fs.readFile(log),original);assert.deepEqual(await f.workspace.budget(),budget);
+  assert.equal(await readMutationOwner(f.db,scope),null);
+  await f.reopen();assert.equal((await run()).state,'published');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+});
+test('reviewed v4 refuses stale live prior, changed evidence and lost command acknowledgement without a second upload',protectedMac,async t=>{
+  for(const fault of ['prior','evidence','ack'])await t.test(fault,async t=>{
+    const {f,run}=await readOnlyRetryFixture(t);
+    if(fault==='evidence')await fs.appendFile(path.join(f.workspace.directory,'publication-runtime','fixture-run','upload.ndjson'),'\n');
+    const fetch=async(url,init)=>fault==='prior'&&new URL(url).pathname.endsWith('/deployments')
+      ?Response.json({success:true,result:{deployments:[]}}):f.fetch(url,init);
+    const command=protectedCommand(f,async c=>{await f.command(c);if(c.args.includes('upload'))throw Error('Synthetic retry ACK lost');});
+    const result=await run(fault==='ack'?{command}:{fetch});assert.equal(result.state,'pending');assert.equal(f.counts().activateCalls,0);
+    assert.equal(f.counts().uploadCalls,fault==='ack'?1:0);
+    const before=f.counts();await f.reopen();assert.equal((await run(fault==='prior'?{fetch}:{})).state,'pending');
+    for(const key of ['buildCalls','uploadCalls','activateCalls'])assert.equal(f.counts()[key],before[key]);
+  });
+});
 
 async function legacyPreflightPending(t,{bindingPatch={},exhausted=false,fixtureOptions}={}){
   const context=await stoppedBuilt(t,fixtureOptions),{f}=context;
