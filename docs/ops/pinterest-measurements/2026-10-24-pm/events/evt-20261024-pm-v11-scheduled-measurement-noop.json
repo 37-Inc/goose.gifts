@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261024-pm-v11-scheduled-measurement-noop",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-24T23:35:33Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "Routine scheduled measurement-only read at2026-10-24T23:34:34.807Z verifies account1107815345747925810/stupid_gifts/BUSINESS,28 retained public Pins and actual frozen v11P6/F6. Native profile3894impressions/60Pin clicks/8saves/2outbound; P1441/22/3/2,F353/5/1/0, identical to morning. All28 IDs, original tracked links and boards unchanged. Bowling1390impressions supplies96.46%P exposure and both outbound; Toast280 supplies79.32%F. Excluding dominant Pins P51/2/0/0,F73/2/0/0. No new acquisition or format winner. Explicit GA4property507421709 October17-24Pacific/current partial: Goose641direct+1not-set sessions,Stupid35direct+6amazon; retailer events4Stupid/1Goose are direct/amazon, not attributable Pinterest conversions or confirmed customers. PostHog550427 rollingUTC October17T23:34:30.674Z-October24T23:34:30.674Z:41page/67list/6search/3select events, no attributed Pinterest/retailer row under campaign/whole-QA-identity exclusions. Rolling-window/provider reclassification differences are not customer or conversion regressions; per-arm/per-Pin downstream unknown. Earlier504 gap stays historical. Approved Goose URLs now redirect to equivalent Stupid paths after independent04:50:14.849UTC intervention; no rewrite or acquisition proof. Hat7day observed24582528ms late at four impressions/no native action; current lifetime snapshot, not invented exact-age history. No pending24h or new28day archive; six older creative lifecycles remain archived/public. Final review undelivered/not due until2026-10-31T16:44:52.279Z.",
+    "evidenceEventIds": [
+      "evt-20261024-am-v11-scheduled-measurement-noop",
+      "evt-20261024-goose-domain-redirect-intervention",
+      "evt-20261024-pm-v11-metrics-1107815208389000013",
+      "evt-20261024-pm-v11-hat-late-7day-learning"
+    ],
+    "decision": "Measurement-only no-op; no public Pin created, creative, shortlist, approval, public/Sandbox mutation, account/catalog/site/Bead/schedule change, deployment, spend or format adoption. Healthy bounded reads with unchanged native acquisition need no owner alert.",
+    "nextAction": "Keep same ACTIVE09:30/16:30Pacific cadence. Deliver complete six-versus-six review once at/after2026-10-31T16:44:52.279Z (expected regular slotOct31 16:30Pacific), including dominant-product sensitivity, actual ages and rebrand/destination interventions. Keep all generation/posting off afterward until Cameron explicitly approves a new experiment."
+  }
+}
