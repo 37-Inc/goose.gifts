@@ -1,0 +1,2256 @@
+{
+  "stage": "after",
+  "observedAt": "2026-10-24T04:46:33.230Z",
+  "publicReadsOnly": true,
+  "writes": 0,
+  "releaseIdentity": {
+    "release_id": "storefront-da7a1e0c1523",
+    "code_sha": "da7a1e0c152306d7e18ec510559221265d6fe886",
+    "catalog_revision": "storefront-da7a1e0c1523",
+    "catalog_snapshot_sha256": "765f61c6bc9eaa544f7f4e87a72f2231fba0a59a29c38743aa0bebc9aec0ff88",
+    "manifest_sha256": "4c48c1046d792272207087d5ac74b584dd7b8a986f8c80a610db6825106f8e86"
+  },
+  "oldSitemap": {
+    "url": "https://www.goose.gifts/sitemap.xml",
+    "status": 301,
+    "location": "https://stupid.gifts/sitemap.xml",
+    "server": "cloudflare",
+    "canonical": null,
+    "robots": null
+  },
+  "newSitemap": {
+    "url": "https://stupid.gifts/sitemap.xml",
+    "status": 200,
+    "location": null,
+    "server": "cloudflare",
+    "canonical": null,
+    "robots": null
+  },
+  "sitemapPaths": [
+    "/",
+    "/gift-guides",
+    "/gift-guides/adult-coloring-book-gifts",
+    "/gift-guides/cat-lover-gag-gifts",
+    "/gift-guides/dog-lover-gag-gifts",
+    "/gift-guides/funny-bath-gifts",
+    "/gift-guides/funny-birthday-gag-gifts",
+    "/gift-guides/funny-book-lover-gifts",
+    "/gift-guides/funny-christmas-gifts",
+    "/gift-guides/funny-coffee-mugs",
+    "/gift-guides/funny-cooking-gifts",
+    "/gift-guides/funny-gardening-gifts",
+    "/gift-guides/funny-gifts-for-bosses",
+    "/gift-guides/funny-gifts-for-coworkers",
+    "/gift-guides/funny-gifts-for-dads",
+    "/gift-guides/funny-gifts-for-dads-who-fish",
+    "/gift-guides/funny-gifts-for-gamers",
+    "/gift-guides/funny-gifts-for-men",
+    "/gift-guides/funny-gifts-for-moms",
+    "/gift-guides/funny-gifts-for-nurses",
+    "/gift-guides/funny-gifts-for-teachers",
+    "/gift-guides/funny-gifts-for-women",
+    "/gift-guides/funny-golf-gifts",
+    "/gift-guides/funny-halloween-gifts",
+    "/gift-guides/funny-hostess-gifts",
+    "/gift-guides/funny-housewarming-gifts",
+    "/gift-guides/funny-poop-gifts",
+    "/gift-guides/funny-retirement-gifts",
+    "/gift-guides/funny-stocking-stuffers",
+    "/gift-guides/funny-valentines-gifts",
+    "/gift-guides/funny-wine-gifts",
+    "/gift-guides/novelty-desk-toys",
+    "/gift-guides/office-prank-gifts",
+    "/gift-guides/optical-illusion-decor-gifts",
+    "/gift-guides/prank-gifts-for-friends",
+    "/gift-guides/sarcastic-gifts",
+    "/gift-guides/secret-santa-gag-gifts",
+    "/gift-guides/weird-bathroom-gifts",
+    "/gift-guides/weird-home-decor-gifts",
+    "/gift-guides/weird-kitchen-gadgets",
+    "/gift-guides/white-elephant-gifts",
+    "/gift-guides/white-elephant-gifts-for-adults",
+    "/gifts",
+    "/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+    "/gifts/apron-of-puns-cooking-laughing",
+    "/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+    "/gifts/blah-button-express-your-inner-blah",
+    "/gifts/bullshit-button-hit-for-instant-hilarity",
+    "/gifts/cat-pun-valentine-s-card-purrfect-romance",
+    "/gifts/cluck-this-bizarre-boy-giant-chicken-home-decor-poster",
+    "/gifts/coffee-table-book-a-jolly-mustache-affair",
+    "/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen",
+    "/gifts/desk-shenanigans-office-gag-decor-to-keep-it-fun",
+    "/gifts/desktop-therapist-let-your-desk-do-the-talking",
+    "/gifts/duck-you-figurine-a-quacky-prank-for-your-desk",
+    "/gifts/fake-it-till-you-make-it-belly-fanny-pack",
+    "/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+    "/gifts/fatbaby-funny-coffee-mug-for-women-men-sarcastic-gifts-for-coworker-office",
+    "/gifts/fresh-memes-dog-toy-fetch-a-laugh",
+    "/gifts/give-the-finger-office-edition",
+    "/gifts/gnome-more-mr-nice-guy-middle-finger-gnome",
+    "/gifts/greatest-grandpa-mug-redefining-awesome",
+    "/gifts/grumpy-frog-not-happy-but-here-to-stay",
+    "/gifts/grumpy-mug-for-those-who-keep-it-real",
+    "/gifts/hogg-f-this-shit-mug-stir-ingly-honest",
+    "/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor",
+    "/gifts/mug-shot-my-face-and-i-don-t-get-along",
+    "/gifts/my-first-fire-not-what-you-think-it-is",
+    "/gifts/nature-butts-calendar-a-cheeky-year-ahead",
+    "/gifts/opossum-ly-awesome-vintage-framed-art",
+    "/gifts/page/10",
+    "/gifts/page/11",
+    "/gifts/page/12",
+    "/gifts/page/13",
+    "/gifts/page/14",
+    "/gifts/page/15",
+    "/gifts/page/16",
+    "/gifts/page/17",
+    "/gifts/page/18",
+    "/gifts/page/19",
+    "/gifts/page/2",
+    "/gifts/page/20",
+    "/gifts/page/21",
+    "/gifts/page/22",
+    "/gifts/page/23",
+    "/gifts/page/24",
+    "/gifts/page/25",
+    "/gifts/page/26",
+    "/gifts/page/27",
+    "/gifts/page/28",
+    "/gifts/page/29",
+    "/gifts/page/3",
+    "/gifts/page/30",
+    "/gifts/page/31",
+    "/gifts/page/32",
+    "/gifts/page/33",
+    "/gifts/page/34",
+    "/gifts/page/35",
+    "/gifts/page/36",
+    "/gifts/page/37",
+    "/gifts/page/38",
+    "/gifts/page/39",
+    "/gifts/page/4",
+    "/gifts/page/40",
+    "/gifts/page/41",
+    "/gifts/page/42",
+    "/gifts/page/43",
+    "/gifts/page/44",
+    "/gifts/page/45",
+    "/gifts/page/46",
+    "/gifts/page/47",
+    "/gifts/page/48",
+    "/gifts/page/49",
+    "/gifts/page/5",
+    "/gifts/page/50",
+    "/gifts/page/51",
+    "/gifts/page/52",
+    "/gifts/page/53",
+    "/gifts/page/54",
+    "/gifts/page/55",
+    "/gifts/page/56",
+    "/gifts/page/57",
+    "/gifts/page/58",
+    "/gifts/page/59",
+    "/gifts/page/6",
+    "/gifts/page/60",
+    "/gifts/page/61",
+    "/gifts/page/62",
+    "/gifts/page/63",
+    "/gifts/page/64",
+    "/gifts/page/65",
+    "/gifts/page/66",
+    "/gifts/page/67",
+    "/gifts/page/68",
+    "/gifts/page/69",
+    "/gifts/page/7",
+    "/gifts/page/70",
+    "/gifts/page/71",
+    "/gifts/page/72",
+    "/gifts/page/73",
+    "/gifts/page/74",
+    "/gifts/page/75",
+    "/gifts/page/76",
+    "/gifts/page/77",
+    "/gifts/page/78",
+    "/gifts/page/79",
+    "/gifts/page/8",
+    "/gifts/page/80",
+    "/gifts/page/81",
+    "/gifts/page/82",
+    "/gifts/page/83",
+    "/gifts/page/84",
+    "/gifts/page/85",
+    "/gifts/page/86",
+    "/gifts/page/87",
+    "/gifts/page/88",
+    "/gifts/page/89",
+    "/gifts/page/9",
+    "/gifts/page/90",
+    "/gifts/page/91",
+    "/gifts/page/92",
+    "/gifts/page/93",
+    "/gifts/page/94",
+    "/gifts/page/95",
+    "/gifts/page/96",
+    "/gifts/page/97",
+    "/gifts/page/98",
+    "/gifts/page/99",
+    "/gifts/paw-sitively-adorable-dog-sleep-mask",
+    "/gifts/pawsitively-hilarious-cat-jokes-for-everyone",
+    "/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller",
+    "/gifts/rogue-river-tactical-funny-novelty-coffee-mug-and-yet-despite-the-look-on",
+    "/gifts/rubber-band-gun-desk-warfare-awaits",
+    "/gifts/screaming-goat-a-desk-toy-for-loud-laughter",
+    "/gifts/shear-ly-the-best-toilet-roll-holder",
+    "/gifts/spider-prank-box-a-hauntingly-good-time",
+    "/gifts/stay-weird-with-gothic-flair",
+    "/gifts/take-a-sip-retro-drinking-bird-toy",
+    "/gifts/the-annoying-cricket-prank-3-years-of-eternal-beeping-fun",
+    "/gifts/the-f-cks-jar-count-your-vents-not-your-regrets",
+    "/gifts/toilet-mug-perfect-for-liquid-assets",
+    "/gifts/venus-with-attitude-middle-finger-statue",
+    "/gifts/wiener-switch-light-up-your-night-with-laughter",
+    "/random-gift"
+  ],
+  "routes": [
+    {
+      "pathname": "/",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/adult-coloring-book-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/cat-lover-gag-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/dog-lover-gag-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-bath-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-birthday-gag-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-book-lover-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-christmas-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-coffee-mugs",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-cooking-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-gardening-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-gifts-for-bosses",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-gifts-for-coworkers",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-gifts-for-dads",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-gifts-for-dads-who-fish",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-gifts-for-gamers",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-gifts-for-men",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-gifts-for-moms",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-gifts-for-nurses",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-gifts-for-teachers",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-gifts-for-women",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-golf-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-halloween-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-hostess-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-housewarming-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-poop-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-retirement-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-stocking-stuffers",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-valentines-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/funny-wine-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/novelty-desk-toys",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/office-prank-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/optical-illusion-decor-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/prank-gifts-for-friends",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/sarcastic-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/secret-santa-gag-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/weird-bathroom-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/weird-home-decor-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/weird-kitchen-gadgets",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/white-elephant-gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gift-guides/white-elephant-gifts-for-adults",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/apron-of-puns-cooking-laughing",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/blah-button-express-your-inner-blah",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/bullshit-button-hit-for-instant-hilarity",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/cat-pun-valentine-s-card-purrfect-romance",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/cluck-this-bizarre-boy-giant-chicken-home-decor-poster",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/coffee-table-book-a-jolly-mustache-affair",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/desk-shenanigans-office-gag-decor-to-keep-it-fun",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/desktop-therapist-let-your-desk-do-the-talking",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/duck-you-figurine-a-quacky-prank-for-your-desk",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/fake-it-till-you-make-it-belly-fanny-pack",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/fatbaby-funny-coffee-mug-for-women-men-sarcastic-gifts-for-coworker-office",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/fresh-memes-dog-toy-fetch-a-laugh",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/give-the-finger-office-edition",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/gnome-more-mr-nice-guy-middle-finger-gnome",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/greatest-grandpa-mug-redefining-awesome",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/grumpy-frog-not-happy-but-here-to-stay",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/grumpy-mug-for-those-who-keep-it-real",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/hogg-f-this-shit-mug-stir-ingly-honest",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/mug-shot-my-face-and-i-don-t-get-along",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/my-first-fire-not-what-you-think-it-is",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/nature-butts-calendar-a-cheeky-year-ahead",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/opossum-ly-awesome-vintage-framed-art",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/10",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/11",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/12",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/13",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/14",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/15",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/16",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/17",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/18",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/19",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/2",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/20",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/21",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/22",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/23",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/24",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/25",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/26",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/27",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/28",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/29",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/3",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/30",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/31",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/32",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/33",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/34",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/35",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/36",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/37",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/38",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/39",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/4",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/40",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/41",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/42",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/43",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/44",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/45",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/46",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/47",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/48",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/49",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/5",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/50",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/51",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/52",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/53",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/54",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/55",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/56",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/57",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/58",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/59",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/6",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/60",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/61",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/62",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/63",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/64",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/65",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/66",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/67",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/68",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/69",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/7",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/70",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/71",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/72",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/73",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/74",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/75",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/76",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/77",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/78",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/79",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/8",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/80",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/81",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/82",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/83",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/84",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/85",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/86",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/87",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/88",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/89",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/9",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/90",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/91",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/92",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/93",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/94",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/95",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/96",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/97",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/98",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/page/99",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/paw-sitively-adorable-dog-sleep-mask",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/pawsitively-hilarious-cat-jokes-for-everyone",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/rogue-river-tactical-funny-novelty-coffee-mug-and-yet-despite-the-look-on",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/rubber-band-gun-desk-warfare-awaits",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/screaming-goat-a-desk-toy-for-loud-laughter",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/shear-ly-the-best-toilet-roll-holder",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/spider-prank-box-a-hauntingly-good-time",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/stay-weird-with-gothic-flair",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/take-a-sip-retro-drinking-bird-toy",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/the-annoying-cricket-prank-3-years-of-eternal-beeping-fun",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/the-f-cks-jar-count-your-vents-not-your-regrets",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/toilet-mug-perfect-for-liquid-assets",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/venus-with-attitude-middle-finger-statue",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/gifts/wiener-switch-light-up-your-night-with-laughter",
+      "status": 200,
+      "location": null
+    },
+    {
+      "pathname": "/random-gift",
+      "status": 200,
+      "location": null
+    }
+  ],
+  "matrix": [
+    {
+      "url": "http://goose.gifts/",
+      "status": 308,
+      "location": "https://goose.gifts/",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/",
+      "matches": false
+    },
+    {
+      "url": "http://goose.gifts/privacy",
+      "status": 308,
+      "location": "https://goose.gifts/privacy",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/privacy",
+      "matches": false
+    },
+    {
+      "url": "http://goose.gifts/random-gift",
+      "status": 308,
+      "location": "https://goose.gifts/random-gift",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/random-gift",
+      "matches": false
+    },
+    {
+      "url": "http://goose.gifts/gift-guides",
+      "status": 308,
+      "location": "https://goose.gifts/gift-guides",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/gift-guides",
+      "matches": false
+    },
+    {
+      "url": "http://goose.gifts/gifts",
+      "status": 308,
+      "location": "https://goose.gifts/gifts",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/gifts",
+      "matches": false
+    },
+    {
+      "url": "http://goose.gifts/search?q=funny%20desk&utm_source=redirect_qa",
+      "status": 308,
+      "location": "https://goose.gifts/search?q=funny%20desk&utm_source=redirect_qa",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/search?q=funny%20desk&utm_source=redirect_qa",
+      "matches": false
+    },
+    {
+      "url": "http://goose.gifts/missing-redirect-qa-20261023",
+      "status": 308,
+      "location": "https://goose.gifts/missing-redirect-qa-20261023",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/missing-redirect-qa-20261023",
+      "matches": false
+    },
+    {
+      "url": "http://goose.gifts/bundles/retired",
+      "status": 308,
+      "location": "https://goose.gifts/bundles/retired",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/bundles/retired",
+      "matches": false
+    },
+    {
+      "url": "http://goose.gifts/weird-gift-index",
+      "status": 308,
+      "location": "https://goose.gifts/weird-gift-index",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/weird-gift-index",
+      "matches": false
+    },
+    {
+      "url": "http://goose.gifts/random-gift?gift=retired-id",
+      "status": 308,
+      "location": "https://goose.gifts/random-gift?gift=retired-id",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/random-gift?gift=retired-id",
+      "matches": false
+    },
+    {
+      "url": "https://goose.gifts/",
+      "status": 308,
+      "location": "https://www.goose.gifts/",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/",
+      "matches": false
+    },
+    {
+      "url": "https://goose.gifts/privacy",
+      "status": 308,
+      "location": "https://www.goose.gifts/privacy",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/privacy",
+      "matches": false
+    },
+    {
+      "url": "https://goose.gifts/random-gift",
+      "status": 308,
+      "location": "https://www.goose.gifts/random-gift",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/random-gift",
+      "matches": false
+    },
+    {
+      "url": "https://goose.gifts/gift-guides",
+      "status": 308,
+      "location": "https://www.goose.gifts/gift-guides",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/gift-guides",
+      "matches": false
+    },
+    {
+      "url": "https://goose.gifts/gifts",
+      "status": 308,
+      "location": "https://www.goose.gifts/gifts",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/gifts",
+      "matches": false
+    },
+    {
+      "url": "https://goose.gifts/search?q=funny%20desk&utm_source=redirect_qa",
+      "status": 308,
+      "location": "https://www.goose.gifts/search?q=funny%20desk&utm_source=redirect_qa",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/search?q=funny%20desk&utm_source=redirect_qa",
+      "matches": false
+    },
+    {
+      "url": "https://goose.gifts/missing-redirect-qa-20261023",
+      "status": 308,
+      "location": "https://www.goose.gifts/missing-redirect-qa-20261023",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/missing-redirect-qa-20261023",
+      "matches": false
+    },
+    {
+      "url": "https://goose.gifts/bundles/retired",
+      "status": 308,
+      "location": "https://www.goose.gifts/bundles/retired",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/bundles/retired",
+      "matches": false
+    },
+    {
+      "url": "https://goose.gifts/weird-gift-index",
+      "status": 308,
+      "location": "https://www.goose.gifts/weird-gift-index",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/weird-gift-index",
+      "matches": false
+    },
+    {
+      "url": "https://goose.gifts/random-gift?gift=retired-id",
+      "status": 308,
+      "location": "https://www.goose.gifts/random-gift?gift=retired-id",
+      "server": "Vercel",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/random-gift?gift=retired-id",
+      "matches": false
+    },
+    {
+      "url": "http://www.goose.gifts/",
+      "status": 301,
+      "location": "https://stupid.gifts/",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/",
+      "matches": true
+    },
+    {
+      "url": "http://www.goose.gifts/privacy",
+      "status": 301,
+      "location": "https://stupid.gifts/privacy",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/privacy",
+      "matches": true
+    },
+    {
+      "url": "http://www.goose.gifts/random-gift",
+      "status": 301,
+      "location": "https://stupid.gifts/random-gift",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/random-gift",
+      "matches": true
+    },
+    {
+      "url": "http://www.goose.gifts/gift-guides",
+      "status": 301,
+      "location": "https://stupid.gifts/gift-guides",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/gift-guides",
+      "matches": true
+    },
+    {
+      "url": "http://www.goose.gifts/gifts",
+      "status": 301,
+      "location": "https://stupid.gifts/gifts",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/gifts",
+      "matches": true
+    },
+    {
+      "url": "http://www.goose.gifts/search?q=funny%20desk&utm_source=redirect_qa",
+      "status": 301,
+      "location": "https://stupid.gifts/search?q=funny%20desk&utm_source=redirect_qa",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/search?q=funny%20desk&utm_source=redirect_qa",
+      "matches": true
+    },
+    {
+      "url": "http://www.goose.gifts/missing-redirect-qa-20261023",
+      "status": 301,
+      "location": "https://stupid.gifts/missing-redirect-qa-20261023",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/missing-redirect-qa-20261023",
+      "matches": true
+    },
+    {
+      "url": "http://www.goose.gifts/bundles/retired",
+      "status": 301,
+      "location": "https://stupid.gifts/bundles/retired",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/bundles/retired",
+      "matches": true
+    },
+    {
+      "url": "http://www.goose.gifts/weird-gift-index",
+      "status": 301,
+      "location": "https://stupid.gifts/weird-gift-index",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/weird-gift-index",
+      "matches": true
+    },
+    {
+      "url": "http://www.goose.gifts/random-gift?gift=retired-id",
+      "status": 301,
+      "location": "https://stupid.gifts/random-gift?gift=retired-id",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/random-gift?gift=retired-id",
+      "matches": true
+    },
+    {
+      "url": "https://www.goose.gifts/",
+      "status": 301,
+      "location": "https://stupid.gifts/",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/",
+      "matches": true
+    },
+    {
+      "url": "https://www.goose.gifts/privacy",
+      "status": 301,
+      "location": "https://stupid.gifts/privacy",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/privacy",
+      "matches": true
+    },
+    {
+      "url": "https://www.goose.gifts/random-gift",
+      "status": 301,
+      "location": "https://stupid.gifts/random-gift",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/random-gift",
+      "matches": true
+    },
+    {
+      "url": "https://www.goose.gifts/gift-guides",
+      "status": 301,
+      "location": "https://stupid.gifts/gift-guides",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/gift-guides",
+      "matches": true
+    },
+    {
+      "url": "https://www.goose.gifts/gifts",
+      "status": 301,
+      "location": "https://stupid.gifts/gifts",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/gifts",
+      "matches": true
+    },
+    {
+      "url": "https://www.goose.gifts/search?q=funny%20desk&utm_source=redirect_qa",
+      "status": 301,
+      "location": "https://stupid.gifts/search?q=funny%20desk&utm_source=redirect_qa",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/search?q=funny%20desk&utm_source=redirect_qa",
+      "matches": true
+    },
+    {
+      "url": "https://www.goose.gifts/missing-redirect-qa-20261023",
+      "status": 301,
+      "location": "https://stupid.gifts/missing-redirect-qa-20261023",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/missing-redirect-qa-20261023",
+      "matches": true
+    },
+    {
+      "url": "https://www.goose.gifts/bundles/retired",
+      "status": 301,
+      "location": "https://stupid.gifts/bundles/retired",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/bundles/retired",
+      "matches": true
+    },
+    {
+      "url": "https://www.goose.gifts/weird-gift-index",
+      "status": 301,
+      "location": "https://stupid.gifts/weird-gift-index",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/weird-gift-index",
+      "matches": true
+    },
+    {
+      "url": "https://www.goose.gifts/random-gift?gift=retired-id",
+      "status": 301,
+      "location": "https://stupid.gifts/random-gift?gift=retired-id",
+      "server": "cloudflare",
+      "canonical": null,
+      "robots": null,
+      "expected": "https://stupid.gifts/random-gift?gift=retired-id",
+      "matches": true
+    }
+  ],
+  "pins": [
+    {
+      "pinId": "1107815208387225923",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+      "current": {
+        "url": "https://stupid.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v3&utm_content=raw_chicken_vase_formal_dinner",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/poultry-in-motion-the-raw-chicken-vase-surprise",
+        "robots": "noindex, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0G9M9XPSX",
+      "previousRetailerProductId": "B0G9M9XPSX",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208387477273",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+      "current": {
+        "url": "https://stupid.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v4&utm_content=butt_tape_architecture_desk_20260831",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/butt-tape-keeping-it-together-one-roll-at-a-time",
+        "robots": "noindex, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B08BC25ZTP",
+      "previousRetailerProductId": "B08BC25ZTP",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208387553278",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+      "current": {
+        "url": "https://stupid.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v5&utm_content=lickem_cat_brush_spa_20260901",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/lick-em-tongue-cat-brush-purr-fectly-hilarious-grooming",
+        "robots": "noindex, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B081KFS7QW",
+      "previousRetailerProductId": "B081KFS7QW",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208387630624",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+      "current": {
+        "url": "https://stupid.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_v6&utm_content=pizza_boss_still_life_20260902",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/pizza-boss-3000-slice-of-humor-for-kitchen-heroes",
+        "robots": "noindex, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B001XSFW42",
+      "previousRetailerProductId": "B001XSFW42",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208387654951",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+      "current": {
+        "url": "https://stupid.gifts/gifts/bullshit-button-hit-for-instant-hilarity?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_bullshit_button_meeting_20260902_pm",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/bullshit-button-hit-for-instant-hilarity",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B000L70MQO",
+      "previousRetailerProductId": "B000L70MQO",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208387708056",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+      "current": {
+        "url": "https://stupid.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_toilet_golf_country_club_20260903_am",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/putt-on-the-potty-funny-toilet-golf-gift",
+        "robots": "noindex, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0BBCHQJSN",
+      "previousRetailerProductId": "B0BBCHQJSN",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208387734801",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+      "current": {
+        "url": "https://stupid.gifts/gifts/give-the-finger-office-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_middle_management_statue_20260903_pm",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/give-the-finger-office-edition",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0C7J5SMPK",
+      "previousRetailerProductId": "B0C7J5SMPK",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208387789981",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+      "current": {
+        "url": "https://stupid.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_medieval_cat_soup_20260904_am",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/medieval-cat-tastic-tapestry-a-purrfectly-quirky-decor",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0GSW1X3P4",
+      "previousRetailerProductId": "B0GSW1X3P4",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208387817822",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+      "current": {
+        "url": "https://stupid.gifts/gifts/wacky-waving-inflatable-tube-guy-your-party-s-best-friend?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wacky_tube_guy_dealership_20260904_pm",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": "noindex, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": null,
+      "previousRetailerProductId": null,
+      "retailerMatchesPriorAudit": false,
+      "intentionalHold": true
+    },
+    {
+      "pinId": "1107815208387877454",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+      "current": {
+        "url": "https://stupid.gifts/gifts/the-gratiator-grate-expectations?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_gratiator_caesar_20260905_am",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/the-gratiator-grate-expectations",
+        "robots": "noindex, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B074J425V7",
+      "previousRetailerProductId": "B074J425V7",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208387907452",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+      "current": {
+        "url": "https://stupid.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_shark_mug_coastal_breakfast_20260905_pm",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/shark-attack-coffee-mug-for-jawsome-sips",
+        "robots": "noindex, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0DFW4V57B",
+      "previousRetailerProductId": "B0DFW4V57B",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208387966131",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+      "current": {
+        "url": "https://stupid.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_dog_toy_gallery_runway_20260906_am",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/fresh-memes-dog-toy-fetch-a-laugh",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0FNNBK8Q6",
+      "previousRetailerProductId": "B0FNNBK8Q6",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208387994026",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+      "current": {
+        "url": "https://stupid.gifts/gifts/my-first-fire-not-what-you-think-it-is?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_first_fire_false_alarm_20260906_pm",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/my-first-fire-not-what-you-think-it-is",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0757WW6KB",
+      "previousRetailerProductId": "B0757WW6KB",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208388049691",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+      "current": {
+        "url": "https://stupid.gifts/gifts/wiener-switch-light-up-your-night-with-laughter?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=headline_wiener_switch_mood_lighting_20260907_am",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/wiener-switch-light-up-your-night-with-laughter",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0CGXSKGXL",
+      "previousRetailerProductId": "B0CGXSKGXL",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208388077586",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+      "current": {
+        "url": "https://stupid.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_mystic_pickle_midnight_oracle_20260907_pm",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/pickle-your-problems-away-mystic-pickle-fortune-teller",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0CYKK1167",
+      "previousRetailerProductId": "B0CYKK1167",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208388134634",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+      "current": {
+        "url": "https://stupid.gifts/gifts/coffee-table-book-a-jolly-mustache-affair?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_static_format_v1&utm_content=clean_american_mustache_national_archive_20260908_am",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/coffee-table-book-a-jolly-mustache-affair",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B07KGJS2F3",
+      "previousRetailerProductId": "B07KGJS2F3",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208388715714",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+      "current": {
+        "url": "https://stupid.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_red_crab_steam_room_20260915_pm",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/crab-tacular-spoon-rest-stay-claw-some-in-the-kitchen",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B07VLBVQBP",
+      "previousRetailerProductId": "B07VLBVQBP",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208388765155",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+      "current": {
+        "url": "https://stupid.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_farting_ring_courtship_20260916_am",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/farting-ring-box-the-ring-that-will-crack-you-up",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B01KR3SAIS",
+      "previousRetailerProductId": "B01KR3SAIS",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208388788830",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+      "current": {
+        "url": "https://stupid.gifts/gifts/gnome-pun-intended-the-chia-pet-edition?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_chia_gnome_barbershop_20260916_pm",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/gnome-pun-intended-the-chia-pet-edition",
+        "robots": "noindex, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B008VVUWQC",
+      "previousRetailerProductId": "B008VVUWQC",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208389000013",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+      "current": {
+        "url": "https://stupid.gifts/gifts/bowling-mini-toys-strike-up-some-fun?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_mini_bowling_boardroom_20260919_am",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/bowling-mini-toys-strike-up-some-fun",
+        "robots": "noindex, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B082PSJYYP",
+      "previousRetailerProductId": "B082PSJYYP",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208389027583",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+      "current": {
+        "url": "https://stupid.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_birthday_toast_breakfast_20260919_pm",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/a-toast-to-laughs-funny-birthday-gift-card",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0F88FJ56K",
+      "previousRetailerProductId": "B0F88FJ56K",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208389087383",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+      "current": {
+        "url": "https://stupid.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_desktop_therapist_boardroom_20260920_am",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/desktop-therapist-let-your-desk-do-the-talking",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0BGXLMHRV",
+      "previousRetailerProductId": "B0BGXLMHRV",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208391037211",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+      "current": {
+        "url": "https://stupid.gifts/gifts/shear-ly-the-best-toilet-roll-holder?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_sheep_guest_bathroom_20261013_pm",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/shear-ly-the-best-toilet-roll-holder",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0CRRWZHK1",
+      "previousRetailerProductId": "B0CRRWZHK1",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208391104701",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+      "current": {
+        "url": "https://stupid.gifts/gifts/spider-prank-box-a-hauntingly-good-time?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=field_note_spider_box_unwrapped_20261014_am",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/spider-prank-box-a-hauntingly-good-time",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B07H75BJWW",
+      "previousRetailerProductId": "B07H75BJWW",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208391132026",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+      "current": {
+        "url": "https://stupid.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_belly_bag_carry_on_20261014_pm",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/fake-it-till-you-make-it-belly-fanny-pack",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B075S2ZCYQ",
+      "previousRetailerProductId": "B075S2ZCYQ",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208391186516",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+      "current": {
+        "url": "https://stupid.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_grumpy_frog_greenhouse_20261015_am",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/grumpy-frog-not-happy-but-here-to-stay",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0FR5J39PR",
+      "previousRetailerProductId": "B0FR5J39PR",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208391305222",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+      "current": {
+        "url": "https://stupid.gifts/gifts/opossum-ly-awesome-vintage-framed-art?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_opossum_family_portrait_20261016_pm",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/opossum-ly-awesome-vintage-framed-art",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B0H3P21YPW",
+      "previousRetailerProductId": "B0H3P21YPW",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    },
+    {
+      "pinId": "1107815208391368990",
+      "old": {
+        "url": "https://www.goose.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+        "status": 301,
+        "location": "https://stupid.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+        "server": "cloudflare",
+        "canonical": null,
+        "robots": null
+      },
+      "target": "https://stupid.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+      "current": {
+        "url": "https://stupid.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness?utm_source=pinterest&utm_medium=organic_social&utm_campaign=pinterest_editorial_mix_v11&utm_content=poster_birthday_hat_formal_attire_20261017_am",
+        "status": 200,
+        "location": null,
+        "server": "cloudflare",
+        "canonical": "https://stupid.gifts/gifts/birthday-hat-of-awesomeness-wear-your-hilariousness",
+        "robots": "index, follow"
+      },
+      "redirectMatches": true,
+      "retailerProductId": "B01JQMNHNY",
+      "previousRetailerProductId": "B01JQMNHNY",
+      "retailerMatchesPriorAudit": true,
+      "intentionalHold": false
+    }
+  ],
+  "summary": {
+    "sitemapPaths": 184,
+    "target200": 184,
+    "targetOther": [],
+    "pinCount": 28,
+    "pins200": 28,
+    "pinRedirectsCorrect": 28,
+    "matrixCorrect": 20,
+    "matrixCount": 40
+  },
+  "caveats": [
+    "Tagged curl/HEAD verification is operator QA, not acquisition. No browser analytics events are generated.",
+    "Identical path redirect does not reactivate held or retired pages. Unknown/retired destinations retain the new site 404.",
+    "No Pin IDs, packages, UTM approvals or publication receipts are rewritten."
+  ]
+}

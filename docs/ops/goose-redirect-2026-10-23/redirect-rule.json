@@ -1,0 +1,19 @@
+{
+  "name": "Goose Gifts to Stupid Gifts permanent domain move",
+  "kind": "zone",
+  "phase": "http_request_dynamic_redirect",
+  "rules": [{
+    "ref": "goose_to_stupid_gifts_20261023",
+    "description": "Preserve Goose apex/www paths and query strings on Stupid Gifts",
+    "expression": "http.host in {\"goose.gifts\" \"www.goose.gifts\"}",
+    "action": "redirect",
+    "action_parameters": {
+      "from_value": {
+        "status_code": 301,
+        "target_url": { "expression": "concat(\"https://stupid.gifts\", http.request.uri.path)" },
+        "preserve_query_string": true
+      }
+    },
+    "enabled": true
+  }]
+}
