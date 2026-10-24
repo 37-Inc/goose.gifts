@@ -1,5 +1,18 @@
 # goose.gifts Acquisition and Link-Earning Plan
 
+## October 24 afternoon — unchanged native acquisition, downstream unknown
+
+Actual23:34:34.807UTC: P1441impressions/22Pin clicks/3saves/2native outbound,
+F353/5/1/0, all native counters unchanged from AM; frozenP6/F6 and28 public Pins.
+Bowling dominates P exposure and both clicks. Bounded explicit GA4/PostHog reads
+succeed, but unassigned direct/amazon retailer events are not Pinterest
+conversions or confirmed customers. Attributable arm/Pin site and retailer
+actions remain unknown. Hat7day recorded honestly late from actual lifetime
+snapshot; no new public Pin or format adoption. Same ACTIVE metric-only cadence,
+receipt-derived October31 review gate and subsequent owner-approval boundary.
+The existing redirect intervention stays a pre/post-destination caveat, not
+acquisition proof. [Full receipt and measurement limits](pinterest-measurements/2026-10-24-pm/README.md).
+
 ## October 24 morning — post-redirect measurement, acquisition unchanged
 
 Actual16:33:54.943UTC: P1441impressions/22Pin clicks/3saves/2native outbound,
