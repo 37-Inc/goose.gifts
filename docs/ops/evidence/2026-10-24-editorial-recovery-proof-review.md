@@ -1,5 +1,12 @@
 # Stupid Gifts — Independent editorial proof review
 
+**Current review status:** the earlier42-visible/34-indexable conclusion below
+is historical and is superseded by the final source-bound factual-equivalence
+and same-run adoption review at the end of this file. The newly authorized
+implementation preserves all42 original indexable articles without changing
+their original approval/hash/status or native provenance. This remains offline
+implementation/test evidence, not an actual D1 capture, dispatch or publication.
+
 Reviewed offline against `f81e8d04b33433da71e1d552f5c77fffb22694ca` by the
 separate `stupid_editorial_proof_review` reviewer. This is not publication,
 credential, quota or ownership authority. No provider call, protected-input
@@ -185,3 +192,148 @@ REST/local SQLite fixtures, and the shipped CLI is offline review only.
 The separate42-visible/34-indexable versus new publisher-proof contract decision
 also remains. Do not backdate the CLI, fabricate capture files, open/reset an
 owner, start another batch or label this offline review a live recovery success.
+
+## Superseding factual-equivalence implementation review
+
+Reviewed the working patch based on `43482e1b8751d9a8e9d3efa6c106e43d68499555`.
+The additional publisher-proof/adoption scope was explicitly authorized after
+the original review. The unchanged628 operator is still not claimed to consume
+this new contract; it remains untouched.
+
+- `lib/catalog/editorial-equivalence.ts:23-68` verifies both original/current
+  whole-source hashes using the existing hasher, identical original article,
+  identity, original reviewed status/quality/model/prompt/time and current
+  private/typed consistency. Numeric scores require finite numbers or JSON
+  numeric strings; arrays, booleans, objects, binary/leading-zero strings and
+  unknown values cannot gain approval through coercion. Hashes/status require
+  actual strings, not string-coercible arrays. Provenance nonempty checks match
+  JavaScript trim whitespace, including tabs, NBSP and BOM, in both JS and SQL.
+- `lib/catalog/editorial-equivalence.ts:86-130` provides the shared final SQL
+  proof. Complete `json_tree` facts are compared in both directions, including
+  array order, empty containers and nulls; integer/real JSON numbers share a
+  numeric type. Only immediate object-valued `itemDimensions` strings of the
+  exact decimal-number-plus-inches/pounds form normalize unit capitalization.
+  Title/photo churn does not rewrite their genuine whole-source hashes.
+- `lib/catalog/d1.ts:118-135` adds only a second permanent-indexable approval
+  lane. The existing current-provenance branch, substantive article checks,
+  exact permanent grants, curation holds and native/supplier freshness gates
+  remain. `maintenance-state.ts:148-171` preserves an already indexable original
+  base only when this proof succeeds. The exporter checks the same proof in
+  `export-d1-snapshot.ts:347-357`; conditional owned capture adds original/private
+  proof only where needed, without changing complete product-row hashes.
+- `editorial-recovery.ts:90-114` restores the exact original indexable base for
+  precisely the eight affected rows. The original source/editorial hashes,
+  stale statuses, native bytes, observations, grants and history stay unchanged.
+
+This is **not** a claim that bare SQL recomputes SHA256. Original source bytes
+come from the validated immutable import (`authored-copy-evidence.ts` source
+table validation and recorded-generation approval; `migration.ts` original row
+storage; migration0010 source-record update trigger). JS recomputes both source
+hashes before sealing the bounded plan; the repair's complete before/after
+product-and-sidecar CAS binds that seal to actual commit state. Real SQLite
+tests reject late original/native/product/sidecar drift, including unaffected
+selected rows, and retain unknown charges on lost ACK. Final SQL rechecks the
+actual immutable approval bindings and full current factual structure, rather
+than accepting a new writable proof label. This trust boundary is deliberate.
+
+Final independent scrubbed Node22 checks:
+
+- Seven-file equivalence/repair/maintenance/public/snapshot group:
+  **108/108 pass**, zero skips/failures.
+- Both actual SQLite100-depth tests: **10/10 pass**, covering106 normal generated
+  queries and23 expired-original-permit completion queries. The deepest failing
+  interim provenance conjunction was rebalanced without dropping predicates.
+  The experimental extra score/dimension CTEs were removed. Maximum generated
+  SQL is **60,429 bytes** for listed reads and **60,141 bytes** in the expired
+  completion group, below100KB. SQL text size is not used as depth evidence.
+- Changed seven-file ESLint: **pass**, no warnings/errors.
+
+## Actual saved-input comparison
+
+Read only the exact original archive and the two original saved observation
+envelopes supplied by the root; no provider, lock, counter or protected-file
+write was performed. Archive `export-2026-10-22-known-writers-held/011.ndjson`
+SHA256 is `3d5efe00cbff1e06420da81edffa47616e76a15f2623bcdc095cada7782cfbb9`.
+Both envelopes' canonical value hashes match their immutable artifact refs:
+`0d330b745d1ae8685084cd63e667d0466736c4804bff58a2441c0e4037f79f14`
+and `c1845064b02b715ab7155fcc6b2ffdf41591de44559df11049eb5ddfe600e54a`.
+
+Reconstructing only current title/photo/facts/hash/stale status from that SAME
+saved response, the new proof returns **true for all8/8** affected IDs:
+`B09HT6ZC7K`, `B07KGJS2F3`, `B01KR3SAIS`, `B07VLBVQBP`, `B00KJJOWZG`,
+`B0BGXLMHRV`, `B0DCNB17CD`, `B07B4PP1BB`. Both original and reconstructed current
+whole-source hashes independently match for every row; original article/source
+bytes remain unchanged. This validates the equality rule against actual saved
+inputs, **not** current D1 before-state, actual grants, available capacity or
+publication readiness. No synthetic production capture was fabricated.
+
+## Independent adoption/successor cross-review
+
+Reviewed actual `execution-adoption.ts`, `run-workspace.ts` adoption paths,
+revised successor bindings and corresponding tests. Independent local suite:
+**76/76 pass**, zero skips/failures.
+
+- One append-only event binds original manifest/config/source/checkpoint/owner,
+  exact journal head/caps and original context ref. Only execution code/root
+  and the bounded publication cutoff change. The original observation time,
+  supplier/body not-after, inputs, grants, cadence reservation and accounting
+  are retained; no new batch, budget grant or counter reset is introduced.
+- The replacement context registers atomically with that event. Lost head ACK
+  or an orphan same-upload body is retryable without another adoption. Original
+  source/database/Worker locks remain held while adding the effective source
+  lock. Body-free post-expiry readback does not reopen content operations.
+- Final controls/package/build/receipt bind the new execution code/publication
+  config, while the original manifest and whole-run config stay original.
+  Successor reconciliation independently requires actual finalized receipt,
+  resolved build, public identity, exact idle owner and monotonic ledger before
+  immutable success files/full-tuple pointer CAS can advance.
+- Important ordering: local adoption must happen before accounted headroom or
+  capture reads, because the approval packet pins the exact pre-adoption head.
+  The command wrapper follows that order; a changed head must reject, never be
+  silently re-anchored. Root fixed the additional finding that `loadJob` must
+  recheck the original source checkout's clean exact commit before importing
+  its headroom helper on every live path, not only during offline preparation.
+
+No remaining blocker was found within this reviewed proof/adoption scope.
+Actual production before-state/capacity/owner checks and any explicitly approved
+live adoption/repair/publication remain root/operator work. The expired original
+cutoff must not be backdated; the unchanged source/body deadline remains
+`2026-10-25T15:32:15.176Z`. No live result is claimed by this review.
+
+## Root integration acceptance (offline)
+
+- Final integrated `npm run test:catalog-ops`: **101 recovery/adoption/proof/CLI
+  tests passed**, then **118 existing ops tests passed**, one optional pinned
+  local Postgres differential skipped (no image pull).
+- Selected composed adopted persistent-catalog regression: **1/1 passed** using
+  a genuine22-public/2-held persistent predecessor, real SQLite/accounted REST,
+  normal freeze/publication/finalization and new-source successor seal. Original
+  config/manifest/source remain unchanged, native upsert/delete count stays zero,
+  exactly one supplier phase ran, and no model or supplier phase replay occurred.
+  Compilation/upload/provider responses are mocked; this is not a live capacity
+  or production build result. The simpler nonpersistent normal-run compatibility
+  test also passed separately.
+- Both staging/catalog (including catalog `.mts`) and Worker strict typechecks
+  pass. Full lint passes with zero errors and25 pre-existing unrelated warnings.
+  The earlier interrupted full staging run remains interrupted, not green.
+- Actual saved original433 run files/eight care files and cadence SHA match the
+  pre-work inventory. Original628 operator stays clean. No live capture, provider
+  call, owner change, timer edit or publication was performed.
+- Final integration fixed the CLI's double-close and derives its complete
+  original workspace/scope/retention/caps/checkpoint/capacity/prior tuple from
+  fixed original files before keys. Offline preparation self-validates through
+  those same load gates without opening the original workspace. The test-only
+  identity-prior mock now normalizes null to undefined exactly like production;
+  no expired prior-body rule was relaxed.
+
+Final source SHA256 (not Git commit IDs):
+
+```text
+editorial-equivalence.ts b90e19e054f521245e23802b9dae8a781ea17013edb33a5ee1514d1ff8ecd171
+execution-adoption.ts 8d0a209bd429330f258654eed0f955c711a5d172ce875ee808b0d55222fa21e3
+run-workspace.ts d101400db0176681fd39490c126747301124b0fca4a01328bdda2e857947dadd
+editorial-recovery-command.mts 3ca29ab178771ec58d3c0d4c6b4d714a94d95b86557afa3e696898c847127b63
+run-cloudflare-weekly.ts ad172d6925370d286e0bd6f9770fdf38d2a2e6accf12f25a7ec6611fb08b7b6d
+publish-release.ts d6c665a7ca77efe9d2f98f1c225826598339fababc445bcbca12d3e1f1c893fd
+editorial-recovery-successor.ts 79873937843028571df13ab2101484e55f45fa88aa274a4252c8a4b87317de81
+```

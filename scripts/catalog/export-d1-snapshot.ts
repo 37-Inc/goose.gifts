@@ -10,6 +10,8 @@ import { canonicalJson, canonicalTimestamp, sha256 } from './migration.ts';
 import { mutationFenceQuery } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner, MutationQuery } from '../../lib/catalog/mutation-fence.ts';
 import { pruningCurrentQueries, PRUNING_CURRENT_LIMITS, CATALOG_IDENTITY_LIMITS, PRUNING_CURRENT_COLUMNS as CURRENT, PRUNING_ARCHIVE_TIMES as ARCHIVE_TIMES } from '../../lib/catalog/pruning-current.ts';
+import { originalEditorialEquivalentRow } from '../../lib/catalog/editorial-equivalence.ts';
+import { editorialSourceHash } from '../ops/catalog-editorial-core.mjs';
 export { pruningCurrentQueries } from '../../lib/catalog/pruning-current.ts';
 
 /** The sealed header/held/history/order are not versioned in D1. Supply these
@@ -38,6 +40,14 @@ const PROJECTION = ['catalog_revision', 'public_id', 'product_id', 'slug', 'titl
   'source_facts_hash', 'eligible_until', 'public_display_json', 'display_sha256'];
 const jsonColumns = (alias: string, columns: string[], extra: Record<string, string> = {}) =>
   `json_object(${[...columns.map((key) => `'${key}',${alias}.${key}`), ...Object.entries(extra).map(([key, expression]) => `'${key}',${expression}`)].join(',')})`;
+// Carry private proof only for the small original-article equivalence lane,
+// never duplicate source/semantic bodies across the whole catalog capture.
+const EQUIVALENCE_NEEDED = `p.source_facts_hash IS NOT p.editorial_source_hash AND
+  (json_extract(p.public_display_json,'$.indexable')=1 OR json_extract(p.public_display_json,'$.persistent.indexable')=1)`;
+const EDITORIAL_PROOF = {
+  source_record_json: `CASE WHEN ${EQUIVALENCE_NEEDED} THEN p.source_record_json END`,
+  maintenance_semantic: `CASE WHEN ${EQUIVALENCE_NEEDED} THEN m.semantic_json END`,
+};
 
 /** One statement, bounded row-per-product output, not a giant aggregate JSON cell.
  * json_each of one bounded ID array avoids D1's100-parameter ceiling. Outbox
@@ -223,7 +233,8 @@ async function bindMaintenanceObservations(db: CatalogD1, rows: Row[], owner?: M
 }
 async function captureCurrentRows(db:CatalogD1,owner:MutationOwner,ids:string[],fence?:MutationQuery) {
   const rows=await ownedPages(db,owner,ids,`SELECT ids.ordinal,ids.value identity,
-    ${jsonColumns('p',CURRENT,ARCHIVE_TIMES)} data FROM requested ids CROSS JOIN products p ON p.public_id=ids.value`,[],fence);
+    ${jsonColumns('p',CURRENT,{...ARCHIVE_TIMES,...EDITORIAL_PROOF})} data FROM requested ids CROSS JOIN products p
+    ON p.public_id=ids.value LEFT JOIN catalog_maintenance_products m ON m.product_id=p.id`,[],fence);
   await bindMaintenanceObservations(db,rows,owner,fence);return rows;
 }
 /** Read-only recovery of ONE already-journaled body-free prune DELETE. This is
@@ -255,12 +266,15 @@ export async function readApprovedCurrentRows(db: CatalogD1, ids: string[], owne
   const gate = approvedRecovery?approvedRevisionReadFence(owner):mutationFenceQuery(owner, ['freezing']);
   const columns = (await db.prepare(`SELECT name FROM pragma_table_info('products') WHERE ${gate.sql}`).bind(...gate.params).all<{name:string}>({signal})).results.map(row=>row.name);
   if (!columns.length || columns.length > 65 || columns.some(key=>!/^[a-z_]+$/.test(key))) throw new Error('read_bounds');
-  const rows = await ownedPages(db, owner, [...ids].sort(), `SELECT ids.ordinal,ids.value identity,${jsonColumns('p', columns)} data
-    FROM requested ids CROSS JOIN products p ON p.public_id=ids.value`,[],gate,signal);
+  const joined = await ownedPages(db, owner, [...ids].sort(), `SELECT ids.ordinal,ids.value identity,
+    ${jsonColumns('p', columns,{_editorial_semantic:'m.semantic_json'})} data FROM requested ids CROSS JOIN products p
+    ON p.public_id=ids.value LEFT JOIN catalog_maintenance_products m ON m.product_id=p.id`,[],gate,signal);
+  const rows = joined.map(value => { const row={...value};delete row._editorial_semantic;return row; });
   if (rows.length !== ids.length || rows.some(row => Buffer.byteLength(canonicalJson(row)) > SNAPSHOT_READ_LIMITS.rowBytes)) throw new Error('approved_identity_missing');
-  const current:Row[] = rows.map(row => {
+  const current:Row[] = rows.map((row,index) => {
     const archive = JSON.parse(String(row.source_record_json));
     return { ...Object.fromEntries(CURRENT.map(key => [key, row[key]])), approved_product_json:canonicalJson(row),
+      source_record_json:row.source_record_json,maintenance_semantic:joined[index]._editorial_semantic,
       ...Object.fromEntries(['id','public_id','source','availability_checked_at','last_verified_at'].map(key => [`archived_${key}`, archive[key] ?? null])) };
   });
   await bindMaintenanceObservations(db, current, owner,gate,signal);
@@ -338,6 +352,7 @@ export function checkCurrent(product: PublicCatalogProduct, projection: Row, cur
       || canonicalJson(persistent) !== canonicalJson(currentPersistent)
       || persistent.indexable && (!/^[a-f0-9]{64}$/.test(String(current.source_facts_hash))||!['generated_ready', 'manual_locked'].includes(String(current.editorial_status))
         || current.source_facts_hash !== current.editorial_source_hash)
+        && !originalEditorialEquivalentRow(current,persistent.editorialWriteup || '',editorialSourceHash)
       || publicProductRightsExpiry(persistent, approved.eligibleUntil === null ? persistentDisplayRights(rights) : rights.persistent ?? {}, now) !== Infinity)
       throw new Error('current_rights_incompatible');
     // Final publication SQL separately rechecks current reviewed-copy provenance.

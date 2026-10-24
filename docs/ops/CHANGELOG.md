@@ -1,5 +1,16 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-24 — offline same-run adoption and original article proof
+
+[owner+codex] Added one append-only execution/publication-context adoption and
+an executable bounded recovery command. Original inputs, source deadlines,
+owner, reservation and accounting remain untouched. Export and final SQL now
+recognize narrowly proven original article approval without rewriting current
+source/editorial hashes/status. Integrated the eight-row repair and distinct
+original/execution successor identities. Independent adversarial review and
+offline tests only; no provider call, push, merge, deploy or timer change.
+`roadmap-lbbz1.4.9` remains open pending separately authorized live verification.
+
 ## 2026-10-24 — offline bounded editorial-recovery adapters
 
 [owner+codex] Implemented ten-row capture, exact eight-row atomic repair,

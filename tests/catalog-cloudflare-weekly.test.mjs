@@ -40,6 +40,7 @@ import {readActivatedCatalogVectors} from '../scripts/catalog/owned-vector-deliv
 import {createPermanentCatalogSeal} from '../scripts/catalog/permanent-catalog-seal.ts';
 import {earliestDisplayExpiry} from '../lib/catalog/display.ts';
 import {createPhotoRelease} from '../static-site/lib/photos.ts';
+import {executionAdoptionDigest} from '../scripts/catalog/execution-adoption.ts';
 
 // Real composed stores/fence/evidence/driver/publisher/workspace over SQLite.
 // Default cases mock external Amazon/OpenAI/CF and Next compilation. Capacity
@@ -358,9 +359,9 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
     }
     if(!c.args.includes('scripts/staging/build.mts'))return;
     calls.build++;const context=JSON.parse(await fs.readFile(c.env.CATALOG_RELEASE_CONTEXT_PATH));const snapshot=JSON.parse(await fs.readFile(c.env.CATALOG_SNAPSHOT_PATH));
-    const sealed=sealedFixture(snapshot,context,await readPriorRelease(context,config.publication.prior?.directory));manifest=sealed.manifest;
-    for(const [name,value]of Object.entries(sealed.files))await put(path.join(repo,'build/stupid-gifts',name),value);
-    for(const [name,value]of sealed.assets)await put(path.join(repo,'static-site/out',name.slice(1)),value);
+    const sealed=sealedFixture(snapshot,context,await readPriorRelease(context,config.publication.prior?.directory??undefined));manifest=sealed.manifest;
+    for(const [name,value]of Object.entries(sealed.files))await put(path.join(c.cwd,'build/stupid-gifts',name),value);
+    for(const [name,value]of sealed.assets)await put(path.join(c.cwd,'static-site/out',name.slice(1)),value);
   };
   const dependencies={repository:repo,fetch,resolveToken:async ref=>`TEST_ONLY_${ref.service.split('.').at(-1)}`,now:()=>clock,publication:{fetch,command,now:()=>new Date(clock)}};
   const options={configPath,configSha256,workspace};
@@ -632,6 +633,57 @@ test('reported D1 usage excess retains the known cost and checkpoints attention 
   assert.equal((await f.run('resume')).state,'attention');assert.deepEqual(f.calls,calls);
   assert.deepEqual((await readRunWorkspace(f.workspaceOptions)).budget,budget);
   assert.equal(f.calls.getItems+f.calls.search+f.calls.chat+f.calls.embedding+f.calls.build+f.calls.upload+f.calls.activate,0);
+});
+
+test('adopted expired-context daily resumes new source through actual normal publication without provider replay or old config edits',async t=>{
+  const f=await setup(t,{permanent:22,held:2,authenticPrior:true,realTransport:true});
+  f.config.cadence={day:'2026-10-20',featuredIds:Array.from({length:10},(_,i)=>`B${String(11+i).padStart(9,'0')}`)};
+  // Routine identity-only prior mode does not repackage yesterday's bodies.
+  f.config.publication.prior.directory=null;
+  f.config.backfillLimit=0;f.config.limits={requests:5000,statements:12000,reportedRowsRead:1500000,reportedRowsWritten:30000};
+  delete f.config.credentials.openai;
+  // Distinguish publication permission from still-valid supplier evidence.
+  // The fixture's finite overlays last an hour; expire only its ten-minute
+  // publication context, never lengthen or backdate an evidence deadline.
+  const input=JSON.parse(await fs.readFile(f.config.inputs.context.path));
+  input.cutoff=new Date(Date.parse(f.now())+10*60000).toISOString();await put(f.config.inputs.context.path,input);
+  f.config.inputs.context.sha256=sha256(await fs.readFile(f.config.inputs.context.path));await f.configure();
+  assert.equal((await f.run('start')).reason,'awaiting_reviewed_approval');
+  const oldConfig=await fs.readFile(f.options.configPath),oldCode=f.config.codeSha,oldRoot=f.dependencies.repository;
+  const newRoot=path.join(path.dirname(oldRoot),'adopted-source');await fs.cp(oldRoot,newRoot,{recursive:true});
+  await put(path.join(newRoot,'reviewed-executor.txt'),'Synthetic independently reviewed continuation');
+  const git=(...args)=>execFileSync('git',args,{cwd:newRoot,encoding:'utf8'}).trim();git('add','.');git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','New reviewed fixture executor');
+  const nextCode=git('rev-parse','HEAD'),effective={...f.config,codeSha:nextCode,publication:{...f.config.publication,codeSha:nextCode,sourceRoot:newRoot}};
+  const file=path.join(path.dirname(f.options.configPath),'effective-config.json');await put(file,effective);
+  const fileSha=sha256(await fs.readFile(file));f.advance(30*60000);
+  let w=await openRunWorkspace(f.workspaceOptions);const originalManifest=await fs.readFile(path.join(w.directory,'manifest.json'));
+  const cp=await w.readCheckpoint(),oldContext=await w.readArtifact(cp.checkpoint.pins.context),header=JSON.parse(await fs.readFile(path.join(w.directory,cp.checkpoint.pins.context.reference)));
+  const nextContext={...oldContext,cutoff:new Date(Date.parse(f.now())+3600000).toISOString()},contextHash=sha256(canonicalJson(nextContext));
+  const draft={schemaVersion:1,kind:'catalog-execution-adoption-v1',original:{manifestSha256:w.manifestSha256,configSha256:f.options.configSha256,codeSha:oldCode,sourceRoot:oldRoot,
+    checkpointSha256:cp.sha256,owner:cp.checkpoint.owner,context:cp.checkpoint.pins.context,journal:JSON.parse(await fs.readFile(path.join(w.directory,'head.json'))),budgetCaps:w.manifest.budgetCaps},
+    effective:{codeSha:nextCode,sourceRoot:newRoot,configSha256:fileSha,publicationConfigSha256:sha256(canonicalJson(effective.publication))},
+    contexts:{original:oldContext,replacement:nextContext,ref:{sha256:contextHash,reference:`objects/${contextHash}.json`}},approvedAt:f.now(),observedAt:header.observedAt,notAfter:header.expiresAt};
+  const adoption={...draft,approvalSha256:executionAdoptionDigest(draft)},approvalPath=path.join(path.dirname(file),'execution-approval.json');await put(approvalPath,adoption);
+  const recovery={path:approvalPath,sha256:sha256(await fs.readFile(approvalPath)),configPath:file,configSha256:fileSha},deps={...f.dependencies,repository:newRoot};
+  await w.close();const callsBefore=structuredClone(f.calls);
+  await assert.rejects(runCloudflareWeekly({...f.options,command:'resume',recovery},deps),/execution_adoption_required/);assert.deepEqual(f.calls,callsBefore);
+  w=await openRunWorkspace(f.workspaceOptions);const budget=await w.budget();await w.adoptExecution(adoption);assert.deepEqual(await w.budget(),budget);await w.close();
+  const result=await runCloudflareWeekly({...f.options,command:'resume',recovery,approval:await f.approve()},deps);
+  if(result.state!=='finalized'){
+    const inspect=await openRunWorkspace(f.workspaceOptions);const view=await inspect.readCheckpoint({controlOnly:true});
+    t.diagnostic(JSON.stringify({stage:view.checkpoint.control?.publication?.stage,calls:f.calls}));await inspect.close();
+  }
+  assert.equal(result.state,'finalized',JSON.stringify(result));assert.equal(f.calls.getItems,1);assert.equal(f.calls.chat+f.calls.search+f.calls.embedding,0);
+  assert.equal(f.calls.upsert+f.calls.delete,0);assert.equal(result.catalogSeal.persistent.inventory.length,24);
+  const receipt=f.sql.prepare('SELECT * FROM publication_receipts WHERE release_id=?').get(f.config.publication.releaseId);assert.equal(receipt.code_sha,nextCode);
+  assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
+  assert.deepEqual(await fs.readFile(f.options.configPath),oldConfig);assert.equal(execFileSync('git',['rev-parse','HEAD'],{cwd:oldRoot,encoding:'utf8'}).trim(),oldCode);
+  w=await openRunWorkspace(f.workspaceOptions);assert.deepEqual(await fs.readFile(path.join(w.directory,'manifest.json')),originalManifest);
+  // Genuine persistent predecessor exercises successor sealing in the driver,
+  // not just the simpler nonpersistent synthetic publication path.
+  assert.equal((await w.catalogSuccessor()).persistent.request.codeSha,nextCode);
+  assert.equal(w.execution.effective.codeSha,nextCode);
+  assert.equal((await w.readCheckpoint()).checkpoint.phase,'finalized');await w.close();
 });
 
 test('small permanent daily composes actual package verification through receipt/readback with model-free cadence and shared CF accounting',async t=>{

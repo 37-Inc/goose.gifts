@@ -17,7 +17,8 @@ export interface EditorialSuccessorPointer {
   control: { path: string; sha256: string }; versionReference: string; manifestSha256: string;
 }
 export interface EditorialSuccessorBinding {
-  runId: string; configSha256: string; codeSha: string; scope: WorkspaceScope;
+  runId: string; originalConfigSha256: string; originalCodeSha: string;
+  publicationConfigSha256: string; executionCodeSha: string; scope: WorkspaceScope;
   publicProducts: number; heldProducts: number; previous: EditorialSuccessorPointer;
   previousPublication: { releaseId: string; receiptSha256: string };
 }
@@ -85,19 +86,20 @@ export async function reconcileEditorialRecoverySuccessor(options: {
 }) {
   const { workspace: w, binding: b, store } = options;
   pointer(b.previous); await w.assertHeld();
-  if (w.manifest.runId !== b.runId || w.manifest.codeSha !== b.codeSha || w.manifest.configSha256 !== b.configSha256
+  if (w.manifest.runId !== b.runId || w.manifest.codeSha !== b.originalCodeSha || w.manifest.configSha256 !== b.originalConfigSha256
+    || !HASH.test(b.publicationConfigSha256) || !/^[a-f0-9]{40}$/.test(b.executionCodeSha)
     || !same(w.manifest.scope, b.scope) || !b.previousPublication || !HASH.test(b.previousPublication.receiptSha256)
     || !Number.isSafeInteger(b.publicProducts) || b.publicProducts < 0
     || !Number.isSafeInteger(b.heldProducts) || b.heldProducts < 0) fail('binding');
   const cp = await w.readCheckpoint({ controlOnly: true }), c = cp?.checkpoint.control?.publication;
   if (!cp || !HASH.test(cp.sha256) || cp.checkpoint.phase !== 'finalized' || cp.checkpoint.owner !== null
-    || !c || c.stage !== 'published' || c.configSha256 !== b.configSha256 || c.runReference !== b.runId
+    || !c || c.stage !== 'published' || c.configSha256 !== b.publicationConfigSha256 || c.runReference !== b.runId
     || !c.intent || !c.publication || !c.permit?.mutationOwner || !HASH.test(c.packageSha256 || '') || !c.versionReference || !c.deploymentId
-    || c.intent.releaseId !== b.runId || c.intent.catalogRevision !== b.runId || c.intent.codeSha !== b.codeSha
+    || c.intent.releaseId !== b.runId || c.intent.catalogRevision !== b.runId || c.intent.codeSha !== b.executionCodeSha
     || c.intent.priorReleaseId !== b.previousPublication.releaseId || !HASH.test(c.receiptSha256 || '')
     || c.build.requestId !== c.requestId || sha256(encodeBuildRequest(c.build.request)) !== c.requestId
     || c.build.request.environment !== b.scope.environment || c.build.request.sourceRevision !== b.runId
-    || c.build.request.codeSha !== b.codeSha || c.build.request.sourceDigest !== c.intent.catalogSnapshotSha256
+    || c.build.request.codeSha !== b.executionCodeSha || c.build.request.sourceDigest !== c.intent.catalogSnapshotSha256
     || c.build.runReference !== c.runReference || c.permit.runReference !== c.build.runReference || c.permit.token !== c.build.token
     || encodePublicationIntent(c.publication.intent) !== encodePublicationIntent(c.intent)
     || c.permit.requestId !== c.requestId || c.permit.releaseId !== b.runId || c.permit.versionReference !== c.versionReference
@@ -107,7 +109,7 @@ export async function reconcileEditorialRecoverySuccessor(options: {
   try { catalogSuccessorBytes(seal); } catch { fail('seal'); }
   const envelope = JSON.parse(seal.envelopeJson);
   if (seal.publication.releaseId !== b.runId || seal.snapshotSha256 !== c.intent.catalogSnapshotSha256
-    || !seal.persistent || seal.persistent.request.codeSha !== b.codeSha || seal.persistent.request.environment !== b.scope.environment
+    || !seal.persistent || seal.persistent.request.codeSha !== b.executionCodeSha || seal.persistent.request.environment !== b.scope.environment
     || seal.persistent.request.sourceRevision !== b.runId || seal.persistent.request.sourceDigest !== seal.snapshotSha256
     || seal.persistent.request.priorReleaseId !== b.previousPublication.releaseId
     || seal.persistent.generation !== c.permit.mutationOwner.generation
@@ -127,7 +129,7 @@ export async function reconcileEditorialRecoverySuccessor(options: {
   if (age < 0 || age > 30_000) fail('observation_stale');
   const { receipt: r, build, scope: s, publicIdentity: identity } = observed;
   if (!r || sha256(canonicalJson(r)) !== seal.publication.receiptSha256 || r.release_id !== b.runId
-    || r.catalog_revision !== b.runId || r.code_sha !== b.codeSha || r.manifest_json !== encodePublicationIntent(c.intent)
+    || r.catalog_revision !== b.runId || r.code_sha !== b.executionCodeSha || r.manifest_json !== encodePublicationIntent(c.intent)
     || Date.parse(canonicalTime(r.completed_at)) > Date.parse(observed.observedAt)
     || Date.parse(canonicalTime(r.completed_at)) < Date.parse(c.build.request.capturedAt)) fail('receipt');
   const privateReceipt = { schemaVersion: 1, environment: b.scope.environment, accountId: b.scope.accountId,
@@ -145,7 +147,7 @@ export async function reconcileEditorialRecoverySuccessor(options: {
     || ['owner_token', 'owner_reference', 'operation_key', 'captured_at', 'activation_request_id'].some(key => s[key] !== null)
     || Date.parse(at) - Date.parse(canonicalTime(s.observed_at)) < 0
     || Date.parse(at) - Date.parse(canonicalTime(s.observed_at)) > 30_000) fail('idle_scope');
-  if (!identity || !same(identity, { release_id: b.runId, code_sha: b.codeSha, catalog_revision: b.runId,
+  if (!identity || !same(identity, { release_id: b.runId, code_sha: b.executionCodeSha, catalog_revision: b.runId,
     catalog_snapshot_sha256: seal.snapshotSha256, manifest_sha256: c.intent.manifestSha256 })) fail('public_identity');
   if (!same(await w.readCheckpoint({ controlOnly: true }), cp) || !same(await w.catalogSuccessor(), seal)) fail('checkpoint_drift');
   const pointerBefore = await store.readPointer(); pointer(pointerBefore);
@@ -153,8 +155,10 @@ export async function reconcileEditorialRecoverySuccessor(options: {
   const control = await store.putControl(seal), next = { control, versionReference: c.versionReference, manifestSha256: c.intent.manifestSha256 };
   pointer(next);
   if (!same(pointerBefore, b.previous) && !same(pointerBefore, next)) fail('pointer_conflict');
-  const success = { schemaVersion: 1, kind: 'editorial-recovery-successor', runId: b.runId, configSha256: b.configSha256,
-    codeSha: b.codeSha, checkpointSha256: cp.sha256, receiptSha256: seal.publication.receiptSha256,
+  const success = { schemaVersion: 1, kind: 'editorial-recovery-successor', runId: b.runId,
+    originalConfigSha256: b.originalConfigSha256, originalCodeSha: b.originalCodeSha,
+    publicationConfigSha256: b.publicationConfigSha256, executionCodeSha: b.executionCodeSha,
+    checkpointSha256: cp.sha256, receiptSha256: seal.publication.receiptSha256,
     originalPrevious: b.previous, next };
   await store.putObservation({ schemaVersion: 1, kind: 'accounted-editorial-successor-observation', successSha256: sha256(canonicalJson(success)),
     observedAt: observed.observedAt, before, after, observationSha256: sha256(canonicalJson(observed)) });

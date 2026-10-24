@@ -14,13 +14,14 @@ import { createEditorialSuccessorFiles, createEditorialSuccessorObserver,
   reconcileEditorialRecoverySuccessor } from '../scripts/catalog/editorial-recovery-successor.ts';
 
 const NOW = '2026-11-01T12:00:00.000Z', OLD = '2026-10-24T15:32:15.176Z', CUTOFF = '2026-10-24T17:32:15.176Z';
-const h = n => String(n).repeat(64), code = '1'.repeat(40), runId = 'synthetic-editorial-run';
+const h = n => String(n).repeat(64), originalCode = '1'.repeat(40), runId = 'synthetic-editorial-run';
 const scope = { environment: 'production', accountId: 'a'.repeat(32), databaseId: '00000000-0000-4000-8000-000000000001',
   databaseName: 'synthetic', indexName: 'synthetic', workerName: 'synthetic' };
 const live = globalThis.fetch; globalThis.fetch = async () => { throw Error('Live network forbidden'); };
 test.after(() => { globalThis.fetch = live; });
 
-async function fixture(t) {
+async function fixture(t, { adopted = true } = {}) {
+  const code = adopted ? '2'.repeat(40) : originalCode;
   const directory = await mkdtemp(join(await realpath(tmpdir()), 'stupid-editorial-successor-'));
   const care = join(directory, 'care'), daily = join(care, '2026-10-24');
   await mkdir(care, { mode: 0o700 }); await mkdir(daily, { mode: 0o700 }); t.after(() => rm(directory, { recursive: true, force: true }));
@@ -34,7 +35,9 @@ async function fixture(t) {
   const receipt = { release_id: runId, catalog_revision: runId, code_sha: code, completed_at: OLD, manifest_json: encodePublicationIntent(intent) };
   const owner = { environment: scope.environment, indexName: scope.indexName, token: 'SYNTHETIC-owner', generation: 17, epoch: 441,
     phase: 'activating', ownerReference: runId, operationKey: h('6'), capturedAt: OLD };
-  const c = { schemaVersion: 1, configSha256: h('7'), requestId, runReference: runId, stage: 'published',
+  const publicationConfigSha256 = sha256(canonicalJson({ codeSha: code, sourceRoot: '/synthetic/adopted-executor', releaseId: runId }));
+  assert.notEqual(publicationConfigSha256, h('7'));
+  const c = { schemaVersion: 1, configSha256: publicationConfigSha256, requestId, runReference: runId, stage: 'published',
     build: { requestId, token: 'SYNTHETIC-build', runReference: runId, leaseUntil: CUTOFF, request },
     publication: { intentId: sha256(encodePublicationIntent(intent)), token: 'SYNTHETIC-publication', leaseUntil: CUTOFF, intent },
     intent, permit: { requestId, token: 'SYNTHETIC-build', runReference: runId,
@@ -63,13 +66,14 @@ async function fixture(t) {
       owner_token: null, owner_reference: null, operation_key: null, captured_at: null, external_pending: 0, activation_request_id: null, observed_at: NOW },
     publicIdentity: { release_id: runId, code_sha: code, catalog_revision: runId, catalog_snapshot_sha256: h('4'), manifest_sha256: h('5') } };
   let totals = { httpRequests: 199, sqlStatements: 348, knownRowsRead: 24112, knownRowsWritten: 225, unconfirmedRequests: 1 }, held = true;
-  const reservations = new Map(), manifest = { schemaVersion: 1, runId, codeSha: code, configSha256: h('7'), scope };
+  const reservations = new Map(), manifest = { schemaVersion: 1, runId, codeSha: originalCode, configSha256: h('7'), scope };
   const w = { manifest, async assertHeld() { if (!held) throw Error('fixture-lock-lost'); }, async readCheckpoint() { return structuredClone(cp); },
     async catalogSuccessor() { return structuredClone(seal); }, async budget() { return { ...totals }; },
     async reserveBudget(r) { assert.ok(!reservations.has(r.id)); reservations.set(r.id, r); totals.httpRequests += 1; totals.sqlStatements += r.units.sqlStatements; },
     async settleBudget(id, s) { assert.ok(reservations.has(id)); if (s.status === 'unknown') totals.unconfirmedRequests++;
       else { totals.knownRowsRead += s.usage.rowsRead; totals.knownRowsWritten += s.usage.rowsWritten; } } };
-  const binding = { runId, configSha256: h('7'), codeSha: code, scope, publicProducts: 1, heldProducts: 0, previous,
+  const binding = { runId, originalConfigSha256: h('7'), originalCodeSha: originalCode, publicationConfigSha256,
+    executionCodeSha: code, scope, publicProducts: 1, heldProducts: 0, previous,
     previousPublication: { releaseId: 'previous-release', receiptSha256: sha256(canonicalJson(seal.persistent.priorRow)) } };
   const files = await createEditorialSuccessorFiles(care, daily);
   const observe = async () => { totals.httpRequests += 2; totals.sqlStatements += 3; totals.knownRowsRead += 3;
@@ -91,10 +95,24 @@ test('finalized reconciliation installs verified exact successor after old sourc
   assert.ok((await readFile(join(f.daily, 'editorial-recovery-success.json'))).equals(success));
 });
 
+test('unadopted execution retains original build source but distinguishes whole-run and publication config digests', async t => {
+  const f = await fixture(t, { adopted: false });
+  assert.equal(f.binding.originalCodeSha, f.binding.executionCodeSha);
+  assert.notEqual(f.binding.originalConfigSha256, f.binding.publicationConfigSha256);
+  const result = await reconcileEditorialRecoverySuccessor(f.options);
+  assert.equal(result.state, 'reconciled');
+  const success = JSON.parse(await readFile(join(f.daily, 'editorial-recovery-success.json')));
+  assert.equal(success.originalConfigSha256, f.w.manifest.configSha256);
+  assert.equal(success.publicationConfigSha256, f.c.configSha256);
+  assert.notEqual(success.originalConfigSha256, success.publicationConfigSha256);
+});
+
 test('bindings, malformed seals, unresolved/foreign readbacks, stale clocks and advanced owner reject without changing pointer', async t => {
   const cases = {
-    run: f => { f.binding.runId = 'different'; }, config: f => { f.binding.configSha256 = h('f'); },
-    source: f => { f.binding.codeSha = 'f'.repeat(40); }, scope: f => { f.binding.scope = { ...scope, databaseId: 'foreign' }; },
+    run: f => { f.binding.runId = 'different'; }, config: f => { f.binding.originalConfigSha256 = h('f'); },
+    source: f => { f.binding.originalCodeSha = 'f'.repeat(40); }, execution: f => { f.binding.executionCodeSha = 'f'.repeat(40); },
+    publicationConfig: f => { f.binding.publicationConfigSha256 = f.binding.originalConfigSha256; },
+    scope: f => { f.binding.scope = { ...scope, databaseId: 'foreign' }; },
     prior: f => { f.binding.previousPublication.receiptSha256 = h('f'); },
     checkpoint: f => { f.cp.checkpoint.phase = 'published'; }, owner: f => { f.cp.checkpoint.owner = {}; },
     control: f => { f.c.runReference = 'different'; }, version: f => { f.c.permit.versionReference = 'different'; },

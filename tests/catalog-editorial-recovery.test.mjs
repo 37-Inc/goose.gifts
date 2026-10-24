@@ -84,7 +84,7 @@ test('eight-row repair uses actual atomic REST/SQLite contract; preserves origin
   const f=await fixture(t),before=f.capture.rows.map(p=>structuredClone(p));const result=await f.apply();assert.equal(result.owner.epoch,442);assert.equal(f.batches(),1);
   assert.equal(result.proposal.changes.length,10);assert.deepEqual(result.proposal.changes.slice(8),f.context.originalProposal.changes.slice(8));
   for(let i=0;i<10;i++){const row=f.sql.prepare('SELECT * FROM products WHERE id=?').get(before[i].row.id),side=f.sql.prepare('SELECT * FROM catalog_maintenance_products WHERE product_id=?').get(row.id),display=JSON.parse(row.public_display_json);
-    assert.equal(display.editorialWriteup,article);assert.equal(display.indexable,i>=8);
+    assert.equal(display.editorialWriteup,article);assert.equal(display.indexable,true);
     assert.deepEqual({...row,public_display_json:before[i].row.public_display_json},before[i].row);
     assert.equal(side.embedding_native_base64,before[i].sidecar.embedding_native_base64);assert.equal(side.embedding_provenance_json,before[i].sidecar.embedding_provenance_json);
     assert.equal(side.version,i<8?2:1);}

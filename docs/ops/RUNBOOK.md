@@ -11,10 +11,11 @@ approved articles. Do not prepare/start/fetch/publish another batch or alter its
 WRITING owner. The correction is being tested offline; see
 `EDITORIAL_REFRESH_RECOVERY_2026-10-24.md`. The existing task's hold remains until
 separately reviewed same-run recovery and actual publication verification.
-The offline repair/successor adapters are implemented, but the original
-October24 publication context expired17:32:15.176UTC. Do not resume it, renew its
-inputs or clear its owner. A separately reviewed disposition/context-adoption
-decision and real bounded capture are required before any live recovery.
+The offline repair/successor and exact execution/context-adoption adapters are
+implemented; the original publication cutoff expired17:32:15.176UTC. Do not
+resume the old command, renew source evidence or clear its owner. The recovery
+document describes the new explicitly approved same-run path; live adoption,
+bounded capture/repair/publication and actual verification remain unexecuted.
 
 ## What must stay true
 

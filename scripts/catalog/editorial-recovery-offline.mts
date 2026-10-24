@@ -26,7 +26,7 @@ export async function reviewEditorialRecoveryFiles(args:string[],now=()=>new Dat
   return {kind:'offline-editorial-repair-report',liveApproval:false,runId:context.binding.runId,
     contextSha256:editorialRepairSha256(context),captureSha256:editorialRepairSha256(capture),planSha256:editorialRepairSha256(plan),
     proposalSha256:sha256(JSON.stringify(plan.proposal)+'\n'),selected:10,repaired:8,expectedVisibleOriginalArticles:42,
-    expectedIndexablePages:34,cutoff:context.binding.cutoff,notAfter:context.binding.notAfter};
+    expectedIndexablePages:42,cutoff:context.binding.cutoff,notAfter:context.binding.notAfter};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
   const args=process.argv.slice(2);

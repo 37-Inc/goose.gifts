@@ -4,6 +4,7 @@ import { validateCatalogSnapshot, validatePublicCatalogProduct } from './snapsho
 import { legacyMutationBatch } from './mutation-fence.ts';
 import { resolvePublicProduct, persistentPublicProduct } from './display.ts';
 import { catalogSearchTerms } from './search-terms.ts';
+import { originalEditorialEquivalenceSql } from './editorial-equivalence.ts';
 
 type Row = Record<string, string | number | null>;
 export interface ProjectionReceipt extends Row {
@@ -124,6 +125,10 @@ const PERSISTENT_VISIBLE=`coalesce(${allOf([
     `${currentCopy('sourceFactsHash','source_facts_hash')}=p.source_facts_hash`,
     `${currentCopy('editorialSourceHash','editorial_source_hash')}=p.editorial_source_hash`,
     `${currentCopy('editorialStatus','editorial_status')}=p.editorial_status`, `length(${editorial})>=500`,
+    `instr(replace(replace(replace(${editorial},char(13),''),char(9),''),' ',''),char(10)||char(10))>0`,
+    `(SELECT count(*) FROM json_each('['||replace(json_quote(${words}),' ','","')||']') WHERE length(value)>0)>=90`,
+  ])} OR ${allOf([
+    originalEditorialEquivalenceSql('p','m.semantic_json',editorial), `length(${editorial})>=500`,
     `instr(replace(replace(replace(${editorial},char(13),''),char(9),''),' ',''),char(10)||char(10))>0`,
     `(SELECT count(*) FROM json_each('['||replace(json_quote(${words}),' ','","')||']') WHERE length(value)>0)>=90`,
   ])})`,

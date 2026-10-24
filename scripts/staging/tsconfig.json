@@ -12,5 +12,5 @@
     "paths": { "@/*": ["../../*"] },
     "types": ["node"]
   },
-  "include": ["./*.mts", "../catalog/*.ts"]
+  "include": ["./*.mts", "../catalog/*.ts", "../catalog/*.mts"]
 }

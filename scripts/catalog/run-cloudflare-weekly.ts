@@ -33,6 +33,8 @@ import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import { canonicalTime } from '../../lib/catalog/snapshot.ts';
 import amazonCreators from '../../lib/amazon-creators.js';
 import { dailyCatalogPhases, pacificCatalogCalendar, runDailyCatalogWithBackend, withCatalogCadence } from '../ops/catalog-daily.mjs';
+import {validateExecutionAdoption,validateExecutionAdoptionConfigs} from './execution-adoption.ts';
+import type {ExecutionAdoption} from './execution-adoption.ts';
 
 type KeychainRef={service:string;account:string};
 type InputRef={path:string;sha256:string;observedAt:string};
@@ -176,6 +178,8 @@ async function mutationKnown(db:CatalogD1,deliveryId:string){
 }
 export interface WeeklyDriverOptions {
   command:'preflight'|'start'|'resume'|'status';configPath:string;configSha256:string;workspace:string;
+  /** Explicit already-recorded same-run recovery; never an implicit new run. */
+  recovery?:{path:string;sha256:string;configPath:string;configSha256:string};
   approval?:{path:string;sha256:string};
   cadenceOnly?:boolean;
 }
@@ -188,16 +192,27 @@ type Dependencies={repository?:string;fetch?:typeof fetch;resolveToken?:(ref:Key
  */
 export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependencies:Dependencies={}) {
   const repo=dependencies.repository||repository;const now=dependencies.now||(()=>new Date().toISOString());
-  const config=validateCloudflareWeeklyConfig(await reviewed(options.configPath,options.configSha256,repo,32768));
+  const original=validateCloudflareWeeklyConfig(await reviewed(options.configPath,options.configSha256,repo,32768));
+  let config=original,adoption:ExecutionAdoption|null=null;
+  if(options.recovery){
+    if(!['resume','status'].includes(options.command))throw new Error('weekly_recovery_command');
+    adoption=await reviewed(options.recovery.path,options.recovery.sha256,repo) as ExecutionAdoption;
+    validateExecutionAdoption(adoption);
+    config=validateCloudflareWeeklyConfig(await reviewed(options.recovery.configPath,options.recovery.configSha256,repo,32768));
+    validateExecutionAdoptionConfigs(original,config,adoption);
+    if(adoption.original.configSha256!==options.configSha256||adoption.effective.configSha256!==options.recovery.configSha256)
+      throw new Error('weekly_recovery_config');
+  }
   if(options.cadenceOnly&&!config.cadence)throw new Error('weekly_daily_cadence_required');
   if(config.cadence&&['start','resume'].includes(options.command)&&!dependencies.cadence)
     return withCatalogCadence({workspace:options.workspace,repository:repo,now},(cadence:Dependencies['cadence'])=>runCloudflareWeekly(options,{...dependencies,cadence}));
   if(options.approval&&options.command!=='resume')throw new Error('weekly_approval_requires_phase_resume');
   const scope={environment:config.environment,indexName:config.vectorIndex.name};const resolveToken=dependencies.resolveToken||resolveReadToken;
-  const workspaceOptions:RunWorkspaceOptions={directory:options.workspace,repository:repo,mode:options.command==='start'?'create':'resume',
-    runId:config.runId,configSha256:options.configSha256,codeSha:config.codeSha,
+  const workspaceOptions:RunWorkspaceOptions={directory:options.workspace,repository:adoption?original.publication.sourceRoot:repo,mode:options.command==='start'?'create':'resume',
+    runId:original.runId,configSha256:options.configSha256,codeSha:original.codeSha,
     scope:{...scope,accountId:config.accountId,databaseId:config.database.id,databaseName:config.database.name,workerName:config.publication.workerName},
-    retention:config.retention,budgetCaps:{httpRequests:config.limits.requests,sqlStatements:config.limits.statements},now};
+    retention:original.retention,budgetCaps:{httpRequests:original.limits.requests,sqlStatements:original.limits.statements},
+    ...(adoption?{expectedManifestSha256:adoption.original.manifestSha256}:{}),now};
   if(options.command==='status'){
     const report=await readRunWorkspace(workspaceOptions);
     return{state:'status',runId:config.runId,phase:report.checkpoint?.checkpoint.phase??'created',
@@ -230,6 +245,15 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     if(head!==config.codeSha||resolve(config.publication.sourceRoot)!==resolve(repo)
       ||execFileSync('git',['status','--porcelain','--untracked-files=all'],{cwd:repo,encoding:'utf8'}).trim())throw new Error('weekly_source_mismatch');
     workspace=await openRunWorkspace(workspaceOptions);const ws=workspace;
+    if(adoption?canonicalJson(ws.execution)!==canonicalJson(adoption):ws.execution!==null)
+      throw new Error('weekly_execution_adoption_required');
+    if(adoption){
+      const oldRoot=original.publication.sourceRoot;
+      if(execFileSync('git',['rev-parse','HEAD'],{cwd:oldRoot,encoding:'utf8'}).trim()!==original.codeSha
+        ||execFileSync('git',['status','--porcelain','--untracked-files=all'],{cwd:oldRoot,encoding:'utf8'}).trim())throw new Error('weekly_original_source_mismatch');
+      const prior=await ws.readCheckpoint({controlOnly:true});
+      if(!prior?.checkpoint.control?.publication?.permit&&now()>=adoption.contexts.replacement.cutoff)throw new Error('weekly_recovery_context_elapsed');
+    }
     // The owned read sender uses this exact durable ledger. It is separate
     // from normal publication mutation traffic; it can never activate a Worker.
     const networkScope={accountId:config.accountId,workerName:config.publication.workerName,indexName:config.vectorIndex.name,
@@ -361,7 +385,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
         if(n===199)throw new Error('weekly_outbox_bound');
       }
       const prior=await readOrdered(ws,cp.pins.previous) as ApprovedCatalogSeal|PermanentCatalogSeal;
-      const context=await ws.readArtifact(cp.pins.context) as unknown as ApprovedCohortRequest['context'];
+      const context=await ws.readArtifact(ws.execution?.contexts.ref??cp.pins.context) as unknown as ApprovedCohortRequest['context'];
       const previous=prior.kind==='permanent-catalog-seal'?await reconstructPermanentSnapshot(db,cp.owner!,prior)
         :['approved-catalog-seal'].includes(prior.kind)
         ?await readApprovedPrior(db,cp.owner!,prior,context):prior as unknown as ApprovedCohortRequest['previous'];

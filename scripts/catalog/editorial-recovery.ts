@@ -107,9 +107,9 @@ export function prepareEditorialRepair(context:EditorialRecoveryContext,capture:
     const projection=maintenanceProjection(current,rights,context.binding.runId,now,false,null,previous);
     const display=JSON.parse(String(projection.row.public_display_json));
     if(!display||display.editorialWriteup!==base.editorialWriteup
-      ||!same({...display,indexable:base.indexable},base)||display.indexable!==false
+      ||!same(display,base)
       ||!same(projection.persistentBase,base))refuse('factual_equivalence');
-    const beforeDisplay=JSON.parse(String(row.public_display_json)),expectedBefore={...display};delete expectedBefore.editorialWriteup;
+    const beforeDisplay=JSON.parse(String(row.public_display_json)),expectedBefore={...display,indexable:false};delete expectedBefore.editorialWriteup;
     if(!same(beforeDisplay,expectedBefore))refuse('unexpected_before');
     const after={...row,public_display_json:canonicalJson(display)};
     const sidecarAfter={...sidecar,version:Number(sidecar.version)+1,

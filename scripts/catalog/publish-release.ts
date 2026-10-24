@@ -327,8 +327,10 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   if(db.providerIdentity!==`cloudflare:${config.accountId}:${config.database.id}`)throw new Error('publication_database_scope_mismatch');
   await workspace.assertHeld();await workspace.assertScope({accountId:config.accountId,environment:config.environment,databaseId:config.database.id,
     databaseName:config.database.name,workerName:config.workerName,indexName:config.indexName});
-  if(workspace.manifest.codeSha!==config.codeSha)throw new Error('publication_workspace_mismatch');
-  if(workspace.repository!==await fs.realpath(config.sourceRoot))throw new Error('publication_workspace_mismatch');
+  const execution=workspace.execution;
+  if((execution?.effective.codeSha??workspace.manifest.codeSha)!==config.codeSha
+    ||(execution?.effective.sourceRoot??workspace.repository)!==await fs.realpath(config.sourceRoot)
+    ||execution&&execution.effective.publicationConfigSha256!==sha256(canonicalJson(config)))throw new Error('publication_workspace_mismatch');
   const observationSend=options.dependencies?.observationFetch??options.dependencies?.fetch??fetch;
   const api=provider(config,options.credentials.cloudflareToken,options.dependencies?.fetch??fetch,options.credentials.identityAuthorization,observationSend,reviewed?10_000:2500);
   const command=options.dependencies?.command??commandDefault;const configSha256=sha256(canonicalJson(config));

@@ -4,6 +4,7 @@ import { createCatalogSnapshot, createPersistentCatalogProduct, persistentDispla
 import type { DisplayRights, PersistentCatalogProduct, ProductRights, SnapshotProductInput } from '../../lib/catalog/types.ts';
 import { isPurchasableAvailability } from '../../lib/gift-slugs.ts';
 import { editorialSourceHash } from '../ops/catalog-editorial-core.mjs';
+import { normalizedEditorialFacts, originalEditorialEquivalent } from '../../lib/catalog/editorial-equivalence.ts';
 
 export type Row = Record<string, unknown>;
 /** Private PG semantics, not a public DTO. Existing wall times stay opaque. */
@@ -129,18 +130,6 @@ export function maintenanceTimeOrder(a: unknown,b: unknown,nullsFirst: boolean):
   const at=explicitMaintenanceTime(a);const bt=explicitMaintenanceTime(b);
   return at < bt ? -1 : at > bt ? 1 : 0;
 }
-/** Compare facts, not supplier presentation hashes. Ignore only casing of the
- * dimensional units seen in saved responses; numbers, units and other facts
- * remain exact. This never changes source hashes or native-vector proof. */
-function editorialFacts(facts: SemanticProduct['sourceFacts']): string | null {
-  if (!facts || !Object.keys(facts).length) return null;
-  const dimensions = facts.itemDimensions;
-  if (!dimensions || typeof dimensions !== 'object' || Array.isArray(dimensions)) return canonicalJson(facts);
-  return canonicalJson({ ...facts, itemDimensions: Object.fromEntries(Object.entries(dimensions).map(([key,value]) =>
-    [key, typeof value === 'string' ? value.replace(/^(\d+(?:\.\d+)?) (inches|pounds)$/i,
-      (_, number: string, unit: string) => `${number} ${unit.toLowerCase()}`) : value])) });
-}
-
 /** Recover clearance only from an existing saved base, never from fresh grants
  * or merchant fields. Current factual/curation checks still decide its display. */
 function retainedBase(previous: { row: Row; product: SemanticProduct } | undefined, p: SemanticProduct,
@@ -162,9 +151,9 @@ function retainedBase(previous: { row: Row; product: SemanticProduct } | undefin
     for (const field of ['punnyTitle','wittyDescription','humorTags'] as const) {
       if (canonicalJson(base[field] ?? null) !== canonicalJson(p[field] ?? null)) delete base[field];
     }
-    const facts = editorialFacts(previous.product.sourceFacts);
+    const facts = normalizedEditorialFacts(previous.product.sourceFacts);
     const retainedEditorial = Boolean(base.editorialWriteup && p.editorialWriteup === base.editorialWriteup
-      && Number(p.editorialQualityScore) >= .8 && facts !== null && facts === editorialFacts(p.sourceFacts)
+      && Number(p.editorialQualityScore) >= .8 && facts !== null && facts === normalizedEditorialFacts(p.sourceFacts)
       && editorialSourceHash(p) === p.sourceFactsHash);
     if (base.editorialWriteup && !retainedEditorial) {
       delete base.editorialWriteup; base.indexable = false;
@@ -173,9 +162,13 @@ function retainedBase(previous: { row: Row; product: SemanticProduct } | undefin
       qualityScore:p.qualityScore === null ? undefined : Number(p.qualityScore), editorialStatus:p.editorialStatus,
       editorialQualityScore:p.editorialQualityScore === null ? undefined : Number(p.editorialQualityScore),
       sourceFactsHash:p.sourceFactsHash, editorialSourceHash:p.editorialSourceHash } as unknown as SnapshotProductInput;
-    // Preserve the saved article; the existing constructor still decides current
-    // indexability. Metadata churn is not a new source/editorial/native review.
-    return { saved:base, rights:permission, display:createPersistentCatalogProduct({product,rights:permission},now) };
+    const display = createPersistentCatalogProduct({product,rights:permission},now);
+    // Preserve the ORIGINAL approved article only; no current hash/status or
+    // supplier/native binding is rewritten to pretend a new review happened.
+    const equivalent = display && base.indexable && retainedEditorial && originalEditorialEquivalent(
+      previous.row.source_record_json, p, base.editorialWriteup!, editorialSourceHash);
+    return { saved:base, rights:permission, display:equivalent
+      ? validatePublicCatalogProduct({...display,indexable:true},now) as PersistentCatalogProduct : display };
   } catch { return null; } // Unknown/corrupt clearance never becomes a public grant.
 }
 export function maintenanceProjection(p: SemanticProduct, rights: ProductRights, revision: string, now: string,
