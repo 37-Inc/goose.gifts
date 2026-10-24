@@ -32,7 +32,7 @@ function heldCompanions(assetPaths: string[]) {
   };
   // Next's static layout index is optional in older exports. It is a known
   // neutral companion, not permission to serve arbitrary held-page files.
-  const formats = { ...required, "/__next._index.txt": "/__next._index.txt" };
+  const formats: Record<string, string> = { ...required, "/__next._index.txt": "/__next._index.txt" };
   const discovered = assetPaths.filter((path) => path.startsWith(`${base}/`));
   if (!existing.has(`${base}.html`) || !existing.has(`${base}.txt`)
     || Object.keys(required).some((suffix) => !existing.has(`${base}${suffix}`)))
