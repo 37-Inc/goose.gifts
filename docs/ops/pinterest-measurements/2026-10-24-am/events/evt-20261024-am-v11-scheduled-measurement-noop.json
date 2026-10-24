@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261024-am-v11-scheduled-measurement-noop",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-24T16:38:41Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "Scheduled measurement-only snapshot at 2026-10-24T16:33:54.943Z verifies account 1107815345747925810 / stupid_gifts / BUSINESS, 28 retained public Pins, no unresolved production publication receipt and frozen v11 P6/F6. P1441 impressions/22 Pin clicks/3 saves/2 native outbound; F353/5/1/0. Relative to October23PM only impressions increase (P+21,F+17); no new native clicks or saves. Profile3894/60/8/2. Bowling1390 supplies96.46% of P exposure and both outbound; Toast280 supplies79.32% of F. Excluding each dominant Pin leaves P51/2/0/0 and F73/2/0/0. No demonstrated acquisition/format winner. GA4 property507421709 October17-24 Pacific/current partial: Goose641direct+1not-set sessions,Stupid35direct+6amazon+1not-set. Unassigned retailer rows4Stupid/1Goose are not Pinterest conversions or confirmed customers; existing-session operator activity cannot be fully excluded. PostHog550427 rollingUTC October17T16:33:51.305Z-October24T16:33:51.305Z measured42page/68list/6search/3select events with campaign/whole-QA-identity exclusions; no attributable Pinterest/retailer row. Per-arm/per-Pin downstream remains unknown. Earlier504 gap remains historical. Approved Goose URLs now redirect path/query-preserved to Stupid after the independently authorized 04:50:14.849UTC intervention; this is not an unchanged destination test or acquisition proof. Late Opossum7day learning uses actual lifetime snapshot. Hat7day gate16:44:52.279UTC is657336ms after the snapshot; not closed early. No pending24h or new28day lifecycle checkpoint. Final review remains undelivered/not due.",
+    "evidenceEventIds": [
+      "evt-20261024-goose-domain-redirect-intervention",
+      "evt-20261024-am-v11-metrics-1107815208389000013",
+      "evt-20261024-am-v11-metrics-1107815208389027583",
+      "evt-20261024-am-v11-opossum-late-7day-learning"
+    ],
+    "decision": "Routine frozen-cohort measurement-only no-op. No new public/Sandbox Pin, creative, shortlist, approval, account/Pin/catalog/site mutation, deployment, Bead/schedule change, spend or format adoption. Healthy reads and unchanged acquisition counters do not require another owner alert.",
+    "nextAction": "Leave the same ACTIVE09:30/16:30Pacific cadence intact. Observe Hat7day at the next actually eligible scheduled snapshot; deliver the complete review once at/after2026-10-31T16:44:52.279Z (expected normal eligible slotOct31 16:30Pacific). Keep generation/posting off even after review until explicit owner approval of a next experiment."
+  }
+}

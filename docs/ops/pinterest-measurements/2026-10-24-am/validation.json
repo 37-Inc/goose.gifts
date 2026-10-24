@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "kind": "scheduled-measurement-only-evidence-validation",
+  "triggerAtUtc": "2026-10-24T16:32:32.872Z",
+  "snapshotCompletedAtUtc": "2026-10-24T16:33:54.943Z",
+  "operatorSourceBeforeRun": "639afd19622a98c23601f2018579b0fb612d5a91",
+  "sourceCodeChanged": false,
+  "measurementCommandSucceeded": true,
+  "accountVerified": "1107815345747925810 / stupid_gifts / BUSINESS",
+  "nativePublicPinCount": 28,
+  "v11Membership": {"P":6,"F":6},
+  "unresolvedProductionPublicationReceipts": 0,
+  "newValidatedEvents": {"metrics":12,"candidateLearning":1,"runLearning":1},
+  "creativeLog": {"events":984,"experiments":8,"candidates":37,"valid":true},
+  "tests": {"creativePass":6,"pinterestPass":18,"fail":0,"skip":0},
+  "lint": {"errors":0,"existingWarnings":25},
+  "evidenceIntegration": {
+    "pullRequest": "https://github.com/37-Inc/goose.gifts/pull/277",
+    "retainedOperatorEvidenceCommit": "434b85df7445434b227a7838ce38fbdf21c5aefb",
+    "mainBasedIntegrationEvidenceCommit": "e74b92c80e9b3cc26405df9cea4c4b6f6d41e1f4",
+    "freshLockedInstall": true,
+    "creativeLogValid": true,
+    "creativeTestsPass": 6,
+    "pinterestTestsPass": 18,
+    "lintErrors": 0,
+    "existingLintWarnings": 25,
+    "hostedChecksConfigured": false,
+    "retainedMeasurementRuntimeAdvanced": false
+  },
+  "build": {
+    "rerun": false,
+    "reason": "Evidence/docs-only run; implementation, static source and dependencies unchanged. Prior clean build and independent verifier acceptance remain in the cutover validation receipt; no new build/deployment is claimed.",
+    "acceptedImplementationSource": "0bdf589e05148ee2e634117e43e1201acebff997",
+    "priorReceipt": "docs/ops/pinterest-cutover-2026-10-23/verification/validation.json"
+  },
+  "checkpoints": {
+    "opossumSevenDayGateUtc": "2026-10-23T23:36:45.613Z",
+    "opossumObservedLateMs": 61029330,
+    "hatSevenDayGateUtc": "2026-10-24T16:44:52.279Z",
+    "hatSnapshotBeforeGateMs": 657336,
+    "hatSevenDayClosed": false,
+    "newTwentyFourHourChecksDue": 0,
+    "newTwentyEightDayLifecycleArchivesDue": 0,
+    "historicalEqualAgeMetricsReconstructed": false
+  },
+  "destinationIntervention": {
+    "fullRedirectMatrixVerifiedAtUtc": "2026-10-24T04:50:14.849Z",
+    "approvedPinLinksRewritten": false,
+    "evidence": "docs/ops/goose-redirect-2026-10-23/README.md",
+    "interpretation": "Existing path/query-preserving redirects are a destination intervention, not acquisition proof or a format effect. No redirect/account/site mutation occurred in this run."
+  },
+  "preservedUnchanged": ["approved Pin packages","publication receipts","full-cohort membership/deadline/finalReviewDelivered=false","measurement-only policy","canonical/catalog runtime checkouts","existing scheduler/chat/cadence"],
+  "writes": {"publicPins":0,"sandboxPins":0,"catalog":0,"account":0,"schedule":0,"beads":0,"paidActions":0},
+  "reviewDue": false,
+  "reviewDeadlineUtc": "2026-10-31T16:44:52.279Z",
+  "notificationDecision": "DONT_NOTIFY",
+  "notificationReason": "Only expected distribution increments; native acquisition counters unchanged. Healthy bounded reads and routine checkpoint observation require no owner action."
+}
