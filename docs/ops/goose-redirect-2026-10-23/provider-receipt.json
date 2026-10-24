@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-24T04:59:00.000Z",
+  "cloudflare": {
+    "accountId": "7f05a1dcb6e16f9c239564a0293bbe74",
+    "accountName": "37.technology",
+    "zoneId": "ef6d3c7ffcd1943a80ff18d8fd197e29",
+    "zoneName": "goose.gifts",
+    "plan": "Free",
+    "redirectRuleName": "Goose Gifts to Stupid Gifts permanent domain move",
+    "ruleEnabled": true,
+    "ruleOrder": "first",
+    "priorSitemapRuleRetained": "a673acb1b1ba47569b213780657b4407",
+    "apex": { "type": "A", "content": "216.198.79.1", "beforeProxied": false, "afterProxied": true },
+    "www": { "type": "CNAME", "content": "26e4789c6f2426bd.vercel-dns-017.com", "proxied": true, "changed": false },
+    "registrationExpiryObserved": "2028-10-03",
+    "renewalChanged": false,
+    "oldVerificationRecordsPreserved": true,
+    "newGoogleTxt": "google-site-verification=nOnV_fRMQnOlC9_v0xSEIQMU87xshzyu69bZJ1GMCYE",
+    "newPinterestTxtAndWorkerRecordsPreserved": true,
+    "newPermissionsGranted": false,
+    "originDeploymentOrDeletion": false
+  },
+  "google": {
+    "operator": "Existing signed-in owner cam@37.technology",
+    "newDomainProperty": "sc-domain:stupid.gifts",
+    "ownershipVerified": true,
+    "method": "Manual DNS TXT; no Google access to the Cloudflare account granted",
+    "sitemap": { "url": "https://stupid.gifts/sitemap.xml", "submittedOnce": true, "initialStatus": "Couldn't fetch", "finalReadbackStatus": "Success", "discoveredPages": 184, "discoveredVideos": 0 },
+    "moves": [
+      { "source": "sc-domain:goose.gifts", "target": "sc-domain:stupid.gifts", "validation": "homepage301,ownership,sample-pages all passed", "readback": "This site is currently moving", "dateStartedUi": "October 24, 2026" },
+      { "source": "https://www.goose.gifts/", "target": "sc-domain:stupid.gifts", "validation": "homepage301,ownership,sample-pages all passed", "readback": "This site is currently moving", "dateStartedUi": "October 24, 2026" }
+    ],
+    "destinationReadback": "Moving sites: goose.gifts and www.goose.gifts",
+    "oldPropertiesAndHistoryPreserved": true,
+    "serviceAccountPermissionChanged": false,
+    "indexingOrRankingSuccessClaimed": false
+  },
+  "scope": "Owner-authorized redirect and Search Console migration; no Pinterest write, daily job, catalog mutation, production site deploy, paid plan or destructive retirement"
+}

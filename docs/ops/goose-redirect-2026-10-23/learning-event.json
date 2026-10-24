@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261024-goose-domain-redirect-intervention",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-24T04:59:00.000Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "Owner assigned equivalent Goose-to-Stupid redirects to this thread. Cloudflare301 domain move now preserves paths/query for both old hosts/schemes; actual full40/40 matrix verified2026-10-24T04:50:14.849Z and all28 retained approved Pin links reach corresponding Stupid paths with original UTMs.184 sitemap targets200;27 retailer IDs match prior new-site audit and tube-guy stays intentionally held. Original packages,Pin IDs,receipts and cohort ages unchanged. Google ownership/sitemap and domain/www moves separately accepted. No public Pin,creative,catalog job,new-site deployment or spend.",
+    "evidenceEventIds": ["evt-20261023-pm-v11-scheduled-measurement-noop"],
+    "decision": "Record a destination intervention,not a format win or acquisition signal. QA is excluded. Preserve P6/F6 and2026-10-31T16:44:52.279Z review deadline. No automatic posting after review.",
+    "nextAction": "Review full six-versus-six cohort once at the planned eligible slot,including pre/post rebrand and redirect confounds. Require explicit owner approval for next experiment. Keep provider retirement behind its separate observation,recovery and consumer gates."
+  }
+}

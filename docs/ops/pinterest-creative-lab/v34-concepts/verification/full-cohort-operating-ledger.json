@@ -17,6 +17,14 @@
   "finalReviewDeliveredAt": null,
   "noFurtherGenerationOrPublicationUntilExplicitNewOwnerExperiment": true,
   "scheduleAction": "leave existing two daily slots ACTIVE and unchanged; do not create duplicate review job",
+  "interventions": [{
+    "type": "goose_to_stupid_path_preserving_domain_redirect",
+    "firstWwwRedirectObservedAt": "2026-10-24T04:45:24.000Z",
+    "fullHostProtocolMatrixVerifiedAt": "2026-10-24T04:50:14.849Z",
+    "evidence": "docs/ops/goose-redirect-2026-10-23/after-final.json",
+    "scope": "301 at Cloudflare for HTTP/HTTPS goose.gifts and www.goose.gifts, preserving path and query. Original Pin URLs and all publication receipts unchanged.",
+    "reviewCaveat": "Separate pre/post destination and rebrand effects from format. QA is not acquisition; no equal-age historical metrics reconstructed. Tube-guy remains held."
+  }],
   "members": [
     {
       "pinId": "1107815208388715714",

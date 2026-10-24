@@ -17,6 +17,15 @@ batch. Historical gated/recovery instructions below do not override this state.
 
 ## P1 — needed within the first weeks
 
+**Redirect migration accepted October23 Pacific:** Cloudflare independently
+serves301 for both Goose hosts and schemes, preserving paths/query/Pin UTMs.
+40/40 cases,28/28 Pin links and184 sitemap targets pass. New Google domain
+ownership is verified; sitemap processing succeeds with184 discovered pages;
+domain and www Change of Address requests are accepted. See
+`goose-redirect-2026-10-23/README.md`. No owner DNS/login request remains.
+Legacy Vercel/Neon deletion/renewal/repository changes remain separately gated;
+Goose registration currently expires October3,2028. Pinterest stays metric-only.
+
 ### Stupid Gifts launch — deferred owner decisions
 
 **Pinterest handoff, updated October23 PM:** the account/app rename is complete, not an
@@ -47,8 +56,9 @@ review/destination boundaries. This is engineering coordination, not a new
 DNS/login request. The old sampled bowling404 was superseded by the October23
 full audit: all28 new paths return200, but one is a deliberate tube-guy hold,
 and the legacy dog-toy retailer comparison is unavailable.26 exact retailer
-matches and UTMs are verified; Goose still does not redirect. Do not bulk-swap
-Pin URLs, remove holds or substitute the homepage.
+matches and UTMs were verified in that pre-redirect audit; Goose now redirects
+under the newer receipt above. Do not bulk-swap Pin URLs, remove holds or
+substitute the homepage.
 
 **Historical public launch, October21:** the original launch served eight reviewed,
 fresh products from Cloudflare Free. Production Worker version

@@ -1,5 +1,23 @@
 # Pinterest studio — operating contract and recovery
 
+## Destination intervention — October23 Pacific / October24 UTC
+
+Cameron assigned the old-domain redirect migration to this thread. Cloudflare
+now301-redirects HTTP/HTTPS apex/www Goose paths and complete query strings to
+`https://stupid.gifts`. The full40-case matrix and all28 retained Pin links pass
+at2026-10-24T04:50:14.849Z; 184 sitemap targets return200. All Pins, packages,
+cohort receipts and dates remain unchanged.27 current retailer IDs match the
+prior new-domain audit; tube-guy stays intentionally held. The [redirect receipt](goose-redirect-2026-10-23/README.md)
+also records Google ownership, successful184-page sitemap processing and both
+accepted domain/www Change of Address requests. No site/catalog deployment,
+new Pin, scheduler change or legacy-provider deletion was performed.
+
+Treat this as a pre/post-destination intervention in the October31 review,
+not a creative-format effect or attributable acquisition receipt. The following
+October23 measurement snapshot preceded these redirects. Old statements that
+Goose does not redirect are historical, not current. Generation/posting remain
+off; the exact review deadline and explicit next-experiment approval gate stay.
+
 ## Current authority — October 23 measurement-only restart
 
 PR270 is merged. The same heartbeat is verified **ACTIVE** as **Stupid Gifts —
@@ -38,11 +56,12 @@ preserved. Exact review deadline: **2026-10-31T16:44:52.279Z**; first eligible
 regular slot is October31 **16:30 Pacific** (09:30 is too early). Deliver/record
 the final review once; remain metric-only after it until new owner authority.
 Missing native/site metrics are unknown, not zero; exclude QA/operator traffic.
-Old Goose Pin destinations remain unchanged and do not redirect to Stupid yet.
-The current audit documents26 exact retailer matches, a legacy dog-toy comparison
-gap and an intentional tube-guy hold. Do not replace either with a homepage or
-claim complete historical traffic migration. These are not reasons to reopen
-posting or mutate the separate site/catalog workstream.
+Approved Goose Pin links remain unchanged; the new Cloudflare redirect now
+forwards them to the same Stupid paths with UTMs. The October23 pre-redirect
+audit documented26 old/new retailer matches, a legacy dog-toy comparison gap
+and an intentional tube-guy hold. Neither product is substituted with a homepage.
+Redirect QA does not establish acquisition. It does not reopen posting or mutate
+the separate site/catalog workstream.
 
 ## Scheduler
 

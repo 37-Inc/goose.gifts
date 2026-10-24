@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "testedSource": "245f0b3",
+  "node": "22.23.1",
+  "focusedTests": { "pass": 58, "fail": 0, "skip": 0, "files": ["goose-domain-redirect.test.mjs", "site-worker-production.test.mjs", "site-worker.test.mjs", "pinterest-cutover.test.mjs", "pinterest-publishing.test.mjs", "creative-experiments.test.mjs"] },
+  "lint": { "errors": 0, "existingWarnings": 25 },
+  "build": { "command": "npm run build", "cleanCommittedSource": true, "fixture": "static-site/fixtures/catalog.snapshot.json", "dataKind": "synthetic_fixture", "sourceMode": "stupid-production", "analyticsEnabled": false, "releaseId": "synthetic-goose-redirect-245f0b3", "products": 3, "assets": 452, "guardedRoutes": 426, "independentVerifierPassed": true, "deployed": false },
+  "creativeLog": { "valid": true, "events": 970, "experiments": 8, "candidates": 37, "newEventsOnlyLearning": true },
+  "liveChecks": { "hostProtocolMatrix": "40/40", "pinRedirects": "28/28", "sitemapTargets": "184/184", "terminalStatuses": "10/10", "newSiteCodeUnchanged": "da7a1e0c152306d7e18ec510559221265d6fe886", "retailerMatchesNewDomainBaseline": 27, "intentionalUnavailableHold": 1 },
+  "preserved": ["28 original approved Pin packages and links", "all durable publication receipts", "12 cohort members, arm counts and exact review deadline", "measurement-only policy and both existing schedule cadences", "all site/catalog runtime and dependency source", "legacy origin values, Google TXT, retained domain and TLS", "Pinterest TXT and both new-domain Worker records"],
+  "notPerformed": ["production or Sandbox Pin write", "creative generation", "catalog maintenance", "site deployment", "account permission expansion", "paid action", "provider retirement", "renewal change", "repository rename"]
+}
