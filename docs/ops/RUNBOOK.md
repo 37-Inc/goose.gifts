@@ -43,15 +43,17 @@ batch after a failure.
 ## Operator
 
 **Daily writer enabled after live validation, October23.** The one existing
-task runs at08:30 Pacific, with no additional Cron or scheduler. Release
-`recorded-canary-20261023-f731dd58` is live, with exact receipt, resolved build,
-idle owner and desktop/mobile QA verified. See
-`evidence/2026-10-23-catalog-care-accepted.json` for actual task-installation
+task runs at08:30 Pacific, with no additional Cron or scheduler. The subsequent
+storefront release `storefront-da7a1e0c1523` is live, with exact receipt, resolved
+build, idle owner and desktop/mobile QA verified. See
+`evidence/2026-10-23-storefront-accepted.json` for current release/task state and
+`evidence/2026-10-23-catalog-care-accepted.json` for original writer installation
 state and evidence; an ACTIVE timer alone is never proof of writer readiness.
 
 The retained execution checkout is
 `/Users/cameronehrlich/.codex/worktrees/stupid-catalog-care/goose.gifts`.
-It uses the reviewed runtime from PR269 plus documentation-only closeout commits.
+It integrates the reviewed runtimes from PR269 and PR274 plus documentation-only
+closeout commits; its runtime/dependency files match the accepted live source.
 Keep the historical canary checkout unchanged. Never blindly pull or republish
 an older runtime over a newer live release; integrate/test genuine code changes
 deliberately before switching the operator.

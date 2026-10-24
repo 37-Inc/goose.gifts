@@ -5,6 +5,57 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 PM — White gallery shipped; tracker reconciled
+
+Owner approved all five design recommendations. PR274 merged44b4b69; reviewed
+runtime da7a1e0 is live as `storefront-da7a1e0c1523`, Worker version
+`21106404-4089-445c-9508-b013596f78c0`, deployment
+`2cc1856c-ddb4-4fbe-a783-e39cbff821dd`. Independent D1 receipt
+`ac773d7ec6bc1588ffc0ed015fecef36705fb7aa3080e8f230501137632ace2c`,
+resolved build and idle owner16/428/external_pending0 verify actual publication.
+The retained workspace closes published/owner-null without another provider
+operation. Exact public body hashes match the package.
+
+Pure white/near-black gallery, consistent3desktop/2mobile columns, concise factual
+names, selective card notes, 24 reviewed opening gifts and build-only related
+matching replace the oversized opening layout and repeated filler. Detail pages
+keep the original article and retailer title in disclosures. Every original
+product, image, description, article, slug and hold is exactly unchanged:
+3383identities/2359public/1024holds/42articles. No supplier/model/product/native
+write, rights renewal, paid upgrade, Vercel deployment or social/Slack action.
+
+Final affected gate175pass/6optional skips; durable publisher8pass; both strict
+types, lint0errors/25existing warnings, verified synthetic export and zero-finding
+audit pass. The earlier full1199 run had1167pass/25skip/7 photo-harness failures;
+the missing helper import was fixed and all7 pass in the final affected gate.
+Do not call that a subsequent full-suite rerun. An actual export also revealed
+Next's optional layout companion; its narrow validated mapping is covered by tests.
+Small undici/zod resolution updates clear new advisories without a Next/Wrangler
+upgrade. Full production export has17631assets, below Free's20000 guard.
+
+Live1280desktop/390mobile verify white canvas, no overflow/broken loaded photos,
+24-to48 unique cards, debounced grilling results, keyboard cat search, Clear,
+Back and empty recovery. Native card navigation, original sheep article,
+product-specific related results, canonical affiliate tag, guides and an actual
+random spin pass. QA uses a marked campaign; no acquisition claim. Desktop/mobile
+screenshots are retained in the chat visualization directory.
+
+Publication used2564HTTP/6182SQL/1147916reported reads/14189writes/zero unknowns,
+with preparation and bounded diagnostic uncertainty retained separately. These
+are release/proof costs, not merchant or visitor demand. Existing task updated in
+place, same08:30Pacific cadence/ten-product limit; clean current operator's prepare
+correctly skips today's reserved batch. `.4.8` owns the first actual scheduled
+cost/storage/asset-growth observation; do not fetch another batch for it.
+
+Tracker closes the shipped gallery, immediate cutover and previously evidenced
+analytics cleanup/review; old100/day and bulk Random editorial tasks are explicitly
+superseded, not implemented. Remaining semantic parity, product redirects/GSC,
+provider/privacy/consumer checks, Pinterest's separate approved measurement,
+show selections and eventual legacy retirement remain in their canonical tasks.
+Optional bulk editorial is deferred, not a migration prerequisite. Full receipts,
+exact test scopes and current task readback are in
+`evidence/2026-10-23-storefront-accepted.json`.
+
 ## 2026-10-23 PM — first resumed scheduled measurement-only run
 
 Heartbeat trigger23:28:49.325UTC; actual observation23:30:08.162UTC in the

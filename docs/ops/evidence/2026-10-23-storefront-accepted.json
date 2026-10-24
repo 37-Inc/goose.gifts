@@ -1,0 +1,278 @@
+{
+  "schemaVersion": 1,
+  "implementationPr": "https://github.com/37-Inc/goose.gifts/pull/274",
+  "implementationMerge": "44b4b690fdd5f63a22f8494436150d431b2458c3",
+  "acceptedRuntimeSource": "da7a1e0c152306d7e18ec510559221265d6fe886",
+  "verification": {
+    "verifiedAt": "2026-10-24T03:24:04.451Z",
+    "source": "da7a1e0c152306d7e18ec510559221265d6fe886",
+    "identity": {
+      "release_id": "storefront-da7a1e0c1523",
+      "code_sha": "da7a1e0c152306d7e18ec510559221265d6fe886",
+      "catalog_revision": "storefront-da7a1e0c1523",
+      "catalog_snapshot_sha256": "765f61c6bc9eaa544f7f4e87a72f2231fba0a59a29c38743aa0bebc9aec0ff88",
+      "manifest_sha256": "4c48c1046d792272207087d5ac74b584dd7b8a986f8c80a610db6825106f8e86"
+    },
+    "versionReference": "21106404-4089-445c-9508-b013596f78c0",
+    "d1ReceiptSha256": "ac773d7ec6bc1588ffc0ed015fecef36705fb7aa3080e8f230501137632ace2c",
+    "build": {
+      "state": "resolved",
+      "release_id": "storefront-da7a1e0c1523",
+      "version_reference": "21106404-4089-445c-9508-b013596f78c0",
+      "attempts": 2
+    },
+    "owner": {
+      "phase": "idle",
+      "generation": 16,
+      "mutation_epoch": 428,
+      "external_pending": 0
+    },
+    "metrics": {
+      "requests": 3,
+      "statements": 4,
+      "reportedRowsRead": 3,
+      "reportedRowsWritten": 0,
+      "unconfirmedRequests": 0
+    },
+    "capacity": {
+      "observedAt": "2026-10-24T03:24:04.451Z",
+      "utcDay": "2026-10-24",
+      "rowsRead": 1147870,
+      "rowsWritten": 14187,
+      "unknownReadReserve": 500000,
+      "unknownWriteReserve": 5000,
+      "untouchedReads": 300000,
+      "untouchedWrites": 10000
+    },
+    "publicBodies": [
+      {
+        "pathname": "/",
+        "status": 200,
+        "sha256": "3c5a985a3f2a7905ba92272cd6c1bb65a9a7c815f5b23a12ff022922fd8af2e2",
+        "matchesPackage": true
+      },
+      {
+        "pathname": "/gifts/shear-ly-the-best-toilet-roll-holder",
+        "status": 200,
+        "sha256": "33b529a9f5fad7f1ccb06a1c157364d00dbfe84c27626ff9c4220be7f78cabca",
+        "matchesPackage": true
+      },
+      {
+        "pathname": "/gifts/poultry-in-motion-the-raw-chicken-vase-surprise",
+        "status": 200,
+        "sha256": "14a8f05e0da83ae4bef42f76573c3ca140ccdf37df70c4c7df0a253e83abb644",
+        "matchesPackage": true
+      },
+      {
+        "pathname": "/privacy",
+        "status": 200,
+        "sha256": "af4d0c2c8a919aafaa45357462090d0cd5e417eebc14daac36cda55ae54104ca",
+        "matchesPackage": true
+      }
+    ],
+    "catalog": {
+      "identities": 3383,
+      "public": 2359,
+      "held": 1024,
+      "originalArticles": 42,
+      "indexable": 42,
+      "exactOriginalProductAndHistoryValues": true,
+      "staticAssets": 17631
+    },
+    "merchantRequests": 0,
+    "modelRequests": 0,
+    "productChanges": 0,
+    "nativeWrites": 0
+  },
+  "publication": {
+    "deploymentId": "2cc1856c-ddb4-4fbe-a783-e39cbff821dd",
+    "versionReference": "21106404-4089-445c-9508-b013596f78c0",
+    "controlSha256": "27d5241a816c6dde147140131d520d785ed437b33735eadd1abffcf6087b5c22",
+    "privateReceiptSha256": "5f7f4a0c3c44a4ab5533484eaf7e09840ce28abdad5132613d7199742b5ba2cf",
+    "durableReceiptSha256": "9cbec6677aa954c1298bc1cc647224d958598fb22585752962ddad1e9da36afc",
+    "workspace": {
+      "phase": "published",
+      "owner": null,
+      "checkpointSha256": "849e31ced2bdd5157c8e792316244b30353ee9b826b2bfd70c16d1106c8004b6"
+    },
+    "budget": {
+      "httpRequests": 2564,
+      "sqlStatements": 6182,
+      "knownRowsRead": 1147916,
+      "knownRowsWritten": 14189,
+      "unconfirmedRequests": 0
+    },
+    "preparation": {
+      "capacity": {
+        "observedAt": "2026-10-24T02:57:56.254Z",
+        "utcDay": "2026-10-24",
+        "rowsRead": 0,
+        "rowsWritten": 0,
+        "unknownReadReserve": 500000,
+        "unknownWriteReserve": 5000,
+        "untouchedReads": 300000,
+        "untouchedWrites": 10000
+      },
+      "metrics": {
+        "requests": 3,
+        "statements": 5,
+        "reportedRowsRead": 3,
+        "reportedRowsWritten": 0,
+        "unconfirmedRequests": 0
+      },
+      "live": {
+        "release_id": "recorded-canary-20261023-f731dd58",
+        "code_sha": "f731dd58b5f8cff0491b46b79c7747d035d3278c",
+        "catalog_revision": "recorded-canary-20261023-f731dd58",
+        "catalog_snapshot_sha256": "d0e3a287af638154e3b99a16aa67c0cc82d3b8d98eee4befdba217e893154c0f",
+        "manifest_sha256": "1123475aeb4d57cea44342bf3093001081521a9e01b361defb444f5ce3de28e7"
+      },
+      "merchantRequests": 0,
+      "modelRequests": 0,
+      "productWrites": 0,
+      "nativeWrites": 0
+    },
+    "priorDiagnostics": {
+      "preparationAttention": {
+        "httpCeiling": 12,
+        "sqlCeiling": 12,
+        "readCeiling": 20000,
+        "writes": 0,
+        "retainedInsideExistingUncertaintyReserve": true
+      },
+      "publicVerifierPrivacyRouteClassification": {
+        "providerSqlCalls": 0,
+        "fixed": true
+      },
+      "independentVerificationFirstReadback": {
+        "readCeiling": 2000,
+        "writes": 0,
+        "metricsNotRetained": true,
+        "reason": "D1 proof passed but optional account headroom read failed before receipt persisted; conservatively retained, not refunded."
+      }
+    },
+    "merchantRequests": 0,
+    "modelRequests": 0,
+    "productChanges": 0,
+    "nativeWrites": 0
+  },
+  "qa": {
+    "desktop": {
+      "width": 1280,
+      "height": 720,
+      "background": "rgb(255, 255, 255)",
+      "columns": 3,
+      "initialCards": 24,
+      "afterLoadMore": 48,
+      "uniqueAfterLoadMore": 48
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "columns": 2,
+      "overflow": false,
+      "brokenLoadedPhotos": 0
+    },
+    "debouncedQuery": "dad who loves grilling",
+    "debouncedFirstResult": "Barbecue Grill Spatula",
+    "resultCount": 36,
+    "resultsOnly": true,
+    "emptyQuery": "zzqxvj98347",
+    "emptyRecovery": true,
+    "clear": true,
+    "keyboardCatSearch": true,
+    "browserBack": true,
+    "nativeCardNavigation": true,
+    "originalArticleExpanded": true,
+    "retailerIdentityDisclosure": true,
+    "relatedItemsDifferAcrossProducts": true,
+    "guides": true,
+    "actualRandomSpinChangedProduct": true,
+    "affiliateTag": "goose-gifts-37-20",
+    "campaignMedium": "qa",
+    "campaign": "qa_storefront_refinement_20261023",
+    "screenshots": [
+      "stupid-gifts-white-gallery-desktop-20261023.png",
+      "stupid-gifts-white-gallery-mobile-20261023.png"
+    ]
+  },
+  "validation": {
+    "node": "22.23.1",
+    "initialFullSuite": {
+      "total": 1199,
+      "pass": 1167,
+      "fail": 7,
+      "skip": 25,
+      "failure": "photo-client VM harness missing the new short-name import; repaired, all seven pass in the final affected gate",
+      "fullSuiteRerunAfterRepair": false
+    },
+    "finalAffectedGate": {
+      "total": 181,
+      "pass": 175,
+      "fail": 0,
+      "skip": 6
+    },
+    "durablePublication": {
+      "pass": 8,
+      "fail": 0
+    },
+    "strictTypechecks": 2,
+    "lintErrors": 0,
+    "preExistingLintWarnings": 25,
+    "fullAuditFindings": 0,
+    "dependencySecurityUpdates": {
+      "undici": "7.30.1",
+      "zod": "4.6.7",
+      "nextUnchanged": "16.4.3",
+      "wranglerUnchanged": "4.151.0"
+    },
+    "verifiedSyntheticExport": {
+      "assets": 452,
+      "guardedRoutes": 426
+    },
+    "actualFullCatalogAssets": 17631,
+    "freeAssetGuard": 20000
+  },
+  "scheduler": {
+    "id": "goose-gifts-daily-ops",
+    "kind": "heartbeat",
+    "name": "Stupid Gifts — Daily Catalog Care",
+    "status": "ACTIVE",
+    "dailyPacificTime": "08:30",
+    "rrule": "RRULE:FREQ=DAILY;BYHOUR=8;BYMINUTE=30",
+    "targetThreadId": "019f4af2-1ee6-70b2-8111-61be6dc395a9",
+    "updatedAt": "2026-10-24T03:24:40.462Z",
+    "promptSha256": "261bca76bba205750da769eff745816e8723d2eca130e9dd9aa1c34f6c5142a1",
+    "additionalJobCreated": false,
+    "operatorCheckout": "/Users/cameronehrlich/.codex/worktrees/stupid-catalog-care/goose.gifts",
+    "integratedHeadBeforeDocs": "44b4b690fdd5f63a22f8494436150d431b2458c3",
+    "runtimeEquivalentToAcceptedSource": true,
+    "dependenciesMatchLock": true,
+    "preparation": {
+      "state": "skipped",
+      "reason": "daily_already_reserved"
+    },
+    "dailyProductLimit": 10
+  },
+  "tracker": {
+    "completed": [
+      "roadmap-lbbz1.5.3",
+      "roadmap-lbbz1.6.1",
+      "roadmap-vpmm.4.3",
+      "roadmap-vpmm.4.6"
+    ],
+    "supersededNotImplemented": [
+      "roadmap-0jyb.3",
+      "roadmap-0jyb.5"
+    ],
+    "followUps": [
+      "roadmap-lbbz1.4.8",
+      "roadmap-lbbz1.4.7",
+      "roadmap-lbbz1.6.2",
+      "roadmap-lbbz1.8",
+      "roadmap-lbbz1.8.1",
+      "roadmap-lbbz1.5",
+      "roadmap-lbbz1.7"
+    ]
+  }
+}
