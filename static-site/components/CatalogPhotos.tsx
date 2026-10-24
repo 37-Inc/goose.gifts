@@ -4,10 +4,12 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { ProductImage } from "@/components/ProductImage";
 import { PHOTO_PLACEHOLDER, photoVersion, validatePhotoIndex, validatePhotoShard } from "../lib/photo-shard";
 import { Icon } from "./Icon";
+import { shortProductName } from "../lib/product-presentation";
 
 const PhotoContext = createContext<{ indexPath: string | null; photoSlots: readonly string[];
-  editorialDisclosures: Readonly<Record<string, string>>; cardTitles: Readonly<Record<string, string>>
-}>({ indexPath: null, photoSlots: [], editorialDisclosures: {}, cardTitles: {} });
+  editorialDisclosures: Readonly<Record<string, string>>; cardTitles: Readonly<Record<string, string>>;
+  descriptions: Readonly<Record<string, string>>; cardNotes: Readonly<Record<string, string>>;
+}>({ indexPath: null, photoSlots: [], editorialDisclosures: {}, cardTitles: {}, descriptions: {}, cardNotes: {} });
 const pending = new Map<string, Promise<unknown>>();
 async function read(path: string, validate: (value: unknown) => unknown): Promise<unknown> {
   const existing = pending.get(path);
@@ -35,16 +37,26 @@ async function read(path: string, validate: (value: unknown) => unknown): Promis
   return request;
 }
 
-export function CatalogPhotos({ indexPath, photoSlots = [], editorialDisclosures = {}, cardTitles = {}, children }: {
+export function CatalogPhotos({ indexPath, photoSlots = [], editorialDisclosures = {}, cardTitles = {}, descriptions = {}, cardNotes = {}, children }: {
   indexPath: string | null; photoSlots?: readonly string[]; editorialDisclosures?: Readonly<Record<string, string>>;
-  cardTitles?: Readonly<Record<string, string>>; children: React.ReactNode;
+  cardTitles?: Readonly<Record<string, string>>; descriptions?: Readonly<Record<string, string>>;
+  cardNotes?: Readonly<Record<string, string>>; children: React.ReactNode;
 }) {
-  return <PhotoContext.Provider value={{ indexPath, photoSlots, editorialDisclosures, cardTitles }}>{children}</PhotoContext.Provider>;
+  return <PhotoContext.Provider value={{ indexPath, photoSlots, editorialDisclosures, cardTitles, descriptions, cardNotes }}>{children}</PhotoContext.Provider>;
 }
 
 export function CatalogTitle({ source, id, fallback }: { source: string; id: string; fallback: string }) {
   const titles = useContext(PhotoContext).cardTitles;
-  return source === "amazon" && Object.hasOwn(titles, id) ? titles[id] : fallback;
+  return source === "amazon" && Object.hasOwn(titles, id) ? titles[id] : shortProductName(fallback);
+}
+
+export function CatalogDescription({ id, source, fallback, card = false }: {
+  id: string; source: string; fallback?: string; card?: boolean;
+}) {
+  const copy = useContext(PhotoContext);
+  const descriptions = card ? copy.cardNotes : copy.descriptions;
+  const text = (source === "amazon" && Object.hasOwn(descriptions, id) ? descriptions[id] : fallback)?.trim();
+  return text ? <p className={card ? "card-description" : "detail-line"}>{text}</p> : null;
 }
 
 /** Independently authored site copy; never changes the supplied catalog product. */

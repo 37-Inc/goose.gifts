@@ -93,6 +93,9 @@ test(
   () => {
     const inventory = files(new URL("out/", root));
     const routes = createStaticRoutes(exportSnapshot, inventory);
+    if (inventory.includes("/safe/product/__next._index.txt"))
+      for (const held of exportSnapshot.heldProducts)
+        assert.equal(routes[`${held.path}/__next._index.txt`].assetPath, "/safe/product/__next._index.txt");
     for (const asset of inventory.filter(
       (file) =>
         /\.(html|txt|json)$/.test(file) &&
@@ -130,6 +133,8 @@ test(
     // even when the real export now contains permanent views/photo overlays.
     const changed = structuredClone(snapshot);
     const related = changed.products[Math.min(2, changed.products.length - 1)];
+    changed.products[0].humorTags = ["desk"];
+    related.humorTags = ["desk"];
     related.eligibleUntil = "2026-10-21T00:00:00.000Z";
     const pages = ["/random-gift", "/gift-guides", "/howie", "/preview/presentation", "/gifts", "/gifts/page/1",
       ...guides.map(guide => `/gift-guides/${guide.slug}`), ...changed.products.map(product => `/gifts/${product.slug}`)];

@@ -107,10 +107,15 @@ run-specific readers remain retained; do not replay completed migration helpers.
 
 ## Site quality and code changes
 
-The homepage leads with reviewed physical oddities, then quality/diversity-ranked
-static batches. All public gifts remain reachable through Load more and product
-URLs. Short factual card labels let the objects carry the joke; full original
-descriptions remain on detail pages and in the dataset.
+The homepage is a white product gallery: three columns on desktop, two on mobile,
+with compact search and 24-item static browse batches. The first 24 gifts have
+reviewed factual names and descriptions in `content/homepage.json`; useful card
+notes are selective. Other merchant names get a concise presentation-only label.
+All public gifts remain reachable through Load more and product URLs. Original
+titles, descriptions, images and editorial remain unchanged in the dataset;
+longer detail copy and exact retailer identity remain available in disclosures.
+Related gifts use build-only object/interest matching, shared with route-expiry
+calculation. No per-visitor database/model work is added by the gallery.
 
 Search uses the published cleared catalog in Worker memory when all products have
 permanent views, avoiding D1 query/diagnostic costs for that path. Semantic search

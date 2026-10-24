@@ -104,7 +104,8 @@
   "overrides": {
     "@esbuild-kit/esm-loader": "npm:tsx@4.23.12",
     "glob": "13.0.6",
-    "postcss-selector-parser": "7.1.7"
+    "postcss-selector-parser": "7.1.7",
+    "undici": "7.30.1"
   },
   "allowScripts": {
     "bufferutil@4.0.9": true,

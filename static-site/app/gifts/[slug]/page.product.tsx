@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
-import { CatalogDisclosure, CatalogImage } from "../../../components/CatalogPhotos";
+import { CatalogDescription, CatalogDisclosure, CatalogImage, CatalogTitle } from "../../../components/CatalogPhotos";
 import { buildGiftPageSchema } from "@/lib/gift-page-schema";
-import { catalog } from "../../../lib/catalog";
+import { catalog, relatedGifts } from "../../../lib/catalog";
 import { isIllustrative } from "../../../lib/selection";
 import { previewMetadata, PREVIEW_ORIGIN } from "../../../lib/metadata";
 import { ProductCard } from "../../../components/ProductCard";
 import { og } from "../../../lib/og-data";
+import { shortProductName } from "../../../lib/product-presentation";
+import homepage from "../../../../content/homepage.json";
 
 export const dynamicParams = false;
 // Held identities use shared neutral assets, not one React export per identity.
@@ -23,7 +25,7 @@ export async function generateMetadata({
   const product = catalog.products.find((item) => item.slug === slug);
   if (!product) notFound();
   return previewMetadata(
-    product.title,
+    (product.source === "amazon" && (homepage.cardTitles as Record<string, string>)[product.id]) || shortProductName(product.title),
     product.description,
     `/gifts/${slug}`,
     { indexable: product.indexable !== false, fixture: catalog.dataKind === "synthetic_fixture",
@@ -39,6 +41,7 @@ export default async function Gift({
   const product = catalog.products.find((item) => item.slug === slug);
   if (!product) notFound();
   const illustrative = isIllustrative(product);
+  const related = relatedGifts(product);
   const retailer = product.source === "amazon" ? "Amazon" : "Etsy";
   const schema = buildGiftPageSchema(
     product,
@@ -68,7 +71,7 @@ export default async function Gift({
             alt={
               illustrative
                 ? `Original illustration of the fictional ${product.title}`
-                : product.title
+                : (product.source === "amazon" && (homepage.cardTitles as Record<string, string>)[product.id]) || shortProductName(product.title)
             }
             className="object-contain"
             sizes="(max-width: 700px) 90vw, 55vw"
@@ -76,16 +79,10 @@ export default async function Gift({
           />
         </div>
         <div className="detail-copy">
-          <p className="eyebrow">
-            {illustrative
-              ? "Illustrative fixture · not for sale"
-              : "A carefully considered bad idea"}
-          </p>
-          <h1>{product.punnyTitle || product.title}</h1>
+          {illustrative && <p className="eyebrow">Illustrative fixture · not for sale</p>}
+          <h1><CatalogTitle source={product.source} id={product.id} fallback={product.title} /></h1>
           {!illustrative && <CatalogDisclosure source={product.source} id={product.id} />}
-          {(product.wittyDescription || product.description) !== (product.punnyTitle || product.title) && <p className="detail-line">
-            {product.wittyDescription || product.description}
-          </p>}
+          <CatalogDescription source={product.source} id={product.id} fallback={product.description} />
           {illustrative ? (
             <div className="fixture-explanation">
               <h2>A design example, not a real listing.</h2>
@@ -121,39 +118,37 @@ export default async function Gift({
             </div>
           )}
           {product.editorialWriteup && (
-            <div className="editorial">
-              <h2>The short version.</h2>
+            <details className="editorial">
+              <summary>More about this gift</summary>
               {product.editorialWriteup
                 .split(/\n\s*\n/)
                 .map((paragraph, index) => (
                   <p key={index}>{paragraph}</p>
                 ))}
-            </div>
+            </details>
           )}
-          {!illustrative && product.punnyTitle && product.eligibleUntil !== null && (
-            <div className="listing-identity">
-              <h2>Retailer listing name</h2>
+          {!illustrative && (
+            <details className="listing-identity">
+              <summary>Retailer listing name</summary>
               <p>{product.title}</p>
-            </div>
+            </details>
           )}
         </div>
       </article>
-      <section className="section-block">
+      {related.length > 0 && <section className="section-block">
         <div className="section-heading">
-          <h2>While you’re considering it.</h2>
+          <h2>You might also like</h2>
           <a href="/random-gift" className="text-action">
             Surprise me
           </a>
         </div>
         <div className="catalog-grid">
-          {catalog.products
-            .filter((item) => item.id !== product.id)
-            .slice(0, 3)
+          {related
             .map((item) => (
               <ProductCard key={item.id} product={item} context="gift_related" />
             ))}
         </div>
-      </section>
+      </section>}
     </main>
   );
 }

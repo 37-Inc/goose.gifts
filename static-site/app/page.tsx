@@ -1,7 +1,6 @@
 import { browse, isFixtureRelease } from "../lib/catalog";
 import { previewMetadata } from "../lib/metadata";
 import { isSitePreview, siteIdentity } from "../lib/site-identity";
-import { ProductCard } from "../components/ProductCard";
 import { Search } from "../components/Search";
 import { CatalogFeed } from "../components/CatalogFeed";
 import { GuideIcon } from "../components/GuideIcon";
@@ -23,13 +22,8 @@ export default function Home() {
         </h1>
       </div>
       <Search>
-      <div className="opening-grid">
-        {browse.opening.map((product, index) => (
-          <ProductCard key={product.id} product={product} lead={index === 0} context="home_opening" />
-        ))}
-      </div>
       <CatalogFeed
-        initial={browse.feed.initial}
+        initial={[...browse.opening, ...browse.feed.initial]}
         next={browse.feed.next}
         catalogRevision={browse.catalogRevision}
         version={browse.version}

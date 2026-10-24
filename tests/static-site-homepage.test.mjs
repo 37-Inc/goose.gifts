@@ -38,7 +38,7 @@ test("each published guide has an intentional, accessible line icon instead of a
 
 test("real gift cards have no repeated collection label or Unicode arrow; fixtures stay clearly labeled", () => {
   const { ProductCard } = load("components/ProductCard.tsx", {
-    "./CatalogPhotos": { CatalogCardArt: () => null, CatalogDisclosure: () => null, CatalogTitle: ({ fallback }) => fallback },
+    "./CatalogPhotos": { CatalogCardArt: () => null, CatalogDisclosure: () => null, CatalogDescription: () => null, CatalogTitle: ({ fallback }) => fallback },
     "../lib/selection": { isIllustrative: () => false },
   });
   const product = { id: "owned-test", slug: "owned-test", source: "amazon", title: "Owned test gift",
@@ -46,7 +46,8 @@ test("real gift cards have no repeated collection label or Unicode arrow; fixtur
     illustrative: false };
   const html = renderToStaticMarkup(ProductCard({ product }));
   assert.doesNotMatch(html, /The collection|class="eyebrow"|[↗→↓]/);
-  assert.match(html, /View gift/);
+  assert.match(html, /data-analytics-product-link="" href="\/gifts\/owned-test"/);
+  assert.doesNotMatch(html, />View gift</);
   assert.match(renderToStaticMarkup(ProductCard({ product: { ...product, illustrative: true } })),
     /Illustrative fixture · not for sale/);
 });
@@ -109,7 +110,7 @@ test("new site-authored packaging disclosure matches only the exact Amazon ASIN,
     "next/navigation": { notFound() { throw new Error("Unexpected notFound"); } },
     "../../../components/CatalogPhotos": photos,
     "@/lib/gift-page-schema": { buildGiftPageSchema: () => ({}) },
-    "../../../lib/catalog": { catalog: { products: [product], dataKind: "catalog" } },
+    "../../../lib/catalog": { catalog: { products: [product], dataKind: "catalog" }, relatedGifts: () => [] },
     "../../../lib/selection": { isIllustrative: () => false },
     "../../../lib/metadata": { previewMetadata: () => ({}), PREVIEW_ORIGIN: "https://stupid.gifts" },
     "../../../components/ProductCard": { ProductCard: () => null },
