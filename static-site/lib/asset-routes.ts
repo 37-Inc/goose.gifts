@@ -11,6 +11,8 @@ import type { OgIdentity } from "./og";
 import { siteIdentity, siteIdentityFor } from "./site-identity";
 import { catalogDisplayView } from "../../lib/catalog/display";
 import { createPhotoRelease } from "./photos";
+import { createRelatedGiftSelector } from "./related-gifts";
+import { rankedBrowseProducts } from "./browse";
 
 type RoutePolicy = Omit<CatalogAssetRoute, "assetPath"> & {
   indexable: boolean;
@@ -122,10 +124,11 @@ export function createStaticRoutes(
     assetPath: shard.path, safeAssetPath: "/safe/photos.json", eligibleUntil: shard.eligibleUntil,
     state: "ready", indexable: false,
   };
+  const relatedGifts = createRelatedGiftSelector(rankedBrowseProducts(snapshot));
   for (const product of snapshot.products) {
     const displayed = [
       product,
-      ...snapshot.products.filter((item) => item.id !== product.id).slice(0, 3),
+      ...relatedGifts(product),
     ];
     policies[`/gifts/${product.slug}`] = {
       ...catalog,

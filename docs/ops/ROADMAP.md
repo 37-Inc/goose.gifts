@@ -2,15 +2,21 @@
 
 ## Current checkpoint — October23 2026
 
-Full catalog presentation restoration is accepted on actual Cloudflare release
-`existing-restore-6856584cbd6a`:2,359 existing images/descriptions,3,383 identities,
-1,024 preserved holds and42 original substantive articles. Actual receipt,
-resolved build, idle owner and desktop/mobile/product/search checks pass.
-See RUNBOOK/JOURNAL for immutable identities and retained charges; never replay
-the completed publication. No paid upgrade or new merchant/model generation.
-The next separate engineering work is the gated daily writer/read-budget and
-whole-catalog final-resolver contract (`roadmap-lbbz1.4.3/.4.3.1`). Pinterest and
-provider shutdown retain their separate gates; they are not restoration blockers.
+Full catalog restoration and immediate public serving cutover are complete:
+2,359 public gifts with original images/descriptions, 3,383 identities, 1,024
+preserved holds and 42 original articles. The subsequent real one-product update
+and release `recorded-canary-20261023-f731dd58` have matching receipt, resolved
+build, idle owner and browser QA. The existing daily 08:30 Pacific task is enabled;
+`.4.3` and `.6.1` are complete. Never replay those completed runs.
+
+Current work is the approved white product-gallery pass (`.5.3`). Remaining
+follow-ups are first scheduled execution/cost (`.4.8`), useful search/native parity
+(`.4.7`), product redirects and Search Console migration (`.6.2`), final provider/
+analytics/consumer checks (`.8`), existing Pinterest measurement/destinations
+(`.8.1`), show selections (`.5`) and eventual legacy retirement (`.7`). These are
+canonical Beads under `roadmap-lbbz1`, not a request to reimport the catalog,
+regenerate all copy, add a scheduler or upgrade Cloudflare. Historical notes below
+describe earlier checkpoints and are not current operating instructions.
 
 ## Historical launch priorities — October19–22 2026
 

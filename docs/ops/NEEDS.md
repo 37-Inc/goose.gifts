@@ -5,15 +5,14 @@ Items move to "Received" when done.
 
 ## P0 — blocking autonomous operation
 
-Original publication recovery is complete. New D1 daily publication still needs
-the tested writer/data/delta and same-response publication contract. October22
-owner-attended Keychain approval and a fresh unchanged reader both passed;
-there is no current credential-access request outstanding.
-There is no outstanding request-cap or paid-upgrade decision for this work.
-October23: full presentation restoration is complete:2,359 existing public
-images/descriptions, actual Cloudflare receipt/resolved build/idle owner and
-browser/search verified. No owner action is needed for that restoration.
-Ordinary daily-writer readiness remains separate engineering.
+No current owner authentication, imagery, request-cap or paid-upgrade decision
+blocks catalog operation. Full original presentation is restored: 2,359 public
+gifts, 1,024 preserved holds and 42 original articles. The real one-product
+update and Cloudflare publication `recorded-canary-20261023-f731dd58` are verified;
+the same bounded daily task is enabled at 08:30 Pacific. See
+`evidence/2026-10-23-catalog-care-accepted.json`. Verify its first actual normal
+scheduled run and Free-tier cost in `roadmap-lbbz1.4.8`, without another manual
+batch. Historical gated/recovery instructions below do not override this state.
 
 ## P1 — needed within the first weeks
 
