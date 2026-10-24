@@ -1,5 +1,18 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-24 — reviewed-finalizer timeout correction, not yet deployed
+
+[owner+codex] The fixed uploader produced a genuine immutable version and
+TransportACK, but activation remains held. The reviewed-only observation was
+repeating full package/native checks inside30s after those same-owner checks
+already ran; ordinary activation observes only provider prior. Removed those
+duplicates from the short callback, retaining invocation-local package/native
+proof, actual version/prior observation, fresh inventory before the unchanged
+atomic CAS. No extra upload/activation or product/model fetch performed here.
+Original run's remaining allowance is tight; another ordinary resume is NOT
+authorized by an unmeasured cost assumption. Existing task and Bead stay held
+pending bounded finish capacity/owner approval and actual public verification.
+
 ## 2026-10-24 — local uploader connection-race correction
 
 [owner+codex] Reproduced both zero-POST failures offline: Wrangler's long

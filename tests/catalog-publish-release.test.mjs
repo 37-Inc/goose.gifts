@@ -547,6 +547,20 @@ test('transport proof refuses any POST, SQL, unknown/unsettled request, third pa
     assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
   });
 });
+
+test('slow same-owner native proof stays outside the short reviewed deployment observation',protectedMac,async t=>{
+  const {f,run}=await transportRetryFixture(t),timer=globalThis.setTimeout;let shortened=false,proved=0;
+  t.mock.method(globalThis,'setTimeout',(callback,ms,...args)=>{
+    if(ms===30000&&!shortened){shortened=true;return timer(callback,200,...args);}
+    return timer(callback,ms,...args);
+  });
+  const fetch=async(url,init)=>{
+    if(new URL(url).pathname.endsWith('/get_by_ids')&&!f.checkpoint().control.publication.permit){proved++;await new Promise(resolve=>timer(resolve,700));}
+    return f.fetch(url,init);
+  };
+  const result=await run({fetch});assert.equal(result.state,'published',JSON.stringify(result));
+  assert.equal(shortened,true);assert.ok(proved>0);assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
+});
 test('reviewed v4 refuses stale live prior, changed evidence and lost command acknowledgement without a second upload',protectedMac,async t=>{
   for(const fault of ['prior','evidence','ack'])await t.test(fault,async t=>{
     const {f,run}=await readOnlyRetryFixture(t);

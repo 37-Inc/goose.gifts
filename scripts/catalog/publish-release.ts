@@ -872,11 +872,18 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
           if(marked.sha256!==sha256(canonicalJson(expected)))throw new Error('publication_upload_retry_fenced');
           permit=await readReviewedUploadActivation(db,input); // Never repeat a marked/missing/unknown CAS.
         }else{
+          // Whole-catalog mode already proved native state above. Legacy modes
+          // need the same fresh proof outside30s, ONLY before an unmarked CAS.
+          // A marked/lost-ACK CAS is strictly read-only reconciliation.
+          if(!options.approvedCatalog)await vectorProof();
           let dispatched=false;
           try{permit=await beginReviewedUploadActivation(db,input,sealed.snapshot,signal=>(observation=(async()=>{
-            signal.throwIfAborted();await loadPackage(directory,config,control!.packageSha256!,now());signal.throwIfAborted();
+            // Slow full package/native checks already ran in this invocation
+            // under this same owner. Do not repeat them inside the short
+            // provider observation; inventory is rechecked before the CAS.
+            signal.throwIfAborted();
             verifyUploadedVersion(await api.version(control!.versionReference!),config,control!.versionReference!,control!);
-            await vectorProof(signal);signal.throwIfAborted();return readPrior(signal);
+            signal.throwIfAborted();return readPrior(signal);
           })()),async()=>{
             await permanentProof(); // All rows/held/private/projection proof immediately precedes the action marker.
             const marker=await workspace.putArtifact(expected,{kind:'publication',observedAt:now().toISOString()});

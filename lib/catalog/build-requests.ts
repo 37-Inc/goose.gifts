@@ -384,8 +384,9 @@ function reviewedPermit(i:ReviewedUploadActivationInput):ActivationPermit{return
   runReference:i.claim.runReference,releaseId:i.publication.intent.releaseId,versionReference:i.versionReference,mutationOwner:{...i.owner,phase:'activating'}};}
 /** Explicit operator authority, not an inference from expired tokens/opaque
  * hashes. The executor binds approval + full original rows in its durable marker
- * and independently proves real upload ACK/version/package/full source/native
- * in readDeployment. Its beforeCommit hook MUST durably mark the one CAS; marked
+ * and independently proves real upload ACK/package/full native in the SAME
+ * owned invocation before the short version/prior readDeployment observation.
+ * Its beforeCommit hook rechecks inventory and MUST durably mark the one CAS; marked
  * retries call ONLY readReviewedUploadActivation. No provider dispatch is here. */
 export async function beginReviewedUploadActivation(db:CatalogD1,value:ReviewedUploadActivationInput,snapshotInput:CatalogSnapshot,
   readDeployment:(signal:AbortSignal)=>Promise<DeploymentObservation>,beforeCommit:()=>Promise<void>):Promise<ActivationPermit>{
