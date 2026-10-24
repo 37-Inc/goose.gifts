@@ -83,3 +83,13 @@ schedule change. Same ACTIVE task/cadence; routine unchanged acquisition
 evidence requires no owner alert. Next hypothesis remains whether future
 attributable outbound actions persist beyond the single dominant product;
 do not start another test before review and explicit authorization.
+
+Evidence integration: [PR #277](https://github.com/37-Inc/goose.gifts/pull/277),
+retained-operator commit `434b85df7445434b227a7838ce38fbdf21c5aefb`.
+A separate main-based temporary integration checkout preserves both complete
+dated log entries during conflict resolution; it is not the measurement
+operator and does not advance that operator's executable code. Its fresh
+locked dependency install, creative validation, 6 creative tests, 18 Pinterest
+tests and lint (zero errors/25 pre-existing warnings) also pass. No hosted CI
+checks are configured for this PR; local gates and exact readbacks are the
+evidence, not a claimed CI or production build.

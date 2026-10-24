@@ -11,6 +11,8 @@ Recorded honest late Opossum7day observation; Hat7day snapshot is too early.
 Goose-to-Stupid redirect as a destination intervention, not a format effect.
 No public Pin/creative/account/catalog/site/schedule/Bead write or deployment.
 Exact October31 review and subsequent explicit posting-approval gate unchanged.
+Evidence PR[#277](https://github.com/37-Inc/goose.gifts/pull/277);
+retained-operator evidence commit434b85d. No site publication is implied.
 
 ## 2026-10-23 PM — resumed Pinterest task executes measurements only
 

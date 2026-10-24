@@ -14,6 +14,19 @@
   "creativeLog": {"events":984,"experiments":8,"candidates":37,"valid":true},
   "tests": {"creativePass":6,"pinterestPass":18,"fail":0,"skip":0},
   "lint": {"errors":0,"existingWarnings":25},
+  "evidenceIntegration": {
+    "pullRequest": "https://github.com/37-Inc/goose.gifts/pull/277",
+    "retainedOperatorEvidenceCommit": "434b85df7445434b227a7838ce38fbdf21c5aefb",
+    "mainBasedIntegrationEvidenceCommit": "e74b92c80e9b3cc26405df9cea4c4b6f6d41e1f4",
+    "freshLockedInstall": true,
+    "creativeLogValid": true,
+    "creativeTestsPass": 6,
+    "pinterestTestsPass": 18,
+    "lintErrors": 0,
+    "existingLintWarnings": 25,
+    "hostedChecksConfigured": false,
+    "retainedMeasurementRuntimeAdvanced": false
+  },
   "build": {
     "rerun": false,
     "reason": "Evidence/docs-only run; implementation, static source and dependencies unchanged. Prior clean build and independent verifier acceptance remain in the cutover validation receipt; no new build/deployment is claimed.",
