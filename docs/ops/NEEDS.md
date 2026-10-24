@@ -8,9 +8,10 @@ Items move to "Received" when done.
 No current owner authentication, imagery, request-cap or paid-upgrade decision
 blocks catalog operation. Full original presentation is restored: 2,359 public
 gifts, 1,024 preserved holds and 42 original articles. The real one-product
-update and Cloudflare publication `recorded-canary-20261023-f731dd58` are verified;
-the same bounded daily task is enabled at 08:30 Pacific. See
-`evidence/2026-10-23-catalog-care-accepted.json`. Verify its first actual normal
+update is verified, followed by the live white-gallery release
+`storefront-da7a1e0c1523`. The same bounded daily task is enabled at 08:30 Pacific
+and its operator now includes the new storefront. See
+`evidence/2026-10-23-storefront-accepted.json`. Verify its first actual normal
 scheduled run and Free-tier cost in `roadmap-lbbz1.4.8`, without another manual
 batch. Historical gated/recovery instructions below do not override this state.
 
@@ -85,11 +86,10 @@ Immediate launch was authorized; a show date, another visual approval or a
 prelaunch seven-day wait is not required. Observation gates destructive
 retirement afterward. Remaining launch/migration follow-ups:
 
-- Finish the tested new-site D1 daily/Monday writer transition. Cameron
-  explicitly wants the old-site daily writer disabled; it is forbidden by the
-  current saved task. The timer remains ACTIVE, but new-site maintenance is
-  still gated, not falsely reported enabled. Source-delta/credential and
-  successful daily publication evidence remain engineering acceptance.
+- The tested new-site D1 daily/Monday writer transition is complete. Verify the
+  first real scheduled execution and normal Free-tier costs in
+  `roadmap-lbbz1.4.8`; do not repeat a merchant batch for an observation. The
+  old-site daily writer remains forbidden.
 
 - Verify a useful, current product selection. An actual episode/show date and
   physical demonstration remain owner-coordinated follow-ups, not prerequisites
@@ -204,16 +204,14 @@ The unused admin dashboard and detailed click collection are retired under
 `roadmap-vpmm.4.3`. Existing GA4/PostHog events supply current product actions;
 the CLI keeps aggregate search diagnostics and historical click evidence.
 The completed `roadmap-vpmm.4.6` review is
-`CONVERSION_REVIEW_2026-10-02.md`. Owner choice: a compact product-first
-homepage/guide entry and factual curated opening cohort; no redesign shipped.
-Final cleanup verification (`roadmap-vpmm.4.3`) retains an end-to-end receipt
-gate. October17 reads of explicit PostHog project550427 show stored October13
-page/list events, so the earlier total billing-cap outage is historical, not
-current zero-conversion evidence. Coverage is sparse and the September19–
-October8 gap remains; missing Pinterest/retailer attribution stays unknown.
-Keep the existing shared billing policy; no automatic spending increase.
-A stored QA page/retailer receipt still needs verification before closing that
-separate end-to-end gate; this studio run did not perform an operator click.
+`CONVERSION_REVIEW_2026-10-02.md`. The compact product-first homepage and factual
+curated first24 are now live. Both `.4.3` cleanup and `.4.6` review are closed:
+`pinterest-cutover-2026-10-23/verification/tagged-qa.json` records stored page
+views and retailer-click events in explicit PostHog project550427. Those are
+operator QA, not acquired visitors or commissions. The September19–October8
+coverage gap and missing Pinterest attribution remain unknown. Keep the shared
+billing policy unchanged; remaining analytics/privacy migration belongs in
+`roadmap-lbbz1.8`, not another end-to-end billing blocker.
 
 ### 4. Direct email/Slack channel (optional)
 

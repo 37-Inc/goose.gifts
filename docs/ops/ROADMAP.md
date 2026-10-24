@@ -9,8 +9,9 @@ and release `recorded-canary-20261023-f731dd58` have matching receipt, resolved
 build, idle owner and browser QA. The existing daily 08:30 Pacific task is enabled;
 `.4.3` and `.6.1` are complete. Never replay those completed runs.
 
-Current work is the approved white product-gallery pass (`.5.3`). Remaining
-follow-ups are first scheduled execution/cost (`.4.8`), useful search/native parity
+The approved white product-gallery pass (`.5.3`, PR274) is also complete and live
+as `storefront-da7a1e0c1523`, preserving the exact catalog. Remaining follow-ups
+are first scheduled execution/cost (`.4.8`), useful search/native parity
 (`.4.7`), product redirects and Search Console migration (`.6.2`), final provider/
 analytics/consumer checks (`.8`), existing Pinterest measurement/destinations
 (`.8.1`), show selections (`.5`) and eventual legacy retirement (`.7`). These are
