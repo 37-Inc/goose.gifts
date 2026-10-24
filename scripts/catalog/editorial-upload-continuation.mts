@@ -105,13 +105,14 @@ async function prepare(controllerSha:string){
     return{state:'prepared_offline',continuationSha256,reviewedSha256,proof,approval};
   }finally{await w.close();}
 }
-async function publish(controllerSha:string,continuationSha256:string){
+export async function publishPreparedUpload(controllerSha:string,continuationFile:string,continuationSha256:string){
   if(!HASH.test(continuationSha256))fail('approval_digest');
-  const {job,effective}=await inputs(controllerSha),continuation=(await read<Continuation>(join(OUTPUT,'continuation.json'),continuationSha256)).value;
+  if(!continuationFile.startsWith(BASE+'/'))fail('private_file');
+  const {job,effective}=await inputs(controllerSha),continuation=(await read<Continuation>(continuationFile,continuationSha256)).value;
   if(continuation.controllerSha!==controllerSha||continuation.jobSha256!==JOB_SHA||continuation.schemaVersion!==1
-    ||continuation.reviewedPath!==join(OUTPUT,'reviewed-upload.json')
+    ||continuation.reviewedPath!==join(dirname(continuationFile),'reviewed-upload.json')
     ||continuation.authorizationSha256!==(await read(join(PACKET,'live-authorization.json'))).sha256)fail('continuation');
-  const reviewed=(await read<{approval:ReviewedUploadActivationApprovalV4;evidence:ArtifactRef}>(continuation.reviewedPath,continuation.reviewedSha256)).value;
+  const reviewed=(await read<{approval:ReviewedUploadActivationApprovalV4;evidence:ArtifactRef;transport?:{previous:ArtifactRef}}>(continuation.reviewedPath,continuation.reviewedSha256)).value;
   encodeReviewedUploadActivationApproval(reviewed.approval);
   if(reviewed.approval.authorizationSha256!==continuation.authorizationSha256||reviewed.approval.schemaVersion!==4)fail('authorization');
   const w=await openRunWorkspace(job.workspace);
@@ -145,8 +146,9 @@ export async function editorialUploadContinuation(args:string[]){
   if(args.length===1&&args[0]==='--help')return{usage:'prepare --controller-sha SHA | publish --controller-sha SHA --approve CONTINUATION_SHA',authority:'Same retained run and package only; no new batch, adoption, cutoff, claim, counter or budget.'};
   if(process.versions.node.split('.')[0]!=='22'||Object.keys(process.env).some(k=>/^(AMAZON_|OPENAI_|POSTGRES_|VERCEL_|CATALOG_|CLOUDFLARE_API_TOKEN)/.test(k)))fail('environment');
   if(args[0]==='prepare'&&args.length===3&&args[1]==='--controller-sha')return prepare(args[2]);
-  if(args[0]==='publish'&&args.length===5&&args[1]==='--controller-sha'&&args[3]==='--approve')return publish(args[2],args[4]);
+  if(args[0]==='publish'&&args.length===5&&args[1]==='--controller-sha'&&args[3]==='--approve')return publishPreparedUpload(args[2],join(OUTPUT,'continuation.json'),args[4]);
   fail('arguments');
 }
+export {inputs as loadUploadInputs,read as readUploadPrivate,put as putUploadPrivate};
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)editorialUploadContinuation(process.argv.slice(2)).then(r=>console.log(JSON.stringify(r))).catch(e=>{
   const m=e instanceof Error?e.message:'';console.error(/^[a-z0-9_]{1,150}$/.test(m)?m:'editorial_upload_refused');process.exitCode=1;});

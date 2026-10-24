@@ -18,6 +18,16 @@ Its immutable preparation intent keeps the original evidence/time across local
 ACK loss. A retry requires real upload ACK, unchanged provider prior and final
 atomic source/native/receipt proof; a second upload is never inferred safe.
 
+The first reviewed command also stopped with two known metadata GETs and no
+POST/unknown. Its unacknowledged marker is retained, not cleared or replayed.
+Offline pinned-Wrangler tests reproduced the local idle-socket hashing race;
+Connection:close on the protected loopback responses fixes the same8s stall.
+`editorial-transport-continuation.mts` authenticates both old failure intervals
+and uses a distinct one-time TransportPending/real-ACK pair. It consumes only
+the original run's remaining allowance and23:00UTC window; no new product
+batch, ownership/lease/counter reset, deadline or paid allowance is granted.
+If that distinct marker lacks genuine ACK, stop; never recursively retry it.
+
 ## Cause and correction
 
 The scheduled ten-product provider phase completed, but its saved projection

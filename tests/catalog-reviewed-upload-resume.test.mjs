@@ -56,3 +56,20 @@ test('retry without genuine ACK cannot reopen even when a matching uploaded vers
   const f=fixture();f.saved.checkpoint.pins.publicationUploadRetryPending=ref(8);f.saved.checkpoint.pins.publicationUploadRetryAcknowledged=ref(9);
   f.saved.checkpoint.control.publication.stage='activating';assert.equal(reviewedUploadResume(f.saved,f.retry),false);
 });
+
+test('transport continuation retains previous unacknowledged marker and has its own genuine ACK gate',async t=>{
+  const make=()=>{const f=fixture();f.saved.checkpoint.phase='publishing';f.saved.checkpoint.pins.publicationUploadRetryPending=ref(8);
+    f.retry.transport={previous:ref(8)};return f;};
+  const valid=make();assert.equal(reviewedUploadResume(valid.saved,valid.retry),true);
+  for(const [name,change]of Object.entries({
+    noDescriptor:f=>{delete f.retry.transport;},wrongPrevious:f=>{f.retry.transport.previous=ref(9);},
+    missingPrevious:f=>{delete f.saved.checkpoint.pins.publicationUploadRetryPending;},
+    previousACK:f=>{f.saved.checkpoint.pins.publicationUploadRetryAcknowledged=ref(9);},
+    extraAuthority:f=>{f.retry.transport.force=true;},
+    newMissingACK:f=>{f.saved.checkpoint.pins.publicationUploadTransportPending=ref(9);},
+    orphanNewACK:f=>{f.saved.checkpoint.pins.publicationUploadTransportAcknowledged=ref(9);},
+  }))await t.test(name,()=>{const f=make();change(f);assert.equal(reviewedUploadResume(f.saved,f.retry),false);});
+  valid.saved.checkpoint.pins.publicationUploadTransportPending=ref(9);valid.saved.checkpoint.pins.publicationUploadTransportAcknowledged=ref(0);
+  valid.saved.sha256=digest(0);valid.saved.checkpoint.control.publication.stage='uploaded';valid.saved.checkpoint.control.publication.versionReference='uploaded';
+  assert.equal(reviewedUploadResume(valid.saved,valid.retry),true);
+});

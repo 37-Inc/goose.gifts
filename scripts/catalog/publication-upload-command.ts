@@ -127,7 +127,9 @@ export function accountedPublicationUploadCommand(options:{workspace:Workspace;s
           finally{if(controller.signal.aborted)void reader?.cancel().catch(()=>{});try{reader?.releaseLock();}catch{}}
           const payload=Buffer.concat(chunks);settled=true;await ws.settleBudget(reservation,{status:'known',usage:{rowsRead:0,rowsWritten:0}});
           controller.signal.throwIfAborted();const output=cleanHeaders(Object.fromEntries(response.headers));
-          res.writeHead(response.status,{...output,'content-length':String(payload.length)});res.end(payload);
+          // Wrangler hashes assets synchronously between requests. Do not pool
+          // a localhost socket whose idle close cannot reach that blocked child.
+          res.writeHead(response.status,{...output,'content-length':String(payload.length),connection:'close'});res.end(payload);
         }finally{controller.signal.removeEventListener('abort',onAbort);
           // The native sender resolves only after its request closes. Arbitrary
           // test transports do not acquire this concrete lifetime guarantee.

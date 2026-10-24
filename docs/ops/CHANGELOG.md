@@ -1,5 +1,18 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-24 — local uploader connection-race correction
+
+[owner+codex] Reproduced both zero-POST failures offline: Wrangler's long
+synchronous asset hashing retains a pooled loopback socket past the bridge's
+idle close, causing EPIPE/ECONNRESET before its session POST reaches the bridge.
+Explicit Connection:close on loopback responses passes the identical8s stall
+without changing remote scope, budgets, timeouts or adding automatic retries.
+Added one separately pinned, zero-POST-only transport continuation: authenticate
+both old journals/logs, retain both failed markers and all original charges,
+use a distinct pending/real-ACK pair and the unchanged shared activation CAS.
+Original runtime/package1e3 and23:00UTC cutoff stay fixed. Production, daily hold
+and Bead remain unchanged until actual publication/readback/public QA succeeds.
+
 ## 2026-10-24 — authorized repair and read-only upload continuation
 
 [owner+codex] Executed the approved same-run eight-row article repair and

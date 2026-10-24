@@ -21,8 +21,8 @@ import { beginBuildActivation, claimBuildRequest, encodeBuildRequest, resolveBui
 import { isAccountedPublicationFetch } from './publication-read-fetch.ts';
 import { isAccountedPublicationUploadCommand, PublicationUploadCommandError } from './publication-upload-command.ts';
 import { isCatalogD1Rest } from './d1-write-rest.ts';
-import {readOnlyUploadEvidence} from './upload-preflight-proof.ts';
-import type {ReadOnlyUploadEvidence} from './upload-preflight-proof.ts';
+import {readOnlyUploadEvidence,readOnlyTransportEvidence} from './upload-preflight-proof.ts';
+import type {ReadOnlyUploadEvidence,ReadOnlyTransportEvidence} from './upload-preflight-proof.ts';
 import type { PublicationIntent } from '../../lib/catalog/publication.ts';
 import { claimPublication, completeActivatedPublication, completeActivatedPermanentPublication, completeActivatedApprovedCatalogPublication, completePublication, enqueuePublication, encodePublicationIntent, publicationStatus, recordPublicationDispatch } from '../../lib/catalog/publication.ts';
 import type { SiteAssetManifest } from '../../lib/catalog/types.ts';
@@ -68,6 +68,7 @@ const UUID=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
 const RESOURCE=/^[a-zA-Z0-9_-]{1,100}$/;
 const WORKERS_DEV_NAME=/^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
 const exact=(v:object,keys:string)=>Object.keys(v).sort().join(',')===keys;
+const sameRef=(a:ArtifactRef|undefined,b:ArtifactRef|undefined)=>canonicalJson(a??null)===canonicalJson(b??null);
 const sha256=(value:string|Uint8Array)=>createHash('sha256').update(value).digest('hex');
 export function validatePublicationConfig(input:PublicationConfig):Readonly<PublicationConfig> {
   if(!input||!exact(input,`accountId,codeSha,compatibilityDate,database,environment,identityOrigin,indexName,prior,${Object.hasOwn(input,'publicAnalytics')?'publicAnalytics,':''}releaseId,schemaVersion,${Object.hasOwn(input,'semanticSearch')?'semanticSearch,':''}sourceMode,sourceRoot,workerName`)
@@ -132,8 +133,16 @@ export interface ReviewedUploadRetryEvidence {
     buckets:number;hashes:number;maxJwtLength:number;errorClass:null};
 }
 type RetryRecord={schemaVersion:1;approval:ReviewedUploadActivationApproval;evidence:ArtifactRef;oldPending:ArtifactRef;oldReview:ArtifactRef;
-  owner:MutationOwner;control:PublicationControl;original:ReviewedUploadActivationInput['original'];priorApproval?:ReviewedUploadActivationApprovalV1};
-async function reviewedEvidence(value:unknown,config:PublicationConfig,w:RunWorkspace,pending:ArtifactRef,review:ArtifactRef,approval:ReviewedUploadActivationApproval) {
+  owner:MutationOwner;control:PublicationControl;original:ReviewedUploadActivationInput['original'];priorApproval?:ReviewedUploadActivationApprovalV1;transport?:{previous:ArtifactRef}};
+async function reviewedEvidence(value:unknown,config:PublicationConfig,w:RunWorkspace,pending:ArtifactRef,review:ArtifactRef,approval:ReviewedUploadActivationApproval,transport?:{previous:ArtifactRef}) {
+  if(transport){
+    const e=value as ReadOnlyTransportEvidence;
+    if(approval.schemaVersion!==4||!exact(transport,'previous')||e?.schemaVersion!==3||e.kind!=='read-only-transport-failure'
+      ||e.checkpointSha256!==approval.checkpointSha256||!sameRef(e.previous,transport.previous)
+      ||canonicalJson(await readOnlyTransportEvidence(w,transport.previous,e.journal?.through))!==canonicalJson(e))
+      throw new Error('publication_upload_retry_evidence_invalid');
+    return;
+  }
   if(approval.schemaVersion===4){
     const e=value as ReadOnlyUploadEvidence;
     if(e?.schemaVersion!==2||e.kind!=='read-only-preflight-failure'||e.checkpointSha256!==approval.checkpointSha256||!e.journal?.through
@@ -321,10 +330,12 @@ function intentFrom(manifest:SiteAssetManifest,bytes:Uint8Array):PublicationInte
  */
 export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision;approvedCatalog?:ApprovedCohortRevision;requestId:string;runReference:string;
   workspace:PublicationWorkspace;config:PublicationConfig;credentials:{cloudflareToken:string;identityAuthorization?:string};dependencies?:Dependencies;buildRecovery?:BuildRecoveryApproval;
-  reviewedUploadRetry?:{approval:ReviewedUploadActivationApproval;evidence:ArtifactRef;priorApproval?:ReviewedUploadActivationApprovalV1}}):Promise<PublicationResult>{
+  reviewedUploadRetry?:{approval:ReviewedUploadActivationApproval;evidence:ArtifactRef;priorApproval?:ReviewedUploadActivationApprovalV1;transport?:{previous:ArtifactRef}}}):Promise<PublicationResult>{
   const {db,workspace,revision}=options;const config=validatePublicationConfig(options.config);const now=options.dependencies?.now??(()=>new Date());
   if(options.buildRecovery)encodeBuildRecoveryApproval(options.buildRecovery);
   const reviewed=options.reviewedUploadRetry;
+  const pendingLabel=reviewed?.transport?'publicationUploadTransportPending':'publicationUploadRetryPending';
+  const ackLabel=reviewed?.transport?'publicationUploadTransportAcknowledged':'publicationUploadRetryAcknowledged';
   if(reviewed)encodeReviewedUploadActivationApproval(reviewed.approval);
   if(options.permanent&&(options.published||!revision||canonicalJson(options.permanent)!==canonicalJson(revision))
     ||revision?.nativePreservation&&!options.permanent)throw new Error('publication_permanent_input_invalid');
@@ -347,12 +358,13 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   let owner=options.owner;const directory=path.join(workspace.directory,'packages',config.releaseId);
   // Preserve the original failed command's logs/output byte-for-byte. The
   // continuation remains inside the already registered retention directory.
-  const runtime=path.join(workspace.directory,'publication-runtime',config.releaseId,...(reviewed?.approval.schemaVersion===4?['read-only-retry']:[]));
+  const runtime=path.join(workspace.directory,'publication-runtime',config.releaseId,...(reviewed?.transport?['read-only-transport']:reviewed?.approval.schemaVersion===4?['read-only-retry']:[]));
   const uploadBinding=()=>({schemaVersion:1,releaseId:config.releaseId,requestId:options.requestId,configSha256,
     packageSha256:control!.packageSha256,uploadMarker:control!.uploadMarker});
   let retryRecord:RetryRecord|undefined,activationDeadline:string|undefined;
   const retryAck=(pending:ArtifactRef)=>({schemaVersion:1,approval:reviewed!.approval,evidence:reviewed!.evidence,pending,
-    oldPending:checkpoint!.checkpoint.pins.publicationUploadPending,oldReview:checkpoint!.checkpoint.pins.publicationUploadReview,upload:uploadBinding()});
+    oldPending:checkpoint!.checkpoint.pins.publicationUploadPending,oldReview:checkpoint!.checkpoint.pins.publicationUploadReview,upload:uploadBinding(),
+    ...(reviewed!.transport?{transport:reviewed!.transport}:{})});
   const runUpload=()=>command({file:process.execPath,args:['node_modules/wrangler/bin/wrangler.js','versions','upload','--config',path.join(directory,'wrangler.json'),
     '--outdir',path.join(runtime,'bundle'),'--tag',control!.uploadMarker,'--message',`package:${control!.packageSha256}`],cwd:config.sourceRoot,
     env:{...childEnv(),TMPDIR:path.join(runtime,'tmp'),CLOUDFLARE_ACCOUNT_ID:config.accountId,CLOUDFLARE_API_TOKEN:options.credentials.cloudflareToken,
@@ -386,7 +398,18 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       throw new Error('publication_build_recovery_fenced');
     const pendingUpload=checkpoint?.checkpoint.pins.publicationUploadPending,acknowledgedUpload=checkpoint?.checkpoint.pins.publicationUploadAcknowledged;
     if(reviewed){
-      const a=reviewed.approval,pins=checkpoint?.checkpoint.pins,marker=pins?.publicationUploadRetryPending,ack=pins?.publicationUploadRetryAcknowledged;
+      const a=reviewed.approval,pins=checkpoint?.checkpoint.pins,marker=pins?.[pendingLabel],ack=pins?.[ackLabel];
+      if(reviewed.transport){
+        if(a.schemaVersion!==4||!pins||!exact(reviewed.transport,'previous')||!sameRef(pins.publicationUploadRetryPending,reviewed.transport.previous)
+          ||pins.publicationUploadRetryAcknowledged)throw new Error('publication_upload_review_required');
+        if(!control?.permit){
+          const prior=await workspace.readArtifact(reviewed.transport.previous) as unknown as RetryRecord;
+          if(prior.approval.schemaVersion!==4||prior.transport||prior.approval.authorizationSha256!==a.authorizationSha256
+            ||prior.approval.reviewedAt>=a.reviewedAt||canonicalJson(prior.owner)!==canonicalJson(owner)
+            ||canonicalJson({...prior.control,stage:control?.stage,versionReference:control?.versionReference})!==canonicalJson(control))
+            throw new Error('publication_upload_retry_fenced');
+        }
+      }
       if(!control||!checkpoint||!pins?.publicationUploadReview||!pendingUpload||acknowledgedUpload||options.buildRecovery
         ||a.requestId!==control.requestId||a.packageSha256!==control.packageSha256||a.configSha256!==configSha256
         ||a.reviewPinSha256!==pins.publicationUploadReview.sha256||a.evidenceSha256!==reviewed.evidence.sha256
@@ -399,7 +422,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       // A marker without genuine command ACK is ALWAYS held before provider IO;
       // a visible version can never mint that acknowledgement on resume.
       if(!control.permit){
-        const e=await workspace.readArtifact(reviewed.evidence);await reviewedEvidence(e,config,workspace,pendingUpload,pins.publicationUploadReview,a);
+        const e=await workspace.readArtifact(reviewed.evidence);await reviewedEvidence(e,config,workspace,pendingUpload,pins.publicationUploadReview,a,reviewed.transport);
         if(!marker){
           if(control.stage!=='uploading'||checkpoint.sha256!==a.checkpointSha256||control.versionReference!==null||control.permit!==null
             ||control.deploymentId!==null||control.receiptSha256!==undefined||owner.phase!=='freezing')throw new Error('publication_upload_retry_fenced');
@@ -408,9 +431,10 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
             ||review.configSha256!==configSha256)throw new Error('publication_upload_retry_fenced');
         }else{
           retryRecord=await workspace.readArtifact(marker) as unknown as RetryRecord;
-          if(!exact(retryRecord,`approval,control,evidence,oldPending,oldReview,original,owner,${[2,3].includes(a.schemaVersion)?'priorApproval,':''}schemaVersion`)||retryRecord.schemaVersion!==1
+          if(!exact(retryRecord,`approval,control,evidence,oldPending,oldReview,original,owner,${[2,3].includes(a.schemaVersion)?'priorApproval,':''}schemaVersion${reviewed.transport?',transport':''}`)||retryRecord.schemaVersion!==1
             ||encodeReviewedUploadActivationApproval(retryRecord.approval)!==encodeReviewedUploadActivationApproval(a)
             ||canonicalJson(retryRecord.priorApproval??null)!==canonicalJson(reviewed.priorApproval??null)
+            ||canonicalJson(retryRecord.transport??null)!==canonicalJson(reviewed.transport??null)
             ||canonicalJson(retryRecord.evidence)!==canonicalJson(reviewed.evidence)||canonicalJson(retryRecord.oldPending)!==canonicalJson(pendingUpload)
             ||canonicalJson(retryRecord.oldReview)!==canonicalJson(pins.publicationUploadReview)
             ||canonicalJson({...retryRecord.control,stage:control.stage,versionReference:control.versionReference})!==canonicalJson(control)
@@ -540,7 +564,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       const {observed_at:ignored,...build}=buildRow;void ignored;
       retryRecord={schemaVersion:1,approval:reviewed.approval,evidence:reviewed.evidence,oldPending:pendingUpload!,
         oldReview:checkpoint!.checkpoint.pins.publicationUploadReview,owner,control:structuredClone(control),original:{build,publication},
-        ...(reviewed.priorApproval?{priorApproval:reviewed.priorApproval}:{})};
+        ...(reviewed.priorApproval?{priorApproval:reviewed.priorApproval}:{}),...(reviewed.transport?{transport:reviewed.transport}:{})};
       await verifyBuiltPackage();if(!(await rollbackPreflight(db,revision.snapshot,now())).ok)throw new Error('publication_upload_retry_fenced');
       await vectorProof();if(await api.findVersion(control.uploadMarker)!==null)throw new Error('publication_upload_review_required');
       await permanentProof();
@@ -561,10 +585,10 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         await privateDirectories(path.join(runtime,'tmp'),workspace.directory);
       }
       const marker=await workspace.putArtifact(retryRecord,{kind:'publication',observedAt:now().toISOString()});
-      await save({},owner,{publicationUploadRetryPending:marker});
+      await save({},owner,{[pendingLabel]:marker});
       await workspace.assertHeld();await runUpload(); // Genuine factory success is required; no unknown reconciliation can create this ACK.
       const ack=await workspace.putArtifact(retryAck(marker),{kind:'publication',observedAt:now().toISOString()});
-      await save({},owner,{publicationUploadRetryAcknowledged:ack});
+      await save({},owner,{[ackLabel]:ack});
     }
     let operatorRecovered=false;
     if(options.buildRecovery&&control.stage==='built'){
@@ -841,8 +865,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         const input:ReviewedUploadActivationInput={claim:control.build,publication:control.publication!,versionReference:control.versionReference!,
           owner:retryRecord.owner,approval:reviewed.approval,original:retryRecord.original,
           ...(retryRecord.priorApproval?{priorApproval:retryRecord.priorApproval}:{})};
-        const pins=checkpoint!.checkpoint.pins,expected={schemaVersion:1,input,retryPending:pins.publicationUploadRetryPending,
-          retryAcknowledged:pins.publicationUploadRetryAcknowledged,configSha256};
+        const pins=checkpoint!.checkpoint.pins,expected={schemaVersion:1,input,retryPending:pins[pendingLabel],
+          retryAcknowledged:pins[ackLabel],configSha256};
         const marked=pins.reviewedUploadActivationPending;
         if(marked){
           if(marked.sha256!==sha256(canonicalJson(expected)))throw new Error('publication_upload_retry_fenced');

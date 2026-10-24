@@ -51,7 +51,8 @@ test('exact routes preserve JWT/multipart/status/retry headers and charge each r
     assert.equal(wrapped.args.at(-1),'--experimental-provision=false');
     for(const suffix of [`/accounts/${scope.accountId}/workers/assets/upload?base64=true`,`/accounts/${scope.accountId}/workers/assets/upload/${'b'.repeat(32)}`]){
       const result=await fetch(`${endpoint(wrapped)}${suffix}`,{method:'POST',headers:{Authorization:'Bearer OWNED_SESSION_JWT','Content-Type':'multipart/form-data; boundary=owned'},body:bytes});
-      assert.equal(result.status,calls.length===1?503:200);assert.equal(result.headers.get('retry-after'),'0');await result.arrayBuffer();
+      assert.equal(result.status,calls.length===1?503:200);assert.equal(result.headers.get('retry-after'),'0');
+      assert.equal(result.headers.get('connection'),'close');await result.arrayBuffer();
     }
   })(command);
   assert.equal(calls.length,2);assert.ok(calls.every(call=>call.url.startsWith('https://api.cloudflare.com/client/v4/')));
@@ -157,13 +158,18 @@ test('actual sandbox allows only the exact IPv4 bridge port and descendants inhe
   assert.equal(forbiddenConnections,0);assert.equal(settled(ws).length,1);
 });
 
-for(const single of [false,true])test(`pinned Wrangler actual ${single?'single':'bulk'} asset/version upload retries share this ledger without activation`,mac,async t=>{
+for(const [single,stall]of [[false,false],[true,false],[false,true]])test(`pinned Wrangler actual ${single?'single':'bulk'} asset/version upload retries share this ledger without activation${stall?' after8s synchronous hashing':''}`,mac,async t=>{
   assert.equal(createHash('sha256').update(await readFile(new URL('../node_modules/wrangler/wrangler-dist/cli.js',import.meta.url))).digest('hex'),
     'fdc72018f9cdd5cecff191ec00876825ac90620113996c9bf7d343914fbc842d');
   const dir=await mkdtemp(path.join(os.tmpdir(),'owned-wrangler-upload-'));t.after(()=>rm(dir,{recursive:true,force:true}));
   await mkdir(path.join(dir,'assets'));await mkdir(path.join(dir,'home'));await mkdir(path.join(dir,'tmp'));
   await writeFile(path.join(dir,'worker.mjs'),'export default {fetch(){return new Response("Owned fixture")}}');
   await writeFile(path.join(dir,'assets','index.html'),'Owned static fixture');
+  const preload=path.join(dir,'stall.mjs');
+  if(stall)await writeFile(preload,`import fs from 'node:fs';import{syncBuiltinESMExports}from'node:module';
+    const read=fs.readFileSync;let blocked=false;fs.readFileSync=function(file,...args){const value=read.call(this,file,...args);
+      if(!blocked&&String(file)===${JSON.stringify(path.join(dir,'assets','index.html'))}){blocked=true;
+        fs.writeFileSync(${JSON.stringify(path.join(dir,'stall-ran'))},'8000',{mode:0o600});Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,8000);}return value;};syncBuiltinESMExports();`,{mode:0o600});
   const config={name:scope.workerName,account_id:scope.accountId,main:path.join(dir,'worker.mjs'),compatibility_date:'2026-10-19',workers_dev:false,preview_urls:false,
     upload_source_maps:false,vars:{ENVIRONMENT:'production'},assets:{directory:path.join(dir,'assets'),binding:'ASSETS',run_worker_first:true},
     d1_databases:[{binding:'DB',database_name:'owned-db',database_id:'00000000-0000-4000-8000-000000000002'}],vectorize:[{binding:'VECTORIZE',index_name:'owned-index'}]};
@@ -187,8 +193,9 @@ for(const single of [false,true])test(`pinned Wrangler actual ${single?'single':
   const requests=channel('http.server.request.start');requests.subscribe(observed);t.after(()=>requests.unsubscribe(observed));
   await accountedPublicationUploadCommand({workspace:ws,scope,send})({...command,cwd:dir,args:[wrangler,'versions','upload','--config',cfg,'--outdir',path.join(dir,'out'),'--tag','owned-fixture'],
     env:{PATH:process.env.PATH,HOME:path.join(dir,'home'),TMPDIR:path.join(dir,'tmp'),CI:'true',CLOUDFLARE_API_TOKEN:'OWNED_FAKE_TOKEN',CLOUDFLARE_ACCOUNT_ID:scope.accountId,
-      WRANGLER_LOG_PATH:path.join(dir,'logs')},timeoutMs:30_000}).catch(error=>assert.fail(`${error.code}: ${JSON.stringify(attempted)}`));
+      WRANGLER_LOG_PATH:path.join(dir,'logs'),...(stall?{NODE_OPTIONS:`--import ${new URL('file://'+preload).href}`}:{})},timeoutMs:30_000}).catch(error=>assert.fail(`${error.code}: ${JSON.stringify(attempted)}`));
   assert.equal(assetAttempts,2);assert.equal(versionAttempts,2);assert.equal(calls.length,7);assert.equal(calls.filter(call=>call.path.endsWith('/versions')).length,2);
+  if(stall)assert.equal(await readFile(path.join(dir,'stall-ran'),'utf8'),'8000');
   assert.ok(calls.every(call=>!call.path.includes('/deployments')));assert.equal(ws.events.filter(event=>event.reserve).length,calls.length);
   assert.ok(ws.events.filter(event=>event.reserve).every(event=>event.reserve.units.httpRequests===1&&event.reserve.units.sqlStatements===0));
   assert.ok(settled(ws).every(event=>event.status==='known'));

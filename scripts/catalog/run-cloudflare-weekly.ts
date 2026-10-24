@@ -72,17 +72,23 @@ const resolving=(checkpoint:{control?:WorkspaceCheckpoint['control']})=>Boolean(
  * The publisher still authenticates its journal, claims, owner and provider. */
 export function reviewedUploadResume(saved:{sha256:string;checkpoint:Omit<WorkspaceCheckpoint,'state'>}|null,
   retry:Parameters<typeof executePublication>[0]['reviewedUploadRetry']):boolean {
-  if(!saved||!retry||!exact(retry,'approval,evidence')||!exact(retry.evidence,'reference,sha256')
+  if(!saved||!retry||!exact(retry,retry.transport?'approval,evidence,transport':'approval,evidence')||!exact(retry.evidence,'reference,sha256')
     ||retry.evidence.reference!==`objects/${retry.evidence.sha256}.json`)return false;
   try{encodeReviewedUploadActivationApproval(retry.approval);}catch{return false;}
   const cp=saved.checkpoint,c=cp.control?.publication,a=retry.approval,p=cp.pins;
-  if(a.schemaVersion!==4||cp.phase!=='attention'||cp.owner?.phase!=='freezing'||!c||c.permit||c.deploymentId
+  if(a.schemaVersion!==4||!['attention',...(retry.transport?['publishing']:[])].includes(cp.phase)||cp.owner?.phase!=='freezing'||!c||c.permit||c.deploymentId
     ||!p.publicationUploadPending||!p.publicationUploadReview||p.publicationUploadAcknowledged
     ||p.publicationUploadRetryAcknowledged&&!p.publicationUploadRetryPending
     ||a.requestId!==c.requestId||a.packageSha256!==c.packageSha256||a.configSha256!==c.configSha256
     ||a.reviewPinSha256!==p.publicationUploadReview.sha256||a.evidenceSha256!==retry.evidence?.sha256)return false;
-  return p.publicationUploadRetryPending
-    ?!!p.publicationUploadRetryAcknowledged&&['uploading','uploaded'].includes(c.stage)
+  if(retry.transport&&(!exact(retry.transport,'previous')||!exact(retry.transport.previous,'reference,sha256')
+    ||retry.transport.previous.reference!==`objects/${retry.transport.previous.sha256}.json`
+    ||retry.transport.previous.sha256!==p.publicationUploadRetryPending?.sha256||p.publicationUploadRetryAcknowledged))return false;
+  const pending=retry.transport?p.publicationUploadTransportPending:p.publicationUploadRetryPending;
+  const ack=retry.transport?p.publicationUploadTransportAcknowledged:p.publicationUploadRetryAcknowledged;
+  if(ack&&!pending)return false;
+  return pending
+    ?!!ack&&['uploading','uploaded'].includes(c.stage)
     :saved.sha256===a.checkpointSha256&&c.stage==='uploading'&&c.versionReference===null;
 }
 let executing=false; // Environment isolation across differing DB/workspace scopes in ONE process.
