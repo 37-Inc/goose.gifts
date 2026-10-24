@@ -85,3 +85,16 @@ catalog/site mutation, deployment, spend, Bead or schedule change. Same ACTIVE
 no owner alert. Next hypothesis remains whether attributable outbound response
 extends beyond the dominant product after separating destination/rebrand
 effects; do not start or adopt a next test before review and explicit approval.
+
+## Evidence integration, not runtime advancement
+
+[PR #278](https://github.com/37-Inc/goose.gifts/pull/278) integrates only this
+run's docs/evidence/events. Retained operator receipt commit:
+`0a6baa6e8d70d0622e13e877d3faf8d4bc140794`. The separate main-based temporary
+integration commit `f44150de1f505cf82599263a5a991328d8c427ae` has a fresh
+locked offline dependency install and also passes creative validation, six
+creative tests, 18 Pinterest tests and lint (zero errors/25 existing warnings).
+No hosted CI checks are configured; local gates are not a claimed CI or new
+production build. Protected source/packages/receipts/policy/operating ledger
+have no diff. The retained operator's executable code and canonical/catalog
+runtime pins are not advanced to the main-based integration.
