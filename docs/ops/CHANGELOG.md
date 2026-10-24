@@ -10,6 +10,8 @@ no exact-age history invented.14 validated events;998-event log valid. Full
 receipt/limits in `pinterest-measurements/2026-10-24-pm/`. No public Pin created,
 creative, account/catalog/site/schedule/Bead mutation or deployment. Same ACTIVE
 measurement-only cadence; exact October31 review and posting freeze unchanged.
+Evidence PR[#278](https://github.com/37-Inc/goose.gifts/pull/278), retained
+operator receipt commit0a6baa6; this merge is not a site publication.
 
 ## 2026-10-24 AM — frozen Pinterest cohort, post-redirect measurements
 

@@ -36,6 +36,19 @@
     "errors": 0,
     "existingWarnings": 25
   },
+  "evidenceIntegration": {
+    "pullRequest": "https://github.com/37-Inc/goose.gifts/pull/278",
+    "retainedOperatorEvidenceCommit": "0a6baa6e8d70d0622e13e877d3faf8d4bc140794",
+    "mainBasedIntegrationEvidenceCommit": "f44150de1f505cf82599263a5a991328d8c427ae",
+    "freshLockedOfflineInstall": true,
+    "creativeLogValid": true,
+    "creativeTestsPass": 6,
+    "pinterestTestsPass": 18,
+    "lintErrors": 0,
+    "existingLintWarnings": 25,
+    "hostedChecksConfigured": false,
+    "retainedMeasurementRuntimeAdvanced": false
+  },
   "build": {
     "rerun": false,
     "reason": "Evidence/docs-only run; retained implementation, static source and dependencies unchanged. Prior clean build and independent verifier acceptance remain in cutover validation; no new build/deployment claimed.",
