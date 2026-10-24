@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261024-am-v11-opossum-late-7day-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-24T16:38:41Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "candidateId": "cand-v11-opossum-portrait-poster",
+    "scope": "candidate",
+    "statement": "Late seven-day lifetime observation completed at 2026-10-24T16:33:54.943Z; exact gate 2026-10-23T23:36:45.613Z, late 61029330ms. Current native 4 impressions / 0 Pin clicks / 0 saves / 0 outbound. Prior scheduled snapshot preceded this gate and did not close it early. This current lifetime snapshot does not reconstruct exact-age history. Original production publication/readback receipt remains valid; per-Pin site/retailer attribution is unknown.",
+    "evidenceEventIds": [
+      "evt-20261024-am-v11-metrics-1107815208391305222",
+      "evt-20261017-pm-v11-opossum-24h-learning"
+    ],
+    "decision": "Keep the original public Pin and measuring lifecycle in the frozen v11 cohort. No deletion, replacement, requeue, new creative or format verdict.",
+    "nextAction": "Preserve actual observation for the October 31 full-cohort review. Capture 28-day checkpoint only at/after 2026-11-13T23:36:45.613Z."
+  }
+}

@@ -109,6 +109,21 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-10-24 morning — routine post-redirect observation, no new acquisition
+
+Actual snapshot16:33:54.943UTC: account stupid_gifts BUSINESS,28 retained public
+Pins; v11P1441/22Pin clicks/3saves/2native outbound,F353/5/1/0. Impressions rise
+P21/F17 since priorPM; clicks/saves/outbound unchanged. Bowling supplies96.46%P
+exposure and both native outbound; per-arm site/retailer actions remain unknown,
+not corroborated conversions or a format winner. Explicit GA4/PostHog reads
+succeed with distinct windows/exclusions. Approved Goose Pin URLs are unchanged,
+but now redirect to equivalent Stupid paths with UTMs after the independently
+authorized04:50:14.849UTC intervention; include pre/post effects in the review.
+Opossum7day is honestly late; Hat7day is after the snapshot and not closed early.
+14 validated events; no public Pin/creative/account/catalog/site/schedule/Bead
+mutation. Full review remains pendingOctober31, posting/generation frozen even
+afterward until explicit next-experiment approval. [Run evidence](pinterest-measurements/2026-10-24-am/README.md).
+
 ### 2026-10-23 afternoon — resumed scheduled measurement, no acquisition delta
 
 Actual snapshot23:30:08.162UTC verifies stupid_gifts BUSINESS and28 public Pins.

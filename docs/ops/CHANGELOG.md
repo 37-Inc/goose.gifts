@@ -1,5 +1,17 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-24 AM — frozen Pinterest cohort, post-redirect measurements
+
+[daily-ops] Actual16:33:54.943UTC read verifies28 public Pins,v11P6/F6;
+P1441/22opens/3saves/2native outbound,F353/5/1/0. No new native acquisition;
+site/retailer attribution remains unknown. Bounded GA4/PostHog reads succeed.
+Recorded honest late Opossum7day observation; Hat7day snapshot is too early.
+14 validated events/full JSON in `pinterest-measurements/2026-10-24-am/`;
+984event log valid. New evidence explicitly retains the independently authorized
+Goose-to-Stupid redirect as a destination intervention, not a format effect.
+No public Pin/creative/account/catalog/site/schedule/Bead write or deployment.
+Exact October31 review and subsequent explicit posting-approval gate unchanged.
+
 ## 2026-10-23 PM — resumed Pinterest task executes measurements only
 
 [daily-ops] First resumed scheduled read completed23:30:08.162UTC:28 public Pins,
