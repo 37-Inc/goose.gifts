@@ -5,6 +5,47 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-24 AM — routine frozen-cohort measurement after redirect cutover
+
+Trigger16:32:32.872UTC; actual snapshot16:33:54.943UTC in retained reviewed
+operator639afd1 (executable/static/dependencies unchanged). Account
+1107815345747925810/stupid_gifts/BUSINESS;28 public Pins/five boards.
+Profile3894/60opens/8saves/2outbound. V11P1441/22/3/2,F353/5/1/0,
+only +21P/+17F impressions since priorPM. Bowling1390 supplies96.46%P exposure
+and both native outbound; Toast280 supplies79.32%F. Excluding them P51/2/0/0,
+F73/2/0/0. Native clicks are not attributable site/retailer actions; downstream
+remains unknown. No demonstrated format/acquisition winner or early adoption.
+
+GA4explicit507421709 October17-24Pacific/current partial: Goose641direct+
+1not-set sessions; Stupid35direct+6amazon+1not-set. Four Stupid/one Goose
+retailer events are direct/amazon, not attributable Pinterest conversions or
+confirmed customers; existing-session operator caveat retained. PostHog550427
+rollingUTC October17T16:33:51.305Z-October24T16:33:51.305Z:42page/68list/
+6search/3select, no attributed Pinterest/retailer row under campaign/whole-QA-
+identity exclusions. Missing host/fullURL/per-Pin fields stay unknown. Earlier
+504 remains historical. No retired DB/Vercel or public v3/Sandbox evidence.
+
+Approved Goose Pin URLs and receipts stay unchanged. Independently authorized
+Cloudflare path/query-preserving redirect verified04:50:14.849UTC now forwards
+to equivalent Stupid paths; October23PM preceded it. Carry intervention through
+final review and do not infer acquisition from QA. Tube-guy stays held.
+
+No unresolved production publication start or pending24h receipt. Six archived
+creative lifecycles remain public. Opossum7day gateOctober23T23:36:45.613Z
+observed61029330ms late at four impressions/no native actions; current lifetime
+snapshot, not reconstructed exact-age data. Hat7dayOctober24T16:44:52.279Z is
+657336ms after snapshot, not closed early. No new28day archive due. Twelve
+metric events+one candidate learning+one run learning appended only via
+creative:record;984events/8experiments/37candidates valid. Full evidence/limits
+and validation: `pinterest-measurements/2026-10-24-am/`.
+
+No public Pin, generation, shortlist, approval, account/Pin/catalog/site write,
+deployment, spend, Bead or schedule mutation. Canonical/catalog runtime pins
+unchanged. Final review remains false/not due until2026-10-31T16:44:52.279Z;
+expected eligible normal slotOctober31 16:30Pacific. Keep same ACTIVE cadence,
+generation/posting off even after review until explicit new-experiment approval.
+Routine unchanged acquisition evidence needs no owner notification.
+
 ## 2026-10-23 PM — Redirect migration in the Pinterest/growth thread
 
 Owner explicitly assigned equivalent Goose-to-Stupid URL redirects and existing

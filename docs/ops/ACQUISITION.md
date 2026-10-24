@@ -1,5 +1,22 @@
 # goose.gifts Acquisition and Link-Earning Plan
 
+## October 24 morning — post-redirect measurement, acquisition unchanged
+
+Actual16:33:54.943UTC: P1441impressions/22Pin clicks/3saves/2native outbound,
+F353/5/1/0; P6/F6 retained. Only distribution increases, not clicks or saves.
+Bowling supplies96.46%P exposure/both outbound; attributable site/retailer
+actions remain unknown. No format adoption. Explicit GA4property507421709 and
+PostHog550427 bounded reads succeed; direct/amazon events are not Pinterest
+conversion evidence. [Run receipt and limits](pinterest-measurements/2026-10-24-am/README.md).
+
+The owner-authorized [Goose-to-Stupid redirect](goose-redirect-2026-10-23/README.md)
+now preserves path/query across both protocols and apex/www, verified
+2026-10-24T04:50:14.849Z. Approved Pin URLs/receipts remain unchanged; the
+October23 no-redirect audit below is historical. Include this destination and
+rebrand intervention in the cohort review, not as acquisition or format proof.
+No public Pin was created. Same ACTIVE metric-only schedule, exact pending
+October31 deadline and explicit new-experiment approval gate remain unchanged.
+
 ## October 23 — Pinterest cutover boundary
 
 PM scheduled observation23:30:08.162UTC: P1420/22opens/3saves/2native outbound,
