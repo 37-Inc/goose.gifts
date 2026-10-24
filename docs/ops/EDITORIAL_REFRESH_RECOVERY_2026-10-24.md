@@ -1,6 +1,8 @@
 # Stupid Gifts — Editorial refresh correction
 
-Status: **offline correction only; publication hold remains in place**.
+Status: **offline capture/repair/successor adapters implemented and independently
+reviewed; publication hold remains in place**. The original publication context
+expired at `2026-10-24T17:32:15.176Z`. Do not dispatch this original-context run.
 Tracked by `roadmap-lbbz1.4.9`, which must remain open until the pending run is
 safely resolved. This document does not authorize recovery or publication.
 
@@ -97,7 +99,10 @@ Protected inputs remain under
 `~/.codex/private/goose-gifts-migration/{daily-catalog-care/2026-10-24,weekly-runs}`.
 No manifest, proposal, checkpoint, owner, lock or cadence file was changed.
 
-## Proposed same-run recovery — not implemented or authorized
+## Initial same-run recovery outline — historical, not dispatch authority
+
+The following outline predates the implemented adapters described below. It
+does not override the now-expired original context or authorize live actions.
 
 Merging this code alone cannot fix the saved projection: the eight faulty
 `public_display_json`/private `persistentBase` values were already written to D1.
@@ -151,11 +156,11 @@ repair**, then the original pinned publisher, not source/config replacement:
    the existing-task hold and update the future clean operator to the approved
    fix. No new scheduler, old Neon writer, Pinterest posting or paid upgrade.
 
-The exact repair adapter and successor-reconciliation step still need to be
-implemented/tested and approved for live use. Do not infer a runnable recovery
-command from this proposal. If the original evidence expires first, stop:
-expiry does not authorize extending the saved evidence or clearing WRITING
-ownership. Determine an explicit safe pending-run disposition separately.
+The original-context production workflow is now blocked by its elapsed cutoff.
+The capture/repair and successor adapters are implemented below, but fresh
+production capture and source/context adoption are not authorized. Do not infer
+a runnable original-context live command from this outline. Expiry never
+authorizes extending saved evidence or clearing WRITING ownership.
 
 **Unresolved publication choice:** the exporter's `checkCurrent` and final
 publication SQL require current editorial/source-hash agreement for indexable
@@ -166,3 +171,109 @@ accept that temporary34-page SEO cohort or separately review/test carrying
 original editorial approval across proven factual equivalence throughout the
 export/publication contract. This local patch does not implement that broader
 proof change or grant permission to re-enrich/fetch another batch.
+
+## Implemented offline adapters and executable checks
+
+`scripts/catalog/editorial-recovery.ts` exports:
+
+- `captureEditorialRepair`: exactly ten current product rows/sidecars and their
+  immutable original operation receipts, with exact checkpoint/owner/database
+  binding and original accounted budget floor. It performs no write SQL or
+  merchant/model call. The caller must supply the original workspace-accounted
+  D1 client, not a fresh ledger or ambient connection.
+- `prepareEditorialRepair`: pure byte/hash-bound planner. It verifies the raw
+  accepted snapshot, exact original proposal, source/current hashes, article,
+  actual captured grants and factual equivalence. Its eight patches modify only
+  `public_display_json`, `semantic_json.persistentBase` and sidecar version.
+  The replacement proposal keeps all ten entries and changes only eight receipt
+  bindings. No caller can rehash a forged after-state into a valid plan.
+- `applyEditorialRepair`: one **50-statement atomic batch**, within existing
+  REST bounds. It checks all ten before-row/sidecar pairs and original receipts,
+  exact same WRITING capability/captured time, and database time both before
+  updates and at transaction end. It appends a normal immutable operation,
+  advances the same owner's epoch once and appends a valid checkpoint. Exact
+  committed-ACK/checkpoint-loss retries reconcile receipts/post-state; unknown
+  HTTP charges stay unknown. Oversized data is refused, not truncated or given
+  higher limits. No automatic inverse write or owner release is implemented.
+
+`scripts/catalog/editorial-recovery-successor.ts` exports the real accounted
+D1/public observer, private filesystem store and finalized reconciliation.
+It requires exact source/config/prior publication and successor seal, actual
+receipt/resolved build/idle scope/public identity, unchanged checkpoint/seal,
+monotonic accounting and the original workspace lock. It writes immutable
+control/success receipts and a full-tuple CAS of `last-success.json`; lost local
+ACKs are retryable. It can reconcile an already-finalized run after supplier
+expiry without reading or renewing expired bodies. It cannot finalize this
+currently unfinished run or invent provider observations from saved JSON.
+
+Independent review is recorded in
+`evidence/2026-10-24-editorial-recovery-proof-review.md`. Findings fixed during
+review include start **and terminal** SQL expiry fences, exact budget keys/floor,
+capture time bounds, affirmative original-quality validation, actual database
+identity, raw snapshot binding and raw-byte/strict-UTF8 input authentication.
+
+Executable offline checks from this clean worktree, with Node22/scrubbed env:
+
+```sh
+env -i HOME="$HOME" PATH="/Users/cameronehrlich/.nvm/versions/node/v22.23.1/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin" npm run test:catalog-editorial-recovery
+env -i HOME="$HOME" PATH="/Users/cameronehrlich/.nvm/versions/node/v22.23.1/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin" npm run test:catalog-ops
+env -i HOME="$HOME" PATH="/Users/cameronehrlich/.nvm/versions/node/v22.23.1/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin" node --import tsx scripts/catalog/editorial-recovery-offline.mts --help
+```
+
+The read-only CLI takes `--context FILE --context-sha256 SHA --capture FILE
+--capture-sha256 SHA`, authenticates private600 files and emits body-free plan/
+proposal hashes. It has **no live mode, credential access, file writes, backdate
+override or owner operation**. It refuses an elapsed original cutoff. Its local
+FS/SQLite fixtures exercise the real capture, accounted REST repair, failed
+receipt transaction rollback, CAS/owner drift, unknown retention, retries,
+expiry races, new proposal and successor reconciliation—not production grants.
+
+Latest focused repair/successor/maintenance/accounting/current-display group:
+**103 passed, zero skipped, zero interrupted**. Both strict typechecks and
+changed-file lint pass. Prior interrupted full staging is still **not passing
+evidence**; no production build/live QA/provider-capacity claim is made. No
+dependencies changed or online security audit was attempted in this offline
+scope.
+
+The integrated `npm run test:catalog-ops` gate also passed:61/61 new recovery
+tests, followed by118 existing ops tests passed and one optional pinned local
+Postgres17/pgvector differential skipped (no image pull). Independent reviewer
+reran61/61 on stable source and recorded exact source hashes. Full lint has
+zero errors and25 pre-existing unrelated warnings. Post-test fingerprints of
+all433 original run files, eight original care files and the reservation match
+the pre-work inventory; the pinned628 checkout remains clean.
+
+## Concrete blockers and exact future approval boundary
+
+1. **Original publication context elapsed.** Actual saved `context.json` has
+   cutoff `2026-10-24T17:32:15.176Z`, independent of the later supplier/checkpoint
+   not-after `2026-10-25T15:32:15.176Z`. The unchanged normal publisher refuses
+   the elapsed context. Do not rerun original `catalog:care publish`/driver
+   resume, backdate time, replace config/context/checkpoint or renew evidence.
+   A separately reviewed, explicitly approved immutable context-adoption or
+   safe pending-run disposition is needed; that additional protocol is **not
+   implemented or authorized by this patch**.
+2. **Production before-state is missing locally.** The saved original proposal
+   contains hashes, not full post-phase rows/sidecars/grants. A real plan needs
+   a separately authorized bounded capture of exactly ten current rows and their
+   receipts through the original ledger/capability, checked against those hashes.
+   The capture API exists and is tested; no such provider call was made. Do not
+   substitute synthetic grants or reconstruct guessed production before-state.
+3. **Indexability decision remains explicit.** Approve42 visible/34 indexable
+   under unchanged publisher checks, or separately scope a durable factual-
+   equivalence proof accepted by both JS export and final SQL with reviewed
+   source/config adoption. Rewriting original status/hash or injecting around
+   old gates is not an acceptable shortcut. No model/supplier grant is needed
+   merely to make that choice.
+
+Only after resolving those blockers may a new explicit live approval cover:
+same-run bounded capture; independent review of its actual immutable plan;
+exact eight-row repair under the retained owner and original charged ledger;
+review of a **new** ten-entry proposal; normal same-run publication; actual
+receipt/build/idle/public QA; then the implemented successor reconciliation.
+It must retain the original ten-product reservation, all immutable inputs and
+unknown charges, Free caps/headroom and original supplier deadline. Approval
+does not authorize a new batch, metadata rewrite, automatic rollback, owner
+release, timer change or Pinterest restart. If evidence has expired by then,
+stop and decide disposition separately. There is deliberately no allegedly
+runnable live command for a context the code knows is expired.

@@ -1,5 +1,15 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-24 — offline bounded editorial-recovery adapters
+
+[owner+codex] Implemented ten-row capture, exact eight-row atomic repair,
+immutable replacement proposal and actual-observation successor reconciliation;
+added failure/ACK/expiry/accounting/FS regression coverage and independent
+review. Original publisher cannot retain42 indexable articles without a new
+proof contract; existing17:32UTC publication context has now elapsed. No live
+capture/repair/publication, context renewal, owner/ledger/timer change or push.
+`roadmap-lbbz1.4.9` remains open; recovery document records exact decision/gates.
+
 ## 2026-10-24 — offline editorial-preservation correction
 
 [owner+codex] Reproduced the held daily run's exact eight-article loss from saved

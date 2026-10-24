@@ -11,6 +11,10 @@ approved articles. Do not prepare/start/fetch/publish another batch or alter its
 WRITING owner. The correction is being tested offline; see
 `EDITORIAL_REFRESH_RECOVERY_2026-10-24.md`. The existing task's hold remains until
 separately reviewed same-run recovery and actual publication verification.
+The offline repair/successor adapters are implemented, but the original
+October24 publication context expired17:32:15.176UTC. Do not resume it, renew its
+inputs or clear its owner. A separately reviewed disposition/context-adoption
+decision and real bounded capture are required before any live recovery.
 
 ## What must stay true
 
