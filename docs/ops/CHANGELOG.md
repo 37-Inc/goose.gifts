@@ -1,5 +1,16 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-23 PM — Goose domain redirects and Google site moves
+
+[owner+codex] Took over existing redirect migration Bead. Cloudflare Free now
+301-redirects HTTP/HTTPS apex/www Goose paths and query strings to Stupid,
+independent of Vercel/Neon.40/40 matrix cases,28/28 approved Pin links and184
+sitemap targets pass; holds/404s are preserved. Google TXT ownership, successful
+184-page sitemap and both domain/www Change of Address readbacks are recorded
+in `goose-redirect-2026-10-23/`. No new-site deploy, catalog/Pin/schedule mutation,
+provider deletion, renewal change or spend. v11 records the destination
+intervention; exact review deadline/posting freeze unchanged.
+
 ## 2026-10-23 PM — resumed Pinterest task executes measurements only
 
 [daily-ops] First resumed scheduled read completed23:30:08.162UTC:28 public Pins,

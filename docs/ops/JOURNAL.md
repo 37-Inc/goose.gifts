@@ -5,6 +5,37 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-23 PM — Redirect migration in the Pinterest/growth thread
+
+Owner explicitly assigned equivalent Goose-to-Stupid URL redirects and existing
+Beads to this thread. Used isolated `stupid-goose-redirect`, not either retained
+site/catalog or Pinterest operator. Cloudflare signed-in37 account verified;
+ambient CLI scope did not expose these zones, so no token/permission expansion.
+Added validated host-scoped301 rule first; retained existing sitemap rule second.
+Enabled apex proxy while preserving A/CNAME origins and existing TXT records.
+Rules execute before origin, so redirect delivery no longer needs legacy compute.
+
+Early partial receipt retains cached apex Vercel routing; authoritative DNS and
+normal HTTP/HTTPS apex/www later converge. At04:50:14.849UTC40/40 cases and28/28
+retained Pin redirects pass; all184 sitemap targets200. At04:51:36.828UTC the
+expanded audit also verifies10/10 terminal/status contracts, including honest
+retired/unknown404s and existing search alias.27 retailer IDs match new-site
+baseline; tube-guy remains intentionally held. No blanket-homepage fallback.
+
+Added exact Google-issued Stupid TXT, preserving Pinterest TXT and two Worker
+records. DNS1.1.1.1/authoritative readback and Google ownership pass. Submitted
+canonical sitemap once; initial Couldn't fetch was transient. Later Google reads
+Success /184 discovered pages. Domain and canonical-www Change of Address each
+pass required homepage/ownership and recommended sample-page checks; both are
+confirmed moving, destination lists both. Old properties/history are retained.
+The existing analytics service account has not been granted new permissions.
+
+Source245f0b3 passes42 focused tests, clean committed synthetic build452assets/
+426guarded routes and independent verifier. This build is not deployed. No live
+site/catalog/Pin, scheduler, payment, legacy deletion or renewal change. Record
+this intervention for v11 without changing membership, receipts or deadline.
+Full provider retirement remains under its observation/recovery/consumer gates.
+
 ## 2026-10-23 PM — White gallery shipped; tracker reconciled
 
 Owner approved all five design recommendations. PR274 merged44b4b69; reviewed
