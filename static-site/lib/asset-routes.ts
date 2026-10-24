@@ -25,14 +25,17 @@ function earliest(deadlines: (string | null)[]) {
 function heldCompanions(assetPaths: string[]) {
   const base = "/safe/product";
   const existing = new Set(assetPaths);
-  const formats: Record<string, string> = {
+  const required: Record<string, string> = {
     "/__next._full.txt": "/__next._full.txt",
     "/__next._tree.txt": "/__next._tree.txt",
     "/__next.safe.product.__PAGE__.txt": "/__next.gifts.$d$slug.__PAGE__.txt",
   };
+  // Next's static layout index is optional in older exports. It is a known
+  // neutral companion, not permission to serve arbitrary held-page files.
+  const formats = { ...required, "/__next._index.txt": "/__next._index.txt" };
   const discovered = assetPaths.filter((path) => path.startsWith(`${base}/`));
   if (!existing.has(`${base}.html`) || !existing.has(`${base}.txt`)
-    || Object.keys(formats).some((suffix) => !existing.has(`${base}${suffix}`)))
+    || Object.keys(required).some((suffix) => !existing.has(`${base}${suffix}`)))
     throw new Error("Shared safe product is missing HTML/RSC companions");
   if (discovered.some((path) => !formats[path.slice(base.length)]))
     throw new Error("Shared safe product has an unrecognized companion format");

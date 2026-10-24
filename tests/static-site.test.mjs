@@ -93,6 +93,9 @@ test(
   () => {
     const inventory = files(new URL("out/", root));
     const routes = createStaticRoutes(exportSnapshot, inventory);
+    if (inventory.includes("/safe/product/__next._index.txt"))
+      for (const held of exportSnapshot.heldProducts)
+        assert.equal(routes[`${held.path}/__next._index.txt`].assetPath, "/safe/product/__next._index.txt");
     for (const asset of inventory.filter(
       (file) =>
         /\.(html|txt|json)$/.test(file) &&
