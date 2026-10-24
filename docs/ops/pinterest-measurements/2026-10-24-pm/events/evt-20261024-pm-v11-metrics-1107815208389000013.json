@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261024-pm-v11-metrics-1107815208389000013",
+  "type": "metrics.recorded",
+  "recordedAt": "2026-10-24T23:35:33Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "candidateId": "cand-v11-mini-bowling-poster",
+    "checkpointAt": "2026-10-24T23:34:34.807Z",
+    "cohort": "public",
+    "source": "Scheduled measurement-only production Pinterest API lifetime snapshot; docs/ops/pinterest-measurements/2026-10-24-pm/measurement-20261024T233434807Z.json",
+    "metrics": {
+      "impressions": 1390,
+      "saves": 3,
+      "pinClicks": 20,
+      "outboundClicks": 2,
+      "siteSessions": null,
+      "affiliateClicks": null,
+      "revenueCents": null
+    },
+    "caveats": [
+      "Actual lifetime snapshot, not invented equal-age history; archived creative lifecycles retain public cohort membership.",
+      "Explicit GA4 property 507421709 and PostHog project 550427 bounded QA/operator-excluded aggregates. Missing or unattributable per-Pin downstream remains unknown, not zero.",
+      "Approved Goose Pin URLs remain unchanged. Independently authorized Cloudflare redirects verified 2026-10-24T04:50:14.849Z preserve paths/query to Stupid. Separate pre/post-destination and rebrand effects from format; QA is not acquisition."
+    ]
+  }
+}

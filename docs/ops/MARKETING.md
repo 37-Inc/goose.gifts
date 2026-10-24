@@ -109,6 +109,20 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-10-24 afternoon — native metrics unchanged; Hat checkpoint recorded
+
+Actual23:34:34.807UTC verifies stupid_gifts BUSINESS,28 public Pins and frozen
+P6/F6. P1441/22Pin clicks/3saves/2native outbound,F353/5/1/0, identical to AM.
+Bowling supplies96.46%P exposure/both outbound; no corroborated attributable
+site/retailer response or format winner. Bounded explicit GA4/PostHog reads
+succeed with exclusions and distinct windows; downstream stays unknown. Hat7day
+uses actual late6h49m42.528s lifetime snapshot (four impressions/no native action),
+not reconstructed exact-age history.14 validated events preserve all approvals,
+receipts and original public cohort. No public Pin created or creative/site/
+catalog/account/schedule/Bead mutation. Redirect/rebrand intervention remains
+separate from format. October31 full review/posting freeze unchanged.
+[Run evidence](pinterest-measurements/2026-10-24-pm/README.md).
+
 ### 2026-10-24 morning — routine post-redirect observation, no new acquisition
 
 Actual snapshot16:33:54.943UTC: account stupid_gifts BUSINESS,28 retained public

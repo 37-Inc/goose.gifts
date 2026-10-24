@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261024-pm-v11-hat-late-7day-learning",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-24T23:35:33Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "candidateId": "cand-v11-birthday-hat-poster",
+    "scope": "candidate",
+    "statement": "First eligible scheduled seven-day observation at 2026-10-24T23:34:34.807Z, exact gate 2026-10-24T16:44:52.279Z, late 24582528ms (6h49m42.528s). Current lifetime native metrics are 4 impressions / 0 Pin clicks / 0 saves / 0 outbound; per-Pin site and retailer actions remain unknown. Morning snapshot preceded the gate and was correctly not closed early. This current lifetime snapshot does not reconstruct unavailable exact-age history. Original production publication/readback receipt and public Pin remain intact.",
+    "evidenceEventIds": [
+      "evt-20261024-pm-v11-metrics-1107815208391368990",
+      "evt-20261018-pm-v11-birthday-hat-24h-learning",
+      "evt-20261024-am-v11-scheduled-measurement-noop"
+    ],
+    "decision": "Keep the public Pin and measuring lifecycle in the frozen original P6/F6 cohort. Four impressions are distribution-limited, not a creative-failure or replacement decision; no generation, repost or quota credit.",
+    "nextAction": "Retain actual observation for the receipt-derived October31 full-cohort review. Capture 28-day checkpoint only at/after2026-11-14T16:44:52.279Z; leave posting off until explicit next-experiment approval."
+  }
+}
