@@ -5,6 +5,13 @@ Current work is tracked in `~/roadmap`, especially `roadmap-lbbz1.4.3`.
 Historical migration/recovery instructions are archived in
 `archive/RUNBOOK_MIGRATION_2026-10-23.md`; they are not routine commands.
 
+**October24 publication hold (`roadmap-lbbz1.4.9`):** the scheduled run completed
+its ten-product provider phase, but its saved projection would remove eight
+approved articles. Do not prepare/start/fetch/publish another batch or alter its
+WRITING owner. The correction is being tested offline; see
+`EDITORIAL_REFRESH_RECOVERY_2026-10-24.md`. The existing task's hold remains until
+separately reviewed same-run recovery and actual publication verification.
+
 ## What must stay true
 
 - Release only to **Cloudflare stupid.gifts**, on **Free**. Never deploy to

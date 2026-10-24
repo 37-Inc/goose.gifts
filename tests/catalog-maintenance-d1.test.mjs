@@ -90,9 +90,10 @@ async function setup({products=[],presence={},intent,revision='r-new'}={}) {
 
 const permanentArticle=Array(9).fill('Synthetic plastic button fixture provides clicking behavior for this owned test.').join(' ')+'\n\n'
   +Array(9).fill('Original crab button commentary checks factual persistence without any real merchant offer.').join(' ');
-async function permanentFixture({known=true,direct=false,preservePermanentListings=false}={}) {
+async function permanentFixture({known=true,direct=false,preservePermanentListings=false,
+  sourceFacts={material:'plastic',behavior:'clicking button fixture'}}={}) {
   const p=input(1,{embedding:vectors,editorialWriteup:permanentArticle,
-    sourceFacts:{material:'plastic',behavior:'clicking button fixture'}});
+    sourceFacts});
   const hash=editorialSourceHash(p);p.editorialSourceHash=hash;
   assert.equal(validateEditorialDraft(p,p.editorialWriteup).approved,true);
   const supplierRights=rights(p);supplierRights.imageUrl={...supplierRights.imageUrl,basis:'merchant',observedAt:NOW,
@@ -198,21 +199,63 @@ test('public permanent truthiness never proves unknown native input or queues an
   }finally{f.close();}
 });
 
-test('facts drift or invalid current article strips only permanent article/indexability without renewing rights or native bytes',async()=>{
-  for(const changedFacts of [true,false]){
-    const f=await permanentFixture();try{
+test('supplier title/photo churn and dimensional unit casing preserve sealed articles, not fresh semantic proof',async()=>{
+  for(const patch of [{title:'A new retailer title'}, {imageUrl:'https://example.invalid/replacement.jpg'},
+    {sourceFacts:{material:'plastic',behavior:'clicking button fixture',itemDimensions:{height:'4 Inches',weight:'0.2 Pounds'}}}]){
+    const f=await permanentFixture(patch.sourceFacts ? {sourceFacts:{...patch.sourceFacts,
+      itemDimensions:{height:'4 inches',weight:'0.2 pounds'}}} : {});try{
+      const before=f.row(1),native=f.state(1).embedding_native_base64,proof=f.state(1).embedding_provenance_json;
+      const p={...f.p,...patch,embedding:undefined,editorialStatus:'stale'},hash=editorialSourceHash(p);
+      assert.notEqual(hash,f.hash);await f.store.upsertProduct(p,hash);
+      const expected={...f.base,indexable:false};
+      assert.deepEqual(JSON.parse(f.row(1).public_display_json),expected);
+      assert.deepEqual(f.state(1).product.persistentBase,f.base);
+      assert.equal(f.row(1).source_facts_hash,hash);assert.equal(f.row(1).editorial_source_hash,f.hash);
+      assert.equal(f.row(1).editorial_status,'stale');assert.equal(f.row(1).embedding_text_hash,null);
+      assert.doesNotThrow(()=>checkCurrent(expected,{source_facts_hash:hash},f.row(1),new Date(NOW)));
+      assert.equal(f.row(1).rights_json,before.rights_json);assert.equal(f.row(1).source_record_json,before.source_record_json);
+      assert.equal(f.state(1).embedding_native_base64,native);assert.equal(f.state(1).embedding_provenance_json,proof);
+      assert.equal(f.events().filter(e=>e.status==='pending'&&e.operation==='upsert').length,0);
+      // Retrying, then a later metadata-only refresh, cannot progressively erase approval.
+      const epoch=f.epoch();await f.store.upsertProduct(p,hash);assert.equal(f.epoch(),epoch);
+      f.setClock('2026-10-21T07:00:00.123Z');
+      const next={...p,title:'Yet another supplier title'};await f.store.upsertProduct(next,editorialSourceHash(next));
+      assert.deepEqual(JSON.parse(f.row(1).public_display_json),expected);
+    }finally{f.close();}
+  }
+});
+
+test('material or unknown facts and unreviewed article changes still suppress public article without erasing private history',async()=>{
+  for(const patch of [{sourceFacts:{material:'metal',behavior:'clicking button fixture'}},
+    {sourceFacts:{material:'plastic',behavior:'different behavior'}}, {sourceFacts:{}},
+    {sourceFacts:{material:'Plastic',behavior:'clicking button fixture',itemDimensions:{height:'4 inches'}}},
+    {sourceFacts:{material:'plastic',behavior:'clicking button fixture',itemDimensions:{height:'5 inches'}}},
+    {sourceFacts:{material:'plastic',behavior:'clicking button fixture',itemDimensions:{height:'4 pounds'}}},
+    {editorialWriteup:'Invalid short replacement article.'}]){
+    const f=await permanentFixture({sourceFacts:{material:'plastic',behavior:'clicking button fixture',itemDimensions:{height:'4 inches'}}});try{
       const original=f.row(1),native=f.state(1).embedding_native_base64,proof=f.state(1).embedding_provenance_json;
-      const p={...f.p,embedding:undefined,...(changedFacts ? {title:'Changed merchant crab facts',editorialStatus:'pending'}
-        : {editorialWriteup:'Invalid short replacement article.'})};
+      const p={...f.p,embedding:undefined,editorialStatus:'generated_ready',...patch};
       const hash=editorialSourceHash(p);await f.store.upsertProduct(p,hash);
       const display=JSON.parse(f.row(1).public_display_json),expected={...f.base,indexable:false};delete expected.editorialWriteup;
       assert.deepEqual(display,expected);assert.deepEqual(f.state(1).product.persistentBase,expected);
+      if(!patch.editorialWriteup)assert.equal(f.state(1).product.editorialWriteup,f.p.editorialWriteup);
       assert.equal(f.row(1).rights_json,original.rights_json);assert.equal(f.row(1).source_record_json,original.source_record_json);
       assert.equal(f.state(1).embedding_native_base64,native);assert.equal(f.state(1).embedding_provenance_json,proof);
       assert.equal(f.events().filter(e=>e.status==='pending'&&e.operation==='delete').length,1);
       assert.equal(f.events().filter(e=>e.status==='pending'&&e.operation==='upsert').length,0);
     }finally{f.close();}
   }
+});
+
+test('retained article approval cannot promote a previously nonindexable base',async()=>{
+  const f=await permanentFixture({direct:true});try{
+    const base={...f.base,indexable:false};
+    f.sqlite.prepare('UPDATE products SET public_display_json=? WHERE id=?').run(canonicalJson(base),f.p.id);
+    const p={...f.p,title:'Different retailer title',editorialStatus:'stale',embedding:undefined};
+    await f.store.upsertProduct(p,editorialSourceHash(p));
+    assert.deepEqual(JSON.parse(f.row(1).public_display_json),base);
+    assert.equal(f.row(1).editorial_status,'stale');
+  }finally{f.close();}
 });
 
 test('current curation holds hide permanent display but retain private clearance for a genuine later release',async()=>{

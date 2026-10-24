@@ -1,5 +1,15 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-24 — offline editorial-preservation correction
+
+[owner+codex] Reproduced the held daily run's exact eight-article loss from saved
+inputs: title/photo metadata and dimensional-unit casing, not factual changes.
+The narrow projector fix preserves existing approved copy without promoting
+fresh supplier/vector proof. Added regression tests and a same-run recovery
+proposal (`EDITORIAL_REFRESH_RECOVERY_2026-10-24.md`). Local-only: no provider
+calls, merge/deployment, data repair, owner/counter/timer change or extra batch.
+Bead `roadmap-lbbz1.4.9` remains open; publication hold remains in place.
+
 ## 2026-10-24 AM — frozen Pinterest cohort, post-redirect measurements
 
 [daily-ops] Actual16:33:54.943UTC read verifies28 public Pins,v11P6/F6;
