@@ -1,22 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { DatabaseSync } from 'node:sqlite';
-import { readFile, readdir } from 'node:fs/promises';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { createProjectionPacket, projectionQueries } from '../lib/catalog/d1.ts';
-import { validateCatalogSnapshot } from '../lib/catalog/snapshot.ts';
 import { claimMutationOwnership, releaseMutationOwnership } from '../lib/catalog/mutation-fence.ts';
-import { approvedCohortOperationKey, approvedCohortVectorPlan, prepareApprovedCohort } from '../lib/catalog/freeze-approved-cohort.ts';
-import { enqueueBuildRequest, claimBuildRequest, beginBuildActivation, resolveBuildActivation } from '../lib/catalog/build-requests.ts';
-import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication, completeActivatedPublication } from '../lib/catalog/publication.ts';
-import { createD1CatalogMaintenanceStore, loadMaintenanceVectorPayload } from '../scripts/catalog/maintenance-d1.ts';
-import { maintenanceEmbeddingText } from '../scripts/catalog/maintenance-state.ts';
-import { editorialSourceHash } from '../scripts/ops/catalog-editorial-core.mjs';
+import { enqueueBuildRequest, claimBuildRequest } from '../lib/catalog/build-requests.ts';
+import { completeActivatedPublication } from '../lib/catalog/publication.ts';
 import { canonicalJson, sha256 } from '../scripts/catalog/migration.ts';
-import { createSealedSnapshotEnvelope } from '../scripts/catalog/export-d1-snapshot.ts';
 import { executePublication } from '../scripts/catalog/publish-release.ts';
 import { openRunWorkspace } from '../scripts/catalog/run-workspace.ts';
 import { createCatalogD1Rest } from '../scripts/catalog/d1-write-rest.ts';
@@ -33,10 +24,9 @@ import { siteIdentityFor } from '../static-site/lib/site-identity.ts';
 import { guides } from '../static-site/lib/guides.ts';
 import { encodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
 import safeCatalogPayload from '../static-site/public/safe/catalog.json' with {type:'json'};
-import { deliverOwnedOutboxEvent, reuseOwnedApprovedCohortVectorProof, settleOwnedApprovedCohortVectorProof,
-  publishedCatalogOperationKey, readPublishedCatalogVectors, readActivatedCatalogVectors } from '../scripts/catalog/owned-vector-delivery.ts';
+import { publishedCatalogOperationKey, readPublishedCatalogVectors, readActivatedCatalogVectors } from '../scripts/catalog/owned-vector-delivery.ts';
 
-import {setup,AT,at,scope,source,uuid} from './helpers/published-vector-fixture.mjs';
+import {setup,at,scope,uuid} from './helpers/published-vector-fixture.mjs';
 test('published eight+two proof is read-only, preserves signed zero and settles a new normal code-only build exactly once',async t=>{
   const f=await setup(t),before=f.sql.prepare('SELECT * FROM products ORDER BY id').all(),dispatches=f.dispatches();
   assert.equal(f.revision.snapshot.products.length,8);assert.equal(f.revision.snapshot.heldProducts.length,2);
