@@ -5,6 +5,37 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-25 AM — routine frozen-cohort read, no new native actions
+
+Trigger16:30:52.961UTC; actual16:31:42.267UTC snapshot from reviewed operator
+39d2969 (runtime/dependencies unchanged). Account1107815345747925810/stupid_gifts/
+BUSINESS,28 public Pins/five boards. Original IDs/links/boards all match priorPM.
+Profile3959/60opens/8saves/2outbound; P1448/22/3/2,F355/5/1/0. Impressions+7P/+2F;
+no native action changes on any retained Pin. Bowling1395 supplies96.34%P exposure
+and both outbound; Toast282 supplies79.44%F. Excluding them P53/2/0/0,F73/2/0/0.
+No demonstrated format/acquisition winner; attributable downstream unknown.
+
+GA4explicit507421709 October18-25Pacific/current partial: Goose627direct sessions,
+Stupid40direct+6amazon+1not-set;4Stupid/1Goose direct/amazon retailer events are
+not Pinterest conversions or confirmed customers. Existing-session operator
+exclusion caveat retained. PostHog550427 rollingUTC October18T16:31:39.588Z-
+October25T16:31:39.588Z:43page/69list/6search/3select, no attributed Pinterest/
+retailer row after campaign/whole-QA-identity exclusions. Missing host/fullURL/
+per-Pin fields, prior provider gaps and distinct windows stay explicit. No
+retired DB/Vercel or public v3/Sandbox evidence. Redirect/rebrand intervention
+verifiedOctober24T04:50:14.849Z remains a pre/post caveat, not acquisition proof.
+
+No unresolved publication start, newly due24h/seven-day learning/28day archive.
+Hat late7day lastPM retained; no invented equal-age data or repeat closure.
+Six archived lifecycles stay public; six measuring. Next28daySheepNovember10
+20:07:09.336UTC.12 metrics+one run learning via creative:record;1011events/
+8experiments/37candidates valid. Full evidence: `pinterest-measurements/2026-10-25-am/`.
+No public Pin, creative, shortlist/package/approval, account/Pin/catalog/site
+write, deploy, spend, Bead/schedule change; canonical/catalog runtime pins intact.
+FinalReviewDelivered=false; exactOctober31T16:44:52.279Z gate and expected
+normal16:30Pacific review slot unchanged. Same ACTIVE cadence; generation/posting
+off even after review until explicit next-experiment approval. Routine no alert.
+
 ## 2026-10-24 PM — native counters unchanged; first eligible Hat seven-day check
 
 Trigger23:33:38.518UTC; actual23:34:34.807UTC snapshot from retained reviewed
