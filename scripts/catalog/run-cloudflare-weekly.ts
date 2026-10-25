@@ -412,7 +412,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
             throw new Error('weekly_finish_read_margin');
           await ws.reserveBudget(value);
         },settle:(id,value)=>ws.settleBudget(id,value)}});
-    if(permanentFinalization)return settleActivatedPermanentWeekly({db,ws,config,configSha256:options.configSha256,token,
+    if(permanentFinalization)return await settleActivatedPermanentWeekly({db,ws,config,configSha256:options.configSha256,token,
       publication,reviewedUploadRetry,finish:finish!});
     // Expiry never hides the minimal control identity required to resolve an
     // already-dispatched activation. No expired snapshot/evidence is read here.
