@@ -5,6 +5,45 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-24 PM — native counters unchanged; first eligible Hat seven-day check
+
+Trigger23:33:38.518UTC; actual23:34:34.807UTC snapshot from retained reviewed
+operator3adec88, runtime/dependencies unchanged. Account1107815345747925810/
+stupid_gifts/BUSINESS;28 public Pins/five boards. All28 original IDs, links and
+boards match AM. Profile3894/60opens/8saves/2outbound; P1441/22/3/2,F353/5/1/0,
+all native counts unchanged. Bowling1390 supplies96.46%P exposure/both native
+outbound; Toast280 supplies79.32%F. Without them P51/2/0/0,F73/2/0/0. No new
+measured acquisition or demonstrated format winner; downstream unknown.
+
+GA4explicit507421709 October17-24Pacific/current partial: Goose641direct+
+1not-set sessions, Stupid35direct+6amazon. Four Stupid/one Goose retailer events
+are direct/amazon, not Pinterest conversions or confirmed customers. Retain
+existing-direct-session operator exclusion caveat. PostHog550427 rollingUTC
+October17T23:34:30.674Z-October24T23:34:30.674Z:41page/67list/6search/3select,
+no attributed Pinterest/retailer row after campaign/whole-QA-identity exclusions.
+Distinct provider windows, intentionally absent host/URL/per-Pin fields and
+historic504 gap remain explicit; no retired DB/Vercel or v3/Sandbox evidence.
+Provider/window row changes are not customer or conversion regressions.
+
+No unresolved production publication start/pending24h; six archived lifecycles
+remain public; no new28day archive. Hat7day gate16:44:52.279UTC is observed
+24582528ms late at4impressions/zero native actions. Morning correctly preceded
+gate. Record actual lifetime snapshot, not unavailable equal-age history;
+keep measuring, next28dayNovember14T16:44:52.279Z. Twelve public metrics+Hat
+learning+run learning appended only via creative:record;998events/8experiments/
+37candidates valid. Full JSON/checkpoint/validation in
+`pinterest-measurements/2026-10-24-pm/`.
+
+Approved Goose links/receipts unchanged, with independently authorized
+path/query-preserving redirect intervention already verified04:50:14.849UTC;
+separate pre/post-destination/rebrand effects in final review, not acquisition
+from QA. No new Pin, creative, shortlist, approval, account/Pin/catalog/site
+write, deployment, spend, Bead/scheduler change. Canonical/catalog pins intact.
+Same ACTIVE cadence, finalReviewDelivered=false, exact gateOctober31T16:44:52.279Z
+and expected normal eligible16:30Pacific slot unchanged. Posting/generation
+remain off even afterward until explicit new-experiment approval. Routine
+unchanged native acquisition does not require an owner alert.
+
 ## 2026-10-24 AM — routine frozen-cohort measurement after redirect cutover
 
 Trigger16:32:32.872UTC; actual snapshot16:33:54.943UTC in retained reviewed
