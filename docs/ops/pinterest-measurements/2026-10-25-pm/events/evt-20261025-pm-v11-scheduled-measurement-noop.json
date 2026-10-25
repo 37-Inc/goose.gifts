@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261025-pm-v11-scheduled-measurement-noop",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-25T23:34:46Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "Scheduled measurement-only snapshot2026-10-25T23:32:34.852Z verifies account1107815345747925810/stupid_gifts/BUSINESS,28 retained public Pins, original IDs/tracked links/boards unchanged and no unresolved production publication start. Frozen v11P6/F6: P1448impressions/22Pin clicks/3saves/2native outbound,F355/5/1/0; profile3959/60/8/2. All native metrics on all28 Pins are identical to morning. Bowling1395 supplies96.34%P exposure/both outbound; Toast282 supplies79.44%F. Excluding dominant Pins leaves P53/2/0/0,F73/2/0/0. No demonstrated acquisition/format winner. Explicit GA4property507421709 October18-25Pacific/current partial: Goose627direct sessions,Stupid41direct+6amazon+1not-set. Retailer rows4Stupid/1Goose are direct/amazon, not Pinterest conversions or confirmed customers. PostHog550427 rollingUTC October18T23:32:30.970Z-October25T23:32:30.970Z:44page/68list/5search/5select events, no attributed Pinterest/retailer row under campaign/whole-QA-identity exclusions. Provider/window changes are not deduplicated people or qualified Pinterest response. Arm/Pin downstream and revenue remain unknown; historical gaps retained. Original Goose links now redirect under the independent October24 destination/rebrand intervention, not an unchanged-destination test. Existing24h/seven-day learnings retained, no newly due28day archive; six archived/public and six measuring, next28daySheepNovember10T20:07:09.336Z. Current local storage49GiB free supersedes morning's near-full condition, but this task performed no broad cleanup and does not attribute the recovery. Final review remains undelivered/not due until2026-10-31T16:44:52.279Z.",
+    "evidenceEventIds": [
+      "evt-20261025-am-v11-scheduled-measurement-noop",
+      "evt-20261025-am-v11-host-storage-incident",
+      "evt-20261025-pm-v11-metrics-1107815208389000013",
+      "evt-20261025-pm-v11-metrics-1107815208389027583",
+      "evt-20261024-goose-domain-redirect-intervention"
+    ],
+    "decision": "Routine measurement-only no-op; no public Pin created, creative, shortlist, package, approval, public/Sandbox/account/Pin/catalog/site mutation, deployment, spend, Bead/schedule change or format adoption. Healthy reads, unchanged native metrics and recovered local storage require no new owner alert.",
+    "nextAction": "Keep same ACTIVE09:30/16:30Pacific task/chat unchanged. Review full six-versus-six cohort once at/after2026-10-31T16:44:52.279Z (expected normal eligible slotOct31 16:30Pacific), retaining actual ages, dominant-product sensitivity and destination/rebrand caveats. No generation or posting even after review until Cameron explicitly approves a new experiment."
+  }
+}

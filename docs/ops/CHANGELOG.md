@@ -1,5 +1,16 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 PM — routine Pinterest measurement; storage recovered
+
+[daily-ops] Actual23:32:34.852UTC verifies28 public Pins/v11P6/F6. Profile3959/
+60opens/8saves/2native outbound; P1448/22/3/2,F355/5/1/0, all native metrics and
+IDs/links/boards unchanged from AM. Bounded GA4/PostHog reads succeed; downstream
+attribution unknown. No new checkpoint due.13 validated events,1025-event log
+valid; full receipt in `pinterest-measurements/2026-10-25-pm/`. Storage now49GiB
+free without cleanup by this run; morning ENOSPC remains historical, no repeat
+alert. No public Pin created or creative/account/catalog/site/schedule/Bead
+mutation, deploy or spend. Same ACTIVE cadence and October31 review/freeze.
+
 ## 2026-10-25 AM — routine frozen Pinterest measurements
 
 [daily-ops] Actual16:31:42.267UTC:28 public Pins, v11P6/F6; P1448/22opens/3saves/
