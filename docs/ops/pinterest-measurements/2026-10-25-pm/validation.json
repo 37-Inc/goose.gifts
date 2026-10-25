@@ -46,6 +46,18 @@
     "pullRequest": "https://github.com/37-Inc/goose.gifts/pull/286",
     "retainedOperatorEvidenceCommit": "54139eafb22823a883e5bbf65969e7b10891ff8b",
     "mainBasedEvidenceCommit": "ba58279bf24f287cdb6e5961dee9cfa52a0366cc",
+    "concurrentUpstreamResolution": {
+      "upstreamMainCommit": "de1808d63e66ef33f0bbeabc944a69caa784ceec",
+      "validatedIntegrationCommit": "4dc73d87a07c44249d423a55527aecaf5df2f834",
+      "bothDatedEntriesPreserved": true,
+      "creativeLogEvents": 1025,
+      "creativeTestsPass": 6,
+      "pinterestTestsPass": 18,
+      "lintErrors": 0,
+      "lintWarnings": 0,
+      "protectedSourceDiffRelativeUpstream": [],
+      "retainedRuntimeAdvanced": false
+    },
     "freshInstallAttempted": false,
     "reusedReviewedSharedDependenciesReadOnly": true,
     "matchingLockfileSha256": "a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381",
