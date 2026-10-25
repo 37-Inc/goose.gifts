@@ -16,6 +16,7 @@ import { prunedVectorPlan, prunedVectorIds } from '../lib/catalog/prune-existing
 import { claimBuildRequest, beginBuildActivation, resolveBuildActivation } from '../lib/catalog/build-requests.ts';
 import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication, completeActivatedApprovedCatalogPublication } from '../lib/catalog/publication.ts';
 import { approvedRequestControl, hydrateApprovedRequest, approvedRevisionControl, hydrateApprovedRevision, createPublishedApprovedCatalogSeal } from '../scripts/catalog/approved-catalog-seal.ts';
+import { storeHeldRevision, restoreHeldRevision } from '../scripts/catalog/held-catalog-command.mts';
 
 const hash = x => sha256(canonicalJson(x));
 test('owner base marker is strict and never raises the ordinary daily30 change bound', () => {
@@ -105,6 +106,11 @@ for (const full of [false, true]) test(`owner base restoration uses normal appro
       lastSql: f.queryText.slice(-1)[0]?.slice(0,250) })); throw error; }
     assert.deepEqual(result.remainingIds, []); assert.deepEqual(prunedVectorPlan(result.revision).products, []); assert.deepEqual(prunedVectorPlan(result.revision).absentIds, []);
     const revision = result.revision;
+    const blobs=new Map(),blobStore={async putBlob(bytes){const key=sha256(Buffer.from(bytes).toString('utf8'));blobs.set(key,Buffer.from(bytes));return{sha256:key,reference:'objects/'+key+'.json'};},
+      async readBlob(ref){return blobs.get(ref.sha256);}};
+    const frozenRef=await storeHeldRevision(blobStore,revision,f.now().toISOString());
+    assert.deepEqual(await restoreHeldRevision(blobStore,frozenRef,original.snapshot),revision);
+    await assert.rejects(restoreHeldRevision(blobStore,frozenRef,{...original.snapshot,generatedAt:f.now().toISOString()}),/revision_digest/);
     assert.equal(revision.snapshot.products.length, full ? 3355 : 64); assert.equal(revision.snapshot.heldProducts.length, full ? 28 : 2);
     assert.equal(canonicalJson(revision.snapshot.products.slice(0, original.snapshot.products.length)), originalProducts);
     const revisionControl = approvedRevisionControl(revision);

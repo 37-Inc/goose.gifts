@@ -71,5 +71,21 @@
     "nativeMutations": 0,
     "publicationReceiptBuildIdleAndSuccessorVerified": true,
     "notes": "Synthetic SQLite cost is not live D1 usage. Retain all prior migration costs. Fresh account-wide Free capacity/read-write headroom verification remains required; routine maintenance caps are unchanged."
+  },
+  "offlineActualArchiveCost": {
+    "state": "local-sqlite-source-repair-and-projection-only-not-D1-or-full-publication",
+    "promoted": 996,
+    "public": 3355,
+    "held": 28,
+    "batches": 67,
+    "sourceRepairWrites": 11568,
+    "projectionWrites": 32487,
+    "combinedWrites": 44055,
+    "captureBytes": 2985573,
+    "immutablePlanBytes": 13909950,
+    "merchantRequests": 0,
+    "modelRequests": 0,
+    "nativeWrites": 0,
+    "notes": "The archived original text costs more than the synthetic fixture. This excludes any additional current sidecar, normal proof, telemetry and publication overhead; actual live metadata and the unchanged finite50000-write guard remain authoritative. No original/protected file or provider was mutated."
   }
 }
