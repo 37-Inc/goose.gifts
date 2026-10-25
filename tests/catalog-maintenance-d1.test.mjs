@@ -156,7 +156,7 @@ test('D1 daily retailer stock/unknown/price eligibility never revokes an exact c
   }
 });
 test('D1 daily retained listing policy never overrides explicit curation or invalid permanent rights',async()=>{
-  for(const patch of [{editorialStatus:'blocked'},{editorialStatus:'needs_review'},{duplicateOfProductId:'reviewed-winner'},{qualityScore:.4},{}]){
+  for(const patch of [{editorialStatus:'blocked'},{editorialStatus:'needs_review'},{duplicateOfProductId:'reviewed-winner'},{qualityScore:null},{}]){
     const f=await permanentFixture({preservePermanentListings:true});try{
       if(Object.keys(patch).length){
         const [key,value]=Object.entries(patch)[0];
@@ -260,7 +260,7 @@ test('retained article approval cannot promote a previously nonindexable base',a
 
 test('current curation holds hide permanent display but retain private clearance for a genuine later release',async()=>{
   for(const [patch,column,value] of [[{isActive:false},'is_active',0],[{duplicateOfProductId:'fixture-winner'},'duplicate_of_product_id','fixture-winner'],
-    [{qualityScore:'0.4000'},'quality_score',.4],[{editorialStatus:'needs_review'},'editorial_status','needs_review']]){
+    [{qualityScore:null},'quality_score',null],[{editorialStatus:'needs_review'},'editorial_status','needs_review']]){
     const held=await permanentFixture();try{
       held.sqlite.prepare(`UPDATE products SET ${column}=? WHERE id=?`).run(value,held.p.id);
       held.sqlite.prepare('UPDATE catalog_maintenance_products SET semantic_json=? WHERE product_id=?')
@@ -285,6 +285,22 @@ test('current curation holds hide permanent display but retain private clearance
     f.setClock('2027-01-01T00:00:00.000Z');await store.updateAmazonAffiliateUrl(f.p.id,f.p.affiliateUrl);
     assert.deepEqual(JSON.parse(f.row(1).public_display_json),f.base);
   }finally{f.close();}
+});
+
+test('valid low permanent scores retain cleared listings without replacing source/history or weakening explicit holds',async()=>{
+  for(const qualityScore of ['0.0000','0.4000','0.5000']){
+    const f=await permanentFixture({preservePermanentListings:true});try{
+      const original=f.row(1);
+      f.sqlite.prepare('UPDATE products SET quality_score=? WHERE id=?').run(Number(qualityScore),f.p.id);
+      f.sqlite.prepare('UPDATE catalog_maintenance_products SET semantic_json=? WHERE product_id=?')
+        .run(canonicalJson({...f.state(1).product,qualityScore}),f.p.id);
+      await f.store.upsertProduct({...f.p,qualityScore,embedding:undefined},f.hash);
+      const row=f.row(1),display=JSON.parse(row.public_display_json);
+      assert.equal(row.is_active,1);assert.equal(display.eligibleUntil,null);assert.equal(display.qualityScore,Number(qualityScore));
+      assert.equal(display.title,f.base.title);assert.equal(display.id,f.base.id);assert.equal(display.publicId,f.base.publicId);
+      assert.equal(row.source_record_json,original.source_record_json);assert.deepEqual(f.state(1).product.persistentBase,f.base);
+    }finally{f.close();}
+  }
 });
 
 test('new products and revoked/mismatched permanent grants cannot gain automatic clearance',async()=>{
