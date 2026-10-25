@@ -54,7 +54,7 @@ export function localFixture(now: () => number, lifetimeMs: number) {
       : type === 'application/javascript' ? '/safe/unavailable.js' : type === 'text/plain' ? '/safe/catalog.txt' : '/safe/catalog.html',
     eligibleUntil: held ? null : end, state: held ? 'held' : 'ready', indexable: type === 'text/html' };
   }
-  route('/', html([...browse.opening, ...browse.feed.initial])); route('/gifts', html()); route('/random-gift', html([browse.random.initial!]));
+  route('/', html([...browse.opening, ...browse.feed.initial])); route('/random-gift', html([browse.random.initial!]));
   route('/gifts/illustrative-fixture-0', html([browse.random.initial!])); route('/gifts/held-fixture', '', 'text/html', true);
   route('/index.txt', JSON.stringify(browse.opening), 'text/plain');
   route(RETAINED, '/* Owned retained fixture code. */', 'application/javascript');
@@ -161,7 +161,7 @@ export async function runLocalBurst(seconds = 600, progress: (value: unknown) =>
   globalThis.fetch = async () => { networkAttempts++; throw new Error('External network prohibited in local rehearsal'); };
   try {
     const probes = await safetyProbes(); const f = localFixture(Date.now, (seconds + 60) * 1000);
-    const staticPaths = ['/', '/gifts', '/random-gift', '/index.txt', '/gifts/illustrative-fixture-0', '/gifts/held-fixture',
+    const staticPaths = ['/', '/random-gift', '/index.txt', '/gifts/illustrative-fixture-0', '/gifts/held-fixture',
       f.browse.random.poolPath, ...f.browse.shards.filter(s => s.payload.kind === 'feed').map(s => s.path),
       '/_next/static/current.js', '/_next/static/current.css', '/illustrations/fixture.svg', RETAINED];
     const latency = { static: [] as number[], search: [] as number[] }, lag: number[] = [], errors: string[] = []; let errorCount = 0;
