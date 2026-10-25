@@ -98,3 +98,12 @@ advance the retained measurement runtime. See `host-storage-incident.json`.
 The original acquisition no-op remains true. A separate validated learning
 supersedes only its quiet-notification decision because host storage needs
 owner action, not because of new acquisition or a provider failure.
+
+Evidence integration: [PR #280](https://github.com/37-Inc/goose.gifts/pull/280).
+Retained measurement receipt commit `1408e67d0eafe491b2565ba5d4505100cef39b01`,
+storage incident/recovery `a86a0b1c2a2cbffff3490e461afba671143469ee`.
+Main-based integration `923f586b178c439f5f915f36bd1f4ed496ff1337` preserves all
+upstream catalog log entries and changes no runtime/approval/policy/receipt
+source relative to main. No hosted CI checks are configured; local focused
+gates are not falsely presented as CI or a new build/deployment. That main
+integration is not adopted into the retained measurement operator's runtime.

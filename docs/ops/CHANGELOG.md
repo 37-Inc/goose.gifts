@@ -12,6 +12,8 @@ deployment or spend. Same ACTIVE measurement cadence and October31 review/freeze
 Fresh integration install hit ENOSPC. Removed only this run's incomplete525MB
 dependencies; reused byte-identical-lock shared install, focused gates pass.
 Host still has648MiB free; notify owner to free space, not to change the schedule.
+Evidence PR[#280](https://github.com/37-Inc/goose.gifts/pull/280); retained
+measurement receipt1408e67/storage recoverya86a0b1. No site publication implied.
 
 ## 2026-10-24 PM — routine Pinterest measurement; Hat seven-day observation
 
