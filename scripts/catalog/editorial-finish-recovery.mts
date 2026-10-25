@@ -150,7 +150,10 @@ export async function finishEditorialUpload(args:string[]){
       upload:{schemaVersion:1,releaseId:effective.publication.releaseId,requestId:c.requestId,configSha256:c.configSha256,
         packageSha256:c.packageSha256,uploadMarker:c.uploadMarker},transport:reviewed.transport};
     if(pins.publicationUploadTransportAcknowledged.sha256!==sha256(canonicalJson(expectedAck)))fail('upload_ack');
-    if(canonicalJson(await w.readArtifact(pins.publicationUploadTransportAcknowledged))!==canonicalJson(expectedAck))fail('upload_ack');
+    // An admitted post-activation settlement authenticates the exact immutable
+    // ACK pin above; it must not reopen the expired upload/provider body.
+    if(!c.permit||args.length!==11)
+      if(canonicalJson(await w.readArtifact(pins.publicationUploadTransportAcknowledged))!==canonicalJson(expectedAck))fail('upload_ack');
     if(cp.checkpoint.phase==='finalized')fail('state_changed');
     if(args.length===11)await admitActivatedFinalization(w,args[8],args[10]);
     const token=await resolveWranglerOAuth(),{reads,writes}=await freeCapacity(w,token);

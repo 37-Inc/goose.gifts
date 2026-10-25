@@ -93,6 +93,38 @@ export async function createPublishedApprovedCatalogSeal(db:CatalogD1,revision:A
   return createApprovedCatalogSeal(revision,publication,{source:{...publication,deliveryId:String(row.delivery_id),deliverySha256:sha256(canonicalJson(row))},
     revisionSha256:request.revisionSha256,planSha256:request.planSha256,ids:[...plan.products.map(p=>p.publicId),...plan.absentIds]});
 }
+/** Resume after the receipt/build committed but before the local seal did.
+ * The scoped workspace reader authenticates this exact permanent control;
+ * actual resolved/idle/native receipts still supply the publication anchor. */
+export async function createPublishedApprovedCatalogSealFromControl(db:CatalogD1,control:ReturnType<typeof approvedRevisionControl>,
+  publication:ApprovedCatalogSeal['publication'],vectorPlan:{catalogRevision:string;planSha256:string;ids:string[]}){
+  const r=control.revision,q=control.request.request;
+  if(!r.persistent||r.snapshot.products.some(p=>p.eligibleUntil!==null)||vectorPlan.catalogRevision!==r.snapshot.catalogRevision)
+    throw new Error('cohort_successor_control_invalid');
+  const rows=(await db.prepare(`SELECT * FROM catalog_vector_deliveries WHERE environment=? AND index_name=? AND generation=?
+    AND status='complete' AND disposition='verified' AND json_extract(request_json,'$.kind')='approved-cohort-plan'
+    AND json_extract(request_json,'$.catalogRevision')=? LIMIT 2`).bind(q.scope.environment,q.scope.indexName,
+      r.persistent.generation,r.snapshot.catalogRevision).all()).results;
+  const receipts=(await db.prepare(`SELECT p.* FROM publication_receipts p JOIN catalog_build_requests b ON b.release_id=p.release_id
+    JOIN publication_outbox o ON o.release_id=p.release_id JOIN catalog_mutation_scopes s ON s.environment=b.environment
+    WHERE p.release_id=? AND b.state='resolved' AND o.state='verified' AND s.index_name=? AND s.phase='idle'
+    AND s.generation=? AND s.external_pending=0`).bind(publication.releaseId,q.scope.indexName,r.persistent.generation).all()).results;
+  const row=rows[0],request=row&&JSON.parse(String(row.request_json)),plan=request?.plan;
+  if(rows.length!==1||receipts.length!==1||sha256(canonicalJson(receipts[0]))!==publication.receiptSha256
+    ||request.revisionSha256!==control.revisionSha256||request.planSha256!==vectorPlan.planSha256
+    ||sha256(canonicalJson(plan))!==vectorPlan.planSha256
+    ||canonicalJson([...plan.products.map((p:{publicId:string})=>p.publicId),...plan.absentIds])!==canonicalJson(vectorPlan.ids))
+    throw new Error('cohort_successor_unpublished');
+  const seal:ApprovedCatalogSeal={schemaVersion:1,kind:'approved-catalog-seal',
+    envelopeJson:JSON.stringify(createSealedSnapshotEnvelope(r.snapshot)),snapshotSha256:r.packet.receipt.snapshot_sha256,
+    projectionReceipt:r.packet.receipt,publication,persistent:{...r.persistent,operationKey:r.operationKey,
+      sourceRowsSha256:control.sourceRowsSha256,priorRow:r.priorRow,globalVectorWatermark:r.globalVectorWatermark,
+      request:{schemaVersion:1,environment:q.scope.environment,sourceRevision:r.snapshot.catalogRevision,
+        sourceDigest:r.packet.receipt.snapshot_sha256,codeSha:q.codeSha,priorReleaseId:q.context.priorPublication?.releaseId??null,
+        capturedAt:r.snapshot.generatedAt,cutoff:q.context.cutoff}},currentNative:{source:{...publication,deliveryId:String(row.delivery_id),
+      deliverySha256:sha256(canonicalJson(row))},revisionSha256:control.revisionSha256,planSha256:vectorPlan.planSha256,ids:vectorPlan.ids}};
+  catalogSuccessorBytes(seal);return seal;
+}
 type ProjectionSeal=Pick<ApprovedCatalogSeal,'envelopeJson'|'snapshotSha256'|'projectionReceipt'>;
 /** Original projection bytes are reconstructed only in memory at their original
  * generatedAt, under the exact current owner. No expired body is re-pinned. */
