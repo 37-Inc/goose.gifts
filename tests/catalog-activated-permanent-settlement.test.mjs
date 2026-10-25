@@ -3,11 +3,12 @@ import test from 'node:test';
 import {DatabaseSync} from 'node:sqlite';
 import {readFile,readdir,realpath} from 'node:fs/promises';
 import {settleActivatedPermanentWeekly} from '../scripts/catalog/run-cloudflare-weekly.ts';
-import {approvedRevisionControl,catalogSuccessorBytes,createPublishedApprovedCatalogSealFromControl} from '../scripts/catalog/approved-catalog-seal.ts';
+import {approvedRevisionControl,catalogSuccessorBytes,createPublishedApprovedCatalogSeal,createPublishedApprovedCatalogSealFromControl} from '../scripts/catalog/approved-catalog-seal.ts';
 import {createProjectionPacket} from '../lib/catalog/d1.ts';
 import {encodePublicationIntent} from '../lib/catalog/publication.ts';
 import {canonicalJson,sha256} from '../scripts/catalog/migration.ts';
 import {executePublication} from '../scripts/catalog/publish-release.ts';
+import {prunedVectorIds,prunedVectorPlan} from '../lib/catalog/prune-existing-revision.ts';
 
 // Local proof only: real telemetry/fence SQLite, purpose-limited expired-control
 // seam, and exact technical native/publication rows. No external provider calls.
@@ -53,7 +54,7 @@ test('explicit terminal settlement without its existing authority fails before p
   assert.equal(external,0);assert.equal(sql,0);assert.equal(writes,0);
 });
 
-async function sealFixture(){
+async function sealFixture({historyOnly=false}={}){
   const snapshot={schemaVersion:1,dataKind:'catalog',catalogRevision:'synthetic-catalog',generatedAt:OLD,
     products:[{id:'B000000001',publicId:UUID,slug:'owned-fixture',source:'amazon',title:'Owned fixture gift',
       description:'An independently owned fixture description.',imageUrl:'/images/gift-placeholder.svg',
@@ -65,21 +66,23 @@ async function sealFixture(){
   const priorIntent={...intent,releaseId:'synthetic-prior',catalogRevision:'prior-catalog',priorReleaseId:null};
   const priorRow={release_id:'synthetic-prior',catalog_revision:'prior-catalog',code_sha:CODE,completed_at:OLD,manifest_json:encodePublicationIntent(priorIntent)};
   const inventory=[{publicId:UUID,sourceRowSha256:HASH,productSha256:HASH,privateStateSha256:HASH}];
+  const history=historyOnly?[{source:{releaseId:'synthetic-prior',receiptSha256:HASH,deliveryId:'4'.repeat(64),deliverySha256:'5'.repeat(64)},
+    revisionSha256:'6'.repeat(64),planSha256:'7'.repeat(64),ids:[UUID]}]:[];
   const revision={snapshot,packet,priorRow,sourceDigest:HASH,globalVectorWatermark:0,vectorSyncWatermark:0,operationKey:HASH,
-    persistent:{generation:17,inventory,nativeHistory:[]},nativeHistory:[],sourceRows:[{public_id:UUID}],
+    persistent:{generation:17,inventory,nativeHistory:history},nativeHistory:history,sourceRows:[{public_id:UUID}],
     request:{scope,codeSha:CODE,context:{snapshotSha256:HASH,cutoff:CUTOFF,priorPublication:{releaseId:'synthetic-prior',receiptSha256:HASH}},
       previous:snapshot,approval:{schemaVersion:1,runId:RUN,catalogRevision:snapshot.catalogRevision,changes:[]},approvalSha256:HASH}};
-  const control=approvedRevisionControl(revision),plan={products:[{publicId:UUID}],absentIds:[]},planSha256=sha256(canonicalJson(plan));
+  const control=approvedRevisionControl(revision),plan=historyOnly?prunedVectorPlan(revision):{products:[{publicId:UUID}],absentIds:[]},planSha256=sha256(canonicalJson(plan));
   const native={delivery_id:'3'.repeat(64),request_json:JSON.stringify({revisionSha256:control.revisionSha256,planSha256,plan})};
   const receipt={release_id:RELEASE,catalog_revision:snapshot.catalogRevision,code_sha:CODE,completed_at:OLD,manifest_json:encodePublicationIntent(intent)};
   const publication={releaseId:RELEASE,receiptSha256:sha256(canonicalJson(receipt))};
-  const vectorPlan={catalogRevision:snapshot.catalogRevision,planSha256,ids:[UUID]};
+  const vectorPlan={catalogRevision:snapshot.catalogRevision,planSha256,ids:prunedVectorIds(plan)};
   const queries=[];let nativeRows=[native],receipts=[receipt];
   const db={prepare(sql){let params=[];return{bind(...values){params=values;return this;},async all(){queries.push({sql,params});
     if(sql.includes('FROM catalog_vector_deliveries'))return{results:structuredClone(nativeRows)};
     assert.match(sql,/b\.state='resolved'.*o\.state='verified'/s);assert.match(sql,/s\.phase='idle'/);assert.match(sql,/s\.external_pending=0/);
     assert.equal(params[0],RELEASE);return{results:structuredClone(receipts)};}};}};
-  return{control,vectorPlan,publication,receipt,native,queries,db,
+  return{control,vectorPlan,publication,receipt,native,queries,db,revision,
     setNative:value=>{nativeRows=value;},setReceipts:value=>{receipts=value;}};
 }
 
@@ -90,6 +93,22 @@ test('post-expiry successor uses exact current resolved/idle receipt and native 
   assert.equal(seal.currentNative.revisionSha256,f.control.revisionSha256);assert.deepEqual(seal.currentNative.ids,[UUID]);
   assert.deepEqual(JSON.parse(seal.envelopeJson).products,[UUID]);assert.equal('sourceRows' in seal,false);
   assert.equal(f.queries.length,2);
+});
+
+test('history-only successor verifies all native IDs but matches the original factory current-ID convention',async()=>{
+  const f=await sealFixture({historyOnly:true});
+  assert.deepEqual(f.vectorPlan.ids,[UUID]);
+  const recovered=await createPublishedApprovedCatalogSealFromControl(f.db,f.control,f.publication,f.vectorPlan);
+  const normal=await createPublishedApprovedCatalogSeal(f.db,f.revision,f.publication);
+  assert.deepEqual(recovered,normal);assert.ok(catalogSuccessorBytes(recovered));
+  assert.deepEqual(recovered.currentNative.ids,[]);
+  assert.deepEqual(recovered.persistent.nativeHistory,f.revision.persistent.nativeHistory);
+  const foreign='00000000-0000-4000-8000-000000000099';
+  for(const ids of [[],[foreign],[UUID,foreign]])await assert.rejects(
+    createPublishedApprovedCatalogSealFromControl(f.db,f.control,f.publication,{...f.vectorPlan,ids}),/cohort_successor_unpublished/);
+  const changed=structuredClone(f.native),request=JSON.parse(changed.request_json);
+  request.plan.history[0].ids=[foreign];changed.request_json=JSON.stringify(request);f.setNative([changed]);
+  await assert.rejects(createPublishedApprovedCatalogSealFromControl(f.db,f.control,f.publication,f.vectorPlan),/cohort_successor_unpublished/);
 });
 
 test('post-expiry successor rejects missing, foreign or drifted actual native/publication rows',async t=>{

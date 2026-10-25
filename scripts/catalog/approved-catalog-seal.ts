@@ -4,7 +4,7 @@ import type {CatalogSnapshot} from '../../lib/catalog/types.ts';
 import type {ApprovedCohortRequest,ApprovedCohortRevision} from '../../lib/catalog/freeze-approved-cohort.ts';
 import type {PersistentCohortState} from '../../lib/catalog/freeze-approved-cohort.ts';
 import type {NativeHistoryBinding} from '../../lib/catalog/prune-existing-revision.ts';
-import {prunedVectorPlan} from '../../lib/catalog/prune-existing-revision.ts';
+import {prunedVectorPlan,prunedVectorIds} from '../../lib/catalog/prune-existing-revision.ts';
 import {encodeBuildRequest} from '../../lib/catalog/build-requests.ts';
 import {encodePublicationIntent} from '../../lib/catalog/publication.ts';
 import {approvedCohortOperationKey} from '../../lib/catalog/freeze-approved-cohort.ts';
@@ -113,7 +113,7 @@ export async function createPublishedApprovedCatalogSealFromControl(db:CatalogD1
   if(rows.length!==1||receipts.length!==1||sha256(canonicalJson(receipts[0]))!==publication.receiptSha256
     ||request.revisionSha256!==control.revisionSha256||request.planSha256!==vectorPlan.planSha256
     ||sha256(canonicalJson(plan))!==vectorPlan.planSha256
-    ||canonicalJson([...plan.products.map((p:{publicId:string})=>p.publicId),...plan.absentIds])!==canonicalJson(vectorPlan.ids))
+    ||canonicalJson(prunedVectorIds(plan))!==canonicalJson(vectorPlan.ids))
     throw new Error('cohort_successor_unpublished');
   const seal:ApprovedCatalogSeal={schemaVersion:1,kind:'approved-catalog-seal',
     envelopeJson:JSON.stringify(createSealedSnapshotEnvelope(r.snapshot)),snapshotSha256:r.packet.receipt.snapshot_sha256,
@@ -122,7 +122,8 @@ export async function createPublishedApprovedCatalogSealFromControl(db:CatalogD1
       request:{schemaVersion:1,environment:q.scope.environment,sourceRevision:r.snapshot.catalogRevision,
         sourceDigest:r.packet.receipt.snapshot_sha256,codeSha:q.codeSha,priorReleaseId:q.context.priorPublication?.releaseId??null,
         capturedAt:r.snapshot.generatedAt,cutoff:q.context.cutoff}},currentNative:{source:{...publication,deliveryId:String(row.delivery_id),
-      deliverySha256:sha256(canonicalJson(row))},revisionSha256:control.revisionSha256,planSha256:vectorPlan.planSha256,ids:vectorPlan.ids}};
+      deliverySha256:sha256(canonicalJson(row))},revisionSha256:control.revisionSha256,planSha256:vectorPlan.planSha256,
+      ids:[...plan.products.map((p:{publicId:string})=>p.publicId),...plan.absentIds]}};
   catalogSuccessorBytes(seal);return seal;
 }
 type ProjectionSeal=Pick<ApprovedCatalogSeal,'envelopeJson'|'snapshotSha256'|'projectionReceipt'>;

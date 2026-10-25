@@ -1,5 +1,14 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 — preserve the native successor's current/history distinction
+
+[owner+codex] Terminal publication returned published; the handoff factory then
+mistook eight retained historical native IDs for eight current-delta IDs. Compare
+the full authenticated plan using `prunedVectorIds`, but store only current/absent
+IDs in the new anchor, matching the original factory. Historical native groups
+remain unchanged. Added exact factory-equivalence and history-drift regressions;
+21tests, both strict types and lint pass. Same receipt/grant/ledger, no replay.
+
 ## 2026-10-25 — bounded receipt-only terminal settlement
 
 [owner+codex] The full permanent source/native completion reached its receipt
