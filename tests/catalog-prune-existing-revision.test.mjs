@@ -113,7 +113,8 @@ test('pending global vector work and wrong ownership fail before sealing a new s
 });
 test('failure/partial restart and lost commit response recover exact immutable receipts', async t => {
   const f = await setup(t,{ count: 40 }); let inserts = 0;
-  f.before(query => { if (query.startsWith('INSERT INTO catalog_public_products') && ++inserts === 36) throw new Error('private injected failure'); });
+  // Four grouped INSERTs retain the first35-row transaction; fail the next one.
+  f.before(query => { if (query.startsWith('INSERT INTO catalog_public_products') && ++inserts === 5) throw new Error('private injected failure'); });
   await assert.rejects(f.prune(),/prune_failed/); f.before(undefined);
   assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_projection_receipts').get().n,1);
   assert.equal(f.sql.prepare("SELECT count(*) n FROM catalog_public_products WHERE catalog_revision!='live-r1'").get().n,35);
