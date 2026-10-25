@@ -109,6 +109,19 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-10-25 afternoon — unchanged native metrics, routine measurement
+
+Actual23:32:34.852UTC: verified stupid_gifts BUSINESS/28 retained public Pins,
+P6/F6 frozen. P1448/22Pin clicks/3saves/2native outbound,F355/5/1/0; all native
+metrics, IDs/links/boards match AM. No new acquisition or format verdict; per-arm/
+Pin site/retailer actions unknown. Explicit bounded GA4/PostHog reads succeed;
+unassigned direct/amazon rows are not Pinterest conversions or confirmed humans.
+No new checkpoint due;13 validated events retain1025-event history. Storage now
+49GiB free, no cleanup/new install/owner action here. No public Pin or creative/
+account/catalog/site/schedule/Bead mutation. Exact October31 review, redirect/
+rebrand caveat and post-review explicit experiment gate remain unchanged.
+[Evidence](pinterest-measurements/2026-10-25-pm/README.md).
+
 ### 2026-10-25 morning — distribution grows, no new native acquisition
 
 Actual16:31:42.267UTC: account stupid_gifts BUSINESS/28 public Pins; frozenP6/F6,

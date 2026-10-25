@@ -5,6 +5,41 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-25 PM — unchanged acquisition; healthy bounded measurement
+
+Trigger23:31:29.337UTC, actual23:32:34.852UTC snapshot in reviewed operator
+a35f203 (runtime/dependencies unchanged). Account1107815345747925810/stupid_gifts/
+BUSINESS,28 public Pins/five boards. IDs/links/boards and every native metric
+match AM: profile3959/60opens/8saves/2outbound; P1448/22/3/2,F355/5/1/0. Bowling
+1395 supplies96.34%P exposure/both native clicks; Toast282 supplies79.44%F.
+Without dominant products P53/2/0/0,F73/2/0/0. No new acquisition or demonstrated
+format winner; attributable site/retailer actions remain unknown.
+
+GA4explicit507421709 October18-25Pacific/current partial: Goose627direct sessions,
+Stupid41direct+6amazon+1not-set;4Stupid/1Goose direct/amazon retailer events are
+not Pinterest conversions/confirmed customers. Existing-session operator caveat
+retained. PostHog550427 rollingUTC October18T23:32:30.970Z-October25T23:32:30.970Z:
+44page/68list/5search/5select, no attributed Pinterest/retailer row after campaign/
+whole-QA-identity exclusions. Missing host/fullURL/per-Pin fields and earlier gaps
+stay unknown; distinct windows cannot establish deduplicated people or qualified
+Pinterest response. No retired DB/Vercel or public v3/Sandbox evidence.
+
+No unresolved publication start/new24h/seven-day/28day lifecycle checkpoint.
+Prior late observations retained; six archived/public, six measuring. Next28day
+SheepNovember10T20:07:09.336Z.12 public metrics+one run learning via creative:record,
+1025events/8experiments/37candidates valid. Raw receipt/limits in
+`pinterest-measurements/2026-10-25-pm/`. Data volume now49GiB free, superseding
+morning's condition without claiming recovery by this task. No broad cleanup,
+fresh install attempt or repeat storage alert. Original ENOSPC evidence retained.
+
+No public Pin, creative, shortlist/package/approval, account/Pin/catalog/site write,
+deployment, spend, Bead/schedule change. Original approvals/receipts/policy/cohort/
+deadline intact; redirect/rebrand intervention stays separate from format.
+Canonical/catalog pins untouched. Same ACTIVE cadence, finalReviewDelivered=false;
+exactOctober31T16:44:52.279Z review gate and expected normal16:30Pacific slot
+unchanged. Generation/posting remain off after review until explicit new owner
+experiment. Routine unchanged non-actionable evidence remains quiet.
+
 ## 2026-10-25 AM — routine frozen-cohort read, no new native actions
 
 Trigger16:30:52.961UTC; actual16:31:42.267UTC snapshot from reviewed operator

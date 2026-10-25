@@ -9,6 +9,19 @@ IDs in the new anchor, matching the original factory. Historical native groups
 remain unchanged. Added exact factory-equivalence and history-drift regressions;
 21tests, both strict types and lint pass. Same receipt/grant/ledger, no replay.
 
+## 2026-10-25 PM — routine Pinterest measurement; storage recovered
+
+[daily-ops] Actual23:32:34.852UTC verifies28 public Pins/v11P6/F6. Profile3959/
+60opens/8saves/2native outbound; P1448/22/3/2,F355/5/1/0, all native metrics and
+IDs/links/boards unchanged from AM. Bounded GA4/PostHog reads succeed; downstream
+attribution unknown. No new checkpoint due.13 validated events,1025-event log
+valid; full receipt in `pinterest-measurements/2026-10-25-pm/`. Storage now49GiB
+free without cleanup by this run; morning ENOSPC remains historical, no repeat
+alert. No public Pin created or creative/account/catalog/site/schedule/Bead
+mutation, deploy or spend. Same ACTIVE cadence and October31 review/freeze.
+Evidence PR[#286](https://github.com/37-Inc/goose.gifts/pull/286), retained
+operator receipt54139ea; this is not site publication or runtime advancement.
+
 ## 2026-10-25 — bounded receipt-only terminal settlement
 
 [owner+codex] The full permanent source/native completion reached its receipt
