@@ -18,10 +18,10 @@
   "newValidatedEvents": {
     "metrics": 12,
     "candidateLearning": 0,
-    "runLearning": 1
+    "runLearning": 2
   },
   "creativeLog": {
-    "events": 1011,
+    "events": 1012,
     "experiments": 8,
     "candidates": 37,
     "valid": true
@@ -92,6 +92,27 @@
   },
   "reviewDue": false,
   "reviewDeadlineUtc": "2026-10-31T16:44:52.279Z",
-  "notificationDecision": "DONT_NOTIFY",
-  "notificationReason": "Expected distribution increments without new native actions; healthy provider reads, no new checkpoint and no required owner action."
+  "notificationDecision": "NOTIFY",
+  "notificationReason": "Measurement and acquisition remain routine; later ENOSPC incident requires owner to free local disk space. Safe limited cleanup/fallback completed validation without moving runtime pins or changing schedule.",
+  "hostStorageIncident": {
+    "evidence": "docs/ops/pinterest-measurements/2026-10-25-am/host-storage-incident.json",
+    "freshIntegrationInstallFailed": "ENOSPC",
+    "onlyOwnedPartialDependenciesRemoved": true,
+    "knownAvailableMiB": 648,
+    "knownAvailableAtUtc": "2026-10-25T16:41:55Z",
+    "ownerActionRequired": "Free local disk space before larger installs/builds."
+  },
+  "evidenceIntegration": {
+    "mainBasedEvidenceCommit": "c0918dbbef4ce57da52a39e6ce21124a542cede8",
+    "retainedOperatorEvidenceCommit": "1408e67d0eafe491b2565ba5d4505100cef39b01",
+    "freshLockedOfflineInstall": false,
+    "reusedReviewedSharedDependencies": true,
+    "matchingLockfileSha256": "a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381",
+    "creativeLogValid": true,
+    "creativeTestsPass": 6,
+    "pinterestTestsPass": 18,
+    "lintErrors": 0,
+    "lintWarnings": 0,
+    "retainedMeasurementRuntimeAdvanced": false
+  }
 }

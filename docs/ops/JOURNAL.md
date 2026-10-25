@@ -28,13 +28,20 @@ verifiedOctober24T04:50:14.849Z remains a pre/post caveat, not acquisition proof
 No unresolved publication start, newly due24h/seven-day learning/28day archive.
 Hat late7day lastPM retained; no invented equal-age data or repeat closure.
 Six archived lifecycles stay public; six measuring. Next28daySheepNovember10
-20:07:09.336UTC.12 metrics+one run learning via creative:record;1011events/
+20:07:09.336UTC.12 metrics+two run learnings via creative:record;1012events/
 8experiments/37candidates valid. Full evidence: `pinterest-measurements/2026-10-25-am/`.
 No public Pin, creative, shortlist/package/approval, account/Pin/catalog/site
 write, deploy, spend, Bead/schedule change; canonical/catalog runtime pins intact.
 FinalReviewDelivered=false; exactOctober31T16:44:52.279Z gate and expected
 normal16:30Pacific review slot unchanged. Same ACTIVE cadence; generation/posting
-off even after review until explicit next-experiment approval. Routine no alert.
+off even after review until explicit next-experiment approval. Acquisition is a
+routine no-op, but a later host incident requires one storage alert: fresh offline
+integration install failed ENOSPC. Removed only this run's incomplete525MB
+dependencies, not user project files. Exact-lock existing shared dependencies
+then pass6creative/18Pinterest/lint0errors/0warnings. No fresh install accepted.
+Disk remains nearly full (648MiB at16:41:55UTC); owner should free space. No broad
+cleanup, catalog run, source/runtime advancement or schedule change. Full incident
+is `pinterest-measurements/2026-10-25-am/host-storage-incident.json`.
 
 ## 2026-10-24 PM — native counters unchanged; first eligible Hat seven-day check
 
