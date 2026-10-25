@@ -2,8 +2,11 @@
   "schemaVersion": 1,
   "kind": "site-authored-card-copy-review",
   "snapshotSha256": "56727e8ac55499aec6b8bbf03b0ebaec5341897e4c409bfbf7da96a8f8933721",
-  "sortedIdTitleCohortSha256": "03215f8c1101eb2aa8aad943e9b816dc20c47fb7c17373fe0f9612ca2837aa8a",
-  "mapSha256": "9872b675546e07b570f65c6fc21ab1a9dfab2c945d8718ec15f5410b02b38800",
+  "sortedIdTitleCohortSha256": "dcddbcb720e191b1e26988fca41ef3d1f24c7f98f4802254c108f827f0da92f3",
+  "mapSha256": "d5f51dd7dc678a550f4b0a5a37e658d97a4d2be0ce586b34719a5197156a0c50",
+  "cohortEncoding": "SHA256(JSON.stringify([{id,title},...].sort(id.localeCompare)))",
+  "reviewedThenExcludedDuplicates": ["B0F45GMFH3", "B0F912SZ4M"],
+  "cohortNote": "Original3355-product preview contained993generic notes. Two confirmed held crown duplicates are excluded from the final3353-product proposal, leaving991active notes; the original preview/snapshot checksum remains historical.",
   "source": {
     "snapshot": "catalog-resolution-preview-20261025/catalog.snapshot.json",
     "archive": "export-2026-10-22-known-writers-held/011.ndjson",
@@ -14,8 +17,8 @@
     "sourceFactsIds": ["B0882T9G3Q", "B09P3N5NZ2", "B0B7531BDJ", "B0CC8JYF1Z", "B0D3V9R8WN", "B0F54SK1B5"]
   },
   "checks": {
-    "entries": 993,
-    "exactTitleMatches": 993,
+    "entries": 991,
+    "exactTitleMatches": 991,
     "missingOrExtraIds": 0,
     "invalidEntryShapes": 0,
     "descriptionMinCharacters": 40,
