@@ -1,4 +1,5 @@
 import { getGiftPath, hasIndexableGiftEditorial, hasReviewedGiftEditorial, hasSubstantiveGiftEditorial } from '../gift-slugs.ts';
+import { EXACT_DUPLICATE_LISTINGS } from './duplicate-listings.ts';
 import { isPersistentImagePath } from './persistent-image.ts';
 import type { CatalogSnapshot, ContentRight, DisplayField, DisplayRights, HeldReason, ProductRights,
   PersistentCatalogProduct, PersistentProductInput, PublicCatalogProduct,
@@ -108,6 +109,7 @@ export function validatePublicCatalogProduct(input: unknown, now: Date = new Dat
   const value = record(input);
   exactKeys(value, PUBLIC_FIELDS);
   identity(value);
+  if (EXACT_DUPLICATE_LISTINGS[String(value.id)]) fail('confirmed duplicate');
   for (const field of ['title', 'description', 'currency']) if (!nonempty(value[field])) fail(field);
   if (!/^[A-Z]{3}$/.test(String(value.currency)) || !httpsUrl(value.imageUrl, fixture, true)
     || !httpsUrl(value.affiliateUrl, fixture) || !['amazon', 'etsy'].includes(String(value.source))
@@ -142,7 +144,7 @@ export function createPersistentCatalogProduct(input: PersistentProductInput, no
   const { product, rights } = input;
   // A historic ranking score is not a veto on an explicitly cleared listing.
   // Fresh supplier/long-editorial publication keeps its separate quality gate.
-  if (product.isActive === false || product.duplicateOfProductId || !Number.isFinite(product.qualityScore)
+  if (product.isActive === false || product.duplicateOfProductId || EXACT_DUPLICATE_LISTINGS[product.id] || !Number.isFinite(product.qualityScore)
     || product.qualityScore! < 0 || product.qualityScore! > 1
     || ['blocked', 'needs_review'].includes(product.editorialStatus ?? '')) return null;
   const result: PersistentCatalogProduct = { id: product.id, publicId: product.publicId, slug: product.slug,
@@ -232,7 +234,7 @@ export function createCatalogSnapshot(products: SnapshotProductInput[], rightsBy
     const editorialExpiry = verified + EDITORIAL_MAX_AGE_MS;
     let reason: HeldReason | undefined;
     if (product.isActive === false) reason = 'inactive';
-    else if (product.duplicateOfProductId) reason = 'duplicate';
+    else if (product.duplicateOfProductId || EXACT_DUPLICATE_LISTINGS[product.id]) reason = 'duplicate';
     else if (!Number.isFinite(verified) || verified > now || editorialExpiry <= now) reason = 'expired';
     else if (!hasIndexableGiftEditorial(product, options.now) || (product.qualityScore || 0) < 0.55) reason = 'editorial_hold';
     const required: DisplayField[] = ['title', 'description', 'imageUrl', 'affiliateUrl', 'editorialWriteup'];

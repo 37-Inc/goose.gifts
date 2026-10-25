@@ -16,6 +16,8 @@ import {readOwnedLogicalRows} from './owned-operational-import.ts';
 import {isCatalogD1Rest} from './d1-write-rest.ts';
 import {readNativeHistory,validateNativeHistory} from './owned-vector-delivery.ts';
 import type {OwnedVectorAdapters} from './owned-vector-delivery.ts';
+import {approvedBaseChangeLimit} from '../../lib/catalog/owner-base-review.ts';
+import type {OwnerBaseCatalogReview} from '../../lib/catalog/owner-base-review.ts';
 
 type Row=Record<string,unknown>;
 const HASH=/^[a-f0-9]{64}$/,UUID=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
@@ -88,12 +90,13 @@ export function isPersistentCatalogSeal(seal:{kind?:string;persistent?:unknown})
   return seal.kind==='permanent-catalog-seal'||seal.kind==='approved-catalog-seal'&&Boolean(seal.persistent);
 }
 export async function readCatalogPredecessor(options:{db:CatalogD1;owner:MutationOwner;seal:PermanentCatalogSeal|ApprovedCatalogSeal;
-  approval:ApprovedCohortEnvelope;approvalSha256:string;adapters?:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>}){
+  approval:ApprovedCohortEnvelope;approvalSha256:string;ownerBaseReview?:OwnerBaseCatalogReview;
+  adapters?:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>}){
   const {db,owner,seal,approval,adapters}=options,prior=predecessor(seal),{envelope}=prior;
   validateNativeHistory(prior.nativeHistory);
   if(prior.nativeHistory.some(group=>group.ids.some(id=>!prior.inventory.some(row=>row.publicId===id))))fail();
   if(owner.phase!=='freezing'||sha256(canonicalJson(approval))!==options.approvalSha256||approval.schemaVersion!==1
-    ||approval.changes.length>30||new Set(approval.changes.map(c=>c.publicId)).size!==approval.changes.length)fail();
+    ||approval.changes.length>approvedBaseChangeLimit(options.ownerBaseReview)||new Set(approval.changes.map(c=>c.publicId)).size!==approval.changes.length)fail();
   if(seal.kind==='permanent-catalog-seal')await reconstructPermanentSnapshot(db,owner,seal);
   else await (await import('./approved-catalog-seal.ts')).readApprovedPrior(db,owner,seal,{envelopeSha256:sha256(seal.envelopeJson+'\n'),
     snapshotSha256:seal.snapshotSha256,projectionSha256:seal.projectionReceipt.projection_sha256,sourceExportSha256:seal.projectionReceipt.source_export_sha256,

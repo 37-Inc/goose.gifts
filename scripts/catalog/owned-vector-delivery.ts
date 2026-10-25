@@ -22,6 +22,8 @@ import { decodePgvectorSendBase64, encodePgvectorSendBase64 } from './pgvector-b
 import { assertPruningCurrent, readOwnedProjection, readApprovedCurrentRows, SNAPSHOT_READ_LIMITS, checkCurrent, pruningCurrentQueries, readJournaledPruneDeleteSource } from './export-d1-snapshot.ts';
 import { nativeHash, payloadVector, visible } from './vector-outbox.ts';
 import type { ImmutableVectorPayload, SyncVector, VectorEvent } from './vector-outbox.ts';
+import { approvedBaseChangeLimit } from '../../lib/catalog/owner-base-review.ts';
+import type { OwnerBaseCatalogReview } from '../../lib/catalog/owner-base-review.ts';
 
 type Row = Record<string, unknown>;
 type Code = 'provider_failed' | 'not_visible' | 'mutation_unknown' | 'attempts_exhausted';
@@ -454,7 +456,7 @@ async function readPrunedVectors(db: CatalogD1, owner: MutationOwner, revision: 
 }
 async function safe<T>(operation: () => Promise<T>): Promise<T> {
   try { return await operation(); } catch (error) {
-    throw new Error(error instanceof Error && /^(vector_[a-z_]+|invalid_owned_[a-z_]+|invalid_vector_timeout)$/.test(error.message)
+    throw new Error(error instanceof Error && /^(vector_[a-z_]+|cohort_[a-z_]+|prune_[a-z_]+|invalid_owned_[a-z_]+|invalid_vector_timeout)$/.test(error.message)
       ? error.message : 'vector_delivery_failed');
   }
 }
@@ -547,6 +549,10 @@ interface ReuseRequest {
   schemaVersion:1; kind:'approved-cohort-reuse'; catalogRevision:string; providerIdentity:string;
   plan:PrunedVectorPlan; planSha256:string; projectionReceipt:Row; approval:ApprovedCohortEnvelope; approvalSha256:string;
   revisionSha256:string; sourceRowsSha256:string; sources:ReusedSource[];
+  ownerBaseReview?:OwnerBaseCatalogReview;
+  /** Bulk owner reviews have no current native members. Retain the full
+   * approval's hash/count, not a370KB duplicate of its product row hashes. */
+  ownerBaseApprovalCount?:number;
 }
 const REUSE_KIND='approved-cohort-reuse';
 function reuseIds(plan:PrunedVectorPlan) { return [...plan.products.map(p=>p.publicId),...plan.absentIds]; }
@@ -681,7 +687,9 @@ function reuseSourceAssertions(db:CatalogD1,rows:Row[]) {
  * it never pretends that remaining promotions/deletions were dispatched. */
 const PLAN_KIND='approved-cohort-plan';
 interface CohortPlanRequest extends Omit<ReuseRequest,'kind'> { kind:typeof PLAN_KIND }
-function planControl(request:CohortPlanRequest){return canonicalJson({schemaVersion:1,kind:PLAN_KIND,revisionSha256:request.revisionSha256});}
+function planControl(request:CohortPlanRequest){return canonicalJson({schemaVersion:1,kind:PLAN_KIND,revisionSha256:request.revisionSha256,
+  ...(request.ownerBaseReview?{compactApprovalSha256:sha256(canonicalJson(request.approval)),
+    ownerBaseReviewSha256:sha256(canonicalJson(request.ownerBaseReview)),ownerBaseApprovalCount:request.ownerBaseApprovalCount}:{})});}
 function planEvidence(request:CohortPlanRequest){return canonicalJson([{state:'policy_and_source_verification',
   sources:request.sources.map(s=>({deliveryId:s.deliveryId,reference:s.reference}))}]);}
 function sourceSubset(request:CohortPlanRequest):ReuseRequest {
@@ -698,8 +706,12 @@ function validatePlan(row:Journal,owner:MutationOwner,plan:PrunedVectorPlan|Acti
     ||request.plan.environment!==owner.environment||request.plan.indexName!==owner.indexName
     ||ids.length>SNAPSHOT_READ_LIMITS.identities||new Set(ids).size!==ids.length||ids.some(id=>!UUID.test(id))
     ||canonicalJson([...ids].sort())!==canonicalJson(prunedVectorIds(request.plan).sort())
-    ||request.approval.schemaVersion!==1||request.approval.catalogRevision!==plan.catalogRevision||request.approval.changes.length>30
-    ||sha256(canonicalJson(request.approval))!==request.approvalSha256||!HASH.test(request.revisionSha256)||!HASH.test(request.sourceRowsSha256)
+    ||!request.approval||Object.keys(request.approval).sort().join(',')!=='catalogRevision,changes,runId,schemaVersion'
+    ||request.approval.schemaVersion!==1||!Array.isArray(request.approval.changes)||request.approval.catalogRevision!==plan.catalogRevision
+    ||(request.ownerBaseReview ? request.approval.changes.length!==0||!Number.isSafeInteger(request.ownerBaseApprovalCount)
+      ||request.ownerBaseApprovalCount!<0||request.ownerBaseApprovalCount!>approvedBaseChangeLimit(request.ownerBaseReview)
+      :request.approval.changes.length>30||sha256(canonicalJson(request.approval))!==request.approvalSha256)
+    ||!HASH.test(request.approvalSha256)||!HASH.test(request.revisionSha256)||!HASH.test(request.sourceRowsSha256)
     ||request.sources.length>30||new Set(request.sources.map(s=>s.publicId)).size!==request.sources.length
     ||request.sources.some(s=>!ids.includes(s.publicId)||!request.approval.changes.some(c=>c.publicId===s.publicId)
       ||!HASH.test(s.sha256)||!HASH.test(s.deliveryId)||typeof s.reference!=='string'||!REF.test(s.reference))
@@ -708,7 +720,12 @@ function validatePlan(row:Journal,owner:MutationOwner,plan:PrunedVectorPlan|Acti
     ||row.delivery_id!==idFor(base,{kind:PLAN_KIND})||row.status!=='complete'||row.disposition!=='verified'
     ||row.attempts!==0||row.dispatch_token!==null||row.mutation_reference!==null
     ||row.product_json!==planControl(request)||row.evidence_json!==planEvidence(request)
-    ||revision&&(request.revisionSha256!==sha256(canonicalJson(revision))||request.sourceRowsSha256!==sha256(canonicalJson(revision.sourceRows))))
+    ||request.ownerBaseReview&&(request.sources.length!==0||request.plan.products.length!==0||request.plan.absentIds.length!==0)
+    ||revision&&(request.revisionSha256!==sha256(canonicalJson(revision))||request.sourceRowsSha256!==sha256(canonicalJson(revision.sourceRows))
+      ||canonicalJson(request.ownerBaseReview??null)!==canonicalJson(revision.request.ownerBaseReview??null)
+      ||request.ownerBaseReview&&(request.approvalSha256!==revision.request.approvalSha256
+        ||request.ownerBaseApprovalCount!==revision.request.approval.changes.length
+        ||canonicalJson(request.approval)!==canonicalJson({...revision.request.approval,changes:[]}))))
     throw new Error('vector_plan_receipt_invalid');
   return request;
 }
@@ -755,10 +772,13 @@ export function prepareOwnedApprovedCohortPlan(options:{db:CatalogD1;owner:Mutat
     let request:CohortPlanRequest;
     if(saved)request=validatePlan(saved,owner,plan,adapters.providerIdentity,revision);
     else{
-      const candidates=await reuseSources(db,revision.request.approval,undefined,true);
+      if(revision.request.ownerBaseReview&&ids.length)throw Error('vector_owner_base_native_work_forbidden');
+      const candidates=revision.request.ownerBaseReview?[]:await reuseSources(db,revision.request.approval,undefined,true);
       request={schemaVersion:1,kind:PLAN_KIND,catalogRevision:plan.catalogRevision,providerIdentity:adapters.providerIdentity,
-        plan,planSha256:sha256(canonicalJson(plan)),projectionReceipt:revision.packet.receipt,approval:revision.request.approval,
-        approvalSha256:revision.request.approvalSha256,revisionSha256:sha256(canonicalJson(revision)),sourceRowsSha256:sha256(canonicalJson(revision.sourceRows)),sources:[]};
+        plan,planSha256:sha256(canonicalJson(plan)),projectionReceipt:revision.packet.receipt,
+        approval:revision.request.ownerBaseReview?{...revision.request.approval,changes:[]}:revision.request.approval,
+        approvalSha256:revision.request.approvalSha256,revisionSha256:sha256(canonicalJson(revision)),sourceRowsSha256:sha256(canonicalJson(revision.sourceRows)),sources:[],
+        ...(revision.request.ownerBaseReview?{ownerBaseReview:revision.request.ownerBaseReview,ownerBaseApprovalCount:revision.request.approval.changes.length}:{})};
       const vectors=new Map<string,SyncVector|null>();
       for(const change of request.approval.changes){
         if(!ids.includes(change.publicId))continue; // A cleared listing is not a semantic/native member.
@@ -932,7 +952,7 @@ async function readPlanVectors(db:CatalogD1,owner:MutationOwner,rows:Journal[],p
   if(policies.length!==1)throw new Error('vector_plan_incomplete');
   const request=validatePlan(policies[0],owner,plan,adapters.providerIdentity,revision),ids=reuseIds(request.plan);
   const sources=await reuseSources(db,{...request.approval,changes:request.approval.changes.filter(c=>request.sources.some(s=>s.publicId===c.publicId))},signal,true);
-  const vectors=reuseVectors(owner,sourceSubset(request),sources);
+  const vectors=request.ownerBaseReview?new Map<string,SyncVector|null>():reuseVectors(owner,sourceSubset(request),sources);
   const members=new Map(request.plan.products.map(p=>[p.publicId,p]));
   for(const row of rows.filter(r=>r!==policies[0])){
     const value=decodeRequest(row.request_json),base=JSON.parse(row.owner_json) as MutationOwner;

@@ -10,6 +10,8 @@ import type { ActivationPermit, CatalogBuildRequest } from './build-requests.ts'
 import { encodeBuildRequest } from './build-requests.ts';
 import type { PrunedRevision } from './prune-existing-revision.ts';
 import { pruningCurrentQueries, CATALOG_IDENTITY_LIMITS } from './pruning-current.ts';
+import { approvedBaseChangeLimit } from './owner-base-review.ts';
+import type { OwnerBaseCatalogReview } from './owner-base-review.ts';
 
 /** Compact identity of an independently verified immutable package, not another release registry. */
 export type PublicationIntent = Pick<CatalogReleaseManifest, 'releaseId' | 'codeSha' | 'catalogRevision'
@@ -238,14 +240,23 @@ async function completeActivated(db: CatalogD1, revision: PrunedRevision, public
     if(proof.kind!=='approved-cohort-plan'||proof.schemaVersion!==1||proof.catalogRevision!==intent.catalogRevision
       ||proof.revisionSha256!==await digest(canonicalJson(revision))||proof.sourceRowsSha256!==await digest(canonicalJson(revision.sourceRows))
       ||canonicalJson(proof.projectionReceipt)!==canonicalJson(revision.packet.receipt)
-      ||canonicalJson(proof.approval)!==canonicalJson((revision.request as typeof revision.request&{approval:unknown}).approval)
-      ||proof.approvalSha256!==await digest(canonicalJson(proof.approval))
-      ||proof.approval.changes.length>30||proof.planSha256!==await digest(canonicalJson(proof.plan))
+      ||(proof.ownerBaseReview ? proof.approval.changes.length!==0||!Number.isSafeInteger(proof.ownerBaseApprovalCount)
+        ||proof.ownerBaseApprovalCount<0||proof.ownerBaseApprovalCount>approvedBaseChangeLimit(proof.ownerBaseReview)
+        ||proof.ownerBaseApprovalCount!==(revision.request as typeof revision.request&{approval:{changes:unknown[]}}).approval.changes.length
+        ||canonicalJson(proof.approval)!==canonicalJson({...((revision.request as typeof revision.request&{approval:Record<string,unknown>}).approval),changes:[]})
+        :canonicalJson(proof.approval)!==canonicalJson((revision.request as typeof revision.request&{approval:unknown}).approval))
+      ||proof.approvalSha256!==await digest(canonicalJson((revision.request as typeof revision.request&{approval:unknown}).approval))
+      ||!proof.ownerBaseReview&&proof.approval.changes.length>30
+      ||canonicalJson(proof.ownerBaseReview??null)!==canonicalJson((revision.request as typeof revision.request&{ownerBaseReview?:OwnerBaseCatalogReview}).ownerBaseReview??null)
+      ||proof.ownerBaseReview&&(proof.sources.length!==0||proof.plan.products.length!==0||proof.plan.absentIds.length!==0)
+      ||proof.planSha256!==await digest(canonicalJson(proof.plan))
       ||base.phase!=='freezing'||canonicalJson({...owner,phase:'freezing',epoch:base.epoch})!==canonicalJson(base)
       ||owner.epoch<base.epoch+2||row.environment!==owner.environment||row.index_name!==owner.indexName
       ||row.generation!==base.generation||row.prior_epoch!==base.epoch||row.status!=='complete'||row.disposition!=='verified'
       ||row.attempts!==0||row.dispatch_token!==null||row.mutation_reference!==null
-      ||row.product_json!==canonicalJson({schemaVersion:1,kind:'approved-cohort-plan',revisionSha256:proof.revisionSha256})
+      ||row.product_json!==canonicalJson({schemaVersion:1,kind:'approved-cohort-plan',revisionSha256:proof.revisionSha256,
+        ...(proof.ownerBaseReview?{compactApprovalSha256:await digest(canonicalJson(proof.approval)),
+          ownerBaseReviewSha256:await digest(canonicalJson(proof.ownerBaseReview)),ownerBaseApprovalCount:proof.ownerBaseApprovalCount}:{})})
       ||row.evidence_json!==canonicalJson([{state:'policy_and_source_verification',
         sources:proof.sources.map((s:{deliveryId:string;reference:string|null})=>({deliveryId:s.deliveryId,reference:s.reference}))}]))
       throw new Error('publication_activation_fenced');

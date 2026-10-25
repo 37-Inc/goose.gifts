@@ -11,6 +11,8 @@ import { mutationFenceQuery } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner, MutationQuery } from '../../lib/catalog/mutation-fence.ts';
 import { pruningCurrentQueries, PRUNING_CURRENT_LIMITS, CATALOG_IDENTITY_LIMITS, PRUNING_CURRENT_COLUMNS as CURRENT, PRUNING_ARCHIVE_TIMES as ARCHIVE_TIMES } from '../../lib/catalog/pruning-current.ts';
 import { originalEditorialEquivalentRow } from '../../lib/catalog/editorial-equivalence.ts';
+import { approvedBaseChangeLimit } from '../../lib/catalog/owner-base-review.ts';
+import type { OwnerBaseCatalogReview } from '../../lib/catalog/owner-base-review.ts';
 import { editorialSourceHash } from '../ops/catalog-editorial-core.mjs';
 export { pruningCurrentQueries } from '../../lib/catalog/pruning-current.ts';
 
@@ -260,9 +262,10 @@ export async function readJournaledPruneDeleteSource(db:CatalogD1,owner:Mutation
  * approval source. Complete row bytes bind the maintenance operation receipt;
  * the narrow captured fields reuse the final pruning CAS and archived aliases.
  */
-export async function readApprovedCurrentRows(db: CatalogD1, ids: string[], owner: MutationOwner,approvedRecovery=false,signal?:AbortSignal) {
+export async function readApprovedCurrentRows(db: CatalogD1, ids: string[], owner: MutationOwner,approvedRecovery=false,signal?:AbortSignal,
+  ownerBaseReview?:OwnerBaseCatalogReview) {
   owner = structuredClone(owner); ids = [...ids];
-  if (ids.length > 30 || new Set(ids).size !== ids.length || ids.some(id => !UUID.test(id))) throw new Error('read_bounds');
+  if (ids.length > approvedBaseChangeLimit(ownerBaseReview) || new Set(ids).size !== ids.length || ids.some(id => !UUID.test(id))) throw new Error('read_bounds');
   const gate = approvedRecovery?approvedRevisionReadFence(owner):mutationFenceQuery(owner, ['freezing']);
   const columns = (await db.prepare(`SELECT name FROM pragma_table_info('products') WHERE ${gate.sql}`).bind(...gate.params).all<{name:string}>({signal})).results.map(row=>row.name);
   if (!columns.length || columns.length > 65 || columns.some(key=>!/^[a-z_]+$/.test(key))) throw new Error('read_bounds');
@@ -280,6 +283,16 @@ export async function readApprovedCurrentRows(db: CatalogD1, ids: string[], owne
   await bindMaintenanceObservations(db, current, owner,gate,signal);
   return { rows, current };
 }
+/** Same byte-bounded ordered reader used by products/projections, rather than
+ * one unbounded result containing every bulk operation's changes_json. */
+export async function readOwnerBaseOperationReceipts(db:CatalogD1,owner:MutationOwner,ids:string[],approvedRecovery=false,signal?:AbortSignal) {
+  ids=[...new Set(ids)].sort();
+  if(ids.length>3383||ids.some(id=>!HASH.test(id)))throw Error('read_bounds');
+  const gate=approvedRecovery?approvedRevisionReadFence(owner):mutationFenceQuery(owner,['freezing']);
+  const rows=await ownedPages(db,owner,ids,`SELECT ids.ordinal,ids.value identity,${jsonColumns('o',OPERATION)} data
+    FROM requested ids CROSS JOIN catalog_maintenance_operations o ON o.operation_id=ids.value`,[],gate,signal);
+  if(rows.length!==ids.length)throw Error('approved_identity_missing');return rows;
+}
 /** Read-only hydration of an EXISTING seal, including a genuinely journaled
  * pending vector intent. This grants no claim, re-seal, mutation or replay. */
 function approvedRevisionReadFence(owner:MutationOwner):MutationQuery{
@@ -292,10 +305,10 @@ function approvedRevisionReadFence(owner:MutationOwner):MutationQuery{
       canonicalJson({...owner,epoch:owner.epoch-1})]};
 }
 export async function readApprovedRevisionSource(db:CatalogD1,owner:MutationOwner,ids:string[],
-  changes:Array<{publicId:string;operationId:string}>){
+  changes:Array<{publicId:string;operationId:string}>,ownerBaseReview?:OwnerBaseCatalogReview){
   const fence=approvedRevisionReadFence(owner),current=await captureCurrentRows(db,owner,[...ids].sort(),fence);
-  const approved=await readApprovedCurrentRows(db,changes.map(c=>c.publicId),owner,true);
-  const operations=changes.length?(await db.prepare(`SELECT * FROM catalog_maintenance_operations
+  const approved=await readApprovedCurrentRows(db,changes.map(c=>c.publicId),owner,true,undefined,ownerBaseReview);
+  const operations=ownerBaseReview?await readOwnerBaseOperationReceipts(db,owner,changes.map(c=>c.operationId),true):changes.length?(await db.prepare(`SELECT * FROM catalog_maintenance_operations
     WHERE operation_id IN(SELECT value FROM json_each(?)) AND ${fence.sql}`)
     .bind(JSON.stringify(changes.map(c=>c.operationId)),...fence.params).all<Row>()).results:[];
   const byOp=new Map(operations.map(r=>[r.operation_id,r])),byId=new Map(current.map(r=>[String(r.public_id),r]));

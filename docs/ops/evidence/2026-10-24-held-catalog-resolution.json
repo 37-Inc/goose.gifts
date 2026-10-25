@@ -7,19 +7,20 @@
   "oldHolds": {
     "inactive": 205,
     "editorialHold": 796,
-    "explicitDuplicate": 23,
+    "legacyDuplicateFlags": 23,
     "editorialWithoutSpecificObjection": 762,
     "editorialWithSpecificHistoricalObjection": 34,
     "missingImageTitleOrShortDescription": 0
   },
   "reviewedProposal": {
-    "promote": 973,
-    "publicAfter": 3332,
-    "heldAfter": 51,
-    "duplicateExclusions": 27,
+    "promote": 996,
+    "publicAfter": 3355,
+    "heldAfter": 28,
+    "duplicateExclusions": 4,
     "additionalExactTitleDuplicates": 4,
+    "unsupportedLegacyDuplicateFlagsCleared": 23,
     "concreteGenericCommodityExclusions": 24,
-    "sizedBatchesOnArchivedPreview": 65,
+    "sizedBatchesOnArchivedPreview": 67,
     "existingPublicProductsPreserved": 2359,
     "originalArticlesPreserved": 42,
     "newlyApprovedLongArticles": 0,
@@ -33,14 +34,42 @@
     "Pending long-form generation/review is not a reason to hide a factual image/title/short-description listing.",
     "The historical default0.50 ranking score is retained rather than inflated into a fake review. Exact permanently licensed base listings allow finite scores0..1; the fresh supplier lane keeps0.55.",
     "Manual-locked status is not a listing objection. Existing licensed fields remain unchanged, while previously held long drafts stay private and nonindexable.",
-    "Existing duplicate pointers and exact normalized listing titles are excluded. Distinct brands, sizes, models and novelty objects are not collapsed by broad family/archetype matching.",
+    "All23historical duplicate pointers lack exact same-product evidence and are cleared in the current row/sidecar, preserving their archived source/history. They incorrectly grouped different prank-box designs, mug prints, books, signs, and plush vs desk goats. Only4exact normalized-title duplicates remain excluded, protected by the durable duplicate-listings registry in snapshot construction/validation.",
     "Twenty-four ordinary commodity products retain explicit per-ID factual curation reasons in HELD_CATALOG_EXCLUSIONS. Old generic-format rules incorrectly rejecting funny books, costumes, mugs and the whoopie cushion are not retained."
   ],
   "livePrerequisites": [
     "Finish the unrelated pending publication recovery and obtain actual idle-owner confirmation first.",
     "Use a fresh bounded accounted D1 connection and normal writing ownership, capture the1024current held rows and existing sidecars, and regenerate/review the exact plan. Archived preview is not a current D1 capture.",
     "Apply the immutable plan with exact-before/after CAS, original source/history/native preservation and immutable operation receipts; unknown ACKs reconcile the same receipt.",
-    "Independently capture and seal the resulting full source inventory and a new catalog revision, preserving every existing public field and all42articles. This helper does not create a projection revision or deployment.",
+    "Use the ordinary approved-cohort publication with the explicit owner-base review marker binding authorization and resolution-plan hashes. The ordinary30change cap stays unchanged. Every bulk change must be a permanent exactly licensed base from the old held cohort, backed by the actual immutable cleanup receipt. Compact native-policy control retains the full approval SHA/count, with no native mutations or payload-cap increase. This helper does not itself create a projection revision or deployment.",
     "Publish the tested integrated storefront and verify real release/receipt/build/idle owner, catalog counts, directory retirement, home/search cards and outbound navigation before claiming completion."
-  ]
+  ],
+  "offlineCapacityPreview": {
+    "directoryLabel": "catalog-resolution-preview-20261025",
+    "snapshotSha256": "56727e8ac55499aec6b8bbf03b0ebaec5341897e4c409bfbf7da96a8f8933721",
+    "baselineSnapshotSha256": "325075a5ab8ba0fbd6b176232edfdebe6fd0dac60b6ef3ac350f81b32daba618",
+    "bytes": 2594962,
+    "images": 3355,
+    "shortDescriptions": 3355,
+    "articles": 42,
+    "providerRequests": 0
+  },
+  "offlineFullPublicationTest": {
+    "state": "synthetic-no-provider-success",
+    "identities": 3383,
+    "promoted": 996,
+    "public": 3355,
+    "held": 28,
+    "ownerCleanupUsage": {
+      "httpRequests": 4621,
+      "sqlStatements": 13295,
+      "reportedRowsRead": 128089,
+      "reportedRowsWritten": 41797,
+      "unconfirmedRequests": 0
+    },
+    "oneTimeProfile": { "httpRequests": 9000, "sqlStatements": 22000, "reportedRowsRead": 2000000, "reportedRowsWritten": 50000 },
+    "nativeMutations": 0,
+    "publicationReceiptBuildIdleAndSuccessorVerified": true,
+    "notes": "Synthetic SQLite cost is not live D1 usage. Retain all prior migration costs. Fresh account-wide Free capacity/read-write headroom verification remains required; routine maintenance caps are unchanged."
+  }
 }

@@ -866,7 +866,7 @@ async function boundedRest(t,f) {
     assert.ok(wire.maxRequest<=512*1024);assert.ok(input.length<=50);wire.statements+=input.length;await before?.(input);
     const output=[];f.sql.exec('BEGIN');try{
       for(const q of input){wire.maxParameters=Math.max(wire.maxParameters,q.params.length);assert.ok(q.params.length<=100);
-        if(q.sql.includes('FROM requested ids CROSS JOIN products p ON p.public_id=ids.value')){
+        if(/FROM requested ids CROSS JOIN products p\s+ON p.public_id=ids.value/.test(q.sql)){
           wire.currentPages++;
           if(!indexChecked){const plan=f.sql.prepare(`EXPLAIN QUERY PLAN ${q.sql}`).all(...q.params).map(row=>row.detail).join('\n');
             assert.match(plan,/SEARCH p USING INDEX .*public_id=\?/);assert.doesNotMatch(plan,/SCAN p\b/);indexChecked=true;}
@@ -912,7 +912,7 @@ test('3383 private identities/four ready capture → native promotion → atomic
 test('late-page owner drift/ABA, invalid/missing/reordered rows and unknown reads cannot create a seal',async t=>{
   for(const fault of ['epoch','aba','owner-object','delete','mutation','missing','duplicate','reordered','primary','unknown']){
     const f=await setup(t);await addHeld(f,180);const rest=await boundedRest(t,f),claim=await f.freeze();let pages=0;
-    rest.before(async batch=>{if(!batch.some(q=>q.sql.includes('FROM requested ids CROSS JOIN products p ON p.public_id=ids.value'))||++pages!==2)return;
+    rest.before(async batch=>{if(!batch.some(q=>/FROM requested ids CROSS JOIN products p\s+ON p.public_id=ids.value/.test(q.sql))||++pages!==2)return;
       if(fault==='epoch')f.sql.exec('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1');
       if(fault==='aba'){await releaseMutationOwnership(f.local,claim.owner);await claimMutationOwnership(f.local,scope,
         {phase:'freezing',ownerReference:claim.owner.ownerReference,operationKey:claim.owner.operationKey});}
@@ -921,7 +921,7 @@ test('late-page owner drift/ABA, invalid/missing/reordered rows and unknown read
       if(fault==='mutation')f.sql.prepare('UPDATE products SET rights_json=? WHERE public_id=?').run('{"test":"changed"}',uuid(6));
       if(fault==='unknown')throw new Error('TEST ONLY unread response');
     });
-    rest.tamper((batch,result)=>{if(pages!==2||!batch.some(q=>q.sql.includes('FROM requested ids CROSS JOIN products p ON p.public_id=ids.value')))return;
+    rest.tamper((batch,result)=>{if(pages!==2||!batch.some(q=>/FROM requested ids CROSS JOIN products p\s+ON p.public_id=ids.value/.test(q.sql)))return;
       const rows=result[0].results;if(fault==='missing')rows.shift();if(fault==='duplicate')rows[1]=rows[0];if(fault==='reordered')rows.reverse();
       if(fault==='primary')result[0].meta.served_by_primary=false;});
     await assert.rejects(prepareApprovedCohort(f.db,claim.owner,claim.request),undefined,fault);

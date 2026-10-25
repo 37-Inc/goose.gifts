@@ -4,7 +4,8 @@ import { DatabaseSync } from 'node:sqlite';
 import { readFile, readdir } from 'node:fs/promises';
 import { prepareHeldCatalogResolution, captureHeldCatalogResolution, applyHeldCatalogResolution, exactHeldListingTitle, HELD_CATALOG_EXCLUSIONS } from '../scripts/catalog/held-catalog-resolution.ts';
 import { canonicalJson, convertSourceRow, sha256 } from '../scripts/catalog/migration.ts';
-import { createPersistentCatalogProduct, validatePublicCatalogProduct } from '../lib/catalog/snapshot.ts';
+import { createCatalogSnapshot, createPersistentCatalogProduct, validatePublicCatalogProduct } from '../lib/catalog/snapshot.ts';
+import { EXACT_DUPLICATE_LISTINGS } from '../lib/catalog/duplicate-listings.ts';
 import { checkCurrent } from '../scripts/catalog/export-d1-snapshot.ts';
 import { maintenanceState } from '../scripts/catalog/maintenance-state.ts';
 import { createProjectionPacket, projectionQueries, getListedRevisionProductsByPublicIds, getRevisionProductsByPublicIds, visibleRevisionCountQuery } from '../lib/catalog/d1.ts';
@@ -14,7 +15,7 @@ const hash = x => sha256(canonicalJson(x));
 const uuid = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const grant = value => ({ basis: 'licensed', value, reference: 'Synthetic fixture exact owned permission' });
 
-async function fixture(t) {
+async function fixture(t, { falseDuplicate = false } = {}) {
   const sql = new DatabaseSync(':memory:'); t.after(() => sql.close());
   for (const file of (await readdir(new URL('../migrations/d1/', import.meta.url))).filter(n => /^00\d\d_.*\.sql$/.test(n)).sort())
     sql.exec(await readFile(new URL('../migrations/d1/' + file, import.meta.url), 'utf8'));
@@ -32,7 +33,7 @@ async function fixture(t) {
   const source = [raw('B000000001', 1, { quality_score: '.35', editorial_status: 'manual_locked' }),
     raw('B000000002', 2, { editorial_status: 'needs_review', editorial_block_reason: 'Unsupported long draft', editorial_writeup: 'Do not publish this unsupported long draft.' }),
     raw('B000000003', 3, { is_active: false, availability_status: 'OUT_OF_STOCK' }),
-    raw('B000000004', 4, { duplicate_of_product_id: 'B000000099', editorial_status: 'duplicate' }),
+    raw('B000000004', 4, { duplicate_of_product_id: 'B000000099', editorial_status: 'duplicate', title: falseDuplicate ? 'Different printed novelty object' : 'Existing object' }),
     raw('B0764HS4SL', 5, { editorial_status: 'blocked', editorial_block_reason: 'off_brand' })];
   const insert = (table, row) => sql.prepare(`INSERT INTO ${table}(${Object.keys(row).join(',')}) VALUES(${Object.keys(row).map(() => '?').join(',')})`).run(...Object.values(row));
   for (const p of source) insert('products', convertSourceRow('products', p, { catalogRevision: 'old', archiveId: 'b'.repeat(64), timestamps: {} }));
@@ -121,15 +122,43 @@ test('exact listing matcher retains different brands, sizes and novelty formats'
   assert.notEqual(exactHeldListingTitle('LookHUMAN Alien Mug 11oz'), exactHeldListingTitle('LookHUMAN Alien Mug 15oz'));
   assert.notEqual(exactHeldListingTitle('Screaming goat figure'), exactHeldListingTitle('Yodeling goat figure'));
 });
+test('confirmed exact duplicate exclusions survive future persistent and supplier snapshot rebuilds', () => {
+  assert.equal(Object.keys(EXACT_DUPLICATE_LISTINGS).length, 4);
+  for (const [id, representative] of Object.entries(EXACT_DUPLICATE_LISTINGS)) {
+    const product = { id, publicId: uuid(1), slug: 'confirmed-duplicate', source: 'amazon', currency: 'USD',
+      title: 'Exact duplicate fixture', description: 'Original factual description.', imageUrl: 'https://example.invalid/duplicate.jpg',
+      affiliateUrl: `https://www.amazon.com/dp/${id}?tag=goose-gifts-37-20`, price: 0, qualityScore: .8,
+      isActive: true, editorialStatus: 'pending' };
+    const rights = Object.fromEntries(['title', 'description', 'imageUrl', 'affiliateUrl'].map(k => [k, grant(product[k])]));
+    assert.equal(createPersistentCatalogProduct({ product, rights }, new Date(NOW)), null);
+    const snapshot = createCatalogSnapshot([product], { [id]: rights }, { catalogRevision: 'registry-check', now: new Date(NOW),
+      persistentById: { [id]: { product, rights } } });
+    assert.equal(snapshot.products.length, 0); assert.equal(snapshot.heldProducts[0].reason, 'duplicate');
+    const publicFields = { ...product }; delete publicFields.editorialStatus;
+    assert.throws(() => validatePublicCatalogProduct({ ...publicFields, eligibleUntil: null, indexable: false }, new Date(NOW)), /confirmed duplicate/);
+    const kept = { ...product, id: representative, affiliateUrl: `https://www.amazon.com/dp/${representative}?tag=goose-gifts-37-20` };
+    const keptRights = { ...rights, affiliateUrl: grant(kept.affiliateUrl) };
+    assert.ok(createPersistentCatalogProduct({ product: kept, rights: keptRights }, new Date(NOW)));
+  }
+});
 test('new exact-title duplicate stays held, without deleting either source identity', async t => {
   const f = await fixture(t), input = { baseline: structuredClone(f.baseline), rows: f.rows, owner: f.owner, now: NOW, reference: 'Synthetic original permission' };
   input.baseline.products[0].title = 'FUNNY plastic desk object 1';
   const plan = prepareHeldCatalogResolution(input);
-  assert.equal(plan.promotions.length, 2);
+  assert.equal(plan.promotions.length, 3);
   assert.equal(plan.exclusions.find(p => p.id === 'B000000001').duplicateOfProductId, 'B000000099');
   const result = await applyHeldCatalogResolution({ db: f.db, plan, planSha256: hash(plan), ownerCursor: f.cursor });
   assert.equal(result.snapshot.heldProducts.find(p => p.id === 'B000000001').reason, 'duplicate');
   assert.equal(f.sql.prepare('SELECT count(*) n FROM products').get().n, 5);
+});
+test('old broad-family duplicate pointer is cleared for a distinct original listing, not treated as evidence', async t => {
+  const f = await fixture(t, { falseDuplicate: true });
+  assert.equal(f.plan.promotions.length, 4); assert.equal(f.plan.clearedLegacyDuplicateFlags.length, 1);
+  const old = f.rows.find(p => p.row.id === 'B000000004').row.source_record_json;
+  await f.apply(); const p = f.sql.prepare('SELECT * FROM products WHERE id=?').get('B000000004');
+  assert.equal(p.duplicate_of_product_id, null); assert.equal(p.editorial_status, 'pending'); assert.equal(p.source_record_json, old);
+  assert.equal(JSON.parse(p.source_record_json).duplicate_of_product_id, 'B000000099');
+  assert.ok(JSON.parse(p.public_display_json).description);
 });
 test('actual SQL publication gate lists low-score cleared records without admitting them to supplier semantic search', async t => {
   const f = await fixture(t); await f.apply();
