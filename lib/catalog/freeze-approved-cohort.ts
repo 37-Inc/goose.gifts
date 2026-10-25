@@ -14,7 +14,7 @@ import type { NativeHistoryBinding } from './prune-existing-revision.ts';
 import type { PermanentCatalogSeal } from '../../scripts/catalog/permanent-catalog-seal.ts';
 import type { ApprovedCatalogSeal } from '../../scripts/catalog/approved-catalog-seal.ts';
 import type { permanentSourceInventory } from './freeze-permanent-catalog.ts';
-import { approvedBaseChangeLimit, exactOwnerBaseTitle } from './owner-base-review.ts';
+import { approvedBaseChangeLimit, exactOwnerBaseTitle, ownerBasePublicDuplicate } from './owner-base-review.ts';
 import type { OwnerBaseCatalogReview } from './owner-base-review.ts';
 
 type Row = Record<string, unknown>;
@@ -53,8 +53,10 @@ export function approvedCohortOperationKey(request: ApprovedCohortRequest): stri
       || !UUID.test(value.publicId) || ![value.operationId,value.inputSha256,value.productSha256,value.displaySha256].every(hash => HASH.test(hash)))
     || !HASH.test(request.approvalSha256) || sha256(canonicalJson(envelope)) !== request.approvalSha256)
     throw new Error('cohort_approval_invalid');
+  const publicDuplicate = ownerBasePublicDuplicate(request.ownerBaseReview, request.previous);
   if (request.ownerBaseReview && (!request.predecessor || envelope.changes.some(change =>
-    !request.previous.heldProducts.some(p => p.publicId === change.publicId)))) throw Error('cohort_owner_base_scope');
+    change.publicId !== publicDuplicate?.publicId && !request.previous.heldProducts.some(p => p.publicId === change.publicId))
+    || publicDuplicate && !envelope.changes.some(change => change.publicId === publicDuplicate.publicId))) throw Error('cohort_owner_base_scope');
   return sha256(canonicalJson({ kind:'approved-cohort', previous:pruneOperationKey(request), approvalSha256:request.approvalSha256,
     ...(request.ownerBaseReview ? { ownerBaseReview: request.ownerBaseReview } : {}),
     ...(request.predecessor?{predecessorSha256:sha256(canonicalJson(request.predecessor))}:{}) }));
@@ -86,6 +88,10 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   const approved = new Map<string,PublicCatalogProduct>();
   const changed = new Map(request.approval.changes.map(value => [value.publicId,value]));
   const priorBases=new Set(source.snapshot.products.filter(persistentPublicProduct).map(p=>p.publicId));
+  const publicDuplicate=ownerBasePublicDuplicate(request.ownerBaseReview,source.snapshot);
+  if(publicDuplicate&&(!predecessor?.inventory.some(p=>p.publicId===publicDuplicate.keeperPublicId
+    &&p.productSha256===publicDuplicate.keeperProductSha256&&p.privateStateSha256===publicDuplicate.keeperPrivateStateSha256)))
+    throw Error('cohort_owner_base_keeper_changed');
   const exactBaseTitles=new Set(source.snapshot.products.map(p=>exactOwnerBaseTitle(p.title)));
   // Daily10 plus Monday20 independently pinned operation IDs. Vector proof rebuilds this
   // seal repeatedly; one bounded read avoids an N+1 provider request per change.
@@ -105,11 +111,16 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
       throw new Error('cohort_approval_changed');
     if (request.ownerBaseReview) {
       const result = JSON.parse(String(receipt.result_json));
+      if(result.kind!=='held-catalog-resolution-v1'||result.planSha256!==request.ownerBaseReview.resolutionPlanSha256)throw Error('cohort_owner_base_changed');
+      if(change.publicId===publicDuplicate?.publicId){
+        if(row.id!==publicDuplicate.id||row.duplicate_of_product_id!==publicDuplicate.keeperId||row.editorial_status!=='duplicate'
+          ||row.public_display_json!==null||row.is_active!==1)throw Error('cohort_owner_base_changed');
+        current.get(change.publicId)!.approval_operation_json=canonicalJson(receipt);continue;
+      }
       const product = validatePublicCatalogProduct(JSON.parse(String(row.public_display_json)),now);
       const rights = JSON.parse(String(row.rights_json));
       const baseRights = rights.persistent ?? rights;
-      if (result.kind !== 'held-catalog-resolution-v1' || result.planSha256 !== request.ownerBaseReview.resolutionPlanSha256
-        || product.eligibleUntil !== null || product.indexable || product.editorialWriteup
+      if (product.eligibleUntil !== null || product.indexable || product.editorialWriteup
         || ['title','description','imageUrl','affiliateUrl'].some(field => !['owned','licensed'].includes(baseRights[field]?.basis)
           || baseRights[field]?.expiresAt || !String(baseRights[field]?.reference).includes(request.ownerBaseReview!.authorizationSha256)))
         throw Error('cohort_owner_base_changed');
@@ -134,7 +145,7 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
     seen.add(prior.publicId);
     if (changed.has(prior.publicId)) {
       const value = approved.get(prior.publicId);
-      if (value) products.push(value); else safeHeld.push(held(prior,'editorial_hold'));
+      if (value) products.push(value); else safeHeld.push(held(prior,prior.publicId===publicDuplicate?.publicId?'duplicate':'editorial_hold'));
     } else {
       try {
         checkCurrent(prior,projection.get(prior.publicId)!,current.get(prior.publicId)!,now);
@@ -166,12 +177,12 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   const ready = products.filter(value => { if (stable.has(value.publicId) || winners.has(value.publicId)) return true;
     safeHeld.push(held(value,'duplicate'));return false; });
   const readyIds = new Set(ready.map(value => value.publicId));
-  const removed = source.snapshot.products.filter(value => !readyIds.has(value.publicId));
+  const removed = source.snapshot.products.filter(value => !readyIds.has(value.publicId)&&value.publicId!==publicDuplicate?.publicId);
   const semantic = ready.filter(value => value.eligibleUntil !== null && Date.parse(value.eligibleUntil) > cutoff
     &&(!predecessor||changed.has(value.publicId)));
   const priorNative=new Set(predecessor?.priorNativeIds??[]);
-  const additionalAbsentIds = request.approval.changes.filter(value => !readyIds.has(value.publicId)
-    ||priorNative.has(value.publicId)&&!semantic.some(p=>p.publicId===value.publicId)).map(value => value.publicId);
+  const additionalAbsentIds = request.approval.changes.filter(value => value.publicId!==publicDuplicate?.publicId&&(!readyIds.has(value.publicId)
+    ||priorNative.has(value.publicId)&&!semantic.some(p=>p.publicId===value.publicId))).map(value => value.publicId);
   const targetIds=new Set([...semantic.map(p=>p.publicId),...removed.map(p=>p.publicId),...additionalAbsentIds]);
   const nativeHistory=predecessor?.nativeHistory.map(group=>({...group,ids:group.ids.filter(id=>!targetIds.has(id))})).filter(group=>group.ids.length);
   const persistent=predecessor?{generation:owner.generation,inventory:predecessor.inventory,nativeHistory:nativeHistory!}:undefined;

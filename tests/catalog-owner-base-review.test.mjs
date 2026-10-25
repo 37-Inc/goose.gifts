@@ -8,7 +8,7 @@ import { scope } from './helpers/published-vector-fixture.mjs';
 import { preparePermanentCatalog, settlePermanentCatalog } from '../lib/catalog/freeze-permanent-catalog.ts';
 import { createPermanentCatalogSeal, readCatalogPredecessor } from '../scripts/catalog/permanent-catalog-seal.ts';
 import { prepareHeldCatalogResolution, captureHeldCatalogResolution, applyHeldCatalogResolution } from '../scripts/catalog/held-catalog-resolution.ts';
-import { approvedBaseChangeLimit } from '../lib/catalog/owner-base-review.ts';
+import { approvedBaseChangeLimit, OWNER_PUBLIC_DUPLICATE } from '../lib/catalog/owner-base-review.ts';
 import { approvedCohortOperationKey } from '../lib/catalog/freeze-approved-cohort.ts';
 import { prepareApprovedCohort } from '../lib/catalog/freeze-approved-cohort.ts';
 import { claimMutationOwnership, releaseMutationOwnership, readMutationOwner } from '../lib/catalog/mutation-fence.ts';
@@ -29,11 +29,18 @@ test('owner base marker is strict and never raises the ordinary daily30 change b
   assert.equal(approvedBaseChangeLimit(review), 3383);
   for (const bad of [null, { ...review, approval: true }, { ...review, authorizationSha256: '' }, { ...review, kind: 'daily' }])
     assert.throws(() => approvedBaseChangeLimit(bad), /owner_base_review_invalid/);
+  const duplicate={...OWNER_PUBLIC_DUPLICATE,publicId:'00000000-0000-4000-8000-000000000011',keeperPublicId:'00000000-0000-4000-8000-000000000012',
+    keeperProductSha256:'c'.repeat(64),keeperPrivateStateSha256:'d'.repeat(64)};
+  assert.equal(approvedBaseChangeLimit({...review,publicDuplicate:duplicate}),3383);
+  for(const change of [{id:'B000000001'},{keeperId:'B000000002'},{keeperPublicId:duplicate.publicId},{keeperProductSha256:''},{extra:true}])
+    assert.throws(()=>approvedBaseChangeLimit({...review,publicDuplicate:{...duplicate,...change}}),/owner_base_review_invalid/);
 });
 
-for (const full of [false, true]) test(`owner base restoration uses normal approved publication with zero native writes (${full ? '996 changes /3383 identities' : '33 changes'})`,
+for (const mode of ['small', 'full', 'public-duplicate']) {
+  const full=mode==='full',publicDuplicate=mode==='public-duplicate';
+test(`owner base restoration uses normal approved publication with zero native writes (${full ? '996 changes /3383 identities' : publicDuplicate?'33 promotions + exact public duplicate':'33 changes'})`,
   { skip: full && process.env.CATALOG_FULL_CAPACITY !== '1' }, async t => {
-    const f = await permanentCatalogFixture(t, { count: full ? 3383 : 66, ownerHeld: full ? 1022 : 33, ownerDuplicates: full ? 28 : 2 });
+    const f = await permanentCatalogFixture(t, { count: full ? 3383 : 66, ownerHeld: full ? 1022 : 33, ownerDuplicates: full ? 28 : 2,publicDuplicate });
     const prepared = await preparePermanentCatalog(f.db, f.owner, f.request), original = prepared.revision;
     async function publish(revision, queued, priorIntent, permanent = false) {
       const build = await claimBuildRequest(f.db, queued.requestId, 'fixture:build-' + revision.snapshot.catalogRevision, f.now());
@@ -83,12 +90,20 @@ for (const full of [false, true]) test(`owner base restoration uses normal appro
     f.db=await f.makeNextDayDb({requests:9000,statements:22000,reportedRowsRead:2000000,reportedRowsWritten:50000});
     const beforeNative = canonicalJson([...f.index]), beforeDispatches = f.dispatches(), originalProducts = canonicalJson(original.snapshot.products);
     const writing = await claimMutationOwnership(f.db, scope, { phase: 'writing', ownerReference: 'owner-restoration', operationKey: sha256('owner-restoration') });
-    const rows = await captureHeldCatalogResolution(f.db, writing, original.snapshot.heldProducts.map(p => p.id));
+    const rows = await captureHeldCatalogResolution(f.db, writing, [...original.snapshot.heldProducts.map(p => p.id),...(publicDuplicate?Object.values(OWNER_PUBLIC_DUPLICATE):[])]);
     const auth = 'c'.repeat(64), plan = prepareHeldCatalogResolution({ baseline: original.snapshot, rows, owner: writing,
       reference: 'Synthetic owner original dataset approval sha256:' + auth, now: f.now().toISOString() });
-    const cursor = { current: writing }, applied = await applyHeldCatalogResolution({ db: f.db, plan, planSha256: hash(plan), ownerCursor: cursor });
+    const cursor = { current: writing };
+    if(publicDuplicate){
+      const originalKeeper=plan.publicDuplicate.keeper.row;
+      f.sql.prepare('UPDATE products SET description=? WHERE id=?').run('Keeper drift',OWNER_PUBLIC_DUPLICATE.keeperId);
+      await assert.rejects(applyHeldCatalogResolution({db:f.db,plan,planSha256:hash(plan),ownerCursor:cursor}));
+      f.sql.prepare('UPDATE products SET description=? WHERE id=?').run(originalKeeper.description,OWNER_PUBLIC_DUPLICATE.keeperId);
+    }
+    const applied = await applyHeldCatalogResolution({ db: f.db, plan, planSha256: hash(plan), ownerCursor: cursor });
     assert.equal(applied.promoted, full ? 996 : 33);
-    const ownerBaseReview = { schemaVersion: 1, kind: 'owner-base-catalog-review', authorizationSha256: auth, resolutionPlanSha256: hash(plan) };
+    const ownerBaseReview = { schemaVersion: 1, kind: 'owner-base-catalog-review', authorizationSha256: auth, resolutionPlanSha256: hash(plan),
+      ...(publicDuplicate?{publicDuplicate:plan.publicDuplicate.review}:{}) };
     const approval = applied.approval, request = { scope, codeSha: '7'.repeat(40), previous: original.snapshot, predecessor: initial.seal,
       approval, approvalSha256: hash(approval), ownerBaseReview, context: {
         envelopeSha256: sha256(JSON.stringify(createSealedSnapshotEnvelope(original.snapshot)) + '\n'), snapshotSha256: original.packet.receipt.snapshot_sha256,
@@ -98,6 +113,15 @@ for (const full of [false, true]) test(`owner base restoration uses normal appro
     assert.throws(() => approvedCohortOperationKey({ ...request, ownerBaseReview: undefined }), /approval_invalid/);
     const wrong = structuredClone(request); wrong.approval.changes[0].publicId = original.snapshot.products[0].publicId; wrong.approvalSha256 = hash(wrong.approval);
     assert.throws(() => approvedCohortOperationKey(wrong), /owner_base_scope/);
+    if(publicDuplicate){
+      const wrong=structuredClone(request);delete wrong.ownerBaseReview.publicDuplicate;
+      assert.throws(()=>approvedCohortOperationKey(wrong),/owner_base_scope/);
+      assert.deepEqual({...f.sql.prepare('SELECT * FROM products WHERE id=?').get(OWNER_PUBLIC_DUPLICATE.keeperId)},plan.publicDuplicate.keeper.row);
+      const excluded=f.sql.prepare('SELECT * FROM products WHERE id=?').get(OWNER_PUBLIC_DUPLICATE.id),before=plan.publicDuplicate.change.before.row;
+      for(const key of Object.keys(before).filter(k=>!['editorial_status','duplicate_of_product_id','public_display_json','catalog_revision'].includes(k)))
+        assert.equal(excluded[key],before[key],key);
+      assert.equal(excluded.is_active,1);assert.equal(excluded.public_display_json,null);
+    }
     await releaseMutationOwnership(f.db, cursor.current);
     const freezing = await claimMutationOwnership(f.db, scope, { phase: 'freezing', ownerReference: 'owner-restoration', operationKey: approvedCohortOperationKey(request) });
     const control = approvedRequestControl(request);
@@ -154,11 +178,27 @@ for (const full of [false, true]) test(`owner base restoration uses normal appro
     const frozenRef=await storeHeldRevision(blobStore,revision,f.now().toISOString());
     assert.deepEqual(await restoreHeldRevision(blobStore,frozenRef,original.snapshot),revision);
     await assert.rejects(restoreHeldRevision(blobStore,frozenRef,{...original.snapshot,generatedAt:f.now().toISOString()}),/revision_digest/);
-    assert.equal(revision.snapshot.products.length, full ? 3355 : 64); assert.equal(revision.snapshot.heldProducts.length, full ? 28 : 2);
-    assert.equal(canonicalJson(revision.snapshot.products.slice(0, original.snapshot.products.length)), originalProducts);
+    assert.equal(revision.snapshot.products.length, full ? 3355 : publicDuplicate?63:64); assert.equal(revision.snapshot.heldProducts.length, full ? 28 : publicDuplicate?3:2);
+    const retainedOriginal=publicDuplicate?original.snapshot.products.filter(p=>p.id!==OWNER_PUBLIC_DUPLICATE.id):original.snapshot.products;
+    assert.equal(canonicalJson(revision.snapshot.products.slice(0,retainedOriginal.length)),publicDuplicate?canonicalJson(retainedOriginal):originalProducts);
     const revisionControl = approvedRevisionControl(revision);
     assert.deepEqual((await hydrateApprovedRevision(f.db, result.owner, revisionControl)).request.ownerBaseReview, ownerBaseReview);
     await readOwnedApprovedCohortVectors(f.db, result.owner, revision, f.adapters);
+    if(publicDuplicate){
+      // The fixture's tote has no native entry. Independently exercise the
+      // pure plan when that exact UUID already belongs to retained history;
+      // do not claim this synthetic binding is an actual provider receipt.
+      const id=ownerBaseReview.publicDuplicate.publicId,binding={...revision.nativeHistory[0],ids:[id]};
+      const retained=prunedVectorPlan({...revision,nativeHistory:[...revision.nativeHistory,binding]});
+      assert.equal(retained.absentIds.includes(id),false);assert.ok(retained.history.some(h=>h.ids.includes(id)));
+      assert.throws(()=>prunedVectorPlan({...revision,additionalAbsentIds:[id]}),/prune_duplicate_native_change/);
+    }
+    if(publicDuplicate){
+      const id=revision.nativeHistory.flatMap(h=>h.ids).find(id=>f.index.has(id)),originalIndex=[...f.index];assert.ok(id);
+      f.index.delete(id);await assert.rejects(readOwnedApprovedCohortVectors(f.db,result.owner,revision,f.adapters));
+      f.index.clear();for(const [key,value] of originalIndex)f.index.set(key,value);
+      assert.equal(revision.snapshot.heldProducts.find(p=>p.id===OWNER_PUBLIC_DUPLICATE.id)?.reason,'duplicate');
+    }
     if(workspace)local=await workspace.writeCheckpoint(local.sha256,{...local.checkpoint,phase:'settling',owner:result.owner,
       pins:{...local.checkpoint.pins,revision:await storeHeldRevision(workspace,revision,f.now().toISOString())}});
     let queued = await settleOwnedApprovedCohortVectorProof({ db: f.db, owner: result.owner, revision, adapters: f.adapters });
@@ -192,7 +232,7 @@ for (const full of [false, true]) test(`owner base restoration uses normal appro
     assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase, 'idle');
     assert.equal(canonicalJson([...f.index]), beforeNative); assert.equal(f.dispatches(), beforeDispatches);
     const policy = JSON.parse(f.sql.prepare("SELECT request_json FROM catalog_vector_deliveries WHERE generation=? AND json_extract(request_json,'$.kind')='approved-cohort-plan'").get(revision.persistent.generation).request_json);
-    assert.equal(policy.approval.changes.length, 0); assert.equal(policy.ownerBaseApprovalCount, applied.promoted); assert.equal(policy.approvalSha256, hash(approval));
+    assert.equal(policy.approval.changes.length, 0); assert.equal(policy.ownerBaseApprovalCount, approval.changes.length); assert.equal(policy.approvalSha256, hash(approval));
     assert.ok(Buffer.byteLength(JSON.stringify(policy)) < 200000);
     const readOwner = await claimMutationOwnership(f.db, scope, { phase: 'freezing', ownerReference: 'post-owner-read', operationKey: sha256('post-owner-read') });
     const empty = { schemaVersion: 1, runId: 'next-normal', catalogRevision: 'next-normal', changes: [] };
@@ -201,3 +241,4 @@ for (const full of [false, true]) test(`owner base restoration uses normal appro
     if (full) t.diagnostic(JSON.stringify({ fixture: 'owner-base-996-no-provider', ...f.metrics(), originalMigrationUsage,ownerCleanupUsage:f.db.metrics(), promoted: applied.promoted,
       public: revision.snapshot.products.length, held: revision.snapshot.heldProducts.length, nativeMutations: f.dispatches() - beforeDispatches }));
   });
+}

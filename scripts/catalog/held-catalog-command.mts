@@ -21,6 +21,7 @@ import type {ApprovedCohortRequest,ApprovedCohortRevision} from '../../lib/catal
 import {claimMutationOwnership,readMutationOwner,releaseMutationOwnership} from '../../lib/catalog/mutation-fence.ts';
 import type {MutationOwner} from '../../lib/catalog/mutation-fence.ts';
 import type {CatalogD1} from '../../lib/catalog/storage/d1.ts';
+import {OWNER_PUBLIC_DUPLICATE} from '../../lib/catalog/owner-base-review.ts';
 import {captureHeldCatalogResolution,prepareHeldCatalogResolution,applyHeldCatalogResolution} from './held-catalog-resolution.ts';
 import type {HeldCatalogResolution} from './held-catalog-resolution.ts';
 import {prepareOwnedApprovedCohortPlan,settleOwnedApprovedCohortVectorProof} from './owned-vector-delivery.ts';
@@ -258,14 +259,14 @@ async function run(command:'prepare'|'publish',c:HeldCommandConfig,configSha256:
       if(!cp!.pins.started){const cursor={current:cp!.owner!},telemetry=createD1CatalogTelemetryStore({db,owner:cursor.current,ownerCursor:cursor,runId:c.runId,catalogRevision:c.runId});
         await telemetry.startCatalogRun({id:c.runId,mode:'owner-held-cleanup',trigger:'manual',gitSha:c.codeSha,config:{merchantRequests:0,modelRequests:0,nativeWrites:0}});
         await save({owner:cursor.current,pins:{...cp!.pins,started:await w.putArtifact({kind:'held-cleanup-started'},{kind:'publication',observedAt:c.createdAt})}});}
-      const rows=await captureHeldCatalogResolution(db,cp!.owner!,p.baseline.heldProducts.map(v=>v.id));
+      const rows=await captureHeldCatalogResolution(db,cp!.owner!,[...p.baseline.heldProducts.map(v=>v.id),...Object.values(OWNER_PUBLIC_DUPLICATE)]);
       const plan=prepareHeldCatalogResolution({baseline:p.baseline,rows,owner:cp!.owner!,reference,now:new Date().toISOString(),catalogRevision:c.runId});
       const planRef=await w.putBlob(Buffer.from(JSON.stringify(plan)),{kind:'publication',observedAt:c.createdAt});
       await save({phase:'review',pins:{...cp!.pins,plan:planRef},state:{profileSha256:budget.sha256,planSha256:digest(plan)}});
     }
     const plan=await readPlan(w,cp!.pins.plan),planSha256=digest(plan);
     if(!same(cp!.state&&typeof cp!.state==='object'&&!Array.isArray(cp!.state)?cp!.state.planSha256:null,planSha256))fail('plan');
-    const summary={planSha256,promoted:plan.promotions.length,public:plan.baseline.products.length+plan.promotions.length,held:plan.exclusions.length,
+    const summary={planSha256,promoted:plan.promotions.length,public:plan.baseline.products.length+plan.promotions.length-(plan.publicDuplicate?1:0),held:plan.exclusions.length+(plan.publicDuplicate?1:0),
       clearedLegacyDuplicateFlags:plan.clearedLegacyDuplicateFlags.length,merchantRequests:0,modelRequests:0,nativeWrites:0};
     if(command==='prepare')return{state:'prepared_requires_agent_review',...summary,budget:await w.budget()};
     if(approval!==planSha256)fail('explicit_plan_review');
@@ -274,7 +275,8 @@ async function run(command:'prepare'|'publish',c:HeldCommandConfig,configSha256:
       const cursor={current:cp!.owner!},result=await applyHeldCatalogResolution({db,plan,planSha256,ownerCursor:cursor,checkpoint:async owner=>{await save({owner});}});
       const request:ApprovedCohortRequest={scope:SCOPE,codeSha:c.codeSha,previous:plan.baseline,predecessor:(await prior(c)).seal,
         context:await w.readArtifact(cp!.pins.context) as unknown as ApprovedCohortRequest['context'],approval:result.approval,approvalSha256:digest(result.approval),
-        ownerBaseReview:{schemaVersion:1,kind:'owner-base-catalog-review',authorizationSha256:c.authorization.sha256,resolutionPlanSha256:planSha256}};
+        ownerBaseReview:{schemaVersion:1,kind:'owner-base-catalog-review',authorizationSha256:c.authorization.sha256,resolutionPlanSha256:planSha256,
+          ...(plan.publicDuplicate?{publicDuplicate:plan.publicDuplicate.review}:{})}};
       const requestRef=await w.putBlob(Buffer.from(JSON.stringify(request)),{kind:'publication',observedAt:c.createdAt});
       await save({phase:'transitioning',owner:cursor.current,pins:{...cp!.pins,request:requestRef}});
     }
@@ -350,8 +352,8 @@ export async function heldCatalogCommand(args:string[]){
     const w=await openRunWorkspace(workspaceOptions(c,args[4],'resume'));
     try{const cp=await w.readCheckpoint();if(!cp?.checkpoint.pins.plan)fail('review_plan');
       const plan=await readPlan(w,cp.checkpoint.pins.plan);
-      return{state:'offline_agent_review',planSha256:digest(plan),promoted:plan.promotions.length,public:plan.baseline.products.length+plan.promotions.length,
-        exclusions:plan.exclusions,clearedLegacyDuplicateFlags:plan.clearedLegacyDuplicateFlags,merchantRequests:0,modelRequests:0,nativeWrites:0};
+      return{state:'offline_agent_review',planSha256:digest(plan),promoted:plan.promotions.length,public:plan.baseline.products.length+plan.promotions.length-(plan.publicDuplicate?1:0),
+        exclusions:plan.exclusions,publicDuplicate:plan.publicDuplicate?.review??null,clearedLegacyDuplicateFlags:plan.clearedLegacyDuplicateFlags,merchantRequests:0,modelRequests:0,nativeWrites:0};
     }finally{await w.close();}
   }
   return run(args[0] as 'prepare'|'publish',c,args[4],reference,args[6]);

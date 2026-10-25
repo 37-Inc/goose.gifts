@@ -5,11 +5,13 @@ import type { CatalogSnapshot, DisplayRights, PersistentCatalogProduct, ProductR
 import { createPersistentCatalogProduct, validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { canonicalJson, sha256 } from './migration.ts';
 import { maintenanceState } from './maintenance-state.ts';
-import { exactOwnerBaseTitle } from '../../lib/catalog/owner-base-review.ts';
+import { exactOwnerBaseTitle, OWNER_PUBLIC_DUPLICATE } from '../../lib/catalog/owner-base-review.ts';
+import type { OwnerPublicDuplicate } from '../../lib/catalog/owner-base-review.ts';
 import { EXACT_DUPLICATE_LISTINGS } from '../../lib/catalog/duplicate-listings.ts';
 
 type Row = Record<string, unknown>;
 export interface HeldResolutionRow { row: Row; sidecar: Row | null }
+interface HeldCatalogMutation { id: string; before: HeldResolutionRow; after: HeldResolutionRow; display: PersistentCatalogProduct | null }
 /** Actual reviewed objections, not a blanket historical status. Funny books,
  * novelty mugs, costumes and unapproved LONG drafts are deliberately absent. */
 export const HELD_CATALOG_EXCLUSIONS: Readonly<Record<string, string>> = Object.freeze({
@@ -64,6 +66,7 @@ export interface HeldCatalogResolution {
   promotions: Array<{ id: string; before: HeldResolutionRow; after: HeldResolutionRow; display: PersistentCatalogProduct }>;
   exclusions: Array<{ id: string; reason: string; duplicateOfProductId: string | null }>;
   clearedLegacyDuplicateFlags: Array<{ id: string; previousDuplicateOfProductId: string; reason: string }>;
+  publicDuplicate?: { review: OwnerPublicDuplicate; change: HeldCatalogMutation; keeper: HeldResolutionRow };
 }
 /** Only exact normalized listing labels, never broad format/archetype/fuzzy
  * similarity. Brand, size, model and all alphanumeric distinctions survive. */
@@ -73,12 +76,13 @@ export function exactHeldListingTitle(title: string): string {
 /** Bounded12-20-row batches in the ordinary case, automatically smaller for a
  * large original row. Reserve128KiB for the fixed owner/receipt envelope. */
 export function heldCatalogResolutionBatches(plan: HeldCatalogResolution) {
-  const batches: HeldCatalogResolution['promotions'][] = [];
+  const batches: HeldCatalogMutation[][] = [];
   let bytes = 0, statements = 4;
-  for (const p of plan.promotions) {
+  for (const p of [...plan.promotions, ...(plan.publicDuplicate ? [plan.publicDuplicate.change] : [])]) {
     const queries = [pairQuery(p.before), pairQuery(p.after), { sql: `UPDATE products SET ${PATCH_FIELDS.map(k => k + '=?').join(',')} WHERE id=?`,
       params: [...PATCH_FIELDS.map(k => p.after.row[k]), p.id] }, ...(p.after.sidecar ? [{ sql: 'UPDATE catalog_maintenance_products SET version=?,semantic_json=? WHERE product_id=?',
-      params: [p.after.sidecar.version, p.after.sidecar.semantic_json, p.id] }] : [])];
+      params: [p.after.sidecar.version, p.after.sidecar.semantic_json, p.id] }] : []),
+      ...(p.id === plan.publicDuplicate?.review.id ? [pairQuery(plan.publicDuplicate.keeper)] : [])];
     const size = Buffer.byteLength(JSON.stringify(queries));
     if (size > 384 * 1024) refuse('row_bounds');
     if (!batches.length || batches.at(-1)!.length >= 20 || bytes + size > 384 * 1024 || statements + queries.length > 50) {
@@ -102,13 +106,17 @@ export function prepareHeldCatalogResolution(input: {
   if (!/^[a-zA-Z0-9._-]{1,64}$/.test(catalogRevision) || catalogRevision === input.baseline.catalogRevision) refuse('revision');
   const baseline = validateCatalogSnapshot(input.baseline, new Date(now));
   const held = new Map(baseline.heldProducts.map(p => [p.id, p]));
-  if (input.rows.length !== held.size || input.rows.length > 5000 || new Set(input.rows.map(p => p.row.id)).size !== held.size)
+  const publicRows = input.rows.filter(p => !held.has(String(p.row.id)));
+  const publicPair = publicRows.length === 2 && Object.values(OWNER_PUBLIC_DUPLICATE).every(id =>
+    publicRows.some(p => p.row.id === id) && baseline.products.some(p => p.id === id));
+  if (publicRows.length && !publicPair || input.rows.length !== held.size + (publicPair ? 2 : 0)
+    || input.rows.length > 5000 || new Set(input.rows.map(p => p.row.id)).size !== input.rows.length)
     refuse('identities');
   const plan: HeldCatalogResolution = { schemaVersion: 1, kind: 'held-catalog-resolution-v1', owner: structuredClone(owner),
     reference, createdAt: now, catalogRevision, baseline: structuredClone(baseline), capture: structuredClone(input.rows),
     promotions: [], exclusions: [], clearedLegacyDuplicateFlags: [] };
   const representatives = new Map(baseline.products.map(p => [exactHeldListingTitle(p.title), p.id]));
-  for (const before of [...input.rows].sort((a, b) => String(a.row.id).localeCompare(String(b.row.id)))) {
+  for (const before of input.rows.filter(p => held.has(String(p.row.id))).sort((a, b) => String(a.row.id).localeCompare(String(b.row.id)))) {
     const { row, sidecar } = before, identity = held.get(String(row.id));
     if (!identity || identity.publicId !== row.public_id || identity.slug !== row.slug
       || sidecar && sidecar.product_id !== row.id) refuse('identity');
@@ -152,8 +160,23 @@ export function prepareHeldCatalogResolution(input: {
   }
   // A reviewed duplicate must retain a real public representative, including
   // one promoted in this same plan. Never silently exclude both identities.
-  const publicIds = new Set([...baseline.products.map(p => p.id), ...plan.promotions.map(p => p.id)]);
+  const publicIds = new Set([...baseline.products.filter(p => !publicPair || p.id !== OWNER_PUBLIC_DUPLICATE.id).map(p => p.id), ...plan.promotions.map(p => p.id)]);
   if (plan.exclusions.some(p => p.duplicateOfProductId && !publicIds.has(p.duplicateOfProductId))) refuse('duplicate_representative');
+  if (publicPair) {
+    const before = publicRows.find(p => p.row.id === OWNER_PUBLIC_DUPLICATE.id)!, keeper = publicRows.find(p => p.row.id === OWNER_PUBLIC_DUPLICATE.keeperId)!;
+    for (const pair of publicRows) {
+      const prior = baseline.products.find(p => p.id === pair.row.id)!;
+      if (prior.publicId !== pair.row.public_id || prior.slug !== pair.row.slug || prior.eligibleUntil !== null
+        || !same(JSON.parse(String(pair.row.public_display_json)), prior) || pair.sidecar && pair.sidecar.product_id !== pair.row.id) refuse('public_duplicate_identity');
+    }
+    const p = maintenanceState({ ...before.row, maintenance_semantic: before.sidecar?.semantic_json ?? null });
+    const after: HeldResolutionRow = { row: { ...before.row, editorial_status: 'duplicate', duplicate_of_product_id: keeper.row.id,
+      public_display_json: null, catalog_revision: catalogRevision }, sidecar: before.sidecar ? { ...before.sidecar,
+        version: Number(before.sidecar.version) + 1, semantic_json: canonicalJson({ ...p, editorialStatus: 'duplicate', duplicateOfProductId: keeper.row.id }) } : null };
+    plan.publicDuplicate = { review: { id: String(before.row.id), publicId: String(before.row.public_id), keeperId: String(keeper.row.id),
+      keeperPublicId: String(keeper.row.public_id), keeperProductSha256: hash(keeper.row), keeperPrivateStateSha256: hash(keeper.sidecar) },
+      change: { id: String(before.row.id), before: structuredClone(before), after, display: null }, keeper: structuredClone(keeper) };
+  }
   return plan;
 }
 /** Exact existing maintenance-receipt vocabulary, reusable by the normal
@@ -166,6 +189,18 @@ export function heldCatalogResolutionApproval(plan: HeldCatalogResolution, planS
       return batch.map(p => ({ publicId: String(p.after.row.public_id), operationId, inputSha256,
         productSha256: hash(p.after.row), displaySha256: sha256(String(p.after.row.public_display_json)) }));
     }) };
+}
+/** Pure membership projection for the reviewed plan; not an application or
+ * publication receipt. Also lets offline capacity QA use the identical rules. */
+export function heldCatalogResolutionSnapshot(plan: HeldCatalogResolution) {
+  const promoted = new Set(plan.promotions.map(p => p.id));
+  const duplicateIds = new Set(plan.exclusions.filter(p => p.duplicateOfProductId).map(p => p.id));
+  return validateCatalogSnapshot({ ...plan.baseline, catalogRevision: plan.catalogRevision, generatedAt: plan.createdAt,
+    products: [...plan.baseline.products.filter(p => p.id !== plan.publicDuplicate?.review.id), ...plan.promotions.map(p => p.display)],
+    heldProducts: [...plan.baseline.heldProducts.filter(p => !promoted.has(p.id)).map(p => duplicateIds.has(p.id) ? { ...p, reason: 'duplicate' as const } : p),
+      ...(plan.publicDuplicate ? [{ id: plan.publicDuplicate.review.id, publicId: plan.publicDuplicate.review.publicId,
+        slug: String(plan.publicDuplicate.change.before.row.slug), path: '/gifts/' + plan.publicDuplicate.change.before.row.slug,
+        title: 'Gift currently unavailable', description: 'This gift is not currently available in the curated catalog. Browse other gifts instead.', reason: 'duplicate' as const }] : [])] }, new Date(plan.createdAt));
 }
 
 /** Bounded authenticated-connection read. Caller owns credential/budget/lock
@@ -218,11 +253,13 @@ export async function applyHeldCatalogResolution(options: {
         || r.index_name !== plan.owner.indexName || r.generation !== plan.owner.generation
         || r.prior_epoch !== at(n).epoch || r.next_epoch !== at(n + 1).epoch
         || !same(JSON.parse(String(r.result_json)), result) || !same(JSON.parse(String(r.changes_json)), changes)) refuse('receipt');
-      for (const p of batch) await pairCas(db, p.after).all(); return true;
+      for (const p of batch) await pairCas(db, p.after).all();
+      if (batch.some(p => p.id === plan.publicDuplicate?.review.id)) await pairCas(db, plan.publicDuplicate!.keeper).all(); return true;
     };
     if (n < completed) { if (!await receipt()) refuse('missing_receipt'); continue; }
     const statements = [mutationAssertion(db, at(n)), ...batch.map(p => pairCas(db, p.before))];
     for (const p of batch) {
+      if (p.id === plan.publicDuplicate?.review.id) statements.push(pairCas(db, plan.publicDuplicate.keeper));
       statements.push(db.prepare(`UPDATE products SET ${PATCH_FIELDS.map(k => k + '=?').join(',')} WHERE id=?`)
         .bind(...PATCH_FIELDS.map(k => p.after.row[k]), p.id));
       if (p.after.sidecar) statements.push(db.prepare(`UPDATE catalog_maintenance_products SET ${SIDECAR_FIELDS.map(k => k + '=?').join(',')} WHERE product_id=?`)
@@ -238,12 +275,8 @@ export async function applyHeldCatalogResolution(options: {
     if (!await receipt() || !same(await readMutationOwner(db, plan.owner), at(n + 1))) refuse('after_owner');
     ownerCursor.current = at(n + 1); await options.checkpoint?.(ownerCursor.current);
   }
-  const promoted = new Set(plan.promotions.map(p => p.id));
-  const duplicateIds = new Set(plan.exclusions.filter(p => p.duplicateOfProductId).map(p => p.id));
-  const snapshot = validateCatalogSnapshot({ ...plan.baseline, catalogRevision: plan.catalogRevision, generatedAt: plan.createdAt,
-    products: [...plan.baseline.products, ...plan.promotions.map(p => p.display)],
-    heldProducts: plan.baseline.heldProducts.filter(p => !promoted.has(p.id)).map(p => duplicateIds.has(p.id) ? { ...p, reason: 'duplicate' } : p) }, new Date(plan.createdAt));
+  const snapshot = heldCatalogResolutionSnapshot(plan);
   return { state: 'reconciled' as const, owner: ownerCursor.current, snapshot, promoted: plan.promotions.length,
-    held: plan.exclusions.length, batches: batches.length, approval: heldCatalogResolutionApproval(plan, options.planSha256),
+    held: plan.exclusions.length + (plan.publicDuplicate ? 1 : 0), batches: batches.length, approval: heldCatalogResolutionApproval(plan, options.planSha256),
     nativeWrites: 0, merchantRequests: 0, modelRequests: 0 };
 }

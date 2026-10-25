@@ -158,7 +158,14 @@ export async function readCatalogPredecessor(options:{db:CatalogD1;owner:Mutatio
       AND (SELECT release_id FROM publication_receipts ORDER BY rowid DESC LIMIT 1)=? THEN 'true' ELSE 'permanent_seal_changed' END)`)
       .bind(prior.request.sourceRevision,seal.projectionReceipt.source_export_sha256,seal.publication.releaseId),
     mutationAssertion(db,owner,['freezing'])]);};
-  const nativeHistory=prior.nativeHistory.map(group=>({...group,ids:group.ids.filter(id=>!changed.includes(id))})).filter(group=>group.ids.length);
+  const preservedDuplicate=options.ownerBaseReview?.publicDuplicate;
+  if(preservedDuplicate){
+    const duplicate=products.get(preservedDuplicate.publicId),keeper=inventory.find(p=>p.publicId===preservedDuplicate.keeperPublicId);
+    if(!duplicate||duplicate.id!==preservedDuplicate.id||duplicate.duplicate_of_product_id!==preservedDuplicate.keeperId
+      ||products.get(preservedDuplicate.keeperPublicId)?.id!==preservedDuplicate.keeperId
+      ||!keeper||keeper.productSha256!==preservedDuplicate.keeperProductSha256||keeper.privateStateSha256!==preservedDuplicate.keeperPrivateStateSha256)fail();
+  }
+  const nativeHistory=prior.nativeHistory.map(group=>({...group,ids:group.ids.filter(id=>!changed.includes(id)||id===preservedDuplicate?.publicId)})).filter(group=>group.ids.length);
   await check();const preservedIds=adapters?await readNativeHistory({db,owner,history:nativeHistory,adapters}):[];
   await check();
   // Re-read the whole current capture, not an old source body from a workspace.
