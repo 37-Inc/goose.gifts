@@ -499,7 +499,7 @@ test('pinned daily D1 uses one existing refresh with no model credential, then w
   assert.equal(f.calls.getItems,1);
 });
 
-for(const monday of [false,true])test(`full2359 ${monday?'Monday ten plus20 discoveries':'daily ten'} current driver retains catalog but refuses ordinary whole-run budget`,async t=>{
+for(const monday of [false,true])test(`full2359 ${monday?'Monday ten plus20 discoveries':'daily ten'} current driver retains catalog but refuses undersized800HTTP/1200SQL budget`,async t=>{
   const f=await setup(t,{permanent:2359,held:1024,discovered:monday?20:0,realTransport:true,at:monday?'2026-10-19T18:00:00.000Z':NOW});
   f.config.cadence={day:monday?'2026-10-19':'2026-10-20',featuredIds:Array.from({length:10},(_,i)=>`B${String(i+1).padStart(9,'0')}`)};
   f.config.backfillLimit=0;f.config.limits={requests:800,statements:1200};if(!monday)delete f.config.credentials.openai;
@@ -533,18 +533,27 @@ for(const monday of [false,true])test(`full2359 ${monday?'Monday ten plus20 disc
   const resume=()=>capture('resume',approval),result=approval?await resume():start,report=await readRunWorkspace(f.workspaceOptions);
   assert.notEqual(result.state,'finalized');assert.ok((approval?['freezing']:['attention'])
     .includes(report.checkpoint.checkpoint.phase),JSON.stringify(result));
+  const refusal=result.errorCode||result.reason;
+  // The owned plan proof needs its owner assertion and predicate atomically.
+  assert.ok(refusal==='catalog_d1_budget_exhausted'
+    ||refusal==='vector_delivery_failed'&&(report.budget.sqlStatements+2>1200||report.budget.httpRequests===800),
+  `A masked vector-proof refusal requires an exhausted unchanged allowance: ${JSON.stringify({result,budget:report.budget})}`);
+  assert.ok(report.budget.httpRequests<=800);
   assert.ok(report.budget.sqlStatements<=1200);assert.equal(report.budget.unconfirmedRequests,0);
   assert.equal(f.calls.build+f.calls.upload+f.calls.activate,0,'Budget refusal cannot deploy a partial/empty catalog');
   assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,1);
   assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,approval?'freezing':'writing');
   const charged=structuredClone(report.budget),http=f.calls.http,sql=f.calls.sql,
     projectionRows=f.sql.prepare("SELECT count(*) n FROM catalog_public_products WHERE catalog_revision='weekly-r'").get().n;
-  assert.ok(projectionRows<2359);if(approval)assert.ok(charged.sqlStatements+Math.min(35,2359-projectionRows)+1>1200,
-    'The next unchanged bounded projection chunk cannot fit the ordinary statement cap');
+  // Grouped INSERTs may finish the projection before a later proof exhausts
+  // this deliberately undersized budget. Refusal, not a partial-row count, is
+  // the contract: no deployment and no fresh allowance or paid phase on retry.
+  assert.ok(projectionRows<=2359+(monday?20:0));
   assert.equal(charged.httpRequests,http,'Every mocked CF/Vectorize/identity request is in the shared ledger');
   assert.equal(charged.sqlStatements,sql,'Every dispatched SQL statement is in the shared ledger');
   await resume();const again=await readRunWorkspace(f.workspaceOptions);
   for(const key of ['httpRequests','sqlStatements','knownRowsRead','knownRowsWritten','unconfirmedRequests'])assert.ok(again.budget[key]>=charged[key],key);
+  assert.ok(again.budget.httpRequests<=800&&again.budget.sqlStatements<=1200);
   assert.deepEqual(Object.fromEntries(Object.keys(paid).map(k=>[k,f.calls[k]])),paid,'Restart cannot rerun merchant/model phases');
   assert.equal(f.calls.build+f.calls.upload+f.calls.activate,0);
   t.diagnostic(JSON.stringify({scenario:monday?'Monday10+20/full2359':'daily10/full2359',result,phase:report.checkpoint.checkpoint.phase,
