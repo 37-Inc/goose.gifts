@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "kind": "site-authored-card-copy-review",
+  "snapshotSha256": "56727e8ac55499aec6b8bbf03b0ebaec5341897e4c409bfbf7da96a8f8933721",
+  "sortedIdTitleCohortSha256": "03215f8c1101eb2aa8aad943e9b816dc20c47fb7c17373fe0f9612ca2837aa8a",
+  "mapSha256": "bbd394112ccef289b3f1fffa4e672b3e0b6ee6ff96df74d9e4258b9479ebca06",
+  "source": {
+    "snapshot": "catalog-resolution-preview-20261025/catalog.snapshot.json",
+    "archive": "export-2026-10-22-known-writers-held/011.ndjson",
+    "predicate": "description === 'A strange little catalog find.'",
+    "sort": "id.localeCompare",
+    "archiveExactTitleMatches": 993,
+    "exactTitleSourceFactsAvailable": 6,
+    "sourceFactsIds": ["B0882T9G3Q", "B09P3N5NZ2", "B0B7531BDJ", "B0CC8JYF1Z", "B0D3V9R8WN", "B0F54SK1B5"]
+  },
+  "checks": {
+    "entries": 993,
+    "exactTitleMatches": 993,
+    "missingOrExtraIds": 0,
+    "invalidEntryShapes": 0,
+    "descriptionMinCharacters": 40,
+    "descriptionMaxCharacters": 86,
+    "duplicateDescriptions": 0,
+    "remainingGenericFallbacks": 0,
+    "embeddedLineBreaks": 0,
+    "priceAvailabilityGuaranteeOrSalesClaims": 0,
+    "existingNonFallbackDescriptionsExcluded": 2362
+  },
+  "review": {
+    "scope": "Short first-party presentation copy only, not product enrichment or full articles.",
+    "basis": "Exact preview title; archive source_facts only where the archive title matches exactly.",
+    "claimPass": "Removed unsupported form/material/bundle and compatibility expansions from truncated titles; no assumed image details, health claims or supplier freshness claims.",
+    "parallelPart": "Final 293 entries incorporate corrected assets part commit 9fe54170c92cd9e78160fda6440db741dcac99aa.",
+    "limitedTitleHandling": "When the title does not identify a product form, retain its known theme/wording without guessing a form. Some lines deliberately say item or design.",
+    "unresolvedIdentity": ["B09P3N5NZ2"],
+    "unresolvedIdentityReason": "Brand-only title; matching source facts establish beige and kitchen category but not the object's form. Copy remains explicit about that limited information.",
+    "acceptanceBoundary": "Automated length/coverage/string checks do not establish product truth or public deployment; parent performs independent copy and consumer/build review."
+  },
+  "requiredConsumerGuards": [
+    "Exact product ID and exact title match.",
+    "Use only when the original short description is the approved generic fallback.",
+    "Keep existing substantive descriptions and curated notes preferred.",
+    "Do not rewrite supplier, editorial, identity, native-vector or database fields."
+  ],
+  "operations": {
+    "providerRequests": 0,
+    "merchantRequests": 0,
+    "paidModelRequests": 0,
+    "databaseWrites": 0,
+    "nativeWrites": 0,
+    "deployments": 0
+  }
+}
