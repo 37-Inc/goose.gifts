@@ -34,7 +34,7 @@ import { CLOUDFLARE_FREE_ASSET_LIMIT, readPriorRelease, verifyRetainedAssets } f
 import { siteIdentityFor } from '../../static-site/lib/site-identity.ts';
 import { canonicalTime, validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { canonicalJson } from './migration.ts';
-import { readActivatedCatalogVectors, readActivatedPermanentCatalogNative, readPermanentNativeProof, readPublishedCatalogVectors, readOwnedApprovedCohortVectors, readOwnedPrunedVectors } from './owned-vector-delivery.ts';
+import { readActivatedCatalogVectors, readActivatedPermanentCatalogNative, readPermanentNativeProof, readPublishedCatalogVectors, readOwnedApprovedCohortVectors, readOwnedPermanentCohortNative, readOwnedPrunedVectors } from './owned-vector-delivery.ts';
 import type { PublishedCatalogRead } from './owned-vector-delivery.ts';
 import { createVectorizeRestAdapters } from './vectorize-rest.ts';
 import type { RunWorkspace, PublicationControl, ArtifactRef } from './run-workspace.ts';
@@ -515,7 +515,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         return readPermanentNativeProof({db,owner,revision:options.permanent,adapters,signal});
       }
       if(options.published)return readPublishedCatalogVectors({db,owner,published:options.published,adapters,signal});
-      return 'approval' in revision.request?readOwnedApprovedCohortVectors(db,owner,revision as ApprovedCohortRevision,adapters,options.finishAuthorization,control?.versionReference??undefined):readOwnedPrunedVectors(db,owner,revision,adapters);
+      if(options.approvedCatalog&&options.finishAuthorization)return readOwnedPermanentCohortNative(db,owner,options.approvedCatalog,adapters);
+      return 'approval' in revision.request?readOwnedApprovedCohortVectors(db,owner,revision as ApprovedCohortRevision,adapters):readOwnedPrunedVectors(db,owner,revision,adapters);
     };
     // Full-catalog scans are sequential owned D1 reads, not a short provider
     // observation. No proof survives this invocation or crosses an owner change.

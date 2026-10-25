@@ -11,14 +11,12 @@ test('fresh finish authority keeps original cutoff while binding canonical two-h
     {activationDeadline:'2026-10-25T07:00:00.001Z'},{activationDeadline:good.reviewedAt},{versionReference:'other'},{extra:true}])
     assert.throws(()=>validatePublicationFinishAuthority({...good,...change},cutoff,version));
 });
-test('separately authorized proof deadline changes only the temporal read predicate, never historic request or policy',()=>{
+test('ordinary plan checks keep their original cutoff even when a caller supplies dispatch authority separately',()=>{
   const owner={environment:'production',indexName:'fixture',token:'owner',generation:1,epoch:1,phase:'freezing',ownerReference:'fixture',operationKey:'b'.repeat(64),capturedAt:cutoff};
   const revision={packet:{receipt:{catalog_revision:'fixture'}},priorRow:{},snapshot:{catalogRevision:'fixture'},sourceDigest:'c'.repeat(64),globalVectorWatermark:8,
     request:{context:{publicationReceiptWatermark:7,priorPublication:null,cutoff}}};
   const db={prepare(sql){return{bind(...params){return{sql,params};}};}},before=JSON.stringify(revision);
   const old=approvedCatalogPlanChecks(db,owner,revision),fresh=approvedCatalogPlanChecks(db,owner,revision,good.activationDeadline);
-  assert.deepEqual(old[0],fresh[0]);assert.equal(old[1].sql,fresh[1].sql);
-  assert.deepEqual(old[1].params.slice(0,-1),fresh[1].params.slice(0,-1));
-  assert.equal(old[1].params.at(-1),cutoff);assert.equal(fresh[1].params.at(-1),good.activationDeadline);
+  assert.deepEqual(old,fresh);assert.equal(fresh[1].params.at(-1),cutoff);
   assert.equal(JSON.stringify(revision),before);assert.ok(fresh.every(q=>/^SELECT\b/.test(q.sql)));
 });
