@@ -100,7 +100,7 @@ export async function finishEditorialUpload(args:string[]){
     if(command==='prepare'){
       if(cp.sha256!==CHECKPOINT||c.stage!=='uploaded'||c.permit||cp.checkpoint.owner?.phase!=='freezing'
         ||cp.checkpoint.pins.reviewedUploadActivationPending)fail('original_state');
-      const reviewedAt=new Date().toISOString(),activationDeadline=new Date(Date.now()+2*3600000).toISOString();
+      const reviewedAt=new Date().toISOString(),activationDeadline=new Date(Date.parse(reviewedAt)+2*3600000).toISOString();
       if(activationDeadline>w.manifest.retention.rules.publication.notAfter)fail('retention');
       profile={schemaVersion:1,controllerSha,authorizationSha256,
         budget:{expectedCheckpointSha256:CHECKPOINT,approvalReference:authorizationSha256,versionReference:VERSION,
