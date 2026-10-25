@@ -705,6 +705,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     }
     if(control.permit){
       owner=control.permit.mutationOwner!;
+      let receiptInventoryOwner:MutationOwner|undefined;
       const observed=async(signal?:AbortSignal):Promise<DeploymentObservation>=>{
         signal?.throwIfAborted();await workspace.assertHeld();signal?.throwIfAborted();const deployed=await api.deployed(signal);signal?.throwIfAborted();
         if(!deployed||deployed.version!==control!.versionReference||deployed.marker!==control!.deploymentMarker
@@ -726,7 +727,11 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         if(canonicalJson(intentFrom(sealed.manifest,sealed.bytes))!==canonicalJson(control.intent)
           ||canonicalJson(sealed.snapshot)!==canonicalJson(revision.snapshot))throw new Error('publication_package_changed');
         const readDeployed=async()=>{
-          await permanentProof();await observed();await permanentProof();return control!.intent!;
+          // Approved persistent completion already checks all source/projection
+          // rows on both sides of this callback. Retain one full private/held
+          // inventory AFTER the independent native/deployment observation.
+          if(!options.approvedCatalog?.persistent)await permanentProof();
+          await observed();await permanentProof();receiptInventoryOwner={...owner};return control!.intent!;
         };
         if(options.approvedCatalog||control.publication!.leaseUntil<=now().toISOString())
           if(options.permanent)await completeActivatedPermanentPublication(db,revision,control.publication!,control.permit,readDeployed,now);
@@ -746,7 +751,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       // Every permanent path, not only reviewed-upload recovery, must prove all
       // source/projection rows before the short native/provider observation.
       // The proof is invocation-local and retains the exact activating owner.
-      await permanentProof();
+      // Receipt-only resumes still need a fresh inventory. Reuse only the
+      // successful same-invocation proof under the exact unchanged owner.
+      if(!options.approvedCatalog?.persistent||canonicalJson(receiptInventoryOwner??null)!==canonicalJson(owner))await permanentProof();
       let observation:Promise<DeploymentObservation>|undefined;
       try{if(await resolveBuildActivation(db,control.permit,signal=>(observation=observed(signal)),{observationTimeoutMs:30_000})!=='resolved')
         throw new Error('publication_activation_pending');}
