@@ -46,8 +46,9 @@ async function reviewedReadUncertainty(w:RunWorkspace){
   try{const old=(await readUploadPrivate(join(OUTPUT,'classified-read.json'))).value;
     if(canonicalJson(old)!==canonicalJson(proof))fail('unknown_proof');return;
   }catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
-  const original=await w.readArtifact({sha256:CHECKPOINT,reference:'objects/'+CHECKPOINT+'.json'}) as unknown as {
-    owner:NonNullable<Awaited<ReturnType<RunWorkspace['readCheckpoint']>>>['checkpoint']['owner'];pins:Record<string,{sha256:string;reference:string}>};
+  const retained=await w.readCheckpoint();
+  if(retained?.sha256!==CHECKPOINT)fail('unknown_checkpoint');
+  const original=retained.checkpoint;
   const control=await readOrdered<{revision:Omit<ApprovedCohortRevision,'request'|'sourceRows'>;request:{request:ApprovedCohortRevision['request']}}>(w,original.pins.revision);
   const capture={prepare(sql:string){return{bind(...params:unknown[]){return{sql,params};}};}};
   const batch=approvedCatalogPlanChecks(capture as unknown as CatalogD1,original.owner!,{...control.revision,request:control.request.request} as ApprovedCohortRevision) as unknown as Array<{sql:string;params:unknown[]}>;
