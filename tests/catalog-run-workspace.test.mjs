@@ -161,7 +161,9 @@ test('acknowledged-upload finish budget is once-only, retains charges and cannot
 });
 
 async function finalizationFixture(t,{finite=false,skipFinish=false,noDeployment=false}={}){
-  const f=await fixture(t),w=await f.open(),value=recoveryCheckpoint(),p=value.control.publication;
+  const f=await fixture(t);f.input.repository=join(f.parent,'operator');
+  await mkdir(f.input.repository,{mode:0o700});
+  const w=await f.open(),value=recoveryCheckpoint(),p=value.control.publication;
   const snapshot={catalogRevision:p.intent.catalogRevision,products:[{id:ID,eligibleUntil:finite?LATER:null}]};
   const bytes=`${JSON.stringify(snapshot)}\n`,digest=sha256(bytes);
   p.intent.nextExpiry=null;p.intent.catalogSnapshotSha256=digest;p.build.request.sourceDigest=digest;
