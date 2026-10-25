@@ -103,6 +103,9 @@
     "ownerActionRequired": "Free local disk space before larger installs/builds."
   },
   "evidenceIntegration": {
+    "pullRequest": "https://github.com/37-Inc/goose.gifts/pull/280",
+    "postRecoveryIntegrationCommit": "923f586b178c439f5f915f36bd1f4ed496ff1337",
+    "hostedChecksConfigured": false,
     "mainBasedEvidenceCommit": "c0918dbbef4ce57da52a39e6ce21124a542cede8",
     "retainedOperatorEvidenceCommit": "1408e67d0eafe491b2565ba5d4505100cef39b01",
     "freshLockedOfflineInstall": false,
