@@ -9,6 +9,7 @@ import { validateCatalogSnapshot } from '../lib/catalog/snapshot.ts';
 import fixture from '../static-site/fixtures/catalog.snapshot.json' with { type: 'json' };
 import { snapshotKeywordSearch } from '../workers/site/snapshot-search.ts';
 import { createSiteWorker } from '../workers/site/index.ts';
+import { suppressNearDuplicateProducts } from '../lib/db/product-scoring.ts';
 
 test('long queries discard conversational filler without losing literal short queries or Unicode', async () => {
   assert.deepEqual(catalogSearchTerms('a gift for dad who likes golf'), ['dad', 'golf']);
@@ -135,4 +136,28 @@ test('permanent low-score gifts stay searchable and detail routes retain exact p
     assert.equal(detail.status, 200);
     assert.equal(await detail.text(), product.description);
   }
+});
+
+test('cleared distinct prank designs and brands remain in browse, feed and search despite a shared archetype', async () => {
+  const variants = [
+    ['fire-box', 'Prank-O Fire Kit Prank Gift Box'],
+    ['bath-box', 'Prank-O Bath Brew Prank Gift Box'],
+    ['cat-print-mug', 'Acme Funny Ceramic Coffee Mug Cat Print'],
+    ['goat-print-mug', 'Widget Funny Ceramic Coffee Mug Goat Print'],
+  ].map(([id, title], i) => ({ ...cleared(id, title),
+    publicId: `00000000-0000-4000-8000-${String(i + 200).padStart(12, '0')}` }));
+  assert.equal(suppressNearDuplicateProducts(variants.slice(0, 2)).length, 1, 'old broad archetype filter would hide a distinct box');
+  const input = validateCatalogSnapshot({ ...snapshot, products: variants }, new Date(now));
+  const ids = new Set(variants.map(p => p.id));
+  assert.deepEqual(new Set(rankedBrowseProducts(input).map(p => p.id)), ids);
+  const digest = 'a'.repeat(64), plan = createStaticFeedPlan(input, digest, now);
+  const feed = prepareStaticFeed(input, plan, digest);
+  assert.deepEqual(new Set(feed.select('daily', 36, new Set(), now).products.map(p => p.id)), ids);
+  const forbidden = () => { throw Error('No external provider calls'); };
+  const worker = createSiteWorker({ snapshot: input, manifest: { catalogRevision: input.catalogRevision, routes: {}, checksums: {} },
+    now: () => now, searchAdapters: { storage: () => ({ keyword: forbidden, byPublicIds: forbidden }), diagnostic: forbidden } });
+  const response = await worker.fetch(new Request('https://stupid.gifts/api/search-products?q=prank'),
+    { ENVIRONMENT: 'production', SEMANTIC_SEARCH_ENABLED: 'false' });
+  assert.equal(response.status, 200);
+  assert.deepEqual(new Set((await response.json()).results.map(p => p.id)), new Set(['fire-box', 'bath-box']));
 });
