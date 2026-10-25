@@ -27,6 +27,8 @@
     "excluded": { "exactDuplicates": 4, "individuallyReviewedCommodityProducts": 24 },
     "images": 3355,
     "shortDescriptions": 3355,
+    "legacyGenericShortDescriptions": 993,
+    "genericCopyResolution": "Exact-ID/title site-authored presentation overrides replace993generic fallbacks without changing catalog/native inputs; separate copy audit and consumer/build checks apply.",
     "originalArticles": 42,
     "physicalFiles": 17237,
     "htmlFiles": 3410,

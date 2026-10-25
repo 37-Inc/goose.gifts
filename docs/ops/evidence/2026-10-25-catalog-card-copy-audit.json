@@ -3,7 +3,7 @@
   "kind": "site-authored-card-copy-review",
   "snapshotSha256": "56727e8ac55499aec6b8bbf03b0ebaec5341897e4c409bfbf7da96a8f8933721",
   "sortedIdTitleCohortSha256": "03215f8c1101eb2aa8aad943e9b816dc20c47fb7c17373fe0f9612ca2837aa8a",
-  "mapSha256": "bbd394112ccef289b3f1fffa4e672b3e0b6ee6ff96df74d9e4258b9479ebca06",
+  "mapSha256": "9872b675546e07b570f65c6fc21ab1a9dfab2c945d8718ec15f5410b02b38800",
   "source": {
     "snapshot": "catalog-resolution-preview-20261025/catalog.snapshot.json",
     "archive": "export-2026-10-22-known-writers-held/011.ndjson",
@@ -28,12 +28,15 @@
   },
   "review": {
     "scope": "Short first-party presentation copy only, not product enrichment or full articles.",
-    "basis": "Exact preview title; archive source_facts only where the archive title matches exactly.",
+    "basis": "Exact preview title; archive source_facts only where the archive title matches exactly. Parent also inspected the existing catalog photos for two ambiguous items, recorded below.",
     "claimPass": "Removed unsupported form/material/bundle and compatibility expansions from truncated titles; no assumed image details, health claims or supplier freshness claims.",
     "parallelPart": "Final 293 entries incorporate corrected assets part commit 9fe54170c92cd9e78160fda6440db741dcac99aa.",
     "limitedTitleHandling": "When the title does not identify a product form, retain its known theme/wording without guessing a form. Some lines deliberately say item or design.",
-    "unresolvedIdentity": ["B09P3N5NZ2"],
-    "unresolvedIdentityReason": "Brand-only title; matching source facts establish beige and kitchen category but not the object's form. Copy remains explicit about that limited information.",
+    "unresolvedIdentity": [],
+    "visualReadback": [
+      { "id": "B09P3N5NZ2", "existingPhotoSha256": "84940b76df97d68ebedb999ef6b249cd345151afd2b35eb319e3b0bb1aeb095b", "finding": "Existing catalog photo shows a lidded noodle-bowl set, draining insert and eating utensils. No material, heating-safety or included-pack guarantee inferred." },
+      { "id": "B0BQ9LZNXN", "existingPhotoSha256": "ecde0821e0a582e9b719169b6e37099b1d9be19e8fd06cf9eb6cc9ea468821af", "finding": "Existing catalog photo confirms a tote bag with colorful Dalmatian-puppy print; folding is in the exact original title." }
+    ],
     "acceptanceBoundary": "Automated length/coverage/string checks do not establish product truth or public deployment; parent performs independent copy and consumer/build review."
   },
   "requiredConsumerGuards": [
@@ -44,6 +47,7 @@
   ],
   "operations": {
     "providerRequests": 0,
+    "existingCatalogPhotoReads": 2,
     "merchantRequests": 0,
     "paidModelRequests": 0,
     "databaseWrites": 0,
