@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261025-am-v11-host-storage-incident",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-25T16:43:58Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "After the successful16:31:42.267UTC measurement and routine no-op record, fresh offline dependency installation in this run's disposable integration checkout failed ENOSPC. Data volume had103MiB available. Removed only the newly generated incomplete525MB node_modules directory, using non-force removal; no user project files or other projects cleaned. Afterward653MiB free; latest16:41:55UTC check648MiB. Reused existing shared storefront dependencies read-only via ignored symlink after exact package-lock SHA256 match a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381 and installed-version checks (Next16.4.3,eslint9.39.5,eslint-config-next16.4.3,zod4.6.7,undici7.30.1). Integration creative validation,6creative/18Pinterest tests and lint0errors/0warnings pass. No fresh installation or new build is claimed. Retained operator source/dependencies and canonical/catalog checkout pins are unchanged. Host storage remains nearly full; this is not an analytics/public API failure or acquisition signal.",
+    "evidenceEventIds": [
+      "evt-20261025-am-v11-scheduled-measurement-noop"
+    ],
+    "decision": "Notify Cameron once to free disk space. Earlier acquisition no-op remains valid; this later host issue supersedes only the routine notification decision. No broad cleanup, spend, public/Sandbox/account/catalog/site mutation, posting or scheduler change.",
+    "nextAction": "Complete durable evidence integration with the exact-lock existing dependency installation. Owner should free local disk space before larger installs/builds. Leave existing ACTIVE measurement-only cadence, exact October31 review and explicit next-experiment approval gate unchanged."
+  }
+}

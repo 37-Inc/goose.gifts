@@ -63,8 +63,8 @@ times are in the JSON. Full review remains undelivered/not due until
 16:30 Pacific / 23:30 UTC. Keep generation/posting off even after that review
 until Cameron explicitly approves another experiment. No duplicate review job.
 
-Twelve public metric events + one run learning appended only through
-`creative:record`: **1,011 events / 8 experiments / 37 candidates**, valid.
+Twelve public metric events + two run learnings appended only through
+`creative:record`: **1,012 events / 8 experiments / 37 candidates**, valid.
 Prior source `39d2969a51318348333ea2ec64cbc618d88a7bc3` in the retained operator;
 no executable/static/dependency changes. No creative, shortlist, package,
 approval, public/Sandbox/account/Pin/catalog/site mutation, deployment, spend,
@@ -75,3 +75,26 @@ Same ACTIVE 09:30/16:30 Pacific task/chat. Routine distribution increments
 without new native acquisition or owner action remain quiet. The next hypothesis
 remains whether attributable outbound response extends beyond one dominant
 product after separating rebrand/destination effects; do not start a new test.
+
+## Local storage incident — one owner alert, measurement succeeded
+
+The later main-based integration install failed `ENOSPC`. Only this run's
+incomplete 525MB generated dependency directory was removed, without force;
+it is reconstructible from the lockfile. No user project files or other
+projects were cleaned. Free space recovered from 103MiB to 653MiB, but was
+still only **648MiB at 16:41:55UTC**. Owner action: free local disk space before
+larger dependency installs/builds. Do not pause or reschedule this task.
+
+Evidence integration can still finish: an existing reviewed shared dependency
+installation has the byte-identical integration lockfile (SHA256
+`a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381`) and
+verified package versions. Read-only reuse through an ignored symlink passes
+creative validation, six creative tests, 18 Pinterest tests and lint with zero
+errors/warnings. The retained operator separately passes with its 25 existing
+warnings. No fresh install, new build or deployment is claimed; no shared
+dependency/catalog/canonical update occurred. Main source integration does not
+advance the retained measurement runtime. See `host-storage-incident.json`.
+
+The original acquisition no-op remains true. A separate validated learning
+supersedes only its quiet-notification decision because host storage needs
+owner action, not because of new acquisition or a provider failure.

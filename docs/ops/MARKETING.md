@@ -116,7 +116,8 @@ P1448/22Pin clicks/3saves/2native outbound,F355/5/1/0. Impressions+7P/+2F since
 priorPM, no action changes across all28. Bowling dominates96.34%P exposure and
 both outbound; no demonstrated format win or corroborated site/retailer action.
 Explicit GA4/PostHog bounded reads succeed; downstream stays unknown. No new
-checkpoint/lifecycle due.13 validated events, no public Pin or creative/account/
+checkpoint/lifecycle due.14 validated events including a separate host-storage
+incident learning; no public Pin or creative/account/
 catalog/site/schedule/Bead mutation. Existing redirect/rebrand caveat, exact
 October31 review and subsequent explicit approval gate unchanged.
 [Evidence and provider limits](pinterest-measurements/2026-10-25-am/README.md).
