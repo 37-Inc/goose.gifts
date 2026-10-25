@@ -1,6 +1,8 @@
 {
   "schemaVersion": 1,
-  "state": "offline-reviewed-proposal-not-live-application",
+  "state": "initial-offline-proposal-superseded-by-two-crown-duplicate-review",
+  "supersededBy": "2026-10-25-photo-identity-audit.json",
+  "currentReviewedProposal": { "promote": 994, "publicAfter": 3353, "heldAfter": 30, "duplicateExclusions": 6, "concreteGenericCommodityExclusions": 24, "identities": 3383, "articles": 42, "snapshotSha256": "a00e6581725c63e2bff5029d962c11acaa7135ddda35b80cfa086f83b57f3836", "live": false },
   "sourceManifestSha256": "e70c0211829ac5d9b9c07e39605eb03426ec50de85845013f7a11b6793869fd9",
   "sourceProductsSha256": "3d5efe00cbff1e06420da81edffa47616e76a15f2623bcdc095cada7782cfbb9",
   "baseline": { "identities": 3383, "public": 2359, "held": 1024, "originalArticles": 42 },
@@ -12,7 +14,7 @@
     "editorialWithSpecificHistoricalObjection": 34,
     "missingImageTitleOrShortDescription": 0
   },
-  "reviewedProposal": {
+  "initialReviewedProposal": {
     "promote": 996,
     "publicAfter": 3355,
     "heldAfter": 28,

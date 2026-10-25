@@ -16,9 +16,9 @@ Beads and the protected `editorial-finish-20261025` packet, not older unactivate
 handoffs. Do not start another supplier batch or force/release this owner.
 
 Owner-approved cleanup (`.3.3`, `.5.4`, `.4.10`) is separately reviewed: restore
-996legacy held listings, retain28specific exclusions, render every card's short
-description and retire the redundant directory. Full3355-product preview,
-17,237-file inventory and desktop/mobile QA pass, but this expansion is not yet
+994legacy held listings, retain30specific exclusions, render every card's short
+description and retire the redundant directory. Full3353-product preview,
+17,228-file inventory and desktop/mobile QA pass, but this expansion is not yet
 the live catalog. Finish the current publication before fresh capture/application
 and the next normal fenced Cloudflare publication. Daily care stays held until
 actual receipt/build/idle/public QA and the maintained successor are accepted.
@@ -29,10 +29,14 @@ actual receipt/build/idle/public QA and the maintained successor are accepted.
   Vercel or reconnect its Git integration. Keep the old Goose/Neon rollback.
 - Preserve all 3,383 migrated identities, stable URLs, original content and
   history. The current live baseline has2,359public gifts and1,024legacy holds.
-  The owner-approved reviewed resolution is3,355public and28excluded (four exact
+  The owner-approved reviewed resolution is3,353public and30excluded (six reviewed
   duplicates and24individually justified ordinary commodity products); old pending
   editorial/stock flags alone are not listing objections. Preserve all identities
   and never delete/deactivate products/native vectors solely due to refresh expiry.
+- The held resolution preserves the accepted2,359-public predecessor. A confirmed
+  already-public Dalmatian tote pair is separately tracked in `roadmap-lbbz1.3.4`;
+  do not claim every pre-existing public duplicate was removed or silently invalidate
+  historical predecessor receipts to hide that remaining work.
 - Existing owner-cleared images/descriptions have no expiry. Keep them. Only
   genuinely finite supplier overlays use their original deadlines; their expiry
   falls back to the cleared listing, not catalog removal.
@@ -133,8 +137,10 @@ The homepage is a white product gallery: three columns on desktop, two on mobile
 with compact search and 24-item static browse batches. The first 24 gifts have
 reviewed factual names and descriptions in `content/homepage.json`. Every gallery
 and search card must show an image, title and short description; a missing curated
-note falls back to the existing description rather than hiding it. Other merchant
-names get a concise presentation-only label.
+note falls back to the existing description rather than hiding it. Exact-ID/title
+first-party notes replace991generic placeholders in the reviewed catalog; keyword
+search indexes that same visible copy without rewriting database/native fields.
+Other merchant names get a concise presentation-only label.
 All public gifts remain reachable through Load more and product URLs. Original
 titles, descriptions, images and editorial remain unchanged in the dataset;
 longer detail copy and exact retailer identity remain available in disclosures.

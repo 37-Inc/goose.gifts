@@ -1,5 +1,29 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 — final held review and complete private storefront acceptance
+
+[owner+codex] Final held-cohort review admits994of1024:3,353public/30held,
+all3,383identities and42articles preserved. Exclusions are six reviewed duplicates
+and24individually documented commodity products; old inactive/pending scores do
+not justify hiding the rest. Two identical-photo/model dragon-crown reseller
+listings stay held; potentially distinct bib/print/size variants remain. The
+confirmed already-public Dalmatian tote pair is separately tracked in
+roadmap-lbbz1.3.4; it was not falsely counted among held removals.
+
+All cards show image/title/shortdescription. Exact-ID/title site-authored notes
+replace991generic fallbacks without changing source/native data, and keyword
+search indexes the same visible notes without D1 calls. Directory-only retirement
+preserves product URLs. Complete clean596fb83production-mode build and normal
+release verification pass:17,228physicalfiles/6,798exactbytealiases/2,772Free
+headroom. Desktop/mobile/LoadMore/search/Clear/empty/affiliate/guide/Random and
+RSC byte-identity checks pass privately, with zero browser errors. The existing
+daily/Monday limits also pass accurate local workerd capacity tests unchanged.
+
+This remains CODE/PRIVATE PREVIEW, not an expanded public catalog. The earlier
+eight-product repair is live; its receipt/build/idle/successor bookkeeping needs
+the separately requested, still-unapproved bounded finalization allowance.
+No extra supplier/model batch, paid upgrade, duplicate job or Vercel deployment.
+
 ## 2026-10-25 — repair live; final bookkeeping and catalog expansion pending
 
 [owner+codex] The existing uploaded version is now actually serving the eight-

@@ -38,14 +38,14 @@ UI assets. The actual final build, not this estimate, decides publication.
 
 ## Full-catalog local acceptance, October 25
 
-The actual integrated `75fae8e` build, after directory retirement and catalog
-hold resolution, contains **3,355 public gifts and 28 retained held identities**.
-Every public product has an existing image and short description (3,355/3,355
+The final integrated `596fb83` build, after directory retirement and reviewed
+hold resolution, contains **3,353 public gifts and 30 retained held identities**.
+Every public product has an existing image and short description (3,353/3,353
 for each). The final export has:
 
-- **17,237 physical assets**, including **3,410 HTML files**;
-- **6,802 exact-byte RSC aliases**, preserving **27,554 logical guarded routes**;
-- **2,763 files of headroom** under the existing 20,000-file Free guard.
+- **17,228 physical assets**, including **3,408 HTML files**;
+- **6,798 exact-byte RSC aliases**, preserving **27,552 logical guarded routes**;
+- **2,772 files of headroom** under the existing 20,000-file Free guard.
 
 Independent checks verify all physical file hashes, original build context,
 release identity, catalog digest, feed and reconstructed route/compaction policy.
@@ -54,10 +54,14 @@ Load More to 48 distinct cards with 48 descriptions, 36 complete search cards,
 and Clear. Local HTTP checks also passed product/affiliate links, guides,
 Random, exact aliased RSC bodies and genuine directory/Index 404s.
 
-This was a **private local preview, not production publication**. The checkout
-later advanced, so verification explicitly uses the original `75fae8e` build
-identity; it is not presented as a newer-HEAD full-release verification. Receipts
-are in the protected `catalog-resolution-preview-20261025` operator directory.
+This was a **private local preview, not production publication**. Full build and
+the normal independent release verifier passed against clean `596fb83`. All991
+generic placeholders receive exact-ID/title factual short notes in UI/search.
+Receipts are in the protected `catalog-resolution-preview-20261025` directory,
+including `build-verification-596fb83.json` and `http-checks-596fb83.json`.
+The earlier3,355-product builds (`75fae8e`:17,237 files; `33467fc`:17,238) remain
+historical evidence, not relabeled as the final3,353-product result. Later
+documentation/test-only commits do not change the recorded build identity.
 The preview listener was stopped after QA. No provider calls, paid service or
 catalog identities were removed for this capacity work.
 
