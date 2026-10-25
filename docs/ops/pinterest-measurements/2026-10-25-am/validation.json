@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "kind": "scheduled-measurement-only-evidence-validation",
+  "triggerAtUtc": "2026-10-25T16:30:52.961Z",
+  "snapshotCompletedAtUtc": "2026-10-25T16:31:42.267Z",
+  "operatorSourceBeforeRun": "39d2969a51318348333ea2ec64cbc618d88a7bc3",
+  "sourceCodeChanged": false,
+  "measurementCommandSucceeded": true,
+  "accountVerified": "1107815345747925810 / stupid_gifts / BUSINESS",
+  "nativePublicPinCount": 28,
+  "v11Membership": {
+    "P": 6,
+    "F": 6
+  },
+  "nativeActionsUnchangedFromPriorPm": true,
+  "allRetainedPublicIdsLinksBoardsUnchanged": true,
+  "unresolvedProductionPublicationReceipts": 0,
+  "newValidatedEvents": {
+    "metrics": 12,
+    "candidateLearning": 0,
+    "runLearning": 2
+  },
+  "creativeLog": {
+    "events": 1012,
+    "experiments": 8,
+    "candidates": 37,
+    "valid": true
+  },
+  "tests": {
+    "creativePass": 6,
+    "pinterestPass": 18,
+    "fail": 0,
+    "skip": 0
+  },
+  "lint": {
+    "errors": 0,
+    "existingWarnings": 25
+  },
+  "build": {
+    "rerun": false,
+    "reason": "Evidence/docs-only run; retained implementation, static source and dependencies unchanged. Prior clean build and independent verifier acceptance remain in cutover validation; no new build/deployment claimed.",
+    "acceptedImplementationSource": "0bdf589e05148ee2e634117e43e1201acebff997",
+    "priorReceipt": "docs/ops/pinterest-cutover-2026-10-23/verification/validation.json"
+  },
+  "checkpoints": {
+    "newTwentyFourHourChecksDue": 0,
+    "newSevenDayLearningsDue": 0,
+    "newTwentyEightDayArchivesDue": 0,
+    "archivedPublicMembers": 6,
+    "measuringMembers": 6,
+    "historicalEqualAgeMetricsReconstructed": false,
+    "nextIndividualTwentyEightDayGateUtc": "2026-11-10T20:07:09.336Z",
+    "nextIndividualTwentyEightDayCandidate": "cand-v11-sheep-roll-field-note"
+  },
+  "providers": {
+    "ga4Property": "507421709",
+    "ga4Status": "measured",
+    "ga4CalendarDatesPacific": [
+      "2026-10-18",
+      "2026-10-25"
+    ],
+    "currentDayPartial": true,
+    "posthogProject": 550427,
+    "posthogStatus": "measured",
+    "posthogRollingStartUtc": "2026-10-18T16:31:39.588Z",
+    "posthogRollingEndUtc": "2026-10-25T16:31:39.588Z",
+    "perArmPinSiteRetailerAttribution": "unknown",
+    "qaOperatorExclusions": true
+  },
+  "destinationIntervention": {
+    "previouslyVerifiedAtUtc": "2026-10-24T04:50:14.849Z",
+    "routingChangedThisRun": false,
+    "pinLinksRewritten": false,
+    "qaCountedAsAcquisition": false
+  },
+  "preservedUnchanged": [
+    "approved Pin packages",
+    "publication receipts",
+    "full-cohort membership/deadline/finalReviewDelivered=false",
+    "measurement-only policy",
+    "canonical/catalog runtime checkouts",
+    "existing scheduler/chat/cadence"
+  ],
+  "writes": {
+    "publicPins": 0,
+    "sandboxPins": 0,
+    "catalog": 0,
+    "account": 0,
+    "schedule": 0,
+    "beads": 0,
+    "paidActions": 0
+  },
+  "reviewDue": false,
+  "reviewDeadlineUtc": "2026-10-31T16:44:52.279Z",
+  "notificationDecision": "NOTIFY",
+  "notificationReason": "Measurement and acquisition remain routine; later ENOSPC incident requires owner to free local disk space. Safe limited cleanup/fallback completed validation without moving runtime pins or changing schedule.",
+  "hostStorageIncident": {
+    "evidence": "docs/ops/pinterest-measurements/2026-10-25-am/host-storage-incident.json",
+    "freshIntegrationInstallFailed": "ENOSPC",
+    "onlyOwnedPartialDependenciesRemoved": true,
+    "knownAvailableMiB": 648,
+    "knownAvailableAtUtc": "2026-10-25T16:41:55Z",
+    "ownerActionRequired": "Free local disk space before larger installs/builds."
+  },
+  "evidenceIntegration": {
+    "pullRequest": "https://github.com/37-Inc/goose.gifts/pull/280",
+    "postRecoveryIntegrationCommit": "923f586b178c439f5f915f36bd1f4ed496ff1337",
+    "hostedChecksConfigured": false,
+    "mainBasedEvidenceCommit": "c0918dbbef4ce57da52a39e6ce21124a542cede8",
+    "retainedOperatorEvidenceCommit": "1408e67d0eafe491b2565ba5d4505100cef39b01",
+    "freshLockedOfflineInstall": false,
+    "reusedReviewedSharedDependencies": true,
+    "matchingLockfileSha256": "a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381",
+    "creativeLogValid": true,
+    "creativeTestsPass": 6,
+    "pinterestTestsPass": 18,
+    "lintErrors": 0,
+    "lintWarnings": 0,
+    "retainedMeasurementRuntimeAdvanced": false
+  }
+}
