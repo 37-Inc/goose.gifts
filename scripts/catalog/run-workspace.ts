@@ -15,6 +15,7 @@ import { encodePublicationIntent } from '../../lib/catalog/publication.ts';
 import type { ProviderReceipt } from './provider-evidence.ts';
 import { validateExecutionAdoption } from './execution-adoption.ts';
 import type { ExecutionAdoption } from './execution-adoption.ts';
+import {activatedPermanentRevisionControl,activatedPermanentSummary} from './activated-permanent-control.ts';
 
 type Json = null | boolean | number | string | Json[] | { [key:string]:Json };
 type Kind = ProviderReceipt['kind'] | 'phase' | 'publication' | 'checkpoint';
@@ -136,7 +137,9 @@ export interface RunWorkspace {
   writeCheckpoint(expectedSha256:string|null,checkpoint:WorkspaceCheckpoint):Promise<{sha256:string;checkpoint:WorkspaceCheckpoint}>;
   /** Only records reconciliation of an ALREADY dispatched activation. Cannot
    * introduce new claims/content or renew any artifact's original deadline. */
-  writeControlCheckpoint(expectedSha256:string,input:{phase:'attention'|'published';owner:MutationOwner|null;control:WorkspaceControl}):Promise<CheckpointView>;
+  writeControlCheckpoint(expectedSha256:string,input:{phase:'attention'|'published'|'finalized';owner:MutationOwner|null;control:WorkspaceControl}):Promise<CheckpointView>;
+  /** Exact registered permanent-public/technical proof only, never provider bodies. */
+  readPermanentFinalization(label:'revision'|'summary'):Promise<Json>;
   reserveBudget(input:BudgetReservation):Promise<void>;settleBudget(id:string,input:BudgetSettlement):Promise<void>;
   /** Explicit, once-only reconciliation allowance. Does not change the manifest,
    * old charges, claims, leases or retention. Requires separately approved NEW
@@ -487,7 +490,7 @@ function apply(state:State,event:Event,dry=false) {
   }else if(event.type==='control'){
     if(!exact(event,['type','sha256','previous','control'])||!state.checkpoint||event.previous!==state.checkpoint.sha256
       ||event.sha256!==sha256(canonicalJson({previous:event.previous,control:event.control})))fail('control_cas');
-    validateControlTransition(state.checkpoint.checkpoint,event.control);
+    validateControlTransition(state.checkpoint.checkpoint,event.control,state);
     if(!dry){state.previous=event.previous;state.checkpoint={sha256:event.sha256,checkpoint:event.control};}
   }else if(event.type==='activation-recovery-budget'){
     const finalizing=event.grant.scope==='approved-permanent-finalization';
@@ -538,11 +541,24 @@ function apply(state:State,event:Event,dry=false) {
       state.totals.knownRowsWritten+=event.settlement.usage.rowsWritten;state.totals.unconfirmedRequests--;}}
   }else fail('event');
 }
-function validateControlTransition(old:CheckpointControl,next:CheckpointControl) {
+function validateControlTransition(old:CheckpointControl,next:CheckpointControl,state:State) {
   checkpoint({...next,state:null});
-  if(!['attention','published'].includes(next.phase)||!same(old.pins,next.pins)||!same(old.phaseComplete,next.phaseComplete)
+  if(!same(old.pins,next.pins)||!same(old.phaseComplete,next.phaseComplete)
     ||!old.control?.publication||!next.control?.publication)fail('control_reconciliation');
   const prior=old.control.publication,current=next.control.publication;
+  if(state.recovery?.scope==='approved-permanent-finalization'&&prior.stage==='published'
+    &&same(prior,current)&&hash(prior.receiptSha256)&&['published','finalized'].includes(next.phase)){
+    recoveryPermit({...state,checkpoint:{sha256:state.checkpoint!.sha256,checkpoint:next}},true);
+    const a=prior.permit!.mutationOwner!,before=old.owner,after=next.owner;
+    if(next.phase==='finalized'){
+      if(after!==null||!(old.phase==='finalized'&&before===null||old.phase==='published'&&before?.phase==='writing'
+        &&before.generation===a.generation+1&&before.epoch===a.epoch+1))fail('control_owner');
+    }else if(old.phase==='finalized'||after?.phase==='writing'&&before?.phase!=='writing'&&(old.phase!=='published'||before!==null)
+      ||before?.phase==='writing'&&(!after||!same({...before,epoch:after.epoch},after)
+      ||after.epoch<before.epoch||after.epoch>before.epoch+1))fail('control_owner');
+    return;
+  }
+  if(!['attention','published'].includes(next.phase))fail('control_reconciliation');
   const recoveredPermit=prior.permit===null&&prior.stage==='activating'&&current.permit;
   if(recoveredPermit){
     const p=current.permit!;
@@ -781,7 +797,8 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       const readback=await loadStored(directory,ref,manifest);fresh(readback,now());
       if(!state.refs.has(ref.sha256))await append({type:'artifact',ref});usableUntil=Math.min(usableUntil,Date.parse(sealed.expiresAt));usableAfter=Math.max(usableAfter,Date.parse(sealed.observedAt));return structuredClone(ref);
     }
-    async function read(ref:ArtifactRef){artifactRef(ref);if(!state.refs.has(ref.sha256))fail('unregistered_artifact');if(state.purged.has(ref.sha256))fail('expired');const v=await loadStored(directory,ref,manifest);fresh(v,now());return v;}
+    async function registered(ref:ArtifactRef){artifactRef(ref);if(!state.refs.has(ref.sha256))fail('unregistered_artifact');if(state.purged.has(ref.sha256))fail('expired');return loadStored(directory,ref,manifest);}
+    async function read(ref:ArtifactRef){const v=await registered(ref);fresh(v,now());return v;}
     const buildPaths=()=>['build/stupid-gifts','static-site/out','static-site/.next'].map(name=>join(state.execution?.effective.sourceRoot??repository,name));
     const packagePath=(releaseId:string)=>join(directory,'packages',releaseId);
     const runtimePath=(releaseId:string)=>join(directory,'publication-runtime',releaseId);
@@ -864,11 +881,11 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       return[...plan.map(({artifact:v,reference})=>({reference,kind:v.kind,expiresAt:v.expiresAt})),
         ...publications.filter(v=>v.entries.length).map(({p})=>({reference:`packages/${p.retention.releaseId}`,kind:'publication' as const,expiresAt:p.retention.expiresAt}))];
     }
-    async function loadBlob(ref:ArtifactRef):Promise<Buffer> {
-      const sealed=await read(ref);if(!['phase','publication'].includes(sealed.kind))fail('kind');
+    async function loadBlob(ref:ArtifactRef,reader=read):Promise<Buffer> {
+      const sealed=await reader(ref);if(!['phase','publication'].includes(sealed.kind))fail('kind');
       const descriptor=blobManifest(sealed.value),bytes=Buffer.alloc(descriptor.byteLength);
       for(let index=0;index<descriptor.parts.length;index++){
-        const part=await read(blobRef(descriptor.parts[index]));
+        const part=await reader(blobRef(descriptor.parts[index]));
         if(!same(retentionIdentity(part),retentionIdentity(sealed)))fail('blob_retention');
         blobChunk(part.value,descriptor,index).copy(bytes,index*descriptor.chunkBytes);
       }
@@ -970,13 +987,23 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
         const event:Event={type:'checkpoint',ref:refFor(value),previous:expected,control:json(view) as unknown as CheckpointControl};apply(state,event,true);
         const ref=await put(value,'checkpoint',now(),true);await append({...event,ref});return{sha256:ref.sha256,checkpoint:structuredClone(value)};
       }),
-      writeControlCheckpoint:(expected:string,value:{phase:'attention'|'published';owner:MutationOwner|null;control:WorkspaceControl})=>serial(async()=>{
+      writeControlCheckpoint:(expected:string,value:{phase:'attention'|'published'|'finalized';owner:MutationOwner|null;control:WorkspaceControl})=>serial(async()=>{
         if(!exact(value,['phase','owner','control'])||!state.checkpoint)fail('control_reconciliation');
         const view={...state.checkpoint.checkpoint,...structuredClone(value)} as CheckpointControl;bindCheckpoint(view,manifest,state.execution);
         const digest=sha256(canonicalJson({previous:expected,control:view}));
         if(state.checkpoint.sha256===digest&&state.previous===expected)return structuredClone(state.checkpoint);
         if(state.checkpoint.sha256!==expected)fail('checkpoint_cas');
         await append({type:'control',previous:expected,sha256:digest,control:view});return structuredClone(state.checkpoint!);
+      }),
+      readPermanentFinalization:(label:'revision'|'summary')=>serial(async()=>{
+        if(state.recovery?.scope!=='approved-permanent-finalization'||!['revision','summary'].includes(label))fail('permanent_control');
+        recoveryPermit(state,true);const cp=state.checkpoint!.checkpoint,p=cp.control!.publication!;
+        const ref=label==='revision'?cp.pins.revision:cp.phaseComplete;if(!ref)fail('permanent_control');
+        const body=await registered(ref);if(body.kind!=='publication')fail('permanent_control');
+        const value=typeof body.value==='string'?JSON.parse(body.value)
+          :body.value&&typeof body.value==='object'&&!Array.isArray(body.value)&&body.value.type==='run-workspace-blob'
+            ?JSON.parse((await loadBlob(ref,registered)).toString('utf8')):body.value;
+        return structuredClone(label==='revision'?activatedPermanentRevisionControl(value,p):activatedPermanentSummary(value)) as unknown as Json;
       }),
       reserveBudget:(value:BudgetReservation)=>serial(async()=>{reservation(value);const old=state.reservations.get(value.id);
         if(old){if(!same(old.reservation,value))fail('budget_replay');return;}budgetReservation(state,value);
@@ -992,8 +1019,10 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
         if(finalizing){
           // Inspect only the original hash-bound immutable package, never a new
           // supplier observation or a renewed body/publication deadline.
-          await usable();const p=state.checkpoint!.checkpoint.control!.publication!,registered=state.publications.get(p.intent!.releaseId);
-          if(!registered||registered.purged||registered.retention.nextExpiry!==null)fail('recovery_snapshot');
+          const p=state.checkpoint!.checkpoint.control!.publication!,registered=state.publications.get(p.intent!.releaseId);
+          // Already activated permanent public fields do not become supplier
+          // bodies when unrelated original observation retention elapses.
+          if(!registered||registered.purged||registered.retention.nextExpiry!==null||registered.retention.observedAt>now())fail('recovery_snapshot');
           const file=join(packagePath(p.intent!.releaseId),'catalog.snapshot.json');await pathWithoutLinks(file);
           const bytes=await readBytes(file,WORKSPACE_BLOB_LIMITS.bytes),snapshot=JSON.parse(bytes.toString('utf8'));
           if(byteHash(bytes)!==p.intent!.catalogSnapshotSha256||p.build.request.sourceDigest!==p.intent!.catalogSnapshotSha256

@@ -7,7 +7,10 @@ import { spawn } from 'node:child_process';
 import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS, assertPublicationCleanupEntryCount } from '../scripts/catalog/run-workspace.ts';
 import { canonicalJson, sha256 } from '../scripts/catalog/migration.ts';
 import { encodeBuildRequest } from '../lib/catalog/build-requests.ts';
+import {encodePublicationIntent} from '../lib/catalog/publication.ts';
 import { createCatalogProviderEvidence } from '../scripts/catalog/provider-evidence.ts';
+import {createProjectionPacket} from '../lib/catalog/d1.ts';
+import {putOrdered} from '../scripts/catalog/run-cloudflare-weekly.ts';
 import { encodePgvectorSendBase64, decodePgvectorSendBase64 } from '../scripts/catalog/pgvector-binary.ts';
 
 // Isolated local fixtures only. No providers, credentials, real merchant content,
@@ -164,7 +167,11 @@ async function finalizationFixture(t,{finite=false,skipFinish=false,noDeployment
   const f=await fixture(t);f.input.repository=join(f.parent,'operator');
   await mkdir(f.input.repository,{mode:0o700});
   const w=await f.open(),value=recoveryCheckpoint(),p=value.control.publication;
-  const snapshot={catalogRevision:p.intent.catalogRevision,products:[{id:ID,eligibleUntil:finite?LATER:null}]};
+  const snapshot={schemaVersion:1,dataKind:'catalog',catalogRevision:p.intent.catalogRevision,generatedAt:new Date(NOW).toISOString(),
+    products:[{id:ID,publicId:'00000000-0000-4000-8000-000000000001',slug:'fixture-gift',source:'amazon',title:'Owned fixture gift',
+      description:'An independently owned synthetic fixture gift.',imageUrl:'/images/gift-placeholder.svg',
+      affiliateUrl:'https://www.amazon.com/dp/'+ID+'?tag=fixture-20',currency:'USD',price:0,isActive:true,qualityScore:.85,
+      eligibleUntil:finite?LATER:null,indexable:false}],heldProducts:[],slugHistory:[]};
   const bytes=`${JSON.stringify(snapshot)}\n`,digest=sha256(bytes);
   p.intent.nextExpiry=null;p.intent.catalogSnapshotSha256=digest;p.build.request.sourceDigest=digest;
   p.requestId=p.build.requestId=sha256(encodeBuildRequest(p.build.request));
@@ -184,8 +191,93 @@ async function finalizationFixture(t,{finite=false,skipFinish=false,noDeployment
   Object.assign(activated.control.publication,{stage:'activating',permit,deploymentId:noDeployment?null:'actual-original-deployment'});
   saved=await w.writeCheckpoint(saved.sha256,activated);
   const grant={...recoveryGrant(saved,{httpRequests:1000,sqlStatements:8000}),scope:'approved-permanent-finalization',reportedRowsRead:2341389};
-  return{f,w,saved,grant,finish,directory};
+  return{f,w,saved,grant,finish,directory,snapshot};
 }
+
+async function permanentControlFixture(t,{blob=false,mutate,summaryMutate}={}){
+  const input=await finalizationFixture(t),{w,snapshot,saved}=input,p=saved.checkpoint.control.publication;
+  const packet=await createProjectionPacket(snapshot,{[snapshot.products[0].publicId]:HASH},HASH,new Date(NOW));
+  const previous={...snapshot,catalogRevision:'prior-fixture',products:[snapshot.products[0].publicId]};
+  const approval={schemaVersion:1,runId:'fixture-maintenance',catalogRevision:snapshot.catalogRevision,changes:[]};
+  const value={schemaVersion:1,kind:'approved-revision-control',sourceIds:previous.products,sourceRowsSha256:HASH,revisionSha256:HASH,
+    request:{schemaVersion:1,kind:'approved-request-control',request:{scope:{environment:scope.environment,indexName:scope.indexName},codeSha:CODE,
+      context:{envelopeSha256:HASH,snapshotSha256:HASH,projectionSha256:HASH,sourceExportSha256:HASH,
+        vectorSyncWatermark:0,publicationReceiptWatermark:0,cutoff:LATER,priorPublication:null},
+      approval,approvalSha256:sha256(canonicalJson(approval))},
+      previous:{envelopeJson:JSON.stringify(previous),snapshotSha256:HASH,projectionReceipt:packet.receipt},requestSha256:HASH},
+    revision:{snapshot,packet,priorRow:{release_id:'prior-fixture',catalog_revision:'prior-fixture',code_sha:CODE,completed_at:NOW,
+      manifest_json:encodePublicationIntent({...p.intent,releaseId:'prior-fixture',catalogRevision:'prior-fixture',catalogSnapshotSha256:HASH})},
+      sourceDigest:HASH,globalVectorWatermark:0,vectorSyncWatermark:0,operationKey:p.permit.mutationOwner.operationKey,
+      persistent:{generation:p.permit.mutationOwner.generation,inventory:[{publicId:previous.products[0],sourceRowSha256:HASH,
+        productSha256:HASH,privateStateSha256:HASH}],nativeHistory:[]},nativeHistory:[]}};
+  mutate?.(value);
+  const revision=blob?await w.putBlob(Buffer.from(JSON.stringify(value)),{kind:'publication',observedAt:NOW}):await putOrdered(w,value,NOW);
+  const summary={counts:{refreshed:10},timingsMs:{catalog:1},usage:{requests:1,model:'fixture-model'},warnings:[]};summaryMutate?.(summary);
+  const complete=await w.putArtifact(summary,{kind:'publication',observedAt:NOW});
+  const current=await w.writeCheckpoint(saved.sha256,{...saved.checkpoint,pins:{...saved.checkpoint.pins,revision},phaseComplete:complete});
+  input.f.setNow('2026-10-22T14:00:00.000Z');
+  await w.grantActivationRecoveryBudget({...input.grant,expectedCheckpointSha256:current.sha256});
+  return{...input,value,summary,current,revision,complete};
+}
+
+test('only exact permanent technical controls survive both retention and activation deadlines; supplier reads still fail',async t=>{
+  for(const blob of [false,true])await t.test(blob?'blob':'ordered artifact',async sub=>{
+    const {w,f,value,summary,revision,complete}=await permanentControlFixture(sub,{blob});
+    const before=await w.budget(),manifest=await readFile(join(w.directory,'manifest.json'));
+    assert.deepEqual(await w.readPermanentFinalization('revision'),value);
+    assert.deepEqual(await w.readPermanentFinalization('summary'),summary);
+    await assert.rejects(w.readCheckpoint(),/expired/);await assert.rejects(w.readArtifact(revision),/expired/);
+    await assert.rejects(w.readBlob(revision),/expired/);await assert.rejects(w.readArtifact(complete),/expired/);
+    await assert.rejects(w.readPermanentFinalization('provider-body'),/permanent_control/);
+    assert.deepEqual(await w.budget(),before);assert.deepEqual(await readFile(join(w.directory,'manifest.json')),manifest);
+    await w.close();const resumed=await f.open({mode:'resume'});
+    assert.deepEqual(await resumed.readPermanentFinalization('revision'),value);assert.equal((await resumed.budget()).unconfirmedRequests,1);
+  });
+});
+
+test('post-expiry purpose reader rejects finite overlays, raw supplier fields, snapshot drift and summary relabeling',async t=>{
+  const faults={finite:v=>{v.revision.snapshot.products[0].eligibleUntil=LATER;},
+    nestedFinite:v=>{const p=v.revision.snapshot.products[0];p.persistent={...p};p.eligibleUntil=LATER;},
+    sourceRows:v=>{v.revision.sourceRows=[{source_record_json:'supplier body'}];},
+    rawFacts:v=>{v.request.request.predecessor={sourceFacts:{title:'supplier body'}};},
+    changedSnapshot:v=>{v.revision.snapshot.products[0].title='Different gift';},
+    changedProjection:v=>{v.revision.packet.rows[0].title='Different projection';},
+    receiptRaw:v=>{v.revision.packet.receipt.sourceFacts={title:'expired supplier text'};},
+    nativeRaw:v=>{v.revision.nativeHistory=[{sourceFacts:'expired supplier text'}];},
+    absentRaw:v=>{v.revision.additionalAbsentIds=[{title:'expired supplier text'}];},
+    contextRaw:v=>{v.request.request.context.supplier='expired supplier text';},
+    predecessorRaw:v=>{v.request.request.predecessor={body:'expired supplier text'};},
+    priorRaw:v=>{v.revision.priorRow.manifest_json=JSON.stringify({sourceFacts:'expired supplier text'});},
+    historyRaw:v=>{const old=JSON.parse(v.request.previous.envelopeJson);old.slugHistory=[{body:'expired supplier text'}];
+      v.request.previous.envelopeJson=JSON.stringify(old);}};
+  for(const [name,mutate]of Object.entries(faults))await t.test(name,async sub=>{
+    const {w}=await permanentControlFixture(sub,{mutate});await assert.rejects(w.readPermanentFinalization('revision'),/permanent_control|snapshot|eligible|invalid_publication_intent/i);
+  });
+  const {w}=await permanentControlFixture(t,{summaryMutate:s=>{s.usage={sourceFacts:{title:'expired supplier text'}};}});
+  await assert.rejects(w.readPermanentFinalization('summary'),/permanent_control/);
+});
+
+test('expired activated-permanent control settles only the exact receipt and one telemetry epoch without repinning bodies',async t=>{
+  const {w,f,current,grant,summary}=await permanentControlFixture(t),before=await w.budget();
+  const published={...current.checkpoint.control.publication,stage:'published',receiptSha256:HASH};
+  let saved=await w.writeControlCheckpoint(current.sha256,{phase:'published',owner:null,control:{publication:published}});
+  const a=published.permit.mutationOwner,writer={...a,phase:'writing',generation:a.generation+1,token:'exact-finalizer',
+    ownerReference:'test-run:finalize',operationKey:sha256(`finalize:${HASH}`)};
+  for(const changed of [{...writer,generation:writer.generation+1},{...writer,epoch:writer.epoch+2},{...writer,ownerReference:'another-run'}])
+    await assert.rejects(w.writeControlCheckpoint(saved.sha256,{phase:'published',owner:changed,control:{publication:published}}),/control_owner|recovery_control/);
+  saved=await w.writeControlCheckpoint(saved.sha256,{phase:'published',owner:writer,control:{publication:published}});
+  await assert.rejects(w.writeControlCheckpoint(saved.sha256,{phase:'finalized',owner:null,control:{publication:published}}),/control_owner/);
+  await assert.rejects(w.writeControlCheckpoint(saved.sha256,{phase:'published',owner:{...writer,token:'different-finalizer'},control:{publication:published}}),/control_owner/);
+  const finished={...writer,epoch:writer.epoch+1};
+  saved=await w.writeControlCheckpoint(saved.sha256,{phase:'published',owner:finished,control:{publication:published}});
+  saved=await w.writeControlCheckpoint(saved.sha256,{phase:'finalized',owner:null,control:{publication:published}});
+  assert.deepEqual(saved.checkpoint.pins,current.checkpoint.pins);assert.deepEqual(saved.checkpoint.phaseComplete,current.checkpoint.phaseComplete);
+  assert.deepEqual(await w.readPermanentFinalization('summary'),summary);assert.deepEqual(await w.budget(),before);
+  await w.close();const resumed=await f.open({mode:'resume'});
+  assert.equal((await resumed.readCheckpoint({controlOnly:true})).checkpoint.phase,'finalized');
+  assert.deepEqual(await resumed.budgetCeiling(),{httpRequests:before.httpRequests+grant.allowance.httpRequests,sqlStatements:before.sqlStatements+grant.allowance.sqlStatements});
+  await assert.rejects(resumed.readCheckpoint(),/expired/);assert.equal((await resumed.budget()).unconfirmedRequests,1);
+});
 
 test('approved permanent finalization retains both grants/unknowns through exact telemetry and finalized readback',async t=>{
   const {f,w,saved,grant,finish}=await finalizationFixture(t),manifest=await readFile(join(w.directory,'manifest.json'));

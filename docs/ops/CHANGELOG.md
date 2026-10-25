@@ -1,5 +1,16 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 — approved post-activation settlement recovery
+
+[owner+codex] Cameron approved the previously requested bounded finalization
+allowance. The old finalizer could not consume it after private-body expiry.
+Added a narrowly admitted permanent-public/technical control reader, unchanged
+current D1/native publication checks and restart-safe receipt/telemetry settlement.
+No supplier deadline is renewed and no new build/upload/activation is permitted.
+Independent expiry, owner, lost-ack and receipt tests pass; ordinary expired reads
+still refuse. This is operator recovery code, not a claim of production acceptance.
+The existing daily writer remains held until actual recovery and catalog release.
+
 ## 2026-10-25 — final held review and complete private storefront acceptance
 
 [owner+codex] Final held-cohort review admits994of1024:3,353public/30held,

@@ -20,12 +20,12 @@ import { executePublication, validatePublicationConfig } from './publish-release
 import { accountedPublicationReadFetch, accountedPublicationFetch, isAccountedPublicationFetch } from './publication-read-fetch.ts';
 import { accountedPublicationUploadCommand, isAccountedPublicationUploadCommand } from './publication-upload-command.ts';
 import { approvedRequestControl, hydrateApprovedRequest, approvedRevisionControl, hydrateApprovedRevision,
-  approvedArtifactObservedAt, readApprovedPrior, createPublishedApprovedCatalogSeal } from './approved-catalog-seal.ts';
+  approvedArtifactObservedAt, readApprovedPrior, createPublishedApprovedCatalogSeal, createPublishedApprovedCatalogSealFromControl } from './approved-catalog-seal.ts';
 import {isPersistentCatalogSeal,reconstructPermanentSnapshot} from './permanent-catalog-seal.ts';
 import type {PermanentCatalogSeal} from './permanent-catalog-seal.ts';
 import type { ApprovedCatalogSeal } from './approved-catalog-seal.ts';
 import type { PublicationConfig } from './publish-release.ts';
-import { claimMutationOwnership, releaseMutationOwnership } from '../../lib/catalog/mutation-fence.ts';
+import { claimMutationOwnership, releaseMutationOwnership, readMutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import { approvedCohortOperationKey, approvedCohortVectorPlan } from '../../lib/catalog/freeze-approved-cohort.ts';
 import type { ApprovedCohortRequest, ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-cohort.ts';
@@ -241,6 +241,69 @@ type Dependencies={repository?:string;fetch?:typeof fetch;resolveToken?:(ref:Key
   finishRecovery?:{budget:PublicationFinishBudget;authorization:NonNullable<Parameters<typeof executePublication>[0]['finishAuthorization']>};
   publication?:Parameters<typeof executePublication>[0]['dependencies'];cadence?:Parameters<typeof dailyCatalogPhases>[0]};
 
+/** Only an already admitted, activated permanent release can enter this path.
+ * Normal supplier artifacts remain expired. No provider phase/build/upload or
+ * activation is created; the ordinary publisher settles the existing permit. */
+export async function settleActivatedPermanentWeekly(input:{db:CatalogD1 & {providerIdentity:string};ws:RunWorkspace;config:CloudflareWeeklyConfig;configSha256:string;
+  token:string;publication:NonNullable<Dependencies['publication']>;reviewedUploadRetry:Parameters<typeof executePublication>[0]['reviewedUploadRetry'];
+  finish:NonNullable<Dependencies['finishRecovery']>}){
+  const {db,ws,config}=input;
+  let saved=await ws.readCheckpoint({controlOnly:true});
+  if(!saved?.checkpoint.control?.publication?.permit)throw Error('weekly_permanent_settlement_invalid');
+  const releaseId=saved.checkpoint.control.publication.intent?.releaseId;
+  if(!releaseId||releaseId!==config.publication.releaseId)throw Error('weekly_permanent_settlement_invalid');
+  const control=await ws.readPermanentFinalization('revision') as unknown as ReturnType<typeof approvedRevisionControl>;
+  const save=async(phase:'published'|'finalized',owner:MutationOwner|null)=>{
+    saved=await ws.readCheckpoint({controlOnly:true});if(!saved?.checkpoint.control)throw Error('weekly_checkpoint_missing');
+    saved=await ws.writeControlCheckpoint(saved.sha256,{phase,owner,control:saved.checkpoint.control});
+  };
+  if(saved.checkpoint.phase!=='published'&&saved.checkpoint.phase!=='finalized'){
+    const p=saved.checkpoint.control!.publication!,owner=saved.checkpoint.owner;
+    if(!owner)throw Error('weekly_permanent_settlement_invalid');
+    const revision=p.stage==='published'?null:await hydrateApprovedRevision(db,owner,control);
+    const result=await executePublication({db,workspace:ws,owner,revision,...(revision?{approvedCatalog:revision}:{}),
+      requestId:p.requestId,runReference:p.runReference,config:config.publication,credentials:{cloudflareToken:input.token},
+      dependencies:input.publication,reviewedUploadRetry:input.reviewedUploadRetry,finishAuthorization:input.finish.authorization});
+    if(result.state!=='published')return{...result,budget:await ws.budget()};
+    if(result.releaseId!==releaseId)throw Error('weekly_publication_receipt_missing');
+    const receipt=(await db.prepare('SELECT * FROM publication_receipts WHERE release_id=?').bind(releaseId).all()).results;
+    if(receipt.length!==1)throw Error('weekly_publication_receipt_missing');
+    const seal=await createPublishedApprovedCatalogSealFromControl(db,control,
+      {releaseId,receiptSha256:sha256(canonicalJson(receipt[0]))},p.vectorPlan);
+    await ws.recordCatalogSuccessor(seal);await save('published',null);
+  }
+  if(saved!.checkpoint.phase==='finalized')return{state:'finalized',runId:config.runId,catalogSeal:await ws.catalogSuccessor(),budget:await ws.budget()};
+  if(!await ws.catalogSuccessor())throw Error('weekly_permanent_successor_missing');
+  const p=saved!.checkpoint.control!.publication!;
+  const summary=await ws.readPermanentFinalization('summary') as Record<string,unknown>;
+  const finish={...summary,status:'completed',counts:{...summary.counts as object,
+    publication:{status:'published',releaseId,receiptSha256:p.receiptSha256}}};
+  let owner=saved!.checkpoint.owner;
+  const scope={environment:config.environment,indexName:config.vectorIndex.name};
+  // A retained finalizer owner is reused; an idle scope after a lost release
+  // response must never be claimed into yet another generation.
+  if(!owner){owner=await claimMutationOwnership(db,scope,{phase:'writing',ownerReference:config.runId+':finalize',
+    operationKey:sha256(`finalize:${input.configSha256}`)});if(!owner)throw Error('weekly_finalize_owner');await save('published',owner);}
+  const cursor={current:owner},telemetry=createD1CatalogTelemetryStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision});
+  const prior=await telemetry.loadCatalogRun(config.runId);
+  if(prior?.run.status==='completed'){
+    if(canonicalJson(prior.run.counts)!==canonicalJson(finish.counts))throw Error('weekly_finalization_mismatch');
+    const actual=await readMutationOwner(db,scope);
+    if(actual){
+      if(canonicalJson({...actual,epoch:owner.epoch})!==canonicalJson(owner)||actual.epoch<owner.epoch||actual.epoch>owner.epoch+1)
+        throw Error('weekly_finalize_owner');
+      cursor.current=actual;await save('published',actual);
+    }
+  }else{
+    await telemetry.finishCatalogRun(config.runId,finish);const actual=await telemetry.loadCatalogRun(config.runId);
+    if(actual?.run.status!=='completed'||canonicalJson(actual.run.counts)!==canonicalJson(finish.counts))throw Error('weekly_finalization_mismatch');
+    await save('published',cursor.current);
+  }
+  await releaseExact(db,cursor.current);await save('finalized',null);
+  return{state:'finalized',runId:config.runId,releaseId,receiptSha256:p.receiptSha256,
+    catalogSeal:await ws.catalogSuccessor(),budget:await ws.budget()};
+}
+
 /** Concrete opt-in local command; no scheduling, schema enablement or ambient
  * credential fallback. A post-phase approval is independently reviewed/pinned.
  * The default Goose CLI/backend and its schedule are intentionally untouched.
@@ -328,7 +391,8 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       command:accountedPublicationUploadCommand({workspace:ws,scope:networkScope,
         send:dependencies.publication?.fetch??dependencies.fetch,command:dependencies.publication?.command}),
       observationFetch:accountedPublicationReadFetch(ws,observationSend,networkScope)};
-    await ws.purgeExpired();
+    const permanentFinalization=Boolean(finish&&await ws.budgetRowsReadCeiling()!==null);
+    if(!permanentFinalization)await ws.purgeExpired();
     let saved=await ws.readCheckpoint({controlOnly:true});
     if(saved&&['phases_running','phase_failed','attention','finalized'].includes(saved.checkpoint.phase)
       &&!(saved.checkpoint.phase==='attention'&&(resolving(saved.checkpoint)||reviewedUploadResume(saved,reviewedUploadRetry))))
@@ -348,6 +412,8 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
             throw new Error('weekly_finish_read_margin');
           await ws.reserveBudget(value);
         },settle:(id,value)=>ws.settleBudget(id,value)}});
+    if(permanentFinalization)return settleActivatedPermanentWeekly({db,ws,config,configSha256:options.configSha256,token,
+      publication,reviewedUploadRetry,finish:finish!});
     // Expiry never hides the minimal control identity required to resolve an
     // already-dispatched activation. No expired snapshot/evidence is read here.
     let cp:WorkspaceCheckpoint;

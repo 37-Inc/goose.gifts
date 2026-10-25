@@ -49,6 +49,7 @@ function validate(seal:PermanentCatalogSeal){
     ||permanentSourceDigest(seal.operationKey,envelope.generatedAt,seal.globalVectorWatermark,seal.inventory,seal.priorRow)!==seal.projectionReceipt.source_export_sha256)fail();
   return envelope;
 }
+export {validate as validatePermanentCatalogSeal};
 /** Transient OLD snapshot bytes are verified at their actual generatedAt. They
  * are never re-pinned as new merchant data; retain only this seal across expiry. */
 export async function reconstructPermanentSnapshot(db:CatalogD1,owner:MutationOwner,seal:PermanentCatalogSeal){

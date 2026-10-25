@@ -15,6 +15,16 @@ all charges and the authenticated read-only unknown. See current canonical
 Beads and the protected `editorial-finish-20261025` packet, not older unactivated
 handoffs. Do not start another supplier batch or force/release this owner.
 
+Cameron explicitly approved the bounded finalization allowance on October25:
+1,000 control HTTP / 8,000 SQL / 500,000 additional reads, retaining300,000
+account reads and every previous charge. Approval is no longer pending. The
+original private-body deadline elapsed while paused; use only the newly reviewed
+activated-permanent settlement operator recorded in `.4.9`, not frozen `d78`.
+It authenticates exact permanent-public/technical controls and current D1/native
+proof, completes the existing receipt/build and telemetry, and records idle and
+successor acceptance. Ordinary supplier reads still expire; no deadline, upload,
+activation, provider batch, owner takeover or global quota reset is introduced.
+
 Owner-approved cleanup (`.3.3`, `.5.4`, `.4.10`) is separately reviewed: restore
 994legacy held listings, retain30specific exclusions, render every card's short
 description and retire the redundant directory. Full3353-product preview,
