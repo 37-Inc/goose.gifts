@@ -200,8 +200,8 @@ async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environmen
         prior?[{id:priorDeployment,versions:[{version_id:activePriorVersion,percentage:100}],annotations:{'workers/message':'owned fixture prior'}}]:[]});
     }throw new Error(`Unexpected fixture HTTP ${url}`);
   };
-  const execute=(database=db,dependencies={},buildRecovery,reviewedUploadRetry)=>executePublication({db:database,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
-    credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock),...dependencies},buildRecovery,reviewedUploadRetry});
+  const execute=(database=db,dependencies={},buildRecovery,reviewedUploadRetry,finishAuthorization)=>executePublication({db:database,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
+    credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock),...dependencies},buildRecovery,reviewedUploadRetry,finishAuthorization});
   return{db,sql,owner,revision,fetch,command,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,commandEnvironments,checkpoint:()=>checkpoint,now:()=>new Date(clock),advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
     async nextRelease(){
       assert.equal((await readMutationOwner(db,scope)),null);
@@ -474,8 +474,8 @@ function readOnlyFailureCommand(f){
       throw Error('Synthetic child exited before POST');
     }});
 }
-async function readOnlyRetryFixture(t){
-  const f=await setup(t,{real:true,retentionMs:3600000});f.config.releaseId='fixture-run';
+async function readOnlyRetryFixture(t,options={}){
+  const f=await setup(t,{real:true,retentionMs:3600000,...options});f.config.releaseId='fixture-run';
   assert.equal((await f.execute(f.db,{command:readOnlyFailureCommand(f)})).errorCode,'publication_upload_command_failed');
   const cp=await f.workspace.readCheckpoint(),proof=await readOnlyUploadEvidence(f.workspace,cp.checkpoint.pins.publicationUploadPending,cp.checkpoint.pins.publicationUploadReview);
   const evidence=await f.workspace.putArtifact(proof,{kind:'publication',observedAt:f.now().toISOString()});
@@ -498,8 +498,8 @@ test('reviewed v4 real read-only journal proof preserves normal claims, original
   await f.reopen();assert.equal((await run()).state,'published');assert.equal(f.counts().uploadCalls,1);assert.equal(f.counts().activateCalls,1);
 });
 
-async function transportRetryFixture(t){
-  const {f,run,retry:first}=await readOnlyRetryFixture(t);
+async function transportRetryFixture(t,options={}){
+  const {f,run,retry:first}=await readOnlyRetryFixture(t,options);
   assert.equal((await run({command:readOnlyFailureCommand(f)})).errorCode,'publication_upload_command_failed');
   const cp=await f.workspace.readCheckpoint(),previous=cp.checkpoint.pins.publicationUploadRetryPending;
   assert.equal(cp.checkpoint.pins.publicationUploadRetryAcknowledged,undefined);
@@ -546,6 +546,20 @@ test('transport proof refuses any POST, SQL, unknown/unsettled request, third pa
     await assert.rejects(readOnlyTransportEvidence(f.workspace,previous),/publication_preflight_proof_invalid/);
     assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
   });
+});
+
+test('fresh bounded finish authority activates an acknowledged version after the old cutoff without upload or claim renewal',protectedMac,async t=>{
+  const {f,retry,run}=await transportRetryFixture(t,{retentionMs:27*3600000});
+  const command=protectedCommand(f,async c=>{await f.command(c);if(c.args.includes('upload'))f.mode.vectorFailure=true;});
+  assert.equal((await run({command})).state,'pending');f.mode.vectorFailure=false;
+  const before={...f.sql.prepare('SELECT * FROM catalog_build_requests').get()},counts=f.counts();
+  f.advance(25*3600000);
+  const finish={authorizationSha256:'a'.repeat(64),reviewedAt:f.now().toISOString(),
+    activationDeadline:new Date(f.now().getTime()+15*60000).toISOString(),versionReference:f.checkpoint().control.publication.versionReference};
+  const result=await f.execute(f.db,{command:protectedCommand(f)},undefined,retry,finish);
+  assert.equal(result.state,'published',JSON.stringify(result));assert.equal(f.counts().uploadCalls,counts.uploadCalls);
+  assert.equal(f.counts().activateCalls,1);const after=f.sql.prepare('SELECT * FROM catalog_build_requests').get();
+  for(const key of ['request_json','lease_token','run_reference','attempts','operator_recovery_json'])assert.equal(after[key],before[key]);
 });
 
 test('slow same-owner native proof stays outside the short reviewed deployment observation',protectedMac,async t=>{

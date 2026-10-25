@@ -296,6 +296,16 @@ export interface ReviewedUploadActivationInput {
   claim:CatalogBuildClaim;publication:PublicationClaim;versionReference:string;owner:MutationOwner;
   approval:ReviewedUploadActivationApproval;priorApproval?:ReviewedUploadActivationApprovalV1;
   original:{build:Record<string,unknown>;publication:Record<string,unknown>};
+  /** Separate fresh dispatch authority for an already acknowledged immutable
+   * upload. Original build/source/retention times are never rewritten. */
+  finishAuthorization?:{authorizationSha256:string;reviewedAt:string;activationDeadline:string;versionReference:string};
+}
+export function validatePublicationFinishAuthority(f:NonNullable<ReviewedUploadActivationInput['finishAuthorization']>,originalCutoff:string,versionReference:string){
+  if(!f||Object.keys(f).sort().join(',')!=='activationDeadline,authorizationSha256,reviewedAt,versionReference'
+    ||typeof f.authorizationSha256!=='string'||!HASH.test(f.authorizationSha256)||f.versionReference!==versionReference
+    ||canonicalTime(f.reviewedAt)<canonicalTime(originalCutoff)||canonicalTime(f.activationDeadline)<=f.reviewedAt
+    ||Date.parse(f.activationDeadline)-Date.parse(f.reviewedAt)>2*3600000)throw new Error('publication_finish_authorization_invalid');
+  return f.activationDeadline;
 }
 export function encodeReviewedUploadActivationApproval(value:ReviewedUploadActivationApproval):string {
   const keys='checkpointSha256,configSha256,evidenceSha256,packageSha256,requestId,reviewPinSha256,reviewReference,schemaVersion';
@@ -360,7 +370,12 @@ async function reviewedInput(value:ReviewedUploadActivationInput){
       ||receipt.approval.requestId!==c.requestId||receipt.approval.packageSha256!==a.packageSha256)reviewedRefuse();
   }
   canonicalTime(c.leaseUntil);canonicalTime(p.leaseUntil);
-  return{...i,activationDeadline:await reviewedUploadActivationDeadline(a,c.request.cutoff,i.priorApproval)};
+  let activationDeadline=await reviewedUploadActivationDeadline(a,c.request.cutoff,i.priorApproval);
+  if(i.finishAuthorization){
+    if(a.schemaVersion!==4)reviewedRefuse();
+    activationDeadline=validatePublicationFinishAuthority(i.finishAuthorization,c.request.cutoff,i.versionReference);
+  }
+  return{...i,activationDeadline};
 }
 function reviewedAssertion(db:CatalogD1,sql:string,params:unknown[]=[]){
   return db.prepare(`SELECT json(CASE WHEN ${sql} THEN 'true' ELSE 'build_reviewed_activation_fenced' END)`).bind(...params);
@@ -399,6 +414,7 @@ export async function beginReviewedUploadActivation(db:CatalogD1,value:ReviewedU
   const prior=await read('SELECT * FROM publication_receipts WHERE release_id=?',[c.request.priorReleaseId]);
   const header=(await read(`SELECT ${NOW} now,coalesce(max(rowid),0) epoch FROM publication_receipts`))[0],at=canonicalTime(String(header.now));
   if(prior.length!==1||c.leaseUntil>at||p.leaseUntil>at||i.activationDeadline<=at
+    ||i.finishAuthorization&&i.finishAuthorization.reviewedAt>at
     ||(i.approval.schemaVersion===3||i.approval.schemaVersion===4)&&i.approval.reviewedAt>at||p.intent.nextExpiry!==earliestDisplayExpiry(snapshot.products)
     ||await digest(`${JSON.stringify(snapshot)}\n`)!==c.request.sourceDigest||snapshot.products.some(x=>catalogDisplayDeadline(x)<=Date.parse(i.activationDeadline))
     ||!(await rollbackPreflight(db,snapshot,new Date(at))).ok)reviewedRefuse();
@@ -413,9 +429,10 @@ export async function beginReviewedUploadActivation(db:CatalogD1,value:ReviewedU
     AND NOT EXISTS(SELECT 1 FROM catalog_build_requests WHERE environment=? AND state='activating' AND request_id!=?)
     AND NOT EXISTS(SELECT 1 FROM publication_outbox WHERE catalog_revision=? AND state IN ('claimed','dispatched') AND intent_id!=?)
     AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE status!='complete') AND ?<=${NOW} AND ?<=${NOW}
-    ${i.approval.schemaVersion===4?`AND ?<=${NOW}`:''}`,
+    ${i.approval.schemaVersion===4?`AND ?<=${NOW}`:''}${i.finishAuthorization?` AND ?<=${NOW}`:''}`,
     [...imports.params,header.epoch,p.intent.releaseId,o.environment,c.requestId,
-      p.intent.catalogRevision,p.intentId,c.leaseUntil,p.leaseUntil,...(i.approval.schemaVersion===4?[i.approval.reviewedAt]:[])])];
+      p.intent.catalogRevision,p.intentId,c.leaseUntil,p.leaseUntil,...(i.approval.schemaVersion===4?[i.approval.reviewedAt]:[]),
+      ...(i.finishAuthorization?[i.finishAuthorization.reviewedAt]:[])])];
   const applied=reviewedApplied(i),fence=mutationFenceQuery(o,['freezing']);
   const statements=[...reviewedOwner(db,i,false),reviewedExact(db,'catalog_build_requests',i.original.build),
     reviewedExact(db,'publication_outbox',i.original.publication),reviewedExact(db,'publication_receipts',prior[0]),...ready(),

@@ -140,6 +140,26 @@ function recoveryCheckpoint(runId='test-run'){
 }
 const recoveryGrant=(checkpoint,allowance={httpRequests:2,sqlStatements:3})=>({expectedCheckpointSha256:checkpoint.sha256,approvalReference:'c'.repeat(64),allowance});
 
+test('acknowledged-upload finish budget is once-only, retains charges and cannot fund a second upload or arbitrary phase',async t=>{
+  const f=await fixture(t,{budgetCaps:{httpRequests:1,sqlStatements:2}}),w=await f.open();
+  await w.reserveBudget(reservation('original',2));await w.settleBudget('original',{status:'known',usage:{rowsRead:150,rowsWritten:5}});
+  const value=recoveryCheckpoint();value.phase='publishing';value.owner.phase='freezing';
+  value.control.publication.stage='uploaded';value.control.publication.permit=null;
+  const ack=await w.putArtifact({fixture:'actual-upload-ack'},{kind:'publication',observedAt:NOW});
+  value.pins.publicationUploadTransportAcknowledged=ack;
+  const saved=await w.writeCheckpoint(null,value),grant={expectedCheckpointSha256:saved.sha256,approvalReference:HASH,
+    versionReference:value.control.publication.versionReference,allowance:{httpRequests:2,sqlStatements:3},reportedRowsRead:1000};
+  const original=await readFile(join(w.directory,'manifest.json'));
+  for(const change of [{reportedRowsRead:2000001},{allowance:{httpRequests:1001,sqlStatements:3}},{versionReference:'another-version'}])
+    await assert.rejects(w.grantPublicationFinishBudget({...grant,...change}),/finish_budget_binding/);
+  assert.deepEqual(await w.grantPublicationFinishBudget(grant),{httpRequests:3,sqlStatements:5});
+  assert.deepEqual(await readFile(join(w.directory,'manifest.json')),original);
+  assert.equal((await w.budget()).knownRowsRead,150);await w.close();const resumed=await f.open({mode:'resume'});
+  assert.deepEqual(await resumed.grantPublicationFinishBudget(grant),{httpRequests:3,sqlStatements:5});
+  await assert.rejects(resumed.grantPublicationFinishBudget({...grant,reportedRowsRead:1100}),/finish_budget_replay/);
+  assert.equal((await resumed.budget()).knownRowsWritten,5);
+});
+
 test('catalog-sized technical vector coverage survives reopen; over-bound and duplicate IDs still refuse without native calls',async t=>{
   const f=await fixture(t),w=await f.open(),value=recoveryCheckpoint();
   value.control.publication.vectorPlan.ids=Array.from({length:10000},(_,i)=>`00000000-0000-4000-8000-${String(i).padStart(12,'0')}`);

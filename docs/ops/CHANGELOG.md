@@ -1,5 +1,18 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-24 PM — bounded uploaded-version finish and owner scope correction
+
+[owner+codex] Owner approved finishing the existing acknowledged upload on Free,
+without another supplier/model batch or build upload. Added a once-only same-ledger
+finish allowance, fresh bounded dispatch authority, canonical validation and
+read-only marked-CAS owner recovery before hydration; original claims, source
+retention and charges stay unchanged. Focused recovery/authority tests and
+independent review pass; actual activation/readback is the next operation, not
+claimed here. Owner also requires every product card description, directory
+retirement (not individual product URLs), publish-by-default resolution of old
+holds and exact-byte static-file consolidation; isolated implementations are
+being integrated under current Beads. Daily writer remains held until verified.
+
 ## 2026-10-24 — reviewed-finalizer timeout correction, not yet deployed
 
 [owner+codex] The fixed uploader produced a genuine immutable version and

@@ -17,7 +17,7 @@ import type { ApprovedCohortRevision } from '../../lib/catalog/freeze-approved-c
 import type { ActivationPermit, DeploymentIdentity, DeploymentObservation, BuildRecoveryApproval, ReviewedUploadActivationApproval, ReviewedUploadActivationApprovalV1, ReviewedUploadActivationInput } from '../../lib/catalog/build-requests.ts';
 import { beginBuildActivation, claimBuildRequest, encodeBuildRequest, resolveBuildActivation, drainDeploymentObservation,
   encodeBuildRecoveryApproval, recoverUnstartedBuildRequest, readUnstartedBuildRecovery,
-  encodeReviewedUploadActivationApproval, reviewedUploadActivationDeadline, beginReviewedUploadActivation, readReviewedUploadActivation } from '../../lib/catalog/build-requests.ts';
+  encodeReviewedUploadActivationApproval, reviewedUploadActivationDeadline, beginReviewedUploadActivation, readReviewedUploadActivation,validatePublicationFinishAuthority } from '../../lib/catalog/build-requests.ts';
 import { isAccountedPublicationFetch } from './publication-read-fetch.ts';
 import { isAccountedPublicationUploadCommand, PublicationUploadCommandError } from './publication-upload-command.ts';
 import { isCatalogD1Rest } from './d1-write-rest.ts';
@@ -330,10 +330,12 @@ function intentFrom(manifest:SiteAssetManifest,bytes:Uint8Array):PublicationInte
  */
 export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision;approvedCatalog?:ApprovedCohortRevision;requestId:string;runReference:string;
   workspace:PublicationWorkspace;config:PublicationConfig;credentials:{cloudflareToken:string;identityAuthorization?:string};dependencies?:Dependencies;buildRecovery?:BuildRecoveryApproval;
+  finishAuthorization?:ReviewedUploadActivationInput['finishAuthorization'];
   reviewedUploadRetry?:{approval:ReviewedUploadActivationApproval;evidence:ArtifactRef;priorApproval?:ReviewedUploadActivationApprovalV1;transport?:{previous:ArtifactRef}}}):Promise<PublicationResult>{
   const {db,workspace,revision}=options;const config=validatePublicationConfig(options.config);const now=options.dependencies?.now??(()=>new Date());
   if(options.buildRecovery)encodeBuildRecoveryApproval(options.buildRecovery);
   const reviewed=options.reviewedUploadRetry;
+  if(options.finishAuthorization&&!reviewed?.transport)throw new Error('publication_finish_authorization_invalid');
   const pendingLabel=reviewed?.transport?'publicationUploadTransportPending':'publicationUploadRetryPending';
   const ackLabel=reviewed?.transport?'publicationUploadTransportAcknowledged':'publicationUploadRetryAcknowledged';
   if(reviewed)encodeReviewedUploadActivationApproval(reviewed.approval);
@@ -417,6 +419,15 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         ||marker&&(!ack||ack.sha256!==sha256(canonicalJson(retryAck(marker))))||!marker&&ack)
         throw new Error('publication_upload_review_required');
       activationDeadline=await reviewedUploadActivationDeadline(a,control.build.request.cutoff,reviewed.priorApproval);
+      if(options.finishAuthorization){
+        const f=options.finishAuthorization;
+        validatePublicationFinishAuthority(f,control.build.request.cutoff,control.versionReference??'');
+        if(!reviewed.transport||!marker||!ack||!control.versionReference||f.versionReference!==control.versionReference
+          ||f.reviewedAt<control.build.request.cutoff||f.reviewedAt>now().toISOString()||f.activationDeadline<=f.reviewedAt
+          ||Date.parse(f.activationDeadline)-Date.parse(f.reviewedAt)>2*3600000
+          ||f.activationDeadline>workspace.manifest.retention.rules.publication.notAfter)throw new Error('publication_finish_authorization_invalid');
+        activationDeadline=f.activationDeadline;
+      }
       if((a.schemaVersion===3||a.schemaVersion===4)&&now().toISOString()<a.reviewedAt)throw new Error('publication_upload_retry_cutoff');
       if(!control.permit&&!marker&&now().toISOString()>=activationDeadline)throw new Error('publication_upload_retry_cutoff');
       // A marker without genuine command ACK is ALWAYS held before provider IO;
@@ -749,7 +760,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     if(!revision||owner.phase!=='freezing')throw new Error('publication_revision_required');
     // The routine whole-catalog mode requires its genuine COMPLETE policy and
     // every native/absence proof BEFORE a build/upload, not only at completion.
-    if(options.approvedCatalog)await vectorProof();
+    if(options.approvedCatalog&&!(reviewed&&checkpoint?.checkpoint.pins.reviewedUploadActivationPending))await vectorProof();
     assertBuildSource(config.sourceRoot,config.codeSha);
     if(control.stage==='claimed'){
       const context:ReleaseBuildContext={schemaVersion:1,sourceMode:config.sourceMode,releaseId:config.releaseId,codeSha:config.codeSha,
@@ -864,6 +875,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         if(!retryRecord)throw new Error('publication_upload_retry_fenced');
         const input:ReviewedUploadActivationInput={claim:control.build,publication:control.publication!,versionReference:control.versionReference!,
           owner:retryRecord.owner,approval:reviewed.approval,original:retryRecord.original,
+          ...(options.finishAuthorization?{finishAuthorization:options.finishAuthorization}:{}),
           ...(retryRecord.priorApproval?{priorApproval:retryRecord.priorApproval}:{})};
         const pins=checkpoint!.checkpoint.pins,expected={schemaVersion:1,input,retryPending:pins[pendingLabel],
           retryAcknowledged:pins[ackLabel],configSha256};

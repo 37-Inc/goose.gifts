@@ -5,7 +5,9 @@ import { readFile,readdir } from 'node:fs/promises';
 import { setup,scope,uuid } from './helpers/published-vector-fixture.mjs';
 import { canonicalJson,sha256 } from '../scripts/catalog/migration.ts';
 import { createProjectionPacket,projectionQueries } from '../lib/catalog/d1.ts';
-import { permanentSourceRows } from '../lib/catalog/freeze-permanent-catalog.ts';
+import { permanentSourceRows,permanentSourceInventory } from '../lib/catalog/freeze-permanent-catalog.ts';
+import { assertApprovedCatalogInventory } from '../scripts/catalog/permanent-catalog-seal.ts';
+import { recoverMarkedReviewedActivation } from '../scripts/catalog/run-cloudflare-weekly.ts';
 import { prunedVectorPlan } from '../lib/catalog/prune-existing-revision.ts';
 import { readHistoricalNativePreservation } from '../scripts/catalog/owned-vector-delivery.ts';
 import { enqueuePublication,claimPublication,recordPublicationDispatch } from '../lib/catalog/publication.ts';
@@ -142,6 +144,60 @@ test('v4 unknown atomic ACK reconciles read-only while missing/applied CAS never
   assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);assert.equal(writes,1);
   await assert.rejects(beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof,marked));assert.equal(writes,1);
   const g=await fixture(t,{preflight:true});await assert.rejects(readReviewedUploadActivation(g.db,g.input));assert.equal(g.batches.length,0);
+});
+
+async function markedDriverFixture(t,{applied=true,wide=false,transport=true}={}){
+  const f=await fixture(t,{preflight:true,wide}),config={fixture:'same exact publication config'};
+  f.input.approval.configSha256=sha256(canonicalJson(config));
+  const ref=value=>({sha256:sha256(canonicalJson(value)),reference:`objects/${sha256(canonicalJson(value))}.json`});
+  const pending=ref({original:f.input.original}),ack=ref({fixture:'genuine acknowledged upload'}),previous=ref('preserved failed retry'),retry={approval:f.input.approval,
+    evidence:{sha256:f.input.approval.evidenceSha256,reference:`objects/${f.input.approval.evidenceSha256}.json`},...(transport?{transport:{previous}}:{})};
+  const marker={schemaVersion:1,input:f.input,retryPending:pending,retryAcknowledged:ack,configSha256:f.input.approval.configSha256},pin=ref(marker);
+  const cp={phase:'publishing',owner:f.owner,state:{requestId:f.input.claim.requestId},phaseComplete:null,pins:{
+    publicationUploadPending:ref('original'),publicationUploadReview:{sha256:f.input.approval.reviewPinSha256,reference:`objects/${f.input.approval.reviewPinSha256}.json`},
+    publicationUploadRetryPending:previous,publicationUploadTransportPending:pending,publicationUploadTransportAcknowledged:ack,reviewedUploadActivationPending:pin},
+    control:{publication:{requestId:f.input.claim.requestId,configSha256:f.input.approval.configSha256,packageSha256:f.input.approval.packageSha256,
+      stage:'uploaded',build:f.input.claim,publication:f.input.publication,versionReference:f.input.versionReference,permit:null,deploymentId:null}}};
+  if(!transport){cp.pins.publicationUploadRetryPending=pending;cp.pins.publicationUploadRetryAcknowledged=ack;
+    delete cp.pins.publicationUploadTransportPending;delete cp.pins.publicationUploadTransportAcknowledged;}
+  const saved={sha256:hash,checkpoint:cp};let written=null;
+  const workspace={async readArtifact(value){if(value.sha256===pin.sha256)return structuredClone(marker);
+    if(value.sha256===pending.sha256)return{original:structuredClone(f.input.original)};throw Error('unexpected artifact');},
+    async writeCheckpoint(expected,value){assert.equal(expected,saved.sha256);written=value;}};
+  if(applied)await beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof,marked);
+  return{...f,options:{db:f.db,workspace,saved,config,retry},marker,cp,written:()=>written};
+}
+
+test('marked reviewed CAS is recovered before persistent inventory hydration without repeating any mutation',async t=>{
+  const f=await markedDriverFixture(t,{wide:true}),changes=f.sql.prepare('SELECT total_changes() n').get().n;
+  const rows=permanentSourceRows({products:f.sql.prepare('SELECT * FROM products').all(),
+    catalog_maintenance_products:f.sql.prepare('SELECT * FROM catalog_maintenance_products').all(),
+    catalog_maintenance_operations:f.sql.prepare('SELECT * FROM catalog_maintenance_operations').all()});
+  const revision={operationKey:f.owner.operationKey,nativeHistory:[],persistent:{generation:f.owner.generation,nativeHistory:[],inventory:permanentSourceInventory(rows)}};
+  await assert.rejects(assertApprovedCatalogInventory(f.db,f.cp.owner,revision)); // stale freezing owner cannot hydrate
+  const owner=await recoverMarkedReviewedActivation(f.options);assert.equal(owner.phase,'activating');
+  await assertApprovedCatalogInventory(f.db,owner,revision);
+  assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);
+  assert.equal(f.written(),null);assert.equal(f.cp.owner.phase,'freezing');assert.equal(f.cp.control.publication.permit,null);
+  same(await recoverMarkedReviewedActivation(f.options),owner); // no local dispatch/permit marker is consumed
+});
+
+test('marked reviewed CAS refuses missing application, missing ACK and tuple drift before hydration',async t=>{
+  for(const fault of ['not-applied','ack','marker-config','owner','version'])await t.test(fault,async t=>{
+    const f=await markedDriverFixture(t,{applied:fault!=='not-applied'}),changes=f.sql.prepare('SELECT total_changes() n').get().n;
+    if(fault==='ack')delete f.cp.pins.publicationUploadTransportAcknowledged;
+    if(fault==='marker-config')f.marker.configSha256='b'.repeat(64);
+    if(fault==='owner')f.cp.owner={...f.cp.owner,epoch:f.cp.owner.epoch+1};
+    if(fault==='version')f.cp.control.publication.versionReference=uuid(998);
+    await assert.rejects(recoverMarkedReviewedActivation(f.options));assert.equal(f.written(),null);
+    assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);
+  });
+});
+
+test('nontransport v4 marked publishing checkpoint retains exact read-only permit recovery',async t=>{
+  const f=await markedDriverFixture(t,{transport:false}),changes=f.sql.prepare('SELECT total_changes() n').get().n;
+  assert.equal((await recoverMarkedReviewedActivation(f.options)).phase,'activating');assert.equal(f.written(),null);
+  assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);
 });
 
 test('v4 source/native/prior/owner/claim drift and cutoff crossing retain all original rows',async t=>{
