@@ -1,4 +1,6 @@
 import type { CatalogD1 } from './storage/d1.ts';
+import {ownerBasePublicDuplicate} from './owner-base-review.ts';
+import type {OwnerBaseCatalogReview} from './owner-base-review.ts';
 import { catalogDisplayDeadline, persistentPublicProduct } from './display.ts';
 import type { CatalogSnapshot, SafeHeldProduct } from './types.ts';
 import type { ProjectionPacket } from './d1.ts';
@@ -225,7 +227,9 @@ export function prunedVectorPlan(revision: PrunedRevision): PrunedVectorPlan {
   const historical=new Set((revision.nativeHistory??[]).flatMap(group=>group.ids));
   const semantic = revision.snapshot.products.filter(product => !historical.has(product.publicId)&&product.eligibleUntil !== null
     && (!revision.request.context||Date.parse(product.eligibleUntil)>Date.parse(revision.request.context.cutoff)));
-  const absent = revision.request.previous.products.filter(product => !ready.has(product.publicId)).map(product => product.publicId);
+  const duplicate=ownerBasePublicDuplicate((revision.request as PruneRequest&{ownerBaseReview?:OwnerBaseCatalogReview}).ownerBaseReview,revision.request.previous);
+  if(duplicate&&revision.additionalAbsentIds?.includes(duplicate.publicId))throw Error('prune_duplicate_native_change');
+  const absent = revision.request.previous.products.filter(product => !ready.has(product.publicId)&&product.publicId!==duplicate?.publicId).map(product => product.publicId);
   if (semantic.some(product => {
     const value = rows.get(product.publicId)?.embedding_text_hash;
     return value !== null && (typeof value !== 'string' || !/^[a-f0-9]{64}$/.test(value));

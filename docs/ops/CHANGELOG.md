@@ -1,5 +1,18 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 — include the confirmed public tote duplicate in the same cleanup
+
+[owner+codex] Extended the existing owner-reviewed cleanup for the exact confirmed
+Dalmatian tote pair. Fresh capture and atomic CAS protect both rows and the keeper;
+only the duplicate's public visibility/status/pointer changes. Identities, original
+licensed content, slugs, active flag and native history remain. The authentic
+2,359-public predecessor is unchanged. Reviewed next membership is3,352public and
+31held:994promotions, seven total exact duplicates and24specific commodity holds,
+all3,383identities and42articles. Shared factual notes are990 after removing that
+one now-held key. Prior3,353/991 audits stay historical. Targeted publication,
+successor/native-preservation tests, types/lint and two independent reviews pass.
+This is not live until the original recovery and normal publication are accepted.
+
 ## 2026-10-25 — verify the original activated package, not a new feed
 
 [owner+codex] The admitted permanent-only recovery reached the publisher but

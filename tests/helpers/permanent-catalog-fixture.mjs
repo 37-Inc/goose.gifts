@@ -17,7 +17,7 @@ const accountId='a'.repeat(32),databaseId=uuid(9999),manifest='b'.repeat(64),ass
 const svg='<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h10"/></svg>';
 const grant=value=>({basis:'owned',value,reference:'ROOT approved exact synthetic value; no real rights claim'});
 
-export async function permanentCatalogFixture(t,{count=12,afterExpiry=false,merchant=false,publicCount=2361,initialTime,ownerHeld=0,ownerDuplicates=0,meter}={}){
+export async function permanentCatalogFixture(t,{count=12,afterExpiry=false,merchant=false,publicCount=2361,initialTime,ownerHeld=0,ownerDuplicates=0,meter,publicDuplicate=false}={}){
   const f=await setup(t,{providerIdentity:`cloudflare:${accountId}:${scope.indexName}`,merchant,...(initialTime===undefined?{}:{initialTime})});
   if(afterExpiry)f.advance(Date.parse(f.revision.snapshot.products[0].eligibleUntil)-f.now().getTime()+3600000);
   let statements=0,requests=0,maxRequest=0,maxResponse=0,loseSeal=false,inspect,lastFailure;const queryText=[],queryWire=[];
@@ -56,9 +56,10 @@ export async function permanentCatalogFixture(t,{count=12,afterExpiry=false,merc
   const claim=key=>claimMutationOwnership(db,scope,{phase:'writing',ownerReference:key,operationKey:sha256(key)});
   const owner=await claim('union'),initial=await captureOwnedD1({db,owner,reference:'Synthetic initial capture',stoppedWriters:writers()});
   const source=Array.from({length:count},(_,i)=>{const n=i+1,current=initial.capture.tables.products.find(p=>p.public_id===uuid(n));
-    return{id:`B${String(n).padStart(9,'0')}`,public_id:uuid(n),slug:current?.slug??`original-gift-${n}`,source:'amazon',
+    const id=publicDuplicate&&n===11?'B0BQ9LZNXN':publicDuplicate&&n===12?'B0DP9GRD9K':`B${String(n).padStart(9,'0')}`;
+    return{id,public_id:uuid(n),slug:current?.slug??`original-gift-${n}`,source:'amazon',
       title:ownerHeld&&n>count-ownerHeld&&n<=count-ownerHeld+ownerDuplicates?'Brass lobster desk bell':`Supplier fixture ${n}`,
-      price:'19.99',currency:'USD',image_url:`https://supplier.invalid/${n}.jpg`,affiliate_url:`https://www.amazon.com/dp/B${String(n).padStart(9,'0')}?tag=fixture-20`,
+      price:'19.99',currency:'USD',image_url:`https://supplier.invalid/${n}.jpg`,affiliate_url:`https://www.amazon.com/dp/${id}?tag=fixture-20`,
       source_query:'synthetic',humor_tags:'{}',punny_title:null,witty_description:ownerHeld&&n>count-ownerHeld?`Original owned short description ${n}.`:null,
       quality_score:ownerHeld&&n>count-ownerHeld?'0.50':'0.85',rating:null,review_count:null,
       is_active:ownerHeld?n<=count-ownerHeld&&![9,10].includes(n):count===3383?n<=publicCount+2&&![9,10].includes(n):![9,10].includes(n),editorial_writeup:null,source_facts:null,source_facts_hash:null,

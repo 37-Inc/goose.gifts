@@ -8,10 +8,11 @@ import {CatalogDescription} from '../static-site/components/CatalogPhotos.tsx';
 globalThis.React=React;
 const copy=JSON.parse(fs.readFileSync(new URL('../content/catalog-card-descriptions.json',import.meta.url),'utf8'));
 
-test('all991 retained short descriptions are bounded, unique factual presentation records',()=>{
+test('all990 retained short descriptions are bounded, unique factual presentation records',()=>{
   const entries=Object.entries(copy);
-  assert.equal(entries.length,991);
-  assert.equal(new Set(entries.map(([,p])=>p.description)).size,991);
+  assert.equal(entries.length,990);
+  assert.equal(new Set(entries.map(([,p])=>p.description)).size,990);
+  for(const id of ['B0BQ9LZNXN','B0F45GMFH3','B0F912SZ4M'])assert.equal(copy[id],undefined,'held duplicate metadata must not enter shared client code');
   for(const duplicate of ['B0F45GMFH3','B0F912SZ4M']) assert.equal(Object.hasOwn(copy,duplicate),false);
   for(const [id,p] of entries){
     assert.match(id,/^[A-Z0-9]{10}$/);

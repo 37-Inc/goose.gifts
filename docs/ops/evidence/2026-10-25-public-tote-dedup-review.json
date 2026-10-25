@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "state": "offline-reviewed-one-public-duplicate-not-live-application",
+  "duplicate": "B0BQ9LZNXN",
+  "keeper": "B0DP9GRD9K",
+  "reason": "Root visually confirmed the same pale-blue folding tote with the identical colorful Dalmatian-puppy-and-egg print in photos41kMxF1NzzL and61CQBRKhKuL. Literal original titles/facts identify no differing size, quantity, color or model. This is one exact reviewed public pair, not broad-family or missing-data deduplication.",
+  "acceptedBaselineSha256": "325075a5ab8ba0fbd6b176232edfdebe6fd0dac60b6ef3ac350f81b32daba618",
+  "acceptedBaselineUnchanged": true,
+  "historical3353PreviewAnd991CopyAuditUnchanged": true,
+  "livePrerequisite": "Finish the activated prior publication, then fresh-capture1024held records plus BOTH exact public tote rows/sidecars under the existing owner lock. The original archive/display fixture below is not a current D1 capture or publication proof.",
+  "mutationScope": {
+    "rowColumns": ["duplicate_of_product_id", "editorial_status", "catalog_revision", "public_display_json"],
+    "sidecarColumns": ["version", "semantic_json"],
+    "isActiveUnchanged": true,
+    "keeperUnchangedAndExactCasChecked": true,
+    "nativeFieldsAndProviderEntriesUnchanged": true,
+    "sourceHistoryLicensedFieldsAndSlugsUnchanged": true,
+    "globalDuplicateRegistryUnchanged": true,
+    "ordinaryFourKeyReviewAndDailyCapsUnchanged": true
+  },
+  "offlineMembershipFixture": {
+    "source": "Original3383-product archive plus exact accepted2359-public display values, synthetic current-row mapping for the two public rows; READ ONLY, not a live D1 plan.",
+    "planSha256": "58b86441986f9775d69a036e694c6b19bcc9304fd630e83236b000529a1ad340",
+    "snapshotSha256": "2025cb3d6d4c8c16af263ed06075571623019a7856f65be9c30218dfe2c60ed9",
+    "capturedFixtureRows": 1026,
+    "promotions": 994,
+    "public": 3352,
+    "held": 31,
+    "heldDuplicateExclusions": 6,
+    "publicDuplicateExclusions": 1,
+    "individuallyReviewedQualityExclusions": 24,
+    "identities": 3383,
+    "originalArticles": 42,
+    "allOther2358PublicProductsExact": true,
+    "batches": 67,
+    "providerRequests": 0,
+    "modelRequests": 0,
+    "nativeWrites": 0,
+    "protectedFilesWritten": 0
+  },
+  "sharedCopy": {
+    "previousEntries": 991,
+    "removed": ["B0BQ9LZNXN"],
+    "remainingEntries": 990,
+    "reason": "Do not embed the excluded public duplicate title in shared client JavaScript. Existing crown exclusions remain absent. The historical991-entry audit records its actual earlier preview, not this proposal."
+  }
+}
