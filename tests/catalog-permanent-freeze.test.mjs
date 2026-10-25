@@ -162,9 +162,10 @@ test('ordinary permanent executor keeps source, held, projection, prior, native 
   });
 });
 
-for(const scenario of [{count:12},{count:3383},{count:3383,publicCount:3355,newCount:0,routine:true}]){
-const {count,publicCount=2359,routine=false}=scenario;
-test(`authentic permanent successor preserves mixed native history across expired workspaces (${count} identities${routine?' /3355public routine30k':''})`,
+for(const scenario of [{count:12},{count:3383},{count:3383,publicCount:3355,newCount:0,routine:true},
+  {count:3383,publicCount:3355,newCount:20,routine:true,monday:true}]){
+const {count,publicCount=2359,routine=false,monday=false}=scenario;
+test(`authentic permanent successor preserves mixed native history across expired workspaces (${count} identities${routine?` /3355public ${monday?'Monday30 ':''}routine30k`:''})`,
   {skip:routine&&process.env.CATALOG_FULL_CAPACITY!=='1'},async t=>{
   const f=await fixture(t,{count,publicCount}),prepared=await preparePermanentCatalog(f.db,f.owner,f.request),permanent=prepared.revision;
   async function publish(revision,queued,priorIntent,permanentMode=false){
@@ -269,9 +270,9 @@ test(`authentic permanent successor preserves mixed native history across expire
     for(const [id,vector] of stableVectors){assert.deepEqual(f.index.get(id),vector);assert.ok(Object.is(f.index.get(id).values[0],-0));}
     for(const id of targets.map(n=>uuid(n)))assert.ok(Object.is(f.index.get(id).values[0],-0));
     assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests WHERE state=\'resolved\'').get().n,day+2);
-    if(routine){assert.equal(revision.snapshot.products.length,3355);assert.equal(revision.snapshot.heldProducts.length,28);
+    if(routine){assert.equal(revision.snapshot.products.length,3355+newCount);assert.equal(revision.snapshot.heldProducts.length,28);
       assert.ok(f.db.metrics().reportedRowsWritten<30000);assert.ok(f.db.metrics().reportedRowsRead<1500000);assert.ok(f.db.metrics().statements<12000);}
-    if(count===3383)t.diagnostic(JSON.stringify({scenario:`authentic-successor-day-${day}${routine?'-3355-routine30k':''}`,refreshes:refreshes.length,newProducts:day===1?newCount:0,
+    if(count===3383)t.diagnostic(JSON.stringify({scenario:`authentic-successor-day-${day}${routine?`-3355-${monday?'Monday30-':''}routine30k`:''}`,refreshes:refreshes.length,newProducts:day===1?newCount:0,
       publicProducts:revision.snapshot.products.length,heldProducts:revision.snapshot.heldProducts.length,
       identities:revision.persistent.inventory.length,historicalNative:plan.history.flatMap(g=>g.ids).length,currentNative:plan.products.length,
       d1:f.db.metrics(),scope:routine?'offline workerd index-inclusive counters; genuine prior/policy/native/publisher-resolution, no provider calls'

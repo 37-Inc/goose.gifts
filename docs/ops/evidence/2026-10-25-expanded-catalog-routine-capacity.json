@@ -5,6 +5,7 @@
   "scope": "Local workerd SQL mirror and real REST/SQLite catalog primitives; no provider calls, merchant fetches, model calls, upload or live deployment",
   "runtimeBase": "9370d40be1e01255baa5b5e68694e2f7df3bbda0",
   "command": "CATALOG_FULL_CAPACITY=1 node --import tsx --test --test-name-pattern='3355public routine30k' tests/catalog-permanent-freeze.test.mjs",
+  "mondayCommand": "CATALOG_FULL_CAPACITY=1 node --import tsx --test --test-name-pattern='Monday30 routine30k' tests/catalog-permanent-freeze.test.mjs",
   "catalog": {
     "identities": 3383,
     "public": 3355,
@@ -36,6 +37,38 @@
       "unconfirmedRequests": 0
     }
   ],
+  "mondayWorkerdMeasuredDays": [
+    {
+      "day": 1,
+      "refreshes": 10,
+      "syntheticQualityApprovedDiscoveries": 20,
+      "identities": 3403,
+      "public": 3375,
+      "held": 28,
+      "currentNative": 30,
+      "historicalNative": 7,
+      "httpRequests": 3639,
+      "sqlStatements": 6224,
+      "rowsRead": 1231045,
+      "rowsWritten": 21313,
+      "unconfirmedRequests": 0
+    },
+    {
+      "day": 2,
+      "refreshes": 10,
+      "syntheticQualityApprovedDiscoveries": 0,
+      "identities": 3403,
+      "public": 3375,
+      "held": 28,
+      "currentNative": 10,
+      "historicalNative": 36,
+      "httpRequests": 3090,
+      "sqlStatements": 4708,
+      "rowsRead": 1322332,
+      "rowsWritten": 20613,
+      "unconfirmedRequests": 0
+    }
+  ],
   "verified": [
     "Ten genuine maintenance-store updates and existing native proof per day",
     "All catalog IDs, held records and existing native history preserved",
@@ -53,7 +86,8 @@
     "Grouping reduces SQL statements from 3355 to 384 and SQLite internal FTS churn; no provider write reduction is claimed",
     "Workerd mirrors all ordinary SQL and checks ordered values; physical schema metadata rowids differ from Node SQLite",
     "Initial migration setup and local mirror seeding are excluded from separate daily budgets, not erased or reused",
-    "This is a two-day ten-refresh proof, not a Monday thirty-change/discovery proof or live provider acceptance",
+    "Monday uses fictional independently cleared discoveries and local vector adapters, not merchant/model/provider calls or live acceptance",
+    "The following-day expanded-catalog read margin is 177668 rows; retain finite caps, fresh headroom checks and measured live followup",
     "Actual account-wide Free headroom and immutable run accounting remain mandatory before execution and publication"
   ],
   "reference": "https://developers.cloudflare.com/d1/platform/pricing/"
