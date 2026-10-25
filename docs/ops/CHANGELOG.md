@@ -11,6 +11,21 @@ Independent expiry, owner, lost-ack and receipt tests pass; ordinary expired rea
 still refuse. This is operator recovery code, not a claim of production acceptance.
 The existing daily writer remains held until actual recovery and catalog release.
 
+## 2026-10-25 AM — routine frozen Pinterest measurements
+
+[daily-ops] Actual16:31:42.267UTC:28 public Pins, v11P6/F6; P1448/22opens/3saves/
+2native outbound,F355/5/1/0. Only distribution increases; native actions unchanged.
+Explicit bounded GA4/PostHog reads succeed; attributable downstream remains
+unknown. No new checkpoint or lifecycle transition due.14 validated events,
+1012-event log valid; receipt/limits in `pinterest-measurements/2026-10-25-am/`.
+No public Pin created or creative/account/catalog/site/schedule/Bead mutation,
+deployment or spend. Same ACTIVE measurement cadence and October31 review/freeze.
+Fresh integration install hit ENOSPC. Removed only this run's incomplete525MB
+dependencies; reused byte-identical-lock shared install, focused gates pass.
+Host still has648MiB free; notify owner to free space, not to change the schedule.
+Evidence PR[#280](https://github.com/37-Inc/goose.gifts/pull/280); retained
+measurement receipt1408e67/storage recoverya86a0b1. No site publication implied.
+
 ## 2026-10-25 — final held review and complete private storefront acceptance
 
 [owner+codex] Final held-cohort review admits994of1024:3,353public/30held,
