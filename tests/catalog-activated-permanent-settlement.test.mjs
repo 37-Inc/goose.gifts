@@ -17,6 +17,12 @@ const scope={environment:'production',indexName:'synthetic'};
 const network=globalThis.fetch;globalThis.fetch=async()=>{throw Error('Live network forbidden');};
 test.after(()=>{globalThis.fetch=network;});
 
+test('weekly driver awaits settlement before its finally closes the protected workspace',async()=>{
+  const source=await readFile(new URL('../scripts/catalog/run-cloudflare-weekly.ts',import.meta.url),'utf8');
+  assert.match(source,/if\(permanentFinalization\)return await settleActivatedPermanentWeekly\(/);
+  assert.match(source,/finally\{try\{await workspace\?\.close\(\)/);
+});
+
 async function sealFixture(){
   const snapshot={schemaVersion:1,dataKind:'catalog',catalogRevision:'synthetic-catalog',generatedAt:OLD,
     products:[{id:'B000000001',publicId:UUID,slug:'owned-fixture',source:'amazon',title:'Owned fixture gift',

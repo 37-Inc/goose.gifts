@@ -1,5 +1,14 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 — retain the workspace until settlement completes
+
+[owner+codex] Live preflight restored the missing frozen runtime from its exact
+Git commit, without rebuilding or republishing. The approved recovery allowance
+was then recorded, but a missing await closed the workspace before settlement.
+Corrected the asynchronous lifetime and added a regression guard. Original
+publication/checkpoint, ledger, read-only unknown and allowance remain unchanged;
+resuming uses that same grant, never a replacement allowance or activation.
+
 ## 2026-10-25 — approved post-activation settlement recovery
 
 [owner+codex] Cameron approved the previously requested bounded finalization
