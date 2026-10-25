@@ -7,7 +7,7 @@ import {openRunWorkspace,readRunWorkspace} from './run-workspace.ts';
 import {resolveWranglerOAuth} from './check-cloudflare-runner.ts';
 import {runCloudflareWeekly,weeklyCommandSummary,readOrdered} from './run-cloudflare-weekly.ts';
 import {sha256,canonicalJson} from './migration.ts';
-import type {PublicationFinishBudget,RunWorkspace} from './run-workspace.ts';
+import type {ActivationRecoveryBudget,PublicationFinishBudget,RunWorkspace} from './run-workspace.ts';
 import type {ReviewedUploadActivationInput} from '../../lib/catalog/build-requests.ts';
 import {createCatalogD1Rest} from './d1-write-rest.ts';
 import {accountedPublicationFetch} from './publication-read-fetch.ts';
@@ -28,6 +28,26 @@ const ORIGINAL_CONTROLLER='c7859d302bdd5164792d7bdb9450f07a92dab469';
 function fail(code:string):never{throw Error('editorial_finish_'+code);}
 interface Profile {schemaVersion:1;controllerSha:string;authorizationSha256:string;
   budget:PublicationFinishBudget;authorization:NonNullable<ReviewedUploadActivationInput['finishAuthorization']>}
+
+export function validateActivatedFinalizationConsent(value:unknown){
+  const a=value as Record<string,unknown>;
+  if(!a||Object.keys(a).sort().join(',')!==['schemaVersion','scope','approvedAt','checkpointSha256','versionReference','deploymentId',
+    'additionalHttpRequests','additionalSqlStatements','additionalRowsRead','minimumUntouchedAccountReads','newProductFetches','newModelCalls','newBuildUploads','paidUpgrade'].sort().join(',')
+    ||a.schemaVersion!==1||a.scope!=='roadmap-lbbz1.4.9/activated-finalization'
+    ||typeof a.approvedAt!=='string'||!Number.isFinite(Date.parse(a.approvedAt))||new Date(a.approvedAt).toISOString()!==a.approvedAt
+    ||a.approvedAt>new Date().toISOString()||a.checkpointSha256!=='129b9b843037dc866241b55dff9b42805ad3518fd8340818d19c8685662a438f'
+    ||a.versionReference!==VERSION||a.deploymentId!=='781f25c8-3b81-42a0-8b32-d48ea5d1f501'
+    ||a.additionalHttpRequests!==1000||a.additionalSqlStatements!==8000||a.additionalRowsRead!==500000
+    ||a.minimumUntouchedAccountReads!==300000||a.newProductFetches!==0||a.newModelCalls!==0||a.newBuildUploads!==0||a.paidUpgrade!==false)fail('finalization_authority');
+  return a;
+}
+async function admitActivatedFinalization(w:RunWorkspace,file:string,digest:string){
+  if(!file.startsWith(OUTPUT+'/')||!/^[a-f0-9]{64}$/.test(digest))fail('finalization_authority');
+  const a=validateActivatedFinalizationConsent((await readUploadPrivate(file,digest)).value);
+  const grant:ActivationRecoveryBudget={expectedCheckpointSha256:String(a.checkpointSha256),approvalReference:digest,
+    scope:'approved-permanent-finalization',reportedRowsRead:2341389,allowance:{httpRequests:1000,sqlStatements:8000}};
+  await w.grantActivationRecoveryBudget(grant);
+}
 
 async function reviewedReadUncertainty(w:RunWorkspace){
   const spent=await w.budget();if(spent.unconfirmedRequests===0)return;
@@ -60,7 +80,7 @@ async function reviewedReadUncertainty(w:RunWorkspace){
 
 async function freeCapacity(w:RunWorkspace,token:string){
   await reviewedReadUncertainty(w); // Retained unknown is classified, NEVER refunded.
-  const spent=await w.budget(),id=randomUUID(),url='https://api.cloudflare.com/client/v4/graphql';
+  const spent=await w.budget(),readLimit=await w.budgetRowsReadCeiling()??2000000,id=randomUUID(),url='https://api.cloudflare.com/client/v4/graphql';
   const body=JSON.stringify({query:'query($a:string!,$d:Date!){viewer{accounts(filter:{accountTag:$a}){d1AnalyticsAdaptiveGroups(limit:10000,filter:{date_geq:$d,date_leq:$d}){sum{rowsRead rowsWritten}}}}}',
     variables:{a:w.manifest.scope.accountId,d:new Date().toISOString().slice(0,10)}});
   await w.reserveBudget({id,requestSha256:sha256(url+body),units:{httpRequests:1,sqlStatements:0}});
@@ -73,7 +93,7 @@ async function freeCapacity(w:RunWorkspace,token:string){
     ||groups.some((g:{sum:{rowsRead:number;rowsWritten:number}})=>!Number.isSafeInteger(g.sum?.rowsRead)||g.sum.rowsRead<0
       ||!Number.isSafeInteger(g.sum?.rowsWritten)||g.sum.rowsWritten<0))fail('headroom');
   const reads=groups.reduce((n:number,g:{sum:{rowsRead:number}})=>n+g.sum.rowsRead,0),writes=groups.reduce((n:number,g:{sum:{rowsWritten:number}})=>n+g.sum.rowsWritten,0);
-  if(Math.max(reads,spent.knownRowsRead)+Math.max(0,2000000-spent.knownRowsRead)+500000+300000>5000000
+  if(Math.max(reads,spent.knownRowsRead)+Math.max(0,readLimit-spent.knownRowsRead)+500000+300000>5000000
     ||Math.max(writes,spent.knownRowsWritten)+Math.max(0,30000-spent.knownRowsWritten)+5000+10000>100000
     ||spent.unconfirmedRequests>1)fail('free_capacity');
   return{reads,writes};
@@ -87,10 +107,11 @@ async function reconcile(controllerSha:string){
       join(BASE,'editorial-recovery-20261024-reviewed-1e3b505/job.json'),'288eff3237914982079ab42cb224fa600b67031fe7bb511de25481db147d079d')).value;
     const token=await resolveWranglerOAuth(),s=w.manifest.scope,caps=await w.budgetCeiling();
     await freeCapacity(w,token);
+    const readLimit=await w.budgetRowsReadCeiling()??2000000;
     const db=await createCatalogD1Rest({accountId:s.accountId,databaseId:s.databaseId,databaseName:s.databaseName,token,
-      limits:{requests:caps.httpRequests,statements:caps.sqlStatements,reportedRowsRead:2000000,reportedRowsWritten:30000},
+      limits:{requests:caps.httpRequests,statements:caps.sqlStatements,reportedRowsRead:readLimit,reportedRowsWritten:30000},
       accounting:{scope:{accountId:s.accountId,databaseId:s.databaseId,databaseName:s.databaseName},initial:await w.budget(),
-        reserve:async r=>{if((await w.budget()).knownRowsRead+80000>2000000)fail('read_margin');await w.reserveBudget(r);},settle:(id,x)=>w.settleBudget(id,x)}});
+        reserve:async r=>{if((await w.budget()).knownRowsRead+80000>readLimit)fail('read_margin');await w.reserveBudget(r);},settle:(id,x)=>w.settleBudget(id,x)}});
     const send=accountedPublicationFetch(w,fetch,{...s,identityOrigin:effective.publication.identityOrigin});
     return await reconcileEditorialRecoverySuccessor({workspace:w,binding:{runId:w.manifest.runId,originalConfigSha256:w.manifest.configSha256,
       originalCodeSha:w.manifest.codeSha,publicationConfigSha256:job.adoption.effective.publicationConfigSha256,executionCodeSha:job.adoption.effective.codeSha,
@@ -102,7 +123,8 @@ async function reconcile(controllerSha:string){
 
 export async function finishEditorialUpload(args:string[]){
   if(process.versions.node.split('.')[0]!=='22'||Object.keys(process.env).some(k=>/^(AMAZON_|OPENAI_|POSTGRES_|VERCEL_|CATALOG_|CLOUDFLARE_API_TOKEN)/.test(k)))fail('environment');
-  if(args.length!==7||!['prepare','publish'].includes(args[0])||args[1]!=='--controller-sha'||args[3]!=='--authorization'||args[5]!=='--authorization-sha')fail('arguments');
+  if(![7,11].includes(args.length)||!['prepare','publish'].includes(args[0])||args[1]!=='--controller-sha'||args[3]!=='--authorization'||args[5]!=='--authorization-sha'
+    ||args.length===11&&(args[0]!=='publish'||args[7]!=='--finalize-authorization'||args[9]!=='--finalize-authorization-sha'))fail('arguments');
   const [command,,controllerSha,,authorizationPath,,authorizationSha256]=args;
   if(!authorizationPath.startsWith(OUTPUT+'/')||!/^[a-f0-9]{64}$/.test(authorizationSha256))fail('authorization');
   const consent=(await readUploadPrivate<{scope:string;approvedAt:string;additionalHttpRequests:number;additionalSqlStatements:number;additionalRowsRead:number;
@@ -130,6 +152,7 @@ export async function finishEditorialUpload(args:string[]){
     if(pins.publicationUploadTransportAcknowledged.sha256!==sha256(canonicalJson(expectedAck)))fail('upload_ack');
     if(canonicalJson(await w.readArtifact(pins.publicationUploadTransportAcknowledged))!==canonicalJson(expectedAck))fail('upload_ack');
     if(cp.checkpoint.phase==='finalized')fail('state_changed');
+    if(args.length===11)await admitActivatedFinalization(w,args[8],args[10]);
     const token=await resolveWranglerOAuth(),{reads,writes}=await freeCapacity(w,token);
     if(command==='prepare'){
       if(cp.sha256!==CHECKPOINT||c.stage!=='uploaded'||c.permit||cp.checkpoint.owner?.phase!=='freezing'

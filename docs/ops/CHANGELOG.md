@@ -1,5 +1,32 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 — repair live; final bookkeeping and catalog expansion pending
+
+[owner+codex] The existing uploaded version is now actually serving the eight-
+article repair as daily-2026-10-24-628707b5/runtime1e3b505. Independent public checks
+retain2359images/descriptions and42original articles. No second supplier/model
+batch or upload was used. Receipt/build/idle/successor settlement remains pending
+after the internal same-run request cap; all5585HTTP/9582SQL/1841389reads/
+14444writes and one authenticated read-only unknown stay charged. A separate
+bounded post-activation finalization allowance is requested, not assumed granted.
+Native-only finish verification keeps exact policy/bits/history; ordinary full
+reads retain their original cutoff. Reviewed postflight simplification removes
+two redundant same-owner inventory scans, preserving fresh final inventory,
+both source/projection boundaries, actual native/deployment and idle checks.
+
+The full owner-approved gallery/hold cleanup is separately implemented in PR279,
+not yet published. Every card shows its existing short description; home replaces
+the redundant directory, while individual product URLs remain. Actual full3355
+preview:17237physical files,6802exact-byte aliases,2763Free-file headroom; all
+images/descriptions and42articles retained. Desktop/mobile/search/load-more/empty
+states and independent full asset/policy verification pass. Reviewed holds:
+996promotions, four exact duplicate exclusions,24per-ID commodity objections,
+all3383identities/history preserved. The one-time source-pinned operator fresh-
+captures and requires the actual plan SHA, retaining ordinary daily limits.
+Independent review identified two commit-before-checkpoint resume edges; fix and
+fault-test those before live dispatch. Existing daily task stays held until
+both original settlement and final catalog acceptance are genuinely complete.
+
 ## 2026-10-24 PM — match the rejected read-only deadline assertion
 
 [owner+codex] First finish attempt stopped before activation. Offline exact
