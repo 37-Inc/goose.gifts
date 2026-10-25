@@ -284,7 +284,18 @@ async function run(command:'prepare'|'publish',c:HeldCommandConfig,configSha256:
     }
     let revision:ApprovedCohortRevision|undefined;
     if(cp!.phase==='freezing'){
-      const request=await blob<ApprovedCohortRequest>(cp!.pins.request),prepared=await prepareOwnedApprovedCohortPlan({db,owner:cp!.owner!,request,adapters});
+      const request=await blob<ApprovedCohortRequest>(cp!.pins.request);
+      type Intent={schemaVersion:1;kind:'held-projection-seal-intent';owner:MutationOwner;revision:WorkspaceCheckpoint['pins'][string];revisionSha256:string};
+      const intent=cp!.pins.sealIntent?await w.readArtifact(cp!.pins.sealIntent) as unknown as Intent:undefined;
+      if(intent&&(!exact(intent,['schemaVersion','kind','owner','revision','revisionSha256'])||intent.schemaVersion!==1||intent.kind!=='held-projection-seal-intent'))fail('seal_intent');
+      const sealed=intent?{owner:intent.owner,revision:await restoreHeldRevision(w,intent.revision,plan.baseline)}:undefined;
+      if(sealed&&digest(sealed.revision)!==intent!.revisionSha256)fail('seal_intent');
+      const prepared=await prepareOwnedApprovedCohortPlan({db,owner:cp!.owner!,request,adapters,sealed,beforeSeal:async(owner,candidate)=>{
+        if(intent){if(digest(candidate)!==intent.revisionSha256)fail('seal_intent');return;}
+        const pin=await w.putArtifact({schemaVersion:1,kind:'held-projection-seal-intent',owner,
+          revision:await storeHeldRevision(w,candidate,c.createdAt),revisionSha256:digest(candidate)},{kind:'publication',observedAt:c.createdAt});
+        await save({pins:{...cp!.pins,sealIntent:pin}});
+      }});
       if(prepared.remainingIds.length||prepared.revision.snapshot.products.length!==summary.public||prepared.revision.snapshot.heldProducts.length!==summary.held)fail('publication_membership');
       revision=prepared.revision;const revisionRef=await storeHeldRevision(w,revision,c.createdAt);
       await save({phase:'settling',owner:prepared.owner,pins:{...cp!.pins,revision:revisionRef}});
@@ -296,6 +307,9 @@ async function run(command:'prepare'|'publish',c:HeldCommandConfig,configSha256:
     }
     if(cp!.phase==='publishing'||cp!.phase==='attention'&&cp!.control?.publication){
       revision=revision??await restoreHeldRevision(w,cp!.pins.revision,plan.baseline);
+      // Source repair/freeze may take minutes. Recheck shared Free capacity at
+      // the actual publication boundary without creating another profile/grant.
+      const fresh=await accountUsage(w,token);assertOneTimeMigrationBudget(budget.profile,budget.sha256);assertHeldFreeCapacity(budget.profile,fresh,await w.budget());
       const result=await executePublication({db,workspace:w,owner:cp!.owner!,revision,approvedCatalog:revision,
         requestId:String((cp!.state as Record<string,unknown>).requestId),runReference:c.runId,config:c.publication,credentials:{cloudflareToken:token},
         dependencies:{fetch:send,observationFetch:observation,command:accountedPublicationUploadCommand({workspace:w,scope:SCOPE})}});

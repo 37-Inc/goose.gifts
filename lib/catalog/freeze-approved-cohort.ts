@@ -63,7 +63,8 @@ function held(value: { id: string; publicId: string; slug: string }, reason: Saf
   return { id:value.id,publicId:value.publicId,slug:value.slug,path:`/gifts/${value.slug}`,title:'Gift currently unavailable',
     description:'This gift is not currently available in the curated catalog. Browse other gifts instead.',reason };
 }
-async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohortRequest) {
+async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohortRequest,
+  beforeSeal?:(owner:MutationOwner,revision:ApprovedCohortRevision)=>Promise<void>) {
   owner = structuredClone(owner);
   const request = structuredClone(input); const operationKey = approvedCohortOperationKey(request);
   if (owner.phase !== 'freezing' || owner.operationKey !== operationKey || owner.environment !== request.scope.environment
@@ -188,9 +189,11 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
     ...(persistent?{currentSha256:sha256(canonicalJson(sourceRows)),persistent}:{current:sourceRows}),prior:source.header.prior }));
   const facts = Object.fromEntries(sourceRows.map(row => [String(row.public_id),row.source_facts_hash===null?null:String(row.source_facts_hash)]));
   const packet = await createProjectionPacket(snapshot,facts,sourceDigest,now);
-  const sealed = await sealCapturedRevision(db,owner,{request,snapshot,packet,sourceRows,priorRow:source.header.prior as Row,
+  const candidate={request,snapshot,packet,sourceRows,priorRow:source.header.prior as Row,
     sourceDigest,globalVectorWatermark,vectorSyncWatermark:0,operationKey,additionalAbsentIds,
-    ...(persistent?{persistent,nativeHistory}: {})} as ApprovedCohortRevision);
+    ...(persistent?{persistent,nativeHistory}: {})} as ApprovedCohortRevision;
+  await beforeSeal?.(owner,candidate);
+  const sealed = await sealCapturedRevision(db,owner,candidate);
   return { state:ready.length ? 'prepared' as const : 'all_held' as const,owner:sealed.owner,
     revision:{...sealed.revision,request} as ApprovedCohortRevision };
 }

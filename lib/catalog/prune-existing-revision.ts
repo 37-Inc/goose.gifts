@@ -286,6 +286,11 @@ async function observationTimeout(db:CatalogD1,owner:MutationOwner,revision:Prun
  * A caller assertion/checksum alone is never that receipt. This transaction's
  * current/projection/prior/watermark/cutoff/owner predicates remain mandatory.
  */
+export function capturedRevisionBuildRequest(revision:PrunedRevision):CatalogBuildRequest {
+  return{schemaVersion:1,environment:revision.request.scope.environment,sourceRevision:revision.snapshot.catalogRevision,
+    sourceDigest:revision.packet.receipt.snapshot_sha256,codeSha:revision.request.codeSha,
+    priorReleaseId:revision.request.context.priorPublication?.releaseId??null,capturedAt:revision.snapshot.generatedAt,cutoff:revision.request.context.cutoff};
+}
 export async function settleCapturedRevision(db: CatalogD1, owner: MutationOwner, revision: PrunedRevision,
   readVectors: (plan: PrunedVectorPlan, signal: AbortSignal) => Promise<PrunedVectorObservation>,ownedCohortProof?:OwnedCohortProof) {
   owner = structuredClone(owner); revision = structuredClone(revision);
@@ -302,10 +307,7 @@ export async function settleCapturedRevision(db: CatalogD1, owner: MutationOwner
   if (!observed || observed.settled !== true || observed.environment !== owner.environment || observed.indexName !== owner.indexName
     || observed.planSha256 !== sha256(canonicalJson(plan)) || typeof observed.reference !== 'string'
     || !/^[a-zA-Z0-9._:/-]{1,200}$/.test(observed.reference)) throw new Error('prune_vectors_unconfirmed');
-  const request: CatalogBuildRequest = { schemaVersion: 1, environment: owner.environment,
-    sourceRevision: revision.snapshot.catalogRevision, sourceDigest: revision.packet.receipt.snapshot_sha256,
-    codeSha: revision.request.codeSha, priorReleaseId: revision.request.context.priorPublication?.releaseId ?? null,
-    capturedAt: revision.snapshot.generatedAt, cutoff: revision.request.context.cutoff };
+  const request=capturedRevisionBuildRequest(revision);
   const bytes = encodeBuildRequest(request); const requestId = sha256(bytes);
   const existingRequest = (await db.prepare('SELECT request_json FROM catalog_build_requests WHERE request_id=?').bind(requestId).all()).results[0];
   await assertPruningCurrent(db, owner, revision.sourceRows);

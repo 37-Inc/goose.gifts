@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {mkdtemp,realpath,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import { permanentCatalogFixture } from './helpers/permanent-catalog-fixture.mjs';
 import { scope } from './helpers/published-vector-fixture.mjs';
 import { preparePermanentCatalog, settlePermanentCatalog } from '../lib/catalog/freeze-permanent-catalog.ts';
@@ -8,7 +11,7 @@ import { prepareHeldCatalogResolution, captureHeldCatalogResolution, applyHeldCa
 import { approvedBaseChangeLimit } from '../lib/catalog/owner-base-review.ts';
 import { approvedCohortOperationKey } from '../lib/catalog/freeze-approved-cohort.ts';
 import { prepareApprovedCohort } from '../lib/catalog/freeze-approved-cohort.ts';
-import { claimMutationOwnership, releaseMutationOwnership } from '../lib/catalog/mutation-fence.ts';
+import { claimMutationOwnership, releaseMutationOwnership, readMutationOwner } from '../lib/catalog/mutation-fence.ts';
 import { canonicalJson, sha256 } from '../scripts/catalog/migration.ts';
 import { createSealedSnapshotEnvelope } from '../scripts/catalog/export-d1-snapshot.ts';
 import { prepareOwnedApprovedCohortPlan, settleOwnedApprovedCohortVectorProof, readOwnedApprovedCohortVectors, readActivatedCatalogVectors } from '../scripts/catalog/owned-vector-delivery.ts';
@@ -17,6 +20,7 @@ import { claimBuildRequest, beginBuildActivation, resolveBuildActivation } from 
 import { enqueuePublication, claimPublication, recordPublicationDispatch, completePublication, completeActivatedApprovedCatalogPublication } from '../lib/catalog/publication.ts';
 import { approvedRequestControl, hydrateApprovedRequest, approvedRevisionControl, hydrateApprovedRevision, createPublishedApprovedCatalogSeal } from '../scripts/catalog/approved-catalog-seal.ts';
 import { storeHeldRevision, restoreHeldRevision } from '../scripts/catalog/held-catalog-command.mts';
+import {openRunWorkspace} from '../scripts/catalog/run-workspace.ts';
 
 const hash = x => sha256(canonicalJson(x));
 test('owner base marker is strict and never raises the ordinary daily30 change bound', () => {
@@ -98,9 +102,48 @@ for (const full of [false, true]) test(`owner base restoration uses normal appro
     const freezing = await claimMutationOwnership(f.db, scope, { phase: 'freezing', ownerReference: 'owner-restoration', operationKey: approvedCohortOperationKey(request) });
     const control = approvedRequestControl(request);
     assert.deepEqual((await hydrateApprovedRequest(f.db, freezing, control)).ownerBaseReview, ownerBaseReview);
-    let result;
-    try { const direct = await prepareApprovedCohort(f.db, freezing, request);
-      result = await prepareOwnedApprovedCohortPlan({ db: f.db, owner: direct.owner, request, adapters: f.adapters }); }
+    let result,workspace,workspaceOptions,local;
+    if(!full){
+      const directory=await realpath(await mkdtemp(join(tmpdir(),'held-checkpoint-fault-')));
+      t.after(async()=>{await workspace?.close();await rm(directory,{recursive:true,force:true});});
+      workspaceOptions={directory:join(directory,'runs'),repository:await realpath(new URL('..',import.meta.url).pathname),mode:'create',
+        runId:'fault-checkpoints',codeSha:request.codeSha,configSha256:hash(request),scope:{...scope,accountId:f.accountId,databaseId:f.databaseId,databaseName:'permanent-freeze',workerName:'fixture'},
+        budgetCaps:{httpRequests:9000,sqlStatements:22000},retention:{reviewReference:'synthetic-local-checkpoint-fault',rules:Object.fromEntries(
+          ['amazon-observation','embedding-response','phase','publication','checkpoint'].map(k=>[k,{maxAgeMs:86400000,notAfter:new Date(f.now().getTime()+86400000).toISOString()}]))},now:()=>f.now().toISOString()};
+      workspace=await openRunWorkspace(workspaceOptions);
+      local=await workspace.writeCheckpoint(null,{phase:'freezing',owner:freezing,state:{},pins:{},phaseComplete:null,control:{}});
+    }
+    try {let sealed;
+      const direct = await prepareApprovedCohort(f.db, freezing, request,workspace?async(owner,revision)=>{
+        const intent={owner,revision:await storeHeldRevision(workspace,revision,f.now().toISOString())};
+        const pin=await workspace.putArtifact(intent,{kind:'publication',observedAt:f.now().toISOString()});
+        local=await workspace.writeCheckpoint(local.sha256,{...local.checkpoint,pins:{sealIntent:pin}});
+      }:undefined);
+      if(workspace){
+        // Genuine known D1 seal commit; simulate process death BEFORE saving its
+        // returned owner/policy. Reopen the real durable checkpoint at old E.
+        assert.equal(direct.owner.epoch,freezing.epoch+1);await workspace.close();
+        workspace=await openRunWorkspace({...workspaceOptions,mode:'resume'});local=await workspace.readCheckpoint();
+        assert.deepEqual(local.checkpoint.owner,freezing);
+        const intent=await workspace.readArtifact(local.checkpoint.pins.sealIntent);
+        sealed={owner:intent.owner,revision:await restoreHeldRevision(workspace,intent.revision,original.snapshot)};
+        const receipt={...f.sql.prepare('SELECT * FROM catalog_projection_receipts WHERE catalog_revision=?').get(approval.catalogRevision)};
+        const policyCount=()=>f.sql.prepare("SELECT count(*) n FROM catalog_vector_deliveries WHERE generation=? AND json_extract(request_json,'$.kind')='approved-cohort-plan'").get(freezing.generation).n;
+        for(const fault of ['extra-epoch','foreign-token','missing-receipt','changed-source']){
+          const before=await readMutationOwner(f.db,scope),p=revisionSourceRow();
+          if(fault==='extra-epoch')f.sql.exec('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1');
+          if(fault==='foreign-token')f.sql.exec("UPDATE catalog_mutation_scopes SET owner_token='foreign-token'");
+          if(fault==='missing-receipt')f.sql.prepare('DELETE FROM catalog_projection_receipts WHERE catalog_revision=?').run(approval.catalogRevision);
+          if(fault==='changed-source')f.sql.prepare('UPDATE products SET description=? WHERE id=?').run('changed source',p.id);
+          await assert.rejects(prepareOwnedApprovedCohortPlan({db:f.db,owner:local.checkpoint.owner,request,adapters:f.adapters,sealed}),undefined,fault);
+          assert.equal(policyCount(),0);
+          if(fault==='missing-receipt'){const keys=Object.keys(receipt);f.sql.prepare(`INSERT INTO catalog_projection_receipts(${keys}) VALUES(${keys.map(()=>'?')})`).run(...keys.map(k=>receipt[k]));}
+          if(fault==='changed-source')f.sql.prepare('UPDATE products SET description=? WHERE id=?').run(p.description,p.id);
+          f.sql.prepare('UPDATE catalog_mutation_scopes SET mutation_epoch=?,owner_token=?').run(before.epoch,before.token);
+        }
+        function revisionSourceRow(){return{...f.sql.prepare('SELECT id,description FROM products WHERE id=?').get(plan.promotions[0].id)};}
+      }
+      result = await prepareOwnedApprovedCohortPlan({ db: f.db, owner: workspace?local.checkpoint.owner:direct.owner, request, adapters: f.adapters,sealed }); }
     catch (error) { t.diagnostic(JSON.stringify({ stage: 'owner-base-freeze-and-policy', ...f.metrics(), budget: f.db.metrics(),
       failure:f.failure(), targetRows:f.sql.prepare('SELECT count(*) n FROM catalog_public_products WHERE catalog_revision=?').get(approval.catalogRevision).n,
       lastSql: f.queryText.slice(-1)[0]?.slice(0,250) })); throw error; }
@@ -116,7 +159,35 @@ for (const full of [false, true]) test(`owner base restoration uses normal appro
     const revisionControl = approvedRevisionControl(revision);
     assert.deepEqual((await hydrateApprovedRevision(f.db, result.owner, revisionControl)).request.ownerBaseReview, ownerBaseReview);
     await readOwnedApprovedCohortVectors(f.db, result.owner, revision, f.adapters);
-    const queued = await settleOwnedApprovedCohortVectorProof({ db: f.db, owner: result.owner, revision, adapters: f.adapters });
+    if(workspace)local=await workspace.writeCheckpoint(local.sha256,{...local.checkpoint,phase:'settling',owner:result.owner,
+      pins:{...local.checkpoint.pins,revision:await storeHeldRevision(workspace,revision,f.now().toISOString())}});
+    let queued = await settleOwnedApprovedCohortVectorProof({ db: f.db, owner: result.owner, revision, adapters: f.adapters });
+    if(workspace){
+      // Genuine queue+epoch commit; lose only the local publishing checkpoint.
+      const committedOwner=queued.owner,requestId=queued.requestId;await workspace.close();
+      workspace=await openRunWorkspace({...workspaceOptions,mode:'resume'});local=await workspace.readCheckpoint();
+      assert.equal(local.checkpoint.phase,'settling');assert.deepEqual(local.checkpoint.owner,result.owner);
+      for(const fault of ['extra-epoch','shifted-owner-input','foreign-token','claimed-build','wrong-request','missing-receipt','changed-source']){
+        const before=await readMutationOwner(f.db,scope),row={...f.sql.prepare('SELECT * FROM catalog_projection_receipts WHERE catalog_revision=?').get(approval.catalogRevision)},
+          p={...f.sql.prepare('SELECT id,description FROM products WHERE id=?').get(plan.promotions[0].id)};
+        if(['extra-epoch','shifted-owner-input'].includes(fault))f.sql.exec('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1');
+        if(fault==='foreign-token')f.sql.exec("UPDATE catalog_mutation_scopes SET owner_token='foreign-token'");
+        if(fault==='claimed-build')f.sql.prepare('UPDATE catalog_build_requests SET attempts=1 WHERE request_id=?').run(requestId);
+        if(fault==='missing-receipt')f.sql.prepare('DELETE FROM catalog_projection_receipts WHERE catalog_revision=?').run(approval.catalogRevision);
+        if(fault==='changed-source')f.sql.prepare('UPDATE products SET description=? WHERE id=?').run('changed source',p.id);
+        const candidate=fault==='wrong-request'?{...revision,request:{...revision.request,codeSha:'e'.repeat(40)}}:revision;
+        const inputOwner=fault==='shifted-owner-input'?{...local.checkpoint.owner,epoch:local.checkpoint.owner.epoch+1}:local.checkpoint.owner;
+        await assert.rejects(settleOwnedApprovedCohortVectorProof({db:f.db,owner:inputOwner,revision:candidate,adapters:f.adapters}),undefined,fault);
+        if(fault==='missing-receipt'){const keys=Object.keys(row);f.sql.prepare(`INSERT INTO catalog_projection_receipts(${keys}) VALUES(${keys.map(()=>'?')})`).run(...keys.map(k=>row[k]));}
+        if(fault==='changed-source')f.sql.prepare('UPDATE products SET description=? WHERE id=?').run(p.description,p.id);
+        if(fault==='claimed-build')f.sql.prepare('UPDATE catalog_build_requests SET attempts=0 WHERE request_id=?').run(requestId);
+        f.sql.prepare('UPDATE catalog_mutation_scopes SET mutation_epoch=?,owner_token=?').run(before.epoch,before.token);
+      }
+      queued=await settleOwnedApprovedCohortVectorProof({db:f.db,owner:local.checkpoint.owner,revision,adapters:f.adapters});
+      assert.equal(queued.state,'existing');assert.equal(queued.requestId,requestId);assert.deepEqual(queued.owner,committedOwner);
+      assert.deepEqual(await readMutationOwner(f.db,scope),committedOwner);
+      assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests WHERE request_id=?').get(requestId).n,1);
+    }
     const published = await publish(revision, queued, initial.intent);
     assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase, 'idle');
     assert.equal(canonicalJson([...f.index]), beforeNative); assert.equal(f.dispatches(), beforeDispatches);

@@ -10,7 +10,7 @@ import { encodePublicationIntent, encodePublishedCatalogBinding } from '../../li
 import type { PublicationIntent, PublishedCatalogBinding } from '../../lib/catalog/publication.ts';
 import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { hasAccountedVectorReadback } from './vectorize-rest.ts';
-import { pruneExistingRevision, prunedVectorIds, prunedVectorPlan, settleCapturedRevision } from '../../lib/catalog/prune-existing-revision.ts';
+import { pruneExistingRevision, prunedVectorIds, prunedVectorPlan, settleCapturedRevision, capturedRevisionBuildRequest } from '../../lib/catalog/prune-existing-revision.ts';
 import type { HistoricalNativeBinding, NativeHistoryBinding, PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PermanentCatalogRevision } from '../../lib/catalog/freeze-permanent-catalog.ts';
 import { permanentCatalogOperationKey } from '../../lib/catalog/freeze-permanent-catalog.ts';
@@ -758,7 +758,9 @@ async function assertPlanSource(db:CatalogD1,owner:MutationOwner,revision:Approv
  * the exclusive fence; the compact final transaction retains prior/cutoff/CAS.
  * Return every remaining ID; callers must not silently skip ordinary work. */
 export function prepareOwnedApprovedCohortPlan(options:{db:CatalogD1;owner:MutationOwner;request:ApprovedCohortRequest;
-  adapters:Pick<OwnedVectorAdapters,'readback'|'readbacks'|'environment'|'indexName'|'providerIdentity'>;timeoutMs?:number}){
+  adapters:Pick<OwnedVectorAdapters,'readback'|'readbacks'|'environment'|'indexName'|'providerIdentity'>;timeoutMs?:number;
+  beforeSeal?:(owner:MutationOwner,revision:ApprovedCohortRevision)=>Promise<void>;
+  sealed?:{owner:MutationOwner;revision:ApprovedCohortRevision}}){
   return safe(async()=>{
     const {db,adapters}=options;let owner=structuredClone(options.owner);adapterScope(owner,adapters);
     if(owner.phase!=='freezing')throw new Error('vector_plan_invalid');
@@ -767,7 +769,18 @@ export function prepareOwnedApprovedCohortPlan(options:{db:CatalogD1;owner:Mutat
       if(!actual||canonicalJson({...owner,epoch:base.epoch})!==canonicalJson(base)
         ||owner.epoch!==actual.epoch&&!(actual.epoch===base.epoch+1&&[base.epoch-1,base.epoch].includes(owner.epoch)))throw new Error('vector_owner_changed');
       owner=actual;}
-    const prepared=await prepareApprovedCohort(db,owner,options.request);owner=prepared.owner;
+    // The projection seal can commit before the policy journal exists. Only a
+    // pre-dispatch saved full revision plus its exact seal/current/prior proof
+    // may recover that single epoch; an arbitrary live cursor is not authority.
+    if(!saved&&options.sealed){
+      const intent=options.sealed,actual=await readMutationOwner(db,owner),next={...intent.owner,epoch:intent.owner.epoch+1};
+      if(canonicalJson(intent.revision.request)!==canonicalJson(options.request)||intent.revision.operationKey!==owner.operationKey
+        ||canonicalJson({...owner,epoch:intent.owner.epoch})!==canonicalJson(intent.owner))throw Error('vector_owner_changed');
+      if(canonicalJson(actual)===canonicalJson(next)){
+        await assertPlanSource(db,next,intent.revision);owner=next;
+      }else if(canonicalJson(actual)!==canonicalJson(owner))throw Error('vector_owner_changed');
+    }
+    const prepared=await prepareApprovedCohort(db,owner,options.request,options.beforeSeal);owner=prepared.owner;
     const revision=prepared.revision,plan=prunedVectorPlan(revision),ids=reuseIds(plan);
     if(ids.length>SNAPSHOT_READ_LIMITS.identities)throw new Error('vector_plan_invalid');
     let request:CohortPlanRequest;
@@ -998,7 +1011,27 @@ async function readPlanVectors(db:CatalogD1,owner:MutationOwner,rows:Journal[],p
 export function settleOwnedApprovedCohortVectorProof(options:{db:CatalogD1;owner:MutationOwner;revision:ApprovedCohortRevision;
   adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>}) {
   return safe(async()=>{
-    const {db,adapters}=options,owner=structuredClone(options.owner),revision=structuredClone(options.revision);
+    const {db,adapters}=options,revision=structuredClone(options.revision);let owner=structuredClone(options.owner);
+    const actual=await readMutationOwner(db,owner);
+    if(canonicalJson(actual)!==canonicalJson(owner)){
+      const next={...owner,epoch:owner.epoch+1},bytes=encodeBuildRequest(capturedRevisionBuildRequest(revision)),requestId=sha256(bytes);
+      const policy=await journal(db,idFor(owner,{kind:PLAN_KIND}));
+      if(!revision.request.ownerBaseReview||!policy)throw Error('vector_owner_changed');
+      validatePlan(policy,next,prunedVectorPlan(revision),adapters.providerIdentity,revision);
+      const base=JSON.parse(policy.owner_json) as MutationOwner;
+      const queued=(await db.prepare('SELECT * FROM catalog_build_requests WHERE request_id=?').bind(requestId).all<Row>()).results;
+      const sealed=(await db.prepare('SELECT * FROM catalog_revisions WHERE revision=?').bind(revision.snapshot.catalogRevision).all<Row>()).results;
+      if(canonicalJson(owner)!==canonicalJson({...base,epoch:base.epoch+1})
+        ||canonicalJson(actual)!==canonicalJson(next)||queued.length!==1||queued[0].request_json!==bytes
+        ||queued[0].environment!==owner.environment||queued[0].source_revision!==revision.snapshot.catalogRevision||queued[0].state!=='pending'||queued[0].attempts!==0
+        ||['lease_token','lease_until','run_reference','release_id','version_reference','dispatch_reference','error_code','operator_recovery_json'].some(k=>queued[0][k]!==null)
+        ||sealed.length!==1||sealed[0].status!=='reconciled'||sealed[0].source_export_sha256!==revision.sourceDigest
+        ||sealed[0].created_at!==revision.snapshot.generatedAt||sealed[0].abandonment_delivery_id!==null)throw Error('vector_owner_changed');
+      // The normal path below still authenticates the immutable native policy,
+      // every source/projection row, prior receipt, watermarks and cutoff before
+      // returning this SAME existing queue. No queue or epoch is written again.
+      owner=next;
+    }
     adapterScope(owner,adapters);await db.batch([mutationAssertion(db,owner,['freezing'])]);
     const policy=await journal(db,idFor(owner,{kind:PLAN_KIND}));
     if(policy){
