@@ -61,6 +61,8 @@ export interface SiteAssetManifest extends CatalogReleaseManifest {
   dataKind: CatalogSnapshot['dataKind'];
   routes: Record<string, CatalogAssetRoute>;
   retention: { priorManifestSha256: string; currentAssetPaths: string[] } | null;
+  /** Exact duplicate RSC bodies share a file; their original URL policies remain. */
+  assetAliases?: Record<string, string>;
 }
 
 export interface CatalogReleaseManifest {

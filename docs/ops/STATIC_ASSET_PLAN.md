@@ -1,0 +1,62 @@
+# Stupid Gifts — Static asset capacity
+
+The October 24 full package has **17,631 files, not 17,631 pages**: 2,514
+HTML, 12,568 TXT, 2,402 PNG, 101 JSON and 46 other assets. Cloudflare Free is
+kept at the existing hard 20,000-file packaging guard. No catalog trimming or
+paid upgrade is part of this work.
+
+## Immediate consolidation
+
+Next exports the full Flight response twice (`page.txt` and
+`page/__next._full.txt`), plus a layout-index response repeated across products.
+The saved package's TXT bodies have 7,549 distinct hashes: 5,019 files are
+byte-identical duplicates. Native anchor navigation is used throughout this
+site, but we **keep all RSC URLs** instead of assuming framework files are unused.
+
+The implemented conservative compactor leaves safe/legal files untouched. A
+read-only in-memory pass over the actual sealed package reduced **17,631 to
+12,623 files** (5,008 duplicates removed) and **335,360,374 to 270,036,801 bytes**.
+Every original logical file reconstructed byte-for-byte, and the independent
+full route/retention verification passed. That is not a new public deployment.
+
+The builder now stores duplicate, policy-bound TXT bodies once. Its sealed
+`assetAliases` map retains each original URL; the Worker uses that URL's original
+expiry/state/cache policy and serves the same bytes. Shared safe/legal files,
+HTML, scripts, CSS, fonts, photos, OG images and JSON are not removed. The
+verifier expands aliases and independently recomputes routing, retention,
+checksums and deterministic compaction. No old HTML/RSC retention is introduced.
+
+Compaction happens before the Free-plan file check. The builder removes only
+its own newly generated duplicate outputs; historical releases and protected
+workspaces are untouched. Retirement of the redundant directory independently
+removes approximately 600 more files. At the current framework shape, all 3,383
+identities as public product pages need 16,916 product/OG files after exact
+deduplication, leaving roughly 3,000 files for guides, catalog shards and shared
+UI assets. The actual final build, not this estimate, decides publication.
+
+## Keep the system small
+
+1. Ship directory retirement and exact duplicate storage with all existing
+   product URLs preserved. Record actual before/after file/byte counts.
+2. Retain the current immutable content-addressed feed shards and bounded
+   previous-release overlap. Do not accumulate historical builds in a live
+   deployment or increase overlap bounds to hide stale clients.
+3. Keep product-specific share images for useful link previews; no need to
+   replace them with one generic image while capacity fits.
+4. Track file count and remaining headroom on each build. If real catalog growth
+   approaches the guard, evaluate shared OG fallbacks or a separate plain-HTML
+   export architecture as a deliberate follow-up, not an emergency rewrite.
+
+## Acceptance
+
+- Exact-byte duplicate comparison and deterministic alias selection.
+- Every original RSC URL returns identical bytes and content type.
+- Different original deadlines still independently switch to safe content.
+- Home/search/Load More/product/guide navigation and hydration work on desktop
+  and mobile; no missing script, RSC or image request.
+- Manifest, actual physical inventory, retained policies and alias verification
+  agree; no symlink/traversal/chain or missing-target aliases are accepted.
+- The actual complete catalog remains below 20,000 physical assets on Free.
+
+This is file-layout consolidation, not content enrichment, a database change,
+catalog deletion, or permission to alter a pending immutable publication.

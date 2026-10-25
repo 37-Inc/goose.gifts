@@ -5,6 +5,7 @@ import { createStaticRoutes } from '../../static-site/lib/asset-routes.ts';
 import { assetSha256, assertOwnedCodeSafe, retainStaticAssets, retentionAssetPaths } from '../../static-site/lib/retention.ts';
 import type { RetentionInput } from '../../static-site/lib/retention.ts';
 import { siteIdentityFor } from '../../static-site/lib/site-identity.ts';
+import { compactRscAssets, expandRscAssets } from '../../static-site/lib/asset-compaction.ts';
 
 type Context = Pick<SiteAssetManifest, 'priorReleaseId' | 'generatedAt' | 'sourceMode'> & { retainedManifestSha256: string | null };
 type Files = ReadonlyMap<string, Uint8Array>;
@@ -68,14 +69,15 @@ export async function readPriorRelease(context: Context, directory?: string): Pr
 export function assembleReleaseAssets(snapshot: CatalogSnapshot, current: Files, context: Context,
   prior: RetentionInput['prior'] | null) {
   const currentAssetPaths = [...current.keys()].sort();
-  assertFreeAssetCapacity(current);
   if (currentAssetPaths.length > 100000 || currentAssetPaths.some((name) => !safePath(name))) fail();
   assertPublicIdentitySafe(current);
   for (const [name, bytes] of current) if (/^\/_next\/static\/.*\.(?:js|css)$/.test(name)) assertOwnedCodeSafe(bytes, [snapshot]);
   const currentRoutes = createStaticRoutes(snapshot, currentAssetPaths, undefined, siteIdentityFor(context.sourceMode));
   if (context.retainedManifestSha256 === null) {
     if (prior !== null) fail();
-    return { assets: new Map(current), routes: currentRoutes, retention: null };
+    const compacted = compactRscAssets(current, currentRoutes);
+    assertFreeAssetCapacity(compacted.assets);
+    return { ...compacted, retention: null };
   }
   if (!prior || prior.releaseId !== context.priorReleaseId || prior.manifestSha256 !== context.retainedManifestSha256) fail();
   const retained = retainStaticAssets({ prior, current: { snapshot, assets: current, routes: currentRoutes }, capturedAt: context.generatedAt });
@@ -83,25 +85,28 @@ export function assembleReleaseAssets(snapshot: CatalogSnapshot, current: Files,
   // operator must use an explicit no-retention release, not carry it forward.
   assertPublicIdentitySafe(retained.files);
   const assets = new Map([...retained.files, ...current]);
-  assertFreeAssetCapacity(assets);
-  return { assets, routes: { ...retained.routes, ...currentRoutes },
+  const compacted = compactRscAssets(assets, { ...retained.routes, ...currentRoutes });
+  assertFreeAssetCapacity(compacted.assets);
+  return { ...compacted,
     retention: { priorManifestSha256: context.retainedManifestSha256, currentAssetPaths } };
 }
 
 export function verifyRetainedAssets(snapshot: CatalogSnapshot, actual: Files, manifest: SiteAssetManifest,
   context: Context, prior: RetentionInput['prior'] | null) {
   const policy = manifest.retention;
-  let current: Files = actual;
+  const logical = expandRscAssets(actual, manifest.assetAliases);
+  let current: Files = logical;
   if (context.retainedManifestSha256 !== null) {
     if (!policy || Object.keys(policy).sort().join(',') !== 'currentAssetPaths,priorManifestSha256'
       || policy.priorManifestSha256 !== context.retainedManifestSha256 || !Array.isArray(policy.currentAssetPaths)
-      || policy.currentAssetPaths.some((name) => typeof name !== 'string' || !safePath(name) || !actual.has(name))
+      || policy.currentAssetPaths.some((name) => typeof name !== 'string' || !safePath(name) || !logical.has(name))
       || JSON.stringify(policy.currentAssetPaths) !== JSON.stringify([...new Set(policy.currentAssetPaths)].sort())) fail();
-    current = new Map(policy.currentAssetPaths.map((name) => [name, actual.get(name)!]));
+    current = new Map(policy.currentAssetPaths.map((name) => [name, logical.get(name)!]));
   } else if (policy !== null) fail();
   const expected = assembleReleaseAssets(snapshot, current, context, prior);
   if (JSON.stringify([...actual.keys()].sort()) !== JSON.stringify([...expected.assets.keys()].sort())
     || [...actual].some(([name, bytes]) => assetSha256(bytes) !== assetSha256(expected.assets.get(name)!))
+    || JSON.stringify(manifest.assetAliases ?? {}) !== JSON.stringify(expected.assetAliases)
     || JSON.stringify(manifest.retention) !== JSON.stringify(expected.retention)
     || JSON.stringify(manifest.routes) !== JSON.stringify(expected.routes)) fail();
 }
