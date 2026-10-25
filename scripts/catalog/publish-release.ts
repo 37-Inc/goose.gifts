@@ -303,7 +303,7 @@ function verifyUploadedVersion(value:Record<string,unknown>,config:PublicationCo
     ||config.environment==='staging'&&named.get('STAGING_AUTH_SECRET')?.type!=='secret_text')throw new Error('publication_version_scope_mismatch');
 }
 
-async function loadPackage(directory:string,config:PublicationConfig,expectedHash:string,now:Date){
+async function loadPackage(directory:string,config:PublicationConfig,expectedHash:string,now:Date,settlement?:ActivationPermit){
   const hashes=await inventory(directory);if(sha256(canonicalJson(hashes))!==expectedHash)throw new Error('publication_package_changed');
   const bytes=await privateBytes(path.join(directory,'asset-manifest.json'));const manifest=JSON.parse(bytes.toString()) as SiteAssetManifest;
   const snapshot=validateCatalogSnapshot(await json(path.join(directory,'catalog.snapshot.json')),now);const context=await json(path.join(directory,'release-context.json'));
@@ -311,15 +311,24 @@ async function loadPackage(directory:string,config:PublicationConfig,expectedHas
   if(manifest.releaseId!==config.releaseId||manifest.codeSha!==config.codeSha||manifest.sourceMode!==config.sourceMode||manifest.dataKind!=='catalog'
     ||sha256(await privateBytes(path.join(directory,'catalog.snapshot.json')))!==manifest.catalogSnapshotSha256
     ||manifest.nextExpiry!==null&&manifest.nextExpiry<=now.toISOString())throw new Error('publication_package_unready');
-  verifyReleaseContext(context,manifest,snapshot,config.codeSha,now);verifySiteIdentity(await privateBytes(path.join(directory,'site-identity.json')),manifest);
-  verifyFeedPlan(snapshot,manifest.catalogSnapshotSha256,await json(path.join(directory,'feed-plan.json')));
+  verifyReleaseContext(context,manifest,snapshot,config.codeSha,now);
+  // This exact package passed semantic verification BEFORE its upload. Newer
+  // controller code must not regenerate an activated permanent release's feed
+  // or routing rules. Its original immutable bytes remain fully hash-bound;
+  // current deployment/native/source proof still gates receipt completion.
+  const permanentSettlement=settlement?.releaseId===manifest.releaseId&&manifest.nextExpiry===null
+    &&snapshot.products.every(product=>product.eligibleUntil===null);
+  const siteBytes=await privateBytes(path.join(directory,'site-identity.json'));
+  if(permanentSettlement){if(sha256(siteBytes)!==manifest.siteIdentitySha256)throw new Error('publication_package_changed');}
+  else{verifySiteIdentity(siteBytes,manifest);verifyFeedPlan(snapshot,manifest.catalogSnapshotSha256,await json(path.join(directory,'feed-plan.json')));}
   const assets=new Map<string,Uint8Array>();
   for(const [name,hash] of Object.entries(manifest.checksums)){
     if(!safePath(name)||hashes[`assets${name}`]!==hash)throw new Error('publication_package_changed');assets.set(name,await privateBytes(path.join(directory,'assets',name.slice(1))));}
   if(Object.keys(hashes).filter(name=>name.startsWith('assets/')).length!==assets.size)throw new Error('publication_package_changed');
-  const prior=await readPriorRelease(context,config.prior?.directory??undefined);verifyRetainedAssets(snapshot,assets,manifest,context,prior);
+  if(!permanentSettlement){const prior=await readPriorRelease(context,config.prior?.directory??undefined);verifyRetainedAssets(snapshot,assets,manifest,context,prior);}
   return{manifest,snapshot,context,bytes};
 }
+export {loadPackage as readPublicationPackage};
 function intentFrom(manifest:SiteAssetManifest,bytes:Uint8Array):PublicationIntent{return{releaseId:manifest.releaseId,codeSha:manifest.codeSha,catalogRevision:manifest.catalogRevision,
   catalogSnapshotSha256:manifest.catalogSnapshotSha256,manifestSha256:sha256(bytes),vectorSyncWatermark:manifest.vectorSyncWatermark,
   priorReleaseId:manifest.priorReleaseId,nextExpiry:manifest.nextExpiry};}
@@ -723,7 +732,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       };
       if((await publicationStatus(db,config.releaseId)).state!=='published'){
         if(!revision)throw new Error('publication_fresh_evidence_required');
-        const sealed=await loadPackage(directory,config,control.packageSha256!,now());
+        const sealed=await loadPackage(directory,config,control.packageSha256!,now(),control.permit);
         if(canonicalJson(intentFrom(sealed.manifest,sealed.bytes))!==canonicalJson(control.intent)
           ||canonicalJson(sealed.snapshot)!==canonicalJson(revision.snapshot))throw new Error('publication_package_changed');
         const readDeployed=async()=>{

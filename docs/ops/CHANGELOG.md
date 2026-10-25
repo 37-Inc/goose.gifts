@@ -1,5 +1,15 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 — verify the original activated package, not a new feed
+
+[owner+codex] The admitted permanent-only recovery reached the publisher but
+newer feed/card code rejected the unchanged old release's prepared feed. Limited
+post-permit permanent settlement to original package/inventory/context/snapshot,
+site-identity and asset hashes; do not regenerate that historical package's
+feed or route semantics using newer code. Preactivation and finite packages keep
+full semantic verification. Actual source/projection/native/deployment checks
+still gate the same receipt. No new upload, activation, batch or allowance.
+
 ## 2026-10-25 — retain the workspace until settlement completes
 
 [owner+codex] Live preflight restored the missing frozen runtime from its exact
