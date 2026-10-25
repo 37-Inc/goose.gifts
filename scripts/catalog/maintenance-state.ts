@@ -3,7 +3,8 @@ import { createCatalogSnapshot, createPersistentCatalogProduct, persistentDispla
   validatePublicCatalogProduct } from '../../lib/catalog/snapshot.ts';
 import type { DisplayRights, PersistentCatalogProduct, ProductRights, SnapshotProductInput } from '../../lib/catalog/types.ts';
 import { isPurchasableAvailability } from '../../lib/gift-slugs.ts';
-import { editorialSourceHash, validateEditorialDraft } from '../ops/catalog-editorial-core.mjs';
+import { editorialSourceHash } from '../ops/catalog-editorial-core.mjs';
+import { normalizedEditorialFacts, originalEditorialEquivalent } from '../../lib/catalog/editorial-equivalence.ts';
 
 export type Row = Record<string, unknown>;
 /** Private PG semantics, not a public DTO. Existing wall times stay opaque. */
@@ -150,16 +151,24 @@ function retainedBase(previous: { row: Row; product: SemanticProduct } | undefin
     for (const field of ['punnyTitle','wittyDescription','humorTags'] as const) {
       if (canonicalJson(base[field] ?? null) !== canonicalJson(p[field] ?? null)) delete base[field];
     }
-    if (base.editorialWriteup && (previous.row.source_facts_hash !== p.sourceFactsHash
-      || p.editorialWriteup !== base.editorialWriteup || p.editorialSourceHash !== p.sourceFactsHash || !(Number(p.editorialQualityScore) >= .8)
-      || editorialSourceHash(p) !== p.sourceFactsHash || !validateEditorialDraft(p, base.editorialWriteup).approved)) {
+    const facts = normalizedEditorialFacts(previous.product.sourceFacts);
+    const retainedEditorial = Boolean(base.editorialWriteup && p.editorialWriteup === base.editorialWriteup
+      && Number(p.editorialQualityScore) >= .8 && facts !== null && facts === normalizedEditorialFacts(p.sourceFacts)
+      && editorialSourceHash(p) === p.sourceFactsHash);
+    if (base.editorialWriteup && !retainedEditorial) {
       delete base.editorialWriteup; base.indexable = false;
     }
     const product = { ...base, isActive:p.isActive, duplicateOfProductId:p.duplicateOfProductId,
       qualityScore:p.qualityScore === null ? undefined : Number(p.qualityScore), editorialStatus:p.editorialStatus,
       editorialQualityScore:p.editorialQualityScore === null ? undefined : Number(p.editorialQualityScore),
       sourceFactsHash:p.sourceFactsHash, editorialSourceHash:p.editorialSourceHash } as unknown as SnapshotProductInput;
-    return { saved:base, rights:permission, display:createPersistentCatalogProduct({product,rights:permission},now) };
+    const display = createPersistentCatalogProduct({product,rights:permission},now);
+    // Preserve the ORIGINAL approved article only; no current hash/status or
+    // supplier/native binding is rewritten to pretend a new review happened.
+    const equivalent = display && base.indexable && retainedEditorial && originalEditorialEquivalent(
+      previous.row.source_record_json, p, base.editorialWriteup!, editorialSourceHash);
+    return { saved:base, rights:permission, display:equivalent
+      ? validatePublicCatalogProduct({...display,indexable:true},now) as PersistentCatalogProduct : display };
   } catch { return null; } // Unknown/corrupt clearance never becomes a public grant.
 }
 export function maintenanceProjection(p: SemanticProduct, rights: ProductRights, revision: string, now: string,

@@ -81,7 +81,7 @@ function keywordSimilarity(product: PublicCatalogProduct, query: string): number
 
 function select(candidates: SearchResult[], limit: number, now: number,semanticDeadlines?:ReadonlyMap<string,number>): SearchResult[] {
   const ids = new Set<string>();
-  return suppressNearDuplicateProducts(candidates.flatMap(candidate=>{
+  const eligible = candidates.flatMap(candidate=>{
     const product=persistentPublicProduct(candidate)??resolvePublicProduct(candidate,now);
     if(!product)return[];
     // A permanent listing is not a renewed semantic/native freshness proof.
@@ -89,11 +89,16 @@ function select(candidates: SearchResult[], limit: number, now: number,semanticD
     return[result(product,candidate.similarity,candidate.matchType)];
   }).filter((product) => {
     if (ids.has(product.id) || !(product.eligibleUntil===null
-      ? product.isActive&&product.qualityScore>=.55&&product.imageUrl&&product.affiliateUrl
+      ? product.isActive&&product.qualityScore>=0&&product.qualityScore<=1&&product.imageUrl&&product.affiliateUrl
       : isCatalogDisplayEligibleProduct(product))) return false;
     ids.add(product.id);
     return true;
-  }), limit);
+  });
+  // Exact public-catalog duplicates are resolved before publication. Preserve
+  // distinct cleared designs; fuzzy family suppression is for fresh suppliers.
+  const finite = new Set(suppressNearDuplicateProducts(eligible.filter(product => product.eligibleUntil !== null), limit)
+    .map(product => product.id));
+  return eligible.filter(product => product.eligibleUntil === null || finite.has(product.id)).slice(0, limit);
 }
 
 /** Per-isolate cache/limiter are best effort, not global spending guarantees. */

@@ -81,8 +81,8 @@ test('permanent display requires exact nonexpiring nonmerchant grants for every 
   assert.equal('humorTags' in p, false);
 });
 
-test('permanent clearance never overrides explicit curation holds, duplicates or quality', () => {
-  for (const override of [{ isActive: false }, { duplicateOfProductId: 'other' }, { qualityScore: .1 },
+test('permanent clearance never overrides explicit curation holds, duplicates or invalid ranking metadata', () => {
+  for (const override of [{ isActive: false }, { duplicateOfProductId: 'other' }, { qualityScore: -.1 }, { qualityScore: 1.1 },
     { editorialStatus: 'blocked' }, { editorialStatus: 'needs_review' }]) {
     assert.equal(createPersistentCatalogProduct(base(override), now, true), null);
   }
@@ -127,7 +127,7 @@ test('expiry and build-view helpers ignore only explicit null and do not mutate 
 });
 
 test('composition preserves authoritative curation even when a separate clearance input disagrees', () => {
-  for (const override of [{ qualityScore: .1 }, { editorialStatus: 'blocked' }, { editorialStatus: 'needs_review' },
+  for (const override of [{ qualityScore: -.1 }, { editorialStatus: 'blocked' }, { editorialStatus: 'needs_review' },
     { isActive: false }, { duplicateOfProductId: 'other' }]) {
     const p = product(override);
     const result = createCatalogSnapshot([p], {}, { now, catalogRevision: 'holds', dataKind: 'synthetic_fixture',

@@ -13,7 +13,6 @@ import { PHOTO_PLACEHOLDER } from "../static-site/lib/photo-shard.ts";
 import { createBrowseRelease } from "../static-site/lib/browse.ts";
 import { createOgRelease } from "../static-site/lib/og.ts";
 import { guides } from "../static-site/lib/guides.ts";
-import { directoryPages, directoryPath } from "../static-site/lib/directory.ts";
 import { siteIdentityFor } from "../static-site/lib/site-identity.ts";
 import { createSiteWorker } from "../workers/site/index.ts";
 import { createReleaseIdentity } from "../scripts/staging/release-identity.mts";
@@ -34,8 +33,8 @@ function context(input, prior = null) {
     vectorSyncWatermark: 0, priorReleaseId: prior?.releaseId ?? null, retainedManifestSha256: prior?.manifestSha256 ?? null };
 }
 function assets(input) {
-  const pages = ["/", "/random-gift", "/gift-guides", "/howie", "/preview/presentation", "/gifts/page/1",
-    ...guides.map((g) => `/gift-guides/${g.slug}`), ...directoryPages(input).map((p) => directoryPath(p.page)),
+  const pages = ["/", "/random-gift", "/gift-guides", "/howie", "/preview/presentation",
+    ...guides.map((g) => `/gift-guides/${g.slug}`),
     ...input.products.map((p) => `/gifts/${p.slug}`)];
   const files = new Map(pages.map((p) => [p === "/" ? "/index.html" : `${p}.html`, encode("owned page")]));
   for (const p of ["/safe/catalog.html", "/safe/product.html", "/safe/howie.html", "/safe/presentation.html"])
@@ -94,7 +93,7 @@ test("final packaging rejects personal identity in current assets and retained o
     assert.equal(cleared.assets.has(oldPath), false);
   }
 });
-test("shared owned photo placeholder survives current and retained code; product/private literals still fail closed", () => {
+test("shared code permits cleared permanent labels but rejects finite, URL and private literals", () => {
   const first = snapshot("placeholder-first"), second = snapshot("placeholder-second");
   for (const input of [first, second]) for (const product of input.products)
     Object.assign(product, { imageUrl: PHOTO_PLACEHOLDER, eligibleUntil: null, indexable: false });
@@ -108,15 +107,27 @@ test("shared owned photo placeholder survives current and retained code; product
   verifyRetainedAssets(second, next.assets, next.manifest, ctx, prior);
   for (const marker of ["sourceFactsHash", "sourceFacts", "POSTGRES_URL", "DATABASE_URL", "AMAZON_SECRET", "privateRights"])
     assert.throws(() => assertOwnedCodeSafe(encode(`${new TextDecoder().decode(code)}window.${marker}="private"`), [second]), /retention/);
-  for (const field of ["title", "affiliateUrl", "id", "publicId", "slug"])
+  for (const field of ["title", "id"])
+    assert.doesNotThrow(() => assertOwnedCodeSafe(encode(JSON.stringify(second.products[0][field])), [second]));
+  for (const field of ["affiliateUrl", "publicId", "slug"])
     assert.throws(() => assertOwnedCodeSafe(encode(JSON.stringify(second.products[0][field])), [second]), /retention/);
   const sameValueOtherField = structuredClone(second); sameValueOtherField.products[0].title = PHOTO_PLACEHOLDER;
+  sameValueOtherField.products[0].eligibleUntil = new Date(Date.parse(at) + 86400000).toISOString();
   assert.throws(() => assertOwnedCodeSafe(code, [sameValueOtherField]), /retention/);
   for (const imageUrl of ["/images/other-product.svg", `${PHOTO_PLACEHOLDER}?supplier=1`, "https://supplier.invalid/product-photo.jpg"])
     assert.throws(() => assertOwnedCodeSafe(encode(JSON.stringify(imageUrl)), [{ ...second,
       products: [{ ...second.products[0], imageUrl }] }]), /retention/);
-  const escaped = { ...second.products[0], title: 'Product-specific "quoted" \\ copy' };
+  const escaped = { ...second.products[0], title: 'Product-specific "quoted" \\ copy', eligibleUntil:new Date(Date.parse(at)+86400000).toISOString() };
   assert.throws(() => assertOwnedCodeSafe(encode(JSON.stringify(escaped.title)), [{ ...second, products: [escaped] }]), /retention/);
+  const overlay={...escaped,persistent:{...second.products[0],title:'Permanently cleared original title'}};
+  assert.throws(()=>assertOwnedCodeSafe(encode(JSON.stringify(overlay.title)),[{...second,products:[overlay]}]),/retention/);
+  assert.doesNotThrow(()=>assertOwnedCodeSafe(encode(JSON.stringify(overlay.id)),[{...second,products:[overlay]}]));
+  const unchanged={...overlay,title:overlay.persistent.title};
+  assert.doesNotThrow(()=>assertOwnedCodeSafe(encode(JSON.stringify(unchanged.title)),[{...second,products:[unchanged]}]));
+  const clearedQuoted={...escaped,eligibleUntil:null};
+  assert.doesNotThrow(()=>assertOwnedCodeSafe(encode(JSON.stringify(clearedQuoted.title)),[{...second,products:[clearedQuoted]}]));
+  const crossField={...second.products[0],title:second.products[0].affiliateUrl};
+  assert.throws(()=>assertOwnedCodeSafe(encode(JSON.stringify(crossField.title)),[{...second,products:[crossField]}]),/retention/);
 });
 test("exported build and verifier use the explicit clean runtime root, not the toolchain checkout (mock Next)", async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "static-release-runtime-root-"));

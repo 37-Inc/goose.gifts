@@ -46,7 +46,7 @@ export function ProductCard({
           </a>
         </h2>
         {!illustrative && <CatalogDisclosure source={product.source} id={product.id} />}
-        {!illustrative && <CatalogDescription source={product.source} id={product.id} card />}
+        <CatalogDescription source={product.source} id={product.id} title={product.title} fallback={product.description} card />
       </div>
     </article>
   );

@@ -28,15 +28,19 @@ export function createStaticFeedPlan(snapshot: CatalogSnapshot, catalogSnapshotS
     const resolved=persistentPublicProduct(product)??resolvePublicProduct(product,at);return resolved ? [{product:resolved,index}] : [];
   }).filter(({ product }) => {
     if (ids.has(product.id) || !(product.eligibleUntil===null
-      ? product.isActive&&product.qualityScore>=.55&&product.imageUrl&&product.affiliateUrl
+      ? product.isActive&&product.qualityScore>=0&&product.qualityScore<=1&&product.imageUrl&&product.affiliateUrl
       : isCatalogDisplayEligibleProduct(product, { asOf }))) return false;
     ids.add(product.id);
     return true;
   }).map(({ product, index }) => ({ product, index, title: product.title, score: scoreProductForTrending(product) }))
     .sort((a, b) => b.score - a.score || a.product.id.localeCompare(b.product.id));
+  // Cleared listings have already passed exact catalog deduplication. Different
+  // designs/brands must not disappear because they share a novelty archetype.
+  const finite = new Set(suppressNearDuplicateProducts(ranked.filter(({ product }) => product.eligibleUntil !== null))
+    .map(({ index }) => index));
   return {
     schemaVersion: 1, catalogRevision: snapshot.catalogRevision, catalogSnapshotSha256,
-    entries: suppressNearDuplicateProducts(ranked).map(({ product, index }) => {
+    entries: ranked.filter(({ product, index }) => product.eligibleUntil === null || finite.has(index)).map(({ product, index }) => {
       const type = TYPES.indexOf(productDisplayTypeKey(product.title) || '');
       if (type < 0) throw new Error('unsupported_feed_type');
       return [index, type];

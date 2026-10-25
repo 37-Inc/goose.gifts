@@ -208,27 +208,39 @@ test('sitemap excludes held and expired routes, with both maintained sitemap pat
   assert.doesNotMatch(await (await fixture.request('/sitemap.xml')).text(), /<url>/);
 });
 
-test('explicit compatibility redirects preserve queries and reject pagination bounds', async () => {
+test('maintained search and product redirects preserve only bounded queries', async () => {
   const fixture = setup();
   assert.equal((await fixture.request('/search?q=%20crab%20')).headers.get('Location'), '/?q=crab');
   assert.equal((await fixture.request('/search')).headers.get('Location'), '/');
   assert.equal((await fixture.request('/gifts/old-button?utm_source=show')).headers.get('Location'), '/gifts/fart-button?utm_source=show');
   assert.equal((await fixture.request('/gifts/old-button?utm_campaign=episode_2026_10_19&token=private&redirect=https://evil.test')).headers.get('Location'), '/gifts/fart-button?utm_campaign=episode_2026_10_19');
-  assert.equal((await fixture.request('/gifts?page=2&utm_source=show')).headers.get('Location'), '/gifts/page/2?utm_source=show');
-  assert.equal((await fixture.request('/gifts?page=1')).headers.get('Location'), '/gifts');
-  for (const page of ['0', '-1', 'junk', '1.5', '1e2', 'Infinity', '1'.repeat(129)]) assert.equal((await fixture.request(`/gifts?page=${page}`)).status, 404);
-  for (const page of ['3', '999999999999999999999999999999']) {
-    assert.equal((await fixture.request(`/gifts?page=${page}`)).headers.get('Location'), '/gifts/page/2');
-    assert.equal((await fixture.request(`/gifts/page/${page}`)).headers.get('Location'), '/gifts/page/2');
+});
+
+test('retired directory, pagination and export aliases always404 while individual gift pages stay live', async () => {
+  const f = setup({ canonicalOrigin: 'https://stupid.gifts' });
+  for (const host of ['stupid.gifts', 'www.stupid.gifts']) {
+    for (const method of ['GET', 'HEAD', 'POST']) {
+      for (const path of ['/gifts', '/gifts/', '/gifts?page=1', '/gifts?page=2', '/gifts.html', '/gifts.txt',
+        '/gifts/__next._full.txt', '/gifts/page', '/gifts/page/1', '/gifts/page/2/',
+        '/gifts/page/9999999999999', '/gifts/page/2.html', '/gifts/page/2.txt', '/gifts/page/2/__next._tree.txt',
+        '/%67ifts', '/gifts/%70age/2']) {
+        const response = await f.worker.fetch(new Request(`https://${host}${path}`, { method }), f.env);
+        assert.equal(response.status, 404, `${host}/${method}/${path}`);
+        assert.equal(response.headers.get('Location'), null);
+      }
+    }
   }
-  assert.equal((await fixture.request('/gifts/page/1?utm_source=show')).headers.get('Location'), '/gifts?utm_source=show');
-  assert.equal((await fixture.request('/gifts/page/2')).status, 200);
+  const response = await f.worker.fetch(new Request('https://stupid.gifts/gifts/fart-button'), f.env);
+  assert.equal(response.status, 200);
+  const xml = await (await f.worker.fetch(new Request('https://stupid.gifts/sitemap.xml'), f.env)).text();
+  assert.doesNotMatch(xml, /<loc>https:\/\/stupid\.gifts\/gifts(?:<|\/page)/);
+  assert.match(xml, /<loc>https:\/\/stupid\.gifts\/gifts\/fart-button<\/loc>/);
 });
 
 test('known HTML trailing slashes redirect for GET/HEAD with only coarse campaign and bounded functional query', async () => {
   const fixture = setup();
   for (const method of ['GET', 'HEAD']) {
-    for (const path of ['/gifts', '/gifts/fart-button', '/gifts/page/2', '/howie', '/privacy', '/search']) {
+    for (const path of ['/gifts/fart-button', '/howie', '/privacy', '/search']) {
       const response = await fixture.request(`${path}/?utm_source=show&utm_medium=podcast&utm_campaign=episode&q=desk%20goat&page=2&gift=private&token=private&redirect=https://evil.test&gclid=private&utm_term=private`, { method });
       assert.equal(response.status, 308, path);
       assert.equal(response.headers.get('Location'), `${path}?utm_source=show&utm_medium=podcast&utm_campaign=episode&q=desk+goat&page=2`);
@@ -242,7 +254,7 @@ test('known HTML trailing slashes redirect for GET/HEAD with only coarse campaig
   fixture.advance(2400);
   assert.equal(await (await fixture.request(redirect.headers.get('Location'))).text(), '/safe.html');
   const post = await fixture.request('/gifts/', { method: 'POST' });
-  assert.equal(post.status, 405); assert.equal(post.headers.get('Location'), null);
+  assert.equal(post.status, 404); assert.equal(post.headers.get('Location'), null);
   const overlong = await fixture.request(`/howie/?q=${'a'.repeat(201)}&page=${'1'.repeat(129)}`);
   assert.equal(overlong.headers.get('Location'), '/howie');
 });

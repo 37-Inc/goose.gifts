@@ -5,7 +5,9 @@ import { readFile,readdir } from 'node:fs/promises';
 import { setup,scope,uuid } from './helpers/published-vector-fixture.mjs';
 import { canonicalJson,sha256 } from '../scripts/catalog/migration.ts';
 import { createProjectionPacket,projectionQueries } from '../lib/catalog/d1.ts';
-import { permanentSourceRows } from '../lib/catalog/freeze-permanent-catalog.ts';
+import { permanentSourceRows,permanentSourceInventory } from '../lib/catalog/freeze-permanent-catalog.ts';
+import { assertApprovedCatalogInventory } from '../scripts/catalog/permanent-catalog-seal.ts';
+import { recoverMarkedReviewedActivation } from '../scripts/catalog/run-cloudflare-weekly.ts';
 import { prunedVectorPlan } from '../lib/catalog/prune-existing-revision.ts';
 import { readHistoricalNativePreservation } from '../scripts/catalog/owned-vector-delivery.ts';
 import { enqueuePublication,claimPublication,recordPublicationDispatch } from '../lib/catalog/publication.ts';
@@ -13,13 +15,18 @@ import { enqueueBuildRequest,claimBuildRequest,recoverUnstartedBuildRequest,begi
   beginReviewedUploadActivation,readReviewedUploadActivation,encodeReviewedUploadActivationApproval,reviewedUploadActivationDeadline } from '../lib/catalog/build-requests.ts';
 
 const hash='a'.repeat(64),version=uuid(990),same=(a,b)=>assert.equal(canonicalJson(a),canonicalJson(b)),marked=async()=>{};
+async function compileAtD1Depth(queries){
+  const migrations=new URL('../migrations/d1/',import.meta.url),schema=(await Promise.all((await readdir(migrations)).sort().map(n=>readFile(new URL(n,migrations),'utf8')))).join('\n');
+  const py="import sys,json,sqlite3\nv=json.load(sys.stdin)\nc=sqlite3.connect(':memory:',cached_statements=0)\nc.executescript(v['schema'])\nc.setlimit(sqlite3.SQLITE_LIMIT_EXPR_DEPTH,100)\nfor q in v['queries']:c.execute('EXPLAIN '+q['sql'],q['params']).fetchall()\nprint(len(v['queries']))";
+  return Number(execFileSync('python3',['-c',py],{input:JSON.stringify({schema,queries}),encoding:'utf8',timeout:10000}));
+}
 function deadlineGrant(input){
   const priorApproval=structuredClone(input.approval);
   return{...input,priorApproval,approval:{...priorApproval,schemaVersion:2,checkpointSha256:'b'.repeat(64),
     reviewReference:'fixture:explicit-deadline-v2',priorApprovalSha256:sha256(encodeReviewedUploadActivationApproval(priorApproval)),
     activationDeadline:new Date(Date.parse(input.claim.request.cutoff)+90*60000).toISOString()}};
 }
-async function fixture(t,{wide=false,grantRelease='reviewed-release'}={}){
+async function fixture(t,{wide=false,grantRelease='reviewed-release',preflight=false,attempts=1}={}){
   const f=await setup(t);let snapshot=f.revision.snapshot,source=f.revision.packet.receipt.source_export_sha256;
   if(wide){
     const extra=Array.from({length:2351},(_,i)=>({id:`B${String(i+100).padStart(9,'0')}`,publicId:uuid(i+100),slug:`own-${i}`,source:'amazon',currency:'USD',
@@ -38,9 +45,11 @@ async function fixture(t,{wide=false,grantRelease='reviewed-release'}={}){
   }
   const request={...f.published.request,sourceRevision:snapshot.catalogRevision,sourceDigest:sha256(`${JSON.stringify(snapshot)}\n`)};
   const queued=await enqueueBuildRequest(f.db,request);let claim;
-  for(let n=0;n<3;n++){claim=await claimBuildRequest(f.db,queued.requestId,'reviewed-build',f.now(),1000);assert.ok(claim);f.advance(1001);}
-  const grant={schemaVersion:1,requestId:claim.requestId,packageSha256:hash,previousToken:claim.token,checkpointSha256:hash,reviewReference:'fixture:original3plus1'};
-  claim=await recoverUnstartedBuildRequest(f.db,claim,f.owner,grantRelease,grant);
+  for(let n=0;n<(preflight?attempts:3);n++){claim=await claimBuildRequest(f.db,queued.requestId,'reviewed-build',f.now(),1000);assert.ok(claim);f.advance(1001);}
+  if(!preflight){
+    const grant={schemaVersion:1,requestId:claim.requestId,packageSha256:hash,previousToken:claim.token,checkpointSha256:hash,reviewReference:'fixture:original3plus1'};
+    claim=await recoverUnstartedBuildRequest(f.db,claim,f.owner,grantRelease,grant);
+  }
   const intent={releaseId:'reviewed-release',catalogRevision:snapshot.catalogRevision,codeSha:request.codeSha,
     catalogSnapshotSha256:request.sourceDigest,manifestSha256:hash,vectorSyncWatermark:wide?0:f.revision.vectorSyncWatermark,
     priorReleaseId:request.priorReleaseId,nextExpiry:snapshot.products[0].eligibleUntil};
@@ -49,7 +58,8 @@ async function fixture(t,{wide=false,grantRelease='reviewed-release'}={}){
   const original={build:{...f.sql.prepare('SELECT * FROM catalog_build_requests WHERE request_id=?').get(claim.requestId)},
     publication:{...f.sql.prepare('SELECT * FROM publication_outbox WHERE intent_id=?').get(publication.intentId)}};
   const input={claim,publication,versionReference:version,owner:f.owner,original,approval:{schemaVersion:1,requestId:claim.requestId,
-    packageSha256:hash,configSha256:hash,checkpointSha256:hash,reviewPinSha256:hash,evidenceSha256:hash,reviewReference:'fixture:explicit-reviewed-activation'}};
+    packageSha256:hash,configSha256:hash,checkpointSha256:hash,reviewPinSha256:hash,evidenceSha256:hash,reviewReference:'fixture:explicit-reviewed-activation',
+    ...(preflight?{schemaVersion:4,reviewedAt:f.now().toISOString(),authorizationSha256:sha256('synthetic preflight-only owner authority')}:{})}};
   const inventory=()=>canonicalJson(f.sql.prepare('SELECT * FROM products ORDER BY id').all()),before=inventory(),native=canonicalJson([...f.index]);
   const rows=()=>permanentSourceRows({products:f.sql.prepare('SELECT * FROM products').all(),
     catalog_maintenance_products:f.sql.prepare('SELECT * FROM catalog_maintenance_products').all(),
@@ -79,11 +89,140 @@ test('reviewed expired exact3+1/claimed tokens activate atomically across2359 li
   assert.equal(f.inventory(),f.before);assert.equal(canonicalJson([...f.index]),f.native);assert.equal(canonicalJson(f.input),original);
   assert.ok(Object.is(f.index.get(uuid(1)).values[0],-0));assert.equal(f.snapshot.products.length,2359);assert.equal(f.snapshot.heldProducts.length,2);
   for(const batch of f.batches){assert.ok(batch.length<=50);assert.ok(Buffer.byteLength(JSON.stringify({batch}))<512*1024);for(const q of batch)assert.ok(q.params.length<=100);}
-  const migrations=new URL('../migrations/d1/',import.meta.url),schema=(await Promise.all((await readdir(migrations)).sort().map(n=>readFile(new URL(n,migrations),'utf8')))).join('\n');
-  const py="import sys,json,sqlite3\nv=json.load(sys.stdin)\nc=sqlite3.connect(':memory:',cached_statements=0)\nc.executescript(v['schema'])\nc.setlimit(sqlite3.SQLITE_LIMIT_EXPR_DEPTH,100)\nfor q in v['queries']:c.execute('EXPLAIN '+q['sql'],q['params']).fetchall()\nprint(len(v['queries']))";
-  const count=Number(execFileSync('python3',['-c',py],{input:JSON.stringify({schema,queries:f.queries}),encoding:'utf8',timeout:10000}));
+  const count=await compileAtD1Depth(f.queries);
   t.diagnostic(`${count} actual reviewed-activation/read SQL statements compiled at engine depth100`);
   f.advance(24*3600000);same(await readReviewedUploadActivation(f.db,f.input),permit); // Control-only read does not grant another dispatch.
+});
+
+test('v4 proven preflight retains expired original claims and normal attempt counts without operator recovery or deadline renewal',async t=>{
+  for(const attempts of [1,2,3])await t.test(`original attempt${attempts}`,async t=>{
+    const f=await fixture(t,{preflight:true,attempts}),before=canonicalJson(f.input),changes=f.sql.prepare('SELECT total_changes() n').get().n;
+    assert.equal(f.input.original.build.operator_recovery_json,null);
+    assert.equal(await reviewedUploadActivationDeadline(f.input.approval,f.input.claim.request.cutoff),f.input.claim.request.cutoff);
+    let marks=0;const permit=await beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof,async()=>{
+      marks++;assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);
+    });
+    assert.equal(marks,1);same(await readReviewedUploadActivation(f.db,f.input),permit);
+    same(f.sql.prepare('SELECT * FROM catalog_build_requests WHERE request_id=?').get(f.input.claim.requestId),
+      {...f.input.original.build,state:'activating',lease_until:null,release_id:'reviewed-release',version_reference:version});
+    same(f.sql.prepare('SELECT * FROM publication_outbox WHERE intent_id=?').get(f.input.publication.intentId),
+      {...f.input.original.publication,state:'dispatched',dispatch_reference:`version:${version}`});
+    assert.equal(canonicalJson(f.input),before);assert.equal(f.inventory(),f.before);assert.equal(canonicalJson([...f.index]),f.native);
+    if(attempts===1)t.diagnostic(`${await compileAtD1Depth(f.queries)} actual V4 activation/read SQL statements compiled at engine depth100`);
+    f.advance(24*3600000);same(await readReviewedUploadActivation(f.db,f.input),permit);
+  });
+});
+
+test('v4 exact authority rejects extensions, stale/future review, nonnormal attempts and operator receipts without a write',async t=>{
+  for(const fault of ['prior','extension','authorization','cutoff','before-capture','future','expired','attempt0','attempt4','attempt-text','operator','publication-attempt'])await t.test(fault,async t=>{
+    const f=await fixture(t,{preflight:true}),input=structuredClone(f.input),owner={...f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get()};
+    if(fault==='prior')input.priorApproval={...input.approval,schemaVersion:1};
+    if(fault==='extension')input.approval.activationDeadline=new Date(Date.parse(input.claim.request.cutoff)+1).toISOString();
+    if(fault==='authorization')input.approval.authorizationSha256='not-a-hash';
+    if(fault==='cutoff')input.approval.reviewedAt=input.claim.request.cutoff;
+    if(fault==='before-capture')input.approval.reviewedAt=new Date(Date.parse(input.claim.request.capturedAt)-1).toISOString();
+    if(fault==='future')input.approval.reviewedAt=new Date(f.now().getTime()+1).toISOString();
+    if(fault==='expired')f.advance(Date.parse(input.claim.request.cutoff)-f.now().getTime());
+    if(fault==='attempt0')input.original.build.attempts=0;
+    if(fault==='attempt4')input.original.build.attempts=4;
+    if(fault==='attempt-text')input.original.build.attempts='1';
+    if(fault==='operator')input.original.build.operator_recovery_json='{}';
+    if(fault==='publication-attempt')input.original.publication.attempts=4;
+    let marks=0;await assert.rejects(beginReviewedUploadActivation(f.db,input,f.snapshot,f.proof,async()=>{marks++;}));
+    assert.equal(marks,0);same(f.sql.prepare('SELECT * FROM catalog_build_requests WHERE request_id=?').get(input.claim.requestId),f.input.original.build);
+    same(f.sql.prepare('SELECT * FROM publication_outbox WHERE intent_id=?').get(input.publication.intentId),f.input.original.publication);
+    same(f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get(),owner);
+  });
+});
+
+test('v4 unknown atomic ACK reconciles read-only while missing/applied CAS never reissues a write',async t=>{
+  const f=await fixture(t,{preflight:true});let writes=0;
+  f.setAfter(statements=>{if(statements.some(s=>s.query.startsWith('UPDATE publication_outbox'))){writes++;throw Error('synthetic v4 committed ACK loss');}});
+  await assert.rejects(beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof,marked),/ACK loss/);
+  const changes=f.sql.prepare('SELECT total_changes() n').get().n;
+  const permit=await readReviewedUploadActivation(f.db,f.input);assert.equal(permit.token,f.input.claim.token);
+  assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);assert.equal(writes,1);
+  await assert.rejects(beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof,marked));assert.equal(writes,1);
+  const g=await fixture(t,{preflight:true});await assert.rejects(readReviewedUploadActivation(g.db,g.input));assert.equal(g.batches.length,0);
+});
+
+async function markedDriverFixture(t,{applied=true,wide=false,transport=true}={}){
+  const f=await fixture(t,{preflight:true,wide}),config={fixture:'same exact publication config'};
+  f.input.approval.configSha256=sha256(canonicalJson(config));
+  const ref=value=>({sha256:sha256(canonicalJson(value)),reference:`objects/${sha256(canonicalJson(value))}.json`});
+  const pending=ref({original:f.input.original}),ack=ref({fixture:'genuine acknowledged upload'}),previous=ref('preserved failed retry'),retry={approval:f.input.approval,
+    evidence:{sha256:f.input.approval.evidenceSha256,reference:`objects/${f.input.approval.evidenceSha256}.json`},...(transport?{transport:{previous}}:{})};
+  const marker={schemaVersion:1,input:f.input,retryPending:pending,retryAcknowledged:ack,configSha256:f.input.approval.configSha256},pin=ref(marker);
+  const cp={phase:'publishing',owner:f.owner,state:{requestId:f.input.claim.requestId},phaseComplete:null,pins:{
+    publicationUploadPending:ref('original'),publicationUploadReview:{sha256:f.input.approval.reviewPinSha256,reference:`objects/${f.input.approval.reviewPinSha256}.json`},
+    publicationUploadRetryPending:previous,publicationUploadTransportPending:pending,publicationUploadTransportAcknowledged:ack,reviewedUploadActivationPending:pin},
+    control:{publication:{requestId:f.input.claim.requestId,configSha256:f.input.approval.configSha256,packageSha256:f.input.approval.packageSha256,
+      stage:'uploaded',build:f.input.claim,publication:f.input.publication,versionReference:f.input.versionReference,permit:null,deploymentId:null}}};
+  if(!transport){cp.pins.publicationUploadRetryPending=pending;cp.pins.publicationUploadRetryAcknowledged=ack;
+    delete cp.pins.publicationUploadTransportPending;delete cp.pins.publicationUploadTransportAcknowledged;}
+  const saved={sha256:hash,checkpoint:cp};let written=null;
+  const workspace={async readArtifact(value){if(value.sha256===pin.sha256)return structuredClone(marker);
+    if(value.sha256===pending.sha256)return{original:structuredClone(f.input.original)};throw Error('unexpected artifact');},
+    async writeCheckpoint(expected,value){assert.equal(expected,saved.sha256);written=value;}};
+  if(applied)await beginReviewedUploadActivation(f.db,f.input,f.snapshot,f.proof,marked);
+  return{...f,options:{db:f.db,workspace,saved,config,retry},marker,cp,written:()=>written};
+}
+
+test('marked reviewed CAS is recovered before persistent inventory hydration without repeating any mutation',async t=>{
+  const f=await markedDriverFixture(t,{wide:true}),changes=f.sql.prepare('SELECT total_changes() n').get().n;
+  const rows=permanentSourceRows({products:f.sql.prepare('SELECT * FROM products').all(),
+    catalog_maintenance_products:f.sql.prepare('SELECT * FROM catalog_maintenance_products').all(),
+    catalog_maintenance_operations:f.sql.prepare('SELECT * FROM catalog_maintenance_operations').all()});
+  const revision={operationKey:f.owner.operationKey,nativeHistory:[],persistent:{generation:f.owner.generation,nativeHistory:[],inventory:permanentSourceInventory(rows)}};
+  await assert.rejects(assertApprovedCatalogInventory(f.db,f.cp.owner,revision)); // stale freezing owner cannot hydrate
+  const owner=await recoverMarkedReviewedActivation(f.options);assert.equal(owner.phase,'activating');
+  await assertApprovedCatalogInventory(f.db,owner,revision);
+  assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);
+  assert.equal(f.written(),null);assert.equal(f.cp.owner.phase,'freezing');assert.equal(f.cp.control.publication.permit,null);
+  same(await recoverMarkedReviewedActivation(f.options),owner); // no local dispatch/permit marker is consumed
+});
+
+test('marked reviewed CAS refuses missing application, missing ACK and tuple drift before hydration',async t=>{
+  for(const fault of ['not-applied','ack','marker-config','owner','version'])await t.test(fault,async t=>{
+    const f=await markedDriverFixture(t,{applied:fault!=='not-applied'}),changes=f.sql.prepare('SELECT total_changes() n').get().n;
+    if(fault==='ack')delete f.cp.pins.publicationUploadTransportAcknowledged;
+    if(fault==='marker-config')f.marker.configSha256='b'.repeat(64);
+    if(fault==='owner')f.cp.owner={...f.cp.owner,epoch:f.cp.owner.epoch+1};
+    if(fault==='version')f.cp.control.publication.versionReference=uuid(998);
+    await assert.rejects(recoverMarkedReviewedActivation(f.options));assert.equal(f.written(),null);
+    assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);
+  });
+});
+
+test('nontransport v4 marked publishing checkpoint retains exact read-only permit recovery',async t=>{
+  const f=await markedDriverFixture(t,{transport:false}),changes=f.sql.prepare('SELECT total_changes() n').get().n;
+  assert.equal((await recoverMarkedReviewedActivation(f.options)).phase,'activating');assert.equal(f.written(),null);
+  assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);
+});
+
+test('v4 source/native/prior/owner/claim drift and cutoff crossing retain all original rows',async t=>{
+  for(const fault of ['native','prior','token','source','late-owner','late-source','late-cutoff','late-review-clock'])await t.test(fault,async t=>{
+    const f=await fixture(t,{preflight:true}),owner={...f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get()};
+    const mutate=()=>{
+      if(fault==='token')f.sql.prepare('UPDATE catalog_build_requests SET lease_token=? WHERE request_id=?').run(uuid(999),f.input.claim.requestId);
+      if(fault.endsWith('source'))f.sql.prepare('UPDATE products SET is_active=0 WHERE public_id=?').run(uuid(1));
+      if(fault==='late-cutoff')f.advance(Date.parse(f.input.claim.request.cutoff)-f.now().getTime());
+      if(fault==='late-review-clock')f.advance(Date.parse(f.input.approval.reviewedAt)-f.now().getTime()-1);
+    };
+    if(fault==='native')f.index.get(uuid(1)).values[0]=0;
+    if(!fault.startsWith('late-'))mutate();
+    if(fault==='late-owner')f.sql.exec(`CREATE TRIGGER fixture_v4_owner AFTER UPDATE OF state ON publication_outbox WHEN NEW.release_id='reviewed-release'
+      BEGIN UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1; END;`);
+    const proof=async signal=>fault==='prior'?{environment:scope.environment,settled:true,active:null}:f.proof(signal);
+    let marks=0;await assert.rejects(beginReviewedUploadActivation(f.db,f.input,f.snapshot,proof,async()=>{marks++;mutate();}));
+    assert.equal(marks,fault.startsWith('late-')?1:0);
+    assert.equal(f.sql.prepare('SELECT state FROM catalog_build_requests WHERE request_id=?').get(f.input.claim.requestId).state,'building');
+    if(fault.startsWith('late-')){
+      same(f.sql.prepare('SELECT * FROM catalog_build_requests WHERE request_id=?').get(f.input.claim.requestId),f.input.original.build);
+      same(f.sql.prepare('SELECT * FROM publication_outbox WHERE intent_id=?').get(f.input.publication.intentId),f.input.original.publication);
+      same(f.sql.prepare('SELECT * FROM catalog_mutation_scopes').get(),owner);
+    }
+  });
 });
 
 test('unknown atomic ACK reads exact permit only; missing grant never dispatches and duplicate write refuses',async t=>{

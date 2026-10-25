@@ -20,8 +20,10 @@ export const CATALOG_D1_REST_LIMITS = Object.freeze({ requests:600,statements:12
 // Explicit whole-client allowance only; defaults never grow automatically.
 // Defaults stay conservative. An explicit immutable operator config may select
 // a larger finite workload; these ceilings never represent shared-account headroom.
+// The 3M read ceiling accommodates explicit once-only post-activation settlement;
+// the 1M default and ordinary weekly-config 2M maximum remain unchanged.
 const HARD_LIMITS=Object.freeze({...CATALOG_D1_REST_LIMITS,requests:10_000,statements:25_000,
-  reportedRowsRead:2_000_000,reportedRowsWritten:50_000});
+  reportedRowsRead:3_000_000,reportedRowsWritten:50_000});
 type Limits = { [K in keyof typeof CATALOG_D1_REST_LIMITS]:number };
 type Param = string | number | null;
 type Query = { sql:string;params:readonly Param[] };

@@ -24,7 +24,6 @@ import { siteIdentityBytes } from '../scripts/staging/build.mts';
 import { assembleReleaseAssets, readPriorRelease } from '../scripts/staging/retention.mts';
 import { createStaticFeedPlan } from '../workers/site/feed.ts';
 import { createBrowseRelease } from '../static-site/lib/browse.ts';
-import { directoryPages, directoryPath } from '../static-site/lib/directory.ts';
 import { createOgRelease } from '../static-site/lib/og.ts';
 import { siteIdentityFor } from '../static-site/lib/site-identity.ts';
 import { guides } from '../static-site/lib/guides.ts';
@@ -40,6 +39,7 @@ import {readActivatedCatalogVectors} from '../scripts/catalog/owned-vector-deliv
 import {createPermanentCatalogSeal} from '../scripts/catalog/permanent-catalog-seal.ts';
 import {earliestDisplayExpiry} from '../lib/catalog/display.ts';
 import {createPhotoRelease} from '../static-site/lib/photos.ts';
+import {executionAdoptionDigest} from '../scripts/catalog/execution-adoption.ts';
 
 // Real composed stores/fence/evidence/driver/publisher/workspace over SQLite.
 // Default cases mock external Amazon/OpenAI/CF and Next compilation. Capacity
@@ -78,8 +78,8 @@ async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true
 async function fullCheckpoint(options){const workspace=await openRunWorkspace(options);
   try{return await workspace.readCheckpoint();}finally{await workspace.close();}}
 function sealedFixture(snapshot,context,prior=null){
-  const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
-    ...directoryPages(snapshot).map(page=>directoryPath(page.page)),...snapshot.products.map(p=>`/gifts/${p.slug}`)];
+  const pages=['/','/random-gift','/gift-guides','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
+    ...snapshot.products.map(p=>`/gifts/${p.slug}`)];
   const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,Buffer.from('Owned fixture HTML')]));
   for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/asset.txt'])assets.set(name,Buffer.from('Owned unavailable'));
   assets.set('/safe/catalog.json',safeCatalogPayload);
@@ -358,9 +358,9 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
     }
     if(!c.args.includes('scripts/staging/build.mts'))return;
     calls.build++;const context=JSON.parse(await fs.readFile(c.env.CATALOG_RELEASE_CONTEXT_PATH));const snapshot=JSON.parse(await fs.readFile(c.env.CATALOG_SNAPSHOT_PATH));
-    const sealed=sealedFixture(snapshot,context,await readPriorRelease(context,config.publication.prior?.directory));manifest=sealed.manifest;
-    for(const [name,value]of Object.entries(sealed.files))await put(path.join(repo,'build/stupid-gifts',name),value);
-    for(const [name,value]of sealed.assets)await put(path.join(repo,'static-site/out',name.slice(1)),value);
+    const sealed=sealedFixture(snapshot,context,await readPriorRelease(context,config.publication.prior?.directory??undefined));manifest=sealed.manifest;
+    for(const [name,value]of Object.entries(sealed.files))await put(path.join(c.cwd,'build/stupid-gifts',name),value);
+    for(const [name,value]of sealed.assets)await put(path.join(c.cwd,'static-site/out',name.slice(1)),value);
   };
   const dependencies={repository:repo,fetch,resolveToken:async ref=>`TEST_ONLY_${ref.service.split('.').at(-1)}`,now:()=>clock,publication:{fetch,command,now:()=>new Date(clock)}};
   const options={configPath,configSha256,workspace};
@@ -499,7 +499,7 @@ test('pinned daily D1 uses one existing refresh with no model credential, then w
   assert.equal(f.calls.getItems,1);
 });
 
-for(const monday of [false,true])test(`full2359 ${monday?'Monday ten plus20 discoveries':'daily ten'} current driver retains catalog but refuses ordinary whole-run budget`,async t=>{
+for(const monday of [false,true])test(`full2359 ${monday?'Monday ten plus20 discoveries':'daily ten'} current driver retains catalog but refuses undersized800HTTP/1200SQL budget`,async t=>{
   const f=await setup(t,{permanent:2359,held:1024,discovered:monday?20:0,realTransport:true,at:monday?'2026-10-19T18:00:00.000Z':NOW});
   f.config.cadence={day:monday?'2026-10-19':'2026-10-20',featuredIds:Array.from({length:10},(_,i)=>`B${String(i+1).padStart(9,'0')}`)};
   f.config.backfillLimit=0;f.config.limits={requests:800,statements:1200};if(!monday)delete f.config.credentials.openai;
@@ -533,18 +533,27 @@ for(const monday of [false,true])test(`full2359 ${monday?'Monday ten plus20 disc
   const resume=()=>capture('resume',approval),result=approval?await resume():start,report=await readRunWorkspace(f.workspaceOptions);
   assert.notEqual(result.state,'finalized');assert.ok((approval?['freezing']:['attention'])
     .includes(report.checkpoint.checkpoint.phase),JSON.stringify(result));
+  const refusal=result.errorCode||result.reason;
+  // The owned plan proof needs its owner assertion and predicate atomically.
+  assert.ok(refusal==='catalog_d1_budget_exhausted'
+    ||refusal==='vector_delivery_failed'&&(report.budget.sqlStatements+2>1200||report.budget.httpRequests===800),
+  `A masked vector-proof refusal requires an exhausted unchanged allowance: ${JSON.stringify({result,budget:report.budget})}`);
+  assert.ok(report.budget.httpRequests<=800);
   assert.ok(report.budget.sqlStatements<=1200);assert.equal(report.budget.unconfirmedRequests,0);
   assert.equal(f.calls.build+f.calls.upload+f.calls.activate,0,'Budget refusal cannot deploy a partial/empty catalog');
   assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,1);
   assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,approval?'freezing':'writing');
   const charged=structuredClone(report.budget),http=f.calls.http,sql=f.calls.sql,
     projectionRows=f.sql.prepare("SELECT count(*) n FROM catalog_public_products WHERE catalog_revision='weekly-r'").get().n;
-  assert.ok(projectionRows<2359);if(approval)assert.ok(charged.sqlStatements+Math.min(35,2359-projectionRows)+1>1200,
-    'The next unchanged bounded projection chunk cannot fit the ordinary statement cap');
+  // Grouped INSERTs may finish the projection before a later proof exhausts
+  // this deliberately undersized budget. Refusal, not a partial-row count, is
+  // the contract: no deployment and no fresh allowance or paid phase on retry.
+  assert.ok(projectionRows<=2359+(monday?20:0));
   assert.equal(charged.httpRequests,http,'Every mocked CF/Vectorize/identity request is in the shared ledger');
   assert.equal(charged.sqlStatements,sql,'Every dispatched SQL statement is in the shared ledger');
   await resume();const again=await readRunWorkspace(f.workspaceOptions);
   for(const key of ['httpRequests','sqlStatements','knownRowsRead','knownRowsWritten','unconfirmedRequests'])assert.ok(again.budget[key]>=charged[key],key);
+  assert.ok(again.budget.httpRequests<=800&&again.budget.sqlStatements<=1200);
   assert.deepEqual(Object.fromEntries(Object.keys(paid).map(k=>[k,f.calls[k]])),paid,'Restart cannot rerun merchant/model phases');
   assert.equal(f.calls.build+f.calls.upload+f.calls.activate,0);
   t.diagnostic(JSON.stringify({scenario:monday?'Monday10+20/full2359':'daily10/full2359',result,phase:report.checkpoint.checkpoint.phase,
@@ -632,6 +641,57 @@ test('reported D1 usage excess retains the known cost and checkpoints attention 
   assert.equal((await f.run('resume')).state,'attention');assert.deepEqual(f.calls,calls);
   assert.deepEqual((await readRunWorkspace(f.workspaceOptions)).budget,budget);
   assert.equal(f.calls.getItems+f.calls.search+f.calls.chat+f.calls.embedding+f.calls.build+f.calls.upload+f.calls.activate,0);
+});
+
+test('adopted expired-context daily resumes new source through actual normal publication without provider replay or old config edits',async t=>{
+  const f=await setup(t,{permanent:22,held:2,authenticPrior:true,realTransport:true});
+  f.config.cadence={day:'2026-10-20',featuredIds:Array.from({length:10},(_,i)=>`B${String(11+i).padStart(9,'0')}`)};
+  // Routine identity-only prior mode does not repackage yesterday's bodies.
+  f.config.publication.prior.directory=null;
+  f.config.backfillLimit=0;f.config.limits={requests:5000,statements:12000,reportedRowsRead:1500000,reportedRowsWritten:30000};
+  delete f.config.credentials.openai;
+  // Distinguish publication permission from still-valid supplier evidence.
+  // The fixture's finite overlays last an hour; expire only its ten-minute
+  // publication context, never lengthen or backdate an evidence deadline.
+  const input=JSON.parse(await fs.readFile(f.config.inputs.context.path));
+  input.cutoff=new Date(Date.parse(f.now())+10*60000).toISOString();await put(f.config.inputs.context.path,input);
+  f.config.inputs.context.sha256=sha256(await fs.readFile(f.config.inputs.context.path));await f.configure();
+  assert.equal((await f.run('start')).reason,'awaiting_reviewed_approval');
+  const oldConfig=await fs.readFile(f.options.configPath),oldCode=f.config.codeSha,oldRoot=f.dependencies.repository;
+  const newRoot=path.join(path.dirname(oldRoot),'adopted-source');await fs.cp(oldRoot,newRoot,{recursive:true});
+  await put(path.join(newRoot,'reviewed-executor.txt'),'Synthetic independently reviewed continuation');
+  const git=(...args)=>execFileSync('git',args,{cwd:newRoot,encoding:'utf8'}).trim();git('add','.');git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','New reviewed fixture executor');
+  const nextCode=git('rev-parse','HEAD'),effective={...f.config,codeSha:nextCode,publication:{...f.config.publication,codeSha:nextCode,sourceRoot:newRoot}};
+  const file=path.join(path.dirname(f.options.configPath),'effective-config.json');await put(file,effective);
+  const fileSha=sha256(await fs.readFile(file));f.advance(30*60000);
+  let w=await openRunWorkspace(f.workspaceOptions);const originalManifest=await fs.readFile(path.join(w.directory,'manifest.json'));
+  const cp=await w.readCheckpoint(),oldContext=await w.readArtifact(cp.checkpoint.pins.context),header=JSON.parse(await fs.readFile(path.join(w.directory,cp.checkpoint.pins.context.reference)));
+  const nextContext={...oldContext,cutoff:new Date(Date.parse(f.now())+3600000).toISOString()},contextHash=sha256(canonicalJson(nextContext));
+  const draft={schemaVersion:1,kind:'catalog-execution-adoption-v1',original:{manifestSha256:w.manifestSha256,configSha256:f.options.configSha256,codeSha:oldCode,sourceRoot:oldRoot,
+    checkpointSha256:cp.sha256,owner:cp.checkpoint.owner,context:cp.checkpoint.pins.context,journal:JSON.parse(await fs.readFile(path.join(w.directory,'head.json'))),budgetCaps:w.manifest.budgetCaps},
+    effective:{codeSha:nextCode,sourceRoot:newRoot,configSha256:fileSha,publicationConfigSha256:sha256(canonicalJson(effective.publication))},
+    contexts:{original:oldContext,replacement:nextContext,ref:{sha256:contextHash,reference:`objects/${contextHash}.json`}},approvedAt:f.now(),observedAt:header.observedAt,notAfter:header.expiresAt};
+  const adoption={...draft,approvalSha256:executionAdoptionDigest(draft)},approvalPath=path.join(path.dirname(file),'execution-approval.json');await put(approvalPath,adoption);
+  const recovery={path:approvalPath,sha256:sha256(await fs.readFile(approvalPath)),configPath:file,configSha256:fileSha},deps={...f.dependencies,repository:newRoot};
+  await w.close();const callsBefore=structuredClone(f.calls);
+  await assert.rejects(runCloudflareWeekly({...f.options,command:'resume',recovery},deps),/execution_adoption_required/);assert.deepEqual(f.calls,callsBefore);
+  w=await openRunWorkspace(f.workspaceOptions);const budget=await w.budget();await w.adoptExecution(adoption);assert.deepEqual(await w.budget(),budget);await w.close();
+  const result=await runCloudflareWeekly({...f.options,command:'resume',recovery,approval:await f.approve()},deps);
+  if(result.state!=='finalized'){
+    const inspect=await openRunWorkspace(f.workspaceOptions);const view=await inspect.readCheckpoint({controlOnly:true});
+    t.diagnostic(JSON.stringify({stage:view.checkpoint.control?.publication?.stage,calls:f.calls}));await inspect.close();
+  }
+  assert.equal(result.state,'finalized',JSON.stringify(result));assert.equal(f.calls.getItems,1);assert.equal(f.calls.chat+f.calls.search+f.calls.embedding,0);
+  assert.equal(f.calls.upsert+f.calls.delete,0);assert.equal(result.catalogSeal.persistent.inventory.length,24);
+  const receipt=f.sql.prepare('SELECT * FROM publication_receipts WHERE release_id=?').get(f.config.publication.releaseId);assert.equal(receipt.code_sha,nextCode);
+  assert.equal(f.sql.prepare('SELECT phase FROM catalog_mutation_scopes').get().phase,'idle');
+  assert.deepEqual(await fs.readFile(f.options.configPath),oldConfig);assert.equal(execFileSync('git',['rev-parse','HEAD'],{cwd:oldRoot,encoding:'utf8'}).trim(),oldCode);
+  w=await openRunWorkspace(f.workspaceOptions);assert.deepEqual(await fs.readFile(path.join(w.directory,'manifest.json')),originalManifest);
+  // Genuine persistent predecessor exercises successor sealing in the driver,
+  // not just the simpler nonpersistent synthetic publication path.
+  assert.equal((await w.catalogSuccessor()).persistent.request.codeSha,nextCode);
+  assert.equal(w.execution.effective.codeSha,nextCode);
+  assert.equal((await w.readCheckpoint()).checkpoint.phase,'finalized');await w.close();
 });
 
 test('small permanent daily composes actual package verification through receipt/readback with model-free cadence and shared CF accounting',async t=>{

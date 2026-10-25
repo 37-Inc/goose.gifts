@@ -10,6 +10,10 @@ import { canonicalJson, canonicalTimestamp, sha256 } from './migration.ts';
 import { mutationFenceQuery } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner, MutationQuery } from '../../lib/catalog/mutation-fence.ts';
 import { pruningCurrentQueries, PRUNING_CURRENT_LIMITS, CATALOG_IDENTITY_LIMITS, PRUNING_CURRENT_COLUMNS as CURRENT, PRUNING_ARCHIVE_TIMES as ARCHIVE_TIMES } from '../../lib/catalog/pruning-current.ts';
+import { originalEditorialEquivalentRow } from '../../lib/catalog/editorial-equivalence.ts';
+import { approvedBaseChangeLimit } from '../../lib/catalog/owner-base-review.ts';
+import type { OwnerBaseCatalogReview } from '../../lib/catalog/owner-base-review.ts';
+import { editorialSourceHash } from '../ops/catalog-editorial-core.mjs';
 export { pruningCurrentQueries } from '../../lib/catalog/pruning-current.ts';
 
 /** The sealed header/held/history/order are not versioned in D1. Supply these
@@ -38,6 +42,14 @@ const PROJECTION = ['catalog_revision', 'public_id', 'product_id', 'slug', 'titl
   'source_facts_hash', 'eligible_until', 'public_display_json', 'display_sha256'];
 const jsonColumns = (alias: string, columns: string[], extra: Record<string, string> = {}) =>
   `json_object(${[...columns.map((key) => `'${key}',${alias}.${key}`), ...Object.entries(extra).map(([key, expression]) => `'${key}',${expression}`)].join(',')})`;
+// Carry private proof only for the small original-article equivalence lane,
+// never duplicate source/semantic bodies across the whole catalog capture.
+const EQUIVALENCE_NEEDED = `p.source_facts_hash IS NOT p.editorial_source_hash AND
+  (json_extract(p.public_display_json,'$.indexable')=1 OR json_extract(p.public_display_json,'$.persistent.indexable')=1)`;
+const EDITORIAL_PROOF = {
+  source_record_json: `CASE WHEN ${EQUIVALENCE_NEEDED} THEN p.source_record_json END`,
+  maintenance_semantic: `CASE WHEN ${EQUIVALENCE_NEEDED} THEN m.semantic_json END`,
+};
 
 /** One statement, bounded row-per-product output, not a giant aggregate JSON cell.
  * json_each of one bounded ID array avoids D1's100-parameter ceiling. Outbox
@@ -223,7 +235,8 @@ async function bindMaintenanceObservations(db: CatalogD1, rows: Row[], owner?: M
 }
 async function captureCurrentRows(db:CatalogD1,owner:MutationOwner,ids:string[],fence?:MutationQuery) {
   const rows=await ownedPages(db,owner,ids,`SELECT ids.ordinal,ids.value identity,
-    ${jsonColumns('p',CURRENT,ARCHIVE_TIMES)} data FROM requested ids CROSS JOIN products p ON p.public_id=ids.value`,[],fence);
+    ${jsonColumns('p',CURRENT,{...ARCHIVE_TIMES,...EDITORIAL_PROOF})} data FROM requested ids CROSS JOIN products p
+    ON p.public_id=ids.value LEFT JOIN catalog_maintenance_products m ON m.product_id=p.id`,[],fence);
   await bindMaintenanceObservations(db,rows,owner,fence);return rows;
 }
 /** Read-only recovery of ONE already-journaled body-free prune DELETE. This is
@@ -249,22 +262,36 @@ export async function readJournaledPruneDeleteSource(db:CatalogD1,owner:Mutation
  * approval source. Complete row bytes bind the maintenance operation receipt;
  * the narrow captured fields reuse the final pruning CAS and archived aliases.
  */
-export async function readApprovedCurrentRows(db: CatalogD1, ids: string[], owner: MutationOwner,approvedRecovery=false,signal?:AbortSignal) {
+export async function readApprovedCurrentRows(db: CatalogD1, ids: string[], owner: MutationOwner,approvedRecovery=false,signal?:AbortSignal,
+  ownerBaseReview?:OwnerBaseCatalogReview) {
   owner = structuredClone(owner); ids = [...ids];
-  if (ids.length > 30 || new Set(ids).size !== ids.length || ids.some(id => !UUID.test(id))) throw new Error('read_bounds');
+  if (ids.length > approvedBaseChangeLimit(ownerBaseReview) || new Set(ids).size !== ids.length || ids.some(id => !UUID.test(id))) throw new Error('read_bounds');
   const gate = approvedRecovery?approvedRevisionReadFence(owner):mutationFenceQuery(owner, ['freezing']);
   const columns = (await db.prepare(`SELECT name FROM pragma_table_info('products') WHERE ${gate.sql}`).bind(...gate.params).all<{name:string}>({signal})).results.map(row=>row.name);
   if (!columns.length || columns.length > 65 || columns.some(key=>!/^[a-z_]+$/.test(key))) throw new Error('read_bounds');
-  const rows = await ownedPages(db, owner, [...ids].sort(), `SELECT ids.ordinal,ids.value identity,${jsonColumns('p', columns)} data
-    FROM requested ids CROSS JOIN products p ON p.public_id=ids.value`,[],gate,signal);
+  const joined = await ownedPages(db, owner, [...ids].sort(), `SELECT ids.ordinal,ids.value identity,
+    ${jsonColumns('p', columns,{_editorial_semantic:'m.semantic_json'})} data FROM requested ids CROSS JOIN products p
+    ON p.public_id=ids.value LEFT JOIN catalog_maintenance_products m ON m.product_id=p.id`,[],gate,signal);
+  const rows = joined.map(value => { const row={...value};delete row._editorial_semantic;return row; });
   if (rows.length !== ids.length || rows.some(row => Buffer.byteLength(canonicalJson(row)) > SNAPSHOT_READ_LIMITS.rowBytes)) throw new Error('approved_identity_missing');
-  const current:Row[] = rows.map(row => {
+  const current:Row[] = rows.map((row,index) => {
     const archive = JSON.parse(String(row.source_record_json));
     return { ...Object.fromEntries(CURRENT.map(key => [key, row[key]])), approved_product_json:canonicalJson(row),
+      source_record_json:row.source_record_json,maintenance_semantic:joined[index]._editorial_semantic,
       ...Object.fromEntries(['id','public_id','source','availability_checked_at','last_verified_at'].map(key => [`archived_${key}`, archive[key] ?? null])) };
   });
   await bindMaintenanceObservations(db, current, owner,gate,signal);
   return { rows, current };
+}
+/** Same byte-bounded ordered reader used by products/projections, rather than
+ * one unbounded result containing every bulk operation's changes_json. */
+export async function readOwnerBaseOperationReceipts(db:CatalogD1,owner:MutationOwner,ids:string[],approvedRecovery=false,signal?:AbortSignal) {
+  ids=[...new Set(ids)].sort();
+  if(ids.length>3383||ids.some(id=>!HASH.test(id)))throw Error('read_bounds');
+  const gate=approvedRecovery?approvedRevisionReadFence(owner):mutationFenceQuery(owner,['freezing']);
+  const rows=await ownedPages(db,owner,ids,`SELECT ids.ordinal,ids.value identity,${jsonColumns('o',OPERATION)} data
+    FROM requested ids CROSS JOIN catalog_maintenance_operations o ON o.operation_id=ids.value`,[],gate,signal);
+  if(rows.length!==ids.length)throw Error('approved_identity_missing');return rows;
 }
 /** Read-only hydration of an EXISTING seal, including a genuinely journaled
  * pending vector intent. This grants no claim, re-seal, mutation or replay. */
@@ -278,10 +305,10 @@ function approvedRevisionReadFence(owner:MutationOwner):MutationQuery{
       canonicalJson({...owner,epoch:owner.epoch-1})]};
 }
 export async function readApprovedRevisionSource(db:CatalogD1,owner:MutationOwner,ids:string[],
-  changes:Array<{publicId:string;operationId:string}>){
+  changes:Array<{publicId:string;operationId:string}>,ownerBaseReview?:OwnerBaseCatalogReview){
   const fence=approvedRevisionReadFence(owner),current=await captureCurrentRows(db,owner,[...ids].sort(),fence);
-  const approved=await readApprovedCurrentRows(db,changes.map(c=>c.publicId),owner,true);
-  const operations=changes.length?(await db.prepare(`SELECT * FROM catalog_maintenance_operations
+  const approved=await readApprovedCurrentRows(db,changes.map(c=>c.publicId),owner,true,undefined,ownerBaseReview);
+  const operations=ownerBaseReview?await readOwnerBaseOperationReceipts(db,owner,changes.map(c=>c.operationId),true):changes.length?(await db.prepare(`SELECT * FROM catalog_maintenance_operations
     WHERE operation_id IN(SELECT value FROM json_each(?)) AND ${fence.sql}`)
     .bind(JSON.stringify(changes.map(c=>c.operationId)),...fence.params).all<Row>()).results:[];
   const byOp=new Map(operations.map(r=>[r.operation_id,r])),byId=new Map(current.map(r=>[String(r.public_id),r]));
@@ -327,17 +354,20 @@ function verificationTime(current: Row, rights: ProductRights): number {
 }
 export function checkCurrent(product: PublicCatalogProduct, projection: Row, current: Row, now: Date): void {
   if (!current || current.id !== product.id || current.public_id !== product.publicId || current.slug !== product.slug || current.source !== product.source
-    || current.is_active !== 1 || current.duplicate_of_product_id !== null || typeof current.quality_score !== 'number' || current.quality_score < .55
+    || current.is_active !== 1 || current.duplicate_of_product_id !== null || typeof current.quality_score !== 'number'
+    || !Number.isFinite(current.quality_score) || current.quality_score < (persistentPublicProduct(product) ? 0 : .55)
+    || current.quality_score > 1
     || current.source_facts_hash !== projection.source_facts_hash
     || typeof current.public_display_json !== 'string') throw new Error('current_hold_or_factual_drift');
   const approved = validatePublicCatalogProduct(JSON.parse(current.public_display_json), now);
   const persistent = persistentPublicProduct(product), currentPersistent = persistentPublicProduct(approved);
   const rights = object(JSON.parse(String(current.rights_json))) as ProductRights;
   if (persistent) {
-    if (['blocked', 'needs_review'].includes(String(current.editorial_status)) || !currentPersistent
+    if (['blocked', 'needs_review'].includes(String(current.editorial_status)) || current.quality_score !== persistent.qualityScore || !currentPersistent
       || canonicalJson(persistent) !== canonicalJson(currentPersistent)
       || persistent.indexable && (!/^[a-f0-9]{64}$/.test(String(current.source_facts_hash))||!['generated_ready', 'manual_locked'].includes(String(current.editorial_status))
         || current.source_facts_hash !== current.editorial_source_hash)
+        && !originalEditorialEquivalentRow(current,persistent.editorialWriteup || '',editorialSourceHash)
       || publicProductRightsExpiry(persistent, approved.eligibleUntil === null ? persistentDisplayRights(rights) : rights.persistent ?? {}, now) !== Infinity)
       throw new Error('current_rights_incompatible');
     // Final publication SQL separately rechecks current reviewed-copy provenance.
@@ -446,7 +476,10 @@ export async function reconstructD1Snapshot(db: CatalogD1, envelopeInput: Sealed
     if (canonicalJson(packet.rows) !== canonicalJson(sortedProjection) || canonicalJson(packet.receipt) !== canonicalJson(receipt)) return hold('projection_bytes_mismatch');
     if (snapshot.products.some((product) => catalogDisplayDeadline(product) <= Math.max(now.getTime(), Date.parse(context.cutoff)))) return hold('expiry_requires_new_revision', true);
     if (now.toISOString() >= context.cutoff) return hold('capture_window_elapsed');
-    if (suppressNearDuplicateProducts(snapshot.products).length !== snapshot.products.length) return hold('duplicates_require_new_revision', true);
+    // Family/archetype heuristics are discovery filters, not authority to
+    // unpublish an owner-approved permanent listing or a distinct variant.
+    const supplierOnly = snapshot.products.filter(product => !persistentPublicProduct(product));
+    if (suppressNearDuplicateProducts(supplierOnly).length !== supplierOnly.length) return hold('duplicates_require_new_revision', true);
     validateCatalogSnapshot(snapshot, now);
     const operational = new Map(current.map((row) => [row.public_id, row]));
     if (operational.size !== current.length || current.length !== envelope.products.length + envelope.heldProducts.length) return hold('current_identity_missing');

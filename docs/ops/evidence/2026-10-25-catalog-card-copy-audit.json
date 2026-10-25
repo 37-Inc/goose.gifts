@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "kind": "site-authored-card-copy-review",
+  "snapshotSha256": "56727e8ac55499aec6b8bbf03b0ebaec5341897e4c409bfbf7da96a8f8933721",
+  "sortedIdTitleCohortSha256": "dcddbcb720e191b1e26988fca41ef3d1f24c7f98f4802254c108f827f0da92f3",
+  "mapSha256": "d5f51dd7dc678a550f4b0a5a37e658d97a4d2be0ce586b34719a5197156a0c50",
+  "cohortEncoding": "SHA256(JSON.stringify([{id,title},...].sort(id.localeCompare)))",
+  "reviewedThenExcludedDuplicates": ["B0F45GMFH3", "B0F912SZ4M"],
+  "cohortNote": "Original3355-product preview contained993generic notes. Two confirmed held crown duplicates are excluded from the final3353-product proposal, leaving991active notes; the original preview/snapshot checksum remains historical.",
+  "source": {
+    "snapshot": "catalog-resolution-preview-20261025/catalog.snapshot.json",
+    "archive": "export-2026-10-22-known-writers-held/011.ndjson",
+    "predicate": "description === 'A strange little catalog find.'",
+    "sort": "id.localeCompare",
+    "archiveExactTitleMatches": 993,
+    "exactTitleSourceFactsAvailable": 6,
+    "sourceFactsIds": ["B0882T9G3Q", "B09P3N5NZ2", "B0B7531BDJ", "B0CC8JYF1Z", "B0D3V9R8WN", "B0F54SK1B5"]
+  },
+  "checks": {
+    "entries": 991,
+    "exactTitleMatches": 991,
+    "missingOrExtraIds": 0,
+    "invalidEntryShapes": 0,
+    "descriptionMinCharacters": 40,
+    "descriptionMaxCharacters": 86,
+    "duplicateDescriptions": 0,
+    "remainingGenericFallbacks": 0,
+    "embeddedLineBreaks": 0,
+    "priceAvailabilityGuaranteeOrSalesClaims": 0,
+    "existingNonFallbackDescriptionsExcluded": 2362
+  },
+  "review": {
+    "scope": "Short first-party presentation copy only, not product enrichment or full articles.",
+    "basis": "Exact preview title; archive source_facts only where the archive title matches exactly. Parent also inspected the existing catalog photos for two ambiguous items, recorded below.",
+    "claimPass": "Removed unsupported form/material/bundle and compatibility expansions from truncated titles; no assumed image details, health claims or supplier freshness claims.",
+    "parallelPart": "Final 293 entries incorporate corrected assets part commit 9fe54170c92cd9e78160fda6440db741dcac99aa.",
+    "limitedTitleHandling": "When the title does not identify a product form, retain its known theme/wording without guessing a form. Some lines deliberately say item or design.",
+    "unresolvedIdentity": [],
+    "visualReadback": [
+      { "id": "B09P3N5NZ2", "existingPhotoSha256": "84940b76df97d68ebedb999ef6b249cd345151afd2b35eb319e3b0bb1aeb095b", "finding": "Existing catalog photo shows a lidded noodle-bowl set, draining insert and eating utensils. No material, heating-safety or included-pack guarantee inferred." },
+      { "id": "B0BQ9LZNXN", "existingPhotoSha256": "ecde0821e0a582e9b719169b6e37099b1d9be19e8fd06cf9eb6cc9ea468821af", "finding": "Existing catalog photo confirms a tote bag with colorful Dalmatian-puppy print; folding is in the exact original title." }
+    ],
+    "acceptanceBoundary": "Automated length/coverage/string checks do not establish product truth or public deployment; parent performs independent copy and consumer/build review."
+  },
+  "requiredConsumerGuards": [
+    "Exact product ID and exact title match.",
+    "Use only when the original short description is the approved generic fallback.",
+    "Keep existing substantive descriptions and curated notes preferred.",
+    "Do not rewrite supplier, editorial, identity, native-vector or database fields."
+  ],
+  "operations": {
+    "providerRequests": 0,
+    "existingCatalogPhotoReads": 2,
+    "merchantRequests": 0,
+    "paidModelRequests": 0,
+    "databaseWrites": 0,
+    "nativeWrites": 0,
+    "deployments": 0
+  }
+}

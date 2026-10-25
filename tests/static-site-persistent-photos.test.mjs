@@ -15,7 +15,6 @@ import { createOgRelease } from '../static-site/lib/og.ts';
 import { siteIdentity } from '../static-site/lib/site-identity.ts';
 import { createStaticRoutes } from '../static-site/lib/asset-routes.ts';
 import { giftGuides } from '../lib/gift-guide-definitions.ts';
-import { directoryPages, directoryPath } from '../static-site/lib/directory.ts';
 import { assertFreeAssetCapacity, CLOUDFLARE_FREE_ASSET_LIMIT } from '../scripts/staging/retention.mts';
 
 const fixture = JSON.parse(fs.readFileSync(new URL('../static-site/fixtures/catalog.snapshot.json', import.meta.url)));
@@ -80,8 +79,7 @@ test('only photo JSON expires; full rendered page/HTML/RSC policies remain perma
   const input = snapshot(1), view = catalogDisplayView(input), photos = createPhotoRelease(input), browse = createBrowseRelease(view);
   const og = createOgRelease(view, siteIdentity);
   const pages = ['/', '/random-gift', '/gift-guides', '/howie', '/preview/presentation',
-    ...giftGuides.map(g => `/gift-guides/${g.slug}`), ...directoryPages(view).map(p => directoryPath(p.page)),
-    '/gifts/page/1', ...view.products.map(p => `/gifts/${p.slug}`)];
+    ...giftGuides.map(g => `/gift-guides/${g.slug}`), ...view.products.map(p => `/gifts/${p.slug}`)];
   const assets = [...pages.flatMap(p => p === '/' ? ['/index.html', '/index.txt'] : [`${p}.html`, `${p}.txt`]),
     ...og.byPath.keys(), ...browse.shards.map(s => s.path), photos.indexPath, ...photos.shards.map(s => s.path),
     '/safe/catalog.html', '/safe/catalog.txt', '/safe/catalog.json', '/safe/product.html', '/safe/product.txt',

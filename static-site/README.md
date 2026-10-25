@@ -99,7 +99,7 @@ campaign fields, alongside an ordinary link; no external QR service or client
 encoder is involved.
 
 Zero-ready snapshots render the existing safe Home, with held/noindex root,
-directory, Random and shard policies. The Worker therefore serves unavailable
+Random and shard policies. The Worker therefore serves unavailable
 variants and rejects a healthy-empty compatibility feed.
 
 Optional controlled export tests copy the project under ignored `output/`, keep
@@ -118,20 +118,14 @@ conservative family deduplication, without the live app's broad fallback. Thin
 guides remain empty/non-indexable rather than borrowing unrelated products.
 Runtime fallback FAQs that claim a live catalog are not copied into this sample.
 
-The directory exports 24 ready products per finite page in quality/id order.
-`/gifts/page/1` is a non-indexable duplicate asset whose ordinary URL the Worker
-redirects to `/gifts`. Query, invalid and overflow redirects are Worker-owned.
-Page counts and links use the complete snapshot's earliest expiry.
+The redundant `/gifts` directory, its pagination and HTML/RSC aliases are retired
+with 404 responses. Individual `/gifts/[slug]` product pages remain canonical.
+The Weird Gift Index and its aggregate JSON are also retired; do not regenerate
+either surface. Home, search and gift guides are the catalog entry points.
 
-The Weird Gift Index and its aggregate-only JSON are generated together with
-the original dictionaries and algorithm. They explicitly describe a bounded
-snapshot sample, not the complete catalog, sales, popularity, or demand. Source
-price coverage is not measured and no price conclusions are made. Both assets
-expire with the first ready record, including the direct `.json` alias.
-Full-catalog analysis remains a release-readiness gate.
-
-Homepage browsing keeps the three opening cards and renders at most nine more
-below search. An explicit More gifts button loads 24 cards at a time; it does
+Homepage browsing renders 24 products initially, with a curated opening batch.
+Every gallery and search card includes an image, title and short description.
+An explicit Load more button adds 24 cards at a time; it does
 not auto-fetch or use infinite scrolling. Random renders one initial card and
 loads its bounded 48-card pool only on the first spin. This completes lazy
 payloads/static browsing; the prior hero and Random pool were already bounded.

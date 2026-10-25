@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import { createStaticRoutes } from '../static-site/lib/asset-routes.ts';
 import { createSiteWorker } from '../workers/site/index.ts';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -10,14 +9,14 @@ const output = path.join(root, 'static-site/out');
 const input = path.join(root, 'build/stupid-gifts/catalog.snapshot.json');
 const built = fs.existsSync(input) && fs.existsSync(path.join(output, 'index.html'));
 
-test('actual exported HTML, RSC and JSON all become safe after expiry without database access', { skip: !built }, async () => {
+test('actual finite exports expire safely while cleared permanent pages survive, without database access', { skip: !built }, async () => {
   const snapshot = JSON.parse(fs.readFileSync(input, 'utf8'));
-  const inventory = fs.readdirSync(output, { recursive: true, withFileTypes: true })
-    .filter(entry => entry.isFile())
-    .map(entry => `/${path.relative(output, path.join(entry.parentPath, entry.name)).split(path.sep).join('/')}`);
-  const routes = createStaticRoutes(snapshot, inventory);
+  // Exercise the actual sealed policies, including production OG identity and
+  // compacted RSC aliases, not a second default-preview route reconstruction.
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, 'build/stupid-gifts/asset-manifest.json'), 'utf8'));
+  const {routes} = manifest;
   let now = Date.parse(snapshot.generatedAt);
-  const worker = createSiteWorker({ snapshot, manifest: { catalogRevision: snapshot.catalogRevision, routes }, now: () => now });
+  const worker = createSiteWorker({ snapshot, manifest, now: () => now });
   const secret = 'synthetic-test-secret-not-a-provider-credential';
   let databaseReads = 0;
   const env = {
@@ -34,7 +33,8 @@ test('actual exported HTML, RSC and JSON all become safe after expiry without da
   const headers = { Authorization: `Basic ${btoa(`staging:${secret}`)}`, 'If-None-Match': '"previous-release"' };
   const request = pathname => worker.fetch(new Request(`https://staging.invalid${pathname}`, { headers }), env);
   const timed = Object.entries(routes).filter(([, route]) => route.eligibleUntil !== null);
-  assert.ok(timed.length > 0, 'This check requires a catalog with expiring content');
+  assert.ok(timed.length > 0 || snapshot.products.every(p => p.eligibleUntil === null),
+    'Finite products must have timed route policies; permanent catalogs need no invented expiry');
   for (const [pathname, route] of timed) {
     now = Date.parse(route.eligibleUntil);
     let response = await request(pathname);
@@ -53,9 +53,19 @@ test('actual exported HTML, RSC and JSON all become safe after expiry without da
       assert.equal(body.includes(product.affiliateUrl), false, `Expired merchant link on ${pathname}`);
     }
   }
-  now = Math.max(...timed.map(([, route]) => Date.parse(route.eligibleUntil))) + 1;
+  now = Math.max(Date.parse(snapshot.generatedAt) + 2 * 86400000,
+    ...timed.map(([, route]) => Date.parse(route.eligibleUntil) + 1));
   const sitemap = await (await request('/sitemap.xml')).text();
-  for (const product of snapshot.products) assert.equal(sitemap.includes(`/gifts/${product.slug}`), false);
+  for (const product of snapshot.products.filter(p => p.eligibleUntil !== null))
+    assert.equal(sitemap.includes(`/gifts/${product.slug}`), false);
+  const permanent = snapshot.products.filter(p => p.eligibleUntil === null);
+  for (const product of [permanent[0], permanent[Math.floor(permanent.length / 2)], permanent.at(-1)].filter(Boolean)) {
+    const route = routes[`/gifts/${product.slug}`];
+    assert.equal(route.eligibleUntil, null);
+    const response = await request(`/gifts/${product.slug}`);
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), fs.readFileSync(path.join(output, route.assetPath), 'utf8'));
+  }
   assert.equal(databaseReads, 0);
   assert.equal((await worker.fetch(new Request('https://staging.invalid/'), env)).status, 401);
 });

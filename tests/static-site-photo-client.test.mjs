@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import * as photos from '../static-site/lib/photo-shard.ts';
 import * as presentation from '../static-site/lib/product-presentation.ts';
+import * as descriptions from '../static-site/lib/card-description.ts';
 
 const version = 'a'.repeat(64), indexPath = `/catalog/${version}/photos.json`;
 const deadline = new Date(5000).toISOString(), first = 'TEST-PHOTO-1', second = 'TEST-PHOTO-2';
@@ -46,6 +47,7 @@ function client(serve = async (_path, body) => body, json = true) {
       if (name === './Icon') return { Icon: 'mock-decorative-icon' };
       if (name === '../lib/photo-shard') return photos;
       if (name === '../lib/product-presentation') return presentation;
+      if (name === '../lib/card-description') return descriptions;
       throw new Error('Unexpected photo client dependency');
     },
     fetch: async (path, options) => {

@@ -52,8 +52,12 @@ export function assertOwnedCodeSafe(bytes: Uint8Array, snapshots: CatalogSnapsho
   const code = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   if (/sourceFactsHash|sourceFacts|POSTGRES_URL|DATABASE_URL|AMAZON_SECRET|privateRights/.test(code)) fail();
   for (const snapshot of snapshots) for (const product of snapshot.products) {
+    const permanent = persistentPublicProduct(product);
     for (const field of ["title", "imageUrl", "affiliateUrl", "id", "publicId", "slug"] as const) {
       const literal = product[field];
+      // Exact cleared, non-expiring labels/IDs may key first-party UI copy.
+      // This does not exempt supplier overlays, URLs, slugs or private facts.
+      if ((field === "title" || field === "id") && permanent?.[field] === literal) continue;
       // Shared owned UI asset, not embedded product/supplier data. No other
       // field or local URL is exempt from the literal scan.
       if (field === "imageUrl" && literal === PHOTO_PLACEHOLDER) continue;

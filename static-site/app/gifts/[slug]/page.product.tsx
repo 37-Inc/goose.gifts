@@ -82,7 +82,7 @@ export default async function Gift({
           {illustrative && <p className="eyebrow">Illustrative fixture · not for sale</p>}
           <h1><CatalogTitle source={product.source} id={product.id} fallback={product.title} /></h1>
           {!illustrative && <CatalogDisclosure source={product.source} id={product.id} />}
-          <CatalogDescription source={product.source} id={product.id} fallback={product.description} />
+          <CatalogDescription source={product.source} id={product.id} title={product.title} fallback={product.description} />
           {illustrative ? (
             <div className="fixture-explanation">
               <h2>A design example, not a real listing.</h2>

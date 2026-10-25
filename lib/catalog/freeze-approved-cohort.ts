@@ -6,7 +6,7 @@ import { mutationAssertion } from './mutation-fence.ts';
 import { createProjectionPacket } from './d1.ts';
 import { canonicalTime, validateCatalogSnapshot, validatePublicCatalogProduct } from './snapshot.ts';
 import { areNearDuplicateTitles, suppressNearDuplicateProducts } from '../db/product-scoring.ts';
-import { checkCurrent, readApprovedCurrentRows, readPruningSource, SNAPSHOT_READ_LIMITS } from '../../scripts/catalog/export-d1-snapshot.ts';
+import { checkCurrent, readApprovedCurrentRows, readOwnerBaseOperationReceipts, readPruningSource, SNAPSHOT_READ_LIMITS } from '../../scripts/catalog/export-d1-snapshot.ts';
 import { canonicalJson, sha256 } from '../../scripts/catalog/migration.ts';
 import { pruneOperationKey, prunedVectorPlan, sealCapturedRevision, settleCapturedRevision } from './prune-existing-revision.ts';
 import type { PruneRequest, PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from './prune-existing-revision.ts';
@@ -14,6 +14,8 @@ import type { NativeHistoryBinding } from './prune-existing-revision.ts';
 import type { PermanentCatalogSeal } from '../../scripts/catalog/permanent-catalog-seal.ts';
 import type { ApprovedCatalogSeal } from '../../scripts/catalog/approved-catalog-seal.ts';
 import type { permanentSourceInventory } from './freeze-permanent-catalog.ts';
+import { approvedBaseChangeLimit, exactOwnerBaseTitle } from './owner-base-review.ts';
+import type { OwnerBaseCatalogReview } from './owner-base-review.ts';
 
 type Row = Record<string, unknown>;
 const HASH = /^[a-f0-9]{64}$/;
@@ -33,6 +35,7 @@ export interface ApprovedCohortEnvelope {
 export interface ApprovedCohortRequest extends PruneRequest {
   approval: ApprovedCohortEnvelope; approvalSha256: string;
   predecessor?: PermanentCatalogSeal | ApprovedCatalogSeal;
+  ownerBaseReview?: OwnerBaseCatalogReview;
 }
 export interface PersistentCohortState {
   generation:number; inventory:ReturnType<typeof permanentSourceInventory>; nativeHistory:NativeHistoryBinding[];
@@ -44,20 +47,24 @@ export function approvedCohortOperationKey(request: ApprovedCohortRequest): stri
   if (!envelope || Object.keys(envelope).sort().join(',') !== 'catalogRevision,changes,runId,schemaVersion'
     || envelope.schemaVersion !== 1 || !/^[a-zA-Z0-9._-]{1,200}$/.test(envelope.runId)
     || !/^[a-zA-Z0-9._-]{1,64}$/.test(envelope.catalogRevision) || envelope.catalogRevision === request.previous.catalogRevision
-    || !Array.isArray(envelope.changes) || envelope.changes.length > 30
+    || !Array.isArray(envelope.changes) || envelope.changes.length > approvedBaseChangeLimit(request.ownerBaseReview)
     || new Set(envelope.changes.map(value => value.publicId)).size !== envelope.changes.length
     || envelope.changes.some(value => Object.keys(value).sort().join(',') !== 'displaySha256,inputSha256,operationId,productSha256,publicId'
       || !UUID.test(value.publicId) || ![value.operationId,value.inputSha256,value.productSha256,value.displaySha256].every(hash => HASH.test(hash)))
     || !HASH.test(request.approvalSha256) || sha256(canonicalJson(envelope)) !== request.approvalSha256)
     throw new Error('cohort_approval_invalid');
+  if (request.ownerBaseReview && (!request.predecessor || envelope.changes.some(change =>
+    !request.previous.heldProducts.some(p => p.publicId === change.publicId)))) throw Error('cohort_owner_base_scope');
   return sha256(canonicalJson({ kind:'approved-cohort', previous:pruneOperationKey(request), approvalSha256:request.approvalSha256,
+    ...(request.ownerBaseReview ? { ownerBaseReview: request.ownerBaseReview } : {}),
     ...(request.predecessor?{predecessorSha256:sha256(canonicalJson(request.predecessor))}:{}) }));
 }
 function held(value: { id: string; publicId: string; slug: string }, reason: SafeHeldProduct['reason']): SafeHeldProduct {
   return { id:value.id,publicId:value.publicId,slug:value.slug,path:`/gifts/${value.slug}`,title:'Gift currently unavailable',
     description:'This gift is not currently available in the curated catalog. Browse other gifts instead.',reason };
 }
-async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohortRequest) {
+async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohortRequest,
+  beforeSeal?:(owner:MutationOwner,revision:ApprovedCohortRevision)=>Promise<void>) {
   owner = structuredClone(owner);
   const request = structuredClone(input); const operationKey = approvedCohortOperationKey(request);
   if (owner.phase !== 'freezing' || owner.operationKey !== operationKey || owner.environment !== request.scope.environment
@@ -66,22 +73,24 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   // Reconstruct from immutable D1, never from an expired workspace body. This
   // independently authenticates every private identity, not just visible rows.
   const predecessor=request.predecessor?await (await import('../../scripts/catalog/permanent-catalog-seal.ts')).readCatalogPredecessor({
-    db,owner,seal:request.predecessor,approval:request.approval,approvalSha256:request.approvalSha256}):undefined;
+    db,owner,seal:request.predecessor,approval:request.approval,approvalSha256:request.approvalSha256,
+    ...(request.ownerBaseReview ? { ownerBaseReview: request.ownerBaseReview } : {})}):undefined;
   const source = await readPruningSource(db,request.previous,request.context,owner);
   const now = new Date(source.observedAt); const cutoff = Date.parse(request.context.cutoff);
   if (now.getTime() < Date.parse(owner.capturedAt) || cutoff <= now.getTime()
     || cutoff - Date.parse(owner.capturedAt) > 26*3600000) throw new Error('cohort_window_elapsed');
-  const extra = await readApprovedCurrentRows(db,request.approval.changes.map(value => value.publicId),owner);
+  const extra = await readApprovedCurrentRows(db,request.approval.changes.map(value => value.publicId),owner,false,undefined,request.ownerBaseReview);
   const full = new Map(extra.rows.map(row => [String(row.public_id),row]));
   const current = new Map([...source.current,...extra.current].map(row => [String(row.public_id),row]));
   const projection = new Map(source.projection.map(row => [String(row.public_id),row]));
   const approved = new Map<string,PublicCatalogProduct>();
   const changed = new Map(request.approval.changes.map(value => [value.publicId,value]));
   const priorBases=new Set(source.snapshot.products.filter(persistentPublicProduct).map(p=>p.publicId));
+  const exactBaseTitles=new Set(source.snapshot.products.map(p=>exactOwnerBaseTitle(p.title)));
   // Daily10 plus Monday20 independently pinned operation IDs. Vector proof rebuilds this
   // seal repeatedly; one bounded read avoids an N+1 provider request per change.
   const operationIds = [...new Set(request.approval.changes.map(value => value.operationId))];
-  const receipts = new Map((operationIds.length ? (await db.prepare(`SELECT * FROM catalog_maintenance_operations
+  const receipts = new Map((request.ownerBaseReview ? await readOwnerBaseOperationReceipts(db,owner,operationIds) : operationIds.length ? (await db.prepare(`SELECT * FROM catalog_maintenance_operations
     WHERE operation_id IN (SELECT value FROM json_each(?))`).bind(JSON.stringify(operationIds)).all()).results : [])
     .map(row => [String(row.operation_id), row]));
   for (const change of request.approval.changes) {
@@ -94,6 +103,20 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
       || receipt.catalog_revision !== request.approval.catalogRevision || receipt.environment !== owner.environment || receipt.index_name !== owner.indexName
       || !JSON.parse(String(receipt.changes_json)).some((value: Row) => value.productId === row.id && value.afterSha256 === change.productSha256))
       throw new Error('cohort_approval_changed');
+    if (request.ownerBaseReview) {
+      const result = JSON.parse(String(receipt.result_json));
+      const product = validatePublicCatalogProduct(JSON.parse(String(row.public_display_json)),now);
+      const rights = JSON.parse(String(row.rights_json));
+      const baseRights = rights.persistent ?? rights;
+      if (result.kind !== 'held-catalog-resolution-v1' || result.planSha256 !== request.ownerBaseReview.resolutionPlanSha256
+        || product.eligibleUntil !== null || product.indexable || product.editorialWriteup
+        || ['title','description','imageUrl','affiliateUrl'].some(field => !['owned','licensed'].includes(baseRights[field]?.basis)
+          || baseRights[field]?.expiresAt || !String(baseRights[field]?.reference).includes(request.ownerBaseReview!.authorizationSha256)))
+        throw Error('cohort_owner_base_changed');
+      const title=exactOwnerBaseTitle(product.title);
+      if(exactBaseTitles.has(title))throw Error('cohort_owner_base_duplicate');
+      exactBaseTitles.add(title);
+    }
     current.get(change.publicId)!.approval_operation_json = canonicalJson(receipt);
     try {
       const product = validatePublicCatalogProduct(JSON.parse(String(row.public_display_json)),now);
@@ -138,7 +161,8 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   const preferred=(value:PublicCatalogProduct)=>persistentPublicProduct(value)??value;
   const candidates=products.filter(value=>!stable.has(value.publicId)
     && !preserved.some(prior=>areNearDuplicateTitles(preferred(prior).title,preferred(value).title)));
-  const winners = new Set(suppressNearDuplicateProducts(candidates.map(preferred)).map(value => value.publicId));
+  const winners = new Set((request.ownerBaseReview ? products.filter(value => !stable.has(value.publicId))
+    : suppressNearDuplicateProducts(candidates.map(preferred))).map(value => value.publicId));
   const ready = products.filter(value => { if (stable.has(value.publicId) || winners.has(value.publicId)) return true;
     safeHeld.push(held(value,'duplicate'));return false; });
   const readyIds = new Set(ready.map(value => value.publicId));
@@ -165,9 +189,11 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
     ...(persistent?{currentSha256:sha256(canonicalJson(sourceRows)),persistent}:{current:sourceRows}),prior:source.header.prior }));
   const facts = Object.fromEntries(sourceRows.map(row => [String(row.public_id),row.source_facts_hash===null?null:String(row.source_facts_hash)]));
   const packet = await createProjectionPacket(snapshot,facts,sourceDigest,now);
-  const sealed = await sealCapturedRevision(db,owner,{request,snapshot,packet,sourceRows,priorRow:source.header.prior as Row,
+  const candidate={request,snapshot,packet,sourceRows,priorRow:source.header.prior as Row,
     sourceDigest,globalVectorWatermark,vectorSyncWatermark:0,operationKey,additionalAbsentIds,
-    ...(persistent?{persistent,nativeHistory}: {})} as ApprovedCohortRevision);
+    ...(persistent?{persistent,nativeHistory}: {})} as ApprovedCohortRevision;
+  await beforeSeal?.(owner,candidate);
+  const sealed = await sealCapturedRevision(db,owner,candidate);
   return { state:ready.length ? 'prepared' as const : 'all_held' as const,owner:sealed.owner,
     revision:{...sealed.revision,request} as ApprovedCohortRevision };
 }

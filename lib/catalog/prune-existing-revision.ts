@@ -1,5 +1,5 @@
 import type { CatalogD1 } from './storage/d1.ts';
-import { catalogDisplayDeadline } from './display.ts';
+import { catalogDisplayDeadline, persistentPublicProduct } from './display.ts';
 import type { CatalogSnapshot, SafeHeldProduct } from './types.ts';
 import type { ProjectionPacket } from './d1.ts';
 import { createProjectionPacket, projectionQueries } from './d1.ts';
@@ -115,9 +115,9 @@ async function prune(db: CatalogD1, owner: MutationOwner, request: PruneRequest)
       products.push(product); // Exact previous deadline and display bytes: no renewal.
     } catch { removed.push(held(product, catalogDisplayDeadline(product) <= cutoff ? 'expired' : 'editorial_hold')); }
   }
-  const unique = new Set(suppressNearDuplicateProducts(products).map(product => product.publicId));
+  const unique = new Set(suppressNearDuplicateProducts(products.filter(product => !persistentPublicProduct(product))).map(product => product.publicId));
   const ready = products.filter(product => {
-    if (unique.has(product.publicId)) return true;
+    if (persistentPublicProduct(product) || unique.has(product.publicId)) return true;
     removed.push(held(product, 'duplicate')); return false;
   });
   const safeHeld = source.snapshot.heldProducts.map(value => {
@@ -176,10 +176,12 @@ export async function sealCapturedRevision(db: CatalogD1, owner: MutationOwner, 
   const guard = {sql:`SELECT json(CASE WHEN ${gate.sql} THEN 'true' ELSE 'mutation_fenced' END)`,params:gate.params};
   for (let offset = 0; offset < missing.length;) {
     let queries: ReturnType<typeof projectionQueries> = []; let inserted = 0;
-    for (const row of missing.slice(offset,offset+35)) {
-      const next = projectionQueries({...packet,rows:[row]}).slice(0,-1);
-      if (queries.length+next.length >= 50 || Buffer.byteLength(JSON.stringify({batch:[guard,...queries,...next]})) > 512*1024) break;
-      queries = [...queries,...next]; inserted++;
+    for (let count = 1; count <= Math.min(35,missing.length-offset); count++) {
+      // One-row INSERTs repeatedly flush FTS5. Group at most nine eleven-field
+      // rows (99 binds), keeping the same 35-row transaction/restart boundary.
+      const next = projectionQueries({...packet,rows:missing.slice(offset,offset+count)},9).slice(0,-1);
+      if (next.length >= 50 || Buffer.byteLength(JSON.stringify({batch:[guard,...next]})) > 512*1024) break;
+      queries = next; inserted = count;
     }
     if (!queries.length) throw new Error('prune_projection_bound');
     await db.batch([mutationAssertion(db, owner, ['freezing']), ...queries.map(query =>
@@ -272,7 +274,9 @@ async function observationTimeout(db:CatalogD1,owner:MutationOwner,revision:Prun
     ||row.delivery_id!==sha256(canonicalJson({environment:base.environment,indexName:base.indexName,generation:base.generation,
       operationKey:base.operationKey,identity:{kind:'approved-cohort-plan'}}))
     ||row.status!=='complete'||row.disposition!=='verified'||row.attempts!==0||row.dispatch_token!==null||row.mutation_reference!==null
-    ||row.product_json!==canonicalJson({schemaVersion:1,kind:'approved-cohort-plan',revisionSha256:request.revisionSha256})
+    ||row.product_json!==canonicalJson({schemaVersion:1,kind:'approved-cohort-plan',revisionSha256:request.revisionSha256,
+      ...(request.ownerBaseReview?{compactApprovalSha256:sha256(canonicalJson(request.approval)),
+        ownerBaseReviewSha256:sha256(canonicalJson(request.ownerBaseReview)),ownerBaseApprovalCount:request.ownerBaseApprovalCount}:{})})
     ||!Array.isArray(request.sources)||row.evidence_json!==canonicalJson([{state:'policy_and_source_verification',
       sources:request.sources.map((s:{deliveryId:string;reference:string|null})=>({deliveryId:s.deliveryId,reference:s.reference}))}]))
     throw new Error('prune_owned_observation_invalid');
@@ -284,6 +288,11 @@ async function observationTimeout(db:CatalogD1,owner:MutationOwner,revision:Prun
  * A caller assertion/checksum alone is never that receipt. This transaction's
  * current/projection/prior/watermark/cutoff/owner predicates remain mandatory.
  */
+export function capturedRevisionBuildRequest(revision:PrunedRevision):CatalogBuildRequest {
+  return{schemaVersion:1,environment:revision.request.scope.environment,sourceRevision:revision.snapshot.catalogRevision,
+    sourceDigest:revision.packet.receipt.snapshot_sha256,codeSha:revision.request.codeSha,
+    priorReleaseId:revision.request.context.priorPublication?.releaseId??null,capturedAt:revision.snapshot.generatedAt,cutoff:revision.request.context.cutoff};
+}
 export async function settleCapturedRevision(db: CatalogD1, owner: MutationOwner, revision: PrunedRevision,
   readVectors: (plan: PrunedVectorPlan, signal: AbortSignal) => Promise<PrunedVectorObservation>,ownedCohortProof?:OwnedCohortProof) {
   owner = structuredClone(owner); revision = structuredClone(revision);
@@ -300,10 +309,7 @@ export async function settleCapturedRevision(db: CatalogD1, owner: MutationOwner
   if (!observed || observed.settled !== true || observed.environment !== owner.environment || observed.indexName !== owner.indexName
     || observed.planSha256 !== sha256(canonicalJson(plan)) || typeof observed.reference !== 'string'
     || !/^[a-zA-Z0-9._:/-]{1,200}$/.test(observed.reference)) throw new Error('prune_vectors_unconfirmed');
-  const request: CatalogBuildRequest = { schemaVersion: 1, environment: owner.environment,
-    sourceRevision: revision.snapshot.catalogRevision, sourceDigest: revision.packet.receipt.snapshot_sha256,
-    codeSha: revision.request.codeSha, priorReleaseId: revision.request.context.priorPublication?.releaseId ?? null,
-    capturedAt: revision.snapshot.generatedAt, cutoff: revision.request.context.cutoff };
+  const request=capturedRevisionBuildRequest(revision);
   const bytes = encodeBuildRequest(request); const requestId = sha256(bytes);
   const existingRequest = (await db.prepare('SELECT request_json FROM catalog_build_requests WHERE request_id=?').bind(requestId).all()).results[0];
   await assertPruningCurrent(db, owner, revision.sourceRows);

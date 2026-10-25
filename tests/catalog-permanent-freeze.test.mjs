@@ -32,6 +32,7 @@ import {maintenanceEmbeddingText} from '../scripts/catalog/maintenance-state.ts'
 import {editorialSourceHash} from '../scripts/ops/catalog-editorial-core.mjs';
 import {earliestDisplayExpiry} from '../lib/catalog/display.ts';
 import {openRunWorkspace} from '../scripts/catalog/run-workspace.ts';
+import {createWorkerdD1Meter} from './helpers/workerd-d1-meter.mjs';
 
 const accountId='a'.repeat(32),databaseId=uuid(9999),manifest='b'.repeat(64),asset='/images/gift-placeholder.svg';
 const grant=value=>({basis:'owned',value,reference:'ROOT approved exact synthetic value; no real rights claim'});
@@ -161,8 +162,12 @@ test('ordinary permanent executor keeps source, held, projection, prior, native 
   });
 });
 
-for(const count of [12,3383])test(`authentic permanent successor preserves mixed native history across expired workspaces (${count} identities)`,async t=>{
-  const f=await fixture(t,{count,publicCount:2359}),prepared=await preparePermanentCatalog(f.db,f.owner,f.request),permanent=prepared.revision;
+for(const scenario of [{count:12},{count:3383},{count:3383,publicCount:3355,newCount:0,routine:true},
+  {count:3383,publicCount:3355,newCount:20,routine:true,monday:true}]){
+const {count,publicCount=2359,routine=false,monday=false}=scenario;
+test(`authentic permanent successor preserves mixed native history across expired workspaces (${count} identities${routine?` /3355public ${monday?'Monday30 ':''}routine30k`:''})`,
+  {skip:routine&&process.env.CATALOG_FULL_CAPACITY!=='1'},async t=>{
+  const f=await fixture(t,{count,publicCount}),prepared=await preparePermanentCatalog(f.db,f.owner,f.request),permanent=prepared.revision;
   async function publish(revision,queued,priorIntent,permanentMode=false){
     const build=await claimBuildRequest(f.db,queued.requestId,`fixture:build-${revision.snapshot.catalogRevision}`,f.now());
     const intent={releaseId:`release-${revision.snapshot.catalogRevision}`,catalogRevision:revision.snapshot.catalogRevision,codeSha:revision.request.codeSha,
@@ -186,13 +191,14 @@ for(const count of [12,3383])test(`authentic permanent successor preserves mixed
     return{seal:permanentMode?createPermanentCatalogSeal(revision,source):await createPublishedApprovedCatalogSeal(f.db,revision,source),intent};
   }
   let prior=await publish(permanent,await settlePermanentCatalog(f.db,prepared.owner,permanent,f.adapters),f.original.intent,true);
+  if(routine){const meter=createWorkerdD1Meter(t);await meter.initialise(f.sql);f.setMeter(meter);}
   const originalIds=f.sql.prepare('SELECT public_id FROM products ORDER BY public_id').all().map(r=>r.public_id);
   const held=f.sql.prepare('SELECT * FROM products WHERE is_active=0 ORDER BY public_id').all().map(r=>({...r}));
   const root=await mkdtemp(join(await realpath(tmpdir()),'stupid-offline-successor-'));
   let oldWorkspace,oldOptions,oldBody,oldBudget,oldManifest;
   t.after(async()=>{await oldWorkspace?.close();await rm(root,{recursive:true,force:true});});
   const stableVectors=new Map([...f.index].filter(([id])=>![uuid(1),uuid(2)].includes(id)).map(([id,v])=>[id,structuredClone(v)]));
-  const newCount=count===3383?20:1,newIds=Array.from({length:newCount},(_,i)=>uuid(5000+i));
+  const newCount=scenario.newCount??(count===3383?20:1),newIds=Array.from({length:newCount},(_,i)=>uuid(5000+i));
   const newTitles=['Walnut otter astronomy projector','Copper octopus bookmark','Ceramic meteor lamp','Linen fox cushion','Rubber cactus trivet',
     'Velvet cosmic umbrella','Obsidian snail incense boat','Glass dragon goblet','Canvas moon hammock','Marble jellyfish clock',
     'Bamboo raven flute','Steel unicorn wrench','Clay dinosaur planter','Leather orbit pouch','Wool kiwi scarf',
@@ -208,7 +214,8 @@ for(const count of [12,3383])test(`authentic permanent successor preserves mixed
       await assert.rejects(oldWorkspace.recordCatalogSuccessor({...prior.seal,providerBody:'must never be retained'}),/control_invalid/);
     }
     // A genuinely new accounted routine client, never the migration allowance.
-    f.db=await f.makeNextDayDb({requests:5000,statements:15000,reportedRowsRead:2000000,reportedRowsWritten:50000});
+    f.db=await f.makeNextDayDb(routine?{requests:5000,statements:12000,reportedRowsRead:1500000,reportedRowsWritten:30000}
+      :{requests:5000,statements:15000,reportedRowsRead:2000000,reportedRowsWritten:50000});
     const name=`successor-${day}`,writing=await claimMutationOwnership(f.db,scope,{phase:'writing',ownerReference:name,operationKey:sha256(name)}),cursor={current:writing};
     const context={envelopeSha256:sha256(prior.seal.envelopeJson+'\n'),snapshotSha256:prior.seal.snapshotSha256,
       projectionSha256:prior.seal.projectionReceipt.projection_sha256,sourceExportSha256:prior.seal.projectionReceipt.source_export_sha256,
@@ -249,7 +256,7 @@ for(const count of [12,3383])test(`authentic permanent successor preserves mixed
     assert.deepEqual(f.sql.prepare('SELECT * FROM products WHERE is_active=0 ORDER BY public_id').all().map(r=>({...r})),held);
     assert.equal(plan.products.length,targets.length);assert.deepEqual(prepared.remainingIds,[]);
     assert.ok(plan.history.flatMap(g=>g.ids).includes(uuid(3)));
-    if(day===2)for(const id of [uuid(1),uuid(11),uuid(5000)])assert.ok(plan.history.some(g=>g.ids.includes(id)));
+    if(day===2)for(const id of [uuid(1),uuid(11),...(newCount?[uuid(5000)]:[])])assert.ok(plan.history.some(g=>g.ids.includes(id)));
     assert.equal(await hydrateApprovedRevision(f.db,prepared.owner,approvedRevisionControl(revision)).then(r=>canonicalJson(r)),canonicalJson(revision));
     await readOwnedApprovedCohortVectors(f.db,prepared.owner,revision,f.adapters);
     f.index.get(uuid(3)).values[0]=0;await assert.rejects(readOwnedApprovedCohortVectors(f.db,prepared.owner,revision,f.adapters));f.index.get(uuid(3)).values[0]=-0;
@@ -263,10 +270,13 @@ for(const count of [12,3383])test(`authentic permanent successor preserves mixed
     for(const [id,vector] of stableVectors){assert.deepEqual(f.index.get(id),vector);assert.ok(Object.is(f.index.get(id).values[0],-0));}
     for(const id of targets.map(n=>uuid(n)))assert.ok(Object.is(f.index.get(id).values[0],-0));
     assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_build_requests WHERE state=\'resolved\'').get().n,day+2);
-    if(count===3383)t.diagnostic(JSON.stringify({scenario:`authentic-successor-day-${day}`,refreshes:refreshes.length,newProducts:day===1?newCount:0,
+    if(routine){assert.equal(revision.snapshot.products.length,3355+newCount);assert.equal(revision.snapshot.heldProducts.length,28);
+      assert.ok(f.db.metrics().reportedRowsWritten<30000);assert.ok(f.db.metrics().reportedRowsRead<1500000);assert.ok(f.db.metrics().statements<12000);}
+    if(count===3383)t.diagnostic(JSON.stringify({scenario:`authentic-successor-day-${day}${routine?`-3355-${monday?'Monday30-':''}routine30k`:''}`,refreshes:refreshes.length,newProducts:day===1?newCount:0,
       publicProducts:revision.snapshot.products.length,heldProducts:revision.snapshot.heldProducts.length,
       identities:revision.persistent.inventory.length,historicalNative:plan.history.flatMap(g=>g.ids).length,currentNative:plan.products.length,
-      d1:f.db.metrics(),scope:'offline genuine prior/policy/native/publisher-resolution; no new build/upload or D1 billed-row claim'}));
+      d1:f.db.metrics(),scope:routine?'offline workerd index-inclusive counters; genuine prior/policy/native/publisher-resolution, no provider calls'
+        :'offline genuine prior/policy/native/publisher-resolution; no new build/upload or D1 billed-row claim'}));
     if(day===1){
       const observedAt=f.now().toISOString(),notAfter=new Date(f.now().getTime()+3600000).toISOString();
       oldOptions={directory:join(root,'day-one'),repository:await realpath(fileURLToPath(new URL('..',import.meta.url))),
@@ -294,6 +304,9 @@ for(const count of [12,3383])test(`authentic permanent successor preserves mixed
     const bad=structuredClone(prior.seal);mutate(bad);await assert.rejects(readCatalogPredecessor({db:f.db,owner,seal:bad,approval,
       approvalSha256:sha256(canonicalJson(approval)),adapters:f.adapters}));
   }
+  // The following deliberate direct-SQL corruptions are Node-only fault cases,
+  // not normal work to mirror or include in the two measured daily budgets.
+  if(routine)f.setMeter(undefined);
   const old=f.sql.prepare('SELECT tags FROM products WHERE public_id=?').get(uuid(9)).tags;
   f.sql.prepare("UPDATE products SET tags='unapproved held drift' WHERE public_id=?").run(uuid(9));await assert.rejects(read());
   f.sql.prepare('UPDATE products SET tags=? WHERE public_id=?').run(old,uuid(9));
@@ -306,6 +319,33 @@ for(const count of [12,3383])test(`authentic permanent successor preserves mixed
     f.inspect(undefined);assert.equal(cancelled,true);const requests=f.metrics().requests;
     await new Promise(resolve=>setImmediate(resolve));assert.equal(f.metrics().requests,requests,'Cancelled historical source reads cannot continue behind the caller');
   }
+});
+}
+test('grouped projection transactions retain35-row checkpoints, lost-ACK replay and stale-owner rollback',async t=>{
+  for(const fault of ['committed-ack-loss','stale-owner'])await t.test(fault,async t=>{
+    const f=await fixture(t,{count:66}),before=f.sql.prepare('SELECT count(*) n FROM catalog_public_products_fts_docsize').get().n;
+    let triggered=false,inserted=0;
+    f.inspect(batch=>{const inserts=batch.filter(q=>q.sql.startsWith('INSERT INTO catalog_public_products '));
+      if(!inserts.length)return;
+      assert.ok(inserts.every(q=>q.params.length<=99));
+      const rows=inserts.reduce((n,q)=>n+q.params.length/11,0);assert.ok(rows<=35);inserted+=rows;
+      if(fault==='stale-owner'&&!triggered){triggered=true;f.sql.exec('UPDATE catalog_mutation_scopes SET mutation_epoch=mutation_epoch+1');}});
+    if(fault==='committed-ack-loss')f.loseSeal();
+    await assert.rejects(preparePermanentCatalog(f.db,f.owner,f.request));
+    f.inspect(undefined);
+    if(fault==='stale-owner'){
+      assert.equal(triggered,true);assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_public_products WHERE catalog_revision=?').get(f.request.catalogRevision).n,0);
+      assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_public_products_fts_docsize').get().n,before);
+    }else{
+      const actual=f.sql.prepare('SELECT mutation_epoch epoch FROM catalog_mutation_scopes').get();
+      const first=f.sql.prepare('SELECT * FROM catalog_projection_receipts WHERE catalog_revision=?').get(f.request.catalogRevision);
+      const result=await preparePermanentCatalog(f.db,{...f.owner,epoch:actual.epoch},f.request);
+      assert.equal(result.revision.snapshot.products.length,64);assert.equal(inserted,64);
+      assert.deepEqual({...first},result.revision.packet.receipt);
+      assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_public_products WHERE catalog_revision=?').get(f.request.catalogRevision).n,64);
+      assert.equal(f.sql.prepare('SELECT count(*) n FROM catalog_public_products_fts_docsize').get().n,before+64);
+    }
+  });
 });
 test('permanent receipt owns full rows; concrete native observation remains exact-permit fenced and accepted resolution survives cutoff',async t=>{
   const f=await fixture(t,{afterExpiry:true}),prepared=await preparePermanentCatalog(f.db,f.owner,f.request),r=prepared.revision,

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "kind": "offline-editorial-reproduction-not-publication-authority",
+  "bead": "roadmap-lbbz1.4.9",
+  "originalSource": "628707b5746414ea52dc47daecdbfa8bce819220",
+  "runId": "daily-2026-10-24-628707b5",
+  "configSha256": "f56748cd3c1408cd41190464fd580c97a916cfd5cc7162c27415eeb45c3ae3f1",
+  "checkpointSha256": "65164fa2aeecc60a824396af4505f9a885d9b4ce36cef17917408bd9dff17d64",
+  "snapshotSha256": "765f61c6bc9eaa544f7f4e87a72f2231fba0a59a29c38743aa0bebc9aec0ff88",
+  "observationObjects": [
+    "0d330b745d1ae8685084cd63e667d0466736c4804bff58a2441c0e4037f79f14",
+    "c1845064b02b715ab7155fcc6b2ffdf41591de44559df11049eb5ddfe600e54a"
+  ],
+  "comparison": {
+    "selected": 10,
+    "substantiveFactChanges": 0,
+    "titlePhotoOnly": 1,
+    "dimensionalUnitCasing": 7,
+    "articlesLostBefore": 8,
+    "articlesLostAfter": 0,
+    "exactOriginalArticlesAfter": 10,
+    "unchangedBasePresentationExcludingIndexability": 10,
+    "currentExporterChecksPassed": 10,
+    "selectedIndexableAfter": 2,
+    "selectedNonindexableAfter": 8,
+    "wholeCatalogVisibleArticlesExpected": 42,
+    "wholeCatalogIndexablePagesExpected": 34
+  },
+  "articleSha256ById": {
+    "B09HT6ZC7K": "20f12b458177bbad16ba1b34337c2a07f0a1f66f5a18ec5789d60549bd82d87c",
+    "B000L70MQO": "5449084166eeb88bbb0e075610250efb234a375a2f2712f956164ddcb0bfd843",
+    "B07KGJS2F3": "7872e3070a66f36320f1be1c10135017a308f6f2142c3b3a0b74f52d721a21c2",
+    "B01KR3SAIS": "2b19f8206617d2cc299a0b2146f0f04fcd0c1f8cd87a0c29f4187415fffe9f99",
+    "B07VLBVQBP": "77e61110c78fa364d263b9ff8732f1744f621517d91f8d3100af7730e2fa0e12",
+    "B00KJJOWZG": "3691a246d430794766c471db777c2487ebd356cd9d5dfcd23169015959a1ef07",
+    "B0BGXLMHRV": "733a522bf6f4255641cb4d030a945200c3930db3c8d36f5dbd6e63b46adb3846",
+    "B002SQG4TU": "f4f947f92f331773a159455a6387e35c46f7bdc6b0d19a702a5dde786ea44efe",
+    "B0DCNB17CD": "56a5a34036769939ee5d2a6fac729104070f706efb1c7e6ebc1b8410c9ade326",
+    "B07B4PP1BB": "2a85993d6df33262eac4fb09a6f3a103ecfa643799422a64fa647fa9ada4b75c"
+  },
+  "scope": {
+    "providerRequests": 0,
+    "liveMutation": false,
+    "publication": false,
+    "liveProductionRightsReadback": false,
+    "fixtureGrantsAreRecoveryInputs": false,
+    "currentSourceOrVectorProofPromoted": false,
+    "originalOperatorModified": false,
+    "reservationCounterOwnerOrTimerChanged": false
+  },
+  "limitations": [
+    "Saved-input pure projection reproduction, not a live D1 readback or full static build.",
+    "First reproduction exercised merge/revalidation/listing-preservation semantics; final check also exercised the unchanged current exporter.",
+    "No claim that the complete source-bound recovery adapter or successor reconciliation exists.",
+    "Current indexability contract remains unchanged; eight pages need a separate SEO/recovery decision."
+  ]
+}

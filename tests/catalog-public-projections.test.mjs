@@ -48,6 +48,31 @@ async function setup({persistentSchema=true,sourceRecord={}}={}) {
 }
 const packet = (value) => createProjectionPacket(value, { [PUBLIC_ID]: HASH }, 'b'.repeat(64), NOW);
 
+test('owned projection row grouping preserves exact bytes/FTS and the legacy39-product atomic bound',async()=>{
+  const f=await setup();try{
+    const value=snapshot('grouped'),template=value.products[0];
+    value.products=Array.from({length:40},(_,i)=>({...template,id:`B${String(i+1).padStart(9,'0')}`,
+      publicId:`00000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`,slug:`grouped-gift-${i+1}`,
+      affiliateUrl:`https://www.amazon.com/dp/B${String(i+1).padStart(9,'0')}?tag=test-20`}));
+    for(const p of value.products.slice(1))f.sqlite.prepare(`INSERT INTO products
+      (id,public_id,slug,source,title,currency,is_active,editorial_status,catalog_revision,rights_json,source_record_json,updated_at)
+      VALUES(?,?,?,'amazon','test','USD',1,'pending','seed','{}','{}',?)`).run(p.id,p.publicId,p.slug,NOW.toISOString());
+    const grouped=await createProjectionPacket(value,Object.fromEntries(value.products.map(p=>[p.publicId,HASH])),'b'.repeat(64),NOW);
+    const queries=projectionQueries(grouped,9);
+    assert.equal(queries.length,6);assert.equal(queries[0].params.length,99);
+    assert.ok(queries.every(q=>q.params.length<=100));
+    assert.deepEqual(queries.slice(0,-1).flatMap(q=>q.params),grouped.rows.flatMap(row=>Object.values(row)));
+    for(const invalid of [0,10,NaN,1.5])assert.throws(()=>projectionQueries(grouped,invalid));
+    await assert.rejects(importPublicProjection(f.db,grouped),/39 products/);
+    assert.equal(projectionQueries(grouped).length,41,'legacy default remains one row per statement');
+    f.sqlite.exec('BEGIN');for(const q of queries)f.sqlite.prepare(q.sql).run(...q.params);f.sqlite.exec('COMMIT');
+    assert.deepEqual(f.sqlite.prepare('SELECT * FROM catalog_public_products ORDER BY public_id').all().map(r=>({...r})),grouped.rows);
+    assert.equal(f.sqlite.prepare("SELECT count(*) n FROM catalog_public_products_fts WHERE catalog_public_products_fts MATCH 'button'").get().n,40);
+    assert.deepEqual(f.sqlite.prepare('SELECT * FROM catalog_projection_receipts').all().map(r=>({...r})),[grouped.receipt]);
+    assert.deepEqual(f.sqlite.prepare('PRAGMA foreign_key_check').all(),[]);
+  }finally{f.close();}
+});
+
 test('bounded ID and FTS lookups start from candidate indexes, not the active catalog', async () => {
   const fixture = await setup();
   try {

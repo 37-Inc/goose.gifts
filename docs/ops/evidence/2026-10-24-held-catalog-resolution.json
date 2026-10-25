@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "state": "initial-offline-proposal-superseded-by-two-crown-duplicate-review",
+  "supersededBy": "2026-10-25-photo-identity-audit.json",
+  "currentReviewedProposal": { "promote": 994, "publicAfter": 3353, "heldAfter": 30, "duplicateExclusions": 6, "concreteGenericCommodityExclusions": 24, "identities": 3383, "articles": 42, "snapshotSha256": "a00e6581725c63e2bff5029d962c11acaa7135ddda35b80cfa086f83b57f3836", "live": false },
+  "sourceManifestSha256": "e70c0211829ac5d9b9c07e39605eb03426ec50de85845013f7a11b6793869fd9",
+  "sourceProductsSha256": "3d5efe00cbff1e06420da81edffa47616e76a15f2623bcdc095cada7782cfbb9",
+  "baseline": { "identities": 3383, "public": 2359, "held": 1024, "originalArticles": 42 },
+  "oldHolds": {
+    "inactive": 205,
+    "editorialHold": 796,
+    "legacyDuplicateFlags": 23,
+    "editorialWithoutSpecificObjection": 762,
+    "editorialWithSpecificHistoricalObjection": 34,
+    "missingImageTitleOrShortDescription": 0
+  },
+  "initialReviewedProposal": {
+    "promote": 996,
+    "publicAfter": 3355,
+    "heldAfter": 28,
+    "duplicateExclusions": 4,
+    "additionalExactTitleDuplicates": 4,
+    "unsupportedLegacyDuplicateFlagsCleared": 23,
+    "concreteGenericCommodityExclusions": 24,
+    "sizedBatchesOnArchivedPreview": 67,
+    "existingPublicProductsPreserved": 2359,
+    "originalArticlesPreserved": 42,
+    "newlyApprovedLongArticles": 0,
+    "merchantRequests": 0,
+    "modelRequests": 0,
+    "nativeWrites": 0,
+    "deletedIdentities": 0
+  },
+  "decisions": [
+    "Historical inactive stock or unknown-availability flags do not by themselves block the existing licensed listing; the base publishes no current price or stock claim.",
+    "Pending long-form generation/review is not a reason to hide a factual image/title/short-description listing.",
+    "The historical default0.50 ranking score is retained rather than inflated into a fake review. Exact permanently licensed base listings allow finite scores0..1; the fresh supplier lane keeps0.55.",
+    "Manual-locked status is not a listing objection. Existing licensed fields remain unchanged, while previously held long drafts stay private and nonindexable.",
+    "All23historical duplicate pointers lack exact same-product evidence and are cleared in the current row/sidecar, preserving their archived source/history. They incorrectly grouped different prank-box designs, mug prints, books, signs, and plush vs desk goats. Only4exact normalized-title duplicates remain excluded, protected by the durable duplicate-listings registry in snapshot construction/validation.",
+    "Twenty-four ordinary commodity products retain explicit per-ID factual curation reasons in HELD_CATALOG_EXCLUSIONS. Old generic-format rules incorrectly rejecting funny books, costumes, mugs and the whoopie cushion are not retained."
+  ],
+  "livePrerequisites": [
+    "Finish the unrelated pending publication recovery and obtain actual idle-owner confirmation first.",
+    "Use a fresh bounded accounted D1 connection and normal writing ownership, capture the1024current held rows and existing sidecars, and regenerate/review the exact plan. Archived preview is not a current D1 capture.",
+    "Apply the immutable plan with exact-before/after CAS, original source/history/native preservation and immutable operation receipts; unknown ACKs reconcile the same receipt.",
+    "Use the ordinary approved-cohort publication with the explicit owner-base review marker binding authorization and resolution-plan hashes. The ordinary30change cap stays unchanged. Every bulk change must be a permanent exactly licensed base from the old held cohort, backed by the actual immutable cleanup receipt. Compact native-policy control retains the full approval SHA/count, with no native mutations or payload-cap increase. This helper does not itself create a projection revision or deployment.",
+    "Publish the tested integrated storefront and verify real release/receipt/build/idle owner, catalog counts, directory retirement, home/search cards and outbound navigation before claiming completion."
+  ],
+  "offlineCapacityPreview": {
+    "directoryLabel": "catalog-resolution-preview-20261025",
+    "snapshotSha256": "56727e8ac55499aec6b8bbf03b0ebaec5341897e4c409bfbf7da96a8f8933721",
+    "baselineSnapshotSha256": "325075a5ab8ba0fbd6b176232edfdebe6fd0dac60b6ef3ac350f81b32daba618",
+    "bytes": 2594962,
+    "images": 3355,
+    "shortDescriptions": 3355,
+    "articles": 42,
+    "providerRequests": 0
+  },
+  "offlineFullPublicationTest": {
+    "state": "synthetic-no-provider-success",
+    "identities": 3383,
+    "promoted": 996,
+    "public": 3355,
+    "held": 28,
+    "ownerCleanupUsage": {
+      "httpRequests": 4621,
+      "sqlStatements": 13295,
+      "reportedRowsRead": 128089,
+      "reportedRowsWritten": 41797,
+      "unconfirmedRequests": 0
+    },
+    "oneTimeProfile": { "httpRequests": 9000, "sqlStatements": 22000, "reportedRowsRead": 2000000, "reportedRowsWritten": 50000 },
+    "nativeMutations": 0,
+    "publicationReceiptBuildIdleAndSuccessorVerified": true,
+    "notes": "Synthetic SQLite cost is not live D1 usage. Retain all prior migration costs. Fresh account-wide Free capacity/read-write headroom verification remains required; routine maintenance caps are unchanged."
+  },
+  "offlineActualArchiveCost": {
+    "state": "local-sqlite-source-repair-and-projection-only-not-D1-or-full-publication",
+    "promoted": 996,
+    "public": 3355,
+    "held": 28,
+    "batches": 67,
+    "sourceRepairWrites": 11568,
+    "projectionWrites": 32487,
+    "combinedWrites": 44055,
+    "captureBytes": 2985573,
+    "immutablePlanBytes": 13909950,
+    "merchantRequests": 0,
+    "modelRequests": 0,
+    "nativeWrites": 0,
+    "notes": "The archived original text costs more than the synthetic fixture. This excludes any additional current sidecar, normal proof, telemetry and publication overhead; actual live metadata and the unchanged finite50000-write guard remain authoritative. No original/protected file or provider was mutated."
+  }
+}

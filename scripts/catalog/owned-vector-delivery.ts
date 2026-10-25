@@ -10,7 +10,7 @@ import { encodePublicationIntent, encodePublishedCatalogBinding } from '../../li
 import type { PublicationIntent, PublishedCatalogBinding } from '../../lib/catalog/publication.ts';
 import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { hasAccountedVectorReadback } from './vectorize-rest.ts';
-import { pruneExistingRevision, prunedVectorIds, prunedVectorPlan, settleCapturedRevision } from '../../lib/catalog/prune-existing-revision.ts';
+import { pruneExistingRevision, prunedVectorIds, prunedVectorPlan, settleCapturedRevision, capturedRevisionBuildRequest } from '../../lib/catalog/prune-existing-revision.ts';
 import type { HistoricalNativeBinding, NativeHistoryBinding, PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
 import type { PermanentCatalogRevision } from '../../lib/catalog/freeze-permanent-catalog.ts';
 import { permanentCatalogOperationKey } from '../../lib/catalog/freeze-permanent-catalog.ts';
@@ -22,6 +22,8 @@ import { decodePgvectorSendBase64, encodePgvectorSendBase64 } from './pgvector-b
 import { assertPruningCurrent, readOwnedProjection, readApprovedCurrentRows, SNAPSHOT_READ_LIMITS, checkCurrent, pruningCurrentQueries, readJournaledPruneDeleteSource } from './export-d1-snapshot.ts';
 import { nativeHash, payloadVector, visible } from './vector-outbox.ts';
 import type { ImmutableVectorPayload, SyncVector, VectorEvent } from './vector-outbox.ts';
+import { approvedBaseChangeLimit } from '../../lib/catalog/owner-base-review.ts';
+import type { OwnerBaseCatalogReview } from '../../lib/catalog/owner-base-review.ts';
 
 type Row = Record<string, unknown>;
 type Code = 'provider_failed' | 'not_visible' | 'mutation_unknown' | 'attempts_exhausted';
@@ -454,7 +456,7 @@ async function readPrunedVectors(db: CatalogD1, owner: MutationOwner, revision: 
 }
 async function safe<T>(operation: () => Promise<T>): Promise<T> {
   try { return await operation(); } catch (error) {
-    throw new Error(error instanceof Error && /^(vector_[a-z_]+|invalid_owned_[a-z_]+|invalid_vector_timeout)$/.test(error.message)
+    throw new Error(error instanceof Error && /^(vector_[a-z_]+|cohort_[a-z_]+|prune_[a-z_]+|invalid_owned_[a-z_]+|invalid_vector_timeout)$/.test(error.message)
       ? error.message : 'vector_delivery_failed');
   }
 }
@@ -547,6 +549,10 @@ interface ReuseRequest {
   schemaVersion:1; kind:'approved-cohort-reuse'; catalogRevision:string; providerIdentity:string;
   plan:PrunedVectorPlan; planSha256:string; projectionReceipt:Row; approval:ApprovedCohortEnvelope; approvalSha256:string;
   revisionSha256:string; sourceRowsSha256:string; sources:ReusedSource[];
+  ownerBaseReview?:OwnerBaseCatalogReview;
+  /** Bulk owner reviews have no current native members. Retain the full
+   * approval's hash/count, not a370KB duplicate of its product row hashes. */
+  ownerBaseApprovalCount?:number;
 }
 const REUSE_KIND='approved-cohort-reuse';
 function reuseIds(plan:PrunedVectorPlan) { return [...plan.products.map(p=>p.publicId),...plan.absentIds]; }
@@ -681,7 +687,9 @@ function reuseSourceAssertions(db:CatalogD1,rows:Row[]) {
  * it never pretends that remaining promotions/deletions were dispatched. */
 const PLAN_KIND='approved-cohort-plan';
 interface CohortPlanRequest extends Omit<ReuseRequest,'kind'> { kind:typeof PLAN_KIND }
-function planControl(request:CohortPlanRequest){return canonicalJson({schemaVersion:1,kind:PLAN_KIND,revisionSha256:request.revisionSha256});}
+function planControl(request:CohortPlanRequest){return canonicalJson({schemaVersion:1,kind:PLAN_KIND,revisionSha256:request.revisionSha256,
+  ...(request.ownerBaseReview?{compactApprovalSha256:sha256(canonicalJson(request.approval)),
+    ownerBaseReviewSha256:sha256(canonicalJson(request.ownerBaseReview)),ownerBaseApprovalCount:request.ownerBaseApprovalCount}:{})});}
 function planEvidence(request:CohortPlanRequest){return canonicalJson([{state:'policy_and_source_verification',
   sources:request.sources.map(s=>({deliveryId:s.deliveryId,reference:s.reference}))}]);}
 function sourceSubset(request:CohortPlanRequest):ReuseRequest {
@@ -698,8 +706,12 @@ function validatePlan(row:Journal,owner:MutationOwner,plan:PrunedVectorPlan|Acti
     ||request.plan.environment!==owner.environment||request.plan.indexName!==owner.indexName
     ||ids.length>SNAPSHOT_READ_LIMITS.identities||new Set(ids).size!==ids.length||ids.some(id=>!UUID.test(id))
     ||canonicalJson([...ids].sort())!==canonicalJson(prunedVectorIds(request.plan).sort())
-    ||request.approval.schemaVersion!==1||request.approval.catalogRevision!==plan.catalogRevision||request.approval.changes.length>30
-    ||sha256(canonicalJson(request.approval))!==request.approvalSha256||!HASH.test(request.revisionSha256)||!HASH.test(request.sourceRowsSha256)
+    ||!request.approval||Object.keys(request.approval).sort().join(',')!=='catalogRevision,changes,runId,schemaVersion'
+    ||request.approval.schemaVersion!==1||!Array.isArray(request.approval.changes)||request.approval.catalogRevision!==plan.catalogRevision
+    ||(request.ownerBaseReview ? request.approval.changes.length!==0||!Number.isSafeInteger(request.ownerBaseApprovalCount)
+      ||request.ownerBaseApprovalCount!<0||request.ownerBaseApprovalCount!>approvedBaseChangeLimit(request.ownerBaseReview)
+      :request.approval.changes.length>30||sha256(canonicalJson(request.approval))!==request.approvalSha256)
+    ||!HASH.test(request.approvalSha256)||!HASH.test(request.revisionSha256)||!HASH.test(request.sourceRowsSha256)
     ||request.sources.length>30||new Set(request.sources.map(s=>s.publicId)).size!==request.sources.length
     ||request.sources.some(s=>!ids.includes(s.publicId)||!request.approval.changes.some(c=>c.publicId===s.publicId)
       ||!HASH.test(s.sha256)||!HASH.test(s.deliveryId)||typeof s.reference!=='string'||!REF.test(s.reference))
@@ -708,7 +720,12 @@ function validatePlan(row:Journal,owner:MutationOwner,plan:PrunedVectorPlan|Acti
     ||row.delivery_id!==idFor(base,{kind:PLAN_KIND})||row.status!=='complete'||row.disposition!=='verified'
     ||row.attempts!==0||row.dispatch_token!==null||row.mutation_reference!==null
     ||row.product_json!==planControl(request)||row.evidence_json!==planEvidence(request)
-    ||revision&&(request.revisionSha256!==sha256(canonicalJson(revision))||request.sourceRowsSha256!==sha256(canonicalJson(revision.sourceRows))))
+    ||request.ownerBaseReview&&(request.sources.length!==0||request.plan.products.length!==0||request.plan.absentIds.length!==0)
+    ||revision&&(request.revisionSha256!==sha256(canonicalJson(revision))||request.sourceRowsSha256!==sha256(canonicalJson(revision.sourceRows))
+      ||canonicalJson(request.ownerBaseReview??null)!==canonicalJson(revision.request.ownerBaseReview??null)
+      ||request.ownerBaseReview&&(request.approvalSha256!==revision.request.approvalSha256
+        ||request.ownerBaseApprovalCount!==revision.request.approval.changes.length
+        ||canonicalJson(request.approval)!==canonicalJson({...revision.request.approval,changes:[]}))))
     throw new Error('vector_plan_receipt_invalid');
   return request;
 }
@@ -728,6 +745,7 @@ function planChecks(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevi
     [...rc.map(k=>receipt[k]),revision.snapshot.catalogRevision,revision.sourceDigest,revision.request.context.publicationReceiptWatermark,
       revision.request.context.priorPublication?.releaseId??null,...pc.map(k=>prior[k]),revision.globalVectorWatermark,revision.request.context.cutoff])];
 }
+export {planChecks as approvedCatalogPlanChecks};
 async function assertPlanSource(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision){
   if(revision.persistent)await (await import('./permanent-catalog-seal.ts')).assertApprovedCatalogInventory(db,owner,revision);
   await assertPruningCurrent(db,owner,revision.sourceRows);
@@ -740,7 +758,9 @@ async function assertPlanSource(db:CatalogD1,owner:MutationOwner,revision:Approv
  * the exclusive fence; the compact final transaction retains prior/cutoff/CAS.
  * Return every remaining ID; callers must not silently skip ordinary work. */
 export function prepareOwnedApprovedCohortPlan(options:{db:CatalogD1;owner:MutationOwner;request:ApprovedCohortRequest;
-  adapters:Pick<OwnedVectorAdapters,'readback'|'readbacks'|'environment'|'indexName'|'providerIdentity'>;timeoutMs?:number}){
+  adapters:Pick<OwnedVectorAdapters,'readback'|'readbacks'|'environment'|'indexName'|'providerIdentity'>;timeoutMs?:number;
+  beforeSeal?:(owner:MutationOwner,revision:ApprovedCohortRevision)=>Promise<void>;
+  sealed?:{owner:MutationOwner;revision:ApprovedCohortRevision}}){
   return safe(async()=>{
     const {db,adapters}=options;let owner=structuredClone(options.owner);adapterScope(owner,adapters);
     if(owner.phase!=='freezing')throw new Error('vector_plan_invalid');
@@ -749,16 +769,30 @@ export function prepareOwnedApprovedCohortPlan(options:{db:CatalogD1;owner:Mutat
       if(!actual||canonicalJson({...owner,epoch:base.epoch})!==canonicalJson(base)
         ||owner.epoch!==actual.epoch&&!(actual.epoch===base.epoch+1&&[base.epoch-1,base.epoch].includes(owner.epoch)))throw new Error('vector_owner_changed');
       owner=actual;}
-    const prepared=await prepareApprovedCohort(db,owner,options.request);owner=prepared.owner;
+    // The projection seal can commit before the policy journal exists. Only a
+    // pre-dispatch saved full revision plus its exact seal/current/prior proof
+    // may recover that single epoch; an arbitrary live cursor is not authority.
+    if(!saved&&options.sealed){
+      const intent=options.sealed,actual=await readMutationOwner(db,owner),next={...intent.owner,epoch:intent.owner.epoch+1};
+      if(canonicalJson(intent.revision.request)!==canonicalJson(options.request)||intent.revision.operationKey!==owner.operationKey
+        ||canonicalJson({...owner,epoch:intent.owner.epoch})!==canonicalJson(intent.owner))throw Error('vector_owner_changed');
+      if(canonicalJson(actual)===canonicalJson(next)){
+        await assertPlanSource(db,next,intent.revision);owner=next;
+      }else if(canonicalJson(actual)!==canonicalJson(owner))throw Error('vector_owner_changed');
+    }
+    const prepared=await prepareApprovedCohort(db,owner,options.request,options.beforeSeal);owner=prepared.owner;
     const revision=prepared.revision,plan=prunedVectorPlan(revision),ids=reuseIds(plan);
     if(ids.length>SNAPSHOT_READ_LIMITS.identities)throw new Error('vector_plan_invalid');
     let request:CohortPlanRequest;
     if(saved)request=validatePlan(saved,owner,plan,adapters.providerIdentity,revision);
     else{
-      const candidates=await reuseSources(db,revision.request.approval,undefined,true);
+      if(revision.request.ownerBaseReview&&ids.length)throw Error('vector_owner_base_native_work_forbidden');
+      const candidates=revision.request.ownerBaseReview?[]:await reuseSources(db,revision.request.approval,undefined,true);
       request={schemaVersion:1,kind:PLAN_KIND,catalogRevision:plan.catalogRevision,providerIdentity:adapters.providerIdentity,
-        plan,planSha256:sha256(canonicalJson(plan)),projectionReceipt:revision.packet.receipt,approval:revision.request.approval,
-        approvalSha256:revision.request.approvalSha256,revisionSha256:sha256(canonicalJson(revision)),sourceRowsSha256:sha256(canonicalJson(revision.sourceRows)),sources:[]};
+        plan,planSha256:sha256(canonicalJson(plan)),projectionReceipt:revision.packet.receipt,
+        approval:revision.request.ownerBaseReview?{...revision.request.approval,changes:[]}:revision.request.approval,
+        approvalSha256:revision.request.approvalSha256,revisionSha256:sha256(canonicalJson(revision)),sourceRowsSha256:sha256(canonicalJson(revision.sourceRows)),sources:[],
+        ...(revision.request.ownerBaseReview?{ownerBaseReview:revision.request.ownerBaseReview,ownerBaseApprovalCount:revision.request.approval.changes.length}:{})};
       const vectors=new Map<string,SyncVector|null>();
       for(const change of request.approval.changes){
         if(!ids.includes(change.publicId))continue; // A cleared listing is not a semantic/native member.
@@ -932,7 +966,7 @@ async function readPlanVectors(db:CatalogD1,owner:MutationOwner,rows:Journal[],p
   if(policies.length!==1)throw new Error('vector_plan_incomplete');
   const request=validatePlan(policies[0],owner,plan,adapters.providerIdentity,revision),ids=reuseIds(request.plan);
   const sources=await reuseSources(db,{...request.approval,changes:request.approval.changes.filter(c=>request.sources.some(s=>s.publicId===c.publicId))},signal,true);
-  const vectors=reuseVectors(owner,sourceSubset(request),sources);
+  const vectors=request.ownerBaseReview?new Map<string,SyncVector|null>():reuseVectors(owner,sourceSubset(request),sources);
   const members=new Map(request.plan.products.map(p=>[p.publicId,p]));
   for(const row of rows.filter(r=>r!==policies[0])){
     const value=decodeRequest(row.request_json),base=JSON.parse(row.owner_json) as MutationOwner;
@@ -977,7 +1011,27 @@ async function readPlanVectors(db:CatalogD1,owner:MutationOwner,rows:Journal[],p
 export function settleOwnedApprovedCohortVectorProof(options:{db:CatalogD1;owner:MutationOwner;revision:ApprovedCohortRevision;
   adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>}) {
   return safe(async()=>{
-    const {db,adapters}=options,owner=structuredClone(options.owner),revision=structuredClone(options.revision);
+    const {db,adapters}=options,revision=structuredClone(options.revision);let owner=structuredClone(options.owner);
+    const actual=await readMutationOwner(db,owner);
+    if(canonicalJson(actual)!==canonicalJson(owner)){
+      const next={...owner,epoch:owner.epoch+1},bytes=encodeBuildRequest(capturedRevisionBuildRequest(revision)),requestId=sha256(bytes);
+      const policy=await journal(db,idFor(owner,{kind:PLAN_KIND}));
+      if(!revision.request.ownerBaseReview||!policy)throw Error('vector_owner_changed');
+      validatePlan(policy,next,prunedVectorPlan(revision),adapters.providerIdentity,revision);
+      const base=JSON.parse(policy.owner_json) as MutationOwner;
+      const queued=(await db.prepare('SELECT * FROM catalog_build_requests WHERE request_id=?').bind(requestId).all<Row>()).results;
+      const sealed=(await db.prepare('SELECT * FROM catalog_revisions WHERE revision=?').bind(revision.snapshot.catalogRevision).all<Row>()).results;
+      if(canonicalJson(owner)!==canonicalJson({...base,epoch:base.epoch+1})
+        ||canonicalJson(actual)!==canonicalJson(next)||queued.length!==1||queued[0].request_json!==bytes
+        ||queued[0].environment!==owner.environment||queued[0].source_revision!==revision.snapshot.catalogRevision||queued[0].state!=='pending'||queued[0].attempts!==0
+        ||['lease_token','lease_until','run_reference','release_id','version_reference','dispatch_reference','error_code','operator_recovery_json'].some(k=>queued[0][k]!==null)
+        ||sealed.length!==1||sealed[0].status!=='reconciled'||sealed[0].source_export_sha256!==revision.sourceDigest
+        ||sealed[0].created_at!==revision.snapshot.generatedAt||sealed[0].abandonment_delivery_id!==null)throw Error('vector_owner_changed');
+      // The normal path below still authenticates the immutable native policy,
+      // every source/projection row, prior receipt, watermarks and cutoff before
+      // returning this SAME existing queue. No queue or epoch is written again.
+      owner=next;
+    }
     adapterScope(owner,adapters);await db.batch([mutationAssertion(db,owner,['freezing'])]);
     const policy=await journal(db,idFor(owner,{kind:PLAN_KIND}));
     if(policy){
@@ -1020,6 +1074,18 @@ export function readOwnedApprovedCohortVectors(db:CatalogD1,owner:MutationOwner,
     if(!reused.length)return readPrunedVectors(db,owner,revision,adapters);
     if(rows.length!==1)throw new Error('vector_plan_incomplete');
     return readReuseVectors(db,owner,reused[0],prunedVectorPlan(revision),adapters,revision);
+  });
+}
+/** Native-only component of a permanent-cohort activation proof. Requires the
+ * genuine current policy and exact owner/bits/history; does not create a policy,
+ * claim, receipt, deadline or product grant. The publisher separately performs
+ * fresh full inventory immediately before the atomic activation gates. */
+export function readOwnedPermanentCohortNative(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision,
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>):Promise<PrunedVectorObservation>{
+  return safe(async()=>{
+    if(!revision.persistent||revision.snapshot.products.some(p=>p.eligibleUntil!==null))throw new Error('vector_plan_invalid');
+    adapterScope(owner,adapters);await db.batch([mutationAssertion(db,owner,['freezing'])]);
+    return readPlanVectors(db,owner,await planJournals(db,owner,revision.snapshot.catalogRevision),prunedVectorPlan(revision),adapters,revision,undefined,30000);
   });
 }
 /** Control-only readback after activation. No delivery, expiry renewal, watermark

@@ -4,17 +4,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
-import { earliestDisplayExpiry } from "../lib/catalog/display.ts";
+import { earliestDisplayExpiry, persistentPublicProduct } from "../lib/catalog/display.ts";
 import { createStaticRoutes } from "../static-site/lib/asset-routes.ts";
 import { createBrowseRelease } from "../static-site/lib/browse.ts";
 import { createOgRelease } from "../static-site/lib/og.ts";
 import { siteIdentity } from "../static-site/lib/site-identity.ts";
+import { assertOwnedCodeSafe } from "../static-site/lib/retention.ts";
+import { exportedRoutes, exportSourceMode } from "./helpers/static-export.mjs";
 import { guides, selectGuideProducts } from "../static-site/lib/guides.ts";
-import {
-  directoryPages,
-  directoryPath,
-  directorySchema,
-} from "../static-site/lib/directory.ts";
 import {
   eligiblePool,
   isIllustrative,
@@ -92,7 +89,7 @@ test(
   { skip: !fs.existsSync(new URL("out/index.html", root)) },
   () => {
     const inventory = files(new URL("out/", root));
-    const routes = createStaticRoutes(exportSnapshot, inventory);
+    const routes = exportedRoutes(exportSnapshot, inventory);
     if (inventory.includes("/safe/product/__next._index.txt"))
       for (const held of exportSnapshot.heldProducts)
         assert.equal(routes[`${held.path}/__next._index.txt`].assetPath, "/safe/product/__next._index.txt");
@@ -121,7 +118,7 @@ test(
       earliestDisplayExpiry(exportSnapshot.products),
     );
     assert.throws(
-      () => createStaticRoutes(exportSnapshot, [...inventory, "/orphan.txt"]),
+      () => exportedRoutes(exportSnapshot, [...inventory, "/orphan.txt"]),
       /no freshness policy/,
     );
   },
@@ -136,7 +133,7 @@ test(
     changed.products[0].humorTags = ["desk"];
     related.humorTags = ["desk"];
     related.eligibleUntil = "2026-10-21T00:00:00.000Z";
-    const pages = ["/random-gift", "/gift-guides", "/howie", "/preview/presentation", "/gifts", "/gifts/page/1",
+    const pages = ["/random-gift", "/gift-guides", "/howie", "/preview/presentation",
       ...guides.map(guide => `/gift-guides/${guide.slug}`), ...changed.products.map(product => `/gifts/${product.slug}`)];
     const inventory = ["/index.html", "/index.txt", ...pages.flatMap(page => [`${page}.html`, `${page}.txt`]),
       ...["catalog", "product", "howie", "presentation"].flatMap(page => [`/safe/${page}.html`, `/safe/${page}.txt`]),
@@ -154,7 +151,7 @@ test(
   },
 );
 test(
-  "retained hub, directory and guide artifacts match their one build snapshot",
+  "retained hub and guide artifacts match their one build snapshot without a duplicate directory",
   { skip: !fs.existsSync(new URL("out/index.html", root)) },
   () => {
     const hub = fs.readFileSync(new URL("out/gift-guides.html", root), "utf8");
@@ -184,23 +181,8 @@ test(
           selected.some((p) => p.id === product.id),
         );
     }
-    for (const page of directoryPages(exportSnapshot)) {
-      const html = fs.readFileSync(
-        new URL(`out${directoryPath(page.page)}.html`, root),
-        "utf8",
-      );
-      assert.deepEqual(schemas(html)[0], directorySchema(page));
-      for (const product of exportSnapshot.products)
-        assert.equal(
-          html.includes(`href="/gifts/${product.slug}"`),
-          page.products.some((p) => p.id === product.id),
-        );
-    }
-    const firstAlias = fs.readFileSync(
-      new URL("out/gifts/page/1.html", root),
-      "utf8",
-    );
-    assert.ok(firstAlias.includes(`rel="canonical" href="${siteIdentity.origin}/gifts"`));
+    assert.equal(fs.existsSync(new URL("out/gifts.html", root)), false);
+    assert.equal(fs.existsSync(new URL("out/gifts/page/", root)), false);
     assert.equal(fs.existsSync(new URL("out/weird-gift-index.html", root)), false);
     assert.equal(fs.existsSync(new URL("out/weird-gift-index/", root)), false);
     assert.equal(fs.existsSync(new URL("out/safe/index.json", root)), false);
@@ -242,16 +224,24 @@ test(
   },
 );
 test(
-  "export has crawlable ordinary links, no analytics or product data in immutable JS",
+  "export has crawlable links, build-mode indexing and no private or finite product data in immutable JS",
   { skip: !fs.existsSync(new URL("out/index.html", root)) },
   () => {
     const html = fs.readFileSync(new URL("out/index.html", root), "utf8");
     assert.ok(
       html.includes(`href="/gifts/${exportSnapshot.products[0].slug}"`),
     );
-    assert.match(html, /noindex/);
-    assert.doesNotMatch(html, /\$0\.00|https:\/\/example\.invalid|as seen on/i);
-    const routes = createStaticRoutes(exportSnapshot, files(new URL("out/", root)));
+    const robots=html.match(/<meta name="robots" content="([^"]+)"/)[1].split(/,\s*/);
+    const indexable=exportSourceMode!=='preview'&&exportSnapshot.dataKind==='catalog'&&createBrowseRelease(exportSnapshot).opening.length>0;
+    assert.equal(robots.includes('index'),indexable);
+    assert.equal(robots.includes('noindex'),!indexable);
+    assert.doesNotMatch(html, /\$0\.00|https:\/\/example\.invalid/i);
+    // A retained retailer title may truthfully mention a TV appearance. It is
+    // not a site endorsement; keep that prohibition on site-authored markup.
+    const siteMarkup=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
+      .replace(/<article\b[^>]*class="product-card[^"]*"[^>]*>[\s\S]*?<\/article>/gi,'');
+    assert.doesNotMatch(siteMarkup,/as seen on/i);
+    const routes = exportedRoutes(exportSnapshot, files(new URL("out/", root)));
     for (const product of exportSnapshot.heldProducts) {
       const route = routes[product.path];
       assert.equal(route.state, "held");
@@ -277,13 +267,15 @@ test(
       "utf8",
     );
     assert.doesNotMatch(preview, /fixture-paperweight|example\.invalid/);
+    assertOwnedCodeSafe(Buffer.from(safe),[exportSnapshot]);
+    assertOwnedCodeSafe(Buffer.from(preview),[exportSnapshot]);
     for (const product of exportSnapshot.products) {
-      for (const value of [
-        product.id,
-        product.slug,
-        product.imageUrl,
-        product.affiliateUrl,
-      ]) {
+      const permanent=persistentPublicProduct(product);
+      for (const field of ['id','slug','imageUrl','affiliateUrl']) {
+        // Shared first-party label/disclosure props may carry cleared IDs;
+        // fallback pages still cannot carry product URLs or finite/private data.
+        if (field==='id'&&permanent?.id===product.id) continue;
+        const value=product[field];
         assert.equal(
           safe.includes(value),
           false,
@@ -313,13 +305,10 @@ test(
       if (readyProduct.punnyTitle)
         assert.match(detail, /Retailer listing name/);
       assert.doesNotMatch(detail, /"@type":"Offer"|\$0\.00/);
-      assert.ok(
-        random
-          .replace(/<[^>]*>/g, "")
-          .includes(
-            `${Math.min(48, exportSnapshot.products.length)} gifts in this versioned pool`,
-          ),
-      );
+      const pool=createBrowseRelease(exportSnapshot).random;
+      assert.ok(pool.poolSize>0&&pool.poolSize<=48);
+      assert.match(random,/<button\b[^>]*type="button"/);
+      assert.match(random,/aria-live="polite"/);
       for (const guide of guides) {
         const html = fs.readFileSync(
           new URL(`out/gift-guides/${guide.slug}.html`, root),
@@ -348,19 +337,20 @@ test(
         content,
         /G-6RR3HPR747|AW-17626116539|googletagmanager|fixture-paperweight|illustrative-very-official-paperweight|A very official paperweight|\/illustrations\/paperweight|example\.invalid\/not-for-sale|sourceFactsHash|POSTGRES_URL/,
       );
+      assertOwnedCodeSafe(Buffer.from(content),[exportSnapshot]);
       for (const product of exportSnapshot.products) {
-        for (const value of [
-          product.id,
-          product.slug,
-          product.title,
-          product.imageUrl,
-          product.affiliateUrl,
-        ])
+        const permanent=persistentPublicProduct(product);
+        for (const field of ['id','slug','title','imageUrl','affiliateUrl']) {
+          // Exact cleared, permanent ID/title pairs key the reviewed factual
+          // short notes. URLs, slugs, supplier/private fields remain forbidden.
+          if ((field==='id'||field==='title')&&permanent?.[field]===product[field]) continue;
+          const value=product[field];
           assert.equal(
             content.includes(value),
             false,
             `product data in ${file}`,
           );
+        }
       }
     }
   },

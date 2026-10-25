@@ -4,6 +4,7 @@ import { validateCatalogSnapshot, validatePublicCatalogProduct } from './snapsho
 import { legacyMutationBatch } from './mutation-fence.ts';
 import { resolvePublicProduct, persistentPublicProduct } from './display.ts';
 import { catalogSearchTerms } from './search-terms.ts';
+import { originalEditorialEquivalenceSql } from './editorial-equivalence.ts';
 
 type Row = Record<string, string | number | null>;
 export interface ProjectionReceipt extends Row {
@@ -98,7 +99,8 @@ const persistentImage=`(${allOf([
   `instr(${image},'#')=0`, `instr(${image},'\\')=0`,
 ])})`;
 const PERSISTENT_VISIBLE=`coalesce(${allOf([
-  'p.is_active=1', 'p.duplicate_of_product_id IS NULL', 'p.quality_score>=0.55',
+  'p.is_active=1', 'p.duplicate_of_product_id IS NULL', 'p.quality_score BETWEEN 0 AND 1',
+  `p.quality_score=json_extract(${V_BASE},'$.qualityScore')`,
   "p.editorial_status NOT IN ('blocked','needs_review')",
   'v.source_facts_hash IS p.source_facts_hash', `json_type(${V_BASE})='object'`, `json_type(${P_BASE})='object'`,
   `json_type(${BASE_RIGHTS})='object'`, `json_type(${V_BASE},'$.eligibleUntil')='null'`,
@@ -124,6 +126,10 @@ const PERSISTENT_VISIBLE=`coalesce(${allOf([
     `${currentCopy('sourceFactsHash','source_facts_hash')}=p.source_facts_hash`,
     `${currentCopy('editorialSourceHash','editorial_source_hash')}=p.editorial_source_hash`,
     `${currentCopy('editorialStatus','editorial_status')}=p.editorial_status`, `length(${editorial})>=500`,
+    `instr(replace(replace(replace(${editorial},char(13),''),char(9),''),' ',''),char(10)||char(10))>0`,
+    `(SELECT count(*) FROM json_each('['||replace(json_quote(${words}),' ','","')||']') WHERE length(value)>0)>=90`,
+  ])} OR ${allOf([
+    originalEditorialEquivalenceSql('p','m.semantic_json',editorial), `length(${editorial})>=500`,
     `instr(replace(replace(replace(${editorial},char(13),''),char(9),''),' ',''),char(10)||char(10))>0`,
     `(SELECT count(*) FROM json_each('['||replace(json_quote(${words}),' ','","')||']') WHERE length(value)>0)>=90`,
   ])})`,
@@ -171,13 +177,20 @@ export async function createProjectionPacket(snapshotInput: CatalogSnapshot, fac
 export function projectionPreflight(packet: ProjectionPacket): ProjectionQuery {
   return { sql: 'SELECT * FROM catalog_projection_receipts WHERE catalog_revision=?', params: [packet.receipt.catalog_revision] };
 }
-export function projectionQueries(packet: ProjectionPacket): ProjectionQuery[] {
-  const insert = (table: string, row: Row): ProjectionQuery => {
-    const columns = Object.keys(row);
-    if (columns.some((column) => !/^[a-z_][a-z0-9_]*$/.test(column)) || columns.length > 100) throw new Error('Invalid projection columns');
-    return { sql: `INSERT INTO ${table} (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})`, params: columns.map((column) => row[column]) };
+export function projectionQueries(packet: ProjectionPacket, rowsPerInsert = 1): ProjectionQuery[] {
+  if (!Number.isSafeInteger(rowsPerInsert) || rowsPerInsert < 1 || rowsPerInsert > 9) throw new Error('Invalid projection row group');
+  const insert = (table: string, rows: Row[]): ProjectionQuery => {
+    const columns = Object.keys(rows[0]);
+    if (columns.some((column) => !/^[a-z_][a-z0-9_]*$/.test(column)) || columns.length * rows.length > 100
+      || rows.some(row => Object.keys(row).length !== columns.length || columns.some(column => !Object.hasOwn(row,column))))
+      throw new Error('Invalid projection columns');
+    return { sql: `INSERT INTO ${table} (${columns.join(',')}) VALUES ${rows.map(() => `(${columns.map(() => '?').join(',')})`).join(',')}`,
+      params: rows.flatMap(row => columns.map(column => row[column])) };
   };
-  return [...packet.rows.map((row) => insert('catalog_public_products', row)), insert('catalog_projection_receipts', packet.receipt)];
+  const queries: ProjectionQuery[] = [];
+  for (let offset = 0; offset < packet.rows.length; offset += rowsPerInsert)
+    queries.push(insert('catalog_public_products', packet.rows.slice(offset, offset + rowsPerInsert)));
+  return [...queries, insert('catalog_projection_receipts', [packet.receipt])];
 }
 function receiptMatches(actual: ProjectionReceipt, expected: ProjectionReceipt): boolean {
   return Object.keys(expected).every((key) => actual[key] === expected[key]);

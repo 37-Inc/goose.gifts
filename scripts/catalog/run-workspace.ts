@@ -13,6 +13,8 @@ import type { PublicationClaim, PublicationIntent } from '../../lib/catalog/publ
 import type {ApprovedCatalogSeal} from './approved-catalog-seal.ts';
 import { encodePublicationIntent } from '../../lib/catalog/publication.ts';
 import type { ProviderReceipt } from './provider-evidence.ts';
+import { validateExecutionAdoption } from './execution-adoption.ts';
+import type { ExecutionAdoption } from './execution-adoption.ts';
 
 type Json = null | boolean | number | string | Json[] | { [key:string]:Json };
 type Kind = ProviderReceipt['kind'] | 'phase' | 'publication' | 'checkpoint';
@@ -52,8 +54,15 @@ export interface PublicationSuccess extends PublicationSuccessInput {recoveryBou
 export interface BudgetCeiling { httpRequests:number; sqlStatements:number }
 export interface ActivationRecoveryBudget {
   expectedCheckpointSha256:string; approvalReference:string; allowance:BudgetCeiling;
+  /** Separately approved settlement of an ALREADY activated permanent catalog. */
+  scope?:'approved-permanent-finalization';reportedRowsRead?:number;
 }
 type RecoveryGrant=ActivationRecoveryBudget&{permitSha256:string;usage:BudgetTotals};
+export interface PublicationFinishBudget {
+  expectedCheckpointSha256:string;approvalReference:string;versionReference:string;
+  allowance:BudgetCeiling;reportedRowsRead:number;
+}
+type FinishGrant=PublicationFinishBudget&{usage:BudgetTotals};
 export interface BudgetReservation { id:string; requestSha256:string; units:{httpRequests:number;sqlStatements:number} }
 export type BudgetSettlement = {status:'known';usage:{rowsRead:number;rowsWritten:number}} | {status:'unknown';usage:null};
 export interface RunWorkspaceOptions {
@@ -83,17 +92,19 @@ type BlobChunk={schemaVersion:1;type:'run-workspace-chunk';blobSha256:string;blo
   index:number;count:number;sha256:string;byteLength:number;base64:string};
 type CheckpointView = {sha256:string;checkpoint:CheckpointControl};
 type Event = {type:'artifact';ref:ArtifactRef} | {type:'checkpoint';ref:ArtifactRef;previous:string|null;control:CheckpointControl}
+  | {type:'execution-adoption';adoption:ExecutionAdoption}
   | {type:'control';sha256:string;previous:string;control:CheckpointControl}
   | {type:'purge';artifact:PurgedArtifact;purgedAt:string}
   | {type:'publication-directories';retention:PublicationDirectories}
   | {type:'publication-build-cleaned';releaseId:string}
   | {type:'publication-purged';releaseId:string;purgedAt:string}
   | {type:'activation-recovery-budget';grant:RecoveryGrant}
+  | {type:'publication-finish-budget';grant:FinishGrant}
   | {type:'publication-success';proof:PublicationSuccess}
   | {type:'catalog-successor-part';sha256:string;index:number;count:number;data:string}
   | {type:'reserve';reservation:BudgetReservation} | {type:'settle';id:string;settlement:BudgetSettlement};
 type RecordFile = {schemaVersion:1;sequence:number;parent:string|null;event:Event};
-type State = {manifest:WorkspaceManifest;recovery:RecoveryGrant|null;success:PublicationSuccess|null;head:string|null;count:number;bytes:number;checkpoint:CheckpointView|null;body:ArtifactRef|null;previous:string|null;totals:BudgetTotals;
+type State = {manifest:WorkspaceManifest;execution:ExecutionAdoption|null;recovery:RecoveryGrant|null;finish:FinishGrant|null;success:PublicationSuccess|null;head:string|null;count:number;bytes:number;checkpoint:CheckpointView|null;body:ArtifactRef|null;previous:string|null;totals:BudgetTotals;
   successor:{sha256:string;count:number;parts:string[]}|null;
   refs:Map<string,ArtifactRef>;purged:Map<string,PurgedArtifact>;
   publications:Map<string,{retention:PublicationDirectories;buildCleaned:boolean;purged:boolean}>;
@@ -102,9 +113,14 @@ export interface WorkspaceStatus {
   directory:string;manifest:WorkspaceManifest;manifestSha256:string;checkpoint:CheckpointView|null;budget:BudgetTotals;budgetCeiling:BudgetCeiling;
   expired:{reference:string;kind:Kind;expiresAt:string}[];
   successfulPublication:PublicationSuccess|null;
+  execution:ExecutionAdoption|null;
 }
 export interface RunWorkspace {
   readonly directory:string;readonly repository:string;readonly manifest:WorkspaceManifest;readonly manifestSha256:string;
+  readonly execution:ExecutionAdoption|null;
+  /** Explicit once-only reviewed continuation. Never rewrites manifest, pins,
+   * prior source/config, counters or original supplier-body deadlines. */
+  adoptExecution(value:ExecutionAdoption):Promise<ExecutionAdoption>;
   assertHeld():Promise<void>;assertScope(scope:WorkspaceScope):Promise<void>;
   putArtifact(value:unknown,options:{kind:'phase'|'publication';observedAt:string}):Promise<ArtifactRef>;
   readArtifact(ref:ArtifactRef):Promise<Json>;
@@ -126,11 +142,13 @@ export interface RunWorkspace {
    * old charges, claims, leases or retention. Requires separately approved NEW
    * operator code; old readers deliberately reject its unknown journal event. */
   grantActivationRecoveryBudget(input:ActivationRecoveryBudget):Promise<BudgetCeiling>;
+  /** Once-only owner-approved finish of an already acknowledged upload. */
+  grantPublicationFinishBudget(input:PublicationFinishBudget):Promise<BudgetCeiling>;
   /** Append once after an accounted actual receipt/resolved-build/idle snapshot.
    * Seals this run against any later charge or execution; never renews bodies. */
   recordPublicationSuccess(input:PublicationSuccessInput):Promise<PublicationSuccess>;
   publicationSuccess():Promise<PublicationSuccess|null>;
-  budget():Promise<BudgetTotals>;budgetCeiling():Promise<BudgetCeiling>;close():Promise<void>;
+  budget():Promise<BudgetTotals>;budgetCeiling():Promise<BudgetCeiling>;budgetRowsReadCeiling():Promise<number|null>;close():Promise<void>;
   /** Claims only absent exact package/build-output paths before generation. */
   preparePublicationDirectories(releaseId:string,observedAt:string,nextExpiry:string|null):Promise<void>;
   /** Called only after the package has been sealed and independently verified. */
@@ -262,26 +280,38 @@ function totals(state:State):BudgetTotals {
   if(!Object.values(result).every(integer))fail('budget_overflow');return result;
 }
 function recoveryInput(value:ActivationRecoveryBudget) {
-  if(!exact(value,['expectedCheckpointSha256','approvalReference','allowance'])||!hash(value.expectedCheckpointSha256)||!hash(value.approvalReference)
+  const finalizing=value.scope==='approved-permanent-finalization';
+  if(!exact(value,['expectedCheckpointSha256','approvalReference','allowance',...(finalizing?['scope','reportedRowsRead']:[])])||!hash(value.expectedCheckpointSha256)||!hash(value.approvalReference)
     ||!exact(value.allowance,['httpRequests','sqlStatements'])||!Object.values(value.allowance).every(integer)
-    ||value.allowance.httpRequests>150||value.allowance.sqlStatements>300)fail('recovery_allowance');
+    ||value.allowance.httpRequests>(finalizing?1000:150)||value.allowance.sqlStatements>(finalizing?8000:300)
+    ||finalizing&&(!integer(value.reportedRowsRead)||Number(value.reportedRowsRead)<1||Number(value.reportedRowsRead)>3000000))fail('recovery_allowance');
 }
-function recoveryPermit(state:State,reconciled=false):ActivationPermit {
+function recoveryPermit(state:State,reconciled=false,finalizing=state.recovery?.scope==='approved-permanent-finalization'):ActivationPermit {
   const cp=state.checkpoint?.checkpoint,p=cp?.control?.publication,a=p?.permit?.mutationOwner;
+  const f=cp?.owner,telemetry=finalizing&&p?.stage==='published'&&cp?.phase==='published'&&f?.phase==='writing'&&a
+    &&f.environment===a.environment&&f.indexName===a.indexName&&f.generation===a.generation+1
+    &&[a.epoch,a.epoch+1].includes(f.epoch)&&f.ownerReference===`${state.manifest.runId}:finalize`
+    &&f.operationKey===sha256(`finalize:${state.manifest.configSha256}`)&&f.token!==a.token&&f.capturedAt>=a.capturedAt;
   if(!cp||!p||!p.permit||!a||a.phase!=='activating'||!p.publication||!p.intent||!p.packageSha256||!p.versionReference
     ||p.runReference!==state.manifest.runId||![state.manifest.runId,`${state.manifest.runId}:freeze`].includes(a.ownerReference)
     ||p.requestId!==sha256(encodeBuildRequest(p.build.request))
     ||!(p.stage==='activating'&&same(cp.owner,a)||reconciled&&p.stage==='published'&&hash(p.receiptSha256)
-      &&(cp.phase==='attention'&&same(cp.owner,a)||cp.phase==='published'&&cp.owner===null)))fail('recovery_control');
-  bindCheckpoint(cp,state.manifest);return p.permit;
+      &&(cp.phase==='attention'&&same(cp.owner,a)||cp.phase==='published'&&cp.owner===null||telemetry
+        ||finalizing&&cp.phase==='finalized'&&cp.owner===null)))fail('recovery_control');
+  if(finalizing&&(!state.finish||state.finish.versionReference!==p.versionReference||p.intent.nextExpiry!==null||!p.deploymentId))fail('recovery_control');
+  bindCheckpoint(cp,state.manifest,state.execution);return p.permit;
 }
 function ceiling(state:State):BudgetCeiling {
-  const g=state.recovery,result=g?{httpRequests:g.usage.httpRequests+g.allowance.httpRequests,sqlStatements:g.usage.sqlStatements+g.allowance.sqlStatements}:{...state.manifest.budgetCaps};
+  const g=state.recovery,f=state.finish,result=g?{httpRequests:g.usage.httpRequests+g.allowance.httpRequests,sqlStatements:g.usage.sqlStatements+g.allowance.sqlStatements}:{...state.manifest.budgetCaps};
+  if(f)for(const k of ['httpRequests','sqlStatements'] as const)result[k]=Math.max(result[k],state.manifest.budgetCaps[k],f.usage[k]+f.allowance[k]);
   if(!Object.values(result).every(integer))fail('budget_overflow');return result;
 }
 function budgetReservation(state:State,value:BudgetReservation) {
   const current=totals(state),limit=ceiling(state);
   if(state.recovery&&sha256(canonicalJson(recoveryPermit(state,true)))!==state.recovery.permitSha256)fail('recovery_control');
+  if(state.recovery?.scope==='approved-permanent-finalization'
+    &&([...state.reservations.values()].filter(r=>r.settlement?.status==='unknown').length!==state.recovery.usage.unconfirmedRequests
+      ||value.units.sqlStatements&&current.knownRowsRead>=state.recovery.reportedRowsRead!))fail('recovery_read_budget');
   if(current.httpRequests+value.units.httpRequests>limit.httpRequests||current.sqlStatements+value.units.sqlStatements>limit.sqlStatements)fail('budget_exceeded');
 }
 async function pathWithoutLinks(path:string) {
@@ -348,7 +378,7 @@ async function loadStored(directory:string,ref:ArtifactRef,manifest:WorkspaceMan
   return value;
 }
 function fresh(value:Stored,now:string) {if(Date.parse(value.observedAt)>Date.parse(now)||Date.parse(value.expiresAt)<=Date.parse(now))fail('expired');}
-const empty=(manifest:WorkspaceManifest):State=>({manifest,recovery:null,success:null,successor:null,head:null,count:0,bytes:0,checkpoint:null,body:null,previous:null,
+const empty=(manifest:WorkspaceManifest):State=>({manifest,execution:null,recovery:null,finish:null,success:null,successor:null,head:null,count:0,bytes:0,checkpoint:null,body:null,previous:null,
   totals:{httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0},refs:new Map(),purged:new Map(),publications:new Map(),reservations:new Map()});
 function publicationSuccess(state:State,p:PublicationSuccess) {
   const cp=state.checkpoint,c=cp?.checkpoint.control?.publication,o=c?.permit?.mutationOwner;
@@ -404,9 +434,34 @@ async function recoveryBoundsInventory(directory:string,state:State) {
 async function verifySuccessMetadata(directory:string,state:State){
   if(state.success&&!same(state.success.recoveryBounds,await recoveryBoundsInventory(directory,state)))fail('publication_success_metadata');
 }
+async function verifyExecutionMetadata(directory:string,state:State,repository:string){
+  const a=state.execution;if(!a)return;
+  if(a.original.sourceRoot!==repository)fail('execution_repository');
+  for(const [ref,value]of [[a.original.context,a.contexts.original],[a.contexts.ref,a.contexts.replacement]] as const){
+    const body=state.purged.get(ref.sha256)??await loadStored(directory,ref,state.manifest);
+    if(body.kind!=='phase'||body.observedAt!==a.observedAt||body.expiresAt!==a.notAfter
+      ||'value'in body&&!same(body.value,value))fail('execution_retention');
+  }
+}
 function apply(state:State,event:Event,dry=false) {
   if(state.success&&!['purge','publication-build-cleaned','publication-purged'].includes(event.type))fail('publication_completed');
-  if(event.type==='artifact'){if(!exact(event,['type','ref']))fail('event');artifactRef(event.ref);if(!dry)state.refs.set(event.ref.sha256,event.ref);}
+  if(event.type==='execution-adoption'){
+    if(!exact(event,['type','adoption']))fail('execution_adoption');
+    const a=event.adoption;validateExecutionAdoption(a);
+    const o=a.original,cp=state.checkpoint;
+    if(state.execution||state.success||state.successor||state.publications.size||state.recovery||!cp||cp.checkpoint.phase!=='phases_complete'
+      ||cp.checkpoint.control?.publication||['approval','request','preparedRevision','revision','published','publishedSeal'].some(label=>cp.checkpoint.pins[label])
+      ||[...state.reservations.values()].some(value=>!value.settlement)||cp.checkpoint.phaseComplete===null
+      ||!same(cp.checkpoint.owner,o.owner)||o.owner.ownerReference!==state.manifest.runId
+      ||o.owner.environment!==state.manifest.scope.environment||o.owner.indexName!==state.manifest.scope.indexName
+      ||o.manifestSha256!==sha256(canonicalJson(state.manifest))||o.configSha256!==state.manifest.configSha256
+      ||o.codeSha!==state.manifest.codeSha||o.checkpointSha256!==cp.sha256
+      ||!same(o.budgetCaps,state.manifest.budgetCaps)||!same(o.journal,{sequence:state.count,sha256:state.head})
+      ||!same(cp.checkpoint.pins.context,o.context)||!state.refs.has(o.context.sha256)
+      ||state.purged.size)fail('execution_adoption_binding');
+    if(!dry){state.execution=structuredClone(a);state.refs.set(a.contexts.ref.sha256,structuredClone(a.contexts.ref));}
+  }
+  else if(event.type==='artifact'){if(!exact(event,['type','ref']))fail('event');artifactRef(event.ref);if(!dry)state.refs.set(event.ref.sha256,event.ref);}
   else if(event.type==='purge'){
     if(!exact(event,['type','artifact','purgedAt'])||Date.parse(time(event.purgedAt))<Date.parse(event.artifact.expiresAt)
       ||state.purged.has(event.artifact.ref.sha256))fail('purge');
@@ -435,13 +490,27 @@ function apply(state:State,event:Event,dry=false) {
     validateControlTransition(state.checkpoint.checkpoint,event.control);
     if(!dry){state.previous=event.previous;state.checkpoint={sha256:event.sha256,checkpoint:event.control};}
   }else if(event.type==='activation-recovery-budget'){
-    if(!exact(event,['type','grant'])||!exact(event.grant,['expectedCheckpointSha256','approvalReference','allowance','permitSha256','usage']))fail('recovery_allowance');
+    const finalizing=event.grant.scope==='approved-permanent-finalization';
+    if(!exact(event,['type','grant'])||!exact(event.grant,['expectedCheckpointSha256','approvalReference','allowance','permitSha256','usage',...(finalizing?['scope','reportedRowsRead']:[])]))fail('recovery_allowance');
     const {permitSha256,usage,...input}=event.grant;recoveryInput(input);
     if(state.recovery)fail('recovery_duplicate');
     if(state.checkpoint?.sha256!==input.expectedCheckpointSha256)fail('checkpoint_cas');
-    if(!hash(permitSha256)||permitSha256!==sha256(canonicalJson(recoveryPermit(state)))||!same(usage,totals(state)))fail('recovery_binding');
+    if(!hash(permitSha256)||permitSha256!==sha256(canonicalJson(recoveryPermit(state,false,finalizing)))||!same(usage,totals(state)))fail('recovery_binding');
+    if(finalizing&&(input.reportedRowsRead!<=usage.knownRowsRead||input.reportedRowsRead!>usage.knownRowsRead+500000
+      ||usage.unconfirmedRequests>1||[...state.reservations.values()].some(r=>!r.settlement)))fail('recovery_binding');
     if(!integer(usage.httpRequests+input.allowance.httpRequests)||!integer(usage.sqlStatements+input.allowance.sqlStatements))fail('budget_overflow');
     if(!dry)state.recovery=event.grant;
+  }else if(event.type==='publication-finish-budget'){
+    const g=event.grant,cp=state.checkpoint,p=cp?.checkpoint.control?.publication;
+    if(!exact(event,['type','grant'])||!exact(g,['expectedCheckpointSha256','approvalReference','versionReference','allowance','reportedRowsRead','usage'])
+      ||state.finish||state.recovery||!cp||cp.sha256!==g.expectedCheckpointSha256||!hash(g.approvalReference)
+      ||!p||p.stage!=='uploaded'||p.permit||p.versionReference!==g.versionReference||cp.checkpoint.owner?.phase!=='freezing'
+      ||!cp.checkpoint.pins.publicationUploadTransportAcknowledged||cp.checkpoint.pins.reviewedUploadActivationPending
+      ||!exact(g.allowance,['httpRequests','sqlStatements'])||!Object.values(g.allowance).every(integer)
+      ||g.allowance.httpRequests>1000||g.allowance.sqlStatements>2000||!same(g.usage,totals(state))||g.usage.unconfirmedRequests!==0
+      ||!integer(g.reportedRowsRead)||g.reportedRowsRead<=g.usage.knownRowsRead||g.reportedRowsRead>g.usage.knownRowsRead+750000
+      ||g.reportedRowsRead>2000000)fail('finish_budget_binding');
+    if(!dry)state.finish=structuredClone(g);
   }else if(event.type==='catalog-successor-part'){
     const prior=state.successor;
     if(!exact(event,['type','sha256','index','count','data'])||!hash(event.sha256)||!integer(event.index)||!integer(event.count)
@@ -525,10 +594,12 @@ function controlEvolution(old:CheckpointControl,next:CheckpointControl) {
     if(!(field==='publication'&&uploadedReclaim)&&a[field]!==null&&a[field]!==undefined&&!same(a[field],b[field]??null))fail('control_rewrite');
   const stages=['claimed','built','uploading','uploaded','activating','published'];if(stages.indexOf(b.stage)<stages.indexOf(a.stage))fail('control_rewrite');
 }
-function bindCheckpoint(value:CheckpointControl,manifest:WorkspaceManifest) {
+function bindCheckpoint(value:CheckpointControl,manifest:WorkspaceManifest,execution:ExecutionAdoption|null=null) {
   if(value.owner&&(value.owner.environment!==manifest.scope.environment||value.owner.indexName!==manifest.scope.indexName))fail('owner_scope');
   const p=value.control?.publication;if(p&&(p.build.request.environment!==manifest.scope.environment
-    ||p.build.request.codeSha!==manifest.codeSha||p.intent&&p.intent.codeSha!==manifest.codeSha))fail('control_scope');
+    ||p.build.request.codeSha!==(execution?.effective.codeSha??manifest.codeSha)
+    ||p.intent&&p.intent.codeSha!==(execution?.effective.codeSha??manifest.codeSha)
+    ||execution&&p.configSha256!==execution.effective.publicationConfigSha256))fail('control_scope');
 }
 async function loadState(directory:string,manifest:WorkspaceManifest,repairHead=false):Promise<State> {
   const entries=await readdir(join(directory,'events'));if(entries.length>MAX_EVENTS+32)fail('entries');
@@ -542,7 +613,7 @@ async function loadState(directory:string,manifest:WorkspaceManifest,repairHead=
     const record=await readJson(join(directory,'events',filename)) as RecordFile;const digest=sha256(canonicalJson(record));
     if(!exact(record,['schemaVersion','sequence','parent','event'])||record.schemaVersion!==1||record.sequence!==state.count+1||record.parent!==state.head
       ||filename!==`${String(record.sequence).padStart(6,'0')}.${digest}.json`)fail('journal_chain');
-    if(record.event.type==='checkpoint'||record.event.type==='control')bindCheckpoint(record.event.control,manifest);
+    if(record.event.type==='checkpoint'||record.event.type==='control')bindCheckpoint(record.event.control,manifest,state.execution);
     if(record.event.type==='purge')purgeIdentity(record.event.artifact,manifest);
     if(record.event.type==='publication-directories'){
       const p=record.event.retention;
@@ -615,10 +686,12 @@ export async function readRunWorkspace(input:RunWorkspaceOptions):Promise<Worksp
   input={...input,scope:structuredClone(input.scope),retention:structuredClone(input.retention),budgetCaps:structuredClone(input.budgetCaps)};
   const directory=await location({...input,mode:'resume'},false);const info=await readManifest(directory,input);
   const before=(await readdir(join(directory,'events'))).sort();const state=await loadState(directory,info.manifest);
+  await verifyExecutionMetadata(directory,state,await realpath(input.repository));
   await verifySuccessMetadata(directory,state);
   const expiredRefs=await expired(directory,state,info.manifest,time((input.now||(()=>new Date().toISOString()))()));
   if(!same(before,(await readdir(join(directory,'events'))).sort()))fail('concurrent_read');
-  return{directory,...info,checkpoint:state.checkpoint,budget:totals(state),budgetCeiling:ceiling(state),expired:expiredRefs,successfulPublication:structuredClone(state.success)};
+  return{directory,...info,checkpoint:state.checkpoint,budget:totals(state),budgetCeiling:ceiling(state),expired:expiredRefs,
+    successfulPublication:structuredClone(state.success),execution:structuredClone(state.execution)};
 }
 /** Host-local resource locks (D1 + Worker + build checkout), sorted to avoid lock-order
  * deadlocks across run IDs IN THE SAME CANONICAL WORKSPACE ROOT. Separate roots
@@ -630,17 +703,27 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
   await protectedStat(dirname(input.directory),true);
   const repository=await realpath(input.repository);
   await privateDirectory(input.directory,true);await privateDirectory(join(input.directory,'locks'),true);
-  const resources=[{accountId:input.scope.accountId,environment:input.scope.environment,databaseId:input.scope.databaseId},
+  const resources:Array<Record<string,string>>=[{accountId:input.scope.accountId,environment:input.scope.environment,databaseId:input.scope.databaseId},
     {accountId:input.scope.accountId,environment:input.scope.environment,workerName:input.scope.workerName},
     {sourceRoot:repository}];
   const locks:{path:string;ino:number;dev:number;body:unknown}[]=[];const token=randomUUID();
+  async function acquire(resource:Record<string,string>){
+    if(locks.some(lock=>same((lock.body as {resource:unknown}).resource,resource)))return;
+    const path=join(input.directory,'locks',`${sha256(canonicalJson(resource))}.lock`);let fd;
+    try{fd=await open(path,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);}
+    catch(error){if((error as NodeJS.ErrnoException).code==='EEXIST')fail('locked');throw error;}
+    const body={schemaVersion:1,token,runId:input.runId,resource};
+    try{await fd.writeFile(`${canonicalJson(body)}\n`);await fd.sync();const s=await fd.stat();locks.push({path,ino:s.ino,dev:s.dev,body});}
+    finally{await fd.close();}await syncDirectory(dirname(path));
+  }
+  async function acquireExecutionRoot(a:ExecutionAdoption){
+    await pathWithoutLinks(a.effective.sourceRoot);
+    if(await realpath(a.effective.sourceRoot)!==a.effective.sourceRoot||!(await lstat(a.effective.sourceRoot)).isDirectory())fail('execution_repository');
+    await acquire({sourceRoot:a.effective.sourceRoot});
+  }
   try{
     for(const resource of resources.map(r=>({key:sha256(canonicalJson(r)),resource:r})).sort((a,b)=>a.key.localeCompare(b.key))){
-      const path=join(input.directory,'locks',`${resource.key}.lock`);let fd;
-      try{fd=await open(path,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);}catch(error){if((error as NodeJS.ErrnoException).code==='EEXIST')fail('locked');throw error;}
-      const body={schemaVersion:1,token,runId:input.runId,resource:resource.resource};
-      try{await fd.writeFile(`${canonicalJson(body)}\n`);await fd.sync();const s=await fd.stat();locks.push({path,ino:s.ino,dev:s.dev,body});}finally{await fd.close();}
-      await syncDirectory(dirname(path));
+      await acquire(resource.resource);
     }
     const directory=await location(input,input.mode==='create');
     if(input.mode==='create'){
@@ -652,8 +735,10 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
     // Runtime freeze prevents accidental caller scope/policy mutation.
     const freeze=(v:unknown):void=>{if(v&&typeof v==='object'){Object.values(v).forEach(freeze);Object.freeze(v);}};freeze(manifest);
     const state=await loadState(directory,manifest,true);let closed=false,poisoned=false;let queue:Promise<unknown>=Promise.resolve();
+    await verifyExecutionMetadata(directory,state,repository);
+    if(state.execution)await acquireExecutionRoot(state.execution);
     await verifySuccessMetadata(directory,state);
-    for(const p of state.publications.values())if(p.retention.sourceRoot!==repository)fail('publication_scope');
+    for(const p of state.publications.values())if(p.retention.sourceRoot!==(state.execution?.effective.sourceRoot??repository))fail('publication_scope');
     let usableUntil=Infinity,usableAfter=-Infinity;
     // Verify every registered body once on open; held-lock operations retain
     // immutable deadline metadata, not O(receipts × HTTP requests) body rescans.
@@ -682,7 +767,9 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       const saved=state.successor;if(!saved)return null;if(saved.parts.length!==saved.count)fail('catalog_successor_incomplete');
       const bytes=Buffer.concat(saved.parts.map(p=>Buffer.from(p,'base64'))),value=JSON.parse(bytes.toString('utf8')) as ApprovedCatalogSeal;
       const encoded=(await import('./approved-catalog-seal.ts')).catalogSuccessorBytes(value);
-      if(byteHash(encoded)!==saved.sha256||!encoded.equals(bytes))fail('catalog_successor');return value;
+      if(byteHash(encoded)!==saved.sha256||!encoded.equals(bytes)
+        ||value.persistent?.request.codeSha!==(state.execution?.effective.codeSha??manifest.codeSha)
+        ||value.persistent.request.environment!==manifest.scope.environment)fail('catalog_successor');return value;
     }
     async function put(value:unknown,kind:Kind,observedAt:string,reuseOriginal=false){
       if(state.success)fail('publication_completed');
@@ -695,13 +782,13 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       if(!state.refs.has(ref.sha256))await append({type:'artifact',ref});usableUntil=Math.min(usableUntil,Date.parse(sealed.expiresAt));usableAfter=Math.max(usableAfter,Date.parse(sealed.observedAt));return structuredClone(ref);
     }
     async function read(ref:ArtifactRef){artifactRef(ref);if(!state.refs.has(ref.sha256))fail('unregistered_artifact');if(state.purged.has(ref.sha256))fail('expired');const v=await loadStored(directory,ref,manifest);fresh(v,now());return v;}
-    const buildPaths=()=>['build/stupid-gifts','static-site/out','static-site/.next'].map(name=>join(repository,name));
+    const buildPaths=()=>['build/stupid-gifts','static-site/out','static-site/.next'].map(name=>join(state.execution?.effective.sourceRoot??repository,name));
     const packagePath=(releaseId:string)=>join(directory,'packages',releaseId);
     const runtimePath=(releaseId:string)=>join(directory,'publication-runtime',releaseId);
     async function absent(path:string){try{await lstat(path);fail('publication_path_exists');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}}
     async function preparePublicationDirectories(releaseId:string,observedAt:string,nextExpiry:string|null){
       if(state.success)fail('publication_completed');
-      await usable();const retention=publicationDirectories(releaseId,repository,observedAt,nextExpiry,manifest),prior=state.publications.get(releaseId);
+      await usable();const retention=publicationDirectories(releaseId,state.execution?.effective.sourceRoot??repository,observedAt,nextExpiry,manifest),prior=state.publications.get(releaseId);
       if(prior){if(!same(prior.retention,retention)||prior.purged)fail('publication_directories');}
       if(Date.parse(retention.expiresAt)<=Date.parse(now())||Date.parse(retention.observedAt)>Date.parse(now()))fail('expired');
       if(!prior){
@@ -818,6 +905,29 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       await loadBlob(ref);return ref;
     }
     const api={directory,repository,manifest,manifestSha256:info.manifestSha256,assertHeld,
+      get execution(){return structuredClone(state.execution);},
+      adoptExecution:(value:ExecutionAdoption)=>serial(async()=>{
+        validateExecutionAdoption(value);
+        if(state.execution){if(!same(state.execution,value))fail('execution_adoption_rewrite');return structuredClone(state.execution);}
+        await usable();
+        if(value.original.sourceRoot!==repository||Date.parse(now())<Date.parse(value.approvedAt)
+          ||Date.parse(now())>=Math.min(Date.parse(value.notAfter),Date.parse(value.contexts.replacement.cutoff)))fail('execution_adoption_window');
+        const event:Event={type:'execution-adoption',adoption:structuredClone(value)};
+        apply(state,event,true); // Exact original head/checkpoint BEFORE new artifacts.
+        const old=await read(value.original.context);
+        if(old.kind!=='phase'||!same(old.value,value.contexts.original)||old.observedAt!==value.observedAt||old.expiresAt!==value.notAfter)
+          fail('execution_retention');
+        const body=stored(value.contexts.replacement,'phase',old.observedAt,manifest);
+        if(body.expiresAt!==old.expiresAt||body.sha256!==value.contexts.ref.sha256)fail('execution_retention');
+        await acquireExecutionRoot(value);
+        await immutable(join(directory,value.contexts.ref.reference),body);
+        const verified=await loadStored(directory,value.contexts.ref,manifest);fresh(verified,now());
+        if(!same(verified,body))fail('execution_retention');
+        // ONE event registers the replacement ref and execution authority. An
+        // orphan exact body after a lost pre-event ACK is safe to reuse.
+        await append(event);usableUntil=Math.min(usableUntil,Date.parse(body.expiresAt));
+        return structuredClone(state.execution!);
+      }),
       assertScope:async(expected:WorkspaceScope)=>{await assertHeld();scope(expected);if(!same(manifest.scope,expected))fail('scope_mismatch');},
       putArtifact:(value:unknown,o:{kind:'phase'|'publication';observedAt:string})=>serial(async()=>{if(!o||!['phase','publication'].includes(o.kind))fail('kind');await usable();return put(json(value),o.kind,o.observedAt,true);}),
       readArtifact:(ref:ArtifactRef)=>serial(async()=>{const v=await read(ref);if(!['phase','publication'].includes(v.kind))fail('kind');return structuredClone(v.value);}),
@@ -835,7 +945,8 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       catalogSuccessor:()=>serial(catalogSuccessor),
       recordCatalogSuccessor:(value:ApprovedCatalogSeal)=>serial(async()=>{
         const bytes=(await import('./approved-catalog-seal.ts')).catalogSuccessorBytes(value),digest=byteHash(bytes),count=Math.ceil(bytes.length/65536);
-        if(value.persistent!.request.environment!==manifest.scope.environment||value.persistent!.request.codeSha!==manifest.codeSha)fail('catalog_successor_scope');
+        if(value.persistent!.request.environment!==manifest.scope.environment
+          ||value.persistent!.request.codeSha!==(state.execution?.effective.codeSha??manifest.codeSha))fail('catalog_successor_scope');
         if(state.successor&&(state.successor.sha256!==digest||state.successor.count!==count))fail('catalog_successor_rewrite');
         for(let index=state.successor?.parts.length??0;index<count;index++)await append({type:'catalog-successor-part',sha256:digest,index,count,
           data:bytes.subarray(index*65536,(index+1)*65536).toString('base64')});
@@ -848,7 +959,7 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
         const body=v.value as unknown as WorkspaceCheckpoint;
         return{sha256:state.checkpoint.sha256,checkpoint:{...structuredClone(body),...structuredClone(state.checkpoint.checkpoint)}};}),
       writeCheckpoint:(expected:string|null,value:WorkspaceCheckpoint)=>serial(async()=>{
-        checkpoint(value);bindCheckpoint(value,manifest);await usable();const digest=refFor(value).sha256;
+        checkpoint(value);bindCheckpoint(value,manifest,state.execution);await usable();const digest=refFor(value).sha256;
         if(state.checkpoint?.sha256===digest&&(state.previous===expected||expected===digest)){return{sha256:digest,checkpoint:structuredClone(value)};}
         if(expected!==(state.checkpoint?.sha256||null))fail('checkpoint_cas');
         for(const ref of [...Object.values(value.pins),...(value.phaseComplete?[value.phaseComplete]:[])]){
@@ -861,7 +972,7 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       }),
       writeControlCheckpoint:(expected:string,value:{phase:'attention'|'published';owner:MutationOwner|null;control:WorkspaceControl})=>serial(async()=>{
         if(!exact(value,['phase','owner','control'])||!state.checkpoint)fail('control_reconciliation');
-        const view={...state.checkpoint.checkpoint,...structuredClone(value)} as CheckpointControl;bindCheckpoint(view,manifest);
+        const view={...state.checkpoint.checkpoint,...structuredClone(value)} as CheckpointControl;bindCheckpoint(view,manifest,state.execution);
         const digest=sha256(canonicalJson({previous:expected,control:view}));
         if(state.checkpoint.sha256===digest&&state.previous===expected)return structuredClone(state.checkpoint);
         if(state.checkpoint.sha256!==expected)fail('checkpoint_cas');
@@ -877,8 +988,25 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
         if(state.recovery){const {permitSha256:unused,usage:unusedUsage,...original}=state.recovery;void unused;void unusedUsage;
           if(!same(original,input))fail('recovery_replay');return ceiling(state);}
         if(state.checkpoint?.sha256!==input.expectedCheckpointSha256)fail('checkpoint_cas');
-        const grant={...structuredClone(input),permitSha256:sha256(canonicalJson(recoveryPermit(state))),usage:totals(state)};
+        const finalizing=input.scope==='approved-permanent-finalization',permit=recoveryPermit(state,false,finalizing);
+        if(finalizing){
+          // Inspect only the original hash-bound immutable package, never a new
+          // supplier observation or a renewed body/publication deadline.
+          await usable();const p=state.checkpoint!.checkpoint.control!.publication!,registered=state.publications.get(p.intent!.releaseId);
+          if(!registered||registered.purged||registered.retention.nextExpiry!==null)fail('recovery_snapshot');
+          const file=join(packagePath(p.intent!.releaseId),'catalog.snapshot.json');await pathWithoutLinks(file);
+          const bytes=await readBytes(file,WORKSPACE_BLOB_LIMITS.bytes),snapshot=JSON.parse(bytes.toString('utf8'));
+          if(byteHash(bytes)!==p.intent!.catalogSnapshotSha256||p.build.request.sourceDigest!==p.intent!.catalogSnapshotSha256
+            ||snapshot.catalogRevision!==p.intent!.catalogRevision||!Array.isArray(snapshot.products)||!snapshot.products.length
+            ||snapshot.products.some((v:unknown)=>!v||typeof v!=='object'||Array.isArray(v)||(v as {eligibleUntil?:unknown}).eligibleUntil!==null))fail('recovery_snapshot');
+        }
+        const grant={...structuredClone(input),permitSha256:sha256(canonicalJson(permit)),usage:totals(state)};
         await append({type:'activation-recovery-budget',grant});return ceiling(state);
+      }),
+      grantPublicationFinishBudget:(input:PublicationFinishBudget)=>serial(async()=>{
+        if(state.finish){const {usage:unused,...original}=state.finish;void unused;
+          if(!same(original,input))fail('finish_budget_replay');return ceiling(state);}
+        await append({type:'publication-finish-budget',grant:{...structuredClone(input),usage:totals(state)}});return ceiling(state);
       }),
       publicationSuccess:()=>serial(async()=>{await verifySuccessMetadata(directory,state);return structuredClone(state.success);}),
       recordPublicationSuccess:(value:PublicationSuccessInput)=>serial(async()=>{
@@ -889,6 +1017,7 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
         await append({type:'publication-success',proof});return structuredClone(proof);
       }),
       budget:()=>serial(async()=>totals(state)),budgetCeiling:()=>serial(async()=>ceiling(state)),
+      budgetRowsReadCeiling:()=>serial(async()=>state.recovery?.scope==='approved-permanent-finalization'?state.recovery.reportedRowsRead!:null),
       preparePublicationDirectories:(releaseId:string,observedAt:string,nextExpiry:string|null)=>serial(()=>preparePublicationDirectories(releaseId,observedAt,nextExpiry)),
       cleanPublicationBuild:(releaseId:string)=>serial(()=>cleanPublicationBuild(releaseId)),
       purgeExpired:()=>serial(purgeExpired),

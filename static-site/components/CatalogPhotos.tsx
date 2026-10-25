@@ -5,6 +5,7 @@ import { ProductImage } from "@/components/ProductImage";
 import { PHOTO_PLACEHOLDER, photoVersion, validatePhotoIndex, validatePhotoShard } from "../lib/photo-shard";
 import { Icon } from "./Icon";
 import { shortProductName } from "../lib/product-presentation";
+import { factualCardDescription } from "../lib/card-description";
 
 const PhotoContext = createContext<{ indexPath: string | null; photoSlots: readonly string[];
   editorialDisclosures: Readonly<Record<string, string>>; cardTitles: Readonly<Record<string, string>>;
@@ -50,12 +51,14 @@ export function CatalogTitle({ source, id, fallback }: { source: string; id: str
   return source === "amazon" && Object.hasOwn(titles, id) ? titles[id] : shortProductName(fallback);
 }
 
-export function CatalogDescription({ id, source, fallback, card = false }: {
-  id: string; source: string; fallback?: string; card?: boolean;
+export function CatalogDescription({ id, source, title, fallback, card = false }: {
+  id: string; source: string; title?: string; fallback?: string; card?: boolean;
 }) {
   const copy = useContext(PhotoContext);
-  const descriptions = card ? copy.cardNotes : copy.descriptions;
-  const text = (source === "amazon" && Object.hasOwn(descriptions, id) ? descriptions[id] : fallback)?.trim();
+  const description = source === "amazon" && Object.hasOwn(copy.descriptions, id) ? copy.descriptions[id] : undefined;
+  const note = card && source === "amazon" && Object.hasOwn(copy.cardNotes, id) ? copy.cardNotes[id] : undefined;
+  const text = note?.trim() || description?.trim()
+    || factualCardDescription({ id, source, title, description: fallback })?.trim();
   return text ? <p className={card ? "card-description" : "detail-line"}>{text}</p> : null;
 }
 

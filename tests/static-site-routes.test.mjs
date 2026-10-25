@@ -10,11 +10,6 @@ import { createBrowseRelease } from "../static-site/lib/browse.ts";
 import { createOgRelease } from "../static-site/lib/og.ts";
 import { siteIdentity } from "../static-site/lib/site-identity.ts";
 import { selectGuideProducts, guideSchema } from "../static-site/lib/guides.ts";
-import {
-  directoryPages,
-  directoryPath,
-  directoryPage,
-} from "../static-site/lib/directory.ts";
 
 const generatedAt = "2026-10-20T00:00:00.000Z";
 const until = "2026-10-21T00:00:00.000Z";
@@ -109,31 +104,6 @@ test("membership uses whole words and existing conservative family deduplication
     ["b"],
   );
 });
-test("directory covers all ready products exactly once, 24 per page, deterministic order and finite boundaries", () => {
-  const input = snapshot(
-    Array.from({ length: 49 }, (_, i) =>
-      product(String(i).padStart(2, "0"), `Distinct object ${i}`),
-    ),
-  );
-  const pages = directoryPages(input);
-  assert.deepEqual(
-    pages.map((p) => p.products.length),
-    [24, 24, 1],
-  );
-  assert.equal(
-    new Set(pages.flatMap((p) => p.products.map((p) => p.id))).size,
-    49,
-  );
-  assert.equal(directoryPath(1), "/gifts");
-  assert.equal(directoryPath(2), "/gifts/page/2");
-  assert.equal(directoryPage(input, 4), undefined);
-  assert.equal(directoryPage(input, 0), undefined);
-  assert.deepEqual(
-    directoryPages(snapshot([...input.products].reverse())),
-    pages,
-  );
-  assert.equal(directoryPages(snapshot([])).length, 1);
-});
 test("guide schema lists exactly the rendered products and only explicit visible FAQs, without offers", () => {
   const guide = giftGuides.find((g) => g.slug === "cat-lover-gag-gifts");
   const selected = selectGuideProducts(
@@ -163,7 +133,7 @@ test("JSON-LD escapes script delimiters without changing its parsed values", () 
   assert.equal(encoded.includes("<"), false);
   assert.deepEqual(JSON.parse(encoded), data);
 });
-test("finite multipage routes and browse JSON inherit complete snapshot expiry", () => {
+test("home browse JSON retains complete snapshot expiry without redundant directory exports", () => {
   const input = snapshot(
     Array.from({ length: 49 }, (_, i) =>
       product(
@@ -180,12 +150,6 @@ test("finite multipage routes and browse JSON inherit complete snapshot expiry",
     "/gift-guides.html",
     "/howie.html",
     "/preview/presentation.html",
-    "/gifts.html",
-    "/gifts/page/1.html",
-    "/gifts/page/2.html",
-    "/gifts/page/3.html",
-    "/gifts/page/2.txt",
-    "/gifts/page/2/__next.__PAGE__.txt",
     "/safe/catalog.html",
     "/safe/howie.html", "/safe/howie.txt", "/safe/presentation.html", "/safe/presentation.txt",
     "/safe/catalog.txt",
@@ -197,15 +161,12 @@ test("finite multipage routes and browse JSON inherit complete snapshot expiry",
     ...input.products.map((p) => `/gifts/${p.slug}.html`),
   ];
   const routes = createStaticRoutes(input, paths);
-  assert.equal(routes["/gifts/page/1"].indexable, false);
-  assert.equal(
-    routes["/gifts/page/2"].eligibleUntil,
-    "2026-10-20T12:00:00.000Z",
-  );
-  assert.equal(
-    routes["/gifts/page/2/__next.__PAGE__.txt"].safeAssetPath,
-    "/safe/catalog.txt",
-  );
+  assert.equal(routes["/gifts"], undefined);
+  assert.equal(routes["/gifts/page/1"], undefined);
+  assert.equal(routes["/gifts/page/2"], undefined);
+  assert.ok(routes[`/gifts/${input.products[0].slug}`]);
+  for (const obsolete of ["/gifts.html", "/gifts.txt", "/gifts/page/2.html", "/gifts/page/2/__next.__PAGE__.txt"])
+    assert.throws(() => createStaticRoutes(input, [...paths, obsolete]), /no freshness policy/);
   assert.equal(routes["/random-gift"].eligibleUntil,
     "2026-10-20T12:00:00.000Z");
   assert.equal(routes["/weird-gift-index"], undefined);

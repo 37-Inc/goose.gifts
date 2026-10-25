@@ -15,7 +15,7 @@ import { deliverOwnedOutboxEvent, deliverOwnedApprovedCohortVector, prepareOwned
 import { canonicalJson, sha256 } from './migration.ts';
 import { decodePgvectorSendBase64 } from './pgvector-binary.ts';
 import { openRunWorkspace, readRunWorkspace, WORKSPACE_BLOB_LIMITS } from './run-workspace.ts';
-import type { ArtifactRef, RetentionPolicy, RunWorkspace, RunWorkspaceOptions, WorkspaceCheckpoint } from './run-workspace.ts';
+import type { ArtifactRef, RetentionPolicy, RunWorkspace, RunWorkspaceOptions, WorkspaceCheckpoint, PublicationFinishBudget } from './run-workspace.ts';
 import { executePublication, validatePublicationConfig } from './publish-release.ts';
 import { accountedPublicationReadFetch, accountedPublicationFetch, isAccountedPublicationFetch } from './publication-read-fetch.ts';
 import { accountedPublicationUploadCommand, isAccountedPublicationUploadCommand } from './publication-upload-command.ts';
@@ -33,6 +33,9 @@ import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import { canonicalTime } from '../../lib/catalog/snapshot.ts';
 import amazonCreators from '../../lib/amazon-creators.js';
 import { dailyCatalogPhases, pacificCatalogCalendar, runDailyCatalogWithBackend, withCatalogCadence } from '../ops/catalog-daily.mjs';
+import {validateExecutionAdoption,validateExecutionAdoptionConfigs} from './execution-adoption.ts';
+import type {ExecutionAdoption} from './execution-adoption.ts';
+import {encodeReviewedUploadActivationApproval,readReviewedUploadActivation} from '../../lib/catalog/build-requests.ts';
 
 type KeychainRef={service:string;account:string};
 type InputRef={path:string;sha256:string;observedAt:string};
@@ -65,6 +68,57 @@ const keychain=(r:KeychainRef)=>r&&exact(r,'account,service')&&/^goose\.gifts\.[
 const safeCode=(error:unknown)=>error instanceof Error&&/^[a-z][a-z0-9_]{1,100}$/.test(error.message)?error.message:'weekly_requires_review';
 const resolving=(checkpoint:{control?:WorkspaceCheckpoint['control']})=>Boolean(checkpoint.control?.publication
   &&(checkpoint.control.publication.permit||checkpoint.control.publication.stage==='activating'));
+/** Only an exact separately approved upload continuation can leave attention.
+ * The publisher still authenticates its journal, claims, owner and provider. */
+export function reviewedUploadResume(saved:{sha256:string;checkpoint:Omit<WorkspaceCheckpoint,'state'>}|null,
+  retry:Parameters<typeof executePublication>[0]['reviewedUploadRetry']):boolean {
+  if(!saved||!retry||!exact(retry,retry.transport?'approval,evidence,transport':'approval,evidence')||!exact(retry.evidence,'reference,sha256')
+    ||retry.evidence.reference!==`objects/${retry.evidence.sha256}.json`)return false;
+  try{encodeReviewedUploadActivationApproval(retry.approval);}catch{return false;}
+  const cp=saved.checkpoint,c=cp.control?.publication,a=retry.approval,p=cp.pins;
+  if(a.schemaVersion!==4||!['attention',...(retry.transport?['publishing']:[])].includes(cp.phase)||cp.owner?.phase!=='freezing'||!c||c.permit||c.deploymentId
+    ||!p.publicationUploadPending||!p.publicationUploadReview||p.publicationUploadAcknowledged
+    ||p.publicationUploadRetryAcknowledged&&!p.publicationUploadRetryPending
+    ||a.requestId!==c.requestId||a.packageSha256!==c.packageSha256||a.configSha256!==c.configSha256
+    ||a.reviewPinSha256!==p.publicationUploadReview.sha256||a.evidenceSha256!==retry.evidence?.sha256)return false;
+  if(retry.transport&&(!exact(retry.transport,'previous')||!exact(retry.transport.previous,'reference,sha256')
+    ||retry.transport.previous.reference!==`objects/${retry.transport.previous.sha256}.json`
+    ||retry.transport.previous.sha256!==p.publicationUploadRetryPending?.sha256||p.publicationUploadRetryAcknowledged))return false;
+  const pending=retry.transport?p.publicationUploadTransportPending:p.publicationUploadRetryPending;
+  const ack=retry.transport?p.publicationUploadTransportAcknowledged:p.publicationUploadRetryAcknowledged;
+  if(ack&&!pending)return false;
+  return pending
+    ?!!ack&&['uploading','uploaded'].includes(c.stage)
+    :saved.sha256===a.checkpointSha256&&c.stage==='uploading'&&c.versionReference===null;
+}
+/** A committed CAS with a lost local permit must be reconciled BEFORE any
+ * revision hydration/native proof using the stale freezing owner. Never retry
+ * the CAS here, infer its result from elapsed time, or dispatch a provider call. */
+export async function recoverMarkedReviewedActivation(options:{db:CatalogD1;workspace:Pick<RunWorkspace,'readArtifact'>;
+  saved:{sha256:string;checkpoint:WorkspaceCheckpoint};config:PublicationConfig;
+  retry:Parameters<typeof executePublication>[0]['reviewedUploadRetry'];
+  finishAuthorization?:Parameters<typeof executePublication>[0]['finishAuthorization']}) {
+  const {db,workspace,saved,config,retry}=options,cp=saved.checkpoint,c=cp.control?.publication,pins=cp.pins;
+  if(!pins.reviewedUploadActivationPending||c?.permit||retry?.approval.schemaVersion!==4)return null;
+  if(!c||c.stage!=='uploaded'||!c.publication||!c.versionReference||!cp.owner||!['publishing','attention'].includes(cp.phase)
+    ||!reviewedUploadResume({...saved,checkpoint:{...cp,phase:'attention'}},retry))
+    throw new Error('weekly_reviewed_activation_fenced');
+  const pending=retry!.transport?pins.publicationUploadTransportPending:pins.publicationUploadRetryPending;
+  const acknowledged=retry!.transport?pins.publicationUploadTransportAcknowledged:pins.publicationUploadRetryAcknowledged;
+  const record=await workspace.readArtifact(pending) as {original:unknown};
+  const input={claim:c.build,publication:c.publication,versionReference:c.versionReference,owner:cp.owner,
+    approval:retry!.approval,original:record.original,
+    ...(retry!.priorApproval?{priorApproval:retry!.priorApproval}:{}),
+    ...(options.finishAuthorization?{finishAuthorization:options.finishAuthorization}:{})};
+  const expected={schemaVersion:1,input,retryPending:pending,retryAcknowledged:acknowledged,configSha256:sha256(canonicalJson(config))};
+  if(canonicalJson(await workspace.readArtifact(pins.reviewedUploadActivationPending))!==canonicalJson(expected))
+    throw new Error('weekly_reviewed_activation_fenced');
+  const permit=await readReviewedUploadActivation(db,input as Parameters<typeof readReviewedUploadActivation>[1]);
+  // Hydrate under the actual owner, but leave the checkpoint untouched. The
+  // publisher must perform its exact marked-permit read, durable dispatch marker
+  // and FIRST POST together; an already saved permit is reconciliation-only.
+  return permit.mutationOwner!;
+}
 let executing=false; // Environment isolation across differing DB/workspace scopes in ONE process.
 
 export function validateCloudflareWeeklyConfig(input:unknown):CloudflareWeeklyConfig {
@@ -176,10 +230,15 @@ async function mutationKnown(db:CatalogD1,deliveryId:string){
 }
 export interface WeeklyDriverOptions {
   command:'preflight'|'start'|'resume'|'status';configPath:string;configSha256:string;workspace:string;
+  /** Explicit already-recorded same-run recovery; never an implicit new run. */
+  recovery?:{path:string;sha256:string;configPath:string;configSha256:string};
   approval?:{path:string;sha256:string};
+  /** Separately reviewed continuation of one retained, failed upload. */
+  reviewedUploadRetry?:{path:string;sha256:string};
   cadenceOnly?:boolean;
 }
 type Dependencies={repository?:string;fetch?:typeof fetch;resolveToken?:(ref:KeychainRef)=>Promise<string>;resolveWranglerOAuth?:()=>Promise<string>;now?:()=>string;
+  finishRecovery?:{budget:PublicationFinishBudget;authorization:NonNullable<Parameters<typeof executePublication>[0]['finishAuthorization']>};
   publication?:Parameters<typeof executePublication>[0]['dependencies'];cadence?:Parameters<typeof dailyCatalogPhases>[0]};
 
 /** Concrete opt-in local command; no scheduling, schema enablement or ambient
@@ -188,16 +247,30 @@ type Dependencies={repository?:string;fetch?:typeof fetch;resolveToken?:(ref:Key
  */
 export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependencies:Dependencies={}) {
   const repo=dependencies.repository||repository;const now=dependencies.now||(()=>new Date().toISOString());
-  const config=validateCloudflareWeeklyConfig(await reviewed(options.configPath,options.configSha256,repo,32768));
+  const original=validateCloudflareWeeklyConfig(await reviewed(options.configPath,options.configSha256,repo,32768));
+  let config=original,adoption:ExecutionAdoption|null=null;
+  if(options.recovery){
+    if(!['resume','status'].includes(options.command))throw new Error('weekly_recovery_command');
+    adoption=await reviewed(options.recovery.path,options.recovery.sha256,repo) as ExecutionAdoption;
+    validateExecutionAdoption(adoption);
+    config=validateCloudflareWeeklyConfig(await reviewed(options.recovery.configPath,options.recovery.configSha256,repo,32768));
+    validateExecutionAdoptionConfigs(original,config,adoption);
+    if(adoption.original.configSha256!==options.configSha256||adoption.effective.configSha256!==options.recovery.configSha256)
+      throw new Error('weekly_recovery_config');
+  }
   if(options.cadenceOnly&&!config.cadence)throw new Error('weekly_daily_cadence_required');
   if(config.cadence&&['start','resume'].includes(options.command)&&!dependencies.cadence)
     return withCatalogCadence({workspace:options.workspace,repository:repo,now},(cadence:Dependencies['cadence'])=>runCloudflareWeekly(options,{...dependencies,cadence}));
   if(options.approval&&options.command!=='resume')throw new Error('weekly_approval_requires_phase_resume');
+  if(options.reviewedUploadRetry&&options.command!=='resume')throw new Error('weekly_upload_retry_requires_resume');
+  const reviewedUploadRetry=options.reviewedUploadRetry
+    ?await reviewed(options.reviewedUploadRetry.path,options.reviewedUploadRetry.sha256,repo) as Parameters<typeof executePublication>[0]['reviewedUploadRetry']:undefined;
   const scope={environment:config.environment,indexName:config.vectorIndex.name};const resolveToken=dependencies.resolveToken||resolveReadToken;
-  const workspaceOptions:RunWorkspaceOptions={directory:options.workspace,repository:repo,mode:options.command==='start'?'create':'resume',
-    runId:config.runId,configSha256:options.configSha256,codeSha:config.codeSha,
+  const workspaceOptions:RunWorkspaceOptions={directory:options.workspace,repository:adoption?original.publication.sourceRoot:repo,mode:options.command==='start'?'create':'resume',
+    runId:original.runId,configSha256:options.configSha256,codeSha:original.codeSha,
     scope:{...scope,accountId:config.accountId,databaseId:config.database.id,databaseName:config.database.name,workerName:config.publication.workerName},
-    retention:config.retention,budgetCaps:{httpRequests:config.limits.requests,sqlStatements:config.limits.statements},now};
+    retention:original.retention,budgetCaps:{httpRequests:original.limits.requests,sqlStatements:original.limits.statements},
+    ...(adoption?{expectedManifestSha256:adoption.original.manifestSha256}:{}),now};
   if(options.command==='status'){
     const report=await readRunWorkspace(workspaceOptions);
     return{state:'status',runId:config.runId,phase:report.checkpoint?.checkpoint.phase??'created',
@@ -230,6 +303,22 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     if(head!==config.codeSha||resolve(config.publication.sourceRoot)!==resolve(repo)
       ||execFileSync('git',['status','--porcelain','--untracked-files=all'],{cwd:repo,encoding:'utf8'}).trim())throw new Error('weekly_source_mismatch');
     workspace=await openRunWorkspace(workspaceOptions);const ws=workspace;
+    if(adoption?canonicalJson(ws.execution)!==canonicalJson(adoption):ws.execution!==null)
+      throw new Error('weekly_execution_adoption_required');
+    const finish=dependencies.finishRecovery;
+    if(finish){
+      if(options.command!=='resume'||!adoption||!reviewedUploadRetry||finish.budget.approvalReference!==finish.authorization.authorizationSha256
+        ||finish.budget.versionReference!==finish.authorization.versionReference||finish.authorization.activationDeadline>original.retention.rules.publication.notAfter)
+        throw new Error('weekly_finish_recovery_invalid');
+    }
+    if(adoption){
+      const oldRoot=original.publication.sourceRoot;
+      if(execFileSync('git',['rev-parse','HEAD'],{cwd:oldRoot,encoding:'utf8'}).trim()!==original.codeSha
+        ||execFileSync('git',['status','--porcelain','--untracked-files=all'],{cwd:oldRoot,encoding:'utf8'}).trim())throw new Error('weekly_original_source_mismatch');
+      const prior=await ws.readCheckpoint({controlOnly:true});
+      if(!prior?.checkpoint.control?.publication?.permit&&now()>=adoption.contexts.replacement.cutoff&&!finish)throw new Error('weekly_recovery_context_elapsed');
+    }
+    if(finish)await ws.grantPublicationFinishBudget(finish.budget);
     // The owned read sender uses this exact durable ledger. It is separate
     // from normal publication mutation traffic; it can never activate a Worker.
     const networkScope={accountId:config.accountId,workerName:config.publication.workerName,indexName:config.vectorIndex.name,
@@ -242,15 +331,23 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     await ws.purgeExpired();
     let saved=await ws.readCheckpoint({controlOnly:true});
     if(saved&&['phases_running','phase_failed','attention','finalized'].includes(saved.checkpoint.phase)
-      &&!(saved.checkpoint.phase==='attention'&&resolving(saved.checkpoint)))
+      &&!(saved.checkpoint.phase==='attention'&&(resolving(saved.checkpoint)||reviewedUploadResume(saved,reviewedUploadRetry))))
       return{state:saved.checkpoint.phase==='finalized'?'finalized':'attention',phase:saved.checkpoint.phase,
         ...(saved.checkpoint.phase==='finalized'?{catalogSeal:await ws.catalogSuccessor()??undefined}:{}),budget:await ws.budget()};
     const token=await resolveCloudflareCredential(config.credentials.cloudflare,resolveToken,dependencies.resolveWranglerOAuth);
     const identityAuthorization=async()=>config.credentials.stagingAuthSecret
       ?`Basic ${Buffer.from(`staging:${await resolveToken(config.credentials.stagingAuthSecret)}`).toString('base64')}`:undefined;
+    const admittedReadCap=await ws.budgetRowsReadCeiling()??finish?.budget.reportedRowsRead;
     const db=await createCatalogD1Rest({accountId:config.accountId,databaseId:config.database.id,databaseName:config.database.name,
-      token,fetch:dependencies.fetch,limits:config.limits,accounting:{scope:{accountId:config.accountId,databaseId:config.database.id,databaseName:config.database.name},
-        initial:await ws.budget(),reserve:value=>ws.reserveBudget(value),settle:(id,value)=>ws.settleBudget(id,value)}});
+      token,fetch:dependencies.fetch,limits:finish?{...config.limits,requests:(await ws.budgetCeiling()).httpRequests,
+        statements:(await ws.budgetCeiling()).sqlStatements,reportedRowsRead:admittedReadCap}:config.limits,accounting:{scope:{accountId:config.accountId,databaseId:config.database.id,databaseName:config.database.name},
+        initial:await ws.budget(),reserve:async value=>{
+          // Reviewed catalog batches remain below80k reads. Reserve that margin
+          // before dispatch rather than relying only on after-response usage.
+          if(finish&&value.units.sqlStatements&&(await ws.budget()).knownRowsRead+80000>admittedReadCap!)
+            throw new Error('weekly_finish_read_margin');
+          await ws.reserveBudget(value);
+        },settle:(id,value)=>ws.settleBudget(id,value)}});
     // Expiry never hides the minimal control identity required to resolve an
     // already-dispatched activation. No expired snapshot/evidence is read here.
     let cp:WorkspaceCheckpoint;
@@ -259,13 +356,15 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       if(!saved||!resolving(saved.checkpoint)||!saved.checkpoint.owner)throw error;
       const result=await executePublication({db,owner:saved.checkpoint.owner,revision:null,requestId:saved.checkpoint.control!.publication!.requestId,
         runReference:saved.checkpoint.control!.publication!.runReference,workspace:ws,config:config.publication,credentials:{cloudflareToken:token,
-          identityAuthorization:await identityAuthorization()},dependencies:publication});
+          identityAuthorization:await identityAuthorization()},dependencies:publication,reviewedUploadRetry,finishAuthorization:finish?.authorization});
       return result.state==='published'?{state:'attention',phase:'published',reason:'finalization_requires_review',releaseId:result.releaseId,
         receiptSha256:result.receiptSha256,budget:await ws.budget()}:{...result,budget:await ws.budget()};
     }
+    const hydrationOwner=saved?await recoverMarkedReviewedActivation({db,workspace:ws,saved:{sha256:saved.sha256,checkpoint:cp},config:config.publication,
+      retry:reviewedUploadRetry,finishAuthorization:finish?.authorization}):null;
     const write=async(patch:Partial<WorkspaceCheckpoint>)=>{const value={...cp,...patch};const next=await ws.writeCheckpoint(saved?.sha256||null,value);
       saved=next;cp=next.checkpoint;};
-    if(cp.phase==='attention'&&resolving(cp))cp={...cp,phase:'publishing'};
+    if(cp.phase==='attention'&&(resolving(cp)||reviewedUploadResume(saved,reviewedUploadRetry)))cp={...cp,phase:'publishing'};
     const state=()=>cp.state as Record<string,unknown>;
     if(!saved){
       if(options.command!=='start')throw new Error('weekly_checkpoint_missing');
@@ -361,7 +460,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
         if(n===199)throw new Error('weekly_outbox_bound');
       }
       const prior=await readOrdered(ws,cp.pins.previous) as ApprovedCatalogSeal|PermanentCatalogSeal;
-      const context=await ws.readArtifact(cp.pins.context) as unknown as ApprovedCohortRequest['context'];
+      const context=await ws.readArtifact(ws.execution?.contexts.ref??cp.pins.context) as unknown as ApprovedCohortRequest['context'];
       const previous=prior.kind==='permanent-catalog-seal'?await reconstructPermanentSnapshot(db,cp.owner!,prior)
         :['approved-catalog-seal'].includes(prior.kind)
         ?await readApprovedPrior(db,cp.owner!,prior,context):prior as unknown as ApprovedCohortRequest['previous'];
@@ -415,9 +514,9 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       await write({phase:'publishing',owner:queued.owner,pins:{...cp.pins,revision:pin},state:{...state(),requestId:queued.requestId}});
     }
     if(cp.phase==='publishing'){
-      revision=revision||await hydrateApprovedRevision(db,cp.owner!,await readOrdered<ReturnType<typeof approvedRevisionControl>>(ws,cp.pins.revision));
+      revision=revision||await hydrateApprovedRevision(db,hydrationOwner??cp.owner!,await readOrdered<ReturnType<typeof approvedRevisionControl>>(ws,cp.pins.revision));
       const result=await executePublication({db,owner:cp.owner!,revision,approvedCatalog:revision,requestId:String(state().requestId),runReference:config.runId,workspace:ws,
-        config:config.publication,credentials:{cloudflareToken:token,identityAuthorization:await identityAuthorization()},dependencies:publication});
+        config:config.publication,credentials:{cloudflareToken:token,identityAuthorization:await identityAuthorization()},dependencies:publication,reviewedUploadRetry,finishAuthorization:finish?.authorization});
       const changed=await ws.readCheckpoint();if(!changed)throw new Error('weekly_checkpoint_missing');saved=changed;cp=changed.checkpoint;
       if(result.state!=='published')return{...result,phase:cp.phase,budget:await ws.budget()};
       const actual=(await db.prepare('SELECT * FROM publication_receipts WHERE release_id=?').bind(result.releaseId).all()).results;

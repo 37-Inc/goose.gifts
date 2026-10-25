@@ -1,0 +1,323 @@
+{
+  "schemaVersion": 1,
+  "kind": "offline-catalog-photo-identity-audit",
+  "state": "offline-reviewed-two-held-crown-exclusions-no-provider-changes",
+  "auditedAt": "2026-10-25",
+  "sources": {
+    "manifestSha256": "e70c0211829ac5d9b9c07e39605eb03426ec50de85845013f7a11b6793869fd9",
+    "productsSha256": "3d5efe00cbff1e06420da81edffa47616e76a15f2623bcdc095cada7782cfbb9",
+    "baselineSnapshotSha256": "325075a5ab8ba0fbd6b176232edfdebe6fd0dac60b6ef3ac350f81b32daba618",
+    "previewSnapshotSha256": "56727e8ac55499aec6b8bbf03b0ebaec5341897e4c409bfbf7da96a8f8933721",
+    "archiveLabel": "export-2026-10-22-known-writers-held/011.ndjson",
+    "previewLabel": "catalog-resolution-preview-20261025/catalog.snapshot.json"
+  },
+  "method": {
+    "host": "m.media-amazon.com",
+    "pathPrefix": "/images/I/",
+    "direct": "Use the existing lib/image-utils.ts cleanAmazonImageUrl, then identify the validated Amazon asset ID before recognized ._ resize transformations. No pixel/fuzzy similarity.",
+    "composite": "Use cleanAmazonImageUrl to resolve the product pi-src; ._TSa is NOT just a resize suffix. Outer01UwfHrld+L is a common composition canvas, not a product duplicate/fallback identity. Recomputed all3355URLs with the production cleaner: same7groups/16listings/11pair comparisons.",
+    "noImageFetches": true,
+    "noProductAPICalls": true,
+    "noModels": true,
+    "noD1OrNativeWrites": true,
+    "noProtectedInputChanges": true
+  },
+  "counts": {
+    "public": 3355,
+    "promoted": 996,
+    "recognizedAmazonImageURLs": 3355,
+    "direct": 2766,
+    "compositeListings": 589,
+    "sharedEffectiveProductPhotoGroups": 7,
+    "listingsInThoseGroups": 16,
+    "pairComparisons": 11,
+    "promotionTouchingGroups": 2,
+    "promotionTouchingListings": 6,
+    "promotionTouchingPairComparisons": 6,
+    "exactEffectiveImagePairsCrossingPromotedAndExistingPublic": 0
+  },
+  "composites": {
+    "count": 589,
+    "uniqueFullURLs": 588,
+    "uniqueProductSources": 588,
+    "example": {
+      "id": "1400080460",
+      "url": "https://m.media-amazon.com/images/I/01UwfHrld%2BL._TSa%7Csize%3A1910%2C1000%7Cformat%3A%28A%2Cf%2Cb%2Cd%2Cpi%2Cpl%2Co%29%7Cb-src%3A31h7weyvA8L.png%7Cb-pos%3A0%2C0%2C1910%2C1000%7Cpi-src%3A51gVurwR6LL.jpg%7Cpi-pos%3A1000%2C100%2C840%2C840.json",
+      "embeddedProductImageID": "51gVurwR6LL"
+    },
+    "existing": 380,
+    "promoted": 209,
+    "inheritedExact": 589,
+    "sourceFactsAvailable": 0,
+    "separateAlternativeImageFieldsAvailable": 0,
+    "alternativeImagesFromSeparateSourceFacts": 0,
+    "availability": "UNVERIFIED: no images were fetched; URL syntax does not prove whether the composite loads visually. The pi-src names provide an existing-source candidate image without a new merchant observation.",
+    "correction": "An initial outer-ID-only grouping overstated603duplicates/589fallbacks. That grouping was invalid because it stripped semantic composite pi-src parameters. There is no evidence here that589products lost real photos in migration."
+  },
+  "manualBagCase": {
+    "state": "confirmed-existing-public-duplicate-deferred-from-held-only-mutation",
+    "proposedExcluded": "B0BQ9LZNXN",
+    "proposedKeeper": "B0DP9GRD9K",
+    "sameEffectiveImageID": false,
+    "sourceFactsAvailable": false,
+    "explicitPackSizeColorModelDifferenceFound": false,
+    "quantityAndSize": "unknown in the archived records, not proved identical by absence",
+    "rootVisualEvidence": "Root viewed both existing41kMxF1NzzL and61CQBRKhKuL photos and confirmed the same pale-blue foldable tote with identical colorful Dalmatian puppy/egg print, differing only in framing. Archived titles/facts show no explicit size/quantity/model distinction. Both listings are already public in the independently hashed2359baseline, not newly promoted; preserve the accepted predecessor and handle this exact public pair separately.",
+    "products": [
+      {
+        "id": "B0BQ9LZNXN",
+        "cohort": "existing-public",
+        "title": "A Funny Little Dalmatian Puppy Pet Portable Folding ...",
+        "slug": "a-funny-little-dalmatian-puppy-pet-portable-folding",
+        "imageID": "41kMxF1NzzL",
+        "imageUrl": "https://m.media-amazon.com/images/I/41kMxF1NzzL.jpg_BO30,255,255,255_UF900,850_SR1910,1000,0,C_QL100_.jpg"
+      },
+      {
+        "id": "B0DP9GRD9K",
+        "cohort": "existing-public",
+        "title": "Kuilepa A Funny Little Dalmatian Puppy Print Dog ...",
+        "slug": "paw-dorable-dalmatian-print-for-dog-lovers",
+        "imageID": "61CQBRKhKuL",
+        "imageUrl": "https://m.media-amazon.com/images/I/61CQBRKhKuL.jpg_BO30,255,255,255_UF900,850_SR1910,1000,0,C_QL100_.jpg"
+      }
+    ]
+  },
+  "groups": [
+    {
+      "imageID": "41IoA0hG0jL",
+      "products": [
+        {
+          "id": "B07766Q6SM",
+          "cohort": "existing-public",
+          "photoKind": "direct",
+          "title": "Bacon Scented Candle ~ Maple Bacon Scented All Natural Premium Soy Wax Mason Jar Candle Made in USA - S&M Candle Factory",
+          "slug": "scent-of-bacon-candle-that-sizzles",
+          "facts": {
+            "brand": "S&M Candle Factory",
+            "size": "Jar",
+            "color": "Pink",
+            "unitCount": 1,
+            "itemDimensions": {
+              "width": "3 inches",
+              "height": "5 inches",
+              "length": "3 inches",
+              "weight": "1 Pounds"
+            }
+          }
+        },
+        {
+          "id": "B08QD1CPK2",
+          "cohort": "existing-public",
+          "photoKind": "direct",
+          "title": "Bacon Candle ~ Maple Bacon Scent ~ All Natural Premium Soy Candles ~ Bacon Lover 12oz Jars (Bacon)",
+          "slug": "scent-of-bacon-melt-away-your-worries",
+          "facts": {
+            "brand": "S&M Candle Factory",
+            "size": "12 ounces",
+            "color": "Pink",
+            "unitCount": 1,
+            "itemDimensions": {
+              "weight": "0.75 pounds"
+            },
+            "parentAsin": "B08LD2TP5B"
+          }
+        }
+      ],
+      "pairComparisons": 1,
+      "decision": "keep-distinct-pending-any-further-owner-review",
+      "reason": "Same brand/photo, but stored physical weights differ:1pound vs0.75pound/12ounces. Do not collapse a potential size variant."
+    },
+    {
+      "imageID": "810rjMUlGTL",
+      "products": [
+        {
+          "id": "B0C2CNHTYX",
+          "cohort": "existing-public",
+          "photoKind": "direct",
+          "title": "Funny Cat Shower Curtains for Bathroom - Bathing ...",
+          "slug": "funny-cat-shower-curtains-for-bathroom-bathing",
+          "facts": null
+        },
+        {
+          "id": "B0D1FV5MQ4",
+          "cohort": "existing-public",
+          "photoKind": "direct",
+          "title": "Aimego Long Funny Shower Curtain - Bathing Cat Cute Kitten ...",
+          "slug": "aimego-long-funny-shower-curtain-bathing-cat-cute-kitten",
+          "facts": null
+        }
+      ],
+      "pairComparisons": 1,
+      "decision": "keep-pending-size-verification",
+      "reason": "One listing explicitly says Long. Shared photo does not disprove a curtain-length variant; structured dimensions/quantity absent."
+    },
+    {
+      "imageID": "41OUH2GFIBL",
+      "products": [
+        {
+          "id": "B0DMK7L5TC",
+          "cohort": "existing-public",
+          "photoKind": "direct",
+          "title": "CaseTank White Elephant Gifts for Adults: Funny Gag Gifts Belly Apron Christmas Birthday Stocking Stuffers for Dad Him Men",
+          "slug": "belly-larious-apron-cooking-up-laughs-for-dad",
+          "facts": null
+        },
+        {
+          "id": "B0DNDWZTKD",
+          "cohort": "existing-public",
+          "photoKind": "direct",
+          "title": "CaseTank Funny Belly Apron Gifts for Men Dad Him Birthday Fathers Day Valentines Day White Elephant Gag Gifts for Adults",
+          "slug": "belly-laughs-the-apron-that-packs-a-punch",
+          "facts": null
+        }
+      ],
+      "pairComparisons": 1,
+      "decision": "strong-existing-public-duplicate-candidate-not-applied",
+      "reason": "Same CaseTank brand, same belly-apron physical format and exact photo. No stored size/pack distinction; both are already public, so do not silently change the preserved2359 through the held-only promotion lane."
+    },
+    {
+      "imageID": "61O0AYDh71L",
+      "products": [
+        {
+          "id": "B0DMSY2DPN",
+          "cohort": "existing-public",
+          "photoKind": "composite-pi-source",
+          "title": "Christmas Bath Wall Art Funny Christmas Prints Art Fairy Themed ...",
+          "slug": "funny-christmas-prints-a-jolly-gag-gift",
+          "facts": null
+        },
+        {
+          "id": "B0DMT1W7PV",
+          "cohort": "existing-public",
+          "photoKind": "composite-pi-source",
+          "title": "Christmas Movie Poster Print Wall Art, Funny Xmas ...",
+          "slug": "funny-xmas-film-poster-a-holiday-must",
+          "facts": null
+        }
+      ],
+      "pairComparisons": 1,
+      "decision": "manual-review-existing-public-print-format",
+      "reason": "Same embedded product-photo source inside composite URLs, but titles differ between bath/fairy-themed art and a movie poster. No size/framing/quantity evidence; no automatic exclusion."
+    },
+    {
+      "imageID": "61+J6qdlzsL",
+      "products": [
+        {
+          "id": "B0DNMJN46W",
+          "cohort": "existing-public",
+          "photoKind": "direct",
+          "title": "2025 Upgrade Christmas Elf Doll Plush Toy, Funny ...",
+          "slug": "2025-upgrade-christmas-elf-doll-plush-toy-funny",
+          "facts": null
+        },
+        {
+          "id": "B0DNQ53YJY",
+          "cohort": "existing-public",
+          "photoKind": "direct",
+          "title": "2025 New Christmas Elf Doll Plush Toy, Funny ...",
+          "slug": "funny-christmas-elf-doll-add-some-glee-to-your-holiday",
+          "facts": null
+        }
+      ],
+      "pairComparisons": 1,
+      "decision": "manual-review-existing-public-model-size",
+      "reason": "Both describe2025Christmas elf plush; same exact photo. No stored model/size/quantity proof, and both already public."
+    },
+    {
+      "imageID": "61mdn4SrEpL",
+      "products": [
+        {
+          "id": "B0CCDC2HYT",
+          "cohort": "promoted",
+          "photoKind": "direct",
+          "title": "BOBOWUNY Father's Day Beard Adult Bibs for Elder ...",
+          "slug": "bobowuny-beard-bib-a-hairy-situation",
+          "facts": null
+        },
+        {
+          "id": "B0CDPKSMQK",
+          "cohort": "promoted",
+          "photoKind": "direct",
+          "title": "Best Dad Adult Bib for Eating with Crumb Catcher ...",
+          "slug": "dad-s-best-bib-meal-time-more-like-chill-time",
+          "facts": null
+        },
+        {
+          "id": "B0CFFJRD8W",
+          "cohort": "promoted",
+          "photoKind": "direct",
+          "title": "Kewadony Adult Bibs for Elderly Women - Happy ...",
+          "slug": "kewadony-adult-bibs-happiness-on-a-string",
+          "facts": null
+        }
+      ],
+      "pairComparisons": 3,
+      "decision": "retain-three-promoted-bibs-with-unresolved-print-or-pack-differences",
+      "reason": "Three promoted listings reuse one direct image. Titles refer to Father's Day/beard, Best Dad/crumb catcher, and elderly women/Happy. No source facts, size, quantity or full printed-text evidence. Do not automatically collapse potentially different prints/packs."
+    },
+    {
+      "imageID": "514qcaUyEcL",
+      "imageUrl": "https://m.media-amazon.com/images/I/514qcaUyEcL.jpg_BO30,255,255,255_UF900,850_SR1910,1000,0,C_QL100_.jpg",
+      "products": [
+        {
+          "id": "B0DJ8QSZZ7",
+          "cohort": "promoted",
+          "photoKind": "direct",
+          "title": "plplaaoo Bearded Dragon Crown Necklace Set ...",
+          "slug": "plplaaoo-bearded-dragon-crown-necklace-set",
+          "facts": null
+        },
+        {
+          "id": "B0F45GMFH3",
+          "cohort": "promoted",
+          "photoKind": "direct",
+          "title": "TRANMERCE Bearded Dragon Crown Necklace Set ...",
+          "slug": "tranmerce-bearded-dragon-crown-necklace-set",
+          "facts": null
+        },
+        {
+          "id": "B0F912SZ4M",
+          "cohort": "promoted",
+          "photoKind": "direct",
+          "title": "Bearded Dragon Crown Necklace Set | Adjustable ...",
+          "slug": "bearded-dragon-crown-necklace-set-adjustable",
+          "facts": null
+        }
+      ],
+      "pairComparisons": 3,
+      "decision": "retain-one-identical-photo-and-model-set-exclude-two-reseller-listings",
+      "reason": "The identical product photograph and the exact named Bearded Dragon Crown Necklace Set supply concrete same-product evidence, beyond a broad family or missing-data assumption. plplaaoo/TRANMERCE differ as seller/brand labels and the third adds generic adjustable wording; none of the literal archived titles identifies a different print, color, quantity, model or size. All three source_facts are null, so no unstored specification is invented. RetainB0DJ8QSZZ7; keep both excluded identities/history/native data, preventing routine re-admission with the durable reviewed registry.",
+      "proposedKeeper": "B0DJ8QSZZ7",
+      "proposedExcluded": [
+        "B0F45GMFH3",
+        "B0F912SZ4M"
+      ]
+    }
+  ],
+  "currentHeldResolutionProposal": {
+    "state": "new-offline-preview-not-current-D1-capture-or-publication",
+    "promoted": 994,
+    "public": 3353,
+    "held": 30,
+    "exactDuplicateExclusions": 6,
+    "concreteQualityExclusions": 24,
+    "identitiesPreserved": 3383,
+    "existingPublicPreserved": 2359,
+    "originalArticlesPreserved": 42,
+    "newExcludedIDs": ["B0F45GMFH3", "B0F912SZ4M"],
+    "keeper": "B0DJ8QSZZ7",
+    "sharedCopyMapEntriesToRemove": ["B0F45GMFH3", "B0F912SZ4M"],
+    "offlinePreviewLabel": "catalog-resolution-preview-20261025/photo-dedup-994/catalog.snapshot.json",
+    "offlinePreviewSha256": "a00e6581725c63e2bff5029d962c11acaa7135ddda35b80cfa086f83b57f3836",
+    "historical3355PreviewPreserved": true,
+    "confirmedExistingPublicTotePairNotRemoved": ["B0BQ9LZNXN", "B0DP9GRD9K"],
+    "providerRequests": 0
+  },
+  "implementationNotes": [
+    "Only two held crown exclusions are implemented in offline code. No live capture, D1/native mutation or publication was performed. Preserve all source identities, slugs, editorial/history and native evidence.",
+    "The held planner consults the same durable duplicate registry before createPersistentCatalogProduct, requires a real keeper in existing public or the same promotion plan, and leaves excluded source/native/history untouched.",
+    "The full current2359public predecessor is intentionally preserved by the existing owner-base promotion contract. Existing-public duplicate decisions need explicit matching publication support, not a silent registry change that invalidates the accepted predecessor.",
+    "Correction to the first report: B0BQ9LZNXN was mislabeled promoted in the manual tote case. Rechecking baselineSHA325075a5 proves both tote listings are existing public. The group/composite calculations were independently derived from the actual baseline IDs and are unchanged. Do not claim all catalog duplicates are resolved while this confirmed public pair remains.",
+    "Use actual shared product-photo evidence plus physical print/model/size/pack review. Never revive the23unsupported broad-family duplicate pointers or auto-collapse all repeated image IDs."
+  ]
+}

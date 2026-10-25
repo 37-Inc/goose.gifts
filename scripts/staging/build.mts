@@ -96,6 +96,10 @@ export async function buildStaticRelease(root: string) {
     currentAssets.set(`/${path.relative(output, file).split(path.sep).join('/')}`, await fs.readFile(file));
   }
   const assembled = assembleReleaseAssets(snapshot, currentAssets, context, priorPackage);
+  // Only generated duplicates in this build are removed. Their original RSC
+  // URLs remain mapped to identical bytes in the sealed route manifest.
+  for (const name of currentAssets.keys()) if (!assembled.assets.has(name))
+    await fs.unlink(path.join(output, name.slice(1)));
   const checksums: Record<string, string> = {};
   for (const [name, bytes] of [...assembled.assets].sort(([a], [b]) => a.localeCompare(b))) {
     if (!currentAssets.has(name)) {
@@ -112,7 +116,8 @@ export async function buildStaticRelease(root: string) {
     nextExpiry: earliestDisplayExpiry(snapshot.products),
     productCount: snapshot.products.length,
     slugCount: snapshot.products.length + snapshot.heldProducts.length + snapshot.slugHistory.length,
-    checksums, routes: assembled.routes };
+    checksums, routes: assembled.routes,
+    ...(Object.keys(assembled.assetAliases).length ? { assetAliases: assembled.assetAliases } : {}) };
   const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
   // Asset inventory/retention can take time; do not seal if source drifted meanwhile.
   assertBuildSource(root, codeSha);

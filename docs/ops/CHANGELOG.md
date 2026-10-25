@@ -1,5 +1,150 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 — final held review and complete private storefront acceptance
+
+[owner+codex] Final held-cohort review admits994of1024:3,353public/30held,
+all3,383identities and42articles preserved. Exclusions are six reviewed duplicates
+and24individually documented commodity products; old inactive/pending scores do
+not justify hiding the rest. Two identical-photo/model dragon-crown reseller
+listings stay held; potentially distinct bib/print/size variants remain. The
+confirmed already-public Dalmatian tote pair is separately tracked in
+roadmap-lbbz1.3.4; it was not falsely counted among held removals.
+
+All cards show image/title/shortdescription. Exact-ID/title site-authored notes
+replace991generic fallbacks without changing source/native data, and keyword
+search indexes the same visible notes without D1 calls. Directory-only retirement
+preserves product URLs. Complete clean596fb83production-mode build and normal
+release verification pass:17,228physicalfiles/6,798exactbytealiases/2,772Free
+headroom. Desktop/mobile/LoadMore/search/Clear/empty/affiliate/guide/Random and
+RSC byte-identity checks pass privately, with zero browser errors. The existing
+daily/Monday limits also pass accurate local workerd capacity tests unchanged.
+
+This remains CODE/PRIVATE PREVIEW, not an expanded public catalog. The earlier
+eight-product repair is live; its receipt/build/idle/successor bookkeeping needs
+the separately requested, still-unapproved bounded finalization allowance.
+No extra supplier/model batch, paid upgrade, duplicate job or Vercel deployment.
+
+## 2026-10-25 — repair live; final bookkeeping and catalog expansion pending
+
+[owner+codex] The existing uploaded version is now actually serving the eight-
+article repair as daily-2026-10-24-628707b5/runtime1e3b505. Independent public checks
+retain2359images/descriptions and42original articles. No second supplier/model
+batch or upload was used. Receipt/build/idle/successor settlement remains pending
+after the internal same-run request cap; all5585HTTP/9582SQL/1841389reads/
+14444writes and one authenticated read-only unknown stay charged. A separate
+bounded post-activation finalization allowance is requested, not assumed granted.
+Native-only finish verification keeps exact policy/bits/history; ordinary full
+reads retain their original cutoff. Reviewed postflight simplification removes
+two redundant same-owner inventory scans, preserving fresh final inventory,
+both source/projection boundaries, actual native/deployment and idle checks.
+
+The full owner-approved gallery/hold cleanup is separately implemented in PR279,
+not yet published. Every card shows its existing short description; home replaces
+the redundant directory, while individual product URLs remain. Actual full3355
+preview:17237physical files,6802exact-byte aliases,2763Free-file headroom; all
+images/descriptions and42articles retained. Desktop/mobile/search/load-more/empty
+states and independent full asset/policy verification pass. Reviewed holds:
+996promotions, four exact duplicate exclusions,24per-ID commodity objections,
+all3383identities/history preserved. The one-time source-pinned operator fresh-
+captures and requires the actual plan SHA, retaining ordinary daily limits.
+Independent review identified two commit-before-checkpoint resume edges; fix and
+fault-test those before live dispatch. Existing daily task stays held until
+both original settlement and final catalog acceptance are genuinely complete.
+
+## 2026-10-24 PM — match the rejected read-only deadline assertion
+
+[owner+codex] First finish attempt stopped before activation. Offline exact
+request reconstruction matched the retained two-SELECT unknown to the native
+policy's old publication-cutoff assertion. The read-only permanent-catalog proof
+now uses the separately approved finish window; original source/rights/request
+times and native policy bytes stay unchanged. The unknown remains charged with
+its bounded read-only reserve, not refunded. Same upload, ledger and finish grant;
+no new product/model fetch, upload or paid capacity. Actual publication pending.
+
+## 2026-10-24 PM — bounded uploaded-version finish and owner scope correction
+
+[owner+codex] Owner approved finishing the existing acknowledged upload on Free,
+without another supplier/model batch or build upload. Added a once-only same-ledger
+finish allowance, fresh bounded dispatch authority, canonical validation and
+read-only marked-CAS owner recovery before hydration; original claims, source
+retention and charges stay unchanged. Focused recovery/authority tests and
+independent review pass; actual activation/readback is the next operation, not
+claimed here. Owner also requires every product card description, directory
+retirement (not individual product URLs), publish-by-default resolution of old
+holds and exact-byte static-file consolidation; isolated implementations are
+being integrated under current Beads. Daily writer remains held until verified.
+
+## 2026-10-24 — reviewed-finalizer timeout correction, not yet deployed
+
+[owner+codex] The fixed uploader produced a genuine immutable version and
+TransportACK, but activation remains held. The reviewed-only observation was
+repeating full package/native checks inside30s after those same-owner checks
+already ran; ordinary activation observes only provider prior. Removed those
+duplicates from the short callback, retaining invocation-local package/native
+proof, actual version/prior observation, fresh inventory before the unchanged
+atomic CAS. No extra upload/activation or product/model fetch performed here.
+Original run's remaining allowance is tight; another ordinary resume is NOT
+authorized by an unmeasured cost assumption. Existing task and Bead stay held
+pending bounded finish capacity/owner approval and actual public verification.
+
+## 2026-10-24 — local uploader connection-race correction
+
+[owner+codex] Reproduced both zero-POST failures offline: Wrangler's long
+synchronous asset hashing retains a pooled loopback socket past the bridge's
+idle close, causing EPIPE/ECONNRESET before its session POST reaches the bridge.
+Explicit Connection:close on loopback responses passes the identical8s stall
+without changing remote scope, budgets, timeouts or adding automatic retries.
+Added one separately pinned, zero-POST-only transport continuation: authenticate
+both old journals/logs, retain both failed markers and all original charges,
+use a distinct pending/real-ACK pair and the unchanged shared activation CAS.
+Original runtime/package1e3 and23:00UTC cutoff stay fixed. Production, daily hold
+and Bead remain unchanged until actual publication/readback/public QA succeeds.
+
+## 2026-10-24 — authorized repair and read-only upload continuation
+
+[owner+codex] Executed the approved same-run eight-row article repair and
+verified a complete static package:2359 public/1024 held products, all original
+photos/descriptions and42 substantive/indexable articles retained. The initial
+protected upload failed after exactly two known read-only metadata GETs, before
+any asset/version POST. Production is not yet changed. Added separately pinned
+V4 continuation support that reconstructs actual journal/log evidence, retains
+original claims/tokens/attempts/deadlines/accounting, verifies the live prior
+before upload, and requires a genuine command ACK plus atomic activation.
+Original failure logs stay untouched in their registered retention directory.
+The existing daily publication hold and `roadmap-lbbz1.4.9` remain open until
+actual publication, receipt/build/idle-owner/public QA and successor handoff.
+
+## 2026-10-24 — offline same-run adoption and original article proof
+
+[owner+codex] Added one append-only execution/publication-context adoption and
+an executable bounded recovery command. Original inputs, source deadlines,
+owner, reservation and accounting remain untouched. Export and final SQL now
+recognize narrowly proven original article approval without rewriting current
+source/editorial hashes/status. Integrated the eight-row repair and distinct
+original/execution successor identities. Independent adversarial review and
+offline tests only; no provider call, push, merge, deploy or timer change.
+`roadmap-lbbz1.4.9` remains open pending separately authorized live verification.
+
+## 2026-10-24 — offline bounded editorial-recovery adapters
+
+[owner+codex] Implemented ten-row capture, exact eight-row atomic repair,
+immutable replacement proposal and actual-observation successor reconciliation;
+added failure/ACK/expiry/accounting/FS regression coverage and independent
+review. Original publisher cannot retain42 indexable articles without a new
+proof contract; existing17:32UTC publication context has now elapsed. No live
+capture/repair/publication, context renewal, owner/ledger/timer change or push.
+`roadmap-lbbz1.4.9` remains open; recovery document records exact decision/gates.
+
+## 2026-10-24 — offline editorial-preservation correction
+
+[owner+codex] Reproduced the held daily run's exact eight-article loss from saved
+inputs: title/photo metadata and dimensional-unit casing, not factual changes.
+The narrow projector fix preserves existing approved copy without promoting
+fresh supplier/vector proof. Added regression tests and a same-run recovery
+proposal (`EDITORIAL_REFRESH_RECOVERY_2026-10-24.md`). Local-only: no provider
+calls, merge/deployment, data repair, owner/counter/timer change or extra batch.
+Bead `roadmap-lbbz1.4.9` remains open; publication hold remains in place.
+
 ## 2026-10-24 PM — routine Pinterest measurement; Hat seven-day observation
 
 [daily-ops] Actual23:34:34.807UTC:28 public Pins,v11P6/F6; profile3894/60opens/

@@ -21,7 +21,7 @@ export default function SafeProduct() {
         No product details, imagery, prices or retailer links are displayed here.
         Browse the rest of the collection while we review this selection.
       </p>
-      <a className="button" href="/gifts">
+      <a className="button" href="/">
         Browse gifts
       </a>
     </main>
