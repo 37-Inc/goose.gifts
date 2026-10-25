@@ -1,6 +1,7 @@
 import type { CatalogSnapshot } from '../../lib/catalog/types.ts';
 import { persistentPublicProduct } from '../../lib/catalog/display.ts';
 import { catalogSearchTerms } from '../../lib/catalog/search-terms.ts';
+import { factualCardDescription } from '../../static-site/lib/card-description.ts';
 import type { SearchStorage } from './bindings.ts';
 
 /** The deployed, independently cleared catalog is already in the Worker.
@@ -12,7 +13,7 @@ export function snapshotKeywordSearch(snapshot: CatalogSnapshot): SearchStorage[
   const index = new Map<string, Map<number, number>>();
   products.forEach((product, id) => {
     for (const [value, weight] of [[product!.title, 4], [product!.humorTags?.join(' ') || '', 2],
-      [[product!.description, product!.punnyTitle, product!.wittyDescription].filter(Boolean).join(' '), 1]] as const) {
+      [[factualCardDescription(product!), product!.punnyTitle, product!.wittyDescription].filter(Boolean).join(' '), 1]] as const) {
       for (const term of catalogSearchTerms(value)) {
         let matches = index.get(term);
         if (!matches) index.set(term, matches = new Map());
