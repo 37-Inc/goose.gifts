@@ -10,5 +10,5 @@ export function factualCardDescription(input: {
 }): string | undefined {
   const note = Object.hasOwn(copy, input.id) ? copy[input.id] : undefined;
   return input.source === "amazon" && input.description?.trim() === LEGACY_DESCRIPTION_PLACEHOLDER
-    && note?.title === input.title ? note.description : input.description;
+    && note && note.title === input.title ? note.description : input.description;
 }

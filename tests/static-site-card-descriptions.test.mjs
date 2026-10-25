@@ -27,6 +27,7 @@ test('presentation override requires exact ID, title, source and original placeh
   for(const patch of [{id:'UNKNOWN'},{source:'etsy'},{title:note.title+' changed'}])
     assert.equal(factualCardDescription({...p,...patch}),LEGACY_DESCRIPTION_PLACEHOLDER);
   assert.equal(factualCardDescription({...p,description:'New verified short description.'}),'New verified short description.');
+  assert.equal(factualCardDescription({id:'UNKNOWN',source:'amazon',description:LEGACY_DESCRIPTION_PLACEHOLDER}),LEGACY_DESCRIPTION_PLACEHOLDER);
   assert.equal(p.description,LEGACY_DESCRIPTION_PLACEHOLDER);
 });
 test('card and detail consumers render the factual short line without exposing the generic fallback',()=>{
