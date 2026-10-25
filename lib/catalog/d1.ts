@@ -177,13 +177,20 @@ export async function createProjectionPacket(snapshotInput: CatalogSnapshot, fac
 export function projectionPreflight(packet: ProjectionPacket): ProjectionQuery {
   return { sql: 'SELECT * FROM catalog_projection_receipts WHERE catalog_revision=?', params: [packet.receipt.catalog_revision] };
 }
-export function projectionQueries(packet: ProjectionPacket): ProjectionQuery[] {
-  const insert = (table: string, row: Row): ProjectionQuery => {
-    const columns = Object.keys(row);
-    if (columns.some((column) => !/^[a-z_][a-z0-9_]*$/.test(column)) || columns.length > 100) throw new Error('Invalid projection columns');
-    return { sql: `INSERT INTO ${table} (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})`, params: columns.map((column) => row[column]) };
+export function projectionQueries(packet: ProjectionPacket, rowsPerInsert = 1): ProjectionQuery[] {
+  if (!Number.isSafeInteger(rowsPerInsert) || rowsPerInsert < 1 || rowsPerInsert > 9) throw new Error('Invalid projection row group');
+  const insert = (table: string, rows: Row[]): ProjectionQuery => {
+    const columns = Object.keys(rows[0]);
+    if (columns.some((column) => !/^[a-z_][a-z0-9_]*$/.test(column)) || columns.length * rows.length > 100
+      || rows.some(row => Object.keys(row).length !== columns.length || columns.some(column => !Object.hasOwn(row,column))))
+      throw new Error('Invalid projection columns');
+    return { sql: `INSERT INTO ${table} (${columns.join(',')}) VALUES ${rows.map(() => `(${columns.map(() => '?').join(',')})`).join(',')}`,
+      params: rows.flatMap(row => columns.map(column => row[column])) };
   };
-  return [...packet.rows.map((row) => insert('catalog_public_products', row)), insert('catalog_projection_receipts', packet.receipt)];
+  const queries: ProjectionQuery[] = [];
+  for (let offset = 0; offset < packet.rows.length; offset += rowsPerInsert)
+    queries.push(insert('catalog_public_products', packet.rows.slice(offset, offset + rowsPerInsert)));
+  return [...queries, insert('catalog_projection_receipts', [packet.receipt])];
 }
 function receiptMatches(actual: ProjectionReceipt, expected: ProjectionReceipt): boolean {
   return Object.keys(expected).every((key) => actual[key] === expected[key]);

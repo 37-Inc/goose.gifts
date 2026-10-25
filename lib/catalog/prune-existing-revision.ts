@@ -176,10 +176,12 @@ export async function sealCapturedRevision(db: CatalogD1, owner: MutationOwner, 
   const guard = {sql:`SELECT json(CASE WHEN ${gate.sql} THEN 'true' ELSE 'mutation_fenced' END)`,params:gate.params};
   for (let offset = 0; offset < missing.length;) {
     let queries: ReturnType<typeof projectionQueries> = []; let inserted = 0;
-    for (const row of missing.slice(offset,offset+35)) {
-      const next = projectionQueries({...packet,rows:[row]}).slice(0,-1);
-      if (queries.length+next.length >= 50 || Buffer.byteLength(JSON.stringify({batch:[guard,...queries,...next]})) > 512*1024) break;
-      queries = [...queries,...next]; inserted++;
+    for (let count = 1; count <= Math.min(35,missing.length-offset); count++) {
+      // One-row INSERTs repeatedly flush FTS5. Group at most nine eleven-field
+      // rows (99 binds), keeping the same 35-row transaction/restart boundary.
+      const next = projectionQueries({...packet,rows:missing.slice(offset,offset+count)},9).slice(0,-1);
+      if (next.length >= 50 || Buffer.byteLength(JSON.stringify({batch:[guard,...next]})) > 512*1024) break;
+      queries = next; inserted = count;
     }
     if (!queries.length) throw new Error('prune_projection_bound');
     await db.batch([mutationAssertion(db, owner, ['freezing']), ...queries.map(query =>
