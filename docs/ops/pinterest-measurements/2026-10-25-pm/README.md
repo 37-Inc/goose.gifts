@@ -91,3 +91,11 @@ pass there; retained operator lint has its 25 existing warnings. No hosted
 checks were reported; local focused gates are not a claimed CI/full-suite run
 or new build/deployment. Do not advance the retained operator or separately
 pinned canonical/catalog checkouts to this main-based integration.
+
+Concurrent PR285 subsequently merged as
+`de1808d63e66ef33f0bbeabc944a69caa784ceec`, so the first merge request for this
+evidence PR was rejected with a log conflict and no main write. Temporary
+integration `4dc73d87a07c44249d423a55527aecaf5df2f834` preserves both complete
+dated entries; post-resolution validation still has1,025 events,6/18 focused
+tests and lint0errors/0warnings. Protected source diff relative to that upstream
+is empty. This reconciliation is not adopted into the retained operator runtime.
