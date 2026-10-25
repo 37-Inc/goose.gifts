@@ -10,6 +10,8 @@ valid; full receipt in `pinterest-measurements/2026-10-25-pm/`. Storage now49GiB
 free without cleanup by this run; morning ENOSPC remains historical, no repeat
 alert. No public Pin created or creative/account/catalog/site/schedule/Bead
 mutation, deploy or spend. Same ACTIVE cadence and October31 review/freeze.
+Evidence PR[#286](https://github.com/37-Inc/goose.gifts/pull/286), retained
+operator receipt54139ea; this is not site publication or runtime advancement.
 
 ## 2026-10-25 — include the confirmed public tote duplicate in the same cleanup
 

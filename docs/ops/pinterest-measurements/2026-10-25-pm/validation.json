@@ -42,6 +42,21 @@
     "acceptedImplementationSource": "0bdf589e05148ee2e634117e43e1201acebff997",
     "priorReceipt": "docs/ops/pinterest-cutover-2026-10-23/verification/validation.json"
   },
+  "evidenceIntegration": {
+    "pullRequest": "https://github.com/37-Inc/goose.gifts/pull/286",
+    "retainedOperatorEvidenceCommit": "54139eafb22823a883e5bbf65969e7b10891ff8b",
+    "mainBasedEvidenceCommit": "ba58279bf24f287cdb6e5961dee9cfa52a0366cc",
+    "freshInstallAttempted": false,
+    "reusedReviewedSharedDependenciesReadOnly": true,
+    "matchingLockfileSha256": "a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381",
+    "creativeLogValid": true,
+    "creativeTestsPass": 6,
+    "pinterestTestsPass": 18,
+    "lintErrors": 0,
+    "lintWarnings": 0,
+    "hostedChecksReported": 0,
+    "retainedMeasurementRuntimeAdvanced": false
+  },
   "checkpoints": {
     "newTwentyFourHourChecksDue": 0,
     "newSevenDayLearningsDue": 0,

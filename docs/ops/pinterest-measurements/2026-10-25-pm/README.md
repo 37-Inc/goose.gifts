@@ -74,3 +74,20 @@ deployment, spend, Bead or schedule change. Same ACTIVE 09:30/16:30 Pacific
 task/chat; healthy unchanged evidence requires no new owner alert. Next
 hypothesis remains whether attributable outbound response extends beyond one
 dominant product after separating destination/rebrand effects; do not start it.
+
+## Evidence integration, not runtime advancement
+
+[PR #286](https://github.com/37-Inc/goose.gifts/pull/286) carries only run
+docs/evidence/events. Retained receipt commit
+`54139eafb22823a883e5bbf65969e7b10891ff8b`; main-based integration commit
+`ba58279bf24f287cdb6e5961dee9cfa52a0366cc` preserves all upstream dated log
+entries and changes no runtime, approval, policy or publication receipt source.
+Integration uses the existing reviewed shared dependency installation read-only,
+after exact lock SHA256
+`a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381` and
+installed-version checks. No fresh installation was attempted. Creative
+validation, six creative tests, 18 Pinterest tests and lint (zero errors/warnings)
+pass there; retained operator lint has its 25 existing warnings. No hosted
+checks were reported; local focused gates are not a claimed CI/full-suite run
+or new build/deployment. Do not advance the retained operator or separately
+pinned canonical/catalog checkouts to this main-based integration.
