@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "offline-catalog-photo-identity-audit",
-  "state": "review-candidates-only-no-new-exclusions-or-provider-changes",
+  "state": "offline-reviewed-two-held-crown-exclusions-no-provider-changes",
   "auditedAt": "2026-10-25",
   "sources": {
     "manifestSha256": "e70c0211829ac5d9b9c07e39605eb03426ec50de85845013f7a11b6793869fd9",
@@ -14,8 +14,8 @@
   "method": {
     "host": "m.media-amazon.com",
     "pathPrefix": "/images/I/",
-    "direct": "Decode pathname once; identify original asset before recognized ._ resize or .jpg_BO/.png style transform. No pixel/visual/fuzzy similarity.",
-    "composite": "._TSa is NOT just a resize suffix. Parse exactly one pi-src image filename as the product-photo identity; outer01UwfHrld+L is the common composition canvas, not a product duplicate/fallback identity.",
+    "direct": "Use the existing lib/image-utils.ts cleanAmazonImageUrl, then identify the validated Amazon asset ID before recognized ._ resize transformations. No pixel/fuzzy similarity.",
+    "composite": "Use cleanAmazonImageUrl to resolve the product pi-src; ._TSa is NOT just a resize suffix. Outer01UwfHrld+L is a common composition canvas, not a product duplicate/fallback identity. Recomputed all3355URLs with the production cleaner: same7groups/16listings/11pair comparisons.",
     "noImageFetches": true,
     "noProductAPICalls": true,
     "noModels": true,
@@ -55,18 +55,18 @@
     "correction": "An initial outer-ID-only grouping overstated603duplicates/589fallbacks. That grouping was invalid because it stripped semantic composite pi-src parameters. There is no evidence here that589products lost real photos in migration."
   },
   "manualBagCase": {
-    "state": "second-image-visual-confirmation-pending",
+    "state": "confirmed-existing-public-duplicate-deferred-from-held-only-mutation",
     "proposedExcluded": "B0BQ9LZNXN",
     "proposedKeeper": "B0DP9GRD9K",
     "sameEffectiveImageID": false,
     "sourceFactsAvailable": false,
     "explicitPackSizeColorModelDifferenceFound": false,
     "quantityAndSize": "unknown in the archived records, not proved identical by absence",
-    "rootVisualEvidence": "Root viewed the first41kMxF1NzzL image and reported an identical Dalmatian tote in the preview; root is separately confirming the existing61CQBRKhKuL image before authorizing a concrete pair.",
+    "rootVisualEvidence": "Root viewed both existing41kMxF1NzzL and61CQBRKhKuL photos and confirmed the same pale-blue foldable tote with identical colorful Dalmatian puppy/egg print, differing only in framing. Archived titles/facts show no explicit size/quantity/model distinction. Both listings are already public in the independently hashed2359baseline, not newly promoted; preserve the accepted predecessor and handle this exact public pair separately.",
     "products": [
       {
         "id": "B0BQ9LZNXN",
-        "cohort": "promoted",
+        "cohort": "existing-public",
         "title": "A Funny Little Dalmatian Puppy Pet Portable Folding ...",
         "slug": "a-funny-little-dalmatian-puppy-pet-portable-folding",
         "imageID": "41kMxF1NzzL",
@@ -252,11 +252,12 @@
         }
       ],
       "pairComparisons": 3,
-      "decision": "manual-review-promoted-bib-print-pack",
+      "decision": "retain-three-promoted-bibs-with-unresolved-print-or-pack-differences",
       "reason": "Three promoted listings reuse one direct image. Titles refer to Father's Day/beard, Best Dad/crumb catcher, and elderly women/Happy. No source facts, size, quantity or full printed-text evidence. Do not automatically collapse potentially different prints/packs."
     },
     {
       "imageID": "514qcaUyEcL",
+      "imageUrl": "https://m.media-amazon.com/images/I/514qcaUyEcL.jpg_BO30,255,255,255_UF900,850_SR1910,1000,0,C_QL100_.jpg",
       "products": [
         {
           "id": "B0DJ8QSZZ7",
@@ -284,8 +285,8 @@
         }
       ],
       "pairComparisons": 3,
-      "decision": "strong-promoted-reseller-duplicate-candidate-awaiting-visual-confirmation",
-      "reason": "Three promoted listings use one exact image and the same bearded-dragon crown/necklace-set identity. Brand/reseller wording differs; no explicit color, size, pack or model distinction appears in stored titles/facts.",
+      "decision": "retain-one-identical-photo-and-model-set-exclude-two-reseller-listings",
+      "reason": "The identical product photograph and the exact named Bearded Dragon Crown Necklace Set supply concrete same-product evidence, beyond a broad family or missing-data assumption. plplaaoo/TRANMERCE differ as seller/brand labels and the third adds generic adjustable wording; none of the literal archived titles identifies a different print, color, quantity, model or size. All three source_facts are null, so no unstored specification is invented. RetainB0DJ8QSZZ7; keep both excluded identities/history/native data, preventing routine re-admission with the durable reviewed registry.",
       "proposedKeeper": "B0DJ8QSZZ7",
       "proposedExcluded": [
         "B0F45GMFH3",
@@ -293,10 +294,30 @@
       ]
     }
   ],
+  "currentHeldResolutionProposal": {
+    "state": "new-offline-preview-not-current-D1-capture-or-publication",
+    "promoted": 994,
+    "public": 3353,
+    "held": 30,
+    "exactDuplicateExclusions": 6,
+    "concreteQualityExclusions": 24,
+    "identitiesPreserved": 3383,
+    "existingPublicPreserved": 2359,
+    "originalArticlesPreserved": 42,
+    "newExcludedIDs": ["B0F45GMFH3", "B0F912SZ4M"],
+    "keeper": "B0DJ8QSZZ7",
+    "sharedCopyMapEntriesToRemove": ["B0F45GMFH3", "B0F912SZ4M"],
+    "offlinePreviewLabel": "catalog-resolution-preview-20261025/photo-dedup-994/catalog.snapshot.json",
+    "offlinePreviewSha256": "a00e6581725c63e2bff5029d962c11acaa7135ddda35b80cfa086f83b57f3836",
+    "historical3355PreviewPreserved": true,
+    "confirmedExistingPublicTotePairNotRemoved": ["B0BQ9LZNXN", "B0DP9GRD9K"],
+    "providerRequests": 0
+  },
   "implementationNotes": [
-    "No newly approved exclusion has been applied by this audit. Preserve all source identities, slugs, editorial/history and native evidence.",
-    "Any approved non-title duplicate registry must be consulted by the held planner before createPersistentCatalogProduct; only adding a global snapshot exclusion would otherwise make the current helper fail rather than classify a held candidate.",
+    "Only two held crown exclusions are implemented in offline code. No live capture, D1/native mutation or publication was performed. Preserve all source identities, slugs, editorial/history and native evidence.",
+    "The held planner consults the same durable duplicate registry before createPersistentCatalogProduct, requires a real keeper in existing public or the same promotion plan, and leaves excluded source/native/history untouched.",
     "The full current2359public predecessor is intentionally preserved by the existing owner-base promotion contract. Existing-public duplicate decisions need explicit matching publication support, not a silent registry change that invalidates the accepted predecessor.",
+    "Correction to the first report: B0BQ9LZNXN was mislabeled promoted in the manual tote case. Rechecking baselineSHA325075a5 proves both tote listings are existing public. The group/composite calculations were independently derived from the actual baseline IDs and are unchanged. Do not claim all catalog duplicates are resolved while this confirmed public pair remains.",
     "Use actual shared product-photo evidence plus physical print/model/size/pack review. Never revive the23unsupported broad-family duplicate pointers or auto-collapse all repeated image IDs."
   ]
 }

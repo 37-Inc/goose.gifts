@@ -6,6 +6,7 @@ import { prepareHeldCatalogResolution, captureHeldCatalogResolution, applyHeldCa
 import { canonicalJson, convertSourceRow, sha256 } from '../scripts/catalog/migration.ts';
 import { createCatalogSnapshot, createPersistentCatalogProduct, validatePublicCatalogProduct } from '../lib/catalog/snapshot.ts';
 import { EXACT_DUPLICATE_LISTINGS } from '../lib/catalog/duplicate-listings.ts';
+import { cleanAmazonImageUrl } from '../lib/image-utils.ts';
 import { checkCurrent } from '../scripts/catalog/export-d1-snapshot.ts';
 import { maintenanceState } from '../scripts/catalog/maintenance-state.ts';
 import { createProjectionPacket, projectionQueries, getListedRevisionProductsByPublicIds, getRevisionProductsByPublicIds, visibleRevisionCountQuery } from '../lib/catalog/d1.ts';
@@ -15,7 +16,7 @@ const hash = x => sha256(canonicalJson(x));
 const uuid = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const grant = value => ({ basis: 'licensed', value, reference: 'Synthetic fixture exact owned permission' });
 
-async function fixture(t, { falseDuplicate = false } = {}) {
+async function fixture(t, { falseDuplicate = false, reviewedDuplicate = null, promotedKeeper = false } = {}) {
   const sql = new DatabaseSync(':memory:'); t.after(() => sql.close());
   for (const file of (await readdir(new URL('../migrations/d1/', import.meta.url))).filter(n => /^00\d\d_.*\.sql$/.test(n)).sort())
     sql.exec(await readFile(new URL('../migrations/d1/' + file, import.meta.url), 'utf8'));
@@ -35,13 +36,18 @@ async function fixture(t, { falseDuplicate = false } = {}) {
     raw('B000000003', 3, { is_active: false, availability_status: 'OUT_OF_STOCK' }),
     raw('B000000004', 4, { duplicate_of_product_id: 'B000000099', editorial_status: 'duplicate', title: falseDuplicate ? 'Different printed novelty object' : 'Existing object' }),
     raw('B0764HS4SL', 5, { editorial_status: 'blocked', editorial_block_reason: 'off_brand' })];
+  if (reviewedDuplicate) {
+    source[promotedKeeper ? 1 : 0].id = reviewedDuplicate;
+    if (promotedKeeper) source[0].id = EXACT_DUPLICATE_LISTINGS[reviewedDuplicate];
+  }
   const insert = (table, row) => sql.prepare(`INSERT INTO ${table}(${Object.keys(row).join(',')}) VALUES(${Object.keys(row).map(() => '?').join(',')})`).run(...Object.values(row));
   for (const p of source) insert('products', convertSourceRow('products', p, { catalogRevision: 'old', archiveId: 'b'.repeat(64), timestamps: {} }));
   const first = { ...sql.prepare('SELECT * FROM products WHERE id=?').get(source[0].id) };
   insert('catalog_maintenance_products', { product_id: first.id, version: 3, semantic_json: canonicalJson(maintenanceState(first)),
     embedding_present: 1, embedding_native_base64: 'EXACT_NATIVE_BYTES', embedding_provenance_json: '{"original":true}' });
-  const publicProduct = { id: 'B000000099', publicId: uuid(99), slug: 'public-existing', title: 'Existing object', description: 'Existing short description.',
-    imageUrl: 'https://example.invalid/public.jpg', affiliateUrl: 'https://www.amazon.com/dp/B000000099?tag=goose-gifts-37-20', source: 'amazon', currency: 'USD',
+  const publicId = reviewedDuplicate && !promotedKeeper ? EXACT_DUPLICATE_LISTINGS[reviewedDuplicate] : 'B000000099';
+  const publicProduct = { id: publicId, publicId: uuid(99), slug: 'public-existing', title: 'Existing object', description: 'Existing short description.',
+    imageUrl: 'https://example.invalid/public.jpg', affiliateUrl: `https://www.amazon.com/dp/${publicId}?tag=goose-gifts-37-20`, source: 'amazon', currency: 'USD',
     qualityScore: .8, isActive: true, price: 0, eligibleUntil: null, indexable: false };
   const baseline = { schemaVersion: 1, dataKind: 'catalog', catalogRevision: 'old', generatedAt: NOW, products: [publicProduct],
     heldProducts: source.map(p => ({ id: p.id, publicId: p.public_id, slug: p.slug, path: '/gifts/' + p.slug,
@@ -122,8 +128,15 @@ test('exact listing matcher retains different brands, sizes and novelty formats'
   assert.notEqual(exactHeldListingTitle('LookHUMAN Alien Mug 11oz'), exactHeldListingTitle('LookHUMAN Alien Mug 15oz'));
   assert.notEqual(exactHeldListingTitle('Screaming goat figure'), exactHeldListingTitle('Yodeling goat figure'));
 });
+test('photo review uses the existing Amazon cleaner without treating a composite canvas as a product identity', () => {
+  const composite = id => `https://m.media-amazon.com/images/I/01UwfHrld%2BL._TSa%7Csize%3A1910%2C1000%7Cpi-src%3A${id}.jpg%7Cpi-pos%3A1000%2C100%2C840%2C840.json`;
+  assert.equal(cleanAmazonImageUrl(composite('51gVurwR6LL')), 'https://m.media-amazon.com/images/I/51gVurwR6LL.jpg');
+  assert.notEqual(cleanAmazonImageUrl(composite('51gVurwR6LL')), cleanAmazonImageUrl(composite('61O0AYDh71L')));
+  assert.equal(cleanAmazonImageUrl('https://m.media-amazon.com/images/I/514qcaUyEcL.jpg_BO30,255,255,255_UF900,850_SR1910,1000,0,C_QL100_.jpg'),
+    'https://m.media-amazon.com/images/I/514qcaUyEcL.jpg');
+});
 test('confirmed exact duplicate exclusions survive future persistent and supplier snapshot rebuilds', () => {
-  assert.equal(Object.keys(EXACT_DUPLICATE_LISTINGS).length, 4);
+  assert.equal(Object.keys(EXACT_DUPLICATE_LISTINGS).length, 6);
   for (const [id, representative] of Object.entries(EXACT_DUPLICATE_LISTINGS)) {
     const product = { id, publicId: uuid(1), slug: 'confirmed-duplicate', source: 'amazon', currency: 'USD',
       title: 'Exact duplicate fixture', description: 'Original factual description.', imageUrl: 'https://example.invalid/duplicate.jpg',
@@ -140,6 +153,36 @@ test('confirmed exact duplicate exclusions survive future persistent and supplie
     const keptRights = { ...rights, affiliateUrl: grant(kept.affiliateUrl) };
     assert.ok(createPersistentCatalogProduct({ product: kept, rights: keptRights }, new Date(NOW)));
   }
+});
+test('reviewed photo/model duplicates stay held even with different titles, without deleting source or native history', async t => {
+  for (const id of ['B0F45GMFH3', 'B0F912SZ4M']) await t.test(id, async t => {
+    const f = await fixture(t, { reviewedDuplicate: id });
+    assert.equal(f.plan.exclusions.find(p => p.id === id)?.duplicateOfProductId, EXACT_DUPLICATE_LISTINGS[id]);
+    const original = f.rows.find(p => p.row.id === id), result = await f.apply();
+    assert.equal(result.snapshot.products.some(p => p.id === id), false);
+    assert.equal(result.snapshot.heldProducts.find(p => p.id === id)?.reason, 'duplicate');
+    assert.equal(result.snapshot.products.some(p => p.id === EXACT_DUPLICATE_LISTINGS[id]), true);
+    assert.deepEqual({ ...f.sql.prepare('SELECT * FROM products WHERE id=?').get(id) }, original.row);
+    assert.equal(f.sql.prepare('SELECT embedding_native_base64 FROM catalog_maintenance_products WHERE product_id=?').get(id).embedding_native_base64, 'EXACT_NATIVE_BYTES');
+    assert.equal(f.sql.prepare('SELECT count(*) n FROM products').get().n, 5);
+    assert.equal(f.sql.prepare('SELECT count(*) n FROM vector_sync_outbox').get().n, 0);
+  });
+});
+test('a reviewed duplicate cannot hide a listing without keeping its public representative', async t => {
+  const f = await fixture(t, { reviewedDuplicate: 'B0F45GMFH3' });
+  const input = { baseline: structuredClone(f.baseline), rows: f.rows, owner: f.owner, now: NOW, reference: 'Synthetic original permission' };
+  input.baseline.products[0].id = 'B000000099';
+  input.baseline.products[0].affiliateUrl = 'https://www.amazon.com/dp/B000000099?tag=goose-gifts-37-20';
+  assert.throws(() => prepareHeldCatalogResolution(input), /duplicate_representative/);
+  for (const id of ['B0CCDC2HYT', 'B0CDPKSMQK', 'B0CFFJRD8W', 'B0BQ9LZNXN']) assert.equal(EXACT_DUPLICATE_LISTINGS[id], undefined);
+});
+test('a held crown keeper can be promoted in the same plan as its duplicate exclusion', async t => {
+  const f = await fixture(t, { reviewedDuplicate: 'B0F45GMFH3', promotedKeeper: true });
+  assert.equal(f.plan.promotions.some(p => p.id === 'B0DJ8QSZZ7'), true);
+  assert.equal(f.plan.promotions.some(p => p.id === 'B0F45GMFH3'), false);
+  const result = await f.apply();
+  assert.equal(result.snapshot.products.some(p => p.id === 'B0DJ8QSZZ7'), true);
+  assert.equal(result.snapshot.heldProducts.find(p => p.id === 'B0F45GMFH3')?.reason, 'duplicate');
 });
 test('new exact-title duplicate stays held, without deleting either source identity', async t => {
   const f = await fixture(t), input = { baseline: structuredClone(f.baseline), rows: f.rows, owner: f.owner, now: NOW, reference: 'Synthetic original permission' };
