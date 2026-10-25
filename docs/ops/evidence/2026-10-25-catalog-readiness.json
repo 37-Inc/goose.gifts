@@ -43,6 +43,17 @@
     "modelRequests": 0,
     "paidUpgrade": false
   },
+  "integrationVerification": {
+    "testedSource": "6409ad69356047f692eb9756b60762dd34cffd90",
+    "initialBroadSweep": { "tests": 1270, "passed": 1221, "failed": 29, "skipped": 20 },
+    "correctedFailureGroups": { "isolatedSyntheticOutputPaths": 14, "sealedModeAndAliasOrClientVmAssertions": 10, "oldPermanentScoreHolds": 2, "retiredDirectoryAndExpiryRehearsals": 2, "undersizedBudgetProjectionAssumption": 1 },
+    "finalAffectedGroups": { "passed": 383, "failed": 0, "optionalSkipped": 6 },
+    "separateUnchangedUndersizedDailyAndMondayBudgetTests": { "passed": 2, "failed": 0 },
+    "bothStrictTypechecks": true,
+    "lintWarningsAndErrors": 0,
+    "productionSafeguardsRelaxedForTests": false,
+    "note": "All original failures were accounted for and remediated; affected groups, durable proof and budget cases were rerun. Do not relabel the original long sweep as a wholly rerun passing command. Since the source-pinned596fb83build, only documentation, tests and the local-only rehearsal changed, not production storefront/runtime/packaging code."
+  },
   "remainingPublicDuplicate": { "bead": "roadmap-lbbz1.3.4", "exclude": "B0BQ9LZNXN", "keep": "B0DP9GRD9K", "state": "confirmed existing-public tote pair; intentionally not silently changed by held-only promotion" },
   "acceptanceGate": "Finish the already-activated original release with actual receipt, resolved build, idle owner and successor; a distinct bounded post-activation allowance has been requested but NOT approved. Then fresh-capture/apply the exact reviewed held plan and publish the integrated source. Do not infer production completion from this preview, merge or upload."
 }
