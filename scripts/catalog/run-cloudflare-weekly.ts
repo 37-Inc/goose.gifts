@@ -337,13 +337,14 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     const token=await resolveCloudflareCredential(config.credentials.cloudflare,resolveToken,dependencies.resolveWranglerOAuth);
     const identityAuthorization=async()=>config.credentials.stagingAuthSecret
       ?`Basic ${Buffer.from(`staging:${await resolveToken(config.credentials.stagingAuthSecret)}`).toString('base64')}`:undefined;
+    const admittedReadCap=await ws.budgetRowsReadCeiling()??finish?.budget.reportedRowsRead;
     const db=await createCatalogD1Rest({accountId:config.accountId,databaseId:config.database.id,databaseName:config.database.name,
       token,fetch:dependencies.fetch,limits:finish?{...config.limits,requests:(await ws.budgetCeiling()).httpRequests,
-        statements:(await ws.budgetCeiling()).sqlStatements,reportedRowsRead:finish.budget.reportedRowsRead}:config.limits,accounting:{scope:{accountId:config.accountId,databaseId:config.database.id,databaseName:config.database.name},
+        statements:(await ws.budgetCeiling()).sqlStatements,reportedRowsRead:admittedReadCap}:config.limits,accounting:{scope:{accountId:config.accountId,databaseId:config.database.id,databaseName:config.database.name},
         initial:await ws.budget(),reserve:async value=>{
           // Reviewed catalog batches remain below80k reads. Reserve that margin
           // before dispatch rather than relying only on after-response usage.
-          if(finish&&value.units.sqlStatements&&(await ws.budget()).knownRowsRead+80000>finish.budget.reportedRowsRead)
+          if(finish&&value.units.sqlStatements&&(await ws.budget()).knownRowsRead+80000>admittedReadCap!)
             throw new Error('weekly_finish_read_margin');
           await ws.reserveBudget(value);
         },settle:(id,value)=>ws.settleBudget(id,value)}});

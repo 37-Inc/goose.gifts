@@ -54,6 +54,8 @@ export interface PublicationSuccess extends PublicationSuccessInput {recoveryBou
 export interface BudgetCeiling { httpRequests:number; sqlStatements:number }
 export interface ActivationRecoveryBudget {
   expectedCheckpointSha256:string; approvalReference:string; allowance:BudgetCeiling;
+  /** Separately approved settlement of an ALREADY activated permanent catalog. */
+  scope?:'approved-permanent-finalization';reportedRowsRead?:number;
 }
 type RecoveryGrant=ActivationRecoveryBudget&{permitSha256:string;usage:BudgetTotals};
 export interface PublicationFinishBudget {
@@ -146,7 +148,7 @@ export interface RunWorkspace {
    * Seals this run against any later charge or execution; never renews bodies. */
   recordPublicationSuccess(input:PublicationSuccessInput):Promise<PublicationSuccess>;
   publicationSuccess():Promise<PublicationSuccess|null>;
-  budget():Promise<BudgetTotals>;budgetCeiling():Promise<BudgetCeiling>;close():Promise<void>;
+  budget():Promise<BudgetTotals>;budgetCeiling():Promise<BudgetCeiling>;budgetRowsReadCeiling():Promise<number|null>;close():Promise<void>;
   /** Claims only absent exact package/build-output paths before generation. */
   preparePublicationDirectories(releaseId:string,observedAt:string,nextExpiry:string|null):Promise<void>;
   /** Called only after the package has been sealed and independently verified. */
@@ -278,28 +280,38 @@ function totals(state:State):BudgetTotals {
   if(!Object.values(result).every(integer))fail('budget_overflow');return result;
 }
 function recoveryInput(value:ActivationRecoveryBudget) {
-  if(!exact(value,['expectedCheckpointSha256','approvalReference','allowance'])||!hash(value.expectedCheckpointSha256)||!hash(value.approvalReference)
+  const finalizing=value.scope==='approved-permanent-finalization';
+  if(!exact(value,['expectedCheckpointSha256','approvalReference','allowance',...(finalizing?['scope','reportedRowsRead']:[])])||!hash(value.expectedCheckpointSha256)||!hash(value.approvalReference)
     ||!exact(value.allowance,['httpRequests','sqlStatements'])||!Object.values(value.allowance).every(integer)
-    ||value.allowance.httpRequests>150||value.allowance.sqlStatements>300)fail('recovery_allowance');
+    ||value.allowance.httpRequests>(finalizing?1000:150)||value.allowance.sqlStatements>(finalizing?8000:300)
+    ||finalizing&&(!integer(value.reportedRowsRead)||Number(value.reportedRowsRead)<1||Number(value.reportedRowsRead)>3000000))fail('recovery_allowance');
 }
-function recoveryPermit(state:State,reconciled=false):ActivationPermit {
+function recoveryPermit(state:State,reconciled=false,finalizing=state.recovery?.scope==='approved-permanent-finalization'):ActivationPermit {
   const cp=state.checkpoint?.checkpoint,p=cp?.control?.publication,a=p?.permit?.mutationOwner;
+  const f=cp?.owner,telemetry=finalizing&&p?.stage==='published'&&cp?.phase==='published'&&f?.phase==='writing'&&a
+    &&f.environment===a.environment&&f.indexName===a.indexName&&f.generation===a.generation+1
+    &&[a.epoch,a.epoch+1].includes(f.epoch)&&f.ownerReference===`${state.manifest.runId}:finalize`
+    &&f.operationKey===sha256(`finalize:${state.manifest.configSha256}`)&&f.token!==a.token&&f.capturedAt>=a.capturedAt;
   if(!cp||!p||!p.permit||!a||a.phase!=='activating'||!p.publication||!p.intent||!p.packageSha256||!p.versionReference
     ||p.runReference!==state.manifest.runId||![state.manifest.runId,`${state.manifest.runId}:freeze`].includes(a.ownerReference)
     ||p.requestId!==sha256(encodeBuildRequest(p.build.request))
     ||!(p.stage==='activating'&&same(cp.owner,a)||reconciled&&p.stage==='published'&&hash(p.receiptSha256)
-      &&(cp.phase==='attention'&&same(cp.owner,a)||cp.phase==='published'&&cp.owner===null)))fail('recovery_control');
+      &&(cp.phase==='attention'&&same(cp.owner,a)||cp.phase==='published'&&cp.owner===null||telemetry
+        ||finalizing&&cp.phase==='finalized'&&cp.owner===null)))fail('recovery_control');
+  if(finalizing&&(!state.finish||state.finish.versionReference!==p.versionReference||p.intent.nextExpiry!==null||!p.deploymentId))fail('recovery_control');
   bindCheckpoint(cp,state.manifest,state.execution);return p.permit;
 }
 function ceiling(state:State):BudgetCeiling {
-  if(state.finish)return{httpRequests:Math.max(state.manifest.budgetCaps.httpRequests,state.finish.usage.httpRequests+state.finish.allowance.httpRequests),
-    sqlStatements:Math.max(state.manifest.budgetCaps.sqlStatements,state.finish.usage.sqlStatements+state.finish.allowance.sqlStatements)};
-  const g=state.recovery,result=g?{httpRequests:g.usage.httpRequests+g.allowance.httpRequests,sqlStatements:g.usage.sqlStatements+g.allowance.sqlStatements}:{...state.manifest.budgetCaps};
+  const g=state.recovery,f=state.finish,result=g?{httpRequests:g.usage.httpRequests+g.allowance.httpRequests,sqlStatements:g.usage.sqlStatements+g.allowance.sqlStatements}:{...state.manifest.budgetCaps};
+  if(f)for(const k of ['httpRequests','sqlStatements'] as const)result[k]=Math.max(result[k],state.manifest.budgetCaps[k],f.usage[k]+f.allowance[k]);
   if(!Object.values(result).every(integer))fail('budget_overflow');return result;
 }
 function budgetReservation(state:State,value:BudgetReservation) {
   const current=totals(state),limit=ceiling(state);
   if(state.recovery&&sha256(canonicalJson(recoveryPermit(state,true)))!==state.recovery.permitSha256)fail('recovery_control');
+  if(state.recovery?.scope==='approved-permanent-finalization'
+    &&([...state.reservations.values()].filter(r=>r.settlement?.status==='unknown').length!==state.recovery.usage.unconfirmedRequests
+      ||value.units.sqlStatements&&current.knownRowsRead>=state.recovery.reportedRowsRead!))fail('recovery_read_budget');
   if(current.httpRequests+value.units.httpRequests>limit.httpRequests||current.sqlStatements+value.units.sqlStatements>limit.sqlStatements)fail('budget_exceeded');
 }
 async function pathWithoutLinks(path:string) {
@@ -478,11 +490,14 @@ function apply(state:State,event:Event,dry=false) {
     validateControlTransition(state.checkpoint.checkpoint,event.control);
     if(!dry){state.previous=event.previous;state.checkpoint={sha256:event.sha256,checkpoint:event.control};}
   }else if(event.type==='activation-recovery-budget'){
-    if(!exact(event,['type','grant'])||!exact(event.grant,['expectedCheckpointSha256','approvalReference','allowance','permitSha256','usage']))fail('recovery_allowance');
+    const finalizing=event.grant.scope==='approved-permanent-finalization';
+    if(!exact(event,['type','grant'])||!exact(event.grant,['expectedCheckpointSha256','approvalReference','allowance','permitSha256','usage',...(finalizing?['scope','reportedRowsRead']:[])]))fail('recovery_allowance');
     const {permitSha256,usage,...input}=event.grant;recoveryInput(input);
     if(state.recovery)fail('recovery_duplicate');
     if(state.checkpoint?.sha256!==input.expectedCheckpointSha256)fail('checkpoint_cas');
-    if(!hash(permitSha256)||permitSha256!==sha256(canonicalJson(recoveryPermit(state)))||!same(usage,totals(state)))fail('recovery_binding');
+    if(!hash(permitSha256)||permitSha256!==sha256(canonicalJson(recoveryPermit(state,false,finalizing)))||!same(usage,totals(state)))fail('recovery_binding');
+    if(finalizing&&(input.reportedRowsRead!<=usage.knownRowsRead||input.reportedRowsRead!>usage.knownRowsRead+500000
+      ||usage.unconfirmedRequests>1||[...state.reservations.values()].some(r=>!r.settlement)))fail('recovery_binding');
     if(!integer(usage.httpRequests+input.allowance.httpRequests)||!integer(usage.sqlStatements+input.allowance.sqlStatements))fail('budget_overflow');
     if(!dry)state.recovery=event.grant;
   }else if(event.type==='publication-finish-budget'){
@@ -973,7 +988,19 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
         if(state.recovery){const {permitSha256:unused,usage:unusedUsage,...original}=state.recovery;void unused;void unusedUsage;
           if(!same(original,input))fail('recovery_replay');return ceiling(state);}
         if(state.checkpoint?.sha256!==input.expectedCheckpointSha256)fail('checkpoint_cas');
-        const grant={...structuredClone(input),permitSha256:sha256(canonicalJson(recoveryPermit(state))),usage:totals(state)};
+        const finalizing=input.scope==='approved-permanent-finalization',permit=recoveryPermit(state,false,finalizing);
+        if(finalizing){
+          // Inspect only the original hash-bound immutable package, never a new
+          // supplier observation or a renewed body/publication deadline.
+          await usable();const p=state.checkpoint!.checkpoint.control!.publication!,registered=state.publications.get(p.intent!.releaseId);
+          if(!registered||registered.purged||registered.retention.nextExpiry!==null)fail('recovery_snapshot');
+          const file=join(packagePath(p.intent!.releaseId),'catalog.snapshot.json');await pathWithoutLinks(file);
+          const bytes=await readBytes(file,WORKSPACE_BLOB_LIMITS.bytes),snapshot=JSON.parse(bytes.toString('utf8'));
+          if(byteHash(bytes)!==p.intent!.catalogSnapshotSha256||p.build.request.sourceDigest!==p.intent!.catalogSnapshotSha256
+            ||snapshot.catalogRevision!==p.intent!.catalogRevision||!Array.isArray(snapshot.products)||!snapshot.products.length
+            ||snapshot.products.some((v:unknown)=>!v||typeof v!=='object'||Array.isArray(v)||(v as {eligibleUntil?:unknown}).eligibleUntil!==null))fail('recovery_snapshot');
+        }
+        const grant={...structuredClone(input),permitSha256:sha256(canonicalJson(permit)),usage:totals(state)};
         await append({type:'activation-recovery-budget',grant});return ceiling(state);
       }),
       grantPublicationFinishBudget:(input:PublicationFinishBudget)=>serial(async()=>{
@@ -990,6 +1017,7 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
         await append({type:'publication-success',proof});return structuredClone(proof);
       }),
       budget:()=>serial(async()=>totals(state)),budgetCeiling:()=>serial(async()=>ceiling(state)),
+      budgetRowsReadCeiling:()=>serial(async()=>state.recovery?.scope==='approved-permanent-finalization'?state.recovery.reportedRowsRead!:null),
       preparePublicationDirectories:(releaseId:string,observedAt:string,nextExpiry:string|null)=>serial(()=>preparePublicationDirectories(releaseId,observedAt,nextExpiry)),
       cleanPublicationBuild:(releaseId:string)=>serial(()=>cleanPublicationBuild(releaseId)),
       purgeExpired:()=>serial(purgeExpired),

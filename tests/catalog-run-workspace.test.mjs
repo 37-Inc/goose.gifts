@@ -160,6 +160,87 @@ test('acknowledged-upload finish budget is once-only, retains charges and cannot
   assert.equal((await resumed.budget()).knownRowsWritten,5);
 });
 
+async function finalizationFixture(t,{finite=false,skipFinish=false,noDeployment=false}={}){
+  const f=await fixture(t),w=await f.open(),value=recoveryCheckpoint(),p=value.control.publication;
+  const snapshot={catalogRevision:p.intent.catalogRevision,products:[{id:ID,eligibleUntil:finite?LATER:null}]};
+  const bytes=`${JSON.stringify(snapshot)}\n`,digest=sha256(bytes);
+  p.intent.nextExpiry=null;p.intent.catalogSnapshotSha256=digest;p.build.request.sourceDigest=digest;
+  p.requestId=p.build.requestId=sha256(encodeBuildRequest(p.build.request));
+  const permit={...p.permit,requestId:p.requestId};p.permit=null;p.stage='uploaded';value.owner.phase='freezing';value.phase='publishing';
+  await w.preparePublicationDirectories(p.intent.releaseId,NOW,null);
+  const directory=join(w.directory,'packages',p.intent.releaseId);await mkdir(directory,{mode:0o700});
+  await writeFile(join(directory,'catalog.snapshot.json'),bytes,{mode:0o600});
+  const ack=await w.putArtifact({fixture:'genuine original transport ack'},{kind:'publication',observedAt:NOW});
+  value.pins.publicationUploadTransportAcknowledged=ack;
+  await w.reserveBudget(reservation('original-charge',2));await w.settleBudget('original-charge',{status:'known',usage:{rowsRead:1841389,rowsWritten:14444}});
+  let saved=await w.writeCheckpoint(null,value);
+  const finish={expectedCheckpointSha256:saved.sha256,approvalReference:HASH,versionReference:p.versionReference,
+    allowance:{httpRequests:1000,sqlStatements:2000},reportedRowsRead:2000000};
+  if(!skipFinish)await w.grantPublicationFinishBudget(finish);
+  await w.reserveBudget(reservation('retained-unknown',0));await w.settleBudget('retained-unknown',{status:'unknown',usage:null});
+  const activated=structuredClone(value);activated.phase='attention';activated.owner.phase='activating';
+  Object.assign(activated.control.publication,{stage:'activating',permit,deploymentId:noDeployment?null:'actual-original-deployment'});
+  saved=await w.writeCheckpoint(saved.sha256,activated);
+  const grant={...recoveryGrant(saved,{httpRequests:1000,sqlStatements:8000}),scope:'approved-permanent-finalization',reportedRowsRead:2341389};
+  return{f,w,saved,grant,finish,directory};
+}
+
+test('approved permanent finalization retains both grants/unknowns through exact telemetry and finalized readback',async t=>{
+  const {f,w,saved,grant,finish}=await finalizationFixture(t),manifest=await readFile(join(w.directory,'manifest.json'));
+  const initial=await w.budget();
+  assert.deepEqual(await w.grantActivationRecoveryBudget(grant),{httpRequests:1002,sqlStatements:8002});
+  assert.equal(await w.budgetRowsReadCeiling(),2341389);assert.deepEqual(await w.budget(),initial);
+  assert.deepEqual(await w.grantPublicationFinishBudget(finish),{httpRequests:1002,sqlStatements:8002});
+  assert.equal((await w.budget()).unconfirmedRequests,1);
+  const p={...saved.checkpoint.control.publication,stage:'published',receiptSha256:HASH};
+  let current=await w.writeControlCheckpoint(saved.sha256,{phase:'published',owner:null,control:{publication:p}});
+  const a=p.permit.mutationOwner,writer={...a,token:'finalize-owner',generation:a.generation+1,phase:'writing',
+    ownerReference:'test-run:finalize',operationKey:sha256(`finalize:${HASH}`)};
+  const published={...saved.checkpoint,phase:'published',owner:writer,control:{publication:p}};
+  for(const change of [{generation:a.generation},{epoch:a.epoch+2},{ownerReference:'test-run:other'},{operationKey:HASH},{token:a.token}]){
+    current=await w.writeCheckpoint(current.sha256,{...published,owner:{...writer,...change}});
+    await assert.rejects(w.reserveBudget(reservation('not-the-finalizer',0)),/recovery_control/);
+  }
+  for(const epoch of [a.epoch,a.epoch+1]){
+    current=await w.writeCheckpoint(current.sha256,{...published,owner:{...writer,epoch}});
+    await w.reserveBudget(reservation(`finalize-${epoch}`,1));await w.settleBudget(`finalize-${epoch}`,{status:'known',usage:{rowsRead:1,rowsWritten:0}});
+  }
+  await w.writeCheckpoint(current.sha256,{...published,phase:'finalized',owner:null});
+  await w.reserveBudget(reservation('finalized-successor',0));await w.settleBudget('finalized-successor',{status:'known',usage:{rowsRead:0,rowsWritten:0}});
+  await w.close();f.setNow(LATER);const reopened=await f.open({mode:'resume'});
+  assert.deepEqual(await reopened.grantActivationRecoveryBudget(grant),{httpRequests:1002,sqlStatements:8002});
+  assert.deepEqual(await reopened.grantPublicationFinishBudget(finish),{httpRequests:1002,sqlStatements:8002});
+  assert.equal(await reopened.budgetRowsReadCeiling(),2341389);assert.equal((await reopened.budget()).unconfirmedRequests,1);
+  await reopened.reserveBudget(reservation('body-free-observer',0));
+  assert.deepEqual(await readFile(join(w.directory,'manifest.json')),manifest);
+  await assert.rejects(reopened.grantActivationRecoveryBudget({...grant,approvalReference:HASH}),/recovery_replay/);
+  await assert.rejects(reopened.grantActivationRecoveryBudget({...grant,reportedRowsRead:2341388}),/recovery_replay/);
+});
+
+test('permanent finalization rejects finite/drifted snapshots, missing finish/deployment, excessive caps and unknown additions',async t=>{
+  for(const change of [
+    {scope:'other'}, {reportedRowsRead:2341390}, {reportedRowsRead:1841389}, {reportedRowsRead:3000001},
+    {allowance:{httpRequests:1001,sqlStatements:8000}}, {allowance:{httpRequests:1000,sqlStatements:8001}},
+  ])await t.test(JSON.stringify(change),async sub=>{
+    const {w,grant}=await finalizationFixture(sub);await assert.rejects(w.grantActivationRecoveryBudget({...grant,...change}),/recovery_allowance|recovery_binding/);
+  });
+  for(const input of [{finite:true},{skipFinish:true},{noDeployment:true}])await t.test(JSON.stringify(input),async sub=>{
+    const {w,grant}=await finalizationFixture(sub,input);await assert.rejects(w.grantActivationRecoveryBudget(grant),/recovery_snapshot|recovery_control/);
+  });
+  for(const kind of ['snapshot','pending','stale'])await t.test(kind,async sub=>{
+    const {w,saved,grant,directory}=await finalizationFixture(sub);let actual=grant;
+    if(kind==='snapshot')await writeFile(join(directory,'catalog.snapshot.json'),'{}\n',{mode:0o600});
+    if(kind==='pending')await w.reserveBudget(reservation('still-pending',0));
+    if(kind==='stale')actual={...grant,expectedCheckpointSha256:HASH};
+    await assert.rejects(w.grantActivationRecoveryBudget(actual),/recovery_snapshot|recovery_binding|checkpoint_cas/);
+    assert.equal((await w.readCheckpoint({controlOnly:true})).sha256,saved.sha256);
+  });
+  const {w,grant}=await finalizationFixture(t);await w.grantActivationRecoveryBudget(grant);
+  await w.reserveBudget(reservation('new-unknown',0));await w.settleBudget('new-unknown',{status:'unknown',usage:null});
+  await assert.rejects(w.reserveBudget(reservation('cannot-spend-after-unknown',0)),/recovery_read_budget/);
+  assert.equal((await w.budget()).unconfirmedRequests,2);
+});
+
 test('catalog-sized technical vector coverage survives reopen; over-bound and duplicate IDs still refuse without native calls',async t=>{
   const f=await fixture(t),w=await f.open(),value=recoveryCheckpoint();
   value.control.publication.vectorPlan.ids=Array.from({length:10000},(_,i)=>`00000000-0000-4000-8000-${String(i).padStart(12,'0')}`);

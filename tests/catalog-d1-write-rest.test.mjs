@@ -70,7 +70,7 @@ test('wrong/missing database identity, replication and primary evidence refuse b
 test('invalid configuration has no ambient credential/env fallback or provider calls; defaults are finite',async()=>{
   for(const changed of [{accountId:'../evil'},{databaseId:'bad'},{databaseName:'../other'},{databaseName:undefined},{token:undefined},
     {token:'bad\r\nheader'},{limits:{timeoutMs:0}},{limits:{requests:10001}},{limits:{statements:25001}},
-    {limits:{unknown:1}},{limits:{statements:NaN}},{limits:{reportedRowsRead:2_000_001}},{limits:{reportedRowsWritten:50_001}}]){
+    {limits:{unknown:1}},{limits:{statements:NaN}},{limits:{reportedRowsRead:3_000_001}},{limits:{reportedRowsWritten:50_001}}]){
     let count=0;await assert.rejects(createCatalogD1Rest({...config,...changed,fetch:async()=>{count++;throw new Error('must not call');}}),/configuration_invalid/);assert.equal(count,0);
   }
   assert.deepEqual(CATALOG_D1_REST_LIMITS,{requests:600,statements:1200,batchStatements:50,parameters:100,
@@ -81,7 +81,7 @@ test('invalid configuration has no ambient credential/env fallback or provider c
   }
 });
 test('only explicit finite workload ceilings can exceed defaults; counters span one client without reset',async t=>{
-  const maximum=await fixture(t,{requests:10000,statements:25000,reportedRowsRead:2_000_000,reportedRowsWritten:50_000});assert.equal(maximum.db.metrics().requests,2);
+  const maximum=await fixture(t,{requests:10000,statements:25000,reportedRowsRead:3_000_000,reportedRowsWritten:50_000});assert.equal(maximum.db.metrics().requests,2);
   const requests=await fixture(t,{requests:601});
   for(let i=0;i<599;i++)await requests.db.prepare('SELECT 1').all();
   assert.equal(requests.db.metrics().requests,601);const before=requests.calls.length;
