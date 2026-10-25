@@ -1,5 +1,18 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 — bounded receipt-only terminal settlement
+
+[owner+codex] The full permanent source/native completion reached its receipt
+transaction, but the generic80k read margin refused the remaining keyed completion
+reads. Added an explicitly admitted receipt-only lane: authenticate the actual
+verified receipt/outbox/build and immutable package, recheck the exact small native
+plan, resolve that same build, and finish telemetry/idle/successor without another
+3,383-row hydration or inventory scan. Ordinary margins stay unchanged; this lane
+uses5k per bounded batch inside the SAME2,341,389 cumulative read ceiling and prior
+allowance. Local workerd proof of the actual eight-ID/history shape costs435reads,
+24HTTP/54SQL and zero native writes. No new grant, batch, upload, activation or
+deadline. Actual production terminal acceptance remains to be verified.
+
 ## 2026-10-25 — include the confirmed public tote duplicate in the same cleanup
 
 [owner+codex] Extended the existing owner-reviewed cleanup for the exact confirmed

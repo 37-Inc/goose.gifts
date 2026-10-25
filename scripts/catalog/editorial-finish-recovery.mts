@@ -111,7 +111,7 @@ async function reconcile(controllerSha:string){
     const db=await createCatalogD1Rest({accountId:s.accountId,databaseId:s.databaseId,databaseName:s.databaseName,token,
       limits:{requests:caps.httpRequests,statements:caps.sqlStatements,reportedRowsRead:readLimit,reportedRowsWritten:30000},
       accounting:{scope:{accountId:s.accountId,databaseId:s.databaseId,databaseName:s.databaseName},initial:await w.budget(),
-        reserve:async r=>{if((await w.budget()).knownRowsRead+80000>readLimit)fail('read_margin');await w.reserveBudget(r);},settle:(id,x)=>w.settleBudget(id,x)}});
+        reserve:async r=>{if((await w.budget()).knownRowsRead+5000>readLimit)fail('read_margin');await w.reserveBudget(r);},settle:(id,x)=>w.settleBudget(id,x)}});
     const send=accountedPublicationFetch(w,fetch,{...s,identityOrigin:effective.publication.identityOrigin});
     return await reconcileEditorialRecoverySuccessor({workspace:w,binding:{runId:w.manifest.runId,originalConfigSha256:w.manifest.configSha256,
       originalCodeSha:w.manifest.codeSha,publicationConfigSha256:job.adoption.effective.publicationConfigSha256,executionCodeSha:job.adoption.effective.codeSha,
@@ -183,7 +183,7 @@ export async function finishEditorialUpload(args:string[]){
     recovery:{path:job.approvalPath,sha256:job.approvalFileSha256,configPath:job.effectiveConfigPath,configSha256:job.effectiveConfigSha256},
     approval:{path:join(BASE,'editorial-recovery-20261024-reviewed-1e3b505/repair-proposal.json'),sha256:bundle.proposalSha256},
     reviewedUploadRetry:{path:PREVIOUS,sha256:PREVIOUS_SHA}},
-  {repository:effective.publication.sourceRoot,finishRecovery:{budget:profile.budget,authorization:profile.authorization},
+  {repository:effective.publication.sourceRoot,finishRecovery:{budget:profile.budget,authorization:profile.authorization,terminalReceiptOnly:true},
     publication:{command:async()=>fail('build_upload_forbidden')}});
   return result.state==='finalized'?{...weeklyCommandSummary(result),successor:await reconcile(controllerSha)}:weeklyCommandSummary(result);
 }

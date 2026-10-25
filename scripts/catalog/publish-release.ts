@@ -34,7 +34,7 @@ import { CLOUDFLARE_FREE_ASSET_LIMIT, readPriorRelease, verifyRetainedAssets } f
 import { siteIdentityFor } from '../../static-site/lib/site-identity.ts';
 import { canonicalTime, validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
 import { canonicalJson } from './migration.ts';
-import { readActivatedCatalogVectors, readActivatedPermanentCatalogNative, readPermanentNativeProof, readPublishedCatalogVectors, readOwnedApprovedCohortVectors, readOwnedPermanentCohortNative, readOwnedPrunedVectors } from './owned-vector-delivery.ts';
+import { readAcceptedActivatedCatalogNative, readActivatedCatalogVectors, readActivatedPermanentCatalogNative, readPermanentNativeProof, readPublishedCatalogVectors, readOwnedApprovedCohortVectors, readOwnedPermanentCohortNative, readOwnedPrunedVectors } from './owned-vector-delivery.ts';
 import type { PublishedCatalogRead } from './owned-vector-delivery.ts';
 import { createVectorizeRestAdapters } from './vectorize-rest.ts';
 import type { RunWorkspace, PublicationControl, ArtifactRef } from './run-workspace.ts';
@@ -339,6 +339,7 @@ function intentFrom(manifest:SiteAssetManifest,bytes:Uint8Array):PublicationInte
  */
 export async function executePublication(options:{db:CatalogD1&{providerIdentity:string};owner:MutationOwner;revision:PrunedRevision|null;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision;approvedCatalog?:ApprovedCohortRevision;requestId:string;runReference:string;
   workspace:PublicationWorkspace;config:PublicationConfig;credentials:{cloudflareToken:string;identityAuthorization?:string};dependencies?:Dependencies;buildRecovery?:BuildRecoveryApproval;
+  acceptedReceiptOnly?:true;
   finishAuthorization?:ReviewedUploadActivationInput['finishAuthorization'];
   reviewedUploadRetry?:{approval:ReviewedUploadActivationApproval;evidence:ArtifactRef;priorApproval?:ReviewedUploadActivationApprovalV1;transport?:{previous:ArtifactRef}}}):Promise<PublicationResult>{
   const {db,workspace,revision}=options;const config=validatePublicationConfig(options.config);const now=options.dependencies?.now??(()=>new Date());
@@ -399,6 +400,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     checkpoint=await workspace.readCheckpoint({controlOnly:true});
   };
   try{
+    if(options.acceptedReceiptOnly&&(revision!==null||!control?.permit||control.intent?.nextExpiry!==null
+      ||!options.finishAuthorization||!reviewed?.transport||await workspace.budgetRowsReadCeiling()===null))
+      throw new Error('publication_receipt_settlement_scope');
     if(!HASH.test(options.requestId)||!/^[a-zA-Z0-9._:/-]{1,200}$/.test(options.runReference))throw new Error('publication_input_invalid');
     if(control&&(control.configSha256!==configSha256||control.requestId!==options.requestId||control.runReference!==options.runReference))throw new Error('publication_checkpoint_mismatch');
     // A rejected protected upload is an operator-review gate, not an uncertain
@@ -714,6 +718,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     }
     if(control.permit){
       owner=control.permit.mutationOwner!;
+      const receiptOnly=options.acceptedReceiptOnly===true;
       let receiptInventoryOwner:MutationOwner|undefined;
       const observed=async(signal?:AbortSignal):Promise<DeploymentObservation>=>{
         signal?.throwIfAborted();await workspace.assertHeld();signal?.throwIfAborted();const deployed=await api.deployed(signal);signal?.throwIfAborted();
@@ -722,7 +727,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         if(!matchesIdentity(await api.identity(signal),control!.intent!))throw new Error('publication_identity_mismatch');signal?.throwIfAborted();
         const adapters=createVectorizeRestAdapters({environment:config.environment,indexName:config.indexName,accountId:config.accountId,
           token:options.credentials.cloudflareToken,fetch:observationSend});
-        if(options.permanent)await readActivatedPermanentCatalogNative(db,control!.permit!,control!.vectorPlan,options.permanent,adapters,signal);
+        if(receiptOnly)await readAcceptedActivatedCatalogNative(db,control!.permit!,control!.vectorPlan,adapters,{intent:control!.intent!,signal});
+        else if(options.permanent)await readActivatedPermanentCatalogNative(db,control!.permit!,control!.vectorPlan,options.permanent,adapters,signal);
         else await readActivatedCatalogVectors(db,control!.permit!,control!.vectorPlan,adapters,
           {signal,published:options.published,permanent:options.permanent});signal?.throwIfAborted();
         // Re-read deployment after independent identity/vector reads. Never infer
@@ -730,7 +736,17 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         const after=await api.deployed(signal);signal?.throwIfAborted();if(canonicalJson(after)!==canonicalJson(deployed))throw new Error('publication_activation_pending');
         return{environment:config.environment,settled:true,active:identity(control!.intent!,control!.versionReference!)};
       };
-      if((await publicationStatus(db,config.releaseId)).state!=='published'){
+      const accepted=(await publicationStatus(db,config.releaseId)).state==='published';
+      if(receiptOnly){
+        if(!accepted)throw new Error('publication_fresh_evidence_required');
+        const sealed=await loadPackage(directory,config,control.packageSha256!,now(),control.permit);
+        const receipts=(await db.prepare('SELECT * FROM publication_receipts WHERE release_id=?').bind(config.releaseId).all()).results;
+        if(receipts.length!==1||receipts[0].manifest_json!==encodePublicationIntent(control.intent!)
+          ||receipts[0].catalog_revision!==control.intent!.catalogRevision||receipts[0].code_sha!==control.intent!.codeSha
+          ||sealed.snapshot.products.some(p=>p.eligibleUntil!==null)
+          ||canonicalJson(intentFrom(sealed.manifest,sealed.bytes))!==canonicalJson(control.intent))throw new Error('publication_receipt_mismatch');
+      }
+      if(!accepted){
         if(!revision)throw new Error('publication_fresh_evidence_required');
         const sealed=await loadPackage(directory,config,control.packageSha256!,now(),control.permit);
         if(canonicalJson(intentFrom(sealed.manifest,sealed.bytes))!==canonicalJson(control.intent)
@@ -757,12 +773,11 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
           // that digest in the protected control journal, never renew content.
         }}
       await save({stage:'published',receiptSha256:ref.sha256});
-      // Every permanent path, not only reviewed-upload recovery, must prove all
-      // source/projection rows before the short native/provider observation.
-      // The proof is invocation-local and retains the exact activating owner.
-      // Receipt-only resumes still need a fresh inventory. Reuse only the
-      // successful same-invocation proof under the exact unchanged owner.
-      if(!options.approvedCatalog?.persistent||canonicalJson(receiptInventoryOwner??null)!==canonicalJson(owner))await permanentProof();
+      // Ordinary permanent completion proves all source/projection rows here.
+      // The explicitly admitted accepted receipt already commits those proofs;
+      // it retains the bounded fresh native/deployment gate without rescanning.
+      // Otherwise reuse only this invocation's exact unchanged-owner inventory.
+      if(!receiptOnly&&(!options.approvedCatalog?.persistent||canonicalJson(receiptInventoryOwner??null)!==canonicalJson(owner)))await permanentProof();
       let observation:Promise<DeploymentObservation>|undefined;
       try{if(await resolveBuildActivation(db,control.permit,signal=>(observation=observed(signal)),{observationTimeoutMs:30_000})!=='resolved')
         throw new Error('publication_activation_pending');}

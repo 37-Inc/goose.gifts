@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {DatabaseSync} from 'node:sqlite';
-import {readFile,readdir} from 'node:fs/promises';
+import {readFile,readdir,realpath} from 'node:fs/promises';
 import {settleActivatedPermanentWeekly} from '../scripts/catalog/run-cloudflare-weekly.ts';
 import {approvedRevisionControl,catalogSuccessorBytes,createPublishedApprovedCatalogSealFromControl} from '../scripts/catalog/approved-catalog-seal.ts';
 import {createProjectionPacket} from '../lib/catalog/d1.ts';
 import {encodePublicationIntent} from '../lib/catalog/publication.ts';
 import {canonicalJson,sha256} from '../scripts/catalog/migration.ts';
+import {executePublication} from '../scripts/catalog/publish-release.ts';
 
 // Local proof only: real telemetry/fence SQLite, purpose-limited expired-control
 // seam, and exact technical native/publication rows. No external provider calls.
@@ -21,6 +22,35 @@ test('weekly driver awaits settlement before its finally closes the protected wo
   const source=await readFile(new URL('../scripts/catalog/run-cloudflare-weekly.ts',import.meta.url),'utf8');
   assert.match(source,/if\(permanentFinalization\)return await settleActivatedPermanentWeekly\(/);
   assert.match(source,/finally\{try\{await workspace\?\.close\(\)/);
+});
+
+test('explicit terminal settlement without its existing authority fails before provider or D1 access',async()=>{
+  const sourceRoot=await realpath(new URL('..',import.meta.url)),accountId='a'.repeat(32);
+  const config={schemaVersion:1,environment:'production',accountId,workerName:'synthetic-worker',database:{id:UUID,name:'synthetic'},
+    indexName:scope.indexName,codeSha:CODE,sourceMode:'stupid-production',sourceRoot,releaseId:RELEASE,
+    identityOrigin:'https://stupid.gifts',compatibilityDate:'2026-10-19',prior:null};
+  let external=0,sql=0,writes=0;
+  const owner={...scope,token:'synthetic-owner',generation:17,epoch:441,phase:'activating',ownerReference:RUN,operationKey:HASH,capturedAt:OLD};
+  const ref={sha256:HASH,reference:`objects/${HASH}.json`};
+  for(const fault of ['permit','authorization','transport','admission','finite','revision']){
+    const publication={intent:{nextExpiry:fault==='finite'?CUTOFF:null},permit:fault==='permit'?null:{mutationOwner:owner}};
+    const reviewedUploadRetry={approval:{schemaVersion:4,requestId:HASH,packageSha256:HASH,configSha256:HASH,checkpointSha256:HASH,
+      reviewPinSha256:HASH,evidenceSha256:HASH,reviewReference:'synthetic/original-review',reviewedAt:OLD,authorizationSha256:HASH},
+      evidence:ref,...(fault==='transport'?{}:{transport:{previous:ref}})};
+    const finishAuthorization={authorizationSha256:HASH,reviewedAt:'2026-10-25T00:00:00.000Z',
+      activationDeadline:'2026-10-25T02:00:00.000Z',versionReference:'00000000-0000-4000-8000-000000000002'};
+    const workspace={repository:sourceRoot,directory:'/synthetic-unused-package',manifest:{codeSha:CODE},async assertHeld(){},async assertScope(){},
+      async readCheckpoint(){return{sha256:HASH,checkpoint:{pins:{},control:{publication}}};},
+      async budgetRowsReadCeiling(){return fault==='admission'?null:2341389;},async writeControlCheckpoint(){writes++;throw Error('Control writes forbidden');}};
+    const db={providerIdentity:`cloudflare:${accountId}:${UUID}`,prepare(){sql++;throw Error('D1 access forbidden');}};
+    const run=()=>executePublication({db,workspace,owner,revision:fault==='revision'?{}:null,acceptedReceiptOnly:true,requestId:HASH,runReference:RUN,config,
+      reviewedUploadRetry,...(fault==='authorization'?{}:{finishAuthorization}),
+      credentials:{cloudflareToken:'SYNTHETIC_ONLY'},dependencies:{async fetch(){external++;throw Error('Provider access forbidden');}}});
+    if(fault==='transport'){await assert.rejects(run(),/publication_finish_authorization_invalid/);continue;}
+    const result=await run();
+    assert.equal(result.state,'pending',fault);assert.equal(result.errorCode,'publication_receipt_settlement_scope',fault);
+  }
+  assert.equal(external,0);assert.equal(sql,0);assert.equal(writes,0);
 });
 
 async function sealFixture(){

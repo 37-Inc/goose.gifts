@@ -238,7 +238,7 @@ export interface WeeklyDriverOptions {
   cadenceOnly?:boolean;
 }
 type Dependencies={repository?:string;fetch?:typeof fetch;resolveToken?:(ref:KeychainRef)=>Promise<string>;resolveWranglerOAuth?:()=>Promise<string>;now?:()=>string;
-  finishRecovery?:{budget:PublicationFinishBudget;authorization:NonNullable<Parameters<typeof executePublication>[0]['finishAuthorization']>};
+  finishRecovery?:{budget:PublicationFinishBudget;authorization:NonNullable<Parameters<typeof executePublication>[0]['finishAuthorization']>;terminalReceiptOnly?:true};
   publication?:Parameters<typeof executePublication>[0]['dependencies'];cadence?:Parameters<typeof dailyCatalogPhases>[0]};
 
 /** Only an already admitted, activated permanent release can enter this path.
@@ -260,8 +260,9 @@ export async function settleActivatedPermanentWeekly(input:{db:CatalogD1 & {prov
   if(saved.checkpoint.phase!=='published'&&saved.checkpoint.phase!=='finalized'){
     const p=saved.checkpoint.control!.publication!,owner=saved.checkpoint.owner;
     if(!owner)throw Error('weekly_permanent_settlement_invalid');
-    const revision=p.stage==='published'?null:await hydrateApprovedRevision(db,owner,control);
+    const revision=input.finish.terminalReceiptOnly||p.stage==='published'?null:await hydrateApprovedRevision(db,owner,control);
     const result=await executePublication({db,workspace:ws,owner,revision,...(revision?{approvedCatalog:revision}:{}),
+      ...(input.finish.terminalReceiptOnly?{acceptedReceiptOnly:true as const}:{}),
       requestId:p.requestId,runReference:p.runReference,config:config.publication,credentials:{cloudflareToken:input.token},
       dependencies:input.publication,reviewedUploadRetry:input.reviewedUploadRetry,finishAuthorization:input.finish.authorization});
     if(result.state!=='published')return{...result,budget:await ws.budget()};
@@ -392,6 +393,7 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
         send:dependencies.publication?.fetch??dependencies.fetch,command:dependencies.publication?.command}),
       observationFetch:accountedPublicationReadFetch(ws,observationSend,networkScope)};
     const permanentFinalization=Boolean(finish&&await ws.budgetRowsReadCeiling()!==null);
+    if(finish?.terminalReceiptOnly&&!permanentFinalization)throw Error('weekly_terminal_scope_required');
     if(!permanentFinalization)await ws.purgeExpired();
     let saved=await ws.readCheckpoint({controlOnly:true});
     if(saved&&['phases_running','phase_failed','attention','finalized'].includes(saved.checkpoint.phase)
@@ -406,9 +408,10 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       token,fetch:dependencies.fetch,limits:finish?{...config.limits,requests:(await ws.budgetCeiling()).httpRequests,
         statements:(await ws.budgetCeiling()).sqlStatements,reportedRowsRead:admittedReadCap}:config.limits,accounting:{scope:{accountId:config.accountId,databaseId:config.database.id,databaseName:config.database.name},
         initial:await ws.budget(),reserve:async value=>{
-          // Reviewed catalog batches remain below80k reads. Reserve that margin
-          // before dispatch rather than relying only on after-response usage.
-          if(finish&&value.units.sqlStatements&&(await ws.budget()).knownRowsRead+80000>admittedReadCap!)
+          // Broad proof batches retain80k headroom. The explicit receipt-only
+          // lane forbids hydration/scans and bounds its keyed/native batches at
+          // 5k; both retain the SAME absolute admitted read ceiling.
+          if(finish&&value.units.sqlStatements&&(await ws.budget()).knownRowsRead+(finish.terminalReceiptOnly?5000:80000)>admittedReadCap!)
             throw new Error('weekly_finish_read_margin');
           await ws.reserveBudget(value);
         },settle:(id,value)=>ws.settleBudget(id,value)}});
