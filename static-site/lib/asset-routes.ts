@@ -3,7 +3,6 @@ import type {
   CatalogSnapshot,
 } from "../../lib/catalog/types";
 import { guides, selectGuideProducts } from "./guides";
-import { directoryPages, directoryPath } from "./directory";
 import { createBrowseRelease } from "./browse";
 import { createShowRelease, episodePath } from "./show";
 import { createOgRelease, ogPath } from "./og";
@@ -82,18 +81,6 @@ export function createStaticRoutes(
       eligibleUntil: earliest(products.map((p) => p.eligibleUntil)),
       indexable: catalog.indexable && products.length > 0,
     };
-  }
-  for (const page of directoryPages(snapshot)) {
-    const policy = {
-      ...catalog,
-      // Counts and pagination describe the full snapshot, not just this page.
-      eligibleUntil: nextExpiry,
-      indexable: catalog.indexable && page.products.length > 0,
-      state: snapshot.products.length ? "ready" as const : "held" as const,
-    };
-    policies[directoryPath(page.page)] = policy;
-    if (page.page === 1)
-      policies["/gifts/page/1"] = { ...policy, indexable: false };
   }
   const show = createShowRelease(snapshot, showInputs);
   policies["/howie"] = { ...catalog, eligibleUntil: show.latest?.eligibleUntil || null,

@@ -52,6 +52,41 @@ test("real gift cards have no repeated collection label or Unicode arrow; fixtur
     /Illustrative fixture · not for sale/);
 });
 
+test("every initial, load-more and search card renders its image, title and short description", () => {
+  const photos = load("components/CatalogPhotos.tsx", {
+    "./Icon": { Icon: () => null },
+    "@/components/ProductImage": { ProductImage: ({ imageUrl, alt }) => createElement("img", { src: imageUrl, alt }) },
+    "../lib/photo-shard": { PHOTO_PLACEHOLDER: "/images/gift-placeholder.svg" },
+  });
+  const { ProductCard } = load("components/ProductCard.tsx", {
+    "./CatalogPhotos": photos, "../lib/selection": { isIllustrative: () => false },
+  });
+  const product = { id: "unfeatured", source: "amazon", slug: "unfeatured-object", title: "Unfeatured desk object",
+    description: "A small desk object with a useful visual joke.", imageUrl: "/owned.svg", eligibleUntil: null };
+  const before = JSON.stringify(product);
+  for (const context of ["home_browse", "catalog_search", "gift_guide:office-prank-gifts"]) {
+    for (const source of ["amazon", "etsy"]) {
+      const html = renderToStaticMarkup(createElement(photos.CatalogPhotos, { indexPath: null },
+        createElement(ProductCard, { product: { ...product, source }, context })));
+      assert.match(html, /<img[^>]+src="\/owned.svg"[^>]+alt="Unfeatured desk object"/);
+      assert.match(html, /<h2><a[^>]+>Unfeatured desk object<\/a><\/h2>/);
+      assert.ok(html.includes(`<p class="card-description">${product.description}</p>`));
+      assert.match(html, new RegExp(`data-analytics-context="${context}"`));
+    }
+  }
+  const render = (id, curated) => renderToStaticMarkup(createElement(photos.CatalogPhotos,
+    { indexPath: null, ...curated }, createElement(ProductCard, { product: { ...product, id } })));
+  assert.match(render(product.id, { descriptions: { unfeatured: "A factual curated description." } }), /A factual curated description\./);
+  assert.match(render(product.id, { cardNotes: { unfeatured: "A useful short note." }, descriptions: { unfeatured: "Longer detail lead." } }), /A useful short note\./);
+  assert.ok(render(product.id, { cardNotes: { unfeatured: " " }, descriptions: { unfeatured: " " } }).includes(product.description));
+  assert.ok(render("toString", {}).includes(product.description));
+  assert.equal(JSON.stringify(product), before);
+  const feed = fs.readFileSync(new URL("../static-site/components/CatalogFeed.tsx", import.meta.url), "utf8");
+  const search = fs.readFileSync(new URL("../static-site/components/Search.tsx", import.meta.url), "utf8");
+  assert.match(feed, /state\.products\.map\(\(product\) => \([\s\S]*<ProductCard/);
+  assert.match(search, /state\.products\.map\(\(product\) => \([\s\S]*<ProductCard/);
+});
+
 test("photo-free cards are compact at SSR; exact optional slots reserve geometry without fake image alt", () => {
   const icon = load("components/Icon.tsx");
   const photos = load("components/CatalogPhotos.tsx", {

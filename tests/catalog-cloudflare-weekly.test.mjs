@@ -24,7 +24,6 @@ import { siteIdentityBytes } from '../scripts/staging/build.mts';
 import { assembleReleaseAssets, readPriorRelease } from '../scripts/staging/retention.mts';
 import { createStaticFeedPlan } from '../workers/site/feed.ts';
 import { createBrowseRelease } from '../static-site/lib/browse.ts';
-import { directoryPages, directoryPath } from '../static-site/lib/directory.ts';
 import { createOgRelease } from '../static-site/lib/og.ts';
 import { siteIdentityFor } from '../static-site/lib/site-identity.ts';
 import { guides } from '../static-site/lib/guides.ts';
@@ -79,8 +78,8 @@ async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true
 async function fullCheckpoint(options){const workspace=await openRunWorkspace(options);
   try{return await workspace.readCheckpoint();}finally{await workspace.close();}}
 function sealedFixture(snapshot,context,prior=null){
-  const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
-    ...directoryPages(snapshot).map(page=>directoryPath(page.page)),...snapshot.products.map(p=>`/gifts/${p.slug}`)];
+  const pages=['/','/random-gift','/gift-guides','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
+    ...snapshot.products.map(p=>`/gifts/${p.slug}`)];
   const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,Buffer.from('Owned fixture HTML')]));
   for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/asset.txt'])assets.set(name,Buffer.from('Owned unavailable'));
   assets.set('/safe/catalog.json',safeCatalogPayload);

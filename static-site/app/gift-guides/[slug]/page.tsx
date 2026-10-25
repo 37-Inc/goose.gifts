@@ -79,7 +79,7 @@ export default async function Guide({
             <p>
               No matching gifts yet. Browse all gifts for another idea.
             </p>
-            <a className="text-action" href="/gifts">
+            <a className="text-action" href="/">
               Browse all gifts
             </a>
           </div>

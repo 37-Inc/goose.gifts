@@ -11,11 +11,6 @@ import { createOgRelease } from "../static-site/lib/og.ts";
 import { siteIdentity } from "../static-site/lib/site-identity.ts";
 import { guides, selectGuideProducts } from "../static-site/lib/guides.ts";
 import {
-  directoryPages,
-  directoryPath,
-  directorySchema,
-} from "../static-site/lib/directory.ts";
-import {
   eligiblePool,
   isIllustrative,
   nextRandomIndex,
@@ -136,7 +131,7 @@ test(
     changed.products[0].humorTags = ["desk"];
     related.humorTags = ["desk"];
     related.eligibleUntil = "2026-10-21T00:00:00.000Z";
-    const pages = ["/random-gift", "/gift-guides", "/howie", "/preview/presentation", "/gifts", "/gifts/page/1",
+    const pages = ["/random-gift", "/gift-guides", "/howie", "/preview/presentation",
       ...guides.map(guide => `/gift-guides/${guide.slug}`), ...changed.products.map(product => `/gifts/${product.slug}`)];
     const inventory = ["/index.html", "/index.txt", ...pages.flatMap(page => [`${page}.html`, `${page}.txt`]),
       ...["catalog", "product", "howie", "presentation"].flatMap(page => [`/safe/${page}.html`, `/safe/${page}.txt`]),
@@ -154,7 +149,7 @@ test(
   },
 );
 test(
-  "retained hub, directory and guide artifacts match their one build snapshot",
+  "retained hub and guide artifacts match their one build snapshot without a duplicate directory",
   { skip: !fs.existsSync(new URL("out/index.html", root)) },
   () => {
     const hub = fs.readFileSync(new URL("out/gift-guides.html", root), "utf8");
@@ -184,23 +179,8 @@ test(
           selected.some((p) => p.id === product.id),
         );
     }
-    for (const page of directoryPages(exportSnapshot)) {
-      const html = fs.readFileSync(
-        new URL(`out${directoryPath(page.page)}.html`, root),
-        "utf8",
-      );
-      assert.deepEqual(schemas(html)[0], directorySchema(page));
-      for (const product of exportSnapshot.products)
-        assert.equal(
-          html.includes(`href="/gifts/${product.slug}"`),
-          page.products.some((p) => p.id === product.id),
-        );
-    }
-    const firstAlias = fs.readFileSync(
-      new URL("out/gifts/page/1.html", root),
-      "utf8",
-    );
-    assert.ok(firstAlias.includes(`rel="canonical" href="${siteIdentity.origin}/gifts"`));
+    assert.equal(fs.existsSync(new URL("out/gifts.html", root)), false);
+    assert.equal(fs.existsSync(new URL("out/gifts/page/", root)), false);
     assert.equal(fs.existsSync(new URL("out/weird-gift-index.html", root)), false);
     assert.equal(fs.existsSync(new URL("out/weird-gift-index/", root)), false);
     assert.equal(fs.existsSync(new URL("out/safe/index.json", root)), false);

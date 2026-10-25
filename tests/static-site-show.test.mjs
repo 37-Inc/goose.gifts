@@ -14,7 +14,6 @@ import { createStaticRoutes } from "../static-site/lib/asset-routes.ts";
 import { createBrowseRelease } from "../static-site/lib/browse.ts";
 import { createOgRelease } from "../static-site/lib/og.ts";
 import { siteIdentity } from "../static-site/lib/site-identity.ts";
-import { directoryPages, directoryPath } from "../static-site/lib/directory.ts";
 import { guides } from "../static-site/lib/guides.ts";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
 import { createSiteWorker } from "../workers/site/index.ts";
@@ -47,8 +46,7 @@ function fixtureEpisodes(snapshot) {
 function inventory(snapshot, inputs = []) {
   const show = createShowRelease(snapshot, inputs);
   const pages = ["/", "/random-gift", "/gift-guides", "/howie", "/preview/presentation",
-    ...guides.map((g) => `/gift-guides/${g.slug}`), ...directoryPages(snapshot).map((p) => directoryPath(p.page)),
-    "/gifts/page/1", ...snapshot.products.map((p) => `/gifts/${p.slug}`),
+    ...guides.map((g) => `/gift-guides/${g.slug}`), ...snapshot.products.map((p) => `/gifts/${p.slug}`),
     ...show.episodes.flatMap((e) => [`/howie/${e.key}`, `/howie/${e.key}/presentation`])];
   const safe = ["/safe/catalog", "/safe/product", "/safe/howie", "/safe/presentation",
     ...show.episodes.flatMap((e) => [`/safe/howie/${e.key}`, `/safe/howie/${e.key}/presentation`])];

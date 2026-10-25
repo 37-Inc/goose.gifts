@@ -30,7 +30,7 @@ const script = `
     show.episodes.push(episode); show.latest=episode;
   }
   const pages={
-    home:await import('./static-site/app/page.tsx'), catalog:await import('./static-site/app/gifts/page.tsx'),
+    home:await import('./static-site/app/page.tsx'),
     hub:await import('./static-site/app/gift-guides/page.tsx'), random:await import('./static-site/app/random-gift/page.tsx'),
     howie:await import('./static-site/app/howie/page.tsx'),
     privacy:await import('./static-site/app/privacy/page.tsx'), presentation:await import('./static-site/app/preview/presentation/page.tsx')
@@ -39,7 +39,6 @@ const script = `
   const product=await import('./static-site/app/gifts/[slug]/page.product.tsx');
   const safeProduct=await import('./static-site/app/safe/product/page.tsx');
   const guide=await import('./static-site/app/gift-guides/[slug]/page.tsx');
-  const directory=await import('./static-site/app/gifts/page/[page]/page.tsx');
   const episode=await import('./static-site/app/howie/[episode]/page.episode.tsx');
   const presentation=await import('./static-site/app/howie/[episode]/presentation/page.episode.tsx');
   const get=async(module,params)=>(await module.generateMetadata({params:Promise.resolve(params)})).robots.index;
@@ -58,7 +57,6 @@ const script = `
   }
   flags.matchingGuide=await get(guide,{slug:'cat-lover-gag-gifts'});
   flags.thinGuide=await get(guide,{slug:'office-prank-gifts'});
-  flags.page1=await get(directory,{page:'1'}); flags.page2=await get(directory,{page:'2'});
   flags.episode=await get(episode,{episode:'controlled-archive'});
   flags.episodePresentation=await get(presentation,{episode:'controlled-archive'});
   const {default:robots}=await import('./static-site/app/robots.ts');
@@ -67,7 +65,7 @@ const script = `
   console.log(JSON.stringify({flags,productParams,rejectedProducts,safeProductMetadata:safeProduct.metadata,
     robots:robots(),origin:siteIdentity.origin,
     guideWebsite:guideSchema(guides[0],[])['@graph'][0].isPartOf,
-    descriptions:[pages.catalog.metadata.description,pages.random.metadata.description,pages.hub.metadata.description],
+    descriptions:[pages.home.metadata.description,pages.random.metadata.description,pages.hub.metadata.description],
     emptyGuide:renderToStaticMarkup(await guide.default({params:Promise.resolve({slug:'office-prank-gifts'})})),
     privacy:renderToStaticMarkup(React.createElement(pages.privacy.default))}));
 `;
@@ -97,9 +95,9 @@ test("eligible maintained routes index only in explicit production; held/thin/du
     const name = mode === "goose-production" ? "Goose Gifts" : "Stupid Gifts";
     assert.equal(output.guideWebsite.name, name);
     assert.equal(output.guideWebsite.url, output.origin);
-    for (const key of ["home", "catalog", "hub", "random", "privacy", "ready", "matchingGuide", "page2"])
+    for (const key of ["home", "hub", "random", "privacy", "ready", "matchingGuide"])
       assert.equal(output.flags[key], publicMode, `${mode}/${key}`);
-    for (const key of ["held", "thinGuide", "page1", "howie", "presentation", "episode", "episodePresentation"])
+    for (const key of ["held", "thinGuide", "howie", "presentation", "episode", "episodePresentation"])
       assert.equal(output.flags[key], false, `${mode}/${key}`);
     assert.equal(output.robots.rules.allow === "/", publicMode);
     if (publicMode) {
@@ -123,7 +121,7 @@ test("production-mode fixtures remain entirely noindex/blocked; zero-ready catal
   assert.equal(fixture.robots.rules.disallow, "/");
   assert.match(fixture.privacy, /Preview privacy/);
   const empty = inspect("stupid-production", controlledSnapshot("catalog", true));
-  for (const key of ["home", "catalog", "random", "ready", "matchingGuide", "page2"])
+  for (const key of ["home", "random", "ready", "matchingGuide"])
     assert.equal(empty.flags[key], false, key);
   assert.equal(empty.flags.privacy, true); assert.equal(empty.flags.hub, true);
 });

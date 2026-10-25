@@ -199,7 +199,7 @@ async function composition(t){
     if(command.args.includes('scripts/staging/build.mts')){
       counts.builds++;const snapshot=JSON.parse(await fs.readFile(command.env.CATALOG_SNAPSHOT_PATH));assert.deepEqual(snapshot,f.revision.snapshot);
       const context=JSON.parse(await fs.readFile(command.env.CATALOG_RELEASE_CONTEXT_PATH)),bytes=value=>Buffer.from(typeof value==='string'?value:JSON.stringify(value));
-      const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),...snapshot.products.map(p=>`/gifts/${p.slug}`)];
+      const pages=['/','/random-gift','/gift-guides','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),...snapshot.products.map(p=>`/gifts/${p.slug}`)];
       const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,bytes('Owned synthetic HTML')]));
       for(const n of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/asset.txt'])assets.set(n,bytes('Owned unavailable'));
       assets.set('/safe/catalog.json',bytes(safeCatalogPayload));for(const s of ['.txt','/__next._full.txt','/__next._tree.txt','/__next.safe.product.__PAGE__.txt'])assets.set(`/safe/product${s}`,bytes('Owned safe RSC'));

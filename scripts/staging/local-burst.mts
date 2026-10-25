@@ -44,7 +44,7 @@ export function localFixture(now: () => number, lifetimeMs: number) {
   const assets = new Map<string, { body: string; type: string }>();
   const routes: Record<string, CatalogAssetRoute> = {};
   const put = (path: string, body: string, type = 'text/html') => assets.set(path, { body, type });
-  put('/safe/catalog.html', '<main>Collection unavailable. <a href="/gifts">Try the latest collection</a></main>');
+  put('/safe/catalog.html', '<main>Gifts unavailable. <a href="/">Try again</a></main>');
   put('/safe/catalog.txt', 'Collection unavailable.'); put('/safe/catalog.json', '{"status":"unavailable","products":[],"next":null}', 'application/json');
   put('/safe/unavailable.js', '/* Retained code unavailable. Reload the page. */', 'application/javascript');
   function route(path: string, body: string, type = 'text/html', held = false) {

@@ -41,7 +41,7 @@ const priorVersion='00000000-0000-4000-8000-000000000004',priorDeployment='00000
 const scope={environment:'staging',indexName:'fixture-index'};
 async function put(file,value){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,value,{mode:0o600});}
 function fixtureRelease(snapshot,context,prior=null){
-  const pages=['/','/gifts','/gifts/page/1','/random-gift','/gift-guides','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
+  const pages=['/','/random-gift','/gift-guides','/howie','/preview/presentation',...guides.map(g=>`/gift-guides/${g.slug}`),
     ...snapshot.products.map(p=>`/gifts/${p.slug}`)];
   const assets=new Map(pages.map(p=>[p==='/'?'/index.html':`${p}.html`,bytes('Owned fixture HTML')]));
   for(const name of ['/safe/catalog.html','/safe/product.html','/safe/howie.html','/safe/presentation.html','/safe/asset.txt'])assets.set(name,bytes('Owned unavailable'));

@@ -84,7 +84,7 @@ test("detail route expiry follows newly matched related gifts, not the old first
     eligibleUntil: i === 4 ? "2026-10-21T00:00:00.000Z" : prototype.eligibleUntil,
   }));
   snapshot.heldProducts = [];
-  const pages = ["/random-gift", "/gift-guides", "/howie", "/preview/presentation", "/gifts", "/gifts/page/1",
+  const pages = ["/random-gift", "/gift-guides", "/howie", "/preview/presentation",
     ...guides.map(g => `/gift-guides/${g.slug}`), ...snapshot.products.map(p => `/gifts/${p.slug}`)];
   const inventory = ["/index.html", "/index.txt", ...pages.flatMap(p => [`${p}.html`, `${p}.txt`]),
     ...["catalog", "product", "howie", "presentation"].flatMap(p => [`/safe/${p}.html`, `/safe/${p}.txt`]),

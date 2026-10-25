@@ -32,7 +32,7 @@ export default function Howie() {
         No episode selection has been published. When there is a confirmed
         selection, you’ll find the exact products here.
       </p>
-      <a className="button" href="/gifts">
+      <a className="button" href="/">
         Browse gifts
       </a>
     </main>

@@ -13,7 +13,6 @@ import { PHOTO_PLACEHOLDER } from "../static-site/lib/photo-shard.ts";
 import { createBrowseRelease } from "../static-site/lib/browse.ts";
 import { createOgRelease } from "../static-site/lib/og.ts";
 import { guides } from "../static-site/lib/guides.ts";
-import { directoryPages, directoryPath } from "../static-site/lib/directory.ts";
 import { siteIdentityFor } from "../static-site/lib/site-identity.ts";
 import { createSiteWorker } from "../workers/site/index.ts";
 import { createReleaseIdentity } from "../scripts/staging/release-identity.mts";
@@ -34,8 +33,8 @@ function context(input, prior = null) {
     vectorSyncWatermark: 0, priorReleaseId: prior?.releaseId ?? null, retainedManifestSha256: prior?.manifestSha256 ?? null };
 }
 function assets(input) {
-  const pages = ["/", "/random-gift", "/gift-guides", "/howie", "/preview/presentation", "/gifts/page/1",
-    ...guides.map((g) => `/gift-guides/${g.slug}`), ...directoryPages(input).map((p) => directoryPath(p.page)),
+  const pages = ["/", "/random-gift", "/gift-guides", "/howie", "/preview/presentation",
+    ...guides.map((g) => `/gift-guides/${g.slug}`),
     ...input.products.map((p) => `/gifts/${p.slug}`)];
   const files = new Map(pages.map((p) => [p === "/" ? "/index.html" : `${p}.html`, encode("owned page")]));
   for (const p of ["/safe/catalog.html", "/safe/product.html", "/safe/howie.html", "/safe/presentation.html"])

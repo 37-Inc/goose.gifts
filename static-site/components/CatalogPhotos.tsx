@@ -54,8 +54,9 @@ export function CatalogDescription({ id, source, fallback, card = false }: {
   id: string; source: string; fallback?: string; card?: boolean;
 }) {
   const copy = useContext(PhotoContext);
-  const descriptions = card ? copy.cardNotes : copy.descriptions;
-  const text = (source === "amazon" && Object.hasOwn(descriptions, id) ? descriptions[id] : fallback)?.trim();
+  const description = source === "amazon" && Object.hasOwn(copy.descriptions, id) ? copy.descriptions[id] : undefined;
+  const note = card && source === "amazon" && Object.hasOwn(copy.cardNotes, id) ? copy.cardNotes[id] : undefined;
+  const text = note?.trim() || description?.trim() || fallback?.trim();
   return text ? <p className={card ? "card-description" : "detail-line"}>{text}</p> : null;
 }
 

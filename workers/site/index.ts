@@ -17,7 +17,7 @@ export interface SiteReleaseIdentity {
 
 const MAX_FEED_BODY = 64_000;
 const TIMED_ROUTE = /^(?:\/$|\/gifts(?:\/|$)|\/gift-guides(?:\/|$)|\/howie(?:\/|$)|\/random-gift(?:[/.]|$)|\/catalog(?:[/.]|$)|\/data(?:\/|$)|\/sitemap(?:[/.]|$))/;
-const RETIRED_ROUTE = /^\/(?:admin|auth|login|report|reports|bundles)(?:\/|$)|^\/weird-gift-index(?:[/.]|$)|^\/safe\/index\.json$|^\/api\/(?:admin|auth|og|generate-bundle)(?:\/|$)/;
+const RETIRED_ROUTE = /^\/(?:admin|auth|login|report|reports|bundles)(?:\/|$)|^\/gifts(?:\/?$|\.(?:html|txt)$|\/__next\.|\/page(?:[/.]|$))|^\/weird-gift-index(?:[/.]|$)|^\/safe\/index\.json$|^\/api\/(?:admin|auth|og|generate-bundle)(?:\/|$)/;
 const PUBLIC_ASSET = /^(?:\/_next\/static\/|\/fonts\/|\/brand\/|\/illustrations\/)|^\/(?:images\/gift-placeholder\.svg|favicon\.ico|robots\.txt|[a-zA-Z0-9_-]+\.(?:png|webp|svg|jpg|jpeg|woff2?|ttf)|google[a-z0-9]+\.html|BingSiteAuth\.xml)$/;
 
 function expiry(route: CatalogAssetRoute): number {
@@ -77,15 +77,6 @@ function canonicalHostSearch(params: URLSearchParams): string {
   }
   return kept.size ? `?${kept}` : '';
 }
-function boundedDirectoryPage(value: string, lastPage: number): number | null {
-  if (value.length > 128 || !/^\d+$/.test(value)) return null;
-  const normalized = value.replace(/^0+/, '');
-  if (!normalized) return null;
-  const maximum = String(lastPage);
-  if (normalized.length > maximum.length || normalized.length === maximum.length && normalized > maximum) return lastPage;
-  return Number(normalized); // At most the generated directory's digit count.
-}
-
 async function boundedJson(request: Request): Promise<unknown> {
   if (Number(request.headers.get('content-length')) > MAX_FEED_BODY) throw new Error('too_large');
   const reader = request.body?.getReader();
@@ -129,10 +120,6 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
   }));
   if (manifest.catalogRevision !== snapshot.catalogRevision) throw new Error('release_revision_mismatch');
   const routes = new Map(Object.entries(manifest.routes));
-  const lastDirectoryPage = Math.max(1, ...[...routes.keys()].flatMap((path) => {
-    const match = path.match(/^\/gifts\/page\/([1-9]\d{0,8})$/);
-    return match ? [Number(match[1])] : [];
-  }));
   const directAssets = new Map<string, CatalogAssetRoute>();
   const safeAssets = new Set<string>();
   for (const route of routes.values()) {
@@ -274,8 +261,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
               || routes.has(decodedPath) || directAssets.has(decodedPath) || redirects.has(path)
               || ['/sitemap.xml', '/sitemap/0.xml', '/.well-known/catalog-release.json', '/api/search-products'].includes(path)
               || PUBLIC_ASSET.test(path) || clearedImages.has(decodedPath);
-            if (!knownPath || pagePath === '/gifts' && url.searchParams.has('page')
-              && boundedDirectoryPage(url.searchParams.get('page')!, lastDirectoryPage) === null)
+            if (!knownPath)
               return respond(json({ error: 'Not found' }, 404));
             return respond(new Response(null, { status: 308, headers: {
               Location: `${productionOrigin}${path}${canonicalHostSearch(url.searchParams)}`, 'Cache-Control': 'no-store',
@@ -299,30 +285,12 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
           const page = routes.get(target);
           if (target === '/privacy' || target === '/search' || !target.includes('.') && (page?.assetPath === `${target}.html`
             || page?.state === 'held' && heldProductPaths.has(target))) {
-            if (target === '/gifts' && url.searchParams.has('page') && boundedDirectoryPage(url.searchParams.get('page')!, lastDirectoryPage) === null)
-              return respond(json({ error: 'Not found' }, 404));
             return respond(new Response(null, { status: 308, headers: { Location: `${target}${pageAliasSearch(url.searchParams)}`, 'Cache-Control': 'no-store' } }));
           }
         }
         if (path === '/search') {
           const q = url.searchParams.get('q')?.trim();
           return respond(new Response(null, { status: 308, headers: { Location: q ? `/?q=${encodeURIComponent(q)}` : '/', 'Cache-Control': 'no-store' } }));
-        }
-        if (path === '/gifts' && url.searchParams.has('page')) {
-          const value = url.searchParams.get('page')!;
-          const page = boundedDirectoryPage(value, lastDirectoryPage);
-          if (page === null) return respond(json({ error: 'Not found' }, 404));
-          const target = page === 1 ? '/gifts' : `/gifts/page/${page}`;
-          if (!routes.has(target)) return respond(json({ error: 'Not found' }, 404));
-          url.pathname = target;
-          return respond(new Response(null, { status: 308, headers: { Location: `${url.pathname}${campaignSearch(url.searchParams)}`, 'Cache-Control': 'no-store' } }));
-        }
-        const directory = path.match(/^\/gifts\/page\/([1-9]\d*)$/);
-        if (directory) {
-          const page = boundedDirectoryPage(directory[1], lastDirectoryPage);
-          if (page === null) return respond(json({ error: 'Not found' }, 404));
-          const target = page === 1 ? '/gifts' : `/gifts/page/${page}`;
-          if (target !== path) return respond(new Response(null, { status: 308, headers: { Location: `${target}${campaignSearch(url.searchParams)}`, 'Cache-Control': 'no-store' } }));
         }
         const redirect = redirects.get(path);
         if (redirect && routes.has(redirect)) return respond(new Response(null, { status: 308, headers: { Location: `${redirect}${campaignSearch(url.searchParams)}`, 'Cache-Control': 'no-store' } }));
