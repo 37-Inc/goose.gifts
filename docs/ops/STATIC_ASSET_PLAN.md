@@ -25,6 +25,8 @@ expiry/state/cache policy and serves the same bytes. Shared safe/legal files,
 HTML, scripts, CSS, fonts, photos, OG images and JSON are not removed. The
 verifier expands aliases and independently recomputes routing, retention,
 checksums and deterministic compaction. No old HTML/RSC retention is introduced.
+Historical manifests without the new field still verify with their original
+physical layout; they are not rewritten, compacted or uploaded again.
 
 Compaction happens before the Free-plan file check. The builder removes only
 its own newly generated duplicate outputs; historical releases and protected

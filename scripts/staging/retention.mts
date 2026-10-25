@@ -67,7 +67,9 @@ export async function readPriorRelease(context: Context, directory?: string): Pr
 
 /** Builder and verifier independently derive the same policy from sealed inputs. */
 export function assembleReleaseAssets(snapshot: CatalogSnapshot, current: Files, context: Context,
-  prior: RetentionInput['prior'] | null) {
+  prior: RetentionInput['prior'] | null, compact = true) {
+  const finish = (assets: Files, routes: SiteAssetManifest['routes']) => compact
+    ? compactRscAssets(assets, routes) : { assets: new Map(assets), routes, assetAliases: {} };
   const currentAssetPaths = [...current.keys()].sort();
   if (currentAssetPaths.length > 100000 || currentAssetPaths.some((name) => !safePath(name))) fail();
   assertPublicIdentitySafe(current);
@@ -75,7 +77,7 @@ export function assembleReleaseAssets(snapshot: CatalogSnapshot, current: Files,
   const currentRoutes = createStaticRoutes(snapshot, currentAssetPaths, undefined, siteIdentityFor(context.sourceMode));
   if (context.retainedManifestSha256 === null) {
     if (prior !== null) fail();
-    const compacted = compactRscAssets(current, currentRoutes);
+    const compacted = finish(current, currentRoutes);
     assertFreeAssetCapacity(compacted.assets);
     return { ...compacted, retention: null };
   }
@@ -85,7 +87,7 @@ export function assembleReleaseAssets(snapshot: CatalogSnapshot, current: Files,
   // operator must use an explicit no-retention release, not carry it forward.
   assertPublicIdentitySafe(retained.files);
   const assets = new Map([...retained.files, ...current]);
-  const compacted = compactRscAssets(assets, { ...retained.routes, ...currentRoutes });
+  const compacted = finish(assets, { ...retained.routes, ...currentRoutes });
   assertFreeAssetCapacity(compacted.assets);
   return { ...compacted,
     retention: { priorManifestSha256: context.retainedManifestSha256, currentAssetPaths } };
@@ -103,7 +105,9 @@ export function verifyRetainedAssets(snapshot: CatalogSnapshot, actual: Files, m
       || JSON.stringify(policy.currentAssetPaths) !== JSON.stringify([...new Set(policy.currentAssetPaths)].sort())) fail();
     current = new Map(policy.currentAssetPaths.map((name) => [name, logical.get(name)!]));
   } else if (policy !== null) fail();
-  const expected = assembleReleaseAssets(snapshot, current, context, prior);
+  // Historical packages have no alias field and must verify byte-for-byte as
+  // originally sealed. New builders always use compaction, without a switch.
+  const expected = assembleReleaseAssets(snapshot, current, context, prior, manifest.assetAliases !== undefined);
   if (JSON.stringify([...actual.keys()].sort()) !== JSON.stringify([...expected.assets.keys()].sort())
     || [...actual].some(([name, bytes]) => assetSha256(bytes) !== assetSha256(expected.assets.get(name)!))
     || JSON.stringify(manifest.assetAliases ?? {}) !== JSON.stringify(expected.assetAliases)
