@@ -1385,6 +1385,57 @@ export function readActivatedPermanentCatalogNative(db:CatalogD1,permit:Activati
       revision.snapshot.catalogRevision,revision.packet.receipt.snapshot_sha256])],{signal});signal?.throwIfAborted();};
   await check();const observed=await readPermanentNativeProof({db,owner,revision,adapters,signal});await check();return observed;
 });}
+/** Terminal native observation after the exact permanent publication receipt
+ * accepted the complete source/projection proof. No hydration, projection scan,
+ * renewed content deadline, upload or activation authority is introduced. */
+export function readAcceptedActivatedCatalogNative(db:CatalogD1,permit:ActivationPermit,plan:ActivatedVectorPlan,
+  adapters:Pick<OwnedVectorAdapters,'readback'|'readbacks'|'environment'|'indexName'|'providerIdentity'>,
+  options:{intent:PublicationIntent;signal?:AbortSignal}):Promise<PrunedVectorObservation>{return safe(async()=>{
+  const {intent,signal}=options,owner=permit.mutationOwner,bytes=encodePublicationIntent(intent);
+  if(!owner||owner.phase!=='activating'||intent.nextExpiry!==null||intent.releaseId!==permit.releaseId
+    ||intent.catalogRevision!==plan.catalogRevision||!HASH.test(plan.planSha256)||!Array.isArray(plan.ids)
+    ||plan.ids.length>OWNED_VECTOR_PROOF_LIMIT||new Set(plan.ids).size!==plan.ids.length||plan.ids.some(id=>!UUID.test(id)))
+    throw Error('vector_terminal_receipt_invalid');
+  adapterScope(owner,adapters);
+  const read=async(sql:string,params:unknown[])=>{signal?.throwIfAborted();
+    const rows=(await db.prepare(sql).bind(...params).all<Row>({signal})).results;
+    if(rows.length!==1)throw Error('vector_terminal_receipt_invalid');return rows[0];};
+  const receipt=await read('SELECT * FROM publication_receipts WHERE release_id=?',[permit.releaseId]);
+  const outbox=await read('SELECT * FROM publication_outbox WHERE release_id=?',[permit.releaseId]);
+  const build=await read('SELECT * FROM catalog_build_requests WHERE request_id=?',[permit.requestId]);
+  const request=JSON.parse(String(build.request_json));
+  if(receipt.manifest_json!==bytes||receipt.code_sha!==intent.codeSha||receipt.catalog_revision!==intent.catalogRevision
+    ||outbox.state!=='verified'||outbox.intent_json!==bytes||!outbox.completed_token
+    ||outbox.dispatch_reference!==`version:${permit.versionReference}`||build.state!=='activating'
+    ||build.lease_token!==permit.token||build.run_reference!==permit.runReference||build.release_id!==permit.releaseId
+    ||build.version_reference!==permit.versionReference||build.environment!==owner.environment
+    ||encodeBuildRequest(request)!==build.request_json||sha256(String(build.request_json))!==permit.requestId
+    ||request.sourceRevision!==intent.catalogRevision||request.sourceDigest!==intent.catalogSnapshotSha256
+    ||request.codeSha!==intent.codeSha||request.priorReleaseId!==intent.priorReleaseId)
+    throw Error('vector_terminal_receipt_invalid');
+  const policy=await journal(db,idFor({...owner,phase:'freezing'},{kind:PLAN_KIND}),signal);
+  if(!policy)throw Error('vector_terminal_receipt_invalid');
+  const admitted=validatePlan(policy,owner,plan,adapters.providerIdentity),history=admitted.plan.history??[];
+  const nativeIds=[...reuseIds(admitted.plan),...history.flatMap(group=>group.ids)];
+  if(nativeIds.length>OWNED_VECTOR_PROOF_LIMIT)throw Error('vector_terminal_native_bound');
+  // Historical selection must not conceal an oversized underlying source read.
+  for(const group of history){const prior=await journal(db,group.source.deliveryId,signal),source=prior&&JSON.parse(prior.request_json);
+    if(!prior||sha256(canonicalJson(prior))!==group.source.deliverySha256||!source?.plan
+      ||reuseIds(source.plan).length>OWNED_VECTOR_PROOF_LIMIT)throw Error('vector_terminal_native_bound');}
+  const projection=await read('SELECT * FROM catalog_projection_receipts WHERE catalog_revision=?',[plan.catalogRevision]);
+  if(canonicalJson(projection)!==canonicalJson(admitted.projectionReceipt)
+    ||projection.snapshot_sha256!==intent.catalogSnapshotSha256)throw Error('vector_terminal_receipt_invalid');
+  const exact=(table:string,row:Row)=>{const keys=Object.keys(row);
+    if(!keys.length||keys.length>65||keys.some(k=>!/^[a-z_][a-z0-9_]*$/.test(k)))throw Error('vector_terminal_receipt_invalid');
+    return assertion(db,`EXISTS(SELECT 1 FROM ${table} WHERE ${keys.map(k=>`${k} IS ?`).join(' AND ')})`,keys.map(k=>row[k]));};
+  const check=()=>db.batch([mutationAssertion(db,owner,['activating']),
+    assertion(db,'EXISTS(SELECT 1 FROM catalog_mutation_scopes WHERE environment=? AND index_name=? AND activation_request_id=?)',
+      [owner.environment,owner.indexName,permit.requestId]),exact('publication_receipts',receipt),exact('publication_outbox',outbox),
+    exact('catalog_build_requests',build),exact('catalog_projection_receipts',projection),exact('catalog_vector_deliveries',policy)],{signal});
+  await check();
+  const observed=await readPlanVectors(db,owner,await planJournals(db,owner,plan.catalogRevision,signal),plan,adapters,undefined,signal,30000);
+  await check();return observed;
+});}
 export function readActivatedCatalogVectors(db:CatalogD1,permit:ActivationPermit,plan:ActivatedVectorPlan,
   adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>,
   options:{signal?:AbortSignal;published?:PublishedCatalogRead;permanent?:PermanentCatalogRevision}={}):Promise<PrunedVectorObservation> {
