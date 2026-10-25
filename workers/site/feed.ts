@@ -28,7 +28,7 @@ export function createStaticFeedPlan(snapshot: CatalogSnapshot, catalogSnapshotS
     const resolved=persistentPublicProduct(product)??resolvePublicProduct(product,at);return resolved ? [{product:resolved,index}] : [];
   }).filter(({ product }) => {
     if (ids.has(product.id) || !(product.eligibleUntil===null
-      ? product.isActive&&product.qualityScore>=.55&&product.imageUrl&&product.affiliateUrl
+      ? product.isActive&&product.qualityScore>=0&&product.qualityScore<=1&&product.imageUrl&&product.affiliateUrl
       : isCatalogDisplayEligibleProduct(product, { asOf }))) return false;
     ids.add(product.id);
     return true;

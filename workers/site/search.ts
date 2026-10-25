@@ -89,7 +89,7 @@ function select(candidates: SearchResult[], limit: number, now: number,semanticD
     return[result(product,candidate.similarity,candidate.matchType)];
   }).filter((product) => {
     if (ids.has(product.id) || !(product.eligibleUntil===null
-      ? product.isActive&&product.qualityScore>=.55&&product.imageUrl&&product.affiliateUrl
+      ? product.isActive&&product.qualityScore>=0&&product.qualityScore<=1&&product.imageUrl&&product.affiliateUrl
       : isCatalogDisplayEligibleProduct(product))) return false;
     ids.add(product.id);
     return true;

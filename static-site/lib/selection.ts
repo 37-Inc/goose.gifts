@@ -13,7 +13,8 @@ export function readySnapshotProducts(
   return snapshot.products.map(product => persistentPublicProduct(product) ?? product).filter(
     (product) =>
       product.isActive &&
-      product.qualityScore >= 0.55 &&
+      product.qualityScore >= (product.eligibleUntil === null ? 0 : 0.55) &&
+      product.qualityScore <= 1 &&
       product.imageUrl &&
       product.affiliateUrl &&
       catalogDeadline(product.eligibleUntil) > now,
