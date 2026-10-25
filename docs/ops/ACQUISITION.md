@@ -1,5 +1,17 @@
 # goose.gifts Acquisition and Link-Earning Plan
 
+## October 25 afternoon — routine unchanged native acquisition
+
+Actual23:32:34.852UTC: P1448impressions/22Pin clicks/3saves/2native outbound,
+F355/5/1/0, same AM; all28 original IDs/links/boards retained, frozenP6/F6.
+Healthy explicit GA4/PostHog reads provide no attributed Pinterest/retailer row;
+direct/amazon activity is not qualified Pinterest response. Arm/Pin downstream
+stays unknown. No new checkpoint due or public Pin created. Same ACTIVE metric-
+only cadence, exactOctober31 review and subsequent explicit owner approval gate.
+Destination/rebrand effects remain separate from format. Morning storage issue
+is no longer current (49GiB free); no cleanup or new alert here.
+[Run receipt and limits](pinterest-measurements/2026-10-25-pm/README.md).
+
 ## October 25 morning — routine measurement, attribution unknown
 
 Actual16:31:42.267UTC: P1448impressions/22Pin clicks/3saves/2native outbound,
