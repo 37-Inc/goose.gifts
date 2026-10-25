@@ -6,7 +6,7 @@ import { createOgRelease, ogPath, ogText } from "../static-site/lib/og.ts";
 import { renderOgPng } from "../static-site/lib/og-image.ts";
 import { previewMetadata } from "../static-site/lib/metadata.ts";
 import { siteIdentity } from "../static-site/lib/site-identity.ts";
-import { createStaticRoutes } from "../static-site/lib/asset-routes.ts";
+import { exportIdentity, exportedRoutes } from "./helpers/static-export.mjs";
 
 const fixture = JSON.parse(fs.readFileSync(new URL("../static-site/fixtures/catalog.snapshot.json", import.meta.url)));
 const identity = { name: "Goose Gifts", origin: "https://www.goose.gifts", tagline: "Ridiculous gifts. Excellent taste." };
@@ -74,8 +74,8 @@ test("every exported product PNG has its original product deadline and owned bra
   const source = new URL("../build/stupid-gifts/catalog.snapshot.json", import.meta.url);
   const built = fs.existsSync(source) ? JSON.parse(fs.readFileSync(source)) : process.env.CATALOG_SNAPSHOT_PATH
     ? JSON.parse(fs.readFileSync(process.env.CATALOG_SNAPSHOT_PATH)) : fixture;
-  const release = createOgRelease(built, siteIdentity), inventory = list(out);
-  const routes = createStaticRoutes(built, inventory);
+  const release = createOgRelease(built, exportIdentity), inventory = list(out);
+  const routes = exportedRoutes(built, inventory);
   for (const card of release.cards) {
     const route = routes[ogPath(card)];
     assert.equal(route.eligibleUntil, card.eligibleUntil);
@@ -88,7 +88,7 @@ test("every exported product PNG has its original product deadline and owned bra
     if (card.kind === "product" || card.kind === "fixture") {
       const product = built.products.find((p) => p.publicId === card.subjectId);
       const html = fs.readFileSync(new URL(`./gifts/${product.slug}.html`, out), "utf8");
-      assert.ok(html.includes(`property="og:image" content="${siteIdentity.origin}${ogPath(card)}"`));
+      assert.ok(html.includes(`property="og:image" content="${exportIdentity.origin}${ogPath(card)}"`));
     }
   }
   for (const held of built.heldProducts) {
