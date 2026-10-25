@@ -36,6 +36,31 @@ identities as public product pages need 16,916 product/OG files after exact
 deduplication, leaving roughly 3,000 files for guides, catalog shards and shared
 UI assets. The actual final build, not this estimate, decides publication.
 
+## Full-catalog local acceptance, October 25
+
+The actual integrated `75fae8e` build, after directory retirement and catalog
+hold resolution, contains **3,355 public gifts and 28 retained held identities**.
+Every public product has an existing image and short description (3,355/3,355
+for each). The final export has:
+
+- **17,237 physical assets**, including **3,410 HTML files**;
+- **6,802 exact-byte RSC aliases**, preserving **27,554 logical guarded routes**;
+- **2,763 files of headroom** under the existing 20,000-file Free guard.
+
+Independent checks verify all physical file hashes, original build context,
+release identity, catalog digest, feed and reconstructed route/compaction policy.
+The root's local desktop/mobile browser checks passed: 24 initial cards,
+Load More to 48 distinct cards with 48 descriptions, 36 complete search cards,
+and Clear. Local HTTP checks also passed product/affiliate links, guides,
+Random, exact aliased RSC bodies and genuine directory/Index 404s.
+
+This was a **private local preview, not production publication**. The checkout
+later advanced, so verification explicitly uses the original `75fae8e` build
+identity; it is not presented as a newer-HEAD full-release verification. Receipts
+are in the protected `catalog-resolution-preview-20261025` operator directory.
+The preview listener was stopped after QA. No provider calls, paid service or
+catalog identities were removed for this capacity work.
+
 ## Keep the system small
 
 1. Ship directory retirement and exact duplicate storage with all existing
@@ -45,9 +70,13 @@ UI assets. The actual final build, not this estimate, decides publication.
    deployment or increase overlap bounds to hide stale clients.
 3. Keep product-specific share images for useful link previews; no need to
    replace them with one generic image while capacity fits.
-4. Track file count and remaining headroom on each build. If real catalog growth
-   approaches the guard, evaluate shared OG fallbacks or a separate plain-HTML
-   export architecture as a deliberate follow-up, not an emergency rewrite.
+4. Track file count and remaining headroom on each build. Use **18,000 files**
+   (90%) as a review warning, not another publication-approval gate; retain the
+   existing hard 20,000-file refusal. At that warning, inspect measured growth
+   and bounded old-asset overlap first. If more space is actually needed,
+   selectively use the existing brand OG fallback for non-featured links before
+   considering any framework rewrite. Do not change architecture or trim the
+   catalog merely because a future limit is conceivable.
 
 ## Acceptance
 
