@@ -1,5 +1,15 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-24 PM — match the rejected read-only deadline assertion
+
+[owner+codex] First finish attempt stopped before activation. Offline exact
+request reconstruction matched the retained two-SELECT unknown to the native
+policy's old publication-cutoff assertion. The read-only permanent-catalog proof
+now uses the separately approved finish window; original source/rights/request
+times and native policy bytes stay unchanged. The unknown remains charged with
+its bounded read-only reserve, not refunded. Same upload, ledger and finish grant;
+no new product/model fetch, upload or paid capacity. Actual publication pending.
+
 ## 2026-10-24 PM — bounded uploaded-version finish and owner scope correction
 
 [owner+codex] Owner approved finishing the existing acknowledged upload on Free,

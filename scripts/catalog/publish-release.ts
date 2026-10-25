@@ -515,7 +515,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         return readPermanentNativeProof({db,owner,revision:options.permanent,adapters,signal});
       }
       if(options.published)return readPublishedCatalogVectors({db,owner,published:options.published,adapters,signal});
-      return 'approval' in revision.request?readOwnedApprovedCohortVectors(db,owner,revision as ApprovedCohortRevision,adapters):readOwnedPrunedVectors(db,owner,revision,adapters);
+      return 'approval' in revision.request?readOwnedApprovedCohortVectors(db,owner,revision as ApprovedCohortRevision,adapters,options.finishAuthorization,control?.versionReference??undefined):readOwnedPrunedVectors(db,owner,revision,adapters);
     };
     // Full-catalog scans are sequential owned D1 reads, not a short provider
     // observation. No proof survives this invocation or crosses an owner change.

@@ -4,8 +4,8 @@ import type { CatalogD1 } from '../../lib/catalog/storage/d1.ts';
 import { getProductsByPublicIds } from '../../lib/catalog/storage/d1.ts';
 import { mutationAdvance, mutationAssertion, mutationFenceQuery, readMutationOwner } from '../../lib/catalog/mutation-fence.ts';
 import type { MutationOwner, MutationScope } from '../../lib/catalog/mutation-fence.ts';
-import type { ActivationPermit, CatalogBuildRequest } from '../../lib/catalog/build-requests.ts';
-import { drainDeploymentObservation, encodeBuildRequest } from '../../lib/catalog/build-requests.ts';
+import type { ActivationPermit, CatalogBuildRequest,ReviewedUploadActivationInput } from '../../lib/catalog/build-requests.ts';
+import { drainDeploymentObservation, encodeBuildRequest,validatePublicationFinishAuthority } from '../../lib/catalog/build-requests.ts';
 import { encodePublicationIntent, encodePublishedCatalogBinding } from '../../lib/catalog/publication.ts';
 import type { PublicationIntent, PublishedCatalogBinding } from '../../lib/catalog/publication.ts';
 import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
@@ -734,7 +734,7 @@ async function policyReceipt(db:CatalogD1,owner:MutationOwner,revision:ApprovedC
   if(!row)return null;
   return validatePlan(row,owner,prunedVectorPlan(revision),providerIdentity,revision);
 }
-function planChecks(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision){
+function planChecks(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision,proofDeadline=revision.request.context.cutoff){
   const receipt=revision.packet.receipt,prior=revision.priorRow;
   const rc=['catalog_revision','snapshot_sha256','projection_sha256','source_export_sha256','product_count','created_at'];
   const pc=['release_id','catalog_revision','code_sha','completed_at','manifest_json'];
@@ -743,14 +743,15 @@ function planChecks(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevi
     AND (SELECT coalesce(max(rowid),0) FROM publication_receipts)=? AND (? IS NULL OR EXISTS(SELECT 1 FROM publication_receipts WHERE ${pc.map(k=>`${k} IS ?`).join(' AND ')}))
     AND (SELECT coalesce(max(sequence),0) FROM vector_sync_outbox)=? AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE status!='complete') AND ?>${NOW}`,
     [...rc.map(k=>receipt[k]),revision.snapshot.catalogRevision,revision.sourceDigest,revision.request.context.publicationReceiptWatermark,
-      revision.request.context.priorPublication?.releaseId??null,...pc.map(k=>prior[k]),revision.globalVectorWatermark,revision.request.context.cutoff])];
+      revision.request.context.priorPublication?.releaseId??null,...pc.map(k=>prior[k]),revision.globalVectorWatermark,proofDeadline])];
 }
-async function assertPlanSource(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision){
+export {planChecks as approvedCatalogPlanChecks};
+async function assertPlanSource(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision,proofDeadline?:string){
   if(revision.persistent)await (await import('./permanent-catalog-seal.ts')).assertApprovedCatalogInventory(db,owner,revision);
   await assertPruningCurrent(db,owner,revision.sourceRows);
   const rows=await readOwnedProjection(db,owner,revision.snapshot.catalogRevision,revision.packet.rows.map(r=>String(r.public_id)).sort());
   if(canonicalJson(rows)!==canonicalJson(revision.packet.rows))throw new Error('vector_prune_changed');
-  await db.batch(planChecks(db,owner,revision));
+  await db.batch(planChecks(db,owner,revision,proofDeadline));
 }
 /** The ONLY constructor of the new policy receipt independently executes the
  * complete approved policy once. Full source/projection reads are streamed under
@@ -1025,13 +1026,19 @@ export function readOwnedPrunedVectors(...args: Parameters<typeof readPrunedVect
   return safe(() => readPrunedVectors(...args));
 }
 export function readOwnedApprovedCohortVectors(db:CatalogD1,owner:MutationOwner,revision:ApprovedCohortRevision,
-  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>):Promise<PrunedVectorObservation> {
+  adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>,
+  finish?:ReviewedUploadActivationInput['finishAuthorization'],uploadedVersionReference?:string):Promise<PrunedVectorObservation> {
   return safe(async()=>{
+    // A fresh dispatch authorization can keep this read-only proof live for an
+    // already uploaded PERMANENT catalog. It never changes historical policy,
+    // supplier fields, the request cutoff, vectors or source hashes.
+    if(finish&&(!revision.persistent||revision.snapshot.products.some(p=>p.eligibleUntil!==null)))throw new Error('vector_plan_invalid');
+    const proofDeadline=finish?validatePublicationFinishAuthority(finish,revision.request.context.cutoff,uploadedVersionReference??''):undefined;
     adapterScope(owner,adapters);await db.batch([mutationAssertion(db,owner,['freezing'])]);
     if(await journal(db,idFor(owner,{kind:PLAN_KIND}))){
-      await assertPlanSource(db,owner,revision);
+      await assertPlanSource(db,owner,revision,proofDeadline);
       const result=await readPlanVectors(db,owner,await planJournals(db,owner,revision.snapshot.catalogRevision),prunedVectorPlan(revision),adapters,revision,undefined,30000);
-      await assertPlanSource(db,owner,revision);return result;
+      await assertPlanSource(db,owner,revision,proofDeadline);return result;
     }
     const rows=(await db.prepare(`SELECT * FROM catalog_vector_deliveries WHERE environment=? AND index_name=? AND generation=?
       AND json_extract(request_json,'$.catalogRevision')=? AND json_extract(request_json,'$.kind') IN('prune','approved-cohort-reuse') LIMIT 21`)

@@ -5,7 +5,7 @@ import {randomUUID} from 'node:crypto';
 import {loadUploadInputs,readUploadPrivate,putUploadPrivate} from './editorial-upload-continuation.mts';
 import {openRunWorkspace,readRunWorkspace} from './run-workspace.ts';
 import {resolveWranglerOAuth} from './check-cloudflare-runner.ts';
-import {runCloudflareWeekly,weeklyCommandSummary} from './run-cloudflare-weekly.ts';
+import {runCloudflareWeekly,weeklyCommandSummary,readOrdered} from './run-cloudflare-weekly.ts';
 import {sha256,canonicalJson} from './migration.ts';
 import type {PublicationFinishBudget,RunWorkspace} from './run-workspace.ts';
 import type {ReviewedUploadActivationInput} from '../../lib/catalog/build-requests.ts';
@@ -13,6 +13,9 @@ import {createCatalogD1Rest} from './d1-write-rest.ts';
 import {accountedPublicationFetch} from './publication-read-fetch.ts';
 import {createEditorialSuccessorFiles,createEditorialSuccessorObserver,reconcileEditorialRecoverySuccessor} from './editorial-recovery-successor.ts';
 import type {EditorialSuccessorPointer} from './editorial-recovery-successor.ts';
+import {approvedCatalogPlanChecks} from './owned-vector-delivery.ts';
+import type {ApprovedCohortRevision} from '../../lib/catalog/freeze-approved-cohort.ts';
+import type {CatalogD1} from '../../lib/catalog/storage/d1.ts';
 
 // A retained operator, not a second scheduler or general-purpose budget flag.
 const BASE=join(homedir(),'.codex/private/goose-gifts-migration');
@@ -21,11 +24,41 @@ const PREVIOUS=join(BASE,'editorial-upload-transport-20261024-v1/reviewed-upload
 const PREVIOUS_SHA='e4dbe0cc08df356cc5ea983111a14282528e6e56f2da56fec872fbe5e51a85cb';
 const VERSION='97aedc42-2321-416c-b349-014e13dba563';
 const CHECKPOINT='4318aca3970c843d3524d71d5ee88bfc093b3ecadb68b2513ca3108631e6174e';
+const ORIGINAL_CONTROLLER='c7859d302bdd5164792d7bdb9450f07a92dab469';
 function fail(code:string):never{throw Error('editorial_finish_'+code);}
 interface Profile {schemaVersion:1;controllerSha:string;authorizationSha256:string;
   budget:PublicationFinishBudget;authorization:NonNullable<ReviewedUploadActivationInput['finishAuthorization']>}
 
+async function reviewedReadUncertainty(w:RunWorkspace){
+  const spent=await w.budget();if(spent.unconfirmedRequests===0)return;
+  if(spent.unconfirmedRequests!==1)fail('unreviewed_unknown');
+  const directory=w.directory,requestSha256='6d288bf42d10309dabffe35e36ca013486682b4d7f5e11adf79cfb70877f7850';
+  const reserved=(await readUploadPrivate<{event:{reservation:{requestSha256:string;id:string;units:{sqlStatements:number}}}}>(
+    join(directory,'events/009998.099728debc7ce5d5abf0d223777e2dbed13e78b4663eb18be5dc5bcb94d1ee13.json'),
+    'f3e1ff3a0f43c31379316d61072d4feeb60270ad90b4c806123bf652bb4d83fd')).value.event.reservation;
+  const settled=(await readUploadPrivate<{event:{id:string;settlement:{status:string;usage:unknown}}}>(
+    join(directory,'events/009999.38007b3833c19efd32c4585e580274770b4cdc75f3167caa227103150d9b97fb.json'),
+    '1ff217bcd0bca5e417587056a7357ca0d50345111531e71b7bbc393d55417562')).value.event;
+  if(reserved.id!=='6e2abd0c-1e8c-4fea-8bb8-0a9f9ead1aaf'||reserved.requestSha256!==requestSha256||reserved.units.sqlStatements!==2
+    ||settled.id!==reserved.id||settled.settlement.status!=='unknown'||settled.settlement.usage!==null)fail('unreviewed_unknown');
+  const proof={schemaVersion:1,kind:'matched-read-only-plan-checks',runId:w.manifest.runId,requestSha256,sqlStatements:2,
+    maximumUnreportedReads:5000,maximumUnreportedWrites:0,originalCutoff:'2026-10-24T23:00:00.000Z'};
+  try{const old=(await readUploadPrivate(join(OUTPUT,'classified-read.json'))).value;
+    if(canonicalJson(old)!==canonicalJson(proof))fail('unknown_proof');return;
+  }catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
+  const original=await w.readArtifact({sha256:CHECKPOINT,reference:'objects/'+CHECKPOINT+'.json'}) as unknown as {
+    owner:NonNullable<Awaited<ReturnType<RunWorkspace['readCheckpoint']>>>['checkpoint']['owner'];pins:Record<string,{sha256:string;reference:string}>};
+  const control=await readOrdered<{revision:Omit<ApprovedCohortRevision,'request'|'sourceRows'>;request:{request:ApprovedCohortRevision['request']}}>(w,original.pins.revision);
+  const capture={prepare(sql:string){return{bind(...params:unknown[]){return{sql,params};}};}};
+  const batch=approvedCatalogPlanChecks(capture as unknown as CatalogD1,original.owner!,{...control.revision,request:control.request.request} as ApprovedCohortRevision) as unknown as Array<{sql:string;params:unknown[]}>;
+  const s=w.manifest.scope,actual=sha256(JSON.stringify({accountId:s.accountId,databaseId:s.databaseId,body:JSON.stringify({batch})}));
+  if(actual!==requestSha256||!batch.every(q=>/^SELECT\b/.test(q.sql))||control.revision.globalVectorWatermark!==8
+    ||control.request.request.context.publicationReceiptWatermark!==7)fail('unknown_proof');
+  await putUploadPrivate(join(OUTPUT,'classified-read.json'),proof);
+}
+
 async function freeCapacity(w:RunWorkspace,token:string){
+  await reviewedReadUncertainty(w); // Retained unknown is classified, NEVER refunded.
   const spent=await w.budget(),id=randomUUID(),url='https://api.cloudflare.com/client/v4/graphql';
   const body=JSON.stringify({query:'query($a:string!,$d:Date!){viewer{accounts(filter:{accountTag:$a}){d1AnalyticsAdaptiveGroups(limit:10000,filter:{date_geq:$d,date_leq:$d}){sum{rowsRead rowsWritten}}}}}',
     variables:{a:w.manifest.scope.accountId,d:new Date().toISOString().slice(0,10)}});
@@ -41,7 +74,7 @@ async function freeCapacity(w:RunWorkspace,token:string){
   const reads=groups.reduce((n:number,g:{sum:{rowsRead:number}})=>n+g.sum.rowsRead,0),writes=groups.reduce((n:number,g:{sum:{rowsWritten:number}})=>n+g.sum.rowsWritten,0);
   if(Math.max(reads,spent.knownRowsRead)+Math.max(0,2000000-spent.knownRowsRead)+500000+300000>5000000
     ||Math.max(writes,spent.knownRowsWritten)+Math.max(0,30000-spent.knownRowsWritten)+5000+10000>100000
-    ||spent.unconfirmedRequests!==0)fail('free_capacity');
+    ||spent.unconfirmedRequests>1)fail('free_capacity');
   return{reads,writes};
 }
 
@@ -110,7 +143,7 @@ export async function finishEditorialUpload(args:string[]){
       return{state:'prepared',profileSha256,originalLedger:await w.budget(),accountUsage:{reads,writes},activationDeadline};
     }
     profile=(await readUploadPrivate<Profile>(join(OUTPUT,'profile.json'))).value;
-    if(profile.schemaVersion!==1||profile.controllerSha!==controllerSha||profile.authorizationSha256!==authorizationSha256
+    if(profile.schemaVersion!==1||![controllerSha,ORIGINAL_CONTROLLER].includes(profile.controllerSha)||profile.authorizationSha256!==authorizationSha256
       ||profile.authorization.authorizationSha256!==authorizationSha256||profile.budget.approvalReference!==authorizationSha256
       ||profile.budget.versionReference!==VERSION||profile.authorization.versionReference!==VERSION||profile.budget.expectedCheckpointSha256!==CHECKPOINT
       ||profile.budget.reportedRowsRead!==2000000||profile.budget.allowance.httpRequests!==1000||profile.budget.allowance.sqlStatements!==2000
