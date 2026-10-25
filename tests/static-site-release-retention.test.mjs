@@ -122,6 +122,12 @@ test("shared code permits cleared permanent labels but rejects finite, URL and p
   const overlay={...escaped,persistent:{...second.products[0],title:'Permanently cleared original title'}};
   assert.throws(()=>assertOwnedCodeSafe(encode(JSON.stringify(overlay.title)),[{...second,products:[overlay]}]),/retention/);
   assert.doesNotThrow(()=>assertOwnedCodeSafe(encode(JSON.stringify(overlay.id)),[{...second,products:[overlay]}]));
+  const unchanged={...overlay,title:overlay.persistent.title};
+  assert.doesNotThrow(()=>assertOwnedCodeSafe(encode(JSON.stringify(unchanged.title)),[{...second,products:[unchanged]}]));
+  const clearedQuoted={...escaped,eligibleUntil:null};
+  assert.doesNotThrow(()=>assertOwnedCodeSafe(encode(JSON.stringify(clearedQuoted.title)),[{...second,products:[clearedQuoted]}]));
+  const crossField={...second.products[0],title:second.products[0].affiliateUrl};
+  assert.throws(()=>assertOwnedCodeSafe(encode(JSON.stringify(crossField.title)),[{...second,products:[crossField]}]),/retention/);
 });
 test("exported build and verifier use the explicit clean runtime root, not the toolchain checkout (mock Next)", async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "static-release-runtime-root-"));
