@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "kind": "offline-expanded-catalog-routine-capacity",
+  "date": "2026-10-25",
+  "scope": "Local workerd SQL mirror and real REST/SQLite catalog primitives; no provider calls, merchant fetches, model calls, upload or live deployment",
+  "runtimeBase": "9370d40be1e01255baa5b5e68694e2f7df3bbda0",
+  "command": "CATALOG_FULL_CAPACITY=1 node --import tsx --test --test-name-pattern='3355public routine30k' tests/catalog-permanent-freeze.test.mjs",
+  "catalog": {
+    "identities": 3383,
+    "public": 3355,
+    "held": 28,
+    "refreshesEachDay": 10,
+    "newDiscoveries": 0
+  },
+  "unchangedRoutineLimits": {
+    "httpRequests": 5000,
+    "sqlStatements": 12000,
+    "rowsRead": 1500000,
+    "rowsWritten": 30000
+  },
+  "workerdMeasuredDays": [
+    {
+      "day": 1,
+      "httpRequests": 2745,
+      "sqlStatements": 4232,
+      "rowsRead": 1113463,
+      "rowsWritten": 20493,
+      "unconfirmedRequests": 0
+    },
+    {
+      "day": 2,
+      "httpRequests": 3001,
+      "sqlStatements": 4607,
+      "rowsRead": 1198197,
+      "rowsWritten": 20493,
+      "unconfirmedRequests": 0
+    }
+  ],
+  "verified": [
+    "Ten genuine maintenance-store updates and existing native proof per day",
+    "All catalog IDs, held records and existing native history preserved",
+    "Exact source, approved projection, native policy and genuine publication receipts",
+    "Actual publication executor resolution to resolved build and idle owner",
+    "Body-free successor reopened after expired workspace bodies",
+    "Maximum 99 bound parameters per grouped projection INSERT",
+    "Existing 35-row and 512 KiB transaction boundaries retained",
+    "Legacy atomic import 39-product bound unchanged",
+    "Partial transaction rollback, lost seal acknowledgment and stale-owner rejection"
+  ],
+  "accountingCaution": [
+    "The former SQLite total_changes/returned-row proxies do not measure D1 billing correctly",
+    "Actual 3355-product archive projection measured 20130 workerd writes with both one-row and nine-row INSERTs",
+    "Grouping reduces SQL statements from 3355 to 384 and SQLite internal FTS churn; no provider write reduction is claimed",
+    "Workerd mirrors all ordinary SQL and checks ordered values; physical schema metadata rowids differ from Node SQLite",
+    "Initial migration setup and local mirror seeding are excluded from separate daily budgets, not erased or reused",
+    "This is a two-day ten-refresh proof, not a Monday thirty-change/discovery proof or live provider acceptance",
+    "Actual account-wide Free headroom and immutable run accounting remain mandatory before execution and publication"
+  ],
+  "reference": "https://developers.cloudflare.com/d1/platform/pricing/"
+}

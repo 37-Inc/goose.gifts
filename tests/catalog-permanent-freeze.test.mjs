@@ -32,6 +32,7 @@ import {maintenanceEmbeddingText} from '../scripts/catalog/maintenance-state.ts'
 import {editorialSourceHash} from '../scripts/ops/catalog-editorial-core.mjs';
 import {earliestDisplayExpiry} from '../lib/catalog/display.ts';
 import {openRunWorkspace} from '../scripts/catalog/run-workspace.ts';
+import {createWorkerdD1Meter} from './helpers/workerd-d1-meter.mjs';
 
 const accountId='a'.repeat(32),databaseId=uuid(9999),manifest='b'.repeat(64),asset='/images/gift-placeholder.svg';
 const grant=value=>({basis:'owned',value,reference:'ROOT approved exact synthetic value; no real rights claim'});
@@ -189,6 +190,7 @@ test(`authentic permanent successor preserves mixed native history across expire
     return{seal:permanentMode?createPermanentCatalogSeal(revision,source):await createPublishedApprovedCatalogSeal(f.db,revision,source),intent};
   }
   let prior=await publish(permanent,await settlePermanentCatalog(f.db,prepared.owner,permanent,f.adapters),f.original.intent,true);
+  if(routine){const meter=createWorkerdD1Meter(t);await meter.initialise(f.sql);f.setMeter(meter);}
   const originalIds=f.sql.prepare('SELECT public_id FROM products ORDER BY public_id').all().map(r=>r.public_id);
   const held=f.sql.prepare('SELECT * FROM products WHERE is_active=0 ORDER BY public_id').all().map(r=>({...r}));
   const root=await mkdtemp(join(await realpath(tmpdir()),'stupid-offline-successor-'));
@@ -272,7 +274,8 @@ test(`authentic permanent successor preserves mixed native history across expire
     if(count===3383)t.diagnostic(JSON.stringify({scenario:`authentic-successor-day-${day}${routine?'-3355-routine30k':''}`,refreshes:refreshes.length,newProducts:day===1?newCount:0,
       publicProducts:revision.snapshot.products.length,heldProducts:revision.snapshot.heldProducts.length,
       identities:revision.persistent.inventory.length,historicalNative:plan.history.flatMap(g=>g.ids).length,currentNative:plan.products.length,
-      d1:f.db.metrics(),scope:'offline genuine prior/policy/native/publisher-resolution; no new build/upload or D1 billed-row claim'}));
+      d1:f.db.metrics(),scope:routine?'offline workerd index-inclusive counters; genuine prior/policy/native/publisher-resolution, no provider calls'
+        :'offline genuine prior/policy/native/publisher-resolution; no new build/upload or D1 billed-row claim'}));
     if(day===1){
       const observedAt=f.now().toISOString(),notAfter=new Date(f.now().getTime()+3600000).toISOString();
       oldOptions={directory:join(root,'day-one'),repository:await realpath(fileURLToPath(new URL('..',import.meta.url))),
@@ -300,6 +303,9 @@ test(`authentic permanent successor preserves mixed native history across expire
     const bad=structuredClone(prior.seal);mutate(bad);await assert.rejects(readCatalogPredecessor({db:f.db,owner,seal:bad,approval,
       approvalSha256:sha256(canonicalJson(approval)),adapters:f.adapters}));
   }
+  // The following deliberate direct-SQL corruptions are Node-only fault cases,
+  // not normal work to mirror or include in the two measured daily budgets.
+  if(routine)f.setMeter(undefined);
   const old=f.sql.prepare('SELECT tags FROM products WHERE public_id=?').get(uuid(9)).tags;
   f.sql.prepare("UPDATE products SET tags='unapproved held drift' WHERE public_id=?").run(uuid(9));await assert.rejects(read());
   f.sql.prepare('UPDATE products SET tags=? WHERE public_id=?').run(old,uuid(9));

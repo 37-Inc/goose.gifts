@@ -17,7 +17,7 @@ const accountId='a'.repeat(32),databaseId=uuid(9999),manifest='b'.repeat(64),ass
 const svg='<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h10"/></svg>';
 const grant=value=>({basis:'owned',value,reference:'ROOT approved exact synthetic value; no real rights claim'});
 
-export async function permanentCatalogFixture(t,{count=12,afterExpiry=false,merchant=false,publicCount=2361,initialTime,ownerHeld=0,ownerDuplicates=0}={}){
+export async function permanentCatalogFixture(t,{count=12,afterExpiry=false,merchant=false,publicCount=2361,initialTime,ownerHeld=0,ownerDuplicates=0,meter}={}){
   const f=await setup(t,{providerIdentity:`cloudflare:${accountId}:${scope.indexName}`,merchant,...(initialTime===undefined?{}:{initialTime})});
   if(afterExpiry)f.advance(Date.parse(f.revision.snapshot.products[0].eligibleUntil)-f.now().getTime()+3600000);
   let statements=0,requests=0,maxRequest=0,maxResponse=0,loseSeal=false,inspect,lastFailure;const queryText=[],queryWire=[];
@@ -29,13 +29,20 @@ export async function permanentCatalogFixture(t,{count=12,afterExpiry=false,merc
     required:{requests:10000,statements:25000,rowsRead:2000000,rowsWritten:85000,evidenceSha256:'b'.repeat(64)}},f.now());
   const send=async(url,init)=>{requests++;assert.equal(url,`https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}${init.method==='POST'?'/query':''}`);
       if(init.method==='GET')return Response.json({success:true,result:{uuid:databaseId,name:'permanent-freeze',read_replication:{mode:'disabled'}}});
-      const {batch}=JSON.parse(init.body);inspect?.(batch);assert.ok(batch.length<=50);statements+=batch.length;queryText.push(...batch.map(q=>q.sql));
+      const {batch}=JSON.parse(init.body);await meter?.initialise(f.sql);inspect?.(batch);assert.ok(batch.length<=50);statements+=batch.length;queryText.push(...batch.map(q=>q.sql));
       queryWire.push(...batch.filter(q=>q.sql.includes('FROM json_each(?) e CROSS JOIN catalog_public_products p')));
       maxRequest=Math.max(maxRequest,Buffer.byteLength(init.body));assert.ok(maxRequest<=512*1024);f.sql.exec('BEGIN');let result;
       let activeQuery;try{result=batch.map(q=>{activeQuery=q.sql;assert.ok(q.params.length<=100);const before=f.sql.prepare('SELECT total_changes() n').get().n;
         const rows=f.sql.prepare(q.sql).all(...q.params).map(r=>({...r}));return{success:true,results:rows,meta:{served_by_primary:true,
           rows_read:rows.length,rows_written:f.sql.prepare('SELECT total_changes() n').get().n-before}};});f.sql.exec('COMMIT');}
       catch(error){lastFailure={query:activeQuery,error:error.message};f.sql.exec('ROLLBACK');throw error;}
+      if(meter){const measured=await meter.batch(batch,f.now().toISOString()).catch(error=>{t.diagnostic('workerd meter: '+error.message.slice(0,2000));throw error;});assert.equal(measured.length,result.length);
+        result=result.map((r,i)=>{if(!/sqlite_schema|pragma_table_info/.test(batch[i].sql)){
+          // Replacing the fixture clock changes unnamed expression labels,
+          // not their ordered values. Physical schema rowids differ as well.
+          try{assert.deepEqual(measured[i].results.map(Object.values),r.results.map(Object.values));}
+          catch(error){t.diagnostic(JSON.stringify({query:batch[i].sql.slice(0,160),mismatch:error.message.slice(0,2000)}));throw error;}}
+          return{...r,meta:{...r.meta,rows_read:measured[i].rowsRead,rows_written:measured[i].rowsWritten}};});}
       if(loseSeal&&batch.some(q=>q.sql.startsWith('INSERT INTO catalog_projection_receipts'))){loseSeal=false;throw new Error('synthetic committed seal ACK loss');}
       const bytes=JSON.stringify({success:true,result});maxResponse=Math.max(maxResponse,Buffer.byteLength(bytes));assert.ok(maxResponse<=512*1024);return new Response(bytes);};
   const makeDb=(initial=ledger)=>createCatalogD1MigrationRest({accountId,databaseId,databaseName:'permanent-freeze',token:'FIXTURE_ONLY',budget,ledger:initial,now:f.now,
@@ -88,5 +95,5 @@ export async function permanentCatalogFixture(t,{count=12,afterExpiry=false,merc
   const freezing=await claimMutationOwnership(db,scope,{phase:'freezing',ownerReference:'permanent',operationKey:permanentCatalogOperationKey(request)});
   const metrics=()=>({requests,statements,maxRequest,maxResponse});
   return{...f,scope,accountId,databaseId,db,makeDb,makeNextDayDb,request,owner:freezing,metrics,queryText,queryWire,
-    failure:()=>lastFailure,inspect(fn){inspect=fn;},loseSeal(){loseSeal=true;}};
+    failure:()=>lastFailure,inspect(fn){inspect=fn;},loseSeal(){loseSeal=true;},setMeter(value){meter=value;}};
 }
