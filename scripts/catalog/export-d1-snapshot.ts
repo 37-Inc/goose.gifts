@@ -341,14 +341,16 @@ function verificationTime(current: Row, rights: ProductRights): number {
 }
 export function checkCurrent(product: PublicCatalogProduct, projection: Row, current: Row, now: Date): void {
   if (!current || current.id !== product.id || current.public_id !== product.publicId || current.slug !== product.slug || current.source !== product.source
-    || current.is_active !== 1 || current.duplicate_of_product_id !== null || typeof current.quality_score !== 'number' || current.quality_score < .55
+    || current.is_active !== 1 || current.duplicate_of_product_id !== null || typeof current.quality_score !== 'number'
+    || !Number.isFinite(current.quality_score) || current.quality_score < (persistentPublicProduct(product) ? 0 : .55)
+    || current.quality_score > 1
     || current.source_facts_hash !== projection.source_facts_hash
     || typeof current.public_display_json !== 'string') throw new Error('current_hold_or_factual_drift');
   const approved = validatePublicCatalogProduct(JSON.parse(current.public_display_json), now);
   const persistent = persistentPublicProduct(product), currentPersistent = persistentPublicProduct(approved);
   const rights = object(JSON.parse(String(current.rights_json))) as ProductRights;
   if (persistent) {
-    if (['blocked', 'needs_review'].includes(String(current.editorial_status)) || !currentPersistent
+    if (['blocked', 'needs_review'].includes(String(current.editorial_status)) || current.quality_score !== persistent.qualityScore || !currentPersistent
       || canonicalJson(persistent) !== canonicalJson(currentPersistent)
       || persistent.indexable && (!/^[a-f0-9]{64}$/.test(String(current.source_facts_hash))||!['generated_ready', 'manual_locked'].includes(String(current.editorial_status))
         || current.source_facts_hash !== current.editorial_source_hash)
@@ -461,7 +463,10 @@ export async function reconstructD1Snapshot(db: CatalogD1, envelopeInput: Sealed
     if (canonicalJson(packet.rows) !== canonicalJson(sortedProjection) || canonicalJson(packet.receipt) !== canonicalJson(receipt)) return hold('projection_bytes_mismatch');
     if (snapshot.products.some((product) => catalogDisplayDeadline(product) <= Math.max(now.getTime(), Date.parse(context.cutoff)))) return hold('expiry_requires_new_revision', true);
     if (now.toISOString() >= context.cutoff) return hold('capture_window_elapsed');
-    if (suppressNearDuplicateProducts(snapshot.products).length !== snapshot.products.length) return hold('duplicates_require_new_revision', true);
+    // Family/archetype heuristics are discovery filters, not authority to
+    // unpublish an owner-approved permanent listing or a distinct variant.
+    const supplierOnly = snapshot.products.filter(product => !persistentPublicProduct(product));
+    if (suppressNearDuplicateProducts(supplierOnly).length !== supplierOnly.length) return hold('duplicates_require_new_revision', true);
     validateCatalogSnapshot(snapshot, now);
     const operational = new Map(current.map((row) => [row.public_id, row]));
     if (operational.size !== current.length || current.length !== envelope.products.length + envelope.heldProducts.length) return hold('current_identity_missing');

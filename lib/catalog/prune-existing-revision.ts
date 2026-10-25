@@ -1,5 +1,5 @@
 import type { CatalogD1 } from './storage/d1.ts';
-import { catalogDisplayDeadline } from './display.ts';
+import { catalogDisplayDeadline, persistentPublicProduct } from './display.ts';
 import type { CatalogSnapshot, SafeHeldProduct } from './types.ts';
 import type { ProjectionPacket } from './d1.ts';
 import { createProjectionPacket, projectionQueries } from './d1.ts';
@@ -115,9 +115,9 @@ async function prune(db: CatalogD1, owner: MutationOwner, request: PruneRequest)
       products.push(product); // Exact previous deadline and display bytes: no renewal.
     } catch { removed.push(held(product, catalogDisplayDeadline(product) <= cutoff ? 'expired' : 'editorial_hold')); }
   }
-  const unique = new Set(suppressNearDuplicateProducts(products).map(product => product.publicId));
+  const unique = new Set(suppressNearDuplicateProducts(products.filter(product => !persistentPublicProduct(product))).map(product => product.publicId));
   const ready = products.filter(product => {
-    if (unique.has(product.publicId)) return true;
+    if (persistentPublicProduct(product) || unique.has(product.publicId)) return true;
     removed.push(held(product, 'duplicate')); return false;
   });
   const safeHeld = source.snapshot.heldProducts.map(value => {

@@ -18,7 +18,7 @@ async function setup(t, { count = 3, horizon = 6 * 3600000 } = {}) {
   const sql = new DatabaseSync(':memory:'); t.after(() => sql.close());
   for (const migration of ['0001_catalog.sql','0002_public_projections.sql','0003_publication_outbox.sql','0004_vector_outbox_leases.sql',
     '0005_historical_timestamps.sql','0006_semantic_search_budget.sql','0007_catalog_build_requests.sql','0008_reviewed_vector_deletes.sql',
-    '0009_catalog_mutation_fence.sql']) sql.exec(await readFile(new URL(`../migrations/d1/${migration}`, import.meta.url), 'utf8'));
+    '0009_catalog_mutation_fence.sql','0010_catalog_maintenance.sql']) sql.exec(await readFile(new URL(`../migrations/d1/${migration}`, import.meta.url), 'utf8'));
   let clock = AT; let beforeStatement; let afterBatch; let loseBatchResponse = false; const calls = [];
   sql.function('strftime', (format, when) => { assert.equal(format,'%Y-%m-%dT%H:%M:%fZ'); assert.equal(when,'now'); return new Date(clock).toISOString(); });
   const db = { prepare(query) { let values = []; return { query,

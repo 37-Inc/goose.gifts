@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "state": "offline-reviewed-proposal-not-live-application",
+  "sourceManifestSha256": "e70c0211829ac5d9b9c07e39605eb03426ec50de85845013f7a11b6793869fd9",
+  "sourceProductsSha256": "3d5efe00cbff1e06420da81edffa47616e76a15f2623bcdc095cada7782cfbb9",
+  "baseline": { "identities": 3383, "public": 2359, "held": 1024, "originalArticles": 42 },
+  "oldHolds": {
+    "inactive": 205,
+    "editorialHold": 796,
+    "explicitDuplicate": 23,
+    "editorialWithoutSpecificObjection": 762,
+    "editorialWithSpecificHistoricalObjection": 34,
+    "missingImageTitleOrShortDescription": 0
+  },
+  "reviewedProposal": {
+    "promote": 973,
+    "publicAfter": 3332,
+    "heldAfter": 51,
+    "duplicateExclusions": 27,
+    "additionalExactTitleDuplicates": 4,
+    "concreteGenericCommodityExclusions": 24,
+    "sizedBatchesOnArchivedPreview": 65,
+    "existingPublicProductsPreserved": 2359,
+    "originalArticlesPreserved": 42,
+    "newlyApprovedLongArticles": 0,
+    "merchantRequests": 0,
+    "modelRequests": 0,
+    "nativeWrites": 0,
+    "deletedIdentities": 0
+  },
+  "decisions": [
+    "Historical inactive stock or unknown-availability flags do not by themselves block the existing licensed listing; the base publishes no current price or stock claim.",
+    "Pending long-form generation/review is not a reason to hide a factual image/title/short-description listing.",
+    "The historical default0.50 ranking score is retained rather than inflated into a fake review. Exact permanently licensed base listings allow finite scores0..1; the fresh supplier lane keeps0.55.",
+    "Manual-locked status is not a listing objection. Existing licensed fields remain unchanged, while previously held long drafts stay private and nonindexable.",
+    "Existing duplicate pointers and exact normalized listing titles are excluded. Distinct brands, sizes, models and novelty objects are not collapsed by broad family/archetype matching.",
+    "Twenty-four ordinary commodity products retain explicit per-ID factual curation reasons in HELD_CATALOG_EXCLUSIONS. Old generic-format rules incorrectly rejecting funny books, costumes, mugs and the whoopie cushion are not retained."
+  ],
+  "livePrerequisites": [
+    "Finish the unrelated pending publication recovery and obtain actual idle-owner confirmation first.",
+    "Use a fresh bounded accounted D1 connection and normal writing ownership, capture the1024current held rows and existing sidecars, and regenerate/review the exact plan. Archived preview is not a current D1 capture.",
+    "Apply the immutable plan with exact-before/after CAS, original source/history/native preservation and immutable operation receipts; unknown ACKs reconcile the same receipt.",
+    "Independently capture and seal the resulting full source inventory and a new catalog revision, preserving every existing public field and all42articles. This helper does not create a projection revision or deployment.",
+    "Publish the tested integrated storefront and verify real release/receipt/build/idle owner, catalog counts, directory retirement, home/search cards and outbound navigation before claiming completion."
+  ]
+}

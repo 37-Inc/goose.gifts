@@ -99,7 +99,8 @@ const persistentImage=`(${allOf([
   `instr(${image},'#')=0`, `instr(${image},'\\')=0`,
 ])})`;
 const PERSISTENT_VISIBLE=`coalesce(${allOf([
-  'p.is_active=1', 'p.duplicate_of_product_id IS NULL', 'p.quality_score>=0.55',
+  'p.is_active=1', 'p.duplicate_of_product_id IS NULL', 'p.quality_score BETWEEN 0 AND 1',
+  `p.quality_score=json_extract(${V_BASE},'$.qualityScore')`,
   "p.editorial_status NOT IN ('blocked','needs_review')",
   'v.source_facts_hash IS p.source_facts_hash', `json_type(${V_BASE})='object'`, `json_type(${P_BASE})='object'`,
   `json_type(${BASE_RIGHTS})='object'`, `json_type(${V_BASE},'$.eligibleUntil')='null'`,
