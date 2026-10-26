@@ -11,6 +11,7 @@ function search(href, query = "desk", resultState) {
   const events = new Map();
   const pushed = [];
   const requests = [];
+  const dispatched = [];
   const timers = new Map();
   let nextTimer = 0;
   const location = { href, pathname: new URL(href).pathname, search: new URL(href).search };
@@ -44,13 +45,13 @@ function search(href, query = "desk", resultState) {
       setTimeout: (fn) => { timers.set(++nextTimer, fn); return nextTimer; },
       clearTimeout: (id) => timers.delete(id),
       history: { pushState: remember, replaceState: remember },
-      dispatchEvent: () => {},
+      dispatchEvent: (event) => { dispatched.push(event.type); },
       addEventListener: (name, listener) => events.set(name, listener),
       removeEventListener: (name) => events.delete(name),
     },
   });
   const view = commonJs.exports.Search({ children: "NORMAL BROWSE" });
-  return { view, effects, events, pushed, requests, timers, scrolls: () => scrolls };
+  return { view, effects, events, pushed, requests, dispatched, timers, location, scrolls: () => scrolls };
 }
 
 test("bookmarked queries and history reveal search; short queries do not move the product-first homepage", async () => {
@@ -101,6 +102,12 @@ test("empty and unavailable searches expose browse recovery; retry preserves que
     const [retry, browse] = recovery.props.children;
     assert.equal(browse.props.children, "Browse all gifts");
     assert.equal(Boolean(retry), status === "unavailable");
+    if (retry) {
+      retry.props.onClick();
+      assert.equal(ui.location.search, "?q=mug");
+      assert.deepEqual(ui.pushed, [], "Retry keeps the current search history entry");
+      assert.deepEqual(ui.dispatched, ["catalog-search"], "Retry actually starts another search");
+    }
     browse.props.onClick();
     assert.deepEqual(ui.pushed, ["/"]);
   }

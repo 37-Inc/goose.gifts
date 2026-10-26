@@ -173,6 +173,13 @@ test("home is the browse destination with the approved heading and no redundant 
   assert.match(read("components/CatalogFeed.tsx"), /Load more/);
 });
 
+test("clamped card titles draw the keyboard focus ring outside the clipping heading", () => {
+  const css = fs.readFileSync(new URL("../static-site/app/styles.css", import.meta.url), "utf8");
+  assert.match(css, /\.product-card h2\s*\{[^}]*overflow:\s*hidden/s);
+  assert.match(css, /\.product-card h2:has\(a:focus-visible\)\s*\{\s*outline:\s*2px solid var\(--accent\);\s*outline-offset:\s*5px;/);
+  assert.match(css, /\.product-card h2 a:focus-visible\s*\{\s*outline:\s*none;/);
+});
+
 test("Load more failure preserves visible gifts and the cursor for a successful retry", async () => {
   const initial = [{ id: "first", eligibleUntil: "2030-01-01T00:00:00.000Z" }];
   let state, calls = 0;
