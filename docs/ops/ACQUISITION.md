@@ -1,5 +1,18 @@
 # goose.gifts Acquisition and Link-Earning Plan
 
+## October 26 afternoon — no new attributable Pinterest acquisition
+
+Actual23:32:09.721UTC: P1451impressions/22Pin clicks/3saves/2native outbound,
+F359/5/1/0;28 retained IDs/links/boards and frozenP6/F6 intact. Distribution
+increased since last durable receipt, v11 actions unchanged. Explicit bounded
+GA4/PostHog reads healthy, no Pinterest-attributed row; arm/Pin downstream
+unknown. Direct/amazon activity and pre-v11 extra Pin opens are not Pinterest
+conversions or confirmed people. No new checkpoint/public Pin/format adoption.
+Missing local operator recovered at exact source; interrupted AM result not
+backfilled. Same ACTIVE measurement cadence, exactOctober31 review and explicit
+post-review next-experiment gate. Redirect/rebrand remains an intervention.
+[Run receipt](pinterest-measurements/2026-10-26-pm/README.md).
+
 ## October 25 afternoon — routine unchanged native acquisition
 
 Actual23:32:34.852UTC: P1448impressions/22Pin clicks/3saves/2native outbound,

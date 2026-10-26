@@ -1,5 +1,17 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-26 PM — frozen Pinterest measurement; operator restored
+
+[daily-ops] Actual23:32:09.721UTC verifies28 public Pins/P6F6. Profile4010/
+63opens/8saves/2native outbound; P1451/22/3/2,F359/5/1/0. Distribution grows,
+v11 actions unchanged; attributable site/retailer response unknown. Healthy
+bounded GA4/PostHog reads, no new checkpoint due.13 validated events/1038 total;
+receipt in `pinterest-measurements/2026-10-26-pm/`. Missing operator checkout
+restored at exact retained be034bf source; canonical/catalog pins untouched.
+Cause unverified; interrupted AM result unavailable, not backfilled. No public
+Pin created, creative/account/catalog/site/Bead/schedule change, deploy or spend.
+Same ACTIVE measurement cadence, exact October31 review/posting freeze unchanged.
+
 ## 2026-10-25 PM — routine Pinterest measurement; storage recovered
 
 [daily-ops] Actual23:32:34.852UTC verifies28 public Pins/v11P6/F6. Profile3959/
