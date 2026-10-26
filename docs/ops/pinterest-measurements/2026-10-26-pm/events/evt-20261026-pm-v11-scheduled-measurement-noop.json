@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261026-pm-v11-scheduled-measurement-noop",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-26T23:33:10Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "Actual scheduled measurement-only snapshot 2026-10-26T23:32:09.721Z verifies 1107815345747925810 / stupid_gifts / BUSINESS and 28 retained public Pins; all original IDs, tracked links and boards match the last durable October25 PM receipt. Frozen v11 P6/F6: P1451 impressions/22 Pin clicks/3 saves/2 native outbound, F359/5/1/0. Distribution increased P3/F4 without a new v11 action. Profile4010/63/8/2 includes three additional Pin opens on pre-v11 Pins, not acquisition. Bowling1396 supplies96.21% P exposure/both outbound; Toast283 supplies78.83% F. Excluding those dominant products leaves P55/2/0/0 and F76/2/0/0. GA4 property507421709 October19-26 Pacific/current partial returns Goose459 direct sessions; Stupid43 direct,9 amazon/(not set),2 not-set and2 amazon/blank-medium. Five direct/amazon retailer events remain unattributed to Pinterest, not confirmed customers. PostHog550427 rollingUTC October19T23:32:05.643Z-October26T23:32:05.643Z has48 page views/72 list views/5 searches/5 select-item events after campaign/whole-QA-identity exclusions; attribution query returns no row. Per-arm/Pin downstream remains unknown, not zero; provider/window/untagged-operator and absent-host/fullURL/utm_content limits retained. No unresolved publication receipt or newly due24h/seven-day/28day checkpoint. Prior late observations and six archived/public memberships remain. Next28day SheepNovember10T20:07:09.336Z. The operator directory was missing at PM start although its task attachment remained active; exact local/remote retained branch be034bfd was safely restored at the same path without changing canonical/catalog pins, runtime source or credentials. Cause of removal is unverified. The interrupted AM attempt has no durable snapshot and is not backfilled or presented as exact-age history. Independent Goose-to-Stupid redirect/rebrand is an intervention, not a creative-format effect. Final review remains undelivered/not due until2026-10-31T16:44:52.279Z.",
+    "evidenceEventIds": [
+      "evt-20261025-pm-v11-scheduled-measurement-noop",
+      "evt-20261026-pm-v11-metrics-1107815208389000013",
+      "evt-20261026-pm-v11-metrics-1107815208389027583",
+      "evt-20261024-goose-domain-redirect-intervention"
+    ],
+    "decision": "Measurement-only no-op: no public Pin created and no creative/shortlist/package/approval, public/Sandbox/account/Pin/catalog/site mutation, deployment, spend, Bead or schedule change. No demonstrated acquisition/format winner. Restored local operator and healthy provider reads require no owner action; routine attention changes do not reopen posting.",
+    "nextAction": "Keep same ACTIVE09:30/16:30Pacific task/chat unchanged. Deliver the complete six-P-versus-six-F review once at/after2026-10-31T16:44:52.279Z, expected regular eligible slotOctober31 16:30Pacific. Retain actual ages, exposure concentration, product/category differences and pre/post-destination/rebrand caveats. No generation/posting even after review without Cameron's explicit new-experiment approval."
+  }
+}
