@@ -1,5 +1,16 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-26 — remove unintended article-only product indexing gate
+
+[owner+codex] Search Console alert investigation found3,310of3,352public
+listings excluded by HTML/HTTP noindex; only42product URLs were in the87URL
+sitemap. Canonical metadata/routes now use the existing validated public
+allowlist instead of long-editorial qualification. Sealed catalog/native data,
+all content and31specific exclusions are unchanged; fixture/private/auxiliary/
+query/expiry controls remain. Expected HTTP/domain redirects are retained.
+Build/tests and normal publication/live GSC validation remain separate steps;
+tracked in roadmap-lbbz1.9 and INDEXING_AUDIT_2026-10-26.md.
+
 ## 2026-10-25 — parallel UI refinement and smaller publication output
 
 [owner+codex] PR290 combines independently reviewed Astra design and Sol static
