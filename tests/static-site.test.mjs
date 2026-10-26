@@ -114,9 +114,13 @@ test(
       assert.equal(routes[`${held.path}.txt`].state, "held");
     }
     assert.equal(
-      routes["/__next.__PAGE__.txt"].eligibleUntil,
+      routes["/index.html"].eligibleUntil,
       earliestDisplayExpiry(exportSnapshot.products),
     );
+    // Historical exports also publish standalone Flight; document output uses
+    // inline hydration instead. Any retained companion still needs its policy.
+    if (routes["/__next.__PAGE__.txt"])
+      assert.equal(routes["/__next.__PAGE__.txt"].eligibleUntil, routes["/index.html"].eligibleUntil);
     assert.throws(
       () => exportedRoutes(exportSnapshot, [...inventory, "/orphan.txt"]),
       /no freshness policy/,

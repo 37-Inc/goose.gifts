@@ -7,9 +7,11 @@ import { canonicalTime, validateCatalogSnapshot } from '../../lib/catalog/snapsh
 import type { CatalogSnapshot, SiteAssetManifest } from '../../lib/catalog/types.ts';
 import { createStaticFeedPlan } from '../../workers/site/feed.ts';
 import { createReleaseIdentity } from './release-identity.mts';
-import { resolveSiteSourceMode, siteIdentityRecordFor } from '../../static-site/lib/site-identity.ts';
+import { resolveSiteSourceMode, siteIdentityFor, siteIdentityRecordFor } from '../../static-site/lib/site-identity.ts';
 import { assembleReleaseAssets, readPriorRelease } from './retention.mts';
 import { earliestDisplayExpiry } from '../../lib/catalog/display.ts';
+import { createStaticRoutes } from '../../static-site/lib/asset-routes.ts';
+import { documentAssets } from '../../static-site/lib/document-output.ts';
 
 export type ReleaseBuildContext = Pick<SiteAssetManifest, 'schemaVersion' | 'releaseId' | 'codeSha' | 'catalogRevision'
   | 'catalogSnapshotSha256' | 'generatedAt' | 'vectorSyncWatermark' | 'priorReleaseId' | 'sourceMode'> & { retainedManifestSha256: string | null };
@@ -95,9 +97,12 @@ export async function buildStaticRelease(root: string) {
   for (const file of files) {
     currentAssets.set(`/${path.relative(output, file).split(path.sep).join('/')}`, await fs.readFile(file));
   }
-  const assembled = assembleReleaseAssets(snapshot, currentAssets, context, priorPackage);
-  // Only generated duplicates in this build are removed. Their original RSC
-  // URLs remain mapped to identical bytes in the sealed route manifest.
+  // Validate Next's complete export before selecting this native-anchor site's
+  // document output. HTML includes its own hydration payload; standalone Flight
+  // navigation files are deliberately not published. Safe/legal text remains.
+  const navigationRoutes = createStaticRoutes(snapshot, [...currentAssets.keys()], undefined, siteIdentityFor(context.sourceMode));
+  const assembled = assembleReleaseAssets(snapshot, documentAssets(currentAssets, navigationRoutes), context, priorPackage);
+  // Only generated outputs in this build are removed, never historical packages.
   for (const name of currentAssets.keys()) if (!assembled.assets.has(name))
     await fs.unlink(path.join(output, name.slice(1)));
   const checksums: Record<string, string> = {};
@@ -125,6 +130,9 @@ export async function buildStaticRelease(root: string) {
   await fs.writeFile(path.join(generated, 'release-identity.json'), `${JSON.stringify(createReleaseIdentity(manifestBytes))}\n`);
   console.log(JSON.stringify({ releaseId: manifest.releaseId, dataKind: snapshot.dataKind,
     productCount: manifest.productCount, assets: assembled.assets.size, guardedRoutes: Object.keys(assembled.routes).length,
+    exportedAssets: currentAssets.size,
+    exportedBytes: [...currentAssets.values()].reduce((total, bytes) => total + bytes.byteLength, 0),
+    assetBytes: [...assembled.assets.values()].reduce((total, bytes) => total + bytes.byteLength, 0),
     nextExpiry: manifest.nextExpiry }));
 }
 

@@ -1,5 +1,27 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 — parallel UI refinement and smaller publication output
+
+[owner+codex] PR290 combines independently reviewed Astra design and Sol static
+implementation/proof tracks. White gallery/actions/search recovery/footer/mobile
+details are consistent; a clipped keyboard focus ring and raw browser404 were
+fixed. Same-catalog output falls17,223to7,019files; combined UI package is
+281,383,459bytes. Root actual-Worker desktop/mobile flows pass with external
+Flight denied and DB/Vectorize forbidden. All3352public/31excluded/3383identities
+and42articles stay unchanged. Local build/proof is not production acceptance:
+use the EXISTING next normal daily job, no extra merchant batch or second
+publisher. Keep .5.5/.4.12 open until actual receipt/build/idle/successor/live QA.
+
+## 2026-10-25 — local document-output simplification
+
+[owner+codex] The static builder validates the complete Next route inventory,
+then publishes full HTML and inline hydration without standalone catalog Flight
+navigation files. Native anchors remain the navigation contract; safe/legal text,
+individual OG images, JSON, runtime assets and all catalog content remain. Unknown
+payload shapes fail closed. Assembly, immutable historical alias verification,
+retention and finite fallbacks are unchanged; no manifest version/protocol is
+added. This is local implementation, not production publication.
+
 ## 2026-10-25 — full catalog, descriptions and directory cleanup are live
 
 [owner+codex] Actual Cloudflare release `owner-held-final-20261026` / runtime6f3e0c1

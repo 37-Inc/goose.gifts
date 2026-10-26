@@ -32,6 +32,8 @@ const paths = {
   leaf: "M20 3C8 2 2 8 5 15s17 8 15-12ZM3 21 16 8",
   dice: "M4 3h16v18H4z M8 7h.01 M16 7h.01 M12 12h.01 M8 17h.01 M16 17h.01",
   chevron: "m9 5 7 7-7 7",
+  arrow: "M4 12h16 M14 6l6 6-6 6",
+  external: "M7 17 17 7 M7 7h10v10",
 } as const;
 
 export type IconName = keyof typeof paths;

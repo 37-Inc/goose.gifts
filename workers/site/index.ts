@@ -164,6 +164,35 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
     return new Response(request.method === 'HEAD' ? null : response.body, { status: response.status, headers });
   }
 
+  async function notFound(request: Request, env: Env, decodedPath: string): Promise<Response> {
+    const fallback = () => json({ error: 'Not found' }, 404);
+    const url = new URL(request.url);
+    const acceptsHtml = (request.headers.get('Accept') || '').split(',').some(entry => {
+      const [type, ...parameters] = entry.trim().toLowerCase().split(';');
+      const quality = parameters.find(value => value.trim().startsWith('q='));
+      const q = quality === undefined ? 1 : Number(quality.trim().slice(2));
+      return type === 'text/html' && Number.isFinite(q) && q > 0 && q <= 1;
+    });
+    const destination = request.headers.get('Sec-Fetch-Dest');
+    if (!['GET', 'HEAD'].includes(request.method) || !acceptsHtml
+      || destination && destination !== 'document'
+      || request.headers.has('RSC') || request.headers.has('Next-Router-Prefetch')
+      || /^\/(?:api|_next|fonts|og|brand|images|illustrations|catalog|data|safe)(?:\/|$)/.test(decodedPath)
+      || /[\u0000-\u0020\u007f\\]/.test(decodedPath) || decodedPath.split('/').some(part => part.includes('.'))
+      || env.ENVIRONMENT === 'production' && productionOrigin && url.origin !== productionOrigin
+      || !/^[a-f0-9]{64}$/.test(manifest.checksums?.['/404.html'] || '')) return fallback();
+    const target = new URL('/404.html', url);
+    try {
+      const response = await env.ASSETS.fetch(new Request(target, { method: 'GET' }));
+      if (response.status !== 200 || !/^text\/html(?:;|$)/i.test(response.headers.get('Content-Type') || '')) return fallback();
+      const headers = new Headers(response.headers);
+      for (const name of ['Age', 'ETag', 'Last-Modified', 'Location']) headers.delete(name);
+      for (const name of ['Cache-Control', 'Cloudflare-CDN-Cache-Control', 'CDN-Cache-Control']) headers.set(name, 'no-store');
+      headers.set('X-Robots-Tag', 'noindex, nofollow');
+      return new Response(response.body, { status: 404, headers });
+    } catch { return fallback(); }
+  }
+
   async function asset(request: Request, env: Env, route: CatalogAssetRoute, forceSafe = false): Promise<Response> {
     const deadline = expiry(route);
     const safe = forceSafe || route.state === 'held' || !Number.isFinite(deadline) && deadline !== Infinity || deadline <= now();
@@ -242,7 +271,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
         let decodedPath: string;
         try { decodedPath = decodeURIComponent(path); }
         catch { return respond(json({ error: 'Not found' }, 404)); }
-        if (RETIRED_ROUTE.test(decodedPath)) return respond(json({ error: 'Not found' }, 404));
+        if (RETIRED_ROUTE.test(decodedPath)) return respond(await notFound(request, env, decodedPath));
         if (env.ENVIRONMENT === 'production' && productionHost) {
           if (![productionHost, productionAlias].includes(url.host)) return respond(json({ error: 'Not found' }, 404));
           if (url.origin !== productionOrigin) {
@@ -309,7 +338,7 @@ export function createSiteWorker<Env extends SiteEnv>(options: {
           return respond(await asset(request, env, safeRoute, true));
         }
         // Unknown freshness-sensitive paths are real 404s, never asset/SPA fallback.
-        if (TIMED_ROUTE.test(path) || !PUBLIC_ASSET.test(path) && !clearedImages.has(decodedPath)) return respond(json({ error: 'Not found' }, 404));
+        if (TIMED_ROUTE.test(path) || !PUBLIC_ASSET.test(path) && !clearedImages.has(decodedPath)) return respond(await notFound(request, env, decodedPath));
         const response = await env.ASSETS.fetch(request);
         return respond(response.status === 404 ? json({ error: 'Not found' }, 404) : response);
       } catch {

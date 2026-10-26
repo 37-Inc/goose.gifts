@@ -11,6 +11,7 @@ function search(href, query = "desk", resultState) {
   const events = new Map();
   const pushed = [];
   const requests = [];
+  const dispatched = [];
   const timers = new Map();
   let nextTimer = 0;
   const location = { href, pathname: new URL(href).pathname, search: new URL(href).search };
@@ -44,13 +45,13 @@ function search(href, query = "desk", resultState) {
       setTimeout: (fn) => { timers.set(++nextTimer, fn); return nextTimer; },
       clearTimeout: (id) => timers.delete(id),
       history: { pushState: remember, replaceState: remember },
-      dispatchEvent: () => {},
+      dispatchEvent: (event) => { dispatched.push(event.type); },
       addEventListener: (name, listener) => events.set(name, listener),
       removeEventListener: (name) => events.delete(name),
     },
   });
   const view = commonJs.exports.Search({ children: "NORMAL BROWSE" });
-  return { view, effects, events, pushed, requests, timers, scrolls: () => scrolls };
+  return { view, effects, events, pushed, requests, dispatched, timers, location, scrolls: () => scrolls };
 }
 
 test("bookmarked queries and history reveal search; short queries do not move the product-first homepage", async () => {
@@ -79,8 +80,37 @@ test("search-as-you-type debounces, submit cancels pending work, and clear retur
   assert.equal(ui.timers.size, 1); assert.equal(ui.pushed.length, 0);
   form.props.onSubmit({ preventDefault() {} });
   assert.equal(ui.timers.size, 0); assert.deepEqual(ui.pushed, ["/?q=mug"]);
+  let focused = false;
+  input.props.ref.current = { focus() { focused = true; } };
   clear.props.onClick();
   assert.deepEqual(ui.pushed, ["/?q=mug", "/"]);
+  assert.equal(focused, true, "Clear returns keyboard focus to the input");
+});
+
+test("short input can be cleared and loading skeleton is decorative", () => {
+  const short = search("https://example.invalid/", "m");
+  assert.equal(short.view.props.children[0].props.children[3].props.children, "Clear");
+  const ui = search("https://example.invalid/?q=mug", "mug", { status: "loading", products: [] });
+  const skeleton = ui.view.props.children.find(child => child?.props?.className === "catalog-grid search-skeleton");
+  assert.equal(skeleton.props["aria-hidden"], "true");
+});
+
+test("empty and unavailable searches expose browse recovery; retry preserves query", () => {
+  for (const status of ["ready", "unavailable"]) {
+    const ui = search("https://example.invalid/?q=mug", "mug", { status, products: [] });
+    const recovery = ui.view.props.children.find(child => child?.props?.className === "search-recovery");
+    const [retry, browse] = recovery.props.children;
+    assert.equal(browse.props.children, "Browse all gifts");
+    assert.equal(Boolean(retry), status === "unavailable");
+    if (retry) {
+      retry.props.onClick();
+      assert.equal(ui.location.search, "?q=mug");
+      assert.deepEqual(ui.pushed, [], "Retry keeps the current search history entry");
+      assert.deepEqual(ui.dispatched, ["catalog-search"], "Retry actually starts another search");
+    }
+    browse.props.onClick();
+    assert.deepEqual(ui.pushed, ["/"]);
+  }
 });
 
 test("loading, results, empty, and error states never display an unrelated homepage feed", () => {

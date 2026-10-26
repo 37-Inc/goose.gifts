@@ -38,6 +38,7 @@ test("each published guide has an intentional, accessible line icon instead of a
 
 test("real gift cards have no repeated collection label or Unicode arrow; fixtures stay clearly labeled", () => {
   const { ProductCard } = load("components/ProductCard.tsx", {
+    "./Icon": load("components/Icon.tsx"),
     "./CatalogPhotos": { CatalogCardArt: () => null, CatalogDisclosure: () => null, CatalogDescription: () => null, CatalogTitle: ({ fallback }) => fallback },
     "../lib/selection": { isIllustrative: () => false },
   });
@@ -47,7 +48,9 @@ test("real gift cards have no repeated collection label or Unicode arrow; fixtur
   const html = renderToStaticMarkup(ProductCard({ product }));
   assert.doesNotMatch(html, /The collection|class="eyebrow"|[↗→↓]/);
   assert.match(html, /data-analytics-product-link="" href="\/gifts\/owned-test"/);
-  assert.doesNotMatch(html, />View gift</);
+  assert.match(html, /class="card-action"[^>]+href="\/gifts\/owned-test"/);
+  assert.match(html, /View gift <svg[^>]+aria-hidden="true"/);
+  assert.doesNotMatch(html, /data-analytics-outbound/);
   assert.match(renderToStaticMarkup(ProductCard({ product: { ...product, illustrative: true } })),
     /Illustrative fixture · not for sale/);
 });
@@ -59,6 +62,7 @@ test("every initial, load-more and search card renders its image, title and shor
     "../lib/photo-shard": { PHOTO_PLACEHOLDER: "/images/gift-placeholder.svg" },
   });
   const { ProductCard } = load("components/ProductCard.tsx", {
+    "./Icon": load("components/Icon.tsx"),
     "./CatalogPhotos": photos, "../lib/selection": { isIllustrative: () => false },
   });
   const product = { id: "unfeatured", source: "amazon", slug: "unfeatured-object", title: "Unfeatured desk object",
@@ -126,6 +130,7 @@ test("new site-authored packaging disclosure matches only the exact Amazon ASIN,
     "../lib/photo-shard": { PHOTO_PLACEHOLDER: "/images/gift-placeholder.svg" },
   });
   const { ProductCard } = load("components/ProductCard.tsx", {
+    "./Icon": load("components/Icon.tsx"),
     "./CatalogPhotos": photos, "../lib/selection": { isIllustrative: () => false },
   });
   const product = { id: "B0757WW6KB", source: "amazon", slug: "owned-fixture", title: "Owned identity label",
@@ -142,6 +147,7 @@ test("new site-authored packaging disclosure matches only the exact Amazon ASIN,
   for (const patch of [{ source: "etsy" }, { id: "B0757WW6KX" }, { id: "unknown", slug: product.slug }])
     assert.doesNotMatch(render(createElement(ProductCard, { product: { ...product, ...patch } })), /No fire kit included/);
   const { default: Gift } = load("app/gifts/[slug]/page.product.tsx", {
+    "../../../components/Icon": load("components/Icon.tsx"),
     "next/navigation": { notFound() { throw new Error("Unexpected notFound"); } },
     "../../../components/CatalogPhotos": photos,
     "@/lib/gift-page-schema": { buildGiftPageSchema: () => ({}) },
@@ -165,6 +171,13 @@ test("home is the browse destination with the approved heading and no redundant 
   assert.doesNotMatch(read("app/layout.tsx"), /The collection|weird-gift-index|Search <span/);
   assert.doesNotMatch(read("components/CatalogFeed.tsx"), /More questionable|Full collection/);
   assert.match(read("components/CatalogFeed.tsx"), /Load more/);
+});
+
+test("clamped card titles draw the keyboard focus ring outside the clipping heading", () => {
+  const css = fs.readFileSync(new URL("../static-site/app/styles.css", import.meta.url), "utf8");
+  assert.match(css, /\.product-card h2\s*\{[^}]*overflow:\s*hidden/s);
+  assert.match(css, /\.product-card h2:has\(a:focus-visible\)\s*\{\s*outline:\s*2px solid var\(--accent\);\s*outline-offset:\s*5px;/);
+  assert.match(css, /\.product-card h2 a:focus-visible\s*\{\s*outline:\s*none;/);
 });
 
 test("Load more failure preserves visible gifts and the cursor for a successful retry", async () => {

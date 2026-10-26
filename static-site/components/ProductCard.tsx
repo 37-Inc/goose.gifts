@@ -3,6 +3,7 @@ import type { PublicCatalogProduct } from "../../lib/catalog/types";
 import type { CatalogCard } from "../lib/card-shard";
 import { isIllustrative } from "../lib/selection";
 import { shortProductName } from "../lib/product-presentation";
+import { Icon } from "./Icon";
 
 export function ProductCard({
   product,
@@ -47,6 +48,10 @@ export function ProductCard({
         </h2>
         {!illustrative && <CatalogDisclosure source={product.source} id={product.id} />}
         <CatalogDescription source={product.source} id={product.id} title={product.title} fallback={product.description} card />
+        <a className="card-action" data-analytics-product-link="" href={`/gifts/${product.slug}`}>
+          View gift <Icon name="arrow" />
+          <span className="sr-only">: <CatalogTitle source={product.source} id={product.id} fallback={product.title} /></span>
+        </a>
       </div>
     </article>
   );

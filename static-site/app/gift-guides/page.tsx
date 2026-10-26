@@ -34,6 +34,7 @@ export default function Guides() {
       />
       <div className="page-heading">
         <h1>Gift guides</h1>
+        <p>Start with the occasion, the person or their particular obsession.</p>
       </div>
       <div className="guide-links">
         {guides.map((guide) => (

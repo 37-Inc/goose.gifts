@@ -76,14 +76,17 @@ existing08:30Pacific task; no additional Cron or scheduler. The first normal
 scheduled expanded-catalog cost/storage observation remains `roadmap-lbbz1.4.8`.
 Tonight's manual recovery/cleanup costs are not steady-state billing evidence.
 
-The retained execution checkout is
-`/Users/cameronehrlich/.codex/worktrees/stupid-full-catalog-closeout/goose.gifts`.
-Its documentation-only closeout leaves runtime/dependencies equivalent to the
-accepted6f3e0c1 source. Retain the6f cleanup source and original628/canary
-checkouts for their exact historical bindings; never run the older628 operator.
-Never blindly pull or republish
-an older runtime over a newer live release; integrate/test genuine code changes
-deliberately before switching the operator.
+The next reviewed execution checkout is
+`/Users/cameronehrlich/.codex/worktrees/stupid-polish-integration/goose.gifts`,
+the clean source of merged PR290. The existing task must be switched only after
+that PR's build/tests/review pass. This is an intentional UI/document-output
+upgrade from accepted6f3e0c1, not a claim it is already live: the NEXT normal run
+must publish and independently verify it. No extra supplier batch is authorized
+for cosmetic work. Keep .5.5/.4.12 open until that real release is accepted.
+See `UI_POLISH_2026-10-25.md` for the local comparison and browser evidence.
+Retain the prior full-catalog-closeout operator,6f cleanup source and original
+628/canary checkouts for their historical bindings; never run the older628
+operator or blindly overwrite a newer live runtime with an older checkout.
 
 The maintained entry point is `scripts/catalog/daily-operator.mjs` (`catalog:care`),
 not a growing collection of manually patched private helper copies. It discovers

@@ -68,6 +68,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </p>
           <div className="footer-bottom">
             <span>© Thirty Seven Inc.</span>
+            <a href="/gift-guides">Gift guides</a>
+            <a href="/random-gift">Surprise me</a>
             <a href="mailto:goosegifts@37.technology">Contact</a>
             <a href="/privacy">Privacy</a>
           </div>
