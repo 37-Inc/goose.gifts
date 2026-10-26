@@ -101,7 +101,7 @@ export function validatePublicationConfig(input:PublicationConfig):Readonly<Publ
       {environment:input.environment,index:input.indexName}))throw new Error('publication_configuration_invalid');
     if(Object.hasOwn(policy,'derivedCatalog')){const derived=policy.derivedCatalog;
       if(!derived||!exact(derived,'indexName,path,sha256')||typeof derived.path!=='string'||!path.isAbsolute(derived.path)||!HASH.test(derived.sha256)
-        ||!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(derived.indexName)||derived.indexName===input.indexName)
+        ||typeof derived.indexName!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(derived.indexName)||derived.indexName===input.indexName)
         throw new Error('publication_configuration_invalid');}
   }
   if(Object.hasOwn(input,'publicAnalytics')){

@@ -14,7 +14,12 @@ import { projectReceiptEmbedding } from './search-vector-projection.ts';
 export async function prepareSemanticCatalog(input: {
   snapshot: CatalogSnapshot; indexName: string;
   sources: Array<Omit<Parameters<typeof projectReceiptEmbedding>[0], 'dimensions'> & { retainedContext: string | null }>;
+  /** Planning inventory only; never evidence that provider writes actually succeeded. */
+  previousVectorIds?: readonly string[];
 }) {
+  const previous = new Set(input.previousVectorIds ?? []);
+  if (previous.size > 10_000 || [...previous].some(id => typeof id !== 'string' || !/^[a-f0-9]{64}$/.test(id)))
+    throw new Error('semantic_previous_vector_inventory_invalid');
   const snapshot = validateCatalogSnapshot(input.snapshot);
   const publicProducts = new Map(snapshot.products.map(p => [p.id, persistentPublicProduct(p)]));
   const entries: SemanticCatalogEntry[] = [], vectors = [];
@@ -36,5 +41,10 @@ export async function prepareSemanticCatalog(input: {
   }
   const catalog = validateSemanticCatalog({ schemaVersion: 1, indexName: input.indexName,
     profile: DERIVED_SEARCH_PROFILE, entries: entries.sort((a,b) => a.publicId.localeCompare(b.publicId)) });
-  return { catalog, vectors, providerCalls: 0, executionAuthorized: false as const, retrievalQualityAccepted: false as const };
+  const current = new Set(vectors.map(v => v.id));
+  return { catalog, vectors: vectors.filter(v => !previous.has(v.id)),
+    unchangedVectors: vectors.filter(v => previous.has(v.id)).length,
+    // Keep prior stored vectors/history; current public/input checks prevent serving stale entries.
+    retainedPreviousVectorIds: [...previous].filter(id => !current.has(id)),
+    providerCalls: 0, executionAuthorized: false as const, retrievalQualityAccepted: false as const };
 }

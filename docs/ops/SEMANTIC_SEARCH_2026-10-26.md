@@ -65,6 +65,9 @@ input hash and original/derived native hashes. Receipt dates, supplier facts,
 catalog revisions, slugs, scores and descriptions are not embedding inputs;
 changing those does not rewrite an unchanged vector. Changed actual inputs fail
 closed until their own compatible vector proof is prepared.
+An optional previous-vector inventory yields only new/changed planned upserts;
+unchanged vectors and prior stored history are not rewritten/deleted. That local
+planning inventory is not a claim the provider actually contains those entries.
 
 The Worker checks every match against both this artifact and the CURRENT public
 snapshot, returning only that snapshot's cleared view. Excluded/removed/inactive
@@ -177,7 +180,7 @@ TypeScript projects and lint pass. Recovery cases use the full SQLite migration
 schema with synthetic records; no provider execution or real retrieval-quality
 acceptance is implied by these results.
 
-The subsequent end-to-end serving integration passes46focused cases,
+The subsequent end-to-end serving integration passes47focused cases,
 independently rerun by a read-only reviewer. Review's late-provider-dispatch
 finding was fixed and regression-tested. The full suite, both strict typechecks,
 lint, dependency audits, explicit-context build and package/Worker verification

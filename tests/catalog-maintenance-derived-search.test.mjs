@@ -26,6 +26,17 @@ test('receipt preparation cannot relabel different current public input, missing
   await assert.rejects(prepareSemanticCatalog({snapshot:f.snapshot,indexName:f.catalog.indexName,sources:forged}),/receipt_mismatch/);
 });
 
+test('incremental plan does not rewrite unchanged vectors or delete prior stored history',async()=>{
+  const f=await derivedFixture(),previous=f.vectors.map(v=>v.id),retained='f'.repeat(64);
+  const next=await prepareSemanticCatalog({snapshot:{...f.snapshot,catalogRevision:'next-day'},indexName:f.catalog.indexName,
+    sources:f.sources,previousVectorIds:[...previous,retained]});
+  assert.equal(next.vectors.length,0);assert.equal(next.unchangedVectors,3);assert.deepEqual(next.retainedPreviousVectorIds,[retained]);
+  assert.deepEqual(next.catalog,f.catalog);assert.equal(next.executionAuthorized,false);
+  const partial=await prepareSemanticCatalog({snapshot:f.snapshot,indexName:f.catalog.indexName,sources:f.sources,previousVectorIds:previous.slice(1)});
+  assert.equal(partial.vectors.length,1);assert.equal(partial.vectors[0].id,previous[0]);
+  await assert.rejects(prepareSemanticCatalog({snapshot:f.snapshot,indexName:f.catalog.indexName,sources:f.sources,previousVectorIds:['bad']}),/inventory_invalid/);
+});
+
 function config(derivedCatalog){return {schemaVersion:1,environment:'production',accountId:'a'.repeat(32),workerName:'fixture-worker',
   database:{id:'00000000-0000-4000-8000-000000000001',name:'fixture-db'},indexName:'original-native-index',codeSha:'b'.repeat(40),
   sourceMode:'stupid-production',sourceRoot:'/fixture/source',releaseId:'fixture-release',identityOrigin:'https://stupid.gifts',
@@ -39,7 +50,7 @@ test('publication binds optional prepared artifact and separate index without ch
   await assert.rejects(verifyPublicationSemanticCatalog({},c));
   const old={...c};delete old.semanticSearch;await verifyPublicationSemanticCatalog({},old);
   await assert.rejects(verifyPublicationSemanticCatalog({semanticCatalog:f.catalog},old),/unconfigured/);
-  for(const patch of [{indexName:c.indexName},{sha256:''},{path:'relative.json'}])
+  for(const patch of [{indexName:c.indexName},{indexName:123},{sha256:''},{path:'relative.json'}])
     assert.throws(()=>validatePublicationConfig(config({...derived,...patch})),/configuration_invalid/);
   assert.throws(()=>validatePublicationConfig(config(null)),/configuration_invalid/);
 });
