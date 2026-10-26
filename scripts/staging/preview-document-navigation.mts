@@ -41,7 +41,8 @@ const env = {
 http.createServer(async (incoming, outgoing) => {
   const url = new URL(incoming.url || '/', `http://127.0.0.1:${port}`);
   const deniedFlight = process.env.DENY_FLIGHT === '1' && url.pathname.endsWith('.txt')
-    && url.pathname !== '/robots.txt' && !url.pathname.startsWith('/fonts/') && !url.pathname.startsWith('/safe/');
+    && url.pathname !== '/robots.txt' && !url.pathname.startsWith('/fonts/') && !url.pathname.startsWith('/safe/')
+    && !/^\/privacy(?:[/.]|$)/.test(url.pathname);
   try {
     const chunks: Buffer[] = [];
     for await (const chunk of incoming) chunks.push(Buffer.from(chunk));
