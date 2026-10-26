@@ -22,6 +22,13 @@ export function Search({ children }: { children?: ReactNode } = {}) {
   const controller = useRef<AbortController | null>(null);
   const sequence = useRef(0);
   const debounce = useRef<number | null>(null);
+  const input = useRef<HTMLInputElement | null>(null);
+
+  function clear() {
+    setQuery("");
+    navigate("");
+    input.current?.focus();
+  }
 
   function navigate(value: string, replace = false) {
     if (debounce.current !== null) window.clearTimeout(debounce.current);
@@ -147,6 +154,7 @@ export function Search({ children }: { children?: ReactNode } = {}) {
           Search gifts
         </label>
         <input
+          ref={input}
           id="gift-query"
           name="q"
           type="search"
@@ -166,8 +174,8 @@ export function Search({ children }: { children?: ReactNode } = {}) {
         <button type="submit">
           Search
         </button>
-        {hasQuery && <button type="button" className="clear-search"
-          onClick={() => { setQuery(""); navigate(""); }}>Clear</button>}
+        {query.length > 0 && <button type="button" className="clear-search"
+          onClick={clear}>Clear</button>}
       </form>
       <div role="status" aria-live="polite">
         {state.status === "loading" && (
@@ -175,20 +183,31 @@ export function Search({ children }: { children?: ReactNode } = {}) {
         )}
         {state.status === "unavailable" && (
           <p className="search-status">
-            Search couldn’t load. Try again, or <a href="/">browse gifts</a>.
+            Search couldn’t load. Your search is still here.
           </p>
         )}
         {state.status === "ready" && (
           <p className="search-status">
             {state.products.length
               ? `${state.products.length} ${state.products.length === 1 ? "gift" : "gifts"}`
-              : "No matches. Try another search."}
+              : "No matches. Try an object, an interest or a shorter search."}
           </p>
         )}
         {!hasQuery && query.length === 1 && (
           <p className="search-status">Use at least two characters.</p>
         )}
       </div>
+      {(state.status === "unavailable" || (state.status === "ready" && !state.products.length)) && (
+        <div className="search-recovery">
+          {state.status === "unavailable" && <button type="button" className="button" onClick={() => navigate(query)}>Try again</button>}
+          <button type="button" className="button button-secondary" onClick={clear}>Browse all gifts</button>
+        </div>
+      )}
+      {state.status === "loading" && (
+        <div className="catalog-grid search-skeleton" aria-hidden="true">
+          {[0, 1, 2].map((item) => <div key={item}><div className="skeleton-art" /><div className="skeleton-line" /><div className="skeleton-line" /></div>)}
+        </div>
+      )}
       {state.status === "ready" && state.products.length > 0 && (
         <div className="catalog-grid">
           <h2 className="sr-only">Search results</h2>

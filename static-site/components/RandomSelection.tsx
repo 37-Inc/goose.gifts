@@ -102,7 +102,7 @@ export function RandomSelection({
             disabled={poolSize < 2 || loading}
             onClick={spin}
           >
-            {loading ? "Choosing another…" : "Another questionable decision"}
+            {loading ? "Choosing another…" : "Show me another gift"}
           </button>
           <p className="quiet" role="status" aria-live="polite">
             {poolSize > 1 && "No repeat on the next spin."}

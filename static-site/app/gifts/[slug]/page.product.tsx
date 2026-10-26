@@ -8,6 +8,7 @@ import { ProductCard } from "../../../components/ProductCard";
 import { og } from "../../../lib/og-data";
 import { shortProductName } from "../../../lib/product-presentation";
 import homepage from "../../../../content/homepage.json";
+import { Icon } from "../../../components/Icon";
 
 export const dynamicParams = false;
 // Held identities use shared neutral assets, not one React export per identity.
@@ -61,7 +62,7 @@ export default async function Gift({
         />
       )}
       <a className="back-link" href="/">
-        All gifts
+        Browse all gifts
       </a>
       <article className="product-detail">
         <div className={`detail-art${illustrative ? "" : " retailer-art"}`}>
@@ -110,6 +111,8 @@ export default async function Gift({
                 className="button"
               >
                 Check price on {retailer}
+                <Icon name="external" />
+                <span className="sr-only"> (opens in a new tab)</span>
               </a>
               <p className="quiet">
                 Check current price and availability at the retailer. We may

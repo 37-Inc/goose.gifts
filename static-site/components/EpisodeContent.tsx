@@ -1,6 +1,7 @@
 import { CatalogImage } from "./CatalogPhotos";
 import type { DisplayEpisode, EpisodeProduct } from "../lib/episode-display";
 import { episodePath } from "../lib/show";
+import { Icon } from "./Icon";
 
 function Product({ product, context, caption, position }: {
   product: EpisodeProduct; context: string; caption: string; position?: number;
@@ -25,6 +26,8 @@ function Product({ product, context, caption, position }: {
         <a className="button" data-analytics-outbound="" href={product.affiliateUrl}
           target="_blank" rel="sponsored noopener noreferrer">
           Check price on {product.source === "amazon" ? "Amazon" : "Etsy"}
+          <Icon name="external" />
+          <span className="sr-only"> (opens in a new tab)</span>
         </a>
       </div>
     </article>
