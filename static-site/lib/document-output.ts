@@ -12,7 +12,7 @@ export function documentAssets(input: ReadonlyMap<string, Uint8Array>, routes: R
       || name.startsWith("/safe/") || name.startsWith("/privacy")) continue;
     const base = name.includes("/__next.") ? name.slice(0, name.indexOf("/__next.")) : name.slice(0, -4);
     const html = base === "" ? "/index.html" : `${base}.html`;
-    if (!input.has(html) || name.includes("/__next.") && !/\/__next\.[a-zA-Z0-9_$.-]+\.txt$/.test(name)
+    if (!input.has(html) || name.includes("/__next.") && !/\/__next\.(?:_(?:full|tree|index)|(?:[a-zA-Z0-9_$-]+\.)*__PAGE__)\.txt$/.test(name)
       || !/^[0-9a-f]+:/m.test(new TextDecoder().decode(bytes)))
       throw new Error(`Unrecognized standalone Flight payload: ${name}`);
     assets.delete(name);

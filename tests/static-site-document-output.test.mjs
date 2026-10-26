@@ -43,6 +43,10 @@ test("unrecognized payload bytes, companion names or missing HTML fail closed", 
       const name = "/gifts/one/__next.new/shape.txt";
       input.set(name, bytes('0:{}')); routes[name] = routes["/gifts/one.txt"];
     },
+    ({ input, routes }) => {
+      const name = "/gifts/one/__next.future.txt";
+      input.set(name, bytes('0:{}')); routes[name] = routes["/gifts/one.txt"];
+    },
   ]) {
     const data = fixture(); mutate(data);
     assert.throws(() => documentAssets(data.input, data.routes), /Unrecognized standalone Flight/);
