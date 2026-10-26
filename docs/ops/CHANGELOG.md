@@ -1,5 +1,18 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 — full catalog, descriptions and directory cleanup are live
+
+[owner+codex] Actual Cloudflare release `owner-held-final-20261026` / runtime6f3e0c1
+is finalized:3352public/31specific exclusions, all3383identities/42articles,
+complete card descriptions, seven confirmed duplicates excluded and994legacy
+holds published. Exact-byte compaction yields17225physical files/2775Free-file
+headroom. Receipt/resolved build/idle/successor plus desktop/mobile/home/search/
+product/guide/Random/affiliate and retired-route404 checks pass. Earlier article
+recovery is also complete; never replay either release. Resume the existing daily
+operator only; no new batch, paid upgrade or native/model work. Routine cost/storage,
+refresh rotation, semantic parity and provider/show work remain explicit follow-ups.
+Full evidence: `evidence/2026-10-25-full-catalog-accepted.json`.
+
 ## 2026-10-25 — preserve the native successor's current/history distinction
 
 [owner+codex] Terminal publication returned published; the handoff factory then

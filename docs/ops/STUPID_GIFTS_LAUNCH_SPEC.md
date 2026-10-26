@@ -2,10 +2,13 @@
 
 Date: October 19, 2026. Owner: Cameron. Canonical implementation epic:
 `roadmap-lbbz1`. Baseline: `1a7ccb301f25dc129965fb71b32e0a682a86d604`.
-Status: `https://stupid.gifts` launched on Cloudflare Free on October 21 with
-eight freshly verified products and the new static design. Full source-data,
-old-domain redirects, writer and remaining provider migration are still open;
-the original Vercel/Neon service remains available for rollback.
+Current status, October25 Pacific: `https://stupid.gifts` serves3,352public
+gifts/31specific exclusions with all3,383identities and42original articles
+preserved. The owner-reviewed full release is accepted on Cloudflare Free;
+see `evidence/2026-10-25-full-catalog-accepted.json`. The redundant directory is
+retired and the white, fully described gallery is live. Routine-cost observation,
+semantic-search parity, show preparation and remaining provider/retirement work
+remain separate follow-ups. Vercel stays frozen and Neon retained for rollback.
 
 **October 21 launch authorization:** Cameron explicitly wants `stupid.gifts`
 live as soon as essential checks pass. Do not wait for tomorrow, a broadcast
@@ -42,14 +45,20 @@ email anywhere on the public site. Keep truthful Thirty Seven Inc ownership
 and verified `goosegifts@37.technology` product contact. Homepage heading is
 **Stupid gifts. Excellent taste.** Remove repeated collection labels and the
 duplicate Collection navigation tab; home is the primary browse surface with
-24 initial gifts and static 24-item Load more batches. Keep crawlable directory
-URLs as supporting pagination, not a competing destination. Use restrained SVG
+24 initial gifts and static 24-item Load more batches. The October25 owner
+decision retires the redundant `/gifts` directory, pagination and export aliases
+with genuine404s; individual `/gifts/[slug]` product pages remain. Use restrained SVG
 guide glyphs rather than numbered lists or platform-dependent arrow symbols.
-Submit-based search remains for now: per-keystroke semantic embedding calls
-are not justified. Revisit bounded debounced keyword search after full migration.
+Debounced keyword search uses the published catalog in Worker memory without
+per-query D1/model work. Semantic serving remains off under `roadmap-lbbz1.4.7`;
+per-keystroke embedding calls are not justified.
 These corrections supersede conflicting older route/freshness/design language.
 
-### Full-catalog completion sequence (not daily discovery)
+### Historical full-catalog completion sequence (not daily discovery)
+
+The source-catalog/persistent-display migration and publication below are now
+accepted. Preserve its evidence; do not rerun it. Semantic serving remains a
+separate follow-up rather than permission to reduce the public catalog.
 
 1. Reconcile the protected full source baseline and final delta with **production**
    D1. Staging's 3,383 identities are not production migration evidence; the
@@ -99,8 +108,9 @@ The final architecture is:
   brand assets, and share images.
 - **Next.js static export with existing React components** as the build tool.
   Retain the familiar codebase; eliminate request-time Next.js rendering.
-- **A small TypeScript Worker** for semantic search, maintained URL redirects,
-  and freshness guards where serving a frozen page would be incorrect.
+- **A small TypeScript Worker** for current keyword search, maintained URL
+  redirects and field-level freshness guards. Semantic serving remains a
+  separately verified follow-up, not a prerequisite for catalog availability.
 - **D1** as the operational catalog and maintenance-history database.
 - **Vectorize** for existing 1,536-dimensional product embeddings.
 - **One existing Codex catalog task**, adapted to D1 and a release pipeline.
@@ -220,9 +230,9 @@ Use the existing `37.technology` Cloudflare account, which also owns
 | `/` | Prebuilt curated opening selection, crawlable product links, progressively loaded static feed; a thin Worker checks snapshot expiry without D1 access. |
 | `/?q=...` | Same static shell; client reads query and calls the search API. Search results remain usable/bookmarkable; the root Worker sets `X-Robots-Tag: noindex, follow` on query variants. |
 | `/search` | Preserve its current redirect/query behavior in Worker routing; do not turn it into an unrelated page. |
-| `/api/search-products` | Worker semantic search with the existing response shape, bounded diagnostics, keyword fallback, and abuse limits. |
+| `/api/search-products` | Working database-free keyword search over the published catalog, with the existing response shape and abuse limits. Semantic serving is a separate, uncompleted follow-up, not a launch prerequisite. |
 | `/api/catalog-feed` | Preserve bounded POST compatibility using the published catalog artifact, not D1. New browsing uses small static feed shards. |
-| `/gifts` and pagination | Supporting crawlable directory pages, not a Collection tab. Home is the primary full-catalog browse destination. Preserve pagination URLs and correct canonical/boundary behavior. |
+| `/gifts` and pagination/export aliases | Retired404 by owner October25. Omit from navigation, sitemap and generated directory output. Home, search and guides replace this redundant directory. |
 | `/gifts/[slug]` | Prebuilt product HTML, metadata, related products and share card. Thin Worker expiry guard serves the asset or a safe noindex fallback without querying D1. Existing slugs do not change for branding. |
 | `/gift-guides` and `/gift-guides/[slug]` | Prebuilt existing guides with current eligibility and internal links. |
 | `/random-gift` | Static useful initial selection plus client-side spinning over a bounded versioned eligible pool. No DB request per spin. Preserve no-immediate-repeat; link/share the selection through its normal `/gifts/[slug]` URL. |
@@ -252,8 +262,8 @@ hydrate cleanly, retain back/forward behavior, cancel superseded searches,
 and show loading, empty, and unavailable states.
 
 A publication build reads one local immutable snapshot; components do not
-open a database connection during rendering. Export the directory's complete
-path list, all maintained guide pages, product pages including safe held-page
+open a database connection during rendering. Export all maintained guide pages,
+product pages including safe held-page
 responses, product slug-history redirects, and episode pages. Guard against
 accidentally exporting raw source facts, embeddings, internal notes, or credentials.
 
@@ -683,7 +693,7 @@ authentication, attribution or links work.
 readback: Vercel Production supplies `goose-gifts-37-20`; all 3,383 stored Amazon
 URLs have exactly one matching tag, HTTPS Amazon host and matching ASIN path.
 The live random page and three sitemap product pages expose that same tag.
-Homepage/directory link to site product pages, so an absence of direct retailer
+Home and guides link to site product pages, so an absence of direct retailer
 anchors there is not a tagging failure.
 
 Persisted account evidence identifies parent Store ID `rileyehrlic0b-20`.
@@ -836,10 +846,9 @@ future domain decision must not be silently marked complete.
 
 **Stupid Gifts** should feel like a well-designed collection of very bad ideas.
 Keep the interface confident and quiet so the objects provide the joke.
-Suggested lead: “Ridiculous gifts. Excellent taste.” Treat this as a design
-direction, not mandatory copy on every surface.
+The owner-approved homepage heading is “Stupid gifts. Excellent taste.”
 
-Use warm paper, near-black type, and the existing warm orange as a restrained
+Use white, near-black type, and the existing warm orange as a restrained
 accent. Start with the current accessible burnt orange `#c2410c` for small
 interactive text; check contrast in context. Use clean Inter typography,
 moderate weights, generous product image space, and short captions. Avoid a
@@ -853,13 +862,13 @@ host imagery before the relevant appearance/asset permission is confirmed.
 
 ### Homepage and episode layout
 
-First viewport, desktop: compact wordmark/nav, one short line of positioning,
-then a large lead product and two visually distinct secondary products.
-Search remains easy to find. Mobile: wordmark, short line, first product image
-and an obvious product action within the initial viewport; subsequent cards
-follow without a long hero.
+First viewport: compact wordmark/nav, the approved short heading and easy-to-find
+search, followed by the curated first24 in a three-column desktop/two-column
+mobile gallery. Every home, Load more, guide and search card shows an image,
+title and short description. Preserve original catalog copy; exact-ID/title
+factual presentation notes may replace generic placeholders without rewriting
+original editorial or native history. Do not introduce a long hero.
 
-Use “This week's questionable decisions” as a candidate section label.
 When there is an actual published episode, provide a clear “From the show”
 entry and direct links to that week's products. Below the opening set, offer
 collections such as “Desk crimes,” “Bathroom nonsense,” and “Gifts that

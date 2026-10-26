@@ -65,6 +65,23 @@ documentation/test-only commits do not change the recorded build identity.
 The preview listener was stopped after QA. No provider calls, paid service or
 catalog identities were removed for this capacity work.
 
+## Actual production acceptance, October25 Pacific
+
+The final3352-public/31-held release `owner-held-final-20261026`, runtime6f3e0c1,
+is live and finalized with matching D1 receipt, resolved build, idle owner and
+successor. Its actual package contains **17,225physical assets**, **3,407HTML
+files**, **6,796exact-byte aliases** and **27,551logical guarded routes**.
+**2,775physical files remain** under the unchanged20,000-file Free limit.
+All3,383identities and42articles remain; no product was trimmed to fit capacity.
+The seven duplicate exclusions and24commodity exclusions are editorial decisions,
+not asset-limit pruning. Desktop/mobile, Load more, keyword search, product/guide/
+Random, affiliate and retired-directory/Index404 checks passed. Full identity and
+cost evidence: `evidence/2026-10-25-full-catalog-accepted.json`.
+
+The3,353/17,228section above is retained as the exact earlier private preview,
+not relabeled as this production build. Keep growth/storage observation in
+`roadmap-lbbz1.4.8`; the18,000-file warning below is not an extra approval gate.
+
 ## Keep the system small
 
 1. Ship directory retirement and exact duplicate storage with all existing
