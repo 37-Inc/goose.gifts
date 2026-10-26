@@ -39,6 +39,7 @@ import type { PublishedCatalogRead } from './owned-vector-delivery.ts';
 import { createVectorizeRestAdapters } from './vectorize-rest.ts';
 import type { RunWorkspace, PublicationControl, ArtifactRef } from './run-workspace.ts';
 import { semanticBudgetConfig } from '../../workers/site/semantic-budget.ts';
+import { verifySemanticCatalogIdentities, DERIVED_SEARCH_PROFILE } from '../../lib/catalog/semantic-profile.ts';
 
 /** Explicit protected local operator path, NOT a scheduler or a cross-host lock.
  * The workspace holds concrete shared account/environment/database + Worker
@@ -58,7 +59,9 @@ export interface PublicationConfig {
    * snapshot/assets. A purged/expired prior is never needed to build anew. */
   prior:{directory:string|null;manifestSha256:string;releaseId:string;versionReference:string}|null;
   /** Omission preserves historical config hashes and off/50/32768 behavior. */
-  semanticSearch?:{enabled:boolean;dailyRequestCap:number;dailyTokenCap:number};
+  semanticSearch?:{enabled:boolean;dailyRequestCap:number;dailyTokenCap:number;
+    /** Canonical-JSON SHA, public hashes only. Separate from the original native index. */
+    derivedCatalog?:{path:string;sha256:string;indexName:string}};
   /** Public build inputs only; omission preserves historical hashes/default-off. */
   publicAnalytics?:{enabled:boolean;posthogKey:string;posthogHost:string};
 }
@@ -89,13 +92,17 @@ export function validatePublicationConfig(input:PublicationConfig):Readonly<Publ
       ||!UUID.test(input.prior.versionReference)||input.prior.releaseId===input.releaseId))throw new Error('publication_configuration_invalid');
   if(Object.hasOwn(input,'semanticSearch')){
     const policy=input.semanticSearch;
-    if(!policy||!exact(policy,'dailyRequestCap,dailyTokenCap,enabled')||typeof policy.enabled!=='boolean'
+    if(!policy||!exact(policy,`dailyRequestCap,dailyTokenCap,${Object.hasOwn(policy,'derivedCatalog')?'derivedCatalog,':''}enabled`)||typeof policy.enabled!=='boolean'
       ||!Number.isInteger(policy.dailyRequestCap)||!Number.isInteger(policy.dailyTokenCap)
       ||input.environment==='staging'&&policy.enabled
       // Reuse the runtime's exact positive-integer bounds, even when disabled.
       ||!semanticBudgetConfig({ENVIRONMENT:input.environment,SEMANTIC_SEARCH_ENABLED:'true',
         SEMANTIC_SEARCH_DAILY_REQUEST_CAP:String(policy.dailyRequestCap),SEMANTIC_SEARCH_DAILY_TOKEN_CAP:String(policy.dailyTokenCap)},
       {environment:input.environment,index:input.indexName}))throw new Error('publication_configuration_invalid');
+    if(Object.hasOwn(policy,'derivedCatalog')){const derived=policy.derivedCatalog;
+      if(!derived||!exact(derived,'indexName,path,sha256')||typeof derived.path!=='string'||!path.isAbsolute(derived.path)||!HASH.test(derived.sha256)
+        ||typeof derived.indexName!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(derived.indexName)||derived.indexName===input.indexName)
+        throw new Error('publication_configuration_invalid');}
   }
   if(Object.hasOwn(input,'publicAnalytics')){
     const policy=input.publicAnalytics;let host:URL|undefined;
@@ -106,7 +113,8 @@ export function validatePublicationConfig(input:PublicationConfig):Readonly<Publ
       throw new Error('publication_configuration_invalid');
   }
   return Object.freeze({...input,database:Object.freeze({...input.database}),prior:input.prior&&Object.freeze({...input.prior}),
-    ...(Object.hasOwn(input,'semanticSearch')?{semanticSearch:Object.freeze({...input.semanticSearch!})}:{}),
+    ...(Object.hasOwn(input,'semanticSearch')?{semanticSearch:Object.freeze({...input.semanticSearch!,
+      ...(input.semanticSearch?.derivedCatalog?{derivedCatalog:Object.freeze({...input.semanticSearch.derivedCatalog})}:{})})}:{}),
     ...(Object.hasOwn(input,'publicAnalytics')?{publicAnalytics:Object.freeze({...input.publicAnalytics!})}:{})});
 }
 function searchVars(config:PublicationConfig){
@@ -262,7 +270,13 @@ function provider(config:PublicationConfig,token:string,send:typeof fetch,identi
       const vector=await request(`${base}/vectorize/v2/indexes/${config.indexName}`) as {name?:unknown;config?:{dimensions?:unknown;metric?:unknown}};
       if(database?.uuid!==config.database.id||database.name!==config.database.name
         ||(database.read_replication as {mode?:unknown})?.mode!=='disabled'||vector?.name!==config.indexName
-        ||vector.config?.dimensions!==1536||vector.config.metric!=='cosine')throw new Error('publication_provider_identity_mismatch');},
+        ||vector.config?.dimensions!==1536||vector.config.metric!=='cosine')throw new Error('publication_provider_identity_mismatch');
+      if(config.semanticSearch?.derivedCatalog){
+        const name=config.semanticSearch.derivedCatalog.indexName;
+        const derived=await request(`${base}/vectorize/v2/indexes/${name}`) as {name?:unknown;config?:{dimensions?:unknown;metric?:unknown}};
+        if(derived?.name!==name||derived.config?.dimensions!==DERIVED_SEARCH_PROFILE.dimensions||derived.config.metric!=='cosine')
+          throw new Error('publication_provider_identity_mismatch');
+      }},
     async version(id:string){if(!UUID.test(id))throw new Error('publication_version_invalid');return await request(`${script}/versions/${id}`) as Record<string,unknown>;},
     async findVersion(marker:string){const found:string[]=[];
       for(let page=1;page<=10;page++){const result=await request(`${script}/versions?page=${page}&per_page=10`) as {items?:{id:string}[]};
@@ -296,11 +310,22 @@ function verifyUploadedVersion(value:Record<string,unknown>,config:PublicationCo
     ||(value.annotations as Record<string,unknown>)?.['workers/message']!==`package:${control.packageSha256}`)throw new Error('publication_version_mismatch');
   const named=new Map(bindings.map(binding=>[binding.name,binding]));
   const expectedSearch=searchVars(config);
+  const derivedIndex=config.semanticSearch?.derivedCatalog?.indexName;
   if(named.size!==bindings.length||named.get('DB')?.type!=='d1'||named.get('DB')?.id!==config.database.id
     ||named.get('VECTORIZE')?.type!=='vectorize'||named.get('VECTORIZE')?.index_name!==config.indexName||named.get('ASSETS')?.type!=='assets'
     ||named.get('ENVIRONMENT')?.type!=='plain_text'||named.get('ENVIRONMENT')?.text!==config.environment
     ||Object.entries(expectedSearch).some(([name,text])=>named.get(name)?.type!=='plain_text'||named.get(name)?.text!==text)
+    ||(derivedIndex?named.get('SEMANTIC_VECTORIZE')?.type!=='vectorize'||named.get('SEMANTIC_VECTORIZE')?.index_name!==derivedIndex
+      :named.has('SEMANTIC_VECTORIZE'))
     ||config.environment==='staging'&&named.get('STAGING_AUTH_SECRET')?.type!=='secret_text')throw new Error('publication_version_scope_mismatch');
+}
+
+export async function verifyPublicationSemanticCatalog(manifest:Pick<SiteAssetManifest,'semanticCatalog'>,config:PublicationConfig){
+  const derived=config.semanticSearch?.derivedCatalog;
+  if(!derived){if(Object.hasOwn(manifest,'semanticCatalog'))throw new Error('publication_semantic_catalog_unconfigured');return;}
+  const catalog=await verifySemanticCatalogIdentities(manifest.semanticCatalog);
+  if(catalog.indexName!==derived.indexName||sha256(canonicalJson(catalog))!==derived.sha256)
+    throw new Error('publication_semantic_catalog_changed');
 }
 
 async function loadPackage(directory:string,config:PublicationConfig,expectedHash:string,now:Date,settlement?:ActivationPermit){
@@ -308,6 +333,7 @@ async function loadPackage(directory:string,config:PublicationConfig,expectedHas
   const bytes=await privateBytes(path.join(directory,'asset-manifest.json'));const manifest=JSON.parse(bytes.toString()) as SiteAssetManifest;
   const snapshot=validateCatalogSnapshot(await json(path.join(directory,'catalog.snapshot.json')),now);const context=await json(path.join(directory,'release-context.json'));
   verifyReleaseIdentity(bytes,await json(path.join(directory,'release-identity.json')));
+  await verifyPublicationSemanticCatalog(manifest,config);
   if(manifest.releaseId!==config.releaseId||manifest.codeSha!==config.codeSha||manifest.sourceMode!==config.sourceMode||manifest.dataKind!=='catalog'
     ||sha256(await privateBytes(path.join(directory,'catalog.snapshot.json')))!==manifest.catalogSnapshotSha256
     ||manifest.nextExpiry!==null&&manifest.nextExpiry<=now.toISOString())throw new Error('publication_package_unready');
@@ -819,6 +845,10 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       await write(path.join(directory,'input.context.json'),`${JSON.stringify(context)}\n`);
       const env={...childEnv(),...publicAnalyticsEnv(config),TMPDIR:path.join(runtime,'tmp'),CATALOG_SITE_MODE:config.sourceMode,CATALOG_SNAPSHOT_PATH:path.join(directory,'input.snapshot.json'),
         CATALOG_RELEASE_CONTEXT_PATH:path.join(directory,'input.context.json'),...(config.prior?.directory?{CATALOG_PRIOR_RELEASE_PATH:config.prior.directory}:{})};
+      if(config.semanticSearch?.derivedCatalog){const input=config.semanticSearch.derivedCatalog;
+        const catalog=await verifySemanticCatalogIdentities(await json(input.path));
+        await verifyPublicationSemanticCatalog({semanticCatalog:catalog},config);
+        Object.assign(env,{CATALOG_SEMANTIC_CATALOG_PATH:input.path,CATALOG_SEMANTIC_CATALOG_SHA256:input.sha256});}
       let built=false;
       try{const previous=JSON.parse(await fs.readFile(path.join(config.sourceRoot,'build/stupid-gifts/asset-manifest.json'),'utf8'));built=previous.releaseId===config.releaseId;}
       catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw new Error('publication_build_requires_operator_review');}
@@ -841,7 +871,8 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         observability:{enabled:false},assets:{directory:path.join(directory,'assets'),binding:'ASSETS',run_worker_first:true,html_handling:'none',not_found_handling:'none'},
         vars:{ENVIRONMENT:config.environment,...searchVars(config)},
         d1_databases:[{binding:'DB',database_name:config.database.name,database_id:config.database.id}],
-        vectorize:[{binding:'VECTORIZE',index_name:config.indexName}]}));
+        vectorize:[{binding:'VECTORIZE',index_name:config.indexName},
+          ...(config.semanticSearch?.derivedCatalog?[{binding:'SEMANTIC_VECTORIZE',index_name:config.semanticSearch.derivedCatalog.indexName}]:[])]}));
       const packageSha256=sha256(canonicalJson(await inventory(directory)));
       await save({stage:'built',packageSha256});
     }

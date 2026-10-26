@@ -336,7 +336,11 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
     // unknown historical presence is not a vector: ordinary refreshes must not
     // queue speculative deletes (or require a deletion review) for those rows.
     // Time passing alone still cannot authorize vector deletion.
-    const needsDelete = !projection.semanticEligible && !unchanged
+    // Changed supplier input can invalidate semantic eligibility, but must not
+    // delete a cleared listing's old native vector or pretend it is fresh.
+    const preservedListing = options.preservePermanentListings
+      && projection.persistentBase && projection.row.public_display_json !== null;
+    const needsDelete = !projection.semanticEligible && !unchanged && !preservedListing
       && Boolean(old && (old.present === true || old.row.embedding_text_hash));
     const operation = projection.semanticEligible ? 'upsert' : needsDelete ? 'delete' : null;
     if (operation) {

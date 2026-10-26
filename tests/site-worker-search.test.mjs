@@ -183,6 +183,14 @@ test('disabled or absent semantic binding makes no paid call', async () => {
   assert.equal(fixture.calls.embed, 0);
 });
 
+test('legacy invalid ANN candidates cannot starve limit1 lexical fallback or exceed combined lookup bounds',async()=>{
+  const f=setup({storage:{async byPublicIds(){return[];}}});
+  f.env.VECTORIZE.query=async()=>({matches:Array.from({length:100},(_,i)=>({id:`unknown-${i}`,score:.9}))});
+  const body=await(await f.request('funny button','&limit=1')).json();
+  assert.equal(body.results[0].matchType,'keyword');assert.equal(f.calls.keyword[0].limit,1);
+  assert.ok(f.calls.keyword[0].limit+4<=240);
+});
+
 test('keyword overfetch is capped at 240 and public results at 60', async () => {
   const fixture = setup({ storage: { async keyword(query, limit) {
     assert.equal(limit, 240);

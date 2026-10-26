@@ -339,8 +339,12 @@ test(
       );
       assert.doesNotMatch(
         content,
-        /G-6RR3HPR747|AW-17626116539|googletagmanager|fixture-paperweight|illustrative-very-official-paperweight|A very official paperweight|\/illustrations\/paperweight|example\.invalid\/not-for-sale|sourceFactsHash|POSTGRES_URL/,
+        /fixture-paperweight|illustrative-very-official-paperweight|A very official paperweight|\/illustrations\/paperweight|example\.invalid\/not-for-sale|sourceFactsHash|POSTGRES_URL/,
       );
+      // A real production export may deliberately include the approved public
+      // analytics destinations. Preview/fixture exports must still exclude them.
+      if (exportSourceMode === 'preview' || exportSnapshot.dataKind !== 'catalog')
+        assert.doesNotMatch(content, /G-6RR3HPR747|AW-17626116539|googletagmanager/);
       assertOwnedCodeSafe(Buffer.from(content),[exportSnapshot]);
       for (const product of exportSnapshot.products) {
         const permanent=persistentPublicProduct(product);

@@ -1,4 +1,5 @@
 import type { Product } from '../types.ts';
+import type { SemanticCatalog } from './semantic-profile.ts';
 
 /** Public artifacts are price-free until a separately verified offer lane exists. */
 export interface PublicCatalogProduct extends Pick<Product,
@@ -58,6 +59,8 @@ export interface CatalogAssetRoute {
   retainedUntil?: string;
 }
 export interface SiteAssetManifest extends CatalogReleaseManifest {
+  /** Optional compiled proof, hash-bound by this release manifest; not supplier expiry. */
+  semanticCatalog?: SemanticCatalog;
   dataKind: CatalogSnapshot['dataKind'];
   routes: Record<string, CatalogAssetRoute>;
   retention: { priorManifestSha256: string; currentAssetPaths: string[] } | null;

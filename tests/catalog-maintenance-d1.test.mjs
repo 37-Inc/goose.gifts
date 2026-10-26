@@ -171,6 +171,22 @@ test('D1 daily retained listing policy never overrides explicit curation or inva
   }
 });
 
+test('daily changed supplier input preserves a cleared native vector without inventing deletion review or a new embedding',async()=>{
+  const f=await permanentFixture({preservePermanentListings:true});try{
+    const before=f.row(1),native=f.state(1).embedding_native_base64,proof=f.state(1).embedding_provenance_json;
+    f.useIntent({}); // The real failed daily run supplied no deletion review.
+    const p={...f.p,title:'Changed supplier name, not a new cleared identity',embedding:undefined};
+    await f.store.upsertProduct(p,editorialSourceHash(p));
+    assert.equal(JSON.parse(f.row(1).public_display_json).publicId,f.base.publicId);
+    assert.equal(f.row(1).source_record_json,before.source_record_json);
+    assert.equal(f.state(1).embedding_native_base64,native);
+    assert.equal(f.state(1).embedding_provenance_json,proof);
+    assert.equal(f.events().filter(e=>e.status==='pending').length,0);
+    const receipt=f.sqlite.prepare('SELECT changes_json FROM catalog_maintenance_operations ORDER BY next_epoch DESC LIMIT 1').get();
+    assert.equal(JSON.parse(receipt.changes_json)[0].vectorOperation,null);
+  }finally{f.close();}
+});
+
 test('elapsed supplier and editorial windows keep a direct base and original grants with no expiry-only vector work',async()=>{
   for(const direct of [false,true]){
     const f=await permanentFixture({direct});try{
