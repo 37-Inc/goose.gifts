@@ -24,7 +24,9 @@ const mime: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.js
   '.json': 'application/json', '.txt': 'text/plain', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2' };
 const worker = createSiteWorker({ manifest, snapshot, feedPlan, releaseIdentity, searchAdapters: d1SearchAdapters });
 const env = {
-  ENVIRONMENT: 'production', SEMANTIC_SEARCH_ENABLED: 'false',
+  // Staging mode suppresses production analytics transports. This is a local
+  // synthetic gate, not a credential; the adapter supplies it only to itself.
+  ENVIRONMENT: 'staging', STAGING_AUTH_SECRET: 'local-document-proof-only', SEMANTIC_SEARCH_ENABLED: 'false',
   // Fail closed if a supposedly permanent local browse/search needs a provider.
   DB: { prepare() { console.error('LOCAL_PROOF_FORBIDS_DATABASE'); throw new Error('LOCAL_PROOF_FORBIDS_DATABASE'); } } as unknown as CatalogD1,
   VECTORIZE: { async query(): Promise<{ matches: never[] }> { console.error('LOCAL_PROOF_FORBIDS_VECTORIZE'); throw new Error('LOCAL_PROOF_FORBIDS_VECTORIZE'); } },
@@ -45,6 +47,7 @@ http.createServer(async (incoming, outgoing) => {
     for await (const chunk of incoming) chunks.push(Buffer.from(chunk));
     const headers = new Headers();
     for (const [key, value] of Object.entries(incoming.headers)) if (value) headers.set(key, Array.isArray(value) ? value.join(', ') : value);
+    headers.set('Authorization', `Basic ${btoa(`staging:${env.STAGING_AUTH_SECRET}`)}`);
     const request = new Request(url, { method: incoming.method, headers,
       ...(!['GET', 'HEAD'].includes(incoming.method || 'GET') ? { body: Buffer.concat(chunks) } : {}) });
     const response = deniedFlight ? new Response('External Flight denied by local proof', { status: 410 }) : await worker.fetch(request, env);
