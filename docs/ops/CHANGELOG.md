@@ -1,5 +1,15 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-25 — local document-output simplification
+
+[owner+codex] The static builder validates the complete Next route inventory,
+then publishes full HTML and inline hydration without standalone catalog Flight
+navigation files. Native anchors remain the navigation contract; safe/legal text,
+individual OG images, JSON, runtime assets and all catalog content remain. Unknown
+payload shapes fail closed. Assembly, immutable historical alias verification,
+retention and finite fallbacks are unchanged; no manifest version/protocol is
+added. This is local implementation, not production publication.
+
 ## 2026-10-25 — full catalog, descriptions and directory cleanup are live
 
 [owner+codex] Actual Cloudflare release `owner-held-final-20261026` / runtime6f3e0c1

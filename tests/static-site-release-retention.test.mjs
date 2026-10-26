@@ -17,6 +17,7 @@ import { siteIdentityFor } from "../static-site/lib/site-identity.ts";
 import { createSiteWorker } from "../workers/site/index.ts";
 import { createReleaseIdentity } from "../scripts/staging/release-identity.mts";
 import { validateCatalogSnapshot } from "../lib/catalog/snapshot.ts";
+import { documentAssets } from "../static-site/lib/document-output.ts";
 
 const owned = JSON.parse(readFileSync(new URL("../static-site/fixtures/catalog.snapshot.json", import.meta.url)));
 const at = "2026-10-20T10:00:00.000Z";
@@ -64,6 +65,33 @@ function twoReleases() {
   const ctx = context(second, prior);
   return { first, second, prior, ctx, next: seal(second, ctx, assets(second), prior) };
 }
+
+test("document-only export uses unchanged sealed verification, HTML policies and historical retention", () => {
+  const { second, prior, ctx } = twoReleases();
+  const raw = assets(second), name = `/gifts/${second.products[0].slug}`;
+  for (const suffix of [".txt", "/__next._full.txt", "/__next._tree.txt"])
+    raw.set(`${name}${suffix}`, encode('0:{"generated":"Flight"}'));
+  const complete = assembleReleaseAssets(second, raw, ctx, prior);
+  const current = documentAssets(raw, complete.routes);
+  const next = seal(second, ctx, current, prior);
+  verifyRetainedAssets(second, next.assets, next.manifest, ctx, prior);
+  assert.equal(next.manifest.assetAliases, undefined);
+  assert.deepEqual(next.routes[name], complete.routes[name]);
+  assert.deepEqual(next.assets.get(`${name}.html`), raw.get(`${name}.html`));
+  assert.deepEqual(next.manifest.retention.currentAssetPaths, [...current.keys()].sort());
+  assert.ok(next.assets.has("/safe/product.txt"));
+  for (const suffix of [".txt", "/__next._full.txt", "/__next._tree.txt"]) {
+    assert.equal(next.assets.has(`${name}${suffix}`), false);
+    assert.equal(next.routes[`${name}${suffix}`], undefined);
+  }
+  assert.deepEqual(next.assets.get("/_next/static/chunks/first.js"), prior.assets.get("/_next/static/chunks/first.js"));
+  const missingHtml = new Map(current); missingHtml.delete(`${name}.html`);
+  assert.throws(() => seal(second, ctx, missingHtml, prior), /missing its HTML/);
+  const unknownText = new Map(current); unknownText.set("/unexpected.txt", encode('0:{}'));
+  assert.throws(() => seal(second, ctx, unknownText, prior), /no freshness policy/);
+  const changedPolicy = structuredClone(next.manifest); changedPolicy.routes[name].eligibleUntil = null;
+  assert.throws(() => verifyRetainedAssets(second, next.assets, changedPolicy, ctx, prior));
+});
 
 test("retention requires an explicit independent prior digest, not just a prior release label", () => {
   const input = snapshot("first"), ctx = context(input);
@@ -151,6 +179,9 @@ test("exported build and verifier use the explicit clean runtime root, not the t
     if(JSON.stringify(process.argv.slice(2))!==JSON.stringify(['build','static-site','--webpack']))throw Error('unexpected Next command');
     fs.writeFileSync('build/next-observed.json',JSON.stringify({cwd:process.cwd(),snapshot:process.env.CATALOG_SNAPSHOT_PATH,mode:process.env.CATALOG_SITE_MODE}));`);
   const files = assets(input), origin = siteIdentityFor("preview").origin;
+  const productPath = `/gifts/${input.products[0].slug}`;
+  for (const suffix of [".txt", "/__next._full.txt", "/__next._tree.txt"])
+    files.set(`${productPath}${suffix}`, encode('0:{"generated":"Flight"}'));
   for (const [name, bytes] of files) {
     const target = path.join(root, "static-site/out", name.slice(1));
     await fs.mkdir(path.dirname(target), { recursive: true });
@@ -168,6 +199,14 @@ test("exported build and verifier use the explicit clean runtime root, not the t
     { cwd: await fs.realpath(root), snapshot: path.join(generated, "catalog.snapshot.json"), mode: "preview" });
   const manifest = JSON.parse(await fs.readFile(path.join(generated, "asset-manifest.json"), "utf8"));
   assert.equal(manifest.codeSha, codeSha); assert.equal(manifest.catalogSnapshotSha256, ctx.catalogSnapshotSha256);
+  assert.equal(manifest.assetAliases, undefined);
+  assert.ok(manifest.checksums[`${productPath}.html`]);
+  assert.ok(manifest.checksums["/safe/product.txt"]);
+  for (const suffix of [".txt", "/__next._full.txt", "/__next._tree.txt"]) {
+    assert.equal(manifest.checksums[`${productPath}${suffix}`], undefined);
+    assert.equal(manifest.routes[`${productPath}${suffix}`], undefined);
+    await assert.rejects(fs.stat(path.join(root, "static-site/out", `${productPath}${suffix}`)), { code: "ENOENT" });
+  }
   assert.notEqual(codeSha, execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim());
   const verified = verify(); assert.equal(verified.status, 0, verified.stderr);
   assert.equal(JSON.parse(verified.stdout).verified, true);
