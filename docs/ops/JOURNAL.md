@@ -1,9 +1,55 @@
 # goose.gifts — Operations Journal
 
-Newest entries first. Every scheduled run appends an entry. This file is the
-operator's memory across runs — write for a cold start.
+Newest entries first. Record release-level changes here for a cold start.
+Routine catalog care keeps protected receipts and updates Beads on meaningful
+state changes without dirtying its retained execution checkout.
 
 ---
+
+## 2026-10-25 — full catalog cleanup actually accepted on Cloudflare Free
+
+Owner-approved plan8e09e9de promoted994legacy holds and excluded the confirmed
+already-public tote duplicate. Actual3352public/31held/3383identities/42articles;
+seven confirmed duplicate listings and24specific ordinary products account for
+every remaining exclusion.2358prior public products remain byte-exact; both tote
+identities, original licensed fields, slugs, active/native/history records stay.
+All public cards have images/titles/short descriptions, with990source-grounded
+presentation notes replacing generic placeholders without rewriting original copy.
+
+Release `owner-held-final-20261026` serves runtime6f3e0c1, version
+c253ca77-0b28-44a2-94b7-8196da5fcde2/deployment
+3f27613e-a805-4d42-883d-804905e9b921. Actual D1 receipt, resolved build, final
+idle owner and last-success CAS are verified. Ledger5096HTTP/11671SQL/
+1483630known reads/25340writes/zero unknowns, inside the unchanged one-time
+9000HTTP/22000SQL/2Mread/50kwrite profile. Zero merchant/model/native writes,
+no paid upgrade, no reset of old charges. Startup account-usage checks refused
+before product work; valid accounted readbacks allowed the SAME run to proceed.
+
+Actual17225physical assets/6796aliases/27551logical routes/3407HTML leave2775
+Free-file headroom. All generatedHTML passed personal-identity/retired-Index-link
+checks. Live home24→48cards/descriptions, seven-result strainer search, genuinely
+unmatched query/Clear,390px two-column white gallery/no overflow, loaded photos,
+newly promoted goat/product/affiliate, Random spin,36-card guide and Back checks
+passed. Directory/pagination/export aliases and Index return404; product URLs,
+guides, privacy, Howie and sitemap return200. QA uses explicitqa campaign tags.
+
+Earlier daily-2026-10-24-628707b5 recovery is finalized, not awaiting consent.
+Its6312HTTP/11032SQL/2323360reads/14457writes/one original authenticated read-only
+unknown and consumed grant remain historical. Registered expired-body cleanup
+purged101entries with zero provider calls and no catalog deletion. Never replay
+either completed release. See full accepted evidence below and canonical Beads.
+
+Resume the same08:30Pacific task using the clean documentation-closeout operator,
+whose runtime matches accepted6f. Keep ten existing/Pacificday, Monday six themes/
+max20quality discoveries, model-free Tuesday–Sunday and all existing caps. Actual
+NORMAL scheduled cost/storage still needs observation(.4.8); manual recovery is
+not that measurement. Non-featured refresh starvation has its own bounded follow-up
+(.4.11). Semantic serving stays off(.4.7); no Vercel/Neon writer, extra scheduler,
+social/Pinterest/Slack, model grant or creator-research integration was enabled.
+
+Evidence: `evidence/2026-10-25-full-catalog-accepted.json`; protected same-run
+config70daf871, final successor87742ab1 and D1 receipt198a072d. Documentation-only
+closeout does not republish or relabel the6f runtime.
 
 ## 2026-10-25 PM — unchanged acquisition; healthy bounded measurement
 

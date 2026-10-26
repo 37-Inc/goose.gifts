@@ -5,50 +5,43 @@ Current work is tracked in `~/roadmap`, especially `roadmap-lbbz1.4.3`.
 Historical migration/recovery instructions are archived in
 `archive/RUNBOOK_MIGRATION_2026-10-23.md`; they are not routine commands.
 
-**October25 publication hold (`roadmap-lbbz1.4.9`):** the same ten-product run's
-eight-article repair is now serving as `daily-2026-10-24-628707b5`, runtime
-`1e3b505eb0afc644b84de4e0cadcaa53daeb3f86`. Live checks retain every original
-image/description and all42articles. Its exact uploaded version was activated;
-never upload or activate it again. Receipt/build/idle-owner/successor settlement
-is still pending after the internal recovery request cap was exhausted. Keep
-all charges and the authenticated read-only unknown. See current canonical
-Beads and the protected `editorial-finish-20261025` packet, not older unactivated
-handoffs. Do not start another supplier batch or force/release this owner.
+**Accepted full-catalog release, October25 Pacific:**
+`owner-held-final-20261026` is live on Cloudflare, runtime
+`6f3e0c1e27b95dd92f5116aec8abd2e865b6ccd6`, version
+`c253ca77-0b28-44a2-94b7-8196da5fcde2`. Actual D1 receipt, resolved build,
+idle owner and accepted successor are verified. See
+`evidence/2026-10-25-full-catalog-accepted.json` for exact identities and costs.
 
-Cameron explicitly approved the bounded finalization allowance on October25:
-1,000 control HTTP / 8,000 SQL / 500,000 additional reads, retaining300,000
-account reads and every previous charge. Approval is no longer pending. The
-original private-body deadline elapsed while paused; use only the newly reviewed
-activated-permanent settlement operator recorded in `.4.9`, not frozen `d78`.
-It authenticates exact permanent-public/technical controls and current D1/native
-proof, completes the existing receipt/build and telemetry, and records idle and
-successor acceptance. Ordinary supplier reads still expire; no deadline, upload,
-activation, provider batch, owner takeover or global quota reset is introduced.
+The owner-reviewed cleanup is complete:994holds promoted, one already-public
+duplicate excluded,3,352public/31held and all3,383identities retained. The31
+exclusions are seven confirmed duplicates and24specific ordinary products, not
+unexplained editorial/expiry holds. Every gallery/search card has an image,
+title and short description; all42original articles remain. The actual package
+has17,225physical assets and2,775files of Free headroom. Directory retirement,
+desktop/mobile, Load more, keyword search, product/guide/Random and affiliate
+checks passed. The previous3,353/17,228preview remains historical.
 
-Owner-approved cleanup (`.3.3`, `.5.4`, `.4.10`) is separately reviewed: restore
-994legacy held listings and exclude one confirmed already-public tote duplicate,
-retain31specific exclusions, render every card's short description and retire the
-redundant directory. The earlier3353-product preview,
-17,228-file inventory and desktop/mobile QA pass, but this expansion is not yet
-the live catalog. Finish the current publication before fresh capture/application
-and the next normal fenced Cloudflare publication. Daily care stays held until
-actual receipt/build/idle/public QA and the maintained successor are accepted.
+The earlier `daily-2026-10-24-628707b5` repair/recovery is also finalized.
+Never replay either completed publication, upload, activation, recovery grant
+or supplier batch. Original deadlines, immutable charges and its one historical
+read-only unknown remain in the protected evidence; none were reset or renewed.
+Daily care resumes only through the maintained normal operator below, not any
+completed migration/held-catalog/recovery helper.
 
 ## What must stay true
 
 - Release only to **Cloudflare stupid.gifts**, on **Free**. Never deploy to
   Vercel or reconnect its Git integration. Keep the old Goose/Neon rollback.
 - Preserve all 3,383 migrated identities, stable URLs, original content and
-  history. The current live baseline has2,359public gifts and1,024legacy holds.
-  The owner-approved reviewed resolution is3,352public and31excluded (seven reviewed
+  history. The accepted current catalog has3,352public and31excluded (seven reviewed
   duplicates and24individually justified ordinary commodity products); old pending
   editorial/stock flags alone are not listing objections. Preserve all identities
   and never delete/deactivate products/native vectors solely due to refresh expiry.
-- The accepted2,359-public predecessor remains immutable. The next reviewed
-  resolution preserves2,358of those public entries byte-for-byte and excludes only
-  the confirmed Dalmatian tote duplicate in `roadmap-lbbz1.3.4`; its keeper, both
-  identities, licensed fields and native history remain. Freshly capture both rows
-  and enforce keeper/source CAS. Do not turn this exact exception into general pruning.
+- The historical2,359-public predecessor remains immutable. The completed owner
+  release preserved2,358of those entries byte-for-byte and excluded only the
+  confirmed Dalmatian tote duplicate in `roadmap-lbbz1.3.4`; its keeper, both
+  identities, licensed fields and native history remain. Exact source/keeper CAS
+  was verified. Do not recapture/replay that cleanup or generalize it into pruning.
 - Existing owner-cleared images/descriptions have no expiry. Keep them. Only
   genuinely finite supplier overlays use their original deadlines; their expiry
   falls back to the cleared listing, not catalog removal.
@@ -78,19 +71,17 @@ batch after a failure.
 
 ## Operator
 
-**Daily writer enabled after live validation, October23.** The one existing
-task runs at08:30 Pacific, with no additional Cron or scheduler. The subsequent
-storefront release `storefront-da7a1e0c1523` is live, with exact receipt, resolved
-build, idle owner and desktop/mobile QA verified. See
-`evidence/2026-10-23-storefront-accepted.json` for current release/task state and
-`evidence/2026-10-23-catalog-care-accepted.json` for original writer installation
-state and evidence; an ACTIVE timer alone is never proof of writer readiness.
+**Daily writer resumes after full-catalog acceptance, October25.** Keep the one
+existing08:30Pacific task; no additional Cron or scheduler. The first normal
+scheduled expanded-catalog cost/storage observation remains `roadmap-lbbz1.4.8`.
+Tonight's manual recovery/cleanup costs are not steady-state billing evidence.
 
 The retained execution checkout is
-`/Users/cameronehrlich/.codex/worktrees/stupid-catalog-care/goose.gifts`.
-It integrates the reviewed runtimes from PR269 and PR274 plus documentation-only
-closeout commits; its runtime/dependency files match the accepted live source.
-Keep the historical canary checkout unchanged. Never blindly pull or republish
+`/Users/cameronehrlich/.codex/worktrees/stupid-full-catalog-closeout/goose.gifts`.
+Its documentation-only closeout leaves runtime/dependencies equivalent to the
+accepted6f3e0c1 source. Retain the6f cleanup source and original628/canary
+checkouts for their exact historical bindings; never run the older628 operator.
+Never blindly pull or republish
 an older runtime over a newer live release; integrate/test genuine code changes
 deliberately before switching the operator.
 
