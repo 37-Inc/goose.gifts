@@ -82,3 +82,20 @@ a new experiment. No duplicate review job. Next hypothesis remains whether
 attributable response extends beyond one dominant product after separating
 rebrand/destination effects; do not start it. Healthy routine observations and
 successful local recovery require no owner action or new alert.
+
+## Evidence integration, not runtime advancement
+
+[PR #293](https://github.com/37-Inc/goose.gifts/pull/293) carries only run
+docs/evidence/events. Retained receipt commit
+`9c89e899d25a5267fb63e40f4aaec70c13272606`; main-based receipt commit
+`c7164901e650477f0dd8925ea95375fc6c1e18ff` preserves complete upstream dated log
+entries. Protected runtime/dependency/package/policy/cohort/receipt diff against
+upstream `7da8b438db26723a014a91bcd4622ab37ea30136` is empty.
+Main-based creative validation, six creative tests, 18 Pinterest tests and lint
+(zero errors/warnings) pass using existing reviewed shared dependencies read-only,
+after exact lock SHA256
+`a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381`
+and installed-version checks. No fresh install, new build/deployment, hosted CI
+or full-suite acceptance claimed. Upstream catalog/UI/indexing work belongs to
+separate operators; it was neither executed here nor adopted into retained
+measurement runtime. Canonical and catalog pins remain untouched.
