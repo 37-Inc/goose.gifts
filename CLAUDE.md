@@ -56,8 +56,9 @@ Keep entries short; heavy operational detail belongs in `JOURNAL.md`.
   deploys. `build:staging` remains a compatible alias. `build:legacy` is the
   retained Neon-backed Next app and requires its separate rollback environment;
   do not fetch legacy credentials to validate a Cloudflare-only change.
-- New catalog execution uses only the reviewed D1 operator's explicit credential
-  contract; it remains gated. `./scripts/ops/pull-env.sh` is legacy Vercel
+- Normal daily care is enabled only through the maintained D1 operator and its
+  explicit credential/limit contract in the current runbook. A source merge alone
+  does not publish Cloudflare. `./scripts/ops/pull-env.sh` is legacy Vercel
   seeding/rollback tooling, not an execution fallback. Do not retry unattended
   Keychain access, change ACLs or substitute ambient credentials. Retained Neon
   access uses HTTPS (`@vercel/postgres`), never raw TCP 5432.
