@@ -11,6 +11,8 @@ restored at exact retained be034bf source; canonical/catalog pins untouched.
 Cause unverified; interrupted AM result unavailable, not backfilled. No public
 Pin created, creative/account/catalog/site/Bead/schedule change, deploy or spend.
 Same ACTIVE measurement cadence, exact October31 review/posting freeze unchanged.
+Evidence PR[#293](https://github.com/37-Inc/goose.gifts/pull/293), retained
+receipt9c89e89. This evidence merge is not runtime advancement/site publication.
 
 ## 2026-10-25 PM — routine Pinterest measurement; storage recovered
 
