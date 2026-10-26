@@ -6,6 +6,45 @@ state changes without dirtying its retained execution checkout.
 
 ---
 
+## 2026-10-26 PM — source-exact operator recovery, no new acquisition
+
+Trigger23:31:15.148UTC; actual23:32:09.721UTC snapshot at retained be034bf.
+Required operator path absent on arrival though artifact remained active; local/
+remote branch matched, no git worktree registered. Safely restored exact branch
+at same path and reattached. No canonical/catalog reset/update or source/credential
+change; cause of removal unknown. Interrupted AM attempt has no durable result;
+no completion/backfill/equal-age claim. Recovery and focused tests pass without
+fresh dependencies.61GiB free at later check, no broad cleanup by this task.
+
+Verified1107815345747925810/stupid_gifts/BUSINESS,28 Pins/five boards. All IDs,
+links/boards match October25PM. Profile4010/63opens/8saves/2native outbound;
+P1451/22/3/2,F359/5/1/0. P+3/F+4 impressions; no v11 action change. Three new
+profile opens are pre-v11 cat-brush/Shark attention, not acquisition. Bowling1396
+supplies96.21%P exposure/both outbound; Toast283 supplies78.83%F. Removing them
+leaves P55/2/0/0,F76/2/0/0. No demonstrated acquisition/format winner.
+
+GA4explicit507421709 October19-26Pacific/current partial: Goose459direct/four
+engaged; Stupid43direct/nine engaged,9amazon-not-set/six engaged,2not-set/none,
+2amazon-blank-medium/one. Retailer rows4Stupid/1Goose direct/amazon are not
+Pinterest conversions/confirmed people. PostHog550427 rollingUTC October19
+23:32:05.643-October26 23:32:05.643:48page/72list/5search/5select, attribution
+query empty after campaign/whole-QA-identity exclusions. Both healthy; absent
+host/fullURL/per-Pin attribution, untagged-operator/window caveats and historical
+gaps retained. Per-arm/Pin site/retailer/revenue unknown, not zero. No retired
+DB/Vercel or public v3/Sandbox evidence. Redirect/rebrand intervention retained.
+
+No unresolved publication/new24h/seven-day/28day checkpoint; prior late learnings
+retained, six archived/public and six measuring. Next28daySheepNovember10
+20:07:09.336UTC.12metrics+one run learning through creative:record;1038valid
+events/8experiments/37candidates. Full receipt/recovery/checkpoints in
+`pinterest-measurements/2026-10-26-pm/`. No public Pin created, generation,
+shortlist/package/approval, account/Pin/catalog/site mutation, deployment, spend,
+Bead/schedule change. Approvals/receipts/policy/cohort/deadline preserved.
+Same ACTIVE cadence; finalReviewDelivered=false, exactOctober31T16:44:52.279Z
+gate/expected16:30Pacific review slot unchanged; posting stays off afterward
+until explicit next-experiment approval. Routine evidence/recovered local state
+requires no owner action or new alert.
+
 ## 2026-10-25 — full catalog cleanup actually accepted on Cloudflare Free
 
 Owner-approved plan8e09e9de promoted994legacy holds and excluded the confirmed

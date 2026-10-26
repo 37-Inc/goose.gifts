@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "reviewed-measurement-operator-local-recovery",
+  "recordedAt": "2026-10-26T23:33:10Z",
+  "operatorPath": "/Users/cameronehrlich/.codex/worktrees/stupid-pinterest-cutover/goose.gifts",
+  "problem": "Required operator directory missing at PM start; task artifact still listed active, git worktree registration absent. Cause not established.",
+  "retainedLocalBranch": "codex/pinterest-redirect-evidence-operator",
+  "retainedLocalAndRemoteCommit": "be034bfd237d752fb16b70baa107d48f60de2b89",
+  "recovery": "git worktree add exact required path from the existing verified retained branch, then reattach existing task artifact. No reset, update or merge of canonical/catalog/runtime source.",
+  "recoveredAtExactRetainedCommit": true,
+  "measurementSucceeded": true,
+  "missingIgnoredDependenciesNotReinstalled": true,
+  "credentialsChanged": false,
+  "canonicalPin": "063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6",
+  "catalogPin": "628707b5746414ea52dc47daecdbfa8bce819220",
+  "interruptedMorningAttempt": "Read-only AM command had started before interruption; no durable captured result is available. Do not claim completion or backfill a snapshot.",
+  "ownerActionRequired": false,
+  "scheduleChanged": false
+}
