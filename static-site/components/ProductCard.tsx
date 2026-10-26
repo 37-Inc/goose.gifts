@@ -47,6 +47,10 @@ export function ProductCard({
         </h2>
         {!illustrative && <CatalogDisclosure source={product.source} id={product.id} />}
         <CatalogDescription source={product.source} id={product.id} title={product.title} fallback={product.description} card />
+        <a className="card-action" data-analytics-product-link="" href={`/gifts/${product.slug}`}>
+          View gift <span aria-hidden="true">→</span>
+          <span className="sr-only">: {shortProductName(product.title)}</span>
+        </a>
       </div>
     </article>
   );
