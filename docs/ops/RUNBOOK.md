@@ -37,11 +37,11 @@ completed migration/held-catalog/recovery helper.
   duplicates and24individually justified ordinary commodity products); old pending
   editorial/stock flags alone are not listing objections. Preserve all identities
   and never delete/deactivate products/native vectors solely due to refresh expiry.
-- The accepted2,359-public predecessor remains immutable. The next reviewed
-  resolution preserves2,358of those public entries byte-for-byte and excludes only
-  the confirmed Dalmatian tote duplicate in `roadmap-lbbz1.3.4`; its keeper, both
-  identities, licensed fields and native history remain. Freshly capture both rows
-  and enforce keeper/source CAS. Do not turn this exact exception into general pruning.
+- The historical2,359-public predecessor remains immutable. The completed owner
+  release preserved2,358of those entries byte-for-byte and excluded only the
+  confirmed Dalmatian tote duplicate in `roadmap-lbbz1.3.4`; its keeper, both
+  identities, licensed fields and native history remain. Exact source/keeper CAS
+  was verified. Do not recapture/replay that cleanup or generalize it into pruning.
 - Existing owner-cleared images/descriptions have no expiry. Keep them. Only
   genuinely finite supplier overlays use their original deadlines; their expiry
   falls back to the cleared listing, not catalog removal.
