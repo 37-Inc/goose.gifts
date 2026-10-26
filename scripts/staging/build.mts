@@ -12,6 +12,8 @@ import { assembleReleaseAssets, readPriorRelease } from './retention.mts';
 import { earliestDisplayExpiry } from '../../lib/catalog/display.ts';
 import { createStaticRoutes } from '../../static-site/lib/asset-routes.ts';
 import { documentAssets } from '../../static-site/lib/document-output.ts';
+import { canonicalJson } from '../../lib/catalog/canonical-json.ts';
+import { verifySemanticCatalogIdentities } from '../../lib/catalog/semantic-profile.ts';
 
 export type ReleaseBuildContext = Pick<SiteAssetManifest, 'schemaVersion' | 'releaseId' | 'codeSha' | 'catalogRevision'
   | 'catalogSnapshotSha256' | 'generatedAt' | 'vectorSyncWatermark' | 'priorReleaseId' | 'sourceMode'> & { retainedManifestSha256: string | null };
@@ -74,6 +76,17 @@ export async function buildStaticRelease(root: string) {
   const buildEnv = releaseBuildEnvironment(context, process.env);
   const priorPackage = await readPriorRelease(context, process.env.CATALOG_PRIOR_RELEASE_PATH);
   const identityBytes = siteIdentityBytes(context.sourceMode);
+  const searchPath = process.env.CATALOG_SEMANTIC_CATALOG_PATH, searchDigest = process.env.CATALOG_SEMANTIC_CATALOG_SHA256;
+  let semanticCatalog;
+  if (searchPath || searchDigest) {
+    if (!searchPath || !path.isAbsolute(searchPath) || !/^[a-f0-9]{64}$/.test(searchDigest ?? ''))
+      throw new Error('semantic_catalog_build_input_invalid');
+    const bytes = await fs.readFile(searchPath);
+    if (bytes.length > 8 * 1024 * 1024) throw new Error('semantic_catalog_build_input_oversize');
+    semanticCatalog = await verifySemanticCatalogIdentities(JSON.parse(bytes.toString('utf8')));
+    if (createHash('sha256').update(canonicalJson(semanticCatalog)).digest('hex') !== searchDigest)
+      throw new Error('semantic_catalog_build_input_changed');
+  }
   try {
     const prior = JSON.parse(await fs.readFile(path.join(generated, 'asset-manifest.json'), 'utf8'));
     if (prior.releaseId === context.releaseId) throw new Error('Release ID already built; verify and reuse the sealed package instead');
@@ -122,6 +135,7 @@ export async function buildStaticRelease(root: string) {
     productCount: snapshot.products.length,
     slugCount: snapshot.products.length + snapshot.heldProducts.length + snapshot.slugHistory.length,
     checksums, routes: assembled.routes,
+    ...(semanticCatalog ? { semanticCatalog } : {}),
     ...(Object.keys(assembled.assetAliases).length ? { assetAliases: assembled.assetAliases } : {}) };
   const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
   // Asset inventory/retention can take time; do not seal if source drifted meanwhile.

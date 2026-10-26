@@ -16,8 +16,10 @@ The owner-reviewed cleanup is complete:994holds promoted, one already-public
 duplicate excluded,3,352public/31held and all3,383identities retained. The31
 exclusions are seven confirmed duplicates and24specific ordinary products, not
 unexplained editorial/expiry holds. Every gallery/search card has an image,
-title and short description; all42original articles remain. The actual package
-has17,225physical assets and2,775files of Free headroom. Directory retirement,
+title and short description; all42original articles remain. The original package
+had17,225physical assets; reviewed code release `web-20261026-1bc3f6c7` reduced
+this to7,021without changing the catalog. Read `/.well-known/catalog-release.json`
+for the actual web identity; a file release is not a new D1 catalog receipt. Directory retirement,
 desktop/mobile, Load more, keyword search, product/guide/Random and affiliate
 checks passed. The previous3,353/17,228preview remains historical.
 
@@ -71,21 +73,24 @@ batch after a failure.
 
 ## Operator
 
-**Daily writer resumes after full-catalog acceptance, October25.** Keep the one
-existing08:30Pacific task; no additional Cron or scheduler. The first normal
+**Daily writer is PAUSED after the October26 native-preservation failure.** Keep
+the one existing08:30Pacific task; no additional Cron or scheduler. Do not
+prepare/start/publish another catalog run until the retained failed run is safely
+reconciled and resumption is recorded in canonical `roadmap-lbbz1.4.13`.
+The first normal
 scheduled expanded-catalog cost/storage observation remains `roadmap-lbbz1.4.8`.
 Tonight's manual recovery/cleanup costs are not steady-state billing evidence.
 
-The next reviewed execution checkout is
+The retained failed-run execution checkout is
 `/Users/cameronehrlich/.codex/worktrees/stupid-public-indexability/goose.gifts`,
-the clean source combining PR290 and the public-indexability correction in
-`roadmap-lbbz1.9`. Switch only after build/tests/review/merge pass and before a
-run is prepared. This is an intentional UI/document-output/indexing
-upgrade from accepted6f3e0c1, not a claim it is already live: the NEXT normal run
-must publish and independently verify it. No extra supplier batch is authorized
-for cosmetic work. Keep .5.5/.4.12/.9 open until that real release is accepted.
-See `UI_POLISH_2026-10-25.md` and `INDEXING_AUDIT_2026-10-26.md` for local
-comparison, crawl evidence and release/validation boundaries.
+the frozen1bc3f6csource combining PR290 and the public-indexability correction.
+Never edit that source/config/checkpoint while settling its original owner.
+Its UI/indexability code was separately published in the file release above;
+Google sitemap submission/noindex validation is independently recorded in
+`roadmap-lbbz1.9`. No extra merchant batch is authorized for code changes.
+Code-only storefront releases do not require replaying failed supplier phases,
+and never claim to finalize that failed catalog run. See
+`SEMANTIC_SEARCH_2026-10-26.md` for prepared search/recovery work and its limits.
 Retain the prior full-catalog-closeout operator,6f cleanup source and original
 628/canary checkouts for their historical bindings; never run the older628
 operator or blindly overwrite a newer live runtime with an older checkout.

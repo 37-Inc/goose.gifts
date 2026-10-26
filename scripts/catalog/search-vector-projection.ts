@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { canonicalJson } from './migration.ts';
 import { decodePgvectorSendBase64, encodePgvectorSendBase64 } from './pgvector-binary.ts';
+import { normalizeSemanticPrefix } from '../../lib/catalog/semantic-profile.ts';
 
 const MODEL_DIMENSIONS = { 'text-embedding-3-small': 1536, 'text-embedding-3-large': 3072 } as const;
 type EmbeddingModel = keyof typeof MODEL_DIMENSIONS;
@@ -46,10 +47,7 @@ export function projectReceiptEmbedding(input: {
   const native = decodePgvectorSendBase64(product.nativeBase64, sourceDimensions);
   if (hash(Buffer.from(product.nativeBase64, 'base64')) !== product.vectorBytesSha256)
     throw new Error('search_embedding_native_mismatch');
-  const prefix = native.slice(0, input.dimensions), magnitude = Math.hypot(...prefix);
-  if (!Number.isFinite(magnitude) || magnitude === 0) throw new Error('search_embedding_zero_norm');
-  const values = prefix.map(value => Math.fround(value / magnitude));
-  if (Math.abs(Math.hypot(...values) - 1) > 1e-6) throw new Error('search_embedding_normalization');
+  const values = normalizeSemanticPrefix(native, input.dimensions);
   return {
     model, dimensions: input.dimensions, values,
     provenance: {

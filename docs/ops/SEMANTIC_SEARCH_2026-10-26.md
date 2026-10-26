@@ -2,7 +2,9 @@
 
 Tracked in `roadmap-lbbz1.4.7` and the retained-run repair
 `roadmap-lbbz1.4.13`. This is local preparation, **not authorization to execute**
-recovery, install a key, spend, mutate an index, deploy or resume catalog care.
+recovery, install a key, spend, mutate an index or resume catalog care. Cameron
+subsequently authorized reviewed code integration and production file deployment;
+that does not approve the still-pending key/spending/live-index decision.
 
 ## Why search is off
 
@@ -48,21 +50,51 @@ updates and real existing queried usage; it does not establish fresh account-wid
 capacity, approve spend or demonstrate retrieval quality.
 Current provider limits: https://developers.cloudflare.com/vectorize/platform/pricing/
 
-## Serving integration still required
+## Stable derived serving integration — implemented, not enabled
 
-The current Worker overrides keyword retrieval with the full cleared snapshot,
-but semantic `byPublicIds` still uses the legacy finite-supplier/native lookup.
-Simply installing a key and filling an index would not establish permanent
-catalog parity. Do not blindly substitute the broader permanent-listing lookup:
-the semantic path must validate model/input/projection provenance as well as
-membership in the actual accepted public snapshot, excluding the31held IDs.
+`prepareSemanticCatalog` turns pinned authentic receipts into an offline vector
+plan and a hash-only serving artifact. Its fixed profile is v3-small, native1536
+to derived1024, prefix/L2/float32, with the retained producer's exact public input
+fields plus retained source-query context. Current public title, pun, witty copy
+and tags must reproduce that receipt's input. The original native bytes and model
+receipt remain unchanged. Raw input/context and vector values are not embedded in
+the serving artifact.
 
-The vector filter also requires the daily `catalogRevision`. Carrying that
-coupling into a derived index would require rewriting unchanged entries on every
-publication. Prefer a stable model/dimension/transform profile with per-input
-hashes, updating only changed/new vectors; separately validate candidates against
-the current public snapshot. This is a proposed integration, not a new runtime
-or permission to mutate an index. Originals and native maintenance stay separate.
+Vector IDs bind profile, product/public identity, public-input hash, exact full
+input hash and original/derived native hashes. Receipt dates, supplier facts,
+catalog revisions, slugs, scores and descriptions are not embedding inputs;
+changing those does not rewrite an unchanged vector. Changed actual inputs fail
+closed until their own compatible vector proof is prepared.
+
+The Worker checks every match against both this artifact and the CURRENT public
+snapshot, returning only that snapshot's cleared view. Excluded/removed/inactive
+records, wrong IDs, inputs, model, dimensions, transform or metadata cannot gain
+access through a broad D1 lookup. Finite supplier overlays do not expire an
+independently cleared, input-verified vector. Unknown/invalid derived proofs fall
+back to keyword search rather than reopening legacy native serving.
+
+The derived index uses a separate `SEMANTIC_VECTORIZE` binding; original
+`VECTORIZE` maintenance/history remain intact. The profile-specific index needs
+no redundant metadata-filter setup. Local identity validation replaces the old
+daily-revision filter. The normal shared atomic query budget is scoped to this
+compiled derived index, never request parameters. Query/product normalization
+shares one implementation. No query retries/refunds are added; late embedding
+completion after timeout cannot trigger a background vector request.
+
+The optional `semanticSearch.derivedCatalog` publication setting pins an absolute
+artifact path, its canonical-JSON SHA256 and its separate index name. The normal
+builder embeds it in the already hash-bound asset manifest; normal package and
+uploaded-version verification check the artifact/index/bindings. No extra asset,
+private publisher, credential or live enablement is introduced. Omission keeps
+the historical build/config behavior. Explicit standalone builds use
+`CATALOG_SEMANTIC_CATALOG_PATH` and `CATALOG_SEMANTIC_CATALOG_SHA256`.
+
+Actual local current-input preparation found TWO of the seven inspected receipt
+products match the accepted cleared presentation and original archived native
+bytes. The other five remain public; their new receipt inputs must not silently
+replace different cleared inputs. The private `prepared-semantic-report.json`
+records this limited evidence. Two vectors are NOT full-catalog search readiness,
+and this receipt does not establish the other3,350archive inputs as incompatible.
 
 ## Native-preservation correction
 
@@ -129,6 +161,8 @@ and ongoing-query decision is pending; do not ask again or infer consent from
 the dormant50/day and32,768-token limits. Real natural-language/negative-query
 quality, latency/fallback, fresh Free usage, independent review and actual
 publication/config/rollback verification remain required before enabling search.
+Complete actual compatible coverage and index/bundle capacity are still required;
+installing a key alone is not enough. Do not run a blanket re-embedding job.
 
 Private offline evidence is in
 `~/.codex/private/goose-gifts-migration/semantic-evaluation-20261026/`.
@@ -142,3 +176,10 @@ preparation and atomic reconciliation tests also pass independently. Both strict
 TypeScript projects and lint pass. Recovery cases use the full SQLite migration
 schema with synthetic records; no provider execution or real retrieval-quality
 acceptance is implied by these results.
+
+The subsequent end-to-end serving integration passes46focused cases,
+independently rerun by a read-only reviewer. Review's late-provider-dispatch
+finding was fixed and regression-tested. The full suite, both strict typechecks,
+lint, dependency audits, explicit-context build and package/Worker verification
+are rerun for the final source. These are local/mocked acceptance, not measured
+real semantic relevance or latency.

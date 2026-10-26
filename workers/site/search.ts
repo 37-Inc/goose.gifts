@@ -5,6 +5,10 @@ import { isCatalogDisplayEligibleProduct, suppressNearDuplicateProducts } from '
 import type { SearchAdapters, SemanticBudgetScope, SiteEnv } from './bindings.ts';
 import { semanticBudgetConfig, semanticTokenUpperBound } from './semantic-budget.ts';
 import { catalogSearchTerms } from '../../lib/catalog/search-terms.ts';
+import { DERIVED_SEARCH_PROFILE, normalizeSemanticPrefix } from '../../lib/catalog/semantic-profile.ts';
+import type { DerivedSearchProfile } from '../../lib/catalog/semantic-profile.ts';
+import type { DerivedSemanticSearch } from './derived-search.ts';
+import { canonicalJson } from '../../lib/catalog/canonical-json.ts';
 
 export const EMBEDDING_MODEL = 'text-embedding-3-small';
 export const EMBEDDING_DIMENSIONS = 1536;
@@ -37,7 +41,8 @@ async function bounded<T>(operation: (signal: AbortSignal) => Promise<T>, timeou
   }
 }
 
-export async function openAIEmbedding(query: string, env: SiteEnv, signal: AbortSignal): Promise<number[]> {
+export async function openAIEmbedding(query: string, env: SiteEnv, signal: AbortSignal, profile?: DerivedSearchProfile): Promise<number[]> {
+  if (profile && canonicalJson(profile) !== canonicalJson(DERIVED_SEARCH_PROFILE)) throw new Error('embedding_profile_invalid');
   if (!env.OPENAI_API_KEY) throw new Error('embedding_unconfigured');
   const response = await fetch('https://api.openai.com/v1/embeddings', {
     method: 'POST', signal,
@@ -47,12 +52,13 @@ export async function openAIEmbedding(query: string, env: SiteEnv, signal: Abort
   // Do not log provider bodies, exception messages, query text or credentials.
   if (!response.ok) throw new Error('embedding_unavailable');
   if (Number(response.headers.get('content-length')) > 100_000) throw new Error('embedding_response_oversize');
-  const body = await response.json() as { data?: { embedding?: number[] }[] };
+  const body = await response.json() as { model?: string; data?: { embedding?: number[] }[] };
   const vector = body.data?.[0]?.embedding;
   if (!Array.isArray(vector) || vector.length !== EMBEDDING_DIMENSIONS || !vector.every(Number.isFinite)) {
     throw new Error('embedding_invalid');
   }
-  return vector;
+  if (profile && (body.model !== profile.model || body.data?.length !== 1)) throw new Error('embedding_model_invalid');
+  return profile ? normalizeSemanticPrefix(vector, profile.dimensions) : vector;
 }
 
 function result(product: PublicCatalogProduct, similarity: number, matchType: 'semantic' | 'keyword'): SearchResult {
@@ -109,13 +115,17 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
   providerTimeoutMs?: number;
   rateLimit?: number;
   semanticBudgetScope?: SemanticBudgetScope;
+  /** null explicitly fails closed on a malformed derived artifact, not to legacy semantic serving. */
+  derivedSemantic?: DerivedSemanticSearch | null;
 }) {
   const now = options.now || Date.now;
   const timeout = Math.max(10, Math.min(options.providerTimeoutMs ?? 1500, 3000));
   const cache = new Map<string, { until: number; results: SearchResult[];semanticDeadlines:ReadonlyMap<string,number> }>();
   const clients = new Map<string, { until: number; count: number }>();
   const maxRequests = Math.max(1, Math.min(options.rateLimit ?? 20, 60));
-  const budgetScope = options.semanticBudgetScope && Object.freeze({ ...options.semanticBudgetScope });
+  const derived = options.derivedSemantic;
+  const budgetScope = options.semanticBudgetScope && Object.freeze({ ...options.semanticBudgetScope,
+    ...(derived ? { index: derived.indexName } : {}) });
 
   return async (request: Request, env: Env): Promise<Response> => {
     if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405, { Allow: 'GET' });
@@ -141,8 +151,9 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
     const queryHash = await sha256(query.toLowerCase());
     // The kill switch changes the key so cached semantic responses are not reused.
     const caps = semanticBudgetConfig(env, budgetScope);
-    const semantic = Boolean(caps && env.VECTORIZE && options.adapters.reserveSemantic && (options.adapters.embed || env.OPENAI_API_KEY));
-    const key = `${options.catalogRevision}:${EMBEDDING_MODEL}:${semantic}:${semantic ? `${caps!.requests}:${caps!.tokens}` : ''}:${limit}:${queryHash}`;
+    const vectorBinding = derived ? env.SEMANTIC_VECTORIZE : env.VECTORIZE;
+    const semantic = Boolean(derived !== null && caps && vectorBinding && options.adapters.reserveSemantic && (options.adapters.embed || env.OPENAI_API_KEY));
+    const key = `${options.catalogRevision}:${derived?.profile.id ?? EMBEDDING_MODEL}:${semantic}:${semantic ? `${caps!.requests}:${caps!.tokens}` : ''}:${limit}:${queryHash}`;
     const cached = cache.get(key);
     // Hashing above can cross a product deadline. Check the current clock and
     // reselect immediately before serialization, just as for uncached responses.
@@ -162,24 +173,37 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
           const reserved = await bounded(() => options.adapters.reserveSemantic!(budgetScope!, semanticTokenUpperBound(query), env), timeout);
           if (reserved !== true) throw new Error('semantic_unallocated');
           const matches = await bounded(async (signal) => {
-            const vector = await (options.adapters.embed || openAIEmbedding)(query, env, signal);
-            if (vector.length !== EMBEDDING_DIMENSIONS || !vector.every(Number.isFinite)) throw new Error('embedding_invalid');
-            return env.VECTORIZE!.query(vector, {
+            const vector = await (options.adapters.embed || openAIEmbedding)(query, env, signal, derived?.profile);
+            // A non-abortable/custom embedding can settle after fallback. It
+            // must not dispatch another provider request in the background.
+            if (signal.aborted) throw new Error('provider_timeout');
+            if (vector.length !== (derived?.profile.dimensions ?? EMBEDDING_DIMENSIONS) || !vector.every(Number.isFinite)
+              || derived && Math.abs(Math.hypot(...vector) - 1) > 1e-6) throw new Error('embedding_invalid');
+            return vectorBinding!.query(vector, {
               // Vectorize's actual topK ceiling is 100, not the 240 application cap.
-              topK: Math.min(100, candidateLimit), returnValues: false, returnMetadata: 'none',
-              filter: { catalogRevision: options.catalogRevision, eligible: true },
+              topK: Math.min(100, candidateLimit), returnValues: false, returnMetadata: derived ? 'all' : 'none',
+              // Derived search has its own profile-specific index. Validate
+              // identity/metadata locally; no extra provider metadata-index setup.
+              ...(derived ? {} : { filter: { catalogRevision: options.catalogRevision, eligible: true } }),
             });
           }, timeout);
-          const scores = new Map<string, number>();
-          for (const match of matches.matches.slice(0, Math.min(100, candidateLimit))) {
-            if (typeof match.id === 'string' && match.id.length <= 100 && Number.isFinite(match.score)) scores.set(match.id, Math.max(-1, Math.min(1, match.score)));
-          }
-          vectorCount = scores.size;
-          if (vectorCount) {
-            const products = await bounded(() => storage.byPublicIds([...scores.keys()], new Date(now()), options.catalogRevision), timeout);
-            candidates = products.filter((product) => scores.has(product.publicId))
-              .map((product) => result(product, scores.get(product.publicId)!, 'semantic'))
-              .sort((a, b) => b.rankScore - a.rankScore || a.id.localeCompare(b.id));
+          if (derived) {
+            const verified = await bounded(() => derived.resolve(matches.matches.slice(0, Math.min(100, candidateLimit))), timeout);
+            candidates = verified.map(({ product, score }) => result(product, score, 'semantic'))
+              .sort((a,b) => b.rankScore - a.rankScore || a.id.localeCompare(b.id));
+            vectorCount = candidates.length;
+          } else {
+            const scores = new Map<string, number>();
+            for (const match of matches.matches.slice(0, Math.min(100, candidateLimit))) {
+              if (typeof match.id === 'string' && match.id.length <= 100 && Number.isFinite(match.score)) scores.set(match.id, Math.max(-1, Math.min(1, match.score)));
+            }
+            vectorCount = scores.size;
+            if (scores.size) {
+              const products = await bounded(() => storage.byPublicIds([...scores.keys()], new Date(now()), options.catalogRevision), timeout);
+              candidates = products.filter((product) => scores.has(product.publicId))
+                .map((product) => result(product, scores.get(product.publicId)!, 'semantic'))
+                .sort((a, b) => b.rankScore - a.rankScore || a.id.localeCompare(b.id));
+            }
           }
         } catch {
           // A provider failure only changes search mode. No raw error/query logs.
@@ -187,12 +211,15 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
       }
       const semanticDeadlines=new Map(candidates.map(product=>[product.publicId,catalogDeadline(product.eligibleUntil)]));
       let results = select(candidates, limit, now(),semanticDeadlines);
-      if (results.length < limit && vectorCount < candidateLimit) {
-        const products = await bounded(() => storage.keyword(query, candidateLimit - vectorCount, new Date(now()), options.catalogRevision), timeout);
+      if (results.length < limit) {
+        // Rejected ANN candidates cannot starve lexical fallback. Legacy D1
+        // lookup + keyword overfetch still share the 240-candidate ceiling.
+        const keywordLimit = Math.min(240 - vectorCount, Math.max(limit - results.length, candidateLimit - vectorCount));
+        const products = await bounded(() => storage.keyword(query, keywordLimit, new Date(now()), options.catalogRevision), timeout);
         const semanticIds = new Set(results.map((product) => product.id));
         // Storage already ranks by full-text relevance. Re-sorting these by
         // optimistic copy/quality can bury the best actual query matches.
-        const keywords = products.slice(0, candidateLimit - vectorCount)
+        const keywords = products.slice(0, keywordLimit)
           .filter((product) => !semanticIds.has(product.id))
           .map((product) => result(product, keywordSimilarity(product, query), 'keyword'));
         results = select([...results, ...keywords], limit, now(),semanticDeadlines);

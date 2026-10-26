@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { verifySemanticCatalogIdentities } from '../../lib/catalog/semantic-profile.ts';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -70,6 +71,7 @@ export async function verifyStaticRelease(root: string) {
   const manifestBytes = await fs.readFile(path.join(root, 'build/stupid-gifts/asset-manifest.json'));
   const manifest: SiteAssetManifest = JSON.parse(manifestBytes.toString('utf8'));
   verifyReleaseIdentity(manifestBytes, JSON.parse(await fs.readFile(path.join(root, 'build/stupid-gifts/release-identity.json'), 'utf8')));
+  if (Object.hasOwn(manifest, 'semanticCatalog')) await verifySemanticCatalogIdentities(manifest.semanticCatalog);
   const snapshotBytes = await fs.readFile(path.join(root, 'build/stupid-gifts/catalog.snapshot.json'));
   const snapshot = validateCatalogSnapshot(JSON.parse(snapshotBytes.toString('utf8')));
   verifySnapshotDigest(snapshotBytes, manifest.catalogSnapshotSha256);
