@@ -17,12 +17,14 @@ replay completed runs. The one08:30Pacific routine resumes from the maintained
 clean operator. Remaining follow-ups are first normal scheduled cost/storage
 (`.4.8`), non-featured freshness rotation within the same ten slots (`.4.11`),
 useful search/native parity
-(`.4.7`), product redirects and Search Console migration (`.6.2`), final provider/
+(`.4.7`), final provider/
 analytics/consumer checks (`.8`), existing Pinterest measurement/destinations
 (`.8.1`), show selections (`.5`) and eventual legacy retirement (`.7`). These are
 canonical Beads under `roadmap-lbbz1`, not a request to reimport the catalog,
 regenerate all copy, add a scheduler or upgrade Cloudflare. Historical notes below
 describe earlier checkpoints and are not current operating instructions.
+Product redirects and Search Console migration (`.6.2`) are already closed in
+canonical Beads; do not repeat their completed submissions as a launch prerequisite.
 
 ## Historical launch priorities — October19–22 2026
 
