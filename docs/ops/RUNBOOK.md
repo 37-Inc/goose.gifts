@@ -77,13 +77,15 @@ scheduled expanded-catalog cost/storage observation remains `roadmap-lbbz1.4.8`.
 Tonight's manual recovery/cleanup costs are not steady-state billing evidence.
 
 The next reviewed execution checkout is
-`/Users/cameronehrlich/.codex/worktrees/stupid-polish-integration/goose.gifts`,
-the clean source of merged PR290. The existing task must be switched only after
-that PR's build/tests/review pass. This is an intentional UI/document-output
+`/Users/cameronehrlich/.codex/worktrees/stupid-public-indexability/goose.gifts`,
+the clean source combining PR290 and the public-indexability correction in
+`roadmap-lbbz1.9`. Switch only after build/tests/review/merge pass and before a
+run is prepared. This is an intentional UI/document-output/indexing
 upgrade from accepted6f3e0c1, not a claim it is already live: the NEXT normal run
 must publish and independently verify it. No extra supplier batch is authorized
-for cosmetic work. Keep .5.5/.4.12 open until that real release is accepted.
-See `UI_POLISH_2026-10-25.md` for the local comparison and browser evidence.
+for cosmetic work. Keep .5.5/.4.12/.9 open until that real release is accepted.
+See `UI_POLISH_2026-10-25.md` and `INDEXING_AUDIT_2026-10-26.md` for local
+comparison, crawl evidence and release/validation boundaries.
 Retain the prior full-catalog-closeout operator,6f cleanup source and original
 628/canary checkouts for their historical bindings; never run the older628
 operator or blindly overwrite a newer live runtime with an older checkout.
@@ -152,6 +154,13 @@ titles, descriptions, images and editorial remain unchanged in the dataset;
 longer detail copy and exact retailer identity remain available in disclosures.
 Related gifts use build-only object/interest matching, shared with route-expiry
 calculation. No per-visitor database/model work is added by the gallery.
+
+Canonical product pages use the validated public allowlist for crawl eligibility;
+the sealed long-editorial flag must not suppress otherwise public listings.
+Metadata, Worker headers and sitemap agree. Fixture/private/held/auxiliary/query
+and finite-expiry controls remain; no new article or supplier batch is required
+to make already published cleared content discoverable. After actual publication,
+verify the full live sitemap before resubmitting/validating in Search Console.
 
 The standalone `/gifts` directory and pagination/HTML/RSC aliases are retired404;
 individual `/gifts/[slug]` product pages remain canonical. Home, search and gift

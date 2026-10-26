@@ -124,7 +124,9 @@ export function createStaticRoutes(
       ...catalog,
       eligibleUntil: earliest(displayed.map((item) => item.eligibleUntil)),
       safeAssetPath: "/safe/product.html",
-      indexable: catalog.indexable && product.indexable !== false,
+      // This validated public allowlist already excludes held/unsafe products.
+      // Long-editorial qualification is not a requirement for page indexing.
+      indexable: catalog.indexable,
     };
   }
   const companions = snapshot.heldProducts.length ? heldCompanions(assetPaths) : [];

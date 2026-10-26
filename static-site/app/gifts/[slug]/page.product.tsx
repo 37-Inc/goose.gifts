@@ -29,7 +29,7 @@ export async function generateMetadata({
     (product.source === "amazon" && (homepage.cardTitles as Record<string, string>)[product.id]) || shortProductName(product.title),
     product.description,
     `/gifts/${slug}`,
-    { indexable: product.indexable !== false, fixture: catalog.dataKind === "synthetic_fixture",
+    { indexable: true, fixture: catalog.dataKind === "synthetic_fixture",
       image: og.cards.find((card) => card.subjectId === product.publicId) },
   );
 }
