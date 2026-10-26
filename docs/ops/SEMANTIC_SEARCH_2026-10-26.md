@@ -19,10 +19,22 @@ was never evaluated. Do not describe this as a failed quality experiment.
 
 The checksum-pinned archive retains3,383native vectors and covers all3,352public
 identities. **Dimension1536 does not establish the model or original input.**
-Both the current generator and the legacy pre-migration producer explicitly
-use `text-embedding-3-small` (`lib/db/operations.ts` and `lib/db/migrate-data.ts`
-before commit77a5a53). That supports compatibility, but code history is not a
-per-record producer/input attestation for every old vector.
+The actual product producer introduced in77a5a53 defaults to
+`text-embedding-3-small`. Commitcfcb7a6 later added a
+`CATALOG_EMBEDDING_MODEL` override. The older `lib/db/operations.ts` and
+`migrate-data.ts` code embeds bundles/queries, not products; it is not product
+provenance. Failed/skipped generation and the old PostgreSQL upsert's
+`COALESCE` can also retain an older vector after input fields change.
+
+Independent review and a separate reproduced archive comparison establish that
+all3,352public identities retain valid original native vectors.3,348current
+public field tuples and reconstructed five-field input recipes exactly match
+their archived counterparts. Four differ: three titles and one pun/witty-copy
+pair. This is substantial reuse evidence, not universal per-vector model/input
+attestation. Missing old API receipts alone does not justify blanket regeneration.
+Corroborate the producer/vector-input association for this cohort and handle the
+four changed inputs separately, without silently claiming inferred provenance
+as receipt-backed fact. Private evidence: `archived-input-compatibility.json`.
 
 The inspected, still-retained October26 embedding receipt binds seven public
 products to `text-embedding-3-small`, exact input/facts hashes and native bytes.
@@ -173,16 +185,25 @@ The reviewed operator/frozen run is not modified by this branch.
 
 ## Local verification
 
-`npm run test:staging` completed with1,299passing tests,28skipped and zero
-failures (main suite1,291passing; durable suite8passing). The focused projection,
-preparation and atomic reconciliation tests also pass independently. Both strict
-TypeScript projects and lint pass. Recovery cases use the full SQLite migration
-schema with synthetic records; no provider execution or real retrieval-quality
-acceptance is implied by these results.
+The final runtime at `fbff4c77d4a78d022e7133f4c67ed459f775c463` passes the normal
+`npm run test:staging` gate:1,324passing tests,20skipped, zero failures
+(main1,316; durable8). Both strict TypeScript projects, lint and full/production
+dependency audits pass. The47focused serving/projection cases pass independently
+under a read-only reviewer. Review's late-provider-dispatch finding was fixed and
+regression-tested. An existing export test incorrectly forbidding approved
+analytics IDs even in a real production build was corrected; preview/fixture and
+private-data exclusions remain. Combined production-export/analytics tests15/15pass.
 
-The subsequent end-to-end serving integration passes47focused cases,
-independently rerun by a read-only reviewer. Review's late-provider-dispatch
-finding was fixed and regression-tested. The full suite, both strict typechecks,
-lint, dependency audits, explicit-context build and package/Worker verification
-are rerun for the final source. These are local/mocked acceptance, not measured
-real semantic relevance or latency.
+The explicit-context production build and verifier pass with the exact unchanged
+3,352public/31excluded snapshot,7,021published assets and281,987,561asset bytes.
+Actual local Worker/browser checks pass Load more24→48,36-result mug search,
+Clear/Back/empty states, loaded photos, descriptions, mobile390px/no overflow,
+product navigation and the canonical affiliate tag. The existing native/DB
+bindings stay unchanged; semantic remains OFF. Local bundle compilation and a
+full-cohort SYNTHETIC footprint test pass; neither establishes real provider
+startup, billing, index coverage or relevance.
+
+Recovery tests use the full SQLite migration schema with synthetic records.
+No model/provider/index/recovery execution or real retrieval-quality acceptance
+is implied. The following documentation-only correction does not alter this
+tested/built runtime; compare runtime files against merged main before release.
