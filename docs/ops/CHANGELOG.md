@@ -11,6 +11,8 @@ No checkpoint newly due.13 validated events/1051 total; full receipt in
 `pinterest-measurements/2026-10-27-am/`. No public Pin created, source/creative/
 account/catalog/site/Bead/schedule mutation, deployment or spend. Same ACTIVE
 measurement cadence, October31 review and explicit post-review approval gate.
+Evidence PR[#295](https://github.com/37-Inc/goose.gifts/pull/295), retained
+receipt6b18af8; this merge is not runtime advancement or site publication.
 
 ## 2026-10-26 PM — frozen Pinterest measurement; operator restored
 
