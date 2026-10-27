@@ -1,5 +1,16 @@
 # goose.gifts Acquisition and Link-Earning Plan
 
+## October 27 afternoon — Pinterest native evidence unchanged
+
+Actual23:33:01.574UTC: P1460impressions/23Pin clicks/3saves/2native outbound,
+F363/5/1/0, identical AM. Bounded explicit GA4/PostHog healthy. PostHog retailer
+rows7chatgpt.com+1www.google.com/empty campaigns are other-source events, not
+Pinterest conversions or seven acquired people. Untagged operator activity may
+remain; host/Pin/arm actions unknown, no mapping onto GA4 counts.28 retained
+IDs/links/boards/P6F6 intact; no new checkpoint/public Pin/format adoption. Same
+ACTIVE measurement cadence, exactOctober31 review and post-review owner gate;
+redirect/rebrand remains an intervention. [Receipt](pinterest-measurements/2026-10-27-pm/README.md).
+
 ## October 27 morning — no new Pinterest acquisition
 
 Actual16:29:28.429UTC: P1460impressions/23Pin clicks/3saves/2native outbound,
