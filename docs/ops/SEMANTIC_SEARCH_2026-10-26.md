@@ -1,5 +1,35 @@
 # Stupid Gifts — Offline semantic-search preparation
 
+## October26 enablement approval (supersedes pending-authority notes below)
+
+Cameron explicitly approved enabling and smoke-testing semantic search. Keep
+the existing key, one-cent setup/evaluation cap,50queries/day and32,768reserved
+query tokens/day; remain on Cloudflare Free. The original catalog/native archive
+is unchanged. A separate full3352-product search projection was prepared from
+the exact currently cleared inputs for148,076tokens ($0.00296152); no catalog
+copy, image, native history or merchant observation was regenerated/replaced.
+The private evidence is in`semantic-enable-20261026/`.
+
+The old failed catalog owner's sole unsent delete was safely reconciled with the
+reviewed same-run CAS, preserving its payload and native bytes. Existing fenced
+release verified idle atgeneration23/epoch531; its checkpoint honestly records
+failed recovery, not successful publication. All original charges and the consumed
+ten-product allowance remain. The daily task stays PAUSED.
+
+Enablement also discloses the functional OpenAI/Vectorize search processor in
+the privacy policy, respects Vectorize's50-result full-metadata ceiling and lets
+the existing daily operator carry the protected approved search policy rather
+than silently disabling it on its next eventual publication. Missing policy
+remains OFF, and the fixed50/32768caps cannot be raised by that policy.
+
+Full-index provider visibility, actual deployment and live semantic/fallback
+smoke evidence must still be recorded before claiming production enablement.
+Real ten-query embeddings also exposed weak unrelated neighbors (negative-case
+cosines below0.34) and generic-copy interference. Derived serving now rejects
+scores below0.4 and uses a small existing-term interest tie-breaker; legacy
+native ranking is unchanged. This is bounded retrieval calibration, not product
+regeneration or a claim of universally perfect relevance.
+
 Tracked in `roadmap-lbbz1.4.7` and the retained-run repair
 `roadmap-lbbz1.4.13`. This is local preparation, **not authorization to execute**
 recovery, install a key, spend, mutate an index or resume catalog care. Cameron

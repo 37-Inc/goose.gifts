@@ -1,11 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { headroom } from '../scripts/catalog/daily-operator.mjs';
+import { headroom, routineSearchPolicy } from '../scripts/catalog/daily-operator.mjs';
 
 const usage = (rowsRead, rowsWritten) => async url => {
   assert.equal(url, 'https://api.cloudflare.com/client/v4/graphql');
   return Response.json({data:{viewer:{accounts:[{d1AnalyticsAdaptiveGroups:[{sum:{rowsRead,rowsWritten}}]}]}}});
 };
+test('routine publication preserves only the approved bounded semantic policy',()=>{
+  assert.deepEqual(routineSearchPolicy(null),{enabled:false,dailyRequestCap:50,dailyTokenCap:32768});
+  const policy={enabled:true,dailyRequestCap:50,dailyTokenCap:32768,derivedCatalog:{
+    path:'/Users/cameronehrlich/.codex/private/goose-gifts-migration/search/catalog.json',sha256:'a'.repeat(64),indexName:'stupid-gifts-semantic-v1'}};
+  assert.deepEqual(routineSearchPolicy(policy),policy);
+  for(const change of [{dailyRequestCap:51},{dailyTokenCap:32769},{enabled:false},{extra:true},
+    {derivedCatalog:{...policy.derivedCatalog,indexName:'stupid-gifts-production'}},
+    {derivedCatalog:{...policy.derivedCatalog,path:'/tmp/catalog.json'}},
+    {derivedCatalog:{...policy.derivedCatalog,path:'/Users/cameronehrlich/.codex/private/goose-gifts-migration/../catalog.json'}}])
+    assert.throws(()=>routineSearchPolicy({...policy,...change}),/semantic_policy/);
+});
 test('routine Free admission includes remaining work, uncertainty, and untouched shared headroom',async()=>{
   const result=await headroom('synthetic',undefined,null,usage(2_000_000,20_000));
   assert.equal(result.rowsRead,2_000_000);

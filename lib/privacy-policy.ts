@@ -1,7 +1,6 @@
 import { PUBLIC_CONTACT_EMAIL } from './site';
 
-// Existing published policy, shared without substantive copy/date changes.
-export const privacyPolicyUpdated = 'August 21, 2026';
+export const privacyPolicyUpdated = 'October 26, 2026';
 export const privacyPolicyIntro = 'This policy explains how goose.gifts handles information for visitors using the site.';
 export const privacyPolicySections = [
   {
@@ -29,6 +28,13 @@ export const privacyPolicySections = [
     body: [
       'We may use analytics tools to understand aggregate site activity, including searches, page views, outbound product clicks, and referral sources.',
       'Third-party analytics receive only limited event details such as page paths, result counts, product identifiers and sources, link domains, and coarse campaign attribution. We do not send them search or recipient text, affiliate URLs, URL query strings, form contents, or session recordings. Browser Do Not Track and Global Privacy Control signals disable Google Analytics and PostHog collection.',
+    ],
+  },
+  {
+    title: 'Gift Search',
+    body: [
+      'For meaning-based gift search, we send the search text to OpenAI to create a numerical representation and match it against our catalog using Cloudflare Vectorize. This is a functional search service, separate from analytics. Please do not enter private or sensitive personal information in the search box.',
+      'If meaning-based search is unavailable or reaches its daily limit, we use keyword search instead.',
     ],
   },
   {
