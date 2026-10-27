@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261027-am-v11-metrics-1107815208391305222",
+  "type": "metrics.recorded",
+  "recordedAt": "2026-10-27T16:31:42Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "candidateId": "cand-v11-opossum-portrait-poster",
+    "checkpointAt": "2026-10-27T16:29:28.429Z",
+    "cohort": "public",
+    "source": "Scheduled measurement-only production Pinterest API lifetime snapshot; docs/ops/pinterest-measurements/2026-10-27-am/measurement-20261027T162928429Z.json",
+    "metrics": {
+      "impressions": 4,
+      "saves": 0,
+      "pinClicks": 0,
+      "outboundClicks": 0,
+      "siteSessions": null,
+      "affiliateClicks": null,
+      "revenueCents": null
+    },
+    "caveats": [
+      "Actual lifetime observation, not reconstructed exact-age history. Archived creative lifecycles retain their original public cohort membership.",
+      "Explicit GA4 property507421709/PostHog project550427 bounded QA/operator-excluded aggregates; missing or unattributable per-Pin downstream remains unknown, not zero.",
+      "Approved Goose Pin links and receipts are unchanged. Independently authorized path/query-preserving redirect verified2026-10-24T04:50:14.849Z is a destination/rebrand intervention, not format/acquisition proof; no routing change or new destination QA this run."
+    ]
+  }
+}

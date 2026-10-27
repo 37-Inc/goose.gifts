@@ -109,6 +109,18 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-10-27 morning — first Belly open, acquisition unchanged
+
+Actual16:29:28.429UTC: stupid_gifts BUSINESS/28 Pins, frozenP6/F6. P1460/
+23Pin clicks/3saves/2native outbound,F363/5/1/0. Belly's first open at nine
+impressions is attention; no new outbound/format winner. Bowling95.89%P exposure.
+Bounded GA4/PostHog healthy; one retailer event is www.google.com/empty campaign,
+not Pinterest, host/per-Pin unknown. Arm/Pin downstream remains unknown. No new
+checkpoint;13 validated events/1051 total. No public Pin created or creative/
+source/account/catalog/site/Bead/schedule mutation. Same ACTIVE measurement,
+redirect/rebrand caveats, exactOctober31 review and explicit post-review gate.
+[Receipt and limits](pinterest-measurements/2026-10-27-am/README.md).
+
 ### 2026-10-26 afternoon — distribution grows, no new v11 action
 
 Actual23:32:09.721UTC verifies stupid_gifts BUSINESS/28 retained Pins/P6F6.

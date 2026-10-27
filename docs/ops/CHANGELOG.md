@@ -1,5 +1,17 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-27 AM — Pinterest attention, no new attributable acquisition
+
+[daily-ops] Actual16:29:28.429UTC verifies28 retained Pins/frozenP6F6.
+P1460/23Pin clicks/3saves/2native outbound,F363/5/1/0; Belly's first Pin open
+is attention, not site acquisition. Profile4063/64/9/2 includes an extra legacy
+Shark save. Bounded GA4/PostHog healthy; one PostHog retailer event is sourced
+www.google.com/empty campaign, not Pinterest. Arm/Pin downstream unknown.
+No checkpoint newly due.13 validated events/1051 total; full receipt in
+`pinterest-measurements/2026-10-27-am/`. No public Pin created, source/creative/
+account/catalog/site/Bead/schedule mutation, deployment or spend. Same ACTIVE
+measurement cadence, October31 review and explicit post-review approval gate.
+
 ## 2026-10-26 PM — frozen Pinterest measurement; operator restored
 
 [daily-ops] Actual23:32:09.721UTC verifies28 public Pins/P6F6. Profile4010/
