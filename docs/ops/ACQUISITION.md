@@ -1,5 +1,16 @@
 # goose.gifts Acquisition and Link-Earning Plan
 
+## October 27 morning — no new Pinterest acquisition
+
+Actual16:29:28.429UTC: P1460impressions/23Pin clicks/3saves/2native outbound,
+F363/5/1/0. First Belly open and extra legacy Shark save are attention, not
+site acquisition/format proof. Explicit GA4/PostHog reads healthy; new PostHog
+retailer event reports www.google.com/empty campaign, not Pinterest. Host/Pin
+attribution and qualified-customer status unknown; do not credit either arm.
+28 retained IDs/links/boards and P6/F6 intact; no newly due checkpoint/public
+Pin. Same ACTIVE cadence, October31 review and post-review owner approval gate.
+Redirect/rebrand remains an intervention. [Run receipt](pinterest-measurements/2026-10-27-am/README.md).
+
 ## October 26 afternoon — no new attributable Pinterest acquisition
 
 Actual23:32:09.721UTC: P1451impressions/22Pin clicks/3saves/2native outbound,

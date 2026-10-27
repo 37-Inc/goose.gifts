@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261027-am-v11-scheduled-measurement-noop",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-27T16:31:42Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "Actual scheduled snapshot2026-10-27T16:29:28.429Z verifies1107815345747925810/stupid_gifts/BUSINESS and28 retained public Pins. Original IDs/tracked links/boards match priorPM. Frozen P6/F6: P1460impressions/23Pin clicks/3saves/2native outbound,F363/5/1/0. Since priorPM: +9P/+4F impressions and one first Belly Bag Pin open, no new native outbound. Profile4063/64/9/2 includes one extra pre-v11 Shark save. Bowling1400 supplies95.89%P exposure/both outbound; Toast284 supplies78.24%F. Without them P60/3/0/0,F79/2/0/0. Belly's nine impressions/one open are attention, not acquisition or a format result. GA4explicit507421709 October20-27Pacific/current partial: Goose245direct sessions; Stupid45direct,9amazon-not-set,5amazon-blank-medium,2not-set. Five direct/amazon retailer events are not Pinterest conversions/confirmed people. PostHog550427 rollingUTC October20T16:29:25.486Z-October27T16:29:25.486Z has49page/73list/5search/5select and one retailer outbound event at12:03:09.497UTC after QA/campaign/whole-identity exclusions. That event's source is www.google.com, campaign empty; it is not Pinterest-attributed and does not identify host/per-Pin actions or prove a human/customer/sale. No Pinterest row returned. Per-arm/Pin site sessions/retailer actions/revenue remain unknown, not zero. Provider-window/operator/privacy limitations and historical gaps retained. No unresolved publication start or newly due v11 24h/seven-day/28day checkpoint; six archived/public and six measuring, next28daySheepNovember10T20:07:09.336Z. Redirect/rebrand remains an independent destination intervention. Final review undelivered/not due until2026-10-31T16:44:52.279Z.",
+    "evidenceEventIds": [
+      "evt-20261026-pm-v11-scheduled-measurement-noop",
+      "evt-20261027-am-v11-metrics-1107815208391132026",
+      "evt-20261027-am-v11-metrics-1107815208389000013",
+      "evt-20261027-am-v11-metrics-1107815208389027583",
+      "evt-20261024-goose-domain-redirect-intervention"
+    ],
+    "decision": "Routine measurement-only no-op; no public Pin created, creative/shortlist/package/approval, public/Sandbox/account/Pin/catalog/site mutation, deployment, spend, Bead or schedule change. No demonstrated acquisition/format winner. One unrelated Google-sourced retailer event and tiny new attention do not justify a Pinterest notification or opening the posting gate.",
+    "nextAction": "Keep same ACTIVE09:30/16:30Pacific task/chat unchanged. Deliver full six-versus-six review once at/after2026-10-31T16:44:52.279Z, expected normal eligible slotOctober31 16:30Pacific. Retain actual ages, product/category differences, concentration/single-Pin sensitivity and pre/post rebrand/destination caveats. No generation/posting even after review until Cameron explicitly approves a next experiment."
+  }
+}
