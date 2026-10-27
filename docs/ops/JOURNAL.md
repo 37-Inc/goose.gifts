@@ -5,6 +5,42 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-27 PM — unchanged native cohort, non-Pinterest events
+
+Trigger23:32:33.653UTC; actual23:33:01.574UTC read from reviewed2b5dcdc.
+Account1107815345747925810/stupid_gifts/BUSINESS,28 retained Pins/five boards.
+All original IDs/links/boards and every native Pin metric match AM: profile4063/
+64opens/9saves/2outbound; P1460/23/3/2,F363/5/1/0. Bowling1400 holds95.89%P
+exposure/both outbound; Toast284 holds78.24%F. Without them P60/3/0/0,F79/2/0/0.
+Belly's single open remains attention; no demonstrated format/acquisition winner.
+Account monthly_views is a separate rolling field, not lifetime Pin totals.
+
+GA4explicit507421709 October20-27Pacific/current partial: Goose245direct/four
+engaged; Stupid46direct/eleven,9amazon-not-set/six,5amazon-blank-medium/four,
+2not-set/none. Retailer rows3Stupid/direct+2Stupid/amazon+1Goose/direct, not
+Pinterest conversion/confirmed customers. PostHog550427 rollingUTC October20
+23:32:56.920-October27 23:32:56.920:70page/100list/14select/5search/8retailer.
+Retailer rows7chatgpt.com+1www.google.com, empty campaigns; no Pinterest row.
+These provider events are not seven people/customer/sale proof. Untagged operator
+activity can remain despite campaign/whole-QA-identity exclusions. No host/fullURL/
+per-Pin fields, no mapping to a host or GA4 rows. Different windows/semantics and
+historical gaps retained; attributable arm/Pin downstream/revenue unknown, not zero.
+Both reads healthy; no retired DB/Vercel/public v3/Sandbox evidence.
+
+No unresolved publication or newly due v11 24h/seven-day/28day checkpoint. Prior
+late learnings remain; six archived/public and six measuring. Next28daySheepNov10
+20:07:09.336UTC.12metrics+one run learning via creative:record:1064valid events/
+8experiments/37candidates. Evidence `pinterest-measurements/2026-10-27-pm/`.
+Runtime/dependencies/canonical/catalog pins unchanged;46GiB free, no cleanup or
+fresh install. Six creative/18Pinterest focused checks pass with explicit shared
+tsx loader read-only. No public Pin created, creative/shortlist/package/approval,
+account/Pin/catalog/site mutation, deployment, spend, Bead/schedule change.
+Approvals/receipts/policy/cohort/deadline preserved. Redirect/rebrand remains an
+independent intervention, no new routing-QA claim. Same ACTIVE cadence;
+finalReviewDelivered=false, exactOct31T16:44:52.279Z/expected16:30Pacific review
+unchanged; generation/posting stay off afterward until explicit next experiment.
+Routine unchanged Pinterest evidence/other-source unqualified events stay quiet.
+
 ## 2026-10-27 AM — first Belly open, unrelated retailer event
 
 Trigger16:28:58.174UTC; actual16:29:28.429UTC read from reviewed eecee144.
