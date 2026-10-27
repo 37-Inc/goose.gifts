@@ -16,6 +16,21 @@ test('actual Worker serves current cleared products through input-verified deriv
   await w.request();assert.equal(w.calls.embed,1); // Cached input proof, never a second paid call.
 });
 
+test('weak semantic neighbors do not invent results for an unrelated query',async()=>{
+  const f=await derivedFixture(),w=derivedWorker(f,{vector:async()=>({matches:f.vectors.map(v=>({id:v.id,score:.33,metadata:v.metadata}))})});
+  const {body}=await w.request('zxqvplmnork');
+  assert.deepEqual(body.results,[]);
+  assert.equal(w.calls.embed,1);
+});
+
+test('a literal product interest outranks a slightly higher generic semantic neighbor',async()=>{
+  const f=await derivedFixture(),target=f.snapshot.products[0];
+  const w=derivedWorker(f,{vector:async()=>({matches:f.vectors.map(v=>({id:v.id,score:v.metadata.publicId===target.publicId ? .54 : .55,metadata:v.metadata}))})});
+  const {body}=await w.request(target.title);
+  assert.equal(body.results[0].id,target.id);
+  assert.equal(body.results[0].matchType,'semantic');
+});
+
 test('unchanged vectors survive a new catalog revision, receipt timestamp, description, score and slug',async()=>{
   const f=await derivedFixture(),current=structuredClone(f.snapshot);
   current.catalogRevision='tomorrows-catalog';current.products[0].description='Current cleared description';

@@ -24,6 +24,11 @@ remains OFF, and the fixed50/32768caps cannot be raised by that policy.
 
 Full-index provider visibility, actual deployment and live semantic/fallback
 smoke evidence must still be recorded before claiming production enablement.
+Real ten-query embeddings also exposed weak unrelated neighbors (negative-case
+cosines below0.34) and generic-copy interference. Derived serving now rejects
+scores below0.4 and uses a small existing-term interest tie-breaker; legacy
+native ranking is unchanged. This is bounded retrieval calibration, not product
+regeneration or a claim of universally perfect relevance.
 
 Tracked in `roadmap-lbbz1.4.7` and the retained-run repair
 `roadmap-lbbz1.4.13`. This is local preparation, **not authorization to execute**

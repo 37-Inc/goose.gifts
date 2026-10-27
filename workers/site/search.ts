@@ -85,6 +85,14 @@ function keywordSimilarity(product: PublicCatalogProduct, query: string): number
     + coverage(product.description) * 0.06;
 }
 
+/** Small lexical tie-breaker keeps literal interests ahead of generic gift copy.
+ * The fixed v3 profile's negative-query smoke cohort stays below0.4 cosine. */
+function derivedRank(product: SearchResult, query: string): number {
+  const terms = catalogSearchTerms(query);
+  const text = [product.title, product.punnyTitle, product.humorTags?.join(' ')].join(' ').toLowerCase();
+  return product.rankScore + 0.2 * terms.filter(term => text.includes(term)).length / Math.max(1, terms.length);
+}
+
 function select(candidates: SearchResult[], limit: number, now: number,semanticDeadlines?:ReadonlyMap<string,number>): SearchResult[] {
   const ids = new Set<string>();
   const eligible = candidates.flatMap(candidate=>{
@@ -189,8 +197,9 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
           }, timeout);
           if (derived) {
             const verified = await bounded(() => derived.resolve(matches.matches.slice(0, Math.min(100, candidateLimit))), timeout);
-            candidates = verified.map(({ product, score }) => result(product, score, 'semantic'))
-              .sort((a,b) => b.rankScore - a.rankScore || a.id.localeCompare(b.id));
+            candidates = verified.filter(({ score }) => score >= 0.4)
+              .map(({ product, score }) => result(product, score, 'semantic'))
+              .sort((a,b) => derivedRank(b,query) - derivedRank(a,query) || a.id.localeCompare(b.id));
             vectorCount = candidates.length;
           } else {
             const scores = new Map<string, number>();
