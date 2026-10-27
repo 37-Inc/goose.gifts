@@ -11,7 +11,7 @@ test('actual Worker serves current cleared products through input-verified deriv
   assert.deepEqual(new Set(body.results.map(p=>p.id)),new Set(f.snapshot.products.map(p=>p.id)));
   assert.deepEqual(w.calls.reserve,[{environment:'staging',index:f.catalog.indexName}]);
   assert.equal(w.calls.vector[0].vector.length,1024);assert.equal(w.calls.legacy,0);
-  assert.deepEqual(w.calls.vector[0].params,{topK:100,returnValues:false,returnMetadata:'all'});
+  assert.deepEqual(w.calls.vector[0].params,{topK:50,returnValues:false,returnMetadata:'all'});
   assert.doesNotMatch(JSON.stringify(body),/nativeBase64|receiptSha256|SYNTHETIC retained context|sourceFactsHash|vectorId/);
   await w.request();assert.equal(w.calls.embed,1); // Cached input proof, never a second paid call.
 });

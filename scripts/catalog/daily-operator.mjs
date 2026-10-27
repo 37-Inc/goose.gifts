@@ -51,6 +51,16 @@ async function put(file,value){
   if(!(await bytes(file)).equals(body))refuse('private_readback');return digest(body);
 }
 async function optional(file){try{return await json(file);}catch(e){if(e.code==='ENOENT')return null;throw e;}}
+export function routineSearchPolicy(value){
+  if(value===null)return{enabled:false,dailyRequestCap:50,dailyTokenCap:32768};
+  if(!value||value.enabled!==true||value.dailyRequestCap!==50||value.dailyTokenCap!==32768
+    ||Object.keys(value).sort().join(',')!=='dailyRequestCap,dailyTokenCap,derivedCatalog,enabled'
+    ||!value.derivedCatalog||Object.keys(value.derivedCatalog).sort().join(',')!=='indexName,path,sha256'
+    ||value.derivedCatalog.indexName!=='stupid-gifts-semantic-v1'||!HASH.test(value.derivedCatalog.sha256)
+    ||typeof value.derivedCatalog.path!=='string'||!value.derivedCatalog.path.startsWith(BASE+'/')
+    ||value.derivedCatalog.path.split('/').includes('..'))refuse('semantic_policy');
+  return structuredClone(value);
+}
 export async function headroom(token,spent={knownRowsRead:0,knownRowsWritten:0},anchor=null,send=fetch){
   if(!Number.isSafeInteger(spent.knownRowsRead)||spent.knownRowsRead<0||spent.knownRowsRead>LIMITS.reportedRowsRead
     ||!Number.isSafeInteger(spent.knownRowsWritten)||spent.knownRowsWritten<0||spent.knownRowsWritten>LIMITS.reportedRowsWritten
@@ -98,8 +108,9 @@ async function prepare(directory,calendar){
   const inputs={previous:{path:prior.control.path,sha256:prior.control.sha256,observedAt:now}};
   for(const [name,value]of Object.entries({context,rights:{rightsById:{}}})){const file=directory+'/'+name+'.json';inputs[name]={path:file,sha256:await put(file,value),observedAt:now};}
   const key=service=>({service:'goose.gifts.'+service,account:'goose.gifts'}),runId='daily-'+calendar.day+'-'+SOURCE.slice(0,8);
+  const semanticSearch=routineSearchPolicy(await optional(CARE+'/semantic-search.json'));
   const config=validateCloudflareWeeklyConfig({schemaVersion:1,runId,catalogRevision:runId,codeSha:SOURCE,environment:SCOPE.environment,accountId:SCOPE.accountId,database:{id:SCOPE.databaseId,name:SCOPE.databaseName},vectorIndex:{name:SCOPE.indexName,dimensions:1536,metric:'cosine'},catalog:{associateTag:'goose-gifts-37-20',marketplace:'www.amazon.com'},backfillLimit:0,cadence:{day:calendar.day,featuredIds:homepage.featuredIds},credentials:{cloudflare:{type:'wrangler_oauth'},amazonId:key('AMAZON_CREATORS_CREDENTIAL_ID'),amazonSecret:key('AMAZON_CREATORS_CREDENTIAL_SECRET'),amazonVersion:'3.1',...(calendar.monday?{openai:key('OPENAI_API_KEY')}:{})},limits:LIMITS,retention:{reviewReference:'owner/2026-10-23/existing-daily-catalog',rules:Object.fromEntries(['amazon-observation','embedding-response','phase','publication','checkpoint'].map(k=>[k,{maxAgeMs:86400000,notAfter}]))},inputs,
-    publication:{schemaVersion:1,environment:SCOPE.environment,accountId:SCOPE.accountId,workerName:SCOPE.workerName,database:{id:SCOPE.databaseId,name:SCOPE.databaseName},indexName:SCOPE.indexName,codeSha:SOURCE,sourceMode:'stupid-production',sourceRoot:ROOT,releaseId:runId,identityOrigin:'https://stupid.gifts',compatibilityDate:'2026-10-19',prior:{directory:null,releaseId:seal.publication.releaseId,manifestSha256:prior.manifestSha256,versionReference:prior.versionReference},semanticSearch:{enabled:false,dailyRequestCap:50,dailyTokenCap:32768},publicAnalytics:{enabled:true,posthogHost:'https://us.i.posthog.com',posthogKey:'phc_ATVKSPwDYTRfX9qDtDVLzZuXQcNdV9d55SjC8bHtuU8w'}}});
+    publication:{schemaVersion:1,environment:SCOPE.environment,accountId:SCOPE.accountId,workerName:SCOPE.workerName,database:{id:SCOPE.databaseId,name:SCOPE.databaseName},indexName:SCOPE.indexName,codeSha:SOURCE,sourceMode:'stupid-production',sourceRoot:ROOT,releaseId:runId,identityOrigin:'https://stupid.gifts',compatibilityDate:'2026-10-19',prior:{directory:null,releaseId:seal.publication.releaseId,manifestSha256:prior.manifestSha256,versionReference:prior.versionReference},semanticSearch,publicAnalytics:{enabled:true,posthogHost:'https://us.i.posthog.com',posthogKey:'phc_ATVKSPwDYTRfX9qDtDVLzZuXQcNdV9d55SjC8bHtuU8w'}}});
   const configPath=directory+'/config.json',configSha256=await put(configPath,config),record={source:SOURCE,helperSha256:self,configPath,configSha256,runId,capacity};await put(directory+'/operator.json',record);return record;
 }
 async function review(entry,config,directory){

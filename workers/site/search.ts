@@ -180,8 +180,8 @@ export function createSearchHandler<Env extends SiteEnv>(options: {
             if (vector.length !== (derived?.profile.dimensions ?? EMBEDDING_DIMENSIONS) || !vector.every(Number.isFinite)
               || derived && Math.abs(Math.hypot(...vector) - 1) > 1e-6) throw new Error('embedding_invalid');
             return vectorBinding!.query(vector, {
-              // Vectorize's actual topK ceiling is 100, not the 240 application cap.
-              topK: Math.min(100, candidateLimit), returnValues: false, returnMetadata: derived ? 'all' : 'none',
+              // Full metadata has a 50-match limit; metadata-free legacy queries allow100.
+              topK: Math.min(derived ? 50 : 100, candidateLimit), returnValues: false, returnMetadata: derived ? 'all' : 'none',
               // Derived search has its own profile-specific index. Validate
               // identity/metadata locally; no extra provider metadata-index setup.
               ...(derived ? {} : { filter: { catalogRevision: options.catalogRevision, eligible: true } }),

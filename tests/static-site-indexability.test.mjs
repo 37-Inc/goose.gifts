@@ -4,7 +4,6 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { privacyPolicySections, privacyPolicyIntro, privacyPolicyUpdated } from "../lib/privacy-policy.ts";
 
 const owned = JSON.parse(fs.readFileSync(new URL("../static-site/fixtures/catalog.snapshot.json", import.meta.url)));
@@ -132,9 +131,13 @@ test("only controlled published archives, never drafts or presentation views, ga
   const fixture = inspect("stupid-production", controlledSnapshot("synthetic_fixture"), true);
   assert.equal(fixture.flags.howie, false); assert.equal(fixture.flags.episode, false);
 });
-test("shared policy preserves reviewed copy/date; favicon reuses the existing owned signature bytes", () => {
-  assert.equal(createHash("sha256").update(JSON.stringify(privacyPolicySections)).digest("hex"), "6dbc8a09ec472bdf608515eafd12d4ee3df3e4838d553d811b04f73c279f99c6");
-  assert.equal(privacyPolicyUpdated, "August 21, 2026");
+test("shared policy discloses functional search separately from analytics; favicon reuses the owned signature", () => {
+  const search=privacyPolicySections.find(section=>section.title==='Gift Search');
+  assert.match(search.body.join(' '), /search text to OpenAI/);
+  assert.match(search.body.join(' '), /Cloudflare Vectorize/);
+  assert.match(search.body.join(' '), /separate from analytics/);
+  assert.match(search.body.join(' '), /keyword search instead/);
+  assert.equal(privacyPolicyUpdated, "October 26, 2026");
   assert.equal(privacyPolicyIntro, "This policy explains how goose.gifts handles information for visitors using the site.");
   assert.deepEqual(fs.readFileSync(new URL("../static-site/public/favicon.ico", import.meta.url)), fs.readFileSync(new URL("../public/favicon.ico", import.meta.url)));
 });
