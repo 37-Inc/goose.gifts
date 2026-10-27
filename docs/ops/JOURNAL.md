@@ -5,6 +5,41 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-27 AM — first Belly open, unrelated retailer event
+
+Trigger16:28:58.174UTC; actual16:29:28.429UTC read from reviewed eecee144.
+Account1107815345747925810/stupid_gifts/BUSINESS,28 retained Pins/five boards.
+All IDs/links/boards match priorPM. P1460/23opens/3saves/2native outbound,
+F363/5/1/0; +9P/+4F impressions and first Belly open at nine impressions,
+no new outbound. Profile4063/64/9/2, extra save is pre-v11 Shark. Bowling1400
+holds95.89%P exposure/both clicks; Toast284 holds78.24%F. Without them
+P60/3/0/0,F79/2/0/0. Tiny attention is not acquisition or format proof.
+
+GA4explicit507421709 October20-27Pacific/current partial: Goose245direct/four
+engaged; Stupid45direct/ten,9amazon-not-set/six,5amazon-blank-medium/four,
+2not-set/none. Retailer rows remain4Stupid/1Goose direct/amazon, not Pinterest
+conversion/confirmed customers. PostHog550427 rollingUTC October20T16:29:25.486Z-
+October27T16:29:25.486Z:49page/73list/5search/5select and one retailer outbound.
+That event is12:03:09.497UTC, source www.google.com/empty campaign, NOT
+Pinterest-attributed. No host/per-Pin/human/customer/sale inference. Both reads
+healthy; distinct windows, whole-QA-identity/campaign exclusions, untagged-operator
+limitations, absent host/fullURL/utm_content and historical gaps retained.
+Arm/Pin site/retailer/revenue unknown, not zero. No retired DB/Vercel/v3/Sandbox.
+
+No unresolved publication/new v11 24h/seven-day/28day checkpoint. Prior late
+learnings present; six archived/public and six measuring. Next28daySheepNov10
+20:07:09.336UTC.12metrics+one run learning via creative:record,1051valid events/
+8experiments/37candidates. Evidence: `pinterest-measurements/2026-10-27-am/`.
+Operator healthy/no recovery, runtime/canonical/catalog pins unchanged;49GiB free,
+no cleanup/install. Six creative/18Pinterest focused checks pass using explicit
+shared tsx loader read-only. No public Pin created, generation, shortlist,
+package/approval, account/Pin/catalog/site mutation, deployment, spend, Bead or
+schedule change. Original packages/receipts/policy/cohort/deadline unchanged.
+Redirect/rebrand stays a destination intervention; no new routing-QA claim.
+Same ACTIVE cadence; finalReviewDelivered=false, exactOct31T16:44:52.279Z and
+expected16:30Pacific review unchanged. Posting stays off afterward until explicit
+next-experiment approval. Routine attention/unrelated retailer evidence quiet.
+
 ## 2026-10-26 PM — source-exact operator recovery, no new acquisition
 
 Trigger23:31:15.148UTC; actual23:32:09.721UTC snapshot at retained be034bf.
