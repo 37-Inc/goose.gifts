@@ -81,3 +81,19 @@ next experiment. No duplicate review job. Next hypothesis remains whether
 attributable Pinterest response extends beyond one dominant product after
 separating destination/rebrand effects; do not start it. Unchanged Pinterest
 metrics and unqualified other-source events require no new Pinterest action.
+
+## Evidence integration, not runtime advancement
+
+[PR #296](https://github.com/37-Inc/goose.gifts/pull/296) carries only scheduled
+docs/evidence/events. Retained receipt commit
+`e6afe229bdbf8c07eeb40781e7ca0075fba2775e`; main-based receipt commit
+`e4142c1f7a08615f537f6dc4cab43aa17ba6acc2` preserves upstream dated logs.
+Protected runtime/dependency/package/policy/receipt/cohort diff against
+`fdfa9b6ea35706a9a49d602992d5d6b28aa1fcae` is empty. Creative validation,
+six creative tests, 18 Pinterest tests and lint (zero errors/warnings) pass
+using existing reviewed shared dependencies read-only, after exact lock SHA256
+`a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381`
+and installed-version checks. No fresh install, new build/deployment, full-suite
+or hosted-CI acceptance claimed. Main's independent site/catalog work is not
+executed here or adopted into retained measurement runtime. Canonical/catalog
+checkouts remain pinned.

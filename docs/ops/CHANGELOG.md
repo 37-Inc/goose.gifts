@@ -10,6 +10,8 @@ Arm/Pin downstream unknown. No newly due checkpoint;13 validated events/1064 tot
 Full receipt: `pinterest-measurements/2026-10-27-pm/`. No public Pin created,
 source/creative/account/catalog/site/Bead/schedule mutation, deployment or spend.
 Same ACTIVE measurement cadence, exactOctober31 review and post-review approval gate.
+Evidence PR[#296](https://github.com/37-Inc/goose.gifts/pull/296), retained
+receipte6afe22; this merge is not runtime advancement or site publication.
 
 ## 2026-10-27 AM — Pinterest attention, no new attributable acquisition
 
