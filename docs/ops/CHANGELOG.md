@@ -1,5 +1,16 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-27 PM — unchanged Pinterest; other-source retailer events
+
+[daily-ops] Actual23:33:01.574UTC verifies28 retained Pins/P6F6; all native Pin
+metrics, IDs/links/boards match AM. Profile4063/64opens/9saves/2native outbound;
+P1460/23/3/2,F363/5/1/0. Bounded GA4/PostHog healthy; PostHog retailer rows are
+7chatgpt.com+1www.google.com/empty campaigns, not Pinterest or proven customers.
+Arm/Pin downstream unknown. No newly due checkpoint;13 validated events/1064 total.
+Full receipt: `pinterest-measurements/2026-10-27-pm/`. No public Pin created,
+source/creative/account/catalog/site/Bead/schedule mutation, deployment or spend.
+Same ACTIVE measurement cadence, exactOctober31 review and post-review approval gate.
+
 ## 2026-10-27 AM — Pinterest attention, no new attributable acquisition
 
 [daily-ops] Actual16:29:28.429UTC verifies28 retained Pins/frozenP6F6.
