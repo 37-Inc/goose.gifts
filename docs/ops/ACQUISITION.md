@@ -1,5 +1,16 @@
 # goose.gifts Acquisition and Link-Earning Plan
 
+## October 28 afternoon — only Pinterest distribution changed
+
+Actual23:27:39.775UTC: P1473impressions/23Pin clicks/3saves/2native outbound,
+F369/5/1/0. Impressions+13P/+6F, native actions unchanged across28 retained Pins.
+Bounded GA4/PostHog healthy; other-source/direct events are not attributable
+Pinterest/customer proof. Arm/Pin downstream unknown, no pooling moving windows
+or causal migration verdict. No new checkpoint/public Pin/format adoption.
+Active operator/Git lock retained; no repeat recovery alert. Same ACTIVE cadence,
+exactOctober31 review/post-review owner gate; redirect/rebrand stays intervention.
+[Run receipt](pinterest-measurements/2026-10-28-pm/README.md).
+
 ## October 28 morning — unchanged Pinterest; local operator protected
 
 Actual16:34:19.997UTC after exact-source checkout recovery: P1460impressions/

@@ -1,5 +1,18 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-28 PM — Pinterest distribution only; retained operator healthy
+
+[daily-ops] Actual23:27:39.775UTC verifies28 retained Pins/P6F6, IDs/links/boards
+intact. P1473/23Pin clicks/3saves/2native outbound,F369/5/1/0; +13P/+6F impressions,
+all native actions unchanged. Profile4133/64/9/2. Healthy explicit GA4/PostHog;
+cohort site/retailer attribution unknown. No new checkpoint;13 validated events,
+1091 total. Full receipt in `pinterest-measurements/2026-10-28-pm/`. Operator is
+present with prior Git lock retained; no recovery/new alert. No public Pin created
+or runtime/instruction/account/catalog/site/Bead/schedule change, deploy or spend.
+Same ACTIVE cadence, October31 review and post-review explicit approval gate.
+Evidence PR[#298](https://github.com/37-Inc/goose.gifts/pull/298), retained
+receiptb522e80; this merge is not runtime advancement or site publication.
+
 ## 2026-10-28 AM — recurring Pinterest operator recovery and retention guard
 
 [daily-ops] Required checkout missing again despite active attachment; restored
