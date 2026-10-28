@@ -98,3 +98,19 @@ Same09:30/16:30 task/chat, no duplicate job. Generation/posting stay off even
 after review until explicit new-experiment approval. Next hypothesis remains
 whether attributable Pinterest response extends beyond one dominant product
 after separating destination/rebrand effects; do not start it.
+
+## Evidence integration, not runtime advancement
+
+[PR #297](https://github.com/37-Inc/goose.gifts/pull/297) contains the scheduled
+receipt/events and narrow operator-retention instructions. Retained receipt
+`80c583a8fdf67d2fbb73da2fe1f8305b0de1d74b`; main-based receipt
+`180f5f6a7c92bc9b9226037a4be741db64e58055`. Upstream instructions/logs
+are preserved. Runtime/dependency/package/policy/receipt/cohort diff against
+`724d4ccb930f7b96585f9914655dd15f048541c4` is empty; only the described
+`CLAUDE.md`/studio retention note and evidence change. Creative validation,
+six creative tests,18Pinterest tests and lint0errors/0warnings pass with the
+existing reviewed shared dependencies read-only after exact lock SHA256
+`a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381`
+and installed-version checks. No fresh installation, new build/deployment or
+full-suite/hosted-CI acceptance claimed. Independent main site/catalog work
+is not executed here or adopted into the retained measurement runtime.

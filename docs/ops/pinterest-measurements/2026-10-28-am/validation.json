@@ -120,5 +120,28 @@
   "reviewDue": false,
   "reviewDeadlineUtc": "2026-10-31T16:44:52.279Z",
   "notificationDecision": "NOTIFY",
-  "notificationReason": "Recurring active-operator disappearance was repaired from exact saved source; a read-back Git lock and narrow retention instructions mitigate normal cleanup. Underlying remover/cause remains unknown; no new acquisition or public Pin."
+  "notificationReason": "Recurring active-operator disappearance was repaired from exact saved source; a read-back Git lock and narrow retention instructions mitigate normal cleanup. Underlying remover/cause remains unknown; no new acquisition or public Pin.",
+  "evidenceIntegration": {
+    "pullRequest": "https://github.com/37-Inc/goose.gifts/pull/297",
+    "upstreamMain": "724d4ccb930f7b96585f9914655dd15f048541c4",
+    "retainedOperatorEvidenceCommit": "80c583a8fdf67d2fbb73da2fe1f8305b0de1d74b",
+    "mainBasedEvidenceCommit": "180f5f6a7c92bc9b9226037a4be741db64e58055",
+    "allUpstreamDatedEntriesAndInstructionsPreserved": true,
+    "creativeLogValid": true,
+    "creativeLogEvents": 1078,
+    "creativeTestsPass": 6,
+    "pinterestTestsPass": 18,
+    "lintErrors": 0,
+    "lintWarnings": 0,
+    "sharedDependencyReuseReadOnly": true,
+    "lockSha256": "a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381",
+    "freshInstallAttempted": false,
+    "runtimeDependencyPackagePolicyReceiptCohortDiffRelativeUpstream": [],
+    "intentionalRetentionInstructionChanges": [
+      "CLAUDE.md",
+      "docs/ops/PINTEREST_STUDIO.md"
+    ],
+    "retainedMeasurementRuntimeAdvanced": false,
+    "newBuildDeploymentOrHostedCiAcceptanceClaimed": false
+  }
 }
