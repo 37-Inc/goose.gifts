@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261028-am-v11-operator-retention-recovery",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-28T16:38:06Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "The required active measurement checkout was absent again at this scheduled run: filesystem directory missing, no Git worktree registration, but task artifact still listed it active. Earlier October26PM documented the same condition. Both saved local and remote codex/pinterest-redirect-evidence-operator refs matched0f66c678d1ebf79095ab3e3e27ebd580dbf1dbf4. Restored that exact source to the required path and reattached it without resetting/updating canonical/catalog/runtime source or credentials. Added and independently read back a Git worktree lock: Active Pinterest measurement operator: retain for October31 cohort review and until explicit owner cleanup approval. This guards ordinary Git removal/pruning; it cannot prevent arbitrary filesystem deletion or forced unlocking. The remover/cause/time remain unverified. The actual measurement subsequently succeeded with zero Pin writes, correct28-Pin BUSINESS account and unchanged native evidence. This is a recurring local availability risk, not an authentication, Pinterest publication or creative-quality failure.",
+    "evidenceEventIds": [
+      "evt-20261026-pm-v11-scheduled-measurement-noop",
+      "evt-20261027-pm-v11-scheduled-measurement-noop",
+      "evt-20261028-am-v11-metrics-1107815208389000013"
+    ],
+    "decision": "Restore and protect the active reviewed operator; do not treat it as a disposable merged-PR worktree. Add a narrow cleanup-retention instruction and preserve original source/receipt/policy/cohort/deadline. Notify Cameron once about the recurrence and guard, without claiming the root cause is fixed or pausing/rescheduling the task.",
+    "nextAction": "Exclude this exact operator from cleanup, keep its Git lock and measurement-only cadence active until explicit owner cleanup authority. Monitor the next existing run normally; if removal recurs despite the guard, surface the specific failure without moving production pins, lowering publishing gates or starting another experiment."
+  }
+}

@@ -1,5 +1,22 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-28 AM — recurring Pinterest operator recovery and retention guard
+
+[daily-ops] Required checkout missing again despite active attachment; restored
+exact saved0f66c67 source, reattached and read back a Git worktree lock. Narrow
+CLAUDE/studio retention exception prevents treating this active operator as
+merged-PR cleanup. Remover/cause unverified; ordinary Git guard is not arbitrary
+filesystem protection. Actual16:34:19.997UTC measurement succeeds:28 public Pins,
+frozenP6F6, all native metrics/IDs/links/boards unchanged; P1460/23opens/3saves/
+2outbound,F363/5/1/0. Cohort downstream unknown under healthy bounded GA4/PostHog.
+No new checkpoint;14 validated events/1078 total, full receipt/recovery in
+`pinterest-measurements/2026-10-28-am/`. No public Pin created, runtime/account/
+catalog/site/Bead/schedule change, deployment or spend. Same ACTIVE cadence,
+October31 review/posting freeze. Notify only the recurring local availability
+issue and cleanup exclusion; canonical/catalog pins remain intact.
+Evidence PR[#297](https://github.com/37-Inc/goose.gifts/pull/297), retained
+receipt80c583a; this merge is not runtime advancement or site publication.
+
 ## 2026-10-27 PM — unchanged Pinterest; other-source retailer events
 
 [daily-ops] Actual23:33:01.574UTC verifies28 retained Pins/P6F6; all native Pin

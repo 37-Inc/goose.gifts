@@ -49,6 +49,12 @@ Keep entries short; heavy operational detail belongs in `JOURNAL.md`.
 - After a PR merges, remove its completed local worktree and local branch from
   the canonical checkout; GitHub automatically deletes the merged remote
   branch. Preserve or inspect any untracked files before removing a worktree.
+- Retain the active Pinterest measurement operator at
+  `/Users/cameronehrlich/.codex/worktrees/stupid-pinterest-cutover/goose.gifts`.
+  It is not a completed/disposable PR worktree. Its Git worktree lock and
+  cleanup exclusion remain until explicit owner cleanup approval, including
+  after an evidence PR merges or the October31 review date passes. Do not
+  unlock, remove or archive it as routine merged-worktree cleanup.
 - Never merge a change that fails `npm run build` or `npm run lint`.
 - `npm run build` builds the Cloudflare static site with an explicit reviewed
   `CATALOG_SNAPSHOT_PATH` and `CATALOG_RELEASE_CONTEXT_PATH`, from clean committed

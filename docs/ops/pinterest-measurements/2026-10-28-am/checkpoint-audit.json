@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-28T16:34:19.997Z",
+  "unresolvedProductionPublicationReceipts": 0,
+  "newlyDueTwentyFourHourChecks": 0,
+  "newlyDueSevenDayLearnings": 0,
+  "newlyDueTwentyEightDayArchives": 0,
+  "nextIndividualTwentyEightDayGateUtc": "2026-11-10T20:07:09.336Z",
+  "members": [
+    {
+      "candidateId": "cand-v11-red-crab-field-note",
+      "pinId": "1107815208388715714",
+      "status": "archived",
+      "next28day": "2026-10-13T23:40:50.765Z",
+      "learningEvents": [
+        "evt-20260919-v11-red-crab-post24h-learning",
+        "evt-20261013-v11-red-crab-28d-learning"
+      ]
+    },
+    {
+      "candidateId": "cand-v11-farting-ring-field-note",
+      "pinId": "1107815208388765155",
+      "status": "archived",
+      "next28day": "2026-10-14T16:42:19.922Z",
+      "learningEvents": [
+        "evt-20260919-v11-farting-ring-post24h-learning",
+        "evt-20261014-v11-farting-ring-28d-learning"
+      ]
+    },
+    {
+      "candidateId": "cand-v11-chia-gnome-poster",
+      "pinId": "1107815208388788830",
+      "status": "archived",
+      "next28day": "2026-10-14T23:41:47.926Z",
+      "learningEvents": [
+        "evt-20260919-v11-chia-gnome-post24h-learning",
+        "evt-20261014-v11-chia-28day-learning"
+      ]
+    },
+    {
+      "candidateId": "cand-v11-mini-bowling-poster",
+      "pinId": "1107815208389000013",
+      "status": "archived",
+      "next28day": "2026-10-17T16:45:23.812Z",
+      "learningEvents": [
+        "evt-20260920-v11-mini-bowling-post24h-learning",
+        "evt-20261017-am-v11-bowling-28day-learning"
+      ]
+    },
+    {
+      "candidateId": "cand-v11-birthday-toast-field-note",
+      "pinId": "1107815208389027583",
+      "status": "archived",
+      "next28day": "2026-10-17T23:40:34.916Z",
+      "learningEvents": [
+        "evt-20260920-v11-birthday-toast-post24h-learning",
+        "evt-20261018-am-v11-toast-28day-learning"
+      ]
+    },
+    {
+      "candidateId": "cand-v11-desktop-therapist-field-note",
+      "pinId": "1107815208389087383",
+      "status": "archived",
+      "next28day": "2026-10-18T16:40:59.150Z",
+      "learningEvents": [
+        "evt-20261018-pm-v11-therapist-28day-learning"
+      ]
+    },
+    {
+      "candidateId": "cand-v11-sheep-roll-field-note",
+      "pinId": "1107815208391037211",
+      "status": "measuring",
+      "next28day": "2026-11-10T20:07:09.336Z",
+      "learningEvents": [
+        "evt-20261020-pm-v11-sheep-7day-learning"
+      ]
+    },
+    {
+      "candidateId": "cand-v11-spider-box-field-note",
+      "pinId": "1107815208391104701",
+      "status": "measuring",
+      "next28day": "2026-11-11T16:42:53.716Z",
+      "learningEvents": [
+        "evt-20261015-v11-spider-24h-learning",
+        "evt-20261023-pm-v11-spider-late-7day-learning"
+      ]
+    },
+    {
+      "candidateId": "cand-v11-belly-bag-poster",
+      "pinId": "1107815208391132026",
+      "status": "measuring",
+      "next28day": "2026-11-11T23:40:30.593Z",
+      "learningEvents": [
+        "evt-20261016-am-v11-belly-24h-learning",
+        "evt-20261023-pm-v11-belly-late-7day-learning"
+      ]
+    },
+    {
+      "candidateId": "cand-v11-grumpy-frog-poster",
+      "pinId": "1107815208391186516",
+      "status": "measuring",
+      "next28day": "2026-11-12T16:44:52.032Z",
+      "learningEvents": [
+        "evt-20261016-pm-v11-frog-24h-learning",
+        "evt-20261023-pm-v11-frog-late-7day-learning"
+      ]
+    },
+    {
+      "candidateId": "cand-v11-opossum-portrait-poster",
+      "pinId": "1107815208391305222",
+      "status": "measuring",
+      "next28day": "2026-11-13T23:36:45.613Z",
+      "learningEvents": [
+        "evt-20261017-pm-v11-opossum-24h-learning",
+        "evt-20261024-am-v11-opossum-late-7day-learning"
+      ]
+    },
+    {
+      "candidateId": "cand-v11-birthday-hat-poster",
+      "pinId": "1107815208391368990",
+      "status": "measuring",
+      "next28day": "2026-11-14T16:44:52.279Z",
+      "learningEvents": [
+        "evt-20261018-pm-v11-birthday-hat-24h-learning",
+        "evt-20261024-pm-v11-hat-late-7day-learning"
+      ]
+    }
+  ],
+  "reviewDue": false,
+  "reviewDelivered": false,
+  "reviewDeadlineUtc": "2026-10-31T16:44:52.279Z",
+  "equalAgeHistoryReconstructed": false,
+  "unchangedLifecycleSinceLastReceipt": true,
+  "allSixOctoberSevenDayLearningEventsPresent": true
+}
