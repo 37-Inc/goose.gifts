@@ -118,5 +118,24 @@
   "reviewDue": false,
   "reviewDeadlineUtc": "2026-10-31T16:44:52.279Z",
   "notificationDecision": "DONT_NOTIFY",
-  "notificationReason": "Distribution-only increases, no native actions or attributable cohort acquisition change; healthy provider reads and retained locked operator need no owner action."
+  "notificationReason": "Distribution-only increases, no native actions or attributable cohort acquisition change; healthy provider reads and retained locked operator need no owner action.",
+  "evidenceIntegration": {
+    "pullRequest": "https://github.com/37-Inc/goose.gifts/pull/298",
+    "upstreamMain": "37f5c73c1905eacdc7486f4b5e3dda0e93578681",
+    "retainedOperatorEvidenceCommit": "b522e801d9526e6553f1f9771df9ff1a3f8ad28c",
+    "mainBasedEvidenceCommit": "4ae6b68fc93845a08b6e7a11ef25718d260784b6",
+    "allUpstreamDatedEntriesAndInstructionsPreserved": true,
+    "creativeLogValid": true,
+    "creativeLogEvents": 1091,
+    "creativeTestsPass": 6,
+    "pinterestTestsPass": 18,
+    "lintErrors": 0,
+    "lintWarnings": 0,
+    "sharedDependencyReuseReadOnly": true,
+    "lockSha256": "a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381",
+    "freshInstallAttempted": false,
+    "runtimeDependencyPackagePolicyReceiptCohortInstructionDiffRelativeUpstream": [],
+    "retainedMeasurementRuntimeAdvanced": false,
+    "newBuildDeploymentOrHostedCiAcceptanceClaimed": false
+  }
 }
