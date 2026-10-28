@@ -5,6 +5,47 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-28 AM — second missing-operator recovery, Git retention guard
+
+Trigger16:30:48.932UTC; required checkout absent/no Git registration, active
+task artifact stale. Local/remote operator refs both0f66c678d1ebf79095ab3e3e27ebd580dbf1dbf4.
+Restored exact source/same path, reattached and set/read back Git worktree lock
+with explicit active-measurement/owner-cleanup reason. CLAUDE/studio now narrowly
+exclude this active operator from routine merged-PR cleanup. Remover/time/cause
+unverified; Git guard cannot stop arbitrary filesystem deletion/forced unlocking.
+No canonical/catalog/runtime movement or credential change. Prior October26
+recovery retained. This recurrence warrants one owner notice, not a schedule pause.
+
+Actual16:34:19.997UTC measurement verifies1107815345747925810/stupid_gifts/
+BUSINESS,28 Pins/five boards. Every native Pin metric and original ID/link/board
+matches priorPM: profile4063/64opens/9saves/2outbound; P1460/23/3/2,F363/5/1/0.
+Bowling1400 holds95.89%P exposure/both outbound; Toast284 holds78.24%F. Without
+them P60/3/0/0,F79/2/0/0. No demonstrated format/acquisition winner.
+
+GA4explicit507421709 October21-28Pacific/current partial: Stupid58direct/12engaged,
+14amazon-not-set/10engaged,2not-set/none; Goose5direct/two engaged. Retailer
+rows10Stupid/direct+2Stupid/amazon+1Goose/direct, not Pinterest/customer proof.
+PostHog550427 rollingUTC October21T16:34:15.052Z-October28T16:34:15.052Z:
+71page/102list/13select/5search/8retailer; retailer rows7chatgpt.com+1www.google.com,
+empty campaigns, no Pinterest row. No host/Pin/people/sale inference; untagged
+operator activity can remain. Both reads healthy. Moving windows/provider
+semantics, historical gaps and QA/privacy caveats retained; do not infer traffic
+regression or migration effects. Per-arm/Pin site/retailer/revenue unknown.
+
+No unresolved publication/new v11 24h/seven-day/28day checkpoint. Prior honest
+late learnings preserved; six archived/public and six measuring. Next28daySheep
+November10T20:07:09.336Z.12metrics+run learning+operator learning via creative:record;
+1078valid events/8experiments/37candidates. Full JSON/recovery/checkpoints in
+`pinterest-measurements/2026-10-28-am/`.32GiB free, no cleanup/new install;
+six creative/18Pinterest focused checks pass with explicit shared tsx loader.
+No public Pin created, creative/shortlist/package/approval, account/Pin/catalog/
+site mutation, deployment, spend, Bead/schedule change. Runtime/dependencies,
+canonical/catalog pins, approvals/receipts/policy/cohort/deadline unchanged.
+Redirect/rebrand stays independent intervention, no new routing-QA claim.
+Same ACTIVE cadence; finalReviewDelivered=false, exactOct31T16:44:52.279Z and
+expected16:30Pacific review unchanged. Posting/generation off afterward until
+explicit new experiment; retain this active operator/lock until owner cleanup.
+
 ## 2026-10-27 PM — unchanged native cohort, non-Pinterest events
 
 Trigger23:32:33.653UTC; actual23:33:01.574UTC read from reviewed2b5dcdc.
