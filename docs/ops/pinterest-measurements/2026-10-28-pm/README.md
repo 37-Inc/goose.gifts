@@ -82,3 +82,12 @@ Generation/posting stay off afterward until explicit next-experiment approval.
 No duplicate review job. Next hypothesis remains whether attributable Pinterest
 response extends beyond one dominant product after separating destination/rebrand
 effects; do not start it. Routine distribution-only evidence stays quiet.
+
+Evidence integration: [PR #298](https://github.com/37-Inc/goose.gifts/pull/298),
+retained receipt `b522e801d9526e6553f1f9771df9ff1a3f8ad28c`, main-based evidence
+`4ae6b68fc93845a08b6e7a11ef25718d260784b6` against upstream `37f5c73`.
+Main-based validation:1,091 valid events, six creative/18Pinterest tests,
+lint zero errors/warnings and clean diff check; no runtime/dependency/policy/
+package/receipt/cohort/instruction changes. Exact-lock shared dependencies reused
+read-only without install. This integration is not runtime advancement, a new
+build, hosted CI acceptance or site publication. See `validation.json`.
