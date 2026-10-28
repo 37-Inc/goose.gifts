@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261028-pm-v11-scheduled-measurement-noop",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-28T23:29:16Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "Actual snapshot2026-10-28T23:27:39.775Z verifies1107815345747925810/stupid_gifts/BUSINESS and28 retained public Pins. All original IDs/tracked links/boards and native action counts match AM. FrozenP6/F6: P1473impressions/23Pin clicks/3saves/2native outbound,F369/5/1/0. Distribution rose13P/6F; profile4133/64/9/2, +70impressions only. Bowling1406 holds95.45%P exposure/both outbound; Toast287 holds77.78%F. Without them P67/3/0/0,F82/2/0/0. No demonstrated acquisition/format winner. Explicit GA4property507421709 October21-28Pacific/current partial: Stupid59direct sessions/12engaged,14amazon-not-set/10engaged,2not-set/none; Goose5direct/two engaged. Retailer rows10Stupid/direct+2Stupid/amazon+1Goose/direct, no Pinterest row/customer proof. PostHog550427 rollingUTC October21T23:27:35.468Z-October28T23:27:35.468Z:70page/99list/13select/5search/8retailer; retailer sources7chatgpt.com+1www.google.com, empty campaigns, no Pinterest row. Provider events are not acquired people/sales; untagged operator activity may remain. Distinct moving windows, historical gaps and absent host/fullURL/per-Pin utm_content retained. Do not map PostHog rows to hosts/Pins/GA4 counts or infer regression/causal migration effects. Arm/Pin site/retailer/revenue unknown, not zero. No unresolved publication or newly due v11 24h/seven-day/28day checkpoint; six archived/public and six measuring, next28daySheepNovember10T20:07:09.336Z. The reviewed operator is present and its existing Git cleanup lock remains read back; no restoration/new local guard this run. Original destination/rebrand intervention retained. Review undelivered/not due until2026-10-31T16:44:52.279Z.",
+    "evidenceEventIds": [
+      "evt-20261028-am-v11-scheduled-measurement-noop",
+      "evt-20261028-am-v11-operator-retention-recovery",
+      "evt-20261028-pm-v11-metrics-1107815208389000013",
+      "evt-20261028-pm-v11-metrics-1107815208389027583",
+      "evt-20261024-goose-domain-redirect-intervention"
+    ],
+    "decision": "Routine measurement-only no-op: no public Pin created or creative/shortlist/package/approval, public/Sandbox/account/Pin/catalog/site mutation, deployment, spend, Bead or schedule change. Distribution alone and unattributable other-source events do not establish a format/acquisition winner. Operator is available/locked, so no repeat recovery alert or owner action.",
+    "nextAction": "Keep the same ACTIVE09:30/16:30Pacific task/chat and retained operator lock. Deliver complete six-versus-six review once at/after2026-10-31T16:44:52.279Z, expected first eligible normal slotOctober31 16:30Pacific, retaining actual ages, exposure concentration/single-Pin sensitivity, product/category differences and rebrand/destination interventions. Keep generation/posting off afterward until explicit new-experiment approval."
+  }
+}
