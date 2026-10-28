@@ -14,6 +14,8 @@ No new checkpoint;14 validated events/1078 total, full receipt/recovery in
 catalog/site/Bead/schedule change, deployment or spend. Same ACTIVE cadence,
 October31 review/posting freeze. Notify only the recurring local availability
 issue and cleanup exclusion; canonical/catalog pins remain intact.
+Evidence PR[#297](https://github.com/37-Inc/goose.gifts/pull/297), retained
+receipt80c583a; this merge is not runtime advancement or site publication.
 
 ## 2026-10-27 PM — unchanged Pinterest; other-source retailer events
 
