@@ -5,6 +5,41 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-28 PM — distribution-only read, active operator/lock retained
+
+Trigger23:26:53.434UTC; actual23:27:39.775UTC read from reviewedd1c7608.
+Account1107815345747925810/stupid_gifts/BUSINESS,28 public Pins/five boards.
+All IDs/links/boards and every native action count match AM. Profile4133/64opens/
+9saves/2outbound,+70impressions; P1473/23/3/2,F369/5/1/0,+13P/+6F impressions.
+Bowling1406 holds95.45%P exposure/both outbound; Toast287 holds77.78%F. Without
+them P67/3/0/0,F82/2/0/0. No demonstrated acquisition/format winner.
+
+GA4explicit507421709 October21-28Pacific/current partial: Stupid59direct/12engaged,
+14amazon-not-set/10engaged,2not-set/none; Goose5direct/two engaged. Retailer rows
+10Stupid/direct+2Stupid/amazon+1Goose/direct, no Pinterest/customer proof.
+PostHog550427 rollingUTC October21T23:27:35.468Z-October28T23:27:35.468Z:
+70page/99list/13select/5search/8retailer, retailer sources7chatgpt.com+1www.google.com,
+empty campaigns/no Pinterest row. No host/Pin/people/sale inference; untagged
+operator activity may remain. Both reads healthy, QA/whole-identity exclusions,
+distinct moving windows, absent fullURL/host/utm_content and historical gaps
+retained. Per-arm/Pin sessions/retailer/revenue unknown, not zero. No pooling
+counts, regression/causal migration claim or retired DB/Vercel/public v3/Sandbox.
+
+No unresolved publication/new v11 24h/seven-day/28day checkpoint. Prior honest
+late learnings retained; six archived/public and six measuring. Next28daySheep
+November10T20:07:09.336Z.12metrics+run learning via creative:record,1091valid events/
+8experiments/37candidates. Full receipt/checkpoints in `pinterest-measurements/2026-10-28-pm/`.
+Active operator present/Git lock read back; no recovery, guard/instruction change
+or repeat owner alert. Morning removal cause remains unverified.31GiB free, no
+cleanup/install. Six creative/18Pinterest checks pass using explicit shared tsx
+loader. No public Pin created, creative/shortlist/package/approval, runtime/account/
+Pin/catalog/site mutation, deploy, spend, Bead/schedule change. Canonical/catalog
+pins, approvals/receipts/policy/retention instructions/cohort/deadline unchanged.
+Redirect/rebrand remains independent intervention, no new routing-QA claim.
+Same ACTIVE cadence; review undelivered/not due untilOct31T16:44:52.279Z, expected
+first regular eligible slot16:30Pacific. Generation/posting stay off afterward
+until explicit next experiment. Healthy routine distribution-only evidence quiet.
+
 ## 2026-10-28 AM — second missing-operator recovery, Git retention guard
 
 Trigger16:30:48.932UTC; required checkout absent/no Git registration, active
