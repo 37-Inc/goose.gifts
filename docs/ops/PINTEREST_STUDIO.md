@@ -1,5 +1,19 @@
 # Pinterest studio — operating contract and recovery
 
+## Active operator retention — October28
+
+The required operator disappeared again before this morning's run, while its
+task attachment still said active. Restored the exact saved local/remote source
+`0f66c678d1ebf79095ab3e3e27ebd580dbf1dbf4` at the same required path;
+measurement then succeeded. The remover/cause/time are unverified. A Git
+worktree lock is now set/read back to guard normal Git removal/pruning, and
+`CLAUDE.md` explicitly excludes this active operator from routine cleanup.
+This cannot protect against arbitrary filesystem deletion or forced unlocking.
+Keep the operator/lock until explicit owner cleanup approval, including after
+an evidence PR merges or the review date passes. Canonical/catalog pins,
+credentials, runtime, policy, cohort, deadline and schedule were not changed.
+See [the recovery and actual measurement receipt](pinterest-measurements/2026-10-28-am/README.md).
+
 ## Destination intervention — October23 Pacific / October24 UTC
 
 Cameron assigned the old-domain redirect migration to this thread. Cloudflare

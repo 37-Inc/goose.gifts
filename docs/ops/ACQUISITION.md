@@ -1,5 +1,17 @@
 # goose.gifts Acquisition and Link-Earning Plan
 
+## October 28 morning — unchanged Pinterest; local operator protected
+
+Actual16:34:19.997UTC after exact-source checkout recovery: P1460impressions/
+23Pin clicks/3saves/2native outbound,F363/5/1/0;28 original IDs/links/boards intact.
+All native Pin metrics unchanged. Bounded GA4/PostHog healthy; other-source/
+direct retailer events are not Pinterest/customer proof. Moving windows and
+missing host/per-Pin fields retain unknown cohort attribution, not zero or a
+causal migration verdict. No new checkpoint/public Pin/format adoption. Recurring
+missing active checkout now has a Git lock and retention instruction; cause
+unverified. Same ACTIVE cadence, exactOctober31 review/post-review owner gate.
+[Receipt and recovery](pinterest-measurements/2026-10-28-am/README.md).
+
 ## October 27 afternoon — Pinterest native evidence unchanged
 
 Actual23:33:01.574UTC: P1460impressions/23Pin clicks/3saves/2native outbound,

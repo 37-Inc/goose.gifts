@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "kind": "recurring-reviewed-measurement-operator-recovery",
+  "recordedAt": "2026-10-28T16:38:06Z",
+  "discoveredDuringRunTriggeredAtUtc": "2026-10-28T16:30:48.932Z",
+  "operatorPath": "/Users/cameronehrlich/.codex/worktrees/stupid-pinterest-cutover/goose.gifts",
+  "initialState": {
+    "directoryPresent": false,
+    "gitRegistrationPresent": false,
+    "taskAttachmentType": "worktree"
+  },
+  "removalCause": "unverified",
+  "remover": "unknown",
+  "removedAt": "unknown",
+  "previousRecovery": "docs/ops/pinterest-measurements/2026-10-26-pm/operator-recovery.json",
+  "savedLocalAndRemoteCommit": "0f66c678d1ebf79095ab3e3e27ebd580dbf1dbf4",
+  "restoredSourceMatchesExactly": true,
+  "reattachedSameTask": true,
+  "gitLock": {
+    "set": true,
+    "readBack": true,
+    "reason": "Active Pinterest measurement operator: retain for October 31 cohort review and until explicit owner cleanup approval",
+    "scope": "Ordinary Git worktree removal/pruning; not protection from arbitrary filesystem deletion or forced unlocking"
+  },
+  "canonicalHeadUnchanged": "063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6",
+  "catalogHeadUnchanged": "628707b5746414ea52dc47daecdbfa8bce819220",
+  "runtimeOrCredentialChange": false,
+  "measurementCompletedAtUtc": "2026-10-28T16:34:19.997Z",
+  "publicPinWrites": 0,
+  "scheduleChanged": false,
+  "ownerNotice": "Recurring disappearance; exclude this exact active operator from cleanup and retain its lock until explicit owner cleanup approval."
+}
