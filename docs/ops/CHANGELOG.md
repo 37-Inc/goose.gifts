@@ -1,5 +1,19 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-29 PM — frozen Pinterest measurements unchanged
+
+[daily-ops] Actual23:28:26.510UTC verifies28 retained Pins/P6F6; all native
+metrics/IDs/links/boards match AM. P1489/23Pin clicks/3saves/2native outbound,
+F374/5/1/0; profile4216/64/9/2. Healthy explicit GA4/PostHog, but cohort site/
+retailer attribution remains unknown; direct/ChatGPT/Google events are not
+Pinterest/customer proof. No new checkpoint;13 validated events/1118 total.
+Receipt in `pinterest-measurements/2026-10-29-pm/`. Operator present/prior Git
+lock retained, no recovery or repeated alert. No public Pin created, runtime/
+instruction/account/catalog/site/Bead/schedule change, deploy or spend.
+Same ACTIVE cadence, exact October31 review and explicit post-review gate.
+Evidence PR[#300](https://github.com/37-Inc/stupid.gifts/pull/300), retained
+receipt7537424; this evidence merge is not runtime advancement/site publication.
+
 ## 2026-10-29 AM — locked Pinterest checkout recovered; measurement complete
 
 [daily-ops] Checkout files missing a third time despite surviving Git registration,
