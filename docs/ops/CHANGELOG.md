@@ -12,6 +12,8 @@ under healthy explicit GA4/PostHog. No new checkpoint;14 validated events/1105
 total. Receipt/recovery in `pinterest-measurements/2026-10-29-am/`. No public Pin
 created, runtime/account/catalog/site/Bead/schedule change, deploy or spend.
 Production pins, exact October31 review and explicit post-review gate unchanged.
+Evidence PR[#299](https://github.com/37-Inc/stupid.gifts/pull/299), retained
+receipt96a3af5; this evidence merge is not runtime advancement/site publication.
 
 ## 2026-10-28 PM — Pinterest distribution only; retained operator healthy
 
