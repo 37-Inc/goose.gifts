@@ -79,3 +79,13 @@ write, account/Pin/catalog/site mutation, deployment, spend, Bead or schedule ch
 Next hypothesis remains attributable Pinterest response beyond one dominant product,
 separating destination/rebrand effects; do not start it. Routine unchanged evidence
 stays quiet.
+
+Evidence integration: [PR #300](https://github.com/37-Inc/stupid.gifts/pull/300),
+retained receipt `7537424bbfd64090f00fbe59db4eb44de1fd8b50`, main-based receipt
+`2e579e6a03a492508f2ec1a3e4a0e7c9f0b877e6` against upstream `23fc779`.
+Main-based log validation (1,118 events), six creative/18 Pinterest tests,
+lint zero errors/warnings and diff check pass. Exact-lock shared dependencies
+reused read-only, no install. Only evidence/dated logs changed; runtime,
+dependencies, operating instructions, packages, policy, receipts and cohort stay
+unchanged. This is not runtime advancement, a new build, hosted CI acceptance or
+site publication. See `validation.json`.
