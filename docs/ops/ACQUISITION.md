@@ -1,5 +1,17 @@
 # goose.gifts Acquisition and Link-Earning Plan
 
+## October 29 morning — no new Pinterest action; operator files recovered
+
+Actual16:35:45.617UTC: P1489impressions/23Pin clicks/3saves/2native outbound,
+F374/5/1/0; all28 native action counts/IDs/links/boards match priorPM. Bounded
+GA4/PostHog healthy; ChatGPT/Google/direct events are not Pinterest acquisition
+or confirmed customers. Arm/Pin downstream unknown; moving windows not pooled
+or treated as causal migration evidence. No new checkpoint/public Pin/format
+adoption. Third missing checkout recovery preserved prior Git lock/source;
+cause unknown, request filesystem-cleanup exclusion, not a root-cause fix.
+Same ACTIVE cadence, exactOctober31 review/post-review owner gate, redirect/
+rebrand intervention. [Receipt](pinterest-measurements/2026-10-29-am/README.md).
+
 ## October 28 afternoon — only Pinterest distribution changed
 
 Actual23:27:39.775UTC: P1473impressions/23Pin clicks/3saves/2native outbound,
