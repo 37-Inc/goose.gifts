@@ -12,6 +12,7 @@ import { catalogDisplayView } from "../../lib/catalog/display";
 import { createPhotoRelease } from "./photos";
 import { createRelatedGiftSelector } from "./related-gifts";
 import { rankedBrowseProducts } from "./browse";
+import { selectShowPicks } from "./show-rehearsal";
 
 type RoutePolicy = Omit<CatalogAssetRoute, "assetPath"> & {
   indexable: boolean;
@@ -54,6 +55,7 @@ export function createStaticRoutes(
   releaseGeneratedAt = sealedSnapshot.generatedAt,
 ): Record<string, CatalogAssetRoute & { indexable: boolean }> {
   const snapshot = catalogDisplayView(sealedSnapshot), photos = createPhotoRelease(sealedSnapshot);
+  const browse = createBrowseRelease(snapshot, releaseGeneratedAt);
   const nextExpiry = earliest(
     snapshot.products.map((product) => product.eligibleUntil),
   );
@@ -74,6 +76,9 @@ export function createStaticRoutes(
     policies[pathname] = { ...catalog,
       state: snapshot.products.length ? "ready" : "held",
       indexable: catalog.indexable && snapshot.products.length > 0 };
+  if (assetPaths.includes("/h.html")) policies["/h"] = { ...catalog, indexable: false,
+    eligibleUntil: earliest([...browse.opening, ...browse.feed.initial, ...selectShowPicks(snapshot)]
+      .map((product) => product.eligibleUntil)) };
   policies["/gift-guides"] = { ...catalog, eligibleUntil: null };
   for (const guide of guides) {
     const products = selectGuideProducts(snapshot, guide);
@@ -98,7 +103,7 @@ export function createStaticRoutes(
     policies[`${pathname}/data.json`] = { ...policy, assetPath: `${pathname}/data.json`,
       safeAssetPath: `/safe${pathname}/data.json`, indexable: false };
   }
-  for (const shard of createBrowseRelease(snapshot, releaseGeneratedAt).shards)
+  for (const shard of browse.shards)
     policies[shard.path] = {
       ...catalog,
       assetPath: shard.path,
