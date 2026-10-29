@@ -6,6 +6,46 @@ state changes without dirtying its retained execution checkout.
 
 ---
 
+## 2026-10-29 AM — third missing-files recovery despite retained Git lock
+
+Trigger16:34:28.230UTC; exact required checkout absent, but saved registration,
+clean index, operator branch and active-operator Git lock survive. Local/remote
+refs both61ae5a0e80db6251399f5b5c61d0c29a2a35ab8a. Recreated only missing files
+from exact saved source with retained admin/index/lock and reattached same task;
+no unlock/prune/reset/runtime or credential change. Canonical Goose path now
+symlinks to /Users/cameronehrlich/stupid.gifts, same063d9a3 source; alias is not
+proof of deletion cause. Catalog628707b unchanged. Cause/remover/exact time
+unknown. Prior Git guard did not prevent this recurrence; notify owner to exclude
+the active operator from filesystem-based cleanup too. Root cause is not fixed.
+
+Actual16:35:45.617UTC snapshot:1107815345747925810/stupid_gifts/BUSINESS,28 public
+Pins/five boards, all IDs/links/boards and native actions match priorPM.
+Profile4216/64Pin clicks/9saves/2native outbound; P1489/23/3/2,F374/5/1/0,
+impressions+16P/+5F. Bowling1409 holds94.63%P exposure/both outbound; Toast289
+holds77.27%F. Without them P80/3/0/0,F85/2/0/0. No format/acquisition winner.
+
+GA4explicit507421709 Oct22–29Pacific/current partial: Stupid51direct sessions/
+13engaged,12amazon-not-set/10engaged,1not-set/none; Goose1direct/1engaged.
+Retailer rows8Stupid/direct+2Stupid/amazon, no Pinterest/customer proof.
+PostHog550427 rollingUTC Oct22T16:35:39.257Z–Oct29T16:35:39.257Z:
+69page/95list/15select/5search/11retailer; retailer sources10chatgpt.com+
+1www.google.com,empty campaigns/no Pinterest row. Different moving windows,
+QA/whole-identity exclusions, untagged operator possibility, historical gaps
+and absent host/fullURL/utm_content retained. No host/arm/Pin/people/sale
+inference, provider pooling or causal migration claim. Arm/Pin downstream unknown.
+
+No unresolved publication or newly due24h/seven-day/28day checkpoint; six older
+archived/public and six newer measuring. All October7day learnings retained,
+next28daySheepNov10T20:07:09.336Z.14 events via creative:record,1105valid events/
+8experiments/37candidates. Six creative/18Pinterest tests pass with explicit
+shared loader;14GiB free,no cleanup/install. Full receipt/checkpoints/recovery:
+`pinterest-measurements/2026-10-29-am/`. Existing redirect/rebrand is intervention,
+no fresh routing-QA or rewrite. No public Pin created, creative/shortlist/package/
+approval, runtime/account/Pin/catalog/site mutation, deploy, spend, Bead/schedule
+change. Same ACTIVE cadence; review false/notdue untilOct31T16:44:52.279Z,
+expected first regular eligible16:30Pacific. Posting off even after review until
+explicit next experiment. Notify only recurring operator availability failure.
+
 ## 2026-10-28 PM — distribution-only read, active operator/lock retained
 
 Trigger23:26:53.434UTC; actual23:27:39.775UTC read from reviewedd1c7608.

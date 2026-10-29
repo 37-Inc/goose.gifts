@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261029-am-v11-operator-locked-checkout-recovery",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-29T16:37:20Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "The required measurement checkout files disappeared a third time, now while the existing Git registration and active-operator lock remained intact. Last confirmed present2026-10-28T23:27:39.775Z; absent at this run. Local/remote operator refs both61ae5a0e80db6251399f5b5c61d0c29a2a35ab8a; retained Git index matches HEAD. Recreated only the missing checkout at its exact required path from that revision and reattached the same task, preserving the existing lock without unlocking, pruning, resetting or advancing any branch/runtime. Canonical Goose path now resolves via a symlink to /Users/cameronehrlich/stupid.gifts, same production-pinned063d9a3 source; the rename/symlink is an observation, not proof it caused removal. Remover, cause and exact removal time remain unverified. Actual measurement succeeded with correct BUSINESS account/all28 Pins, zero writes and unchanged native action counts. Git lock did not prevent this missing-files recurrence; root cause is not fixed.",
+    "evidenceEventIds": [
+      "evt-20261028-am-v11-operator-retention-recovery",
+      "evt-20261028-pm-v11-scheduled-measurement-noop",
+      "evt-20261029-am-v11-metrics-1107815208389000013"
+    ],
+    "decision": "Restore exact reviewed source and retain the existing lock. Notify Cameron about the recurrence despite the lock, not a Pinterest authentication or publication failure. Do not pause/reschedule, move production pins, make unrelated filesystem protection changes or claim cleanup is repaired.",
+    "nextAction": "Exclude /Users/cameronehrlich/.codex/worktrees/stupid-pinterest-cutover/goose.gifts from filesystem-based cleanup as well as Git cleanup. Retain the operator/lock until explicit owner cleanup authority. Keep scheduled metrics and exact October31 review active; diagnose the deleting process only with concrete evidence rather than attributing an actor."
+  }
+}
