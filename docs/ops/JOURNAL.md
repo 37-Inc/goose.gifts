@@ -5,6 +5,39 @@ operator's memory across runs — write for a cold start.
 
 ---
 
+## 2026-10-29 PM — unchanged public metrics; retained operator healthy
+
+Trigger23:28:04.179UTC; actual23:28:26.510UTC from reviewed008cb41 source.
+Account1107815345747925810/stupid_gifts/BUSINESS,28 retained public Pins/five
+boards. Every Pin metric and original ID/link/board match AM. Profile4216/
+64Pin clicks/9saves/2native outbound; P1489/23/3/2,F374/5/1/0. Bowling1409
+holds94.63%P exposure/both outbound; Toast289 holds77.27%F. Without them
+P80/3/0/0,F85/2/0/0. No demonstrated acquisition/format winner.
+
+GA4explicit507421709 Oct22–29Pacific/current partial: Stupid53direct sessions/
+15engaged,12amazon-not-set/10engaged,1not-set/none; Goose1direct/1engaged.
+Retailer rows11Stupid/direct+2Stupid/amazon, no Pinterest/customer proof.
+PostHog550427 rollingUTC Oct22T23:28:23.032Z–Oct29T23:28:23.032Z:
+66page/83list/16select/1search/11retailer; retailer sources10chatgpt.com+
+1www.google.com, empty campaigns/no Pinterest row. Moving windows, QA/whole-
+identity exclusions, untagged operator possibility, historical gaps and absent
+host/fullURL/utm_content retained. No host/arm/Pin/people/sale inference,
+provider pooling or causal migration claim. Arm/Pin downstream unknown, not zero.
+
+No unresolved publication or newly due24h/seven-day/28day checkpoint; all six
+October7day learnings retained, six older archived/public and six measuring.
+Next28daySheepNov10T20:07:09.336Z.13 events via creative:record,1118valid events/
+8experiments/37candidates. Six creative/18Pinterest checks pass with explicit
+shared loader. Operator present/prior lock read back, no recovery/new guard/
+instruction or repeat alert; AM removal cause remains unknown.14GiB free,
+no cleanup/install. Full receipt: `pinterest-measurements/2026-10-29-pm/`.
+Redirect/rebrand remains intervention, no new routing-QA or rewrite. No public
+Pin created, creative/shortlist/package/approval, runtime/account/Pin/catalog/
+site mutation, deploy, spend, Bead/schedule change. Same ACTIVE cadence,
+review false/notdue untilOct31T16:44:52.279Z, first regular eligible16:30Pacific.
+Posting off even after review until explicit next experiment. Routine unchanged
+native/acquisition evidence stays quiet.
+
 ## 2026-10-29 AM — third missing-files recovery despite retained Git lock
 
 Trigger16:34:28.230UTC; exact required checkout absent, but saved registration,
