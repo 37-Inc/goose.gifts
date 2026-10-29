@@ -1,5 +1,13 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-28 — Show rehearsal prototype (not published)
+
+Added a noindex `/h` prototype for an intentionally hand-picked product reveal.
+It accepts a prompt locally and reveals the same six real catalog picks only on
+submit; ordinary site search is unchanged. Desktop and mobile preview checks
+use the retained catalog snapshot. No catalog mutation, provider fetch or
+production deployment was performed. The assortment remains subject to review.
+
 ## 2026-10-28 PM — Pinterest distribution only; retained operator healthy
 
 [daily-ops] Actual23:27:39.775UTC verifies28 retained Pins/P6F6, IDs/links/boards
