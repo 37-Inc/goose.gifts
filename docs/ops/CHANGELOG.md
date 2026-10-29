@@ -11,6 +11,8 @@ Receipt in `pinterest-measurements/2026-10-29-pm/`. Operator present/prior Git
 lock retained, no recovery or repeated alert. No public Pin created, runtime/
 instruction/account/catalog/site/Bead/schedule change, deploy or spend.
 Same ACTIVE cadence, exact October31 review and explicit post-review gate.
+Evidence PR[#300](https://github.com/37-Inc/stupid.gifts/pull/300), retained
+receipt7537424; this evidence merge is not runtime advancement/site publication.
 
 ## 2026-10-29 AM — locked Pinterest checkout recovered; measurement complete
 

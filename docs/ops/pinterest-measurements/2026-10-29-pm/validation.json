@@ -118,5 +118,24 @@
     "previousIncident": "docs/ops/pinterest-measurements/2026-10-29-am/operator-recovery.json",
     "underlyingPreviousRemovalCause": "unverified",
     "repeatOwnerAlertNeeded": false
+  },
+  "evidenceIntegration": {
+    "pullRequest": "https://github.com/37-Inc/stupid.gifts/pull/300",
+    "upstreamMain": "23fc7797d2f05d3c89ae3750484103a93c7b8394",
+    "retainedOperatorEvidenceCommit": "7537424bbfd64090f00fbe59db4eb44de1fd8b50",
+    "mainBasedEvidenceCommit": "2e579e6a03a492508f2ec1a3e4a0e7c9f0b877e6",
+    "allUpstreamDatedEntriesAndInstructionsPreserved": true,
+    "creativeLogValid": true,
+    "creativeLogEvents": 1118,
+    "creativeTestsPass": 6,
+    "pinterestTestsPass": 18,
+    "lintErrors": 0,
+    "lintWarnings": 0,
+    "sharedDependencyReuseReadOnly": true,
+    "lockSha256": "a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381",
+    "freshInstallAttempted": false,
+    "runtimeDependencyPackagePolicyReceiptCohortInstructionDiffRelativeUpstream": [],
+    "retainedMeasurementRuntimeAdvanced": false,
+    "newBuildDeploymentOrHostedCiAcceptanceClaimed": false
   }
 }
