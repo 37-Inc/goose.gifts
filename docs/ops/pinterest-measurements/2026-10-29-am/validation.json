@@ -122,5 +122,27 @@
   "reviewDue": false,
   "reviewDeadlineUtc": "2026-10-31T16:44:52.279Z",
   "notificationDecision": "NOTIFY",
-  "notificationReason": "Third missing-files recurrence despite retained Git registration/lock. Exact source recovered and measurement completed; exclude active operator from filesystem cleanup. Remover/cause unverified, no root-cause fix or new acquisition claim."
+  "notificationReason": "Third missing-files recurrence despite retained Git registration/lock. Exact source recovered and measurement completed; exclude active operator from filesystem cleanup. Remover/cause unverified, no root-cause fix or new acquisition claim.",
+  "evidenceIntegration": {
+    "pullRequest": "https://github.com/37-Inc/stupid.gifts/pull/299",
+    "upstreamMain": "82e565be9101fdfa81c92518459d9d300d72e14a",
+    "retainedOperatorEvidenceCommit": "96a3af5c15ae050619dd90d7afcece6a77b39190",
+    "mainBasedEvidenceCommit": "6ac19c86f707b330e0b6a81f2ec295a33ac2cd75",
+    "allUpstreamDatedEntriesAndInstructionsPreserved": true,
+    "creativeLogValid": true,
+    "creativeLogEvents": 1105,
+    "creativeTestsPass": 6,
+    "pinterestTestsPass": 18,
+    "lintErrors": 0,
+    "lintWarnings": 0,
+    "sharedDependencyReuseReadOnly": true,
+    "lockSha256": "a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381",
+    "freshInstallAttempted": false,
+    "runtimeDependencyPackagePolicyReceiptCohortDiffRelativeUpstream": [],
+    "intentionalOperationalDocumentationChanges": [
+      "docs/ops/PINTEREST_STUDIO.md"
+    ],
+    "retainedMeasurementRuntimeAdvanced": false,
+    "newBuildDeploymentOrHostedCiAcceptanceClaimed": false
+  }
 }

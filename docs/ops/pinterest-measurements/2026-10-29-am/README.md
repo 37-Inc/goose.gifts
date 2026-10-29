@@ -91,3 +91,13 @@ next-experiment approval. No creative, shortlist, package, approval, public/Sand
 write, account/Pin/catalog/site mutation, deployment, spend, Bead or schedule change.
 Next hypothesis remains whether attributable Pinterest response extends beyond a
 single dominant product, separating destination/rebrand effects; do not start it.
+
+Evidence integration: [PR #299](https://github.com/37-Inc/stupid.gifts/pull/299),
+retained receipt `96a3af5c15ae050619dd90d7afcece6a77b39190`, main-based receipt
+`6ac19c86f707b330e0b6a81f2ec295a33ac2cd75` against upstream `82e565b`.
+Main-based log validation (1,105 events), six creative/18 Pinterest tests,
+lint zero errors/warnings and diff check pass. Exact-lock shared dependencies
+reused read-only, no install. Only evidence and dated operational documentation
+changed; source, packages, policy, receipts and cohort remain unchanged. This is
+not runtime advancement, a new build, hosted CI acceptance or site publication.
+See `validation.json`.
