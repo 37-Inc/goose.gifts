@@ -7,6 +7,9 @@ It accepts a prompt locally and reveals the same six real catalog picks only on
 submit; ordinary site search is unchanged. Desktop and mobile preview checks
 use the retained catalog snapshot. No catalog mutation, provider fetch or
 production deployment was performed. The assortment remains subject to review.
+The seller's penis-shaped bottle opener is additionally shown only in the real
+catalog rehearsal preview as a direct, non-affiliate link. It is not a catalog
+record, does not appear in synthetic fixtures, and is not yet published.
 
 ## 2026-10-28 PM — Pinterest distribution only; retained operator healthy
 
