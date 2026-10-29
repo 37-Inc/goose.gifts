@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "kind": "locked-reviewed-operator-missing-files-recovery",
+  "recordedAt": "2026-10-29T16:37:20Z",
+  "triggerAtUtc": "2026-10-29T16:34:28.230Z",
+  "operatorPath": "/Users/cameronehrlich/.codex/worktrees/stupid-pinterest-cutover/goose.gifts",
+  "initialState": {
+    "directoryPresent": false,
+    "gitRegistrationPresent": true,
+    "gitLockPresent": true,
+    "savedIndexMatchesHead": true
+  },
+  "lastVerifiedPresentSnapshotUtc": "2026-10-28T23:27:39.775Z",
+  "savedLocalAndRemoteCommit": "61ae5a0e80db6251399f5b5c61d0c29a2a35ab8a",
+  "recoveryMethod": "Recreated missing .git pointer to retained admin directory; git restore --source=61ae5a0e80db6251399f5b5c61d0c29a2a35ab8a --worktree -- . into otherwise absent checkout. Reattached same task. Existing registration/index/lock retained.",
+  "restoredSourceMatchesExactly": true,
+  "reattachedSameTask": true,
+  "gitLock": {
+    "alreadyPresentAtDiscovery": true,
+    "retained": true,
+    "unlocked": false,
+    "reason": "Active Pinterest measurement operator: retain for October 31 cohort review and until explicit owner cleanup approval",
+    "limitation": "Prevents normal Git removal/pruning, not arbitrary filesystem deletion. This recurrence was not prevented."
+  },
+  "removalCause": "unverified",
+  "remover": "unknown",
+  "removedAt": "unknown",
+  "canonicalPathAlias": {
+    "path": "/Users/cameronehrlich/goose.gifts",
+    "resolvesTo": "/Users/cameronehrlich/stupid.gifts",
+    "observedOnly": true,
+    "causalAttribution": false
+  },
+  "canonicalHead": "063d9a31ee4fa0a181083f4fb38d1948ec7fe6b6",
+  "catalogHead": "628707b5746414ea52dc47daecdbfa8bce819220",
+  "runtimeOrCredentialChange": false,
+  "measurementCompletedAtUtc": "2026-10-29T16:35:45.617Z",
+  "publicPinWrites": 0,
+  "scheduleChanged": false,
+  "ownerNotice": "Third missing-files recurrence, despite existing Git lock. Exclude this active operator from filesystem cleanup too; remover/cause remains unverified."
+}

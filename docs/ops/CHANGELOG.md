@@ -1,5 +1,20 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-29 AM — locked Pinterest checkout recovered; measurement complete
+
+[daily-ops] Checkout files missing a third time despite surviving Git registration,
+index and active-operator lock. Restored exact saved/remote61ae5a0 without unlock,
+reset or runtime advancement; same task reattached. Cause/remover unverified;
+exclude this active operator from filesystem cleanup too, not a root-cause fix.
+Actual16:35:45.617UTC verifies28 Pins/P6F6; P1489/23Pin clicks/3saves/2native
+outbound,F374/5/1/0. Only impressions rose; cohort downstream remains unknown
+under healthy explicit GA4/PostHog. No new checkpoint;14 validated events/1105
+total. Receipt/recovery in `pinterest-measurements/2026-10-29-am/`. No public Pin
+created, runtime/account/catalog/site/Bead/schedule change, deploy or spend.
+Production pins, exact October31 review and explicit post-review gate unchanged.
+Evidence PR[#299](https://github.com/37-Inc/stupid.gifts/pull/299), retained
+receipt96a3af5; this evidence merge is not runtime advancement/site publication.
+
 ## 2026-10-28 PM — Pinterest distribution only; retained operator healthy
 
 [daily-ops] Actual23:27:39.775UTC verifies28 retained Pins/P6F6, IDs/links/boards

@@ -1,5 +1,19 @@
 # Pinterest studio — operating contract and recovery
 
+## Locked-checkout missing-files recurrence — October29
+
+The required operator files were absent again, **while the prior Git registration,
+clean index and active-operator lock remained intact**. Restored only the missing
+checkout from exact matching local/remote61ae5a0 source, without unlocking,
+pruning, resetting or advancing runtime; reattached the same task. Measurement
+succeeded at2026-10-29T16:35:45.617Z. The prior Git lock did not prevent this
+recurrence. Exclude this active operator from filesystem-based cleanup too;
+cause/remover/exact time remain unknown, not claimed fixed. Canonical Goose path
+now aliases /Users/cameronehrlich/stupid.gifts, same pinned063d9a3 source; this
+observation does not establish deletion cause. Catalog628707b, credentials,
+policy, cohort, exact review date and same ACTIVE schedule are unchanged.
+No public Pin created. See [recovery and measurement](pinterest-measurements/2026-10-29-am/README.md).
+
 ## Active operator retention — October28
 
 The required operator disappeared again before this morning's run, while its

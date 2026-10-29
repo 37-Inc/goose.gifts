@@ -109,6 +109,19 @@ The traffic, backlink, outreach, and channel-distribution strategy lives in
 
 ## Pinterest Creative Lab
 
+### 2026-10-29 morning — operator recovery; native actions unchanged
+
+Actual16:35:45.617UTC: stupid_gifts BUSINESS/28 Pins/frozenP6F6. P1489/
+23Pin clicks/3saves/2native outbound,F374/5/1/0; impressions+16P/+5F, all actions
+unchanged. No format/acquisition winner; healthy bounded explicit GA4/PostHog,
+cohort attribution unknown. No new checkpoint;14 validated events/1105 total.
+Missing checkout restored at exact61ae5a0 while prior Git registration/lock
+survived. Cause unknown; Git lock did not prevent missing-files recurrence.
+Notify only operator cleanup exclusion, not a new creative/acquisition verdict.
+No public Pin created or runtime/creative/account/catalog/site/Bead/schedule
+change. Same ACTIVE cadence, redirect/rebrand caveat, October31 review/gate.
+[Receipt and recovery](pinterest-measurements/2026-10-29-am/README.md).
+
 ### 2026-10-28 afternoon — distribution grows, no new native action
 
 Actual23:27:39.775UTC: stupid_gifts BUSINESS/28 retained Pins/frozenP6F6.
