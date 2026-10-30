@@ -877,7 +877,7 @@ test('driver never adopts a separately accounted uploader or foreign ledger',asy
 });
 for(const credential of ['amazon-id','amazon-secret','openai'])test(`unreadable ${credential} stops before writer/cadence/merchant work and permits a safe initial resume`,async t=>{
   const monday=credential==='openai';
-  const f=await setup(t,{at:monday?'2026-10-19T18:00:00.000Z':NOW});
+  const f=await setup(t,{permanent:1,at:monday?'2026-10-19T18:00:00.000Z':NOW});
   f.config.cadence={day:monday?'2026-10-19':'2026-10-20',featuredIds:[ID]};f.config.backfillLimit=0;
   if(!monday)delete f.config.credentials.openai;
   await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
