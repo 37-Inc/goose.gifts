@@ -1046,6 +1046,14 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
       };
     });
 
+    // Only selected new discoveries can receive a same-response display grant.
+    // Existing listings retain their independently cleared fields unchanged.
+    if (options.discoveryNewOnly && evidence?.reviewedShort) {
+      for (const product of reviewedProducts) {
+        await evidence.reviewedShort(product, reviewResult.byId.get(product.id));
+      }
+    }
+
     let embeddingsById = new Map();
 
     try {
@@ -1133,6 +1141,7 @@ function finalizeProducts(products, theme, options) {
 
       return {
         ...product,
+        ...(product.source === 'amazon' ? { affiliateUrl: amazonAffiliateUrl(product.id) } : {}),
         title,
         price,
         sourceQuery: theme,

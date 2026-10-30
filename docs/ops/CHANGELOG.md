@@ -1,5 +1,13 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-30 — Daily care integration
+
+[owner+claude] The routine publisher can distinguish a verified current
+storefront from the genuine earlier D1 catalog receipt. Reviewed new short-copy
+discoveries carry their same-response evidence into the public projection;
+existing cleared listings stay unchanged. Normal production acceptance and
+daily-job resumption still require the bounded live run.
+
 ## 2026-10-30 — Show rehearsal feedback
 
 [owner+claude] Updated the `/h` rehearsal to a seven-product reveal with a

@@ -5,6 +5,7 @@ import type { PublicationClaim, PublicationIntent } from './publication.ts';
 import { encodePublicationIntent, publicationStatus, publicationActivationGate } from './publication.ts';
 import { rollbackPreflight, visibleRevisionCountQuery } from './d1.ts';
 import { canonicalTime } from './snapshot.ts';
+import { canonicalJson } from './canonical-json.ts';
 import { legacyMutationBatch, legacyMutationGuard, mutationAssertion, mutationFenceQuery, unabandonedImportsQuery } from './mutation-fence.ts';
 import type { MutationOwner } from './mutation-fence.ts';
 import type { D1Statement } from './storage/d1.ts';
@@ -210,14 +211,21 @@ function matches(active: DeploymentIdentity, intent: PublicationIntent) {
     && active.catalogSnapshotSha256 === intent.catalogSnapshotSha256 && active.manifestSha256 === intent.manifestSha256
     && typeof active.versionReference === 'string' && REFERENCE.test(active.versionReference);
 }
-async function priorMatches(db: CatalogD1, request: CatalogBuildRequest, active: DeploymentIdentity | null): Promise<boolean> {
+async function priorMatches(db: CatalogD1, request: CatalogBuildRequest, active: DeploymentIdentity | null,
+  servingPrior?: DeploymentIdentity): Promise<boolean> {
   if (request.priorReleaseId === null) return active === null;
   const prior = (await db.prepare('SELECT code_sha,catalog_revision,manifest_json FROM publication_receipts WHERE release_id=?')
     .bind(request.priorReleaseId).all<{ code_sha: string; catalog_revision: string; manifest_json: string }>()).results[0];
   if (!active || !prior) return false;
   const intent = JSON.parse(prior.manifest_json) as PublicationIntent;
-  return intent.releaseId === request.priorReleaseId && intent.codeSha === prior.code_sha
-    && intent.catalogRevision === prior.catalog_revision && matches(active, intent);
+  if (intent.releaseId !== request.priorReleaseId || intent.codeSha !== prior.code_sha
+    || intent.catalogRevision !== prior.catalog_revision) return false;
+  if (!servingPrior) return matches(active, intent);
+  // A code-only deployment may serve the same accepted catalog. It is not a
+  // D1 receipt: bind the exact independently observed deployment separately.
+  return servingPrior.catalogRevision === intent.catalogRevision
+    && servingPrior.catalogSnapshotSha256 === intent.catalogSnapshotSha256
+    && canonicalJson(active) === canonicalJson(servingPrior);
 }
 
 /** Returns permission to activate exactly one already-uploaded version, NOT proof
@@ -227,7 +235,8 @@ async function priorMatches(db: CatalogD1, request: CatalogBuildRequest, active:
  * atomicity: after this CAS, unknown provider outcomes stay fenced until resolved.
  */
 export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildClaim, snapshot: CatalogSnapshot,
-  publication: PublicationClaim, versionReference: string, readDeployment: (signal: AbortSignal) => Promise<DeploymentObservation>, now = new Date(), mutationOwner?: MutationOwner): Promise<ActivationPermit> {
+  publication: PublicationClaim, versionReference: string, readDeployment: (signal: AbortSignal) => Promise<DeploymentObservation>, now = new Date(), mutationOwner?: MutationOwner,
+  servingPrior?: DeploymentIdentity): Promise<ActivationPermit> {
   if (typeof versionReference !== 'string' || !REFERENCE.test(versionReference)) throw new Error('invalid_build_reference');
   const stored = await row(db, claim.requestId);
   if (!stored || stored.state !== 'building' || stored.lease_token !== claim.token
@@ -239,7 +248,7 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
   const receiptEpoch = (await db.prepare('SELECT coalesce(max(rowid),0) epoch FROM publication_receipts')
     .all<{ epoch: number }>()).results[0].epoch;
   const observed = await observe(readDeployment);
-  if (observed.environment !== request.environment || observed.settled !== true || !(await priorMatches(db, request, observed.active))) throw new Error('build_prior_deployment_changed');
+  if (observed.environment !== request.environment || observed.settled !== true || !(await priorMatches(db, request, observed.active, servingPrior))) throw new Error('build_prior_deployment_changed');
   const earliest = earliestDisplayExpiry(snapshot.products);
   if (intent.codeSha !== request.codeSha || intent.priorReleaseId !== request.priorReleaseId || snapshot.catalogRevision !== intent.catalogRevision
     || intent.nextExpiry !== earliest || snapshot.products.some(product => catalogDisplayDeadline(product) <= Date.parse(request.cutoff))

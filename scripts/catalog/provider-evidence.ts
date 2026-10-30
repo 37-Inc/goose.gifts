@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import type { ProductRights } from '../../lib/catalog/types.ts';
-import { editorialSourceHash, normalizedSourceSnapshot, sourceFactCount } from '../ops/catalog-editorial-core.mjs';
+import { editorialSourceHash, normalizedSourceSnapshot, sourceFactCount, hasCurrentApprovedCopy } from '../ops/catalog-editorial-core.mjs';
 import { canonicalJson, EMBEDDING_MODEL, sha256 } from './migration.ts';
 import { explicitMaintenanceTime, maintenanceEmbeddingText } from './maintenance-state.ts';
 import { decodePgvectorSendBase64, encodePgvectorSendBase64 } from './pgvector-binary.ts';
@@ -24,8 +24,9 @@ const native = (input:unknown):string => {
 };
 const vectorHash = (bytes:string) => createHash('sha256').update(Buffer.from(bytes,'base64')).digest('hex');
 
-/** Explicit private capability for the existing runner; NOT a rights issuer or
- * credential/provider client. saveReceipt MUST durably save/read-verify immutable
+/** Explicit private capability for the existing runner; not a credential or
+ * provider client. Only the reviewed-short path binds exact new values to the
+ * same saved supplier observation and independent copy review. saveReceipt MUST durably save/read-verify immutable
  * bytes keyed by sha256 (idempotently after response loss), protect them outside
  * Git, and apply the reviewed retention policy. Echoing a hash is not independent
  * storage proof. Exact embedding text may include the existing sourceQuery;
@@ -45,6 +46,8 @@ export function createCatalogProviderEvidence(options: {
   saveReceipt(input:Readonly<{sha256:string;receipt:ProviderReceipt}>):Promise<{sha256:string;reference:string}>;
   reviewedRightsById?:Record<string,ProductRights>;
   reviewedDeleteReference?:string;
+  associateTag?:string;
+  saveReviewedShort?(input:Readonly<{id:string;sourceFactsHash:string;description:string;observationReference:string;reviewedAt:string;quality:number}>):Promise<{reference:string}>;
   now?:()=>string;
 }) {
   if (typeof options.saveReceipt!=='function' || options.reviewedDeleteReference!==undefined
@@ -53,6 +56,7 @@ export function createCatalogProviderEvidence(options: {
   const observations=new Map<string,{reference:string;observedAt:string;availabilityStatus:string;sourceFactsHash:string}>();
   const touched=new Set<string>();
   const embeddings=new Map<string,Binding & {reference:string}>();
+  const shortRights=new Map<string,ProductRights>();
   let receipts=0;
   const clock=()=>explicitMaintenanceTime((options.now || (()=>new Date().toISOString()))());
   async function save(receipt:ProviderReceipt) {
@@ -79,6 +83,7 @@ export function createCatalogProviderEvidence(options: {
       // proof invalidation, NOT a claim of unavailability; search omission is not.
       for (const id of new Set([...(requestedIds || []),...returnedIds])) {
         touched.add(id);
+        shortRights.delete(id);
         for (const key of observations.keys()) if (key.startsWith(`${id}:`)) observations.delete(key);
       }
       if (!Array.isArray(products) || products.length>10 || new Set(products.map(p=>p?.id)).size!==products.length)
@@ -111,6 +116,30 @@ export function createCatalogProviderEvidence(options: {
         availabilityStatus:entry.availabilityStatus,sourceFactsHash:entry.sourceFactsHash});
       return products; // Exact original values/references: no provider payload changes.
     },
+    async reviewedShort(p:Product, review:Product|undefined) {
+      if(!options.saveReviewedShort || typeof options.associateTag!=='string' || !/^[a-z0-9-]{1,100}$/i.test(options.associateTag)
+        || typeof p?.id!=='string' || !ID.test(p.id) || review?.approved!==true
+        || p.editorialStatus!=='short_ready' || !hasCurrentApprovedCopy(p) || p.isActive!==true || p.requiresManualReview===true
+        || !(Number(review.qualityScore)>=0.8 && Number(review.qualityScore)<=1))return false;
+      const sourceFactsHash=editorialSourceHash(p),observation=observations.get(`${p.id}:${sourceFactsHash}`);
+      if(!observation || observation.availabilityStatus!==p.availabilityStatus || p.editorialSourceHash!==sourceFactsHash
+        || typeof p.title!=='string' || typeof p.imageUrl!=='string' || typeof p.wittyDescription!=='string'
+        || typeof p.affiliateUrl!=='string')return false;
+      let affiliate:URL;try{affiliate=new URL(p.affiliateUrl);}catch{return false;}
+      if(affiliate.protocol!=='https:'||affiliate.hostname!=='www.amazon.com'||affiliate.username||affiliate.password||affiliate.port||affiliate.pathname!==`/dp/${p.id}`
+        ||affiliate.searchParams.get('tag')!==options.associateTag||[...affiliate.searchParams.keys()].some(k=>k!=='tag')
+        ||affiliate.searchParams.getAll('tag').length!==1||affiliate.hash)return false;
+      const reviewedAt=clock(),observedAt=new Date(observation.observedAt).toISOString(),expiresAt=new Date(Date.parse(observation.observedAt)+86400000).toISOString();
+      if(Date.parse(reviewedAt)>=Date.parse(expiresAt))return false;
+      const saved=await options.saveReviewedShort({id:p.id,sourceFactsHash,description:p.wittyDescription,
+        observationReference:observation.reference,reviewedAt,quality:Number(review.qualityScore)});
+      if(!saved||typeof saved.reference!=='string'||!REF.test(saved.reference))throw new Error('provider_evidence_storage_unconfirmed');
+      const merchant=(value:string)=>({basis:'merchant' as const,reference:observation.reference,value,observedAt,expiresAt});
+      const authored=(value:string)=>({basis:'owned' as const,reference:saved.reference,value});
+      shortRights.set(p.id,{title:merchant(p.title),imageUrl:merchant(p.imageUrl),affiliateUrl:authored(p.affiliateUrl),
+        description:authored(p.wittyDescription),wittyDescription:authored(p.wittyDescription)});
+      return true;
+    },
     async embeddings(input:{products:Product[];model:string;inputs:string[];response:unknown}) {
       const {products,model,inputs}=input;
       const response=input.response as {model?:unknown;data?:Array<{index?:unknown;embedding?:unknown}>};
@@ -140,7 +169,7 @@ export function createCatalogProviderEvidence(options: {
       // stale writes rather than relying on a new SQL timestamp to erase it.
       if (touched.has(p.id) && !matches) throw new Error('provider_evidence_superseded');
       if (p.source!=='amazon' || sourceFactsHash!==editorialSourceHash(p)) return intent;
-      if (rights[p.id]) intent.rightsById={[p.id]:structuredClone(rights[p.id])};
+      if (rights[p.id] || shortRights.has(p.id)) intent.rightsById={[p.id]:structuredClone(rights[p.id] ?? shortRights.get(p.id)!)};
       if (observation && p.remotelyVerified!==false && observation.availabilityStatus===p.availabilityStatus)
         intent.verificationById={[p.id]:{reference:observation.reference,observedAt:observation.observedAt,sourceFactsHash}};
       const embedding=embeddings.get(p.id);

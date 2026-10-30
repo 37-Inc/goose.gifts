@@ -58,6 +58,9 @@ export interface PublicationConfig {
   /** null directory verifies the prior identity only, without retaining old
    * snapshot/assets. A purged/expired prior is never needed to build anew. */
   prior:{directory:string|null;manifestSha256:string;releaseId:string;versionReference:string}|null;
+  /** Exact current code-only deployment of the same catalog, independently
+   * observed before the run. The prior above remains the real D1 receipt. */
+  servingPrior?:DeploymentIdentity;
   /** Omission preserves historical config hashes and off/50/32768 behavior. */
   semanticSearch?:{enabled:boolean;dailyRequestCap:number;dailyTokenCap:number;
     /** Canonical-JSON SHA, public hashes only. Separate from the original native index. */
@@ -74,7 +77,7 @@ const exact=(v:object,keys:string)=>Object.keys(v).sort().join(',')===keys;
 const sameRef=(a:ArtifactRef|undefined,b:ArtifactRef|undefined)=>canonicalJson(a??null)===canonicalJson(b??null);
 const sha256=(value:string|Uint8Array)=>createHash('sha256').update(value).digest('hex');
 export function validatePublicationConfig(input:PublicationConfig):Readonly<PublicationConfig> {
-  if(!input||!exact(input,`accountId,codeSha,compatibilityDate,database,environment,identityOrigin,indexName,prior,${Object.hasOwn(input,'publicAnalytics')?'publicAnalytics,':''}releaseId,schemaVersion,${Object.hasOwn(input,'semanticSearch')?'semanticSearch,':''}sourceMode,sourceRoot,workerName`)
+  if(!input||!exact(input,`accountId,codeSha,compatibilityDate,database,environment,identityOrigin,indexName,prior,${Object.hasOwn(input,'publicAnalytics')?'publicAnalytics,':''}releaseId,schemaVersion,${Object.hasOwn(input,'semanticSearch')?'semanticSearch,':''}${Object.hasOwn(input,'servingPrior')?'servingPrior,':''}sourceMode,sourceRoot,workerName`)
     ||input.schemaVersion!==1||!['staging','production'].includes(input.environment)||!/^[a-f0-9]{32}$/.test(input.accountId)
     ||!RESOURCE.test(input.workerName)||input.environment==='staging'&&!WORKERS_DEV_NAME.test(input.workerName)
     ||!RESOURCE.test(input.indexName)||!input.database||!exact(input.database,'id,name')
@@ -90,6 +93,13 @@ export function validatePublicationConfig(input:PublicationConfig):Readonly<Publ
     ||input.prior!==null&&(!exact(input.prior,'directory,manifestSha256,releaseId,versionReference')
       ||input.prior.directory!==null&&!path.isAbsolute(input.prior.directory)||!HASH.test(input.prior.manifestSha256)||!KEY.test(input.prior.releaseId)
       ||!UUID.test(input.prior.versionReference)||input.prior.releaseId===input.releaseId))throw new Error('publication_configuration_invalid');
+  if(Object.hasOwn(input,'servingPrior')){
+    const s=input.servingPrior;
+    if(!input.prior||!s||!exact(s,'catalogRevision,catalogSnapshotSha256,codeSha,manifestSha256,releaseId,versionReference')
+      ||!KEY.test(s.releaseId)||s.releaseId===input.releaseId||!KEY.test(s.catalogRevision)
+      ||!/^[a-f0-9]{40}$/.test(s.codeSha)||!HASH.test(s.catalogSnapshotSha256)||!HASH.test(s.manifestSha256)
+      ||!UUID.test(s.versionReference))throw new Error('publication_configuration_invalid');
+  }
   if(Object.hasOwn(input,'semanticSearch')){
     const policy=input.semanticSearch;
     if(!policy||!exact(policy,`dailyRequestCap,dailyTokenCap,${Object.hasOwn(policy,'derivedCatalog')?'derivedCatalog,':''}enabled`)||typeof policy.enabled!=='boolean'
@@ -113,6 +123,7 @@ export function validatePublicationConfig(input:PublicationConfig):Readonly<Publ
       throw new Error('publication_configuration_invalid');
   }
   return Object.freeze({...input,database:Object.freeze({...input.database}),prior:input.prior&&Object.freeze({...input.prior}),
+    ...(input.servingPrior?{servingPrior:Object.freeze({...input.servingPrior})}:{}),
     ...(Object.hasOwn(input,'semanticSearch')?{semanticSearch:Object.freeze({...input.semanticSearch!,
       ...(input.semanticSearch?.derivedCatalog?{derivedCatalog:Object.freeze({...input.semanticSearch.derivedCatalog})}:{})})}:{}),
     ...(Object.hasOwn(input,'publicAnalytics')?{publicAnalytics:Object.freeze({...input.publicAnalytics!})}:{})});
@@ -572,7 +583,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       signal.throwIfAborted();await workspace.assertHeld();signal.throwIfAborted();
       const deployed=await api.deployed(signal);signal.throwIfAborted();
       if(config.prior===null)throw new Error('publication_bootstrap_required');
-      if(deployed?.version!==config.prior.versionReference)throw new Error('publication_prior_changed');
+      if(deployed?.version!==(config.servingPrior?.versionReference??config.prior.versionReference))throw new Error('publication_prior_changed');
       let prior:PublicationIntent;
       if(config.prior.directory!==null){
         const priorBytes=await fs.readFile(path.join(config.prior.directory,'asset-manifest.json'),{signal});signal.throwIfAborted();
@@ -586,9 +597,17 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         prior=JSON.parse(row.manifest_json);
         if(encodePublicationIntent(prior)!==row.manifest_json||prior.manifestSha256!==config.prior.manifestSha256)throw new Error('publication_prior_changed');
       }
-      if(prior.releaseId!==config.prior.releaseId||!matchesIdentity(await api.identity(signal),prior))throw new Error('publication_prior_changed');signal.throwIfAborted();
-      return{environment:config.environment,settled:true,active:identity(prior,config.prior.versionReference)};
+      if(prior.releaseId!==config.prior.releaseId)throw new Error('publication_prior_changed');
+      const serving=config.servingPrior;
+      if(serving&&(serving.catalogRevision!==prior.catalogRevision||serving.catalogSnapshotSha256!==prior.catalogSnapshotSha256))throw new Error('publication_prior_changed');
+      if(serving ? canonicalJson(await api.identity(signal))!==canonicalJson({release_id:serving.releaseId,code_sha:serving.codeSha,
+        catalog_revision:serving.catalogRevision,catalog_snapshot_sha256:serving.catalogSnapshotSha256,manifest_sha256:serving.manifestSha256})
+        : !matchesIdentity(await api.identity(signal),prior))throw new Error('publication_prior_changed');signal.throwIfAborted();
+      return{environment:config.environment,settled:true,active:serving??identity(prior,config.prior.versionReference)};
     };
+    // Fail before build/upload if the captured code-only storefront has since
+    // changed; activation still performs the same fresh check under the fence.
+    if(config.servingPrior&&control.stage==='claimed')await readPrior(AbortSignal.timeout(30_000));
     if(reviewed&&!retryRecord&&!control.permit){
       if(!revision||!control.publication||!control.intent||owner.phase!=='freezing'||canonicalJson(actual)!==canonicalJson(owner))throw new Error('publication_upload_retry_fenced');
       const publication=(await db.prepare('SELECT * FROM publication_outbox WHERE intent_id=?').bind(control.publication.intentId).all<Record<string,unknown>>()).results[0];
@@ -969,7 +988,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
           }
         }
       }else permit=await beginBuildActivation(db,control.build,sealed.snapshot,control.publication!,control.versionReference!,
-        signal=>(observation=readPrior(signal)),now(),owner);
+        signal=>(observation=readPrior(signal)),now(),owner,config.servingPrior);
     }
     finally{if(observation){
       if(isAccountedPublicationFetch(observationSend)&&isCatalogD1Rest(db))await observation.catch(()=>{});

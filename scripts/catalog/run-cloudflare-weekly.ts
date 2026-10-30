@@ -471,7 +471,8 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
       const owner=await claimMutationOwnership(db,scope,{phase:'writing',ownerReference:config.runId,operationKey:sha256(`weekly:${options.configSha256}`)});
       if(!owner)throw new Error('weekly_owner_busy');const cursor={current:owner};await write({phase:'phases_running',owner});
       const intent=await ws.readArtifact(cp.pins.rights) as unknown as {rightsById:Record<string,never>;reviewedDeleteReference?:string};
-      const evidence=createCatalogProviderEvidence({reviewedRightsById:intent.rightsById,reviewedDeleteReference:intent.reviewedDeleteReference,saveReceipt:input=>ws.saveReceipt(input),now});
+      const evidence=createCatalogProviderEvidence({reviewedRightsById:intent.rightsById,reviewedDeleteReference:intent.reviewedDeleteReference,associateTag:config.catalog.associateTag,saveReceipt:input=>ws.saveReceipt(input),
+        saveReviewedShort:async input=>ws.putArtifact({schemaVersion:1,kind:'reviewed-short-copy',...input},{kind:'phase',observedAt:input.reviewedAt}),now});
       const maintenance=createD1CatalogMaintenanceStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision,
         intent:evidence.intent,preservePermanentListings:Boolean(config.cadence)});
       const telemetry=createD1CatalogTelemetryStore({db,owner,ownerCursor:cursor,runId:config.runId,catalogRevision:config.catalogRevision});
