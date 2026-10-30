@@ -1,5 +1,12 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-29 — Surprise me draws on entry
+
+[owner+claude] The random-gift page now draws from its existing bounded static
+pool when opened and avoids the preceding gift within the same browser tab.
+No database or model calls; the static first gift remains a fallback if loading
+fails. Review, merge and Cloudflare publication are separate checks.
+
 ## 2026-10-29 — Howie demo live
 
 [owner+claude] Integrated the unlisted, noindex `/h` rehearsal with the current

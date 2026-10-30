@@ -3,10 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import type { CatalogCard } from "../lib/card-shard";
 import { fetchCardShard } from "../lib/card-shard";
-import { eligiblePool, nextRandomIndex } from "../lib/selection";
+import { eligiblePool, initialRandomIndex, nextRandomIndex } from "../lib/selection";
 import { ProductCard } from "./ProductCard";
 import { captureRenderedLists, captureStaticRandomSpin } from "../lib/analytics";
 import { catalogDeadline } from "../../lib/catalog/display";
+
+const LAST_GIFT_KEY = "stupid-gifts-last-random";
+function lastGift(): string | null {
+  try { return sessionStorage.getItem(LAST_GIFT_KEY); } catch { return null; }
+}
+function rememberGift(id: string) {
+  try { sessionStorage.setItem(LAST_GIFT_KEY, id); } catch { /* Optional convenience. */ }
+}
 
 export function RandomSelection({
   initial,
@@ -24,9 +32,34 @@ export function RandomSelection({
   const [pool, setPool] = useState(initial ? [initial] : []);
   const [index, setIndex] = useState(0);
   const [loaded, setLoaded] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(poolSize > 1);
   const pending = useRef<AbortController | null>(null);
   useEffect(() => captureRenderedLists(), [pool, index]);
+  useEffect(() => {
+    if (poolSize < 2) return;
+    const abort = new AbortController();
+    pending.current = abort;
+    async function chooseInitial() {
+      try {
+        const choices = (await fetchCardShard(poolPath, { catalogRevision, version, kind: "random" }, abort.signal)).products;
+        if (abort.signal.aborted || choices.length !== poolSize) return;
+        const next = initialRandomIndex(choices, lastGift());
+        setPool(choices);
+        setIndex(next);
+        setLoaded(true);
+        rememberGift(choices[next].id);
+      } catch {
+        // Keep the static gift usable if the shard is unavailable; the button can retry.
+      } finally {
+        if (pending.current === abort) {
+          pending.current = null;
+          setLoading(false);
+        }
+      }
+    }
+    void chooseInitial();
+    return () => { abort.abort(); if (pending.current === abort) pending.current = null; };
+  }, [poolPath, poolSize, catalogRevision, version]);
   useEffect(
     () => () => {
       pending.current?.abort();
@@ -77,9 +110,11 @@ export function RandomSelection({
       )
         throw new Error("Catalog shard unavailable");
       const current = choices.findIndex((p) => p.id === pool[index]?.id);
-      setIndex(current < 0 ? 0 : nextRandomIndex(choices.length, current));
+      const next = current < 0 ? initialRandomIndex(choices, lastGift()) : nextRandomIndex(choices.length, current);
+      setIndex(next);
       setPool(choices);
       setLoaded(true);
+      rememberGift(choices[next].id);
       captureStaticRandomSpin();
     } catch {
       if (!abort.signal.aborted) setPool([]);

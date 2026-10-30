@@ -14,6 +14,7 @@ import { exportedRoutes, exportSourceMode, exportGeneratedAt } from "./helpers/s
 import { guides, selectGuideProducts } from "../static-site/lib/guides.ts";
 import {
   eligiblePool,
+  initialRandomIndex,
   isIllustrative,
   nextRandomIndex,
 } from "../static-site/lib/selection.ts";
@@ -83,6 +84,18 @@ test("random is bounded, deadline-filtered, and cannot repeat immediately", () =
         assert.ok(next >= 0 && next < count);
       }
   assert.equal(nextRandomIndex(1, 0), 0);
+});
+test("initial random pick reaches the whole pool and avoids the previous visit", () => {
+  const gifts = Array.from({ length: 48 }, (_, i) => ({ id: String(i) }));
+  assert.equal(initialRandomIndex(gifts, null, () => 0), 0);
+  assert.equal(initialRandomIndex(gifts, "missing", () => 0.999), 47);
+  for (let previous = 0; previous < gifts.length; previous++)
+    for (const random of [0, 0.2, 0.99, 1]) {
+      const next = initialRandomIndex(gifts, String(previous), () => random);
+      assert.notEqual(next, previous);
+      assert.ok(next >= 0 && next < gifts.length);
+    }
+  assert.equal(initialRandomIndex([{ id: "only" }], "only"), 0);
 });
 test(
   "every content-bearing export is guarded, including nested RSC payloads",
