@@ -178,6 +178,9 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
     safeHeld.push(held(value,'duplicate'));return false; });
   const readyIds = new Set(ready.map(value => value.publicId));
   const removed = source.snapshot.products.filter(value => !readyIds.has(value.publicId)&&value.publicId!==publicDuplicate?.publicId);
+  // An ordinary refresh must not silently withdraw an unrelated existing
+  // listing, let alone dispatch a native DELETE for it. Stop before staging.
+  if(removed.some(value=>persistentPublicProduct(value)&&!changed.has(value.publicId)))throw Error('cohort_unreviewed_withdrawal');
   const semantic = ready.filter(value => value.eligibleUntil !== null && Date.parse(value.eligibleUntil) > cutoff
     &&(!predecessor||changed.has(value.publicId)));
   // A changed supplier input is not absence. Keep a still-public cleared base's

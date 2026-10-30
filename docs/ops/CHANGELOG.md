@@ -1,5 +1,16 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-30 — Stop unintended cleared-listing withdrawals
+
+[owner+codex] Live recovery exposed a second defect: supplier-facts hash drift
+was incorrectly applied to independently cleared listings. The unactivated
+staging revision omitted three products; it must never publish. Move that check
+back to the finite supplier lane and reject unreviewed permanent withdrawals
+before staging. Add exact historical-native restoration for the one confirmed
+erroneous delete, retaining its receipt and original native bits/metadata.
+Public catalog remains unchanged; daily care remains paused pending corrected
+publication acceptance. See `.4.13`; do not replay the bad prepared plan.
+
 ## 2026-10-30 — Exact interrupted-run reconciliation
 
 [owner+codex] Added a bounded, atomic repair for previously published cleared
