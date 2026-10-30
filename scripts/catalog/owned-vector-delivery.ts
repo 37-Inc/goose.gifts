@@ -756,7 +756,7 @@ function validatePlan(row:Journal,owner:MutationOwner,plan:PrunedVectorPlan|Acti
     // Publication-only recovery retains the original ingestion approval. A
     // split revision never grants native work; the immutable policy binds the
     // complete independently verified revision, including its explicit target.
-    ||request.approval.catalogRevision!==plan.catalogRevision&&(ids.length!==0||request.sources.length!==0
+    ||request.approval.catalogRevision!==plan.catalogRevision&&(reuseIds(request.plan).length!==0||request.sources.length!==0
       ||revision&&(revision.request.publicationRevision!==plan.catalogRevision
         ||canonicalJson(request.approval)!==canonicalJson(revision.request.approval)))
     ||(request.ownerBaseReview ? request.approval.changes.length!==0||!Number.isSafeInteger(request.ownerBaseApprovalCount)

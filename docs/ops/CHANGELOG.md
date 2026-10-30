@@ -7,7 +7,9 @@ and publication revisions must be identical. Split revisions permit zero native
 effects only, retaining the original approval and exact immutable policy hash.
 A committed zero-effect policy resumes its pinned candidate after full current
 source/projection checks, without repeating staging. Resume, tamper, activation
-and forbidden-native-work regressions pass. Live acceptance remains `.4.13`.
+and forbidden-native-work regressions pass. Zero-effect classification excludes
+the separately verified historical native members, which are preserved rather
+than promoted or deleted. Live acceptance remains `.4.13`.
 
 ## 2026-10-30 — Publication-only recovery binding
 
