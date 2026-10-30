@@ -64,7 +64,10 @@ export interface PublicationFinishBudget {
   allowance:BudgetCeiling;reportedRowsRead:number;
 }
 type FinishGrant=PublicationFinishBudget&{usage:BudgetTotals};
-export interface PublicationRequestBudget {expectedCheckpointSha256:string;approvalReference:string;additionalHttpRequests:number}
+export interface PublicationRequestBudget {
+  expectedCheckpointSha256:string;approvalReference:string;additionalHttpRequests:number;
+  approvedAt:string;publicationUntil:string;
+}
 type RequestGrant=PublicationRequestBudget&{usage:BudgetTotals};
 export interface BudgetReservation { id:string; requestSha256:string; units:{httpRequests:number;sqlStatements:number} }
 export type BudgetSettlement = {status:'known';usage:{rowsRead:number;rowsWritten:number}} | {status:'unknown';usage:null};
@@ -152,6 +155,7 @@ export interface RunWorkspace {
   grantPublicationFinishBudget(input:PublicationFinishBudget):Promise<BudgetCeiling>;
   /** Once-only explicit pre-upload request allowance; no SQL/row/cadence reset. */
   grantPublicationRequestBudget(input:PublicationRequestBudget):Promise<BudgetCeiling>;
+  publicationRequestBudget():Promise<PublicationRequestBudget|null>;
   /** Append once after an accounted actual receipt/resolved-build/idle snapshot.
    * Seals this run against any later charge or execution; never renews bodies. */
   recordPublicationSuccess(input:PublicationSuccessInput):Promise<PublicationSuccess>;
@@ -491,7 +495,7 @@ function apply(state:State,event:Event,dry=false) {
     artifactRef(event.ref);checkpoint({...event.control,state:null});const old=state.checkpoint?.checkpoint;
     if(old){for(const [label,ref]of Object.entries(old.pins))if(!same(event.control.pins[label]||null,ref))fail('pin_rewrite');
       if(old.phaseComplete!==null&&!same(old.phaseComplete,event.control.phaseComplete))fail('phase_complete_rewrite');
-      controlEvolution(old,event.control);}
+      controlEvolution(old,event.control,state.requestGrant?.publicationUntil);}
     if(!dry){state.previous=event.previous;state.checkpoint={sha256:event.ref.sha256,checkpoint:event.control};state.body=event.ref;state.refs.set(event.ref.sha256,event.ref);}
   }else if(event.type==='control'){
     if(!exact(event,['type','sha256','previous','control'])||!state.checkpoint||event.previous!==state.checkpoint.sha256
@@ -511,10 +515,12 @@ function apply(state:State,event:Event,dry=false) {
     if(!dry)state.recovery=event.grant;
   }else if(event.type==='publication-request-budget'){
     const g=event.grant,c=state.checkpoint,p=c?.checkpoint.control?.publication;
-    if(!exact(event,['type','grant'])||!exact(g,['expectedCheckpointSha256','approvalReference','additionalHttpRequests','usage'])
+    if(!exact(event,['type','grant'])||!exact(g,['expectedCheckpointSha256','approvalReference','additionalHttpRequests','approvedAt','publicationUntil','usage'])
       ||state.requestGrant||state.recovery||state.finish||!c||c.sha256!==g.expectedCheckpointSha256||!hash(g.approvalReference)
       ||c.checkpoint.phase!=='publishing'||c.checkpoint.owner?.phase!=='freezing'||p?.stage!=='claimed'||p.permit||p.versionReference
       ||!integer(g.additionalHttpRequests)||g.additionalHttpRequests<1||g.additionalHttpRequests>750
+      ||Date.parse(time(g.approvedAt))<Date.parse(p.build.request.capturedAt)
+      ||Date.parse(time(g.publicationUntil))-Date.parse(g.approvedAt)!==7200000
       ||!same(g.usage,totals(state))||g.usage.unconfirmedRequests!==0
       ||[...state.reservations.values()].some(r=>!r.settlement))fail('request_budget_binding');
     if(!dry)state.requestGrant=structuredClone(g);
@@ -588,7 +594,7 @@ function validateControlTransition(old:CheckpointControl,next:CheckpointControl,
     ||prior.deploymentId!==null&&prior.deploymentId!==current.deploymentId)fail('control_reconciliation');
   if(prior.receiptSha256!==undefined&&prior.receiptSha256!==current.receiptSha256)fail('control_reconciliation');
 }
-function controlEvolution(old:CheckpointControl,next:CheckpointControl) {
+function controlEvolution(old:CheckpointControl,next:CheckpointControl,publicationUntil?:string) {
   const a=old.control?.publication,b=next.control?.publication;if(!a)return;if(!b)fail('control_rewrite');
   // Shape permission only: the protected publisher separately proves actual
   // DB expiry, attempt increment and ownership. Never a control-only recovery.
@@ -601,7 +607,7 @@ function controlEvolution(old:CheckpointControl,next:CheckpointControl) {
     &&(!old.pins.publicationUploadPending||a.stage==='built') // Exact unchanged preflight pin; publisher proves its binding and explicit recovery receipt.
     &&same({...a,build:b.build},b)&&same({...a.build,token:b.build.token,leaseUntil:b.build.leaseUntil},b.build)
     &&a.build.token!==b.build.token&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(b.build.token)
-    &&b.build.leaseUntil>a.build.leaseUntil&&b.build.leaseUntil<=a.build.request.cutoff;
+    &&b.build.leaseUntil>a.build.leaseUntil&&b.build.leaseUntil<=(publicationUntil??a.build.request.cutoff);
   // Shape permission for an explicitly reviewed, proven UNACTIVATED upload.
   // The protected operator verifies actual idle provider/freezing D1 state,
   // original full rows and capped normal reclaims before acknowledging. This
@@ -1055,7 +1061,11 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
       grantPublicationRequestBudget:(input:PublicationRequestBudget)=>serial(async()=>{
         if(state.requestGrant){const {usage:unused,...original}=state.requestGrant;void unused;
           if(!same(original,input))fail('request_budget_replay');return ceiling(state);}
+        if(time(input.approvedAt)>now()||time(input.publicationUntil)<=now())fail('request_budget_window');
         await append({type:'publication-request-budget',grant:{...structuredClone(input),usage:totals(state)}});return ceiling(state);
+      }),
+      publicationRequestBudget:()=>serial(async()=>{
+        if(!state.requestGrant)return null;const {usage:unused,...grant}=state.requestGrant;void unused;return structuredClone(grant);
       }),
       publicationSuccess:()=>serial(async()=>{await verifySuccessMetadata(directory,state);return structuredClone(state.success);}),
       recordPublicationSuccess:(value:PublicationSuccessInput)=>serial(async()=>{
