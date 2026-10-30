@@ -16,6 +16,8 @@ Central/timer and requested final app-archive receipts:
 Operator/lock and all artifacts retained; no site/catalog/account mutation,
 deploy, spend or replacement growth job. Later ACTIVE/same-chat wording is
 historical under this new explicit owner retirement instruction.
+Handoff evidence PR[#302](https://github.com/37-Inc/stupid.gifts/pull/302),
+retained receipt32d51c8; focused24tests/lint pass, no runtime advancement/deploy.
 
 ## 2026-10-29 PM — frozen Pinterest measurements unchanged
 
