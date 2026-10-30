@@ -53,12 +53,23 @@ function seededFraction(seed: string, id: string) {
 export function isHomepageRotationCandidate(product: ReturnType<typeof rankedBrowseProducts>[number], asOf: Date) {
   if (!isCatalogDisplayEligibleProduct(product, { asOf })) return false;
   const title = product.title.toLowerCase().replace(/[-–—]/g, " ");
+  if (isLowImpactLead(title)) return false;
   if (/\b(?:books?|coloring|notebooks?|journals?|shirts?|sweatshirts?|bodysuits?|aprons?|towels?|stickers?|decals?|napkins?|throw pillow|pillow covers?|pillow cases?|mouse pads?|phone cases?|greeting cards?|wall art|posters?|plaques?|tapestr(?:y|ies)|shower curtains?|wine glasses|bathroom signs?|sleep(?:ing)? masks?)\b/.test(title)) return false;
   if (/\b(?:socks?|hats?|caps?)\b/.test(title) && !/\b(?:chicken (?:leg|feet)|animal paw)\b/.test(title)) return false;
   if (/\b(?:mugs?|coffee cups?|tea cups?)\b/.test(title) && !/\b(?:toilet|3d|3 d|shark|sculpted|shaped)\b/.test(title)) return false;
   if (/\bplush\b/.test(title) && !/\b(?:ugly|fat|screaming|poop|chicken|pickle|emotional support|flower.*bouquet)\b/.test(title)) return false;
   if (/\b(?:stress (?:cube|ball)|fidget)\b/.test(title) && !/\b(?:poop|penis|testicle|chicken|pickle)\b/.test(title)) return false;
   return /\b(?:statue|figurine|sculpture|plush|puppet|decanter|oven mitt|spoon rest|bottle opener|night light|lamp|desk toy|sound machine|button|fortune teller|rubber chicken|yodeling|fart|farts|farting|poop|penis|testicle|shart|whoopee|belly (?:bag|fanny pack)|prank (?:gift )?box|gag (?:gift )?box|emergency box|jar|toilet|chicken (?:leg|feet)|animal paw)\b/.test(title);
+}
+
+// Keep these searchable in the full catalog, but prefer a distinctive object
+// over a dated body-print bag, packaged emergency kit, or birthday-only roll.
+function isLowImpactLead(title: string) {
+  const text = title.toLowerCase().replace(/[-–—]/g, " ");
+  return /\b(?:belly|dad body)\b.*\b(?:fanny|waist) pack\b/.test(text)
+    || /\b(?:shart|poop|fart)\b.*\b(?:survival|emergency)\b.*\bkit\b/.test(text)
+    || /\b(?:birthday.*toilet paper|toilet paper.*birthday)\b/.test(text)
+    || /\bduck\b.*\b(?:figurine|statue)\b/.test(text);
 }
 
 function homepageType(title: string) {
@@ -85,10 +96,12 @@ export function merchandisedBrowseProducts(snapshot: CatalogSnapshot, generatedA
     if (chosen.length >= limit || chosen.some((item) => item.id === product.id
       || areNearDuplicateTitles(item.title, product.title))) return;
     const type = homepageType(product.title);
-    if (diverse && type && chosen.filter((item) => homepageType(item.title) === type).length >= 2) return;
+    if (diverse && type && chosen.filter((item) => homepageType(item.title) === type).length >= (type === "bodily-gag" ? 1 : 2)) return;
     chosen.push(product);
   };
-  for (const product of [...anchorPool.slice(offset), ...anchorPool.slice(0, offset)]) add(product, true, 6);
+  for (const product of [...anchorPool.slice(offset), ...anchorPool.slice(0, offset)]) {
+    if (!isLowImpactLead(product.title)) add(product, true, 6);
+  }
   const anchors = [...chosen], anchorIds = new Set(anchors.map((product) => product.id));
   const ranked = base.filter((product) => !anchorIds.has(product.id)
     && isHomepageRotationCandidate(product, new Date(generatedAt)))

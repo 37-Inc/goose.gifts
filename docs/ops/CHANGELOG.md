@@ -1,5 +1,12 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-30 — Homepage opening assortment polish
+
+[owner+codex] Refined automatic first-page selection to favor distinctive
+objects over a few dated or generic listings, and made several card titles
+and descriptions clearer. The full catalog and `/h` rehearsal are unchanged.
+Production verification remains pending.
+
 ## 2026-10-30 — Daily care integration
 
 [owner+claude] The routine publisher can distinguish a verified current
