@@ -404,6 +404,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   const api=provider(config,options.credentials.cloudflareToken,options.dependencies?.fetch??fetch,options.credentials.identityAuthorization,observationSend,reviewed?10_000:2500);
   const command=options.dependencies?.command??commandDefault;const configSha256=sha256(canonicalJson(config));
   let checkpoint=await workspace.readCheckpoint({controlOnly:true});let control=checkpoint?.checkpoint.control?.publication;
+  const requestBudget=await workspace.publicationRequestBudget?.();
+  const continuation=requestBudget&&options.approvedCatalog?.persistent&&revision?.snapshot.products.every(p=>p.eligibleUntil===null)
+    ?{approvalReference:requestBudget.approvalReference,approvedAt:requestBudget.approvedAt,publicationUntil:requestBudget.publicationUntil}:undefined;
   let owner=options.owner;const directory=path.join(workspace.directory,'packages',config.releaseId);
   // Preserve the original failed command's logs/output byte-for-byte. The
   // continuation remains inside the already registered retention directory.
@@ -411,6 +414,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   const uploadBinding=()=>({schemaVersion:1,releaseId:config.releaseId,requestId:options.requestId,configSha256,
     packageSha256:control!.packageSha256,uploadMarker:control!.uploadMarker});
   let retryRecord:RetryRecord|undefined,activationDeadline:string|undefined;
+  if(continuation)activationDeadline=continuation.publicationUntil;
   const retryAck=(pending:ArtifactRef)=>({schemaVersion:1,approval:reviewed!.approval,evidence:reviewed!.evidence,pending,
     oldPending:checkpoint!.checkpoint.pins.publicationUploadPending,oldReview:checkpoint!.checkpoint.pins.publicationUploadReview,upload:uploadBinding(),
     ...(reviewed!.transport?{transport:reviewed!.transport}:{})});
@@ -565,7 +569,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         return readPermanentNativeProof({db,owner,revision:options.permanent,adapters,signal});
       }
       if(options.published)return readPublishedCatalogVectors({db,owner,published:options.published,adapters,signal});
-      if(options.approvedCatalog&&options.finishAuthorization)return readOwnedPermanentCohortNative(db,owner,options.approvedCatalog,adapters);
+      if(options.approvedCatalog&&(options.finishAuthorization||continuation))return readOwnedPermanentCohortNative(db,owner,options.approvedCatalog,adapters);
       return 'approval' in revision.request?readOwnedApprovedCohortVectors(db,owner,revision as ApprovedCohortRevision,adapters):readOwnedPrunedVectors(db,owner,revision,adapters);
     };
     // Full-catalog scans are sequential owned D1 reads, not a short provider
@@ -722,10 +726,11 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         await db.batch([mutationAssertion(db,owner,['freezing']),exact(buildRow),undispatched(),mutationAssertion(db,owner,['freezing'])]);
       }
       if(canonicalTime(old.leaseUntil)<=at){
-        const attempts=Number(buildRow.attempts),leaseUntil=new Date(Math.min(Date.parse(at)+15*60000,Date.parse(old.request.cutoff))).toISOString();
+        const attempts=Number(buildRow.attempts),leaseUntil=new Date(Math.min(Date.parse(at)+15*60000,Date.parse(activationDeadline??old.request.cutoff))).toISOString();
         if(!Number.isInteger(attempts)||attempts<1||attempts>=3||leaseUntil<=at)throw new Error('publication_build_reclaim_fenced');
         let reclaimed:Awaited<ReturnType<typeof claimBuildRequest>>=null,uncertain=false;
-        try{reclaimed=await claimBuildRequest(db,old.requestId,old.runReference,new Date(at),15*60000);}catch{uncertain=true;}
+        try{reclaimed=await claimBuildRequest(db,old.requestId,old.runReference,new Date(at),15*60000,
+          continuation?{authority:continuation,snapshot:revision!.snapshot,owner}:undefined);}catch{uncertain=true;}
         if(!reclaimed&&!uncertain)throw new Error('publication_build_reclaim_fenced');
         const row=(await db.prepare("SELECT *,strftime('%Y-%m-%dT%H:%M:%fZ','now') observed_at FROM catalog_build_requests WHERE request_id=?")
           .bind(old.requestId).all<Record<string,unknown>>()).results[0];
@@ -837,7 +842,9 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     if(!revision||owner.phase!=='freezing')throw new Error('publication_revision_required');
     // The routine whole-catalog mode requires its genuine COMPLETE policy and
     // every native/absence proof BEFORE a build/upload, not only at completion.
-    if(options.approvedCatalog&&!(reviewed&&checkpoint?.checkpoint.pins.reviewedUploadActivationPending))await vectorProof();
+    if(options.approvedCatalog&&!(reviewed&&checkpoint?.checkpoint.pins.reviewedUploadActivationPending)){
+      if(continuation)await permanentProof();await vectorProof();
+    }
     assertBuildSource(config.sourceRoot,config.codeSha);
     if(control.stage==='claimed'){
       const context:ReleaseBuildContext={schemaVersion:1,sourceMode:config.sourceMode,releaseId:config.releaseId,codeSha:config.codeSha,
@@ -987,8 +994,11 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
             permit=await readReviewedUploadActivation(db,input); // ACK loss: exact readback only, no write retry.
           }
         }
-      }else permit=await beginBuildActivation(db,control.build,sealed.snapshot,control.publication!,control.versionReference!,
-        signal=>(observation=readPrior(signal)),now(),owner,config.servingPrior);
+      }else{
+        if(continuation)await permanentProof();
+        permit=await beginBuildActivation(db,control.build,sealed.snapshot,control.publication!,control.versionReference!,
+          signal=>(observation=readPrior(signal)),now(),owner,config.servingPrior,continuation);
+      }
     }
     finally{if(observation){
       if(isAccountedPublicationFetch(observationSend)&&isCatalogD1Rest(db))await observation.catch(()=>{});

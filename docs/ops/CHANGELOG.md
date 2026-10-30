@@ -1,5 +1,16 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-30 — Bounded same-publication continuation
+
+[owner+codex] Cameron approved750additional Cloudflare management requests for
+the same publication, not another supplier/model batch or higher normal limits.
+Append a once-only checkpoint-bound ledger grant; retain every charge and the
+original manifest, SQL/row caps and cadence. A separately bounded execution
+window can reclaim only an expired, undispatched build of the exact permanent
+snapshot under its existing owner. Original request/cutoff/content timestamps
+stay unchanged; finite supplier snapshots cannot use this lane. Full current
+inventory, native proof, prior-deployment and receipt checks still gate release.
+
 ## 2026-10-30 — Semantic-index publication preflight wiring
 
 [owner+codex] The guarded publication transport now accepts the configured

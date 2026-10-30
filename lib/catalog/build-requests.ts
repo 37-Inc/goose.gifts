@@ -20,6 +20,17 @@ export interface CatalogBuildRequest {
 export interface CatalogBuildClaim {
   requestId: string; token: string; runReference: string; leaseUntil: string; request: CatalogBuildRequest;
 }
+/** Explicit continuation of a permanent, unchanged snapshot; not supplier rights. */
+export interface PermanentPublicationAuthority {approvalReference:string;approvedAt:string;publicationUntil:string}
+export async function permanentPublicationDeadline(request:CatalogBuildRequest,snapshot:CatalogSnapshot,
+  authority:PermanentPublicationAuthority,now=new Date()):Promise<string>{
+  const approved=Date.parse(canonicalTime(authority.approvedAt)),until=Date.parse(canonicalTime(authority.publicationUntil));
+  if(Object.keys(authority).sort().join(',')!=='approvalReference,approvedAt,publicationUntil'||!HASH.test(authority.approvalReference)
+    ||approved<Date.parse(request.capturedAt)||approved>now.getTime()||until-approved!==7200000||until<=now.getTime()
+    ||snapshot.catalogRevision!==request.sourceRevision||!snapshot.products.length||snapshot.products.some(p=>p.eligibleUntil!==null)
+    ||await digest(`${JSON.stringify(snapshot)}\n`)!==request.sourceDigest)throw Error('build_permanent_continuation_invalid');
+  return authority.publicationUntil;
+}
 export interface BuildRecoveryApproval {
   schemaVersion:1;requestId:string;packageSha256:string;previousToken:string;checkpointSha256:string;reviewReference:string;
 }
@@ -98,12 +109,22 @@ export async function recordBuildDispatch(db: CatalogD1, requestId: string, refe
 /** Queue wait consumes no lease. A protected workflow claims only when it starts.
  * Expired building owners may retry at most3 times; activating owners never expire.
  */
-export async function claimBuildRequest(db: CatalogD1, requestId: string, runReference: string, now = new Date(), leaseMs = 600000): Promise<CatalogBuildClaim | null> {
+export async function claimBuildRequest(db: CatalogD1, requestId: string, runReference: string, now = new Date(), leaseMs = 600000,
+  continuation?:{authority:PermanentPublicationAuthority;snapshot:CatalogSnapshot;owner:MutationOwner}): Promise<CatalogBuildClaim | null> {
   if (typeof runReference !== 'string' || !REFERENCE.test(runReference)) throw new Error('invalid_build_reference');
   const stored = await row(db, requestId); if (!stored) throw new Error('build_request_missing');
-  const request = input(stored); const gate = sourceGate(request); const token = crypto.randomUUID();
-  const leaseUntil = new Date(Math.min(now.getTime() + Math.max(1000, Math.min(leaseMs, 900000)), Date.parse(request.cutoff))).toISOString();
+  const request = input(stored),deadline=continuation?await permanentPublicationDeadline(request,continuation.snapshot,continuation.authority,now):request.cutoff;
+  if(continuation&&(continuation.owner.environment!==request.environment||continuation.owner.phase!=='freezing'
+    ||stored.run_reference!==runReference||stored.dispatch_reference!==null))throw Error('build_permanent_continuation_invalid');
+  const gate = sourceGate(request,deadline); const token = crypto.randomUUID();
+  const leaseUntil = new Date(Math.min(now.getTime() + Math.max(1000, Math.min(leaseMs, 900000)), Date.parse(deadline))).toISOString();
   await db.batch([
+    ...(continuation?[mutationAssertion(db,continuation.owner,['freezing'])]:[]),
+    ...(continuation?[db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM catalog_vector_deliveries
+      WHERE environment=? AND index_name=? AND generation=? AND status='complete' AND disposition='verified'
+      AND json_extract(request_json,'$.kind')='approved-cohort-plan' AND json_extract(request_json,'$.catalogRevision')=?
+      AND json_extract(owner_json,'$.operationKey')=?) THEN 'true' ELSE 'build_permanent_continuation_invalid' END)`)
+      .bind(continuation.owner.environment,continuation.owner.indexName,continuation.owner.generation,request.sourceRevision,continuation.owner.operationKey)]:[]),
     db.prepare(`UPDATE catalog_build_requests SET state='failed',lease_token=NULL,lease_until=NULL,error_code='build_failed'
       WHERE environment=? AND source_revision=? AND state='building' AND lease_until<=${NOW}`).bind(request.environment, request.sourceRevision),
     db.prepare(`UPDATE catalog_build_requests SET state='building',lease_token=?,lease_until=?,run_reference=?,attempts=attempts+1,
@@ -112,6 +133,7 @@ export async function claimBuildRequest(db: CatalogD1, requestId: string, runRef
         (state='activating' OR (source_revision=? AND state='building')))
       AND ?>${NOW} AND ${gate.sql}`)
       .bind(token, leaseUntil, runReference, requestId, request.environment, request.sourceRevision, leaseUntil, ...gate.params),
+    ...(continuation?[mutationAssertion(db,continuation.owner,['freezing'])]:[]),
   ]);
   const claimed = await row(db, requestId);
   return claimed?.state === 'building' && claimed.lease_token === token
@@ -236,7 +258,7 @@ async function priorMatches(db: CatalogD1, request: CatalogBuildRequest, active:
  */
 export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildClaim, snapshot: CatalogSnapshot,
   publication: PublicationClaim, versionReference: string, readDeployment: (signal: AbortSignal) => Promise<DeploymentObservation>, now = new Date(), mutationOwner?: MutationOwner,
-  servingPrior?: DeploymentIdentity): Promise<ActivationPermit> {
+  servingPrior?: DeploymentIdentity,continuation?:PermanentPublicationAuthority): Promise<ActivationPermit> {
   if (typeof versionReference !== 'string' || !REFERENCE.test(versionReference)) throw new Error('invalid_build_reference');
   const stored = await row(db, claim.requestId);
   if (!stored || stored.state !== 'building' || stored.lease_token !== claim.token
@@ -253,7 +275,9 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
   if (intent.codeSha !== request.codeSha || intent.priorReleaseId !== request.priorReleaseId || snapshot.catalogRevision !== intent.catalogRevision
     || intent.nextExpiry !== earliest || snapshot.products.some(product => catalogDisplayDeadline(product) <= Date.parse(request.cutoff))
     || !(await rollbackPreflight(db, snapshot, now)).ok) throw new Error('build_publication_unready');
-  const gate = sourceGate(request); const visible = visibleRevisionCountQuery(intent.catalogRevision);
+  if(continuation&&!mutationOwner)throw Error('build_permanent_continuation_invalid');
+  const gate = sourceGate(request,continuation?await permanentPublicationDeadline(request,snapshot,continuation,now):request.cutoff);
+  const visible = visibleRevisionCountQuery(intent.catalogRevision);
   const imports = await unabandonedImportsQuery(db,request.environment);
   const statement = db.prepare(`UPDATE catalog_build_requests SET state='activating',lease_until=NULL,release_id=?,version_reference=?
     WHERE request_id=? AND request_json=? AND lease_token=? AND run_reference=? AND state='building' AND lease_until>${NOW}

@@ -143,6 +143,32 @@ function recoveryCheckpoint(runId='test-run'){
 }
 const recoveryGrant=(checkpoint,allowance={httpRequests:2,sqlStatements:3})=>({expectedCheckpointSha256:checkpoint.sha256,approvalReference:'c'.repeat(64),allowance});
 
+test('pre-upload request continuation is once-only and preserves original caps, charges and SQL allowance',async t=>{
+  const f=await fixture(t,{budgetCaps:{httpRequests:1,sqlStatements:2}}),w=await f.open();
+  await w.reserveBudget(reservation('old',2));await w.settleBudget('old',{status:'known',usage:{rowsRead:150,rowsWritten:5}});
+  const value=recoveryCheckpoint();value.phase='publishing';value.owner.phase='freezing';
+  Object.assign(value.control.publication,{stage:'claimed',permit:null,publication:null,intent:null,versionReference:null,packageSha256:null});
+  const p=value.control.publication;p.build.request.cutoff=new Date(Date.parse(NOW)+60000).toISOString();
+  p.build.leaseUntil=p.build.request.cutoff;
+  p.requestId=p.build.requestId=sha256(encodeBuildRequest(p.build.request));
+  const saved=await w.writeCheckpoint(null,value),manifest=await readFile(join(w.directory,'manifest.json'));
+  const grant={expectedCheckpointSha256:saved.sha256,approvalReference:HASH,additionalHttpRequests:750,
+    approvedAt:new Date(NOW).toISOString(),publicationUntil:new Date(LATER).toISOString()};
+  for(const patch of [{additionalHttpRequests:751},{additionalHttpRequests:0},{expectedCheckpointSha256:'0'.repeat(64)},{approvalReference:'unapproved'}])
+    await assert.rejects(w.grantPublicationRequestBudget({...grant,...patch}),/request_budget_binding/);
+  const reclaimed=structuredClone(value);reclaimed.control.publication.build.token='00000000-0000-4000-8000-000000000001';
+  reclaimed.control.publication.build.leaseUntil=new Date(Date.parse(NOW)+300000).toISOString();
+  await assert.rejects(w.writeCheckpoint(saved.sha256,reclaimed),/control_rewrite/);
+  assert.deepEqual(await w.grantPublicationRequestBudget(grant),{httpRequests:751,sqlStatements:2});
+  assert.deepEqual(await w.publicationRequestBudget(),grant);
+  await w.writeCheckpoint(saved.sha256,reclaimed);
+  assert.deepEqual(await readFile(join(w.directory,'manifest.json')),manifest);assert.equal((await w.budget()).knownRowsWritten,5);
+  await w.close();const resumed=await f.open({mode:'resume'});
+  assert.deepEqual(await resumed.grantPublicationRequestBudget(grant),{httpRequests:751,sqlStatements:2});
+  await assert.rejects(resumed.grantPublicationRequestBudget({...grant,additionalHttpRequests:1}),/request_budget_replay/);
+  await assert.rejects(resumed.reserveBudget(reservation('no-extra-sql',1)),/budget_exceeded/);
+});
+
 test('acknowledged-upload finish budget is once-only, retains charges and cannot fund a second upload or arbitrary phase',async t=>{
   const f=await fixture(t,{budgetCaps:{httpRequests:1,sqlStatements:2}}),w=await f.open();
   await w.reserveBudget(reservation('original',2));await w.settleBudget('original',{status:'known',usage:{rowsRead:150,rowsWritten:5}});

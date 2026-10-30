@@ -5,14 +5,15 @@ import {scope,uuid} from './helpers/published-vector-fixture.mjs';
 import {preparePermanentCatalog,settlePermanentCatalog} from '../lib/catalog/freeze-permanent-catalog.ts';
 import {approvedCohortOperationKey} from '../lib/catalog/freeze-approved-cohort.ts';
 import {claimMutationOwnership} from '../lib/catalog/mutation-fence.ts';
-import {claimBuildRequest,beginBuildActivation,resolveBuildActivation} from '../lib/catalog/build-requests.ts';
-import {enqueuePublication,claimPublication,recordPublicationDispatch,completePublication} from '../lib/catalog/publication.ts';
+import {claimBuildRequest,beginBuildActivation,resolveBuildActivation,permanentPublicationDeadline} from '../lib/catalog/build-requests.ts';
+import {enqueuePublication,claimPublication,recordPublicationDispatch,completePublication,completeActivatedApprovedCatalogPublication} from '../lib/catalog/publication.ts';
 import {prunedVectorPlan,prunedVectorIds} from '../lib/catalog/prune-existing-revision.ts';
 import {canonicalJson,sha256} from '../scripts/catalog/migration.ts';
 import {createPermanentCatalogSeal} from '../scripts/catalog/permanent-catalog-seal.ts';
 import {createSealedSnapshotEnvelope,readApprovedCurrentRows} from '../scripts/catalog/export-d1-snapshot.ts';
 import {prepareOwnedApprovedCohortPlan,readOwnedApprovedCohortVectors,readOwnedPermanentCohortNative,readActivatedCatalogVectors,
   approvedCatalogPlanChecks,readHistoricalNativePreservation,readNativeHistory} from '../scripts/catalog/owned-vector-delivery.ts';
+import {settleOwnedApprovedCohortVectorProof} from '../scripts/catalog/owned-vector-delivery.ts';
 
 async function fixture(t,{publicationRevision}={}){
   const f=await permanentCatalogFixture(t,{afterExpiry:true}),prepared=await preparePermanentCatalog(f.db,f.owner,f.request),initial=prepared.revision;
@@ -51,6 +52,39 @@ test('publication-only policy preserves genuine historical native members withou
   const before=canonicalJson([...f.index]),dispatches=f.dispatches();
   assert.equal((await readOwnedPermanentCohortNative(f.db,f.owner,f.revision,f.adapters)).settled,true);
   assert.equal(canonicalJson([...f.index]),before);assert.equal(f.dispatches(),dispatches);
+});
+
+test('approved permanent continuation reclaims an expired build and publishes without renewing original inputs',async t=>{
+  const f=await fixture(t,{publicationRevision:'permanent-recovery'}),r=f.revision,queued=await settleOwnedApprovedCohortVectorProof({db:f.db,owner:f.owner,revision:r,adapters:f.adapters});
+  const old=await claimBuildRequest(f.db,queued.requestId,'permanent-continuation',f.now()),original=canonicalJson(old.request);
+  f.advance(60001);
+  const authority={approvalReference:'a'.repeat(64),approvedAt:f.now().toISOString(),publicationUntil:new Date(f.now().getTime()+7200000).toISOString()};
+  assert.equal(await permanentPublicationDeadline(old.request,r.snapshot,authority,f.now()),authority.publicationUntil);
+  for(const patch of [{approvalReference:'unapproved'},{approvedAt:new Date(f.now().getTime()+1).toISOString()},
+    {publicationUntil:new Date(f.now().getTime()+7200001).toISOString()}])
+    await assert.rejects(permanentPublicationDeadline(old.request,r.snapshot,{...authority,...patch},f.now()));
+  const finite=structuredClone(r.snapshot);finite.products[0].eligibleUntil=authority.publicationUntil;
+  await assert.rejects(permanentPublicationDeadline(old.request,finite,authority,f.now()));
+  await assert.rejects(claimBuildRequest(f.db,old.requestId,old.runReference,f.now(),900000,
+    {authority,snapshot:r.snapshot,owner:{...queued.owner,epoch:queued.owner.epoch+1}}));
+  assert.equal(f.sql.prepare('SELECT lease_token FROM catalog_build_requests WHERE request_id=?').get(old.requestId).lease_token,old.token);
+  const build=await claimBuildRequest(f.db,old.requestId,old.runReference,f.now(),900000,{authority,snapshot:r.snapshot,owner:queued.owner});
+  assert.ok(build);assert.notEqual(build.token,old.token);assert.ok(build.leaseUntil>old.request.cutoff);
+  assert.equal(canonicalJson(build.request),original);
+  const intent={releaseId:'continued-permanent',catalogRevision:r.snapshot.catalogRevision,codeSha:r.request.codeSha,
+    catalogSnapshotSha256:r.packet.receipt.snapshot_sha256,manifestSha256:'c'.repeat(64),vectorSyncWatermark:r.vectorSyncWatermark,
+    priorReleaseId:build.request.priorReleaseId,nextExpiry:null};
+  await enqueuePublication(f.db,r.snapshot,intent,f.now());const publication=await claimPublication(f.db,r.snapshot,intent.releaseId,f.now());
+  await recordPublicationDispatch(f.db,r.snapshot,publication,'version:continued-version',f.now());
+  const prior=JSON.parse(r.priorRow.manifest_json),dispatches=f.dispatches();
+  const permit=await beginBuildActivation(f.db,build,r.snapshot,publication,'continued-version',
+    async()=>({environment:scope.environment,settled:true,active:{...prior,versionReference:'native-initial-version'}}),f.now(),queued.owner,undefined,authority);
+  const plan=prunedVectorPlan(r),control={catalogRevision:plan.catalogRevision,planSha256:sha256(canonicalJson(plan)),ids:prunedVectorIds(plan)};
+  const read=()=>readActivatedCatalogVectors(f.db,permit,control,f.adapters);
+  await completeActivatedApprovedCatalogPublication(f.db,r,publication,permit,async()=>{await read();return intent;},f.now);
+  assert.equal(await resolveBuildActivation(f.db,permit,async()=>{await read();return{environment:scope.environment,settled:true,
+    active:{...intent,versionReference:'continued-version'}};}),'resolved');
+  assert.equal(canonicalJson(build.request),original);assert.equal(f.dispatches(),dispatches);
 });
 
 test('native-only permanent proof retains exact policy/bits/history after context expiry without repeating full source scans or mutations',async t=>{
