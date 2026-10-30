@@ -196,6 +196,24 @@ test('daily changed supplier input preserves a cleared native vector without inv
   }finally{f.close();}
 });
 
+test('approved replacement short copy cannot revoke or borrow the existing permanent description grant',async()=>{
+  const f=await permanentFixture({preservePermanentListings:true});try{
+    const before=f.row(1),native=f.state(1).embedding_native_base64,proof=f.state(1).embedding_provenance_json;
+    f.useIntent({});
+    const replacement='A plastic clicking button with a crab motif for a desk.';
+    const p={...f.p,wittyDescription:replacement,editorialStatus:'short_ready',embedding:undefined};
+    await f.store.upsertProduct(p,editorialSourceHash(p));
+    const row=f.row(1),display=JSON.parse(row.public_display_json);
+    assert.equal(f.state(1).product.wittyDescription,replacement);
+    assert.equal(display.description,f.base.description);assert.notEqual(display.description,replacement);
+    assert.equal(display.imageUrl,f.base.imageUrl);assert.equal(display.eligibleUntil,null);
+    assert.equal(row.rights_json,before.rights_json);assert.equal(row.source_record_json,before.source_record_json);
+    assert.equal(row.embedding_text_hash,null);
+    assert.equal(f.state(1).embedding_native_base64,native);assert.equal(f.state(1).embedding_provenance_json,proof);
+    assert.equal(f.events().filter(e=>e.status==='pending').length,0);
+  }finally{f.close();}
+});
+
 test('elapsed supplier and editorial windows keep a direct base and original grants with no expiry-only vector work',async()=>{
   for(const direct of [false,true]){
     const f=await permanentFixture({direct});try{

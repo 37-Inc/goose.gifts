@@ -12,6 +12,11 @@ separate from implementation. The SAME daily timer's stale recovery/semanticOFF/
 legacy-service instructions were corrected; it stays PAUSED until `.4.13` routine
 prior/successor acceptance, not because completed recovery needs repeating.
 Higher-volume discovery and blanket enrichment remain deferred.
+Full-run review also caught an old selector blind spot: failed copy review could
+hide an established pending listing, and a changed short note could revoke its
+independently cleared fallback. Both are corrected; exact original grants/native
+history remain, and new text cannot borrow old permission. Production is unchanged
+until the corrected source passes integration and release acceptance.
 
 ## 2026-10-29 — Catalog and homepage algorithms researched; proposal only
 

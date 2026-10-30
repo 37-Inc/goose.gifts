@@ -149,9 +149,9 @@ function retainedBase(previous: { row: Row; product: SemanticProduct } | undefin
     if (base.eligibleUntil !== null || ['id','publicId','slug','source','currency'].some(key => base[key as keyof typeof base] !== p[key])
       || publicProductRightsExpiry(base, permission, now) !== Infinity
       || rights.persistent && canonicalJson(rights.persistent) !== canonicalJson(permission)) return null;
-    // A committed identity label is independent of changing merchant titles.
-    // Authored short copy can carry only while its exact current value remains.
-    if (base.description !== base.title && base.description !== p.description && base.description !== p.wittyDescription) return null;
+    // Independently cleared title/description remain exact licensed fallback
+    // values even when a new supplier overlay or reviewed short copy changes.
+    // The old grant never authorizes the replacement copy.
     for (const field of ['punnyTitle','wittyDescription','humorTags'] as const) {
       if (canonicalJson(base[field] ?? null) !== canonicalJson(p[field] ?? null)) delete base[field];
     }

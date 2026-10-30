@@ -979,11 +979,9 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
           // catalog listing. Real merchant/source changes remain on the original
           // revalidated record; no generated veto overwrites its copy or vector.
           const original = batch.find(candidate => candidate.id === product.id);
-          const outcome = shortCopy ? resolveShortDescriptionAttempt(original)
-            : resolveEditorialAttempt(original);
-          return { ...original, ...outcome,
+          return { ...original,
             editorialAttemptDiagnostics: { ...product.editorialAttemptDiagnostics,
-              copyKind: shortCopy ? 'short' : 'article', draftRejection: blockReason, preservation: outcome.preservation } };
+              copyKind: shortCopy ? 'short' : 'article', draftRejection: blockReason, preservation: 'existing_listing' } };
         }
         return {
           ...product,
@@ -1016,6 +1014,17 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
         model,
         promptVersion: EDITORIAL_PROMPT_VERSION,
       });
+
+      if (options.preserveExistingListing
+        && (outcome.editorialStatus !== (shortCopy ? 'short_ready' : 'generated_ready') || outcome.preservation)) {
+        // A failed draft/review is not an explicit curation hold. In particular,
+        // legacy pending records may already have cleared public copy/native
+        // history; keep the observed pre-draft product instead of hiding it.
+        return { ...batch.find(original => original.id === product.id), pipelineWarnings: pipelineReasons,
+          editorialAttemptDiagnostics: { ...product.editorialAttemptDiagnostics,
+            review: reviewResult.diagnosticsById.get(product.id), copyKind: shortCopy ? 'short' : 'article',
+            preservation: 'existing_listing', attemptStatus: outcome.editorialStatus } };
+      }
 
       if (outcome.editorialStatus === 'generated_ready') {
         reviewedWriteups.push(outcome.editorialWriteup);

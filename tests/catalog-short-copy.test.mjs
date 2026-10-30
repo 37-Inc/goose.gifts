@@ -144,6 +144,19 @@ test('a draft model veto still blocks a genuinely new discovery', async t => {
   assert.equal(calls.embedded.length, 0);
 });
 
+test('rejected copy attempts do not turn an existing pending listing into a curation hold', async t => {
+  for (const longEditorial of [false, true]) {
+    const calls = mockModels(t, { reject: true, long: longEditorial });
+    const old = { ...product(), editorialStatus: 'pending', editorialWriteup: article,
+      wittyDescription: short, embedding: [9, 8, 7] };
+    const [after] = await enrichProducts([old], { enrichmentBatchSize: 4, preserveExistingListing: true, longEditorial }, [], ledger());
+    for (const key of ['isActive', 'qualityScore', 'editorialStatus', 'editorialWriteup', 'wittyDescription', 'editorialSourceHash'])
+      assert.equal(after[key], old[key]);
+    assert.deepEqual(after.embedding, old.embedding);
+    assert.equal(calls.embedded.length, 0);
+  }
+});
+
 test('discovery chooses at most maxNew unique candidates before any model requests', async t => {
   const calls = mockModels(t), writes = [], decisions = [];
   const items = [product(1), product(2, 'Funny potato shaped desk lamp'), product(3, 'Funny alligator silicone oven mitt')];
