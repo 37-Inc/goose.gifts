@@ -1,5 +1,14 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-29 — Howie demo prepared for release
+
+[owner+claude] Integrated the private, noindex `/h` rehearsal with the current
+storefront. Enter or Go reveals six hand-picked catalog gifts and a direct
+non-affiliate seller link; typing does not call search. This is a rehearsed
+assortment, not personalized search. Existing catalog and homepage are unchanged.
+Merge and production publication are separate; verify the actual release before
+claiming this page is live.
+
 ## 2026-10-29 — Automatic homepage mix is LIVE; writer handoff remains open
 
 [owner+claude] PR301 merged as4b94204; Cloudflare now serves reviewed source

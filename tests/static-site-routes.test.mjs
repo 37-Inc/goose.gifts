@@ -161,6 +161,9 @@ test("home browse JSON retains complete snapshot expiry without redundant direct
     ...input.products.map((p) => `/gifts/${p.slug}.html`),
   ];
   const routes = createStaticRoutes(input, paths);
+  const showRoutes = createStaticRoutes(input, [...paths, "/h.html"]);
+  assert.equal(showRoutes["/h"].indexable, false);
+  assert.equal(showRoutes["/h"].assetPath, "/h.html");
   assert.equal(routes["/gifts"], undefined);
   assert.equal(routes["/gifts/page/1"], undefined);
   assert.equal(routes["/gifts/page/2"], undefined);
