@@ -19,8 +19,9 @@ Same original dispatch was activated once. The first combined immediate readback
 did not settle; its read-only continuation verified actual version/bindings/public
 identity and idle owner generation23/epoch531/external_pending0. No upload,
 activation, catalog phase or allowance was repeated. Final deployment ledger:
-36HTTP/5SQL/3known reads/0writes/0unknown. Separate public QA requested10URLs;
-browser search retains its normal semantic-query budget. No catalog generation.
+36HTTP/5SQL/3known reads/0writes/0unknown. The final scripted public QA checked
+10URLs, separately from earlier diagnostics/browser checks; browser search retains
+its normal semantic-query budget. No catalog generation.
 Public HTML matches sealed assets except the existing appended Cloudflare Insights
 beacon; exact prefix/suffix and the single external empty beacon script were checked.
 
