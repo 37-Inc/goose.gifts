@@ -61,12 +61,26 @@ test("all products remain reachable once, including non-homepage formats and fam
 test("brand-keyword stuffing and printed commodities do not qualify for rotating lead slots", () => {
   const asOf = new Date("2026-10-29T16:00:00.000Z");
   for (const title of ["Funny accountant mug", "Funny Halloween Socks", "Funny Poop Shirts", "Funny Animal Stickers",
-    "Funny Dad Jokes Book", "Funny Toilet Bathroom Signs", "Funny Stress Cube Desk Toy", "Funny Cat Sleeping Mask", "Funny Poodle Plush Keychain"]) {
+    "Funny Dad Jokes Book", "Funny Toilet Bathroom Signs", "Funny Stress Cube Desk Toy", "Funny Cat Sleeping Mask", "Funny Poodle Plush Keychain",
+    "Belly Fanny Pack Dad Bag", "Shart Survival Kit Funny Gift", "Happy Birthday Prank Toilet Paper", "Funny Duck Figurine Statue"]) {
     assert.equal(isHomepageRotationCandidate(product("test", title), asOf), false, title);
   }
   for (const title of ["Novelty Alligator Oven Mitt", "Funny Cat Butt Bottle Opener", "Funny Chicken Leg Socks", "Funny Toilet Mug"]) {
     assert.equal(isHomepageRotationCandidate(product("test", title), asOf), true, title);
   }
+});
+
+test("dated lead formats stay in the catalog while the opening avoids repetitive bodily gags", () => {
+  const input = snapshot(), at = "2026-10-30T16:00:00.000Z";
+  input.products[0] = product(homepage.featuredIds[0], "Belly Fanny Pack Dad Bag");
+  input.products.push(product("kit", "Shart Survival Kit Funny Gift"));
+  input.products.push(product("birthday", "Happy Birthday Prank Toilet Paper"));
+  input.products.push(...Array.from({ length: 20 }, (_, i) => product(`poop${i}`, `Funny poop stress ball item${i}`)));
+  const all = merchandisedBrowseProducts(input, at), first = all.slice(0, 24);
+  assert.equal(first.some(p => [homepage.featuredIds[0], "kit", "birthday"].includes(p.id)), false);
+  assert.ok(ids(all).includes(homepage.featuredIds[0]));
+  assert.ok(ids(all).includes("kit"));assert.ok(ids(all).includes("birthday"));
+  assert.ok(first.filter(p => /\bpoop\b/.test(p.title.toLowerCase())).length <= 1);
 });
 
 test("missing anchors and tiny or empty pools are safe and deterministic", () => {
