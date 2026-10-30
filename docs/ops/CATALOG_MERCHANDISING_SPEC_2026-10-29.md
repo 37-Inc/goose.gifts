@@ -5,7 +5,9 @@ Beads: `roadmap-lbbz1.4.14` (pipeline), `.4.15` (homepage), existing `.4.11`
 (refresh fairness), `.4.13` (operational integration), `.4.8` (measured routine cost).
 Audited source: `ca4e28600b03d6d5cc341f1905937522b08afcab`.
 Owner approved bounded pipeline improvements and autonomous homepage curation.
-Implementation is in PR301; source acceptance is not a production deployment.
+Implementation merged in PR301. The storefront is live in
+`catalog-merchandising-20261029-462d603`; see the accepted evidence/ops journal.
+Pipeline source acceptance is not daily-writer activation; `.4.13` remains open.
 
 ## Recommendation in one paragraph
 
@@ -116,14 +118,15 @@ can therefore starve the rest. These are two different problems.
 7. Review actual card copy for high-exposure items. Do not blanket rewrite 990
    preserved generic source strings: their visible notes already exist.
 
-Current implementation details: discovery uses twelve fixed keyword themes and
+Pre-change audit details: discovery used twelve fixed keyword themes and
 six first-page searches of up to ten products (`prefetch-catalog.mjs:48-61,236-241`;
 `lib/amazon-creators.js:290-297`). Candidate qualification/dedup runs in
 `prefetch-catalog.mjs:318-419,1855-1922`. `enrichProducts` precedes the persistence
 cap at `1966-2000`; its embedding call accepts all reviewed outcomes at `982-993`.
-Existing selected enrichment is Monday-only (`1213-1246`), drafting/reviewing batches
-of four with a 140–280-word article validator (`catalog-editorial-core.mjs:115-134`).
-The current ten-existing-per-Monday path is not a bulk enrichment mechanism.
+The audited selected enrichment was Monday-only (`1213-1246`), drafting/reviewing
+batches of four with a 140–280-word article validator. PR301 now defaults to a
+separate short validator; explicit long editorial keeps that original validator.
+The ten-existing-per-Monday path is not a bulk enrichment mechanism.
 
 ### Option 2, explicitly scoped
 

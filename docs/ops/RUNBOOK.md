@@ -13,6 +13,18 @@ idle owner and accepted successor were verified. This is the catalog receipt,
 not the current storefront code/version. See
 `evidence/2026-10-25-full-catalog-accepted.json` for exact identities and costs.
 
+**Latest verified storefront, October29 Pacific:** PR301's source462d603 serves
+`catalog-merchandising-20261029-462d603`, version1897247d-90a9-44dc-a994-ef6a535bab35.
+It uses the SAME accepted catalog, not a new D1 catalog receipt. Six weekly
+anchors plus eighteen daily rediscoveries are live;3352public/31excluded/42articles,
+3352derived search entries and7021physical files remain. Source, public logical
+identity, body/asset checks, desktop/mobile, search/Clear/Load more, Random,
+affiliate, full sitemap and both old-domain redirects were verified.
+See `evidence/2026-10-29-merchandising-accepted.json`. Never rerun this completed
+file upload/activation because its first immediate readback exited nonzero;
+read-only continuation verified the actual deployment and unchanged idle23/531.
+The existing timer is still PAUSED for `.4.13`, not historical recovery.
+
 The owner-reviewed cleanup is complete:994holds promoted, one already-public
 duplicate excluded,3,352public/31held and all3,383identities retained. The31
 exclusions are seven confirmed duplicates and24specific ordinary products, not
@@ -73,8 +85,9 @@ cap BEFORE drafting, reviewing or embedding. Generate factual short copy by
 default; long articles are optional (`--long-editorial`), never listing prerequisites.
 Every public card needs an image, title and short description. Preserve existing
 approved copy/embeddings and all 42 articles; do not blanket-regenerate them.
-These changes are tracked in `CATALOG_MERCHANDISING_SPEC_2026-10-29.md` / PR301;
-do not assume an unmerged or undeployed change is already operating.
+These changes merged in PR301. The storefront selector is live; source-only
+pipeline improvements are not daily-writer acceptance. `.4.13` still owns that
+operating integration, then `.4.8` measures a real normal scheduled run.
 
 The routine uses an explicit, measured 5,000-HTTP / 12,000-SQL /
 1.5M-reported-read / 30k-reported-write ceiling, plus conservative uncertain-cost
@@ -178,10 +191,11 @@ run-specific readers remain retained; do not replay completed migration helpers.
 ## Site quality and code changes
 
 The homepage is a white product gallery: three columns on desktop, two on mobile,
-with compact search and 24-item static browse batches. Approved PR301 selects six
+with compact search and 24-item static browse batches. Live PR301 selects six
 weekly anchors from `content/homepage.json` and eighteen daily quality-filtered
-rediscoveries, using sealed publication time. Until that source is actually deployed,
-the old first24 remain pinned. No owner-maintained weekly list is required. Every gallery
+rediscoveries, using sealed publication time. A paused publisher does not advance
+the mix at midnight; changes take effect on successful publication. No owner-
+maintained weekly list is required. Every gallery
 and search card must show an image, title and short description; a missing curated
 note falls back to the existing description rather than hiding it. Exact-ID/title
 first-party notes replace990generic placeholders in the final reviewed catalog; keyword

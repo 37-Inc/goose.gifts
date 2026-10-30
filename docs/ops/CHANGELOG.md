@@ -1,5 +1,22 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-29 — Automatic homepage mix is LIVE; writer handoff remains open
+
+[owner+claude] PR301 merged as4b94204; Cloudflare now serves reviewed source
+462d603 in `catalog-merchandising-20261029-462d603`. Six weekly anchors plus
+eighteen daily qualified rediscoveries are live, deterministic at publication.
+All3352public/31excluded/3383identities/42articles and3352derived entries are
+unchanged;7021physical files remain. Desktop/mobile,24→48,search/Clear,
+Random,product/tag,full3397sitemap andbothGoose301redirects verified.
+Actual receipt/build/idle23/531 accepted; only36deploymentHTTP/5SQL/3reads/
+0writes/0unknown. Immediate readback was settled READ-ONLY; upload/activation
+were not repeated. See `evidence/2026-10-29-merchandising-accepted.json`.
+
+The bounded ingestion/short-copy/fairness/native-preservation source is merged,
+not a claim of an accepted daily run. The SAME08:30Pacific task remains PAUSED
+for real `.4.13` serving-prior and new-admission wiring. Old recovery is complete;
+no extra owner approval, merchant/model batch, scheduler or upgrade was requested.
+
 ## 2026-10-29 — Approved bounded care and automatic homepage variety
 
 [owner+claude] PR301 now implements four featured/six wider-catalog refresh slots,
