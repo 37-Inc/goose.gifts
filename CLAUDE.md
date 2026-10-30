@@ -41,11 +41,9 @@ Keep entries short; heavy operational detail belongs in `JOURNAL.md`.
   authorization) merge to `main`. **Cloudflare is the release target for
   stupid.gifts. A main merge is not a Cloudflare publication.** Follow the
   reviewed, source-pinned publication/readback contract in `docs/ops/RUNBOOK.md`.
-- Vercel Git auto-deployment is frozen: the legacy project's Git connection is
-  removed and `vercel.json` disables Git deployments. Retain the existing Goose
-  deployment as rollback only. Do not reconnect Git, redeploy manually or invoke
-  a deploy hook without explicit rollback authorization. Provider deletion is a
-  separate retirement gate, not part of this freeze.
+- The owner retired the old Vercel project and Neon database after migration.
+  Preserve retained backups and Cloudflare redirects; do not recreate a legacy
+  deployment or database. `vercel.json` still disables Git deployments.
 - After a PR merges, remove its completed local worktree and local branch from
   the canonical checkout; GitHub automatically deletes the merged remote
   branch. Preserve or inspect any untracked files before removing a worktree.

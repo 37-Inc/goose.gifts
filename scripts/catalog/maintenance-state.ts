@@ -2,7 +2,7 @@ import { canonicalJson, canonicalTimestamp, moneyToMinor, sha256 } from './migra
 import { createCatalogSnapshot, createPersistentCatalogProduct, persistentDisplayRights, publicProductRightsExpiry,
   validatePublicCatalogProduct } from '../../lib/catalog/snapshot.ts';
 import type { DisplayRights, PersistentCatalogProduct, ProductRights, SnapshotProductInput } from '../../lib/catalog/types.ts';
-import { isPurchasableAvailability } from '../../lib/gift-slugs.ts';
+import { isPurchasableAvailability, hasReviewedGiftShortCopy } from '../../lib/gift-slugs.ts';
 import { editorialSourceHash } from '../ops/catalog-editorial-core.mjs';
 import { normalizedEditorialFacts, originalEditorialEquivalent } from '../../lib/catalog/editorial-equivalence.ts';
 
@@ -114,6 +114,10 @@ export function maintenanceRow(p: SemanticProduct): Row {
   return { ...Object.fromEntries(FIELDS.filter(key => !['createdAt','updatedAt'].includes(key)).map(key => [snake(key),p[key] ?? null])),slug:p.slug };
 }
 export function publishedMaintenanceProduct(p: SemanticProduct): boolean {
+  if (hasReviewedGiftShortCopy({ editorialStatus:p.editorialStatus, isActive:p.isActive, editorialQualityScore: Number(p.editorialQualityScore),
+    wittyDescription:p.wittyDescription ?? undefined, sourceFactsHash:p.sourceFactsHash ?? undefined,
+    editorialSourceHash:p.editorialSourceHash ?? undefined, duplicateOfProductId:p.duplicateOfProductId ?? undefined }))
+    return Boolean(p.slug && p.imageUrl && isPurchasableAvailability(p.availabilityStatus || undefined));
   // Structural published lane, intentionally no35-day age test.
   const copy = String(p.editorialWriteup || '').replace(/^[ \t\n\r]+|[ \t\n\r]+$/g,'');
   return Boolean(p.slug && p.imageUrl && ['generated_ready','manual_locked'].includes(p.editorialStatus)
@@ -145,9 +149,9 @@ function retainedBase(previous: { row: Row; product: SemanticProduct } | undefin
     if (base.eligibleUntil !== null || ['id','publicId','slug','source','currency'].some(key => base[key as keyof typeof base] !== p[key])
       || publicProductRightsExpiry(base, permission, now) !== Infinity
       || rights.persistent && canonicalJson(rights.persistent) !== canonicalJson(permission)) return null;
-    // A committed identity label is independent of changing merchant titles.
-    // Authored short copy can carry only while its exact current value remains.
-    if (base.description !== base.title && base.description !== p.description && base.description !== p.wittyDescription) return null;
+    // Independently cleared title/description remain exact licensed fallback
+    // values even when a new supplier overlay or reviewed short copy changes.
+    // The old grant never authorizes the replacement copy.
     for (const field of ['punnyTitle','wittyDescription','humorTags'] as const) {
       if (canonicalJson(base[field] ?? null) !== canonicalJson(p[field] ?? null)) delete base[field];
     }

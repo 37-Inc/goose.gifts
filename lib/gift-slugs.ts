@@ -104,7 +104,19 @@ export function hasReviewedGiftEditorial(product: ProductEditorial): boolean {
     && hasSubstantiveGiftEditorial(product.editorialWriteup);
 }
 
+/** Reviewed listing copy is independent of optional long-form editorial. */
+export function hasReviewedGiftShortCopy(product: ProductEditorial): boolean {
+  const description = product.wittyDescription?.trim() || '';
+  const words = description.split(/\s+/).filter(Boolean).length;
+  return product.editorialStatus === 'short_ready' && product.isActive !== false
+    && !product.duplicateOfProductId && Number(product.editorialQualityScore) >= .8
+    && Number(product.editorialQualityScore) <= 1
+    && /^[a-f0-9]{64}$/.test(product.sourceFactsHash || '') && product.sourceFactsHash === product.editorialSourceHash
+    && description.length <= 220 && words >= 6 && words <= 35 && !/[\r\n]/.test(description);
+}
+
 interface ProductEditorial {
+  wittyDescription?: string;
   editorialWriteup?: string;
   isActive?: boolean;
   duplicateOfProductId?: string;

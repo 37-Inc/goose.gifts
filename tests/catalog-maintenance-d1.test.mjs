@@ -88,6 +88,15 @@ async function setup({products=[],presence={},intent,revision='r-new'}={}) {
     epoch:() => sqlite.prepare('SELECT mutation_epoch FROM catalog_mutation_scopes').get().mutation_epoch};
 }
 
+// Local display-membership fixtures, not provider/publication evidence.
+function markPublic(f,products) {
+  for(const p of products)f.sqlite.prepare('UPDATE products SET public_display_json=? WHERE id=?').run(canonicalJson({
+    id:p.id,publicId:p.public_id,slug:p.slug,source:p.source,title:p.title,description:'Synthetic short description.',
+    imageUrl:'/images/gift-placeholder.svg',affiliateUrl:p.affiliate_url,currency:p.currency,price:0,isActive:true,
+    qualityScore:Number(p.quality_score),indexable:false,eligibleUntil:null,
+  }),p.id);
+}
+
 const permanentArticle=Array(9).fill('Synthetic plastic button fixture provides clicking behavior for this owned test.').join(' ')+'\n\n'
   +Array(9).fill('Original crab button commentary checks factual persistence without any real merchant offer.').join(' ');
 async function permanentFixture({known=true,direct=false,preservePermanentListings=false,
@@ -184,6 +193,24 @@ test('daily changed supplier input preserves a cleared native vector without inv
     assert.equal(f.events().filter(e=>e.status==='pending').length,0);
     const receipt=f.sqlite.prepare('SELECT changes_json FROM catalog_maintenance_operations ORDER BY next_epoch DESC LIMIT 1').get();
     assert.equal(JSON.parse(receipt.changes_json)[0].vectorOperation,null);
+  }finally{f.close();}
+});
+
+test('approved replacement short copy cannot revoke or borrow the existing permanent description grant',async()=>{
+  const f=await permanentFixture({preservePermanentListings:true});try{
+    const before=f.row(1),native=f.state(1).embedding_native_base64,proof=f.state(1).embedding_provenance_json;
+    f.useIntent({});
+    const replacement='A plastic clicking button with a crab motif for a desk.';
+    const p={...f.p,wittyDescription:replacement,editorialStatus:'short_ready',embedding:undefined};
+    await f.store.upsertProduct(p,editorialSourceHash(p));
+    const row=f.row(1),display=JSON.parse(row.public_display_json);
+    assert.equal(f.state(1).product.wittyDescription,replacement);
+    assert.equal(display.description,f.base.description);assert.notEqual(display.description,replacement);
+    assert.equal(display.imageUrl,f.base.imageUrl);assert.equal(display.eligibleUntil,null);
+    assert.equal(row.rights_json,before.rights_json);assert.equal(row.source_record_json,before.source_record_json);
+    assert.equal(row.embedding_text_hash,null);
+    assert.equal(f.state(1).embedding_native_base64,native);assert.equal(f.state(1).embedding_provenance_json,proof);
+    assert.equal(f.events().filter(e=>e.status==='pending').length,0);
   }finally{f.close();}
 });
 
@@ -528,23 +555,52 @@ test('published/legacy revalidation retains40/10 lanes, overdue published pages,
   } finally {f.close();}
 });
 
-test('daily selection prioritizes explicit featured then current published ahead of arbitrarily old legacy; no writes',async () => {
-  const products=[...Array.from({length:15},(_,n)=>rawProduct(n+1)),...Array.from({length:15},(_,n)=>rawProduct(n+100,{editorialStatus:'pending'}))];
-  products[0].availability_checked_at=NOW;
-  products[20].availability_checked_at=NOW;
-  const inactive=rawProduct(999,{isActive:false});products.push(inactive);
+test('daily public selection reserves4featured/6nonfeatured without article gates or admitting31exclusions; no writes',async () => {
+  const featured=Array.from({length:8},(_,n)=>rawProduct(n+1));
+  const others=Array.from({length:12},(_,n)=>rawProduct(n+100,{editorialStatus:'pending',editorialWriteup:null,editorialQualityScore:null}));
+  const excluded=Array.from({length:31},(_,n)=>rawProduct(n+500));
+  featured[0].availability_checked_at=NOW;
+  others[0].availability_checked_at=null;others[0].last_verified_at=null;
+  const inactive=rawProduct(998,{isActive:false}),duplicate=rawProduct(999,{duplicateOfProductId:id(1)});
+  const products=[...featured,...others,...excluded,inactive,duplicate];
   const f=await setup({products,presence:Object.fromEntries(products.map(p=>[p.public_id,true]))});
   try{
+    markPublic(f,[...featured,...others,inactive,duplicate]);
     const before=f.epoch();
-    const rows=await f.store.getProductsForRevalidation({daily:true,limit:10,featuredIds:[products[20].id]});
-    assert.equal(rows.length,10);assert.equal(rows[0].id,products[20].id);
+    const selection={daily:true,limit:10,featuredIds:[...featured.map(p=>p.id),excluded[0].id,inactive.id,duplicate.id]};
+    const rows=await f.store.getProductsForRevalidation(selection);
+    assert.deepEqual(rows.map(r=>r.id),[...featured.slice(1,5),...others.slice(0,6)].map(p=>p.id));
+    assert.equal(new Set(rows.map(r=>r.id)).size,10);
     assert.ok(rows.every(row=>row.has_embedding===true));
     assert.ok(rows.every(row=>!Object.hasOwn(row,'embedding')));
-    assert.deepEqual(rows.slice(1).map(r=>r.id),Array.from({length:9},(_,n)=>id(n+2)));
+    assert.deepEqual(await f.store.getProductsForRevalidation(selection),rows);
+    assert.equal(f.sqlite.prepare('SELECT count(*) n FROM products WHERE public_display_json IS NULL').get().n,31);
     assert.equal(f.epoch(),before);
     assert.equal((await f.store.getActiveCatalogIdentities()).some(p=>p.id===inactive.id),false);
     assert.equal((await f.store.getActiveCatalogIdentities({includeInactive:true})).some(p=>p.id===inactive.id),true);
+    // A later normal batch reaches older unselected products in both lanes.
+    for(const row of rows)f.sqlite.prepare('UPDATE products SET availability_checked_at=? WHERE id=?').run(NOW,row.id);
+    const next=await f.store.getProductsForRevalidation(selection);
+    assert.deepEqual(next.slice(0,3).map(r=>r.id),featured.slice(5).map(p=>p.id));
+    assert.deepEqual(next.slice(4).map(r=>r.id),others.slice(6).map(p=>p.id));
   }finally{f.close();}
+});
+
+test('daily public selection deterministically lends sparse lanes and respects smaller limits',async()=>{
+  for(const [featuredCount,otherCount,limit]of [[1,15,10],[15,2,10],[0,12,10],[12,0,10],[1,2,10],[0,0,10],[8,12,3]]){
+    const featured=Array.from({length:featuredCount},(_,n)=>rawProduct(n+1));
+    const others=Array.from({length:otherCount},(_,n)=>rawProduct(n+100));
+    const products=[...featured,...others],f=await setup({products});
+    try{
+      markPublic(f,products);const before=f.epoch();
+      const rows=await f.store.getProductsForRevalidation({daily:true,limit,featuredIds:featured.map(p=>p.id)});
+      const initialFeatured=Math.min(featuredCount,4,limit),initialOthers=Math.min(otherCount,Math.max(0,limit-4));
+      const expected=[...featured.slice(0,initialFeatured),...others.slice(0,initialOthers),
+        ...featured.slice(initialFeatured),...others.slice(initialOthers)].slice(0,limit);
+      assert.deepEqual(rows.map(r=>r.id),expected.map(p=>p.id));
+      assert.equal(new Set(rows.map(r=>r.id)).size,rows.length);assert.equal(f.epoch(),before);
+    }finally{f.close();}
+  }
 });
 
 test('compact catalog reads fail closed on oversized views and ownership changes, without returning a partial catalog',async()=>{
@@ -594,6 +650,7 @@ test('compact keyset retry keeps every identity and selected full loads retain r
     assert.deepEqual(pages.slice(0,2),[['',128],['',64]]);
     const malformed=createD1CatalogMaintenanceStore({...f.options,historical:{archiveSha256:'d'.repeat(64),
       embeddingPresence:{[uuid(1)]:{present:true,sourceRecordSha256:'0'.repeat(64)}}}});
+    markPublic(f,[products[0]]);
     await assert.rejects(malformed.getProductsForRevalidation({daily:true,limit:1,featuredIds:[id(1)]}),/maintenance_embedding_inventory_mismatch/);
     const preserved={...maintenanceState(f.row(1)),title:'TEST ONLY reviewed preserved title override'};
     const override=createD1CatalogMaintenanceStore({...f.options,historical:{...f.options.historical,

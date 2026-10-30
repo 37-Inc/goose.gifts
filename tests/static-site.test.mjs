@@ -10,7 +10,7 @@ import { createBrowseRelease } from "../static-site/lib/browse.ts";
 import { createOgRelease } from "../static-site/lib/og.ts";
 import { siteIdentity } from "../static-site/lib/site-identity.ts";
 import { assertOwnedCodeSafe } from "../static-site/lib/retention.ts";
-import { exportedRoutes, exportSourceMode } from "./helpers/static-export.mjs";
+import { exportedRoutes, exportSourceMode, exportGeneratedAt } from "./helpers/static-export.mjs";
 import { guides, selectGuideProducts } from "../static-site/lib/guides.ts";
 import {
   eligiblePool,
@@ -196,7 +196,7 @@ test(
   "initial browse/Random payloads stay small and their public JSON matches the release",
   { skip: !fs.existsSync(new URL("out/index.html", root)) },
   () => {
-    const release = createBrowseRelease(exportSnapshot);
+    const release = createBrowseRelease(exportSnapshot, exportGeneratedAt);
     const home = fs.readFileSync(new URL("out/index.html", root), "utf8");
     const random = fs.readFileSync(
       new URL("out/random-gift.html", root),
@@ -236,7 +236,7 @@ test(
       html.includes(`href="/gifts/${exportSnapshot.products[0].slug}"`),
     );
     const robots=html.match(/<meta name="robots" content="([^"]+)"/)[1].split(/,\s*/);
-    const indexable=exportSourceMode!=='preview'&&exportSnapshot.dataKind==='catalog'&&createBrowseRelease(exportSnapshot).opening.length>0;
+    const indexable=exportSourceMode!=='preview'&&exportSnapshot.dataKind==='catalog'&&createBrowseRelease(exportSnapshot, exportGeneratedAt).opening.length>0;
     assert.equal(robots.includes('index'),indexable);
     assert.equal(robots.includes('noindex'),!indexable);
     assert.doesNotMatch(html, /\$0\.00|https:\/\/example\.invalid/i);
@@ -309,7 +309,7 @@ test(
       if (readyProduct.punnyTitle)
         assert.match(detail, /Retailer listing name/);
       assert.doesNotMatch(detail, /"@type":"Offer"|\$0\.00/);
-      const pool=createBrowseRelease(exportSnapshot).random;
+      const pool=createBrowseRelease(exportSnapshot, exportGeneratedAt).random;
       assert.ok(pool.poolSize>0&&pool.poolSize<=48);
       assert.match(random,/<button\b[^>]*type="button"/);
       assert.match(random,/aria-live="polite"/);

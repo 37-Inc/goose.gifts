@@ -5,7 +5,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { createCatalogD1Rest } from '../scripts/catalog/d1-write-rest.ts';
 import { createD1CatalogMaintenanceStore, loadMaintenanceVectorPayload } from '../scripts/catalog/maintenance-d1.ts';
 import { createD1CatalogTelemetryStore } from '../scripts/catalog/telemetry-d1.ts';
-import { maintenanceEmbeddingText, maintenanceRow, maintenanceState, maintenanceTimeOrder, publishedMaintenanceProduct } from '../scripts/catalog/maintenance-state.ts';
+import { maintenanceEmbeddingText, maintenanceRow, maintenanceState, maintenanceTimeOrder } from '../scripts/catalog/maintenance-state.ts';
 import { deliverOwnedOutboxEvent } from '../scripts/catalog/owned-vector-delivery.ts';
 import { claimMutationOwnership, readMutationOwner, releaseMutationOwnership } from '../lib/catalog/mutation-fence.ts';
 import { convertSourceRow } from '../scripts/catalog/migration.ts';
@@ -209,7 +209,7 @@ test('finite request/statement exhaustion stops a full-catalog scan with no skip
   }
 });
 
-test('3383-row daily and Monday views match the old full reader with bounded REST bytes and fresh post-write identities',async t=>{
+test('3383-row daily public fairness and Monday views match an independent full reader with bounded REST bytes and fresh post-write identities',async t=>{
   const f=await fixture(t,{requests:600,statements:1200},{longRows:true});
   const legacy=()=>f.sql.prepare(`SELECT p.*,s.semantic_json maintenance_semantic FROM products p
     LEFT JOIN catalog_maintenance_products s ON s.product_id=p.id ORDER BY p.id`).all().map(row=>maintenanceState({...row}));
@@ -221,13 +221,21 @@ test('3383-row daily and Monday views match the old full reader with bounded RES
     assert.ok(calls<100);return result;
   };
   const featured=[id(3300),id(20)];const prior=legacy();
-  const lane=p=>featured.includes(p.id)?0:publishedMaintenanceProduct(p)?1:2;
-  const choose=products=>products.filter(p=>p.source==='amazon'&&p.isActive&&/^B\d{9}$/.test(p.id))
-    .sort((a,b)=>lane(a)-lane(b)||maintenanceTimeOrder(a.availabilityCheckedAt||a.lastVerifiedAt,b.availabilityCheckedAt||b.lastVerifiedAt,true)
-      ||maintenanceTimeOrder(a.updatedAt,b.updatedAt,false)||a.id.localeCompare(b.id)).slice(0,10);
+  const publicIds=()=>new Set(f.sql.prepare('SELECT id FROM products WHERE public_display_json IS NOT NULL').all().map(row=>row.id));
+  const choose=products=>{
+    const publicMembers=publicIds(),ordered=products.filter(p=>publicMembers.has(p.id)&&p.source==='amazon'&&p.isActive
+      &&!p.duplicateOfProductId&&/^B\d{9}$/.test(p.id))
+      .sort((a,b)=>maintenanceTimeOrder(a.availabilityCheckedAt||a.lastVerifiedAt,b.availabilityCheckedAt||b.lastVerifiedAt,true)
+        ||maintenanceTimeOrder(a.updatedAt,b.updatedAt,false)||a.id.localeCompare(b.id));
+    const pools=[ordered.filter(p=>featured.includes(p.id)),ordered.filter(p=>!featured.includes(p.id))];
+    const reserved=pools.flatMap((pool,index)=>pool.splice(0,index===0?4:6));
+    return [...reserved,...pools.flat()].slice(0,10);
+  };
+  assert.equal(publicIds().has(id(3300)),false,'A featured archive identity has no public clearance');
   const selected=choose(prior);
   const daily=await measured('daily selection',()=>f.store.getProductsForRevalidation({daily:true,limit:10,featuredIds:featured}));
   assert.deepEqual(daily,selected.map(p=>({...maintenanceRow(p),has_embedding:Number(p.id.slice(1))<=75?true:null})));
+  assert.equal(daily.some(p=>p.id===id(3300)),false);
   const before=await measured('Monday include-inactive identity dedup',()=>f.store.getActiveCatalogIdentities({includeInactive:true}));
   assert.deepEqual(before,identities(prior));assert.equal(before.length,TOTAL);
   const writeups=await measured('Monday editorial comparison',()=>f.store.getExistingEditorialWriteups([id(1)]));
@@ -252,6 +260,7 @@ test('3383-row daily and Monday views match the old full reader with bounded RES
   const presence=new Map(f.sql.prepare('SELECT product_id,embedding_present FROM catalog_maintenance_products').all().map(row=>[row.product_id,row.embedding_present===1]));
   const freshDaily=await measured('fresh post-write daily selection',()=>f.store.getProductsForRevalidation({daily:true,limit:10,featuredIds:featured}));
   assert.deepEqual(freshDaily,choose(legacy()).map(p=>({...maintenanceRow(p),has_embedding:presence.get(p.id)??null})));
+  assert.ok(freshDaily.some(p=>p.id===updated.id),'New public clearance participates in the next read without a stale membership cache');
   assert.ok(f.count.maxRequestBytes<512*1024&&f.count.maxResponseBytes<512*1024);
   assert.equal(f.db.metrics().unconfirmedRequests,0);
   t.diagnostic(`Measured complete synthetic read/write fixture: ${JSON.stringify({...f.count,metrics:f.db.metrics()})}`);

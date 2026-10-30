@@ -138,7 +138,7 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
   // Read-only purpose projections, not persistence inputs. Keep the existing
   // semantic/typed consistency checks, without shipping source facts, native
   // vectors, rights or complete archive/current JSON for every identity.
-  const catalogView = async (fields: string[],preferBase=false) => {
+  const catalogView = async (fields: string[],preferBase=false,publicOnly=false) => {
     const typed = ['id','public_id','slug','source','is_active','quality_score','source_facts_hash','editorial_source_hash',
       'availability_status','editorial_status','duplicate_of_product_id','availability_checked_at','last_verified_at','created_at','updated_at'];
     const semantic = [...new Set(['id','publicId','slug','source','isActive','qualityScore','sourceFactsHash','editorialSourceHash',
@@ -158,7 +158,7 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
       try {
         rows = await all(`WITH candidates AS MATERIALIZED (
           SELECT p.id,${data} data FROM products p LEFT JOIN catalog_maintenance_products s ON s.product_id=p.id
-          WHERE p.id>? ORDER BY p.id LIMIT ?), sized AS MATERIALIZED (
+          WHERE p.id>?${publicOnly?' AND p.public_display_json IS NOT NULL':''} ORDER BY p.id LIMIT ?), sized AS MATERIALIZED (
           SELECT id,data,length(CAST(json_quote(data) AS BLOB))+32 wire_bytes FROM candidates), bounded AS (
           SELECT id,data,wire_bytes,sum(wire_bytes) OVER(ORDER BY id) total_bytes FROM sized)
           SELECT CASE WHEN wire_bytes>256*1024 THEN '{"oversized":true}' ELSE data END data FROM bounded
@@ -455,11 +455,17 @@ export function createD1CatalogMaintenanceStore(options: MaintenanceD1Options) {
       if(selection.daily){
         const {limit,featuredIds=[]}=selection;
         if(!Number.isInteger(limit)||limit<1||limit>10||featuredIds.length>100||featuredIds.some(id=>!(/^[A-Z0-9]{10}$/).test(id)))throw new Error('daily_selection_invalid');
-        const lane=(p:SemanticProduct)=>featuredIds.includes(p.id)?0:publishedMaintenanceProduct(p)?1:2;
-        const selected=(await catalogView(['imageUrl','editorialWriteup','editorialQualityScore']))
-          .filter(p=>p.source==='amazon'&&p.isActive&&(/^[A-Z0-9]{10}$/).test(p.id))
-          .sort((a,b)=>lane(a)-lane(b)||maintenanceTimeOrder(a.availabilityCheckedAt||a.lastVerifiedAt,b.availabilityCheckedAt||b.lastVerifiedAt,true)
-            ||maintenanceTimeOrder(a.updatedAt,b.updatedAt,false)||compare(a.id,b.id)).slice(0,limit);
+        // Public clearance is the stored display, not long-article readiness.
+        // Keep six slots for the rest of the catalog so featured gifts cannot
+        // monopolize every batch; sparse lanes lend their unused slots.
+        const featured=new Set(featuredIds),featuredSlots=Math.min(4,limit),otherSlots=limit-featuredSlots;
+        const publicProducts=(await catalogView([],false,true))
+          .filter(p=>p.source==='amazon'&&p.isActive&&!p.duplicateOfProductId&&(/^[A-Z0-9]{10}$/).test(p.id))
+          .sort((a,b)=>maintenanceTimeOrder(a.availabilityCheckedAt||a.lastVerifiedAt,b.availabilityCheckedAt||b.lastVerifiedAt,true)
+            ||maintenanceTimeOrder(a.updatedAt,b.updatedAt,false)||compare(a.id,b.id));
+        const featuredProducts=publicProducts.filter(p=>featured.has(p.id)),others=publicProducts.filter(p=>!featured.has(p.id));
+        const selected=[...featuredProducts.slice(0,featuredSlots),...others.slice(0,otherSlots),
+          ...featuredProducts.slice(featuredSlots),...others.slice(otherSlots)].slice(0,limit);
         const rows=[];
         for(const p of selected){const full=await load(p.id);if(!full)throw new Error('maintenance_current_state_drift');
           rows.push({...maintenanceRow(full.product),has_embedding:full.present});}

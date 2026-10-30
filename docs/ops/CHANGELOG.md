@@ -1,5 +1,39 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-29 — Approved bounded care and automatic homepage variety
+
+[owner+claude] PR301 now implements four featured/six wider-catalog refresh slots,
+discovery admission caps before generation, approved-input-only embedding reuse,
+and separately reviewed short descriptions with optional long articles. Homepage
+selection becomes six weekly anchors plus eighteen daily qualified rediscoveries,
+with no owner-maintained weekly list or per-visitor work. Focused tests preserve
+the full catalog and existing articles. Full integration/release acceptance remains
+separate from implementation. The SAME daily timer's stale recovery/semanticOFF/
+legacy-service instructions were corrected; it stays PAUSED until `.4.13` routine
+prior/successor acceptance, not because completed recovery needs repeating.
+Higher-volume discovery and blanket enrichment remain deferred.
+Full-run review also caught an old selector blind spot: failed copy review could
+hide an established pending listing, and a changed short note could revoke its
+independently cleared fallback. Both are corrected; exact original grants/native
+history remain, and new text cannot borrow old permission. Production is unchanged
+until the corrected source passes integration and release acceptance.
+Review also corrected later cohort planning: a still-public permanent gift is
+not an absent vector. Retain its authenticated historical native proof separately
+from current semantic input; original receipts/bits/metadata and source/owner
+fences remain checked. Authentic two-day local publication now preserves every
+original native byte without deletion; these are offline results, not live usage.
+
+## 2026-10-29 — Catalog and homepage algorithms researched; proposal only
+
+[owner+claude] Parallel code/retailer research for Beads `.4.14/.4.15` produced
+`CATALOG_MERCHANDISING_SPEC_2026-10-29.md`: bounded pipeline fairness/waste fixes,
+six-anchor/eighteen-rotation weekly homepage proposal, ranked alternatives and
+tests/activation sequence. Confirmed all24 opening slots are pinned; the saved
+daily prompt lags completed native recovery/current semantic release. Existing
+`.4.13` successor/proof integration remains before writer resumption. No catalog,
+runtime, job, model budget or provider changed; owner selection/implementation
+remain pending. Public description coverage is separate from optional long articles.
+
 ## 2026-10-29 evening — owner-directed Pinterest manager handoff
 
 [owner+claude] Cameron chose Mini Bowling-style playful editorial posters as

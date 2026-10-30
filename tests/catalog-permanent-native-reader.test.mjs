@@ -10,9 +10,9 @@ import {enqueuePublication,claimPublication,recordPublicationDispatch,completePu
 import {prunedVectorPlan,prunedVectorIds} from '../lib/catalog/prune-existing-revision.ts';
 import {canonicalJson,sha256} from '../scripts/catalog/migration.ts';
 import {createPermanentCatalogSeal} from '../scripts/catalog/permanent-catalog-seal.ts';
-import {createSealedSnapshotEnvelope} from '../scripts/catalog/export-d1-snapshot.ts';
+import {createSealedSnapshotEnvelope,readApprovedCurrentRows} from '../scripts/catalog/export-d1-snapshot.ts';
 import {prepareOwnedApprovedCohortPlan,readOwnedApprovedCohortVectors,readOwnedPermanentCohortNative,readActivatedCatalogVectors,
-  approvedCatalogPlanChecks} from '../scripts/catalog/owned-vector-delivery.ts';
+  approvedCatalogPlanChecks,readHistoricalNativePreservation,readNativeHistory} from '../scripts/catalog/owned-vector-delivery.ts';
 
 async function fixture(t){
   const f=await permanentCatalogFixture(t,{afterExpiry:true}),prepared=await preparePermanentCatalog(f.db,f.owner,f.request),initial=prepared.revision;
@@ -65,4 +65,48 @@ test('native-only reader refuses finite/nonpersistent catalogs, owner drift and 
   await assert.rejects(readOwnedPermanentCohortNative(f.db,f.owner,{...f.revision,sourceDigest:'d'.repeat(64)},f.adapters),/vector_plan_receipt_invalid/);
   const absent={...f.revision,snapshot:{...f.revision.snapshot,catalogRevision:'no-policy'}};
   await assert.rejects(readOwnedPermanentCohortNative(f.db,f.owner,absent,f.adapters),/vector_plan_incomplete/);
+});
+
+async function changedHistoricalInput(f){
+  const history=f.revision.nativeHistory,group=history.find(value=>value.ids.includes(uuid(1)));
+  assert.ok(group,'Fixture requires genuine published native history');
+  const saved=f.sql.prepare('SELECT request_json FROM catalog_vector_deliveries WHERE delivery_id=?').get(group.source.deliveryId);
+  const plan=JSON.parse(saved.request_json).plan;
+  // Isolate native history from current-input validation. Full source/approval
+  // CAS belongs to the cohort caller; this read alone cannot approve this edit.
+  f.sql.prepare('UPDATE products SET source_facts_hash=?,embedding_text_hash=NULL WHERE public_id=?').run('d'.repeat(64),uuid(1));
+  const ids=[...plan.products.map(product=>product.publicId),...plan.absentIds];
+  const {current}=await readApprovedCurrentRows(f.db,ids,f.owner,true);
+  return{history,group,current,native:{source:group.source,revisionSha256:group.revisionSha256,plan}};
+}
+
+test('historical proof preserves original native input without approving changed current facts; direct preservation stays strict',async t=>{
+  const f=await fixture(t),input=await changedHistoricalInput(f),before=structuredClone([...f.index]),
+    changes=f.sql.prepare('SELECT total_changes() n').get().n,dispatches=f.dispatches();
+  const options={db:f.db,owner:f.owner,native:input.native,current:input.current,adapters:f.adapters};
+  await assert.rejects(readHistoricalNativePreservation(options),/vector_preserved_source_changed/);
+  assert.deepEqual(await readHistoricalNativePreservation({...options,historicalOnly:true}),input.group.ids);
+  assert.deepEqual(await readNativeHistory({db:f.db,owner:f.owner,history:input.history,adapters:f.adapters}),
+    input.history.flatMap(group=>group.ids));
+  assert.deepEqual([...f.index],before);assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);
+  assert.equal(f.dispatches(),dispatches);
+  await assert.rejects(readHistoricalNativePreservation({...options,historicalOnly:'yes'}),/vector_preserved_input_invalid/);
+});
+
+test('historical-only proof still rejects changed original native bits, metadata and publication receipt',async t=>{
+  const f=await fixture(t),input=await changedHistoricalInput(f),vector=f.index.get(uuid(1)),original=structuredClone(vector);
+  const read=(db=f.db)=>readNativeHistory({db,owner:f.owner,history:input.history,adapters:f.adapters});
+  assert.deepEqual(await read(),input.history.flatMap(group=>group.ids));
+  vector.values[0]=Object.is(vector.values[0],-0)?0:-0;
+  await assert.rejects(read());vector.values=[...original.values];
+  vector.metadata.eligible=false;await assert.rejects(read());vector.metadata=structuredClone(original.metadata);
+  const db={...f.db,prepare(sql){
+    if(sql!=='SELECT * FROM publication_receipts WHERE release_id=?')return f.db.prepare(sql);
+    return{bind(...params){const statement=f.db.prepare(sql).bind(...params);return{async all(options){
+      const result=await statement.all(options);
+      return params[0]===input.group.source.releaseId?{...result,results:result.results.map(row=>({...row,code_sha:'0'.repeat(40)}))}:result;
+    }};}};
+  }};
+  await assert.rejects(read(db),/vector_preserved_receipt_changed/);
+  assert.deepEqual(await read(),input.history.flatMap(group=>group.ids));
 });

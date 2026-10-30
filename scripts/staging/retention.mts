@@ -74,7 +74,7 @@ export function assembleReleaseAssets(snapshot: CatalogSnapshot, current: Files,
   if (currentAssetPaths.length > 100000 || currentAssetPaths.some((name) => !safePath(name))) fail();
   assertPublicIdentitySafe(current);
   for (const [name, bytes] of current) if (/^\/_next\/static\/.*\.(?:js|css)$/.test(name)) assertOwnedCodeSafe(bytes, [snapshot]);
-  const currentRoutes = createStaticRoutes(snapshot, currentAssetPaths, undefined, siteIdentityFor(context.sourceMode));
+  const currentRoutes = createStaticRoutes(snapshot, currentAssetPaths, undefined, siteIdentityFor(context.sourceMode), context.generatedAt);
   if (context.retainedManifestSha256 === null) {
     if (prior !== null) fail();
     const compacted = finish(current, currentRoutes);

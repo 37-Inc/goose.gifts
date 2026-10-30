@@ -170,7 +170,10 @@ export async function readCatalogPredecessor(options:{db:CatalogD1;owner:Mutatio
   await check();
   // Re-read the whole current capture, not an old source body from a workspace.
   if(!same(permanentSourceInventory(permanentSourceRows(await capture())),inventory))fail();
+  // Changed members are candidates, not verified current input. The next cohort
+  // removes actual replacements/absences before separately proving retained history.
   return{state:adapters?'verified' as const:'source_verified' as const,snapshotSha256:seal.snapshotSha256,preservedIds,changedIds:changed,inventory,nativeHistory,
+    priorNativeHistory:structuredClone(prior.nativeHistory),
     priorNativeIds:prior.nativeHistory.flatMap(group=>group.ids)};
 }
 export function readPermanentCatalogPrior(options:Parameters<typeof readCatalogPredecessor>[0]&{seal:PermanentCatalogSeal;

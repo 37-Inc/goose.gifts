@@ -19,5 +19,11 @@ export const sealedCatalog = validateCatalogSnapshot(input, new Date());
 export const catalog = catalogDisplayView(sealedCatalog);
 export const photos = createPhotoRelease(sealedCatalog);
 export const isFixtureRelease = catalog.dataKind === "synthetic_fixture";
-export const browse = createBrowseRelease(catalog);
+// Build supplies the normalized, sealed context; development/fixtures use their
+// fixed snapshot time rather than a machine clock or an unbound extra setting.
+const releaseContext = process.env.CATALOG_RELEASE_CONTEXT_PATH
+  ? JSON.parse(fs.readFileSync(path.resolve(process.env.CATALOG_RELEASE_CONTEXT_PATH), "utf8"))
+  : null;
+export const releaseGeneratedAt: string = releaseContext?.generatedAt ?? catalog.generatedAt;
+export const browse = createBrowseRelease(catalog, releaseGeneratedAt);
 export const relatedGifts = createRelatedGiftSelector(rankedBrowseProducts(catalog));
