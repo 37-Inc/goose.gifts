@@ -13,7 +13,16 @@ idle owner and accepted successor were verified. This is the catalog receipt,
 not the current storefront code/version. See
 `evidence/2026-10-25-full-catalog-accepted.json` for exact identities and costs.
 
-**Latest verified storefront, October29 Pacific:** PR304 source 3e5abd9 serves
+**Latest verified storefront, October29 Pacific:** PR306 source 923965d serves
+`surprise-random-20261029-923965d`, version f8a478bf-4e84-43b1-9d06-cca89db15e66,
+deployment 76f987a4-523a-4f1a-bce9-423c01ed72d9. The navigation draws from
+the same random pool on entry and avoids the previous gift within a tab. The
+Howie demo, catalog receipt, semantic inputs and analytics remain. Its frozen
+publication binding is `stupid-surprise-random/stupid.gifts`; it is not a daily
+operator. Private receipt and dispatch evidence are in `surprise-random-20261029`;
+never replay the completed upload or activation. The daily task is still paused.
+
+**Previous storefront, October29 Pacific:** PR304 source 3e5abd9 served
 `howie-demo-20261029-3e5abd9-v2`, version 602eb098-6e81-4682-b173-675a0e2e9df5,
 deployment e3e7215d-9bdf-4366-b395-9f7b88fd4d16. Public `/h` is unlisted and
 noindex, but not access-controlled; Enter reveals the rehearsed assortment.

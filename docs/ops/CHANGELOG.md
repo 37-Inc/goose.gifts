@@ -1,11 +1,15 @@
 # goose.gifts — Running Changelog & Plan
 
-## 2026-10-29 — Surprise me draws on entry
+## 2026-10-29 — Surprise me draws on entry (live)
 
 [owner+claude] The random-gift page now draws from its existing bounded static
 pool when opened and avoids the preceding gift within the same browser tab.
 No database or model calls; the static first gift remains a fallback if loading
-fails. Review, merge and Cloudflare publication are separate checks.
+fails. PR306 merged as cb24629; Cloudflare source 923965d is live in
+`surprise-random-20261029-923965d`. Live navigation and the existing button
+each selected a different gift; `/h` remains live and noindex. The catalog,
+semantic search and analytics are preserved. The daily catalog task remains
+paused pending `.4.13`.
 
 ## 2026-10-29 — Howie demo live
 
