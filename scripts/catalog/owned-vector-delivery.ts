@@ -1262,7 +1262,7 @@ export async function readNativeHistory(options:{db:CatalogD1;owner:MutationOwne
     if(request.kind===REUSE_KIND){
       const current=(await readApprovedCurrentRows(db,reuseIds(plan),owner,true,signal)).current;
       await readHistoricalNativePreservation({db,owner,native:{source:binding.source,revisionSha256:binding.revisionSha256,plan},current,
-        changedIds:reuseIds(plan).filter(id=>!binding.ids.includes(id)),adapters,signal});continue;
+        changedIds:reuseIds(plan).filter(id=>!binding.ids.includes(id)),historicalOnly:true,adapters,signal});continue;
     }
     if(request.kind!==PLAN_KIND)throw new Error('vector_history_changed');
     const receipts=(await db.prepare('SELECT * FROM publication_receipts WHERE release_id=?').bind(binding.source.releaseId).all<Row>({signal})).results;
@@ -1281,14 +1281,8 @@ export async function readNativeHistory(options:{db:CatalogD1;owner:MutationOwne
     const rows=await planJournals(db,base,plan.catalogRevision,signal);
     const historical={...base,epoch:Math.max(base.epoch+1,...rows.map(row=>Number(row.prior_epoch)+2))};
     validatePlan(saved,historical,plan,adapters.providerIdentity);
-    // Only selected historical members must still match current facts/input.
-    // Superseded members are proved by their new current receipts instead.
-    for(let i=0;i<binding.ids.length;i+=20){
-      const found=(await db.prepare('SELECT public_id,source_facts_hash,embedding_text_hash FROM products WHERE public_id IN(SELECT value FROM json_each(?))')
-        .bind(JSON.stringify(binding.ids.slice(i,i+20))).all<Row>({signal})).results;
-      if(found.length!==binding.ids.slice(i,i+20).length||found.some(row=>{const member=plan.products.find(p=>p.publicId===row.public_id);
-        return member&&(member.sourceFactsHash!==row.source_facts_hash||member.embeddingTextHash!==row.embedding_text_hash);}))throw new Error('vector_history_changed');
-    }
+    // Historical membership proves OLD input and exact provider bytes, not
+    // current supplier freshness. Current semantic targets have separate proofs.
     const checks=()=>[mutationAssertion(db,owner,[owner.phase]),exact('catalog_vector_deliveries',saved),exact('publication_receipts',receipt),
       exact('catalog_build_requests',build),exact('publication_outbox',publication)];
     await db.batch(checks(),{signal});
@@ -1300,12 +1294,13 @@ export async function readNativeHistory(options:{db:CatalogD1;owner:MutationOwne
 /** Preserve the original completed native proof. This observes its actual old
  * generation, processed references and exact bits/metadata; it neither promotes
  * those vectors into a permanent grant nor creates a replacement receipt. */
-export function readHistoricalNativePreservation(options:{db:CatalogD1;owner:MutationOwner;native:HistoricalNativeBinding;current:Row[];original?:Row[];changedIds?:string[];
+export function readHistoricalNativePreservation(options:{db:CatalogD1;owner:MutationOwner;native:HistoricalNativeBinding;current:Row[];original?:Row[];changedIds?:string[];historicalOnly?:boolean;
   adapters:Pick<OwnedVectorAdapters,'readback'|'environment'|'indexName'|'providerIdentity'>;signal?:AbortSignal
 }):Promise<string[]>{return safe(async()=>{
   const {db,adapters,signal}=options,owner=structuredClone(options.owner),binding=structuredClone(options.native),changed=new Set(options.changedIds??[]);
   signal?.throwIfAborted();adapterScope(owner,adapters);
-  if(!binding||!['freezing','activating'].includes(owner.phase)||changed.size>30||[...changed].some(id=>!UUID.test(id)))throw new Error('vector_preserved_input_invalid');
+  if(!binding||!['freezing','activating'].includes(owner.phase)||changed.size>30||[...changed].some(id=>!UUID.test(id))
+    ||options.historicalOnly!==undefined&&typeof options.historicalOnly!=='boolean')throw new Error('vector_preserved_input_invalid');
   const read=async(sql:string,params:unknown[])=>{signal?.throwIfAborted();
     const rows=(await db.prepare(sql).bind(...params).all<Row>({signal})).results;signal?.throwIfAborted();return rows;};
   const exact=(table:string,row:Row)=>{const keys=Object.keys(row);
@@ -1324,7 +1319,7 @@ export function readHistoricalNativePreservation(options:{db:CatalogD1;owner:Mut
     ||!current.get(row.public_id)?.approved_product_json)throw new Error('vector_preserved_source_changed');
   for(const row of rows){const actual=current.get(row.public_id)!,old=JSON.parse(String(row.product_json));
     if(changed.has(String(row.public_id)))vectors.delete(String(row.public_id));
-    else if(actual.source_facts_hash!==old.source_facts_hash||actual.embedding_text_hash!==old.embedding_text_hash)throw new Error('vector_preserved_source_changed');}
+    else if(!options.historicalOnly&&(actual.source_facts_hash!==old.source_facts_hash||actual.embedding_text_hash!==old.embedding_text_hash))throw new Error('vector_preserved_source_changed');}
   const receipts=await read('SELECT * FROM publication_receipts WHERE release_id=?',[binding.source.releaseId]),receipt=receipts[0];
   if(receipts.length!==1||sha256(canonicalJson(receipt))!==binding.source.receiptSha256)throw new Error('vector_preserved_receipt_changed');
   const intent=JSON.parse(String(receipt.manifest_json)) as PublicationIntent;

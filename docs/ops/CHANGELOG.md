@@ -17,6 +17,11 @@ hide an established pending listing, and a changed short note could revoke its
 independently cleared fallback. Both are corrected; exact original grants/native
 history remain, and new text cannot borrow old permission. Production is unchanged
 until the corrected source passes integration and release acceptance.
+Review also corrected later cohort planning: a still-public permanent gift is
+not an absent vector. Retain its authenticated historical native proof separately
+from current semantic input; original receipts/bits/metadata and source/owner
+fences remain checked. Authentic two-day local publication now preserves every
+original native byte without deletion; these are offline results, not live usage.
 
 ## 2026-10-29 — Catalog and homepage algorithms researched; proposal only
 

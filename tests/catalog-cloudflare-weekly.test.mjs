@@ -136,7 +136,10 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
   const discoveryNames=['Amethyst zephyr','Borealis quince','Crimson tundra','Dahlia compass','Emerald quill','Fuchsia gyroscope','Garnet prism',
     'Hyacinth sundial','Indigo metronome','Jade kaleidoscope','Kestrel abacus','Lilac astrolabe','Magenta terrarium','Nectar pendulum',
     'Ochre sextant','Periwinkle barometer','Quartz telescope','Russet ocarina','Saffron harmonica','Teal periscope'];
-  const discoveries=Array.from({length:discovered},(_,i)=>({...observedProduct(5000+i),title:`Novelty ${discoveryNames[i]}`,humorTags:[`fixture-${i}`]}));
+  const discoveries=Array.from({length:discovered},(_,i)=>{
+    const product={...observedProduct(5000+i),title:`Novelty ${discoveryNames[i]}`,humorTags:[`fixture-${i}`]};
+    return{...product,wittyDescription:`${product.title} is a brass lobster fixture for a desk.`};
+  });
   if(permanent&&!authenticPrior){
     // A pre-existing private full catalog, not 2,359 fresh supplier fetches or
     // native writes. The real current driver will update only its reserved ten.
@@ -267,9 +270,14 @@ async function setup(t,{noPrior=false,at=NOW,permanent=0,held=0,discovered=0,rea
       if(url.pathname.endsWith('/embeddings')){calls.embedding++;return new Response(`{"model":"text-embedding-3-small","usage":{"prompt_tokens":8,"total_tokens":8},"data":[${body.input.map((_input,index)=>`{"index":${index},"embedding":[${values.map(n=>Object.is(n,-0)?'-0':n).join(',')}]}`).join(',')}]}`,{headers:{'content-type':'application/json'}});}
       calls.chat++;const prompt=body.messages.at(-1).content,items=JSON.parse(prompt.slice(prompt.lastIndexOf('\n[')+1));
       return Response.json({choices:[{message:{content:JSON.stringify({products:items.map(item=>{
-        const product=discoveries.find(p=>p.id===item.id)||p;
-        return prompt.includes('Drafts:')?{id:item.id,approved:true,qualityScore:.95,reasons:[],correctedEditorial:null}
-          :{id:item.id,punnyTitle:product.punnyTitle,wittyDescription:product.wittyDescription,humorTags:product.humorTags,qualityScore:product.qualityScore,isActive:true,editorialWriteup:product.editorialWriteup};
+        const discovered=discoveries.find(p=>p.id===item.id),product=discovered||p;
+        // The original native cohort intentionally fails the new-copy review:
+        // ordinary refresh must preserve its existing licensed/native history.
+        // The discovery cohort exercises the current successful short-copy path.
+        return prompt.includes('Drafts:')?{id:item.id,approved:Boolean(discovered),qualityScore:.95,
+          reasons:discovered?[]:['Synthetic existing-copy rejection'],correctedDescription:null,correctedEditorial:null}
+          :{id:item.id,punnyTitle:product.punnyTitle,wittyDescription:product.wittyDescription,humorTags:product.humorTags,
+            qualityScore:product.qualityScore,isActive:true,shortDescription:discovered?.wittyDescription||`${item.title} is a brass lobster fixture for a desk.`,editorialWriteup:product.editorialWriteup};
       })})},finish_reason:'stop'}],usage:{prompt_tokens:10,completion_tokens:10,total_tokens:20}});
     }
     calls.http++;
@@ -422,6 +430,14 @@ test('AUTHENTIC small whole runner consumes genuine permanent native predecessor
   t.diagnostic(JSON.stringify({scenario:'authentic-small',result:weeklyCommandSummary(result),calls:f.calls}));
   assert.equal(result.state,'finalized',JSON.stringify(result));assert.ok(result.catalogSeal.persistent);
   assert.equal(result.catalogSeal.persistent.inventory.length,24);
+  assert.equal(f.calls.delete,0);
+  const retainedNative=new Set(result.catalogSeal.persistent.nativeHistory.flatMap(group=>group.ids));
+  for(const id of native.keys())assert.ok(retainedNative.has(id),`Original native history missing ${id}`);
+  const missingNative=[...native.keys()].filter(id=>!f.index.has(id));
+  assert.deepEqual(missingNative,[],JSON.stringify({missingNative,
+    products:missingNative.map(id=>{const row=f.sql.prepare('SELECT id,is_active,editorial_status,public_display_json FROM products WHERE public_id=?').get(id);
+      const display=JSON.parse(row.public_display_json);return{...row,public_display_json:undefined,public:Boolean(display),permanent:Boolean(display&&(display.eligibleUntil===null||display.persistent))};}),
+    vectorOperations:f.sql.prepare('SELECT public_id,operation,status FROM vector_sync_outbox ORDER BY sequence').all()}));
   for(const [id,v]of native)assert.deepEqual(f.index.get(id),v);
   const ws=await openRunWorkspace(f.workspaceOptions);try{assert.deepEqual(await ws.catalogSuccessor(),result.catalogSeal);}finally{await ws.close();}
 });
@@ -481,7 +497,7 @@ test('AUTHENTIC small complete build upload successor and next-day runner',capac
 test('AUTHENTIC full complete Monday daily build upload shared-ledger successor',capacityCase,t=>authenticCycle(t,{full:true}));
 
 test('pinned daily D1 uses one existing refresh with no model credential, then waits for real publication and does not repeat',async t=>{
-  const f=await setup(t);
+  const f=await setup(t,{permanent:1});
   f.config.cadence={day:'2026-10-20',featuredIds:[ID]};f.config.backfillLimit=0;delete f.config.credentials.openai;
   await put(f.options.configPath,f.config);f.options.configSha256=sha256(await fs.readFile(f.options.configPath));
   f.workspaceOptions.configSha256=f.options.configSha256;
@@ -534,9 +550,10 @@ for(const monday of [false,true])test(`full2359 ${monday?'Monday ten plus20 disc
   assert.notEqual(result.state,'finalized');assert.ok((approval?['freezing']:['attention'])
     .includes(report.checkpoint.checkpoint.phase),JSON.stringify(result));
   const refusal=result.errorCode||result.reason;
-  // The owned plan proof needs its owner assertion and predicate atomically.
+  // The measured next owned-plan proof is an atomic three-statement batch;
+  // two remaining statements cannot be spent by partially dispatching it.
   assert.ok(refusal==='catalog_d1_budget_exhausted'
-    ||refusal==='vector_delivery_failed'&&(report.budget.sqlStatements+2>1200||report.budget.httpRequests===800),
+    ||refusal==='vector_delivery_failed'&&(report.budget.sqlStatements+3>1200||report.budget.httpRequests===800),
   `A masked vector-proof refusal requires an exhausted unchanged allowance: ${JSON.stringify({result,budget:report.budget})}`);
   assert.ok(report.budget.httpRequests<=800);
   assert.ok(report.budget.sqlStatements<=1200);assert.equal(report.budget.unconfirmedRequests,0);

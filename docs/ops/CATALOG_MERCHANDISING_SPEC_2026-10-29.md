@@ -323,6 +323,38 @@ No owner credential action or plan upgrade is demonstrated by this research.
 If fresh credential/headroom checks fail during implementation, report that exact
 gate rather than adding a speculative approval or another recovery framework.
 
+### Exact remaining routine integration — .4.13
+
+Keep `context.priorPublication`, build request/manifest `priorReleaseId`, and the
+accepted seal tied to the genuine D1 catalog receipt. A later code-only storefront
+is a separate fact. An optional pinned `servingPrior` deployment identity can
+authenticate its actual version/code/manifest while requiring the SAME catalog
+revision/snapshot. Validate both facts before supplier reservation and again
+through normal/reviewed activation and not-activated recovery. Do not invent a D1
+receipt, relabel a seal, adopt a different deployment during resume, or introduce
+another manual review string. Source targets: `daily-operator.mjs`,
+`publish-release.ts`, `lib/catalog/build-requests.ts`, and their existing tests.
+An asset directory alone does not solve this lineage distinction. A successful
+normal catalog publication naturally brings the two priors together again.
+
+Production discovery also needs the existing evidence/intent path to derive
+exact reviewed site-authored short-copy grants and same-response merchant-field
+grants, retaining original observations/deadlines. `short_ready` tests with
+manually supplied rights do not prove this real integration: current prepare has
+`rightsById:{}`. Extend `provider-evidence.ts` / `run-cloudflare-weekly.ts` narrowly,
+without blanket permanent permission or new credentials. Test a genuine evidence
+response through short review/upsert/public export, changed/failed/stale cases and
+cleared-content fallback. This is not permission to alter existing licensed bases.
+
+PR301's full-run review additionally exposed two different native-preservation
+seams when the fair selector reaches older public products: unsuccessful copy
+attempts cannot become listing holds, and a still-public permanent base is not an
+absent vector. Retained native history must prove its original immutable inputs,
+bytes, metadata and receipt; it must not assert those inputs are current. Fresh
+semantic targets and real removals remain separate. The same existing writer
+stays paused until these source fixes and the remaining integration have actual
+routine acceptance; no old recovery or merchant phase is replayed to achieve it.
+
 ## 6. External evidence (read October 29, 2026)
 
 - [Shopify collection sorting](https://help.shopify.com/en/manual/products/collections/collection-layout)

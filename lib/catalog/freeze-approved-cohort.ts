@@ -180,11 +180,12 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   const removed = source.snapshot.products.filter(value => !readyIds.has(value.publicId)&&value.publicId!==publicDuplicate?.publicId);
   const semantic = ready.filter(value => value.eligibleUntil !== null && Date.parse(value.eligibleUntil) > cutoff
     &&(!predecessor||changed.has(value.publicId)));
-  const priorNative=new Set(predecessor?.priorNativeIds??[]);
-  const additionalAbsentIds = request.approval.changes.filter(value => value.publicId!==publicDuplicate?.publicId&&(!readyIds.has(value.publicId)
-    ||priorNative.has(value.publicId)&&!semantic.some(p=>p.publicId===value.publicId))).map(value => value.publicId);
+  // A changed supplier input is not absence. Keep a still-public cleared base's
+  // original native history; it must not be deleted or promoted as fresh input.
+  const additionalAbsentIds = request.approval.changes.filter(value => value.publicId!==publicDuplicate?.publicId
+    &&!readyIds.has(value.publicId)).map(value => value.publicId);
   const targetIds=new Set([...semantic.map(p=>p.publicId),...removed.map(p=>p.publicId),...additionalAbsentIds]);
-  const nativeHistory=predecessor?.nativeHistory.map(group=>({...group,ids:group.ids.filter(id=>!targetIds.has(id))})).filter(group=>group.ids.length);
+  const nativeHistory=predecessor?.priorNativeHistory.map(group=>({...group,ids:group.ids.filter(id=>!targetIds.has(id))})).filter(group=>group.ids.length);
   const persistent=predecessor?{generation:owner.generation,inventory:predecessor.inventory,nativeHistory:nativeHistory!}:undefined;
   if (semantic.length + new Set([...removed.map(value=>value.publicId),...additionalAbsentIds]).size > SNAPSHOT_READ_LIMITS.identities) throw new Error('cohort_vector_proof_bound');
   const revision = request.approval.catalogRevision;

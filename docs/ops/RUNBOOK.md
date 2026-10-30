@@ -93,11 +93,13 @@ with native bytes/history and all original charges preserved. The protected
 Never retry its provider phases, native-delete sequence, upload or owner claim.
 Old instructions claiming an unrecovered WRITING23/530 owner are obsolete.
 
-The current separately accepted storefront is `semantic-search-20261026-3f144eb`,
+The October26 separately accepted semantic storefront was `semantic-search-20261026-3f144eb`,
 code `3f144ebf4b276b08c93304707e4534bba8c01df1`, manifest
 `e42e750e86b56de2706e7549edfe322bd3a7094d373c36d7df114dcc5b96abc1`,
-with the same catalog snapshot. Read the actual public release identity before
-any publication. Semantic search is enabled with its reviewed derived index and
+with the same catalog snapshot. Later code-only releases do not replace that
+genuine catalog receipt. Read the actual public release identity and canonical
+Bead before any publication; never use this historical hash as an operating default.
+Semantic search is enabled with its reviewed derived index and
 bounded query policy, not the near-empty original native index. Changed/new inputs
 without an exact matching derived proof must use keyword fallback, not stale vectors.
 
