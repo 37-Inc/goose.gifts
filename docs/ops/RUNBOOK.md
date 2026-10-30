@@ -1,7 +1,7 @@
 # Stupid Gifts — Catalog Care
 
 This is the active contract for the existing `goose-gifts-daily-ops` Codex task.
-Current work is tracked in `~/roadmap`, especially `roadmap-lbbz1.4.3`.
+Current work is tracked in `~/roadmap`, especially `roadmap-lbbz1.4.13`.
 Historical migration/recovery instructions are archived in
 `archive/RUNBOOK_MIGRATION_2026-10-23.md`; they are not routine commands.
 
@@ -117,6 +117,30 @@ Never reset immutable counters, erase unknown costs, or buy another merchant
 batch after a failure.
 
 ## Operator
+
+**October30 recovery hold:** the prepared revision from the retained ten-product
+run has3,349products/34holds instead of3,352/31. Never publish/resume that plan.
+Its first erroneous historical-native DELETE was confirmed; restore only the
+exact old payload through the reviewed historical-restoration lane. The live
+catalog and3352-entry derived search index are unchanged. `.4.13` owns the
+corrected publication and any one-time additional internal write allowance;
+the existing timer remains PAUSED until that succeeds.
+
+**Current source and state:** use the latest acceptance in `.4.13` and
+`~/.codex/private/goose-gifts-migration/daily-catalog-care/last-success.json`.
+The maintained clean operator is
+`/Users/cameronehrlich/.codex/worktrees/stupid-catalog-reconcile/stupid.gifts`,
+reviewed source `abc3335d13275d85baeec9d499433d2da3c15427` (PRs309/312/313 plus
+the merged homepage work). The primary checkout and the retained launch checkout
+are historical bindings, not the routine command location. Never edit a source
+while its run is active. Use a separate branch for documentation changes.
+
+The October30 recovery uses the original ten-product reservation/config and
+runtime469. Its new repair operator does not relabel that runtime, manufacture
+a catalog receipt for an earlier file deployment, or repeat supplier phases.
+Its five exact base repairs append history; three earlier diagnostic unknowns
+remain charged with their uncertainty reserve. Follow canonical acceptance,
+not the historical hold paragraphs below. Never replay a completed recovery.
 
 **Recovery is complete; routine integration is still awaiting acceptance.**
 The retained October26 run is `failed_recovered`, owner idle generation23/epoch531,
@@ -239,9 +263,10 @@ guides replace the directory. Exact-byte framework asset compaction preserves al
 remaining logical URLs and their independent policies. See `STATIC_ASSET_PLAN.md`.
 
 Search uses the published cleared catalog in Worker memory when all products have
-permanent views, avoiding D1 query/diagnostic costs for that path. Semantic search
-remains off until its full index is genuinely ready; do not call lexical matching
-semantic parity or enable a near-empty native index. GA4/PostHog retain explicit
+permanent views, avoiding D1 query/diagnostic costs for that path. The reviewed
+derived semantic index is enabled with a 50-request/32,768-token daily ceiling;
+changed or unproved inputs use keyword fallback. Never substitute the near-empty
+historical native index. GA4/PostHog retain explicit
 privacy-safe product/search events. No paid analytics or per-query generation.
 
 For code changes: use an isolated branch, review/simplify the diff, run focused

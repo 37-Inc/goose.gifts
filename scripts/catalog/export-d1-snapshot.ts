@@ -378,7 +378,6 @@ export function checkCurrent(product: PublicCatalogProduct, projection: Row, cur
     || current.is_active !== 1 || current.duplicate_of_product_id !== null || typeof current.quality_score !== 'number'
     || !Number.isFinite(current.quality_score) || current.quality_score < (persistentPublicProduct(product) ? 0 : .55)
     || current.quality_score > 1
-    || current.source_facts_hash !== projection.source_facts_hash
     || typeof current.public_display_json !== 'string') throw new Error('current_hold_or_factual_drift');
   const approved = validatePublicCatalogProduct(JSON.parse(current.public_display_json), now);
   const persistent = persistentPublicProduct(product), currentPersistent = persistentPublicProduct(approved);
@@ -395,7 +394,8 @@ export function checkCurrent(product: PublicCatalogProduct, projection: Row, cur
     // No supplier observation time, availability or deadline is renewed here.
     return;
   }
-  if (!isPurchasableAvailability(String(current.availability_status)) || !['generated_ready', 'manual_locked', 'short_ready'].includes(String(current.editorial_status))
+  if (current.source_facts_hash !== projection.source_facts_hash
+    || !isPurchasableAvailability(String(current.availability_status)) || !['generated_ready', 'manual_locked', 'short_ready'].includes(String(current.editorial_status))
     || current.source_facts_hash !== current.editorial_source_hash || product.eligibleUntil === null || approved.eligibleUntil === null
     || current.editorial_status!=='short_ready'&&!product.editorialWriteup)
     throw new Error('current_hold_or_factual_drift');

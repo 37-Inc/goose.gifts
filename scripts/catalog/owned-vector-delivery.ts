@@ -8,7 +8,8 @@ import type { ActivationPermit, CatalogBuildRequest } from '../../lib/catalog/bu
 import { drainDeploymentObservation, encodeBuildRequest } from '../../lib/catalog/build-requests.ts';
 import { encodePublicationIntent, encodePublishedCatalogBinding } from '../../lib/catalog/publication.ts';
 import type { PublicationIntent, PublishedCatalogBinding } from '../../lib/catalog/publication.ts';
-import { validateCatalogSnapshot } from '../../lib/catalog/snapshot.ts';
+import { validateCatalogSnapshot,publicProductRightsExpiry,persistentDisplayRights } from '../../lib/catalog/snapshot.ts';
+import {persistentPublicProduct} from '../../lib/catalog/display.ts';
 import { hasAccountedVectorReadback } from './vectorize-rest.ts';
 import { pruneExistingRevision, prunedVectorIds, prunedVectorPlan, settleCapturedRevision, capturedRevisionBuildRequest } from '../../lib/catalog/prune-existing-revision.ts';
 import type { HistoricalNativeBinding, NativeHistoryBinding, PrunedRevision, PrunedVectorObservation, PrunedVectorPlan } from '../../lib/catalog/prune-existing-revision.ts';
@@ -67,13 +68,14 @@ export interface OriginalVectorSource {
   load(signal: AbortSignal): Promise<OriginalVector>;
 }
 interface Request {
-  kind: 'outbox' | 'prune'; publicId: string; catalogRevision: string; vector: SyncVector | null;
+  kind: 'outbox' | 'prune' | 'historical_restore'; publicId: string; catalogRevision: string; vector: SyncVector | null;
   event: VectorEvent | null; payloadSha256: string | null; planSha256: string | null;
   globalWatermark: number | null; projectionReceipt: Row | null; eligibleUntil: string | null; pruneCurrent: Row | null;
   providerIdentity: string;
   /** New prune DELETEs retain hashes, never expired merchant bodies. Legacy
    * journals without this field keep their original exact-row replay format. */
   pruneDeleteControl?: { schemaVersion:1; productSha256:string; sourceSha256:string };
+  historicalRestore?: {original:Row;deletion:Row};
 }
 interface PruneDeleteSource { planSha256:string; current:Row; projectionReceipt:Row }
 interface Journal extends Row {
@@ -116,8 +118,8 @@ function productAssertion(db: CatalogD1, product: Row, request: Request, require
   const columns = Object.keys(product);
   if (!columns.length || columns.length > 65 || columns.some(key => !/^[a-z_]+$/.test(key))) throw new Error('vector_product_changed');
   return assertion(db, `EXISTS(SELECT 1 FROM products WHERE ${columns.map(key => `${key} IS ?`).join(' AND ')}
-    ${request.vector && requireFresh ? `AND eligible_until>${NOW} AND ?>${NOW}` : ''})`,
-  [...columns.map(key => product[key]), ...(request.vector && requireFresh ? [request.eligibleUntil] : [])]);
+    ${request.vector && requireFresh && request.kind!=='historical_restore' ? `AND eligible_until>${NOW} AND ?>${NOW}` : ''})`,
+  [...columns.map(key => product[key]), ...(request.vector && requireFresh && request.kind!=='historical_restore' ? [request.eligibleUntil] : [])]);
 }
 function encodeRequest(request: Request): string {
   // JSON cannot preserve float32 negative zero. Persist the native vector_send
@@ -132,6 +134,14 @@ function decodeRequest(bytes: string): Request {
   return request;
 }
 function requestAssertions(db: CatalogD1, request: Request) {
+  if(request.kind==='historical_restore'){
+    if(!request.historicalRestore||!request.vector||request.eligibleUntil!==null)throw Error('vector_restore_invalid');
+    return Object.values(request.historicalRestore).map(row=>{
+      const keys=Object.keys(row);
+      if(keys.length>65||keys.some(k=>!/^[a-z_][a-z0-9_]*$/.test(k)))throw Error('vector_restore_invalid');
+      return assertion(db,`EXISTS(SELECT 1 FROM catalog_vector_deliveries WHERE ${keys.map(k=>`${k} IS ?`).join(' AND ')})`,keys.map(k=>row[k]));
+    });
+  }
   if (request.event) {
     const event = request.event;
     return [assertion(db, `EXISTS(SELECT 1 FROM vector_sync_outbox WHERE sequence=? AND public_id=? AND source_revision=?
@@ -281,7 +291,8 @@ async function execute(options: { db: CatalogD1; owner: MutationOwner; id: strin
   try { actual = await bounded(signal => adapters.readback(request.publicId, signal), timeout); }
   catch { return pendingResult(db, input, row, 'provider_failed'); }
   const isVisible = visible(request.vector, actual);
-  const fresh = !request.vector || (await db.prepare(`SELECT ?>${NOW} fresh`).bind(request.eligibleUntil).all<{ fresh:number }>()).results[0].fresh === 1;
+  const fresh = !request.vector || request.kind==='historical_restore'
+    || (await db.prepare(`SELECT ?>${NOW} fresh`).bind(request.eligibleUntil).all<{ fresh:number }>()).results[0].fresh === 1;
   if (!isVisible && !row.dispatch_token && fresh) {
     if(options.resumeOnly)throw new Error('vector_resume_dispatch_forbidden');
     if (row.attempts >= 3) return pendingResult(db, input, row, 'attempts_exhausted');
@@ -465,6 +476,40 @@ export function deliverOwnedOutboxEvent(options: Parameters<typeof outboxDeliver
 }
 export function deliverOwnedPrunedVector(options: Parameters<typeof pruneDelivery>[0]): Promise<DeliveryResult> {
   return safe(() => pruneDelivery(options));
+}
+/** Undo one confirmed erroneous DELETE using its exact previously verified
+ * native payload. This restores OLD metadata/bits, never a fresh supplier/input
+ * claim. Ordinary promotion retains all original expiry checks. */
+export function restoreOwnedHistoricalVector(options:{db:CatalogD1;owner:MutationOwner;publicId:string;
+  originalDeliveryId:string;originalSha256:string;deletionDeliveryId:string;deletionSha256:string;adapters:OwnedVectorAdapters}){
+  return safe(async()=>{
+    const {db,owner,adapters}=options;adapterScope(owner,adapters);
+    const original=await journal(db,options.originalDeliveryId),deletion=await journal(db,options.deletionDeliveryId);
+    if(!original||!deletion||owner.phase!=='freezing'||sha256(canonicalJson(original))!==options.originalSha256
+      ||sha256(canonicalJson(deletion))!==options.deletionSha256||original.status!=='complete'||original.disposition!=='verified'
+      ||deletion.status!=='complete'||deletion.disposition!=='verified'||deletion.generation!==owner.generation
+      ||Number(original.generation)>=owner.generation||!deletion.mutation_reference)throw Error('vector_restore_invalid');
+    const old=decodeRequest(original.request_json),removed=decodeRequest(deletion.request_json);
+    const evidence=JSON.parse(String(deletion.evidence_json)).at(-1);
+    const latest=(await db.prepare(`SELECT delivery_id FROM catalog_vector_deliveries WHERE environment=? AND index_name=?
+      AND status='complete' AND disposition='verified' AND json_extract(request_json,'$.publicId')=?
+      AND json_extract(request_json,'$.kind') IN('outbox','prune') AND json_type(request_json,'$.vector')='object'
+      ORDER BY generation DESC,prior_epoch DESC LIMIT 1`).bind(owner.environment,owner.indexName,options.publicId).all()).results;
+    if(!old.vector||old.publicId!==options.publicId||removed.publicId!==options.publicId||removed.vector!==null||removed.kind!=='prune'
+      ||latest.length!==1||latest[0].delivery_id!==original.delivery_id||evidence?.state!=='settled_visible'
+      ||evidence.reference!==deletion.mutation_reference
+      ||old.providerIdentity!==adapters.providerIdentity||removed.providerIdentity!==adapters.providerIdentity
+      ||[original,deletion].some(r=>r.environment!==owner.environment||r.index_name!==owner.indexName))throw Error('vector_restore_invalid');
+    const product=(await db.prepare('SELECT * FROM products WHERE public_id=?').bind(options.publicId).all<Row>()).results[0];
+    const base=typeof product?.public_display_json==='string'?persistentPublicProduct(JSON.parse(product.public_display_json)):null;
+    if(!base||product.is_active!==1||product.duplicate_of_product_id!==null
+      ||publicProductRightsExpiry(base,persistentDisplayRights(JSON.parse(String(product.rights_json))),new Date())!==Infinity)
+      throw Error('vector_restore_invalid');
+    const id=idFor(owner,{kind:'historical_restore',original:options.originalSha256,deletion:options.deletionSha256});
+    return execute({db,owner,id,adapters,timeout:10000,prepare:async()=>({product,request:{kind:'historical_restore',publicId:options.publicId,
+      catalogRevision:old.catalogRevision,vector:old.vector,event:null,payloadSha256:null,planSha256:null,globalWatermark:null,
+      projectionReceipt:null,eligibleUntil:null,pruneCurrent:null,historicalRestore:{original,deletion}}})});
+  });
 }
 /** Settle an existing accepted body-free DELETE only. The independently pinned
  * sealed plan is control data, not an invented/partial PrunedRevision. No new

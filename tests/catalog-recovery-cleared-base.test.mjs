@@ -3,6 +3,7 @@ import test from 'node:test';
 import {DatabaseSync} from 'node:sqlite';
 import {planClearedBaseRecovery,applyClearedBaseRecovery,recoveredBaseLink} from '../scripts/catalog/cleared-base-recovery.ts';
 import {canonicalJson,sha256} from '../scripts/catalog/migration.ts';
+import {checkCurrent} from '../scripts/catalog/export-d1-snapshot.ts';
 
 function fixture(){
   const publicId='00000000-0000-4000-8000-000000000001',id='B000000001',at='2026-10-30T18:00:00.000Z';
@@ -51,6 +52,12 @@ test('restores only exact licensed base and equivalent facts, leaving source/rig
     x=>x.operations[0].changes_json='[]',x=>x.seal.snapshotSha256='0'.repeat(64)]){
     const bad=fixture();mutate(bad.input);assert.throws(bad.plan);
   }
+});
+test('a cleared permanent listing does not inherit the prior supplier-facts hash gate',()=>{
+  const f=fixture(),c=f.plan().changes[0],current={...c.after,maintenance_semantic:c.nextState.semantic_json};
+  assert.doesNotThrow(()=>checkCurrent(f.base,{source_facts_hash:'0'.repeat(64)},current,new Date(f.input.now)));
+  for(const change of [{is_active:0},{rights_json:'{}'},{duplicate_of_product_id:'another-id'}])
+    assert.throws(()=>checkCurrent(f.base,{source_facts_hash:'0'.repeat(64)},{...current,...change},new Date(f.input.now)));
 });
 test('atomic fenced repair is idempotent, preserves original receipt/native, and proves exact carry-forward only',async t=>{
   const f=fixture(),{sql,db}=database(t,f),plan=f.plan(),first=await applyClearedBaseRecovery(db,plan);
