@@ -14,7 +14,10 @@ export function ShowRehearsal({ opening, picks }: { opening: ReactNode; picks: R
     }}>
       <label className="sr-only" htmlFor="show-gift-query">Search gifts</label>
       <input id="show-gift-query" type="search" placeholder="Find something stupid"
-        value={query} maxLength={200} onChange={(event) => setQuery(event.target.value)} />
+        value={query} maxLength={200} onChange={(event) => {
+          setQuery(event.target.value);
+          if (!event.target.value) setRevealed(false);
+        }} />
       <button type="submit">Go</button>
       {query && <button type="button" className="clear-search" onClick={() => {
         setQuery(""); setRevealed(false);
