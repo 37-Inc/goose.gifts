@@ -13,7 +13,17 @@ idle owner and accepted successor were verified. This is the catalog receipt,
 not the current storefront code/version. See
 `evidence/2026-10-25-full-catalog-accepted.json` for exact identities and costs.
 
-**Latest verified storefront, October29 Pacific:** PR301's source462d603 serves
+**Latest verified storefront, October29 Pacific:** PR304 source 3e5abd9 serves
+`howie-demo-20261029-3e5abd9-v2`, version 602eb098-6e81-4682-b173-675a0e2e9df5,
+deployment e3e7215d-9bdf-4366-b395-9f7b88fd4d16. Public `/h` is unlisted and
+noindex, but not access-controlled; Enter reveals the rehearsed assortment.
+The original D1 catalog receipt, semantic inputs, analytics and idle owner are
+unchanged. The source checkout at `stupid-howie-live/stupid.gifts` is a frozen
+publication binding, not an enabled daily operator. Receipt and exact same-upload
+continuation evidence live in private `howie-demo-20261029`; do not repeat its
+upload or activation. The daily task remains paused for `.4.13`.
+
+**Previous storefront, October29 Pacific:** PR301's source462d603 served
 `catalog-merchandising-20261029-462d603`, version1897247d-90a9-44dc-a994-ef6a535bab35.
 It uses the SAME accepted catalog, not a new D1 catalog receipt. Six weekly
 anchors plus eighteen daily rediscoveries are live;3352public/31excluded/42articles,

@@ -1,13 +1,16 @@
 # goose.gifts — Running Changelog & Plan
 
-## 2026-10-29 — Howie demo prepared for release
+## 2026-10-29 — Howie demo live
 
-[owner+claude] Integrated the private, noindex `/h` rehearsal with the current
+[owner+claude] Integrated the unlisted, noindex `/h` rehearsal with the current
 storefront. Enter or Go reveals six hand-picked catalog gifts and a direct
 non-affiliate seller link; typing does not call search. This is a rehearsed
 assortment, not personalized search. Existing catalog and homepage are unchanged.
-Merge and production publication are separate; verify the actual release before
-claiming this page is live.
+PR304 merged as 22618ef. Cloudflare release `howie-demo-20261029-3e5abd9-v2`
+is live on source 3e5abd9, version 602eb098-6e81-4682-b173-675a0e2e9df5;
+the public page and Enter reveal passed. It is accessible to anyone with the
+link, not password-protected. Existing catalog, semantic inputs and analytics
+remain. The daily catalog task remains paused for `.4.13`.
 
 ## 2026-10-29 — Automatic homepage mix is LIVE; writer handoff remains open
 
