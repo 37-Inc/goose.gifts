@@ -16,7 +16,21 @@
   "finalReviewDelivered": false,
   "finalReviewDeliveredAt": null,
   "noFurtherGenerationOrPublicationUntilExplicitNewOwnerExperiment": true,
-  "scheduleAction": "leave existing two daily slots ACTIVE and unchanged; do not create duplicate review job",
+  "scheduleAction": "Owner-directed October29 manager handoff: retire the separate Pinterest heartbeat after durable follow-up tracking is confirmed; manager owns remaining review/checkpoints and next bounded plan. Do not create a duplicate growth studio.",
+  "operatingHandoff": {
+    "ownerDirectedAtUtc": "2026-10-30T03:42:57Z",
+    "targetThreadId": "019f4af2-1ee6-70b2-8111-61be6dc395a9",
+    "targetThreadTitle": "Stupid Gifts — Manager",
+    "receipt": "docs/ops/pinterest-handoff-2026-10-29/receipt.json",
+    "reviewBead": "roadmap-lbbz1.8.1",
+    "checkpointBead": "roadmap-lbbz1.8.1.1",
+    "nextPhaseBead": "roadmap-lbbz1.8.1.2",
+    "preferredFutureDirection": "Mini Bowling-style product-derived playful editorial posters (Arm P), an owner-preferred provisional direction, not a demonstrated format/acquisition winner",
+    "newPublicationAuthorityGrantedByHandoff": false,
+    "oldTimerRetirementStatus": "deleted",
+    "confirmedDeletedAtUtc": "2026-10-30T03:48:34Z",
+    "centralTrackingRef": "d2d41389b7e02c40825063326100b240c7f2c967"
+  },
   "interventions": [{
     "type": "goose_to_stupid_path_preserving_domain_redirect",
     "firstWwwRedirectObservedAt": "2026-10-24T04:45:24.000Z",
