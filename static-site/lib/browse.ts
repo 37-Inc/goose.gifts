@@ -63,10 +63,12 @@ export function isHomepageRotationCandidate(product: ReturnType<typeof rankedBro
 }
 
 // Keep these searchable in the full catalog, but prefer a distinctive object
-// over a dated body-print bag, packaged emergency kit, or birthday-only roll.
+// over dated, generic, or sexually explicit items in the broadcast-facing lead.
+// Every product remains available in the full catalog and search.
 function isLowImpactLead(title: string) {
   const text = title.toLowerCase().replace(/[-–—]/g, " ");
-  return /\b(?:belly|dad body)\b.*\b(?:fanny|waist) pack\b/.test(text)
+  return /\b(?:penis|dildo|testicles?|vagina)\b/.test(text)
+    || /\b(?:belly|dad body)\b.*\b(?:fanny|waist) pack\b/.test(text)
     || /\b(?:shart|poop|fart)\b.*\b(?:survival|emergency)\b.*\bkit\b/.test(text)
     || /\b(?:birthday.*toilet paper|toilet paper.*birthday)\b/.test(text)
     || /\bduck\b.*\b(?:figurine|statue)\b/.test(text);
