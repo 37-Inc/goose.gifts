@@ -61,7 +61,7 @@ test("all products remain reachable once, including non-homepage formats and fam
 test("brand-keyword stuffing and printed commodities do not qualify for rotating lead slots", () => {
   const asOf = new Date("2026-10-29T16:00:00.000Z");
   for (const title of ["Funny accountant mug", "Funny Halloween Socks", "Funny Poop Shirts", "Funny Animal Stickers",
-    "Funny Dad Jokes Book", "Funny Toilet Bathroom Signs", "Funny Stress Cube Desk Toy", "Funny Cat Sleeping Mask", "Funny Poodle Plush Keychain",
+    "Funny Dad Jokes Book", "Funny Toilet Bathroom Signs", "Funny Stress Cube Desk Toy", "Funny Cat Sleeping Mask", "Funny Poodle Plush Keychain", "Penis Shaped Silicone Cake Mould",
     "Belly Fanny Pack Dad Bag", "Shart Survival Kit Funny Gift", "Happy Birthday Prank Toilet Paper", "Funny Duck Figurine Statue"]) {
     assert.equal(isHomepageRotationCandidate(product("test", title), asOf), false, title);
   }
@@ -75,11 +75,12 @@ test("dated lead formats stay in the catalog while the opening avoids repetitive
   input.products[0] = product(homepage.featuredIds[0], "Belly Fanny Pack Dad Bag");
   input.products.push(product("kit", "Shart Survival Kit Funny Gift"));
   input.products.push(product("birthday", "Happy Birthday Prank Toilet Paper"));
+  input.products.push(product("explicit", "Penis Shaped Silicone Cake Mould"));
   input.products.push(...Array.from({ length: 20 }, (_, i) => product(`poop${i}`, `Funny poop stress ball item${i}`)));
   const all = merchandisedBrowseProducts(input, at), first = all.slice(0, 24);
-  assert.equal(first.some(p => [homepage.featuredIds[0], "kit", "birthday"].includes(p.id)), false);
+  assert.equal(first.some(p => [homepage.featuredIds[0], "kit", "birthday", "explicit"].includes(p.id)), false);
   assert.ok(ids(all).includes(homepage.featuredIds[0]));
-  assert.ok(ids(all).includes("kit"));assert.ok(ids(all).includes("birthday"));
+  assert.ok(ids(all).includes("kit"));assert.ok(ids(all).includes("birthday"));assert.ok(ids(all).includes("explicit"));
   assert.ok(first.filter(p => /\bpoop\b/.test(p.title.toLowerCase())).length <= 1);
 });
 
