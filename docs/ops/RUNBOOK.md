@@ -6,6 +6,22 @@ latest protected receipt take precedence over historical journal entries.
 
 ## Current state
 
+October30 23:02UTC: publication remains **HELD**, not accepted. The corrected
+package was uploaded once as version `99409f6b-ce64-4cb2-bb00-9730bcd81aaa`,
+but has no deployment or activation permit. The real public release remains
+`howie-feedback-20261030-5c8caad`. Keep the existing daily task PAUSED.
+The approved750-request continuation was applied once; it is not pending
+approval. Final retained combined ledger:5,400HTTP/7,547SQL/1,543,207known
+reads/40,522writes/four original read-only unknowns, zero child unknowns.
+The last atomic statement crossed the internal1.5M read guard, and the client
+stopped. Fresh account-wide usage is1,544,488reads/40,953writes, below Free
+5M/100k. Do not reset/refund charges or raise the separate read limit without
+owner approval. Preserve the exact uploaded version/checkpoint; never re-upload
+or replay supplier phases. The original build lease expired22:59:11.844UTC;
+any continuation also needs exact accounted dispatch/build/owner reconciliation,
+not forced ownership. Protected `uploaded-read-budget-hold.json` records the
+checkpoint, immutable version, public identity and fresh provider usage.
+
 The October30 publication-only recovery is tracked in
 `roadmap-lbbz1.4.13`. Its acceptance receipt is
 `~/.codex/private/goose-gifts-migration/catalog-corrected-publication-20261030/accepted-publication.json`.
