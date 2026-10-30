@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "kind": "owner-directed-manager-handoff-validation",
+  "pullRequest": "https://github.com/37-Inc/stupid.gifts/pull/302",
+  "retainedOperatorEvidenceCommit": "32d51c8f2e4630202f0e6d2b27783172e0a28143",
+  "mainBasedEvidenceCommit": "d3174790ede7be55caee695ef4d2212485f294ec",
+  "upstreamMain": "ca4e28600b03d6d5cc341f1905937522b08afcab",
+  "creativeLog": {
+    "valid": true,
+    "events": 1119,
+    "experiments": 8,
+    "candidates": 37,
+    "newLearningEvents": 1,
+    "newMetricEvents": 0
+  },
+  "tests": {
+    "creative": 6,
+    "pinterest": 18,
+    "failed": 0,
+    "skipped": 0,
+    "lintErrors": 0,
+    "lintWarnings": 0,
+    "diffCheckPass": true
+  },
+  "cohortInvariants": {
+    "membershipUnchanged": true,
+    "successfulReceiptsAndTimestampsUnchanged": true,
+    "deadlineUnchanged": true,
+    "finalReviewUndelivered": true,
+    "priorInterventionsUnchanged": true,
+    "allowedMutableFields": [
+      "scheduleAction",
+      "operatingHandoff"
+    ],
+    "experimentAuthorizationUnchanged": true
+  },
+  "runtimePolicyPackagePublicationReceiptChanges": [],
+  "newPinOrSandboxWrite": false,
+  "newExperimentStarted": false,
+  "preferredDirection": "Owner-selected provisional Mini Bowling-style product-derived playful posters, not a proven general acquisition/format winner",
+  "managerBeads": [
+    "roadmap-lbbz1.8.1",
+    "roadmap-lbbz1.8.1.1",
+    "roadmap-lbbz1.8.1.2"
+  ],
+  "storedDueTimesAssertedUtc": {
+    "review": "2026-10-31T23:30:00Z",
+    "first28day": "2026-11-10T20:07:10Z"
+  },
+  "centralRemoteDoltRef": "d2d41389b7e02c40825063326100b240c7f2c967",
+  "oldHeartbeatDeletedAndConfigAbsent": true,
+  "replacementBackgroundStudioCreated": false,
+  "retainedOperatorAndLockPreserved": true,
+  "canonicalAndCatalogPinsNotAdvanced": true,
+  "dependencyReuse": {
+    "readOnly": true,
+    "lockSha256": "a43344f0f71170325664381c153f2d8acc8519d3a7986a15536ce56dab748381",
+    "newInstall": false
+  },
+  "build": {
+    "rerun": false,
+    "reason": "Docs/operating metadata only. No runtime/static/dependency change. Existing accepted cutover build and release verifier retained; no new build or deployment claim.",
+    "acceptedImplementationSource": "0bdf589e05148ee2e634117e43e1201acebff997"
+  },
+  "chatArchive": "Owner requested; final app archive/readback after evidence merge."
+}
