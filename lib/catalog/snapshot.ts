@@ -1,4 +1,4 @@
-import { getGiftPath, hasIndexableGiftEditorial, hasReviewedGiftEditorial, hasSubstantiveGiftEditorial } from '../gift-slugs.ts';
+import { getGiftPath, hasIndexableGiftEditorial, hasReviewedGiftEditorial, hasReviewedGiftShortCopy, hasSubstantiveGiftEditorial, isPurchasableAvailability } from '../gift-slugs.ts';
 import { EXACT_DUPLICATE_LISTINGS } from './duplicate-listings.ts';
 import { isPersistentImagePath } from './persistent-image.ts';
 import type { CatalogSnapshot, ContentRight, DisplayField, DisplayRights, HeldReason, ProductRights,
@@ -94,7 +94,7 @@ export function publicProductRightsExpiry(product: PublicCatalogProduct, rights:
   const permanent = product.eligibleUntil === null;
   const permission = permanent ? persistentDisplayRights(rights) : rights;
   const fields: DisplayField[] = ['title', 'description', 'imageUrl', 'affiliateUrl'];
-  if (!permanent || product.editorialWriteup) fields.push('editorialWriteup');
+  if (product.editorialWriteup) fields.push('editorialWriteup');
   for (const field of OPTIONAL_FIELDS) if (field in product && !fields.includes(field)) fields.push(field);
   const expiries = fields.map((field) => {
     const value = field === 'humorTags' ? JSON.stringify(product.humorTags) : product[field];
@@ -222,11 +222,12 @@ export function createCatalogSnapshot(products: SnapshotProductInput[], rightsBy
         editorialQualityScore: product.editorialQualityScore,
         sourceFactsHash: product.sourceFactsHash, editorialSourceHash: product.editorialSourceHash } }, options.now,
       options.dataKind === 'synthetic_fixture') : null;
+    const shortReady = hasReviewedGiftShortCopy(product);
     const values: Partial<Record<DisplayField, string>> = {
-      title: product.title, description: product.description || product.wittyDescription,
+      title: product.title, description: shortReady ? product.wittyDescription : product.description || product.wittyDescription,
       imageUrl: product.imageUrl, affiliateUrl: product.affiliateUrl,
       punnyTitle: product.punnyTitle, wittyDescription: product.wittyDescription,
-      editorialWriteup: product.editorialWriteup,
+      editorialWriteup: product.editorialStatus === 'short_ready' ? undefined : product.editorialWriteup,
       humorTags: product.humorTags?.length ? JSON.stringify(product.humorTags) : undefined,
     };
     const verifiedRaw = product.availabilityCheckedAt || product.lastVerifiedAt;
@@ -236,8 +237,9 @@ export function createCatalogSnapshot(products: SnapshotProductInput[], rightsBy
     if (product.isActive === false) reason = 'inactive';
     else if (product.duplicateOfProductId || EXACT_DUPLICATE_LISTINGS[product.id]) reason = 'duplicate';
     else if (!Number.isFinite(verified) || verified > now || editorialExpiry <= now) reason = 'expired';
-    else if (!hasIndexableGiftEditorial(product, options.now) || (product.qualityScore || 0) < 0.55) reason = 'editorial_hold';
-    const required: DisplayField[] = ['title', 'description', 'imageUrl', 'affiliateUrl', 'editorialWriteup'];
+    else if (!(hasIndexableGiftEditorial(product, options.now) || shortReady && isPurchasableAvailability(product.availabilityStatus))
+      || (product.qualityScore || 0) < 0.55) reason = 'editorial_hold';
+    const required: DisplayField[] = ['title', 'description', 'imageUrl', 'affiliateUrl', ...(!shortReady ? ['editorialWriteup' as const] : [])];
     const expiries = required.map((field) => approvedRight(rights[field], values[field] || '', now));
     if (!reason && expiries.some((expiry) => expiry === null)) reason = 'rights_unverified';
     if (reason) {

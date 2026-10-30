@@ -3,7 +3,7 @@ import type { CatalogSnapshot, ProductRights, PublicCatalogProduct } from '../..
 import { createProjectionPacket } from '../../lib/catalog/d1.ts';
 import { canonicalTime, EDITORIAL_MAX_AGE_MS, persistentDisplayRights, publicProductRightsExpiry,
   validateCatalogSnapshot, validatePublicCatalogProduct } from '../../lib/catalog/snapshot.ts';
-import { isPurchasableAvailability } from '../../lib/gift-slugs.ts';
+import { isPurchasableAvailability, hasReviewedGiftShortCopy } from '../../lib/gift-slugs.ts';
 import { catalogDisplayDeadline, persistentPublicProduct } from '../../lib/catalog/display.ts';
 import { suppressNearDuplicateProducts } from '../../lib/db/product-scoring.ts';
 import { canonicalJson, canonicalTimestamp, sha256 } from './migration.ts';
@@ -46,10 +46,30 @@ const jsonColumns = (alias: string, columns: string[], extra: Record<string, str
 // never duplicate source/semantic bodies across the whole catalog capture.
 const EQUIVALENCE_NEEDED = `p.source_facts_hash IS NOT p.editorial_source_hash AND
   (json_extract(p.public_display_json,'$.indexable')=1 OR json_extract(p.public_display_json,'$.persistent.indexable')=1)`;
+const copyField=(camel:string,snake:string)=>`CASE WHEN m.product_id IS NULL THEN json_extract(p.source_record_json,'$.${snake}')
+  ELSE json_extract(m.semantic_json,'$.${camel}') END`;
 const EDITORIAL_PROOF = {
   source_record_json: `CASE WHEN ${EQUIVALENCE_NEEDED} THEN p.source_record_json END`,
   maintenance_semantic: `CASE WHEN ${EQUIVALENCE_NEEDED} THEN m.semantic_json END`,
+  short_copy_description:`CASE WHEN p.editorial_status='short_ready' THEN ${copyField('wittyDescription','witty_description')} END`,
+  short_copy_quality:`CASE WHEN p.editorial_status='short_ready' THEN ${copyField('editorialQualityScore','editorial_quality_score')} END`,
+  short_copy_current:`CASE WHEN p.editorial_status='short_ready' THEN (${copyField('editorialStatus','editorial_status')})=p.editorial_status
+    AND (${copyField('sourceFactsHash','source_facts_hash')})=p.source_facts_hash
+    AND (${copyField('editorialSourceHash','editorial_source_hash')})=p.editorial_source_hash END`,
 };
+
+// The whole-catalog reader carries only these small fields for short listings,
+// not every product's archived source or private maintained body.
+function shortCopyFields(current:Row,semantic=current.maintenance_semantic) {
+  if(current.editorial_status!=='short_ready')return {};
+  const source=object(JSON.parse(String(semantic??current.source_record_json)));
+  const field=(camel:string,snake:string)=>source[semantic==null?snake:camel];
+  return {short_copy_description:field('wittyDescription','witty_description'),
+    short_copy_quality:field('editorialQualityScore','editorial_quality_score'),
+    short_copy_current:field('editorialStatus','editorial_status')===current.editorial_status
+      &&field('sourceFactsHash','source_facts_hash')===current.source_facts_hash
+      &&field('editorialSourceHash','editorial_source_hash')===current.editorial_source_hash?1:0};
+}
 
 /** One statement, bounded row-per-product output, not a giant aggregate JSON cell.
  * json_each of one bounded ID array avoids D1's100-parameter ceiling. Outbox
@@ -278,6 +298,7 @@ export async function readApprovedCurrentRows(db: CatalogD1, ids: string[], owne
     const archive = JSON.parse(String(row.source_record_json));
     return { ...Object.fromEntries(CURRENT.map(key => [key, row[key]])), approved_product_json:canonicalJson(row),
       source_record_json:row.source_record_json,maintenance_semantic:joined[index]._editorial_semantic,
+      ...shortCopyFields(row,joined[index]._editorial_semantic),
       ...Object.fromEntries(['id','public_id','source','availability_checked_at','last_verified_at'].map(key => [`archived_${key}`, archive[key] ?? null])) };
   });
   await bindMaintenanceObservations(db, current, owner,gate,signal);
@@ -374,9 +395,17 @@ export function checkCurrent(product: PublicCatalogProduct, projection: Row, cur
     // No supplier observation time, availability or deadline is renewed here.
     return;
   }
-  if (!isPurchasableAvailability(String(current.availability_status)) || !['generated_ready', 'manual_locked'].includes(String(current.editorial_status))
-    || current.source_facts_hash !== current.editorial_source_hash || product.eligibleUntil === null || approved.eligibleUntil === null)
+  if (!isPurchasableAvailability(String(current.availability_status)) || !['generated_ready', 'manual_locked', 'short_ready'].includes(String(current.editorial_status))
+    || current.source_facts_hash !== current.editorial_source_hash || product.eligibleUntil === null || approved.eligibleUntil === null
+    || current.editorial_status!=='short_ready'&&!product.editorialWriteup)
     throw new Error('current_hold_or_factual_drift');
+  if(current.editorial_status==='short_ready'){
+    const proof=Object.hasOwn(current,'short_copy_current')?current:shortCopyFields(current);
+    if(product.editorialWriteup||proof.short_copy_current!==1||proof.short_copy_description!==product.description||!hasReviewedGiftShortCopy({
+      editorialStatus:'short_ready',wittyDescription:typeof proof.short_copy_description==='string'?proof.short_copy_description:undefined,
+      editorialQualityScore:Number(proof.short_copy_quality),sourceFactsHash:String(current.source_facts_hash),
+      editorialSourceHash:String(current.editorial_source_hash)}))throw new Error('current_hold_or_factual_drift');
+  }
   // A grant/factual hash alone cannot make a changed manual display compatible.
   // Only a renewed deadline may advance without changing the sealed display.
   if (canonicalJson({ ...approved, eligibleUntil: product.eligibleUntil }) !== canonicalJson(product)) throw new Error('current_display_incompatible');

@@ -6,6 +6,33 @@ state changes without dirtying its retained execution checkout.
 
 ---
 
+## 2026-10-29 — Owner-approved bounded care and homepage implementation
+
+Cameron approved improving the existing ten-product/six-theme pipeline, selecting
+admissions before enrichment and separating required short descriptions from
+optional long articles. Higher-volume discovery remains deferred. He does not
+want to manually curate homepage issues. PR301 implements six weekly rotating
+anchors from the existing featured pool plus eighteen daily source-qualified
+rediscoveries, deterministic at actual publication, preserving all public gifts
+in the complete feed. Refresh fairness uses four oldest featured/six oldest other
+public items with sparse-lane backfill; public membership is not article readiness.
+
+The old Oct26 recovery is already complete: retained recovery-complete.json
+records failed_recovered and idle23/531. No recovery/provider/owner replay occurred.
+The accepted semantic file release3f144eb retains catalog d6f1c526/3352public/
+31exclusions/42articles. The saved existing daily heartbeat and runbook were stale;
+they now distinguish completed recovery from remaining maintained-operator
+catalog-successor/file-prior alignment and normal live acceptance. Same08:30Pacific
+timer stays PAUSED until that acceptance; no duplicate schedule or new allowance.
+No owner login/upgrade/generic approval is presently identified as missing.
+
+New short-copy status is short_ready, not a false long-article approval. Existing
+manual locks/approved copy/vectors are reused; new embedding work excludes rejected
+drafts. Historical long text remains retained, but short review cannot approve an
+old article against changed facts. Every public gift retains its lightweight URL.
+Source/test/PR acceptance and actual Cloudflare/runtime/job acceptance must be
+recorded separately. No merchant/model batch was run to produce this entry.
+
 ## 2026-10-29 evening Pacific — manager handoff and studio retirement
 
 Owner requested adopting the clear reach leader, handing all remaining work

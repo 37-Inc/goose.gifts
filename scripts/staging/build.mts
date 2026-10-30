@@ -101,7 +101,8 @@ export async function buildStaticRelease(root: string) {
   await fs.writeFile(path.join(generated, 'site-identity.json'), identityBytes);
   await fs.writeFile(path.join(generated, 'feed-plan.json'), `${JSON.stringify(createStaticFeedPlan(snapshot, catalogSnapshotSha256))}\n`);
   execFileSync(process.execPath, ['node_modules/next/dist/bin/next', 'build', 'static-site', '--webpack'], {
-    cwd: root, env: { ...buildEnv, CATALOG_SNAPSHOT_PATH: input }, stdio: 'inherit',
+    cwd: root, env: { ...buildEnv, CATALOG_SNAPSHOT_PATH: input,
+      CATALOG_RELEASE_CONTEXT_PATH: path.join(generated, 'release-context.json') }, stdio: 'inherit',
   });
   assertBuildSource(root, codeSha);
   const files = (await fs.readdir(output, { recursive: true, withFileTypes: true }))
@@ -113,7 +114,7 @@ export async function buildStaticRelease(root: string) {
   // Validate Next's complete export before selecting this native-anchor site's
   // document output. HTML includes its own hydration payload; standalone Flight
   // navigation files are deliberately not published. Safe/legal text remains.
-  const navigationRoutes = createStaticRoutes(snapshot, [...currentAssets.keys()], undefined, siteIdentityFor(context.sourceMode));
+  const navigationRoutes = createStaticRoutes(snapshot, [...currentAssets.keys()], undefined, siteIdentityFor(context.sourceMode), context.generatedAt);
   const assembled = assembleReleaseAssets(snapshot, documentAssets(currentAssets, navigationRoutes), context, priorPackage);
   // Only generated outputs in this build are removed, never historical packages.
   for (const name of currentAssets.keys()) if (!assembled.assets.has(name))

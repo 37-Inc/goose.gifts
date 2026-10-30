@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
 
 export const EDITORIAL_PROMPT_VERSION = 'catalog-editorial-v2';
-export const EDITORIAL_READY_STATUSES = new Set(['generated_ready', 'manual_locked']);
+export const SHORT_COPY_PROMPT_VERSION = 'catalog-short-copy-v1';
+export const EDITORIAL_READY_STATUSES = new Set(['short_ready', 'generated_ready', 'manual_locked']);
 export const PURCHASABLE_AVAILABILITY = new Set([
   'IN_STOCK',
   'IN_STOCK_SCARCE',
@@ -101,14 +102,14 @@ export function editorialSimilarity(first, second) {
   return overlap / new Set([...left, ...right]).size;
 }
 
-function listingEvidenceTerms(product) {
+function listingEvidenceTerms(product, minimumLength = 5) {
   const factText = JSON.stringify(normalizedSourceSnapshot(product))
     .toLowerCase()
     .replace(/https?:[^"\s]+/g, ' ')
     .replace(/[^a-z0-9]+/g, ' ');
   return [...new Set(factText.split(/\s+/).filter((term) => (
-    term.length >= 5
-      && !['amazon', 'product', 'funny', 'gifts', 'large', 'small'].includes(term)
+    term.length >= minimumLength
+      && !['amazon', 'product', 'funny', 'gifts', 'gift', 'large', 'small', 'the', 'and', 'for', 'with'].includes(term)
   )))];
 }
 
@@ -141,6 +142,73 @@ export function validateEditorialDraft(product, editorialWriteup, existingWriteu
     paragraphCount: sections.length,
     evidenceMatches,
   };
+}
+
+/** Listing readiness is independent of the optional long article. The separate
+ * reviewer must still approve every claim against the supplied listing facts. */
+export function validateShortDescription(product, value) {
+  const description = String(value || '').trim();
+  const normalized = description.toLowerCase();
+  const words = editorialWordCount(description);
+  const reasons = [];
+  if (words < 6 || words > 35 || description.length > 220) reasons.push('short_copy_length');
+  if (/[\r\n]/.test(description)) reasons.push('short_copy_paragraphs');
+  if (GENERIC_PHRASES.some(phrase => normalized.includes(phrase))) reasons.push('generic_language');
+  if (MUTABLE_CLAIM_PATTERNS.some(pattern => pattern.test(description))) reasons.push('mutable_offer_claim');
+  if (sourceFactCount(product) < 2) reasons.push('insufficient_source_facts');
+  const writtenTerms = new Set(normalized.match(/[a-z0-9]+/g) || []);
+  const evidenceMatches = listingEvidenceTerms(product, 3).filter(term => writtenTerms.has(term)).length;
+  if (evidenceMatches < 2) reasons.push('insufficient_listing_specificity');
+  return { approved: reasons.length === 0, reasons, wordCount: words, evidenceMatches };
+}
+
+export function hasCurrentApprovedCopy(product) {
+  if (!EDITORIAL_READY_STATUSES.has(product.editorialStatus)
+    || product.editorialSourceHash !== editorialSourceHash(product)
+    || !(Number(product.editorialQualityScore) >= 0.8)) return false;
+  if (product.editorialStatus === 'short_ready') return validateShortDescription(product, product.wittyDescription).approved;
+  const article = String(product.editorialWriteup || '');
+  return article.length >= 500 && editorialWordCount(article) >= 90 && /\n\s*\n/.test(article);
+}
+
+export function resolveShortDescriptionAttempt(product, {
+  draftDescription, review, reviewQuality = 0.05, model, generatedAt = new Date(),
+} = {}) {
+  const draft = String(draftDescription || '').trim();
+  const corrected = String(review?.correctedDescription || '').trim();
+  const correction = corrected ? validateShortDescription(product, corrected) : null;
+  const selected = correction?.approved ? corrected : draft;
+  const validation = validateShortDescription(product, selected);
+  const currentHash = editorialSourceHash(product);
+  const approved = review?.approved === true && Number(reviewQuality) >= 0.8 && validation.approved;
+  if (approved) return {
+    wittyDescription: selected,
+    editorialSourceHash: currentHash,
+    editorialStatus: 'short_ready',
+    editorialQualityScore: reviewQuality,
+    editorialModel: model,
+    editorialPromptVersion: SHORT_COPY_PROMPT_VERSION,
+    editorialGeneratedAt: generatedAt,
+    editorialBlockReason: undefined,
+    requiresManualReview: false,
+    preservation: null,
+    validation,
+  };
+  const reviewerReasons = Array.isArray(review?.reasons) ? review.reasons.map(String) : [];
+  const requiresManualReview = review?.approved === false && editorialReasonsRequireManualReview(reviewerReasons);
+  const preservable = ['short_ready', 'generated_ready', 'manual_locked', 'stale'].includes(product.editorialStatus)
+    && product.editorialSourceHash && (product.wittyDescription || product.editorialWriteup);
+  if (preservable) {
+    const unchanged = product.editorialSourceHash === currentHash;
+    return { editorialStatus: unchanged ? product.editorialStatus : 'stale',
+      editorialBlockReason: unchanged ? product.editorialBlockReason : 'source_facts_changed_generation_incomplete',
+      requiresManualReview: !unchanged && requiresManualReview,
+      preservation: unchanged ? 'approved_source_unchanged' : 'stale_source_changed', validation };
+  }
+  return { editorialStatus: requiresManualReview ? 'needs_review' : 'pending',
+    editorialBlockReason: [...validation.reasons, ...reviewerReasons,
+      ...(review?.approved === true ? [] : ['short_review_not_approved'])].join(', '),
+    requiresManualReview, preservation: null, validation };
 }
 
 const MANUAL_EDITORIAL_REASON = /(unsupported|not[_ -]?supported|lack(?:s|ed|ing)? (?:of )?support|invented|inaccurate|contradict|misleading|wrong product|image mismatch|factual mismatch)/i;
@@ -202,9 +270,9 @@ export function resolveEditorialAttempt(product, {
     };
   }
 
-  const preservableStatus = ['generated_ready', 'manual_locked', 'stale'].includes(product.editorialStatus);
+  const preservableStatus = ['short_ready', 'generated_ready', 'manual_locked', 'stale'].includes(product.editorialStatus);
   const hasPreservableEditorial = preservableStatus
-    && Boolean(String(product.editorialWriteup || '').trim())
+    && Boolean(String(product.editorialWriteup || (product.editorialStatus === 'short_ready' ? product.wittyDescription : '') || '').trim())
     && Boolean(product.editorialSourceHash);
   if (hasPreservableEditorial) {
     const sourceUnchanged = product.editorialSourceHash === currentHash;
@@ -261,7 +329,7 @@ function dateScore(value) {
 
 export function editorialWinnerScore(product) {
   return (isPurchasableAvailability(product.availabilityStatus) ? 100 : 0)
-    + (product.editorialStatus === 'manual_locked' ? 25 : product.editorialStatus === 'generated_ready' ? 15 : 0)
+    + (product.editorialStatus === 'manual_locked' ? 25 : EDITORIAL_READY_STATUSES.has(product.editorialStatus) ? 15 : 0)
     + Number(product.qualityScore || 0) * 20
     + dateScore(product.availabilityCheckedAt || product.lastVerifiedAt) * 10
     + Math.min(10, Math.log10(Number(product.reviewCount || 0) + 1) * 3)

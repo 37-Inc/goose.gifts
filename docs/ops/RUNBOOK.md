@@ -5,11 +5,12 @@ Current work is tracked in `~/roadmap`, especially `roadmap-lbbz1.4.3`.
 Historical migration/recovery instructions are archived in
 `archive/RUNBOOK_MIGRATION_2026-10-23.md`; they are not routine commands.
 
-**Accepted full-catalog release, October25 Pacific:**
+**Accepted database catalog, October25 Pacific:**
 `owner-held-final-20261026` is live on Cloudflare, runtime
 `6f3e0c1e27b95dd92f5116aec8abd2e865b6ccd6`, version
 `c253ca77-0b28-44a2-94b7-8196da5fcde2`. Actual D1 receipt, resolved build,
-idle owner and accepted successor are verified. See
+idle owner and accepted successor were verified. This is the catalog receipt,
+not the current storefront code/version. See
 `evidence/2026-10-25-full-catalog-accepted.json` for exact identities and costs.
 
 The owner-reviewed cleanup is complete:994holds promoted, one already-public
@@ -33,7 +34,9 @@ completed migration/held-catalog/recovery helper.
 ## What must stay true
 
 - Release only to **Cloudflare stupid.gifts**, on **Free**. Never deploy to
-  Vercel or reconnect its Git integration. Keep the old Goose/Neon rollback.
+  Vercel or reconnect its Git integration. The owner has deleted the legacy
+  Vercel project and authorized/deleted its Neon database. Preserve the existing
+  backups and Cloudflare redirects; do not recreate either legacy service.
 - Preserve all 3,383 migrated identities, stable URLs, original content and
   history. The accepted current catalog has3,352public and31excluded (seven reviewed
   duplicates and24individually justified ordinary commodity products); old pending
@@ -52,7 +55,8 @@ completed migration/held-catalog/recovery helper.
 - Keep the canonical Amazon tag `goose-gifts-37-20`. Never fabricate current
   prices/availability. Public offers remain price-free; use the retailer link.
 - No social posts, Slack messages, paid upgrades, new hosted job or creator-
-  research integration from this task. Pinterest remains separately paused.
+  research integration from this task. The old Pinterest studio timer was deleted;
+  its remaining measurement/follow-up Beads belong to this manager, not this writer.
 
 ## Cadence and costs
 
@@ -60,8 +64,17 @@ Use this one task, daily at 08:30 Pacific. Reserve at most ten existing products
 per Pacific day across retries. Monday additionally uses six rotating discovery
 themes and admits at most twenty quality/dedup-approved new gifts. Tuesday–Sunday
 make no external model calls. Reuse unchanged approved copy and embeddings.
-The homepage's featured IDs feed the existing freshness selector; do not force
-the same ten legacy books every day or add a blanket enrichment/backfill pass.
+The approved selector reserves four slots for the oldest featured public gifts
+and six for the oldest nonfeatured public gifts, with deterministic sparse-lane
+backfill. Ordinary published gifts without long articles are included. Do not
+force the same ten legacy books every day or add a blanket enrichment/backfill.
+Discovery must finish quality/family/catalog dedup and select at most its admission
+cap BEFORE drafting, reviewing or embedding. Generate factual short copy by
+default; long articles are optional (`--long-editorial`), never listing prerequisites.
+Every public card needs an image, title and short description. Preserve existing
+approved copy/embeddings and all 42 articles; do not blanket-regenerate them.
+These changes are tracked in `CATALOG_MERCHANDISING_SPEC_2026-10-29.md` / PR301;
+do not assume an unmerged or undeployed change is already operating.
 
 The routine uses an explicit, measured 5,000-HTTP / 12,000-SQL /
 1.5M-reported-read / 30k-reported-write ceiling, plus conservative uncertain-cost
@@ -73,18 +86,34 @@ batch after a failure.
 
 ## Operator
 
-**Daily writer is PAUSED after the October26 native-preservation failure.** Keep
-the one existing08:30Pacific task; no additional Cron or scheduler. Do not
-prepare/start/publish another catalog run until the retained failed run is safely
-reconciled and resumption is recorded in canonical `roadmap-lbbz1.4.13`.
+**Recovery is complete; routine integration is still awaiting acceptance.**
+The retained October26 run is `failed_recovered`, owner idle generation23/epoch531,
+with native bytes/history and all original charges preserved. The protected
+`semantic-enable-20261026/recovery-complete.json` records that accepted recovery.
+Never retry its provider phases, native-delete sequence, upload or owner claim.
+Old instructions claiming an unrecovered WRITING23/530 owner are obsolete.
+
+The current separately accepted storefront is `semantic-search-20261026-3f144eb`,
+code `3f144ebf4b276b08c93304707e4534bba8c01df1`, manifest
+`e42e750e86b56de2706e7549edfe322bd3a7094d373c36d7df114dcc5b96abc1`,
+with the same catalog snapshot. Read the actual public release identity before
+any publication. Semantic search is enabled with its reviewed derived index and
+bounded query policy, not the near-empty original native index. Changed/new inputs
+without an exact matching derived proof must use keyword fallback, not stale vectors.
+
+Keep the one existing08:30Pacific task PAUSED until the maintained operator's
+genuine catalog successor and newer file-release prior are reconciled and normal
+routine acceptance is recorded in `roadmap-lbbz1.4.13`. Do not fabricate a D1 receipt
+for a code-only deployment. The owner already authorized resumption after those
+checks; no new generic owner approval, scheduler, paid plan or Google result is needed.
 The first normal
 scheduled expanded-catalog cost/storage observation remains `roadmap-lbbz1.4.8`.
-Tonight's manual recovery/cleanup costs are not steady-state billing evidence.
+Manual recovery/cleanup costs are not steady-state billing evidence.
 
 The retained failed-run execution checkout is
 `/Users/cameronehrlich/.codex/worktrees/stupid-public-indexability/goose.gifts`,
 the frozen1bc3f6csource combining PR290 and the public-indexability correction.
-Never edit that source/config/checkpoint while settling its original owner.
+Preserve that historical source/config/checkpoint; its original owner was settled.
 Its UI/indexability code was separately published in the file release above;
 Google sitemap submission/noindex validation is independently recorded in
 `roadmap-lbbz1.9`. No extra merchant batch is authorized for code changes.
@@ -147,8 +176,10 @@ run-specific readers remain retained; do not replay completed migration helpers.
 ## Site quality and code changes
 
 The homepage is a white product gallery: three columns on desktop, two on mobile,
-with compact search and 24-item static browse batches. The first 24 gifts have
-reviewed factual names and descriptions in `content/homepage.json`. Every gallery
+with compact search and 24-item static browse batches. Approved PR301 selects six
+weekly anchors from `content/homepage.json` and eighteen daily quality-filtered
+rediscoveries, using sealed publication time. Until that source is actually deployed,
+the old first24 remain pinned. No owner-maintained weekly list is required. Every gallery
 and search card must show an image, title and short description; a missing curated
 note falls back to the existing description rather than hiding it. Exact-ID/title
 first-party notes replace990generic placeholders in the final reviewed catalog; keyword

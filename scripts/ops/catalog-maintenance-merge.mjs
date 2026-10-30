@@ -29,7 +29,8 @@ function databaseInstant(value) {
     || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString() !== value.replace(/(\.\d{3})\d{3}Z$/, '$1Z')) throw new TypeError('Explicit UTC databaseTime required');
   return value;
 }
-const approved = status => ['manual_locked', 'generated_ready', 'stale'].includes(status);
+const reviewed = status => ['generated_ready', 'short_ready'].includes(status);
+const approved = status => ['manual_locked', 'generated_ready', 'short_ready', 'stale'].includes(status);
 const nullable = value => value ?? null;
 
 export function mergeCatalogMaintenanceUpsert(existing, incoming, { sourceFactsHash, databaseTime }) {
@@ -64,7 +65,7 @@ export function mergeCatalogMaintenanceUpsert(existing, incoming, { sourceFactsH
     editorialModel: incoming.editorialModel || null, editorialPromptVersion: incoming.editorialPromptVersion || null,
     editorialGeneratedAt: incoming.editorialGeneratedAt || null, editorialBlockReason: incoming.editorialBlockReason || null,
     duplicateOfProductId: incoming.duplicateOfProductId || null,
-    contentUpdatedAt: ['generated_ready','manual_locked'].includes(status) ? now : null,
+    contentUpdatedAt: approved(status) && status !== 'stale' ? now : null,
     lastVerifiedAt: verified ? now : null, createdAt: now, updatedAt: now,
   };
   if (!existing) return { inserted: true, product: structuredClone(next) };
@@ -72,28 +73,30 @@ export function mergeCatalogMaintenanceUpsert(existing, incoming, { sourceFactsH
   const product = { ...old, ...next, createdAt: nullable(old.createdAt) };
   for (const key of ['punnyTitle','wittyDescription','embedding','sourceFacts','sourceFactsHash','availabilityStatus','availabilityCheckedAt'])
     product[key] = next[key] ?? nullable(old[key]);
+  if (old.editorialStatus === 'short_ready' && !reviewed(status)) product.wittyDescription = nullable(old.wittyDescription);
   product.editorialWriteup = old.editorialStatus === 'manual_locked' ? nullable(old.editorialWriteup)
     : status === 'generated_ready' && next.editorialWriteup !== null ? next.editorialWriteup
-    : ['generated_ready','stale'].includes(old.editorialStatus) ? nullable(old.editorialWriteup)
+    : ['generated_ready','short_ready','stale'].includes(old.editorialStatus) ? nullable(old.editorialWriteup)
     : ['pending','needs_review'].includes(status) && next.editorialWriteup !== null ? next.editorialWriteup : nullable(old.editorialWriteup);
   product.editorialSourceHash = old.editorialStatus === 'manual_locked' ? old.editorialSourceHash ?? next.editorialSourceHash
-    : status === 'generated_ready' ? next.editorialSourceHash
-    : ['generated_ready','stale'].includes(old.editorialStatus) ? nullable(old.editorialSourceHash)
+    : reviewed(status) ? next.editorialSourceHash
+    : ['generated_ready','short_ready','stale'].includes(old.editorialStatus) ? nullable(old.editorialSourceHash)
     : ['pending','needs_review'].includes(status) ? next.editorialSourceHash : nullable(old.editorialSourceHash);
   product.editorialStatus = old.editorialStatus === 'manual_locked' ? old.editorialStatus
-    : status === 'generated_ready' ? status
-    : old.editorialStatus === 'generated_ready' && nullable(old.editorialSourceHash) !== nullable(next.sourceFactsHash) ? 'stale'
-    : old.editorialStatus === 'generated_ready' ? old.editorialStatus
+    : reviewed(status) ? status
+    : reviewed(old.editorialStatus) && nullable(old.editorialSourceHash) !== nullable(next.sourceFactsHash) ? 'stale'
+    : reviewed(old.editorialStatus) ? old.editorialStatus
     : old.editorialStatus === 'stale' && ['pending','needs_review'].includes(status) ? 'stale'
     : ['pending','needs_review','blocked','duplicate','stale'].includes(status) ? status : old.editorialStatus;
   for (const key of ['editorialQualityScore','editorialModel','editorialPromptVersion','editorialGeneratedAt']) {
     const previous = key === 'editorialQualityScore' ? decimal(old[key], 5, 4) : nullable(old[key]);
-    product[key] = approved(old.editorialStatus) && status !== 'generated_ready' ? previous : next[key] ?? previous;
+    product[key] = approved(old.editorialStatus) && !reviewed(status) ? previous : next[key] ?? previous;
   }
   product.editorialBlockReason = old.editorialStatus === 'manual_locked' ? nullable(old.editorialBlockReason)
-    : status === 'generated_ready' ? null : next.editorialBlockReason ?? nullable(old.editorialBlockReason);
+    : reviewed(status) ? null : next.editorialBlockReason ?? nullable(old.editorialBlockReason);
   product.duplicateOfProductId = next.duplicateOfProductId ?? nullable(old.duplicateOfProductId);
-  product.contentUpdatedAt = status === 'generated_ready' && next.editorialWriteup !== nullable(old.editorialWriteup) ? now : nullable(old.contentUpdatedAt);
+  product.contentUpdatedAt = reviewed(status) && (next.editorialWriteup !== nullable(old.editorialWriteup)
+    || next.wittyDescription !== nullable(old.wittyDescription)) ? now : nullable(old.contentUpdatedAt);
   product.lastVerifiedAt = verified ? now : nullable(old.lastVerifiedAt);
   return { inserted: false, product: structuredClone(product) };
 }

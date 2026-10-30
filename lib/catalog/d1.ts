@@ -18,7 +18,7 @@ export interface ProjectionQuery { sql: string; params: unknown[] }
 const CURRENT_READY = `p.is_active=1 AND p.duplicate_of_product_id IS NULL AND p.quality_score>=0.55
   AND COALESCE(p.availability_checked_at,p.last_verified_at) IS NOT NULL
   AND upper(p.availability_status) IN ('IN_STOCK','IN_STOCK_SCARCE','INSTOCKSCARCE','AVAILABLE_DATE','LEADTIME','PREORDER')
-  AND p.editorial_status IN ('generated_ready','manual_locked')
+  AND p.editorial_status IN ('generated_ready','manual_locked','short_ready')
   AND p.source_facts_hash IS NOT NULL AND p.source_facts_hash=p.editorial_source_hash
   AND p.public_display_json IS NOT NULL AND p.eligible_until>?`;
 // SQL counterpart of the exact-value grant checks in publicProductRightsExpiry.
@@ -37,7 +37,29 @@ const display = "json_extract(v.public_display_json,'$.'||field.value)";
 const reference = grant('reference'), expires = grant('expiresAt'), observed = grant('observedAt');
 // JavaScript String.trim whitespace, including tabs/newlines and Unicode spaces.
 const TRIM = 'char(9,10,11,12,13,32,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279)';
+// Maintained short-copy approval supersedes the archive, just like articles.
+const currentCopy = (maintained:string,archived:string) => `(CASE WHEN m.product_id IS NULL
+  THEN json_extract(p.source_record_json,'$.${archived}') ELSE json_extract(m.semantic_json,'$.${maintained}') END)`;
+const currentEditorialQuality=currentCopy('editorialQualityScore','editorial_quality_score');
+const reviewedQuality=`CASE WHEN json_valid(${currentEditorialQuality}) THEN CASE
+  WHEN json_type(${currentEditorialQuality}) IN ('integer','real') THEN CAST(${currentEditorialQuality} AS REAL) END END`;
+const currentShort=currentCopy('wittyDescription','witty_description');
+const shortText=`trim(${currentShort},${TRIM})`;
+const shortWords=[9,10,11,12,13,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279]
+  .reduce((text,code)=>`replace(${text},char(${code}),' ')`,shortText);
+const CURRENT_SHORT=`(p.editorial_status!='short_ready' OR ${allOf([
+  `json_type(v.public_display_json,'$.editorialWriteup') IS NULL`,
+  `typeof(${currentShort})='text'`, `${currentShort}=json_extract(v.public_display_json,'$.description')`,
+  `${reviewedQuality} BETWEEN 0.8 AND 1`, `length(${shortText})<=220`,
+  `instr(${shortText},char(10))=0`, `instr(${shortText},char(13))=0`,
+  `(SELECT count(*) FROM json_each('['||replace(json_quote(${shortWords}),' ','","')||']') WHERE length(value)>0) BETWEEN 6 AND 35`,
+  `length(p.source_facts_hash)=64`, `p.source_facts_hash NOT GLOB '*[^a-f0-9]*'`,
+  `${currentCopy('editorialStatus','editorial_status')}=p.editorial_status`,
+  `${currentCopy('sourceFactsHash','source_facts_hash')}=p.source_facts_hash`,
+  `${currentCopy('editorialSourceHash','editorial_source_hash')}=p.editorial_source_hash`,
+])})`;
 const CURRENT_PERMISSIONS = `coalesce(json_type(p.public_display_json)='object' AND json_type(p.rights_json)='object'
+  AND ${CURRENT_SHORT}
   AND v.eligible_until=json_extract(v.public_display_json,'$.eligibleUntil')
   AND ${canonicalInstant('p.eligible_until')}
   AND ${canonicalInstant("json_extract(p.public_display_json,'$.eligibleUntil')")}
@@ -45,7 +67,8 @@ const CURRENT_PERMISSIONS = `coalesce(json_type(p.public_display_json)='object' 
   AND NOT EXISTS(${displayValues('v.public_display_json')} EXCEPT ${displayValues('p.public_display_json')})
   AND NOT EXISTS(${displayValues('p.public_display_json')} EXCEPT ${displayValues('v.public_display_json')})
   AND NOT EXISTS(SELECT 1 FROM json_each('["title","description","imageUrl","affiliateUrl","editorialWriteup","punnyTitle","wittyDescription","humorTags"]') field
-    WHERE (field.value IN ('title','description','imageUrl','affiliateUrl','editorialWriteup')
+    WHERE (field.value IN ('title','description','imageUrl','affiliateUrl')
+      OR field.value='editorialWriteup' AND p.editorial_status!='short_ready'
       OR json_type(v.public_display_json,'$.'||field.value) IS NOT NULL)
     AND NOT coalesce(${grant('basis')} IN ('owned','licensed','merchant')
       AND typeof(${reference})='text' AND length(trim(${reference},${TRIM}))>0
@@ -68,12 +91,7 @@ const baseDisplay=`json_extract(${V_BASE},'$.'||field.value)`;
 const editorial=`json_extract(${V_BASE},'$.editorialWriteup')`;
 // Maintained semantics supersede the immutable archive; missing current copy
 // evidence must not fall back to an older, higher-quality editorial record.
-const currentCopy = (maintained:string,archived:string) => `(CASE WHEN m.product_id IS NULL
-  THEN json_extract(p.source_record_json,'$.${archived}') ELSE json_extract(m.semantic_json,'$.${maintained}') END)`;
 const currentEditorial=currentCopy('editorialWriteup','editorial_writeup');
-const currentEditorialQuality=currentCopy('editorialQualityScore','editorial_quality_score');
-const reviewedQuality=`CASE WHEN json_valid(${currentEditorialQuality}) THEN CASE
-  WHEN json_type(${currentEditorialQuality}) IN ('integer','real') THEN CAST(${currentEditorialQuality} AS REAL) END END`;
 const words=[9,10,11,12,13,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279]
   .reduce((text,code)=>`replace(${text},char(${code}),' ')`,editorial);
 // D1 limits expression depth to100, including the enclosing receipt/CAS gates.

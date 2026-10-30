@@ -51,6 +51,7 @@ export function createStaticRoutes(
   assetPaths: string[],
   showInputs?: unknown[],
   identity: OgIdentity = siteIdentity,
+  releaseGeneratedAt = sealedSnapshot.generatedAt,
 ): Record<string, CatalogAssetRoute & { indexable: boolean }> {
   const snapshot = catalogDisplayView(sealedSnapshot), photos = createPhotoRelease(sealedSnapshot);
   const nextExpiry = earliest(
@@ -97,7 +98,7 @@ export function createStaticRoutes(
     policies[`${pathname}/data.json`] = { ...policy, assetPath: `${pathname}/data.json`,
       safeAssetPath: `/safe${pathname}/data.json`, indexable: false };
   }
-  for (const shard of createBrowseRelease(snapshot).shards)
+  for (const shard of createBrowseRelease(snapshot, releaseGeneratedAt).shards)
     policies[shard.path] = {
       ...catalog,
       assetPath: shard.path,

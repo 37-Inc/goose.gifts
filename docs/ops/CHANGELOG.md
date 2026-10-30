@@ -1,5 +1,18 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-29 — Approved bounded care and automatic homepage variety
+
+[owner+claude] PR301 now implements four featured/six wider-catalog refresh slots,
+discovery admission caps before generation, approved-input-only embedding reuse,
+and separately reviewed short descriptions with optional long articles. Homepage
+selection becomes six weekly anchors plus eighteen daily qualified rediscoveries,
+with no owner-maintained weekly list or per-visitor work. Focused tests preserve
+the full catalog and existing articles. Full integration/release acceptance remains
+separate from implementation. The SAME daily timer's stale recovery/semanticOFF/
+legacy-service instructions were corrected; it stays PAUSED until `.4.13` routine
+prior/successor acceptance, not because completed recovery needs repeating.
+Higher-volume discovery and blanket enrichment remain deferred.
+
 ## 2026-10-29 — Catalog and homepage algorithms researched; proposal only
 
 [owner+claude] Parallel code/retailer research for Beads `.4.14/.4.15` produced

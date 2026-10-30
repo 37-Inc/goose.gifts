@@ -57,8 +57,9 @@ function providerMocks(remote=product,draft=writeup) {
     }
     assert.ok(String(url).endsWith('/chat/completions'));calls.chat++;
     const content=JSON.stringify({products:[body.messages[0].content.includes('skeptical')
-      ? {id:remote.id,approved:true,correctedEditorial:null,qualityScore:.95,reasons:[]}
+      ? {id:remote.id,approved:true,correctedEditorial:null,correctedDescription:null,qualityScore:.95,reasons:[]}
       : {id:remote.id,punnyTitle:remote.punnyTitle,wittyDescription:remote.wittyDescription,
+        shortDescription:`A ${remote.sourceFacts.material} ${remote.sourceFacts.shape} ${remote.sourceFacts.design || 'desk bell'} with a distinctive silhouette.`,
         humorTags:remote.humorTags,qualityScore:.85,isActive:true,editorialWriteup:draft}]});
     return Response.json({id:'test-only-completion',choices:[{message:{content},finish_reason:'stop'}],usage:{prompt_tokens:10,completion_tokens:10,total_tokens:20}});
   };return{calls,requests};
@@ -158,7 +159,7 @@ test('real Amazon mapper optional undefined ratings survive exact image-only nor
 test('real phase → exact private provider evidence → atomic D1 replay → owned vector → approved cohort',async t=>{
   const observedAt='2026-10-19T12:00:00.123Z';const f=await fixture(t,{observedAt,loseResponse:true});const mock=providerMocks();const usage=telemetry();
   const raw=f.row().source_record_json;const result=await executeCatalog(phase(),undefined,usage,f.store,f.evidence);
-  assert.equal(result.backfilled,1);assert.deepEqual(mock.calls,{getItems:1,searchItems:0,chat:1,embedding:1});assert.ok(f.lost());
+  assert.equal(result.backfilled,1);assert.deepEqual(mock.calls,{getItems:1,searchItems:0,chat:0,embedding:1});assert.ok(f.lost());
   assert.equal(f.receipts.length,2);assert.equal(Date.parse(f.receipts[0].receipt.observedAt),Date.parse(observedAt));
   assert.deepEqual(f.receipts[0].receipt.requestedIds,[ID]);assert.deepEqual(f.receipts[0].receipt.returnedIds,[ID]);
   const binding=f.receipts[1].receipt.products[0];assert.equal(binding.text,mock.requests.find(r=>r.input).input[0]);
@@ -177,7 +178,7 @@ test('stale actual observation and absent independently reviewed rights remain h
   for(const options of [{observedAt:'2026-07-01T00:00:00.000Z'},{reviewedRights:{}}]){
     const f=await fixture(t,options);const mock=providerMocks();await executeCatalog(phase(),undefined,telemetry(),f.store,f.evidence);
     assert.equal(f.row().public_display_json,null);assert.equal(f.row().eligible_until,null);assert.ok(f.row().embedding_text_hash);
-    assert.deepEqual(mock.calls,{getItems:1,searchItems:0,chat:1,embedding:1});
+    assert.deepEqual(mock.calls,{getItems:1,searchItems:0,chat:0,embedding:1});
   }
 });
 
@@ -197,7 +198,7 @@ test('real generated discovery captures exact model inputs but invents no rights
   const options=parseArgs(['--theme-limit','1','--per-theme','1','--max-new','1','--min-quality-score','0.05','--backfill-limit','0']);
   options.themes=['test-only novelty objects'];await executeCatalog(options,undefined,telemetry(),f.store,f.evidence);
   const row=f.sql.prepare('SELECT * FROM products WHERE id=?').get(remote.id);
-  assert.ok(row);assert.equal(row.editorial_status,'generated_ready');assert.ok(row.embedding_text_hash);assert.equal(row.public_display_json,null);
+  assert.ok(row);assert.equal(row.editorial_status,'short_ready');assert.ok(row.embedding_text_hash);assert.equal(row.public_display_json,null);
   assert.deepEqual(JSON.parse(row.rights_json),{});assert.equal(f.receipts.length,2);
   assert.deepEqual(mock.calls,{getItems:0,searchItems:1,chat:2,embedding:1});
 });
@@ -218,7 +219,7 @@ test('later contradictory ASIN in an actual second theme cannot bless the first 
     assert.deepEqual(f.row(),before);assert.equal(published,0);assert.equal((await store.loadCatalogRun('weekly-run')).run.status,'failed');
     assert.equal(f.sql.prepare('SELECT count(*) n FROM publication_receipts').get().n,1);
     assert.throws(()=>f.evidence.intent('upsertProduct',[product,editorialSourceHash(product)]),/superseded/);
-    assert.deepEqual(mock.calls,{getItems:0,searchItems:2,chat:1,embedding:1});
+    assert.deepEqual(mock.calls,{getItems:0,searchItems:2,chat:0,embedding:0});
   }
 });
 
@@ -369,7 +370,7 @@ test('opt-in evidence leaves actual phase PostgreSQL bind payload, provider coun
   // the unchanged real PG adapter with a query spy (no Neon connection).
   const f=await fixture(t);const spy=[];const delegated={...f.store,async upsertProduct(...args){spy.push(structuredClone(args));return f.store.upsertProduct(...args);}};
   const mock=providerMocks();await executeCatalog(phase(),undefined,telemetry(),delegated);
-  assert.deepEqual(mock.calls,{getItems:1,searchItems:0,chat:1,embedding:1});assert.equal(f.row().public_display_json,null);
+  assert.deepEqual(mock.calls,{getItems:1,searchItems:0,chat:0,embedding:1});assert.equal(f.row().public_display_json,null);
   assert.ok(Object.is(spy[0][0].embedding[0],-0));assert.equal(spy[0][0].embedding[2],.1);
   await pg.upsertProduct(...spy[0]);const first=structuredClone(queries.at(-1));
   const g=await fixture(t);const next=[];const captured={...g.store,async upsertProduct(...args){next.push(structuredClone(args));return g.store.upsertProduct(...args);}};

@@ -1,18 +1,20 @@
 # Stupid Gifts — Catalog care and homepage merchandising
 
-Research and implementation proposal, October 29, 2026. Owner review pending.
+Research and approved implementation contract, October 29, 2026.
 Beads: `roadmap-lbbz1.4.14` (pipeline), `.4.15` (homepage), existing `.4.11`
 (refresh fairness), `.4.13` (operational integration), `.4.8` (measured routine cost).
 Audited source: `ca4e28600b03d6d5cc341f1905937522b08afcab`.
-This document changes no runtime behavior, schedule, provider configuration or budget.
+Owner approved bounded pipeline improvements and autonomous homepage curation.
+Implementation is in PR301; source acceptance is not a production deployment.
 
 ## Recommendation in one paragraph
 
 Keep the existing bounded catalog job, fix its remaining operating integration,
 stop spending enrichment work on candidates that cannot be admitted, and give
 nonfeatured products a fair share of refreshes. Separately, replace the entirely
-pinned homepage with six editorial anchors and eighteen quality-approved rotating
-items. Rotate weekly at successful publication, not on every visit. Add a real
+pinned homepage with six weekly editorial anchors and eighteen quality-approved
+items rotating daily at successful publication, not on every visit. Codex maintains
+the selection logic; Cameron does not need to curate a weekly issue. Add a real
 new-arrival lane once accepted first-publication evidence exists; do not manufacture
 it from refresh timestamps. Use factual short descriptions as the universal goal,
 not thousands of generated articles. No recommendation service, extra scheduler,
@@ -37,8 +39,9 @@ click-through; it does not itself create human acquisition.
   Do not equate missing long articles with missing card descriptions or regenerate
   the preserved dataset to fix a presentation concern.
 - `goose-gifts-daily-ops` is **PAUSED**, with the existing 08:30 Pacific schedule.
-  Pinterest's different task is ACTIVE but deliberately measurement-only; its
-  experiment freeze does not block independently ready catalog work.
+  The separate Pinterest studio task was deleted and its chat archived at the
+  owner's request. Cohort follow-ups remain in Beads; this catalog job must not
+  recreate that timer or post Pins.
 - Canonical `.4.13` and the protected `semantic-enable-20261026/recovery-complete.json`
   receipt record the old unsent-delete recovery as complete: `failed_recovered`,
   owner idle generation 23 / epoch 531, original native history/charges retained.
@@ -86,10 +89,10 @@ can therefore starve the rest. These are two different problems.
    failure backoff is a later measured refinement, not an implicit new history scan.
    Refresh priority is not permission to hide a persistent product when stale.
    Define public membership from the accepted public-display allowlist, including
-   ordinary listings without articles. Reuse its pinned IDs from the accepted prior
-   snapshot as a Set in the selector; intersect with current source identities and
-   preserve the 31 explicit exclusions. Pass this through the existing prepared
-   inputs/store method without extra full-table scans. Do NOT use
+   ordinary listings without articles. The bounded existing catalog-view query
+   uses `public_display_json IS NOT NULL`, then active/nonduplicate/Amazon checks;
+   it does not add a payload scan or accept arbitrary caller-supplied public IDs.
+   Preserve the 31 explicit exclusions. Do NOT use
    `publishedMaintenanceProduct()` (`maintenance-state.ts:116-122`), whose long-article
    condition would incorrectly exclude most actual public gifts. Public membership
    must come from the accepted successor, not an arbitrary unverified client list.
@@ -101,7 +104,8 @@ can therefore starve the rest. These are two different problems.
    create a new embedding. Reuse an existing approved vector when its accepted
    input is unchanged; do not erase old native history. Derived search proof must
    match actual current accepted inputs; keyword fallback remains valid on a miss.
-5. Version a small discovery-query registry using the current six-request budget:
+5. A later measured improvement may version the discovery-query registry within
+   the current six-request budget:
    two visually absurd useful objects, two undercovered recipient/interests, one
    appropriate season/occasion and one exploratory theme. These are proposed
    buckets, not six permanently fixed queries. Select deterministically from
@@ -128,12 +132,15 @@ usable image, exact retailer identity/link and valid public/search representatio
 A long article should be optional and selected because it helps a visitor, not
 because every product needs an SEO essay. Preserve all 42 existing articles.
 
-Implement a separate short-copy outcome and validator, with factual review and
+The approved implementation uses a separate `short_ready` outcome and validator,
+with factual review and
 unchanged-copy reuse, through generation, persistence, public projection and search
 input calculation. Article status stays separate from public listing eligibility.
 Preserve manual locks and native input proofs. Never mark a short note as having
-passed the existing long-article validator. This is a later small design/implementation
-slice, not a reason to postpone restored normal care or the homepage selector.
+passed the existing long-article validator. Normal enrichment now requests short
+copy by default; `--long-editorial` explicitly opts into the unchanged article
+validator. A short approval does not newly approve a preserved historical article.
+Keep lightweight canonical product pages for every public gift, not only articles.
 
 ### Pipeline implementation and tests
 
@@ -161,7 +168,7 @@ observe the next authorized normal run under `.4.8`.
 
 | Rank | Option | Assessment |
 | --- | --- | --- |
-| 1 | Editorial anchors + deterministic qualified rotation | Best blend of taste, variety, reproducibility and Free-tier simplicity. Start weekly; add a genuine new-arrival lane when evidence exists. |
+| 1 | Editorial anchors + deterministic qualified rotation | Approved: six weekly anchors, eighteen daily rediscoveries at publication. No owner-maintained weekly issue. |
 | 2 | A manually curated weekly 24-product issue | Simplest high-taste fallback. Good if an automated pool produces weak assortments; needs recurring attention. |
 | 3 | Quality-filtered newest-first | Suitable for one lane later, not the full homepage. New does not mean good, and refresh time is not first publication. |
 | 4 | Behavior-informed ranking plus exploration | Later. Position bias, bot/QA traffic and tiny counts make raw-click winners misleading now. Start with reports. |
@@ -174,27 +181,23 @@ observe the next authorized normal run under `.4.8`.
   with pinned products. These positions are a reviewable default, not an optimum.
 - Keep the clean single gallery, 24-item batches, ordinary search, canonical
   product pages, existing descriptions and mobile layout. No new tabs/badges needed.
-- Add a small versioned `content/homepage-merchandising.json` policy with six
-  anchor IDs and an initially reviewed pool of roughly 72–96 distinct good products.
-  Bootstrap from the current 24 plus visual review of existing qualified items,
-  not a merchant fetch or model-generated taste score. Pool coverage below that
-  target is not a reason to promote weak inventory.
+- Reuse the existing 24 strong featured IDs as a weekly rotating anchor pool;
+  select six rather than permanently pinning all 24. The other eighteen are an
+  automatic source-qualified pool of physical novelties from the existing catalog.
+  No new owner-maintained ID list, model taste scores or merchant fetches.
 - Require accurate short copy, usable photo, clear gift function and an instantly
   understandable unusual object/joke. No two variants of the same family. Apply
   the existing archetype/family logic before selection and a max-two cap for
   dominant mug/shirt/book/sign/etc. types, including anchors. Prefer multiple
   different object types in the first six cards.
-- Remove anchor IDs, unavailable items and duplicate families from the rotation
-  pool before calculating its size N. Deterministically order it by stable-ID hash, then take
-  the next 18 compatible candidates on a weekly circular schedule. Use the week
-  number as the offset, **not** an unconstrained global random shuffle. For pool
-  size N, step through `18 * weekNumber mod N` and resolve diversity/missing-item
-  conflicts deterministically. Adjacent-week turnover is tested; do not claim a
-  strict no-repeat guarantee when constraints/pool changes make one impossible.
-- Use a Monday-based Pacific week derived from existing validated release-context
+- Exclude printed commodities and generic fidgets/plush from the opening rotation,
+  not the catalog. Rank qualified candidates with a deterministic, mildly quality-
+  weighted daily shuffle; interleave the six weekly anchors. Test daily turnover,
+  same-day stability and family/type diversity without claiming no repeats.
+- Use Pacific day and Monday-based week derived from existing validated release-context
   `generatedAt`. No `Date.now()`, visitor cookies, new permission/reference string,
-  daily exposure ledger or per-user storage. Different releases in the same week
-  retain their order for unchanged source/pool/catalog; a new week takes effect
+  daily exposure ledger or per-user storage. Different releases in the same day
+  retain their order for unchanged source/pool/catalog; a new day/week takes effect
   only on an actual accepted publication. A paused publisher means no magic
   midnight update. No new hosted Cron and no merchant fetch just for rotation.
 - If the pool is small or a pick is missing, use eligible prior curated candidates
@@ -227,12 +230,12 @@ there is no arrival label/lane, and no need for a schema migration in V1.
 
 Target mix then becomes six anchors + up to six approved arrivals from the last
 30 days + twelve rediscoveries, with missing arrivals filled by rediscoveries.
-An arrival must meet the same homepage-quality standard. Daily partial turnover,
-exposure cooldowns and automated popular ranking stay later options, not V1 state.
+An arrival must meet the same homepage-quality standard. Exposure cooldowns and
+automated popular ranking stay later options, not V1 state.
 
 ### Homepage implementation and verification
 
-1. Implement a pure `merchandisedBrowseProducts(snapshot, policy, releaseGeneratedAt)`
+1. Implement a pure `merchandisedBrowseProducts(snapshot, releaseGeneratedAt)`
    used by `createBrowseRelease`, **not a global change to `rankedBrowseProducts`**.
    Related-gift ranking currently consumes the latter; avoid changing thousands of
    detail pages unintentionally. Do not shrink/reorder `homepage.featuredIds` to
@@ -311,8 +314,10 @@ actual affiliate reporting; an outbound event is not a sale or proof of a human.
 5. Verify actual normal accepted catalog release/source, D1 receipt, resolved build,
    final idle owner, accepted successor and representative live flows. Record
    actual normal scheduled usage/storage in `.4.8`, not code-only release costs.
-6. Retain `.4.14/.4.15` until the owner chooses the recommended approach; research
-   completion is not runtime implementation. No runtime changes made by this audit.
+6. Owner chose the recommended bounded pipeline and autonomous daily/weekly mix.
+   Keep `.4.14/.4.15` open until their actual runtime acceptance; attach source,
+   test, deployment and normal-run evidence separately. High-volume discovery,
+   bulk rewriting and behavior-trained recommendations remain deferred.
 
 No owner credential action or plan upgrade is demonstrated by this research.
 If fresh credential/headroom checks fail during implementation, report that exact

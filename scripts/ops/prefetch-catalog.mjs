@@ -12,10 +12,13 @@ import { hydrateLocalAmazonCreatorsEnv } from './amazon-creators-env.mjs';
 import { invalidateCatalogCaches } from './catalog-cache-invalidation.mjs';
 import {
   EDITORIAL_PROMPT_VERSION,
+  EDITORIAL_READY_STATUSES,
   editorialCandidateBlock,
   editorialSourceHash,
   editorialWordCount,
+  hasCurrentApprovedCopy,
   resolveEditorialAttempt,
+  resolveShortDescriptionAttempt,
   selectDuplicateWinner,
   validateEditorialDraft,
 } from './catalog-editorial-core.mjs';
@@ -83,6 +86,7 @@ function parseArgs(argv) {
     minPrice: Number(process.env.CATALOG_MIN_PRICE || 5),
     maxPrice: Number(process.env.CATALOG_MAX_PRICE || 150),
     skipEnrichment: false,
+    longEditorial: false,
     enrichOnly: false,
     enrichmentBatchSize: Number(process.env.CATALOG_ENRICH_BATCH_SIZE || 4),
     backfillLimit: Number(process.env.CATALOG_ENRICH_EXISTING_LIMIT || 25),
@@ -114,6 +118,7 @@ function parseArgs(argv) {
     else if (arg === '--max-price') options.maxPrice = Number(argv[++index]);
     else if (arg === '--min-quality-score') options.minQualityScore = Number(argv[++index]);
     else if (arg === '--skip-enrichment') options.skipEnrichment = true;
+    else if (arg === '--long-editorial') options.longEditorial = true;
     else if (arg === '--enrich-only') options.enrichOnly = true;
     else if (arg === '--enrichment-batch-size') options.enrichmentBatchSize = Number(argv[++index]);
     else if (arg === '--backfill-limit') options.backfillLimit = Number(argv[++index]);
@@ -175,6 +180,7 @@ Options:
   --max-price 150           Maximum known price for active homepage eligibility.
   --min-quality-score 0.65  Minimum heuristic quality before copy enrichment.
   --skip-enrichment         Write heuristic catalog fields without OpenAI copy/embeddings.
+  --long-editorial          Explicitly generate optional long articles instead of routine short copy.
   --enrich-only             Backfill existing active products, without discovery.
   --enrichment-batch-size 4
                             Products per OpenAI copy/tag batch.
@@ -584,7 +590,7 @@ function buildProductEmbeddingText(product) {
   ].filter(Boolean).join('. ');
 }
 
-async function enrichCopyBatch(products, telemetry, operation = 'editorial_draft') {
+async function enrichCopyBatch(products, telemetry, operation = 'editorial_draft', shortCopy = false) {
   const openai = getOpenAIClient();
 
   if (!openai) {
@@ -606,7 +612,7 @@ async function enrichCopyBatch(products, telemetry, operation = 'editorial_draft
   try {
     completion = await openai.chat.completions.create({
       model,
-      max_tokens: products.length === 1 ? 1_400 : 4_000,
+      max_tokens: shortCopy ? (products.length === 1 ? 500 : 1_600) : products.length === 1 ? 1_400 : 4_000,
       messages: [
         {
           role: 'system',
@@ -614,7 +620,19 @@ async function enrichCopyBatch(products, telemetry, operation = 'editorial_draft
         },
         {
           role: 'user',
-          content: `Enrich these products for a funny gift catalog.
+          content: shortCopy ? `Write a factual short card description for each unusual gift.
+
+Rules:
+- shortDescription must be one plain-text paragraph, 6-35 words and no more than 220 characters.
+- Identify the actual object and a concrete listing-supported detail or function.
+- Do not invent materials, measurements, functions, contents, personalization, recipients, prices, availability, shipping, ratings, or reviews.
+- No generic marketing, forced puns, SEO text, purchase CTA or long article.
+- humorTags must be 2-5 lowercase kebab-case tags grounded in the actual object.
+- qualityScore is 0.05 to 0.98; isActive should be false for irrelevant, generic, unavailable, ambiguous or non-giftable products.
+Return only {"products":[{"id":"ASIN","shortDescription":"...","humorTags":["desk"],"qualityScore":0.8,"isActive":true}]}.
+
+Products:
+${JSON.stringify(productSummaries, null, 2)}` : `Enrich these products for a funny gift catalog.
 
 Rules:
 - Keep punnyTitle under 78 characters.
@@ -675,7 +693,7 @@ ${JSON.stringify(productSummaries, null, 2)}`,
   };
 }
 
-async function reviewEditorialBatch(products, telemetry, operation = 'editorial_review') {
+async function reviewEditorialBatch(products, telemetry, operation = 'editorial_review', shortCopy = false) {
   const openai = getOpenAIClient();
   if (!openai || products.length === 0) return { items: new Map(), diagnostics: null };
 
@@ -683,7 +701,7 @@ async function reviewEditorialBatch(products, telemetry, operation = 'editorial_
     id: product.id,
     title: product.title,
     sourceFacts: product.sourceFacts || {},
-    editorialWriteup: product.editorialWriteup,
+    ...(shortCopy ? { shortDescription: product.shortDescription } : { editorialWriteup: product.editorialWriteup }),
   }));
   const model = process.env.CATALOG_EDITORIAL_REVIEW_MODEL
       || process.env.CATALOG_EDITORIAL_MODEL
@@ -694,7 +712,7 @@ async function reviewEditorialBatch(products, telemetry, operation = 'editorial_
   try {
     completion = await openai.chat.completions.create({
       model,
-      max_tokens: products.length === 1 ? 1_200 : 4_000,
+      max_tokens: shortCopy ? (products.length === 1 ? 500 : 1_600) : products.length === 1 ? 1_200 : 4_000,
       messages: [
         {
           role: 'system',
@@ -702,7 +720,12 @@ async function reviewEditorialBatch(products, telemetry, operation = 'editorial_
         },
         {
           role: 'user',
-          content: `Review each draft against only its supplied listing title and sourceFacts.
+          content: shortCopy ? `Review each shortDescription against only its listing title and sourceFacts.
+Reject unsupported materials, measurements, contents, capabilities, personalization, recipients, prices, availability, ratings and generic/template marketing. A correction must remain 6-35 words and no more than 220 characters in one paragraph, identifying the actual object and a concrete supported detail or function. Never require or generate a long article. Set approved true only if the original or corrected description is factual and publishable. Return correctedDescription null if the original needs no correction.
+Return only {"products":[{"id":"ASIN","approved":true,"correctedDescription":null,"qualityScore":0.9,"reasons":[]}]}.
+
+Drafts:
+${JSON.stringify(reviewItems, null, 2)}` : `Review each draft against only its supplied listing title and sourceFacts.
 
 Reject unsupported materials, dimensions, package contents, capabilities, personalization, recipients, prices, availability, ratings, or overly generic/template copy. Correct a draft only when the correction is fully supported. The corrected copy must remain 160-240 words in 2-3 paragraphs and retain at least two concrete product facts. Return correctedEditorial as null when the supplied draft is already acceptable; never rewrite merely for style. Set approved to true when either the original draft or a supplied correction is fully supported and publishable. Set approved to false only when no safe publishable correction can be produced from the supplied facts.
 
@@ -763,6 +786,20 @@ function retryableReview(item) {
   return Boolean(corrected) && !hasRetryableEditorialStructure(corrected);
 }
 
+function shortCopyStructure(value) {
+  const text = String(value || '').trim(), words = editorialWordCount(text);
+  return words >= 6 && words <= 35 && text.length <= 220 && !/[\r\n]/.test(text);
+}
+
+function retryableShortDraft(item) {
+  return !item || !shortCopyStructure(item.shortDescription);
+}
+
+function retryableShortReview(item) {
+  return !item || item.approved !== true
+    || Boolean(item.correctedDescription) && !shortCopyStructure(item.correctedDescription);
+}
+
 async function requestEditorialWithRetries(products, requestBatch, shouldRetry, telemetry, phase, beforeRequest) {
   const byId = new Map();
   const diagnosticsById = new Map(products.map((product) => [product.id, {
@@ -783,8 +820,8 @@ async function requestEditorialWithRetries(products, requestBatch, shouldRetry, 
           batchSize: batch.length,
           returned: Boolean(item),
           wordCount: phase === 'draft'
-            ? editorialWordCount(item?.editorialWriteup)
-            : editorialWordCount(item?.correctedEditorial || product.editorialWriteup),
+            ? editorialWordCount(item?.shortDescription || item?.editorialWriteup)
+            : editorialWordCount(item?.correctedDescription || item?.correctedEditorial || product.shortDescription || product.editorialWriteup),
           finishReason: response.diagnostics?.finishReason || null,
           expectedCount: response.diagnostics?.expectedIds?.length || batch.length,
           returnedCount: response.diagnostics?.returnedIds?.length || 0,
@@ -865,35 +902,40 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
   }
 
   const enriched = [];
+  const shortCopy = options.longEditorial !== true;
   const batches = chunkArray(products, Math.max(1, options.enrichmentBatchSize));
 
   for (const [batchIndex, batch] of batches.entries()) {
-    const draftResult = await requestEditorialWithRetries(
-      batch,
-      enrichCopyBatch,
-      retryableDraft,
+    const draftCandidates = batch.filter(product => product.editorialStatus !== 'manual_locked'
+      && (!hasCurrentApprovedCopy(product) || !shortCopy && product.editorialStatus === 'short_ready'));
+    const draftingIds = new Set(draftCandidates.map(product => product.id));
+    const draftResult = draftCandidates.length ? await requestEditorialWithRetries(
+      draftCandidates,
+      (items, ledger, operation) => enrichCopyBatch(items, ledger, operation, shortCopy),
+      shortCopy ? retryableShortDraft : retryableDraft,
       telemetry,
       'draft',
       options.assertRefreshDay
-    );
+    ) : { byId: new Map(), diagnosticsById: new Map() };
 
     const copyEnriched = batch.map((product) => {
+      if (!draftingIds.has(product.id)) return product;
       const copy = draftResult.byId.get(product.id) || {};
       const humorTags = normalizeTags(copy.humorTags, product.humorTags);
       const lockedEditorial = product.editorialStatus === 'manual_locked';
       const attemptedEditorialWriteup = lockedEditorial
         ? product.editorialWriteup
-        : String(copy.editorialWriteup || '').trim();
+        : String(shortCopy ? copy.shortDescription || '' : copy.editorialWriteup || '').trim();
       const pipelineWarnings = [];
       if (!lockedEditorial && !attemptedEditorialWriteup) pipelineWarnings.push('draft_response_missing');
-      else if (!lockedEditorial && editorialWordCount(attemptedEditorialWriteup) < 140) {
+      else if (!lockedEditorial && !(shortCopy ? shortCopyStructure(attemptedEditorialWriteup) : hasRetryableEditorialStructure(attemptedEditorialWriteup))) {
         pipelineWarnings.push('draft_generation_incomplete');
       }
 
       return {
         ...product,
-        punnyTitle: truncateText(copy.punnyTitle || product.punnyTitle || fallbackPunnyTitle(product), 78),
-        wittyDescription: truncateText(copy.wittyDescription || product.wittyDescription || fallbackWittyDescription(product), 150),
+        punnyTitle: shortCopy ? product.punnyTitle : truncateText(copy.punnyTitle || product.punnyTitle || fallbackPunnyTitle(product), 78),
+        wittyDescription: shortCopy ? product.wittyDescription : truncateText(copy.wittyDescription || product.wittyDescription || fallbackWittyDescription(product), 150),
         humorTags,
         qualityScore: normalizeQualityScore(copy.qualityScore, product.qualityScore || scoreCandidate(product)),
         isActive: product.isActive && copy.isActive !== false,
@@ -911,13 +953,13 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
         && !editorialCandidateBlock(product)
     )).map((product) => ({
       ...product,
-      editorialWriteup: product.attemptedEditorialWriteup,
+      ...(shortCopy ? { shortDescription: product.attemptedEditorialWriteup } : { editorialWriteup: product.attemptedEditorialWriteup }),
     }));
     const reviewResult = reviewCandidates.length > 0
       ? await requestEditorialWithRetries(
         reviewCandidates,
-        reviewEditorialBatch,
-        retryableReview,
+        (items, ledger, operation) => reviewEditorialBatch(items, ledger, operation, shortCopy),
+        shortCopy ? retryableShortReview : retryableReview,
         telemetry,
         'review',
         options.assertRefreshDay
@@ -928,10 +970,21 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
       .map((product) => product.editorialWriteup)
       .filter(Boolean)];
     const reviewedProducts = copyEnriched.map((product) => {
-      if (product.editorialStatus === 'manual_locked') return product;
+      if (!draftingIds.has(product.id)) return product;
 
       const blockReason = editorialCandidateBlock(product);
       if (blockReason) {
+        if (options.preserveExistingListing) {
+          // A drafting model can reject an attempt, not revoke an established
+          // catalog listing. Real merchant/source changes remain on the original
+          // revalidated record; no generated veto overwrites its copy or vector.
+          const original = batch.find(candidate => candidate.id === product.id);
+          const outcome = shortCopy ? resolveShortDescriptionAttempt(original)
+            : resolveEditorialAttempt(original);
+          return { ...original, ...outcome,
+            editorialAttemptDiagnostics: { ...product.editorialAttemptDiagnostics,
+              copyKind: shortCopy ? 'short' : 'article', draftRejection: blockReason, preservation: outcome.preservation } };
+        }
         return {
           ...product,
           editorialStatus: 'blocked',
@@ -949,7 +1002,12 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
         || process.env.CATALOG_EDITORIAL_MODEL
         || process.env.CATALOG_ENRICH_MODEL
         || 'gpt-4o-mini';
-      const outcome = resolveEditorialAttempt(product, {
+      const outcome = shortCopy ? resolveShortDescriptionAttempt(batch.find(original => original.id === product.id), {
+        draftDescription: product.attemptedEditorialWriteup,
+        review,
+        reviewQuality,
+        model,
+      }) : resolveEditorialAttempt(product, {
         draftWriteup: product.attemptedEditorialWriteup,
         review,
         reviewQuality,
@@ -964,14 +1022,16 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
       }
 
       return {
-        ...product,
+        ...(outcome.preservation || shortCopy && outcome.editorialStatus !== 'short_ready'
+          ? batch.find(original => original.id === product.id) : product),
         ...outcome,
         pipelineWarnings: pipelineReasons,
         editorialAttemptDiagnostics: {
           ...product.editorialAttemptDiagnostics,
           review: reviewResult.diagnosticsById.get(product.id),
           preservation: outcome.preservation,
-          finalWordCount: editorialWordCount(outcome.editorialWriteup),
+          copyKind: shortCopy ? 'short' : 'article',
+          finalWordCount: editorialWordCount(shortCopy ? outcome.wittyDescription || product.wittyDescription : outcome.editorialWriteup),
           requiresManualReview: outcome.requiresManualReview,
         },
       };
@@ -980,7 +1040,12 @@ async function enrichProducts(products, options, existingWriteups = [], telemetr
     let embeddingsById = new Map();
 
     try {
-      if (!options.skipEmbeddings) embeddingsById = await generateProductEmbeddings(reviewedProducts, telemetry, evidence);
+      const approved = reviewedProducts.filter(product => hasCurrentApprovedCopy(product));
+      const original = new Map(batch.map(product => [product.id, product]));
+      const changedInputs = approved.filter(product => !Array.isArray(original.get(product.id)?.embedding)
+        || original.get(product.id).embedding.length === 0
+        || buildProductEmbeddingText(product) !== buildProductEmbeddingText(original.get(product.id)));
+      if (!options.skipEmbeddings) embeddingsById = await generateProductEmbeddings(changedInputs, telemetry, evidence);
     } catch (error) {
       telemetry?.warnings.push({ phase: 'embedding', reasonCode: 'embedding_failed', message: redactTelemetryText(error.message) });
       console.warn(`OpenAI embedding enrichment failed for ${batch.length} products.`);
@@ -1140,7 +1205,7 @@ function revalidatedProduct(existing, remote, options, evidence) {
     ? editorialSourceHash(evidence || options.dailyRefresh ? { ...remote, imageUrl: cleanAmazonImageUrl(remote.imageUrl) } : remote)
     : stored('sourceFactsHash', 'source_facts_hash');
   const storedEditorialStatus = stored('editorialStatus', 'editorial_status') || 'pending';
-  const editorialStatus = storedEditorialStatus === 'generated_ready'
+  const editorialStatus = ['generated_ready', 'short_ready'].includes(storedEditorialStatus)
     && stored('editorialSourceHash', 'editorial_source_hash')
     && sourceFactsHash
     && stored('editorialSourceHash', 'editorial_source_hash') !== sourceFactsHash
@@ -1214,22 +1279,22 @@ function recordExistingSelection(telemetry, product, phase) {
 // not the legacy backfill selector or another merchant refresh. In particular,
 // manual locks never enter drafting, and unchanged approved inputs reuse vectors.
 async function enrichRevalidatedSelection(products, rows, options, telemetry, store, evidence) {
-  const currentCopy = product => ['generated_ready', 'manual_locked'].includes(product.editorialStatus)
-    && product.sourceFactsHash && product.editorialSourceHash === product.sourceFactsHash
-    && Number(product.editorialQualityScore) >= 0.8 && String(product.editorialWriteup || '').length >= 500
-    && editorialWordCount(product.editorialWriteup) >= 90 && /\n\s*\n/.test(product.editorialWriteup);
+  const currentCopy = product => product.sourceFactsHash && product.editorialSourceHash === product.sourceFactsHash
+    && hasCurrentApprovedCopy(product);
   const eligible = product => !product.duplicateOfProductId && !['blocked', 'duplicate'].includes(product.editorialStatus)
     && !editorialCandidateBlock(product);
-  const copies = products.filter(product => eligible(product) && product.editorialStatus !== 'manual_locked' && !currentCopy(product));
+  const copies = products.filter(product => eligible(product) && product.editorialStatus !== 'manual_locked'
+    && (!currentCopy(product) || options.longEditorial === true && product.editorialStatus === 'short_ready'));
   options.assertRefreshDay?.();
-  const generated = copies.length ? await enrichProducts(copies, { ...options, skipEnrichment: false, skipEmbeddings: true },
+  const generated = copies.length ? await enrichProducts(copies, { ...options, skipEnrichment: false, skipEmbeddings: true, preserveExistingListing: true },
     await getExistingEditorialWriteups(copies.map(product => product.id), store), telemetry, evidence) : [];
   const byId = new Map(generated.map(product => [product.id, product]));
   const original = new Map(products.map(product => [product.id, product]));
   const previous = new Map(rows.map(row => [row.id, row]));
   const refreshed = products.map(product => byId.get(product.id) || product);
   const needsVector = refreshed.filter(product => eligible(product) && currentCopy(product)
-    && (byId.has(product.id) || previous.get(product.id)?.has_embedding !== true));
+    && (buildProductEmbeddingText(product) !== buildProductEmbeddingText(original.get(product.id))
+      || previous.get(product.id)?.has_embedding !== true));
   let vectors = new Map();
   if (needsVector.length) {
     options.assertRefreshDay?.();
@@ -1327,7 +1392,7 @@ async function revalidateCatalog(options, telemetry, store, evidence) {
       refreshedProduct.slug = persistence.slug || refreshedProduct.slug;
       if (editorial?.attemptedIds.has(refreshedProduct.id)) {
         await recordEditorialEvent(telemetry.runId, refreshedProduct, 'enriched', store);
-        if (refreshedProduct.editorialStatus === 'generated_ready' && Array.isArray(refreshedProduct.embedding)) selectedEditorialReady++;
+        if (EDITORIAL_READY_STATUSES.has(refreshedProduct.editorialStatus) && Array.isArray(refreshedProduct.embedding)) selectedEditorialReady++;
       }
       terminalIds.add(refreshedProduct.id);
       telemetry.items.record(refreshedProduct, {
@@ -1645,14 +1710,14 @@ function catalogResultCounts(result) {
   return counts;
 }
 
-function persistenceOutcome(product, options, readyStatuses = ['generated_ready']) {
+function persistenceOutcome(product, options, readyStatuses = [...EDITORIAL_READY_STATUSES]) {
   const status = product.editorialStatus;
   const skipped = status === 'pending' && options.skipEnrichment;
   const ready = readyStatuses.includes(status);
   const requiresManualReview = status === 'needs_review' && product.requiresManualReview === true;
   return {
     decision: ready ? 'ready' : skipped ? 'persisted' : status || 'persisted',
-    reasonCode: status === 'generated_ready'
+    reasonCode: status === 'short_ready' ? 'short_copy_approved' : status === 'generated_ready'
       ? 'editorial_approved'
       : skipped
         ? 'enrichment_skipped'
@@ -1750,7 +1815,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
       }
 
       const readyCatalog = (await getActiveCatalogIdentities(store))
-        .filter((product) => ['generated_ready', 'manual_locked'].includes(product.editorialStatus));
+        .filter((product) => EDITORIAL_READY_STATUSES.has(product.editorialStatus));
       const catalogPartition = deduplicateAgainstCatalog(qualityCandidates, readyCatalog);
       const duplicatePartition = partitionDuplicateCandidates(catalogPartition.products);
       const duplicateCandidates = [...catalogPartition.rejected, ...duplicatePartition.losers].map((product) => ({
@@ -1790,13 +1855,13 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
       const enrichmentStartedAt = Date.now();
       const enrichedBackfill = editorialSeedProducts
         ? applyEditorialSeed(duplicatePartition.winners, editorialSeedProducts, existingWriteups)
-        : await enrichProducts(duplicatePartition.winners, options, existingWriteups, telemetry, evidence);
+        : await enrichProducts(duplicatePartition.winners, { ...options, preserveExistingListing: true }, existingWriteups, telemetry, evidence);
       addTiming(telemetry.timingsMs, 'backfill_enrichment', Date.now() - enrichmentStartedAt);
       for (const product of enrichedBackfill) {
         const persistence = await upsertProduct(product, store);
         product.slug = persistence.slug || product.slug;
         await recordEditorialEvent(telemetry.runId, product, 'enriched', store);
-        const outcome = persistenceOutcome(product, options, ['generated_ready', 'manual_locked']);
+        const outcome = persistenceOutcome(product, options);
         telemetry.items.record(product, {
           phase: 'backfill',
           stage: 'persistence',
@@ -1816,7 +1881,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
 
       backfillStats = {
         ...backfillStats,
-        ready: enrichedBackfill.filter((product) => product.editorialStatus === 'generated_ready').length,
+        ready: enrichedBackfill.filter((product) => EDITORIAL_READY_STATUSES.has(product.editorialStatus)).length,
         pending: enrichedBackfill.filter((product) => ['pending', 'stale'].includes(product.editorialStatus)).length,
         needsReview: enrichedBackfill.filter((product) => product.editorialStatus === 'needs_review').length,
         manualReview: enrichedBackfill.filter((product) => product.requiresManualReview === true).length,
@@ -1878,7 +1943,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
   }
   await telemetry.items.flush();
 
-  candidates.sort((a, b) => b.qualityScore - a.qualityScore);
+  candidates.sort((a, b) => b.qualityScore - a.qualityScore || a.id.localeCompare(b.id));
   const rawCandidates = candidates.length;
   const rejectedByQuality = candidates
     .map((product) => ({ product, reasonCode: discoveryCandidateBlockReason(product, options.minQualityScore) }))
@@ -1929,6 +1994,13 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
   }
   await telemetry.items.flush();
   const duplicatesFiltered = asinDuplicates + deduplicated.duplicates + catalogDuplicates;
+  if (!Number.isSafeInteger(options.maxNew) || options.maxNew < 0) throw new Error('Invalid maximum new products');
+  const overflow = candidates.splice(options.maxNew);
+  overflow.forEach(product => telemetry.items.record(product, {
+    phase: 'discovery', stage: 'selection', decision: 'deferred', reasonCode: 'max_new_limit',
+    nextAction: 'No owner action; rediscover in a future bounded run without generating unused copy or embeddings.',
+  }));
+  await telemetry.items.flush();
   if (qualityRejected > 0 || duplicatesFiltered > 0) {
     console.log(`Filtered ${qualityRejected} low-quality and ${duplicatesFiltered} duplicate discoveries`);
   }
@@ -1954,6 +2026,7 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
       discoveryDuplicates: deduplicated.duplicates,
       catalogDuplicates,
       duplicatesFiltered,
+      deferredCandidates: overflow.length,
       activeCandidates: candidates.filter((product) => product.isActive).length,
       manualIntervention: backfillStats.manualReview,
       candidates: candidates.slice(0, options.maxNew),
@@ -1963,22 +2036,13 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
 
   let inserted = 0;
   let updated = 0;
-  const existingWriteups = await getExistingEditorialWriteups(candidates.map((product) => product.id), store);
+  const existingWriteups = candidates.length ? await getExistingEditorialWriteups(candidates.map((product) => product.id), store) : [];
   const enrichedCandidates = await enrichProducts(candidates, options, existingWriteups, telemetry, evidence);
-  let persistenceStopped = false;
+  const admittedIds = new Set();
 
   for (const product of enrichedCandidates) {
-    if (persistenceStopped) {
-      telemetry.items.record(product, {
-        phase: 'discovery',
-        stage: 'persistence',
-        decision: 'not_persisted',
-        reasonCode: 'max_new_limit',
-        nextAction: 'No owner action; this candidate may be rediscovered in a later bounded run.',
-      });
-      continue;
-    }
     const persistence = await upsertProduct(product, store);
+    if (product.isActive && hasCurrentApprovedCopy(product)) admittedIds.add(product.id);
     product.slug = persistence.slug || product.slug;
     await recordEditorialEvent(telemetry.runId, product, 'discovered', store);
     if (persistence.inserted) inserted += 1;
@@ -1997,10 +2061,9 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
         attemptDiagnostics: product.editorialAttemptDiagnostics || null,
       },
     });
-    if (inserted >= options.maxNew) persistenceStopped = true;
   }
 
-  for (const duplicate of catalogSuperseded) {
+  for (const duplicate of catalogSuperseded.filter(product => admittedIds.has(product.winnerId))) {
     await markCatalogDuplicate(telemetry.runId, duplicate.id, duplicate.winnerId, store);
     telemetry.items.record(duplicate, {
       phase: 'discovery',
@@ -2026,11 +2089,12 @@ async function executeCatalog(options, editorialSeedProducts, telemetry, store =
     discoveryDuplicates: deduplicated.duplicates,
     catalogDuplicates,
     duplicatesFiltered,
+    deferredCandidates: overflow.length,
     candidates: candidates.length,
     activeCandidates: enrichedCandidates.filter((product) => product.isActive).length,
     enrichedCandidates: enrichedCandidates.length,
     embeddedCandidates: enrichedCandidates.filter((product) => Array.isArray(product.embedding) && product.embedding.length > 0).length,
-    discoveryReady: enrichedCandidates.filter((product) => product.editorialStatus === 'generated_ready').length,
+    discoveryReady: enrichedCandidates.filter((product) => EDITORIAL_READY_STATUSES.has(product.editorialStatus)).length,
     discoveryPending: enrichedCandidates.filter((product) => ['pending', 'stale'].includes(product.editorialStatus)).length,
     discoveryNeedsReview: enrichedCandidates.filter((product) => product.editorialStatus === 'needs_review').length,
     manualIntervention: backfillStats.manualReview
@@ -2266,6 +2330,7 @@ if (isDirectRun) {
 
 export {
   executeCatalog,
+  enrichProducts,
   runCatalogWithBackend,
   areNearDuplicateTitles,
   amazonAffiliateUrl,

@@ -60,7 +60,7 @@
     "catalog:review-queue": "node scripts/ops/catalog-report.mjs --latest --manual-review",
     "catalog:audit-guides": "node --experimental-strip-types scripts/ops/audit-gift-guides.mjs",
     "catalog:repair-affiliate-urls": "node scripts/ops/prefetch-catalog.mjs --repair-affiliate-urls-only",
-    "test:catalog-ops": "npm run test:catalog-editorial-recovery && node --import tsx --test tests/catalog-daily.test.mjs tests/catalog-purge-workspaces.test.mjs tests/catalog-workspace-successor.test.mjs tests/catalog-provider-evidence.test.mjs tests/catalog-ops.test.mjs tests/catalog-revalidation.test.mjs tests/catalog-maintenance-selected-editorial.test.mjs tests/catalog-maintenance-store.test.mjs tests/catalog-maintenance-merge.test.mjs",
+    "test:catalog-ops": "npm run test:catalog-editorial-recovery && node --import tsx --test tests/catalog-daily.test.mjs tests/catalog-purge-workspaces.test.mjs tests/catalog-workspace-successor.test.mjs tests/catalog-provider-evidence.test.mjs tests/catalog-ops.test.mjs tests/catalog-revalidation.test.mjs tests/catalog-maintenance-selected-editorial.test.mjs tests/catalog-maintenance-store.test.mjs tests/catalog-maintenance-merge.test.mjs tests/catalog-short-copy*.test.mjs",
     "test:catalog-telemetry": "node --test tests/catalog-telemetry.test.mjs",
     "test:catalog-cache": "node --experimental-strip-types --test tests/catalog-cache.test.mjs",
     "test:neon-compute": "node --test tests/neon-compute-boundary.test.mjs",
