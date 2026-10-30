@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "kind": "owner-directed-pinterest-manager-handoff",
+  "recordedAt": "2026-10-30T03:42:57Z",
+  "ownerLocalDate": "2026-10-29",
+  "ownerInstruction": "Adopt the clear leader's direction, hand remaining responsibilities to Stupid Gifts — Manager to execute or track in Beads, then archive this task.",
+  "sourceThreadId": "019fdd0f-a56b-7450-bb56-340333ef2ed2",
+  "targetThreadId": "019f4af2-1ee6-70b2-8111-61be6dc395a9",
+  "targetThreadTitle": "Stupid Gifts — Manager",
+  "preferredCreativeDirection": {
+    "arm": "P",
+    "referenceProduct": "Mini Tabletop Bowling Game for Office Desks",
+    "referencePinId": "1107815208389000013",
+    "direction": "Playful product-derived editorial posters, using verified real giftable objects, restrained four-to-seven-word editorial lines and the existing fidelity/taste/no-CTA/no-template gates.",
+    "adoptedAs": "Owner-preferred provisional working direction for the next bounded phase; not a demonstrated acquisition/format winner.",
+    "doNotRepostReferenceProduct": true
+  },
+  "evidenceSnapshot": "docs/ops/pinterest-measurements/2026-10-29-pm/measurement-20261029T232826510Z.json",
+  "evidenceAsOf": "2026-10-29T23:28:26.510Z",
+  "armMetrics": {
+    "P": {
+      "pins": 6,
+      "impressions": 1489,
+      "pinClicks": 23,
+      "saves": 3,
+      "nativeOutboundClicks": 2,
+      "attributableSiteSessions": null,
+      "retailerActions": null
+    },
+    "F": {
+      "pins": 6,
+      "impressions": 374,
+      "pinClicks": 5,
+      "saves": 1,
+      "nativeOutboundClicks": 0,
+      "attributableSiteSessions": null,
+      "retailerActions": null
+    }
+  },
+  "dominantPin": {
+    "impressions": 1409,
+    "pinClicks": 20,
+    "saves": 3,
+    "nativeOutboundClicks": 2,
+    "armImpressionShare": 0.9462726662189389
+  },
+  "experimentId": "exp-pinterest-editorial-mix-v11",
+  "completedPublicationQuota": 12,
+  "generationOrPostingEnabled": false,
+  "review": {
+    "notBeforeUtc": "2026-10-31T16:44:52.279Z",
+    "delivered": false,
+    "managerFollowUpRequired": true,
+    "oldTimerWillNotDeliverReviewAfterRetirement": true
+  },
+  "responsibilities": [
+    "Complete and durably record the twelve-member cohort review at or after its receipt-derived deadline, without treating preference as acquisition proof.",
+    "Track remaining October-member 28-day checkpoints; first Sheep2026-11-10T20:07:09.336Z; preserve prior actual late observations.",
+    "Prepare the next bounded production Pinterest plan in the owner-preferred poster direction, with explicit future experiment/package/cadence authority rather than a thirteenth v11 Pin.",
+    "Preserve account/app/domain/claims/redirects and original Pins/packages/receipts; separate native clicks from attributable site/retailer actions and exclude QA.",
+    "Keep catalog-care recovery/activation and discovery/enrichment/homepage algorithm work in the manager's existing separate Beads.",
+    "Retain the reviewed operator/lock and evidence for review; do not treat chat archive as filesystem cleanup authority."
+  ],
+  "tracking": {
+    "status": "accepted_and_verified",
+    "confirmedAtUtc": "2026-10-30T03:48:34Z",
+    "existingPinterestBead": "roadmap-lbbz1.8.1",
+    "beads": [
+      {
+        "id": "roadmap-lbbz1.8.1",
+        "title": "Stupid Gifts — Own Pinterest cohort review and poster-led follow-up",
+        "status": "in_progress",
+        "assignee": "Stupid Gifts Manager",
+        "dueAtUtc": "2026-10-31T23:30:00Z"
+      },
+      {
+        "id": "roadmap-lbbz1.8.1.1",
+        "title": "Stupid Gifts — Record remaining Pinterest 28-day checkpoints",
+        "status": "open",
+        "assignee": "Stupid Gifts Manager",
+        "dueAtUtc": "2026-11-10T20:07:10Z"
+      },
+      {
+        "id": "roadmap-lbbz1.8.1.2",
+        "title": "Stupid Gifts — Spec the next bounded poster-led Pinterest phase",
+        "status": "open",
+        "assignee": "Stupid Gifts Manager"
+      }
+    ],
+    "remoteDoltReadbackVerified": true,
+    "remoteRef": "refs/dolt/data",
+    "remoteRefSha": "d2d41389b7e02c40825063326100b240c7f2c967",
+    "verification": "Manager push completed; source thread independently read all three current Bead owners/states, asserted exact stored UTC due values after timezone correction, and read remote refs/dolt/data matching the corrected push. Beads dates are follow-up tracking, not a replacement background timer."
+  },
+  "retiredAutomation": {
+    "id": "goose-gifts-pinterest-growth-studio",
+    "status": "deleted",
+    "priorCadence": "09:30 / 16:30 America/Los_Angeles",
+    "replacementGrowthStudioCreated": false,
+    "confirmedDeletedAtUtc": "2026-10-30T03:48:34Z",
+    "toolReadback": {
+      "automationId": "goose-gifts-pinterest-growth-studio",
+      "mode": "delete",
+      "deleteStatus": "deleted"
+    },
+    "localConfigurationAbsentAfterDelete": true
+  },
+  "chatArchive": {
+    "requested": true,
+    "executeAfterEvidenceMerge": true,
+    "outcomeLocation": "Final source-thread app archive tool receipt; archive occurs after this repository receipt is committed."
+  },
+  "preserveOperator": {
+    "path": "/Users/cameronehrlich/.codex/worktrees/stupid-pinterest-cutover/goose.gifts",
+    "gitLockRetained": true,
+    "cleanupAuthorized": false
+  },
+  "writes": {
+    "publicPins": 0,
+    "sandboxPins": 0,
+    "accountOrDomains": 0,
+    "siteOrCatalog": 0,
+    "paidActions": 0,
+    "automationDeleted": 1
+  }
+}

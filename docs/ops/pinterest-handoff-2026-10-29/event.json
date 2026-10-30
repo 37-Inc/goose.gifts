@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-20261029-owner-manager-handoff-poster-preference",
+  "type": "learning.recorded",
+  "recordedAt": "2026-10-30T03:42:57Z",
+  "actor": "codex",
+  "data": {
+    "experimentId": "exp-pinterest-editorial-mix-v11",
+    "scope": "experiment",
+    "statement": "Cameron directed adoption of the clear reach leader's direction and handoff of remaining work to Stupid Gifts — Manager for execution or Beads tracking, then archive of this separate task. At the latest2026-10-29T23:28:26.510Z snapshot, Mini Bowling has1409impressions/20Pin clicks/3saves/2native outbound and94.63%ofP exposure; P6 totals1489/23/3/2,F6 totals374/5/1/0. Both native outbound belong to one product; attributable arm/Pin site sessions and retailer actions remain unknown. Preferred playful poster direction is an owner business choice, not proof of a general format/acquisition winner. Existing12Pin cohort, all receipts, actual checkpoint history and review deadline2026-10-31T16:44:52.279Z remain; final review is not delivered early. No new generation, package approval or publication occurs in this handoff.",
+    "evidenceEventIds": [
+      "evt-20261029-pm-v11-scheduled-measurement-noop",
+      "evt-20261029-pm-v11-metrics-1107815208389000013",
+      "evt-20261029-pm-v11-metrics-1107815208389027583"
+    ],
+    "decision": "Adopt Bowling-style product-derived playful editorial posters as provisional working direction for the manager's next bounded plan. Transfer review, remaining checkpoints and production-planning responsibilities into durable existing/focused Beads before deleting this old heartbeat and archiving the chat under the owner's explicit new instruction. Do not declare a demonstrated acquisition winner, repost Bowling, exceed v11 quota, or infer paid/unbounded posting authority.",
+    "nextAction": "Confirm manager-owned Beads and remote Dolt readback; preserve the exact Oct31 review deadline and future28day checks. Then retire goose-gifts-pinterest-growth-studio and archive this chat, retaining evidence/operator lock. Manager owns follow-up; the retired timer will not deliver the review. Keep generation/publicPosting false until an explicitly authorized bounded next experiment and exact packages."
+  }
+}
