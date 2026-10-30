@@ -14,7 +14,7 @@ import {createSealedSnapshotEnvelope,readApprovedCurrentRows} from '../scripts/c
 import {prepareOwnedApprovedCohortPlan,readOwnedApprovedCohortVectors,readOwnedPermanentCohortNative,readActivatedCatalogVectors,
   approvedCatalogPlanChecks,readHistoricalNativePreservation,readNativeHistory} from '../scripts/catalog/owned-vector-delivery.ts';
 
-async function fixture(t){
+async function fixture(t,{publicationRevision}={}){
   const f=await permanentCatalogFixture(t,{afterExpiry:true}),prepared=await preparePermanentCatalog(f.db,f.owner,f.request),initial=prepared.revision;
   const queued=await settlePermanentCatalog(f.db,prepared.owner,initial,f.adapters),build=await claimBuildRequest(f.db,queued.requestId,'native-test',f.now());
   const intent={releaseId:'native-initial',catalogRevision:initial.snapshot.catalogRevision,codeSha:initial.request.codeSha,
@@ -36,11 +36,22 @@ async function fixture(t){
       sourceExportSha256:initial.sourceDigest,vectorSyncWatermark:initial.vectorSyncWatermark,
       publicationReceiptWatermark:f.sql.prepare('SELECT max(rowid) n FROM publication_receipts').get().n,
       priorPublication:predecessor.publication,cutoff:new Date(f.now().getTime()+60000).toISOString()}};
+  if(publicationRevision)request.publicationRevision=publicationRevision;
   const owner=await claimMutationOwnership(f.db,scope,{phase:'freezing',ownerReference:approval.runId,operationKey:approvedCohortOperationKey(request)});
   const current=await prepareOwnedApprovedCohortPlan({db:f.db,owner,request,adapters:f.adapters});
   assert.ok(current.revision.persistent);assert.ok(current.revision.snapshot.products.every(p=>p.eligibleUntil===null));
   return{...f,...current};
 }
+
+test('publication-only policy preserves genuine historical native members without granting new native effects',async t=>{
+  const f=await fixture(t,{publicationRevision:'native-recovery'}),plan=prunedVectorPlan(f.revision);
+  assert.equal(f.revision.request.approval.catalogRevision,'native-current');
+  assert.equal(plan.catalogRevision,'native-recovery');
+  assert.ok(prunedVectorIds(plan).length>0);assert.equal(plan.products.length,0);assert.equal(plan.absentIds.length,0);
+  const before=canonicalJson([...f.index]),dispatches=f.dispatches();
+  assert.equal((await readOwnedPermanentCohortNative(f.db,f.owner,f.revision,f.adapters)).settled,true);
+  assert.equal(canonicalJson([...f.index]),before);assert.equal(f.dispatches(),dispatches);
+});
 
 test('native-only permanent proof retains exact policy/bits/history after context expiry without repeating full source scans or mutations',async t=>{
   const f=await fixture(t),before=canonicalJson(f.revision),changes=f.sql.prepare('SELECT total_changes() n').get().n,dispatches=f.dispatches();
