@@ -1,5 +1,14 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-30 — Semantic-index publication preflight wiring
+
+[owner+codex] The guarded publication transport now accepts the configured
+derived index's identity metadata GET only. Both normal care and recovery use
+that exact configured name; vector reads/writes and foreign indexes remain
+rejected. This fixes a local allowlist refusal previously reported as provider
+unavailability before upload. Consolidated the current runbook; historical
+recovery records remain in Git, the journal and private receipts.
+
 ## 2026-10-30 — Resume the exact publication-only policy
 
 [owner+codex] Corrected the remaining policy-reader assumption that ingestion

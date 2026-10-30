@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { accountedPublicationReadFetch, isAccountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
+import { accountedPublicationReadFetch, accountedPublicationFetch, isAccountedPublicationReadFetch } from '../scripts/catalog/publication-read-fetch.ts';
 import { createVectorizeRestAdapters } from '../scripts/catalog/vectorize-rest.ts';
 
 const id='00000000-0000-4000-8000-000000000001';
@@ -8,6 +8,22 @@ const scope={accountId:'a'.repeat(32),workerName:'fixture-worker',indexName:'fix
 const vector=`https://api.cloudflare.com/client/v4/accounts/${scope.accountId}/vectorize/v2/indexes/${scope.indexName}`;
 const init={method:'POST',redirect:'error',body:JSON.stringify({ids:[id]})};
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+test('explicit derived index permits accounted identity metadata only, never vectors or mutations',async()=>{
+  const derived=vector.replace(scope.indexName,'fixture-derived');
+  for(const factory of [accountedPublicationReadFetch,accountedPublicationFetch]){
+    const events=[],ws={async reserveBudget(x){events.push(x);},async settleBudget(_id,x){events.push(x);}};
+    const read=factory(ws,async()=>Response.json({success:true,result:{name:'fixture-derived'}}),{...scope,derivedIndexName:'fixture-derived'});
+    await read(derived,{method:'GET',redirect:'error'});assert.equal(events.length,2);
+    for(const [url,options]of [[derived+'/info',{method:'GET',redirect:'error'}],[derived+'/get_by_ids',init],
+      [derived+'/delete_by_ids',init],[derived+'/upsert',init],[derived.replace('fixture-derived','foreign'),{method:'GET',redirect:'error'}]])
+      await assert.rejects(read(url,options),/scope_invalid/);
+    assert.equal(events.length,2);
+    const ordinary=factory(ws,async()=>Response.json({}),scope);
+    await assert.rejects(ordinary(derived,{method:'GET',redirect:'error'}),/scope_invalid/);
+    for(const name of [scope.indexName,'bad/name','x'.repeat(65)])
+      assert.throws(()=>factory(ws,fetch,{...scope,derivedIndexName:name}),/scope_invalid/);
+  }
+});
 test('scoped read companion refuses mutation/foreign/oversize requests before any reservation',async()=>{
   const events=[];const ws={async reserveBudget(value){events.push(value);},async settleBudget(_id,value){events.push(value);}};
   const read=accountedPublicationReadFetch(ws,async()=>Response.json({success:true,result:[]}),scope);
