@@ -36,6 +36,8 @@ export interface ApprovedCohortRequest extends PruneRequest {
   approval: ApprovedCohortEnvelope; approvalSha256: string;
   predecessor?: PermanentCatalogSeal | ApprovedCatalogSeal;
   ownerBaseReview?: OwnerBaseCatalogReview;
+  /** A publication-only recovery keeps original ingestion receipts immutable. */
+  publicationRevision?: string;
 }
 export interface PersistentCohortState {
   generation:number; inventory:ReturnType<typeof permanentSourceInventory>; nativeHistory:NativeHistoryBinding[];
@@ -44,6 +46,9 @@ export interface ApprovedCohortRevision extends PrunedRevision { request: Approv
 export function approvedCohortOperationKey(request: ApprovedCohortRequest): string {
   pruneOperationKey(request); // Shared scope/code/cutoff validation, NOT subset policy.
   const envelope = request.approval;
+  if(request.publicationRevision!==undefined&&(!envelope||!/^[a-zA-Z0-9._-]{1,64}$/.test(request.publicationRevision)
+    ||request.publicationRevision===request.previous.catalogRevision||request.publicationRevision===envelope.catalogRevision))
+    throw Error('cohort_publication_revision_invalid');
   if (!envelope || Object.keys(envelope).sort().join(',') !== 'catalogRevision,changes,runId,schemaVersion'
     || envelope.schemaVersion !== 1 || !/^[a-zA-Z0-9._-]{1,200}$/.test(envelope.runId)
     || !/^[a-zA-Z0-9._-]{1,64}$/.test(envelope.catalogRevision) || envelope.catalogRevision === request.previous.catalogRevision
@@ -58,6 +63,7 @@ export function approvedCohortOperationKey(request: ApprovedCohortRequest): stri
     change.publicId !== publicDuplicate?.publicId && !request.previous.heldProducts.some(p => p.publicId === change.publicId))
     || publicDuplicate && !envelope.changes.some(change => change.publicId === publicDuplicate.publicId))) throw Error('cohort_owner_base_scope');
   return sha256(canonicalJson({ kind:'approved-cohort', previous:pruneOperationKey(request), approvalSha256:request.approvalSha256,
+    ...(request.publicationRevision?{publicationRevision:request.publicationRevision}:{}),
     ...(request.ownerBaseReview ? { ownerBaseReview: request.ownerBaseReview } : {}),
     ...(request.predecessor?{predecessorSha256:sha256(canonicalJson(request.predecessor))}:{}) }));
 }
@@ -191,7 +197,7 @@ async function prepare(db: CatalogD1, owner: MutationOwner, input: ApprovedCohor
   const nativeHistory=predecessor?.priorNativeHistory.map(group=>({...group,ids:group.ids.filter(id=>!targetIds.has(id))})).filter(group=>group.ids.length);
   const persistent=predecessor?{generation:owner.generation,inventory:predecessor.inventory,nativeHistory:nativeHistory!}:undefined;
   if (semantic.length + new Set([...removed.map(value=>value.publicId),...additionalAbsentIds]).size > SNAPSHOT_READ_LIMITS.identities) throw new Error('cohort_vector_proof_bound');
-  const revision = request.approval.catalogRevision;
+  const revision = request.publicationRevision??request.approval.catalogRevision;
   const existing = (await db.prepare('SELECT created_at FROM catalog_revisions WHERE revision=?').bind(revision).all()).results[0];
   const generatedAt = existing ? canonicalTime(existing.created_at) : owner.capturedAt;
   const snapshot: CatalogSnapshot = validateCatalogSnapshot({ ...source.snapshot,catalogRevision:revision,generatedAt,
