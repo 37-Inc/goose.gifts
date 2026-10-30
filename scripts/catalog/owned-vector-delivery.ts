@@ -752,7 +752,13 @@ function validatePlan(row:Journal,owner:MutationOwner,plan:PrunedVectorPlan|Acti
     ||ids.length>SNAPSHOT_READ_LIMITS.identities||new Set(ids).size!==ids.length||ids.some(id=>!UUID.test(id))
     ||canonicalJson([...ids].sort())!==canonicalJson(prunedVectorIds(request.plan).sort())
     ||!request.approval||Object.keys(request.approval).sort().join(',')!=='catalogRevision,changes,runId,schemaVersion'
-    ||request.approval.schemaVersion!==1||!Array.isArray(request.approval.changes)||request.approval.catalogRevision!==plan.catalogRevision
+    ||request.approval.schemaVersion!==1||!Array.isArray(request.approval.changes)
+    // Publication-only recovery retains the original ingestion approval. A
+    // split revision never grants native work; the immutable policy binds the
+    // complete independently verified revision, including its explicit target.
+    ||request.approval.catalogRevision!==plan.catalogRevision&&(ids.length!==0||request.sources.length!==0
+      ||revision&&(revision.request.publicationRevision!==plan.catalogRevision
+        ||canonicalJson(request.approval)!==canonicalJson(revision.request.approval)))
     ||(request.ownerBaseReview ? request.approval.changes.length!==0||!Number.isSafeInteger(request.ownerBaseApprovalCount)
       ||request.ownerBaseApprovalCount!<0||request.ownerBaseApprovalCount!>approvedBaseChangeLimit(request.ownerBaseReview)
       :request.approval.changes.length>30||sha256(canonicalJson(request.approval))!==request.approvalSha256)
@@ -814,6 +820,20 @@ export function prepareOwnedApprovedCohortPlan(options:{db:CatalogD1;owner:Mutat
       if(!actual||canonicalJson({...owner,epoch:base.epoch})!==canonicalJson(base)
         ||owner.epoch!==actual.epoch&&!(actual.epoch===base.epoch+1&&[base.epoch-1,base.epoch].includes(owner.epoch)))throw new Error('vector_owner_changed');
       owner=actual;}
+    // A committed zero-effect policy already attests the exact full revision.
+    // Resume its pinned candidate with fresh complete source/projection checks,
+    // not another policy reconstruction and staging pass.
+    if(saved&&options.sealed){
+      const revision=structuredClone(options.sealed.revision),plan=prunedVectorPlan(revision);
+      if(canonicalJson(revision.request)!==canonicalJson(options.request)||revision.operationKey!==owner.operationKey)
+        throw Error('vector_owner_changed');
+      if(reuseIds(plan).length===0){
+        const request=validatePlan(saved,owner,plan,adapters.providerIdentity,revision);
+        await assertPlanSource(db,owner,revision);
+        return{state:revision.snapshot.products.length?'prepared' as const:'all_held' as const,
+          owner,revision,reusedIds:request.sources.map(s=>s.publicId),remainingIds:[]};
+      }
+    }
     // The projection seal can commit before the policy journal exists. Only a
     // pre-dispatch saved full revision plus its exact seal/current/prior proof
     // may recover that single epoch; an arbitrary live cursor is not authority.
@@ -827,7 +847,8 @@ export function prepareOwnedApprovedCohortPlan(options:{db:CatalogD1;owner:Mutat
     }
     const prepared=await prepareApprovedCohort(db,owner,options.request,options.beforeSeal);owner=prepared.owner;
     const revision=prepared.revision,plan=prunedVectorPlan(revision),ids=reuseIds(plan);
-    if(ids.length>SNAPSHOT_READ_LIMITS.identities)throw new Error('vector_plan_invalid');
+    if(ids.length>SNAPSHOT_READ_LIMITS.identities||options.request.publicationRevision&&ids.length)
+      throw new Error('vector_plan_invalid');
     let request:CohortPlanRequest;
     if(saved)request=validatePlan(saved,owner,plan,adapters.providerIdentity,revision);
     else{

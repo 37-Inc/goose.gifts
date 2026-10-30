@@ -130,7 +130,7 @@ async function setup(t,{initial=2,permanent=0,extraHeld=0,preservePermanentListi
     useDb(value){db=value;f.db=value;},
     owner:()=>cursor.current,now:()=>new Date(clock),advance(ms){clock+=ms;},calls:()=>calls,setIntent(fn){intentOverride=fn;},
     before(fn){before=fn;},after(fn){after=fn;},lose(fn){lost=fn;},uncertain(value){unknown=value;},
-    async freeze(ids=[]){
+    async freeze(ids=[],publicationRevision){
       const changes=ids.map(publicId=>{
         const row={...sql.prepare('SELECT * FROM products WHERE public_id=?').get(publicId)};
         const operation=sql.prepare(`SELECT * FROM catalog_maintenance_operations WHERE run_id='weekly-run' AND EXISTS(
@@ -138,6 +138,7 @@ async function setup(t,{initial=2,permanent=0,extraHeld=0,preservePermanentListi
         return{publicId,operationId:operation.operation_id,inputSha256:operation.input_sha256,productSha256:sha256(canonicalJson(row)),
           displaySha256:sha256(row.public_display_json??'null')};});
       const approval={schemaVersion:1,...mode,changes};const request={previous,context,scope,codeSha:'e'.repeat(40),approval,approvalSha256:sha256(canonicalJson(approval))};
+      if(publicationRevision)request.publicationRevision=publicationRevision;
       await releaseMutationOwnership(db,cursor.current);
       const owner=await claimMutationOwnership(db,scope,{phase:'freezing',ownerReference:'approved-build',operationKey:approvedCohortOperationKey(request)});
       return{owner,request};
@@ -168,6 +169,47 @@ test('multiple approved changes use one bounded receipt read without weakening p
   const wrongOwner=await claimMutationOwnership(f.db,scope,{phase:'freezing',ownerReference:'wrong-input-proof',operationKey:approvedCohortOperationKey(wrong)});
   // Even a matching owner/checksum cannot substitute the second receipt's input.
   await assert.rejects(()=>prepareApprovedCohort(f.db,wrongOwner,wrong),/cohort_approval_changed/);
+});
+test('publication-only zero-effect policy keeps ingestion IDs and resumes its exact committed candidate',async t=>{
+  const f=await setup(t,{initial:0,permanent:2,preservePermanentListings:true});
+  await f.upsert(product(100,{sourceFacts:{fresh:true},embedding:null,editorialStatus:'pending'}));await f.drain();
+  const claim=await f.freeze([uuid(100)],'publication-recovery'),approval=structuredClone(claim.request.approval);
+  let sealed;
+  const prepared=await prepareOwnedApprovedCohortPlan({db:f.db,...claim,adapters:f.adapters,
+    beforeSeal:async(owner,revision)=>{sealed={owner,revision:structuredClone(revision)};}});
+  assert.equal(prepared.revision.snapshot.catalogRevision,'publication-recovery');
+  assert.deepEqual(prepared.revision.request.approval,approval);
+  assert.deepEqual(prepared.remainingIds,[]);
+  assert.equal(f.calls(),0);
+  const before=f.sql.prepare('SELECT total_changes() n').get().n;
+  const resumed=await prepareOwnedApprovedCohortPlan({db:f.db,...claim,adapters:f.adapters,sealed});
+  assert.deepEqual(resumed,prepared);
+  assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,before);
+  for(const mutate of [r=>{r.request.publicationRevision='wrong-target';},r=>{r.sourceDigest='0'.repeat(64);}]){
+    const bad=structuredClone(sealed);mutate(bad.revision);
+    await assert.rejects(prepareOwnedApprovedCohortPlan({db:f.db,...claim,adapters:f.adapters,sealed:bad}));
+  }
+  const queued=await settleOwnedApprovedCohortVectorProof({db:f.db,owner:resumed.owner,revision:resumed.revision,adapters:f.adapters});
+  assert.ok(queued.requestId);assert.equal(f.calls(),0);
+  const {revision}=resumed,build=await claimBuildRequest(f.db,queued.requestId,'test-only/recovery',f.now());
+  const intent={releaseId:'recovery-release',catalogRevision:revision.snapshot.catalogRevision,codeSha:revision.request.codeSha,
+    catalogSnapshotSha256:revision.packet.receipt.snapshot_sha256,manifestSha256:'a'.repeat(64),vectorSyncWatermark:revision.vectorSyncWatermark,
+    priorReleaseId:'prior-release',nextExpiry:null};
+  await enqueuePublication(f.db,revision.snapshot,intent,f.now());
+  const publication=await claimPublication(f.db,revision.snapshot,intent.releaseId,f.now());
+  await recordPublicationDispatch(f.db,revision.snapshot,publication,'test-only/recovery-dispatch',f.now());
+  const permit=await beginBuildActivation(f.db,build,revision.snapshot,publication,'test-only/recovery-upload',async()=>({environment:'staging',settled:true,
+    active:{...f.priorIntent,versionReference:'old-version'}}),f.now(),queued.owner);
+  const plan=approvedCohortVectorPlan(revision),control={catalogRevision:plan.catalogRevision,planSha256:sha256(canonicalJson(plan)),ids:[]};
+  assert.equal((await readActivatedCatalogVectors(f.db,permit,control,f.adapters)).settled,true);
+  assert.equal(f.calls(),0);
+});
+test('publication-only revision cannot authorize new native promotions',async t=>{
+  const f=await setup(t);await f.upsert(product(1,{sourceFacts:{fresh:true}}));await f.drain();
+  const claim=await f.freeze([uuid(1)],'publication-recovery');
+  const calls=f.calls();
+  await assert.rejects(prepareOwnedApprovedCohortPlan({db:f.db,...claim,adapters:f.adapters}),/vector_plan_invalid/);
+  assert.equal(f.calls(),calls);
 });
 test('daily+Monday approval bound admits30 exact identities but never31, duplicates or rewritten envelope bytes',async t=>{
   const f=await setup(t),claim=await f.freeze();
