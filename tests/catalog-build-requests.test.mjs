@@ -85,6 +85,31 @@ test('canonical immutable requests are idempotent and cannot invent unknown sour
       assert.throws(() => encodeBuildRequest({ ...f.request, ...changed }));
   } finally { f.close(); }
 });
+test('activation accepts only the exact authenticated same-catalog storefront prior', async () => {
+  const f = await setup();
+  try {
+    const claim = await f.build();
+    const publication = await f.publication();
+    const serving = { ...f.before.active, releaseId: 'code-only-release', codeSha: 'f'.repeat(40),
+      manifestSha256: '9'.repeat(64), versionReference: 'code-only-version' };
+    const observe = active => async () => ({ environment: 'staging', settled: true, active });
+    for (const changed of [
+      { ...serving, versionReference: 'other-version' },
+      { ...serving, manifestSha256: '8'.repeat(64) },
+      { ...serving, catalogRevision: 'other-revision' },
+      { ...serving, catalogSnapshotSha256: '8'.repeat(64) },
+    ]) await assert.rejects(beginBuildActivation(f.db, claim, f.snapshot, publication, 'uploaded-version',
+      observe(changed), f.now(), undefined, serving), /build_prior_deployment_changed/);
+    await assert.rejects(beginBuildActivation(f.db, claim, f.snapshot, publication, 'uploaded-version',
+      observe(serving), f.now()), /build_prior_deployment_changed/);
+    const wrongCatalog = { ...serving, catalogSnapshotSha256: '8'.repeat(64) };
+    await assert.rejects(beginBuildActivation(f.db, claim, f.snapshot, publication, 'uploaded-version',
+      observe(wrongCatalog), f.now(), undefined, wrongCatalog), /build_prior_deployment_changed/);
+    const permit = await beginBuildActivation(f.db, claim, f.snapshot, publication, 'uploaded-version',
+      observe(serving), f.now(), undefined, serving);
+    assert.equal(permit.versionReference, 'uploaded-version');
+  } finally { f.close(); }
+});
 test('resolve-only observation timeout is explicit, bounded, aborts and leaves exact activation retryable',async()=>{
   const f=await setup();
   try{

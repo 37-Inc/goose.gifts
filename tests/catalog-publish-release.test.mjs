@@ -171,7 +171,8 @@ async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environmen
   const response=result=>Response.json({success:true,result});
   const fetch=async(url,init={})=>{
     httpCalls++;const u=new URL(url);if(u.origin===config.identityOrigin){identityCalls++;if(mode.identityFailure&&active)return new Response('',{status:401});
-      assert.equal(init.headers.Authorization,'Basic PRIVATE');return Response.json(createReleaseIdentity(active?bytes(`${JSON.stringify(manifest,null,2)}\n`):priorRelease.manifestBytes));}
+      assert.equal(init.headers.Authorization,'Basic PRIVATE');return Response.json(active?createReleaseIdentity(bytes(`${JSON.stringify(manifest,null,2)}\n`))
+        :mode.servingIdentity??createReleaseIdentity(priorRelease.manifestBytes));}
     if(u.pathname.endsWith(`/d1/database/${id}`))return response({uuid:id,name:'fixture-db',read_replication:{mode:'disabled'}});
     if(u.pathname.endsWith(`/indexes/${scope.indexName}`))return response({name:scope.indexName,config:{dimensions:1536,metric:'cosine'}});
     const c=checkpoint.control.publication;
@@ -197,12 +198,20 @@ async function setup(t,{real=false,prior=true,identityOnlyPrior=false,environmen
         if(mode.activationLost)throw new Error('PRIVATE activation secret');return response({id:deployment});}
       if(mode.readbackFailure&&active)throw new Error('PRIVATE readback secret');
       return response({deployments:active?[{id:deployment,versions:[{version_id:targetVersion,percentage:100}],annotations:{'workers/message':c.deploymentMarker}}]:
-        prior?[{id:priorDeployment,versions:[{version_id:activePriorVersion,percentage:100}],annotations:{'workers/message':'owned fixture prior'}}]:[]});
+        prior?[{id:priorDeployment,versions:[{version_id:mode.servingVersion??activePriorVersion,percentage:100}],annotations:{'workers/message':'owned fixture prior'}}]:[]});
     }throw new Error(`Unexpected fixture HTTP ${url}`);
   };
   const execute=(database=db,dependencies={},buildRecovery,reviewedUploadRetry,finishAuthorization)=>executePublication({db:database,owner:checkpoint.owner,revision:mode.noRevision?null:revision,requestId,runReference:'fixture-run',workspace,config,
     credentials:{cloudflareToken:'PRIVATE_TOKEN',identityAuthorization:'Basic PRIVATE'},dependencies:{fetch,command,now:()=>new Date(clock),...dependencies},buildRecovery,reviewedUploadRetry,finishAuthorization});
   return{db,sql,owner,revision,fetch,command,get workspace(){return workspace;},config,execute,mode,uploadedConfigs,commandEnvironments,checkpoint:()=>checkpoint,now:()=>new Date(clock),advance(ms){clock+=ms;},after(fn){afterBatch=fn;},
+    setServingPrior(){
+      const original=priorRelease.intent;
+      const s={releaseId:'fixture-code-only',codeSha:'f'.repeat(40),catalogRevision:original.catalogRevision,
+        catalogSnapshotSha256:original.catalogSnapshotSha256,manifestSha256:'e'.repeat(64),versionReference:version};
+      config.servingPrior=s;mode.servingVersion=s.versionReference;
+      mode.servingIdentity={release_id:s.releaseId,code_sha:s.codeSha,catalog_revision:s.catalogRevision,
+        catalog_snapshot_sha256:s.catalogSnapshotSha256,manifest_sha256:s.manifestSha256};
+    },
     async nextRelease(){
       assert.equal((await readMutationOwner(db,scope)),null);
       const packageDirectory=path.join(workspace.directory,'packages',config.releaseId);
@@ -256,6 +265,32 @@ test('actual build/upload/activate/identity/native-proof/receipt/idle compositio
   assert.equal(f.sql.prepare("SELECT count(*) n FROM publication_receipts WHERE release_id='fixture-release'").get().n,1);
   assert.equal(f.checkpoint().state.driverState,'preserved');assert.doesNotMatch(JSON.stringify(f.checkpoint()),/PRIVATE|example.invalid|clockwork spoon/);
   assert.equal((await f.execute()).state,'published');assert.equal(f.counts().activateCalls,1);
+});
+
+test('code-only serving prior retains the real catalog receipt through publication',async t=>{
+  const f=await setup(t,{identityOnlyPrior:true});f.setServingPrior();
+  const result=await f.execute();
+  assert.equal(result.state,'published',JSON.stringify(result));
+  const receipt=f.sql.prepare('SELECT manifest_json FROM publication_receipts WHERE release_id=?').get(f.config.releaseId);
+  assert.equal(JSON.parse(receipt.manifest_json).priorReleaseId,f.config.prior.releaseId);
+  assert.equal(f.counts().activateCalls,1);
+});
+
+test('code-only serving prior has a strict immutable deployment identity',async t=>{
+  const f=await setup(t,{identityOnlyPrior:true});f.setServingPrior();
+  assert.deepEqual(validatePublicationConfig(f.config).servingPrior,f.config.servingPrior);
+  for(const change of [{extra:true},{releaseId:''},{codeSha:'bad'},{manifestSha256:'bad'},
+    {catalogSnapshotSha256:'bad'},{versionReference:'not-a-uuid'}])
+    assert.throws(()=>validatePublicationConfig({...f.config,servingPrior:{...f.config.servingPrior,...change}}),/publication_configuration_invalid/);
+  assert.throws(()=>validatePublicationConfig({...f.config,prior:null}),/publication_configuration_invalid/);
+});
+
+test('changed code-only storefront fails before build or upload',async t=>{
+  const f=await setup(t,{identityOnlyPrior:true});f.setServingPrior();
+  f.mode.servingIdentity={...f.mode.servingIdentity,manifest_sha256:'8'.repeat(64)};
+  const result=await f.execute();
+  assert.equal(result.state,'pending');
+  assert.equal(f.counts().buildCalls,0);assert.equal(f.counts().uploadCalls,0);assert.equal(f.counts().activateCalls,0);
 });
 
 async function stoppedClaim(t,{real=true}={}){

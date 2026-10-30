@@ -81,6 +81,27 @@ export async function headroom(token,spent={knownRowsRead:0,knownRowsWritten:0},
     ||chargedWrite+Math.max(0,LIMITS.reportedRowsWritten-spent.knownRowsWritten)+5000+10000>100000)refuse('free_headroom');
   return{observedAt:new Date().toISOString(),utcDay:day,rowsRead,rowsWritten,unknownReadReserve:500000,unknownWriteReserve:5000,untouchedReads:300000,untouchedWrites:10000};
 }
+export async function routineServingPrior(token,seal,send=fetch){
+  const deployments=`https://api.cloudflare.com/client/v4/accounts/${SCOPE.accountId}/workers/scripts/${SCOPE.workerName}/deployments`;
+  const deployed=async()=>{
+    const response=await send(deployments,{headers:{Authorization:`Bearer ${token}`},redirect:'error',signal:AbortSignal.timeout(15000)});
+    const data=await response.json(),value=data?.result?.deployments?.[0];
+    if(!response.ok||data.success!==true||!value||!Array.isArray(value.versions)||value.versions.length!==1
+      ||value.versions[0].percentage!==100||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(value.id)
+      ||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(value.versions[0].version_id))refuse('serving_deployment');
+    return {id:value.id,versionReference:value.versions[0].version_id};
+  };
+  const first=await deployed();
+  const response=await send('https://stupid.gifts/.well-known/catalog-release.json',{headers:{'Cache-Control':'no-cache'},redirect:'error',signal:AbortSignal.timeout(15000)});
+  const raw=await response.json(),last=await deployed();
+  if(!response.ok||canonicalJson(first)!==canonicalJson(last)||!raw
+    ||Object.keys(raw).sort().join(',')!=='catalog_revision,catalog_snapshot_sha256,code_sha,manifest_sha256,release_id'
+    ||raw.catalog_revision!==seal.projectionReceipt.catalog_revision||raw.catalog_snapshot_sha256!==seal.snapshotSha256
+    ||typeof raw.release_id!=='string'||!/^[a-zA-Z0-9._-]{1,200}$/.test(raw.release_id)
+    ||typeof raw.code_sha!=='string'||!/^[a-f0-9]{40}$/.test(raw.code_sha)||!HASH.test(raw.manifest_sha256))refuse('serving_identity');
+  return{releaseId:raw.release_id,codeSha:raw.code_sha,catalogRevision:raw.catalog_revision,
+    catalogSnapshotSha256:raw.catalog_snapshot_sha256,manifestSha256:raw.manifest_sha256,versionReference:first.versionReference};
+}
 function options(config,configPath,configSha256){return{config,driver:{configPath,configSha256,workspace:WORKSPACE,cadenceOnly:true},workspace:{directory:WORKSPACE,repository:ROOT,mode:'resume',runId:config.runId,codeSha:SOURCE,configSha256,scope:SCOPE,retention:config.retention,budgetCaps:{httpRequests:config.limits.requests,sqlStatements:config.limits.statements}}};}
 async function prepare(directory,calendar){
   const old=await optional(directory+'/operator.json');
@@ -100,9 +121,8 @@ async function prepare(directory,calendar){
     db.prepare('SELECT phase,external_pending FROM catalog_mutation_scopes WHERE environment=? AND index_name=?').bind(SCOPE.environment,SCOPE.indexName),
   ]);
   if(rows[2].results.length!==1||sha256(canonicalJson(rows[2].results[0]))!==seal.publication.receiptSha256||rows[3].results.length!==1||rows[3].results[0].phase!=='idle'||rows[3].results[0].external_pending!==0)refuse('prior_or_owner');
-  const response=await fetch('https://stupid.gifts/.well-known/catalog-release.json',{redirect:'error',signal:AbortSignal.timeout(15000)}),identity=await response.json();
-  if(!response.ok||identity.release_id!==seal.publication.releaseId||identity.catalog_snapshot_sha256!==seal.snapshotSha256||identity.manifest_sha256!==prior.manifestSha256)refuse('public_prior');
-  await put(directory+'/preparation-receipt.json',{capacity,metrics:db.metrics(),identity,prior,source:SOURCE,helperSha256:self});
+  const servingPrior=await routineServingPrior(token,seal);
+  await put(directory+'/preparation-receipt.json',{capacity,metrics:db.metrics(),servingPrior,prior,source:SOURCE,helperSha256:self});
   const now=new Date().toISOString(),cutoff=new Date(Date.now()+2*3600000).toISOString(),notAfter=new Date(Date.now()+86400000).toISOString();
   const context={envelopeSha256:sha256(seal.envelopeJson+'\n'),snapshotSha256:seal.snapshotSha256,projectionSha256:seal.projectionReceipt.projection_sha256,sourceExportSha256:seal.projectionReceipt.source_export_sha256,vectorSyncWatermark:rows[0].results[0].n,publicationReceiptWatermark:rows[1].results[0].n,cutoff,priorPublication:seal.publication};
   const inputs={previous:{path:prior.control.path,sha256:prior.control.sha256,observedAt:now}};
@@ -110,7 +130,7 @@ async function prepare(directory,calendar){
   const key=service=>({service:'goose.gifts.'+service,account:'goose.gifts'}),runId='daily-'+calendar.day+'-'+SOURCE.slice(0,8);
   const semanticSearch=routineSearchPolicy(await optional(CARE+'/semantic-search.json'));
   const config=validateCloudflareWeeklyConfig({schemaVersion:1,runId,catalogRevision:runId,codeSha:SOURCE,environment:SCOPE.environment,accountId:SCOPE.accountId,database:{id:SCOPE.databaseId,name:SCOPE.databaseName},vectorIndex:{name:SCOPE.indexName,dimensions:1536,metric:'cosine'},catalog:{associateTag:'goose-gifts-37-20',marketplace:'www.amazon.com'},backfillLimit:0,cadence:{day:calendar.day,featuredIds:homepage.featuredIds},credentials:{cloudflare:{type:'wrangler_oauth'},amazonId:key('AMAZON_CREATORS_CREDENTIAL_ID'),amazonSecret:key('AMAZON_CREATORS_CREDENTIAL_SECRET'),amazonVersion:'3.1',...(calendar.monday?{openai:key('OPENAI_API_KEY')}:{})},limits:LIMITS,retention:{reviewReference:'owner/2026-10-23/existing-daily-catalog',rules:Object.fromEntries(['amazon-observation','embedding-response','phase','publication','checkpoint'].map(k=>[k,{maxAgeMs:86400000,notAfter}]))},inputs,
-    publication:{schemaVersion:1,environment:SCOPE.environment,accountId:SCOPE.accountId,workerName:SCOPE.workerName,database:{id:SCOPE.databaseId,name:SCOPE.databaseName},indexName:SCOPE.indexName,codeSha:SOURCE,sourceMode:'stupid-production',sourceRoot:ROOT,releaseId:runId,identityOrigin:'https://stupid.gifts',compatibilityDate:'2026-10-19',prior:{directory:null,releaseId:seal.publication.releaseId,manifestSha256:prior.manifestSha256,versionReference:prior.versionReference},semanticSearch,publicAnalytics:{enabled:true,posthogHost:'https://us.i.posthog.com',posthogKey:'phc_ATVKSPwDYTRfX9qDtDVLzZuXQcNdV9d55SjC8bHtuU8w'}}});
+    publication:{schemaVersion:1,environment:SCOPE.environment,accountId:SCOPE.accountId,workerName:SCOPE.workerName,database:{id:SCOPE.databaseId,name:SCOPE.databaseName},indexName:SCOPE.indexName,codeSha:SOURCE,sourceMode:'stupid-production',sourceRoot:ROOT,releaseId:runId,identityOrigin:'https://stupid.gifts',compatibilityDate:'2026-10-19',prior:{directory:null,releaseId:seal.publication.releaseId,manifestSha256:prior.manifestSha256,versionReference:prior.versionReference},servingPrior,semanticSearch,publicAnalytics:{enabled:true,posthogHost:'https://us.i.posthog.com',posthogKey:'phc_ATVKSPwDYTRfX9qDtDVLzZuXQcNdV9d55SjC8bHtuU8w'}}});
   const configPath=directory+'/config.json',configSha256=await put(configPath,config),record={source:SOURCE,helperSha256:self,configPath,configSha256,runId,capacity};await put(directory+'/operator.json',record);return record;
 }
 async function review(entry,config,directory){

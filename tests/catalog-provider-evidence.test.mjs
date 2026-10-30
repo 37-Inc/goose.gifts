@@ -33,6 +33,27 @@ const product={id:ID,title:'TEST ONLY novelty brass lobster desk bell',price:19.
 const rights=p=>Object.fromEntries(Object.entries({title:p.title,description:p.wittyDescription,imageUrl:p.imageUrl,affiliateUrl:p.affiliateUrl,
   punnyTitle:p.punnyTitle,wittyDescription:p.wittyDescription,editorialWriteup:p.editorialWriteup,humorTags:JSON.stringify(p.humorTags)})
   .map(([field,value])=>[field,{basis:'owned',reference:`test-only-owned/${field}`,value}]));
+test('new reviewed short copy receives only exact same-observation display grants',async()=>{
+  const saved=[];
+  const evidence=createCatalogProviderEvidence({now:()=>NOW,associateTag:'goose-gifts-37-20',
+    async saveReceipt(input){return{sha256:input.sha256,reference:'fixture/merchant'};},
+    async saveReviewedShort(input){saved.push(input);return{reference:'fixture/review'};}});
+  const source={...product,affiliateUrl:`https://www.amazon.com/dp/${ID}?tag=goose-gifts-37-20`};
+  await evidence.amazon('searchItems',async()=>[source]);
+  const candidate={...source,wittyDescription:'A brass lobster desk bell for a small tabletop.',editorialStatus:'short_ready',
+    editorialQualityScore:.9,editorialSourceHash:editorialSourceHash(source),requiresManualReview:false};
+  assert.equal(await evidence.reviewedShort(candidate,{approved:false,qualityScore:.95}),false);
+  assert.equal(await evidence.reviewedShort({...candidate,affiliateUrl:'https://example.invalid/'},{approved:true,qualityScore:.95}),false);
+  assert.equal(await evidence.reviewedShort(candidate,{approved:true,qualityScore:.95}),true);
+  assert.equal(saved.length,1);
+  const grant=evidence.intent('upsertProduct',[candidate,editorialSourceHash(candidate)]).rightsById[ID];
+  assert.equal(grant.imageUrl.reference,'fixture/merchant');
+  assert.equal(Date.parse(grant.imageUrl.observedAt),Date.parse(NOW));
+  assert.equal(grant.description.value,candidate.wittyDescription);
+  assert.equal(grant.description.reference,'fixture/review');
+  await evidence.amazon('searchItems',async()=>[source]);
+  assert.equal(evidence.intent('upsertProduct',[candidate,editorialSourceHash(candidate)]).rightsById,undefined);
+});
 const scope={environment:'staging',indexName:'test-only-evidence'};
 const original={fetch:globalThis.fetch,getItems:amazonCreators.getItems,searchItems:amazonCreators.searchItems,
   env:Object.fromEntries(['OPENAI_API_KEY','POSTGRES_URL','AMAZON_ASSOCIATE_TAG','GOOGLE_SEARCH_API_KEY','GOOGLE_SEARCH_ENGINE_ID'].map(key=>[key,process.env[key]]))};
@@ -66,7 +87,7 @@ function providerMocks(remote=product,draft=writeup) {
 }
 const telemetry=()=>({runId:'weekly-run',usage:createUsageLedger(),timingsMs:{},warnings:[],items:{record(){},async flush(){}}});
 const phase=()=>parseArgs(['--enrich-only','--backfill-limit','1','--ids',ID]);
-async function fixture(t,{observedAt=NOW,reviewedRights=rights(product),loseResponse=false}={}) {
+async function fixture(t,{observedAt=NOW,reviewedRights=rights(product),loseResponse=false,allowReviewedShort=false}={}) {
   const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('PRAGMA foreign_keys=ON');
   for(const name of (await readdir(new URL('../migrations/d1/',import.meta.url))).filter(name=>/^\d{4}.*\.sql$/.test(name)).sort())
     sql.exec(await readFile(new URL(`../migrations/d1/${name}`,import.meta.url),'utf8'));
@@ -102,6 +123,7 @@ async function fixture(t,{observedAt=NOW,reviewedRights=rights(product),loseResp
   const cursor={current:await claimMutationOwnership(db,scope,{phase:'writing',ownerReference:'test-only/weekly',operationKey:'e'.repeat(64)})};
   const receipts=[];
   const evidence=createCatalogProviderEvidence({reviewedRightsById:{[ID]:reviewedRights},reviewedDeleteReference:'test-only/reviewed-delete',now:()=>observedAt,
+    ...(allowReviewedShort?{associateTag:'goose-gifts-37-20',async saveReviewedShort(input){receipts.push(structuredClone(input));return{reference:'test-only/short-review'};}}:{}),
     async saveReceipt(input){assert.equal(sha256(canonicalJson(input.receipt)),input.sha256);receipts.push(structuredClone(input));
       return{sha256:input.sha256,reference:`test-only/receipt/${input.sha256}`};}});
   const store=createD1CatalogMaintenanceStore({db,owner:cursor.current,ownerCursor:cursor,runId:'weekly-run',catalogRevision:'weekly-r',intent:evidence.intent});
@@ -201,6 +223,27 @@ test('real generated discovery captures exact model inputs but invents no rights
   assert.ok(row);assert.equal(row.editorial_status,'short_ready');assert.ok(row.embedding_text_hash);assert.equal(row.public_display_json,null);
   assert.deepEqual(JSON.parse(row.rights_json),{});assert.equal(f.receipts.length,2);
   assert.deepEqual(mock.calls,{getItems:0,searchItems:1,chat:2,embedding:1});
+});
+
+test('bounded discovery carries approved same-response short copy into the D1 public projection',async t=>{
+  const oldTag=process.env.AMAZON_ASSOCIATE_TAG;process.env.AMAZON_ASSOCIATE_TAG='goose-gifts-37-20';
+  t.after(()=>{process.env.AMAZON_ASSOCIATE_TAG=oldTag;});
+  const f=await fixture(t,{allowReviewedShort:true});
+  const remote={...product,id:'B000000002',title:'Funny ceramic mushroom desk lamp',
+    affiliateUrl:'https://www.amazon.com/dp/B000000002?tag=goose-gifts-37-20',imageUrl:'https://example.invalid/mushroom.jpg',
+    editorialStatus:'pending',editorialWriteup:null,sourceFacts:{fixture:2,material:'ceramic',shape:'mushroom',design:'lamp'}};
+  providerMocks(remote);
+  const options=parseArgs(['--theme-limit','1','--per-theme','1','--max-new','1','--min-quality-score','0.05','--backfill-limit','0']);
+  options.themes=['test-only novelty objects'];options.discoveryNewOnly=true;
+  await executeCatalog(options,undefined,telemetry(),f.store,f.evidence);
+  const row=f.sql.prepare('SELECT * FROM products WHERE id=?').get(remote.id);
+  assert.equal(row.editorial_status,'short_ready');
+  assert.ok(row.public_display_json);
+  const display=JSON.parse(row.public_display_json);
+  assert.equal(display.description,'A ceramic mushroom lamp with a distinctive silhouette.');
+  assert.equal(display.imageUrl,remote.imageUrl);
+  assert.equal(display.affiliateUrl,remote.affiliateUrl);
+  assert.equal(JSON.parse(row.rights_json).description.reference,'test-only/short-review');
 });
 
 test('later contradictory ASIN in an actual second theme cannot bless the first discovery',async t=>{

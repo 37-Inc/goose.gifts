@@ -1,11 +1,26 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { headroom, routineSearchPolicy } from '../scripts/catalog/daily-operator.mjs';
+import { headroom, routineSearchPolicy, routineServingPrior } from '../scripts/catalog/daily-operator.mjs';
 
 const usage = (rowsRead, rowsWritten) => async url => {
   assert.equal(url, 'https://api.cloudflare.com/client/v4/graphql');
   return Response.json({data:{viewer:{accounts:[{d1AnalyticsAdaptiveGroups:[{sum:{rowsRead,rowsWritten}}]}]}}});
 };
+test('preparation pins the settled storefront only when it serves the sealed catalog',async()=>{
+  const seal={snapshotSha256:'a'.repeat(64),projectionReceipt:{catalog_revision:'catalog-one'}};
+  const raw={release_id:'code-only',code_sha:'b'.repeat(40),catalog_revision:'catalog-one',
+    catalog_snapshot_sha256:seal.snapshotSha256,manifest_sha256:'c'.repeat(64)};
+  const version='01234567-89ab-cdef-0123-456789abcdef';
+  const make=(identity=raw,second=version)=>{let calls=0;return async url=>{
+    if(url.includes('catalog-release.json'))return Response.json(identity);
+    return Response.json({success:true,result:{deployments:[{id:version,versions:[{version_id:++calls===1?version:second,percentage:100}]}]}});
+  };};
+  const result=await routineServingPrior('synthetic',seal,make());
+  assert.equal(result.releaseId,'code-only');assert.equal(result.versionReference,version);
+  await assert.rejects(routineServingPrior('synthetic',seal,make({...raw,catalog_snapshot_sha256:'d'.repeat(64)})),/serving_identity/);
+  await assert.rejects(routineServingPrior('synthetic',seal,make(raw,'11234567-89ab-cdef-0123-456789abcdef')),/serving_identity/);
+  await assert.rejects(routineServingPrior('synthetic',seal,make({...raw,extra:true})),/serving_identity/);
+});
 test('routine publication preserves only the approved bounded semantic policy',()=>{
   assert.deepEqual(routineSearchPolicy(null),{enabled:false,dailyRequestCap:50,dailyTokenCap:32768});
   const policy={enabled:true,dailyRequestCap:50,dailyTokenCap:32768,derivedCatalog:{
