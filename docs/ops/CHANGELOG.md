@@ -1,5 +1,19 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-30 — Corrected package uploaded; activation still held
+
+[owner+codex] PR319 merged after378 recovery tests, strict typechecks, lint,
+full3352-product build and independent release verification. Applied the
+approved once-only750-request continuation without resetting prior charges.
+Preserved offline review evidence and cleared only its regenerable build output;
+the protected production package then built and uploaded once. Activation
+stopped at the separate internal read guard, before a public deployment.
+Actual site remains `howie-feedback-20261030-5c8caad`; all3352 public gifts,
+31 exclusions and42 articles remain intact. Keep daily care PAUSED and .4.13
+open. Exact version, checkpoint, costs and fresh Free headroom are in the
+current runbook and protected `uploaded-read-budget-hold.json`. No new supplier
+or model calls, paid upgrade, second upload or activation occurred.
+
 ## 2026-10-30 — Bounded same-publication continuation
 
 [owner+codex] Cameron approved750additional Cloudflare management requests for
