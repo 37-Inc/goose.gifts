@@ -1,5 +1,12 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-30 — Guard interrupted catalog work
+
+[owner+codex] Added an early check for unsealed maintenance before a new
+supplier batch, made diagnostic SQL fail before accounting or dispatch, and
+preserved previously cleared copy privately across later refreshes. These
+changes do not resolve or publish the currently frozen run; see Bead .4.13.
+
 ## 2026-10-30 — Homepage opening assortment polish
 
 [owner+codex] Refined automatic first-page selection to favor distinctive

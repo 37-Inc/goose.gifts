@@ -21,7 +21,7 @@ const load=name=>import(pathToFileURL(ROOT+'/'+name).href);
 const {canonicalJson,sha256}=await load('scripts/catalog/migration.ts');
 const {runCloudflareWeekly,weeklyCommandSummary,validateCloudflareWeeklyConfig}=await load('scripts/catalog/run-cloudflare-weekly.ts');
 const {resolveWranglerOAuth}=await load('scripts/catalog/check-cloudflare-runner.ts');
-const {createCatalogD1Rest}=await load('scripts/catalog/d1-write-rest.ts');
+const {createCatalogD1ReadOnlyRest}=await load('scripts/catalog/d1-write-rest.ts');
 const {openRunWorkspace}=await load('scripts/catalog/run-workspace.ts');
 const {mutationAssertion}=await load('lib/catalog/mutation-fence.ts');
 const {pacificCatalogCalendar}=await load('scripts/ops/catalog-daily.mjs');
@@ -102,6 +102,16 @@ export async function routineServingPrior(token,seal,send=fetch){
   return{releaseId:raw.release_id,codeSha:raw.code_sha,catalogRevision:raw.catalog_revision,
     catalogSnapshotSha256:raw.catalog_snapshot_sha256,manifestSha256:raw.manifest_sha256,versionReference:first.versionReference};
 }
+/** Detect a previously interrupted product write before reserving a merchant batch. */
+export async function assertNoUnsealedMaintenance(db,seal,scope=SCOPE){
+  const generation=seal.kind==='approved-catalog-seal'?seal.persistent?.generation
+    :seal.kind==='permanent-catalog-seal'?seal.control?.installationOwner?.generation+1:NaN;
+  if(!Number.isSafeInteger(generation)||generation<1)refuse('prior_generation');
+  const rows=(await db.prepare(`SELECT 1 FROM catalog_maintenance_operations
+    WHERE environment=? AND index_name=? AND generation>? AND json_array_length(changes_json)>0 LIMIT 1`)
+    .bind(scope.environment,scope.indexName,generation).all()).results;
+  if(rows.length)refuse('unsealed_maintenance');
+}
 function options(config,configPath,configSha256){return{config,driver:{configPath,configSha256,workspace:WORKSPACE,cadenceOnly:true},workspace:{directory:WORKSPACE,repository:ROOT,mode:'resume',runId:config.runId,codeSha:SOURCE,configSha256,scope:SCOPE,retention:config.retention,budgetCaps:{httpRequests:config.limits.requests,sqlStatements:config.limits.statements}}};}
 async function prepare(directory,calendar){
   const old=await optional(directory+'/operator.json');
@@ -111,9 +121,8 @@ async function prepare(directory,calendar){
   if(await optional(directory+'/prepare-intent.json'))refuse('preparation_interrupted');
   const prior=await optional(CARE+'/last-success.json')??INITIAL,seal=await json(prior.control.path,prior.control.sha256);
   if(!['permanent-catalog-seal','approved-catalog-seal'].includes(seal.kind))refuse('prior_kind');
-  await put(directory+'/prepare-intent.json',{source:SOURCE,helperSha256:self,createdAt:new Date().toISOString(),prior,preparationMaximumReads:20000,preparationMaximumWrites:0});
   const token=await resolveWranglerOAuth(),capacity=await headroom(token);
-  const db=await createCatalogD1Rest({accountId:SCOPE.accountId,databaseId:SCOPE.databaseId,databaseName:SCOPE.databaseName,token,limits:{requests:10,statements:12,reportedRowsRead:20000,reportedRowsWritten:1}});
+  const db=await createCatalogD1ReadOnlyRest({accountId:SCOPE.accountId,databaseId:SCOPE.databaseId,databaseName:SCOPE.databaseName,token,limits:{requests:10,statements:12,reportedRowsRead:20000,reportedRowsWritten:1}});
   const rows=await db.batch([
     db.prepare('SELECT coalesce(max(sequence),0) n FROM vector_sync_outbox WHERE source_revision=?').bind(seal.projectionReceipt.catalog_revision),
     db.prepare('SELECT coalesce(max(rowid),0) n FROM publication_receipts'),
@@ -121,6 +130,8 @@ async function prepare(directory,calendar){
     db.prepare('SELECT phase,external_pending FROM catalog_mutation_scopes WHERE environment=? AND index_name=?').bind(SCOPE.environment,SCOPE.indexName),
   ]);
   if(rows[2].results.length!==1||sha256(canonicalJson(rows[2].results[0]))!==seal.publication.receiptSha256||rows[3].results.length!==1||rows[3].results[0].phase!=='idle'||rows[3].results[0].external_pending!==0)refuse('prior_or_owner');
+  await assertNoUnsealedMaintenance(db,seal);
+  await put(directory+'/prepare-intent.json',{source:SOURCE,helperSha256:self,createdAt:new Date().toISOString(),prior,preparationMaximumReads:20000,preparationMaximumWrites:0});
   const servingPrior=await routineServingPrior(token,seal);
   await put(directory+'/preparation-receipt.json',{capacity,metrics:db.metrics(),servingPrior,prior,source:SOURCE,helperSha256:self});
   const now=new Date().toISOString(),cutoff=new Date(Date.now()+2*3600000).toISOString(),notAfter=new Date(Date.now()+86400000).toISOString();
@@ -136,7 +147,7 @@ async function prepare(directory,calendar){
 async function review(entry,config,directory){
   const w=await openRunWorkspace(entry.workspace);
   try{const cp=await w.readCheckpoint(),owner=cp?.checkpoint.owner;if(cp?.checkpoint.phase!=='phases_complete'||!owner||owner.phase!=='writing')refuse('review_phase');
-    const token=await resolveWranglerOAuth(),db=await createCatalogD1Rest({accountId:SCOPE.accountId,databaseId:SCOPE.databaseId,databaseName:SCOPE.databaseName,token,limits:config.limits,accounting:{scope:{accountId:SCOPE.accountId,databaseId:SCOPE.databaseId,databaseName:SCOPE.databaseName},initial:await w.budget(),reserve:r=>w.reserveBudget(r),settle:(id,s)=>w.settleBudget(id,s)}});
+    const token=await resolveWranglerOAuth(),db=await createCatalogD1ReadOnlyRest({accountId:SCOPE.accountId,databaseId:SCOPE.databaseId,databaseName:SCOPE.databaseName,token,limits:config.limits,accounting:{scope:{accountId:SCOPE.accountId,databaseId:SCOPE.databaseId,databaseName:SCOPE.databaseName},initial:await w.budget(),reserve:r=>w.reserveBudget(r),settle:(id,s)=>w.settleBudget(id,s)}});
     await mutationAssertion(db,owner,['writing']).all();
     const ops=(await db.prepare('SELECT operation_id,input_sha256,changes_json,next_epoch,generation,environment,index_name FROM catalog_maintenance_operations WHERE run_id=? ORDER BY next_epoch').bind(config.runId).all()).results;
     const latest=new Map();for(const op of ops){if(op.generation>owner.generation||op.environment!==SCOPE.environment||op.index_name!==SCOPE.indexName)refuse('operation_scope');for(const change of JSON.parse(op.changes_json))latest.set(change.productId,{op,change});}

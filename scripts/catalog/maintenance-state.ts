@@ -149,6 +149,20 @@ function retainedBase(previous: { row: Row; product: SemanticProduct } | undefin
     if (base.eligibleUntil !== null || ['id','publicId','slug','source','currency'].some(key => base[key as keyof typeof base] !== p[key])
       || publicProductRightsExpiry(base, permission, now) !== Infinity
       || rights.persistent && canonicalJson(rights.persistent) !== canonicalJson(permission)) return null;
+    // Preserve the original cleared base privately, while still deriving the
+    // current display from the current reviewed view. This does not republish
+    // suppressed or unreviewed content.
+    let originalBase = structuredClone(base);
+    if (previous.product.persistentBase) {
+      try {
+        const historical=validatePublicCatalogProduct(previous.product.persistentBase,now) as PersistentCatalogProduct;
+        const fields=['title','description','imageUrl','affiliateUrl','punnyTitle','wittyDescription','editorialWriteup','humorTags'] as const;
+        if (historical.eligibleUntil===null && ['id','publicId','slug','source','currency'].every(key=>historical[key as keyof typeof historical]===p[key])
+          && fields.every(field=>base[field]===undefined||canonicalJson(base[field])===canonicalJson(historical[field]??null))
+          && (!base.indexable||historical.indexable)
+          && publicProductRightsExpiry(historical,permission,now)===Infinity) originalBase=structuredClone(historical);
+      } catch { /* Keep the current exact cleared view, not an invalid history. */ }
+    }
     // Independently cleared title/description remain exact licensed fallback
     // values even when a new supplier overlay or reviewed short copy changes.
     // The old grant never authorizes the replacement copy.
@@ -171,7 +185,7 @@ function retainedBase(previous: { row: Row; product: SemanticProduct } | undefin
     // supplier/native binding is rewritten to pretend a new review happened.
     const equivalent = display && base.indexable && retainedEditorial && originalEditorialEquivalent(
       previous.row.source_record_json, p, base.editorialWriteup!, editorialSourceHash);
-    return { saved:base, rights:permission, display:equivalent
+    return { saved:originalBase, rights:permission, display:equivalent
       ? validatePublicCatalogProduct({...display,indexable:true},now) as PersistentCatalogProduct : display };
   } catch { return null; } // Unknown/corrupt clearance never becomes a public grant.
 }

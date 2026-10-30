@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
 import { readFile, readdir } from 'node:fs/promises';
-import { createCatalogD1Rest, CATALOG_D1_REST_LIMITS } from '../scripts/catalog/d1-write-rest.ts';
+import { createCatalogD1Rest, createCatalogD1ReadOnlyRest, CATALOG_D1_REST_LIMITS } from '../scripts/catalog/d1-write-rest.ts';
 import { claimMutationOwnership, readMutationOwner, releaseMutationOwnership } from '../lib/catalog/mutation-fence.ts';
 import { createD1CatalogTelemetryStore } from '../scripts/catalog/telemetry-d1.ts';
 
@@ -14,6 +14,21 @@ const result=(results=[],meta={})=>({success:true,results,meta:{served_by_primar
 const originalFetch=globalThis.fetch;
 globalThis.fetch=async()=>{throw new Error('Live network is forbidden in this test');};
 test.after(()=>{globalThis.fetch=originalFetch;});
+test('diagnostic SQL is checked before reservation, including WITH and table metadata reads',async()=>{
+  const events=[],calls=[];
+  const fetch=async(url,init)=>{calls.push(url);if(url===base)return ok(identity);
+    const body=JSON.parse(init.body);return ok(body.batch.map(()=>result([{catalog_d1_primary:1}])));};
+  const initial={httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0};
+  const db=await createCatalogD1ReadOnlyRest({...config,fetch,accounting:{scope:{accountId:config.accountId,databaseId:config.databaseId,databaseName:config.databaseName},initial,
+    async reserve(value){events.push(['reserve',value.units.sqlStatements]);},async settle(id,value){events.push(['settle',value.status]);}}});
+  await db.prepare('WITH x AS (SELECT 1 n) SELECT * FROM x').all();
+  await db.prepare('PRAGMA table_info(products)').all();
+  const beforeEvents=events.length,beforeCalls=calls.length,beforeMetrics=db.metrics();
+  await assert.rejects(db.prepare('DELETE FROM products').run(),/catalog_d1_diagnostic_read_only/);
+  await assert.rejects(db.prepare('PRAGMA writable_schema=ON').run(),/catalog_d1_diagnostic_read_only/);
+  await assert.rejects(db.batch([db.prepare('SELECT 1'),db.prepare('WITH x AS (SELECT 1) DELETE FROM products')]),/catalog_d1_diagnostic_read_only/);
+  assert.equal(events.length,beforeEvents);assert.equal(calls.length,beforeCalls);assert.deepEqual(db.metrics(),beforeMetrics);
+});
 async function fixture(t,limits,accounting) {
   const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());sql.exec('CREATE TABLE items(id TEXT PRIMARY KEY,value TEXT)');
   const calls=[];let change;

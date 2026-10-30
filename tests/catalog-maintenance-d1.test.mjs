@@ -280,7 +280,7 @@ test('material or unknown facts and unreviewed article changes still suppress pu
       const p={...f.p,embedding:undefined,editorialStatus:'generated_ready',...patch};
       const hash=editorialSourceHash(p);await f.store.upsertProduct(p,hash);
       const display=JSON.parse(f.row(1).public_display_json),expected={...f.base,indexable:false};delete expected.editorialWriteup;
-      assert.deepEqual(display,expected);assert.deepEqual(f.state(1).product.persistentBase,expected);
+      assert.deepEqual(display,expected);assert.deepEqual(f.state(1).product.persistentBase,f.base);
       if(!patch.editorialWriteup)assert.equal(f.state(1).product.editorialWriteup,f.p.editorialWriteup);
       assert.equal(f.row(1).rights_json,original.rights_json);assert.equal(f.row(1).source_record_json,original.source_record_json);
       assert.equal(f.state(1).embedding_native_base64,native);assert.equal(f.state(1).embedding_provenance_json,proof);
@@ -288,6 +288,20 @@ test('material or unknown facts and unreviewed article changes still suppress pu
       assert.equal(f.events().filter(e=>e.status==='pending'&&e.operation==='upsert').length,0);
     }finally{f.close();}
   }
+});
+
+test('later refreshes keep the original cleared base privately without republishing suppressed article',async()=>{
+  const f=await permanentFixture({preservePermanentListings:true});try{
+    const changed={...f.p,embedding:undefined,editorialStatus:'stale',sourceFacts:{material:'different'}};
+    await f.store.upsertProduct(changed,editorialSourceHash(changed));
+    const first=JSON.parse(f.row(1).public_display_json);
+    assert.equal(first.editorialWriteup,undefined);assert.deepEqual(f.state(1).product.persistentBase,f.base);
+    f.setClock('2026-10-21T07:00:00.123Z');
+    const next={...changed,title:'A later retailer title'};
+    await f.store.upsertProduct(next,editorialSourceHash(next));
+    assert.equal(JSON.parse(f.row(1).public_display_json).editorialWriteup,undefined);
+    assert.deepEqual(f.state(1).product.persistentBase,f.base);
+  }finally{f.close();}
 });
 
 test('retained article approval cannot promote a previously nonindexable base',async()=>{
