@@ -64,6 +64,8 @@ export interface PublicationFinishBudget {
   allowance:BudgetCeiling;reportedRowsRead:number;
 }
 type FinishGrant=PublicationFinishBudget&{usage:BudgetTotals};
+export interface PublicationRequestBudget {expectedCheckpointSha256:string;approvalReference:string;additionalHttpRequests:number}
+type RequestGrant=PublicationRequestBudget&{usage:BudgetTotals};
 export interface BudgetReservation { id:string; requestSha256:string; units:{httpRequests:number;sqlStatements:number} }
 export type BudgetSettlement = {status:'known';usage:{rowsRead:number;rowsWritten:number}} | {status:'unknown';usage:null};
 export interface RunWorkspaceOptions {
@@ -101,11 +103,12 @@ type Event = {type:'artifact';ref:ArtifactRef} | {type:'checkpoint';ref:Artifact
   | {type:'publication-purged';releaseId:string;purgedAt:string}
   | {type:'activation-recovery-budget';grant:RecoveryGrant}
   | {type:'publication-finish-budget';grant:FinishGrant}
+  | {type:'publication-request-budget';grant:RequestGrant}
   | {type:'publication-success';proof:PublicationSuccess}
   | {type:'catalog-successor-part';sha256:string;index:number;count:number;data:string}
   | {type:'reserve';reservation:BudgetReservation} | {type:'settle';id:string;settlement:BudgetSettlement};
 type RecordFile = {schemaVersion:1;sequence:number;parent:string|null;event:Event};
-type State = {manifest:WorkspaceManifest;execution:ExecutionAdoption|null;recovery:RecoveryGrant|null;finish:FinishGrant|null;success:PublicationSuccess|null;head:string|null;count:number;bytes:number;checkpoint:CheckpointView|null;body:ArtifactRef|null;previous:string|null;totals:BudgetTotals;
+type State = {manifest:WorkspaceManifest;execution:ExecutionAdoption|null;recovery:RecoveryGrant|null;finish:FinishGrant|null;requestGrant:RequestGrant|null;success:PublicationSuccess|null;head:string|null;count:number;bytes:number;checkpoint:CheckpointView|null;body:ArtifactRef|null;previous:string|null;totals:BudgetTotals;
   successor:{sha256:string;count:number;parts:string[]}|null;
   refs:Map<string,ArtifactRef>;purged:Map<string,PurgedArtifact>;
   publications:Map<string,{retention:PublicationDirectories;buildCleaned:boolean;purged:boolean}>;
@@ -147,6 +150,8 @@ export interface RunWorkspace {
   grantActivationRecoveryBudget(input:ActivationRecoveryBudget):Promise<BudgetCeiling>;
   /** Once-only owner-approved finish of an already acknowledged upload. */
   grantPublicationFinishBudget(input:PublicationFinishBudget):Promise<BudgetCeiling>;
+  /** Once-only explicit pre-upload request allowance; no SQL/row/cadence reset. */
+  grantPublicationRequestBudget(input:PublicationRequestBudget):Promise<BudgetCeiling>;
   /** Append once after an accounted actual receipt/resolved-build/idle snapshot.
    * Seals this run against any later charge or execution; never renews bodies. */
   recordPublicationSuccess(input:PublicationSuccessInput):Promise<PublicationSuccess>;
@@ -307,6 +312,7 @@ function recoveryPermit(state:State,reconciled=false,finalizing=state.recovery?.
 function ceiling(state:State):BudgetCeiling {
   const g=state.recovery,f=state.finish,result=g?{httpRequests:g.usage.httpRequests+g.allowance.httpRequests,sqlStatements:g.usage.sqlStatements+g.allowance.sqlStatements}:{...state.manifest.budgetCaps};
   if(f)for(const k of ['httpRequests','sqlStatements'] as const)result[k]=Math.max(result[k],state.manifest.budgetCaps[k],f.usage[k]+f.allowance[k]);
+  if(state.requestGrant)result.httpRequests=Math.max(result.httpRequests,state.manifest.budgetCaps.httpRequests+state.requestGrant.additionalHttpRequests);
   if(!Object.values(result).every(integer))fail('budget_overflow');return result;
 }
 function budgetReservation(state:State,value:BudgetReservation) {
@@ -381,7 +387,7 @@ async function loadStored(directory:string,ref:ArtifactRef,manifest:WorkspaceMan
   return value;
 }
 function fresh(value:Stored,now:string) {if(Date.parse(value.observedAt)>Date.parse(now)||Date.parse(value.expiresAt)<=Date.parse(now))fail('expired');}
-const empty=(manifest:WorkspaceManifest):State=>({manifest,execution:null,recovery:null,finish:null,success:null,successor:null,head:null,count:0,bytes:0,checkpoint:null,body:null,previous:null,
+const empty=(manifest:WorkspaceManifest):State=>({manifest,execution:null,recovery:null,finish:null,requestGrant:null,success:null,successor:null,head:null,count:0,bytes:0,checkpoint:null,body:null,previous:null,
   totals:{httpRequests:0,sqlStatements:0,knownRowsRead:0,knownRowsWritten:0,unconfirmedRequests:0},refs:new Map(),purged:new Map(),publications:new Map(),reservations:new Map()});
 function publicationSuccess(state:State,p:PublicationSuccess) {
   const cp=state.checkpoint,c=cp?.checkpoint.control?.publication,o=c?.permit?.mutationOwner;
@@ -503,6 +509,15 @@ function apply(state:State,event:Event,dry=false) {
       ||usage.unconfirmedRequests>1||[...state.reservations.values()].some(r=>!r.settlement)))fail('recovery_binding');
     if(!integer(usage.httpRequests+input.allowance.httpRequests)||!integer(usage.sqlStatements+input.allowance.sqlStatements))fail('budget_overflow');
     if(!dry)state.recovery=event.grant;
+  }else if(event.type==='publication-request-budget'){
+    const g=event.grant,c=state.checkpoint,p=c?.checkpoint.control?.publication;
+    if(!exact(event,['type','grant'])||!exact(g,['expectedCheckpointSha256','approvalReference','additionalHttpRequests','usage'])
+      ||state.requestGrant||state.recovery||state.finish||!c||c.sha256!==g.expectedCheckpointSha256||!hash(g.approvalReference)
+      ||c.checkpoint.phase!=='publishing'||c.checkpoint.owner?.phase!=='freezing'||p?.stage!=='claimed'||p.permit||p.versionReference
+      ||!integer(g.additionalHttpRequests)||g.additionalHttpRequests<1||g.additionalHttpRequests>750
+      ||!same(g.usage,totals(state))||g.usage.unconfirmedRequests!==0
+      ||[...state.reservations.values()].some(r=>!r.settlement))fail('request_budget_binding');
+    if(!dry)state.requestGrant=structuredClone(g);
   }else if(event.type==='publication-finish-budget'){
     const g=event.grant,cp=state.checkpoint,p=cp?.checkpoint.control?.publication;
     if(!exact(event,['type','grant'])||!exact(g,['expectedCheckpointSha256','approvalReference','versionReference','allowance','reportedRowsRead','usage'])
@@ -1036,6 +1051,11 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
         if(state.finish){const {usage:unused,...original}=state.finish;void unused;
           if(!same(original,input))fail('finish_budget_replay');return ceiling(state);}
         await append({type:'publication-finish-budget',grant:{...structuredClone(input),usage:totals(state)}});return ceiling(state);
+      }),
+      grantPublicationRequestBudget:(input:PublicationRequestBudget)=>serial(async()=>{
+        if(state.requestGrant){const {usage:unused,...original}=state.requestGrant;void unused;
+          if(!same(original,input))fail('request_budget_replay');return ceiling(state);}
+        await append({type:'publication-request-budget',grant:{...structuredClone(input),usage:totals(state)}});return ceiling(state);
       }),
       publicationSuccess:()=>serial(async()=>{await verifySuccessMetadata(directory,state);return structuredClone(state.success);}),
       recordPublicationSuccess:(value:PublicationSuccessInput)=>serial(async()=>{
