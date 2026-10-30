@@ -1,5 +1,14 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-30 — Publication-only recovery binding
+
+[owner+codex] A corrected publication can keep the original ingestion approval
+and its product/operation IDs while using a new, explicitly hashed publication
+revision. An expired, never-published staging plan can be withdrawn under its
+exact owner without deleting its rows or inventing a native dispatch. Original
+charges and the consumed supplier reservation remain; Cameron approved only
+25,000 additional publication row writes, not a larger routine budget.
+
 ## 2026-10-30 — Stop unintended cleared-listing withdrawals
 
 [owner+codex] Live recovery exposed a second defect: supplier-facts hash drift

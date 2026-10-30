@@ -68,6 +68,7 @@ test('atomic fenced repair is idempotent, preserves original receipt/native, and
   const input={publicId:f.base.publicId,productId:f.base.id,productSha256:sha256(canonicalJson(after)),priorProductSha256:'3'.repeat(64),
     priorReceiptSha256:'5'.repeat(64),priorSnapshotSha256:f.input.seal.snapshotSha256,priorGeneration:21,owner:first.owner,runId:'today'};
   assert.equal(recoveredBaseLink(operations,input).operation_id,first.operationId);
+  assert.equal(recoveredBaseLink(operations,{...input,owner:{...input.owner,generation:input.owner.generation+1}}).operation_id,first.operationId);
   for(const key of ['productSha256','priorProductSha256','priorReceiptSha256','priorSnapshotSha256'])assert.equal(recoveredBaseLink(operations,{...input,[key]:'0'.repeat(64)}),null);
   assert.equal(recoveredBaseLink(operations,{...input,runId:'wrong'}),null);
   assert.deepEqual(operations.find(o=>o.operation_id===f.operation.operation_id),f.operation);

@@ -57,7 +57,7 @@ export type ClearedBaseRecovery=ReturnType<typeof planClearedBaseRecovery>;
 export function recoveredBaseLink(operations:Row[],input:{publicId:string;productId:unknown;productSha256:string;
   priorProductSha256:string;priorReceiptSha256:string;priorSnapshotSha256:string;priorGeneration:number;owner:MutationOwner;runId:string}){
   const matches=operations.filter(op=>{
-    if(op.run_id!==input.runId||op.generation!==input.owner.generation||Number(op.next_epoch)>input.owner.epoch
+    if(op.run_id!==input.runId||Number(op.generation)>input.owner.generation||Number(op.next_epoch)>input.owner.epoch
       ||op.environment!==input.owner.environment||op.index_name!==input.owner.indexName)return false;
     const r=JSON.parse(String(op.result_json));
     if(r?.kind!=='cleared-base-recovery-v1'||r.priorReceiptSha256!==input.priorReceiptSha256
@@ -70,7 +70,7 @@ export function recoveredBaseLink(operations:Row[],input:{publicId:string;produc
     const before=old&&JSON.parse(String(old.changes_json)).find((c:Row)=>c.productId===input.productId);
     return !!old&&repair?.afterSha256===input.productSha256&&repair.vectorOperation===null&&before?.beforeSha256===input.priorProductSha256
       &&before.afterSha256===repair.beforeSha256&&old.environment===input.owner.environment&&old.index_name===input.owner.indexName
-      &&Number(old.generation)>input.priorGeneration&&Number(old.generation)<input.owner.generation;
+      &&Number(old.generation)>input.priorGeneration&&Number(old.generation)<Number(op.generation);
   });
   if(matches.length>1)fail();return matches[0]??null;
 }

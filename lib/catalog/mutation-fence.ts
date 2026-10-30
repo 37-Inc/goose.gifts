@@ -124,7 +124,10 @@ export async function unabandonedImportsQuery(db:CatalogD1,environment:MutationS
     ${exceptRevision ? 'AND c.revision!=?' : ''} ${supported ? `AND NOT EXISTS(SELECT 1 FROM catalog_vector_deliveries d
       WHERE d.delivery_id=c.abandonment_delivery_id AND d.environment=? AND d.status='complete'
       AND c.abandonment_epoch IS NOT NULL
-      AND d.disposition IN('expired','expired_unsubmitted') AND json_extract(d.request_json,'$.kind')='prune'
+      AND d.disposition IN('expired','expired_unsubmitted') AND (json_extract(d.request_json,'$.kind')='prune'
+        OR (json_extract(d.request_json,'$.kind')='catalog-withdrawal'
+          AND json_extract(d.request_json,'$.cutoff')<=strftime('%Y-%m-%dT%H:%M:%fZ','now')
+          AND d.attempts=0 AND d.dispatch_token IS NULL AND d.mutation_reference IS NULL))
       AND json_extract(d.request_json,'$.catalogRevision')=c.revision
       AND json_extract(d.request_json,'$.projectionReceipt.source_export_sha256')=c.source_export_sha256)` : ''})`,
   params:[...(exceptRevision?[exceptRevision]:[]),...(supported?[environment]:[])]};
