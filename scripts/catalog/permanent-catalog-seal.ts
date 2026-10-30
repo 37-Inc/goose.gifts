@@ -18,6 +18,7 @@ import {readNativeHistory,validateNativeHistory} from './owned-vector-delivery.t
 import type {OwnedVectorAdapters} from './owned-vector-delivery.ts';
 import {approvedBaseChangeLimit} from '../../lib/catalog/owner-base-review.ts';
 import type {OwnerBaseCatalogReview} from '../../lib/catalog/owner-base-review.ts';
+import {recoveredBaseLink} from './cleared-base-recovery.ts';
 
 type Row=Record<string,unknown>;
 const HASH=/^[a-f0-9]{64}$/,UUID=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
@@ -113,16 +114,21 @@ export async function readCatalogPredecessor(options:{db:CatalogD1;owner:Mutatio
       ||!JSON.parse(String(op.changes_json)).some((c:Row)=>c.productId===product.id&&c.afterSha256===change.productSha256))fail();}
   if(current.length<old.size||new Set(current.map(r=>r.public_id)).size!==current.length||prior.inventory.some(p=>!inventory.some(r=>r.publicId===p.publicId)))fail();
   for(const row of inventory){const before=old.get(row.publicId);if(before&&same(row,before))continue;
-    const approved=changes.get(row.publicId);if(!approved||approved.productSha256!==row.productSha256)fail();
+    const approved=changes.get(row.publicId);
+    const recovered=!approved&&before?recoveredBaseLink(actual.catalog_maintenance_operations,{publicId:row.publicId,
+      productId:products.get(row.publicId)?.id,productSha256:row.productSha256,priorProductSha256:before.productSha256,
+      priorReceiptSha256:seal.publication.receiptSha256,priorSnapshotSha256:seal.snapshotSha256,priorGeneration:prior.generation,owner,runId:approval.runId}):null;
+    if(approved?approved.productSha256!==row.productSha256:!recovered)fail();
     const product=current.find(p=>p.public_id===row.publicId)!;let hash:string|null=before?.productSha256??null,steps=0,last='';
-    const links=actual.catalog_maintenance_operations.filter(op=>op.run_id===approval.runId&&op.environment===owner.environment&&op.index_name===owner.indexName
-      &&Number(op.generation)>prior.generation&&Number(op.generation)<owner.generation
-      &&String(op.database_time)>=envelope.generatedAt&&String(op.database_time)<=owner.capturedAt)
+    const links=actual.catalog_maintenance_operations.filter(op=>(op.run_id===approval.runId||recovered)&&op.environment===owner.environment&&op.index_name===owner.indexName
+      &&Number(op.generation)>prior.generation&&(Number(op.generation)<owner.generation||op.operation_id===recovered?.operation_id)
+      &&String(op.database_time)>=envelope.generatedAt&&(String(op.database_time)<=owner.capturedAt||op.operation_id===recovered?.operation_id))
       .flatMap(op=>(JSON.parse(String(op.changes_json)) as Row[]).filter(c=>c.productId===product.id).map(c=>({op,c})));
     while(hash!==row.productSha256){const matches=links.filter(l=>l.c.beforeSha256===hash);if(matches.length!==1||++steps>4)fail();
       hash=String(matches[0].c.afterSha256);last=String(matches[0].op.operation_id);}
-    if(!last&&links.some(l=>l.op.operation_id===approved.operationId&&l.c.beforeSha256===hash&&l.c.afterSha256===hash))last=approved.operationId;
-    if(last!==approved.operationId)fail();changed.push(row.publicId);
+    const finalOperation=approved?.operationId??String(recovered!.operation_id);
+    if(last!==finalOperation&&links.some(l=>l.op.operation_id===finalOperation&&l.c.beforeSha256===hash&&l.c.afterSha256===hash))last=finalOperation;
+    if(last!==finalOperation)fail();if(approved)changed.push(row.publicId);
   }
   const exact=(table:string,row:Row)=>{const keys=Object.keys(row);if(!keys.length||keys.length>65||keys.some(k=>!/^[a-z_][a-z0-9_]*$/.test(k)))fail();
     return db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM ${table}

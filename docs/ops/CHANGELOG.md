@@ -1,5 +1,14 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-30 — Exact interrupted-run reconciliation
+
+[owner+codex] Added a bounded, atomic repair for previously published cleared
+presentation lost by an interrupted refresh. It preserves supplier observations,
+rights, native vectors and old operations; an appended receipt links the exact
+old and repaired hashes into the next catalog seal. Drift, replay and owner
+fencing are regression-tested. Actual recovery/publication is tracked in .4.13;
+the daily task must remain paused until its real release and successor verify.
+
 ## 2026-10-30 — Guard interrupted catalog work
 
 [owner+codex] Added an early check for unsealed maintenance before a new
