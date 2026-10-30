@@ -386,7 +386,8 @@ export async function runCloudflareWeekly(options:WeeklyDriverOptions,dependenci
     // The owned read sender uses this exact durable ledger. It is separate
     // from normal publication mutation traffic; it can never activate a Worker.
     const networkScope={accountId:config.accountId,workerName:config.publication.workerName,indexName:config.vectorIndex.name,
-      databaseId:config.database.id,identityOrigin:config.publication.identityOrigin};
+      databaseId:config.database.id,identityOrigin:config.publication.identityOrigin,
+      ...(config.publication.semanticSearch?.derivedCatalog?{derivedIndexName:config.publication.semanticSearch.derivedCatalog.indexName}:{})};
     const generalSend=accountedPublicationFetch(ws,dependencies.fetch??fetch,networkScope);
     const publication={...dependencies.publication,fetch:accountedPublicationFetch(ws,dependencies.publication?.fetch??dependencies.fetch??fetch,networkScope),
       command:accountedPublicationUploadCommand({workspace:ws,scope:networkScope,

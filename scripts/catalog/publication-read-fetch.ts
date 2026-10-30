@@ -1,7 +1,11 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { RunWorkspace } from './run-workspace.ts';
 
-export interface PublicationFetchScope { accountId:string;workerName:string;indexName:string;databaseId:string;identityOrigin:string }
+export interface PublicationFetchScope {
+  accountId:string;workerName:string;indexName:string;databaseId:string;identityOrigin:string;
+  /** Identity metadata only: never derived-index mutation or vector access. */
+  derivedIndexName?:string;
+}
 const UUID=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 const owned=new WeakSet<typeof fetch>();
 const ownedGeneral=new WeakSet<typeof fetch>();
@@ -49,14 +53,16 @@ function accountedFetch(ws:Pick<RunWorkspace,'reserveBudget'|'settleBudget'>,sen
   if(isAccountedPublicationFetch(send))throw new Error('publication_fetch_already_accounted');
   if(!/^[a-f0-9]{32}$/.test(scope.accountId)||!UUID.test(scope.databaseId)
     ||![scope.workerName,scope.indexName].every(n=>/^[a-zA-Z0-9_-]{1,100}$/.test(n))
+    ||scope.derivedIndexName!==undefined&&(!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(scope.derivedIndexName)||scope.derivedIndexName===scope.indexName)
     ||new URL(scope.identityOrigin).origin!==scope.identityOrigin||!scope.identityOrigin.startsWith('https://'))throw new Error('publication_read_scope_invalid');
   const account=`/client/v4/accounts/${scope.accountId}`,worker=`${account}/workers/scripts/${scope.workerName}`,
     vector=`${account}/vectorize/v2/indexes/${scope.indexName}`;
+  const derived=scope.derivedIndexName?`${account}/vectorize/v2/indexes/${scope.derivedIndexName}`:null;
   const read:typeof fetch=async(input,init)=>{
     if(typeof input!=='string'||init?.redirect!=='error')throw new Error('publication_read_scope_invalid');
     const url=new URL(input),method=init.method??'GET';
     const get=method==='GET'&&init.body===undefined&&(url.origin===scope.identityOrigin&&url.pathname==='/.well-known/catalog-release.json'
-      ||url.origin==='https://api.cloudflare.com'&&[`${worker}/deployments`,vector,`${vector}/info`,`${account}/d1/database/${scope.databaseId}`].includes(url.pathname)
+      ||url.origin==='https://api.cloudflare.com'&&[`${worker}/deployments`,vector,`${vector}/info`,`${account}/d1/database/${scope.databaseId}`,derived].includes(url.pathname)
       ||url.origin==='https://api.cloudflare.com'&&url.pathname.startsWith(`${worker}/versions/`)&&UUID.test(url.pathname.slice(`${worker}/versions/`.length)));
     const versions=!readOnly&&method==='GET'&&init.body===undefined&&url.origin==='https://api.cloudflare.com'
       &&url.pathname===`${worker}/versions`&&[...url.searchParams.keys()].sort().join(',')==='page,per_page'
