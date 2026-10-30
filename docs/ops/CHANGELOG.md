@@ -11,6 +11,25 @@ daily prompt lags completed native recovery/current semantic release. Existing
 runtime, job, model budget or provider changed; owner selection/implementation
 remain pending. Public description coverage is separate from optional long articles.
 
+## 2026-10-29 evening — owner-directed Pinterest manager handoff
+
+[owner+claude] Cameron chose Mini Bowling-style playful editorial posters as
+the provisional direction and requested handing remaining review/checkpoint/
+next-phase planning to Stupid Gifts — Manager, then retiring this separate
+studio/chat. One validated learning preserves the choice without declaring a
+general acquisition winner or creating publication quota. V11 staysP6/F6,
+review undelivered until its exact October31 gate, policy unchanged/no new Pin.
+Existing `.8.1` and focused follow-ups own remaining work; actual central
+owners/dates and Doltrefd2d41389 verify. Old twice-daily heartbeat DELETED,
+app/local-config readback03:48:34UTC October30/October29Pacific; no replacement.
+Central/timer and requested final app-archive receipts:
+`pinterest-handoff-2026-10-29/receipt.json`.
+Operator/lock and all artifacts retained; no site/catalog/account mutation,
+deploy, spend or replacement growth job. Later ACTIVE/same-chat wording is
+historical under this new explicit owner retirement instruction.
+Handoff evidence PR[#302](https://github.com/37-Inc/stupid.gifts/pull/302),
+retained receipt32d51c8; focused24tests/lint pass, no runtime advancement/deploy.
+
 ## 2026-10-29 PM — frozen Pinterest measurements unchanged
 
 [daily-ops] Actual23:28:26.510UTC verifies28 retained Pins/P6F6; all native

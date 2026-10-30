@@ -1,5 +1,21 @@
 # goose.gifts Marketing Plan and Experiment Log
 
+## October29 evening — owner chooses poster direction; manager takes ownership
+
+Cameron asked to adopt the clear reach leader's direction, hand remaining work
+to Stupid Gifts — Manager for action/Beads tracking, and archive this separate
+studio. Use Mini Bowling-style product-derived playful editorial posters as the
+provisional future direction, not a proven acquisition/format winner: Bowling
+holds94.63%ofP exposure and both native outbound; attributable site/retailer
+actions remain unknown. Preserve the12-member v11 cap, original Pins/packages,
+exact October31 review gate and future28day checkpoints. Manager owns the
+review/checkpoints and a separately bounded next-phase plan; no repost, new Pin,
+generation/publication unlock or paid action here. Current ownership/retirement
+status: [studio contract](PINTEREST_STUDIO.md) and
+[handoff receipt](pinterest-handoff-2026-10-29/receipt.json). The old standalone
+timer is deleted after confirmed durable tracking; historical ACTIVE wording
+below must not recreate it. Existing account/domain/redirect cutover stays done.
+
 ## October 23 — Stupid.gifts measurement-only cutover
 
 Current owner authority supersedes historical publishing plans: finish integration

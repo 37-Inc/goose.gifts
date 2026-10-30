@@ -1,5 +1,46 @@
 # Pinterest studio — operating contract and recovery
 
+## Owner-directed manager handoff — October29 evening Pacific
+
+Cameron directed this separate studio to adopt the reach leader's working
+direction, hand remaining responsibilities to **Stupid Gifts — Manager**, and
+archive this chat. This new owner instruction supersedes historical requirements
+to keep this particular chat/twice-daily heartbeat running indefinitely.
+The manager accepted and centrally saved all three follow-ups; independent
+readback verifies the corrected UTC dates and Dolt refd2d41389. The old
+`goose-gifts-pinterest-growth-studio` heartbeat is **DELETED**, confirmed in the
+app and by absent local configuration at2026-10-30T03:48:34Z (October29Pacific).
+The [handoff receipt](pinterest-handoff-2026-10-29/receipt.json) records actual
+central tracking, timer retirement and archive status; do not infer completion
+from this instruction alone or revive the old task from historical notes below.
+
+Preferred direction: Mini Bowling-style **playful product-derived editorial
+posters (P)**, retaining product truth, taste and no-CTA/no-template standards.
+At the latest October29PM snapshot Bowling supplies1,409impressions/20Pin clicks/
+three saves/both native outbound and94.63%ofP exposure. P6 totals1,489/23/3/2,
+F6 totals374/5/1/0. This is a clear product-level reach leader and the owner's
+provisional creative choice, not a demonstrated general format/acquisition win.
+Downstream arm/Pin attribution remains unknown. Do not repost Bowling.
+
+Manager ownership is tracked under **Own Pinterest cohort review and poster-led
+follow-up** (`roadmap-lbbz1.8.1`), with **Record remaining Pinterest 28-day
+checkpoints** (`.8.1.1`) and **Spec the next bounded poster-led Pinterest phase**
+(`.8.1.2`). The full review is still NOT delivered; its minimum age deadline
+remains2026-10-31T16:44:52.279Z. The intended manager follow-up is October31
+16:30Pacific/23:30UTC; Beads tracking is not a replacement background studio.
+Next28day gates are November10–14; the first is SheepNov10T20:07:09.336Z.
+Preserve exact receipt-derived ages, honest late observations, dominant-Pin/
+category sensitivity and the Oct24 redirect/rebrand intervention.
+
+All12 v11 memberships, packages, successful receipts, cap and review delivery
+state remain unchanged. The owner preference/handoff creates no13th v11 Pin,
+generation/package approval, paid action, replacement scheduler or unbounded
+publishing authority. Keep policy generation/publicPosting false until a
+separately authorized bounded next experiment. Catalog-care activation and the
+ingestion/enrichment/homepage audits remain the manager's independent work.
+Retain the reviewed measurement checkout and its Git lock for the handoff/review;
+chat archive is not permission to remove it or any evidence. No public Pin created.
+
 ## Locked-checkout missing-files recurrence — October29
 
 The required operator files were absent again, **while the prior Git registration,
