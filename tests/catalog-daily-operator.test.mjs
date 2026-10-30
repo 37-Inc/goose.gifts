@@ -1,11 +1,37 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { headroom, routineSearchPolicy, routineServingPrior } from '../scripts/catalog/daily-operator.mjs';
+import { DatabaseSync } from 'node:sqlite';
+import { headroom, routineSearchPolicy, routineServingPrior, assertNoUnsealedMaintenance } from '../scripts/catalog/daily-operator.mjs';
 
 const usage = (rowsRead, rowsWritten) => async url => {
   assert.equal(url, 'https://api.cloudflare.com/client/v4/graphql');
   return Response.json({data:{viewer:{accounts:[{d1AnalyticsAdaptiveGroups:[{sum:{rowsRead,rowsWritten}}]}]}}});
 };
+test('unpublished maintenance is detected before the next merchant batch',async()=>{
+  let args;const rows=[];const db={prepare(sql){assert.match(sql,/catalog_maintenance_operations/);assert.match(sql,/generation>\?/);
+    return {bind(...values){args=values;return {async all(){return {results:rows};}};}};}};
+  const scope={environment:'production',indexName:'test-index'};
+  await assertNoUnsealedMaintenance(db,{kind:'approved-catalog-seal',persistent:{generation:21}},scope);
+  assert.deepEqual(args,['production','test-index',21]);
+  rows.push({1:1});await assert.rejects(assertNoUnsealedMaintenance(db,{kind:'approved-catalog-seal',persistent:{generation:21}},scope),/unsealed_maintenance/);
+  rows.length=0;await assertNoUnsealedMaintenance(db,{kind:'permanent-catalog-seal',control:{installationOwner:{generation:20}}},scope);
+  assert.deepEqual(args,['production','test-index',21]);
+  await assert.rejects(assertNoUnsealedMaintenance(db,{kind:'approved-catalog-seal',persistent:{}},scope),/prior_generation/);
+});
+test('preflight distinguishes recorded later product writes from old and unrelated operations',async()=>{
+  const sql=new DatabaseSync(':memory:');try{
+    sql.exec('CREATE TABLE catalog_maintenance_operations(environment TEXT,index_name TEXT,generation INTEGER,changes_json TEXT)');
+    const add=sql.prepare('INSERT INTO catalog_maintenance_operations VALUES(?,?,?,?)');
+    add.run('production','gifts',21,'[{"productId":"already-sealed"}]');
+    add.run('production','gifts',22,'[]');
+    add.run('production','other',23,'[{"productId":"other-project"}]');
+    const db={prepare(query){return {bind(...values){return {async all(){return {results:sql.prepare(query).all(...values)};}};}};}};
+    const seal={kind:'approved-catalog-seal',persistent:{generation:21}},scope={environment:'production',indexName:'gifts'};
+    await assertNoUnsealedMaintenance(db,seal,scope);
+    add.run('production','gifts',23,'[{"productId":"recovered-run"}]');
+    await assert.rejects(assertNoUnsealedMaintenance(db,seal,scope),/unsealed_maintenance/);
+  }finally{sql.close();}
+});
 test('preparation pins the settled storefront only when it serves the sealed catalog',async()=>{
   const seal={snapshotSha256:'a'.repeat(64),projectionReceipt:{catalog_revision:'catalog-one'}};
   const raw={release_id:'code-only',code_sha:'b'.repeat(40),catalog_revision:'catalog-one',

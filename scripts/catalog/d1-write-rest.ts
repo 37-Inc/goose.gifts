@@ -72,6 +72,20 @@ type RestClient=CatalogD1 & { providerIdentity:string;metrics:()=>{
 } };
 export function createCatalogD1Rest(options:RestOptions):Promise<RestClient>{return createRest(options);}
 
+/** Diagnostics reject unsupported SQL before a budget reservation or dispatch.
+ * A network failure after dispatch is still recorded as unknown, as usual. */
+export function createCatalogD1ReadOnlyRest(options:RestOptions):Promise<RestClient>{
+  return createRest(options,undefined,batch=>{
+    for(const {sql} of batch){
+      const text=sql.trim();
+      if (/^PRAGMA\s+table_info\([a-z_][a-z0-9_]*\)$/i.test(text)) continue;
+      if (!/^(?:SELECT|WITH)\b/i.test(text)
+        || /\b(?:INSERT|UPDATE|DELETE|REPLACE|DROP|ALTER|CREATE|PRAGMA|ATTACH|DETACH|VACUUM)\b/i.test(text))
+        throw new Error('catalog_d1_diagnostic_read_only');
+    }
+  });
+}
+
 /** Explicit one-time operator only. Bind this profile to a NEW workspace's
  * config/manifest, and pass the SAME retained ledger on every resume. Ordinary
  * factory/defaults and weekly configuration cannot opt into this allowance. */
