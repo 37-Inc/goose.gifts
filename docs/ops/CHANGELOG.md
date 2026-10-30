@@ -1,5 +1,16 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-29 — Catalog and homepage algorithms researched; proposal only
+
+[owner+claude] Parallel code/retailer research for Beads `.4.14/.4.15` produced
+`CATALOG_MERCHANDISING_SPEC_2026-10-29.md`: bounded pipeline fairness/waste fixes,
+six-anchor/eighteen-rotation weekly homepage proposal, ranked alternatives and
+tests/activation sequence. Confirmed all24 opening slots are pinned; the saved
+daily prompt lags completed native recovery/current semantic release. Existing
+`.4.13` successor/proof integration remains before writer resumption. No catalog,
+runtime, job, model budget or provider changed; owner selection/implementation
+remain pending. Public description coverage is separate from optional long articles.
+
 ## 2026-10-29 PM — frozen Pinterest measurements unchanged
 
 [daily-ops] Actual23:28:26.510UTC verifies28 retained Pins/P6F6; all native
