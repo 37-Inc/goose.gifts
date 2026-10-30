@@ -6,6 +6,46 @@ state changes without dirtying its retained execution checkout.
 
 ---
 
+## 2026-10-29 — PR301 merged and storefront accepted
+
+Source462d603/main merge4b94204 is live in Cloudflare release
+catalog-merchandising-20261029-462d603, version1897247d-90a9-44dc-a994-ef6a535bab35,
+deployment7573b43f-d5c0-497e-ba7b-d7026e9b03a8. Snapshotd6f1c526 unchanged:
+3352public/31specific exclusions/3383identities/42articles/3352derived entries,
+7021physical files and3397sitemap URLs. The genuine D1 receipt remains the
+previous owner-held-final-20261026 catalog receipt; this is a file-only release.
+
+Same original dispatch was activated once. The first combined immediate readback
+did not settle; its read-only continuation verified actual version/bindings/public
+identity and idle owner generation23/epoch531/external_pending0. No upload,
+activation, catalog phase or allowance was repeated. Final deployment ledger:
+36HTTP/5SQL/3known reads/0writes/0unknown. Separate public QA requested10URLs;
+browser search retains its normal semantic-query budget. No catalog generation.
+Public HTML matches sealed assets except the existing appended Cloudflare Insights
+beacon; exact prefix/suffix and the single external empty beacon script were checked.
+
+Live browser verified24→48,Crab search/Clear, Random changing to another gift,
+retailer tag, desktop and390px two-column mobile without horizontal overflow.
+Representative home/guide/Random/product bodies, full sitemap and retired404s pass;
+goose.gifts and www.goose.gifts product URLs both301directly to stupid.gifts.
+Private deployment-receipt.json SHAe035733e8fb1f6db8a7cf75951ecd65a927c32244a0d6d04063eb5df28fe47d5
+andqa.json live under protected catalog-merchandising-20261029. Retain the clean
+source checkout as a historical publication binding; it is NOT an enabled writer.
+
+Validation is combined evidence, not a false full-command success:1350-test
+final-runtime staging run had1326pass/20skip/four obsolete fixture assertions.
+The three NULL-public credential fixtures and old-lane budget reference were
+corrected and their groups rerun4/4 and3/3green; no runtime bytes changed after
+that broad run. Catalog ops395pass/two skips; durable publisher8/8; authentic
+one/two-day native preservation, strict/tamper/absence tests, production build,
+release verifier, lint and production audit pass.
+
+`.4.15` owns the accepted homepage implementation. Daily timer remains PAUSED;
+`.4.13` still needs serving-deployment/catalog-receipt separation and real
+same-response new-admission wiring before normal operation. `.4.14/.4.11` source
+work is merged but awaits that live operating evidence; `.4.8` actual scheduled
+cost/storage is still open. No generic owner approval or upgrade is the gate.
+
 ## 2026-10-29 — Owner-approved bounded care and homepage implementation
 
 Cameron approved improving the existing ten-product/six-theme pipeline, selecting
