@@ -40,6 +40,19 @@ export function nextRandomIndex(
   return (current + offset) % length;
 }
 
+/** Select uniformly, excluding the last shown gift when it is still in the pool. */
+export function initialRandomIndex<T extends { id: string }>(
+  products: readonly T[],
+  lastId: string | null,
+  random = Math.random,
+) {
+  if (products.length < 2) return 0;
+  const previous = products.findIndex((product) => product.id === lastId);
+  return previous >= 0
+    ? nextRandomIndex(products.length, previous, random)
+    : Math.min(products.length - 1, Math.max(0, Math.floor(random() * products.length)));
+}
+
 export function isIllustrative(
   product: Pick<PublicCatalogProduct, "affiliateUrl">,
 ) {
