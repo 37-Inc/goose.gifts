@@ -1,5 +1,12 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-30 — Show rehearsal feedback
+
+[owner+claude] Updated the `/h` rehearsal to a seven-product reveal with a
+separate fixed opening assortment. Removed the old external item and retired
+the unwanted products from this page only; the main catalog is unchanged.
+Production verification is required after merge.
+
 ## 2026-10-29 — Surprise me draws on entry (live)
 
 [owner+claude] The random-gift page now draws from its existing bounded static

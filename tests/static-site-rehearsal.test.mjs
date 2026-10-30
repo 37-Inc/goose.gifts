@@ -1,11 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { selectShowPicks, SHOW_PICK_SLUGS, SHOW_PICK_COPY } from "../static-site/lib/show-rehearsal.ts";
+import { selectShowOpening, selectShowPicks, SHOW_OPENING_SLUGS, SHOW_PICK_SLUGS, SHOW_PICK_COPY } from "../static-site/lib/show-rehearsal.ts";
 
 const product = (slug, id, overrides = {}) => ({
   id, publicId: id, slug, title: `Gift ${id}`, description: "A gift.",
   imageUrl: "/owned.svg", affiliateUrl: "https://example.com/product", source: "amazon",
   currency: "USD", price: 0, isActive: true, qualityScore: 0.8, eligibleUntil: null, ...overrides,
+});
+
+test("opening and reveal are disjoint and exclude removed products", () => {
+  const slugs = [...SHOW_OPENING_SLUGS, ...SHOW_PICK_SLUGS];
+  assert.equal(new Set(slugs).size, slugs.length);
+  for (const slug of slugs) assert.doesNotMatch(slug, /wiener|belly-fanny/);
+  const products = slugs.map((slug, i) => product(slug, String(i)));
+  const source = snapshot(products);
+  assert.deepEqual(selectShowOpening(source).map((p) => p.slug), [...SHOW_OPENING_SLUGS]);
+  assert.deepEqual(selectShowPicks(source).map((p) => p.slug), [...SHOW_PICK_SLUGS]);
 });
 const snapshot = (products) => ({
   schemaVersion: 1, dataKind: "catalog", catalogRevision: "test", generatedAt: "2026-10-26T00:00:00.000Z",
