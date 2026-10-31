@@ -67,9 +67,11 @@ export async function headroom(token,spent={knownRowsRead:0,knownRowsWritten:0},
     ||(spent.unconfirmedRequests??0)>1)refuse('run_budget_exceeded');
   const at=new Date(),day=at.toISOString().slice(0,10);
   const r=await send('https://api.cloudflare.com/client/v4/graphql',{method:'POST',redirect:'error',signal:AbortSignal.timeout(15000),headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
-    body:JSON.stringify({query:'query($a:string!,$d:Date!){viewer{accounts(filter:{accountTag:$a}){d1AnalyticsAdaptiveGroups(limit:10000,filter:{date_geq:$d,date_leq:$d}){sum{rowsRead rowsWritten}}}}}',variables:{a:SCOPE.accountId,d:day}})});
+    body:JSON.stringify({query:'query($a:string!,$d:Date!){viewer{accounts(filter:{accountTag:$a}){d1AnalyticsAdaptiveGroups(limit:1000,filter:{date_geq:$d,date_leq:$d}){sum{rowsRead rowsWritten}}}}}',variables:{a:SCOPE.accountId,d:day}})});
   const j=await r.json(),groups=j.data?.viewer?.accounts?.[0]?.d1AnalyticsAdaptiveGroups;
-  if(!r.ok||j.errors||j.data?.viewer?.accounts?.length!==1||!Array.isArray(groups)||groups.length>=10000)refuse('headroom_unavailable');
+  if(r.status===429||Array.isArray(j.errors)&&j.errors.some(e=>e.extensions?.code==='budget'))refuse('headroom_rate_limited');
+  if(!r.ok||j.errors!=null&&(!Array.isArray(j.errors)||j.errors.length>0)
+    ||j.data?.viewer?.accounts?.length!==1||!Array.isArray(groups)||groups.length>=1000)refuse('headroom_unavailable');
   if(groups.some(g=>!Number.isSafeInteger(g.sum?.rowsRead)||g.sum.rowsRead<0||!Number.isSafeInteger(g.sum?.rowsWritten)||g.sum.rowsWritten<0))refuse('headroom_invalid');
   const rowsRead=groups.reduce((n,g)=>n+g.sum.rowsRead,0),rowsWritten=groups.reduce((n,g)=>n+g.sum.rowsWritten,0);
   if(!Number.isSafeInteger(rowsRead)||!Number.isSafeInteger(rowsWritten)||rowsRead<0||rowsWritten<0)refuse('headroom_invalid');

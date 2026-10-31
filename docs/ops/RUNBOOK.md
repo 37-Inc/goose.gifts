@@ -6,21 +6,26 @@ latest protected receipt take precedence over historical journal entries.
 
 ## Current state
 
-October30 23:02UTC: publication remains **HELD**, not accepted. The corrected
-package was uploaded once as version `99409f6b-ce64-4cb2-bb00-9730bcd81aaa`,
-but has no deployment or activation permit. The real public release remains
-`howie-feedback-20261030-5c8caad`. Keep the existing daily task PAUSED.
-The approved750-request continuation was applied once; it is not pending
-approval. Final retained combined ledger:5,400HTTP/7,547SQL/1,543,207known
-reads/40,522writes/four original read-only unknowns, zero child unknowns.
-The last atomic statement crossed the internal1.5M read guard, and the client
-stopped. Fresh account-wide usage is1,544,488reads/40,953writes, below Free
-5M/100k. Do not reset/refund charges or raise the separate read limit without
-owner approval. Preserve the exact uploaded version/checkpoint; never re-upload
-or replay supplier phases. The original build lease expired22:59:11.844UTC;
-any continuation also needs exact accounted dispatch/build/owner reconciliation,
-not forced ownership. Protected `uploaded-read-budget-hold.json` records the
-checkpoint, immutable version, public identity and fresh provider usage.
+October30 Pacific / October31 00:39UTC: recovery is **COMPLETE**. Actual release
+`catalog-corrected-20261030-36a54e6` serves runtime36a54e6, version
+`99409f6b-ce64-4cb2-bb00-9730bcd81aaa`, deployment
+`193f85c6-584d-4192-ab9c-fbf9fb72fa4e`. The original upload was reused, not
+repeated. Genuine D1 receipt, resolved build, final idle owner28/555 with zero
+external pending, accepted successor and public/browser checks all pass.
+All3352 public gifts/31 exclusions/3383 identities/42 articles remain;7021
+physical files and3397 sitemap URLs are verified. See
+`evidence/2026-10-30-catalog-care-accepted.json` and canonical `.4.13`.
+The app/Beads record current status of the SAME08:30Pacific timer; archived
+holds never override accepted current evidence.
+
+All one-time quota grants are historical, not normal budget increases. Retain
+the combined6093HTTP/9263SQL/2181633known reads/40538writes/four original
+read-only unknowns; child unknowns remain zero. Latest UTC-day account usage
+was638423reads/16writes, well within Free. Preserve the frozen finish reader
+`/Users/cameronehrlich/.codex/worktrees/stupid-publication-finish/stupid.gifts`
+at2f6eb6f for this completed run's original36a54e6 source binding. Older readers
+cannot parse its newer finish allowance. Never rerun completed recovery helpers,
+upload, activation or supplier phases; original clocks/claims/history remain.
 
 The October30 publication-only recovery is tracked in
 `roadmap-lbbz1.4.13`. Its acceptance receipt is
@@ -84,6 +89,11 @@ separate uncertainty reserves and untouched shared-account headroom. The
 operator checks fresh ACCOUNT-WIDE Free usage before work and publication.
 Never raise caps, reset counters, erase unknowns, buy another batch after
 failure or upgrade to finish. Stop on a genuine capacity gate.
+The bounded usage query refuses truncated results and distinguishes provider
+analytics throttling from Free-quota exhaustion. On `headroom_rate_limited`,
+respect the provider's retry delay, then retry only the same read-only preflight
+or pending publication. Never fetch a replacement batch. A reporting-only
+throttle after an accepted release does not invalidate that release.
 
 ## Commands
 
