@@ -1,5 +1,19 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-30 — Finish the acknowledged permanent upload
+
+[owner+codex] Cameron authorized available daily Free quota to finish the same
+upload. Reuse the existing once-only finish allowance for ordinary upload ACKs,
+retain all charges, and bind its dispatch authority to the exact version and
+permanent snapshot. Expired claims may finish under that explicit authority
+without changing their tokens, attempts, original request or supplier dates.
+An already-recorded dispatch resumes by exact readback, not another write/upload.
+Routine budgets stay unchanged; expose the real D1 budget error in diagnostics.
+Normal whole-catalog builds now request an hour of build/cleanup lease, still
+capped by their original source cutoff, so generated-cache cleanup cannot
+routinely consume a ten-minute claim before upload. Other default claims stay
+unchanged; this does not extend product or supplier rights.
+
 ## 2026-10-30 — Corrected package uploaded; activation still held
 
 [owner+codex] PR319 merged after378 recovery tests, strict typechecks, lint,

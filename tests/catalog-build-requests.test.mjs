@@ -72,6 +72,14 @@ async function setup() {
   };
 }
 
+test('explicit whole-catalog build lease fits build and cleanup but remains bounded by source cutoff',async()=>{
+  const f=await setup();try{
+    const claim=await f.build('whole-catalog-build',2*3600000);
+    assert.equal(claim.leaseUntil,new Date(f.now().getTime()+3600000).toISOString());
+    assert.ok(claim.leaseUntil<=claim.request.cutoff);assert.equal(f.row().attempts,1);
+  }finally{f.close();}
+});
+
 test('canonical immutable requests are idempotent and cannot invent unknown source digests', async () => {
   const f = await setup();
   try {

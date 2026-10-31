@@ -76,9 +76,19 @@ test('approved permanent continuation reclaims an expired build and publishes wi
     priorReleaseId:build.request.priorReleaseId,nextExpiry:null};
   await enqueuePublication(f.db,r.snapshot,intent,f.now());const publication=await claimPublication(f.db,r.snapshot,intent.releaseId,f.now());
   await recordPublicationDispatch(f.db,r.snapshot,publication,'version:continued-version',f.now());
+  // An acknowledged upload may outlive both leases. Normal activation remains
+  // fenced; a separately authorized exact permanent finish changes no tokens.
+  f.advance(16*60000);const attempt=f.sql.prepare('SELECT attempts FROM catalog_build_requests WHERE request_id=?').get(build.requestId).attempts;
+  const changes=f.sql.prepare('SELECT total_changes() n').get().n;
+  await recordPublicationDispatch(f.db,r.snapshot,publication,'version:continued-version',f.now());
+  assert.equal(f.sql.prepare('SELECT total_changes() n').get().n,changes);
   const prior=JSON.parse(r.priorRow.manifest_json),dispatches=f.dispatches();
+  const observe=async()=>({environment:scope.environment,settled:true,active:{...prior,versionReference:'native-initial-version'}});
+  await assert.rejects(beginBuildActivation(f.db,build,r.snapshot,publication,'continued-version',observe,f.now(),queued.owner));
+  await assert.rejects(beginBuildActivation(f.db,build,r.snapshot,publication,'wrong-version',observe,f.now(),queued.owner,undefined,authority));
   const permit=await beginBuildActivation(f.db,build,r.snapshot,publication,'continued-version',
-    async()=>({environment:scope.environment,settled:true,active:{...prior,versionReference:'native-initial-version'}}),f.now(),queued.owner,undefined,authority);
+    observe,f.now(),queued.owner,undefined,authority);
+  assert.equal(f.sql.prepare('SELECT attempts FROM catalog_build_requests WHERE request_id=?').get(build.requestId).attempts,attempt);
   const plan=prunedVectorPlan(r),control={catalogRevision:plan.catalogRevision,planSha256:sha256(canonicalJson(plan)),ids:prunedVectorIds(plan)};
   const read=()=>readActivatedCatalogVectors(f.db,permit,control,f.adapters);
   await completeActivatedApprovedCatalogPublication(f.db,r,publication,permit,async()=>{await read();return intent;},f.now);

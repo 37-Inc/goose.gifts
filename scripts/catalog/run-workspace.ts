@@ -153,6 +153,7 @@ export interface RunWorkspace {
   grantActivationRecoveryBudget(input:ActivationRecoveryBudget):Promise<BudgetCeiling>;
   /** Once-only owner-approved finish of an already acknowledged upload. */
   grantPublicationFinishBudget(input:PublicationFinishBudget):Promise<BudgetCeiling>;
+  publicationFinishBudget():Promise<PublicationFinishBudget|null>;
   /** Once-only explicit pre-upload request allowance; no SQL/row/cadence reset. */
   grantPublicationRequestBudget(input:PublicationRequestBudget):Promise<BudgetCeiling>;
   publicationRequestBudget():Promise<PublicationRequestBudget|null>;
@@ -529,11 +530,11 @@ function apply(state:State,event:Event,dry=false) {
     if(!exact(event,['type','grant'])||!exact(g,['expectedCheckpointSha256','approvalReference','versionReference','allowance','reportedRowsRead','usage'])
       ||state.finish||state.recovery||!cp||cp.sha256!==g.expectedCheckpointSha256||!hash(g.approvalReference)
       ||!p||p.stage!=='uploaded'||p.permit||p.versionReference!==g.versionReference||cp.checkpoint.owner?.phase!=='freezing'
-      ||!cp.checkpoint.pins.publicationUploadTransportAcknowledged||cp.checkpoint.pins.reviewedUploadActivationPending
+      ||!(cp.checkpoint.pins.publicationUploadTransportAcknowledged||cp.checkpoint.pins.publicationUploadAcknowledged)
+      ||cp.checkpoint.pins.reviewedUploadActivationPending
       ||!exact(g.allowance,['httpRequests','sqlStatements'])||!Object.values(g.allowance).every(integer)
       ||g.allowance.httpRequests>1000||g.allowance.sqlStatements>2000||!same(g.usage,totals(state))||g.usage.unconfirmedRequests!==0
-      ||!integer(g.reportedRowsRead)||g.reportedRowsRead<=g.usage.knownRowsRead||g.reportedRowsRead>g.usage.knownRowsRead+750000
-      ||g.reportedRowsRead>2000000)fail('finish_budget_binding');
+      ||!integer(g.reportedRowsRead)||g.reportedRowsRead<=g.usage.knownRowsRead||g.reportedRowsRead>3000000)fail('finish_budget_binding');
     if(!dry)state.finish=structuredClone(g);
   }else if(event.type==='catalog-successor-part'){
     const prior=state.successor;
@@ -1057,6 +1058,9 @@ export async function openRunWorkspace(input:RunWorkspaceOptions):Promise<RunWor
         if(state.finish){const {usage:unused,...original}=state.finish;void unused;
           if(!same(original,input))fail('finish_budget_replay');return ceiling(state);}
         await append({type:'publication-finish-budget',grant:{...structuredClone(input),usage:totals(state)}});return ceiling(state);
+      }),
+      publicationFinishBudget:()=>serial(async()=>{
+        if(!state.finish)return null;const {usage:unused,...grant}=state.finish;void unused;return structuredClone(grant);
       }),
       grantPublicationRequestBudget:(input:PublicationRequestBudget)=>serial(async()=>{
         if(state.requestGrant){const {usage:unused,...original}=state.requestGrant;void unused;
