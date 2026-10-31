@@ -165,6 +165,11 @@ export async function failPublication(db: CatalogD1, releaseId: string, token: s
 }
 export async function recordPublicationDispatch(db: CatalogD1, snapshot: CatalogSnapshot, claim: PublicationClaim, reference: string, now: Date): Promise<void> {
   if (!/^[a-zA-Z0-9._:/-]{1,200}$/.test(reference)) throw new Error('invalid_dispatch_reference');
+  // Lost acknowledgement after the original write: exact readback only, even
+  // after lease expiry. This grants no activation authority or renewed lease.
+  const existing=await row(db,claim.intent.releaseId);
+  if(existing?.state==='dispatched'&&existing.intent_id===claim.intentId&&existing.lease_token===claim.token
+    &&existing.intent_json===encode(claim.intent)&&existing.dispatch_reference===reference)return;
   const check = gate(snapshot, claim.intent);
   await db.prepare(`UPDATE publication_outbox SET state='dispatched',dispatch_reference=?,updated_at=?
     WHERE intent_id=? AND lease_token=? AND intent_json=? AND state='claimed' AND lease_until>${DATABASE_NOW} AND ${check.sql}`)

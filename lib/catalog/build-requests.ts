@@ -275,18 +275,18 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
   if (intent.codeSha !== request.codeSha || intent.priorReleaseId !== request.priorReleaseId || snapshot.catalogRevision !== intent.catalogRevision
     || intent.nextExpiry !== earliest || snapshot.products.some(product => catalogDisplayDeadline(product) <= Date.parse(request.cutoff))
     || !(await rollbackPreflight(db, snapshot, now)).ok) throw new Error('build_publication_unready');
-  if(continuation&&!mutationOwner)throw Error('build_permanent_continuation_invalid');
+  if(continuation&&(!mutationOwner||mutationOwner.phase!=='freezing'))throw Error('build_permanent_continuation_invalid');
   const gate = sourceGate(request,continuation?await permanentPublicationDeadline(request,snapshot,continuation,now):request.cutoff);
   const visible = visibleRevisionCountQuery(intent.catalogRevision);
   const imports = await unabandonedImportsQuery(db,request.environment);
   const statement = db.prepare(`UPDATE catalog_build_requests SET state='activating',lease_until=NULL,release_id=?,version_reference=?
-    WHERE request_id=? AND request_json=? AND lease_token=? AND run_reference=? AND state='building' AND lease_until>${NOW}
+    WHERE request_id=? AND request_json=? AND lease_token=? AND run_reference=? AND state='building' AND (lease_until>${NOW} OR ?=1)
       AND ${gate.sql}
       AND NOT EXISTS(SELECT 1 FROM catalog_build_requests WHERE environment=? AND state='activating')
       AND (SELECT coalesce(max(rowid),0) FROM publication_receipts)=?
       AND ${imports.sql}
       AND EXISTS(SELECT 1 FROM publication_outbox WHERE intent_id=? AND release_id=? AND intent_json=? AND lease_token=?
-        AND state='dispatched' AND lease_until>${NOW})
+        AND state='dispatched' AND (lease_until>${NOW} OR ?=1) AND (?=0 OR dispatch_reference=?))
       AND EXISTS(SELECT 1 FROM catalog_projection_receipts p JOIN catalog_revisions c ON c.revision=p.catalog_revision
         AND c.source_export_sha256=p.source_export_sha256 WHERE p.catalog_revision=? AND p.snapshot_sha256=? AND p.product_count=?
         AND c.status IN ('reconciled','published'))
@@ -294,8 +294,9 @@ export async function beginBuildActivation(db: CatalogD1, claim: CatalogBuildCla
       AND (SELECT coalesce(max(sequence),0) FROM vector_sync_outbox WHERE source_revision=?)=?
       AND NOT EXISTS(SELECT 1 FROM vector_sync_outbox WHERE source_revision=? AND status!='complete')
       AND (? IS NULL OR ?>${NOW}) AND ${mutation.sql}`)
-    .bind(intent.releaseId, versionReference, claim.requestId, stored.request_json, claim.token, claim.runReference,
+    .bind(intent.releaseId, versionReference, claim.requestId, stored.request_json, claim.token, claim.runReference,continuation?1:0,
       ...gate.params, request.environment, receiptEpoch, ...imports.params, publication.intentId, intent.releaseId, encodePublicationIntent(intent), publication.token,
+      continuation?1:0,continuation?1:0,`version:${versionReference}`,
       intent.catalogRevision, intent.catalogSnapshotSha256, snapshot.products.length, ...visible.params, snapshot.products.length,
       intent.catalogRevision, intent.vectorSyncWatermark, intent.catalogRevision, intent.nextExpiry, intent.nextExpiry, ...mutation.params);
   if (mutationOwner) {

@@ -382,7 +382,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   const {db,workspace,revision}=options;const config=validatePublicationConfig(options.config);const now=options.dependencies?.now??(()=>new Date());
   if(options.buildRecovery)encodeBuildRecoveryApproval(options.buildRecovery);
   const reviewed=options.reviewedUploadRetry;
-  if(options.finishAuthorization&&!reviewed?.transport)throw new Error('publication_finish_authorization_invalid');
+  if(options.finishAuthorization&&!reviewed?.transport&&!options.approvedCatalog?.persistent)throw new Error('publication_finish_authorization_invalid');
   const pendingLabel=reviewed?.transport?'publicationUploadTransportPending':'publicationUploadRetryPending';
   const ackLabel=reviewed?.transport?'publicationUploadTransportAcknowledged':'publicationUploadRetryAcknowledged';
   if(reviewed)encodeReviewedUploadActivationApproval(reviewed.approval);
@@ -405,8 +405,16 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
   const command=options.dependencies?.command??commandDefault;const configSha256=sha256(canonicalJson(config));
   let checkpoint=await workspace.readCheckpoint({controlOnly:true});let control=checkpoint?.checkpoint.control?.publication;
   const requestBudget=await workspace.publicationRequestBudget?.();
-  const continuation=requestBudget&&options.approvedCatalog?.persistent&&revision?.snapshot.products.every(p=>p.eligibleUntil===null)
+  let continuation=requestBudget&&options.approvedCatalog?.persistent&&revision?.snapshot.products.every(p=>p.eligibleUntil===null)
     ?{approvalReference:requestBudget.approvalReference,approvedAt:requestBudget.approvedAt,publicationUntil:requestBudget.publicationUntil}:undefined;
+  if(options.finishAuthorization&&!reviewed){
+    const f=options.finishAuthorization,grant=await workspace.publicationFinishBudget?.();
+    if(!control||!grant||grant.approvalReference!==f.authorizationSha256||grant.versionReference!==control.versionReference
+      ||!checkpoint?.checkpoint.pins.publicationUploadAcknowledged||checkpoint.checkpoint.pins.publicationUploadReview
+      ||!revision?.snapshot.products.every(p=>p.eligibleUntil===null))throw new Error('publication_finish_authorization_invalid');
+    validatePublicationFinishAuthority(f,control.build.request.cutoff,control.versionReference!);
+    continuation={approvalReference:f.authorizationSha256,approvedAt:f.reviewedAt,publicationUntil:f.activationDeadline};
+  }
   let owner=options.owner;const directory=path.join(workspace.directory,'packages',config.releaseId);
   // Preserve the original failed command's logs/output byte-for-byte. The
   // continuation remains inside the already registered retention directory.
@@ -1015,7 +1023,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
     // exact durable control/package and has no second activation path.
     return executePublication({...options,owner,dependencies:options.dependencies});
   }catch(error){
-    const code=error instanceof Error&&/^publication_[a-z_]+$/.test(error.message)?error.message:'publication_pending';
+    const code=error instanceof Error&&/^(?:publication_[a-z_]+|catalog_d1_budget_exhausted)$/.test(error.message)?error.message:'publication_pending';
     return{state:'pending',owner,errorCode:code};
   }
 }

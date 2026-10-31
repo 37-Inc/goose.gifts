@@ -179,14 +179,30 @@ test('acknowledged-upload finish budget is once-only, retains charges and cannot
   const saved=await w.writeCheckpoint(null,value),grant={expectedCheckpointSha256:saved.sha256,approvalReference:HASH,
     versionReference:value.control.publication.versionReference,allowance:{httpRequests:2,sqlStatements:3},reportedRowsRead:1000};
   const original=await readFile(join(w.directory,'manifest.json'));
-  for(const change of [{reportedRowsRead:2000001},{allowance:{httpRequests:1001,sqlStatements:3}},{versionReference:'another-version'}])
+  for(const change of [{reportedRowsRead:3000001},{allowance:{httpRequests:1001,sqlStatements:3}},{versionReference:'another-version'}])
     await assert.rejects(w.grantPublicationFinishBudget({...grant,...change}),/finish_budget_binding/);
   assert.deepEqual(await w.grantPublicationFinishBudget(grant),{httpRequests:3,sqlStatements:5});
+  assert.deepEqual(await w.publicationFinishBudget(),grant);
   assert.deepEqual(await readFile(join(w.directory,'manifest.json')),original);
   assert.equal((await w.budget()).knownRowsRead,150);await w.close();const resumed=await f.open({mode:'resume'});
   assert.deepEqual(await resumed.grantPublicationFinishBudget(grant),{httpRequests:3,sqlStatements:5});
   await assert.rejects(resumed.grantPublicationFinishBudget({...grant,reportedRowsRead:1100}),/finish_budget_replay/);
   assert.equal((await resumed.budget()).knownRowsWritten,5);
+});
+
+test('ordinary acknowledged upload admits explicit Free-quota finish without changing original caps or charges',async t=>{
+  const f=await fixture(t),w=await f.open(),value=recoveryCheckpoint();
+  value.phase='publishing';value.owner.phase='freezing';value.control.publication.stage='uploaded';value.control.publication.permit=null;
+  const saved=await w.writeCheckpoint(null,value),grant={expectedCheckpointSha256:saved.sha256,approvalReference:HASH,
+    versionReference:value.control.publication.versionReference,allowance:{httpRequests:1000,sqlStatements:2000},reportedRowsRead:3000000};
+  await assert.rejects(w.grantPublicationFinishBudget(grant),/finish_budget_binding/);
+  value.pins.publicationUploadAcknowledged=await w.putArtifact({fixture:'ordinary-upload-ack'},{kind:'publication',observedAt:NOW});
+  const acknowledged=await w.writeCheckpoint(saved.sha256,value),bound={...grant,expectedCheckpointSha256:acknowledged.sha256};
+  const original=await readFile(join(w.directory,'manifest.json'));
+  assert.deepEqual(await w.grantPublicationFinishBudget(bound),{httpRequests:1000,sqlStatements:2000});
+  assert.deepEqual(await w.publicationFinishBudget(),bound);assert.deepEqual(await readFile(join(w.directory,'manifest.json')),original);
+  assert.equal((await w.budget()).knownRowsRead,0);await w.close();const reopened=await f.open({mode:'resume'});
+  assert.deepEqual(await reopened.publicationFinishBudget(),bound);
 });
 
 async function finalizationFixture(t,{finite=false,skipFinish=false,noDeployment=false}={}){
