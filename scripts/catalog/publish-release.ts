@@ -540,7 +540,7 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
       if(!revision||owner.phase!=='freezing'||owner.environment!==config.environment||owner.indexName!==config.indexName)throw new Error('publication_revision_required');
       await db.batch([mutationAssertion(db,owner,['freezing'])]);
       let build;
-      try{build=await claimBuildRequest(db,options.requestId,options.runReference,now());}catch{/* Recover only this exact persisted run's claim. */}
+      try{build=await claimBuildRequest(db,options.requestId,options.runReference,now(),options.approvedCatalog?.persistent?3600000:undefined);}catch{/* Recover only this exact persisted run's claim. */}
       if(!build){const row=(await db.prepare('SELECT * FROM catalog_build_requests WHERE request_id=?').bind(options.requestId).all<Record<string,unknown>>()).results[0];
         if(row?.state==='building'&&row.run_reference===options.runReference&&typeof row.lease_until==='string'&&row.lease_until>now().toISOString()){
           build={requestId:options.requestId,token:String(row.lease_token),runReference:options.runReference,leaseUntil:row.lease_until,
@@ -734,10 +734,11 @@ export async function executePublication(options:{db:CatalogD1&{providerIdentity
         await db.batch([mutationAssertion(db,owner,['freezing']),exact(buildRow),undispatched(),mutationAssertion(db,owner,['freezing'])]);
       }
       if(canonicalTime(old.leaseUntil)<=at){
-        const attempts=Number(buildRow.attempts),leaseUntil=new Date(Math.min(Date.parse(at)+15*60000,Date.parse(activationDeadline??old.request.cutoff))).toISOString();
+        const leaseMs=options.approvedCatalog?.persistent?3600000:900000;
+        const attempts=Number(buildRow.attempts),leaseUntil=new Date(Math.min(Date.parse(at)+leaseMs,Date.parse(activationDeadline??old.request.cutoff))).toISOString();
         if(!Number.isInteger(attempts)||attempts<1||attempts>=3||leaseUntil<=at)throw new Error('publication_build_reclaim_fenced');
         let reclaimed:Awaited<ReturnType<typeof claimBuildRequest>>=null,uncertain=false;
-        try{reclaimed=await claimBuildRequest(db,old.requestId,old.runReference,new Date(at),15*60000,
+        try{reclaimed=await claimBuildRequest(db,old.requestId,old.runReference,new Date(at),leaseMs,
           continuation?{authority:continuation,snapshot:revision!.snapshot,owner}:undefined);}catch{uncertain=true;}
         if(!reclaimed&&!uncertain)throw new Error('publication_build_reclaim_fenced');
         const row=(await db.prepare("SELECT *,strftime('%Y-%m-%dT%H:%M:%fZ','now') observed_at FROM catalog_build_requests WHERE request_id=?")

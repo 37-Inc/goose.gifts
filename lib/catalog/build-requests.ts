@@ -117,7 +117,7 @@ export async function claimBuildRequest(db: CatalogD1, requestId: string, runRef
   if(continuation&&(continuation.owner.environment!==request.environment||continuation.owner.phase!=='freezing'
     ||stored.run_reference!==runReference||stored.dispatch_reference!==null))throw Error('build_permanent_continuation_invalid');
   const gate = sourceGate(request,deadline); const token = crypto.randomUUID();
-  const leaseUntil = new Date(Math.min(now.getTime() + Math.max(1000, Math.min(leaseMs, 900000)), Date.parse(deadline))).toISOString();
+  const leaseUntil = new Date(Math.min(now.getTime() + Math.max(1000, Math.min(leaseMs, 3600000)), Date.parse(deadline))).toISOString();
   await db.batch([
     ...(continuation?[mutationAssertion(db,continuation.owner,['freezing'])]:[]),
     ...(continuation?[db.prepare(`SELECT json(CASE WHEN EXISTS(SELECT 1 FROM catalog_vector_deliveries
