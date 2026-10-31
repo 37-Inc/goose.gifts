@@ -1,6 +1,6 @@
 # goose.gifts — Strategy & Roadmap
 
-## Current checkpoint — October25 2026
+## Current checkpoint — October30 2026
 
 Full catalog restoration, held-listing cleanup and publication are complete:
 3,352public gifts,31specific exclusions, all3,383identities and42original
@@ -10,16 +10,17 @@ Every home/search/guide card has an image, title and short description; the whit
 gallery, Load more and working keyword search are live. Only the redundant
 `/gifts` directory/aliases retire404, not individual product pages.
 
-Actual `owner-held-final-20261026` / runtime6f3e0c1 has matching receipt, resolved
-build, idle owner, successor and desktop/mobile QA.17,225physical assets leave
-2,775files of Free headroom. Earlier recovery `.4.9` is also finalized; never
-replay completed runs. The one08:30Pacific routine resumes from the maintained
-clean operator. Remaining follow-ups are first normal scheduled cost/storage
-(`.4.8`), non-featured freshness rotation within the same ten slots (`.4.11`),
-useful search/native parity
-(`.4.7`), final provider/
-analytics/consumer checks (`.8`), existing Pinterest measurement/destinations
-(`.8.1`), show selections (`.5`) and eventual legacy retirement (`.7`). These are
+Actual `catalog-corrected-20261030-36a54e6` / runtime36a54e6 has matching D1
+receipt, resolved build, idle owner28/555, successor and desktop/mobile QA.
+Document-only publication reduced the package to7,021 physical assets, leaving
+12,979 files of Free headroom; HTML/OG/legal/runtime assets remain. Earlier
+recoveries are finalized and must never replay. Normal daily care uses the
+maintained clean operator and the SAME08:30Pacific task. Remaining follow-ups
+are first normal scheduled cost/storage (`.4.8`), fair4/6 refresh and bounded
+Monday discovery evidence (`.4.14/.4.11`), podcast-spike readiness (`.4.16`),
+attribution/consumer checks and existing Pinterest measurement (`.8/.8.1`),
+and Howie's feedback. Semantic serving/keyword fallback and legacy Vercel/Neon
+retirement are complete; preserve backups and Cloudflare redirects. These are
 canonical Beads under `roadmap-lbbz1`, not a request to reimport the catalog,
 regenerate all copy, add a scheduler or upgrade Cloudflare. Historical notes below
 describe earlier checkpoints and are not current operating instructions.

@@ -58,6 +58,19 @@ test('routine publication preserves only the approved bounded semantic policy',(
     {derivedCatalog:{...policy.derivedCatalog,path:'/Users/cameronehrlich/.codex/private/goose-gifts-migration/../catalog.json'}}])
     assert.throws(()=>routineSearchPolicy({...policy,...change}),/semantic_policy/);
 });
+test('routine Free admission accepts an empty provider error array but refuses actual or malformed errors',async()=>{
+  const send=errors=>async(...args)=>Response.json({...await(await usage(0,0)(...args)).json(),errors});
+  assert.equal((await headroom('synthetic',undefined,null,send([]))).rowsRead,0);
+  for(const errors of [[{message:'provider unavailable'}],{},'invalid'])
+    await assert.rejects(headroom('synthetic',undefined,null,send(errors)),/headroom_unavailable/);
+  await assert.rejects(headroom('synthetic',undefined,null,send([{extensions:{code:'budget'}}])),/headroom_rate_limited/);
+  await headroom('synthetic',undefined,null,async(url,init)=>{
+    assert.match(JSON.parse(init.body).query,/limit:1000,/);return usage(0,0)(url,init);
+  });
+  await assert.rejects(headroom('synthetic',undefined,null,async()=>Response.json({data:{viewer:{accounts:[{
+    d1AnalyticsAdaptiveGroups:Array.from({length:1000},()=>({sum:{rowsRead:0,rowsWritten:0}}))}]}}})),/headroom_unavailable/);
+});
+
 test('routine Free admission includes remaining work, uncertainty, and untouched shared headroom',async()=>{
   const result=await headroom('synthetic',undefined,null,usage(2_000_000,20_000));
   assert.equal(result.rowsRead,2_000_000);

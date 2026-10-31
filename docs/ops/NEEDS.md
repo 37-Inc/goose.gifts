@@ -5,15 +5,15 @@ Items move to "Received" when done.
 
 ## P0 — blocking autonomous operation
 
-No current owner authentication, imagery, request-cap or paid-upgrade decision
-blocks catalog operation. Full original presentation is restored: 2,359 public
-gifts, 1,024 preserved holds and 42 original articles. The real one-product
-update is verified, followed by the live white-gallery release
-`storefront-da7a1e0c1523`. The same bounded daily task is enabled at 08:30 Pacific
-and its operator now includes the new storefront. See
-`evidence/2026-10-23-storefront-accepted.json`. Verify its first actual normal
-scheduled run and Free-tier cost in `roadmap-lbbz1.4.8`, without another manual
-batch. Historical gated/recovery instructions below do not override this state.
+No current owner authentication, imagery, quota or paid-upgrade decision blocks
+catalog operation. October30 recovery is actually published and finalized:
+3,352 public gifts,31 specific exclusions,3,383 retained identities and42
+articles; all cards have images/titles/descriptions. The existing08:30Pacific
+task uses the clean maintained catalog-care checkout, not historical frozen
+operators. See `evidence/2026-10-30-catalog-care-accepted.json` and canonical
+`.4.13` for release/task evidence. First actual scheduled cost/rotation remains
+`.4.8/.4.14`; no extra manual batch is needed. Older gated notes below are
+historical, not current requests for permission.
 
 ## P1 — needed within the first weeks
 
@@ -23,7 +23,7 @@ serves301 for both Goose hosts and schemes, preserving paths/query/Pin UTMs.
 ownership is verified; sitemap processing succeeds with184 discovered pages;
 domain and www Change of Address requests are accepted. See
 `goose-redirect-2026-10-23/README.md`. No owner DNS/login request remains.
-Legacy Vercel/Neon deletion/renewal/repository changes remain separately gated;
+Legacy Vercel/Neon retirement is complete; preserve backups and redirects.
 Goose registration currently expires October3,2028. Pinterest stays metric-only.
 
 ### Stupid Gifts launch — deferred owner decisions

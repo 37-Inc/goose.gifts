@@ -1,5 +1,20 @@
 # goose.gifts — Running Changelog & Plan
 
+## 2026-10-30 — Catalog recovery is live and finalized
+
+[owner+codex] Reused the original immutable upload and published
+`catalog-corrected-20261030-36a54e6` on Cloudflare Free. Real receipt, resolved
+build, idle owner28/555, successor and public desktop/mobile checks pass.
+3352 public gifts/31 exclusions/3383 identities/42 articles are preserved.
+The original batch refreshed eight products; two supplier misses did not
+deactivate listings. No extra supplier/model calls or second upload.
+PR321 fixes expired-claim completion and normal build/cleanup timing; normal
+recurring limits remain unchanged. Daily usage preflight now handles empty
+error arrays, makes a smaller completeness-checked query and identifies the
+provider's temporary analytics throttle accurately. Existing08:30Pacific task
+and canonical operator remain the only daily path. First actual scheduled
+cost/rotation evidence stays open in `.4.8/.4.14`; this manual recovery is not it.
+
 ## 2026-10-30 — Finish the acknowledged permanent upload
 
 [owner+codex] Cameron authorized available daily Free quota to finish the same
@@ -674,6 +689,15 @@ context: **what we've done, and where we're going.**
 ---
 
 ## Upcoming / planned
+
+- Verify the first actual scheduled normal-run cost, storage/static growth and
+  build/cleanup duration (`.4.8`), plus normal4/6 refresh rotation and Monday
+  admission-before-enrichment evidence (`.4.14/.4.11`).
+- Finish the bounded podcast-spike readiness assessment (`.4.16`) and await
+  Howie's feedback. Existing Pinterest measurement remains separate; no new
+  posting or Creator Product Research integration is authorized here.
+
+### Historical planning notes — superseded by current Beads and runbook
 
 - [owner+codex, 2026-10-23] Simplification is in review: no speculative native
   deletes for ordinary legacy refreshes; tracked daily operator; shorter active

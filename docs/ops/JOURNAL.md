@@ -6,6 +6,40 @@ state changes without dirtying its retained execution checkout.
 
 ---
 
+## 2026-10-30 — Exact uploaded catalog accepted; daily-care handoff
+
+PR321 merged4298129; frozen finish operator2f6eb6f reused the original version
+99409f6b-ce64-4cb2-bb00-9730bcd81aaa, with no new build/upload/provider batch.
+Actual release catalog-corrected-20261030-36a54e6/runtime36a54e6686085ce22f18c62814278d06e35bd00b
+is live, deployment193f85c6-584d-4192-ab9c-fbf9fb72fa4e, manifest60dacd8891ec29c4a35b795734c190715a601291d029300c8d0fbe45250fa03a,
+snapshotad8221aeee856f7a7e0b0ea3b56d712f2c6b80484b921d5bd3f6db99f02abc98.
+Genuine D1 receipt01a8261680fb03b61cf800503667e9ee4c74ab913b6d6cadb8b17406b6d92108,
+resolved build, final idle owner28/555/external_pending0 and body-free successor
+2b0766ba439f3c3e2bc8b5a1000caf8c3cf5d0f4b5736a544de98ae4913e5906
+match. All3352 public/31 excluded/3383 identities/42 articles remain unchanged
+in membership, with every card retaining image/title/short description.
+Original ten-item run:8 refreshed,2 supplier-missing,0 deactivated. Historical
+bad3349 staging and original native repair stay preserved and must never replay.
+
+Protected accepted-publication.json SHAe3a691c417146261ca34166e78fdbc0d4d8c2264e75f1c7040a3bcd37facff55
+records complete retained totals6093HTTP/9263SQL/2181633known reads/40538writes,
+four original read-only unknowns and zero child unknowns. Latest new UTC-day
+account usage638423reads/16writes; no upgrade. Final usage reporting briefly
+hit Cloudflare GraphQL's separate rate budget after publication/telemetry were
+already finalized. Read-only closeout after its retry delay completed the
+receipt; no activation, upload, claim or merchant phase was repeated.
+
+Both strict typechecks, lint, full3352 build/7021-file verifier,258 publisher
+tests,120 workspace/native tests and new focused regressions pass. Live QA:
+home24→48, loaded photos/copy, Clear/minimum-input hint, tagged Amazon link,
+changing Random, seven correct /h reveals after Go with separate opening,
+390px white two-column layout/no overflow,3397-URL sitemap and Goose301s.
+Keyword relevance/empty-result tests used the released snapshot and Worker
+with DB/model adapters forbidden; no live embedding query was made. QA was
+labelledutm_medium=qa. Old Vercel/Neon remain retired and backups retained.
+The next normal run uses the maintained operator and same08:30Pacific task;
+`.4.8/.4.14` retain first actual scheduled cost/rotation acceptance.
+
 ## 2026-10-29 — PR301 merged and storefront accepted
 
 Source462d603/main merge4b94204 is live in Cloudflare release
